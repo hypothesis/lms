@@ -39,8 +39,13 @@ class CourseService:
         :param context_id: The course id from LTI params
         """
 
-        return self._get_by_authority_provided_id(
-            authority_provided_id=self._get_authority_provided_id(context_id)
+        return (
+            self._db.query(Course)
+            .filter_by(
+                application_instance=self._application_instance,
+                authority_provided_id=self._get_authority_provided_id(context_id),
+            )
+            .one_or_none()
         )
 
     def upsert_course(self, context_id, name, extra, settings=None) -> Course:
@@ -53,16 +58,13 @@ class CourseService:
         :param settings: A dict of settings for the course
         """
 
-        authority_provided_id = self._get_authority_provided_id(context_id)
-
         return self._grouping_service.upsert_groupings(
             [
                 {
                     "lms_id": context_id,
                     "lms_name": name,
                     "extra": extra,
-                    "settings": settings
-                    or self._new_course_settings(authority_provided_id),
+                    "settings": settings or self._new_course_settings(context_id),
                 }
             ],
             type_=Grouping.Type.COURSE,
@@ -73,17 +75,7 @@ class CourseService:
             lms_id=context_id, type_=Grouping.Type.COURSE
         )
 
-    def _get_by_authority_provided_id(self, authority_provided_id):
-        return (
-            self._db.query(Course)
-            .filter_by(
-                application_instance=self._application_instance,
-                authority_provided_id=authority_provided_id,
-            )
-            .one_or_none()
-        )
-
-    def _new_course_settings(self, authority_provided_id):
+    def _new_course_settings(self, context_id):
         # By default we'll make our course setting have the same settings
         # as the application instance
         course_settings = deepcopy(self._application_instance.settings)
@@ -91,15 +83,17 @@ class CourseService:
         # Unless! The group was pre-sections, and we've just seen it for the
         # first time in which case turn sections off
         if course_settings.get("canvas", "sections_enabled") and self._is_pre_sections(
-            authority_provided_id
+            context_id
         ):
             course_settings.set("canvas", "sections_enabled", False)
 
         return course_settings
 
-    def _is_pre_sections(self, authority_provided_id):
+    def _is_pre_sections(self, context_id):
         return bool(
-            self._db.query(CourseGroupsExportedFromH).get(authority_provided_id)
+            self._db.query(CourseGroupsExportedFromH).get(
+                self._get_authority_provided_id(context_id)
+            )
         )
 
 
