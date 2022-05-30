@@ -4,7 +4,7 @@ from unittest.mock import sentinel
 import pytest
 from h_matchers import Any
 
-from lms.models import Grouping, GroupingMembership
+from lms.models import CanvasGroup, Grouping, GroupingMembership
 from lms.services.grouping import GroupingService, factory
 from tests import factories
 
@@ -75,111 +75,90 @@ class TestGenerateAuthorityProvidedID:
 
 
 class TestUpsertWithParent:
-    def test_when_empty(self, svc):
-        course = factories.Course()
-
+    def test_it_with_empty_list(self, svc, parent_course):
         assert not svc.upsert_with_parent(
             [],
             type_=Grouping.Type.CANVAS_GROUP,
-            parent=course,
+            parent=parent_course,
         )
 
-    def test_it(self, db_session, svc):
-        # Create a parent course for the groupings to belong to.
-        # The course has to belong to svc.application_instance.
-        course = factories.Course(application_instance=svc.application_instance)
-        # A pre-existing grouping that we'll update.
-        existing_grouping = {
-            "lms_id": "existing_id",
-            "lms_name": "existing_name",
-            "extra": {"existing": "extra"},
+    @pytest.mark.parametrize("pre_flush", (True, False))
+    def test_it_can_create_new(self, db_session, svc, parent_course, pre_flush):
+        if pre_flush:
+            db_session.flush()
+        else:
+            assert parent_course.id is None
+        attrs = {
+            "lms_id": "new_id",
+            # We'll update existing_grouping's lms_name and extra.
+            "lms_name": "new_name",
+            "extra": {"created": "extra"},
         }
-        # Unfortunately we have to use upsert_with_parent() itself to insert the pre-existing grouping.
-        svc.upsert_with_parent(
-            [existing_grouping],
-            type_=Grouping.Type.CANVAS_GROUP,
-            parent=course,
-        )
 
-        # Upsert one grouping that already exists and one that doesn't exist yet.
         groupings = svc.upsert_with_parent(
-            [
-                # The pre-existing grouping to update.
-                {
-                    "lms_id": existing_grouping["lms_id"],
-                    # We'll update existing_grouping's lms_name and extra.
-                    "lms_name": "updated_name",
-                    "extra": {"updated": "extra"},
-                },
-                # The new grouping to create.
-                {
-                    "lms_id": "new_grouping_id",
-                    "lms_name": "new_grouping_name",
-                    "extra": {"new": "extra"},
-                },
-            ],
+            [attrs],
             type_=Grouping.Type.CANVAS_GROUP,
-            parent=course,
+            parent=parent_course,
         )
 
-        # It should have updated the existing grouping.
-        existing_grouping = (
-            db_session.query(Grouping).filter_by(lms_id="existing_id").one()
-        )
-        assert existing_grouping.lms_name == "updated_name"
-        assert existing_grouping.extra == {"updated": "extra"}
+        created_grouping = db_session.query(CanvasGroup).one()
 
-        # It should have created the new grouping.
-        new_grouping = (
-            db_session.query(Grouping).filter_by(lms_id="new_grouping_id").one()
+        assert groupings == [created_grouping]
+        assert created_grouping == Any.object.with_attrs(attrs)
+        assert created_grouping == Any.object.with_attrs(
+            {
+                "application_instance": svc.application_instance,
+                "authority_provided_id": Any.string(),
+                "updated": Any(),
+                "parent": parent_course,
+                "type": Grouping.Type.CANVAS_GROUP,
+            }
         )
-        assert new_grouping.lms_name == "new_grouping_name"
-        assert new_grouping.parent == course
-        assert new_grouping.extra == {"new": "extra"}
 
-        assert existing_grouping in groupings
-        assert new_grouping in groupings
+    def test_it_updates_existing(
+        self, db_session, svc, parent_course, existing_grouping
+    ):
+        attrs = {
+            "lms_id": existing_grouping.lms_id,
+            # We'll update existing_grouping's lms_name and extra.
+            "lms_name": "new_name",
+            "extra": {"updated": "extra"},
+        }
 
-    def test_you_can_have_a_group_and_a_section_with_the_same_id(self, svc):
-        course = factories.Course(application_instance=svc.application_instance)
-
-        common_grouping_args = {"lms_id": "same_lms_id", "lms_name": "same_name"}
-
-        canvas_group = svc.upsert_with_parent(
-            [common_grouping_args], parent=course, type_=Grouping.Type.CANVAS_GROUP
-        )[0]
-        canvas_section = svc.upsert_with_parent(
-            [common_grouping_args], parent=course, type_=Grouping.Type.CANVAS_SECTION
-        )[0]
-        blackboard_group = svc.upsert_with_parent(
-            [common_grouping_args], parent=course, type_=Grouping.Type.BLACKBOARD_GROUP
-        )[0]
-
-        # We've created three groupings with the same application_instance, parent and lms_id.
-        assert (
-            canvas_group.application_instance
-            == canvas_section.application_instance
-            == blackboard_group.application_instance
+        groupings = svc.upsert_with_parent(
+            [attrs],
+            type_=Grouping.Type.CANVAS_GROUP,
+            parent=parent_course,
         )
-        assert (
-            canvas_group.parent_id
-            == canvas_section.parent_id
-            == blackboard_group.parent_id
-        )
-        assert canvas_group.lms_id == canvas_section.lms_id == blackboard_group.lms_id
-        # But they have a different type and therefore a different authority_provided_id.
-        assert canvas_group.type != canvas_section.type
-        assert canvas_group.type != blackboard_group.type
-        assert blackboard_group.type != canvas_section.type
-        assert (
-            canvas_group.authority_provided_id != canvas_section.authority_provided_id
-        )
-        assert (
-            canvas_group.authority_provided_id != blackboard_group.authority_provided_id
-        )
-        assert (
-            blackboard_group.authority_provided_id
-            != canvas_section.authority_provided_id
+
+        # Load the changes we made in SQLAlchemy
+        db_session.refresh(existing_grouping)
+
+        assert groupings == [existing_grouping]
+        assert existing_grouping == Any.object.with_attrs(attrs)
+
+    @pytest.fixture
+    def parent_course(self, svc):
+        return factories.Course.create(application_instance=svc.application_instance)
+
+    @pytest.fixture
+    def existing_grouping(self, parent_course):
+        lms_id = "existing_id"
+
+        return factories.CanvasGroup.create(
+            lms_id=lms_id,
+            lms_name="existing_name",
+            extra={"existing": "extra"},
+            parent=parent_course,
+            # Construct the authority_provided_id correctly, otherwise we get
+            # a fake one generated by factory boy that doesn't line up
+            authority_provided_id=GroupingService.generate_authority_provided_id(
+                parent_course.application_instance.tool_consumer_instance_guid,
+                lms_id,
+                parent_course,
+                type_=Grouping.Type.CANVAS_GROUP,
+            ),
+            application_instance=parent_course.application_instance,
         )
 
 
