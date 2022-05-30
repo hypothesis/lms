@@ -29,7 +29,7 @@ class GroupingService:
 
         return hashed_id(guid, parent.lms_id, type_.value, lms_id)
 
-    def upsert_with_parent(
+    def upsert_groupings(
         self,
         grouping_dicts: List[dict],
         type_: Grouping.Type,

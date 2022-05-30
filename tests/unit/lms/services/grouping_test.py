@@ -7,8 +7,6 @@ from lms.models import CanvasGroup, Course, Grouping, GroupingMembership
 from lms.services.grouping import GroupingService, factory
 from tests import factories
 
-pytestmark = pytest.mark.usefixtures("application_instance_service")
-
 
 class TestGetAuthorityProvidedID:
     def test_it_for_courses(self, svc):
@@ -66,9 +64,9 @@ class TestGetAuthorityProvidedID:
         return application_instance
 
 
-class TestUpsertWithParent:
+class TestUpsertGroupings:
     def test_it_with_empty_list(self, svc, parent_course):
-        assert not svc.upsert_with_parent(
+        assert not svc.upsert_groupings(
             [],
             type_=Grouping.Type.CANVAS_GROUP,
             parent=parent_course,
@@ -91,7 +89,7 @@ class TestUpsertWithParent:
         else:
             assert parent_course.id is None
 
-        groupings = svc.upsert_with_parent(
+        groupings = svc.upsert_groupings(
             [attrs],
             type_=Grouping.Type.CANVAS_GROUP,
             parent=parent_course,
@@ -120,7 +118,7 @@ class TestUpsertWithParent:
             "extra": {"updated": "extra"},
         }
 
-        groupings = svc.upsert_with_parent(
+        groupings = svc.upsert_groupings(
             [attrs],
             type_=Grouping.Type.CANVAS_GROUP,
             parent=parent_course,
@@ -139,7 +137,7 @@ class TestUpsertWithParent:
             "extra": {"created": "extra"},
         }
 
-        courses = svc.upsert_with_parent([attrs], type_=Grouping.Type.COURSE)
+        courses = svc.upsert_groupings([attrs], type_=Grouping.Type.COURSE)
 
         assert courses == [Any.instance_of(Course).with_attrs(attrs)]
 
@@ -153,7 +151,7 @@ class TestUpsertWithParent:
             "extra": {"updated": "extra"},
         }
 
-        courses = svc.upsert_with_parent([attrs], type_=Grouping.Type.COURSE)
+        courses = svc.upsert_groupings([attrs], type_=Grouping.Type.COURSE)
 
         # Load the changes we made in SQLAlchemy
         db_session.refresh(parent_course)

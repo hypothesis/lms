@@ -86,7 +86,7 @@ def test_it_when_student(
     )
     grouping_service.upsert_grouping_memberships.assert_called_once_with(
         user_service.get.return_value,
-        grouping_service.upsert_with_parent.return_value,
+        grouping_service.upsert_groupings.return_value,
     )
 
 
@@ -134,7 +134,7 @@ def assert_sync_and_return_groups(
     lti_h_service, request_json, grouping_service, course_service
 ):
     def assert_return_values(groupids, groups):
-        expected_groups = grouping_service.upsert_with_parent(
+        expected_groups = grouping_service.upsert_groupings(
             [
                 {
                     "lms_id": group["id"],

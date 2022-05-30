@@ -136,7 +136,7 @@ class Sync:
     def _to_groups_groupings(self, groups):
         course = self._get_course()
 
-        return self._grouping_service.upsert_with_parent(
+        return self._grouping_service.upsert_groupings(
             [
                 {
                     "lms_id": group["id"],
@@ -152,7 +152,7 @@ class Sync:
     def _to_section_groupings(self, sections):
         course = self._get_course()
 
-        return self._grouping_service.upsert_with_parent(
+        return self._grouping_service.upsert_groupings(
             [
                 {
                     "lms_id": section["id"],
