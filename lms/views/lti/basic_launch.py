@@ -267,21 +267,15 @@ class BasicLaunchViews:
             self.context.resource_link_id,
             extra=extra,
         )
-        self.context.js_config.add_document_url(document_url)
 
-        self._sync_lti_data_to_h()
-        self._store_lti_data()
-
-        self.context.js_config.maybe_enable_grading()
-
-        # When setting the document it's possible the config might need updating
-        # based on the type of assignment since it was initialized
+        # When setting the document it's possible the config might need
+        # updating based on the type of assignment since it was initialized
         # with `enable_lti_launch_mode` on __init__
         # We need to clear the cache and `enable_lti_launch_mode` again.
         JSConfig._hypothesis_client.fget.cache_clear()  # pylint: disable=protected-access
         self.context.js_config.enable_lti_launch_mode()
 
-        return {}
+        return self._do_launch(document_url, grading_supported=True)
 
     def _do_launch(self, document_url, grading_supported=True):
         """Do a basic LTI launch with the given document_url."""
