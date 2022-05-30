@@ -34,7 +34,7 @@ from lms.views.predicates import BlackboardCopied, BrightspaceCopied
     route_name="lti_launches",
     schema=BasicLTILaunchSchema,
 )
-class BasicLTILaunchViews:
+class BasicLaunchViews:
     def __init__(self, context, request):
         self.context = context
         self.request = request
