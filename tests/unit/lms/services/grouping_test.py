@@ -3,7 +3,7 @@ from unittest.mock import sentinel
 import pytest
 from h_matchers import Any
 
-from lms.models import CanvasGroup, Grouping, GroupingMembership
+from lms.models import CanvasGroup, Course, Grouping, GroupingMembership
 from lms.services.grouping import GroupingService, factory
 from tests import factories
 
@@ -86,6 +86,10 @@ class TestUpsertWithParent:
             "lms_name": "new_name",
             "extra": {"created": "extra"},
         }
+        if pre_flush:
+            db_session.flush()
+        else:
+            assert parent_course.id is None
 
         groupings = svc.upsert_with_parent(
             [attrs],
@@ -94,7 +98,6 @@ class TestUpsertWithParent:
         )
 
         created_grouping = db_session.query(CanvasGroup).one()
-
         assert groupings == [created_grouping]
         assert created_grouping == Any.object.with_attrs(attrs)
         assert created_grouping == Any.object.with_attrs(
@@ -129,9 +132,45 @@ class TestUpsertWithParent:
         assert groupings == [existing_grouping]
         assert existing_grouping == Any.object.with_attrs(attrs)
 
+    def test_it_with_new_course(self, svc):
+        attrs = {
+            "lms_id": "course_id",
+            "lms_name": "course_name",
+            "extra": {"created": "extra"},
+        }
+
+        courses = svc.upsert_with_parent([attrs], type_=Grouping.Type.COURSE)
+
+        assert courses == [Any.instance_of(Course).with_attrs(attrs)]
+
+    def test_it_updates_courses(self, db_session, svc, parent_course):
+        # We need to flush the new course out, otherwise we get weird conflicts
+        db_session.flush()
+
+        attrs = {
+            "lms_id": parent_course.lms_id,
+            "lms_name": "new_name",
+            "extra": {"updated": "extra"},
+        }
+
+        courses = svc.upsert_with_parent([attrs], type_=Grouping.Type.COURSE)
+
+        # Load the changes we made in SQLAlchemy
+        db_session.refresh(parent_course)
+        assert courses == [parent_course]
+        assert parent_course == Any.object.with_attrs(attrs)
+
     @pytest.fixture
     def parent_course(self, svc):
-        return factories.Course.create(application_instance=svc.application_instance)
+        lms_id = "course_id"
+
+        return factories.Course.create(
+            lms_id=lms_id,
+            application_instance=svc.application_instance,
+            authority_provided_id=svc.get_authority_provided_id(
+                lms_id, Grouping.Type.COURSE
+            ),
+        )
 
     @pytest.fixture
     def existing_grouping(self, parent_course, svc):
