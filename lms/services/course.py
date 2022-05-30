@@ -52,25 +52,21 @@ class CourseService:
         :param extra: Additional LMS specific values
         :param settings: A dict of settings for the course
         """
+
         authority_provided_id = self._get_authority_provided_id(context_id)
 
-        course = self._get_by_authority_provided_id(authority_provided_id)
-        if not course:
-            course = Course(
-                application_instance_id=self._application_instance.id,
-                authority_provided_id=authority_provided_id,
-                lms_id=context_id,
-                lms_name=name,
-                settings=settings or self._new_course_settings(authority_provided_id),
-                extra=extra,
-            )
-            self._db.add(course)
-
-        # Update any values that might have changed
-        course.lms_name = name
-        course.extra = extra
-
-        return course
+        return self._grouping_service.upsert_groupings(
+            [
+                {
+                    "lms_id": context_id,
+                    "lms_name": name,
+                    "extra": extra,
+                    "settings": settings
+                    or self._new_course_settings(authority_provided_id),
+                }
+            ],
+            type_=Grouping.Type.COURSE,
+        )[0]
 
     def _get_authority_provided_id(self, context_id):
         return self._grouping_service.get_authority_provided_id(
