@@ -10,46 +10,42 @@ from tests import factories
 class TestGroupInfoService:
     AUTHORITY = "TEST_AUTHORITY_PROVIDED_ID"
 
-    def test_upsert_group_info_adds_a_new_if_none_exists(
-        self, application_instance, db_session, svc, params
-    ):
-        svc.upsert_group_info(
-            factories.Course(authority_provided_id=self.AUTHORITY),
-            application_instance=application_instance,
-            params=params,
-        )
+    def test_upsert_group_info_adds_a_new_if_none_exists(self, db_session, svc, params):
+        course = factories.Course(authority_provided_id=self.AUTHORITY)
+
+        svc.upsert_group_info(course, params=params)
 
         group_info = self.get_inserted_group_info(db_session)
 
-        assert group_info.application_instance == application_instance
+        assert group_info.application_instance == course.application_instance
         assert group_info.context_title == params["context_title"]
         assert group_info.context_label == params["context_label"]
         assert group_info.type == "course_group"
 
     def test_upsert_group_info_updates_an_existing_if_one_already_exists(
-        self, application_instance, db_session, svc, params, pre_existing_group
+        self, db_session, svc, params, pre_existing_group
     ):
         db_session.add(pre_existing_group)
 
         svc.upsert_group_info(
             factories.Course(authority_provided_id=self.AUTHORITY),
-            application_instance=application_instance,
             params=dict(params, context_title="NEW_TITLE"),
         )
 
         group_info = self.get_inserted_group_info(db_session)
 
-        assert group_info.application_instance == application_instance
+        assert (
+            group_info.application_instance == pre_existing_group.application_instance
+        )
         assert group_info.context_label == params["context_label"]
         assert group_info.context_title == "NEW_TITLE"
         assert group_info.type == "course_group"
 
     def test_upsert_group_info_ignores_non_metadata_params(
-        self, application_instance, db_session, svc, params
+        self, db_session, svc, params
     ):
         svc.upsert_group_info(
             factories.Course(authority_provided_id=self.AUTHORITY),
-            application_instance=application_instance,
             params=dict(
                 params,
                 id="IGNORE ME 1",
@@ -65,12 +61,10 @@ class TestGroupInfoService:
 
     @pytest.mark.usefixtures("user_is_instructor")
     def test_upsert_group_info_records_instructors_with_group_info(
-        self, application_instance, db_session, svc, pyramid_request
+        self, db_session, svc, pyramid_request
     ):
         svc.upsert_group_info(
-            factories.Course(authority_provided_id=self.AUTHORITY),
-            application_instance=application_instance,
-            params={},
+            factories.Course(authority_provided_id=self.AUTHORITY), params={}
         )
 
         group_info = self.get_inserted_group_info(db_session)
@@ -84,12 +78,10 @@ class TestGroupInfoService:
 
     @pytest.mark.usefixtures("user_is_learner")
     def test_upsert_group_info_doesnt_record_learners_with_group_info(
-        self, application_instance, db_session, svc
+        self, db_session, svc
     ):
         svc.upsert_group_info(
-            factories.Course(authority_provided_id=self.AUTHORITY),
-            application_instance=application_instance,
-            params={},
+            factories.Course(authority_provided_id=self.AUTHORITY), params={}
         )
 
         group_info = self.get_inserted_group_info(db_session)

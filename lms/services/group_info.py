@@ -1,8 +1,6 @@
 """A service for managing `GroupInfo` records."""
 
-from lms.models import ApplicationInstance, GroupInfo, Grouping
-
-__all__ = ["GroupInfoService"]
+from lms.models import GroupInfo, Grouping
 
 
 class GroupInfoService:
@@ -19,17 +17,11 @@ class GroupInfoService:
         "blackboard_group": "blackboard_group_group",
     }
 
-    def upsert_group_info(
-        self,
-        grouping: Grouping,
-        application_instance: ApplicationInstance,
-        params: dict,
-    ):
+    def upsert_group_info(self, grouping: Grouping, params: dict):
         """
         Upsert a row into the `group_info` DB table.
 
         :param grouping: grouping to upsert based on
-        :param application_instance: ApplicationInstance this group belongs to
         :param params: columns to set on the row ("authority_provided_id",
             "id", "info" and any non-matching items will be ignored)
         """
@@ -42,12 +34,11 @@ class GroupInfoService:
         if not group_info:
             group_info = GroupInfo(
                 authority_provided_id=grouping.authority_provided_id,
-                application_instance=application_instance,
+                application_instance=grouping.application_instance,
             )
             self._db.add(group_info)
 
         group_info.type = self._GROUPING_TYPES[grouping.type]
-        group_info.application_instance_id = application_instance.id
         group_info.update_from_dict(
             params, skip_keys={"authority_provided_id", "id", "info"}
         )

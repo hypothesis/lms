@@ -86,14 +86,12 @@ class TestSync:
 
 class TestGroupInfoUpdating:
     def test_sync_upserts_the_GroupInfo_into_the_db(
-        self, group_info_service, lti_h_svc, grouping, application_instance_service
+        self, group_info_service, lti_h_svc, grouping
     ):
         lti_h_svc.sync([grouping], sentinel.params)
 
         group_info_service.upsert_group_info.assert_called_once_with(
-            grouping=grouping,
-            application_instance=application_instance_service.get_current.return_value,
-            params=sentinel.params,
+            grouping=grouping, params=sentinel.params
         )
 
     @pytest.fixture
