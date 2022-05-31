@@ -1,14 +1,17 @@
+from typing import List
+
 from h_api.bulk_api import CommandBuilder
+
+from lms.models import Grouping
 
 
 class LTIHService:
     """
     Copy LTI users and courses to h users and groups.
 
-    This service provides methods for synchronizing LTI users and courses (received by us in
-    LTI launch parameters) to corresponding h users and groups. LTI users are copied to h
-    by calling the h API to create corresponding h users, or to update the h users if they already
-    exist. Similarly, LTI _courses_ are copied to h groups.
+    This service provides methods for synchronizing LTI users and courses (
+    received by us in LTI launch parameters) to corresponding h users and
+    groups using the Bulk API.
 
     All of these functions require you to be in an LTILaunchResource context.
 
@@ -25,40 +28,39 @@ class LTIHService:
         self._h_api = request.find_service(name="h_api")
         self._group_info_service = request.find_service(name="group_info")
 
-    def sync(self, h_groups, group_info_params):
+    def sync(self, groupings: List[Grouping], group_info_params: dict):
         """
         Sync standard data to h for an LTI launch with the provided groups.
 
         This will upsert the provided list of groups, the current user and
         make that user a member of each group.
 
-        :param h_groups: the list of models.HGroup objects to upsert
-        :param group_info_params: the params to record for these groups in
-            models.GroupInfo
+        :param groupings: groupings to sync to H
+        :param group_info_params: params to add for each in `GroupInfo`
 
         :raise HTTPInternalServerError: if we can't sync to h for any reason
-        :raise ApplicationInstanceNotFound: if request.lti_user.oauth_consumer_key isn't in the DB
+        :raise ApplicationInstanceNotFound: if
+            `request.lti_user.oauth_consumer_key` isn't in the DB
         """
         application_instance = self._application_instance_service.get_current()
-
         if not application_instance.provisioning:
             return
 
-        self._h_api.execute_bulk(commands=self._yield_commands(h_groups))
+        self._h_api.execute_bulk(commands=self._yield_commands(groupings))
 
         # Keep a note of the groups locally for reporting purposes.
-        for h_group in h_groups:
+        for grouping in groupings:
             self._group_info_service.upsert_group_info(
-                grouping=h_group, params=group_info_params
+                grouping=grouping, params=group_info_params
             )
 
-    def _yield_commands(self, h_groups):
+    def _yield_commands(self, groupings):
         yield self._user_upsert(self._h_user)
 
-        for i, h_group in enumerate(h_groups):
-            yield self._group_upsert(h_group, f"group_{i}")
+        for i, grouping in enumerate(groupings):
+            yield self._group_upsert(grouping, f"group_{i}")
 
-        for i in range(len(h_groups)):
+        for i in range(len(groupings)):
             yield CommandBuilder.group_membership.create("user_0", f"group_{i}")
 
     def _user_upsert(self, h_user, ref="user_0"):
@@ -77,12 +79,12 @@ class LTIHService:
             ref,
         )
 
-    def _group_upsert(self, h_group, ref):
+    def _group_upsert(self, grouping, ref):
         return CommandBuilder.group.upsert(
             {
                 "authority": self._authority,
-                "name": h_group.name,
-                "authority_provided_id": h_group.authority_provided_id,
+                "name": grouping.name,
+                "authority_provided_id": grouping.authority_provided_id,
             },
             ref,
         )
