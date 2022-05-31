@@ -1,58 +1,52 @@
-"""A service that upserts :class:`lms.models.GroupInfoService` records."""
+"""A service for managing `GroupInfo` records."""
 
-from lms.models import GroupInfo
+from lms.models import ApplicationInstance, GroupInfo, Grouping
 
 __all__ = ["GroupInfoService"]
 
 
 class GroupInfoService:
-    """A service that upserts :class:`~lms.models.GroupInfo` records."""
+    """A service for managing `GroupInfo` records."""
 
-    GROUPING_TYPES = {
+    def __init__(self, _context, request):
+        self._db = request.db
+        self._lti_user = request.lti_user
+
+    _GROUPING_TYPES = {
         "course": "course_group",
         "canvas_section": "section_group",
         "canvas_group": "canvas_group_group",
         "blackboard_group": "blackboard_group_group",
     }
 
-    def __init__(self, _context, request):
-        self._db = request.db
-        self._lti_user = request.lti_user
-
-    def upsert_group_info(self, h_group, application_instance, params: dict):
+    def upsert_group_info(
+        self,
+        grouping: Grouping,
+        application_instance: ApplicationInstance,
+        params: dict,
+    ):
         """
         Upsert a row into the `group_info` DB table.
 
-        Find the models.GroupInfo matching the given h_group or create it if
-        none exists. Then update the GroupInfo's application_instance to the given
-        application_instance, and update its other columns from the items in `params`.
-
-        params["id"], params["authority_provided_id"], and params["info"] will
-        be ignored if present--these columns can't be updated.
-
-        Any keys in `params` that don't correspond to a GroupInfo column name
-        will be ignored.
-
-        :param h_group: the group to upsert
-        :type h_group: models.HGroup
-
-        :param application_instance: the ApplicationInstance this group belongs to
-
-        :param params: the other GroupInfo columns to set
+        :param grouping: grouping to upsert based on
+        :param application_instance: ApplicationInstance this group belongs to
+        :param params: columns to set on the row ("authority_provided_id",
+            "id", "info" and any non-matching items will be ignored)
         """
         group_info = (
             self._db.query(GroupInfo)
-            .filter_by(authority_provided_id=h_group.authority_provided_id)
+            .filter_by(authority_provided_id=grouping.authority_provided_id)
             .one_or_none()
         )
 
         if not group_info:
             group_info = GroupInfo(
-                authority_provided_id=h_group.authority_provided_id,
+                authority_provided_id=grouping.authority_provided_id,
                 application_instance=application_instance,
             )
             self._db.add(group_info)
 
+        group_info.type = self._GROUPING_TYPES[grouping.type]
         group_info.application_instance_id = application_instance.id
         group_info.update_from_dict(
             params, skip_keys={"authority_provided_id", "id", "info"}
@@ -62,5 +56,3 @@ class GroupInfoService:
             group_info.upsert_instructor(
                 dict(email=self._lti_user.email, **self._lti_user.h_user._asdict())
             )
-
-        group_info.type = self.GROUPING_TYPES[h_group.type]

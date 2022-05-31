@@ -91,7 +91,7 @@ class TestGroupInfoUpdating:
         lti_h_svc.sync([grouping], sentinel.params)
 
         group_info_service.upsert_group_info.assert_called_once_with(
-            h_group=grouping,
+            grouping=grouping,
             application_instance=application_instance_service.get_current.return_value,
             params=sentinel.params,
         )
