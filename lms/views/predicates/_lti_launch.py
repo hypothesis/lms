@@ -40,7 +40,6 @@ class DBConfigured(Base):
             assignment_svc.exists(
                 tool_consumer_instance_guid,
                 context.resource_link_id,
-                context.ext_lti_assignment_id,
             )
             == self.value
         )
