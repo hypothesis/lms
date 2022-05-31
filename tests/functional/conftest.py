@@ -1,8 +1,11 @@
 import contextlib
+import re
 from urllib.parse import urlencode
 
+import httpretty
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
+from h_matchers import Any
 from webtest import TestApp
 
 from lms import db
@@ -89,3 +92,29 @@ def do_lti_launch(app):
         )
 
     return do_lti_launch
+
+
+@pytest.fixture
+def intercept_http_calls_to_h():
+    """
+    Monkey-patch Python's socket core module to mock all HTTP responses.
+
+    We will catch calls to H's API and return 200. All other calls will
+    raise an exception, allowing to you see who are are trying to call.
+    """
+    # Mock all calls to the H API
+    httpretty.register_uri(
+        method=Any(),
+        uri=re.compile(r"^https://example.com/private/api/.*"),
+        body="",
+    )
+
+    # Catch URLs we aren't expecting or have failed to mock
+    def error_response(request, uri, _response_headers):
+        raise NotImplementedError(f"Unexpected call to URL: {request.method} {uri}")
+
+    httpretty.register_uri(method=Any(), uri=re.compile(".*"), body=error_response)
+
+    httpretty.enable()
+    yield
+    httpretty.disable()

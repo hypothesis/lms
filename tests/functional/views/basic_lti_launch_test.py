@@ -1,5 +1,4 @@
 import json
-import re
 import time
 from urllib.parse import urlencode
 
@@ -7,7 +6,6 @@ import oauthlib.common
 import oauthlib.oauth1
 import pytest
 from h_matchers import Any
-from httpretty import httpretty
 from pytest import param
 
 from lms.models import Assignment
@@ -15,6 +13,7 @@ from lms.resources._js_config import JSConfig
 from tests import factories
 
 
+@pytest.mark.usefixtures("intercept_http_calls_to_h")
 class TestBasicLTILaunch:
     def test_requests_with_no_oauth_signature_are_forbidden(
         self, lti_params, do_lti_launch
@@ -352,31 +351,6 @@ class TestBasicLTILaunch:
             return params
 
         return _sign
-
-    @pytest.fixture(autouse=True)
-    def http_intercept(self):
-        """
-        Monkey-patch Python's socket core module to mock all HTTP responses.
-
-        We will catch calls to H's API and return 200. All other calls will
-        raise an exception, allowing to you see who are are trying to call.
-        """
-        # Mock all calls to the H API
-        httpretty.register_uri(
-            method=Any(),
-            uri=re.compile(r"^https://example.com/private/api/.*"),
-            body="",
-        )
-
-        # Catch URLs we aren't expecting or have failed to mock
-        def error_response(request, uri, _response_headers):
-            raise NotImplementedError(f"Unexpected call to URL: {request.method} {uri}")
-
-        httpretty.register_uri(method=Any(), uri=re.compile(".*"), body=error_response)
-
-        httpretty.enable()
-        yield
-        httpretty.disable()
 
     def get_client_config(self, response):
         return json.loads(response.html.find("script", {"class": "js-config"}).string)
