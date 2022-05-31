@@ -38,6 +38,12 @@ class GroupInfoService:
             )
             self._db.add(group_info)
 
+        # This is very strange. The DB layout is wrong here. You can "steal" a
+        # group info row from another application instance by updating it with
+        # a grouping from another AI. This is wrong in because grouping to
+        # AI should be many:many, and we reflect that wrongness here.
+        group_info.application_instance = grouping.application_instance
+
         group_info.type = self._GROUPING_TYPES[grouping.type]
         group_info.update_from_dict(
             params, skip_keys={"authority_provided_id", "id", "info"}
