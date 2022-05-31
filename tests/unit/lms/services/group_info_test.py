@@ -7,13 +7,13 @@ from lms.services.group_info import GroupInfoService
 from tests import factories
 
 
-class TestGroupInfoUpsert:
+class TestGroupInfoService:
     AUTHORITY = "TEST_AUTHORITY_PROVIDED_ID"
 
-    def test_it_adds_a_new_GroupInfo_if_none_exists(
-        self, application_instance, db_session, group_info_svc, params
+    def test_upsert_group_info_adds_a_new_if_none_exists(
+        self, application_instance, db_session, svc, params
     ):
-        group_info_svc.upsert(
+        svc.upsert_group_info(
             factories.Course(authority_provided_id=self.AUTHORITY),
             application_instance=application_instance,
             params=params,
@@ -26,18 +26,12 @@ class TestGroupInfoUpsert:
         assert group_info.context_label == params["context_label"]
         assert group_info.type == "course_group"
 
-    def test_it_updates_an_existing_GroupInfo_if_one_already_exists(
-        self,
-        application_instance,
-        db_session,
-        group_info_svc,
-        params,
-        pre_existing_group,
+    def test_upsert_group_info_updates_an_existing_if_one_already_exists(
+        self, application_instance, db_session, svc, params, pre_existing_group
     ):
-
         db_session.add(pre_existing_group)
 
-        group_info_svc.upsert(
+        svc.upsert_group_info(
             factories.Course(authority_provided_id=self.AUTHORITY),
             application_instance=application_instance,
             params=dict(params, context_title="NEW_TITLE"),
@@ -50,10 +44,10 @@ class TestGroupInfoUpsert:
         assert group_info.context_title == "NEW_TITLE"
         assert group_info.type == "course_group"
 
-    def test_it_ignores_non_metadata_params(
-        self, application_instance, db_session, group_info_svc, params
+    def test_upsert_group_info_ignores_non_metadata_params(
+        self, application_instance, db_session, svc, params
     ):
-        group_info_svc.upsert(
+        svc.upsert_group_info(
             factories.Course(authority_provided_id=self.AUTHORITY),
             application_instance=application_instance,
             params=dict(
@@ -70,10 +64,10 @@ class TestGroupInfoUpsert:
         assert group_info.id != "IGNORE ME 1"
 
     @pytest.mark.usefixtures("user_is_instructor")
-    def test_it_records_instructors_with_group_info(
-        self, application_instance, db_session, group_info_svc, pyramid_request
+    def test_upsert_group_info_records_instructors_with_group_info(
+        self, application_instance, db_session, svc, pyramid_request
     ):
-        group_info_svc.upsert(
+        svc.upsert_group_info(
             factories.Course(authority_provided_id=self.AUTHORITY),
             application_instance=application_instance,
             params={},
@@ -89,10 +83,10 @@ class TestGroupInfoUpsert:
         assert group_info.instructors[0]["email"] == "test_email"
 
     @pytest.mark.usefixtures("user_is_learner")
-    def test_it_doesnt_record_learners_with_group_info(
-        self, application_instance, db_session, group_info_svc
+    def test_upsert_group_info_doesnt_record_learners_with_group_info(
+        self, application_instance, db_session, svc
     ):
-        group_info_svc.upsert(
+        svc.upsert_group_info(
             factories.Course(authority_provided_id=self.AUTHORITY),
             application_instance=application_instance,
             params={},
@@ -110,8 +104,7 @@ class TestGroupInfoUpsert:
         )
 
     @pytest.fixture
-    def group_info_svc(self, pyramid_request):
-        """Return the group_info_svc service that is being tested."""
+    def svc(self, pyramid_request):
         return GroupInfoService(mock.sentinel.context, pyramid_request)
 
     @pytest.fixture
@@ -142,7 +135,7 @@ class TestGroupInfoUpsert:
 
     @pytest.fixture(autouse=True)
     def with_existing_group_infos(self):
-        """Add some "noise" GroupInfo to make the tests more realistic."""
+        # Add some "noise" GroupInfo to make the tests more realistic
         factories.GroupInfo.build_batch(3)
 
     @pytest.fixture
