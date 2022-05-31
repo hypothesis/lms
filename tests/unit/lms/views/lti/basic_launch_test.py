@@ -236,13 +236,22 @@ class TestCommon:
         return request.param
 
 
-class TestCourseRecording:
-    def test_it_records_the_course_in_the_db(
-        self, context, pyramid_request, view_caller
+class TestDataRecording:
+    def test_it_calls__store_lti_data(
+        self,
+        context,
+        pyramid_request,
+        view_caller,
+        lti_h_service,
     ):
         view_caller(context, pyramid_request)
 
-        context.get_or_create_course.assert_called_once_with()
+        lti_h_service.sync.assert_called_once_with(
+            [context.course], pyramid_request.params
+        )
+
+        # There's lots more in the _store_lti_data() that we aren't testing
+        # because... answer pending
 
     @pytest.fixture(
         params=[

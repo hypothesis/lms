@@ -297,9 +297,7 @@ class BasicLaunchViews:
 
         # Before any LTI assignments launch, create or update the Hypothesis
         # user and group corresponding to the LTI user and course.
-        request.find_service(name="lti_h").sync(
-            [self.context.get_or_create_course()], request.params
-        )
+        request.find_service(name="lti_h").sync([self.context.course], request.params)
 
         # Report all LTI assignment launches to the /reports page.
         LtiLaunches.add(

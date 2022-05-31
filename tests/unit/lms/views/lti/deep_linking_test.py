@@ -24,9 +24,8 @@ class TestDeepLinkingLaunch:
         application_instance_service.get_current.return_value.update_lms_data.assert_called_once_with(
             context.lti_params
         )
-        context.get_or_create_course.assert_called_once_with()
         lti_h_service.sync.assert_called_once_with(
-            [context.get_or_create_course.return_value], pyramid_request.params
+            [context.course], pyramid_request.params
         )
         context.js_config.enable_file_picker_mode.assert_called_once_with(
             form_action="TEST_CONTENT_ITEM_RETURN_URL",

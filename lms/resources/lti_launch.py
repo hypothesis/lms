@@ -1,6 +1,7 @@
 """Traversal resources for LTI launch views."""
-import functools
+
 import logging
+from functools import cached_property
 
 from lms.models import LTIParams
 from lms.resources._js_config import JSConfig
@@ -30,7 +31,8 @@ class LTILaunchResource:
         )
         self._assignment_service = request.find_service(name="assignment")
 
-    def get_or_create_course(self):
+    @cached_property
+    def course(self):
         """Get the course this LTI launch based on the request's params."""
 
         return self._request.find_service(name="course").upsert_course(
@@ -101,8 +103,7 @@ class LTILaunchResource:
 
         return False
 
-    @property
-    @functools.lru_cache()
+    @cached_property
     def js_config(self):
         return JSConfig(self, self._request)
 
@@ -144,9 +145,7 @@ class LTILaunchResource:
         if not self.canvas_sections_supported():
             return False
 
-        course = self.get_or_create_course()
-
-        return course.settings.get("canvas", "sections_enabled")
+        return self.course.settings.get("canvas", "sections_enabled")
 
     @property
     def canvas_groups_enabled(self):
