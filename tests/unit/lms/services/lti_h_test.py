@@ -8,11 +8,8 @@ from lms.services import ApplicationInstanceNotFound, HAPIError
 from lms.services.lti_h import LTIHService
 from tests import factories
 
-pytestmark = pytest.mark.usefixtures(
-    "application_instance_service", "h_api", "group_info_service"
-)
 
-
+@pytest.mark.usefixtures("application_instance_service", "h_api", "group_info_service")
 class TestSync:
     def test_sync_does_nothing_if_provisioning_is_disabled(
         self, application_instance_service, lti_h_svc, h_api, grouping
@@ -83,8 +80,6 @@ class TestSync:
         with pytest.raises(ApplicationInstanceNotFound):
             lti_h_svc.sync([grouping], sentinel.params)
 
-
-class TestGroupInfoUpdating:
     def test_sync_upserts_the_GroupInfo_into_the_db(
         self, group_info_service, lti_h_svc, grouping
     ):
@@ -95,20 +90,13 @@ class TestGroupInfoUpdating:
         )
 
     @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        return pyramid_request
+    def lti_h_svc(self, pyramid_request):
+        return LTIHService(None, pyramid_request)
 
+    @pytest.fixture
+    def h_user(self, pyramid_request):
+        return pyramid_request.lti_user.h_user
 
-@pytest.fixture
-def lti_h_svc(pyramid_request):
-    return LTIHService(None, pyramid_request)
-
-
-@pytest.fixture
-def h_user(pyramid_request):
-    return pyramid_request.lti_user.h_user
-
-
-@pytest.fixture
-def grouping():
-    return create_autospec(Grouping, instance=True, spec_set=True)
+    @pytest.fixture
+    def grouping(self):
+        return create_autospec(Grouping, instance=True, spec_set=True)
