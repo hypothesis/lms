@@ -49,7 +49,7 @@ class LTIHService:
         # Keep a note of the groups locally for reporting purposes.
         for h_group in h_groups:
             self._group_info_service.upsert_group_info(
-                h_group=h_group,
+                grouping=h_group,
                 application_instance=application_instance,
                 params=group_info_params,
             )
