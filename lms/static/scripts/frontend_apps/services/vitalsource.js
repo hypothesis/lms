@@ -3,7 +3,7 @@
  * @typedef {import('../api-types').Chapter} Chapter
  */
 
-import { apiCall } from '../utils/api';
+import { apiCall, urlPath } from '../utils/api';
 
 /**
  * Service for fetching information about available VitalSoure books and the
@@ -28,7 +28,7 @@ export class VitalSourceService {
     // Path parameter encoding is currently handled by the `apiCall` caller,
     // but this should be done by `apiCall` in future.
     return apiCall({
-      path: `/api/vitalsource/books/${encodeURIComponent(bookID)}`,
+      path: urlPath`/api/vitalsource/books/${bookID}`,
       authToken: this._authToken,
     });
   }
@@ -42,7 +42,7 @@ export class VitalSourceService {
    */
   async fetchChapters(bookID) {
     return apiCall({
-      path: `/api/vitalsource/books/${encodeURIComponent(bookID)}/toc`,
+      path: urlPath`/api/vitalsource/books/${bookID}/toc`,
       authToken: this._authToken,
     });
   }

@@ -1,5 +1,5 @@
 import { APIError } from '../../errors';
-import { apiCall } from '../api';
+import { apiCall, urlPath } from '../api';
 
 function createResponse(status, body) {
   return {
@@ -319,5 +319,25 @@ describe('api', () => {
 
     assert.instanceOf(error, Error);
     assert.equal(error.name, 'AbortError');
+  });
+});
+
+describe('urlPath', () => {
+  it('escapes path parameters', () => {
+    const thingId = 'abc/123:456%789';
+    const encodedThingId = encodeURIComponent(thingId);
+    const subThingId = '<foo>';
+    const encodedSubThingId = encodeURIComponent(subThingId);
+
+    const path = urlPath`/api/things/${thingId}/sub-things/${subThingId}`;
+
+    assert.equal(
+      path,
+      `/api/things/${encodedThingId}/sub-things/${encodedSubThingId}`
+    );
+  });
+
+  it('returns path with no parameters unchanged', () => {
+    assert.equal(urlPath`/api/foo/bar`, '/api/foo/bar');
   });
 });

@@ -42,7 +42,8 @@ const activeRefreshCalls = new Map();
  *
  * @param {object} options
  *   @param {string} options.authToken - Session authorization token
- *   @param {string} options.path - The `/api/...` path of the endpoint to call
+ *   @param {string} options.path - The `/api/...` path of the endpoint to call.
+ *     If this path contains parameters, use {@link urlPath} to generate this.
  *   @param {boolean} [options.allowRefresh] - If the request fails due to
  *     an expired access token for an external API, this flag specifies whether
  *     to attempt to refresh the token.
@@ -129,4 +130,24 @@ export async function apiCall(options) {
   }
 
   return resultJSON;
+}
+
+/**
+ * Template tag that formats a URL path, ensuring interpolated strings are
+ * percent-encoded.
+ *
+ * @example
+ *   // Assume `widgetId` is "foo/bar"
+ *   urlPath`/api/widgets/${widgetId}` => `/api/widgets/foo%2Fbar`
+ *
+ * @param {TemplateStringsArray} strings
+ * @param {string[]} params
+ */
+export function urlPath(strings, ...params) {
+  let result = '';
+  for (const [i, param] of params.entries()) {
+    result += strings[i];
+    result += encodeURIComponent(param);
+  }
+  return result + strings[strings.length - 1];
 }
