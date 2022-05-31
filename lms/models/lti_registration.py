@@ -33,3 +33,7 @@ class LTIRegistration(CreatedUpdatedMixin, BASE):
     """Location of the public keys provied by the issuer for this registration"""
     token_url = sa.Column(sa.UnicodeText, nullable=False)
     """Endpoint to request new oauth tokens to use with LTIA APIs"""
+
+    application_instances = sa.orm.relationship(
+        "ApplicationInstance", back_populates="lti_registration"
+    )

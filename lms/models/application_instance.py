@@ -121,7 +121,9 @@ class ApplicationInstance(BASE):
         nullable=True,
     )
 
-    lti_registration = sa.orm.relationship("LTIRegistration")
+    lti_registration = sa.orm.relationship(
+        "LTIRegistration", back_populates="application_instances"
+    )
 
     #: Unique identifier of this instance per LTIRegistration
     deployment_id = sa.Column(sa.UnicodeText, nullable=True)
