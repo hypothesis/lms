@@ -238,5 +238,5 @@ class AdminViews:
 
     def _check_required_and_redirect(self, fields, redirect_to):
         if not all((self.request.params.get(param) for param in fields)):
-            self.request.session.flash(f"{fields} are required", "errors")
+            self.request.session.flash(f"{', '.join(fields)} are required", "errors")
             raise HTTPFound(location=self.request.route_url(redirect_to))
