@@ -113,6 +113,7 @@ class BasicLaunchViews:
             self.context.lti_params["tool_consumer_instance_guid"],
             self.context.resource_link_id,
         ).document_url
+
         return self._do_launch(document_url)
 
     @view_config(blackboard_copied=True)
@@ -172,7 +173,7 @@ class BasicLaunchViews:
         we'll save it in our DB. Subsequent launches of the same assignment
         will then be DB-configured launches rather than unconfigured.
         """
-        self.context.get_or_create_course()
+        self._store_lti_data()
 
         form_fields = {
             param: value
@@ -279,7 +280,7 @@ class BasicLaunchViews:
 
     def _do_launch(self, document_url, grading_supported=True):
         """Do a basic LTI launch with the given document_url."""
-        self._sync_lti_data_to_h()
+
         self._store_lti_data()
 
         if grading_supported:
@@ -289,22 +290,16 @@ class BasicLaunchViews:
 
         return {}
 
-    def _sync_lti_data_to_h(self):
-        """
-        Sync LTI data to H.
-
-        Before any LTI assignment launch create or update the Hypothesis user
-        and group corresponding to the LTI user and course.
-        """
-
-        self.request.find_service(name="lti_h").sync(
-            [self.context.get_or_create_course()], self.request.params
-        )
-
     def _store_lti_data(self):
         """Store LTI launch data in our LMS database."""
 
         request = self.request
+
+        # Before any LTI assignments launch, create or update the Hypothesis
+        # user and group corresponding to the LTI user and course.
+        request.find_service(name="lti_h").sync(
+            [self.context.get_or_create_course()], request.params
+        )
 
         # Report all LTI assignment launches to the /reports page.
         LtiLaunches.add(
@@ -313,8 +308,6 @@ class BasicLaunchViews:
             request.params.get("oauth_consumer_key"),
         )
 
-        lti_user = request.lti_user
-
-        if not lti_user.is_instructor and not self.context.is_canvas:
+        if not request.lti_user.is_instructor and not self.context.is_canvas:
             # Create or update a record of LIS result data for a student launch
             request.find_service(name="grading_info").upsert_from_request(request)

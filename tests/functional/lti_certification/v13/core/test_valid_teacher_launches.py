@@ -5,6 +5,7 @@ import pytest
 from lms.resources._js_config import JSConfig
 
 
+@pytest.mark.usefixtures("intercept_http_calls_to_h")
 class TestValidTeacherPayloads:
     """
     Following the known "bad" payload launches are valid Teacher payloads.
