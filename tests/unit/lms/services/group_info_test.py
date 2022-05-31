@@ -26,17 +26,23 @@ class TestGroupInfoService:
         self, db_session, svc, params, pre_existing_group
     ):
         db_session.add(pre_existing_group)
+        new_application_instance = factories.ApplicationInstance()
+        # Sanity check that we can change the application instance
+        assert pre_existing_group.application_instance != new_application_instance
 
         svc.upsert_group_info(
-            factories.Course(authority_provided_id=self.AUTHORITY),
+            factories.Course(
+                authority_provided_id=self.AUTHORITY,
+                application_instance=new_application_instance,
+            ),
             params=dict(params, context_title="NEW_TITLE"),
         )
 
         group_info = self.get_inserted_group_info(db_session)
 
-        assert (
-            group_info.application_instance == pre_existing_group.application_instance
-        )
+        # This is very strange, but you can "steal" a group info row from
+        # another application instance
+        assert group_info.application_instance == new_application_instance
         assert group_info.context_label == params["context_label"]
         assert group_info.context_title == "NEW_TITLE"
         assert group_info.type == "course_group"
