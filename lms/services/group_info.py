@@ -6,14 +6,7 @@ __all__ = ["GroupInfoService"]
 
 
 class GroupInfoService:
-    """
-    A service that upserts :class:`~lms.models.GroupInfo` records.
-
-    Usage::
-
-        group_info = request.find_service(name="group_info")
-        group_info.upsert(h_group, application_instance, request.params)
-    """
+    """A service that upserts :class:`~lms.models.GroupInfo` records."""
 
     GROUPING_TYPES = {
         "course": "course_group",
@@ -26,7 +19,7 @@ class GroupInfoService:
         self._db = request.db
         self._lti_user = request.lti_user
 
-    def upsert(self, h_group, application_instance, params: dict):
+    def upsert_group_info(self, h_group, application_instance, params: dict):
         """
         Upsert a row into the `group_info` DB table.
 
