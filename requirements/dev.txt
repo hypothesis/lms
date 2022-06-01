@@ -189,7 +189,7 @@ pycryptodomex==3.14.1
     # via -r requirements/requirements.txt
 pygments==2.8.1
     # via ipython
-pyjwt[crypto]==2.3.0
+pyjwt[crypto]==2.4.0
     # via
     #   -r requirements/requirements.txt
     #   h-vialib

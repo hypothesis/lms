@@ -115,7 +115,7 @@ pycparser==2.21
     # via cffi
 pycryptodomex==3.14.1
     # via -r requirements/requirements.in
-pyjwt[crypto]==2.3.0
+pyjwt[crypto]==2.4.0
     # via
     #   -r requirements/requirements.in
     #   h-vialib
