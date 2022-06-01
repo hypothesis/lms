@@ -31,10 +31,9 @@
 <form method="POST" action="{{ request.route_url("admin.instance.id", id_=instance.id) }}">
     <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
 
-    <fieldset class="box">
+    <fieldset class="box mt-6">
         <legend class="label has-text-centered">Registration</legend>
-        {{ macros.disabled_text_field("Issuer", instance.lti_registration.issuer) }}
-        {{ macros.disabled_text_field("Client ID", instance.lti_registration.client_id) }}
+        {{ macros.registration_preview(request, instance.lti_registration) }}
     </fieldset>
 
     <fieldset class="box">
@@ -70,20 +69,21 @@
                 {{ macros.disabled_text_field("Version", instance.tool_consumer_info_version) }}
             </div>
         </div>
+
     </fieldset>
 
     <fieldset class="box">
         <legend class="label has-text-centered">Canvas settings</legend>
-        {{ macros.disabled_text_field("Custom Canvas API domain", instance.custom_canvas_api_domain) }}
+        {{ macros.disabled_text_field("API domain", instance.custom_canvas_api_domain) }}
         {{ macros.disabled_text_field("Developer key", instance.developer_key) }}
-        {{ settings_checkbox("Canvas sections enabled", "canvas", "sections_enabled") }}
-        {{ settings_checkbox("Canvas groups enabled", "canvas", "groups_enabled") }}
+        {{ settings_checkbox("Sections enabled", "canvas", "sections_enabled") }}
+        {{ settings_checkbox("Groups enabled", "canvas", "groups_enabled") }}
     </fieldset>
 
     <fieldset class="box">
         <legend class="label has-text-centered">Blackboard settings</legend>
-        {{ settings_checkbox("Blackboard groups enabled", "blackboard", "groups_enabled") }}
-        {{ settings_checkbox("Blackboard files enabled", "blackboard", "files_enabled") }}
+        {{ settings_checkbox("Groups enabled", "blackboard", "groups_enabled") }}
+        {{ settings_checkbox("Files enabled", "blackboard", "files_enabled") }}
     </fieldset>
 
     <fieldset class="box">

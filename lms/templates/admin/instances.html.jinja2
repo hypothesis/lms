@@ -1,3 +1,5 @@
+{% import "macros.jinja" as macros %}
+
 {% extends "lms:templates/admin/base.html.jinja2" %}
 {% block header %}
 Application instances
@@ -5,31 +7,29 @@ Application instances
 
 {% block content %}
 
-
-<div class="block has-text-right">
-    <a class="button is-primary" href="{{ request.route_url("admin.instance.new.registration") }}">New LTI1.3 install</a>
-</div>
-
 <fieldset class="box mt-6">
-    <legend class="label has-text-centered">Search</legend>
+    <legend class="label has-text-centered">Find application instances</legend>
     <form method="POST" action="{{ request.route_url("admin.instances.search") }}">
         <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
-        <div class="field has-addons">
-           <div class="control">
-                <input class="input" name="consumer_key" type="text" placeholder="Consumer key">
-                <input class="input" name="issuer" type="text" placeholder="Issuer">
-                <input class="input" name="client_id" type="text" placeholder="Client ID">
-                <input class="input" name="deployment_id" type="text" placeholder="Deployment ID">
-                <input class="input" name="tool_consumer_instance_guid" type="text" placeholder="GUID">
-            </div>
-        </div>
+        {{ macros.form_text_field(request, "Consumer key", "consumer_key") }}
+        {{ macros.form_text_field(request, "Issuer", "issuer") }}
+        {{ macros.form_text_field(request, "Client ID", "client_id") }}
+        {{ macros.form_text_field(request, "Deployment ID", "deployment_id") }}
+        {{ macros.form_text_field(request, "GUID", "tool_consumer_instance_guid") }}
         <div class="field is-grouped">
           <div class="control">
             <input type="submit" class="button is-info" value="Search"/>
           </div>
       </div>
-</div>
     </form>
 </fieldset>
+
+
+{% if instances is defined %} 
+<fieldset class="box mt-6">
+<legend class="label has-text-centered">Results</legend>
+{{ macros.instances_table(request, instances) }}
+</fieldset>
+{% endif %}
 
 {% endblock %}

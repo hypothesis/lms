@@ -30,3 +30,113 @@
         <input class="input" name="{{field_name}}" type="text">
     {% endcall %}
 {% endmacro %}
+
+{% macro form_text_field(request, label, field_name) %}
+    {% call field_body(label) %}
+        {% if request.params.get(field_name) %}
+            <input class="input" name="{{field_name}}" value="{{request.params.get(field_name) }}" type="text">
+        {% else %}
+            <input class="input" name="{{field_name}}" type="text">
+        {% endif %}
+    {% endcall %}
+{% endmacro %}
+
+
+{% macro registrations_fields(request, lti_registration, view_button=False) %}
+<fieldset class="box">
+    <legend class="label has-text-centered">Registration</legend>
+    {% if view_button %}
+    <div class="block has-text-right">
+        <a class="button" href="{{ request.route_url("admin.registration.id", id_=lti_registration.id) }}">View</a>
+    </div>
+    {% endif %}
+
+    <div class="columns">
+        <div class="column is-half">
+            {{ disabled_text_field("Issuer", lti_registration.issuer) }}
+        </div>
+        <div class="column is-half">
+            {{ disabled_text_field("Client ID", lti_registration.client_id) }}
+        </div>
+    </div>
+    <div class="columns">
+        <div class="column is-half">
+            {{ disabled_text_field("Auth login URL", lti_registration.auth_login_url) }}
+        </div>
+        <div class="column is-half">
+            {{ disabled_text_field("Key set URL", lti_registration.key_set_url) }}
+        </div>
+    </div>
+    {{ disabled_text_field("Token URL", lti_registration.token_url) }}
+</fieldset>
+{% endmacro %}
+
+{% macro instances_table(request, instances) %}
+<table class="table is-fullwidth">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Consumer Key</th>
+      <th>GUID</th>
+      <th>Issuer</th>
+      <th>Deployment ID</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+{% for instance in instances %}
+    <tr>
+      <td>{{instance.id}}</td>
+      <td>{{instance.consumer_key}}</th>
+      <td>{{instance.tool_consumer_instance_guid}}</td>
+      <td>{{instance.lti_registration.issuer}}</td>
+      <td>{{instance.deployment_id}}</td>
+      <td>
+        <a class="button" href="{{ request.route_url("admin.instance.id", id_=instance.id) }}">View</a>
+      </td>
+    </tr>
+{% endfor %}
+{% endmacro %}
+
+
+{% macro registrations_table(request, registrations) %}
+{% if not registrations %}
+    <div class="is-size-4 has-text-centered">No registrations found</div>
+{% else %}
+<table class="table is-fullwidth">
+  <thead>
+    <tr>
+      <th>Issuer</th>
+      <th>Client ID</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+{% for registration in registrations %}
+    <tr>
+      <td>{{registration.issuer}}</th>
+      <td>{{registration.client_id}}</td>
+      <td>
+        <a class="button" href="{{ request.route_url("admin.registration.id", id_=registration.id) }}">View</a>
+      </td>
+    </tr>
+{% endfor %}
+{% endif %}
+{% endmacro %}
+
+
+{% macro registration_preview(request, lti_registration) %}
+    {% if lti_registration %}
+    <div class="block has-text-right">
+        <a class="button" href="{{ request.route_url("admin.registration.id", id_=lti_registration.id) }}">View</a>
+    </div>
+    {% endif %}
+    <div class="columns">
+            <div class="column is-half">
+            {{ disabled_text_field("Issuer", lti_registration.issuer) }}
+        </div>
+        <div class="column is-half">
+            {{ disabled_text_field("Client ID", lti_registration.client_id) }}
+        </div>
+    </div>
+{% endmacro %}

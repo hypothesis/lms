@@ -1,0 +1,39 @@
+{% import "macros.jinja" as macros %}
+
+{% extends "lms:templates/admin/base.html.jinja2" %}
+{% block header %}
+Registrations
+{% endblock %}
+
+{% block content %}
+
+
+<fieldset class="box mt-6">
+    <div class="block has-text-right">
+        <a class="button is-primary" 
+            href="{{ request.route_url("admin.registration.new", _query={"issuer": request.params.get("issuer", "").strip(), "client_id": request.params.get("client_id", "").strip()}) }}">
+            New registration
+        </a>
+    </div>
+
+    <legend class="label has-text-centered">Find registration</legend>
+    <form method="POST" action="{{ request.route_url("admin.registrations.search") }}">
+        <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
+
+        {{ macros.form_text_field(request, "Issuer", "issuer") }}
+        {{ macros.form_text_field(request, "Client ID", "client_id") }}
+        {% call macros.field_body(label="") %}
+            <input type="submit" class="button is-info" value="Search" />
+        {% endcall %}
+    </form>
+</fieldset>
+
+
+{% if registrations is defined %} 
+<fieldset class="box mt-6">
+<legend class="label has-text-centered">Results</legend>
+{{ macros.registrations_table(request, registrations) }}
+</fieldset>
+{% endif %}
+
+{% endblock %}
