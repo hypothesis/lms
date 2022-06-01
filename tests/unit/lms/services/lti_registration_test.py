@@ -20,6 +20,35 @@ class TestLTIRegistrationService:
 
         assert svc.get("ISSUER", "CLIENT_ID") == registration
 
+    def test_get_by_id(self, svc, registration, db_session):
+        # Force the registration to have an ID
+        db_session.flush()
+
+        assert svc.get_by_id(registration.id) == registration
+
+    def test_search(self, svc):
+        # With a known issuer
+        factories.LTIRegistration.create_batch(size=5, issuer="issuer")
+        # With a known client_id
+        factories.LTIRegistration.create_batch(size=5, client_id="client_id")
+        # With both a known issuer and client_id (only one as that's the unique key)
+        factories.LTIRegistration.create(client_id="client_id", issuer="issuer")
+
+        by_issuer = svc.search(issuer="issuer")
+        assert len(by_issuer) == 6
+        assert all((registration.issuer == "issuer" for registration in by_issuer))
+
+        by_client_id = svc.search(client_id="client_id")
+        assert len(by_client_id) == 6
+        assert all(
+            (registration.client_id == "client_id" for registration in by_client_id)
+        )
+
+        by_both = svc.search(issuer="issuer", client_id="client_id")
+        assert len(by_both) == 1
+        assert by_both[0].issuer == "issuer"
+        assert by_both[0].client_id == "client_id"
+
     @pytest.fixture
     def registration(self):
         return factories.LTIRegistration()
