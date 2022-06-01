@@ -21,7 +21,7 @@ class Assignment(BASE):
     ``document_url`` being the URL of the document to be annotated.
     """
 
-    __tablename__ = "module_item_configurations"
+    __tablename__ = "assignment"
     __table_args__ = (
         sa.UniqueConstraint("resource_link_id", "tool_consumer_instance_guid"),
         sa.UniqueConstraint("tool_consumer_instance_guid", "ext_lti_assignment_id"),

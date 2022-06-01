@@ -7,7 +7,7 @@ is done by the front-end.
 
 When the LMS launches us with a deep linked assignment, we will get the
 document url as part of the launch params, instead of reading it from the DB in
-`module_item_configurations`.
+`assignment`.
 
 The flow is:
 
