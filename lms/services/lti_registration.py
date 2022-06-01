@@ -27,6 +27,21 @@ class LTIRegistrationService:
 
         return query.one_or_none()
 
+    def get_by_id(self, id_) -> LTIRegistration:
+        return self._db.query(LTIRegistration).get(id_)
+
+    def search(self, *, issuer=None, client_id=None) -> LTIRegistration:
+        """Return the registrations that match all of the passed parameters."""
+
+        query = self._db.query(LTIRegistration)
+        if issuer:
+            query = query.filter_by(issuer=issuer)
+
+        if client_id:
+            query = query.filter_by(client_id=client_id)
+
+        return query.all()
+
     def create(  # pylint:disable=too-many-arguments
         self,
         issuer: str,
