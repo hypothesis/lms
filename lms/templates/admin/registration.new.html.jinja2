@@ -1,0 +1,28 @@
+{% import "macros.jinja" as macros %}
+
+{% extends "lms:templates/admin/base.html.jinja2" %}
+
+{% block header %}
+New registration
+{% endblock %}
+
+{% block content %}
+
+<form method="POST" action="{{ request.route_url("admin.registration.new") }}">
+    <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
+
+    <fieldset class="box mt-6">
+        <legend class="label has-text-centered">Registration</legend>
+
+        {{ macros.form_text_field(request, "Issuer", "issuer") }}
+        {{ macros.form_text_field(request, "Client ID", "client_id") }}
+
+        {{ macros.form_text_field(request, "Auth login URL", "auth_login_url") }}
+        {{ macros.form_text_field(request, "Key set URL", "key_set_url") }}
+        {{ macros.form_text_field(request, "Token URL", "token_url") }}
+    </fieldset>
+
+    <input type="submit" class="button is-info" value="New"/>
+</form>
+
+{% endblock %}
