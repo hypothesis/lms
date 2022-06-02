@@ -84,11 +84,13 @@ class TestApplicationInstanceService:
             (None, None),
         ],
     )
-    def test_create(self, developer_secret, developer_key, service, aes_service):
+    def test_create_application_instance(
+        self, developer_secret, developer_key, service, aes_service
+    ):
         aes_service.build_iv.return_value = b"iv"
         aes_service.encrypt.return_value = b"secret"
 
-        application_instance = service.create(
+        application_instance = service.create_application_instance(
             "https://example.com/",
             "example@example.com",
             developer_key,

@@ -13,7 +13,9 @@ def create_application_instance(request):
     developer_key = request.params["developer_key"].strip()
     developer_secret = request.params["developer_secret"].strip()
 
-    instance = request.find_service(name="application_instance").create(
+    instance = request.find_service(
+        name="application_instance"
+    ).create_application_instance(
         request.params["lms_url"],
         request.params["email"],
         developer_key,
