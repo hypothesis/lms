@@ -42,7 +42,7 @@ class FilesAPIViews:
             name="application_instance"
         ).get_current()
 
-        assignment = self.request.find_service(name="assignment").get(
+        assignment = self.request.find_service(name="assignment").get_assignment(
             application_instance.tool_consumer_instance_guid,
             self.request.matchdict["resource_link_id"],
         )

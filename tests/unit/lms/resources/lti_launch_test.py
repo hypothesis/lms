@@ -317,19 +317,19 @@ class TestIsBlackboardGroupLaunch:
     def test_false_when_no_assignment(
         self, lti_launch_groups_enabled, assignment_service
     ):
-        assignment_service.get.return_value = None
+        assignment_service.get_assignment.return_value = None
 
         assert not lti_launch_groups_enabled.is_blackboard_group_launch
 
     def test_false_when_no_group_set(
         self, lti_launch_groups_enabled, assignment_service
     ):
-        assignment_service.get.return_value.extra = {}
+        assignment_service.get_assignment.return_value.extra = {}
 
         assert not lti_launch_groups_enabled.is_blackboard_group_launch
 
     def test_it(self, lti_launch_groups_enabled, assignment_service):
-        assignment_service.get.return_value.extra = {"group_set_id": "ID"}
+        assignment_service.get_assignment.return_value.extra = {"group_set_id": "ID"}
 
         assert lti_launch_groups_enabled.is_blackboard_group_launch
 

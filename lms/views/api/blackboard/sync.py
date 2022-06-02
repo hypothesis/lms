@@ -97,7 +97,7 @@ class Sync:
     def group_set(self):
         return (
             self.request.find_service(name="assignment")
-            .get(
+            .get_assignment(
                 self.tool_consumer_instance_guid,
                 self.request.parsed_params["assignment"]["resource_link_id"],
             )

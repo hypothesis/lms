@@ -24,7 +24,7 @@ class TestDBConfigured:
     def test_when_theres_a_matching_assignment_config_in_the_db(
         self, pyramid_request, assignment_service, value, expected, context
     ):
-        assignment_service.exists.return_value = True
+        assignment_service.assignment_exists.return_value = True
 
         predicate = DBConfigured(value, mock.sentinel.config)
 
@@ -36,7 +36,7 @@ class TestDBConfigured:
     def test_when_theres_no_matching_assignment_config_in_the_db(
         self, assignment_service, pyramid_request, value, expected, context
     ):
-        assignment_service.exists.return_value = False
+        assignment_service.assignment_exists.return_value = False
 
         predicate = DBConfigured(value, mock.sentinel.config)
 
@@ -71,7 +71,7 @@ class TestFooCopied:
 
             return False
 
-        assignment_service.exists.side_effect = exists
+        assignment_service.assignment_exists.side_effect = exists
 
         # If there's no Assignment for resource_link_id in the DB
         # but there *is* a Assignment for resource_link_id_history
@@ -119,7 +119,7 @@ class TestCanvasFile:
     def test_when_assignment_is_not_canvas_file(
         self, value, expected, pyramid_request, assignment_service, context
     ):
-        assignment_service.exists.return_value = expected
+        assignment_service.assignment_exists.return_value = expected
 
         predicate = CanvasFile(value, mock.sentinel.config)
 
@@ -158,7 +158,7 @@ class TestURLConfigured:
     def test_when_assignment_is_not_url_configured(
         self, value, expected, context, pyramid_request, assignment_service
     ):
-        assignment_service.exists.return_value = expected
+        assignment_service.assignment_exists.return_value = expected
 
         predicate = URLConfigured(value, mock.sentinel.config)
 
@@ -188,7 +188,7 @@ class TestConfigured:
     def test_when_assignment_is_db_configured(
         self, pyramid_request, assignment_service, value, expected, context
     ):
-        assignment_service.exists.return_value = True
+        assignment_service.assignment_exists.return_value = True
 
         predicate = Configured(value, mock.sentinel.config)
 
@@ -207,7 +207,7 @@ class TestConfigured:
     def test_when_assignment_is_unconfigured(
         self, assignment_service, pyramid_request, value, expected, context
     ):
-        assignment_service.exists.return_value = False
+        assignment_service.assignment_exists.return_value = False
 
         predicate = Configured(value, mock.sentinel.config)
 
@@ -225,7 +225,7 @@ class TestConfigured:
     def assignment_service(self, assignment_service):
         # Make sure that the assignment is *not* DB-configured by default in
         # these tests.
-        assignment_service.exists.return_value = False
+        assignment_service.assignment_exists.return_value = False
         return assignment_service
 
 

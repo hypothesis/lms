@@ -60,7 +60,7 @@ class TestBasicLaunchViews:
 
         svc.configure_assignment()
 
-        assignment_service.upsert.assert_called_once_with(
+        assignment_service.upsert_assignment.assert_called_once_with(
             pyramid_request.parsed_params["document_url"],
             pyramid_request.parsed_params["tool_consumer_instance_guid"],
             pyramid_request.parsed_params["resource_link_id"],
@@ -81,12 +81,12 @@ class TestBasicLaunchViews:
     def test_db_configured_launch(self, svc, assignment_service, context, _do_launch):
         svc.db_configured_launch()
 
-        assignment_service.get.assert_called_once_with(
+        assignment_service.get_assignment.assert_called_once_with(
             context.lti_params["tool_consumer_instance_guid"], context.resource_link_id
         )
 
         _do_launch.assert_called_once_with(
-            document_url=assignment_service.get.return_value.document_url
+            document_url=assignment_service.get_assignment.return_value.document_url
         )
 
     def test_url_configured_launch(self, svc, pyramid_request, _do_launch):
@@ -173,7 +173,7 @@ class TestBasicLaunchViews:
         file_id = pyramid_request.params["file_id"]
         document_url = f"canvas://file/course/{course_id}/file_id/{file_id}"
 
-        assignment_service.upsert.assert_called_once_with(
+        assignment_service.upsert_assignment.assert_called_once_with(
             document_url=document_url,
             tool_consumer_instance_guid=pyramid_request.params[
                 "tool_consumer_instance_guid"
@@ -209,19 +209,19 @@ class TestBasicLaunchViews:
         # pylint: disable=protected-access
         svc._course_copied_launch(sentinel.original_resource_link_id)
 
-        assignment_service.get.assert_called_once_with(
+        assignment_service.get_assignment.assert_called_once_with(
             pyramid_request.params["tool_consumer_instance_guid"],
             sentinel.original_resource_link_id,
         )
 
-        assignment_service.upsert.assert_called_once_with(
-            assignment_service.get.return_value.document_url,
+        assignment_service.upsert_assignment.assert_called_once_with(
+            assignment_service.get_assignment.return_value.document_url,
             context.lti_params["tool_consumer_instance_guid"],
             context.lti_params["resource_link_id"],
         )
 
         _do_launch.assert_called_once_with(
-            document_url=assignment_service.get.return_value.document_url
+            document_url=assignment_service.get_assignment.return_value.document_url
         )
 
     @pytest.mark.parametrize("grading_supported", (True, False))
