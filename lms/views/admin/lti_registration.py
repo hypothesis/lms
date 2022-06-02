@@ -29,14 +29,14 @@ class AdminLTIRegistrationViews:
         request_method="GET",
         renderer="lms:templates/admin/registration.new.html.jinja2",
     )
-    def registration_new(self):  # pylint: disable=no-self-use
+    def new_registration(self):  # pylint: disable=no-self-use
         return {}
 
     @view_config(
         route_name="admin.registration.new",
         request_method="POST",
     )
-    def registration_new_post(self):
+    def new_registration_callback(self):
         params = self.request.params
 
         if flash_missing_fields(
@@ -52,7 +52,7 @@ class AdminLTIRegistrationViews:
             return response
 
         try:
-            lti_registration = self.lti_registration_service.create(
+            lti_registration = self.lti_registration_service.create_registration(
                 issuer=params["issuer"].strip(),
                 client_id=params["client_id"].strip(),
                 auth_login_url=params["auth_login_url"].strip(),
@@ -93,7 +93,7 @@ class AdminLTIRegistrationViews:
             )
             return HTTPFound(location=self.request.route_url("admin.registrations"))
 
-        registrations = self.lti_registration_service.search(
+        registrations = self.lti_registration_service.search_registrations(
             issuer=self.request.params.get("issuer"),
             client_id=self.request.params.get("client_id"),
         )

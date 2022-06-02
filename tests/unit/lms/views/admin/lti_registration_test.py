@@ -15,17 +15,16 @@ class TestAdminApplicationInstanceViews:
     def test_registrations(self, views):
         assert views.registrations() == {}
 
-    def test_registration_new(self, views):
-        assert views.registration_new() == {}
+    def test_new_registration(self, views):
+        assert views.new_registration() == {}
 
-    def test_registration_new_post(
-        self, pyramid_request_new_registration, lti_registration_service
+    @pytest.mark.usefixtures("with_form_submission")
+    def test_new_registration_callback(
+        self, views, lti_registration_service, pyramid_request
     ):
-        response = AdminLTIRegistrationViews(
-            pyramid_request_new_registration
-        ).registration_new_post()
+        response = views.new_registration_callback()
 
-        lti_registration_service.create.assert_called_once_with(
+        lti_registration_service.create_registration.assert_called_once_with(
             issuer="ISSUER",
             client_id="CLIENT_ID",
             auth_login_url="AUTH_LOGIN_URL",
@@ -34,36 +33,32 @@ class TestAdminApplicationInstanceViews:
         )
 
         assert response == temporary_redirect_to(
-            pyramid_request_new_registration.route_url(
+            pyramid_request.route_url(
                 "admin.registration.id",
-                id_=lti_registration_service.create.return_value.id,
+                id_=lti_registration_service.create_registration.return_value.id,
             )
         )
 
-    def test_registration_new_post_duplicate(
-        self, pyramid_request_new_registration, lti_registration_service
-    ):
-        lti_registration_service.create.side_effect = IntegrityError(
+    @pytest.mark.usefixtures("with_form_submission")
+    def test_new_registration_callback_duplicate(self, lti_registration_service, views):
+        lti_registration_service.create_registration.side_effect = IntegrityError(
             Any(), Any(), Any()
         )
 
-        response = AdminLTIRegistrationViews(
-            pyramid_request_new_registration
-        ).registration_new_post()
+        response = views.new_registration_callback()
 
         assert response.status_code == 400
 
+    @pytest.mark.usefixtures("with_form_submission")
     @pytest.mark.parametrize(
         "missing", ["issuer", "client_id", "auth_login_url", "key_set_url", "token_url"]
     )
-    def test_registration_new_post_missing_params(
-        self, pyramid_request_new_registration, missing
+    def test_new_registration_callback_missing_params(
+        self, pyramid_request, missing, views
     ):
-        del pyramid_request_new_registration.params[missing]
+        del pyramid_request.params[missing]
 
-        response = AdminLTIRegistrationViews(
-            pyramid_request_new_registration
-        ).registration_new_post()
+        response = views.new_registration_callback()
 
         assert response.status_code == 400
 
@@ -76,55 +71,57 @@ class TestAdminApplicationInstanceViews:
         )
 
     def test_search_single_result(
-        self, pyramid_request, lti_registration_service, lti_registration
+        self, pyramid_request, lti_registration_service, lti_registration, views
     ):
-        lti_registration_service.search.return_value = [lti_registration]
+        lti_registration_service.search_registrations.return_value = [lti_registration]
         pyramid_request.params["issuer"] = sentinel.issuer
 
-        response = AdminLTIRegistrationViews(pyramid_request).search()
+        response = views.search()
 
-        lti_registration_service.search.assert_called_once_with(
+        lti_registration_service.search_registrations.assert_called_once_with(
             issuer=sentinel.issuer, client_id=None
         )
         assert response == temporary_redirect_to(
             pyramid_request.route_url(
                 "admin.registration.id",
-                id_=lti_registration_service.search.return_value[0].id,
+                id_=lti_registration_service.search_registrations.return_value[0].id,
             )
         )
 
-    def test_search_multiple_results(self, pyramid_request, lti_registration_service):
+    def test_search_multiple_results(
+        self, pyramid_request, lti_registration_service, views
+    ):
         pyramid_request.params = {
             "issuer": sentinel.issuer,
             "client_id": sentinel.client_id,
         }
 
-        response = AdminLTIRegistrationViews(pyramid_request).search()
+        response = views.search()
 
-        lti_registration_service.search.assert_called_once_with(
+        lti_registration_service.search_registrations.assert_called_once_with(
             issuer=sentinel.issuer, client_id=sentinel.client_id
         )
 
         assert response == {
-            "registrations": lti_registration_service.search.return_value
+            "registrations": lti_registration_service.search_registrations.return_value
         }
 
-    def test_show_registration(self, pyramid_request, lti_registration_service):
+    def test_show_registration(self, pyramid_request, lti_registration_service, views):
         pyramid_request.matchdict["id_"] = sentinel.id_
 
-        response = AdminLTIRegistrationViews(pyramid_request).show_registration()
+        response = views.show_registration()
 
         lti_registration_service.get_by_id.assert_called_once_with(sentinel.id_)
         assert (
             response["registration"] == lti_registration_service.get_by_id.return_value
         )
 
-    def test_registration_new_instance(self, pyramid_request, lti_registration_service):
+    def test_registration_new_instance(
+        self, pyramid_request, lti_registration_service, views
+    ):
         pyramid_request.matchdict["id_"] = sentinel.id_
 
-        response = AdminLTIRegistrationViews(
-            pyramid_request
-        ).registration_new_instance()
+        response = views.registration_new_instance()
 
         lti_registration_service.get_by_id.assert_called_once_with(sentinel.id_)
         assert (
@@ -138,7 +135,7 @@ class TestAdminApplicationInstanceViews:
         return pyramid_request
 
     @pytest.fixture
-    def pyramid_request_new_registration(self, pyramid_request):
+    def with_form_submission(self, pyramid_request):
         pyramid_request.params["issuer"] = "ISSUER"
         pyramid_request.params["client_id"] = "CLIENT_ID"
         pyramid_request.params["auth_login_url"] = "AUTH_LOGIN_URL"

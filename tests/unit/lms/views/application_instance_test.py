@@ -25,7 +25,7 @@ class TestCreateApplicationInstance:
 
         result = create_application_instance(pyramid_request)
 
-        application_instance_service.create.assert_called_once_with(
+        application_instance_service.create_application_instance.assert_called_once_with(
             "canvas.example.com",
             "email@example.com",
             developer_key,
@@ -39,9 +39,12 @@ class TestCreateApplicationInstance:
                 }
             ),
         )
+        created_ai = (
+            application_instance_service.create_application_instance.return_value
+        )
         assert result == {
-            "consumer_key": application_instance_service.create.return_value.consumer_key,
-            "shared_secret": application_instance_service.create.return_value.shared_secret,
+            "consumer_key": created_ai.consumer_key,
+            "shared_secret": created_ai.shared_secret,
         }
 
     @pytest.fixture

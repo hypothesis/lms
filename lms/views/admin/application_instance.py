@@ -33,24 +33,22 @@ class AdminApplicationInstanceViews:
         request_method="POST",
         renderer="lms:templates/admin/instance.new.html.jinja2",
     )
-    def instance_new(self):
-        lti_registration_id = self.request.matchdict["id_"]
+    def new_instance(self):
+        lti_registration = self.lti_registration_service.get_by_id(
+            self.request.matchdict["id_"]
+        )
 
         if flash_missing_fields(self.request, ["deployment_id", "lms_url", "email"]):
             response = render_to_response(
                 "lms:templates/admin/instance.new.html.jinja2",
-                {
-                    "lti_registration": self.lti_registration_service.get_by_id(
-                        lti_registration_id
-                    )
-                },
+                {"lti_registration": lti_registration.id},
                 request=self.request,
             )
             response.status = 400
             return response
 
         try:
-            ai = self.application_instance_service.create(
+            ai = self.application_instance_service.create_application_instance(
                 lms_url=self.request.params["lms_url"].strip(),
                 email=self.request.params["email"].strip(),
                 deployment_id=self.request.params["deployment_id"].strip(),
@@ -58,7 +56,7 @@ class AdminApplicationInstanceViews:
                 developer_secret=self.request.params.get(
                     "developer_secret", ""
                 ).strip(),
-                lti_registration_id=lti_registration_id,
+                lti_registration_id=self.request.matchdict["id_"],
             )
 
         except IntegrityError:
@@ -68,11 +66,7 @@ class AdminApplicationInstanceViews:
             )
             response = render_to_response(
                 "lms:templates/admin/instance.new.html.jinja2",
-                {
-                    "lti_registration": self.lti_registration_service.get_by_id(
-                        lti_registration_id
-                    )
-                },
+                {"lti_registration": lti_registration.id},
                 request=self.request,
             )
             response.status = 400

@@ -3,7 +3,7 @@ from datetime import datetime
 from functools import lru_cache
 from typing import List
 
-from sqlalchemy.exc import NoResultFound, IntegrityError
+from sqlalchemy.exc import NoResultFound
 
 from lms.models import ApplicationInstance, LTIRegistration
 from lms.services.aes import AESService
@@ -116,7 +116,7 @@ class ApplicationInstanceService:
 
         return query.all()
 
-    def create(  # pylint:disable=too-many-arguments
+    def create_application_instance(  # pylint:disable=too-many-arguments
         self,
         lms_url,
         email,
@@ -154,6 +154,7 @@ class ApplicationInstanceService:
         )
         self._db.add(application_instance)
         self._db.flush()  # Force the returned AI to have an ID
+
         return application_instance
 
 
