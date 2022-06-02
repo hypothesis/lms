@@ -294,7 +294,6 @@ class TestBasicLTILaunch:
                 canvas_file="true",
                 custom_canvas_course_id="1",
                 file_id="2",
-                ext_lti_assignment_id="EXT_LTI_ASSIGNMENT_ID",
             )
         )
 
@@ -310,11 +309,7 @@ class TestBasicLTILaunch:
     @pytest.fixture
     def canvas_url_launch_params(self, lti_params, sign_lti_params):
         return {}, sign_lti_params(
-            dict(
-                lti_params,
-                url="https://url-configured.com/document.pdf",
-                ext_lti_assignment_id="EXT_LTI_ASSIGNMENT_ID",
-            )
+            dict(lti_params, url="https://url-configured.com/document.pdf")
         )
 
     @pytest.fixture

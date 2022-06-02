@@ -196,9 +196,6 @@ class TestAddDocumentURL:
                 "lis_result_sourcedid": "example_lis_result_sourcedid",
                 "learner_canvas_user_id": "100",
                 "resource_link_id": pyramid_request.params["resource_link_id"],
-                "ext_lti_assignment_id": pyramid_request.params[
-                    "ext_lti_assignment_id"
-                ],
             }
         )
 
@@ -755,7 +752,6 @@ def pyramid_request(pyramid_request):
             "context_id": "test_course_id",
             "custom_canvas_course_id": "test_course_id",
             "custom_canvas_user_id": "test_user_id",
-            "ext_lti_assignment_id": "ext_lti_assignment_id",
         }
     )
     return pyramid_request

@@ -339,10 +339,6 @@ class JSConfig:
                 # Canvas doesn't send the right value for this on speed grader launches
                 # sending instead the same value as for "context_id"
                 "resource_link_id": self._context.lti_params.get("resource_link_id"),
-                # Canvas doesn't send this value at all on speed grader submissions
-                "ext_lti_assignment_id": self._context.lti_params.get(
-                    "ext_lti_assignment_id"
-                ),
                 **kwargs,
             },
         }
