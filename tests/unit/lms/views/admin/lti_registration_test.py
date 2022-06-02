@@ -51,10 +51,7 @@ class TestAdminApplicationInstanceViews:
             pyramid_request_new_registration
         ).registration_new_post()
 
-        assert pyramid_request_new_registration.session.peek_flash("errors")
-        assert response == temporary_redirect_to(
-            pyramid_request_new_registration.route_url("admin.registration.new")
-        )
+        assert response.status_code == 400
 
     @pytest.mark.parametrize(
         "missing", ["issuer", "client_id", "auth_login_url", "key_set_url", "token_url"]

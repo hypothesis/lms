@@ -3,7 +3,7 @@ from datetime import datetime
 from functools import lru_cache
 from typing import List
 
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy.exc import NoResultFound, IntegrityError
 
 from lms.models import ApplicationInstance, LTIRegistration
 from lms.services.aes import AESService
