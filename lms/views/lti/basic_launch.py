@@ -48,51 +48,50 @@ class BasicLaunchViews:
         ).get_current()
         self.application_instance.update_lms_data(self.context.lti_params)
 
-    @view_config(vitalsource_book=True)
-    def legacy_vitalsource_launch(self):
+    # ----------------- #
+    # Standard launches #
+    # ----------------- #
+
+    @view_config(
+        authorized_to_configure_assignments=True,
+        route_name="configure_assignment",
+        schema=ConfigureAssignmentSchema,
+    )
+    def configure_assignment(self):
         """
-        Respond to a legacy configured VitalSource assignment.
+        Respond to a configure module item request.
 
-        Legacy VitalSource assignments use `vitalsource_book=true` as opposed to
-        a `vitalsource://` URL as the document_url.
+        This happens after an unconfigured assignment launch. We show the user
+        our document selection form instead of launching the assignment, and
+        when the user chooses a document and submits the form this is the view
+        that receives that form submission.
 
-        The assignment shouldn't be "configured" in any other way to match this view.
+        We save the chosen document in the DB so that subsequent launches of
+        this same assignment will be DB-configured rather than unconfigured.
+        And we also send back the assignment launch page, passing the chosen
+        URL to Via, as the direct response to the content item form submission.
         """
-        book_id = self.request.params["book_id"]
-        cfi = self.request.params.get("cfi")
+        extra = {}
+        if group_set := self.request.parsed_params.get("group_set"):
+            extra["group_set_id"] = group_set
 
-        document_url = VitalSourceService.generate_document_url(book_id, cfi)
+        document_url = self.request.parsed_params["document_url"]
+
+        self.assignment_service.upsert(
+            document_url,
+            self.context.lti_params["tool_consumer_instance_guid"],
+            self.context.resource_link_id,
+            extra=extra,
+        )
+
+        # When setting the document it's possible the config might need
+        # updating based on the type of assignment since it was initialized
+        # with `enable_lti_launch_mode` on __init__
+        # We need to clear the cache and `enable_lti_launch_mode` again.
+        JSConfig._hypothesis_client.fget.cache_clear()  # pylint: disable=protected-access
+        self.context.js_config.enable_lti_launch_mode()
 
         return self._do_launch(document_url=document_url, grading_supported=True)
-
-    @view_config(canvas_file=True)
-    def canvas_file_launch(self):
-        """
-        Respond to a Canvas file assignment launch which is not db_configured.
-
-        Canvas file assignment launch requests have a ``file_id`` request
-        parameter, which is the Canvas instance's ID for the file. To display
-        the assignment we have to use this ``file_id`` to get a download URL
-        for the file from the Canvas API. We then pass that download URL to
-        Via. We have to re-do this file-ID-for-download-URL exchange on every
-        single launch because Canvas's download URLs are temporary.
-        """
-        course_id = self.context.lti_params["custom_canvas_course_id"]
-        file_id = self.request.params["file_id"]
-
-        # Normally this would be done during `configure_assignment()` but
-        # Canvas skips that step. We are doing this to ensure that there is a
-        # module item configuration. As a result of this we can rely on this
-        # being around in future code.
-        document_url = f"canvas://file/course/{course_id}/file_id/{file_id}"
-        self.assignment_service.upsert(
-            document_url=document_url,
-            tool_consumer_instance_guid=self.context.lti_params[
-                "tool_consumer_instance_guid"
-            ],
-            resource_link_id=self.context.resource_link_id,
-        )
-        return self._do_launch(document_url=document_url, grading_supported=False)
 
     @view_config(db_configured=True, canvas_file=False, url_configured=False)
     def db_configured_launch(self):
@@ -114,31 +113,7 @@ class BasicLaunchViews:
             self.context.resource_link_id,
         ).document_url
 
-        return self._do_launch(document_url)
-
-    @view_config(blackboard_copied=True)
-    def blackboard_copied_launch(self):
-        """
-        Respond to a launch of a newly-copied Blackboard assignment.
-
-        For more about Blackboard course copy see the BlackboardCopied
-        predicate's docstring.
-        """
-        return self._course_copied_launch(
-            BlackboardCopied.get_original_resource_link_id(self.request)
-        )
-
-    @view_config(brightspace_copied=True)
-    def brightspace_copied_launch(self):
-        """
-        Respond to a launch of a newly-copied Brightspace assignment.
-
-        For more about Brightspace course copy see the BrightspaceCopied
-        predicate's docstring.
-        """
-        return self._course_copied_launch(
-            BrightspaceCopied.get_original_resource_link_id(self.request)
-        )
+        return self._do_launch(document_url=document_url)
 
     @view_config(url_configured=True, schema=URLConfiguredBasicLTILaunchSchema)
     def url_configured_launch(self):
@@ -151,7 +126,7 @@ class BasicLaunchViews:
         and saved in the LMS, which passes it back to us in each launch request.
         All we have to do is pass the URL to Via.
         """
-        return self._do_launch(self.request.parsed_params["url"])
+        return self._do_launch(document_url=self.request.parsed_params["url"])
 
     @view_config(
         authorized_to_configure_assignments=True,
@@ -211,46 +186,79 @@ class BasicLaunchViews:
         """
         return {}
 
-    @view_config(
-        authorized_to_configure_assignments=True,
-        route_name="configure_assignment",
-        schema=ConfigureAssignmentSchema,
-    )
-    def configure_assignment(self):
+    # ---------------------- #
+    # LMS / content specific #
+    # ---------------------- #
+
+    @view_config(blackboard_copied=True)
+    def blackboard_copied_launch(self):
         """
-        Respond to a configure module item request.
+        Respond to a launch of a newly-copied Blackboard assignment.
 
-        This happens after an unconfigured assignment launch. We show the user
-        our document selection form instead of launching the assignment, and
-        when the user chooses a document and submits the form this is the view
-        that receives that form submission.
-
-        We save the chosen document in the DB so that subsequent launches of
-        this same assignment will be DB-configured rather than unconfigured.
-        And we also send back the assignment launch page, passing the chosen
-        URL to Via, as the direct response to the content item form submission.
+        For more about Blackboard course copy see the BlackboardCopied
+        predicate's docstring.
         """
-        extra = {}
-        if group_set := self.request.parsed_params.get("group_set"):
-            extra["group_set_id"] = group_set
-
-        document_url = self.request.parsed_params["document_url"]
-
-        self.assignment_service.upsert(
-            document_url,
-            self.context.lti_params["tool_consumer_instance_guid"],
-            self.context.resource_link_id,
-            extra=extra,
+        return self._course_copied_launch(
+            BlackboardCopied.get_original_resource_link_id(self.request)
         )
 
-        # When setting the document it's possible the config might need
-        # updating based on the type of assignment since it was initialized
-        # with `enable_lti_launch_mode` on __init__
-        # We need to clear the cache and `enable_lti_launch_mode` again.
-        JSConfig._hypothesis_client.fget.cache_clear()  # pylint: disable=protected-access
-        self.context.js_config.enable_lti_launch_mode()
+    @view_config(brightspace_copied=True)
+    def brightspace_copied_launch(self):
+        """
+        Respond to a launch of a newly-copied Brightspace assignment.
 
-        return self._do_launch(document_url, grading_supported=True)
+        For more about Brightspace course copy see the BrightspaceCopied
+        predicate's docstring.
+        """
+        return self._course_copied_launch(
+            BrightspaceCopied.get_original_resource_link_id(self.request)
+        )
+
+    @view_config(canvas_file=True)
+    def canvas_file_launch(self):
+        """
+        Respond to a Canvas file assignment launch which is not db_configured.
+
+        Canvas file assignment launch requests have a ``file_id`` request
+        parameter, which is the Canvas instance's ID for the file. To display
+        the assignment we have to use this ``file_id`` to get a download URL
+        for the file from the Canvas API. We then pass that download URL to
+        Via. We have to re-do this file-ID-for-download-URL exchange on every
+        single launch because Canvas's download URLs are temporary.
+        """
+        course_id = self.context.lti_params["custom_canvas_course_id"]
+        file_id = self.request.params["file_id"]
+
+        # Normally this would be done during `configure_assignment()` but
+        # Canvas skips that step. We are doing this to ensure that there is a
+        # module item configuration. As a result of this we can rely on this
+        # being around in future code.
+        document_url = f"canvas://file/course/{course_id}/file_id/{file_id}"
+        self.assignment_service.upsert(
+            document_url=document_url,
+            tool_consumer_instance_guid=self.context.lti_params[
+                "tool_consumer_instance_guid"
+            ],
+            resource_link_id=self.context.resource_link_id,
+        )
+        return self._do_launch(document_url=document_url, grading_supported=False)
+
+    @view_config(vitalsource_book=True)
+    def legacy_vitalsource_launch(self):
+        """
+        Respond to a legacy configured VitalSource assignment.
+
+        Legacy VitalSource assignments use `vitalsource_book=true` as opposed to
+        a `vitalsource://` URL as the document_url.
+
+        The assignment shouldn't be "configured" in any other way to match this view.
+        """
+
+        document_url = VitalSourceService.generate_document_url(
+            book_id=self.request.params["book_id"], cfi=self.request.params.get("cfi")
+        )
+
+        return self._do_launch(document_url=document_url, grading_supported=True)
 
     def _course_copied_launch(self, original_resource_link_id):
         """
@@ -264,19 +272,14 @@ class BasicLaunchViews:
         :param original_resource_link_id: the resource_link_id of the original
             assignment that this assignment was copied from
         """
-        tool_consumer_instance_guid = self.context.lti_params[
-            "tool_consumer_instance_guid"
-        ]
-
-        document_url = self.assignment_service.get(
-            tool_consumer_instance_guid, original_resource_link_id
-        ).document_url
+        guid = self.context.lti_params["tool_consumer_instance_guid"]
+        assignment = self.assignment_service.get(guid, original_resource_link_id)
 
         self.assignment_service.upsert(
-            document_url, tool_consumer_instance_guid, self.context.resource_link_id
+            assignment.document_url, guid, self.context.resource_link_id
         )
 
-        return self._do_launch(document_url)
+        return self._do_launch(document_url=assignment.document_url)
 
     def _do_launch(self, document_url, grading_supported=True):
         """Do a basic LTI launch with the given document_url."""
