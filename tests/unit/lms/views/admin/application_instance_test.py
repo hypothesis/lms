@@ -60,12 +60,7 @@ class TestAdminApplicationInstanceViews:
             pyramid_request_new_instance
         ).instance_new()
 
-        assert pyramid_request_new_instance.session.peek_flash("errors")
-        assert response == temporary_redirect_to(
-            pyramid_request_new_instance.route_url(
-                "admin.registration.new.instance", id_=sentinel.lti_registration_id
-            )
-        )
+        assert response.status_code == 400
 
     def test_search_not_query(self, pyramid_request):
         response = AdminApplicationInstanceViews(pyramid_request).search()

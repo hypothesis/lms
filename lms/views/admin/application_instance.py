@@ -66,11 +66,17 @@ class AdminApplicationInstanceViews:
                 f"Application instance with deployment_id: {self.request.params['deployment_id']} already exists",
                 "errors",
             )
-            return HTTPFound(
-                location=self.request.route_url(
-                    "admin.registration.new.instance", id_=lti_registration_id
-                )
+            response = render_to_response(
+                "lms:templates/admin/instance.new.html.jinja2",
+                {
+                    "lti_registration": self.lti_registration_service.get_by_id(
+                        lti_registration_id
+                    )
+                },
+                request=self.request,
             )
+            response.status = 400
+            return response
 
         return HTTPFound(
             location=self.request.route_url("admin.instance.id", id_=ai.id)

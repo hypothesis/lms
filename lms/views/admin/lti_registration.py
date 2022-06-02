@@ -64,7 +64,13 @@ class AdminLTIRegistrationViews:
                 f"Registration {params['issuer']} / {params['client_id']} already exists",
                 "errors",
             )
-            return HTTPFound(location=self.request.route_url("admin.registration.new"))
+            response = render_to_response(
+                "lms:templates/admin/registration.new.html.jinja2",
+                {},
+                request=self.request,
+            )
+            response.status_code = 400
+            return response
 
         return HTTPFound(
             location=self.request.route_url(
