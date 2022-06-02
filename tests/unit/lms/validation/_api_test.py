@@ -5,7 +5,6 @@ import pytest
 from lms.validation import ValidationError
 from lms.validation._api import (
     APIBlackboardSyncSchema,
-    APICreateAssignmentSchema,
     APIReadResultSchema,
     APIRecordResultSchema,
     APIRecordSpeedgraderSchema,
@@ -150,93 +149,6 @@ class TestAPIRecordResultSchema:
             "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
             "lis_result_sourcedid": "modelstudent-assignment1",
             "score": 0.5,
-        }
-
-
-class TestAPICreateAssignmentSchema:
-    @pytest.mark.parametrize(
-        "assignment_fixture_name",
-        ["url_assignment", "file_assignment", "vitalsource_assignment"],
-    )
-    def test_it_doesnt_raise_valid__assignment(
-        self, json_request, assignment_fixture_name, request
-    ):
-        assignment_body = request.getfixturevalue(assignment_fixture_name)
-
-        request = json_request(assignment_body)
-        schema = APICreateAssignmentSchema(request)
-
-        schema.parse()
-
-    def test_it_raises_for_missing_book_id(self, json_request, vitalsource_assignment):
-        del vitalsource_assignment["content"]["bookID"]
-        request = json_request(vitalsource_assignment)
-        schema = APICreateAssignmentSchema(request)
-
-        with pytest.raises(ValidationError):
-            schema.parse()
-
-    def test_it_raises_for_missing_cfi(self, json_request, vitalsource_assignment):
-        del vitalsource_assignment["content"]["cfi"]
-        request = json_request(vitalsource_assignment)
-        schema = APICreateAssignmentSchema(request)
-
-        with pytest.raises(ValidationError):
-            schema.parse()
-
-    def test_it_raises_for_missing_url(self, json_request, url_assignment):
-        del url_assignment["content"]["url"]
-        request = json_request(url_assignment)
-        schema = APICreateAssignmentSchema(request)
-
-        with pytest.raises(ValidationError):
-            schema.parse()
-
-    def test_it_raises_for_missing_file(self, json_request, file_assignment):
-        del file_assignment["content"]["file"]
-        request = json_request(file_assignment)
-        schema = APICreateAssignmentSchema(request)
-
-        with pytest.raises(ValidationError):
-            schema.parse()
-
-    @pytest.fixture
-    def vitalsource_assignment(self):
-        return {
-            "content": {
-                "type": "vitalsource",
-                "bookID": "BOOK_ID",
-                "cfi": "CFI",
-            },
-            "course_id": "COURSE_ID",
-            "ext_lti_assignment_id": "EXT_LTI_ASSIGNMENT_ID",
-        }
-
-    @pytest.fixture
-    def url_assignment(self):
-        return {
-            "content": {
-                "type": "url",
-                "url": "https://example.com",
-            },
-            "course_id": "COURSE_ID",
-            "ext_lti_assignment_id": "EXT_LTI_ASSIGNMENT_ID",
-        }
-
-    @pytest.fixture
-    def file_assignment(self):
-        return {
-            "content": {
-                "type": "file",
-                "file": {
-                    "display_name": "File 1",
-                    "id": 1,
-                    "updated_at": "today",
-                    "size": 1000,
-                },
-            },
-            "course_id": "COURSE_ID",
-            "ext_lti_assignment_id": "EXT_LTI_ASSIGNMENT_ID",
         }
 
 
