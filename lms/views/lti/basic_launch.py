@@ -77,7 +77,7 @@ class BasicLaunchViews:
 
         document_url = self.request.parsed_params["document_url"]
 
-        self.assignment_service.upsert(
+        self.assignment_service.upsert_assignment(
             document_url,
             self.context.lti_params["tool_consumer_instance_guid"],
             self.context.resource_link_id,
@@ -108,7 +108,7 @@ class BasicLaunchViews:
         # The ``db_configured=True`` view predicate ensures that this view
         # won't be called if there isn't a matching document_url in the DB. So
         # here we can safely assume that the document_url exists.
-        document_url = self.assignment_service.get(
+        document_url = self.assignment_service.get_assignment(
             self.context.lti_params["tool_consumer_instance_guid"],
             self.context.resource_link_id,
         ).document_url
@@ -234,7 +234,7 @@ class BasicLaunchViews:
         # module item configuration. As a result of this we can rely on this
         # being around in future code.
         document_url = f"canvas://file/course/{course_id}/file_id/{file_id}"
-        self.assignment_service.upsert(
+        self.assignment_service.upsert_assignment(
             document_url=document_url,
             tool_consumer_instance_guid=self.context.lti_params[
                 "tool_consumer_instance_guid"
@@ -273,9 +273,11 @@ class BasicLaunchViews:
             assignment that this assignment was copied from
         """
         guid = self.context.lti_params["tool_consumer_instance_guid"]
-        assignment = self.assignment_service.get(guid, original_resource_link_id)
+        assignment = self.assignment_service.get_assignment(
+            guid, original_resource_link_id
+        )
 
-        self.assignment_service.upsert(
+        self.assignment_service.upsert_assignment(
             assignment.document_url, guid, self.context.resource_link_id
         )
 

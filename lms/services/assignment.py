@@ -9,8 +9,8 @@ class AssignmentService:
     def __init__(self, db):
         self._db = db
 
-    def get(self, tool_consumer_instance_guid, resource_link_id):
-        """Get an assignment using by resource_link_id."""
+    def get_assignment(self, tool_consumer_instance_guid, resource_link_id):
+        """Get an assignment by resource_link_id."""
 
         return (
             self._db.query(Assignment)
@@ -22,10 +22,10 @@ class AssignmentService:
         )
 
     @lru_cache(maxsize=128)
-    def exists(self, tool_consumer_instance_guid, resource_link_id) -> bool:
-        return bool(self.get(tool_consumer_instance_guid, resource_link_id))
+    def assignment_exists(self, tool_consumer_instance_guid, resource_link_id) -> bool:
+        return bool(self.get_assignment(tool_consumer_instance_guid, resource_link_id))
 
-    def upsert(
+    def upsert_assignment(
         self, document_url, tool_consumer_instance_guid, resource_link_id, extra=None
     ):
         """
@@ -37,7 +37,7 @@ class AssignmentService:
 
         Any existing document_url for this assignment will be overwritten.
         """
-        assignment = self.get(tool_consumer_instance_guid, resource_link_id)
+        assignment = self.get_assignment(tool_consumer_instance_guid, resource_link_id)
         if not assignment:
             assignment = Assignment(
                 tool_consumer_instance_guid=tool_consumer_instance_guid,

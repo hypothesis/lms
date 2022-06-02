@@ -116,7 +116,9 @@ def test_it_when_grading(
         course_service.get_by_context_id.return_value,
         "GRADING_STUDENT_ID",
         type_=Grouping.Type.BLACKBOARD_GROUP,
-        group_set_id=assignment_service.get.return_value.extra["group_set_id"],
+        group_set_id=assignment_service.get_assignment.return_value.extra[
+            "group_set_id"
+        ],
     )
     assert result == [
         group.groupid()
@@ -174,7 +176,9 @@ def request_json():
 
 @pytest.fixture(autouse=True)
 def assignment_service(assignment_service):
-    assignment_service.get.return_value.extra = {"group_set_id": "GROUP_SET_ID"}
+    assignment_service.get_assignment.return_value.extra = {
+        "group_set_id": "GROUP_SET_ID"
+    }
     return assignment_service
 
 

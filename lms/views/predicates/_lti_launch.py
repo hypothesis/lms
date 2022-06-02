@@ -31,14 +31,9 @@ class DBConfigured(Base):
     name = "db_configured"
 
     def __call__(self, context, request):
-        assignment_svc = request.find_service(name="assignment")
-        tool_consumer_instance_guid = context.lti_params.get(
-            "tool_consumer_instance_guid"
-        )
-
         return (
-            assignment_svc.exists(
-                tool_consumer_instance_guid,
+            request.find_service(name="assignment").assignment_exists(
+                context.lti_params.get("tool_consumer_instance_guid"),
                 context.resource_link_id,
             )
             == self.value
@@ -111,8 +106,9 @@ class _CourseCopied(Base, ABC):
             else:
                 # Look for the document URL of the previous assignment that
                 # this one was copied from.
-                assignment_service = request.find_service(name="assignment")
-                is_newly_copied = assignment_service.exists(
+                is_newly_copied = request.find_service(
+                    name="assignment"
+                ).assignment_exists(
                     tool_consumer_instance_guid, original_resource_link_id
                 )
 

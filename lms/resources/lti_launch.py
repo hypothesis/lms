@@ -162,7 +162,7 @@ class LTILaunchResource:
         tool_consumer_instance_guid = self._request.parsed_params[
             "tool_consumer_instance_guid"
         ]
-        assignment = self._assignment_service.get(
+        assignment = self._assignment_service.get_assignment(
             tool_consumer_instance_guid, self.resource_link_id
         )
         return bool(assignment and assignment.extra.get("group_set_id"))

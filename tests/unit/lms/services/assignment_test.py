@@ -8,35 +8,39 @@ from tests import factories
 
 
 class TestAssignmentService:
-    def test_get(self, svc, assignment, matching_params):
-        assert svc.get(**matching_params) == assignment
+    def test_get_assignment(self, svc, assignment, matching_params):
+        assert svc.get_assignment(**matching_params) == assignment
 
-    def test_get_without_match(self, svc, non_matching_params):
-        assert svc.get(**non_matching_params) is None
+    def test_get_assignment_without_match(self, svc, non_matching_params):
+        assert svc.get_assignment(**non_matching_params) is None
 
     @pytest.mark.usefixtures("assignment")
-    def test_exists(self, svc, matching_params):
-        assert svc.exists(**matching_params)
+    def test_assignment_exists(self, svc, matching_params):
+        assert svc.assignment_exists(**matching_params)
 
-    def test_exists_without_match(self, svc, non_matching_params):
-        assert not svc.exists(**non_matching_params)
+    def test_assignment_exists_without_match(self, svc, non_matching_params):
+        assert not svc.assignment_exists(**non_matching_params)
 
-    def test_upsert_with_existing(self, svc, db_session, assignment, matching_params):
+    def test_upsert_assignment_with_existing(
+        self, svc, db_session, assignment, matching_params
+    ):
         updated_attrs = {"document_url": "new_document_url", "extra": {"new": "values"}}
 
-        result = svc.upsert(**matching_params, **updated_attrs)
+        result = svc.upsert_assignment(**matching_params, **updated_attrs)
 
         assert result == assignment
         db_session.flush()
         db_session.refresh(assignment)
         assert assignment == Any.object.with_attrs(updated_attrs)
 
-    def test_upsert_with_new(self, svc, db_session, assignment, non_matching_params):
+    def test_upsert_assignment_with_new(
+        self, svc, db_session, assignment, non_matching_params
+    ):
         non_matching_params.update(
             {"document_url": "new_document_url", "extra": {"new": "values"}}
         )
 
-        result = svc.upsert(**non_matching_params)
+        result = svc.upsert_assignment(**non_matching_params)
 
         assert result != assignment
         db_session.flush()
