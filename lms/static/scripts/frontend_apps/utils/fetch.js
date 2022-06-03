@@ -52,6 +52,10 @@ export function useFetch(key, fetcher) {
   useEffect(() => {
     setResult({ data: null, error: null, isLoading: key !== null });
 
+    if (!key) {
+      return undefined;
+    }
+
     if (!lastFetcher.current) {
       throw new Error('Fetch key provided but no fetcher set');
     }

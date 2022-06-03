@@ -48,9 +48,11 @@ describe('useFetch', () => {
     assert.equal(wrapper.text(), 'Loading');
   });
 
-  it('returns idle state if not loading', () => {
-    const wrapper = renderWidget(null, async () => 'Some data');
-    assert.equal(wrapper.text(), 'Nothing to fetch');
+  [async () => 'Some data', undefined, null].forEach(fetcher => {
+    it('returns idle state if not loading', () => {
+      const wrapper = renderWidget(null, fetcher);
+      assert.equal(wrapper.text(), 'Nothing to fetch');
+    });
   });
 
   it('fetches data and returns result', async () => {
