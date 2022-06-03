@@ -298,19 +298,21 @@ class BasicLaunchViews:
     def _store_lti_data(self):
         """Store LTI launch data in our LMS database."""
 
-        request = self.request
+        lti_params = self.context.lti_params
 
         # Before any LTI assignments launch, create or update the Hypothesis
         # user and group corresponding to the LTI user and course.
-        request.find_service(name="lti_h").sync([self.context.course], request.params)
+        self.request.find_service(name="lti_h").sync([self.context.course], lti_params)
 
         # Report all LTI assignment launches to the /reports page.
         LtiLaunches.add(
-            request.db,
-            request.params.get("context_id"),
-            request.params.get("oauth_consumer_key"),
+            self.request.db,
+            lti_params.get("context_id"),
+            lti_params.get("oauth_consumer_key"),
         )
 
-        if not request.lti_user.is_instructor and not self.context.is_canvas:
+        if not self.request.lti_user.is_instructor and not self.context.is_canvas:
             # Create or update a record of LIS result data for a student launch
-            request.find_service(name="grading_info").upsert_from_request(request)
+            self.request.find_service(name="grading_info").upsert_from_request(
+                self.request
+            )
