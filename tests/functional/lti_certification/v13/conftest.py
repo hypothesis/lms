@@ -5,8 +5,12 @@ import importlib_resources
 import jwt
 import pytest
 from httpretty import httpretty
+from pytest import register_assert_rewrite
 
 from tests import factories
+
+# Ensure that assertions get nice formatting from pytest
+register_assert_rewrite("tests.function.lti_certification.v13.assertions")
 
 keys_path = importlib_resources.files("tests.functional.lti_certification.v13")
 
