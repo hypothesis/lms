@@ -171,21 +171,17 @@ class TestAddDocumentURL:
         assert submission_params()["document_url"] == "example_document_url"
 
     @pytest.mark.parametrize("submit_on_annotation_enabled", [True, False])
-    @pytest.mark.parametrize("custom_canvas_user_id", ["100", 100])
     def test_it_sets_the_canvas_submission_params(
         self,
         pyramid_request,
         js_config,
         submission_params,
-        context,
-        custom_canvas_user_id,
         submit_on_annotation_enabled,
     ):
         if submit_on_annotation_enabled:
             pyramid_request.feature.side_effect = (
                 lambda feature: feature == "submit_on_annotation"
             )
-        context.lti_params["custom_canvas_user_id"] = custom_canvas_user_id
 
         js_config.add_document_url("canvas://file/course_id/COURSE_ID/file_id/FILE_ID")
 
@@ -194,7 +190,7 @@ class TestAddDocumentURL:
                 "h_username": pyramid_request.lti_user.h_user.username,
                 "lis_outcome_service_url": "example_lis_outcome_service_url",
                 "lis_result_sourcedid": "example_lis_result_sourcedid",
-                "learner_canvas_user_id": "100",
+                "learner_canvas_user_id": "test_user_id",
                 "resource_link_id": pyramid_request.params["resource_link_id"],
             }
         )

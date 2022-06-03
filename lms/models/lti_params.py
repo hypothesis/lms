@@ -106,6 +106,13 @@ def _to_lti_v11(v13_params):
         # We need to squish together the roles for v1.1
         v11_params["roles"] = ",".join(v11_params["roles"])
 
+    for canvas_param_name in ["custom_canvas_course_id", "custom_canvas_user_id"]:
+        # In LTI1.3 some custom canvas parameters are sent as integers
+        # and as a string in LTI1.1.
+        canvas_param_value = v11_params.get(canvas_param_name)
+        if isinstance(canvas_param_value, int):
+            v11_params[canvas_param_name] = str(canvas_param_value)
+
     return v11_params
 
 
