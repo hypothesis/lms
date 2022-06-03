@@ -261,14 +261,15 @@ describe('SubmitGradeForm', () => {
       assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '');
     });
 
-    it('shows the error dialog when the grade request throws an error', () => {
+    it('shows the error dialog when the grade request throws an error', async () => {
       const error = {
         serverMessage: 'message',
         details: 'details',
       };
-      fakeGradingService.fetchGrade.throws(error);
+      fakeGradingService.fetchGrade.rejects(error);
       const wrapper = renderForm();
-      wrapper.find('button[type="submit"]').simulate('click');
+
+      await waitForGradeFetch(wrapper);
 
       assert.isTrue(wrapper.find('ErrorModal').exists());
       // Ensure the error object passed to ErrorDialog is the same as the one thrown
