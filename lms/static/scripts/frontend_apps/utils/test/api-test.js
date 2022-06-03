@@ -292,7 +292,7 @@ describe('api', () => {
     assert.deepEqual(secondCallResult, await fakeResponse.json());
   });
 
-  it('aborts if fetch is canceled', async () => {
+  it('passes abort signal to fetch', async () => {
     const controller = new AbortController();
     window.fetch.rejects(new DOMException('Request canceled', 'AbortError'));
 
@@ -309,7 +309,7 @@ describe('api', () => {
     );
 
     // Simulate request being canceled, as `fetch` would do if we called
-    // `controller.abort()`.
+    // `controller.abort()`, and check that the AbortError is re-thrown.
     let error;
     try {
       await result;
