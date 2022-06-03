@@ -8,6 +8,7 @@ import classnames from 'classnames';
 import { useEffect, useLayoutEffect, useState, useRef } from 'preact/hooks';
 
 import { useService, GradingService } from '../services';
+import { useFetch } from '../utils/fetch';
 import { useUniqueId } from '../utils/hooks';
 import { formatToNumber, scaleGrade, validateGrade } from '../utils/validation';
 
@@ -25,60 +26,6 @@ const GRADE_MULTIPLIER = 10;
  */
 
 /**
- * Custom useEffect function that handles fetching a student's
- * grade and returning the result of that grade and the loading
- * and error status of that fetch request.
- *
- * @param {StudentInfo|null} student
- * @param {(value: ErrorLike) => void} setFetchGradeError
- */
-const useFetchGrade = (student, setFetchGradeError) => {
-  const gradingService = useService(GradingService);
-  const [grade, setGrade] = useState('');
-  const [gradeLoading, setGradeLoading] = useState(false);
-
-  useEffect(() => {
-    /** @type {boolean} */
-    let ignoreResults;
-    if (student) {
-      // Fetch the grade from the service api
-      // See https://www.robinwieruch.de/react-hooks-fetch-data for async in useEffect
-      const fetchData = async () => {
-        setGradeLoading(true);
-        setGrade(''); // Clear previous grade so we don't show the wrong grade with the new student
-        try {
-          const { currentScore = null } = await gradingService.fetchGrade({
-            student,
-          });
-          // Only set these values if we didn't cancel this request
-          if (!ignoreResults) {
-            if (currentScore === null) {
-              setGrade('');
-            } else {
-              setGrade(scaleGrade(currentScore, GRADE_MULTIPLIER));
-            }
-          }
-        } catch (e) {
-          setFetchGradeError(e);
-        } finally {
-          setGradeLoading(false);
-        }
-      };
-      fetchData();
-    } else {
-      // If there is no valid student, don't show a grade
-      setGrade('');
-    }
-    // Called when unmounting the component
-    return () => {
-      // Set a flag to ignore the the fetchGrade response from saving to state
-      ignoreResults = true;
-    };
-  }, [gradingService, student, setFetchGradeError]);
-  return { grade, gradeLoading };
-};
-
-/**
  * @typedef SubmitGradeFormProps
  * @prop {StudentInfo|null} student - The student to fetch and submit grades for
  */
@@ -90,11 +37,23 @@ const useFetchGrade = (student, setFetchGradeError) => {
  * @param {SubmitGradeFormProps} props
  */
 export default function SubmitGradeForm({ student }) {
-  // State for loading the grade
-  const [fetchGradeError, setFetchGradeError] = useState(
-    /** @type {ErrorLike|null} */ (null)
+  const [fetchGradeErrorDismissed, setFetchGradeErrorDismissed] =
+    useState(false);
+  const gradingService = useService(GradingService);
+  const grade = useFetch(
+    student ? `grade:${student.userid}` : null,
+    student
+      ? async () => {
+          setFetchGradeErrorDismissed(false);
+          const { currentScore = null } = await gradingService.fetchGrade({
+            student,
+          });
+          return currentScore === null
+            ? ''
+            : `${scaleGrade(currentScore, GRADE_MULTIPLIER)}`;
+        }
+      : undefined
   );
-  const { grade, gradeLoading } = useFetchGrade(student, setFetchGradeError);
 
   // The following is state for saving the grade
   //
@@ -115,8 +74,6 @@ export default function SubmitGradeForm({ student }) {
   const [validationMessage, setValidationMessageMessage] = useState('');
   // Unique id attribute for <input>
   const gradeId = useUniqueId('SubmitGradeForm__grade:');
-
-  const gradingService = useService(GradingService);
 
   // Used to handle keyboard input changes for the grade input field.
   const inputRef = /** @type {{ current: HTMLInputElement }} */ (useRef());
@@ -215,10 +172,10 @@ export default function SubmitGradeForm({ student }) {
               ref={inputRef}
               onInput={handleKeyDown}
               type="input"
-              defaultValue={grade}
+              defaultValue={grade.data ?? ''}
               key={student ? student.LISResultSourcedId : null}
             />
-            {gradeLoading && <Spinner classes="u-absolute-centered" />}
+            {grade.isLoading && <Spinner classes="u-absolute-centered" />}
           </span>
 
           <LabeledButton
@@ -247,14 +204,12 @@ export default function SubmitGradeForm({ student }) {
           cancelLabel="Close"
         />
       )}
-      {!!fetchGradeError && (
+      {grade.error && !fetchGradeErrorDismissed && (
         <ErrorModal
           description="Unable to fetch grade"
-          error={fetchGradeError}
-          onCancel={() => {
-            setFetchGradeError(null);
-          }}
+          error={grade.error}
           cancelLabel="Close"
+          onCancel={() => setFetchGradeErrorDismissed(true)}
         />
       )}
     </>
