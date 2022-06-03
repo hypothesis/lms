@@ -1,3 +1,5 @@
+from typing import List
+
 CLAIM_PREFIX = "https://purl.imsglobal.org/spec/lti/claim"
 
 
@@ -94,24 +96,23 @@ def _to_lti_v11(v13_params):
     v11_params = {}
 
     for v11_key, v13_path in _V11_TO_V13:
-        # Descend into the object for each item in the path
-        found = False
-        value = v13_params
-
-        for path_item in v13_path:
-            if path_item not in value:
-                break
-            value = value[path_item]
-        else:
-            # We only found the key if we exhausted all of `v13_path`
-            found = True
-
-        # We don't want to add partial values along v13_path
-        if found:
-            v11_params[v11_key] = value
+        try:
+            v11_params[v11_key] = _get_key(v13_params, v13_path)
+        except KeyError:
+            # We don't want to add partial values along v13_path
+            continue
 
     if "roles" in v11_params:
         # We need to squish together the roles for v1.1
         v11_params["roles"] = ",".join(v11_params["roles"])
 
     return v11_params
+
+
+def _get_key(data: dict, data_path: List[str]):
+    # Descend into the object for each item in the path
+    value = data
+    for path_item in data_path:
+        value = value[path_item]
+
+    return value
