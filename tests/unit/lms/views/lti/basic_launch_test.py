@@ -255,14 +255,12 @@ class TestBasicLaunchViews:
     ):
         svc._store_lti_data()  # pylint: disable=protected-access
 
-        lti_h_service.sync.assert_called_once_with(
-            [context.course], pyramid_request.params
-        )
+        lti_h_service.sync.assert_called_once_with([context.course], context.lti_params)
 
         LtiLaunches.add.assert_called_once_with(
             pyramid_request.db,
-            pyramid_request.params["context_id"],
-            pyramid_request.params["oauth_consumer_key"],
+            context.lti_params["context_id"],
+            context.lti_params["oauth_consumer_key"],
         )
 
         grading_info_service.upsert_from_request.assert_called_once_with(
