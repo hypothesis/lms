@@ -324,17 +324,14 @@ class JSConfig:
         if not lis_outcome_service_url:
             return
 
-        custom_canvas_user_id = self._context.lti_params["custom_canvas_user_id"]
-
         self._config["canvas"]["speedGrader"] = {
             "submissionParams": {
                 "h_username": self._h_user.username,
                 "lis_result_sourcedid": lis_result_sourcedid,
                 "lis_outcome_service_url": lis_outcome_service_url,
-                # Canvas sends custom_canvas_user_id as in integer in LTI1.3 and as a string in LT1.1
-                "learner_canvas_user_id": str(custom_canvas_user_id)
-                if isinstance(custom_canvas_user_id, int)
-                else custom_canvas_user_id,
+                "learner_canvas_user_id": self._context.lti_params[
+                    "custom_canvas_user_id"
+                ],
                 "group_set": self._request.params.get("group_set"),
                 # Canvas doesn't send the right value for this on speed grader launches
                 # sending instead the same value as for "context_id"

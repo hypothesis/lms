@@ -61,3 +61,16 @@ class TestLTI13Params:
 
         assert params["user_id"] == "user_id-v11"
         assert params["resource_link_id"] == "resource_link_id-v11"
+
+    @pytest.mark.parametrize(
+        "parameter_name,claim_name",
+        [
+            ("custom_canvas_course_id", "canvas_course_id"),
+            ("custom_canvas_user_id", "canvas_user_id"),
+        ],
+    )
+    def test_integer_canvas_parameters(self, parameter_name, claim_name):
+        params = LTIParams.from_v13({f"{CLAIM_PREFIX}/custom": {claim_name: 1}})
+
+        assert isinstance(params[parameter_name], str)
+        assert params[parameter_name] == "1"

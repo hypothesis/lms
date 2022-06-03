@@ -66,22 +66,6 @@ class _CommonLTILaunchSchema(LTIV11CoreSchema):
     launch_presentation_return_url = fields.Str()
     tool_consumer_info_product_family_code = fields.Str()
 
-    @pre_load
-    def _load_canvas_course_id(self, data, **_kwargs):  # pylint: disable=no-self-use
-        canvas_course_id = data.get("custom_canvas_course_id")
-        if canvas_course_id and isinstance(canvas_course_id, int):
-            # In LTI1.3 course_id is sent as an integer
-            # instead of as a string in LTI1.1.
-            # Coercing both version to integers could be handled
-            # with fields.Int(strict=False)
-            #
-            # Doing a manual conversion to str here instead so both versions
-            # behave the same as LMS is concern
-            # and to allow for future changes on canvas' side
-            data["custom_canvas_course_id"] = str(canvas_course_id)
-
-        return data
-
     @validates_schema
     def validate_consumer_key(self, data, **_kwargs):  # pylint: disable=no-self-use
         if (
