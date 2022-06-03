@@ -133,8 +133,8 @@ export async function apiCall(options) {
 }
 
 /**
- * Template tag that formats a URL path, ensuring interpolated strings are
- * percent-encoded.
+ * Template tag function that formats a URL path, ensuring interpolated strings
+ * are percent-encoded.
  *
  * @example
  *   // Assume `widgetId` is "foo/bar"
