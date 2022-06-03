@@ -1,5 +1,9 @@
+import { mount } from 'enzyme';
+
+import { Config } from '../../config';
 import { APIError } from '../../errors';
-import { apiCall, urlPath } from '../api';
+import { waitFor } from '../../../test-util/wait';
+import { apiCall, urlPath, useAPIFetch, $imports } from '../api';
 
 function createResponse(status, body) {
   return {
@@ -339,5 +343,101 @@ describe('urlPath', () => {
 
   it('returns path with no parameters unchanged', () => {
     assert.equal(urlPath`/api/foo/bar`, '/api/foo/bar');
+  });
+});
+
+describe('useAPIFetch', () => {
+  let fakeConfig;
+  let fakeUseFetch;
+  let fakeFetchResult;
+
+  beforeEach(() => {
+    fakeConfig = {
+      api: { authToken: 'some-token' },
+    };
+    fakeFetchResult = { data: {}, error: null, isLoading: false };
+    fakeUseFetch = sinon.stub().returns(fakeFetchResult);
+
+    const fakeUseContext = sinon.stub();
+    fakeUseContext.withArgs(Config).returns(fakeConfig);
+
+    $imports.$mock({
+      'preact/hooks': { useContext: fakeUseContext },
+      './fetch': { useFetch: fakeUseFetch },
+    });
+
+    sinon.stub(window, 'fetch').resolves(createResponse(200, {}));
+  });
+
+  afterEach(() => {
+    $imports.$restore();
+    window.fetch.restore();
+  });
+
+  [
+    {
+      path: '/api/some/path',
+      params: undefined,
+      expectedURL: '/api/some/path',
+    },
+    {
+      path: '/api/some/path',
+      params: { foo: 'bar', baz: 'meep' },
+      expectedURL: '/api/some/path?foo=bar&baz=meep',
+    },
+  ].forEach(({ path, params, expectedURL }) => {
+    it('fetches data from API if a path is provided', async () => {
+      const result = useAPIFetch(path, params);
+      assert.equal(result, fakeFetchResult);
+      assert.calledWith(fakeUseFetch, expectedURL, sinon.match.func);
+
+      const fetcher = fakeUseFetch.args[0][1];
+      const { signal } = new AbortController();
+      await fetcher(signal);
+
+      assert.calledWith(
+        window.fetch,
+        expectedURL,
+        sinon.match({
+          headers: {
+            Authorization: fakeConfig.api.authToken,
+          },
+          signal,
+        })
+      );
+    });
+  });
+
+  it('does not fetch if no path is provided', () => {
+    useAPIFetch(null);
+    assert.calledWith(fakeUseFetch, null, undefined);
+  });
+
+  // Integration test with `useFetch` and Preact
+  it('fetches data in a component', async () => {
+    $imports.$restore();
+    window.fetch
+      .withArgs('/api/some/path')
+      .resolves(createResponse(200, { title: 'Some title' }));
+
+    function TestWidget() {
+      const result = useAPIFetch('/api/some/path');
+      return (
+        <div>
+          {result.isLoading && 'Loading'}
+          {result.data && result.data.title}
+          {result.error && `Error: ${result.error}`}
+        </div>
+      );
+    }
+
+    const wrapper = mount(
+      <Config.Provider value={fakeConfig}>
+        <TestWidget />
+      </Config.Provider>
+    );
+    assert.equal(wrapper.text(), 'Loading');
+
+    await waitFor(() => wrapper.text() === 'Some title');
   });
 });

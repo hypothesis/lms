@@ -1,4 +1,8 @@
+import { useContext } from 'preact/hooks';
+
+import { Config } from '../config';
 import { APIError } from '../errors';
+import { useFetch } from './fetch';
 
 /**
  * Error response when a call fails due to expiry of an access token for an
@@ -150,4 +154,36 @@ export function urlPath(strings, ...params) {
     result += encodeURIComponent(param);
   }
   return result + strings[strings.length - 1];
+}
+
+/**
+ * Hook that fetches data using authenticated API requests.
+ *
+ * @template [T=unknown]
+ * @param {string|null} path - Path for API call, or null if there is nothing to fetch
+ * @param {Record<string, string>} [params] - Query params for API call
+ * @return {import('./fetch').FetchResult<T>}
+ */
+export function useAPIFetch(path, params) {
+  const {
+    api: { authToken },
+  } = useContext(Config);
+
+  /** @type {import('./fetch').Fetcher<T>|undefined} */
+  const fetcher = path
+    ? signal =>
+        apiCall({
+          authToken,
+          path,
+          params,
+          signal,
+        })
+    : undefined;
+
+  // We generate a URL-like key from the path and params, but we could generate
+  // something simpler, as long as it encodes the same information. The auth
+  // token is not included in the key, as we assume currently that it does not
+  // change the result.
+  const paramStr = params ? '?' + new URLSearchParams(params).toString() : '';
+  return useFetch(path ? `${path}${paramStr}` : null, fetcher);
 }
