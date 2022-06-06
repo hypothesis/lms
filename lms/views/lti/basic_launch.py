@@ -46,7 +46,7 @@ class BasicLaunchViews:
             self.context.lti_params.get("tool_consumer_instance_guid")
         )
 
-        self._store_lti_data()
+        self._record_launch()
 
     # ----------------- #
     # Standard launches #
@@ -292,8 +292,8 @@ class BasicLaunchViews:
 
         return {}
 
-    def _store_lti_data(self):
-        """Store LTI launch data in our LMS database."""
+    def _record_launch(self):
+        """Persist launch type independent info to the DB."""
 
         self.application_instance.update_lms_data(self.context.lti_params)
 
