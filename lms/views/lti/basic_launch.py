@@ -46,6 +46,8 @@ class BasicLaunchViews:
             self.context.lti_params.get("tool_consumer_instance_guid")
         )
 
+        self._store_lti_data()
+
     # ----------------- #
     # Standard launches #
     # ----------------- #
@@ -139,8 +141,6 @@ class BasicLaunchViews:
         we'll save it in our DB. Subsequent launches of the same assignment
         will then be DB-configured launches rather than unconfigured.
         """
-        self._store_lti_data()
-
         form_fields = {
             param: value
             for param, value in self.context.lti_params.items()
@@ -276,8 +276,6 @@ class BasicLaunchViews:
 
     def _do_launch(self, document_url, grading_supported=True):
         """Do a basic LTI launch with the given document_url."""
-
-        self._store_lti_data()
 
         if grading_supported:
             self.context.js_config.maybe_enable_grading()
