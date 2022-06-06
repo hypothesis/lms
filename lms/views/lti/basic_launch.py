@@ -301,7 +301,12 @@ class BasicLaunchViews:
         ):
             self.context.js_config.enable_grading()
 
-        self.context.js_config.maybe_set_focused_user()
+        # We add a `focused_user` query param to the SpeedGrader LTI launch
+        # URLs we submit to Canvas for each student when the student launches
+        # an assignment. Later, Canvas uses these URLs to launch us when a
+        # teacher grades the assignment in SpeedGrader.
+        if focused_user := self.request.params.get("focused_user"):
+            self.context.js_config.set_focused_user(focused_user)
 
         self.context.js_config.add_document_url(document_url)
         self.context.js_config.enable_lti_launch_mode()

@@ -266,29 +266,8 @@ class JSConfig:
             "students": students,
         }
 
-    def maybe_set_focused_user(self):
-        """
-        Configure the Hypothesis client to focus on a particular user.
-
-        If there is a focused_user request param then add the necessary
-        Hypothesis client config to get the client to focus on the particular
-        user identified by the focused_user param, showing only that user's
-        annotations and not others.
-
-        In practice the focused_user param is only ever present in Canvas
-        SpeedGrader launches. We add a focused_user query param to the
-        SpeedGrader LTI launch URLs that we submit to Canvas for each student
-        when the student launches an assignment. Later, Canvas uses these URLs
-        to launch us when a teacher grades the assignment in SpeedGrader.
-
-        In theory, though, the focused_user param could work outside of Canvas
-        as well if we ever want it to.
-        """
-        focused_user = self._request.params.get("focused_user")
-
-        if not focused_user:
-            return
-
+    def set_focused_user(self, focused_user):
+        """Configure the client to only show one users' annotations."""
         self._hypothesis_client["focus"] = {"user": {"username": focused_user}}
 
         # Unfortunately we need to pass the user's current display name to the
