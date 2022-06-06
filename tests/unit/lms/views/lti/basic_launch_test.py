@@ -73,13 +73,7 @@ class TestBasicLaunchViews:
         ],
     )
     def test_configure_assignment(
-        self,
-        svc,
-        assignment_service,
-        pyramid_request,
-        parsed_params,
-        expected_extras,
-        _do_launch,
+        self, svc, pyramid_request, parsed_params, expected_extras, _do_launch
     ):
         # The document_url, resource_link_id and tool_consumer_instance_guid parsed
         # params are always present when configure_assignment() is called.
@@ -93,16 +87,10 @@ class TestBasicLaunchViews:
 
         svc.configure_assignment()
 
-        assignment_service.upsert_assignment.assert_called_once_with(
-            pyramid_request.parsed_params["document_url"],
-            pyramid_request.parsed_params["tool_consumer_instance_guid"],
-            pyramid_request.parsed_params["resource_link_id"],
-            extra=expected_extras,
-        )
-
         _do_launch.assert_called_once_with(
             document_url=pyramid_request.parsed_params["document_url"],
             grading_supported=True,
+            assignment_extra=expected_extras,
         )
 
     def test_db_configured_launch(self, svc, assignment_service, context, _do_launch):
@@ -186,9 +174,7 @@ class TestBasicLaunchViews:
         assert result == _course_copied_launch.return_value
 
     @pytest.mark.usefixtures("is_canvas")
-    def test_canvas_file_launch(
-        self, svc, context, pyramid_request, assignment_service, _do_launch
-    ):
+    def test_canvas_file_launch(self, svc, context, pyramid_request, _do_launch):
         context.lti_params["custom_canvas_course_id"] = "TEST_COURSE_ID"
         pyramid_request.params["file_id"] = "TEST_FILE_ID"
 
@@ -197,14 +183,6 @@ class TestBasicLaunchViews:
         course_id = context.lti_params["custom_canvas_course_id"]
         file_id = pyramid_request.params["file_id"]
         document_url = f"canvas://file/course/{course_id}/file_id/{file_id}"
-
-        assignment_service.upsert_assignment.assert_called_once_with(
-            document_url=document_url,
-            tool_consumer_instance_guid=pyramid_request.params[
-                "tool_consumer_instance_guid"
-            ],
-            resource_link_id=pyramid_request.params["resource_link_id"],
-        )
 
         _do_launch.assert_called_once_with(
             document_url=document_url, grading_supported=False
@@ -229,7 +207,7 @@ class TestBasicLaunchViews:
         )
 
     def test__course_copied_launch(
-        self, svc, assignment_service, context, pyramid_request, _do_launch
+        self, svc, assignment_service, pyramid_request, _do_launch
     ):
         # pylint: disable=protected-access
         svc._course_copied_launch(sentinel.original_resource_link_id)
@@ -239,21 +217,19 @@ class TestBasicLaunchViews:
             sentinel.original_resource_link_id,
         )
 
-        assignment_service.upsert_assignment.assert_called_once_with(
-            assignment_service.get_assignment.return_value.document_url,
-            context.lti_params["tool_consumer_instance_guid"],
-            context.lti_params["resource_link_id"],
-        )
-
         _do_launch.assert_called_once_with(
             document_url=assignment_service.get_assignment.return_value.document_url
         )
 
     @pytest.mark.parametrize("grading_supported", (True, False))
-    def test__do_launch(self, svc, context, grading_supported, lti_h_service):
+    def test__do_launch(
+        self, svc, context, grading_supported, lti_h_service, assignment_service
+    ):
         # pylint: disable=protected-access
         result = svc._do_launch(
-            sentinel.document_url, grading_supported=grading_supported
+            sentinel.document_url,
+            grading_supported=grading_supported,
+            assignment_extra=sentinel.assignment_extra,
         )
 
         if grading_supported:
@@ -268,6 +244,15 @@ class TestBasicLaunchViews:
         )
 
         lti_h_service.sync.assert_called_once_with([context.course], context.lti_params)
+
+        assignment_service.upsert_assignment.assert_called_once_with(
+            document_url=sentinel.document_url,
+            tool_consumer_instance_guid=context.lti_params[
+                "tool_consumer_instance_guid"
+            ],
+            resource_link_id=context.lti_params["resource_link_id"],
+            extra=sentinel.assignment_extra,
+        )
 
         assert result == {}
 

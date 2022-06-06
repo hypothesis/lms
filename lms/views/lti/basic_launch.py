@@ -77,14 +77,9 @@ class BasicLaunchViews:
 
         document_url = self.request.parsed_params["document_url"]
 
-        self.assignment_service.upsert_assignment(
-            document_url,
-            self.context.lti_params["tool_consumer_instance_guid"],
-            self.context.resource_link_id,
-            extra=extra,
+        return self._do_launch(
+            document_url=document_url, grading_supported=True, assignment_extra=extra
         )
-
-        return self._do_launch(document_url=document_url, grading_supported=True)
 
     @view_config(db_configured=True, canvas_file=False, url_configured=False)
     def db_configured_launch(self):
@@ -225,13 +220,7 @@ class BasicLaunchViews:
         # module item configuration. As a result of this we can rely on this
         # being around in future code.
         document_url = f"canvas://file/course/{course_id}/file_id/{file_id}"
-        self.assignment_service.upsert_assignment(
-            document_url=document_url,
-            tool_consumer_instance_guid=self.context.lti_params[
-                "tool_consumer_instance_guid"
-            ],
-            resource_link_id=self.context.resource_link_id,
-        )
+
         return self._do_launch(document_url=document_url, grading_supported=False)
 
     @view_config(vitalsource_book=True)
@@ -268,13 +257,9 @@ class BasicLaunchViews:
             guid, original_resource_link_id
         )
 
-        self.assignment_service.upsert_assignment(
-            assignment.document_url, guid, self.context.resource_link_id
-        )
-
         return self._do_launch(document_url=assignment.document_url)
 
-    def _do_launch(self, document_url, grading_supported=True):
+    def _do_launch(self, document_url, grading_supported=True, assignment_extra=None):
         """Do a basic LTI launch with the given document_url."""
 
         if grading_supported:
@@ -288,6 +273,16 @@ class BasicLaunchViews:
         # user and group corresponding to the LTI user and course.
         self.request.find_service(name="lti_h").sync(
             [self.context.course], self.context.lti_params
+        )
+
+        # Store assignment details
+        self.assignment_service.upsert_assignment(
+            document_url=document_url,
+            tool_consumer_instance_guid=self.context.lti_params[
+                "tool_consumer_instance_guid"
+            ],
+            resource_link_id=self.context.resource_link_id,
+            extra=assignment_extra,
         )
 
         return {}
