@@ -27,6 +27,49 @@ class TestBasicLaunchViews:
             context.lti_params["tool_consumer_instance_guid"]
         )
 
+    @pytest.mark.usefixtures("user_is_learner")
+    def test__init__stores_data(
+        self,
+        context,
+        pyramid_request,
+        lti_h_service,
+        LtiLaunches,
+        grading_info_service,
+    ):
+        svc = BasicLaunchViews(context, pyramid_request)
+
+        svc.application_instance.update_lms_data.assert_called_once_with(
+            context.lti_params
+        )
+
+        lti_h_service.sync.assert_called_once_with([context.course], context.lti_params)
+
+        LtiLaunches.add.assert_called_once_with(
+            pyramid_request.db,
+            context.lti_params["context_id"],
+            context.lti_params["oauth_consumer_key"],
+        )
+
+        grading_info_service.upsert_from_request.assert_called_once_with(
+            pyramid_request
+        )
+
+    @pytest.mark.usefixtures("user_is_instructor")
+    def test__init___doesnt_update_grading_info_for_instructors(
+        self, context, pyramid_request, grading_info_service
+    ):
+        BasicLaunchViews(context, pyramid_request)
+
+        grading_info_service.upsert_from_request.assert_not_called()
+
+    @pytest.mark.usefixtures("user_is_learner", "is_canvas")
+    def test__init___doesnt_update_grading_info_for_canvas(
+        self, context, pyramid_request, grading_info_service
+    ):
+        BasicLaunchViews(context, pyramid_request)
+
+        grading_info_service.upsert_from_request.assert_not_called()
+
     @pytest.mark.parametrize(
         "parsed_params,expected_extras",
         [
@@ -91,7 +134,7 @@ class TestBasicLaunchViews:
         )
 
     def test_unconfigured_launch(
-        self, svc, BearerTokenSchema, context, pyramid_request, _store_lti_data
+        self, svc, BearerTokenSchema, context, pyramid_request
     ):
         context.lti_params = {
             "oauth_nonce": "STRIPPED",
@@ -102,8 +145,6 @@ class TestBasicLaunchViews:
         }
 
         svc.unconfigured_launch()
-
-        _store_lti_data.assert_called_once_with()
 
         BearerTokenSchema.assert_called_once_with(pyramid_request)
         BearerTokenSchema.return_value.authorization_param.assert_called_once_with(
@@ -214,13 +255,11 @@ class TestBasicLaunchViews:
         )
 
     @pytest.mark.parametrize("grading_supported", (True, False))
-    def test__do_launch(self, svc, context, _store_lti_data, grading_supported):
+    def test__do_launch(self, svc, context, grading_supported):
         # pylint: disable=protected-access
         result = svc._do_launch(
             sentinel.document_url, grading_supported=grading_supported
         )
-
-        _store_lti_data.assert_called_once_with()
 
         if grading_supported:
             context.js_config.maybe_enable_grading.assert_called_once_with()
@@ -233,50 +272,6 @@ class TestBasicLaunchViews:
             sentinel.document_url
         )
         assert result == {}
-
-    @pytest.mark.usefixtures("user_is_learner")
-    def test__store_lti_data(
-        self,
-        svc,
-        context,
-        pyramid_request,
-        lti_h_service,
-        LtiLaunches,
-        grading_info_service,
-    ):
-        svc._store_lti_data()  # pylint: disable=protected-access
-
-        svc.application_instance.update_lms_data.assert_called_once_with(
-            context.lti_params
-        )
-
-        lti_h_service.sync.assert_called_once_with([context.course], context.lti_params)
-
-        LtiLaunches.add.assert_called_once_with(
-            pyramid_request.db,
-            context.lti_params["context_id"],
-            context.lti_params["oauth_consumer_key"],
-        )
-
-        grading_info_service.upsert_from_request.assert_called_once_with(
-            pyramid_request
-        )
-
-    @pytest.mark.usefixtures("user_is_instructor")
-    def test__store_lti_data_doesnt_update_grading_info_for_instructors(
-        self, svc, grading_info_service
-    ):
-        svc._store_lti_data()  # pylint: disable=protected-access
-
-        grading_info_service.upsert_from_request.assert_not_called()
-
-    @pytest.mark.usefixtures("user_is_learner", "is_canvas")
-    def test__store_lti_data_doesnt_update_grading_info_for_canvas(
-        self, svc, grading_info_service
-    ):
-        svc._store_lti_data()  # pylint: disable=protected-access
-
-        grading_info_service.upsert_from_request.assert_not_called()
 
     @pytest.fixture
     def svc(self, context, pyramid_request):
@@ -291,11 +286,6 @@ class TestBasicLaunchViews:
     def _do_launch(self, svc):
         with mock.patch.object(svc, "_do_launch") as _do_launch:
             yield _do_launch
-
-    @pytest.fixture
-    def _store_lti_data(self, svc):
-        with mock.patch.object(svc, "_store_lti_data") as _store_lti_data:
-            yield _store_lti_data
 
     @pytest.fixture
     def is_canvas(self, context):
