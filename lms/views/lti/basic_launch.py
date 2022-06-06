@@ -284,6 +284,12 @@ class BasicLaunchViews:
         self.context.js_config.maybe_set_focused_user()
         self.context.js_config.add_document_url(document_url)
 
+        # Before any LTI assignments launch, create or update the Hypothesis
+        # user and group corresponding to the LTI user and course.
+        self.request.find_service(name="lti_h").sync(
+            [self.context.course], self.context.lti_params
+        )
+
         return {}
 
     def _store_lti_data(self):
@@ -291,17 +297,11 @@ class BasicLaunchViews:
 
         self.application_instance.update_lms_data(self.context.lti_params)
 
-        lti_params = self.context.lti_params
-
-        # Before any LTI assignments launch, create or update the Hypothesis
-        # user and group corresponding to the LTI user and course.
-        self.request.find_service(name="lti_h").sync([self.context.course], lti_params)
-
         # Report all LTI assignment launches to the /reports page.
         LtiLaunches.add(
             self.request.db,
-            lti_params.get("context_id"),
-            lti_params.get("oauth_consumer_key"),
+            self.context.lti_params.get("context_id"),
+            self.context.lti_params.get("oauth_consumer_key"),
         )
 
         if not self.request.lti_user.is_instructor and not self.context.is_canvas:

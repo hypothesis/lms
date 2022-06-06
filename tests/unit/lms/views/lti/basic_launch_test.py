@@ -12,8 +12,6 @@ from lms.views.lti.basic_launch import BasicLaunchViews
 @pytest.mark.usefixtures(
     "application_instance_service",
     "assignment_service",
-    "course_service",
-    "h_api",
     "grading_info_service",
     "lti_h_service",
 )
@@ -32,7 +30,6 @@ class TestBasicLaunchViews:
         self,
         context,
         pyramid_request,
-        lti_h_service,
         LtiLaunches,
         grading_info_service,
     ):
@@ -41,8 +38,6 @@ class TestBasicLaunchViews:
         svc.application_instance.update_lms_data.assert_called_once_with(
             context.lti_params
         )
-
-        lti_h_service.sync.assert_called_once_with([context.course], context.lti_params)
 
         LtiLaunches.add.assert_called_once_with(
             pyramid_request.db,
@@ -255,7 +250,7 @@ class TestBasicLaunchViews:
         )
 
     @pytest.mark.parametrize("grading_supported", (True, False))
-    def test__do_launch(self, svc, context, grading_supported):
+    def test__do_launch(self, svc, context, grading_supported, lti_h_service):
         # pylint: disable=protected-access
         result = svc._do_launch(
             sentinel.document_url, grading_supported=grading_supported
@@ -271,6 +266,9 @@ class TestBasicLaunchViews:
         context.js_config.add_document_url.assert_called_once_with(
             sentinel.document_url
         )
+
+        lti_h_service.sync.assert_called_once_with([context.course], context.lti_params)
+
         assert result == {}
 
     @pytest.fixture
