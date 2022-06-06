@@ -75,10 +75,9 @@ class BasicLaunchViews:
         if group_set := self.request.parsed_params.get("group_set"):
             extra["group_set_id"] = group_set
 
-        document_url = self.request.parsed_params["document_url"]
-
         return self._do_launch(
-            document_url=document_url, grading_supported=True, assignment_extra=extra
+            document_url=self.request.parsed_params["document_url"],
+            assignment_extra=extra,
         )
 
     @view_config(db_configured=True, canvas_file=False, url_configured=False)
@@ -96,12 +95,12 @@ class BasicLaunchViews:
         # The ``db_configured=True`` view predicate ensures that this view
         # won't be called if there isn't a matching document_url in the DB. So
         # here we can safely assume that the document_url exists.
-        document_url = self.assignment_service.get_assignment(
-            self.context.lti_params["tool_consumer_instance_guid"],
-            self.context.resource_link_id,
-        ).document_url
-
-        return self._do_launch(document_url=document_url)
+        return self._do_launch(
+            document_url=self.assignment_service.get_assignment(
+                self.context.lti_params["tool_consumer_instance_guid"],
+                self.context.resource_link_id,
+            ).document_url
+        )
 
     @view_config(url_configured=True, schema=URLConfiguredBasicLTILaunchSchema)
     def url_configured_launch(self):
@@ -215,13 +214,10 @@ class BasicLaunchViews:
         course_id = self.context.lti_params["custom_canvas_course_id"]
         file_id = self.request.params["file_id"]
 
-        # Normally this would be done during `configure_assignment()` but
-        # Canvas skips that step. We are doing this to ensure that there is a
-        # module item configuration. As a result of this we can rely on this
-        # being around in future code.
-        document_url = f"canvas://file/course/{course_id}/file_id/{file_id}"
-
-        return self._do_launch(document_url=document_url, grading_supported=False)
+        return self._do_launch(
+            document_url=f"canvas://file/course/{course_id}/file_id/{file_id}",
+            grading_supported=False,
+        )
 
     @view_config(vitalsource_book=True)
     def legacy_vitalsource_launch(self):
@@ -234,11 +230,12 @@ class BasicLaunchViews:
         The assignment shouldn't be "configured" in any other way to match this view.
         """
 
-        document_url = VitalSourceService.generate_document_url(
-            book_id=self.request.params["book_id"], cfi=self.request.params.get("cfi")
+        return self._do_launch(
+            document_url=VitalSourceService.generate_document_url(
+                book_id=self.request.params["book_id"],
+                cfi=self.request.params.get("cfi"),
+            )
         )
-
-        return self._do_launch(document_url=document_url, grading_supported=True)
 
     def _course_copied_launch(self, original_resource_link_id):
         """
@@ -252,9 +249,11 @@ class BasicLaunchViews:
         :param original_resource_link_id: the resource_link_id of the original
             assignment that this assignment was copied from
         """
-        guid = self.context.lti_params["tool_consumer_instance_guid"]
         assignment = self.assignment_service.get_assignment(
-            guid, original_resource_link_id
+            tool_consumer_instance_guid=self.context.lti_params[
+                "tool_consumer_instance_guid"
+            ],
+            resource_link_id=original_resource_link_id,
         )
 
         return self._do_launch(document_url=assignment.document_url)

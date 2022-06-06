@@ -89,7 +89,6 @@ class TestBasicLaunchViews:
 
         _do_launch.assert_called_once_with(
             document_url=pyramid_request.parsed_params["document_url"],
-            grading_supported=True,
             assignment_extra=expected_extras,
         )
 
@@ -202,8 +201,7 @@ class TestBasicLaunchViews:
         )
 
         _do_launch.assert_called_once_with(
-            document_url=VitalSourceService.generate_document_url.return_value,
-            grading_supported=True,
+            document_url=VitalSourceService.generate_document_url.return_value
         )
 
     def test__course_copied_launch(
@@ -221,21 +219,15 @@ class TestBasicLaunchViews:
             document_url=assignment_service.get_assignment.return_value.document_url
         )
 
-    @pytest.mark.parametrize("grading_supported", (True, False))
-    def test__do_launch(
-        self, svc, context, grading_supported, lti_h_service, assignment_service
-    ):
+    def test__do_launch(self, svc, context, lti_h_service, assignment_service):
         # pylint: disable=protected-access
         result = svc._do_launch(
             sentinel.document_url,
-            grading_supported=grading_supported,
+            grading_supported=True,
             assignment_extra=sentinel.assignment_extra,
         )
 
-        if grading_supported:
-            context.js_config.maybe_enable_grading.assert_called_once_with()
-        else:
-            context.js_config.maybe_enable_grading.assert_not_called()
+        context.js_config.maybe_enable_grading.assert_called_once_with()
 
         context.js_config.enable_lti_launch_mode.assert_called_once_with()
         context.js_config.maybe_set_focused_user.assert_called_once_with()
@@ -255,6 +247,12 @@ class TestBasicLaunchViews:
         )
 
         assert result == {}
+
+    def test__do_launch_without_grading_enabled(self, svc, context):
+        # pylint: disable=protected-access
+        svc._do_launch(sentinel.document_url, grading_supported=False)
+
+        context.js_config.maybe_enable_grading.assert_not_called()
 
     @pytest.fixture
     def svc(self, context, pyramid_request):
