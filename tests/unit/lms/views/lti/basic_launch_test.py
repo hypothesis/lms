@@ -73,7 +73,12 @@ class TestBasicLaunchViews:
         ],
     )
     def test_configure_assignment(
-        self, svc, pyramid_request, parsed_params, expected_extras, _do_launch
+        self,
+        svc,
+        pyramid_request,
+        parsed_params,
+        expected_extras,
+        _show_document,
     ):
         # The document_url, resource_link_id and tool_consumer_instance_guid parsed
         # params are always present when configure_assignment() is called.
@@ -87,23 +92,25 @@ class TestBasicLaunchViews:
 
         svc.configure_assignment()
 
-        _do_launch.assert_called_once_with(
+        _show_document.assert_called_once_with(
             document_url=pyramid_request.parsed_params["document_url"],
             assignment_extra=expected_extras,
         )
 
-    def test_db_configured_launch(self, svc, assignment_service, context, _do_launch):
+    def test_db_configured_launch(
+        self, svc, assignment_service, context, _show_document
+    ):
         svc.db_configured_launch()
 
         assignment_service.get_assignment.assert_called_once_with(
             context.lti_params["tool_consumer_instance_guid"], context.resource_link_id
         )
 
-        _do_launch.assert_called_once_with(
+        _show_document.assert_called_once_with(
             document_url=assignment_service.get_assignment.return_value.document_url
         )
 
-    def test_url_configured_launch(self, svc, pyramid_request, _do_launch):
+    def test_url_configured_launch(self, svc, pyramid_request, _show_document):
         # The `url` parsed param is always present when
         # url_configured_launch() is called. The url_configured=True view
         # predicate and URLConfiguredLaunchSchema ensure this.
@@ -111,7 +118,7 @@ class TestBasicLaunchViews:
 
         svc.url_configured_launch()
 
-        _do_launch.assert_called_once_with(
+        _show_document.assert_called_once_with(
             document_url=pyramid_request.parsed_params["url"]
         )
 
@@ -173,7 +180,7 @@ class TestBasicLaunchViews:
         assert result == _course_copied_launch.return_value
 
     @pytest.mark.usefixtures("is_canvas")
-    def test_canvas_file_launch(self, svc, context, pyramid_request, _do_launch):
+    def test_canvas_file_launch(self, svc, context, pyramid_request, _show_document):
         context.lti_params["custom_canvas_course_id"] = "TEST_COURSE_ID"
         pyramid_request.params["file_id"] = "TEST_FILE_ID"
 
@@ -183,12 +190,12 @@ class TestBasicLaunchViews:
         file_id = pyramid_request.params["file_id"]
         document_url = f"canvas://file/course/{course_id}/file_id/{file_id}"
 
-        _do_launch.assert_called_once_with(
+        _show_document.assert_called_once_with(
             document_url=document_url, grading_supported=False
         )
 
     def test_legacy_vitalsource_launch(
-        self, svc, pyramid_request, VitalSourceService, _do_launch
+        self, svc, pyramid_request, VitalSourceService, _show_document
     ):
         pyramid_request.params["book_id"] = "BOOK_ID"
         pyramid_request.params["cfi"] = "/cfi"
@@ -200,12 +207,12 @@ class TestBasicLaunchViews:
             cfi=pyramid_request.params["cfi"],
         )
 
-        _do_launch.assert_called_once_with(
+        _show_document.assert_called_once_with(
             document_url=VitalSourceService.generate_document_url.return_value
         )
 
     def test__course_copied_launch(
-        self, svc, assignment_service, pyramid_request, _do_launch
+        self, svc, assignment_service, pyramid_request, _show_document
     ):
         # pylint: disable=protected-access
         svc._course_copied_launch(sentinel.original_resource_link_id)
@@ -215,13 +222,13 @@ class TestBasicLaunchViews:
             sentinel.original_resource_link_id,
         )
 
-        _do_launch.assert_called_once_with(
+        _show_document.assert_called_once_with(
             document_url=assignment_service.get_assignment.return_value.document_url
         )
 
-    def test__do_launch(self, svc, context, lti_h_service, assignment_service):
+    def test__show_document(self, svc, context, lti_h_service, assignment_service):
         # pylint: disable=protected-access
-        result = svc._do_launch(
+        result = svc._show_document(
             sentinel.document_url,
             grading_supported=True,
             assignment_extra=sentinel.assignment_extra,
@@ -248,9 +255,9 @@ class TestBasicLaunchViews:
 
         assert result == {}
 
-    def test__do_launch_without_grading_enabled(self, svc, context):
+    def test__show_document_without_grading_enabled(self, svc, context):
         # pylint: disable=protected-access
-        svc._do_launch(sentinel.document_url, grading_supported=False)
+        svc._show_document(sentinel.document_url, grading_supported=False)
 
         context.js_config.maybe_enable_grading.assert_not_called()
 
@@ -264,9 +271,9 @@ class TestBasicLaunchViews:
             yield _course_copied_launch
 
     @pytest.fixture
-    def _do_launch(self, svc):
-        with mock.patch.object(svc, "_do_launch") as _do_launch:
-            yield _do_launch
+    def _show_document(self, svc):
+        with mock.patch.object(svc, "_show_document") as _show_document:
+            yield _show_document
 
     @pytest.fixture
     def is_canvas(self, context):
