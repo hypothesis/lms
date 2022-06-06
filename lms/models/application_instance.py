@@ -166,18 +166,12 @@ class ApplicationInstance(BASE):
             # guid identifies the rest of the LMS data, if not there skip any updates
             return
 
-        if (
-            self.tool_consumer_instance_guid
-            and self.tool_consumer_instance_guid != tool_consumer_instance_guid
-        ):
-            # If we already have a LMS guid linked to the AI
-            # and we found a different one report it to sentry
-            raise ReusedConsumerKey(
-                existing_guid=self.tool_consumer_instance_guid,
-                new_guid=tool_consumer_instance_guid,
-            )
+        self.check_guid_aligns(tool_consumer_instance_guid)
 
+        # This looks a bit weird after the statement above, but our GUID might
+        # be null and still pass the check above
         self.tool_consumer_instance_guid = tool_consumer_instance_guid
+
         for attr in [
             "tool_consumer_info_product_family_code",
             "tool_consumer_instance_description",
@@ -189,6 +183,25 @@ class ApplicationInstance(BASE):
         ]:
 
             setattr(self, attr, params.get(attr))
+
+    def check_guid_aligns(self, tool_consumer_instance_guid):
+        """
+        Check there is no conflict between the provided GUID and ours.
+
+        :raises ReusedConsumerKey: If the GUIDs are present and different
+        """
+
+        if (
+            tool_consumer_instance_guid
+            and self.tool_consumer_instance_guid
+            and self.tool_consumer_instance_guid != tool_consumer_instance_guid
+        ):
+            # If we already have a LMS guid linked to the AI
+            # and we found a different one report it to sentry
+            raise ReusedConsumerKey(
+                existing_guid=self.tool_consumer_instance_guid,
+                new_guid=tool_consumer_instance_guid,
+            )
 
     @property
     def product(self):
