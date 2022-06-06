@@ -274,51 +274,24 @@ class TestEnableGrading:
 
 
 @pytest.mark.usefixtures("application_instance_service")
-class TestMaybeSetFocusedUser:
-    def test_it_does_nothing_if_theres_no_focused_user_param(
-        self, js_config, pyramid_request
-    ):
-        del pyramid_request.params["focused_user"]
-        # maybe_set_focused_user() doesn't work properly unless
-        # enable_lti_launch_mode() has been called first because it depends on
-        # enable_lti_launch_mode() having inserted the "hypothesisClient"
-        # section into the config.
-        js_config.enable_lti_launch_mode()
-
-        js_config.maybe_set_focused_user()
-
-        assert "focus" not in js_config.asdict()["hypothesisClient"]
-
+class TestSetFocusedUser:
     def test_it_sets_the_focused_user_if_theres_a_focused_user_param(
         self, h_api, js_config
     ):
-        # maybe_set_focused_user() doesn't work properly unless
-        # enable_lti_launch_mode() has been called first because it depends on
-        # enable_lti_launch_mode() having inserted the "hypothesisClient"
-        # section into the config.
-        js_config.enable_lti_launch_mode()
+        js_config.set_focused_user(sentinel.focused_user)
 
-        js_config.maybe_set_focused_user()
-
-        # It gets the display name from the h API.
-        h_api.get_user.assert_called_once_with("example_h_username")
-        # It sets the focused user.
+        h_api.get_user.assert_called_once_with(sentinel.focused_user)
         assert js_config.asdict()["hypothesisClient"]["focus"] == {
             "user": {
-                "username": "example_h_username",
+                "username": sentinel.focused_user,
                 "displayName": h_api.get_user.return_value.display_name,
             },
         }
 
     def test_display_name_falls_back_to_a_default_value(self, h_api, js_config):
         h_api.get_user.side_effect = HAPIError()
-        # maybe_set_focused_user() doesn't work properly unless
-        # enable_lti_launch_mode() has been called first because it depends on
-        # enable_lti_launch_mode() having inserted the "hypothesisClient"
-        # section into the config.
-        js_config.enable_lti_launch_mode()
 
-        js_config.maybe_set_focused_user()
+        js_config.set_focused_user(sentinel.focused_user)
 
         assert (
             js_config.asdict()["hypothesisClient"]["focus"]["user"]["displayName"]
@@ -326,9 +299,11 @@ class TestMaybeSetFocusedUser:
         )
 
     @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.params["focused_user"] = "example_h_username"
-        return pyramid_request
+    def js_config(self, js_config):
+        # `set_focused_user` needs the `hypothesisClient` section to exist
+        js_config.enable_lti_launch_mode()
+
+        return js_config
 
 
 class TestJSConfigAuthToken:
