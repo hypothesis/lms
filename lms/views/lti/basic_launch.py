@@ -75,7 +75,7 @@ class BasicLaunchViews:
         if group_set := self.request.parsed_params.get("group_set"):
             extra["group_set_id"] = group_set
 
-        return self._do_launch(
+        return self._show_document(
             document_url=self.request.parsed_params["document_url"],
             assignment_extra=extra,
         )
@@ -95,7 +95,7 @@ class BasicLaunchViews:
         # The ``db_configured=True`` view predicate ensures that this view
         # won't be called if there isn't a matching document_url in the DB. So
         # here we can safely assume that the document_url exists.
-        return self._do_launch(
+        return self._show_document(
             document_url=self.assignment_service.get_assignment(
                 self.context.lti_params["tool_consumer_instance_guid"],
                 self.context.resource_link_id,
@@ -113,7 +113,7 @@ class BasicLaunchViews:
         and saved in the LMS, which passes it back to us in each launch request.
         All we have to do is pass the URL to Via.
         """
-        return self._do_launch(document_url=self.request.parsed_params["url"])
+        return self._show_document(document_url=self.request.parsed_params["url"])
 
     @view_config(
         authorized_to_configure_assignments=True,
@@ -214,7 +214,7 @@ class BasicLaunchViews:
         course_id = self.context.lti_params["custom_canvas_course_id"]
         file_id = self.request.params["file_id"]
 
-        return self._do_launch(
+        return self._show_document(
             document_url=f"canvas://file/course/{course_id}/file_id/{file_id}",
             grading_supported=False,
         )
@@ -230,7 +230,7 @@ class BasicLaunchViews:
         The assignment shouldn't be "configured" in any other way to match this view.
         """
 
-        return self._do_launch(
+        return self._show_document(
             document_url=VitalSourceService.generate_document_url(
                 book_id=self.request.params["book_id"],
                 cfi=self.request.params.get("cfi"),
@@ -256,11 +256,21 @@ class BasicLaunchViews:
             resource_link_id=original_resource_link_id,
         )
 
-        return self._do_launch(document_url=assignment.document_url)
+        return self._show_document(document_url=assignment.document_url)
 
-    def _do_launch(self, document_url, grading_supported=True, assignment_extra=None):
-        """Do a basic LTI launch with the given document_url."""
+    def _show_document(
+        self, document_url, grading_supported=True, assignment_extra=None
+    ):
+        """
+        Display a document to the user for annotation or grading.
 
+        :param document_url: URL of the document to display
+        :param grading_supported: Should we enable grading?
+        :param assignment_extra: Any extra details to add to the assignment
+            when updating metadata.
+        """
+
+        # Setup the JS config for the front-end
         if grading_supported:
             self.context.js_config.maybe_enable_grading()
 
