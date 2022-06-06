@@ -231,29 +231,39 @@ class JSConfig:
         self._config.setdefault("filePicker", {})
         self._config["filePicker"]["deepLinkingAPI"] = config
 
-    def maybe_enable_grading(self):
-        """Enable our LMS app's built-in assignment grading UI, if appropriate."""
+    def enable_grading(self):
+        """Enable our LMS app's built-in assignment grading UI."""
 
-        if not self._lti_user.is_instructor:
-            # Only instructors can grade assignments.
-            return
+        # Get one student dict for each student who has launched the assignment
+        # and had grading info recorded for them.
+        students = []
 
-        if "lis_outcome_service_url" not in self._context.lti_params:
-            # Only "gradeable" assignments can be graded.
-            # Assignments that don't have the lis_outcome_service_url param
-            # aren't set as gradeable in the LMS.
-            return
+        grading_infos = self._grading_info_service.get_by_assignment(
+            application_instance=self._application_instance,
+            context_id=self._context.lti_params.get("context_id"),
+            resource_link_id=self._context.lti_params.get("resource_link_id"),
+        )
 
-        if self._context.is_canvas:
-            # Don't show our built-in grader in Canvas because it has its own
-            # "SpeedGrader" and we support that instead.
-            return
+        for grading_info in grading_infos:
+            h_user = HUser(
+                username=grading_info.h_username,
+                display_name=grading_info.h_display_name,
+            )
+            students.append(
+                {
+                    "userid": h_user.userid(self._authority),
+                    "displayName": h_user.display_name,
+                    "lmsId": grading_info.user_id,
+                    "LISResultSourcedId": grading_info.lis_result_sourcedid,
+                    "LISOutcomeServiceUrl": grading_info.lis_outcome_service_url,
+                }
+            )
 
         self._config["grading"] = {
             "enabled": True,
             "courseName": self._context.lti_params.get("context_title"),
             "assignmentName": self._context.lti_params.get("resource_link_title"),
-            "students": list(self._get_students()),
+            "students": students,
         }
 
     def maybe_set_focused_user(self):
@@ -406,33 +416,6 @@ class JSConfig:
             )
 
         return config
-
-    def _get_students(self):
-        """
-        Yield the student dicts for the request.
-
-        Yield one student dict for each student who has launched the assignment
-        and had grading info recorded for them.
-        """
-        grading_infos = self._grading_info_service.get_by_assignment(
-            application_instance=self._application_instance,
-            context_id=self._context.lti_params.get("context_id"),
-            resource_link_id=self._context.lti_params.get("resource_link_id"),
-        )
-
-        # Yield a "student" dict for each GradingInfo.
-        for grading_info in grading_infos:
-            h_user = HUser(
-                username=grading_info.h_username,
-                display_name=grading_info.h_display_name,
-            )
-            yield {
-                "userid": h_user.userid(self._authority),
-                "lmsId": grading_info.user_id,
-                "displayName": h_user.display_name,
-                "LISResultSourcedId": grading_info.lis_result_sourcedid,
-                "LISOutcomeServiceUrl": grading_info.lis_outcome_service_url,
-            }
 
     @property
     @functools.lru_cache()

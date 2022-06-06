@@ -190,9 +190,7 @@ class TestBasicLaunchViews:
         file_id = pyramid_request.params["file_id"]
         document_url = f"canvas://file/course/{course_id}/file_id/{file_id}"
 
-        _show_document.assert_called_once_with(
-            document_url=document_url, grading_supported=False
-        )
+        _show_document.assert_called_once_with(document_url=document_url)
 
     def test_legacy_vitalsource_launch(
         self, svc, pyramid_request, VitalSourceService, _show_document
@@ -229,12 +227,8 @@ class TestBasicLaunchViews:
     def test__show_document(self, svc, context, lti_h_service, assignment_service):
         # pylint: disable=protected-access
         result = svc._show_document(
-            sentinel.document_url,
-            grading_supported=True,
-            assignment_extra=sentinel.assignment_extra,
+            sentinel.document_url, assignment_extra=sentinel.assignment_extra
         )
-
-        context.js_config.maybe_enable_grading.assert_called_once_with()
 
         context.js_config.enable_lti_launch_mode.assert_called_once_with()
         context.js_config.maybe_set_focused_user.assert_called_once_with()
@@ -255,11 +249,38 @@ class TestBasicLaunchViews:
 
         assert result == {}
 
-    def test__show_document_without_grading_enabled(self, svc, context):
-        # pylint: disable=protected-access
-        svc._show_document(sentinel.document_url, grading_supported=False)
+    @pytest.mark.usefixtures("with_gradable_assignment", "user_is_instructor")
+    def test__show_document_enables_grading(self, svc, context):
+        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
 
-        context.js_config.maybe_enable_grading.assert_not_called()
+        context.js_config.enable_grading.assert_called()
+
+    @pytest.mark.usefixtures("with_gradable_assignment", "user_is_learner")
+    def test_show_document_does_not_enable_grading_for_students(self, svc, context):
+        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+
+        context.js_config.enable_grading.assert_not_called()
+
+    @pytest.mark.usefixtures("user_is_instructor")
+    def test_show_document_does_not_enable_without_a_gradable_assignment(
+        self, svc, context
+    ):
+        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+
+        context.js_config.enable_grading.assert_not_called()
+
+    @pytest.mark.usefixtures(
+        "with_gradable_assignment", "user_is_instructor", "is_canvas"
+    )
+    def test_show_document_does_not_enable_grading_for_canvas(self, svc, context):
+        # pylint: disable=protected-access
+        svc._show_document(sentinel.document_url)
+
+        context.js_config.enable_grading.assert_not_called()
+
+    @pytest.fixture
+    def with_gradable_assignment(self, context):
+        context.lti_params["lis_outcome_service_url"] = "http://example.com"
 
     @pytest.fixture
     def svc(self, context, pyramid_request):

@@ -215,8 +215,7 @@ class BasicLaunchViews:
         file_id = self.request.params["file_id"]
 
         return self._show_document(
-            document_url=f"canvas://file/course/{course_id}/file_id/{file_id}",
-            grading_supported=False,
+            document_url=f"canvas://file/course/{course_id}/file_id/{file_id}"
         )
 
     @view_config(vitalsource_book=True)
@@ -258,25 +257,14 @@ class BasicLaunchViews:
 
         return self._show_document(document_url=assignment.document_url)
 
-    def _show_document(
-        self, document_url, grading_supported=True, assignment_extra=None
-    ):
+    def _show_document(self, document_url, assignment_extra=None):
         """
         Display a document to the user for annotation or grading.
 
         :param document_url: URL of the document to display
-        :param grading_supported: Should we enable grading?
         :param assignment_extra: Any extra details to add to the assignment
             when updating metadata.
         """
-
-        # Setup the JS config for the front-end
-        if grading_supported:
-            self.context.js_config.maybe_enable_grading()
-
-        self.context.js_config.enable_lti_launch_mode()
-        self.context.js_config.maybe_set_focused_user()
-        self.context.js_config.add_document_url(document_url)
 
         # Before any LTI assignments launch, create or update the Hypothesis
         # user and group corresponding to the LTI user and course.
@@ -294,7 +282,29 @@ class BasicLaunchViews:
             extra=assignment_extra,
         )
 
+        # An assignment has been configured in the LMS as "gradable" if it has
+        # the `lis_outcome_service_url` param
+        gradable = bool(self.context.lti_params.get("lis_outcome_service_url"))
+
+        # Set up the JS config for the front-end
+        self._configure_js_to_show_document(document_url, gradable)
+
         return {}
+
+    def _configure_js_to_show_document(self, document_url, gradable):
+        # We also only show the grading interface to teachers who aren't in
+        # Canvas, as Canvas uses its own built in Speedgrader
+        if (
+            gradable
+            and self.request.lti_user.is_instructor
+            and not self.context.is_canvas
+        ):
+            self.context.js_config.enable_grading()
+
+        self.context.js_config.maybe_set_focused_user()
+
+        self.context.js_config.add_document_url(document_url)
+        self.context.js_config.enable_lti_launch_mode()
 
     def _record_launch(self):
         """Persist launch type independent info to the DB."""

@@ -3,10 +3,11 @@ from unittest.mock import create_autospec, sentinel
 import pytest
 from h_matchers import Any
 
-from lms.models import ApplicationInstance, GradingInfo, Grouping, LTIParams
+from lms.models import ApplicationInstance, Grouping, LTIParams
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
 from lms.services import ApplicationInstanceNotFound, HAPIError
+from tests import factories
 
 pytestmark = pytest.mark.usefixtures(
     "grading_info_service",
@@ -230,82 +231,45 @@ class TestAddDocumentURL:
         assert "speedGrader" not in js_config.asdict()["canvas"]
 
 
-class TestMaybeEnableGrading:
-    def test_it_adds_the_grading_settings(
-        self, js_config, grading_info_service, application_instance_service
+class TestEnableGrading:
+    def test_it(
+        self, js_config, context, grading_info_service, application_instance_service
     ):
-        js_config.maybe_enable_grading()
+        js_config.enable_grading()
 
         grading_info_service.get_by_assignment.assert_called_once_with(
             context_id="test_course_id",
             application_instance=application_instance_service.get_current.return_value,
             resource_link_id="TEST_RESOURCE_LINK_ID",
         )
+
         assert js_config.asdict()["grading"] == {
             "enabled": True,
-            "assignmentName": "test_assignment_name",
-            "courseName": "test_course_name",
+            "courseName": context.lti_params["context_title"],
+            "assignmentName": context.lti_params["resource_link_title"],
             "students": [
                 {
-                    "LISOutcomeServiceUrl": f"test_lis_outcomes_service_url_{i}",
-                    "LISResultSourcedId": f"test_lis_result_sourcedid_{i}",
-                    "displayName": f"test_h_display_name_{i}",
-                    "userid": f"acct:test_h_username_{i}@TEST_AUTHORITY",
-                    "lmsId": f"test_user_id_{i}",
+                    "userid": f"acct:{grading_info.h_username}@TEST_AUTHORITY",
+                    "displayName": grading_info.h_display_name,
+                    "lmsId": grading_info.user_id,
+                    "LISResultSourcedId": grading_info.lis_result_sourcedid,
+                    "LISOutcomeServiceUrl": grading_info.lis_outcome_service_url,
                 }
-                for i in range(3)
+                for grading_info in grading_info_service.get_by_assignment.return_value
             ],
         }
 
-    @pytest.mark.usefixtures("user_is_learner")
-    def test_it_does_nothing_if_the_user_isnt_an_instructor(self, js_config):
-        js_config.maybe_enable_grading()
-
-        assert not js_config.asdict().get("grading")
-
-    def test_it_does_nothing_if_theres_no_lis_outcome_service_url(
-        self, js_config, context
-    ):
-        del context.lti_params["lis_outcome_service_url"]
-
-        js_config.maybe_enable_grading()
-
-        assert not js_config.asdict().get("grading")
-
-    def test_it_does_nothing_in_Canvas(self, context, js_config):
-        context.is_canvas = True
-
-        js_config.maybe_enable_grading()
-
-        assert not js_config.asdict().get("grading")
-
     @pytest.fixture
     def grading_info_service(self, grading_info_service):
-        grading_info_service.get_by_assignment.return_value = [
-            create_autospec(
-                GradingInfo,
-                instance=True,
-                spec_set=True,
-                lis_result_sourcedid=f"test_lis_result_sourcedid_{i}",
-                lis_outcome_service_url=f"test_lis_outcomes_service_url_{i}",
-                h_username=f"test_h_username_{i}",
-                h_display_name=f"test_h_display_name_{i}",
-                user_id=f"test_user_id_{i}",
-            )
-            for i in range(3)
-        ]
+        grading_info_service.get_by_assignment.return_value = (
+            factories.GradingInfo.create_batch(3)
+        )
         return grading_info_service
 
-    @pytest.fixture
-    def context(self, context):
-        context.is_canvas = False
-        return context
-
-    @pytest.fixture
+    @pytest.fixture(autouse=True)
     def pyramid_request(self, pyramid_request):
-        pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Instructor")
-        pyramid_request.params["context_title"] = "test_course_name"
         pyramid_request.params["resource_link_title"] = "test_assignment_name"
+
         return pyramid_request
 
 
