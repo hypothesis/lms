@@ -21,9 +21,6 @@ class TestBasicLaunchViews:
     def test___init___(self, context, pyramid_request, application_instance_service):
         BasicLaunchViews(context, pyramid_request)
 
-        context.js_config.enable_lti_launch_mode.assert_called_once_with()
-        context.js_config.maybe_set_focused_user.assert_called_once_with()
-
         application_instance_service.get_current.assert_called_once_with()
         application_instance = application_instance_service.get_current.return_value
         application_instance.check_guid_aligns.assert_called_once_with(
@@ -41,11 +38,9 @@ class TestBasicLaunchViews:
         self,
         svc,
         assignment_service,
-        context,
         pyramid_request,
         parsed_params,
         expected_extras,
-        JSConfig,
         _do_launch,
     ):
         # The document_url, resource_link_id and tool_consumer_instance_guid parsed
@@ -65,12 +60,6 @@ class TestBasicLaunchViews:
             pyramid_request.parsed_params["tool_consumer_instance_guid"],
             pyramid_request.parsed_params["resource_link_id"],
             extra=expected_extras,
-        )
-
-        JSConfig._hypothesis_client.fget.cache_clear.assert_called_once_with()  # pylint: disable=protected-access
-        # One in __init__, one in `configure_assignment`
-        context.js_config.enable_lti_launch_mode.assert_has_calls(
-            [mock.call(), mock.call()]
         )
 
         _do_launch.assert_called_once_with(
@@ -238,6 +227,8 @@ class TestBasicLaunchViews:
         else:
             context.js_config.maybe_enable_grading.assert_not_called()
 
+        context.js_config.enable_lti_launch_mode.assert_called_once_with()
+        context.js_config.maybe_set_focused_user.assert_called_once_with()
         context.js_config.add_document_url.assert_called_once_with(
             sentinel.document_url
         )
@@ -345,10 +336,6 @@ class TestBasicLaunchViews:
     @pytest.fixture
     def VitalSourceService(self, patch):
         return patch("lms.views.lti.basic_launch.VitalSourceService")
-
-    @pytest.fixture
-    def JSConfig(self, patch):
-        return patch("lms.views.lti.basic_launch.JSConfig")
 
     @pytest.fixture(autouse=True)
     def BearerTokenSchema(self, patch):

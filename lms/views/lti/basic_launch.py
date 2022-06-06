@@ -15,7 +15,6 @@ doesn't actually require basic launch requests to have this parameter.
 from pyramid.view import view_config, view_defaults
 
 from lms.models import LtiLaunches
-from lms.resources._js_config import JSConfig
 from lms.security import Permissions
 from lms.services.vitalsource.client import VitalSourceService
 from lms.validation import (
@@ -39,9 +38,6 @@ class BasicLaunchViews:
         self.context = context
         self.request = request
         self.assignment_service = request.find_service(name="assignment")
-
-        self.context.js_config.enable_lti_launch_mode()
-        self.context.js_config.maybe_set_focused_user()
 
         self.application_instance = request.find_service(
             name="application_instance"
@@ -85,13 +81,6 @@ class BasicLaunchViews:
             self.context.resource_link_id,
             extra=extra,
         )
-
-        # When setting the document it's possible the config might need
-        # updating based on the type of assignment since it was initialized
-        # with `enable_lti_launch_mode` on __init__
-        # We need to clear the cache and `enable_lti_launch_mode` again.
-        JSConfig._hypothesis_client.fget.cache_clear()  # pylint: disable=protected-access
-        self.context.js_config.enable_lti_launch_mode()
 
         return self._do_launch(document_url=document_url, grading_supported=True)
 
@@ -293,6 +282,8 @@ class BasicLaunchViews:
         if grading_supported:
             self.context.js_config.maybe_enable_grading()
 
+        self.context.js_config.enable_lti_launch_mode()
+        self.context.js_config.maybe_set_focused_user()
         self.context.js_config.add_document_url(document_url)
 
         return {}
