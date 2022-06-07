@@ -1,8 +1,10 @@
+from datetime import datetime, timedelta
 from unittest.mock import sentinel
 
 import pytest
 from h_matchers import Any
 
+from lms.models import LTIParams
 from lms.services.assignment import AssignmentService, factory
 from tests import factories
 
@@ -21,31 +23,53 @@ class TestAssignmentService:
     def test_assignment_exists_without_match(self, svc, non_matching_params):
         assert not svc.assignment_exists(**non_matching_params)
 
+    upsert_kwargs = {
+        "document_url": "new_document_url",
+        "extra": {"new": "values"},
+        "is_gradable": True,
+        "lti_params": LTIParams(
+            {
+                "resource_link_title": "title",
+                "resource_link_description": "description",
+            }
+        ),
+    }
+
+    upsert_attrs = {
+        "document_url": upsert_kwargs["document_url"],
+        "extra": upsert_kwargs["extra"],
+        "title": upsert_kwargs["lti_params"]["resource_link_title"],
+        "description": upsert_kwargs["lti_params"]["resource_link_description"],
+        "is_gradable": upsert_kwargs["is_gradable"],
+    }
+
     def test_upsert_assignment_with_existing(
         self, svc, db_session, assignment, matching_params
     ):
-        updated_attrs = {"document_url": "new_document_url", "extra": {"new": "values"}}
-
-        result = svc.upsert_assignment(**matching_params, **updated_attrs)
+        result = svc.upsert_assignment(**matching_params, **self.upsert_kwargs)
 
         assert result == assignment
         db_session.flush()
         db_session.refresh(assignment)
-        assert assignment == Any.object.with_attrs(updated_attrs)
+        Any.assert_on_comparison = True
+        assert assignment == Any.object.with_attrs(self.upsert_attrs)
+        assert assignment.created < datetime.now() - timedelta(days=1)
+        assert assignment.updated >= datetime.now() - timedelta(days=1)
 
     def test_upsert_assignment_with_new(
         self, svc, db_session, assignment, non_matching_params
     ):
-        non_matching_params.update(
-            {"document_url": "new_document_url", "extra": {"new": "values"}}
-        )
-
-        result = svc.upsert_assignment(**non_matching_params)
+        result = svc.upsert_assignment(**non_matching_params, **self.upsert_kwargs)
 
         assert result != assignment
         db_session.flush()
         db_session.refresh(result)
-        assert result == Any.object.with_attrs(non_matching_params)
+        assert result == Any.object.with_attrs(
+            dict(non_matching_params, **self.upsert_attrs)
+        )
+
+        assert result.created >= datetime.now() - timedelta(days=1)
+        assert result.updated >= datetime.now() - timedelta(days=1)
 
     @pytest.fixture
     def svc(self, db_session):
@@ -53,7 +77,9 @@ class TestAssignmentService:
 
     @pytest.fixture(autouse=True)
     def assignment(self):
-        return factories.Assignment()
+        return factories.Assignment(
+            created=datetime(2000, 1, 1), updated=datetime(2000, 1, 1)
+        )
 
     @pytest.fixture
     def matching_params(self, assignment):

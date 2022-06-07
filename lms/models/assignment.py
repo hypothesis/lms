@@ -3,9 +3,10 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
 
 from lms.db import BASE
+from lms.models import CreatedUpdatedMixin
 
 
-class Assignment(BASE):
+class Assignment(CreatedUpdatedMixin, BASE):
     """
     An assignment configuration.
 
@@ -48,6 +49,20 @@ class Assignment(BASE):
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
     )
+
+    is_gradable = sa.Column(
+        sa.Boolean(),
+        default=False,
+        server_default=sa.sql.expression.false(),
+        nullable=False,
+    )
+    """Whether this assignment is gradable or not."""
+
+    title = sa.Column(sa.Unicode, nullable=True)
+    """The resource link title from LTI params."""
+
+    description = sa.Column(sa.Unicode, nullable=True)
+    """The resource link description from LTI params."""
 
     def get_canvas_mapped_file_id(self, file_id):
         return self.extra.get("canvas_file_mappings", {}).get(file_id, file_id)

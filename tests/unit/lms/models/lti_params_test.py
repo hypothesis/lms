@@ -19,6 +19,8 @@ class TestLTI13Params:
             ("lti_version", "LTI_VERSION"),
             ("lti_message_type", "LTI_MESSAGE_TYPE"),
             ("resource_link_id", "RESOURCE_LINK_ID"),
+            ("resource_link_title", "RESOURCE_LINK_TITLE"),
+            ("resource_link_description", "RESOURCE_LINK_DESCRIPTION"),
         ],
     )
     def test_v13_mappings(self, lti_v13_params, lti_11_key, value):

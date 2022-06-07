@@ -50,6 +50,8 @@ def lti_v13_params():
         "https://purl.imsglobal.org/spec/lti/claim/version": "LTI_VERSION",
         "https://purl.imsglobal.org/spec/lti/claim/resource_link": {
             "id": "RESOURCE_LINK_ID",
+            "title": "RESOURCE_LINK_TITLE",
+            "description": "RESOURCE_LINK_DESCRIPTION",
         },
         "iss": "ISSUER",
         "aud": "CLIENT_ID",

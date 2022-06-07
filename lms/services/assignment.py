@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from lms.models import Assignment
+from lms.models import Assignment, LTIParams
 
 
 class AssignmentService:
@@ -25,8 +25,15 @@ class AssignmentService:
     def assignment_exists(self, tool_consumer_instance_guid, resource_link_id) -> bool:
         return bool(self.get_assignment(tool_consumer_instance_guid, resource_link_id))
 
+    # pylint: disable=too-many-arguments
     def upsert_assignment(
-        self, document_url, tool_consumer_instance_guid, resource_link_id, extra=None
+        self,
+        tool_consumer_instance_guid,
+        resource_link_id,
+        document_url,
+        lti_params: LTIParams,
+        is_gradable=False,
+        extra=None,
     ):
         """
         Update or create an assignment with the given document_url.
@@ -37,6 +44,7 @@ class AssignmentService:
 
         Any existing document_url for this assignment will be overwritten.
         """
+
         assignment = self.get_assignment(tool_consumer_instance_guid, resource_link_id)
         if not assignment:
             assignment = Assignment(
@@ -47,6 +55,9 @@ class AssignmentService:
             self._db.add(assignment)
 
         assignment.document_url = document_url
+        assignment.title = lti_params.get("resource_link_title")
+        assignment.description = lti_params.get("resource_link_description")
+        assignment.is_gradable = is_gradable
         assignment.extra = extra if extra else assignment.extra or {}
 
         return assignment
