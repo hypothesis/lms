@@ -239,11 +239,13 @@ class TestBasicLaunchViews:
         lti_h_service.sync.assert_called_once_with([context.course], context.lti_params)
 
         assignment_service.upsert_assignment.assert_called_once_with(
-            document_url=sentinel.document_url,
             tool_consumer_instance_guid=context.lti_params[
                 "tool_consumer_instance_guid"
             ],
             resource_link_id=context.lti_params["resource_link_id"],
+            document_url=sentinel.document_url,
+            lti_params=context.lti_params,
+            is_gradable=False,
             extra=sentinel.assignment_extra,
         )
 

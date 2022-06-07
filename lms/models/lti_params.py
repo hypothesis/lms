@@ -39,6 +39,8 @@ _V11_TO_V13 = (
     ("lti_version", [f"{CLAIM_PREFIX}/version"]),
     ("lti_message_type", [f"{CLAIM_PREFIX}/message_type"]),
     ("resource_link_id", [f"{CLAIM_PREFIX}/resource_link", "id"]),
+    ("resource_link_title", [f"{CLAIM_PREFIX}/resource_link", "title"]),
+    ("resource_link_description", [f"{CLAIM_PREFIX}/resource_link", "description"]),
     # tool_consumer_instance_guid is not sent by the LTI1.3 certification tool but we include
     # it as a custom parameter in the tool configuration
     ("tool_consumer_instance_guid", [f"{CLAIM_PREFIX}/custom", "certification_guid"]),

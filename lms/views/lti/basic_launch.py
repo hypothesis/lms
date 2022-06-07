@@ -272,20 +272,22 @@ class BasicLaunchViews:
             [self.context.course], self.context.lti_params
         )
 
-        # Store assignment details
-        self.assignment_service.upsert_assignment(
-            document_url=document_url,
-            tool_consumer_instance_guid=self.context.lti_params[
-                "tool_consumer_instance_guid"
-            ],
-            resource_link_id=self.context.resource_link_id,
-            extra=assignment_extra,
-        )
-
         # An assignment has been configured in the LMS as "gradable" if it has
         # the `lis_outcome_service_url` param
         assignment_gradable = bool(
             self.context.lti_params.get("lis_outcome_service_url")
+        )
+
+        # Store assignment details
+        self.assignment_service.upsert_assignment(
+            tool_consumer_instance_guid=self.context.lti_params[
+                "tool_consumer_instance_guid"
+            ],
+            resource_link_id=self.context.resource_link_id,
+            document_url=document_url,
+            lti_params=self.context.lti_params,
+            extra=assignment_extra,
+            is_gradable=assignment_gradable,
         )
 
         # Set up the JS config for the front-end
