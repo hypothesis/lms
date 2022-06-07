@@ -184,8 +184,6 @@ describe('useFetch', () => {
 
       await waitForFetch(wrapper);
       assert.equal(getResult(wrapper), 'Data: OK');
-
-      wrapper.unmount();
     });
   });
 });
