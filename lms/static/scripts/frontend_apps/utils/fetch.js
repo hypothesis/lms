@@ -6,6 +6,8 @@ import { useEffect, useRef, useState } from 'preact/hooks';
  * @prop {T|null} data
  * @prop {Error|null} error
  * @prop {boolean} isLoading
+ * @prop {() => void} retry - Callback which retries the fetch. This does
+ *   nothing if there is nothing to fetch or the fetch has not yet finished.
  */
 
 /**
@@ -50,7 +52,13 @@ export function useFetch(key, fetcher) {
   lastFetcher.current = fetcher;
 
   useEffect(() => {
-    setResult({ data: null, error: null, isLoading: key !== null });
+    const controller = new AbortController();
+    setResult({
+      data: null,
+      error: null,
+      isLoading: key !== null,
+      retry: () => null,
+    });
 
     if (!key) {
       return undefined;
@@ -60,19 +68,21 @@ export function useFetch(key, fetcher) {
       throw new Error('Fetch key provided but no fetcher set');
     }
 
-    const controller = new AbortController();
-    lastFetcher
-      .current(controller.signal)
-      .then(data => {
-        if (!controller.signal.aborted) {
-          setResult({ data, error: null, isLoading: false });
-        }
-      })
-      .catch(error => {
-        if (!controller.signal.aborted) {
-          setResult({ data: null, error, isLoading: false });
-        }
-      });
+    const fetcher = lastFetcher.current;
+    const doFetch = () => {
+      fetcher(controller.signal)
+        .then(data => {
+          if (!controller.signal.aborted) {
+            setResult({ data, error: null, isLoading: false, retry: doFetch });
+          }
+        })
+        .catch(error => {
+          if (!controller.signal.aborted) {
+            setResult({ data: null, error, isLoading: false, retry: doFetch });
+          }
+        });
+    };
+    doFetch();
 
     return () => {
       // Cancel in-flight request if query changes or component is unmounted.
