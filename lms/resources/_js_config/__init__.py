@@ -79,8 +79,6 @@ class JSConfig:
         else:
             self._config["viaUrl"] = via_url(self._request, document_url)
 
-        self._add_canvas_speedgrader_settings(document_url=document_url)
-
     def asdict(self):
         """
         Return the configuration for the app's JavaScript code.
@@ -284,50 +282,32 @@ class JSConfig:
 
         self._hypothesis_client["focus"]["user"]["displayName"] = display_name
 
-    def _add_canvas_speedgrader_settings(self, **kwargs):
+    def add_canvas_speedgrader_settings(self, document_url):
         """
-        Add config used by the JS to call our record_canvas_speedgrader_submission API.
+        Add config for students to record submissions with Canvas Speedgrader.
+
+        This adds the config to call our `record_canvas_speedgrader_submission`
+        API.
 
         :raise HTTPBadRequest: if a request param needed to generate the config
             is missing
         """
-        lis_result_sourcedid = self._context.lti_params.get("lis_result_sourcedid")
-        lis_outcome_service_url = self._context.lti_params.get(
-            "lis_outcome_service_url"
-        )
-
-        # Don't set the Canvas submission params in non-Canvas LMS's.
-        if not self._context.is_canvas:
-            return
-
-        # When a Canvas assignment is launched by a teacher or other
-        # non-gradeable user there's no lis_result_sourcedid in the LTI
-        # launch params.
-        # Don't post submission to Canvas for these cases.
-        if not lis_result_sourcedid:
-            return
-
-        # When a Canvas assignment isn't gradeable there's no
-        # lis_outcome_service_url.
-        # Don't post submission to Canvas for these cases.
-        if not lis_outcome_service_url:
-            return
+        lti_params = self._context.lti_params
 
         self._config["canvas"]["speedGrader"] = {
             "submissionParams": {
                 "h_username": self._h_user.username,
-                "lis_result_sourcedid": lis_result_sourcedid,
-                "lis_outcome_service_url": lis_outcome_service_url,
-                "learner_canvas_user_id": self._context.lti_params[
-                    "custom_canvas_user_id"
-                ],
                 "group_set": self._request.params.get("group_set"),
+                "document_url": document_url,
                 # Canvas doesn't send the right value for this on speed grader launches
                 # sending instead the same value as for "context_id"
-                "resource_link_id": self._context.lti_params.get("resource_link_id"),
-                **kwargs,
+                "resource_link_id": lti_params.get("resource_link_id"),
+                "lis_result_sourcedid": lti_params["lis_result_sourcedid"],
+                "lis_outcome_service_url": lti_params["lis_outcome_service_url"],
+                "learner_canvas_user_id": lti_params["custom_canvas_user_id"],
             },
         }
+
         # Enable the LMS frontend to receive notifications on annotation activity
         # We'll use this information to only send the submission to canvas on first annotation.
         if self._request.feature("submit_on_annotation"):

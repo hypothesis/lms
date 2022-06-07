@@ -265,13 +265,13 @@ class TestBasicLaunchViews:
         context.js_config.enable_grading.assert_called()
 
     @pytest.mark.usefixtures("with_gradable_assignment", "user_is_learner")
-    def test_show_document_does_not_enable_grading_for_students(self, svc, context):
+    def test__show_document_does_not_enable_grading_for_students(self, svc, context):
         svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
 
         context.js_config.enable_grading.assert_not_called()
 
     @pytest.mark.usefixtures("user_is_instructor")
-    def test_show_document_does_not_enable_without_a_gradable_assignment(
+    def test__show_document_does_not_enable_without_a_gradable_assignment(
         self, svc, context
     ):
         svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
@@ -281,15 +281,49 @@ class TestBasicLaunchViews:
     @pytest.mark.usefixtures(
         "with_gradable_assignment", "user_is_instructor", "is_canvas"
     )
-    def test_show_document_does_not_enable_grading_for_canvas(self, svc, context):
-        # pylint: disable=protected-access
-        svc._show_document(sentinel.document_url)
+    def test__show_document_does_not_enable_grading_for_canvas(self, svc, context):
+        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
 
         context.js_config.enable_grading.assert_not_called()
 
+    @pytest.mark.usefixtures(
+        "with_gradable_assignment", "is_canvas", "with_student_grading_id"
+    )
+    def test__show_document_enables_speedgrader_settings(self, svc, context):
+        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+
+        context.js_config.add_canvas_speedgrader_settings(sentinel.document_url)
+
+    @pytest.mark.usefixtures("with_gradable_assignment", "with_student_grading_id")
+    def test__show_document_no_speedgrader_without_canvas(self, svc, context):
+        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+
+        context.js_config.add_canvas_speedgrader_settings.assert_not_called()
+
+    @pytest.mark.usefixtures("is_canvas", "with_student_grading_id")
+    def test__show_document_no_speedgrader_without_gradable_assignment(
+        self, svc, context
+    ):
+        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+
+        context.js_config.add_canvas_speedgrader_settings.assert_not_called()
+
+    @pytest.mark.usefixtures("with_gradable_assignment", "is_canvas")
+    def test__show_document_no_speedgrader_without_grading_id(self, svc, context):
+        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+
+        context.js_config.add_canvas_speedgrader_settings.assert_not_called()
+
     @pytest.fixture
     def with_gradable_assignment(self, context):
+        # This shows the assignment itself is gradable
         context.lti_params["lis_outcome_service_url"] = "http://example.com"
+
+    @pytest.fixture
+    def with_student_grading_id(self, context):
+        # This shows that a student has launched the assignment and a grade
+        # is assignable to them
+        context.lti_params["lis_result_sourcedid"] = "9083745892345834h5"
 
     @pytest.fixture
     def svc(self, context, pyramid_request):
