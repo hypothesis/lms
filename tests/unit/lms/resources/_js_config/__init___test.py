@@ -166,69 +166,44 @@ class TestAddDocumentURL:
             "path": "/api/canvas/assignments/TEST_RESOURCE_LINK_ID/via_url",
         }
 
-    def test_it_sets_the_document_url(self, js_config, submission_params):
-        js_config.add_document_url("example_document_url")
 
-        assert submission_params()["document_url"] == "example_document_url"
+class TestAddCanvasSpeedgraderSettings:
+    @pytest.mark.parametrize("group_set", (sentinel.group_set, None))
+    def test_it(self, js_config, pyramid_request, context, group_set):
+        pyramid_request.feature.return_value = False
+        if group_set:
+            pyramid_request.params["group_set"] = group_set
 
-    @pytest.mark.parametrize("submit_on_annotation_enabled", [True, False])
-    def test_it_sets_the_canvas_submission_params(
-        self,
-        pyramid_request,
-        js_config,
-        submission_params,
-        submit_on_annotation_enabled,
+        js_config.add_canvas_speedgrader_settings(sentinel.document_url)
+
+        config = js_config.asdict()
+        assert config["canvas"]["speedGrader"]["submissionParams"] == {
+            "h_username": pyramid_request.lti_user.h_user.username,
+            "group_set": group_set,
+            "document_url": sentinel.document_url,
+            "resource_link_id": pyramid_request.params["resource_link_id"],
+            "lis_result_sourcedid": context.lti_params["lis_result_sourcedid"],
+            "lis_outcome_service_url": context.lti_params["lis_outcome_service_url"],
+            "learner_canvas_user_id": context.lti_params["custom_canvas_user_id"],
+        }
+        assert not config.get("hypothesisClient")
+
+    @pytest.mark.usefixtures("application_instance_service")
+    def test_it_adds_report_activity_if_submit_on_annotation_enabled(
+        self, js_config, pyramid_request
     ):
-        if submit_on_annotation_enabled:
-            pyramid_request.feature.side_effect = (
-                lambda feature: feature == "submit_on_annotation"
-            )
+        pyramid_request.feature.return_value = True
 
-        js_config.add_document_url("canvas://file/course_id/COURSE_ID/file_id/FILE_ID")
+        js_config.add_canvas_speedgrader_settings(sentinel.document_url)
 
-        assert submission_params() == Any.dict.containing(
-            {
-                "h_username": pyramid_request.lti_user.h_user.username,
-                "lis_outcome_service_url": "example_lis_outcome_service_url",
-                "lis_result_sourcedid": "example_lis_result_sourcedid",
-                "learner_canvas_user_id": "test_user_id",
-                "resource_link_id": pyramid_request.params["resource_link_id"],
-            }
-        )
-
-        if submit_on_annotation_enabled:
-            # pylint:disable=protected-access
-            assert js_config._hypothesis_client["reportActivity"] == {
-                "method": "reportActivity",
-                "events": ["create", "update"],
-            }
-
-    def test_it_doesnt_set_the_speedGrader_settings_if_the_LMS_isnt_Canvas(
-        self, context, js_config
-    ):
-        context.is_canvas = False
-
-        js_config.add_document_url("example_document_url")
-
-        assert "speedGrader" not in js_config.asdict()["canvas"]
-
-    def test_it_doesnt_set_the_speedGrader_settings_if_theres_no_lis_result_sourcedid(
-        self, js_config, context
-    ):
-        del context.lti_params["lis_result_sourcedid"]
-
-        js_config.add_document_url("canvas://file/course_id/COURSE_ID/file_id/FILE_ID")
-
-        assert "speedGrader" not in js_config.asdict()["canvas"]
-
-    def test_it_doesnt_set_the_speedGrader_settings_if_theres_no_lis_outcome_service_url(
-        self, js_config, context
-    ):
-        del context.lti_params["lis_outcome_service_url"]
-
-        js_config.add_document_url("canvas://file/course_id/COURSE_ID/file_id/FILE_ID")
-
-        assert "speedGrader" not in js_config.asdict()["canvas"]
+        pyramid_request.feature.assert_called_once_with("submit_on_annotation")
+        # This doesn't get flushed out to the config until we call
+        # `enable_lti_launch_mode` so we have to inspect it directly
+        # pylint: disable=protected-access
+        assert js_config._hypothesis_client["reportActivity"] == {
+            "method": "reportActivity",
+            "events": ["create", "update"],
+        }
 
 
 class TestEnableGrading:
@@ -645,11 +620,6 @@ def js_config(context, pyramid_request):
 @pytest.fixture
 def config(js_config):
     return js_config.asdict()
-
-
-@pytest.fixture
-def submission_params(config):
-    return lambda: config["canvas"]["speedGrader"]["submissionParams"]
 
 
 @pytest.fixture

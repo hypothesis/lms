@@ -284,22 +284,35 @@ class BasicLaunchViews:
 
         # An assignment has been configured in the LMS as "gradable" if it has
         # the `lis_outcome_service_url` param
-        gradable = bool(self.context.lti_params.get("lis_outcome_service_url"))
+        assignment_gradable = bool(
+            self.context.lti_params.get("lis_outcome_service_url")
+        )
 
         # Set up the JS config for the front-end
-        self._configure_js_to_show_document(document_url, gradable)
+        self._configure_js_to_show_document(document_url, assignment_gradable)
 
         return {}
 
-    def _configure_js_to_show_document(self, document_url, gradable):
-        # We also only show the grading interface to teachers who aren't in
-        # Canvas, as Canvas uses its own built in Speedgrader
+    def _configure_js_to_show_document(self, document_url, assignment_gradable):
+        # Only show the grading interface to teachers who aren't in Canvas, as
+        # Canvas uses its own built in Speedgrader
         if (
-            gradable
+            assignment_gradable
             and self.request.lti_user.is_instructor
             and not self.context.is_canvas
         ):
             self.context.js_config.enable_grading()
+
+        # For students in Canvas with grades to submit we need to enable
+        # Speedgrader settings for gradable assignments
+        if (
+            assignment_gradable
+            and self.context.is_canvas
+            # `lis_result_sourcedid` associates a specific user with an
+            # assignment. This is evidence that a student is launching us
+            and self.context.lti_params.get("lis_result_sourcedid")
+        ):
+            self.context.js_config.add_canvas_speedgrader_settings(document_url)
 
         # We add a `focused_user` query param to the SpeedGrader LTI launch
         # URLs we submit to Canvas for each student when the student launches
