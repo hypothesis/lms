@@ -22,6 +22,7 @@ from tests.factories.group_info import GroupInfo
 from tests.factories.grouping import BlackboardGroup, CanvasGroup, CanvasSection, Course
 from tests.factories.h_user import HUser
 from tests.factories.lti_registration import LTIRegistration
+from tests.factories.lti_role import LTIRole
 from tests.factories.lti_user import LTIUser
 from tests.factories.oauth2_token import OAuth2Token
 from tests.factories.rsa_key import RSAKey
