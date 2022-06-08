@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/hypothesis/lms.svg?branch=master)](https://travis-ci.org/hypothesis/lms)
+[![Build Status](https://travis-ci.org/hypothesis/lms.svg?branch=main)](https://travis-ci.org/hypothesis/lms)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
-[![Coverage: 100%](https://img.shields.io/badge/Coverage-100%25-brightgreen)](https://github.com/hypothesis/lms/blob/master/.coveragerc#L18)
+[![Coverage: 100%](https://img.shields.io/badge/Coverage-100%25-brightgreen)](https://github.com/hypothesis/lms/blob/main/.coveragerc#L18)
 
 # Hypothesis LMS App
 
