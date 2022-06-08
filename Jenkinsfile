@@ -39,14 +39,14 @@ node {
         }
     }
 
-    onlyOnMaster {
+    onlyOnMain {
         stage("release") {
             releaseApp(image: img)
         }
     }
 }
 
-onlyOnMaster {
+onlyOnMain {
     milestone()
     stage("qa deploy") {
         deployApp(image: img, app: "lms", env: "qa", region: "us-west-1")
