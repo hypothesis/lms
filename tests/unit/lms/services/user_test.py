@@ -11,10 +11,11 @@ from tests import factories
 
 
 class TestUserService:
-    def test_store_lti_user(self, service, lti_user, db_session):
-        service.store_lti_user(lti_user)
+    def test_upsert_user(self, service, lti_user, db_session):
+        user = service.upsert_user(lti_user)
 
-        assert db_session.query(User).one() == Any.instance_of(User).with_attrs(
+        saved_user = db_session.query(User).one()
+        assert saved_user == Any.instance_of(User).with_attrs(
             {
                 "id": Any.int(),
                 "application_instance_id": lti_user.application_instance_id,
@@ -25,17 +26,19 @@ class TestUserService:
                 "h_userid": lti_user.h_user.userid("authority.example.com"),
             }
         )
+        assert saved_user == user
 
-    def test_store_lti_user_with_an_existing_user(
+    def test_upsert_user_with_an_existing_user(
         self, service, user, lti_user, db_session
     ):
-        service.store_lti_user(lti_user)
+        user = service.upsert_user(lti_user)
 
         list(db_session.query(User))
 
         saved_user = db_session.query(User).one()
         assert saved_user.id == user.id
         assert saved_user.roles == lti_user.roles
+        assert user == saved_user
 
     def test_get(self, user, service):
         db_user = service.get(user.application_instance, user.user_id)

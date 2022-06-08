@@ -21,21 +21,18 @@ class UserService:
         self._db = db
         self._h_authority = h_authority
 
-    def store_lti_user(self, lti_user: LTIUser):
-        """
-        Store a record of having seen a particular user.
-
-        :param lti_user: LTIUser to store
-        """
+    def upsert_user(self, lti_user: LTIUser) -> User:
+        """Store a record of having seen a particular user."""
         new_user = self._from_lti_user(lti_user)
 
         if existing_user := self._find_existing_user(model_user=new_user):
             # Update the existing user from the fields which can change on a
             # new one
             existing_user.roles = new_user.roles
+            return existing_user
 
-        else:
-            self._db.add(new_user)
+        self._db.add(new_user)
+        return new_user
 
     @lru_cache(maxsize=128)
     def get(self, application_instance, user_id: str) -> User:
