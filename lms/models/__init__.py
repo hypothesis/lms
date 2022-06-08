@@ -2,6 +2,7 @@ from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.application_instance import ApplicationInstance
 from lms.models.application_settings import ApplicationSettings
 from lms.models.assignment import Assignment
+from lms.models.assignment_membership import AssignmentMembership
 from lms.models.course import LegacyCourse
 from lms.models.course_groups_exported_from_h import CourseGroupsExportedFromH
 from lms.models.exceptions import ReusedConsumerKey
