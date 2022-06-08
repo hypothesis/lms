@@ -16,6 +16,7 @@ from pyramid.view import view_config, view_defaults
 
 from lms.models import LtiLaunches
 from lms.security import Permissions
+from lms.services import LTIRoleService
 from lms.services.vitalsource.client import VitalSourceService
 from lms.validation import (
     BasicLTILaunchSchema,
@@ -279,15 +280,24 @@ class BasicLaunchViews:
         )
 
         # Store assignment details
-        self.assignment_service.upsert_assignment(
+        assignment = self.assignment_service.upsert_assignment(
+            document_url=document_url,
             tool_consumer_instance_guid=self.context.lti_params[
                 "tool_consumer_instance_guid"
             ],
             resource_link_id=self.context.resource_link_id,
-            document_url=document_url,
             lti_params=self.context.lti_params,
             extra=assignment_extra,
             is_gradable=assignment_gradable,
+        )
+
+        # Store the relationship between the assignment and the course
+        self.assignment_service.upsert_assignment_membership(
+            assignment=assignment,
+            user=self.request.user,
+            lti_roles=self.request.find_service(LTIRoleService).get_roles(
+                self.context.lti_params["roles"]
+            ),
         )
 
         # Set up the JS config for the front-end
