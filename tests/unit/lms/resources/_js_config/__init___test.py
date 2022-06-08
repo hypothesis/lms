@@ -206,11 +206,11 @@ class TestAddCanvasSpeedgraderSettings:
         }
 
 
-class TestEnableGrading:
+class TestEnableGradingBar:
     def test_it(
         self, js_config, context, grading_info_service, application_instance_service
     ):
-        js_config.enable_grading()
+        js_config.enable_grading_bar()
 
         grading_info_service.get_by_assignment.assert_called_once_with(
             context_id="test_course_id",
