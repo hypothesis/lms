@@ -534,7 +534,7 @@ class TestGetLTIUser:
     def test_it_stores_the_user(self, pyramid_request, user_service, lti11_auth_schema):
         _get_lti_user(pyramid_request)
 
-        user_service.store_lti_user.assert_called_once_with(
+        user_service.upsert_user.assert_called_once_with(
             lti11_auth_schema.lti_user.return_value
         )
 
