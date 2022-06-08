@@ -294,32 +294,28 @@ class BasicLaunchViews:
         return {}
 
     def _configure_js_to_show_document(self, document_url, assignment_gradable):
-        # Only show the grading interface to teachers who aren't in Canvas, as
-        # Canvas uses its own built in Speedgrader
-        if (
-            assignment_gradable
-            and self.request.lti_user.is_instructor
-            and not self.context.is_canvas
-        ):
-            self.context.js_config.enable_grading_bar()
-
-        # For students in Canvas with grades to submit we need to enable
-        # Speedgrader settings for gradable assignments
-        if (
-            assignment_gradable
-            and self.context.is_canvas
+        if self.context.is_canvas:
+            # For students in Canvas with grades to submit we need to enable
+            # Speedgrader settings for gradable assignments
             # `lis_result_sourcedid` associates a specific user with an
             # assignment. This is evidence that a student is launching us
-            and self.context.lti_params.get("lis_result_sourcedid")
-        ):
-            self.context.js_config.add_canvas_speedgrader_settings(document_url)
+            if assignment_gradable and self.context.lti_params.get(
+                "lis_result_sourcedid"
+            ):
+                self.context.js_config.add_canvas_speedgrader_settings(document_url)
 
-        # We add a `focused_user` query param to the SpeedGrader LTI launch
-        # URLs we submit to Canvas for each student when the student launches
-        # an assignment. Later, Canvas uses these URLs to launch us when a
-        # teacher grades the assignment in SpeedGrader.
-        if focused_user := self.request.params.get("focused_user"):
-            self.context.js_config.set_focused_user(focused_user)
+            # We add a `focused_user` query param to the SpeedGrader LTI launch
+            # URLs we submit to Canvas for each student when the student
+            # launches an assignment. Later, Canvas uses these URLs to launch
+            # us when a teacher grades the assignment in SpeedGrader.
+            if focused_user := self.request.params.get("focused_user"):
+                self.context.js_config.set_focused_user(focused_user)
+
+        elif assignment_gradable and self.request.lti_user.is_instructor:
+            # Only show the grading interface to teachers who aren't in Canvas,
+            # as Canvas uses its own built in Speedgrader
+
+            self.context.js_config.enable_grading_bar()
 
         self.context.js_config.add_document_url(document_url)
         self.context.js_config.enable_lti_launch_mode()
