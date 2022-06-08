@@ -7,6 +7,7 @@ from lms.models import ApplicationInstance, LTIParams
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.views.lti.basic_launch import BasicLaunchViews
+from tests import factories
 
 
 @pytest.mark.usefixtures(
@@ -14,6 +15,7 @@ from lms.views.lti.basic_launch import BasicLaunchViews
     "assignment_service",
     "grading_info_service",
     "lti_h_service",
+    "lti_role_service",
 )
 class TestBasicLaunchViews:
     def test___init___(self, context, pyramid_request, application_instance_service):
@@ -224,7 +226,15 @@ class TestBasicLaunchViews:
             document_url=assignment_service.get_assignment.return_value.document_url
         )
 
-    def test__show_document(self, svc, context, lti_h_service, assignment_service):
+    def test__show_document(
+        self,
+        svc,
+        pyramid_request,
+        context,
+        lti_h_service,
+        assignment_service,
+        lti_role_service,
+    ):
         # pylint: disable=protected-access
         result = svc._show_document(
             sentinel.document_url, assignment_extra=sentinel.assignment_extra
@@ -247,6 +257,13 @@ class TestBasicLaunchViews:
             lti_params=context.lti_params,
             is_gradable=False,
             extra=sentinel.assignment_extra,
+        )
+
+        lti_role_service.get_roles.assert_called_once_with(context.lti_params["roles"])
+        assignment_service.upsert_assignment_membership.assert_called_once_with(
+            assignment=assignment_service.upsert_assignment.return_value,
+            user=pyramid_request.user,
+            lti_roles=lti_role_service.get_roles.return_value,
         )
 
         assert result == {}
@@ -355,6 +372,12 @@ class TestBasicLaunchViews:
     def is_canvas(self, context):
         """Set the LMS that launched us to Canvas."""
         context.is_canvas = True
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.user = factories.User()
+
+        return pyramid_request
 
     @pytest.fixture
     def context(self, pyramid_request):
