@@ -1,5 +1,10 @@
 from enum import Enum, unique
 
+import sqlalchemy as sa
+from sqlalchemy.ext.hybrid import hybrid_property
+
+from lms.db import BASE
+
 
 @unique
 class RoleType(str, Enum):
@@ -16,6 +21,47 @@ class RoleType(str, Enum):
         # We have to do this work around because Enums can't have private
         # attributes. They are just interpreted as extra values for the enum.
         return _RoleParser.parse_role(role)
+
+
+class LTIRole(BASE):
+    """Model for LTI role strings and our interpretation of them."""
+
+    __tablename__ = "lti_role"
+
+    id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
+
+    _value = sa.Column("value", sa.UnicodeText(), nullable=False, unique=True)
+    """The raw string from LTI params."""
+
+    type = sa.Column(
+        "type",
+        sa.Enum(
+            RoleType,
+            # In order to maintain maximum flexibility we will only enforce the
+            # type on the Python side, and leave the Postgres side open as a plain
+            # VARCHAR
+            native_enum=False,
+            create_constraint=False,
+            validate_strings=True,
+            # Without a length SQLAlchemy will constrain it to the longest value
+            # we happen to have right now, which could limit us in future
+            length=64,
+            # Use the string values, not the keys to persist the values
+            values_callable=lambda obj: [item.value for item in obj],
+        ),
+        nullable=False,
+        unique=False,
+    )
+    """Our interpretation of the value."""
+
+    @hybrid_property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+        self.type = RoleType.parse_lti_role(value)
 
 
 class _RoleParser:
