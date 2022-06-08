@@ -301,7 +301,7 @@ class BasicLaunchViews:
             and self.request.lti_user.is_instructor
             and not self.context.is_canvas
         ):
-            self.context.js_config.enable_grading()
+            self.context.js_config.enable_grading_bar()
 
         # For students in Canvas with grades to submit we need to enable
         # Speedgrader settings for gradable assignments

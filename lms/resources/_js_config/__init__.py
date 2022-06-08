@@ -229,7 +229,7 @@ class JSConfig:
         self._config.setdefault("filePicker", {})
         self._config["filePicker"]["deepLinkingAPI"] = config
 
-    def enable_grading(self):
+    def enable_grading_bar(self):
         """Enable our LMS app's built-in assignment grading UI."""
 
         # Get one student dict for each student who has launched the assignment

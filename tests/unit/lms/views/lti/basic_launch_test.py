@@ -262,13 +262,13 @@ class TestBasicLaunchViews:
     def test__show_document_enables_grading(self, svc, context):
         svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
 
-        context.js_config.enable_grading.assert_called()
+        context.js_config.enable_grading_bar.assert_called()
 
     @pytest.mark.usefixtures("with_gradable_assignment", "user_is_learner")
     def test__show_document_does_not_enable_grading_for_students(self, svc, context):
         svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
 
-        context.js_config.enable_grading.assert_not_called()
+        context.js_config.enable_grading_bar.assert_not_called()
 
     @pytest.mark.usefixtures("user_is_instructor")
     def test__show_document_does_not_enable_without_a_gradable_assignment(
@@ -276,7 +276,7 @@ class TestBasicLaunchViews:
     ):
         svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
 
-        context.js_config.enable_grading.assert_not_called()
+        context.js_config.enable_grading_bar.assert_not_called()
 
     @pytest.mark.usefixtures(
         "with_gradable_assignment", "user_is_instructor", "is_canvas"
@@ -284,7 +284,7 @@ class TestBasicLaunchViews:
     def test__show_document_does_not_enable_grading_for_canvas(self, svc, context):
         svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
 
-        context.js_config.enable_grading.assert_not_called()
+        context.js_config.enable_grading_bar.assert_not_called()
 
     @pytest.mark.usefixtures(
         "with_gradable_assignment", "is_canvas", "with_student_grading_id"
