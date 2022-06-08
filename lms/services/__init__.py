@@ -21,6 +21,7 @@ from lms.services.launch_verifier import (
 )
 from lms.services.lti_grading import LTIGradingService
 from lms.services.lti_registration import LTIRegistrationService
+from lms.services.lti_role_service import LTIRoleService
 from lms.services.ltia_http import LTIAHTTPService
 from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
@@ -82,6 +83,9 @@ def includeme(config):
     config.register_service_factory("lms.services.jstor.factory", iface=JSTORService)
     config.register_service_factory(
         "lms.services.lti_registration.factory", iface=LTIRegistrationService
+    )
+    config.register_service_factory(
+        "lms.services.lti_role_service.service_factory", iface=LTIRoleService
     )
     config.register_service_factory("lms.services.aes.factory", iface=AESService)
     config.register_service_factory("lms.services.jwt.factory", iface=JWTService)
