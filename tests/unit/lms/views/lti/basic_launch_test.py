@@ -249,6 +249,7 @@ class TestBasicLaunchViews:
 
         assert result == {}
 
+    @pytest.mark.usefixtures("is_canvas")
     def test__show_document_focuses_on_users(self, svc, pyramid_request, context):
         pyramid_request.params["focused_user"] = sentinel.focused_user
 
@@ -257,6 +258,15 @@ class TestBasicLaunchViews:
         context.js_config.set_focused_user.assert_called_once_with(
             sentinel.focused_user
         )
+
+    def test__show_document_focuses_on_users_only_for_canvas(
+        self, svc, pyramid_request, context
+    ):
+        pyramid_request.params["focused_user"] = sentinel.focused_user
+
+        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+
+        context.js_config.set_focused_user.assert_not_called()
 
     @pytest.mark.usefixtures("with_gradable_assignment", "user_is_instructor")
     def test__show_document_enables_grading(self, svc, context):
