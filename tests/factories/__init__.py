@@ -5,6 +5,7 @@ from factory.alchemy import SQLAlchemyModelFactory
 from tests.factories import requests_ as requests
 from tests.factories.application_instance import ApplicationInstance
 from tests.factories.assignment import Assignment
+from tests.factories.assignment_membership import AssignmentMembership
 from tests.factories.attributes import (
     ACCESS_TOKEN,
     H_DISPLAY_NAME,

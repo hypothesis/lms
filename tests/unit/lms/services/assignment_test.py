@@ -4,7 +4,7 @@ from unittest.mock import sentinel
 import pytest
 from h_matchers import Any
 
-from lms.models import LTIParams
+from lms.models import AssignmentMembership, LTIParams
 from lms.services.assignment import AssignmentService, factory
 from tests import factories
 
@@ -70,6 +70,30 @@ class TestAssignmentService:
 
         assert result.created >= datetime.now() - timedelta(days=1)
         assert result.updated >= datetime.now() - timedelta(days=1)
+
+    def test_upsert_assignment_membership(self, svc, assignment):
+        user = factories.User()
+        lti_roles = factories.LTIRole.create_batch(3)
+        # One existing row
+        factories.AssignmentMembership.create(
+            assignment=assignment, user=user, lti_role=lti_roles[0]
+        )
+
+        membership = svc.upsert_assignment_membership(
+            assignment=assignment, user=user, lti_roles=lti_roles
+        )
+
+        assert (
+            membership
+            == Any.list.containing(
+                [
+                    Any.instance_of(AssignmentMembership).with_attrs(
+                        {"user": user, "assignment": assignment, "lti_role": lti_role}
+                    )
+                    for lti_role in lti_roles
+                ]
+            ).only()
+        )
 
     @pytest.fixture
     def svc(self, db_session):
