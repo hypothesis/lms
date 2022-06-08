@@ -1,12 +1,16 @@
 from functools import lru_cache
+from typing import List
 
-from lms.models import Assignment, LTIParams
+from sqlalchemy.orm import Session
+
+from lms.models import Assignment, AssignmentMembership, LTIParams, LTIRole, User
+from lms.services.upsert import bulk_upsert
 
 
 class AssignmentService:
     """A service for getting and setting assignments."""
 
-    def __init__(self, db):
+    def __init__(self, db: Session):
         self._db = db
 
     def get_assignment(self, tool_consumer_instance_guid, resource_link_id):
@@ -61,6 +65,33 @@ class AssignmentService:
         assignment.extra = extra if extra else assignment.extra or {}
 
         return assignment
+
+    def upsert_assignment_membership(
+        self, assignment: Assignment, user: User, lti_roles: List[LTIRole]
+    ) -> List[AssignmentMembership]:
+        """Store details of the roles a user plays in an assignment."""
+
+        # Commit any changes to ensure that our user and role objects have ids
+        self._db.flush()
+
+        values = [
+            {
+                "user_id": user.id,
+                "assignment_id": assignment.id,
+                "lti_role_id": lti_role.id,
+            }
+            for lti_role in lti_roles
+        ]
+
+        return list(
+            bulk_upsert(
+                self._db,
+                model_class=AssignmentMembership,
+                values=values,
+                index_elements=["user_id", "assignment_id", "lti_role_id"],
+                update_columns=["updated"],
+            )
+        )
 
 
 def factory(_context, request):

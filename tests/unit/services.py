@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from lms.services import CanvasService
+from lms.services import CanvasService, LTIRoleService
 from lms.services.aes import AESService
 from lms.services.application_instance import ApplicationInstanceService
 from lms.services.assignment import AssignmentService
@@ -57,6 +57,7 @@ __all__ = (
     "lti_grading_service",
     "lti_h_service",
     "lti_registration_service",
+    "lti_role_service",
     "ltia_http_service",
     "oauth1_service",
     "oauth2_token_service",
@@ -220,6 +221,11 @@ def lti_h_service(mock_service):
 @pytest.fixture
 def lti_registration_service(mock_service):
     return mock_service(LTIRegistrationService)
+
+
+@pytest.fixture
+def lti_role_service(mock_service):
+    return mock_service(LTIRoleService)
 
 
 @pytest.fixture
