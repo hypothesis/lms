@@ -1,6 +1,7 @@
 import pytest
+from sqlalchemy.exc import StatementError
 
-from lms.models.lti_role import RoleType, _RoleParser
+from lms.models.lti_role import LTIRole, RoleType, _RoleParser
 
 
 class TestRoleType:
@@ -83,3 +84,26 @@ class TestRoleType:
         # "Context roles" can have sub-roles appended to the end. Check we can
         # match these correctly
         assert RoleType.parse_lti_role(value) == role_type
+
+
+class TestLTIRole:
+    @pytest.mark.parametrize(
+        "value,role_type",
+        (("Learner", RoleType.LEARNER), ("Instructor", RoleType.INSTRUCTOR)),
+    )
+    def test_it_sets_the_type_from_the_value(self, value, role_type):
+        lti_role = LTIRole(value=value)
+
+        assert lti_role.type == role_type
+
+    def test_it_converts_type_to_an_enum(self):
+        lti_role = LTIRole(type="admin")
+        assert lti_role.type == RoleType.ADMIN
+
+        lti_role.type = "learner"
+        assert lti_role.type == RoleType.LEARNER
+
+    def test_it_raises_LookupError_for_invalid_types(self, db_session):
+        with pytest.raises(StatementError):
+            db_session.add(LTIRole(type="INVALID"))
+            db_session.flush()
