@@ -299,15 +299,31 @@ class TestBasicLaunchViews:
         context.js_config.enable_grading_bar.assert_not_called()
 
     @pytest.mark.usefixtures(
-        "with_gradable_assignment", "is_canvas", "with_student_grading_id"
+        "with_gradable_assignment",
+        "is_canvas",
+        "with_student_grading_id",
+        "user_is_learner",
     )
     def test__show_document_enables_speedgrader_settings(self, svc, context):
         svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
 
-        context.js_config.add_canvas_speedgrader_settings(sentinel.document_url)
+        context.js_config.add_canvas_speedgrader_settings.assert_called_once_with(
+            sentinel.document_url
+        )
 
     @pytest.mark.usefixtures("with_gradable_assignment", "with_student_grading_id")
     def test__show_document_no_speedgrader_without_canvas(self, svc, context):
+        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+
+        context.js_config.add_canvas_speedgrader_settings.assert_not_called()
+
+    @pytest.mark.usefixtures(
+        "is_canvas",
+        "with_gradable_assignment",
+        "with_student_grading_id",
+        "user_is_instructor",
+    )
+    def test__show_document_no_speedgrader_with_instructor(self, svc, context):
         svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
 
         context.js_config.add_canvas_speedgrader_settings.assert_not_called()
