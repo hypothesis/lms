@@ -298,9 +298,11 @@ class BasicLaunchViews:
             # For students in Canvas with grades to submit we need to enable
             # Speedgrader settings for gradable assignments
             # `lis_result_sourcedid` associates a specific user with an
-            # assignment. This is evidence that a student is launching us
-            if assignment_gradable and self.context.lti_params.get(
-                "lis_result_sourcedid"
+            # assignment.
+            if (
+                assignment_gradable
+                and self.request.lti_user.is_learner
+                and self.context.lti_params.get("lis_result_sourcedid")
             ):
                 self.context.js_config.add_canvas_speedgrader_settings(document_url)
 
