@@ -1,6 +1,9 @@
-import pytest
+from unittest.mock import create_autospec, sentinel
 
-from lms.models import CLAIM_PREFIX, LTIParams
+import pytest
+from pyramid.config import Configurator
+
+from lms.models.lti_params import CLAIM_PREFIX, LTIParams, _get_lti_params, includeme
 
 
 class TestLTI13Params:
@@ -76,3 +79,36 @@ class TestLTI13Params:
 
         assert isinstance(params[parameter_name], str)
         assert params[parameter_name] == "1"
+
+
+class TestGetLTIParams:
+    def test_with_lti_jwt(self, LTIParams, pyramid_request):
+        pyramid_request.lti_jwt = sentinel.lti_jwt
+
+        lti_params = _get_lti_params(pyramid_request)
+
+        LTIParams.from_v13.assert_called_once_with(sentinel.lti_jwt)
+        assert lti_params == LTIParams.from_v13.return_value
+
+    def test_without_lti_jwt(self, pyramid_request):
+        pyramid_request.lti_jwt = None
+        pyramid_request.params = sentinel.params
+
+        assert _get_lti_params(pyramid_request) == sentinel.params
+
+    @pytest.fixture
+    def LTIParams(self, patch):
+        return patch("lms.models.lti_params.LTIParams")
+
+
+class TestIncludeMe:
+    def test_it_sets_lti_jwt(self, configurator):
+        includeme(configurator)
+
+        configurator.add_request_method.assert_called_once_with(
+            _get_lti_params, name="lti_params", property=True, reify=True
+        )
+
+    @pytest.fixture()
+    def configurator(self):
+        return create_autospec(Configurator, spec_set=True, instance=True)

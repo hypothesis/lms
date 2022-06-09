@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 from pytest import param
 
-from lms.models import ApplicationSettings
+from lms.models import ApplicationSettings, Product
 from lms.resources import LTILaunchResource
 from lms.services import ApplicationInstanceNotFound
 
@@ -22,14 +22,14 @@ class TestResourceLinkIdk:
         ],
     )
     def test_it(self, pyramid_request, learner_id, get_id, lti_id, expected):
-        pyramid_request.params = {
-            "resource_link_id": lti_id,
-        }
         pyramid_request.GET = {
             "learner_canvas_user_id": learner_id,
             "resource_link_id": get_id,
         }
-        assert LTILaunchResource(pyramid_request).resource_link_id == expected
+        with mock.patch.object(
+            LTILaunchResource, "lti_params", {"resource_link_id": lti_id}
+        ):
+            assert LTILaunchResource(pyramid_request).resource_link_id == expected
 
 
 class TestIsLegacySpeedGrader:
@@ -84,30 +84,17 @@ class TestIsLegacySpeedGrader:
 
 class TestIsCanvas:
     @pytest.mark.parametrize(
-        "parsed_params,is_canvas",
+        "product,expected",
         [
-            # For *some* launches Canvas includes a
-            # `tool_consumer_info_product_family_code: canvas` and you can
-            # detect Canvas that way.
-            ({"tool_consumer_info_product_family_code": "canvas"}, True),
-            # Some Canvas launches, e.g. deep linking, do
-            # not have a tool_consumer_info_product_family_code param. In these
-            # cases we can instead detect Canvas by the presence of its
-            # custom_canvas_course_id param.
-            ({"custom_canvas_course_id": mock.sentinel.whatever}, True),
-            # Non-Canvas LMS's do also sometimes use
-            # tool_consumer_info_product_family_code but they don't set it to
-            # "canvas".
-            ({"tool_consumer_info_product_family_code": "whiteboard"}, False),
-            # If none of the recognized request params are present it should
-            # fall back on "not Canvas".
-            ({}, False),
+            (Product.Family.CANVAS, True),
+            (Product.Family.BLACKBOARD, False),
+            (Product.Family.UNKNOWN, False),
         ],
     )
-    def test_it(self, pyramid_request, parsed_params, is_canvas):
-        pyramid_request.parsed_params = parsed_params
+    def test_it(self, pyramid_request, product, expected):
+        pyramid_request.product.family = product
 
-        assert LTILaunchResource(pyramid_request).is_canvas == is_canvas
+        assert LTILaunchResource(pyramid_request).is_canvas == expected
 
 
 class TestJSConfig:
@@ -126,6 +113,7 @@ class TestCanvasSectionsSupported:
         with mock.patch.object(LTILaunchResource, "is_canvas", is_canvas):
             assert lti_launch.canvas_sections_supported() == is_canvas
 
+    @pytest.mark.usefixtures("with_canvas")
     @pytest.mark.parametrize(
         "params,expected",
         (
@@ -151,12 +139,14 @@ class TestCanvasSectionsSupported:
 
         assert lti_launch.canvas_sections_supported() is expected
 
+    @pytest.mark.usefixtures("with_canvas")
     def test_it_depends_on_application_instance_service(
         self, lti_launch, application_instance_service
     ):
         application_instance_service.get_current.return_value.developer_key = None
         assert not lti_launch.canvas_sections_supported()
 
+    @pytest.mark.usefixtures("with_canvas")
     def test_if_application_instance_service_raises(
         self, lti_launch, application_instance_service
     ):
@@ -219,9 +209,9 @@ class TestCourseExtra:
 
         assert not LTILaunchResource(pyramid_request)._course_extra()
 
+    @pytest.mark.usefixtures("with_canvas")
     def test_includes_course_id(self, pyramid_request):
         parsed_params = {
-            "tool_consumer_info_product_family_code": "canvas",
             "custom_canvas_course_id": "ID",
         }
         pyramid_request.parsed_params = parsed_params
@@ -346,31 +336,13 @@ class TestIsGroupLaunch:
 
 
 class TestLTIParams:
-    def test_it_when_lti_jwt(self, pyramid_request_with_jwt, LTIParams, lti_launch):
-        params = lti_launch.lti_params
-
-        LTIParams.from_v13.assert_called_once_with(pyramid_request_with_jwt.lti_jwt)
-        assert params == LTIParams.from_v13.return_value
-
-    def test_it_when_no_lti_jwt(self, pyramid_request, LTIParams, lti_launch):
-        params = lti_launch.lti_params
-
-        LTIParams.assert_called_once_with(pyramid_request.params)
-        assert params == LTIParams.return_value
+    def test_it_when_lti_jwt(self, lti_launch):
+        assert lti_launch.lti_params == mock.sentinel.lti_params
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.lti_jwt = {}
+        pyramid_request.lti_params = mock.sentinel.lti_params
         return pyramid_request
-
-    @pytest.fixture
-    def pyramid_request_with_jwt(self, pyramid_request):
-        pyramid_request.lti_jwt = {"KEY": "VALUE"}
-        return pyramid_request
-
-    @pytest.fixture
-    def LTIParams(self, patch):
-        return patch("lms.resources.lti_launch.LTIParams")
 
 
 @pytest.fixture
@@ -396,3 +368,8 @@ def has_course(pyramid_request):
 def pyramid_request(pyramid_request):
     pyramid_request.parsed_params = {}
     return pyramid_request
+
+
+@pytest.fixture
+def with_canvas(pyramid_request):
+    pyramid_request.product.family = Product.Family.CANVAS

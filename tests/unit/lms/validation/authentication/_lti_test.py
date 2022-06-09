@@ -4,6 +4,7 @@ import marshmallow
 import pytest
 from pyramid.httpexceptions import HTTPUnprocessableEntity
 
+from lms.models import LTIParams
 from lms.services import ApplicationInstanceNotFound, LTILaunchVerificationError
 from lms.validation._exceptions import ValidationError
 from lms.validation.authentication import LTI11AuthSchema, LTI13AuthSchema
@@ -142,6 +143,7 @@ class TestLTI13AuthSchema:
     def pyramid_request(self, pyramid_request, lti_v13_params):
         pyramid_request.params["id_token"] = sentinel.id_token
         pyramid_request.lti_jwt = lti_v13_params
+        pyramid_request.lti_params = LTIParams.from_v13(lti_v13_params)
 
         return pyramid_request
 

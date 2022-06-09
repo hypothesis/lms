@@ -3,7 +3,7 @@
 import logging
 from functools import cached_property
 
-from lms.models import LTIParams
+from lms.models import LTIParams, Product
 from lms.resources._js_config import JSConfig
 from lms.services import ApplicationInstanceNotFound
 
@@ -81,16 +81,7 @@ class LTILaunchResource:
     @property
     def is_canvas(self):
         """Return True if Canvas is the LMS that launched us."""
-        if (
-            self._request.parsed_params.get("tool_consumer_info_product_family_code")
-            == "canvas"
-        ):
-            return True
-
-        if "custom_canvas_course_id" in self._request.parsed_params:
-            return True
-
-        return False
+        return self._request.product.family == Product.Family.CANVAS
 
     @cached_property
     def js_config(self):
@@ -171,11 +162,7 @@ class LTILaunchResource:
     @property
     def lti_params(self) -> LTIParams:
         """Return the requests LTI parameters."""
-        return (
-            LTIParams.from_v13(self._request.lti_jwt)
-            if self._request.lti_jwt
-            else LTIParams(self._request.params)
-        )
+        return self._request.lti_params
 
     def _course_extra(self):
         """Extra information to store for courses."""

@@ -3,7 +3,7 @@ from unittest.mock import create_autospec, sentinel
 import pytest
 from h_matchers import Any
 
-from lms.models import ApplicationInstance, Grouping, LTIParams
+from lms.models import Grouping, LTIParams, Product
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
 from lms.services import ApplicationInstanceNotFound, HAPIError
@@ -124,11 +124,14 @@ class TestAddDocumentURL:
         via_url.assert_called_once_with(pyramid_request, "example_document_url")
         assert js_config.asdict()["viaUrl"] == via_url.return_value
 
-    def test_it_adds_the_viaUrl_api_config_for_Blackboard_documents(self, js_config):
+    def test_it_adds_the_viaUrl_api_config_for_Blackboard_documents(
+        self, js_config, pyramid_request
+    ):
         js_config.add_document_url("blackboard://content-resource/xyz123")
 
         assert js_config.asdict()["api"]["viaUrl"] == {
             "authUrl": "http://example.com/api/blackboard/oauth/authorize",
+            "product": pyramid_request.product.family,
             "path": "/api/blackboard/courses/test_course_id/via_url?document_url=blackboard%3A%2F%2Fcontent-resource%2Fxyz123",
         }
 
@@ -163,6 +166,7 @@ class TestAddDocumentURL:
 
         assert js_config.asdict()["api"]["viaUrl"] == {
             "authUrl": "http://example.com/api/canvas/oauth/authorize",
+            "product": pyramid_request.product.family,
             "path": "/api/canvas/assignments/TEST_RESOURCE_LINK_ID/via_url",
         }
 
@@ -306,6 +310,7 @@ class TestJSConfigAPISync:
     def test_when_is_canvas(self, sync, pyramid_request, GroupInfo):
         assert sync == {
             "authUrl": "http://example.com/api/canvas/oauth/authorize",
+            "product": "canvas",
             "path": "/api/canvas/sync",
             "data": {
                 "course": {
@@ -328,6 +333,7 @@ class TestJSConfigAPISync:
     def test_when_is_blackboard(self, sync, pyramid_request, GroupInfo):
         assert sync == {
             "authUrl": "http://example.com/api/blackboard/oauth/authorize",
+            "product": Product.Family.BLACKBOARD,
             "path": "/api/blackboard/sync",
             "data": {
                 "course": {
@@ -370,15 +376,13 @@ class TestJSConfigAPISync:
         pyramid_request.params["learner_canvas_user_id"] = "test_learner_canvas_user_id"
 
     @pytest.fixture
-    def blackboard_group_launch(self, context, application_instance_service):
+    def blackboard_group_launch(self, context, pyramid_request):
         context.canvas_sections_enabled = False
         context.canvas_groups_enabled = False
 
         context.blackboard_groups_enabled = True
         context.is_blackboard_group_launch = True
-        application_instance_service.get_current.return_value.tool_consumer_info_product_family_code = (
-            ApplicationInstance.Product.BLACKBOARD
-        )
+        pyramid_request.product.family = Product.Family.BLACKBOARD
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
@@ -486,7 +490,7 @@ class TestJSConfigRPCServer:
 
 
 class TestEnableOAuth2RedirectErrorMode:
-    def test_it(self, js_config):
+    def test_it(self, js_config, pyramid_request):
         js_config.enable_oauth2_redirect_error_mode(
             "auth_route",
             sentinel.error_code,
@@ -498,6 +502,7 @@ class TestEnableOAuth2RedirectErrorMode:
         assert config["mode"] == JSConfig.Mode.OAUTH2_REDIRECT_ERROR
         assert config["OAuth2RedirectError"] == {
             "authUrl": "http://example.com/auth?authorization=Bearer%3A+token_value",
+            "product": pyramid_request.product.family,
             "errorCode": sentinel.error_code,
             "errorDetails": sentinel.error_details,
             "canvasScopes": sentinel.canvas_scopes,
@@ -639,8 +644,9 @@ def context(pyramid_request):
 
 
 @pytest.fixture
-def canvas_sections_on(context):
+def canvas_sections_on(context, pyramid_request):
     context.canvas_sections_enabled = True
+    pyramid_request.product.family = Product.Family.CANVAS
 
 
 @pytest.fixture
