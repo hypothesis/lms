@@ -22,19 +22,19 @@ class TestFilePickerConfig:
         self,
         context,
         pyramid_request,
-        blackboard_application_instance,
+        application_instance,
         files_enabled,
         groups_enabled,
     ):
 
         context.lti_params["context_id"] = "COURSE_ID"
-        blackboard_application_instance.settings.set(
-            "blackboard", "files_enabled", files_enabled
+        application_instance.settings.set("blackboard", "files_enabled", files_enabled)
+        application_instance.settings.set(
+            "blackboard", "groups_enabled", groups_enabled
         )
-        context.blackboard_groups_enabled = groups_enabled
 
         config = FilePickerConfig.blackboard_config(
-            context, pyramid_request, blackboard_application_instance
+            context, pyramid_request, application_instance
         )
 
         expected_config = {
@@ -68,7 +68,7 @@ class TestFilePickerConfig:
         self, context, pyramid_request, application_instance, groups_enabled
     ):
         context.lti_params["custom_canvas_course_id"] = "COURSE_ID"
-        context.canvas_groups_enabled = groups_enabled
+        application_instance.settings.set("canvas", "groups_enabled", groups_enabled)
 
         config = FilePickerConfig.canvas_config(
             context, pyramid_request, application_instance
@@ -188,12 +188,6 @@ class TestFilePickerConfig:
         return application_instance
 
     @pytest.fixture
-    def blackboard_application_instance(self, application_instance):
-        application_instance.tool_consumer_info_product_family_code = "BlackboardLearn"
-
-        return application_instance
-
-    @pytest.fixture
     def with_is_canvas(self, context):
         context.is_canvas = True
 
@@ -204,8 +198,5 @@ class TestFilePickerConfig:
             spec_set=True,
             instance=True,
             is_canvas=False,
-            canvas_sections_enabled=False,
-            canvas_groups_enabled=False,
-            blackboard_groups_enabled=False,
             lti_params=LTIParams(pyramid_request.params),
         )

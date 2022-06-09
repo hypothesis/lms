@@ -18,6 +18,11 @@ class Grouping(CreatedUpdatedMixin, BASE):
         CANVAS_GROUP = "canvas_group"
         BLACKBOARD_GROUP = "blackboard_group"
 
+        # These are the LMS agnostic versions of the ones avobe.
+        # They don't get stored in the DB but are meaningful in the codebase
+        SECTION = "section"
+        GROUP = "group"
+
     __tablename__ = "grouping"
     __mapper_args__ = {"polymorphic_on": "type"}
     __table_args__ = (
