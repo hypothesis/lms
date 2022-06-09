@@ -1,13 +1,16 @@
+from unittest.mock import sentinel
+
 import pytest
 
 from lms.models import Grouping
 from lms.services import CanvasAPIError
+from lms.services.product.grouping._canvas import CanvasGroupingService
 from lms.views import (
     CanvasGroupSetEmpty,
     CanvasGroupSetNotFound,
     CanvasStudentNotInGroup,
 )
-from lms.views.api.canvas.sync import Sync
+from tests import factories
 from tests.conftest import TEST_SETTINGS
 
 pytestmark = pytest.mark.usefixtures(
@@ -21,41 +24,66 @@ pytestmark = pytest.mark.usefixtures(
 
 
 @pytest.mark.usefixtures("user_is_learner")
-def test_sections_sync_when_the_user_is_a_learner(
-    pyramid_request,
-    canvas_api_client,
-    sections,
-    grouping_service,
-    assert_sync_and_return_sections,
-    request_json,
-    user_service,
+def test_get_sections_when_the_user_is_a_learner(
+    canvas_api_client, course, grouping_service, svc, user
 ):
-    groupids = Sync(pyramid_request).sync()
+    groupings = svc.get_sections(course)
 
-    course_id = request_json["course"]["custom_canvas_course_id"]
-    canvas_api_client.authenticated_users_sections.assert_called_once_with(course_id)
-    grouping_service.upsert_grouping_memberships.assert_called_once_with(
-        user_service.get.return_value,
-        grouping_service.upsert_groupings.return_value,
+    canvas_api_client.authenticated_users_sections.assert_called_once_with(
+        sentinel.canvas_course_id
     )
-
-    assert_sync_and_return_sections(groupids, sections=sections.authenticated_user)
+    grouping_service.upsert_groupings.assert_called_once_with(
+        canvas_api_client.authenticated_users_sections.return_value,
+        parent=course,
+        type_=Grouping.Type.CANVAS_SECTION,
+    )
+    grouping_service.upsert_grouping_memberships.assert_called_once_with(
+        user, grouping_service.upsert_groupings.return_value
+    )
+    assert groupings == grouping_service.upsert_groupings.return_value
 
 
 @pytest.mark.usefixtures("user_is_instructor")
-def test_sections_sync_when_the_user_is_an_instructor(
-    pyramid_request,
-    canvas_api_client,
-    sections,
-    assert_sync_and_return_sections,
-    request_json,
+def test_sections_when_the_user_is_an_instructor(
+    canvas_api_client, course, grouping_service, svc, user
 ):
-    groupids = Sync(pyramid_request).sync()
+    groupings = svc.get_sections(course)
 
-    course_id = request_json["course"]["custom_canvas_course_id"]
-    canvas_api_client.course_sections.assert_called_once_with(course_id)
+    canvas_api_client.course_sections.assert_called_once_with(sentinel.canvas_course_id)
+    grouping_service.upsert_groupings.assert_called_once_with(
+        canvas_api_client.course_sections.return_value,
+        parent=course,
+        type_=Grouping.Type.CANVAS_SECTION,
+    )
+    grouping_service.upsert_grouping_memberships.assert_called_once_with(
+        user, grouping_service.upsert_groupings.return_value
+    )
+    assert groupings == grouping_service.upsert_groupings.return_value
 
-    assert_sync_and_return_sections(groupids, sections=sections.course)
+
+@pytest.mark.usefixtures("user_is_instructor")
+def test_sections_sync_when_in_SpeedGrader(
+    canvas_api_client, course, grouping_service, svc, user
+):
+    canvas_api_client.users_sections.return_value = [
+        {"id": canvas_api_client.course_sections.return_value}
+    ]
+
+    groupings = svc.get_sections(course, sentinel.grading_student_id)
+
+    canvas_api_client.course_sections.assert_called_once_with(sentinel.canvas_course_id)
+    canvas_api_client.users_sections.assert_called_once_with(
+        sentinel.grading_student_id, sentinel.canvas_course_id
+    )
+    grouping_service.upsert_groupings.assert_called_once_with(
+        canvas_api_client.course_sections.return_value,
+        parent=course,
+        type_=Grouping.Type.CANVAS_SECTION,
+    )
+    grouping_service.upsert_grouping_memberships.assert_called_once_with(
+        user, grouping_service.upsert_groupings.return_value
+    )
+    assert groupings == grouping_service.upsert_groupings.return_value
 
 
 @pytest.mark.usefixtures("user_is_learner", "is_group_launch")
@@ -195,25 +223,6 @@ def test_is_group_launch_in_speed_grader(
     assert Sync(pyramid_request)._is_group_launch == expected_value
 
 
-@pytest.mark.usefixtures("user_is_instructor")
-@pytest.mark.usefixtures("is_speedgrader")
-def test_sections_sync_when_in_SpeedGrader(
-    pyramid_request,
-    canvas_api_client,
-    sections,
-    assert_sync_and_return_sections,
-    request_json,
-):
-    groupids = Sync(pyramid_request).sync()
-
-    course_id = request_json["course"]["custom_canvas_course_id"]
-    user_id = request_json["learner"]["canvas_user_id"]
-    canvas_api_client.course_sections.assert_called_once_with(course_id)
-    canvas_api_client.users_sections.assert_called_once_with(user_id, course_id)
-
-    assert_sync_and_return_sections(groupids, sections=sections.user)
-
-
 @pytest.fixture
 def assert_sync_and_return_sections(
     lti_h_service, request_json, grouping_service, course_service
@@ -272,66 +281,12 @@ def assert_sync_and_return_groups(
 
 
 @pytest.fixture
-def sections():
-    class Sections:
-        # The course has three sections named "Section 1", "Section 2" and "Section
-        # 3" (with IDs 1, 2 and 3).
-        course = [{"id": i, "name": f"Section {i}"} for i in range(1, 4)]
-
-        # users_sections() returns id's only, not names.
-        authenticated_user = [{"id": 2, "name": "Section 2"}]
-
-        # The learner is only a member of section 2.
-        user = [{"id": section["id"]} for section in authenticated_user]
-
-    return Sections()
-
-
-@pytest.fixture
-def canvas_api_client(canvas_api_client, sections):
-    canvas_api_client.course_sections.return_value = sections.course
-    canvas_api_client.authenticated_users_sections.return_value = (
-        sections.authenticated_user
+def course():
+    return factories.Course(
+        extra={"canvas": {"custom_canvas_course_id": sentinel.canvas_course_id}}
     )
-    canvas_api_client.users_sections.return_value = sections.user
-
-    return canvas_api_client
 
 
 @pytest.fixture
-def pyramid_request(pyramid_request, request_json):
-    pyramid_request.json = request_json
-    return pyramid_request
-
-
-@pytest.fixture
-def request_json():
-    return {
-        "course": {
-            "context_id": "test_context_id",
-            "custom_canvas_course_id": "test_custom_canvas_course_id",
-        },
-        "lms": {"tool_consumer_instance_guid": "test_tool_consumer_instance_guid"},
-        "group_info": {"foo": "bar"},
-    }
-
-
-@pytest.fixture
-def is_speedgrader(request_json):
-    request_json["learner"] = {"canvas_user_id": 111}
-
-
-@pytest.fixture
-def is_group_launch(application_instance_service, request_json):
-    request_json["course"]["group_set"] = 1
-    application_instance_service.get_current.return_value.settings = {
-        "canvas": {"groups_enabled": True}
-    }
-
-
-@pytest.fixture
-def is_group_and_speedgrader(application_instance_service, request_json):
-    application_instance_service.get_current.return_value.settings = {
-        "canvas": {"groups_enabled": True}
-    }
-    request_json["learner"] = {"canvas_user_id": 111, "group_set": 1}
+def svc(grouping_service, canvas_api_client, lti_user, user):
+    return CanvasGroupingService(user, lti_user, grouping_service, canvas_api_client)

@@ -200,7 +200,6 @@ class TestGroupingType:
         ],
     )
     def test_it(self, sections_enabled, group_set_id, expected, lti_launch):
-
         with mock.patch.multiple(
             LTILaunchResource,
             sections_enabled=sections_enabled,

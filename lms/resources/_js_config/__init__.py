@@ -431,75 +431,49 @@ class JSConfig:
         # to the sync API to dynamically get the relevant groupings.
         return "$rpc:requestGroups"
 
-    def _canvas_sync_api(self):
-        req = self._request
-        sync_api_config = {
-            "authUrl": req.route_url("canvas_api.oauth.authorize"),
-            "product": self._request.product.family,
-            "path": req.route_path("canvas_api.sync"),
-            "data": {
-                "lms": {
-                    "tool_consumer_instance_guid": self._context.lti_params[
-                        "tool_consumer_instance_guid"
-                    ],
-                },
-                "course": {
-                    "context_id": self._context.lti_params["context_id"],
-                    "custom_canvas_course_id": self._context.lti_params[
-                        "custom_canvas_course_id"
-                    ],
-                    "group_set": req.params.get("group_set"),
-                },
-                "group_info": {
-                    key: value
-                    for key, value in self._context.lti_params.items()
-                    if key in GroupInfo.columns()
-                },
-            },
-        }
-
-        if "learner_canvas_user_id" in req.params:
-            sync_api_config["data"]["learner"] = {
-                "canvas_user_id": req.params["learner_canvas_user_id"],
-                "group_set": req.params.get("group_set"),
-            }
-
-        return sync_api_config
-
-    def _blackboard_sync_api(self):
-        req = self._request
+    @property
+    def _lms_auth_url(self):
         return {
-            "authUrl": req.route_url("blackboard_api.oauth.authorize"),
-            "product": self._request.product.family,
-            "path": req.route_path("blackboard_api.sync"),
-            "data": {
-                "lms": {
-                    "tool_consumer_instance_guid": self._context.lti_params[
-                        "tool_consumer_instance_guid"
-                    ],
-                },
-                "course": {
-                    "context_id": self._context.lti_params["context_id"],
-                },
-                "assignment": {
-                    "resource_link_id": self._context.lti_params["resource_link_id"],
-                },
-                "group_info": {
-                    key: value
-                    for key, value in self._context.lti_params.items()
-                    if key in GroupInfo.columns()
-                },
-            },
-        }
+            Product.Family.CANVAS: self._request.route_url(
+                "canvas_api.oauth.authorize"
+            ),
+            Product.Family.BLACKBOARD: self._request.route_url(
+                "blackboard_api.oauth.authorize"
+            ),
+        }.get(self._request.product.family)
 
     def _sync_api(self):
         if self._context.grouping_type == Grouping.Type.COURSE:
             return None
 
-        if self._request.product.family == Product.Family.CANVAS:
-            return self._canvas_sync_api()
-
-        if self._request.product.family == Product.Family.BLACKBOARD:
-            return self._blackboard_sync_api()
-
-        return None
+        req = self._request
+        return {
+            "authUrl": self._lms_auth_url,
+            "path": req.route_path("api.sync"),
+            "data": {
+                "lms": {
+                    "tool_consumer_instance_guid": self._context.lti_params[
+                        "tool_consumer_instance_guid"
+                    ],
+                    "product": self._request.product.family,
+                },
+                "course": {
+                    "context_id": self._context.lti_params["context_id"],
+                    "custom_canvas_course_id": self._context.lti_params.get(
+                        "custom_canvas_course_id"
+                    ),
+                    "group_set_id": self._context.group_set_id,
+                },
+                "assignment": {
+                    "resource_link_id": self._context.lti_params["resource_link_id"],
+                },
+                "learner": {
+                    "canvas_user_id": req.params.get("learner_canvas_user_id"),
+                },
+                "group_info": {
+                    key: value
+                    for key, value in self._context.lti_params.items()
+                    if key in GroupInfo.columns()
+                },
+            },
+        }

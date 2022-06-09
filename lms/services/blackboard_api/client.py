@@ -1,3 +1,4 @@
+from typing import Dict, List
 from urllib.parse import urlencode
 
 from lms.services.blackboard_api._schemas import (
@@ -122,7 +123,7 @@ class BlackboardAPIClient:
             "GET",
             f"/learn/api/public/v2/courses/uuid:{course_id}/groups/sets/{group_set_id}/groups",
         )
-        return BlackboardListGroups(response).parse()
+        return self._to_grouping_info(BlackboardListGroups(response).parse())
 
     def course_groups(
         self, course_id, group_set_id=None, current_student_own_groups_only=True
@@ -146,7 +147,7 @@ class BlackboardAPIClient:
             groups = [group for group in groups if group["groupSetId"] == group_set_id]
 
         if not current_student_own_groups_only:
-            return groups
+            return self._to_grouping_info(groups)
 
         instructor_only_groups = []
         self_enrollment_groups = []
@@ -183,4 +184,17 @@ class BlackboardAPIClient:
                 # Any other result is unexpected
                 raise ExternalAsyncRequestError(response=response)
 
-        return self_enrollment_groups + instructor_only_groups
+        return self._to_grouping_info(self_enrollment_groups + instructor_only_groups)
+
+    def _to_grouping_info(self, api_result: List[Dict]):
+        """
+        Convert dicts returned by the API to a common format we can use in GroupingService
+        """
+        return [
+            {
+                "lms_id": g["id"],
+                "lms_name": g["name"],
+                "extra": {"group_set_id": g.get("groupSetId")},
+            }
+            for g in api_result
+        ]
