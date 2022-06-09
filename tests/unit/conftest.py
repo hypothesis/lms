@@ -7,7 +7,7 @@ from pyramid import testing
 from pyramid.request import apply_request_extensions
 
 from lms.db import SESSION
-from lms.models import ApplicationSettings
+from lms.models import ApplicationSettings, Product
 from tests import factories
 from tests.conftest import TEST_SETTINGS, get_test_database_url
 from tests.unit.services import *  # pylint: disable=wildcard-import,unused-wildcard-import
@@ -99,6 +99,8 @@ def pyramid_request(db_session, application_instance, lti_v11_params):
         user_id=lti_v11_params["user_id"],
     )
     pyramid_request.lti_jwt = {}
+    pyramid_request.lti_params = {}
+    pyramid_request.product = Product(family=Product.Family.UNKNOWN)
 
     # The DummyRequest request lacks a content_type property which the real
     # request has

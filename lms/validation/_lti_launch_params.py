@@ -11,7 +11,6 @@ from marshmallow import (
 )
 from marshmallow.validate import OneOf
 
-from lms.models import LTIParams
 from lms.validation._base import PyramidRequestSchema
 from lms.validation._exceptions import LTIToolRedirect
 
@@ -41,7 +40,7 @@ class LTIV11CoreSchema(PyramidRequestSchema):
         if not self.context["request"].lti_jwt:
             return data
 
-        params = LTIParams.from_v13(self.context["request"].lti_jwt)
+        params = self.context["request"].lti_params
         # Make the rest of params also accessible to marshmallow in case any are not coming from the JWT
         # eg query parameters
         # This is to make it backwards compatible with schemas that mix LTI

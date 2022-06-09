@@ -127,44 +127,6 @@ class TestApplicationInstance:
         assert application_instance.tool_consumer_instance_guid == "EXISTING_GUID"
 
     @pytest.mark.parametrize(
-        "our_guid,new_guid,should_raise",
-        (
-            (None, None, False),
-            ("any", None, False),
-            (None, "any", False),
-            ("value", "different", True),
-        ),
-    )
-    def test_check_guid_aligns(
-        self, application_instance, our_guid, new_guid, should_raise
-    ):
-        application_instance.tool_consumer_instance_guid = our_guid
-
-        if should_raise:
-            with pytest.raises(ReusedConsumerKey):
-                application_instance.check_guid_aligns(new_guid)
-        else:
-            application_instance.check_guid_aligns(new_guid)
-
-    @pytest.mark.parametrize(
-        "value,expected",
-        [
-            ("BlackboardLearn", ApplicationInstance.Product.BLACKBOARD),
-            ("canvas", ApplicationInstance.Product.CANVAS),
-            ("moodle", ApplicationInstance.Product.MOODLE),
-            ("desire2learn", ApplicationInstance.Product.D2L),
-            ("BlackbaudK12", ApplicationInstance.Product.BLACKBAUD),
-            ("schoology", ApplicationInstance.Product.SCHOOLOGY),
-            ("sakai", ApplicationInstance.Product.SAKAI),
-            ("wut", ApplicationInstance.Product.UNKNOWN),
-        ],
-    )
-    def test_product(self, value, expected, application_instance):
-        application_instance.tool_consumer_info_product_family_code = value
-
-        assert application_instance.product == expected
-
-    @pytest.mark.parametrize(
         "lti_registration_id,lti_version", [(None, "LTI-1p0"), (1, "1.3.0")]
     )
     def test_lti_version(self, lti_registration_id, lti_version, application_instance):

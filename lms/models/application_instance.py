@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime
-from enum import Enum
 from urllib.parse import urlparse
 
 import sqlalchemy as sa
@@ -15,16 +14,6 @@ LOG = logging.getLogger(__name__)
 
 class ApplicationInstance(BASE):
     """Class to represent a single lms install."""
-
-    class Product(str, Enum):
-        BLACKBOARD = "BlackboardLearn"
-        CANVAS = "canvas"
-        MOODLE = "moodle"
-        D2L = "desire2learn"
-        BLACKBAUD = "BlackbaudK12"
-        SCHOOLOGY = "schoology"
-        SAKAI = "sakai"
-        UNKNOWN = "unknown"
 
     __tablename__ = "application_instances"
     __table_args__ = (
@@ -204,15 +193,6 @@ class ApplicationInstance(BASE):
                 existing_guid=self.tool_consumer_instance_guid,
                 new_guid=tool_consumer_instance_guid,
             )
-
-    @property
-    def product(self):
-        try:
-            product = self.Product(self.tool_consumer_info_product_family_code)
-        except ValueError:
-            product = self.Product.UNKNOWN
-
-        return product
 
     @property
     def lti_version(self) -> str:

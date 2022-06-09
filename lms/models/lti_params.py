@@ -123,3 +123,18 @@ def _get_key(data: dict, data_path: List[str]):
         value = value[path_item]
 
     return value
+
+
+def _get_lti_params(request):
+    if not request.lti_jwt:
+        # If we don't have a LTI1.3 JWT there's no params to map.
+        # Use the request original params.
+        return request.params
+
+    return LTIParams.from_v13(request.lti_jwt)
+
+
+def includeme(config):
+    config.add_request_method(
+        _get_lti_params, name="lti_params", property=True, reify=True
+    )

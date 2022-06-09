@@ -17,22 +17,17 @@ from lms.validation import (
 
 
 class TestLTIV11CoreSchema:
-    def test_with_lti_jwt(self, pyramid_request, LTIParams, lti_v11_params):
+    def test_with_lti_jwt(self, pyramid_request, lti_v11_params):
         class ExampleSchema(LTIV11CoreSchema):
             location = "form"
             extra = marshmallow.fields.Str(required=False)
 
-        LTIParams.from_v13.return_value = lti_v11_params
+        pyramid_request.lti_params = lti_v11_params
 
         parsed_params = ExampleSchema(pyramid_request).parse()
 
-        LTIParams.from_v13.assert_called_once_with(pyramid_request.lti_jwt)
         # The resulting value contains both the key from the JWT and the extra one that comes originally from request.params
         assert parsed_params == Any.dict.containing({"extra": Any.string()})
-
-    @pytest.fixture
-    def LTIParams(self, patch):
-        return patch("lms.validation._lti_launch_params.LTIParams")
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
