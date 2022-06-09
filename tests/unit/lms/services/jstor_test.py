@@ -42,8 +42,7 @@ class TestJSTORService:
         )
 
         http_service.get.assert_called_once_with(
-            url=expected,
-            headers={"Authorization": "Bearer TOKEN"},
+            url=expected, headers={"Authorization": "Bearer TOKEN"}, params=None
         )
 
         via_url.assert_called_once_with(
@@ -112,7 +111,7 @@ class TestJSTORService:
         metadata = svc.metadata(article_id)
 
         http_service.get.assert_called_with(
-            url=expected_api_url, headers={"Authorization": "Bearer TOKEN"}
+            url=expected_api_url, headers={"Authorization": "Bearer TOKEN"}, params=None
         )
         assert metadata == expected_metadata
 
@@ -158,7 +157,12 @@ class TestJSTORService:
         data_uri = svc.thumbnail(article_id)
 
         http_service.get.assert_called_with(
-            url=expected_api_url, headers={"Authorization": "Bearer TOKEN"}
+            url=expected_api_url,
+            headers={"Authorization": "Bearer TOKEN"},
+            params={
+                "offset": 1,
+                "width": 280,
+            },
         )
         assert data_uri == api_response
 
