@@ -249,5 +249,6 @@ def with_canvas(pyramid_request):
     pyramid_request.product.family = Product.Family.CANVAS
 
 
+@pytest.fixture
 def with_blackboard(pyramid_request):
     pyramid_request.product.family = Product.Family.BLACKBOARD
