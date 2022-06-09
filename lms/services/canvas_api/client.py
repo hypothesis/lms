@@ -2,6 +2,7 @@
 
 import logging
 from functools import lru_cache
+from typing import Dict, List
 
 import marshmallow
 from marshmallow import EXCLUDE, Schema, fields, post_load, validate, validates_schema
@@ -106,7 +107,7 @@ class CanvasAPIClient:
         :rtype: list(dict)
         """
 
-        return self._ensure_sections_unique(
+        sections = self._ensure_sections_unique(
             self._client.send(
                 "GET",
                 f"courses/{course_id}",
@@ -114,6 +115,7 @@ class CanvasAPIClient:
                 schema=self._AuthenticatedUsersSectionsSchema,
             )
         )
+        return self._to_grouping_info(sections)
 
     class _AuthenticatedUsersSectionsSchema(RequestsResponseSchema):
         """Schema for the "authenticated user's sections" responses."""
@@ -141,13 +143,14 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/sections.html#method.sections.index
 
-        return self._ensure_sections_unique(
+        sections = self._ensure_sections_unique(
             self._client.send(
                 "GET",
                 f"courses/{course_id}/sections",
                 schema=self._CourseSectionsSchema,
             )
         )
+        return self._to_grouping_info(sections)
 
     class _CourseSectionsSchema(RequestsResponseSchema, _SectionSchema):
         """Schema for the "list course sections" responses."""
@@ -302,11 +305,12 @@ class CanvasAPIClient:
 
     def group_category_groups(self, group_category_id):
         """List groups that belong to the group category/group set `group_category_id`."""
-        return self._client.send(
+        groups = self._client.send(
             "GET",
             f"group_categories/{group_category_id}/groups",
             schema=self._ListGroups,
         )
+        return self._to_grouping_info(groups)
 
     def course_groups(self, course_id, only_own_groups=True, include_users=False):
         """
@@ -344,13 +348,14 @@ class CanvasAPIClient:
         :param group_category_id: Only return groups that belong to this group category
         """
         user_groups = self.course_groups(course_id, only_own_groups=True)
-
-        if group_category_id:
-            user_groups = [
-                g for g in user_groups if g["group_category_id"] == group_category_id
+        return self._to_grouping_info(
+            [
+                group
+                for group in user_groups
+                if not group_category_id
+                or group["group_category_id"] == group_category_id
             ]
-
-        return user_groups
+        )
 
     def user_groups(self, course_id, user_id, group_category_id=None):
         """
@@ -371,7 +376,7 @@ class CanvasAPIClient:
                 if user["id"] == user_id:
                     groups.append(group)
 
-        return groups
+        return self._to_grouping_info(groups)
 
     class _ListGroups(RequestsResponseSchema):
         class _Users(Schema):
@@ -417,3 +422,16 @@ class CanvasAPIClient:
             sections_by_id[section["id"]] = section
 
         return list(sections_by_id.values())
+
+    def _to_grouping_info(self, api_result: List[Dict]):
+        """
+        Convert dicts returned by the API to a common format we can use in GroupingService
+        """
+        return [
+            {
+                "lms_id": g["id"],
+                "lms_name": g["name"],
+                "extra": {"group_set_id": g.get("group_category_id")},
+            }
+            for g in api_result
+        ]

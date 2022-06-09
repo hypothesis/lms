@@ -1,4 +1,5 @@
-from typing import List, Optional, Union
+from typing import List, Optional, TypedDict, Union
+from typing_extensions import NotRequired
 
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
@@ -6,6 +7,13 @@ from sqlalchemy.orm import aliased
 from lms.models import Course, Grouping, GroupingMembership, User
 from lms.models._hashed_id import hashed_id
 from lms.services.upsert import bulk_upsert
+
+
+class GroupingInfo(TypedDict):
+    lms_id: str
+    lms_name: str
+    extra: Optional[dict]
+    settings: NotRequired[dict]
 
 
 class GroupingService:
@@ -31,18 +39,14 @@ class GroupingService:
 
     def upsert_groupings(
         self,
-        grouping_dicts: List[dict],
+        grouping_dicts: List[GroupingInfo],
         type_: Grouping.Type,
         parent: Optional[Grouping] = None,
     ) -> List[Grouping]:
         """
         Upsert a Grouping generating the authority_provided_id based on its parent.
 
-        :param grouping_dicts: A list of dicts containing:
-            lms_id: ID of this grouping on the LMS
-            lms_name: Name of the grouping on the LMS
-            extra: Any extra information to store linked to this grouping
-
+        :param grouping_dicts: A list of dicts containing the grouping information
         :param parent: Parent grouping for all upserted groups
         :param type_: Type of the groupings
         """

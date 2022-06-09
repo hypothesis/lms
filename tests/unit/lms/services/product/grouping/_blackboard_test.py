@@ -1,3 +1,4 @@
+"""
 from unittest.mock import Mock
 
 import pytest
@@ -186,3 +187,4 @@ def assignment_service(assignment_service):
 def pyramid_request(pyramid_request, request_json):
     pyramid_request.parsed_params = request_json
     return pyramid_request
+"""
