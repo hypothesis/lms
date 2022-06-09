@@ -626,7 +626,6 @@ def context(pyramid_request):
     )
 
 
-@pytest.fixture
 def with_sections_on(context, pyramid_request):
     context.grouping_type = Grouping.Type.SECTION
     pyramid_request.product.family = Product.Family.CANVAS
