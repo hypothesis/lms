@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Optional
 from urllib.parse import quote
 
 import requests
@@ -97,7 +98,19 @@ class JSTORService:
         :raise ExternalRequestError: If the response doesn't look like a valid `data:` URI
         """
         doi = self._doi_from_article_id(article_id)
-        data_uri = self._api_request(format_uri("/thumbnail/{}", doi)).text
+        params = {
+            # `offset` specifies the page number. The default value of 0 returns
+            # the thumbnail of the last page. Setting it to 1 returns the first
+            # page.
+            "offset": 1,
+            # The frontend currently displays the image with a width of ~140px,
+            # so 280px has enough resolution for a 2x device pixel ratio.
+            # The height will be adjusted to maintain the aspect ratio.
+            "width": 280,
+        }
+        data_uri = self._api_request(
+            format_uri("/thumbnail/{}", doi), params=params
+        ).text
 
         if not data_uri.startswith("data:"):
             raise ExternalRequestError(
@@ -126,7 +139,9 @@ class JSTORService:
 
         return s3_url
 
-    def _api_request(self, endpoint: str) -> requests.Response:
+    def _api_request(
+        self, endpoint: str, params: Optional[dict] = None
+    ) -> requests.Response:
         """
         Make an authenticated request to the JSTOR API.
 
@@ -138,7 +153,9 @@ class JSTORService:
             lifetime=timedelta(hours=1),
         )
         url = self._api_url + endpoint
-        return self._http.get(url=url, headers={"Authorization": f"Bearer {token}"})
+        return self._http.get(
+            url=url, headers={"Authorization": f"Bearer {token}"}, params=params
+        )
 
     def _doi_from_article_id(self, article_id):
         if "/" not in article_id:
