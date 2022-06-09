@@ -306,7 +306,7 @@ class TestJSConfigAuthToken:
 class TestJSConfigAPISync:
     """Unit tests for the api.sync sub-dict of JSConfig."""
 
-    @pytest.mark.usefixtures("canvas_sections_on")
+    @pytest.mark.usefixtures("with_sections_on")
     def test_when_is_canvas(self, sync, pyramid_request, GroupInfo):
         assert sync == {
             "authUrl": "http://example.com/api/canvas/oauth/authorize",
@@ -353,7 +353,7 @@ class TestJSConfigAPISync:
             },
         }
 
-    @pytest.mark.usefixtures("canvas_sections_on", "learner_canvas_user_id")
+    @pytest.mark.usefixtures("with_sections_on", "learner_canvas_user_id")
     def test_it_adds_learner_canvas_user_id_for_SpeedGrader_launches(self, sync):
         assert sync["data"]["learner"] == {
             "canvas_user_id": "test_learner_canvas_user_id",
@@ -377,11 +377,7 @@ class TestJSConfigAPISync:
 
     @pytest.fixture
     def blackboard_group_launch(self, context, pyramid_request):
-        context.canvas_sections_enabled = False
-        context.canvas_groups_enabled = False
-
-        context.blackboard_groups_enabled = True
-        context.is_blackboard_group_launch = True
+        context.grouping_type = Grouping.Type.GROUP
         pyramid_request.product.family = Product.Family.BLACKBOARD
 
     @pytest.fixture
@@ -432,19 +428,13 @@ class TestJSConfigHypothesisClient:
             }
         ]
 
-    @pytest.mark.usefixtures("canvas_sections_on")
+    @pytest.mark.usefixtures("with_sections_on")
     def test_configures_the_client_to_fetch_the_groups_over_RPC_with_sections(
         self, config
     ):
         assert config["services"][0]["groups"] == "$rpc:requestGroups"
 
     @pytest.mark.usefixtures("is_group_launch")
-    def test_configures_the_client_to_fetch_the_groups_over_RPC_when_group_launch(
-        self, config
-    ):
-        assert config["services"][0]["groups"] == "$rpc:requestGroups"
-
-    @pytest.mark.usefixtures("canvas_groups_on", "is_group_launch")
     def test_it_configures_the_client_to_fetch_the_groups_over_RPC_with_groups(
         self, config
     ):
@@ -466,11 +456,6 @@ class TestJSConfigHypothesisClient:
         js_config.enable_lti_launch_mode()
 
         return config["hypothesisClient"]
-
-    @pytest.fixture
-    def canvas_groups_on(self, context):
-        """Canvas groups feature enabled but not used in the current lti launch."""
-        context.canvas_groups_enabled = True
 
 
 @pytest.mark.usefixtures("application_instance_service")
@@ -634,24 +619,22 @@ def context(pyramid_request):
         spec_set=True,
         instance=True,
         is_canvas=True,
-        canvas_sections_enabled=False,
-        canvas_groups_enabled=False,
-        canvas_is_group_launch=False,
+        sections_enabled=False,
+        grouping_type=Grouping.Type.COURSE,
         course=create_autospec(Grouping, instance=True, spec_set=True),
-        is_group_launch=False,
         lti_params=LTIParams(pyramid_request.params),
     )
 
 
 @pytest.fixture
-def canvas_sections_on(context, pyramid_request):
-    context.canvas_sections_enabled = True
+def with_sections_on(context, pyramid_request):
+    context.grouping_type = Grouping.Type.SECTION
     pyramid_request.product.family = Product.Family.CANVAS
 
 
 @pytest.fixture
 def is_group_launch(context):
-    context.is_group_launch = True
+    context.grouping_type = Grouping.Type.GROUP
 
 
 @pytest.fixture

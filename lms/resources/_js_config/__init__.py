@@ -2,7 +2,7 @@ import functools
 from enum import Enum
 from typing import List, Optional
 
-from lms.models import GroupInfo, HUser, Product
+from lms.models import GroupInfo, Grouping, HUser, Product
 from lms.resources._js_config.file_picker_config import FilePickerConfig
 from lms.services import HAPIError, JSTORService
 from lms.validation.authentication import BearerTokenSchema
@@ -424,9 +424,12 @@ class JSConfig:
         }
 
     def _groups(self):
-        if self._context.canvas_sections_enabled or self._context.is_group_launch:
-            return "$rpc:requestGroups"
-        return [self._context.course.groupid(self._authority)]
+        if self._context.grouping_type == Grouping.Type.COURSE:
+            return [self._context.course.groupid(self._authority)]
+
+        # If not using the default COURSE grouping point the FE
+        # to the sync API to dynamically get the relevant groupings.
+        return "$rpc:requestGroups"
 
     def _canvas_sync_api(self):
         req = self._request
@@ -490,16 +493,13 @@ class JSConfig:
         }
 
     def _sync_api(self):
-        if self._context.is_canvas and (
-            self._context.canvas_sections_enabled
-            or self._context.canvas_is_group_launch
-        ):
+        if self._context.grouping_type == Grouping.Type.COURSE:
+            return None
+
+        if self._request.product.family == Product.Family.CANVAS:
             return self._canvas_sync_api()
 
-        if (
-            self._request.product.family == Product.Family.BLACKBOARD
-            and self._context.is_blackboard_group_launch
-        ):
+        if self._request.product.family == Product.Family.BLACKBOARD:
 
             return self._blackboard_sync_api()
 
