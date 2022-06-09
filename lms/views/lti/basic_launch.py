@@ -17,6 +17,7 @@ from pyramid.view import view_config, view_defaults
 from lms.models import LtiLaunches
 from lms.security import Permissions
 from lms.services import LTIRoleService
+from lms.services.assignment import AssignmentService
 from lms.services.vitalsource.client import VitalSourceService
 from lms.validation import (
     BasicLTILaunchSchema,
@@ -38,7 +39,9 @@ class BasicLaunchViews:
     def __init__(self, context, request):
         self.context = context
         self.request = request
-        self.assignment_service = request.find_service(name="assignment")
+        self.assignment_service: AssignmentService = request.find_service(
+            name="assignment"
+        )
 
         self.application_instance = request.find_service(
             name="application_instance"
@@ -279,6 +282,17 @@ class BasicLaunchViews:
             self.context.lti_params.get("lis_outcome_service_url")
         )
 
+        # Store lots of info about the assignment
+        self._record_assignment(
+            document_url, extra=assignment_extra, is_gradable=assignment_gradable
+        )
+
+        # Set up the JS config for the front-end
+        self._configure_js_to_show_document(document_url, assignment_gradable)
+
+        return {}
+
+    def _record_assignment(self, document_url, extra, is_gradable):
         # Store assignment details
         assignment = self.assignment_service.upsert_assignment(
             document_url=document_url,
@@ -287,8 +301,8 @@ class BasicLaunchViews:
             ],
             resource_link_id=self.context.resource_link_id,
             lti_params=self.context.lti_params,
-            extra=assignment_extra,
-            is_gradable=assignment_gradable,
+            extra=extra,
+            is_gradable=is_gradable,
         )
 
         # Store the relationship between the assignment and the course
@@ -299,11 +313,10 @@ class BasicLaunchViews:
                 self.context.lti_params["roles"]
             ),
         )
-
-        # Set up the JS config for the front-end
-        self._configure_js_to_show_document(document_url, assignment_gradable)
-
-        return {}
+        # Store the relationship between the assignment and the course
+        self.assignment_service.upsert_assignment_groupings(
+            assignment=assignment, groupings=[self.context.course]
+        )
 
     def _configure_js_to_show_document(self, document_url, assignment_gradable):
         if self.context.is_canvas:
