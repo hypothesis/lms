@@ -8,7 +8,9 @@ class FilePickerConfig:
     def blackboard_config(cls, context, request, application_instance):
         """Get Blackboard files config."""
         files_enabled = application_instance.settings.get("blackboard", "files_enabled")
-        groups_enabled = context.blackboard_groups_enabled
+        groups_enabled = application_instance.settings.get(
+            "blackboard", "groups_enabled"
+        )
 
         auth_url = request.route_url("blackboard_api.oauth.authorize")
         course_id = context.lti_params.get("context_id")
@@ -43,7 +45,7 @@ class FilePickerConfig:
             "custom_canvas_course_id" in context.lti_params
             and application_instance.developer_key is not None
         )
-        groups_enabled = context.canvas_groups_enabled
+        groups_enabled = application_instance.settings.get("canvas", "groups_enabled")
 
         auth_url = request.route_url("canvas_api.oauth.authorize")
         course_id = context.lti_params.get("custom_canvas_course_id")
