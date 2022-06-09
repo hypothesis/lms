@@ -3,7 +3,15 @@ from typing import List
 
 from sqlalchemy.orm import Session
 
-from lms.models import Assignment, AssignmentMembership, LTIParams, LTIRole, User
+from lms.models import (
+    Assignment,
+    AssignmentGrouping,
+    AssignmentMembership,
+    Grouping,
+    LTIParams,
+    LTIRole,
+    User,
+)
 from lms.services.upsert import bulk_upsert
 
 
@@ -89,6 +97,29 @@ class AssignmentService:
                 model_class=AssignmentMembership,
                 values=values,
                 index_elements=["user_id", "assignment_id", "lti_role_id"],
+                update_columns=["updated"],
+            )
+        )
+
+    def upsert_assignment_groupings(
+        self, assignment: Assignment, groupings: List[Grouping]
+    ) -> List[AssignmentGrouping]:
+        """Store details of any groups and courses an assignment is in."""
+
+        # Commit any changes to ensure that our user and role objects have ids
+        self._db.flush()
+
+        values = [
+            {"assignment_id": assignment.id, "grouping_id": grouping.id}
+            for grouping in groupings
+        ]
+
+        return list(
+            bulk_upsert(
+                self._db,
+                model_class=AssignmentGrouping,
+                values=values,
+                index_elements=["assignment_id", "grouping_id"],
                 update_columns=["updated"],
             )
         )

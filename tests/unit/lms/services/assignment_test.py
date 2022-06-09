@@ -4,7 +4,7 @@ from unittest.mock import sentinel
 import pytest
 from h_matchers import Any
 
-from lms.models import AssignmentMembership, LTIParams
+from lms.models import AssignmentGrouping, AssignmentMembership, LTIParams
 from lms.services.assignment import AssignmentService, factory
 from tests import factories
 
@@ -82,7 +82,6 @@ class TestAssignmentService:
         membership = svc.upsert_assignment_membership(
             assignment=assignment, user=user, lti_roles=lti_roles
         )
-
         assert (
             membership
             == Any.list.containing(
@@ -93,6 +92,24 @@ class TestAssignmentService:
                     for lti_role in lti_roles
                 ]
             ).only()
+        )
+
+    def test_upsert_assignment_grouping(self, svc, assignment):
+        groupings = factories.CanvasGroup.create_batch(3)
+        # One existing row
+        factories.AssignmentGrouping.create(
+            assignment=assignment, grouping=groupings[0]
+        )
+
+        refs = svc.upsert_assignment_groupings(assignment, groupings)
+
+        assert refs == Any.list.containing(
+            [
+                Any.instance_of(AssignmentGrouping).with_attrs(
+                    {"assignment": assignment, "grouping": grouping}
+                )
+                for grouping in groupings
+            ]
         )
 
     @pytest.fixture
