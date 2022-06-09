@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 from pytest import param
 
-from lms.models import ApplicationSettings, Product
+from lms.models import ApplicationSettings, Grouping, Product
 from lms.resources import LTILaunchResource
 from lms.services import ApplicationInstanceNotFound
 
@@ -30,56 +30,6 @@ class TestResourceLinkIdk:
             LTILaunchResource, "lti_params", {"resource_link_id": lti_id}
         ):
             assert LTILaunchResource(pyramid_request).resource_link_id == expected
-
-
-class TestIsLegacySpeedGrader:
-    @pytest.mark.parametrize(
-        "learner_id,get_resource_id,post_resource_id,context_id,expected",
-        [
-            param(
-                None,
-                "GET_ID",
-                "POST_ID",
-                "CONTEXT_ID",
-                False,
-                id="not speed grading",
-            ),
-            param(
-                "USER_ID",
-                "GET_ID",
-                "WRONG_RESOURCE_LINK_ID",
-                "WRONG_RESOURCE_LINK_ID",
-                False,
-                id="fixed speed grader",
-            ),
-            param(
-                "USER_ID",
-                None,
-                "WRONG_RESOURCE_LINK_ID",
-                "WRONG_RESOURCE_LINK_ID",
-                True,
-                id="legacy speed grader",
-            ),
-        ],
-    )
-    def test_it(
-        self,
-        pyramid_request,
-        learner_id,
-        get_resource_id,
-        post_resource_id,
-        context_id,
-        expected,
-    ):
-        pyramid_request.POST = {
-            "resource_link_id": post_resource_id,
-            "context_id": context_id,
-        }
-        pyramid_request.GET = {
-            "learner_canvas_user_id": learner_id,
-            "resource_link_id": get_resource_id,
-        }
-        assert LTILaunchResource(pyramid_request).is_legacy_speedgrader == expected
 
 
 class TestIsCanvas:
@@ -129,11 +79,12 @@ class TestJSConfig:
         assert js_config == JSConfig.return_value
 
 
-class TestCanvasSectionsSupported:
+@pytest.mark.usefixtures("has_course")
+class TestSectionsEnabled:
     @pytest.mark.parametrize("is_canvas", [True, False])
     def test_support_for_canvas(self, lti_launch, is_canvas):
         with mock.patch.object(LTILaunchResource, "is_canvas", is_canvas):
-            assert lti_launch.canvas_sections_supported() == is_canvas
+            assert lti_launch.sections_enabled == is_canvas
 
     @pytest.mark.usefixtures("with_canvas")
     @pytest.mark.parametrize(
@@ -159,14 +110,7 @@ class TestCanvasSectionsSupported:
     ):
         pyramid_request.params.update(params)
 
-        assert lti_launch.canvas_sections_supported() is expected
-
-    @pytest.mark.usefixtures("with_canvas")
-    def test_it_depends_on_application_instance_service(
-        self, lti_launch, application_instance_service
-    ):
-        application_instance_service.get_current.return_value.developer_key = None
-        assert not lti_launch.canvas_sections_supported()
+        assert lti_launch.sections_enabled is expected
 
     @pytest.mark.usefixtures("with_canvas")
     def test_if_application_instance_service_raises(
@@ -175,36 +119,21 @@ class TestCanvasSectionsSupported:
         application_instance_service.get_current.side_effect = (
             ApplicationInstanceNotFound
         )
-        assert not lti_launch.canvas_sections_supported()
+        assert not lti_launch.sections_enabled
 
-    @pytest.fixture(autouse=True)
-    def sections_supported(self, pyramid_request):
-        # We are in canvas
-        pyramid_request.parsed_params[
-            "tool_consumer_info_product_family_code"
-        ] = "canvas"
-
-
-@pytest.mark.usefixtures("has_course")
-class TestCanvasSectionsEnabled:
-    def test_its_enabled_when_everything_is_right(self, lti_launch, course_service):
-        assert lti_launch.canvas_sections_enabled
-
-        course_service.upsert_course.assert_called_with(
-            "test_context_id", "test_context_title", {}
-        )
-
-    def test_its_disabled_if_sections_are_not_supported(
-        self, lti_launch, canvas_sections_supported
+    @pytest.mark.usefixtures("with_canvas")
+    def test_it_depends_on_developer_key(
+        self, lti_launch, application_instance_service
     ):
-        canvas_sections_supported.return_value = False
-        assert not lti_launch.canvas_sections_enabled
+        application_instance_service.get_current.return_value.developer_key = None
+        assert not lti_launch.sections_enabled
 
-    def test_its_disabled_if_the_course_settings_is_False(
-        self, lti_launch, course_settings
-    ):
-        course_settings.set("canvas", "sections_enabled", False)
-        assert not lti_launch.canvas_sections_enabled
+    @pytest.mark.usefixtures("with_canvas")
+    @pytest.mark.parametrize("enabled", [True, False])
+    def test_it_depends_on_course_setting(self, lti_launch, course_settings, enabled):
+        course_settings.set("canvas", "sections_enabled", enabled)
+
+        assert lti_launch.sections_enabled == enabled
 
     @pytest.fixture(autouse=True)
     def course_settings(self, course_service):
@@ -213,14 +142,6 @@ class TestCanvasSectionsEnabled:
         course_service.upsert_course.return_value.settings = settings
 
         return settings
-
-    @pytest.fixture(autouse=True)
-    def canvas_sections_supported(self):
-        with mock.patch.object(
-            LTILaunchResource, "canvas_sections_supported"
-        ) as canvas_sections_supported:
-            canvas_sections_supported.return_value = True
-            yield canvas_sections_supported
 
 
 class TestCourseExtra:
@@ -243,118 +164,71 @@ class TestCourseExtra:
         }
 
 
-@pytest.mark.usefixtures("has_course")
-class TestBlackboardGroupsEnabled:
-    def test_it_returns_False_if_theres_no_ApplicationInstance(
-        self, application_instance_service, lti_launch
-    ):
-        application_instance_service.get_current.side_effect = (
-            ApplicationInstanceNotFound
-        )
-
-        assert not lti_launch.blackboard_groups_enabled
-
-    @pytest.mark.parametrize(
-        "setting_value,expected",
-        [(True, True), (False, False), (None, False)],
-    )
-    def test_it_returns_the_setting_from_the_ApplicationInstance(
-        self, setting_value, expected, application_instance_service, lti_launch
-    ):
-        settings = ApplicationSettings(
-            {"blackboard": {"groups_enabled": setting_value}}
-        )
-        application_instance_service.get_current.return_value.settings = settings
-
-        assert lti_launch.blackboard_groups_enabled == expected
-
-
-@pytest.mark.usefixtures("has_course")
-class TestCanvasGroupsEnabled:
-    def test_false_when_no_application_instance(
-        self, application_instance_service, lti_launch
-    ):
-        application_instance_service.get_current.side_effect = (
-            ApplicationInstanceNotFound
-        )
-
-        assert not lti_launch.canvas_groups_enabled
-
-    @pytest.mark.parametrize("settings_value", [True, False])
-    def test_returns_settings_value(
-        self, settings_value, application_instance_service, lti_launch
-    ):
-        settings = ApplicationSettings({"canvas": {"groups_enabled": settings_value}})
-        application_instance_service.get_current.return_value.settings = settings
-
-        assert lti_launch.canvas_groups_enabled == settings_value
-
-
-class TestCanvasIsGroupLaunch:
-    @pytest.mark.parametrize("group_set", ["", "not a number", None])
-    def test_false_invalid_group_set_param(self, pyramid_request, group_set):
-        pyramid_request.params.update({"group_set": group_set})
-
-        assert not LTILaunchResource(pyramid_request).canvas_is_group_launch
-
-    def test_it(self, pyramid_request):
-        pyramid_request.params.update({"group_set": 1})
-
-        assert LTILaunchResource(pyramid_request).canvas_is_group_launch
-
-
-class TestIsBlackboardGroupLaunch:
-    def test_false_when_no_assignment(
-        self, lti_launch_groups_enabled, assignment_service
-    ):
+class TestGroupSetId:
+    @pytest.mark.usefixtures("with_blackboard")
+    def test_blackboard_false_when_no_assignment(self, lti_launch, assignment_service):
         assignment_service.get_assignment.return_value = None
 
-        assert not lti_launch_groups_enabled.is_blackboard_group_launch
+        assert not lti_launch.group_set_id
 
-    def test_false_when_no_group_set(
-        self, lti_launch_groups_enabled, assignment_service
-    ):
+    @pytest.mark.usefixtures("with_blackboard")
+    def test_blackboard_false_when_no_group_set(self, lti_launch, assignment_service):
         assignment_service.get_assignment.return_value.extra = {}
 
-        assert not lti_launch_groups_enabled.is_blackboard_group_launch
+        assert not lti_launch.group_set_id
 
-    def test_it(self, lti_launch_groups_enabled, assignment_service):
-        assignment_service.get_assignment.return_value.extra = {"group_set_id": "ID"}
+    @pytest.mark.usefixtures("with_blackboard")
+    def test_blackboard(self, lti_launch, assignment_service):
+        assignment_service.get_assignment.return_value.extra = {
+            "group_set_id": mock.sentinel.id
+        }
 
-        assert lti_launch_groups_enabled.is_blackboard_group_launch
+        assert lti_launch.group_set_id == mock.sentinel.id
 
-    @pytest.fixture
-    def lti_launch_groups_enabled(self, pyramid_request):
-        class TestableLTILaunchResource(LTILaunchResource):
-            blackboard_groups_enabled = True
+    @pytest.mark.usefixtures("with_canvas")
+    @pytest.mark.parametrize("group_set", ["", "not a number", None])
+    def test_canvas_false_invalid_group_set_param(self, pyramid_request, group_set):
+        pyramid_request.params.update({"group_set": group_set})
 
-        return TestableLTILaunchResource(pyramid_request)
+        assert not LTILaunchResource(pyramid_request).group_set_id
+
+    @pytest.mark.usefixtures("with_canvas")
+    def test_canvas(self, pyramid_request):
+        pyramid_request.params.update({"group_set": 1})
+
+        assert LTILaunchResource(pyramid_request).group_set_id == 1
+
+    def test_other_lms(self, pyramid_request):
+        pyramid_request.product.family = Product.Family.UNKNOWN
+
+        assert not LTILaunchResource(pyramid_request).group_set_id
 
     @pytest.fixture(autouse=True)
     def pyramid_request(self, pyramid_request):
         pyramid_request.parsed_params = {
             "tool_consumer_instance_guid": "test_tool_consumer_instance_guid"
         }
-        pyramid_request.lti_params = {}
         return pyramid_request
 
 
-class TestIsGroupLaunch:
+class TestGroupingType:
     @pytest.mark.parametrize(
-        "canvas,blackboard,expected",
+        "sections_enabled,group_set_id,expected",
         [
-            (True, True, True),
-            (True, False, True),
-            (False, True, True),
-            (False, False, False),
+            (True, 1, Grouping.Type.GROUP),
+            (True, None, Grouping.Type.SECTION),
+            (False, 1, Grouping.Type.GROUP),
+            (False, None, Grouping.Type.COURSE),
         ],
     )
-    def test_it(self, canvas, blackboard, expected, pyramid_request):
-        class TestableLTILaunchResource(LTILaunchResource):
-            canvas_is_group_launch = canvas
-            is_blackboard_group_launch = blackboard
+    def test_it(self, sections_enabled, group_set_id, expected, lti_launch):
 
-        assert TestableLTILaunchResource(pyramid_request).is_group_launch == expected
+        with mock.patch.multiple(
+            LTILaunchResource,
+            sections_enabled=sections_enabled,
+            group_set_id=group_set_id,
+        ):
+            assert lti_launch.grouping_type == expected
 
 
 class TestLTIParams:
@@ -395,3 +269,8 @@ def pyramid_request(pyramid_request):
 @pytest.fixture
 def with_canvas(pyramid_request):
     pyramid_request.product.family = Product.Family.CANVAS
+
+
+@pytest.fixture
+def with_blackboard(pyramid_request):
+    pyramid_request.product.family = Product.Family.BLACKBOARD
