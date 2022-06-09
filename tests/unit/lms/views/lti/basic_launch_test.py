@@ -265,6 +265,10 @@ class TestBasicLaunchViews:
             user=pyramid_request.user,
             lti_roles=lti_role_service.get_roles.return_value,
         )
+        assignment_service.upsert_assignment_groupings.assert_called_once_with(
+            assignment=assignment_service.upsert_assignment.return_value,
+            groupings=[context.course],
+        )
 
         assert result == {}
 
