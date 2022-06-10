@@ -414,7 +414,7 @@ python-jose[crypto]==3.3.0
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-requests==2.27.1
+requests==2.28.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
