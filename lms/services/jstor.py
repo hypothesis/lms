@@ -153,7 +153,7 @@ def format_uri(template: str, *params: str):
     This is like `template.format(*params)` except that the params are
     percent-encoded.
     """
-    encoded = [quote(param, safe="") for param in params]
+    encoded = [quote(param, safe="/") for param in params]
     return template.format(*encoded)
 
 
