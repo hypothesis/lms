@@ -25,21 +25,21 @@ def upgrade():
         ),
         sa.Column("assignment_id", sa.Integer(), nullable=False),
         sa.Column("grouping_id", sa.Integer(), nullable=False),
-    )
-    sa.ForeignKeyConstraint(
-        ["assignment_id"],
-        ["assignment.id"],
-        name=op.f("fk__assignment_grouping__assignment_id__assignment"),
-        ondelete="cascade",
-    ),
-    sa.ForeignKeyConstraint(
-        ["grouping_id"],
-        ["grouping.id"],
-        name=op.f("fk__assignment_grouping__grouping_id__grouping"),
-        ondelete="cascade",
-    ),
-    sa.PrimaryKeyConstraint(
-        "assignment_id", "grouping_id", name=op.f("pk__assignment_grouping")
+        sa.ForeignKeyConstraint(
+            ["assignment_id"],
+            ["assignment.id"],
+            name=op.f("fk__assignment_grouping__assignment_id__assignment"),
+            ondelete="cascade",
+        ),
+        sa.ForeignKeyConstraint(
+            ["grouping_id"],
+            ["grouping.id"],
+            name=op.f("fk__assignment_grouping__grouping_id__grouping"),
+            ondelete="cascade",
+        ),
+        sa.PrimaryKeyConstraint(
+            "assignment_id", "grouping_id", name=op.f("pk__assignment_grouping")
+        ),
     )
 
 
