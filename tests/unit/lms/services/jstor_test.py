@@ -25,9 +25,9 @@ class TestJSTORService:
         [
             (
                 "jstor://ARTICLE_ID",
-                f"{JSTOR_API_URL}/pdf-url/10.2307%2FARTICLE_ID",
+                f"{JSTOR_API_URL}/pdf-url/10.2307/ARTICLE_ID",
             ),
-            ("jstor://PREFIX/SUFFIX", f"{JSTOR_API_URL}/pdf-url/PREFIX%2FSUFFIX"),
+            ("jstor://PREFIX/SUFFIX", f"{JSTOR_API_URL}/pdf-url/PREFIX/SUFFIX"),
         ],
     )
     def test_via_url(
@@ -70,21 +70,28 @@ class TestJSTORService:
             (
                 "12345",
                 {"title": ["test title"]},
-                f"{JSTOR_API_URL}/metadata/10.2307%2F12345",
+                f"{JSTOR_API_URL}/metadata/10.2307/12345",
+                {"title": "test title"},
+            ),
+            # Article ID that needs to be encoded
+            (
+                "123:45",
+                {"title": ["test title"]},
+                f"{JSTOR_API_URL}/metadata/10.2307/123%3A45",
                 {"title": "test title"},
             ),
             # Article with custom DOI prefix
             (
                 "10.123/12345",
                 {"title": ["test title"]},
-                f"{JSTOR_API_URL}/metadata/10.123%2F12345",
+                f"{JSTOR_API_URL}/metadata/10.123/12345",
                 {"title": "test title"},
             ),
             # No title
             (
                 "12345",
                 {"title": []},
-                f"{JSTOR_API_URL}/metadata/10.2307%2F12345",
+                f"{JSTOR_API_URL}/metadata/10.2307/12345",
                 {"title": None},
             ),
         ],
@@ -127,13 +134,19 @@ class TestJSTORService:
             (
                 "12345",
                 "data:image/jpeg;base64,ABCD",
-                f"{JSTOR_API_URL}/thumbnail/10.2307%2F12345",
+                f"{JSTOR_API_URL}/thumbnail/10.2307/12345",
+            ),
+            # Article ID that needs to be encoded
+            (
+                "123:45",
+                "data:image/jpeg;base64,ABCD",
+                f"{JSTOR_API_URL}/thumbnail/10.2307/123%3A45",
             ),
             # Article with custom DOI prefix
             (
                 "10.123/12345",
                 "data:image/jpeg;base64,ABCD",
-                f"{JSTOR_API_URL}/thumbnail/10.123%2F12345",
+                f"{JSTOR_API_URL}/thumbnail/10.123/12345",
             ),
         ],
     )
