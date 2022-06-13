@@ -98,9 +98,16 @@ def includeme(config):  # pylint:disable=too-many-statements
     config.add_route("lti_api.result.read", "/api/lti/result", request_method="GET")
     config.add_route("lti_api.result.record", "/api/lti/result", request_method="POST")
 
-    config.add_route("jstor_api.articles.metadata", "/api/jstor/articles/{article_id}")
+    # JSTOR article IDs need a custom pattern because they may contain a slash,
+    # after URL-decoding of the path.
+    jstor_article_id_pat = r"(10\.[0-9]+/)?[^/]+"
     config.add_route(
-        "jstor_api.articles.thumbnail", "/api/jstor/articles/{article_id}/thumbnail"
+        "jstor_api.articles.metadata",
+        f"/api/jstor/articles/{{article_id:{jstor_article_id_pat}}}",
+    )
+    config.add_route(
+        "jstor_api.articles.thumbnail",
+        f"/api/jstor/articles/{{article_id:{jstor_article_id_pat}}}/thumbnail",
     )
 
     config.add_route("vitalsource_api.books.info", "/api/vitalsource/books/{book_id}")
