@@ -4,7 +4,7 @@ from marshmallow import pre_load
 from pyramid.httpexceptions import HTTPUnsupportedMediaType
 from webargs import pyramidparser
 
-from lms.services import ExternalRequestError
+from lms.services.exceptions import ExternalRequestError
 from lms.validation._exceptions import ValidationError
 
 
@@ -148,7 +148,7 @@ class RequestsResponseSchema(PlainSchema):
             ) from err
 
     @marshmallow.pre_load(pass_many=True)
-    def _pre_load(self, response, **_kwargs):  # pylint: disable=no-self-use
+    def _pre_load(self, response, **_kwargs):
         try:
             return response.json()
         except (AttributeError, ValueError) as err:

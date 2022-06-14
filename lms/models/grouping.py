@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
 
 from lms.db import BASE
-from lms.models import CreatedUpdatedMixin
+from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.application_settings import ApplicationSettings
 
 MAX_GROUP_NAME_LENGTH = 25

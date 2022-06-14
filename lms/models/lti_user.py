@@ -1,6 +1,6 @@
 from typing import NamedTuple
 
-from lms.models import HUser
+from lms.models.h_user import HUser
 
 
 class LTIUser(NamedTuple):

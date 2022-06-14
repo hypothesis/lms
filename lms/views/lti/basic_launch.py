@@ -158,7 +158,6 @@ class BasicLaunchViews:
 
         return {}
 
-    # pylint:disable=no-self-use
     @view_config(
         authorized_to_configure_assignments=False,
         configured=False,

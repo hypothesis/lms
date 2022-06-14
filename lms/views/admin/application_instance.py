@@ -25,7 +25,7 @@ class AdminApplicationInstanceViews:
         request_method="GET",
         renderer="lms:templates/admin/instances.html.jinja2",
     )
-    def instances(self):  # pylint: disable=no-self-use
+    def instances(self):
         return {}
 
     @view_config(

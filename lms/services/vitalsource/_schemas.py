@@ -35,7 +35,7 @@ class BookTOCSchema(RequestsResponseSchema):
 
         @post_load
         def set_url(self, in_data, **_kwargs):
-            # pylint:disable=import-outside-toplevel
+            # pylint:disable=import-outside-toplevel, cyclic-import
             from lms.services.vitalsource.client import VitalSourceService
 
             in_data["url"] = VitalSourceService.generate_document_url(

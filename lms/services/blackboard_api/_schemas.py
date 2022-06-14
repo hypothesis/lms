@@ -29,7 +29,7 @@ class BlackboardListFilesSchema(RequestsResponseSchema):
     results = fields.List(fields.Nested(FileSchema), required=True)
 
     @post_load
-    def post_load(self, data, **_kwargs):  # pylint:disable=no-self-use
+    def post_load(self, data, **_kwargs):
         return data["results"]
 
 
@@ -39,7 +39,7 @@ class BlackboardPublicURLSchema(RequestsResponseSchema):
     downloadUrl = fields.Str(required=True)
 
     @post_load
-    def post_load(self, data, **_kwargs):  # pylint:disable=no-self-use
+    def post_load(self, data, **_kwargs):
         return data["downloadUrl"]
 
 
@@ -54,7 +54,7 @@ class BlackboardListGroupSetsSchema(RequestsResponseSchema):
     results = fields.List(fields.Nested(GroupSetSchema), required=True)
 
     @post_load
-    def post_load(self, data, **_kwargs):  # pylint:disable=no-self-use
+    def post_load(self, data, **_kwargs):
         return data["results"]
 
 
@@ -79,5 +79,5 @@ class BlackboardListGroups(RequestsResponseSchema):
     results = fields.List(fields.Nested(GroupSchema), required=True)
 
     @post_load
-    def post_load(self, data, **_kwargs):  # pylint:disable=no-self-use
+    def post_load(self, data, **_kwargs):
         return data["results"]

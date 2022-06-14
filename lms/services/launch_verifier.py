@@ -1,7 +1,7 @@
 """LTI launch request verifier service."""
 from oauthlib.oauth1 import RequestValidator, SignatureOnlyEndpoint
 
-from lms.services import ApplicationInstanceNotFound
+from lms.services.application_instance import ApplicationInstanceNotFound
 
 
 class LTILaunchVerificationError(Exception):

@@ -161,7 +161,7 @@ class APIExceptionViews:
         )
 
     @exception_view_config(context=OAuth2TokenError)
-    def oauth2_token_error(self):  # pylint:disable=no-self-use
+    def oauth2_token_error(self):
         return ErrorBody()
 
     @exception_view_config(context=HTTPBadRequest)

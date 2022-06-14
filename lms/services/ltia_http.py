@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timedelta
 
 from lms.models import LTIRegistration
-from lms.services import JWTService
+from lms.services.jwt import JWTService
 
 
 class LTIAHTTPService:

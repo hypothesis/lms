@@ -7,7 +7,7 @@ from jose import constants, jwk
 from sqlalchemy import func
 
 from lms.models import RSAKey
-from lms.services import AESService
+from lms.services.aes import AESService
 
 
 class RSAKeyService:

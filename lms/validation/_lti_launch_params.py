@@ -67,7 +67,7 @@ class _CommonLTILaunchSchema(LTIV11CoreSchema):
     tool_consumer_info_product_family_code = fields.Str()
 
     @validates_schema
-    def validate_consumer_key(self, data, **_kwargs):  # pylint: disable=no-self-use
+    def validate_consumer_key(self, data, **_kwargs):
         if (
             not data.get("oauth_consumer_key", None)
             and data["lti_version"] == "LTI-1p0"
@@ -154,7 +154,7 @@ class URLConfiguredBasicLTILaunchSchema(BasicLTILaunchSchema):
     url = fields.Str(required=True)
 
     @post_load
-    def _decode_url(self, _data, **_kwargs):  # pylint:disable=no-self-use
+    def _decode_url(self, _data, **_kwargs):
         # Work around a bug in Canvas's handling of LTI Launch URLs in
         # SpeedGrader launches. In that context, query params get
         # doubly-encoded. This is worked around by detecting when this has

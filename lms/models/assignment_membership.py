@@ -1,7 +1,7 @@
 import sqlalchemy as sa
 
 from lms.db import BASE
-from lms.models import CreatedUpdatedMixin
+from lms.models._mixins import CreatedUpdatedMixin
 
 
 class AssignmentMembership(CreatedUpdatedMixin, BASE):

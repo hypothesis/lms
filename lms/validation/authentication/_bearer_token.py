@@ -172,6 +172,6 @@ class BearerTokenSchema(PyramidRequestSchema):
             ) from err
 
     @marshmallow.post_load
-    def _make_user(self, data, **_kwargs):  # pylint:disable=no-self-use
+    def _make_user(self, data, **_kwargs):
         # See https://marshmallow.readthedocs.io/en/2.x-line/quickstart.html#deserializing-to-objects
         return LTIUser(**data)

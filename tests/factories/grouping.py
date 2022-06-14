@@ -2,7 +2,7 @@ import factory
 from factory.alchemy import SQLAlchemyModelFactory
 
 from lms.models import BlackboardGroup, CanvasGroup, CanvasSection, Course
-from tests.factories import ApplicationInstance
+from tests.factories.application_instance import ApplicationInstance
 
 
 def _grouping_factory(model_class, lms_name, parent=None):
