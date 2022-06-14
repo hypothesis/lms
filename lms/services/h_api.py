@@ -3,7 +3,7 @@
 from h_api.bulk_api import BulkAPI, CommandBuilder
 
 from lms.models import HUser
-from lms.services import ExternalRequestError
+from lms.services.exceptions import ExternalRequestError
 
 
 class HAPIError(ExternalRequestError):

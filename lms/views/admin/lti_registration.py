@@ -21,7 +21,7 @@ class AdminLTIRegistrationViews:
         request_method="GET",
         renderer="lms:templates/admin/registrations.html.jinja2",
     )
-    def registrations(self):  # pylint: disable=no-self-use
+    def registrations(self):
         return {}
 
     @view_config(
@@ -29,7 +29,7 @@ class AdminLTIRegistrationViews:
         request_method="GET",
         renderer="lms:templates/admin/registration.new.html.jinja2",
     )
-    def new_registration(self):  # pylint: disable=no-self-use
+    def new_registration(self):
         return {}
 
     @view_config(

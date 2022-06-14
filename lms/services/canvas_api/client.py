@@ -125,9 +125,8 @@ class CanvasAPIClient:
         )
 
         @post_load
-        def post_load(self, data, **_kwargs):  # pylint:disable=no-self-use
+        def post_load(self, data, **_kwargs):
             # Return the contents of sections without the key
-
             return data["sections"]
 
     def course_sections(self, course_id):
@@ -155,7 +154,7 @@ class CanvasAPIClient:
         many = True
 
         @validates_schema(pass_many=True)
-        def _validate_length(self, data, **_kwargs):  # pylint:disable=no-self-use
+        def _validate_length(self, data, **_kwargs):
             # If we get as far as this method then data is guaranteed to be a list
             # so the only way it can be falsey is if it's an empty list.
             if not data:
@@ -200,7 +199,7 @@ class CanvasAPIClient:
         )
 
         @post_load
-        def post_load(self, data, **_kwargs):  # pylint:disable=no-self-use
+        def post_load(self, data, **_kwargs):
             # Return a list of section ids in the same style as the course
             # sections (but without names).
 

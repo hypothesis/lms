@@ -44,7 +44,6 @@ disable=
 
     # We use Black to format our code automatically, so we don't need PyLint to
     # check formatting for us.
-    bad-continuation,
     line-too-long,
 
     too-few-public-methods,
