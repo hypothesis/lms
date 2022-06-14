@@ -40,7 +40,7 @@ describe('useFetch', () => {
     wrapper.update();
   }
 
-  function getResult(wrapper) {
+  function getResultText(wrapper) {
     return wrapper.find('[data-testid="result"]').text();
   }
 
@@ -58,20 +58,20 @@ describe('useFetch', () => {
 
   it('returns loading state initially if loading', () => {
     const wrapper = renderWidget('some-key', async () => 'Some data');
-    assert.equal(getResult(wrapper), 'Loading');
+    assert.equal(getResultText(wrapper), 'Loading');
   });
 
   [async () => 'Some data', undefined, null].forEach(fetcher => {
     it('returns idle state if not loading', () => {
       const wrapper = renderWidget(null, fetcher);
-      assert.equal(getResult(wrapper), 'Nothing to fetch');
+      assert.equal(getResultText(wrapper), 'Nothing to fetch');
     });
   });
 
   it('fetches data and returns result', async () => {
     const wrapper = renderWidget('some-key', async () => 'Some data');
     await waitForFetch(wrapper);
-    assert.equal(getResult(wrapper), 'Data: Some data');
+    assert.equal(getResultText(wrapper), 'Data: Some data');
   });
 
   it('cancels fetch if key changes', () => {
@@ -94,32 +94,32 @@ describe('useFetch', () => {
       throw new Error('Some error');
     });
     await waitForFetch(wrapper);
-    assert.equal(getResult(wrapper), 'Error: Some error');
+    assert.equal(getResultText(wrapper), 'Error: Some error');
   });
 
   it('transitions to loading state if key changes', async () => {
     const wrapper = renderWidget('some-key', async () => 'Some data');
     await waitForFetch(wrapper);
-    assert.equal(getResult(wrapper), 'Data: Some data');
+    assert.equal(getResultText(wrapper), 'Data: Some data');
 
     wrapper.setProps({
       fetchKey: 'other-key',
       fetcher: async () => 'Different data',
     });
-    assert.equal(getResult(wrapper), 'Loading');
+    assert.equal(getResultText(wrapper), 'Loading');
 
     await waitForFetch(wrapper);
-    assert.equal(getResult(wrapper), 'Data: Different data');
+    assert.equal(getResultText(wrapper), 'Data: Different data');
   });
 
   it('transitions to idle state if key is set to null', async () => {
     const wrapper = renderWidget('some-key', async () => 'Some data');
     await waitForFetch(wrapper);
-    assert.equal(getResult(wrapper), 'Data: Some data');
+    assert.equal(getResultText(wrapper), 'Data: Some data');
 
     wrapper.setProps({ fetchKey: null });
 
-    assert.equal(getResult(wrapper), 'Nothing to fetch');
+    assert.equal(getResultText(wrapper), 'Nothing to fetch');
   });
 
   it('cancels fetch if component is unmounted', () => {
@@ -144,26 +144,26 @@ describe('useFetch', () => {
     it('does nothing if there is nothing to fetch', () => {
       const fetcher = sinon.stub();
       const wrapper = renderWidget(null, fetcher);
-      assert.equal(getResult(wrapper), 'Nothing to fetch');
+      assert.equal(getResultText(wrapper), 'Nothing to fetch');
 
       retry(wrapper);
 
-      assert.equal(getResult(wrapper), 'Nothing to fetch');
+      assert.equal(getResultText(wrapper), 'Nothing to fetch');
       assert.notCalled(fetcher);
     });
 
     it('does nothing if data is being fetched', async () => {
       const fetcher = sinon.stub().resolves('OK');
       const wrapper = renderWidget('test-key', fetcher);
-      assert.equal(getResult(wrapper), 'Loading');
+      assert.equal(getResultText(wrapper), 'Loading');
 
       retry(wrapper);
 
-      assert.equal(getResult(wrapper), 'Loading');
+      assert.equal(getResultText(wrapper), 'Loading');
       assert.calledOnce(fetcher);
 
       await waitForFetch(wrapper);
-      assert.equal(getResult(wrapper), 'Data: OK');
+      assert.equal(getResultText(wrapper), 'Data: OK');
     });
 
     it('re-runs the last fetch', async () => {
@@ -177,13 +177,13 @@ describe('useFetch', () => {
 
       const wrapper = renderWidget('some-key', fetcher);
       await waitForFetch(wrapper);
-      assert.equal(getResult(wrapper), 'Error: Fetch failed');
+      assert.equal(getResultText(wrapper), 'Error: Fetch failed');
 
       fail = false;
       retry(wrapper);
 
       await waitForFetch(wrapper);
-      assert.equal(getResult(wrapper), 'Data: OK');
+      assert.equal(getResultText(wrapper), 'Data: OK');
     });
   });
 });
