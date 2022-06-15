@@ -147,9 +147,38 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
       ]}
     >
       <div className="flex flex-row space-x-3">
-        <Thumbnail classes="w-32 h-40" isLoading={isLoading}>
+        <Thumbnail
+          classes={classnames(
+            // Customize Thumbnail to:
+            //  - Make more use of available vertical space within the Modal
+            //  - "Crop" thumbnail image vertically to allow it to be wider
+            //
+            // TODO: Remove this customization after shared `Thumbnail`/related
+            // shared component refactors.
+            //
+            // Negative vertical margins allow thumbnail to use up more vertical
+            // space in the containing Modal
+            '-mb-12 -mt-2',
+            // Narrower grey border/background
+            '!p-2',
+            // Set up object containment such that the child is always a
+            // specific width, with a suggested but variable height
+            'w-[200px] min-w-[200px] h-52'
+          )}
+          isLoading={isLoading}
+        >
           {thumbnail.data && (
-            <img alt="article thumbnail" src={thumbnail.data.image} />
+            <img
+              className={classnames(
+                // Set up object positioning to "top". Bottom of thumbnail
+                // image is "cropped" as necesary to fit container.
+                // Need `!` to override `Thumbnail` styling's object-position
+                // rules
+                '!object-cover object-top'
+              )}
+              alt="article thumbnail"
+              src={thumbnail.data.image}
+            />
           )}
         </Thumbnail>
         <div className="space-y-2 grow">
