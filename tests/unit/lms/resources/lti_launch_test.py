@@ -110,6 +110,28 @@ class TestIsCanvas:
         assert LTILaunchResource(pyramid_request).is_canvas == is_canvas
 
 
+class TestCustomCanvasAPIDomain:
+    def test_it_returns_the_custom_canvas_api_domain(self, pyramid_request):
+        lti_launch = LTILaunchResource(pyramid_request)
+
+        assert lti_launch.custom_canvas_api_domain == "test_custom_canvas_api_domain"
+
+    def test_it_returns_None_if_not_defined(self, pyramid_request):
+        del pyramid_request.parsed_params["custom_canvas_api_domain"]
+
+        lti_launch = LTILaunchResource(pyramid_request)
+
+        custom_canvas_api_url = lti_launch.custom_canvas_api_domain
+        assert custom_canvas_api_url is None
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.parsed_params = {
+            "custom_canvas_api_domain": "test_custom_canvas_api_domain",
+        }
+        return pyramid_request
+
+
 class TestJSConfig:
     def test_it_returns_the_js_config(self, pyramid_request, JSConfig):
         lti_launch = LTILaunchResource(pyramid_request)

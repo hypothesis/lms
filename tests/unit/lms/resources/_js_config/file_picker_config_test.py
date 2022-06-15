@@ -117,7 +117,7 @@ class TestFilePickerConfig:
         self, context, pyramid_request, application_instance, origin_from
     ):
         if origin_from == "custom_canvas_api_domain":
-            context.lti_params["custom_canvas_api_domain"] = sentinel.origin
+            context.custom_canvas_api_domain = sentinel.origin
         elif origin_from == "lms_url":
             application_instance.lms_url = sentinel.origin
 
@@ -206,6 +206,7 @@ class TestFilePickerConfig:
             is_canvas=False,
             canvas_sections_enabled=False,
             canvas_groups_enabled=False,
+            custom_canvas_api_domain=None,
             blackboard_groups_enabled=False,
             lti_params=LTIParams(pyramid_request.params),
         )

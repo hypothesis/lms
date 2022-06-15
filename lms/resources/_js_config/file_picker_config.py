@@ -73,15 +73,16 @@ class FilePickerConfig:
     def google_files_config(cls, context, request, application_instance):
         """Get Google file picker config."""
 
+        # Get the URL of the top-most page that the LMS app is running in.
+        #
+        # The frontend has to pass this to Google Picker, otherwise Google
+        # Picker refuses to launch in an iframe.
+        origin = context.custom_canvas_api_domain or application_instance.lms_url
+
         return {
             "clientId": request.registry.settings["google_client_id"],
             "developerKey": request.registry.settings["google_developer_key"],
-            # Get the URL of the top-most page that the LMS app is running in.
-            # The frontend has to pass this to Google Picker, otherwise Google
-            # Picker refuses to launch in an iframe.
-            "origin": context.lti_params.get(
-                "custom_canvas_api_domain", application_instance.lms_url
-            ),
+            "origin": origin,
         }
 
     @classmethod

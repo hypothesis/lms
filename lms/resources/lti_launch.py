@@ -96,6 +96,19 @@ class LTILaunchResource:
     def js_config(self):
         return JSConfig(self, self._request)
 
+    @property
+    def custom_canvas_api_domain(self):
+        """
+        Return the domain of the Canvas API.
+
+        FIXME: Getting this from the custom_canvas_api_domain param isn't quite
+        right. This is the domain of the Canvas API which isn't the same thing
+        as the domain of the Canvas website (although in practice it always
+        seems to match). And of course custom_canvas_api_domain only works in
+        Canvas.
+        """
+        return self._request.parsed_params.get("custom_canvas_api_domain")
+
     def canvas_sections_supported(self):
         """Return True if Canvas sections is supported for this request."""
         if not self.is_canvas:
