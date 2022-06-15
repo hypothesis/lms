@@ -61,7 +61,6 @@ class _CommonLTILaunchSchema(LTIV11CoreSchema):
     lti_version = fields.Str(validate=OneOf(["LTI-1p0", "1.3.0"]), required=True)
     oauth_consumer_key = fields.Str(required=False)
 
-    custom_canvas_api_domain = fields.Str()
     custom_canvas_course_id = fields.Str()
     launch_presentation_return_url = fields.Str()
     tool_consumer_info_product_family_code = fields.Str()
