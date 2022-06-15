@@ -12,7 +12,7 @@ import { useRef, useState } from 'preact/hooks';
 
 import { formatErrorMessage } from '../errors';
 import { urlPath, useAPIFetch } from '../utils/api';
-import { articleIdFromURL, jstorURLFromArticleId } from '../utils/jstor';
+import { articleIdFromUserInput, jstorURLFromArticleId } from '../utils/jstor';
 
 /**
  * @template T
@@ -103,9 +103,9 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
       return;
     }
 
-    const articleId = articleIdFromURL(url);
+    const articleId = articleIdFromUserInput(url);
     if (!articleId) {
-      setError("That doesn't look like a JSTOR article link");
+      setError("That doesn't look like a JSTOR article link or ID");
       return;
     }
 
