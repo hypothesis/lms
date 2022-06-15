@@ -6,7 +6,7 @@ import mockImportedComponents from '../../../test-util/mock-imported-components'
 import JSTORPicker, { $imports } from '../JSTORPicker';
 
 describe('JSTORPicker', () => {
-  let fakeArticleIdFromURL;
+  let fakeArticleIdFromUserInput;
 
   // Map of API path => fetch result state setter.
   let setAPIFetchResult;
@@ -40,7 +40,7 @@ describe('JSTORPicker', () => {
   const renderJSTORPicker = (props = {}) => mount(<JSTORPicker {...props} />);
 
   beforeEach(() => {
-    fakeArticleIdFromURL = sinon.stub().returns('1234');
+    fakeArticleIdFromUserInput = sinon.stub().returns('1234');
     setAPIFetchResult = {};
 
     function useAPIFetchFake(path) {
@@ -64,7 +64,7 @@ describe('JSTORPicker', () => {
         useAPIFetch: useAPIFetchFake,
       },
       '../utils/jstor': {
-        articleIdFromURL: fakeArticleIdFromURL,
+        articleIdFromUserInput: fakeArticleIdFromUserInput,
       },
     });
   });
@@ -121,22 +121,22 @@ describe('JSTORPicker', () => {
 
       updateURL(wrapper, 'foo');
 
-      assert.calledOnce(fakeArticleIdFromURL);
-      assert.calledWith(fakeArticleIdFromURL, 'foo');
+      assert.calledOnce(fakeArticleIdFromUserInput);
+      assert.calledWith(fakeArticleIdFromUserInput, 'foo');
 
       updateURL(wrapper, 'bar');
 
       assert.equal(
-        fakeArticleIdFromURL.callCount,
+        fakeArticleIdFromUserInput.callCount,
         2,
         're-validates if entered URL value changes'
       );
-      assert.calledWith(fakeArticleIdFromURL, 'bar');
+      assert.calledWith(fakeArticleIdFromUserInput, 'bar');
 
       updateURL(wrapper, 'bar');
 
       assert.equal(
-        fakeArticleIdFromURL.callCount,
+        fakeArticleIdFromUserInput.callCount,
         2,
         'Does not validate URL if it has not changed from previous value'
       );
@@ -152,9 +152,9 @@ describe('JSTORPicker', () => {
 
       input.getDOMNode().dispatchEvent(keyEvent);
 
-      assert.calledOnce(fakeArticleIdFromURL);
+      assert.calledOnce(fakeArticleIdFromUserInput);
       assert.calledWith(
-        fakeArticleIdFromURL,
+        fakeArticleIdFromUserInput,
         'https://www.jstor.org/stable/1234'
       );
     });
@@ -172,7 +172,7 @@ describe('JSTORPicker', () => {
       interact(wrapper, () => {
         input.getDOMNode().dispatchEvent(keyEvent);
       });
-      assert.calledOnce(fakeArticleIdFromURL);
+      assert.calledOnce(fakeArticleIdFromUserInput);
 
       // Second enter press, after metadata has been fetched, should "confirm"
       // the valid URL.
@@ -189,23 +189,23 @@ describe('JSTORPicker', () => {
 
       wrapper.find('IconButton button[title="Find article"]').simulate('click');
 
-      assert.calledOnce(fakeArticleIdFromURL);
-      assert.calledWith(fakeArticleIdFromURL, 'foo');
+      assert.calledOnce(fakeArticleIdFromUserInput);
+      assert.calledWith(fakeArticleIdFromUserInput, 'foo');
     });
 
     it('does not attempt to check the URL format if the field value is empty', () => {
       const wrapper = renderJSTORPicker();
       updateURL(wrapper, 'foo');
 
-      assert.calledOnce(fakeArticleIdFromURL);
+      assert.calledOnce(fakeArticleIdFromUserInput);
 
       updateURL(wrapper, '');
 
-      assert.calledOnce(fakeArticleIdFromURL);
+      assert.calledOnce(fakeArticleIdFromUserInput);
     });
 
     it('shows an error if entered URL format is invalid', () => {
-      fakeArticleIdFromURL.returns(null);
+      fakeArticleIdFromUserInput.returns(null);
 
       const wrapper = renderJSTORPicker();
       updateURL(wrapper, 'foo');
@@ -215,7 +215,7 @@ describe('JSTORPicker', () => {
       assert.isTrue(errorMessage.exists());
       assert.include(
         errorMessage.text(),
-        "That doesn't look like a JSTOR article link"
+        "That doesn't look like a JSTOR article link or ID"
       );
       assert.isTrue(errorMessage.find('Icon[name="cancel"]').exists());
     });
