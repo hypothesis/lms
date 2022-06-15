@@ -203,7 +203,7 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
 
           {metadata.data && (
             <div
-              className="flex flex-row items-center space-x-2"
+              className="flex flex-row space-x-2"
               data-testid="selected-book"
             >
               <Icon name="check" classes="text-green-success" />
