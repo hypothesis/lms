@@ -153,6 +153,23 @@ class TestJSTORService:
         metadata = svc.metadata("12345")
         assert metadata["title"] == expected_title
 
+    @pytest.mark.parametrize(
+        "api_response, is_collection",
+        [
+            ({"title": ["Foo bar"]}, False),
+            ({"reviewed_works": [{"title": "Some article"}]}, False),
+            ({"tb": "Some book"}, True),
+        ],
+    )
+    def test_metadata_is_collection_field(
+        self, svc, http_service, api_response, is_collection
+    ):
+        http_service.get.return_value = factories.requests.Response(
+            json_data=api_response
+        )
+        metadata = svc.metadata("12345")
+        assert metadata["is_collection"] is is_collection
+
     def test_metadata_raises_if_schema_mismatch(self, svc, http_service):
         invalid_api_response = {"title": "This should be a list"}
         http_service.get.return_value = factories.requests.Response(

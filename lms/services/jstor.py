@@ -100,7 +100,11 @@ class JSTORService:
 
         title = self._get_title_from_metadata(metadata)
 
-        return {"title": title}
+        # Collections (eg. books) have a different schema than regular articles.
+        # Test for a field that only appears in collections.
+        is_collection = "tb" in metadata
+
+        return {"title": title, "is_collection": is_collection}
 
     def thumbnail(self, article_id: str):
         """

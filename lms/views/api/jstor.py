@@ -13,11 +13,7 @@ class JSTORAPIViews:
     @view_config(route_name="jstor_api.articles.metadata")
     def article_metadata(self):
         article_id = self.request.matchdict["article_id"]
-        article_info = self.jstor_service.metadata(article_id)
-
-        is_collection = False  # Placeholder
-
-        return {"title": article_info["title"], "is_collection": is_collection}
+        return self.jstor_service.metadata(article_id)
 
     @view_config(route_name="jstor_api.articles.thumbnail")
     def article_thumbnail(self):
