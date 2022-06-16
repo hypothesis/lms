@@ -7,6 +7,7 @@ from lms.models import ApplicationInstance, LTIParams
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.views.lti.basic_launch import BasicLaunchViews
+from lms.views.predicates import ResourceLinkParam
 from tests import factories
 
 
@@ -154,32 +155,24 @@ class TestBasicLaunchViews:
         ).unconfigured_launch_not_authorized()
 
     def test_blackboard_copied_launch(
-        self, svc, pyramid_request, BlackboardCopied, _course_copied_launch
+        self, svc, pyramid_request, _show_document_from_db
     ):
+        pyramid_request.params[ResourceLinkParam.COPIED_BLACKBOARD] = sentinel.link_id
+
         result = svc.blackboard_copied_launch()
 
-        BlackboardCopied.get_original_resource_link_id.assert_called_once_with(
-            pyramid_request
-        )
-
-        _course_copied_launch.assert_called_once_with(
-            BlackboardCopied.get_original_resource_link_id.return_value
-        )
-        assert result == _course_copied_launch.return_value
+        _show_document_from_db.assert_called_once_with(sentinel.link_id)
+        assert result == _show_document_from_db.return_value
 
     def test_brightspace_copied_launch(
-        self, svc, pyramid_request, BrightspaceCopied, _course_copied_launch
+        self, svc, pyramid_request, _show_document_from_db
     ):
+        pyramid_request.params[ResourceLinkParam.COPIED_BRIGHTSPACE] = sentinel.link_id
+
         result = svc.brightspace_copied_launch()
 
-        BrightspaceCopied.get_original_resource_link_id.assert_called_once_with(
-            pyramid_request
-        )
-
-        _course_copied_launch.assert_called_once_with(
-            BrightspaceCopied.get_original_resource_link_id.return_value
-        )
-        assert result == _course_copied_launch.return_value
+        _show_document_from_db.assert_called_once_with(sentinel.link_id)
+        assert result == _show_document_from_db.return_value
 
     @pytest.mark.usefixtures("is_canvas")
     def test_canvas_file_launch(self, svc, context, pyramid_request, _show_document):
@@ -211,11 +204,11 @@ class TestBasicLaunchViews:
             document_url=VitalSourceService.generate_document_url.return_value
         )
 
-    def test__course_copied_launch(
+    def test__show_document_from_db(
         self, svc, assignment_service, pyramid_request, _show_document
     ):
         # pylint: disable=protected-access
-        svc._course_copied_launch(sentinel.original_resource_link_id)
+        svc._show_document_from_db(sentinel.original_resource_link_id)
 
         assignment_service.get_assignment.assert_called_once_with(
             pyramid_request.params["tool_consumer_instance_guid"],
@@ -379,9 +372,9 @@ class TestBasicLaunchViews:
         return BasicLaunchViews(context, pyramid_request)
 
     @pytest.fixture
-    def _course_copied_launch(self, svc):
-        with mock.patch.object(svc, "_course_copied_launch") as _course_copied_launch:
-            yield _course_copied_launch
+    def _show_document_from_db(self, svc):
+        with mock.patch.object(svc, "_show_document_from_db") as _show_document_from_db:
+            yield _show_document_from_db
 
     @pytest.fixture
     def _show_document(self, svc):
@@ -417,14 +410,6 @@ class TestBasicLaunchViews:
         )
 
         return application_instance_service
-
-    @pytest.fixture
-    def BlackboardCopied(self, patch):
-        return patch("lms.views.lti.basic_launch.BlackboardCopied")
-
-    @pytest.fixture
-    def BrightspaceCopied(self, patch):
-        return patch("lms.views.lti.basic_launch.BrightspaceCopied")
 
     @pytest.fixture
     def LtiLaunches(self, patch):

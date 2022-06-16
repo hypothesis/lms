@@ -1,32 +1,55 @@
-from unittest import mock
+from functools import partial
+from unittest.mock import Mock, call, sentinel
 
-from lms.views.predicates import includeme
-from lms.views.predicates._lti_launch import (
-    AuthorizedToConfigureAssignments,
-    BlackboardCopied,
-    BrightspaceCopied,
-    CanvasFile,
-    Configured,
-    DBConfigured,
-    URLConfigured,
-    VitalSourceBook,
-)
+import pytest
+from h_matchers import Any
+
+from lms.views.predicates import PREDICATES, Predicate, includeme
 
 
-def test_includeme_adds_the_view_predicates():
-    config = mock.Mock(spec_set=["add_view_predicate"])
+class TestPredicate:
+    def test_text(self, predicate):
+        assert predicate.text() == "name = sentinel.value"
+
+    def test_phash(self, predicate):
+        assert predicate.phash() == "name = sentinel.value"
+
+    @pytest.mark.parametrize("value", (True, False))
+    @pytest.mark.parametrize("comparison_return", (True, False))
+    def test__call__(self, predicate, value, comparison_return):
+        predicate.value = value
+        predicate.comparison.return_value = comparison_return
+
+        result = predicate(sentinel.context, sentinel.request)
+
+        predicate.comparison.assert_called_once_with(sentinel.context, sentinel.request)
+        assert result == (value == comparison_return)
+
+    def test__call__matches_None_with_False(self, predicate):
+        predicate.value = False
+        predicate.comparison.return_value = None
+
+        assert predicate(sentinel.context, sentinel.request)
+
+    @pytest.fixture
+    def predicate(self):
+        return Predicate(
+            value=sentinel.value, info=sentinel.info, name="name", comparison=Mock()
+        )
+
+
+@pytest.mark.parametrize("name,comparison", PREDICATES.items())
+def test_includeme(name, comparison):
+    config = Mock(spec_set=["add_view_predicate"])
 
     includeme(config)
 
-    assert config.add_view_predicate.call_args_list == [
-        mock.call("db_configured", DBConfigured),
-        mock.call("blackboard_copied", BlackboardCopied),
-        mock.call("brightspace_copied", BrightspaceCopied),
-        mock.call("canvas_file", CanvasFile),
-        mock.call("url_configured", URLConfigured),
-        mock.call("vitalsource_book", VitalSourceBook),
-        mock.call("configured", Configured),
-        mock.call(
-            "authorized_to_configure_assignments", AuthorizedToConfigureAssignments
-        ),
-    ]
+    predicate_partial = Any.object.of_type(partial).with_attrs(
+        {
+            "func": Predicate,
+            "keywords": {"name": name, "comparison": comparison},
+        }
+    )
+    config.add_view_predicate.assert_has_calls(
+        [call(name=name, factory=predicate_partial)]
+    )
