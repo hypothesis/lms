@@ -1,9 +1,10 @@
 from datetime import timedelta
+from html.parser import HTMLParser
 from typing import Optional
 from urllib.parse import quote
 
 import requests
-from marshmallow import fields
+from marshmallow import EXCLUDE, Schema, fields
 
 from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService
@@ -13,10 +14,22 @@ from lms.views.helpers import via_url
 
 
 class JSTORMetadataSchema(RequestsResponseSchema):
-    """Response schema for `/metadata/{doi}` endpoint in JSTOR API."""
+    """Incomplete response schema for `/metadata/{doi}` endpoint in the JSTOR API."""
 
-    # The response has other fields, but we currently only use the "title" field.
-    title = fields.List(fields.Str(), required=True)
+    class ReviewedWorks(Schema):
+        title = fields.Str()
+
+    # Title fields for "regular" articles.
+    title = fields.List(fields.Str())
+    subtitle = fields.List(fields.Str())
+
+    # Title fields for collections (eg. books).
+    # These may be present but set to `null` for other types of article.
+    tb = fields.Str(allow_none=True)
+    tbsub = fields.Str(allow_none=True)
+
+    # Fields for articles which are reviews of other works.
+    reviewed_works = fields.List(fields.Nested(ReviewedWorks, unknown=EXCLUDE))
 
 
 class JSTORService:
@@ -73,17 +86,40 @@ class JSTORService:
         :param article_id: A JSTOR article ID or DOI
         """
         doi = self._doi_from_article_id(article_id)
-        response = self._api_request(format_uri("/metadata/{}", doi))
+        response = self._api_request(_format_uri("/metadata/{}", doi))
         metadata = JSTORMetadataSchema(response).parse()
 
-        # Some articles have no title [1]. It is unknown whether any have
-        # multiple titles. To simplify the structure for consumers we return
-        # a single title or none.
-        #
-        # [1] eg. https://www.jstor.org/stable/331473
+        # "Regular" articles have a title field with a single entry.
         title = None
-        if len(metadata["title"]):
+        if metadata.get("title"):
             title = metadata["title"][0]
+
+            # Some articles have a subtitle which needs to be appended for the
+            # title to make sense.
+            if metadata.get("subtitle"):
+                title = f"{title} {metadata.get('subtitle')[0]}"
+
+        # Articles which are collections have their title in a separate "tb"
+        # field. These can't actually be used for assignments, but it sometimes
+        # still useful to show metadata for them.
+        if not title and metadata.get("tb"):
+            title = metadata["tb"]
+            subtitle = metadata.get("tbsub")
+            if subtitle:
+                title += f" {subtitle}"
+
+        # Articles which are reviews of other works may not have a title of
+        # their own, but we can generate one from the title of the reviewed work.
+        if not title and metadata.get("reviewed_works"):
+            # TBD: Can reviewed works be collections or have subtitles?
+            reviewed_title = metadata["reviewed_works"][0]["title"]
+            title = f"Review: {reviewed_title}"
+
+        # Some titles contain HTML formatting tags, new lines or unwanted
+        # extra spaces. Strip these to simplify downstream processing.
+        if title:
+            title = _strip_html_tags(title)
+            title = _normalize_whitespace(title)
 
         return {"title": title}
 
@@ -109,7 +145,7 @@ class JSTORService:
             "width": 280,
         }
         data_uri = self._api_request(
-            format_uri("/thumbnail/{}", doi), params=params
+            _format_uri("/thumbnail/{}", doi), params=params
         ).text
 
         if not data_uri.startswith("data:"):
@@ -130,7 +166,7 @@ class JSTORService:
 
         article_id = url.replace("jstor://", "")
         doi = self._doi_from_article_id(article_id)
-        s3_url = self._api_request(format_uri("/pdf-url/{}", doi)).text
+        s3_url = self._api_request(_format_uri("/pdf-url/{}", doi)).text
 
         if not s3_url.startswith("https://"):
             raise ExternalRequestError(
@@ -163,7 +199,7 @@ class JSTORService:
         return article_id
 
 
-def format_uri(template: str, *params: str):
+def _format_uri(template: str, *params: str):
     """
     Format a URI string.
 
@@ -172,6 +208,31 @@ def format_uri(template: str, *params: str):
     """
     encoded = [quote(param, safe="/") for param in params]
     return template.format(*encoded)
+
+
+def _strip_html_tags(html: str) -> str:
+    """Extract plain text from a string which may contain HTML formatting tags."""
+    text = ""
+
+    # Extract text nodes using HTMLParser. We rely on it being tolerant of
+    # invalid markup.
+    #
+    # See https://bugs.python.org/issue31844 for abstract-method issue.
+    class Parser(HTMLParser):  # pylint:disable=abstract-method
+        def handle_data(self, data: str):
+            nonlocal text
+            text += data
+
+    parser = Parser()
+    parser.feed(html)
+    parser.close()
+
+    return text
+
+
+def _normalize_whitespace(val: str) -> str:
+    """Convert all whitespace to single spaces and remove leading/trailing spaces."""
+    return " ".join(val.split())
 
 
 def factory(_context, request):
