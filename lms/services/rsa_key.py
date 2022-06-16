@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timedelta
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
@@ -16,6 +17,51 @@ class RSAKeyService:
     def __init__(self, db, aes_service):
         self._db = db
         self._aes_service = aes_service
+
+    def rotate(
+        self,
+        target_keys: int,
+        max_age=timedelta(days=7),
+        max_expired_age=timedelta(days=14),
+    ):
+        """
+        Rotate RSA Keys keeping `target_keys` active keys at all times.
+
+        Expires active keys older than `max_age`
+        and deletes expired ones older than `max_expired_age`.
+
+        Keys have a live-cycle of:
+            active -> expired -> deleted
+
+        In flight request we signed with an active key will still be
+        verifiable as the public key endpoint query (get_all_public_jwks)
+        includes expired keys.
+
+        This method is meant to be called periodically by a celery task.
+        """
+        now = datetime.now()
+        new_keys = target_keys
+
+        for key in self._db.query(RSAKey).all():
+            key_age = now - key.created
+            # Delete expired keys that have been around for `max_expired_age`
+            if key.expired and key_age >= max_expired_age:
+                self._db.delete(key)
+            # Expire valid keys after max_age
+            elif not key.expired and key_age >= max_age:
+                key.expired = True
+            # Every valid key we see means we need to create one less
+            else:
+                new_keys -= 1
+
+        for _ in range(new_keys):
+            self.generate()
+
+        # Assert the expected result, if we find something different the transition will be aborted
+        # and we'd be back at the initial state
+        assert (
+            self._db.query(RSAKey).filter_by(expired=False).count() == target_keys
+        ), "The number of active RSAKey doesn't match the target"
 
     def generate(self) -> RSAKey:
         """Generate a new random RSA key pair."""
@@ -39,10 +85,15 @@ class RSAKeyService:
         return self._aes_service.decrypt(key.aes_cipher_iv, key.private_key)
 
     def get_all_public_jwks(self):
-        """Get all non-expired keys."""
+        """
+        Get all keys.
+
+        We don't filter out expired ones here to allow in-flight request to
+        continue while keys are rotating.
+        """
         return [
             dict(json.loads(key.public_key), use="sig", kid=key.kid)
-            for key in self._db.query(RSAKey).filter_by(expired=False).all()
+            for key in self._db.query(RSAKey).filter_by().all()
         ]
 
     def get_random_key(self) -> RSAKey:
