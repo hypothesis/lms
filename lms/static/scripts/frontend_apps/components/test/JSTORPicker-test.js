@@ -27,8 +27,12 @@ describe('JSTORPicker', () => {
     wrapper.update();
   }
 
-  function simulateMetadataFetch(wrapper, title) {
-    simulateAPIFetch(wrapper, '/api/jstor/articles/1234', { title });
+  function simulateMetadataFetch(wrapper, title, otherMetadata = {}) {
+    simulateAPIFetch(wrapper, '/api/jstor/articles/1234', {
+      title,
+      is_collection: false,
+      ...otherMetadata,
+    });
   }
 
   function simulateThumbnailFetch(wrapper) {
@@ -287,5 +291,28 @@ describe('JSTORPicker', () => {
     // Button is enabled once fetch is complete.
     assert.isFalse(wrapper.find(buttonSelector).props().disabled);
     assert.equal(wrapper.find(buttonSelector).text(), 'Submit');
+
+    // Since the chosen item is usable (eg. not a collection), no error should
+    // be displayed.
+    assert.isFalse(wrapper.exists('[data-testid="error-message"]'));
+  });
+
+  it('disables submit button and shows error if item is a collection', () => {
+    const wrapper = renderJSTORPicker();
+    const buttonSelector = 'LabeledButton[data-testid="select-button"]';
+
+    assert.isTrue(wrapper.find(buttonSelector).props().disabled);
+    updateURL(wrapper);
+
+    simulateMetadataFetch(wrapper, 'Some book', { is_collection: true });
+
+    assert.isTrue(wrapper.find(buttonSelector).props().disabled);
+
+    const errorMessage = wrapper.find('[data-testid="error-message"]');
+    assert.isTrue(errorMessage.exists());
+    assert.equal(
+      errorMessage.text().trim(),
+      'This work is a collection. Enter the link for a specific article in the collection.'
+    );
   });
 });
