@@ -12,7 +12,10 @@ class TestJSTORAPIViews:
         metadata = views.article_metadata()
 
         jstor_service.metadata.assert_called_once_with("test-article")
-        assert metadata == {"title": jstor_service.metadata.return_value["title"]}
+        assert metadata == {
+            "title": jstor_service.metadata.return_value["title"],
+            "is_collection": False,
+        }
 
     def test_article_thumbnail(self, jstor_service, pyramid_request):
         views = JSTORAPIViews(pyramid_request)

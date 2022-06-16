@@ -23,6 +23,7 @@ import { articleIdFromUserInput, jstorURLFromArticleId } from '../utils/jstor';
  * Response for an `/api/jstor/articles/{article_id}` call.
  *
  * @typedef Metadata
+ * @prop {boolean} is_collection
  * @prop {string} title
  */
 
@@ -70,13 +71,18 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
       metadata.error,
       'Unable to fetch article details'
     );
+  } else if (metadata.data?.is_collection) {
+    renderedError =
+      'This work is a collection. Enter the link for a specific article in the collection.';
   }
 
   const inputRef = /** @type {{ current: HTMLInputElement }} */ (useRef());
   // The last confirmed value of the URL-entry text input
   const previousURL = useRef(/** @type {string|null} */ (null));
 
-  const canConfirmSelection = articleId && metadata.data !== null;
+  const canConfirmSelection =
+    articleId && metadata.data && !metadata.data.is_collection;
+
   const confirmSelection = () => {
     if (canConfirmSelection) {
       onSelectURL(jstorURLFromArticleId(articleId));
@@ -206,7 +212,9 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
               className="flex flex-row space-x-2"
               data-testid="selected-book"
             >
-              <Icon name="check" classes="text-green-success" />
+              {canConfirmSelection && (
+                <Icon name="check" classes="text-green-success" />
+              )}
               <div className="grow font-bold italic">{metadata.data.title}</div>
             </div>
           )}
