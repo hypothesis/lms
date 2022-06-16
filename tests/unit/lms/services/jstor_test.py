@@ -63,56 +63,112 @@ class TestJSTORService:
             svc.via_url(pyramid_request, document_url="jstor://ANY")
 
     @pytest.mark.parametrize(
-        "article_id, api_response, expected_api_url, expected_metadata",
+        "article_id, expected_api_url",
         [
             # Typical JSTOR article, with no DOI prefix given
             (
                 "12345",
-                {"title": ["test title"]},
                 f"{JSTOR_API_URL}/metadata/10.2307/12345",
-                {"title": "test title"},
             ),
             # Article ID that needs to be encoded
             (
                 "123:45",
-                {"title": ["test title"]},
                 f"{JSTOR_API_URL}/metadata/10.2307/123%3A45",
-                {"title": "test title"},
             ),
             # Article with custom DOI prefix
             (
                 "10.123/12345",
-                {"title": ["test title"]},
                 f"{JSTOR_API_URL}/metadata/10.123/12345",
-                {"title": "test title"},
-            ),
-            # No title
-            (
-                "12345",
-                {"title": []},
-                f"{JSTOR_API_URL}/metadata/10.2307/12345",
-                {"title": None},
             ),
         ],
     )
-    def test_metadata(
+    def test_metadata_calls_jstor_api(
         self,
         svc,
         http_service,
-        api_response,
         article_id,
         expected_api_url,
-        expected_metadata,
     ):
-        http_service.get.return_value = factories.requests.Response(
-            json_data=api_response
-        )
+        http_service.get.return_value = factories.requests.Response(json_data={})
 
-        metadata = svc.metadata(article_id)
+        svc.metadata(article_id)
 
         http_service.get.assert_called_with(
             url=expected_api_url, headers={"Authorization": "Bearer TOKEN"}, params=None
         )
+
+    @pytest.mark.parametrize(
+        "api_response, expected_metadata",
+        [
+            # Simple title
+            ({"title": ["Some title"]}, {"title": "Some title"}),
+            # No titles.
+            (
+                {"title": []},
+                {"title": None},
+            ),
+            # No title field.
+            #
+            # This can happen if the work is a container publication (eg.
+            # a book). See https://github.com/hypothesis/lms/issues/4082.
+            (
+                {},
+                {"title": None},
+            ),
+            # Article with subtitle
+            (
+                {
+                    "title": ["Talking about History:"],
+                    "subtitle": [
+                        "The Encomium Emmae reginae and the Court of Harthacnut"
+                    ],
+                },
+                {
+                    "title": "Talking about History: The Encomium Emmae reginae and the Court of Harthacnut"
+                },
+            ),
+            # Collection
+            ({"tb": "Some book"}, {"title": "Some book"}),
+            # Collection with subtitle
+            (
+                {"tb": "Pizza with pineapple:", "tbsub": "Yay or nay?"},
+                {"title": "Pizza with pineapple: Yay or nay?"},
+            ),
+            # Article that is a review of another work
+            (
+                {
+                    # These reviews have null "tb" and "tbsub" fields, which
+                    # should be ignored.
+                    "tb": None,
+                    "tbsub": None,
+                    "reviewed_works": [{"title": "Some other work"}],
+                },
+                {"title": "Review: Some other work"},
+            ),
+            # Titles with extra whitespace or new lines. These should be cleaned up.
+            (
+                {"title": ["   Too\n many\n lines \t and spaces "]},
+                {"title": "Too many lines and spaces"},
+            ),
+            # Titles with formatting tags. These should be stripped.
+            (
+                {
+                    "title": ["All about the <em>Wunderpus photogenicus</em>:"],
+                    "subtitle": ["an <em>exciting</em> octopus"],
+                },
+                {"title": "All about the Wunderpus photogenicus: an exciting octopus"},
+            ),
+            ({"title": ["Foo<bar"]}, {"title": "Foo<bar"}),
+            ({"title": ["Foo<b>bar"]}, {"title": "Foobar"}),
+        ],
+    )
+    def test_metadata_formats_title(
+        self, svc, http_service, api_response, expected_metadata
+    ):
+        http_service.get.return_value = factories.requests.Response(
+            json_data=api_response
+        )
+        metadata = svc.metadata("12345")
         assert metadata == expected_metadata
 
     def test_metadata_raises_if_schema_mismatch(self, svc, http_service):
