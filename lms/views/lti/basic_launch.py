@@ -25,7 +25,7 @@ from lms.validation import (
     URLConfiguredBasicLTILaunchSchema,
 )
 from lms.validation.authentication import BearerTokenSchema
-from lms.views.predicates import BlackboardCopied, BrightspaceCopied
+from lms.views.predicates import ResourceLinkParam
 
 
 @view_defaults(
@@ -99,12 +99,8 @@ class BasicLaunchViews:
         # The ``db_configured=True`` view predicate ensures that this view
         # won't be called if there isn't a matching document_url in the DB. So
         # here we can safely assume that the document_url exists.
-        return self._show_document(
-            document_url=self.assignment_service.get_assignment(
-                self.context.lti_params["tool_consumer_instance_guid"],
-                self.context.resource_link_id,
-            ).document_url
-        )
+
+        return self._show_document_from_db(self.context.resource_link_id)
 
     @view_config(url_configured=True, schema=URLConfiguredBasicLTILaunchSchema)
     def url_configured_launch(self):
@@ -181,26 +177,18 @@ class BasicLaunchViews:
 
     @view_config(blackboard_copied=True)
     def blackboard_copied_launch(self):
-        """
-        Respond to a launch of a newly-copied Blackboard assignment.
+        """Respond to a launch of a newly-copied Blackboard assignment."""
 
-        For more about Blackboard course copy see the BlackboardCopied
-        predicate's docstring.
-        """
-        return self._course_copied_launch(
-            BlackboardCopied.get_original_resource_link_id(self.request)
+        return self._show_document_from_db(
+            self.request.params.get(ResourceLinkParam.COPIED_BLACKBOARD)
         )
 
     @view_config(brightspace_copied=True)
     def brightspace_copied_launch(self):
-        """
-        Respond to a launch of a newly-copied Brightspace assignment.
+        """Respond to a launch of a newly-copied Brightspace assignment."""
 
-        For more about Brightspace course copy see the BrightspaceCopied
-        predicate's docstring.
-        """
-        return self._course_copied_launch(
-            BrightspaceCopied.get_original_resource_link_id(self.request)
+        return self._show_document_from_db(
+            self.request.params.get(ResourceLinkParam.COPIED_BRIGHTSPACE)
         )
 
     @view_config(canvas_file=True)
@@ -240,26 +228,20 @@ class BasicLaunchViews:
             )
         )
 
-    def _course_copied_launch(self, original_resource_link_id):
+    def _show_document_from_db(self, resource_link_id):
         """
-        Respond to a launch of a newly-copied assignment.
+        Respond to a launch where the config can be read from an assignment.
 
-        Find the document_url for the original assignment and make a copy of it
-        with the new resource_link_id, then launch the assignment as normal.
-
-        Helper method for the *_copied_launch() methods above.
-
-        :param original_resource_link_id: the resource_link_id of the original
-            assignment that this assignment was copied from
+        :param resource_link_id: the resource_link_id of the assignment to
+            lookup.
         """
-        assignment = self.assignment_service.get_assignment(
-            tool_consumer_instance_guid=self.context.lti_params[
-                "tool_consumer_instance_guid"
-            ],
-            resource_link_id=original_resource_link_id,
+
+        return self._show_document(
+            document_url=self.assignment_service.get_assignment(
+                self.context.lti_params["tool_consumer_instance_guid"],
+                resource_link_id,
+            ).document_url
         )
-
-        return self._show_document(document_url=assignment.document_url)
 
     def _show_document(self, document_url, assignment_extra=None):
         """
