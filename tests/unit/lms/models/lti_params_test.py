@@ -29,11 +29,6 @@ class TestLTIParams:
 
         assert LTIParams.from_request(pyramid_request)[lti_11_key] == value
 
-    def test_v13_non_existing(self, pyramid_request):
-        pyramid_request.lti_jwt = {}
-
-        assert not LTIParams.from_request(pyramid_request).v11
-
     def test_v11(self, pyramid_request):
         pyramid_request.params = {"test": "key"}
 

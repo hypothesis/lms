@@ -25,10 +25,14 @@ class LTIParams(dict):
 
     @classmethod
     def from_request(cls, request):
-        if v13_params := request.lti_jwt:
-            return cls(v11=_to_lti_v11(v13_params), v13=v13_params)
+        """Create an LTIParams from the request."""
 
-        return cls(v11=request.params)
+        if v13_params := request.lti_jwt:
+            v11, v13 = _to_lti_v11(v13_params), v13_params
+        else:
+            v11, v13 = request.params, None
+
+        return cls(v11=v11, v13=v13)
 
 
 _V11_TO_V13 = (
