@@ -7,10 +7,12 @@ class LTIParams(dict):
     """
     Provides access to LTI parameters for both 1.1 and 1.3 version.
 
-    - On 1.1, the request parameters are available both treating the object as a dict and thought the v11 property.
+    On 1.1, the request parameters are available both treating the object as
+    a dict and thought the v11 property.
 
-    - While on 1.3 the parameters from the decoded JWT are available through the v13 attribute while
-    the same value are accesible using the LT1.1 names on v11 and the object's dict interface.
+    While on 1.3, the parameters from the decoded JWT are available through the
+    v13 attribute while the same value are accessible using the LT1.1 names on
+    v11 and the object's dict interface.
     """
 
     def __init__(self, v11: dict, v13: dict = None):
@@ -22,8 +24,15 @@ class LTIParams(dict):
         return self
 
     @classmethod
-    def from_v13(cls, v13_params):
-        return LTIParams(_to_lti_v11(v13_params), v13_params)
+    def from_request(cls, request):
+        """Create an LTIParams from the request."""
+
+        if v13_params := request.lti_jwt:
+            v11, v13 = _to_lti_v11(v13_params), v13_params
+        else:
+            v11, v13 = request.params, None
+
+        return cls(v11=v11, v13=v13)
 
 
 _V11_TO_V13 = (
@@ -127,16 +136,7 @@ def _get_key(data: dict, data_path: List[str]):
     return value
 
 
-def _get_lti_params(request):
-    if not request.lti_jwt:
-        # If we don't have a LTI1.3 JWT there's no params to map.
-        # Use the request original params.
-        return request.params
-
-    return LTIParams.from_v13(request.lti_jwt)
-
-
 def includeme(config):
     config.add_request_method(
-        _get_lti_params, name="lti_params", property=True, reify=True
+        LTIParams.from_request, name="lti_params", property=True, reify=True
     )
