@@ -143,7 +143,7 @@ class TestLTI13AuthSchema:
     def pyramid_request(self, pyramid_request, lti_v13_params):
         pyramid_request.params["id_token"] = sentinel.id_token
         pyramid_request.lti_jwt = lti_v13_params
-        pyramid_request.lti_params = LTIParams.from_v13(lti_v13_params)
+        pyramid_request.lti_params = LTIParams.from_request(pyramid_request)
 
         return pyramid_request
 
