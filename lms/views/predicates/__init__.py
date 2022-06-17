@@ -1,8 +1,7 @@
 """
-Custom Pyramid view predicates.
+Custom Pyramid view predicates for the Basic LTI Launch view.
 
 See:
-
 https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/hooks.html#view-and-route-predicates
 """
 
