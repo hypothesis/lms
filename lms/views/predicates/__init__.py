@@ -49,9 +49,7 @@ PREDICATES = {
     "db_configured": predicates.is_db_configured,
     "blackboard_copied": predicates.is_blackboard_copied,
     "brightspace_copied": predicates.is_brightspace_copied,
-    "canvas_file": predicates.is_canvas_file,
-    "vitalsource_book": predicates.is_vitalsource_book,
-    "url_configured": predicates.is_deep_linking_configured,
+    "url_configured_param": predicates.get_url_configured_param,
     "configured": predicates.is_configured,
     "authorized_to_configure_assignments": predicates.is_authorized_to_configure_assignments,
 }

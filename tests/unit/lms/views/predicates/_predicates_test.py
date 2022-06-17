@@ -6,43 +6,31 @@ from lms.models import LTIParams
 from lms.resources import LTILaunchResource
 from lms.views.predicates._predicates import (
     ResourceLinkParam,
+    get_url_configured_param,
     is_authorized_to_configure_assignments,
     is_blackboard_copied,
     is_brightspace_copied,
-    is_canvas_file,
     is_configured,
     is_db_configured,
-    is_deep_linking_configured,
-    is_vitalsource_book,
 )
 
 
-class TestIsCanvasFile:
+class TestGetURLConfiguredParam:
     @pytest.mark.parametrize(
-        "params,expected", (({}, False), ({"canvas_file": "any"}, True))
+        "params,expected",
+        (
+            ({}, None),
+            ({"url": "any"}, "url"),
+            ({"canvas_file": "any"}, "canvas_file"),
+            ({"vitalsource_book": "any"}, "vitalsource_book"),
+            ({"url": "any", "canvas_file": "any"}, "url"),
+            ({"canvas_file": "any", "vitalsource_book": "any"}, "canvas_file"),
+        ),
     )
     def test_it(self, pyramid_request, params, expected):
         pyramid_request.params = params
 
-        assert is_canvas_file(sentinel.context, pyramid_request) == expected
-
-
-class TestIsVitalsourceBook:
-    @pytest.mark.parametrize(
-        "params,expected", (({}, False), ({"vitalsource_book": "any"}, True))
-    )
-    def test_it(self, pyramid_request, params, expected):
-        pyramid_request.params = params
-
-        assert is_vitalsource_book(sentinel.context, pyramid_request) == expected
-
-
-class TestIsDeepLinkingConfigured:
-    @pytest.mark.parametrize("params,expected", (({}, False), ({"url": "any"}, True)))
-    def test_it(self, pyramid_request, params, expected):
-        pyramid_request.params = params
-
-        assert is_deep_linking_configured(sentinel.context, pyramid_request) == expected
+        assert get_url_configured_param(sentinel.context, pyramid_request) == expected
 
 
 class TestIsDBConfigured:
@@ -118,9 +106,7 @@ class TestCourseCopied:
 
 class TestIsConfigured:
     PREDICATES = [
-        "is_canvas_file",
-        "is_deep_linking_configured",
-        "is_vitalsource_book",
+        "get_url_configured_param",
         "is_db_configured",
         "is_blackboard_copied",
         "is_brightspace_copied",
