@@ -48,7 +48,6 @@ class Predicate:
 PREDICATES = {
     "db_configured_param": predicates.get_db_configured_param,
     "url_configured_param": predicates.get_url_configured_param,
-    "configured": predicates.is_configured,
     "authorized_to_configure_assignments": predicates.is_authorized_to_configure_assignments,
 }
 
