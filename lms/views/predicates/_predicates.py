@@ -2,6 +2,8 @@ from lms.views.lti.basic_launch import ResourceLinkParam
 
 
 def get_url_configured_param(_context, request):
+    """Get the URL param if we are configured by URL alone."""
+
     # The 'url' is a deep linked launch reading the param we sent to the LMS
     # to store during deep linking. All other params are situation specific.
     for param in ["url", "canvas_file", "vitalsource_book"]:
@@ -12,12 +14,16 @@ def get_url_configured_param(_context, request):
 
 
 def get_db_configured_param(context, request):
+    """Get the URL link id param if we have a matching DB record."""
+
     param, _assignment = _get_db_configured_param_and_assignment(context, request)
 
     return param
 
 
 def _get_db_configured_param_and_assignment(context, request):
+    """Get a tuple of param and assignment if we have a matching DB record."""
+
     for param in (
         ResourceLinkParam.LTI,
         ResourceLinkParam.COPIED_BRIGHTSPACE,
