@@ -6,8 +6,9 @@ from typing_extensions import NotRequired
 
 from lms.models import Course, Grouping, GroupingMembership, User
 from lms.models._hashed_id import hashed_id
-from lms.product.grouping import GroupingPlugin, plugin_factory
 from lms.services.upsert import bulk_upsert
+
+from lms.services.grouping._plugin import GroupingServicePlugin
 
 
 class GroupingInfo(TypedDict):
@@ -18,10 +19,10 @@ class GroupingInfo(TypedDict):
 
 
 class GroupingService:
-    def __init__(self, db, application_instance, plugin: GroupingPlugin):
+    def __init__(self, db, application_instance, plugin: GroupingServicePlugin):
         self._db = db
         self.application_instance = application_instance
-        self._grouping_plugin = plugin
+        self.plugin = plugin
 
     def get_authority_provided_id(
         self, lms_id, type_: Grouping.Type, parent: Optional[Grouping] = None
@@ -152,36 +153,46 @@ class GroupingService:
 
         return query.all()
 
-    def get_groupings(
-        self, grouping_type, course, group_set_id=None, grading_student_id=None
-    ):
-        if grouping_type == Grouping.GroupingType.SECTIONS:
-            groupings = self._grouping_plugin.get_sections(
+    def get_sections(self, lti_user, course, grading_student_id=None):
+        if not self.plugin.sections_type:
+            return None
+
+        if lti_user.is_learner:
+            groupings = self.plugin.get_sections_for_learner(self, course)
+
+        elif grading_student_id:
+            groupings = self.plugin.get_sections_for_grading(
                 self, course, grading_student_id
             )
 
-        elif grouping_type == Grouping.GroupingType.GROUPS:
-            groupings = self._grouping_plugin.get_groups(
+        else:
+            groupings = self.plugin.get_sections_for_instructor(self, course)
+
+        return self._to_groupings(groupings, course, self.plugin.sections_type)
+
+    def get_groups(self, lti_user, course, group_set_id, grading_student_id=None):
+        if not self.plugin.group_type:
+            return None
+
+        if lti_user.is_learner:
+            groupings = self.plugin.get_groups_for_learner(self, course, group_set_id)
+
+        elif grading_student_id:
+            groupings = self.plugin.get_groups_for_grading(
                 self, course, group_set_id, grading_student_id
             )
 
-        return self._to_groupings(grouping_type, groupings, course)
+        else:
+            groupings = self.plugin.get_groups_for_instructor(
+                self, course, group_set_id
+            )
 
-    def get_current_groups(
-        self, course, group_set_id, grading_student_id
-    ) -> List[Grouping]:
-        return
-        pass
+        return self._to_groupings(groupings, course, self.plugin.group_type)
 
-    def get_current_sections(self, course, grading_student_id) -> List[Grouping]:
-        pass
+    def _to_groupings(self, groupings, course, type_):
+        if groupings and not isinstance(groupings[0], Grouping):
+            groupings = self.upsert_groupings(groupings, parent=course, type_=type_)
 
+        self.upsert_grouping_memberships(self._user, groupings)
 
-def factory(context, request):
-    return GroupingService(
-        db=request.db,
-        application_instance=request.find_service(
-            name="application_instance"
-        ).get_current(),
-        plugin=plugin_factory(context, request),
-    )
+        return groupings
