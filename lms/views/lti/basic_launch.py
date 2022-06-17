@@ -84,7 +84,7 @@ class BasicLaunchViews:
             assignment_extra=extra,
         )
 
-    @view_config(db_configured=True, canvas_file=False, url_configured=False)
+    @view_config(db_configured=True, url_configured_param=False)
     def db_configured_launch(self):
         """
         Respond to a DB-configured assignment launch.
@@ -102,7 +102,7 @@ class BasicLaunchViews:
 
         return self._show_document_from_db(self.context.resource_link_id)
 
-    @view_config(url_configured=True, schema=URLConfiguredBasicLTILaunchSchema)
+    @view_config(url_configured_param="url", schema=URLConfiguredBasicLTILaunchSchema)
     def url_configured_launch(self):
         """
         Respond to a URL-configured assignment launch.
@@ -191,7 +191,7 @@ class BasicLaunchViews:
             self.request.params.get(ResourceLinkParam.COPIED_BRIGHTSPACE)
         )
 
-    @view_config(canvas_file=True)
+    @view_config(url_configured_param="canvas_file")
     def canvas_file_launch(self):
         """
         Respond to a Canvas file assignment launch which is not db_configured.
@@ -210,7 +210,7 @@ class BasicLaunchViews:
             document_url=f"canvas://file/course/{course_id}/file_id/{file_id}"
         )
 
-    @view_config(vitalsource_book=True)
+    @view_config(url_configured_param="vitalsource_book")
     def legacy_vitalsource_launch(self):
         """
         Respond to a legacy configured VitalSource assignment.

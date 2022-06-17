@@ -1,25 +1,11 @@
-def is_canvas_file(_context, request):
-    """Get if this is a Canvas file launch."""
+def get_url_configured_param(_context, request):
+    # The 'url' is a deep linked launch reading the param we sent to the LMS
+    # to store during deep linking. All other params are situation specific.
+    for param in ["url", "canvas_file", "vitalsource_book"]:
+        if param in request.params:
+            return param
 
-    return "canvas_file" in request.params
-
-
-def is_vitalsource_book(_context, request):
-    """Get if this is a Vitalsource launch."""
-
-    return "vitalsource_book" in request.params
-
-
-def is_deep_linking_configured(_context, request):
-    """
-    Get if this is a deep-linked launch.
-
-    This is where the document is stored in the LMS and provided to us at
-    launch time in the params. This is here because we stored it there when we
-    sent the deep linking configuration.
-    """
-
-    return "url" in request.params
+    return None
 
 
 def is_db_configured(context, request):
@@ -53,9 +39,7 @@ def is_configured(context, request):
     """Get if this launch is configured in any way."""
 
     for predicate in (
-        is_canvas_file,
-        is_deep_linking_configured,
-        is_vitalsource_book,
+        get_url_configured_param,
         is_db_configured,
         is_blackboard_copied,
         is_brightspace_copied,
