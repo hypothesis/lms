@@ -16,13 +16,6 @@ class TestAssignmentService:
     def test_get_assignment_without_match(self, svc, non_matching_params):
         assert svc.get_assignment(**non_matching_params) is None
 
-    @pytest.mark.usefixtures("assignment")
-    def test_assignment_exists(self, svc, matching_params):
-        assert svc.assignment_exists(**matching_params)
-
-    def test_assignment_exists_without_match(self, svc, non_matching_params):
-        assert not svc.assignment_exists(**non_matching_params)
-
     upsert_kwargs = {
         "document_url": "new_document_url",
         "extra": {"new": "values"},

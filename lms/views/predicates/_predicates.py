@@ -8,46 +8,57 @@ def get_url_configured_param(_context, request):
     return None
 
 
-def is_db_configured(context, request):
-    """Get if this launch has assignment configuration in the DB."""
-
-    return _has_assignment_in_db(context, request, context.resource_link_id)
-
-
 class ResourceLinkParam:
+    # A normal LTI (non-deep linked) launch
+    LTI = "resource_link_id"
+
+    # A Brightspace course we can copy
     COPIED_BRIGHTSPACE = "ext_d2l_resource_link_id_history"
+
+    # A Blackboard course we can copy
     COPIED_BLACKBOARD = "resource_link_id_history"
 
 
-def is_brightspace_copied(context, request):
-    """Get if this is a Brightspace course we can copy."""
+def get_db_configured_param(context, request):
+    param, _assignment = _get_db_configured_param_and_assignment(context, request)
 
-    return not is_db_configured(context, request) and _has_assignment_in_db(
-        context, request, request.params.get(ResourceLinkParam.COPIED_BRIGHTSPACE)
-    )
+    return param
 
 
-def is_blackboard_copied(context, request):
-    """Get if this is a Blackboard course we can copy."""
+def _get_db_configured_param_and_assignment(context, request):
+    for param in (
+        ResourceLinkParam.LTI,
+        ResourceLinkParam.COPIED_BRIGHTSPACE,
+        ResourceLinkParam.COPIED_BLACKBOARD,
+    ):
+        # Horrible work around
+        if param == ResourceLinkParam.LTI:
+            resource_link_id = context.resource_link_id
+        else:
+            resource_link_id = context.lti_params.get(param)
 
-    return not is_db_configured(context, request) and _has_assignment_in_db(
-        context, request, request.params.get(ResourceLinkParam.COPIED_BLACKBOARD)
-    )
+        if not resource_link_id:
+            continue
+
+        assigment = request.find_service(name="assignment").get_assignment(
+            tool_consumer_instance_guid=context.lti_params.get(
+                "tool_consumer_instance_guid"
+            ),
+            resource_link_id=resource_link_id,
+        )
+        if assigment:
+            return param, assigment
+
+    return None, None
 
 
 def is_configured(context, request):
     """Get if this launch is configured in any way."""
 
-    for predicate in (
-        get_url_configured_param,
-        is_db_configured,
-        is_blackboard_copied,
-        is_brightspace_copied,
-    ):
-        if predicate(context, request):
-            return True
-
-    return False
+    return bool(
+        get_url_configured_param(context, request)
+        or get_db_configured_param(context, request)
+    )
 
 
 def is_authorized_to_configure_assignments(_context, request):
@@ -60,15 +71,4 @@ def is_authorized_to_configure_assignments(_context, request):
 
     return any(
         role in roles for role in ["administrator", "instructor", "teachingassistant"]
-    )
-
-
-def _has_assignment_in_db(context, request, resource_link_id):
-    """Get if this launch has an assignment matching."""
-
-    return request.find_service(name="assignment").assignment_exists(
-        tool_consumer_instance_guid=context.lti_params.get(
-            "tool_consumer_instance_guid"
-        ),
-        resource_link_id=resource_link_id,
     )
