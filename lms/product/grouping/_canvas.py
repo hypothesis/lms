@@ -10,7 +10,9 @@ class CanvasGroupingPlugin(GroupingPlugin):
         super().__init__(user, lti_user)
         self._canvas_api = canvas_api_client
 
-    def get_sections(self, course, grading_student_id=None) -> List[Grouping]:
+    def get_sections(
+        self, grouping_service, course, grading_student_id=None
+    ) -> List[Grouping]:
         custom_course_id = course.extra["canvas"]["custom_canvas_course_id"]
 
         if self._lti_user.is_learner:

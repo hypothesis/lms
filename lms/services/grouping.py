@@ -156,11 +156,13 @@ class GroupingService:
         self, grouping_type, course, group_set_id=None, grading_student_id=None
     ):
         if grouping_type == Grouping.GroupingType.SECTIONS:
-            groupings = self._grouping_plugin.get_sections(course, grading_student_id)
+            groupings = self._grouping_plugin.get_sections(
+                self, course, grading_student_id
+            )
 
         elif grouping_type == Grouping.GroupingType.GROUPS:
             groupings = self._grouping_plugin.get_groups(
-                course, group_set_id, grading_student_id
+                self, course, group_set_id, grading_student_id
             )
 
         return self._to_groupings(grouping_type, groupings, course)
