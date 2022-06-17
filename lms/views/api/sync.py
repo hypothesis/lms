@@ -3,7 +3,6 @@ from pyramid.view import view_config
 from webargs import fields
 
 from lms.security import Permissions
-from lms.services import ProductGroupingService
 from lms.validation._base import PyramidRequestSchema
 
 
@@ -33,15 +32,6 @@ class Sync:
     def __init__(self, request):
         self.request = request
         self.grouping_service = self.request.find_service(name="grouping")
-        self.blackboard_api = self.request.find_service(name="blackboard_api_client")
-
-        self.tool_consumer_instance_guid = self.request.parsed_params["lms"][
-            "tool_consumer_instance_guid"
-        ]
-
-        self.product_grouping: ProductGroupingService = self.request.find_service(
-            ProductGroupingService
-        )
 
     @view_config(
         route_name="api.sync",
@@ -55,10 +45,12 @@ class Sync:
         course = self.request.find_service(name="course").get_by_context_id(course_id)
 
         if group_set_id := self.request.parsed_params("group_set_id"):
-            groupings = self.product_grouping.get_groups(course, group_set_id)
+            groupings = self.grouping_service.get_groups(
+                course, group_set_id, self.request.parsed_params["gradingStudentId"]
+            )
         else:
-            groupings = self.product_grouping.get_sections(
-                course, self.request.parsed_params
+            groupings = self.grouping_service.get_sections(
+                course, self.request.parsed_params["gradingStudentId"]
             )
 
         self._sync_to_h(groupings)

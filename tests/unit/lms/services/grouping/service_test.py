@@ -1,10 +1,11 @@
-from unittest.mock import sentinel
+from unittest.mock import create_autospec, sentinel
 
 import pytest
 from h_matchers import Any
 
 from lms.models import CanvasGroup, Course, Grouping, GroupingMembership
 from lms.services.grouping import GroupingService, factory
+from lms.services.grouping._plugin import GroupingServicePlugin
 from tests import factories
 
 
@@ -322,24 +323,11 @@ class TestGetCourseGroupingsForUser:
         return make_grouping
 
 
-class TestFactory:
-    def test_it(self, pyramid_request, application_instance_service, GroupingService):
-        svc = factory(sentinel.context, pyramid_request)
-
-        application_instance_service.get_current.assert_called_once_with()
-
-        GroupingService.assert_called_once_with(
-            db=pyramid_request.db,
-            application_instance=application_instance_service.get_current.return_value,
-        )
-
-        assert svc == GroupingService.return_value
-
-    @pytest.fixture
-    def GroupingService(self, patch):
-        return patch("lms.services.grouping.GroupingService")
+@pytest.fixture
+def plugin():
+    return create_autospec(GroupingServicePlugin, spec_set=True, instance=True)
 
 
 @pytest.fixture
-def svc(db_session, application_instance):
-    return GroupingService(db_session, application_instance)
+def svc(db_session, application_instance, plugin):
+    return GroupingService(db_session, application_instance, plugin=plugin)

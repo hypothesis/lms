@@ -449,13 +449,13 @@ class JSConfig:
         req = self._request
         return {
             "authUrl": self._lms_auth_url,
+            "product": self._request.product.family,
             "path": req.route_path("api.sync"),
             "data": {
                 "lms": {
                     "tool_consumer_instance_guid": self._context.lti_params[
                         "tool_consumer_instance_guid"
                     ],
-                    "product": self._request.product.family,
                 },
                 "course": {
                     "context_id": self._context.lti_params["context_id"],

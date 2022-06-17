@@ -100,7 +100,10 @@ class TestCanvasAPIClientIntegrated:
 
         response = canvas_api_client.course_sections("COURSE_ID")
 
-        assert response == sections
+        assert response == [
+            {"lms_id": 101, "lms_name": "name_1", "extra": {"group_set_id": None}},
+            {"lms_id": 102, "lms_name": "name_2", "extra": {"group_set_id": None}},
+        ]
         http_session.send.assert_called_once_with(
             Any.request(
                 "GET", url=Any.url.with_path("api/v1/courses/COURSE_ID/sections")

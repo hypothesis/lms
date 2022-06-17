@@ -423,9 +423,7 @@ class CanvasAPIClient:
         return list(sections_by_id.values())
 
     def _to_grouping_info(self, api_result: List[Dict]):
-        """
-        Convert dicts returned by the API to a common format we can use in GroupingService
-        """
+        """Convert dicts returned by the API to a common format we can use in GroupingService."""
         return [
             {
                 "lms_id": g["id"],

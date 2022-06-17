@@ -306,44 +306,63 @@ class TestJSConfigAuthToken:
 class TestJSConfigAPISync:
     """Unit tests for the api.sync sub-dict of JSConfig."""
 
-    @pytest.mark.usefixtures("with_sections_on")
-    def test_when_is_canvas(self, sync, pyramid_request, GroupInfo):
-        assert sync == {
-            "authUrl": "http://example.com/api/canvas/oauth/authorize",
-            "product": "canvas",
-            "path": "/api/canvas/sync",
-            "data": {
-                "course": {
-                    "context_id": "test_context_id",
-                    "custom_canvas_course_id": "test_custom_canvas_course_id",
-                    "group_set": None,
-                },
-                "lms": {
-                    "tool_consumer_instance_guid": "test_tool_consumer_instance_guid"
-                },
-                "group_info": {
-                    key: value
-                    for key, value in pyramid_request.params.items()
-                    if key in GroupInfo.columns.return_value
-                },
-            },
-        }
+    @pytest.mark.parametrize(
+        "grouping_type,empty",
+        [
+            (Grouping.Type.GROUP, False),
+            (Grouping.Type.SECTION, False),
+            (Grouping.Type.COURSE, True),
+        ],
+    )
+    def test_grouping_type_dependency(self, js_config, config, grouping_type, empty):
+        context.grouping_type = grouping_type
+        # Call enable_lti_launch_mode() so that the api.sync section gets
+        # inserted into the config.
+        js_config.enable_lti_launch_mode()
 
-    @pytest.mark.usefixtures("blackboard_group_launch")
-    def test_when_is_blackboard(self, sync, pyramid_request, GroupInfo):
-        assert sync == {
-            "authUrl": "http://example.com/api/blackboard/oauth/authorize",
-            "product": Product.Family.BLACKBOARD,
-            "path": "/api/blackboard/sync",
+        sync = config["api"]["sync"]
+
+        assert (sync is None) == empty
+
+    @pytest.mark.parametrize(
+        "product,auth_url",
+        [
+            (Product.Family.CANVAS, "http://example.com/api/canvas/oauth/authorize"),
+            (
+                Product.Family.BLACKBOARD,
+                "http://example.com/api/blackboard/oauth/authorize",
+            ),
+        ],
+    )
+    def test_it(
+        self, config, js_config, pyramid_request, GroupInfo, product, auth_url, context
+    ):
+        pyramid_request.product.family = product
+
+        # Call enable_lti_launch_mode() so that the api.sync section gets
+        # inserted into the config.
+        js_config.enable_lti_launch_mode()
+
+        sync = config["api"]["sync"]
+
+        test = {
+            "authUrl": auth_url,
+            "product": product,
+            "path": "/api/sync",
             "data": {
-                "course": {
-                    "context_id": "test_context_id",
-                },
                 "assignment": {
                     "resource_link_id": "test_resource_link_id",
                 },
+                "course": {
+                    "context_id": "test_context_id",
+                    "custom_canvas_course_id": "test_custom_canvas_course_id",
+                    "group_set_id": context.group_set_id,
+                },
                 "lms": {
-                    "tool_consumer_instance_guid": "test_tool_consumer_instance_guid"
+                    "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID"
+                },
+                "learner": {
+                    "canvas_user_id": "test_learner_canvas_user_id",
                 },
                 "group_info": {
                     key: value
@@ -353,15 +372,23 @@ class TestJSConfigAPISync:
             },
         }
 
-    @pytest.mark.usefixtures("with_sections_on", "learner_canvas_user_id")
-    def test_it_adds_learner_canvas_user_id_for_SpeedGrader_launches(self, sync):
-        assert sync["data"]["learner"] == {
-            "canvas_user_id": "test_learner_canvas_user_id",
-            "group_set": None,
-        }
+        assert sync == test
 
-    def test_its_None_if_section_and_groups_arent_enabled(self, sync):
-        assert sync is None
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request, context):
+        context.grouping_type = Grouping.Type.GROUP
+
+        pyramid_request.params.clear()
+        pyramid_request.params.update(
+            {
+                "resource_link_id": "TEST_RESOURCE_LINK_ID",
+                "context_id": "test_context_id",
+                "custom_canvas_course_id": "test_custom_canvas_course_id",
+                "learner_canvas_user_id": "test_learner_canvas_user_id",
+                "foo": "bar",  # This item should be missing from group_info.
+            }
+        )
+        return pyramid_request
 
     @pytest.fixture
     def sync(self, config, js_config):
@@ -370,29 +397,6 @@ class TestJSConfigAPISync:
         js_config.enable_lti_launch_mode()
 
         return config["api"]["sync"]
-
-    @pytest.fixture
-    def learner_canvas_user_id(self, pyramid_request):
-        pyramid_request.params["learner_canvas_user_id"] = "test_learner_canvas_user_id"
-
-    @pytest.fixture
-    def blackboard_group_launch(self, context, pyramid_request):
-        context.grouping_type = Grouping.Type.GROUP
-        pyramid_request.product.family = Product.Family.BLACKBOARD
-
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.params.clear()
-        pyramid_request.params.update(
-            {
-                "context_id": "test_context_id",
-                "custom_canvas_course_id": "test_custom_canvas_course_id",
-                "resource_link_id": "test_resource_link_id",
-                "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
-                "foo": "bar",  # This item should be missing from group_info.
-            }
-        )
-        return pyramid_request
 
 
 class TestJSConfigDebug:
@@ -654,7 +658,7 @@ def pyramid_request(pyramid_request):
             "lis_result_sourcedid": "example_lis_result_sourcedid",
             "lis_outcome_service_url": "example_lis_outcome_service_url",
             "context_id": "test_course_id",
-            "custom_canvas_course_id": "test_course_id",
+            "custom_canvas_course_id": "test_custom_canvas_course_id",
             "custom_canvas_user_id": "test_user_id",
         }
     )

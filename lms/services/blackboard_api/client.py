@@ -187,9 +187,7 @@ class BlackboardAPIClient:
         return self._to_grouping_info(self_enrollment_groups + instructor_only_groups)
 
     def _to_grouping_info(self, api_result: List[Dict]):
-        """
-        Convert dicts returned by the API to a common format we can use in GroupingService
-        """
+        """Convert dicts returned by the API to a common format we can use in GroupingService."""
         return [
             {
                 "lms_id": g["id"],
