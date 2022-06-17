@@ -117,7 +117,8 @@ class BasicLaunchViews:
 
     @view_config(
         authorized_to_configure_assignments=True,
-        configured=False,
+        url_configured_param=False,
+        db_configured_param=False,
         renderer="lms:templates/file_picker.html.jinja2",
     )
     def unconfigured_launch(self):
@@ -157,7 +158,8 @@ class BasicLaunchViews:
     # pylint:disable=no-self-use
     @view_config(
         authorized_to_configure_assignments=False,
-        configured=False,
+        url_configured_param=False,
+        db_configured_param=False,
         renderer="lms:templates/lti/basic_launch/unconfigured_launch_not_authorized.html.jinja2",
     )
     def unconfigured_launch_not_authorized(self):

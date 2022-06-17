@@ -9,7 +9,6 @@ from lms.views.predicates._predicates import (
     get_db_configured_param,
     get_url_configured_param,
     is_authorized_to_configure_assignments,
-    is_configured,
 )
 
 
@@ -76,37 +75,6 @@ class TestGetDBConfiguredParam:
         assignment_service.get_assignment.return_value = None
 
         assert not get_db_configured_param(context, pyramid_request)
-
-
-class TestIsConfigured:
-    PREDICATES = ["get_url_configured_param", "get_db_configured_param"]
-
-    @pytest.mark.parametrize("predicate_name", PREDICATES)
-    def test_it(self, predicates, predicate_name):
-        pred_pos = self.PREDICATES.index(predicate_name)
-        predicates[pred_pos].return_value = True
-
-        result = is_configured(sentinel.context, sentinel.request)
-
-        assert result
-
-        for predicate in predicates[: pred_pos + 1]:
-            predicate.assert_called_once_with(sentinel.context, sentinel.request)
-        for predicate in predicates[pred_pos + 1 :]:
-            predicate.assert_not_called()
-
-    def test_it_returns_false_if_all_false(self):
-        assert not is_configured(sentinel.context, sentinel.request)
-
-    @pytest.fixture(autouse=True)
-    def predicates(self, patch):
-        predicates = []
-        for predicate in self.PREDICATES:
-            predicate = patch(f"lms.views.predicates._predicates.{predicate}")
-            predicate.return_value = False
-            predicates.append(predicate)
-
-        return predicates
 
 
 class TestIsAuthorizedToConfigureAssignments:

@@ -52,15 +52,6 @@ def _get_db_configured_param_and_assignment(context, request):
     return None, None
 
 
-def is_configured(context, request):
-    """Get if this launch is configured in any way."""
-
-    return bool(
-        get_url_configured_param(context, request)
-        or get_db_configured_param(context, request)
-    )
-
-
 def is_authorized_to_configure_assignments(_context, request):
     """Get if the current user allowed to configured assignments."""
 
