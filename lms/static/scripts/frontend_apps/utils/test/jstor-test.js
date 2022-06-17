@@ -41,6 +41,10 @@ describe('utils/jstor', () => {
       // Proxied JSTOR URLs
       ['https://www-jstor-org.someuni.edu/stable/1234', '1234'],
       ['https://www.jstor.org.someproxy.usc.edu/stable/1234', '1234'],
+      [
+        'https://www.jstor.org.someproxy.usc.edu/stable/pdf/abc.def.pdf',
+        'abc.def',
+      ],
     ].forEach(([input, expected]) => {
       it('returns article ID if input format is supported', () => {
         assert.equal(articleIdFromUserInput(input), expected);
@@ -48,7 +52,7 @@ describe('utils/jstor', () => {
     });
 
     [
-      // Not a URL
+      // Not a URL or ID
       'foo-bar',
 
       // Missing "/stable/"

@@ -14,8 +14,8 @@ function isDOI(value) {
  *
  * Accepts input in various forms:
  *
- * - A numeric ID (1234)
- * - A DOI (10.2307/1234)
+ * - A JSTOR ID (eg. 1234 or abc123.456)
+ * - A DOI (eg. 10.2307/1234)
  * - A canonical URL for a JSTOR article (eg. http[s]://www.jstor.org/stable/<articleID>
  *   OR http[s]://www.jstor.org/stable/<doiPrefix>/<doiSuffix>)
  * - A URL for a JSTOR article that has being proxied through an institution's
