@@ -6,22 +6,6 @@ from lms.services.product.grouping.interface import ProductGroupingService
 from lms.views.api.exceptions import GroupError
 
 
-class BlackboardStudentNotInGroup(GroupError):
-    """Student doesn't belong to any of the groups in a group set assignment."""
-
-    error_code = "blackboard_student_not_in_group"
-
-
-class BlackboardGroupSetEmpty(GroupError):
-    """Canvas GroupSet doesn't contain any groups."""
-
-    error_code = "blackboard_group_set_empty"
-
-
-class BlackboardGroupSetNotFound(GroupError):
-    error_code = "blackboard_group_set_not_found"
-
-
 class BlackboardGroupingService(ProductGroupingService):
     def __init__(self, user, lti_user, grouping_service, blackboard_api):
         super().__init__(user, lti_user, grouping_service)
@@ -36,9 +20,7 @@ class BlackboardGroupingService(ProductGroupingService):
             if not learner_groups:
                 raise BlackboardStudentNotInGroup(group_set=group_set_id)
 
-            return self._to_groupings(
-                Grouping.Type.BLACKBOARD_GROUP, learner_groups, course
-            )
+            return learner_groups
 
         if grading_student_id:
             return self._grouping_service.get_course_groupings_for_user(

@@ -3,11 +3,10 @@ from typing import List
 from lms.models import Grouping
 
 
-class ProductGroupingService:
-    def __init__(self, user, lti_user, grouping_service):
+class GroupingPlugin:
+    def __init__(self, user, lti_user):
         self._user = user
         self._lti_user = lti_user
-        self._grouping_service = grouping_service
 
     def get_groups(self, _course, _group_set_id, _grading_student_id) -> List[Grouping]:
         raise NotImplementedError

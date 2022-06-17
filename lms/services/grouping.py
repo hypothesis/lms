@@ -1,11 +1,12 @@
 from typing import List, Optional, TypedDict, Union
-from typing_extensions import NotRequired
 
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
+from typing_extensions import NotRequired
 
 from lms.models import Course, Grouping, GroupingMembership, User
 from lms.models._hashed_id import hashed_id
+from lms.product.grouping import GroupingPlugin, plugin_factory
 from lms.services.upsert import bulk_upsert
 
 
@@ -17,9 +18,10 @@ class GroupingInfo(TypedDict):
 
 
 class GroupingService:
-    def __init__(self, db, application_instance):
+    def __init__(self, db, application_instance, plugin: GroupingPlugin):
         self._db = db
         self.application_instance = application_instance
+        self._grouping_plugin = plugin
 
     def get_authority_provided_id(
         self, lms_id, type_: Grouping.Type, parent: Optional[Grouping] = None
@@ -150,11 +152,34 @@ class GroupingService:
 
         return query.all()
 
+    def get_groupings(
+        self, grouping_type, course, group_set_id=None, grading_student_id=None
+    ):
+        if grouping_type == Grouping.GroupingType.SECTIONS:
+            groupings = self._grouping_plugin.get_sections(course, grading_student_id)
 
-def factory(_context, request):
+        elif grouping_type == Grouping.GroupingType.GROUPS:
+            groupings = self._grouping_plugin.get_groups(
+                course, group_set_id, grading_student_id
+            )
+
+        return self._to_groupings(grouping_type, groupings, course)
+
+    def get_current_groups(
+        self, course, group_set_id, grading_student_id
+    ) -> List[Grouping]:
+        return
+        pass
+
+    def get_current_sections(self, course, grading_student_id) -> List[Grouping]:
+        pass
+
+
+def factory(context, request):
     return GroupingService(
         db=request.db,
         application_instance=request.find_service(
             name="application_instance"
         ).get_current(),
+        plugin=plugin_factory(context, request),
     )

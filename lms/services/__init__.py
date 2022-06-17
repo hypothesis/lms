@@ -22,7 +22,6 @@ from lms.services.launch_verifier import (
 from lms.services.lti_grading import LTIGradingService
 from lms.services.lti_registration import LTIRegistrationService
 from lms.services.ltia_http import LTIAHTTPService
-from lms.services.product.grouping.interface import ProductGroupingService
 from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
 
@@ -89,8 +88,4 @@ def includeme(config):
     config.register_service_factory("lms.services.rsa_key.factory", iface=RSAKeyService)
     config.register_service_factory(
         "lms.services.ltia_http.factory", iface=LTIAHTTPService
-    )
-    config.register_service_factory(
-        "lms.services.product.grouping.factory.service_factory",
-        iface=ProductGroupingService,
     )

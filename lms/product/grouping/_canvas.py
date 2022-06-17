@@ -1,18 +1,13 @@
 from typing import List
 
 from lms.models import Grouping
+from lms.product.grouping.interface import GroupingPlugin
 from lms.services import CanvasAPIError
-from lms.services.product.grouping.interface import ProductGroupingService
-from lms.views import (
-    CanvasGroupSetEmpty,
-    CanvasGroupSetNotFound,
-    CanvasStudentNotInGroup,
-)
 
 
-class CanvasGroupingService(ProductGroupingService):
-    def __init__(self, user, lti_user, grouping_service, canvas_api_client):
-        super().__init__(user, lti_user, grouping_service)
+class CanvasGroupingPlugin(GroupingPlugin):
+    def __init__(self, user, lti_user, canvas_api_client):
+        super().__init__(user, lti_user)
         self._canvas_api = canvas_api_client
 
     def get_sections(self, course, grading_student_id=None) -> List[Grouping]:
