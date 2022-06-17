@@ -6,12 +6,10 @@ from lms.models import LTIParams
 from lms.resources import LTILaunchResource
 from lms.views.predicates._predicates import (
     ResourceLinkParam,
+    get_db_configured_param,
     get_url_configured_param,
     is_authorized_to_configure_assignments,
-    is_blackboard_copied,
-    is_brightspace_copied,
     is_configured,
-    is_db_configured,
 )
 
 
@@ -33,84 +31,55 @@ class TestGetURLConfiguredParam:
         assert get_url_configured_param(sentinel.context, pyramid_request) == expected
 
 
-class TestIsDBConfigured:
-    @pytest.mark.parametrize("exists", (True, False))
-    def test_it(self, context, pyramid_request, assignment_service, exists):
-        assignment_service.assignment_exists.return_value = exists
-
-        result = is_db_configured(context, pyramid_request)
-
-        assert result == exists
-        assignment_service.assignment_exists.assert_called_once_with(
-            tool_consumer_instance_guid=context.lti_params[
-                "tool_consumer_instance_guid"
-            ],
-            resource_link_id=context.resource_link_id,
-        )
-
-
-class TestCourseCopied:
+class TestGetDBConfiguredParam:
+    @pytest.mark.parametrize(
+        "lti_params,expected",
+        (
+            ({}, None),
+            ({ResourceLinkParam.LTI: sentinel.link_id}, ResourceLinkParam.LTI),
+            (
+                {ResourceLinkParam.COPIED_BRIGHTSPACE: sentinel.link_id},
+                ResourceLinkParam.COPIED_BRIGHTSPACE,
+            ),
+            (
+                {ResourceLinkParam.COPIED_BLACKBOARD: sentinel.link_id},
+                ResourceLinkParam.COPIED_BLACKBOARD,
+            ),
+        ),
+    )
     def test_it(
-        self,
-        context,
-        pyramid_request,
-        is_db_configured,
-        comparison,
-        param,
-        assignment_service,
+        self, context, pyramid_request, assignment_service, lti_params, expected
     ):
-        pyramid_request.params[param] = sentinel.link_id
+        context.lti_params.update(lti_params)
+        # Horrible work around
+        if expected == ResourceLinkParam.LTI:
+            context.resource_link_id = sentinel.link_id
+        else:
+            context.resource_link_id = None
 
-        result = comparison(context, pyramid_request)
+        result = get_db_configured_param(context, pyramid_request)
 
-        assert result
-        is_db_configured.assert_called_once_with(context, pyramid_request)
-        assignment_service.assignment_exists.assert_called_once_with(
-            tool_consumer_instance_guid=context.lti_params[
-                "tool_consumer_instance_guid"
-            ],
-            resource_link_id=sentinel.link_id,
-        )
+        assert result == expected
 
-    def test_it_returns_false_for_db_configured_launches(
-        self, context, pyramid_request, is_db_configured, comparison
+        if expected:
+            assignment_service.get_assignment.assert_called_once_with(
+                tool_consumer_instance_guid=context.lti_params[
+                    "tool_consumer_instance_guid"
+                ],
+                resource_link_id=sentinel.link_id,
+            )
+
+    def test_it_returns_none_if_assignment_is_not_found(
+        self, context, pyramid_request, assignment_service
     ):
-        is_db_configured.return_value = True
+        context.resource_link_id = sentinel.link_id
+        assignment_service.get_assignment.return_value = None
 
-        assert not comparison(context, pyramid_request)
-
-    def test_it_returns_false_for_no_db_record(
-        self, context, pyramid_request, comparison, assignment_service
-    ):
-        assignment_service.assignment_exists.return_value = False
-
-        assert not comparison(context, pyramid_request)
-
-    @pytest.fixture(params=[is_brightspace_copied, is_blackboard_copied])
-    def comparison(self, request):
-        return request.param
-
-    @pytest.fixture
-    def param(self, comparison):
-        return {
-            is_brightspace_copied: ResourceLinkParam.COPIED_BRIGHTSPACE,
-            is_blackboard_copied: ResourceLinkParam.COPIED_BLACKBOARD,
-        }[comparison]
-
-    @pytest.fixture(autouse=True)
-    def is_db_configured(self, patch):
-        is_db_configured = patch("lms.views.predicates._predicates.is_db_configured")
-        is_db_configured.return_value = False
-        return is_db_configured
+        assert not get_db_configured_param(context, pyramid_request)
 
 
 class TestIsConfigured:
-    PREDICATES = [
-        "get_url_configured_param",
-        "is_db_configured",
-        "is_blackboard_copied",
-        "is_brightspace_copied",
-    ]
+    PREDICATES = ["get_url_configured_param", "get_db_configured_param"]
 
     @pytest.mark.parametrize("predicate_name", PREDICATES)
     def test_it(self, predicates, predicate_name):

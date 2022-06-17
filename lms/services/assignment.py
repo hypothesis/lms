@@ -1,4 +1,3 @@
-from functools import lru_cache
 from typing import List
 
 from sqlalchemy.orm import Session
@@ -32,10 +31,6 @@ class AssignmentService:
             )
             .one_or_none()
         )
-
-    @lru_cache(maxsize=128)
-    def assignment_exists(self, tool_consumer_instance_guid, resource_link_id) -> bool:
-        return bool(self.get_assignment(tool_consumer_instance_guid, resource_link_id))
 
     # pylint: disable=too-many-arguments
     def upsert_assignment(

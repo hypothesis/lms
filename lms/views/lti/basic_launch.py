@@ -84,7 +84,7 @@ class BasicLaunchViews:
             assignment_extra=extra,
         )
 
-    @view_config(db_configured=True, url_configured_param=False)
+    @view_config(db_configured_param=ResourceLinkParam.LTI, url_configured_param=False)
     def db_configured_launch(self):
         """
         Respond to a DB-configured assignment launch.
@@ -175,7 +175,7 @@ class BasicLaunchViews:
     # LMS / content specific #
     # ---------------------- #
 
-    @view_config(blackboard_copied=True)
+    @view_config(db_configured_param=ResourceLinkParam.COPIED_BLACKBOARD)
     def blackboard_copied_launch(self):
         """Respond to a launch of a newly-copied Blackboard assignment."""
 
@@ -183,7 +183,7 @@ class BasicLaunchViews:
             self.request.params.get(ResourceLinkParam.COPIED_BLACKBOARD)
         )
 
-    @view_config(brightspace_copied=True)
+    @view_config(db_configured_param=ResourceLinkParam.COPIED_BRIGHTSPACE)
     def brightspace_copied_launch(self):
         """Respond to a launch of a newly-copied Brightspace assignment."""
 
