@@ -25,7 +25,15 @@ from lms.validation import (
     URLConfiguredBasicLTILaunchSchema,
 )
 from lms.validation.authentication import BearerTokenSchema
-from lms.views.predicates import ResourceLinkParam
+
+
+class ResourceLinkParam:
+    # A normal LTI (non-deep linked) launch
+    LTI = "resource_link_id"
+    # A Brightspace course we can copy
+    COPIED_BRIGHTSPACE = "ext_d2l_resource_link_id_history"
+    # A Blackboard course we can copy
+    COPIED_BLACKBOARD = "resource_link_id_history"
 
 
 @view_defaults(

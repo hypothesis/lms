@@ -11,7 +11,6 @@ from functools import partial
 from typing import Any
 
 from lms.views.predicates import _predicates as predicates
-from lms.views.predicates._predicates import ResourceLinkParam
 
 
 @dataclass

@@ -1,3 +1,6 @@
+from lms.views.lti.basic_launch import ResourceLinkParam
+
+
 def get_url_configured_param(_context, request):
     # The 'url' is a deep linked launch reading the param we sent to the LMS
     # to store during deep linking. All other params are situation specific.
@@ -6,17 +9,6 @@ def get_url_configured_param(_context, request):
             return param
 
     return None
-
-
-class ResourceLinkParam:
-    # A normal LTI (non-deep linked) launch
-    LTI = "resource_link_id"
-
-    # A Brightspace course we can copy
-    COPIED_BRIGHTSPACE = "ext_d2l_resource_link_id_history"
-
-    # A Blackboard course we can copy
-    COPIED_BLACKBOARD = "resource_link_id_history"
 
 
 def get_db_configured_param(context, request):
