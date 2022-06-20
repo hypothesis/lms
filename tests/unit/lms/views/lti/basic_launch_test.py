@@ -6,8 +6,53 @@ import pytest
 from lms.models import ApplicationInstance, LTIParams
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
-from lms.views.lti.basic_launch import BasicLaunchViews
+from lms.views.lti.basic_launch import (
+    BasicLaunchViews,
+    has_document_url,
+    is_authorized_to_configure_assignments,
+)
 from tests import factories
+
+
+class TestHasDocumentURL:
+    @pytest.mark.parametrize("document_url", (None, "a_url"))
+    def test_it(self, document_url_service, pyramid_request, document_url):
+        document_url_service.get_document_url.return_value = document_url
+
+        result = has_document_url(sentinel.context, pyramid_request)
+
+        document_url_service.get_document_url.assert_called_once_with(
+            sentinel.context, pyramid_request
+        )
+        assert result == bool(document_url)
+
+
+class TestIsAuthorizedToConfigureAssignments:
+    @pytest.mark.parametrize(
+        "roles,authorized",
+        (
+            ("administrator,noise", True),
+            ("instructor,noise", True),
+            ("INSTRUCTOR,noise", True),
+            ("teachingassistant,noise", True),
+            ("other", False),
+        ),
+    )
+    def test_it(self, pyramid_request, roles, authorized):
+        pyramid_request.lti_user = pyramid_request.lti_user._replace(roles=roles)
+
+        result = is_authorized_to_configure_assignments(
+            sentinel.context, pyramid_request
+        )
+
+        assert result == authorized
+
+    def test_it_returns_false_with_no_user(self, pyramid_request):
+        pyramid_request.lti_user = None
+
+        assert not is_authorized_to_configure_assignments(
+            sentinel.context, pyramid_request
+        )
 
 
 @pytest.mark.usefixtures(

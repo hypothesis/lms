@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Any
 
-from lms.services.document_url import DocumentURLService
+from lms.views.lti.basic_launch import LTI_LAUNCH_PREDICATES
 
 
 @dataclass
@@ -43,33 +43,8 @@ class Predicate:
         return (value == self.value) or (not value and not self.value)
 
 
-def has_document_url(context, request):
-    return bool(
-        request.find_service(DocumentURLService).get_document_url(context, request)
-    )
-
-
-def is_authorized_to_configure_assignments(_context, request):
-    """Get if the current user allowed to configured assignments."""
-
-    if not request.lti_user:
-        return False
-
-    roles = request.lti_user.roles.lower()
-
-    return any(
-        role in roles for role in ["administrator", "instructor", "teachingassistant"]
-    )
-
-
-PREDICATES = {
-    "has_document_url": has_document_url,
-    "authorized_to_configure_assignments": is_authorized_to_configure_assignments,
-}
-
-
 def includeme(config):
-    for name, comparison in PREDICATES.items():
+    for name, comparison in LTI_LAUNCH_PREDICATES.items():
         config.add_view_predicate(
             name=name, factory=partial(Predicate, name=name, comparison=comparison)
         )
