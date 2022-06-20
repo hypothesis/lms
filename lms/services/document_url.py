@@ -3,13 +3,14 @@ from functools import lru_cache
 from typing import Optional
 from urllib.parse import unquote
 
+from lms.services.assignment import AssignmentService
 from lms.services.vitalsource import VitalSourceService
 
 
 class DocumentURLService:
     """A service for getting LTI launch document URLs."""
 
-    def __init__(self, assignment_service):
+    def __init__(self, assignment_service: AssignmentService):
         self._assignment_service = assignment_service
 
     @lru_cache(1)
@@ -35,7 +36,12 @@ class DocumentURLService:
 
     @classmethod
     def _from_deep_linking_provided_url(cls, _context, request):
-        """Get the URL from our own configuration set during deep linking."""
+        """
+        Get the URL from the deep linking information.
+
+        This is the parameter we send during deep linking configuration coming
+        back to us from the LMS.
+        """
 
         if url := request.params.get("url"):
             # Work around a bug in Canvas's handling of LTI Launch URLs in
@@ -48,7 +54,11 @@ class DocumentURLService:
 
     @classmethod
     def _from_canvas_file(cls, context, request):
-        """Get a Canvas file URL based on temporary data passed from Canvas."""
+        """
+        Get a Canvas file URL.
+
+        These values are ephemeral and can't be stored.
+        """
 
         if request.params.get("canvas_file"):
             course_id = context.lti_params["custom_canvas_course_id"]
@@ -79,8 +89,8 @@ class DocumentURLService:
 
         for param in (
             "resource_link_id",  # A normal LTI (non-deep linked) launch
-            "ext_d2l_resource_link_id_history",  # A Brightspace course we can copy
             "resource_link_id_history",  # A Blackboard course we can copy
+            "ext_d2l_resource_link_id_history",  # Ditto for Brightspace
         ):
             # Horrible work around
             if param == "resource_link_id":
