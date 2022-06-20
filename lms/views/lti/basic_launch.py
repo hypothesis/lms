@@ -16,24 +16,10 @@ from pyramid.view import view_config, view_defaults
 
 from lms.models import LtiLaunches
 from lms.security import Permissions
-from lms.services import LTIRoleService
+from lms.services import DocumentURLService, LTIRoleService
 from lms.services.assignment import AssignmentService
-from lms.services.vitalsource.client import VitalSourceService
-from lms.validation import (
-    BasicLTILaunchSchema,
-    ConfigureAssignmentSchema,
-    URLConfiguredBasicLTILaunchSchema,
-)
+from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
 from lms.validation.authentication import BearerTokenSchema
-
-
-class ResourceLinkParam:
-    # A normal LTI (non-deep linked) launch
-    LTI = "resource_link_id"
-    # A Brightspace course we can copy
-    COPIED_BRIGHTSPACE = "ext_d2l_resource_link_id_history"
-    # A Blackboard course we can copy
-    COPIED_BLACKBOARD = "resource_link_id_history"
 
 
 @view_defaults(
@@ -60,73 +46,24 @@ class BasicLaunchViews:
 
         self._record_launch()
 
-    # ----------------- #
-    # Standard launches #
-    # ----------------- #
-
-    @view_config(
-        authorized_to_configure_assignments=True,
-        route_name="configure_assignment",
-        schema=ConfigureAssignmentSchema,
-    )
-    def configure_assignment(self):
+    @view_config(has_document_url=True)
+    def configured_launch(self):
         """
-        Respond to a configure module item request.
+        Respond to a configured assignment launch.
 
-        This happens after an unconfigured assignment launch. We show the user
-        our document selection form instead of launching the assignment, and
-        when the user chooses a document and submits the form this is the view
-        that receives that form submission.
-
-        We save the chosen document in the DB so that subsequent launches of
-        this same assignment will be DB-configured rather than unconfigured.
-        And we also send back the assignment launch page, passing the chosen
-        URL to Via, as the direct response to the content item form submission.
+        This is any launch where the document URL service can resolve the
+        correct document to show.
         """
-        extra = {}
-        if group_set := self.request.parsed_params.get("group_set"):
-            extra["group_set_id"] = group_set
 
         return self._show_document(
-            document_url=self.request.parsed_params["document_url"],
-            assignment_extra=extra,
+            document_url=self.request.find_service(DocumentURLService).get_document_url(
+                self.context, self.request
+            )
         )
 
-    @view_config(db_configured_param=ResourceLinkParam.LTI, url_configured_param=False)
-    def db_configured_launch(self):
-        """
-        Respond to a DB-configured assignment launch.
-
-        DB-configured assignment launch requests don't have any kind of file ID
-        or document URL in the request. Instead the document URL is stored in
-        our own DB. This happens with LMS's that don't support LTI deep linking,
-        so they don't support storing the document URL
-        in the LMS and passing it back to us in each launch request. Instead we
-        retrieve the document URL from the DB and pass it to Via.
-        """
-        # The ``db_configured=True`` view predicate ensures that this view
-        # won't be called if there isn't a matching document_url in the DB. So
-        # here we can safely assume that the document_url exists.
-
-        return self._show_document_from_db(self.context.resource_link_id)
-
-    @view_config(url_configured_param="url", schema=URLConfiguredBasicLTILaunchSchema)
-    def url_configured_launch(self):
-        """
-        Respond to a URL-configured assignment launch.
-
-        URL-configured assignment launch requests have the document URL in the
-        ``url`` request parameter. This happens in LMS's that support LTI
-        deep linking: the document URL is chosen during assignment creation
-        and saved in the LMS, which passes it back to us in each launch request.
-        All we have to do is pass the URL to Via.
-        """
-        return self._show_document(document_url=self.request.parsed_params["url"])
-
     @view_config(
+        has_document_url=False,
         authorized_to_configure_assignments=True,
-        url_configured_param=False,
-        db_configured_param=False,
         renderer="lms:templates/file_picker.html.jinja2",
     )
     def unconfigured_launch(self):
@@ -164,9 +101,8 @@ class BasicLaunchViews:
         return {}
 
     @view_config(
+        has_document_url=False,
         authorized_to_configure_assignments=False,
-        url_configured_param=False,
-        db_configured_param=False,
         renderer="lms:templates/lti/basic_launch/unconfigured_launch_not_authorized.html.jinja2",
     )
     def unconfigured_launch_not_authorized(self):
@@ -180,76 +116,32 @@ class BasicLaunchViews:
         """
         return {}
 
-    # ---------------------- #
-    # LMS / content specific #
-    # ---------------------- #
-
-    @view_config(db_configured_param=ResourceLinkParam.COPIED_BLACKBOARD)
-    def blackboard_copied_launch(self):
-        """Respond to a launch of a newly-copied Blackboard assignment."""
-
-        return self._show_document_from_db(
-            self.request.params.get(ResourceLinkParam.COPIED_BLACKBOARD)
-        )
-
-    @view_config(db_configured_param=ResourceLinkParam.COPIED_BRIGHTSPACE)
-    def brightspace_copied_launch(self):
-        """Respond to a launch of a newly-copied Brightspace assignment."""
-
-        return self._show_document_from_db(
-            self.request.params.get(ResourceLinkParam.COPIED_BRIGHTSPACE)
-        )
-
-    @view_config(url_configured_param="canvas_file")
-    def canvas_file_launch(self):
+    @view_config(
+        authorized_to_configure_assignments=True,
+        route_name="configure_assignment",
+        schema=ConfigureAssignmentSchema,
+    )
+    def configure_assignment(self):
         """
-        Respond to a Canvas file assignment launch which is not db_configured.
+        Respond to a configure module item request.
 
-        Canvas file assignment launch requests have a ``file_id`` request
-        parameter, which is the Canvas instance's ID for the file. To display
-        the assignment we have to use this ``file_id`` to get a download URL
-        for the file from the Canvas API. We then pass that download URL to
-        Via. We have to re-do this file-ID-for-download-URL exchange on every
-        single launch because Canvas's download URLs are temporary.
+        This happens after an unconfigured assignment launch. We show the user
+        our document selection form instead of launching the assignment, and
+        when the user chooses a document and submits the form this is the view
+        that receives that form submission.
+
+        We save the chosen document in the DB so that subsequent launches of
+        this same assignment will be DB-configured rather than unconfigured.
+        And we also send back the assignment launch page, passing the chosen
+        URL to Via, as the direct response to the content item form submission.
         """
-        course_id = self.context.lti_params["custom_canvas_course_id"]
-        file_id = self.request.params["file_id"]
+        extra = {}
+        if group_set := self.request.parsed_params.get("group_set"):
+            extra["group_set_id"] = group_set
 
         return self._show_document(
-            document_url=f"canvas://file/course/{course_id}/file_id/{file_id}"
-        )
-
-    @view_config(url_configured_param="vitalsource_book")
-    def legacy_vitalsource_launch(self):
-        """
-        Respond to a legacy configured VitalSource assignment.
-
-        Legacy VitalSource assignments use `vitalsource_book=true` as opposed to
-        a `vitalsource://` URL as the document_url.
-
-        The assignment shouldn't be "configured" in any other way to match this view.
-        """
-
-        return self._show_document(
-            document_url=VitalSourceService.generate_document_url(
-                book_id=self.request.params["book_id"],
-                cfi=self.request.params.get("cfi"),
-            )
-        )
-
-    def _show_document_from_db(self, resource_link_id):
-        """
-        Respond to a launch where the config can be read from an assignment.
-
-        :param resource_link_id: the resource_link_id of the assignment to
-            lookup.
-        """
-
-        return self._show_document(
-            document_url=self.assignment_service.get_assignment(
-                self.context.lti_params["tool_consumer_instance_guid"],
-                resource_link_id,
-            ).document_url
+            document_url=self.request.parsed_params["document_url"],
+            assignment_extra=extra,
         )
 
     def _show_document(self, document_url, assignment_extra=None):

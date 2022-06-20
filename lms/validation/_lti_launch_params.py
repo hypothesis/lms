@@ -1,11 +1,8 @@
-from urllib.parse import unquote
-
 from marshmallow import (
     EXCLUDE,
     Schema,
     ValidationError,
     fields,
-    post_load,
     pre_load,
     validates_schema,
 )
@@ -144,32 +141,6 @@ class BasicLTILaunchSchema(_CommonLTILaunchSchema):
                 raise LTIToolRedirect(return_url, messages)
 
         super().handle_error(error, data, many=many, **kwargs)
-
-
-class URLConfiguredBasicLTILaunchSchema(BasicLTILaunchSchema):
-    """Schema for URL-configured basic LTI launches."""
-
-    url = fields.Str(required=True)
-
-    @post_load
-    def _decode_url(self, _data, **_kwargs):
-        # Work around a bug in Canvas's handling of LTI Launch URLs in
-        # SpeedGrader launches. In that context, query params get
-        # doubly-encoded. This is worked around by detecting when this has
-        # happened and decoding the URL a second time.
-        #
-        # See https://github.com/instructure/canvas-lms/issues/1486
-        url = _data["url"]
-        if (
-            url.lower().startswith("http%3a")
-            or url.lower().startswith("https%3a")
-            or url.lower().startswith("canvas%3a")
-            or url.lower().startswith("vitalsource%3a")
-        ):
-            url = unquote(url)
-            _data["url"] = url
-
-        return _data
 
 
 class DeepLinkingLTILaunchSchema(_CommonLTILaunchSchema):
