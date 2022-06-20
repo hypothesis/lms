@@ -75,12 +75,7 @@ class BasicLaunchViews:
 
     @view_config(has_document_url=True)
     def configured_launch(self):
-        """
-        Respond to a configured assignment launch.
-
-        This is any launch where the document URL service can resolve the
-        correct document to show.
-        """
+        """Display a document if we can resolve one to show."""
 
         return self._show_document(
             document_url=self.request.find_service(DocumentURLService).get_document_url(
@@ -95,23 +90,15 @@ class BasicLaunchViews:
     )
     def unconfigured_launch(self):
         """
-        Respond to an unconfigured assignment launch.
+        Show the file-picker for the user to choose a document.
 
-        Unconfigured assignment launch requests don't contain any document URL
-        or file ID because the assignment's document hasn't been chosen yet.
-        This happens in LMS's that don't support LTI deep linking.
-        They go straight from assignment creation to launching the assignment
-        without the user having had a chance to choose a document.
-
-        When this happens we show the user our document-selection form instead
-        of launching the assignment. The user will choose the document and
-        we'll save it in our DB. Subsequent launches of the same assignment
-        will then be DB-configured launches rather than unconfigured.
+        This happens if we cannot resolve a document URL for any reason.
         """
         form_fields = {
             param: value
             for param, value in self.context.lti_params.items()
-            # Don't send over auth related params. We'll use our own authorization header
+            # Don't send over auth related params. We'll use our own
+            # authorization header
             if param
             not in ["oauth_nonce", "oauth_timestamp", "oauth_signature", "id_token"]
         }
@@ -134,12 +121,10 @@ class BasicLaunchViews:
     )
     def unconfigured_launch_not_authorized(self):
         """
-        Respond to an unauthorized unconfigured assignment launch.
+        Show an error page if the user isn't allowed to use the file-picker.
 
-        This happens when an assignment's document hasn't been chosen yet and
-        the assignment is launched by a user who isn't authorized to choose the
-        document (for example a learner rather than a teacher). We just show an
-        error page.
+        If there's no document we can resolve, and the user isn't allowed to
+        pick one, show an error page.
         """
         return {}
 
@@ -150,17 +135,10 @@ class BasicLaunchViews:
     )
     def configure_assignment(self):
         """
-        Respond to a configure module item request.
+        Save the configuration from the file-picker for future launches.
 
-        This happens after an unconfigured assignment launch. We show the user
-        our document selection form instead of launching the assignment, and
-        when the user chooses a document and submits the form this is the view
-        that receives that form submission.
-
-        We save the chosen document in the DB so that subsequent launches of
-        this same assignment will be DB-configured rather than unconfigured.
-        And we also send back the assignment launch page, passing the chosen
-        URL to Via, as the direct response to the content item form submission.
+        We then continue as if we we're already configured with this document
+        and display it to the user.
         """
         extra = {}
         if group_set := self.request.parsed_params.get("group_set"):
