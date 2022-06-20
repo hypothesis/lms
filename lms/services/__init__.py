@@ -1,6 +1,7 @@
 from lms.services.aes import AESService
 from lms.services.application_instance import ApplicationInstanceNotFound
 from lms.services.canvas import CanvasService
+from lms.services.document_url import DocumentURLService
 from lms.services.exceptions import (
     BlackboardFileNotFoundInCourse,
     CanvasAPIError,
@@ -92,4 +93,7 @@ def includeme(config):
     config.register_service_factory("lms.services.rsa_key.factory", iface=RSAKeyService)
     config.register_service_factory(
         "lms.services.ltia_http.factory", iface=LTIAHTTPService
+    )
+    config.register_service_factory(
+        "lms.services.document_url.factory", iface=DocumentURLService
     )
