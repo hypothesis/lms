@@ -102,15 +102,11 @@ class TestJSTORService:
         [
             # Simple title
             ({"title": ["Some title"]}, {"title": "Some title"}),
-            # No titles.
+            # Empty or missing "title" field, and no other title
             (
                 {"title": []},
                 {"title": None},
             ),
-            # No title field.
-            #
-            # This can happen if the work is a container publication (eg.
-            # a book). See https://github.com/hypothesis/lms/issues/4082.
             (
                 {},
                 {"title": None},

@@ -111,7 +111,6 @@ class JSTORService:
         # Articles which are reviews of other works may not have a title of
         # their own, but we can generate one from the title of the reviewed work.
         if not title and metadata.get("reviewed_works"):
-            # TBD: Can reviewed works be collections or have subtitles?
             reviewed_title = metadata["reviewed_works"][0]["title"]
             title = f"Review: {reviewed_title}"
 
