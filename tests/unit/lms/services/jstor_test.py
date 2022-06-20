@@ -66,20 +66,11 @@ class TestJSTORService:
         "article_id, expected_api_url",
         [
             # Typical JSTOR article, with no DOI prefix given
-            (
-                "12345",
-                f"{JSTOR_API_URL}/metadata/10.2307/12345",
-            ),
+            ("12345", f"{JSTOR_API_URL}/metadata/10.2307/12345"),
             # Article ID that needs to be encoded
-            (
-                "123:45",
-                f"{JSTOR_API_URL}/metadata/10.2307/123%3A45",
-            ),
+            ("123:45", f"{JSTOR_API_URL}/metadata/10.2307/123%3A45"),
             # Article with custom DOI prefix
-            (
-                "10.123/12345",
-                f"{JSTOR_API_URL}/metadata/10.123/12345",
-            ),
+            ("10.123/12345", f"{JSTOR_API_URL}/metadata/10.123/12345"),
         ],
     )
     def test_metadata_calls_jstor_api(
@@ -98,19 +89,13 @@ class TestJSTORService:
         )
 
     @pytest.mark.parametrize(
-        "api_response, expected_metadata",
+        "api_response, expected_title",
         [
             # Simple title
-            ({"title": ["Some title"]}, {"title": "Some title"}),
+            ({"title": ["Some title"]}, "Some title"),
             # Empty or missing "title" field, and no other title
-            (
-                {"title": []},
-                {"title": None},
-            ),
-            (
-                {},
-                {"title": None},
-            ),
+            ({"title": []}, None),
+            ({}, None),
             # Article with subtitle
             (
                 {
@@ -119,16 +104,14 @@ class TestJSTORService:
                         "The Encomium Emmae reginae and the Court of Harthacnut"
                     ],
                 },
-                {
-                    "title": "Talking about History: The Encomium Emmae reginae and the Court of Harthacnut"
-                },
+                "Talking about History: The Encomium Emmae reginae and the Court of Harthacnut",
             ),
             # Collection
-            ({"tb": "Some book"}, {"title": "Some book"}),
+            ({"tb": "Some book"}, "Some book"),
             # Collection with subtitle
             (
                 {"tb": "Pizza with pineapple:", "tbsub": "Yay or nay?"},
-                {"title": "Pizza with pineapple: Yay or nay?"},
+                "Pizza with pineapple: Yay or nay?",
             ),
             # Article that is a review of another work
             (
@@ -139,12 +122,12 @@ class TestJSTORService:
                     "tbsub": None,
                     "reviewed_works": [{"title": "Some other work"}],
                 },
-                {"title": "Review: Some other work"},
+                "Review: Some other work",
             ),
             # Titles with extra whitespace or new lines. These should be cleaned up.
             (
                 {"title": ["   Too\n many\n lines \t and spaces "]},
-                {"title": "Too many lines and spaces"},
+                "Too many lines and spaces",
             ),
             # Titles with formatting tags. These should be stripped.
             (
@@ -152,20 +135,20 @@ class TestJSTORService:
                     "title": ["All about the <em>Wunderpus photogenicus</em>:"],
                     "subtitle": ["an <em>exciting</em> octopus"],
                 },
-                {"title": "All about the Wunderpus photogenicus: an exciting octopus"},
+                "All about the Wunderpus photogenicus: an exciting octopus",
             ),
-            ({"title": ["Foo<bar"]}, {"title": "Foo<bar"}),
-            ({"title": ["Foo<b>bar"]}, {"title": "Foobar"}),
+            ({"title": ["Foo<bar"]}, "Foo<bar"),
+            ({"title": ["Foo<b>bar"]}, "Foobar"),
         ],
     )
     def test_metadata_formats_title(
-        self, svc, http_service, api_response, expected_metadata
+        self, svc, http_service, api_response, expected_title
     ):
         http_service.get.return_value = factories.requests.Response(
             json_data=api_response
         )
         metadata = svc.metadata("12345")
-        assert metadata == expected_metadata
+        assert metadata["title"] == expected_title
 
     def test_metadata_raises_if_schema_mismatch(self, svc, http_service):
         invalid_api_response = {"title": "This should be a list"}
