@@ -6,9 +6,8 @@ from typing_extensions import NotRequired
 
 from lms.models import Course, Grouping, GroupingMembership, User
 from lms.models._hashed_id import hashed_id
-from lms.services.upsert import bulk_upsert
-
 from lms.services.grouping._plugin import GroupingServicePlugin
+from lms.services.upsert import bulk_upsert
 
 
 class GroupingInfo(TypedDict):
