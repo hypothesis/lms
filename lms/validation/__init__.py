@@ -60,7 +60,6 @@ from lms.validation._lti_launch_params import (
     ConfigureAssignmentSchema,
     DeepLinkingLTILaunchSchema,
     LTIV11CoreSchema,
-    URLConfiguredBasicLTILaunchSchema,
 )
 
 

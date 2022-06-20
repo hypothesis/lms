@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from lms.services import CanvasService, LTIRoleService
+from lms.services import CanvasService, DocumentURLService, LTIRoleService
 from lms.services.aes import AESService
 from lms.services.application_instance import ApplicationInstanceService
 from lms.services.assignment import AssignmentService
@@ -44,6 +44,7 @@ __all__ = (
     "canvas_api_client",
     "canvas_service",
     "course_service",
+    "document_url_service",
     "file_service",
     "grading_info_service",
     "grant_token_service",
@@ -135,6 +136,11 @@ def canvas_service(mock_service, canvas_api_client):
 @pytest.fixture
 def course_service(mock_service):
     return mock_service(CourseService, service_name="course")
+
+
+@pytest.fixture
+def document_url_service(mock_service):
+    return mock_service(DocumentURLService)
 
 
 @pytest.fixture
