@@ -6,7 +6,7 @@ import pytest
 from lms.models import ApplicationInstance, LTIParams
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
-from lms.views.lti.basic_launch import BasicLaunchViews, ResourceLinkParam
+from lms.views.lti.basic_launch import BasicLaunchViews
 from tests import factories
 
 
@@ -99,29 +99,17 @@ class TestBasicLaunchViews:
             assignment_extra=expected_extras,
         )
 
-    def test_db_configured_launch(
-        self, svc, assignment_service, context, _show_document
+    def test_configured_launch(
+        self, svc, document_url_service, context, pyramid_request, _show_document
     ):
-        svc.db_configured_launch()
+        svc.configured_launch()
 
-        assignment_service.get_assignment.assert_called_once_with(
-            context.lti_params["tool_consumer_instance_guid"], context.resource_link_id
+        document_url_service.get_document_url.assert_called_once_with(
+            context, pyramid_request
         )
 
         _show_document.assert_called_once_with(
-            document_url=assignment_service.get_assignment.return_value.document_url
-        )
-
-    def test_url_configured_launch(self, svc, pyramid_request, _show_document):
-        # The `url` parsed param is always present when
-        # url_configured_launch() is called. The url_configured=True view
-        # predicate and URLConfiguredLaunchSchema ensure this.
-        pyramid_request.parsed_params = {"url": "TEST_URL"}
-
-        svc.url_configured_launch()
-
-        _show_document.assert_called_once_with(
-            document_url=pyramid_request.parsed_params["url"]
+            document_url=document_url_service.get_document_url.return_value
         )
 
     def test_unconfigured_launch(
@@ -152,71 +140,6 @@ class TestBasicLaunchViews:
         assert not BasicLaunchViews(
             context, pyramid_request
         ).unconfigured_launch_not_authorized()
-
-    def test_blackboard_copied_launch(
-        self, svc, pyramid_request, _show_document_from_db
-    ):
-        pyramid_request.params[ResourceLinkParam.COPIED_BLACKBOARD] = sentinel.link_id
-
-        result = svc.blackboard_copied_launch()
-
-        _show_document_from_db.assert_called_once_with(sentinel.link_id)
-        assert result == _show_document_from_db.return_value
-
-    def test_brightspace_copied_launch(
-        self, svc, pyramid_request, _show_document_from_db
-    ):
-        pyramid_request.params[ResourceLinkParam.COPIED_BRIGHTSPACE] = sentinel.link_id
-
-        result = svc.brightspace_copied_launch()
-
-        _show_document_from_db.assert_called_once_with(sentinel.link_id)
-        assert result == _show_document_from_db.return_value
-
-    @pytest.mark.usefixtures("is_canvas")
-    def test_canvas_file_launch(self, svc, context, pyramid_request, _show_document):
-        context.lti_params["custom_canvas_course_id"] = "TEST_COURSE_ID"
-        pyramid_request.params["file_id"] = "TEST_FILE_ID"
-
-        svc.canvas_file_launch()
-
-        course_id = context.lti_params["custom_canvas_course_id"]
-        file_id = pyramid_request.params["file_id"]
-        document_url = f"canvas://file/course/{course_id}/file_id/{file_id}"
-
-        _show_document.assert_called_once_with(document_url=document_url)
-
-    def test_legacy_vitalsource_launch(
-        self, svc, pyramid_request, VitalSourceService, _show_document
-    ):
-        pyramid_request.params["book_id"] = "BOOK_ID"
-        pyramid_request.params["cfi"] = "/cfi"
-
-        svc.legacy_vitalsource_launch()
-
-        VitalSourceService.generate_document_url.assert_called_once_with(
-            book_id=pyramid_request.params["book_id"],
-            cfi=pyramid_request.params["cfi"],
-        )
-
-        _show_document.assert_called_once_with(
-            document_url=VitalSourceService.generate_document_url.return_value
-        )
-
-    def test__show_document_from_db(
-        self, svc, assignment_service, pyramid_request, _show_document
-    ):
-        # pylint: disable=protected-access
-        svc._show_document_from_db(sentinel.original_resource_link_id)
-
-        assignment_service.get_assignment.assert_called_once_with(
-            pyramid_request.params["tool_consumer_instance_guid"],
-            sentinel.original_resource_link_id,
-        )
-
-        _show_document.assert_called_once_with(
-            document_url=assignment_service.get_assignment.return_value.document_url
-        )
 
     def test__show_document(
         self,
@@ -371,11 +294,6 @@ class TestBasicLaunchViews:
         return BasicLaunchViews(context, pyramid_request)
 
     @pytest.fixture
-    def _show_document_from_db(self, svc):
-        with mock.patch.object(svc, "_show_document_from_db") as _show_document_from_db:
-            yield _show_document_from_db
-
-    @pytest.fixture
     def _show_document(self, svc):
         with mock.patch.object(svc, "_show_document") as _show_document:
             yield _show_document
@@ -413,10 +331,6 @@ class TestBasicLaunchViews:
     @pytest.fixture
     def LtiLaunches(self, patch):
         return patch("lms.views.lti.basic_launch.LtiLaunches")
-
-    @pytest.fixture
-    def VitalSourceService(self, patch):
-        return patch("lms.views.lti.basic_launch.VitalSourceService")
 
     @pytest.fixture(autouse=True)
     def BearerTokenSchema(self, patch):
