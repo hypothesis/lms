@@ -89,36 +89,7 @@ class JSTORService:
         response = self._api_request(_format_uri("/metadata/{}", doi))
         metadata = JSTORMetadataSchema(response).parse()
 
-        # "Regular" articles have a title field with a single entry.
-        title = None
-        if metadata.get("title"):
-            title = metadata["title"][0]
-
-            # Some articles have a subtitle which needs to be appended for the
-            # title to make sense.
-            if metadata.get("subtitle"):
-                title = f"{title} {metadata.get('subtitle')[0]}"
-
-        # Articles which are collections have their title in a separate "tb"
-        # field. These can't actually be used for assignments, but it sometimes
-        # still useful to show metadata for them.
-        if not title and metadata.get("tb"):
-            title = metadata["tb"]
-            subtitle = metadata.get("tbsub")
-            if subtitle:
-                title += f" {subtitle}"
-
-        # Articles which are reviews of other works may not have a title of
-        # their own, but we can generate one from the title of the reviewed work.
-        if not title and metadata.get("reviewed_works"):
-            reviewed_title = metadata["reviewed_works"][0]["title"]
-            title = f"Review: {reviewed_title}"
-
-        # Some titles contain HTML formatting tags, new lines or unwanted
-        # extra spaces. Strip these to simplify downstream processing.
-        if title:
-            title = _strip_html_tags(title)
-            title = _normalize_whitespace(title)
+        title = self._get_title_from_metadata(metadata)
 
         return {"title": title}
 
@@ -196,6 +167,38 @@ class JSTORService:
         if "/" not in article_id:
             return f"{self.DEFAULT_DOI_PREFIX}/{article_id}"
         return article_id
+
+    @classmethod
+    def _get_title_from_metadata(cls, metadata: dict) -> Optional[str]:
+        subtitle = None
+
+        # "Regular" articles have a title field with a single entry.
+        if titles := metadata.get("title"):
+            title = titles[0]
+
+            # Some articles have a subtitle which needs to be appended for the
+            # title to make sense.
+            if subtitles := metadata.get("subtitle"):
+                subtitle = subtitles[0]
+
+        # Collections (eg. books) have their title in separate field
+        elif collection_title := metadata.get("tb"):
+            title = collection_title
+            subtitle = metadata.get("tbsub")
+
+        # Reviews of other works may not have a title of their own, but we can
+        # generate one from the reviewed work's metadata.
+        elif reviewed_works := metadata.get("reviewed_works"):
+            title = f'Review: {reviewed_works[0]["title"]}'
+        else:
+            return None
+
+        if subtitle:
+            title = f"{title} {subtitle}"
+
+        # Some titles contain HTML formatting tags, new lines or unwanted
+        # extra spaces. Strip these to simplify downstream processing.
+        return _normalize_whitespace(_strip_html_tags(title))
 
 
 def _format_uri(template: str, *params: str):
