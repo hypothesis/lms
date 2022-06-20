@@ -4,54 +4,7 @@ from unittest.mock import Mock, call, sentinel
 import pytest
 from h_matchers import Any
 
-from lms.views.predicates import (
-    PREDICATES,
-    Predicate,
-    has_document_url,
-    includeme,
-    is_authorized_to_configure_assignments,
-)
-
-
-class TestHasDocumentURL:
-    @pytest.mark.parametrize("document_url", (None, "a_url"))
-    def test_it(self, document_url_service, pyramid_request, document_url):
-        document_url_service.get_document_url.return_value = document_url
-
-        result = has_document_url(sentinel.context, pyramid_request)
-
-        document_url_service.get_document_url.assert_called_once_with(
-            sentinel.context, pyramid_request
-        )
-        assert result == bool(document_url)
-
-
-class TestIsAuthorizedToConfigureAssignments:
-    @pytest.mark.parametrize(
-        "roles,authorized",
-        (
-            ("administrator,noise", True),
-            ("instructor,noise", True),
-            ("INSTRUCTOR,noise", True),
-            ("teachingassistant,noise", True),
-            ("other", False),
-        ),
-    )
-    def test_it(self, pyramid_request, roles, authorized):
-        pyramid_request.lti_user = pyramid_request.lti_user._replace(roles=roles)
-
-        result = is_authorized_to_configure_assignments(
-            sentinel.context, pyramid_request
-        )
-
-        assert result == authorized
-
-    def test_it_returns_false_with_no_user(self, pyramid_request):
-        pyramid_request.lti_user = None
-
-        assert not is_authorized_to_configure_assignments(
-            sentinel.context, pyramid_request
-        )
+from lms.views.predicates import LTI_LAUNCH_PREDICATES, Predicate, includeme
 
 
 class TestPredicate:
@@ -85,7 +38,7 @@ class TestPredicate:
         )
 
 
-@pytest.mark.parametrize("name,comparison", PREDICATES.items())
+@pytest.mark.parametrize("name,comparison", LTI_LAUNCH_PREDICATES.items())
 def test_includeme(name, comparison):
     config = Mock(spec_set=["add_view_predicate"])
 

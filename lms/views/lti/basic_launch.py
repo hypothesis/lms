@@ -22,6 +22,33 @@ from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
 from lms.validation.authentication import BearerTokenSchema
 
 
+def has_document_url(context, request):
+    """Get if the current launch has a resolvable document URL."""
+    return bool(
+        request.find_service(DocumentURLService).get_document_url(context, request)
+    )
+
+
+def is_authorized_to_configure_assignments(_context, request):
+    """Get if the current user allowed to configured assignments."""
+
+    if not request.lti_user:
+        return False
+
+    roles = request.lti_user.roles.lower()
+
+    return any(
+        role in roles for role in ["administrator", "instructor", "teachingassistant"]
+    )
+
+
+# This is imported in `lms.views.predicates`
+LTI_LAUNCH_PREDICATES = {
+    "has_document_url": has_document_url,
+    "authorized_to_configure_assignments": is_authorized_to_configure_assignments,
+}
+
+
 @view_defaults(
     permission=Permissions.LTI_LAUNCH_ASSIGNMENT,
     renderer="lms:templates/lti/basic_launch/basic_launch.html.jinja2",
