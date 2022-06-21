@@ -5,13 +5,15 @@ from sqlalchemy.orm import aliased
 
 from lms.models import Course, Grouping, GroupingMembership, User
 from lms.models._hashed_id import hashed_id
+from lms.services.grouping._plugin import GroupingServicePlugin
 from lms.services.upsert import bulk_upsert
 
 
 class GroupingService:
-    def __init__(self, db, application_instance):
+    def __init__(self, db, application_instance, plugin: GroupingServicePlugin):
         self._db = db
         self.application_instance = application_instance
+        self.plugin = plugin
 
     def get_authority_provided_id(
         self, lms_id, type_: Grouping.Type, parent: Optional[Grouping] = None
@@ -38,11 +40,7 @@ class GroupingService:
         """
         Upsert a Grouping generating the authority_provided_id based on its parent.
 
-        :param grouping_dicts: A list of dicts containing:
-            lms_id: ID of this grouping on the LMS
-            lms_name: Name of the grouping on the LMS
-            extra: Any extra information to store linked to this grouping
-
+        :param grouping_dicts: A list of dicts containing the grouping information
         :param parent: Parent grouping for all upserted groups
         :param type_: Type of the groupings
         """
@@ -146,11 +144,59 @@ class GroupingService:
 
         return query.all()
 
+    def get_sections(self, user, lti_user, course, grading_student_id=None):
+        if not self.plugin.sections_type:
+            return None
 
-def factory(_context, request):
-    return GroupingService(
-        db=request.db,
-        application_instance=request.find_service(
-            name="application_instance"
-        ).get_current(),
-    )
+        if lti_user.is_learner:
+            groupings = self.plugin.get_sections_for_learner(self, course)
+
+        elif grading_student_id:
+            groupings = self.plugin.get_sections_for_grading(
+                self, course, grading_student_id
+            )
+
+        else:
+            groupings = self.plugin.get_sections_for_instructor(self, course)
+
+        return self._to_groupings(user, groupings, course, self.plugin.sections_type)
+
+    # pylint:disable=too-many-arguments
+    def get_groups(self, user, lti_user, course, group_set_id, grading_student_id=None):
+        if not self.plugin.group_type:
+            return None
+
+        if lti_user.is_learner:
+            groupings = self.plugin.get_groups_for_learner(self, course, group_set_id)
+
+        elif grading_student_id:
+            groupings = self.plugin.get_groups_for_grading(
+                self, course, group_set_id, grading_student_id
+            )
+
+        else:
+            groupings = self.plugin.get_groups_for_instructor(
+                self, course, group_set_id
+            )
+
+        return self._to_groupings(user, groupings, course, self.plugin.group_type)
+
+    def _to_groupings(self, user, groupings, course, type_):
+        if groupings and not isinstance(groupings[0], Grouping):
+            groupings = [
+                {
+                    "lms_id": grouping["id"],
+                    "lms_name": grouping["name"],
+                    "extra": {
+                        "group_set_id": grouping.get("group_category_id")
+                        or grouping.get("groupSetId")
+                    },
+                    "settings": grouping.get("settings"),
+                }
+                for grouping in groupings
+            ]
+            groupings = self.upsert_groupings(groupings, parent=course, type_=type_)
+
+        self.upsert_grouping_memberships(user, groupings)
+
+        return groupings
