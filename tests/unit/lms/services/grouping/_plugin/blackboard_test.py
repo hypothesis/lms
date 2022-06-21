@@ -61,6 +61,18 @@ class TestBlackboardGroupingPlugin:
         )
         assert api_groups == blackboard_api_client.group_set_groups.return_value
 
+    def test_get_groups_for_instructor_raises(
+        self, blackboard_api_client, plugin, grouping_service, course
+    ):
+        blackboard_api_client.group_set_groups.side_effect = ExternalRequestError(
+            response=Mock(status_code=500)
+        )
+
+        with pytest.raises(ExternalRequestError):
+            plugin.get_groups_for_instructor(
+                grouping_service, course, sentinel.group_set_id
+            )
+
     def test_get_groups_for_instructor_group_set_not_found(
         self, blackboard_api_client, plugin, grouping_service, course
     ):
