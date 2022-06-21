@@ -429,6 +429,7 @@ class CanvasAPIClient:
                 "lms_id": g["id"],
                 "lms_name": g["name"],
                 "extra": {"group_set_id": g.get("group_category_id")},
+                **g,
             }
             for g in api_result
         ]

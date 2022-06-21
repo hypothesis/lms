@@ -48,7 +48,15 @@ class TestCanvasAPIClientIntegrated:
 
         response = canvas_api_client.authenticated_users_sections("COURSE_ID")
 
-        assert response == sections
+        assert response == [
+            {
+                "lms_id": section["id"],
+                "lms_name": section["name"],
+                "extra": {"group_set_id": section.get("group_category_id")},
+                **section,
+            }
+            for section in sections
+        ]
         http_session.send.assert_called_once_with(
             Any.request(
                 "GET",
@@ -70,7 +78,7 @@ class TestCanvasAPIClientIntegrated:
         )
         sections = canvas_api_client.authenticated_users_sections("course_id")
 
-        assert sections == [{"id": 1, "name": "name"}]
+        assert sections[0] == Any.dict.containing({"id": 1, "name": "name"})
 
     def test_authenticated_users_sections_raises_CanvasAPIError_with_conflicting_duplicates(
         self, canvas_api_client, http_session
@@ -101,8 +109,20 @@ class TestCanvasAPIClientIntegrated:
         response = canvas_api_client.course_sections("COURSE_ID")
 
         assert response == [
-            {"lms_id": 101, "lms_name": "name_1", "extra": {"group_set_id": None}},
-            {"lms_id": 102, "lms_name": "name_2", "extra": {"group_set_id": None}},
+            {
+                "lms_id": 101,
+                "id": 101,
+                "lms_name": "name_1",
+                "name": "name_1",
+                "extra": {"group_set_id": None},
+            },
+            {
+                "lms_id": 102,
+                "id": 102,
+                "lms_name": "name_2",
+                "name": "name_2",
+                "extra": {"group_set_id": None},
+            },
         ]
         http_session.send.assert_called_once_with(
             Any.request(
@@ -121,7 +141,7 @@ class TestCanvasAPIClientIntegrated:
 
         sections = canvas_api_client.course_sections("course_id")
 
-        assert sections == [{"id": 1, "name": "name"}]
+        assert sections[0] == Any.dict.containing({"id": 1, "name": "name"})
 
     def test_course_sections_raises_CanvasAPIError_with_conflicting_duplicates(
         self, canvas_api_client, http_session
