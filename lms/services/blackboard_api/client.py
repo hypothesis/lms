@@ -193,6 +193,7 @@ class BlackboardAPIClient:
                 "lms_id": g["id"],
                 "lms_name": g["name"],
                 "extra": {"group_set_id": g.get("groupSetId")},
+                **g,
             }
             for g in api_result
         ]

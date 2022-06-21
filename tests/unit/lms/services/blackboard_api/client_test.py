@@ -245,15 +245,26 @@ class TestGroupSetGroups:
         basic_client,
         BlackboardListGroups,
         blackboard_list_groups,
+        groups,
     ):
-        group_sets = svc.group_set_groups("COURSE_ID", "GROUP_SET_ID")
+        blackboard_list_groups.parse.return_value = groups
+
+        groups = svc.group_set_groups("COURSE_ID", "GROUP_SET_ID")
 
         basic_client.request.assert_called_once_with(
             "GET",
             "/learn/api/public/v2/courses/uuid:COURSE_ID/groups/sets/GROUP_SET_ID/groups",
         )
         BlackboardListGroups.assert_called_once_with(basic_client.request.return_value)
-        assert group_sets == blackboard_list_groups.parse.return_value
+        assert groups == [
+            {
+                "lms_id": group["id"],
+                "lms_name": group["name"],
+                "extra": {"group_set_id": group.get("groupSetId")},
+                **group,
+            }
+            for group in groups
+        ]
 
 
 class TestGroupCourseGroups:
@@ -263,7 +274,10 @@ class TestGroupCourseGroups:
         basic_client,
         BlackboardListGroups,
         blackboard_list_groups,
+        groups,
     ):
+        blackboard_list_groups.parse.return_value = groups
+
         groups = svc.course_groups("COURSE_ID", current_student_own_groups_only=False)
 
         basic_client.request.assert_called_once_with(
@@ -271,7 +285,15 @@ class TestGroupCourseGroups:
             "/learn/api/public/v2/courses/uuid:COURSE_ID/groups",
         )
         BlackboardListGroups.assert_called_once_with(basic_client.request.return_value)
-        assert groups == blackboard_list_groups.parse.return_value
+        assert groups == [
+            {
+                "lms_id": group["id"],
+                "lms_name": group["name"],
+                "extra": {"group_set_id": group.get("groupSetId")},
+                **group,
+            }
+            for group in groups
+        ]
 
     def test_it_with_group_set_id(self, svc, blackboard_list_groups, groups):
         blackboard_list_groups.parse.return_value = groups
@@ -338,22 +360,23 @@ class TestGroupCourseGroups:
         with pytest.raises(ExternalAsyncRequestError):
             svc.course_groups("COURSE_ID", current_student_own_groups_only=True)
 
-    @pytest.fixture
-    def groups(self):
-        return [
-            {
-                "id": "1",
-                "name": "GROUP 1",
-                "groupSetId": "OTHER_GROUP_SET",
-                "enrollment": {"type": "SelfEnrollment"},
-            },
-            {
-                "id": "2",
-                "name": "GROUP 2",
-                "groupSetId": "GROUP_SET",
-                "enrollment": {"type": "InstructorOnly"},
-            },
-        ]
+
+@pytest.fixture
+def groups():
+    return [
+        {
+            "id": "1",
+            "name": "GROUP 1",
+            "groupSetId": "OTHER_GROUP_SET",
+            "enrollment": {"type": "SelfEnrollment"},
+        },
+        {
+            "id": "2",
+            "name": "GROUP 2",
+            "groupSetId": "GROUP_SET",
+            "enrollment": {"type": "InstructorOnly"},
+        },
+    ]
 
 
 @pytest.fixture
