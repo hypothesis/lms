@@ -124,6 +124,7 @@ class TestAddDocumentURL:
         via_url.assert_called_once_with(pyramid_request, "example_document_url")
         assert js_config.asdict()["viaUrl"] == via_url.return_value
 
+    @pytest.mark.usefixtures("with_blackboard")
     def test_it_adds_the_viaUrl_api_config_for_Blackboard_documents(
         self, js_config, pyramid_request
     ):
@@ -132,7 +133,7 @@ class TestAddDocumentURL:
         assert js_config.asdict()["api"]["viaUrl"] == {
             "authUrl": "http://example.com/api/blackboard/oauth/authorize",
             "product": pyramid_request.product.family,
-            "path": "/api/blackboard/courses/test_course_id/via_url?document_url=blackboard%3A%2F%2Fcontent-resource%2Fxyz123",
+            "path": "/api/blackboard/courses/test_context_id/via_url?document_url=blackboard%3A%2F%2Fcontent-resource%2Fxyz123",
         }
 
     def test_vitalsource_sets_config(self, js_config, vitalsource_service):
@@ -217,7 +218,7 @@ class TestEnableGradingBar:
         js_config.enable_grading_bar()
 
         grading_info_service.get_by_assignment.assert_called_once_with(
-            context_id="test_course_id",
+            context_id="test_context_id",
             application_instance=application_instance_service.get_current.return_value,
             resource_link_id="TEST_RESOURCE_LINK_ID",
         )
@@ -314,7 +315,9 @@ class TestJSConfigAPISync:
             (Grouping.Type.COURSE, True),
         ],
     )
-    def test_grouping_type_dependency(self, js_config, config, grouping_type, empty):
+    def test_grouping_type_dependency(
+        self, js_config, config, grouping_type, empty, context
+    ):
         context.grouping_type = grouping_type
         # Call enable_lti_launch_mode() so that the api.sync section gets
         # inserted into the config.
@@ -351,7 +354,7 @@ class TestJSConfigAPISync:
             "path": "/api/sync",
             "data": {
                 "assignment": {
-                    "resource_link_id": "test_resource_link_id",
+                    "resource_link_id": "TEST_RESOURCE_LINK_ID",
                 },
                 "course": {
                     "context_id": "test_context_id",
@@ -637,6 +640,11 @@ def with_sections_on(context, pyramid_request):
 
 
 @pytest.fixture
+def with_blackboard(pyramid_request):
+    pyramid_request.product.family = Product.Family.BLACKBOARD
+
+
+@pytest.fixture
 def with_groups_on(context):
     context.grouping_type = Grouping.Type.GROUP
 
@@ -657,7 +665,7 @@ def pyramid_request(pyramid_request):
         {
             "lis_result_sourcedid": "example_lis_result_sourcedid",
             "lis_outcome_service_url": "example_lis_outcome_service_url",
-            "context_id": "test_course_id",
+            "context_id": "test_context_id",
             "custom_canvas_course_id": "test_custom_canvas_course_id",
             "custom_canvas_user_id": "test_user_id",
         }
