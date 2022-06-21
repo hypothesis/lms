@@ -23,37 +23,20 @@ from lms.validation.authentication import BearerTokenSchema
 
 
 def has_document_url(context, request):
-    """Get if the current launch has a resolvable document URL."""
+    """
+    Get if the current launch has a resolvable document URL.
+
+    This is imported into `lms.views.predicates` to provide the
+    `has_document_url` predicate.
+    """
     return bool(
         request.find_service(DocumentURLService).get_document_url(context, request)
     )
 
 
-def is_authorized_to_configure_assignments(_context, request):
-    """Get if the current user allowed to configured assignments."""
-
-    if not request.lti_user:
-        return False
-
-    roles = request.lti_user.roles.lower()
-
-    return any(
-        role in roles for role in ["administrator", "instructor", "teachingassistant"]
-    )
-
-
-# This is imported in `lms.views.predicates`
-LTI_LAUNCH_PREDICATES = {
-    "has_document_url": has_document_url,
-    "authorized_to_configure_assignments": is_authorized_to_configure_assignments,
-}
-
-
 @view_defaults(
-    permission=Permissions.LTI_LAUNCH_ASSIGNMENT,
-    renderer="lms:templates/lti/basic_launch/basic_launch.html.jinja2",
     request_method="POST",
-    route_name="lti_launches",
+    permission=Permissions.LTI_LAUNCH_ASSIGNMENT,
     schema=BasicLTILaunchSchema,
 )
 class BasicLaunchViews:
@@ -73,7 +56,11 @@ class BasicLaunchViews:
 
         self._record_launch()
 
-    @view_config(has_document_url=True)
+    @view_config(
+        route_name="lti_launches",
+        has_document_url=True,
+        renderer="lms:templates/lti/basic_launch/basic_launch.html.jinja2",
+    )
     def configured_launch(self):
         """Display a document if we can resolve one to show."""
 
@@ -84,8 +71,8 @@ class BasicLaunchViews:
         )
 
     @view_config(
+        route_name="lti_launches",
         has_document_url=False,
-        authorized_to_configure_assignments=True,
         renderer="lms:templates/file_picker.html.jinja2",
     )
     def unconfigured_launch(self):
@@ -94,6 +81,15 @@ class BasicLaunchViews:
 
         This happens if we cannot resolve a document URL for any reason.
         """
+
+        if not self.request.has_permission(Permissions.LTI_CONFIGURE_ASSIGNMENT):
+            # Looks like the user is not an instructor, so show an error page
+
+            # https://docs.pylonsproject.org/projects/pyramid/en/latest/narr
+            # /renderers.html?highlight=override_renderer#overriding-a-renderer-at-runtime
+            self.request.override_renderer = "lms:templates/lti/basic_launch/unconfigured_launch_not_authorized.html.jinja2"
+            return {}
+
         form_fields = {
             param: value
             for param, value in self.context.lti_params.items()
@@ -115,29 +111,16 @@ class BasicLaunchViews:
         return {}
 
     @view_config(
-        has_document_url=False,
-        authorized_to_configure_assignments=False,
-        renderer="lms:templates/lti/basic_launch/unconfigured_launch_not_authorized.html.jinja2",
-    )
-    def unconfigured_launch_not_authorized(self):
-        """
-        Show an error page if the user isn't allowed to use the file-picker.
-
-        If there's no document we can resolve, and the user isn't allowed to
-        pick one, show an error page.
-        """
-        return {}
-
-    @view_config(
-        authorized_to_configure_assignments=True,
         route_name="configure_assignment",
+        permission=Permissions.LTI_CONFIGURE_ASSIGNMENT,
         schema=ConfigureAssignmentSchema,
+        renderer="lms:templates/lti/basic_launch/basic_launch.html.jinja2",
     )
     def configure_assignment(self):
         """
         Save the configuration from the file-picker for future launches.
 
-        We then continue as if we we're already configured with this document
+        We then continue as if we were already configured with this document
         and display it to the user.
         """
         extra = {}

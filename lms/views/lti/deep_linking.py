@@ -51,8 +51,7 @@ from lms.validation._base import JSONPyramidRequestSchema
 
 
 @view_config(
-    authorized_to_configure_assignments=True,
-    permission=Permissions.LTI_LAUNCH_ASSIGNMENT,
+    permission=Permissions.LTI_CONFIGURE_ASSIGNMENT,
     renderer="lms:templates/file_picker.html.jinja2",
     request_method="POST",
     route_name="content_item_selection",
