@@ -78,6 +78,7 @@ export default function StudentSelector({
         */}
         {/* eslint-disable-next-line jsx-a11y/no-onchange*/}
         <select
+          aria-label="Select student"
           className={classnames(
             'appearance-none w-full h-touch-minimum',
             'pl-4 pr-8', // Make room on right for custom down-caret Icon
