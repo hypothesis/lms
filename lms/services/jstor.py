@@ -215,22 +215,16 @@ def _format_uri(template: str, *params: str):
 
 def _strip_html_tags(html: str) -> str:
     """Extract plain text from a string which may contain HTML formatting tags."""
-    text = ""
 
     # Extract text nodes using HTMLParser. We rely on it being tolerant of
     # invalid markup.
-    #
-    # See https://bugs.python.org/issue31844 for abstract-method issue.
-    class Parser(HTMLParser):  # pylint:disable=abstract-method
-        def handle_data(self, data: str):
-            nonlocal text
-            text += data
-
-    parser = Parser()
+    chunks = []
+    parser = HTMLParser()
+    parser.handle_data = chunks.append
     parser.feed(html)
     parser.close()
 
-    return text
+    return "".join(chunks)
 
 
 def _normalize_whitespace(val: str) -> str:
