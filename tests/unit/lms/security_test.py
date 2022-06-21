@@ -6,7 +6,6 @@ from pyramid.interfaces import ISecurityPolicy
 from pyramid.security import Allowed, Denied
 
 from lms.security import (
-    AuthTktCookieSecurityPolicy,
     Identity,
     LMSGoogleSecurityPolicy,
     LTISecurityPolicy,
@@ -24,7 +23,7 @@ class TestIncludeMe:
     def test_it_sets_security_policy(self, pyramid_config, SecurityPolicy):
         includeme(pyramid_config)
 
-        SecurityPolicy.assert_called_once_with("TEST_LMS_SECRET")
+        SecurityPolicy.assert_called_once_with()
         assert (
             pyramid_config.registry.queryUtility(ISecurityPolicy)
             == SecurityPolicy.return_value
@@ -33,90 +32,6 @@ class TestIncludeMe:
     @pytest.fixture(autouse=True)
     def SecurityPolicy(self, patch):
         return patch("lms.security.SecurityPolicy")
-
-
-@pytest.mark.usefixtures("pyramid_config")
-class TestAuthTktCookieSecurityPolicy:
-    def test_it_returns_empty_identity_no_cookie(self, pyramid_request):
-        policy = AuthTktCookieSecurityPolicy("TEST_LMS_SECRET")
-
-        identity = policy.identity(pyramid_request)
-
-        assert not identity.userid
-        assert identity.permissions == []
-
-    def test_it_returns_identity_from_cookie(
-        self, pyramid_request, AuthTktCookieHelper
-    ):
-        AuthTktCookieHelper.return_value.identify.return_value = {"userid": "testuser"}
-
-        policy = AuthTktCookieSecurityPolicy("TEST_LMS_SECRET")
-
-        identity = policy.identity(pyramid_request)
-
-        assert identity.userid == "testuser"
-        assert identity.permissions == []
-
-    def test_it_returns_identity_from_cookie_for_reports(
-        self, pyramid_request, AuthTktCookieHelper
-    ):
-        AuthTktCookieHelper.return_value.identify.return_value = {
-            "userid": "report_viewer"
-        }
-
-        policy = AuthTktCookieSecurityPolicy("TEST_LMS_SECRET")
-
-        identity = policy.identity(pyramid_request)
-
-        assert identity.userid == "report_viewer"
-        assert identity.permissions == [Permissions.REPORTS_VIEW]
-
-    def test_it_returns_userid_matches_identity(
-        self, pyramid_request, AuthTktCookieHelper
-    ):
-        AuthTktCookieHelper.return_value.identify.return_value = {"userid": "testuser"}
-
-        policy = AuthTktCookieSecurityPolicy("TEST_LMS_SECRET")
-
-        userid = policy.authenticated_userid(pyramid_request)
-
-        assert userid == "testuser"
-
-    def test_permits_allow(self, pyramid_request, AuthTktCookieHelper):
-        AuthTktCookieHelper.return_value.identify.return_value = {
-            "userid": "report_viewer"
-        }
-
-        policy = AuthTktCookieSecurityPolicy("TEST_LMS_SECRET")
-
-        is_allowed = policy.permits(pyramid_request, None, Permissions.REPORTS_VIEW)
-
-        assert is_allowed == Allowed("allowed")
-
-    def test_permits_denied(self, pyramid_request, AuthTktCookieHelper):
-        AuthTktCookieHelper.return_value.identify.return_value = {"userid": "testuser"}
-
-        policy = AuthTktCookieSecurityPolicy("TEST_LMS_SECRET")
-
-        is_allowed = policy.permits(pyramid_request, None, "some-permission")
-
-        assert is_allowed == Denied("denied")
-
-    def test_remember(self, pyramid_request, AuthTktCookieHelper):
-        AuthTktCookieSecurityPolicy("TEST_LMS_SECRET").remember(
-            pyramid_request, "TEST_USERID"
-        )
-
-        AuthTktCookieHelper.return_value.remember.assert_called_once()
-
-    def test_forget(self, pyramid_request, AuthTktCookieHelper):
-        AuthTktCookieSecurityPolicy("TEST_LMS_SECRET").forget(pyramid_request)
-
-        AuthTktCookieHelper.return_value.forget.assert_called_once()
-
-    @pytest.fixture
-    def AuthTktCookieHelper(self, patch):
-        return patch("lms.security.AuthTktCookieHelper")
 
 
 class TestLMSGoogleSecurityPolicy:
@@ -245,31 +160,11 @@ class TestSecurityPolicy:
         )
         assert user_id == "user"
 
-    def test_it_falls_back_on_AuthTktCookieSecurityPolicy(
-        self,
-        tkt_security_policy,
-        lti_security_policy,
-        policy,
-    ):
-        lti_security_policy.authenticated_userid.return_value = None
-        tkt_security_policy.authenticated_userid.return_value = "tkt-user"
-
-        user_id = policy.authenticated_userid(mock.sentinel.request)
-
-        tkt_security_policy.authenticated_userid.assert_called_with(
-            mock.sentinel.request
-        )
-        assert user_id == "tkt-user"
-
     def test_it_falls_back_on_LMSGoogleSecurityPolicy(
-        self,
-        tkt_security_policy,
-        lti_security_policy,
-        google_security_policy,
-        policy,
+        self, lti_security_policy, google_security_policy, policy
     ):
         lti_security_policy.authenticated_userid.return_value = None
-        tkt_security_policy.authenticated_userid.return_value = None
+
         google_security_policy.authenticated_userid.return_value = "google-oauth-user"
 
         user_id = policy.authenticated_userid(mock.sentinel.request)
@@ -280,14 +175,9 @@ class TestSecurityPolicy:
         assert user_id == "google-oauth-user"
 
     def test_it_falls_back_to_last(
-        self,
-        tkt_security_policy,
-        lti_security_policy,
-        google_security_policy,
-        policy,
+        self, lti_security_policy, google_security_policy, policy
     ):
         lti_security_policy.authenticated_userid.return_value = None
-        tkt_security_policy.authenticated_userid.return_value = None
         google_security_policy.authenticated_userid.return_value = None
 
         user_id = policy.authenticated_userid(mock.sentinel.request)
@@ -298,11 +188,7 @@ class TestSecurityPolicy:
         assert user_id is None
 
     def test_remember_delegates_to_LTISecurityPolicy(
-        self,
-        policy,
-        LTISecurityPolicy,
-        lti_security_policy,
-        tkt_security_policy,
+        self, policy, LTISecurityPolicy, lti_security_policy
     ):
         policy.remember(
             mock.sentinel.request, mock.sentinel.userid, kwarg=mock.sentinel.kwarg
@@ -312,62 +198,25 @@ class TestSecurityPolicy:
         lti_security_policy.remember.assert_called_once_with(
             mock.sentinel.request, mock.sentinel.userid, kwarg=mock.sentinel.kwarg
         )
-        tkt_security_policy.remember.assert_not_called()
-
-    def test_remember_falls_back_on_AuthTktCookieSecurityPolicy(
-        self, policy, lti_security_policy, tkt_security_policy
-    ):
-        lti_security_policy.authenticated_userid.return_value = None
-
-        policy.remember(
-            mock.sentinel.request, mock.sentinel.userid, kwarg=mock.sentinel.kwarg
-        )
-        tkt_security_policy.remember.assert_called_once_with(
-            mock.sentinel.request, mock.sentinel.userid, kwarg=mock.sentinel.kwarg
-        )
-        lti_security_policy.remember.assert_not_called()
 
     def test_forget_delegates_to_LTISecurityPolicy(
-        self,
-        policy,
-        LTISecurityPolicy,
-        lti_security_policy,
-        tkt_security_policy,
+        self, policy, LTISecurityPolicy, lti_security_policy
     ):
         policy.forget(mock.sentinel.request)
 
         LTISecurityPolicy.assert_called_once_with()
         lti_security_policy.forget.assert_called_once_with(mock.sentinel.request)
-        tkt_security_policy.forget.assert_not_called()
-
-    def test_forget_falls_back_on_AuthTktCookieSecurityPolicy(
-        self, policy, lti_security_policy, tkt_security_policy
-    ):
-        lti_security_policy.authenticated_userid.return_value = None
-
-        policy.forget(mock.sentinel.request)
-        tkt_security_policy.forget.assert_called_once_with(mock.sentinel.request)
-        lti_security_policy.forget.assert_not_called()
 
     def test_identity_delegates_to_LTISecurityPolicy(
-        self,
-        policy,
-        LTISecurityPolicy,
-        lti_security_policy,
-        tkt_security_policy,
+        self, policy, LTISecurityPolicy, lti_security_policy
     ):
         policy.identity(mock.sentinel.request)
 
         LTISecurityPolicy.assert_called_once_with()
         lti_security_policy.identity.assert_called_once_with(mock.sentinel.request)
-        tkt_security_policy.identity.assert_not_called()
 
     def test_permits_delegates_to_LTISecurityPolicy(
-        self,
-        policy,
-        LTISecurityPolicy,
-        lti_security_policy,
-        tkt_security_policy,
+        self, policy, LTISecurityPolicy, lti_security_policy
     ):
         policy.permits(mock.sentinel.request, mock.sentinel.context, "some-permission")
 
@@ -375,19 +224,10 @@ class TestSecurityPolicy:
         lti_security_policy.permits.assert_called_once_with(
             mock.sentinel.request, mock.sentinel.context, "some-permission"
         )
-        tkt_security_policy.permits.assert_not_called()
 
     @pytest.fixture
     def policy(self):
-        return SecurityPolicy("TEST_SECRET")
-
-    @pytest.fixture(autouse=True)
-    def AuthTktCookieSecurityPolicy(self, patch):
-        return patch("lms.security.AuthTktCookieSecurityPolicy")
-
-    @pytest.fixture
-    def tkt_security_policy(self, AuthTktCookieSecurityPolicy):
-        return AuthTktCookieSecurityPolicy.return_value
+        return SecurityPolicy()
 
     @pytest.fixture(autouse=True)
     def LTISecurityPolicy(self, patch):
@@ -409,11 +249,7 @@ class TestSecurityPolicy:
 @pytest.mark.usefixtures("user_service")
 class TestGetLTIUser:
     def test_it_returns_the_LTIUsers_from_LTI_launch_params(
-        self,
-        bearer_token_schema,
-        LTI11AuthSchema,
-        lti11_auth_schema,
-        pyramid_request,
+        self, bearer_token_schema, LTI11AuthSchema, lti11_auth_schema, pyramid_request
     ):
         bearer_token_schema.lti_user.side_effect = ValidationError(
             ["TEST_ERROR_MESSAGE"]
@@ -426,11 +262,7 @@ class TestGetLTIUser:
         assert lti_user == lti11_auth_schema.lti_user.return_value
 
     def test_it_returns_LTIUsers_from_authorization_headers(
-        self,
-        lti11_auth_schema,
-        BearerTokenSchema,
-        bearer_token_schema,
-        pyramid_request,
+        self, lti11_auth_schema, BearerTokenSchema, bearer_token_schema, pyramid_request
     ):
         lti11_auth_schema.lti_user.side_effect = ValidationError(["TEST_ERROR_MESSAGE"])
 

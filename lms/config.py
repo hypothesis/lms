@@ -57,9 +57,6 @@ SETTINGS = (
     # We need to use a randomly generated 16 byte array to encrypt secrets.
     # For now we will use the first 16 bytes of the lms_secret
     _Setting("aes_secret", read_from="lms_secret", value_mapper=_aes_to_16_chars),
-    _Setting("hashed_pw"),
-    _Setting("salt"),
-    _Setting("username"),
     # The secret string that's used to sign the session cookie.
     # This needs to be a 64-byte, securely generated random string.
     # For example you can generate one using Python 3 on the command line

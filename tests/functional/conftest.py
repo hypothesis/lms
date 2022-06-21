@@ -40,7 +40,7 @@ def monkeysession():
 
 
 @pytest.fixture(scope="session")
-def pyramid_app(environment):  # pylint: disable=unused-argument
+def pyramid_app():
     return create_app(None, **TEST_SETTINGS)
 
 
@@ -49,12 +49,6 @@ def app(pyramid_app, db_engine):
     db.init(db_engine, stamp=False)
 
     return TestApp(pyramid_app)
-
-
-@pytest.fixture(scope="session")
-def environment(monkeysession):
-    monkeysession.setenv("LMS_SECRET", TEST_SETTINGS["lms_secret"])
-    monkeysession.setenv("USERNAME", TEST_SETTINGS["username"])
 
 
 @pytest.fixture

@@ -21,9 +21,6 @@ TEST_SETTINGS = {
     "google_developer_key": "fake_developer_key",
     "google_app_id": "fake_app_id",
     "lms_secret": "TEST_LMS_SECRET",
-    "hashed_pw": "e46df2a5b4d50e259b5154b190529483a5f8b7aaaa22a50447e377d33792577a",
-    "salt": "fbe82ee0da72b77b",
-    "username": "report_viewer",
     "aes_secret": b"TSeQ7E3dzbHgu5ydX2xCrKJiXTmfJbOe",
     "jinja2.filters": {
         "static_path": "pyramid_jinja2.filters:static_path_filter",

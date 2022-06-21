@@ -3,7 +3,6 @@ from enum import Enum
 from functools import lru_cache, partial
 from typing import List, NamedTuple
 
-from pyramid.authentication import AuthTktCookieHelper
 from pyramid.security import Allowed, Denied
 from pyramid_googleauth import GoogleSecurityPolicy
 
@@ -24,7 +23,6 @@ class Identity(NamedTuple):
 
 class Permissions(Enum):
     LTI_LAUNCH_ASSIGNMENT = "lti_launch_assignment"
-    REPORTS_VIEW = "report_viewers"
     API = "api"
     ADMIN = "admin"
 
@@ -32,12 +30,8 @@ class Permissions(Enum):
 class SecurityPolicy:
     """Top-level authentication policy that delegates to sub-policies."""
 
-    def __init__(self, lms_secret):
-        self._subpolicies = [
-            LTISecurityPolicy(),
-            AuthTktCookieSecurityPolicy(lms_secret, hashalg="sha512"),
-            LMSGoogleSecurityPolicy(),
-        ]
+    def __init__(self):
+        self._subpolicies = [LTISecurityPolicy(), LMSGoogleSecurityPolicy()]
 
     def authenticated_userid(self, request):
         return self._policy(request).authenticated_userid(request)
@@ -61,38 +55,6 @@ class SecurityPolicy:
                 return policy
 
         return self._subpolicies[-1]
-
-
-class AuthTktCookieSecurityPolicy:
-    def __init__(self, lms_secret, hashalg="sha512"):
-        self._helper = AuthTktCookieHelper(lms_secret, hashalg=hashalg)
-
-    def identity(self, request):
-        identity = self._helper.identify(request)
-
-        if identity is None:
-            return Identity("", [])
-
-        userid = identity["userid"]
-        permissions = []
-        settings = request.registry.settings
-        if userid == settings.get("username", None):
-            permissions = [Permissions.REPORTS_VIEW]
-
-        return Identity(userid, permissions)
-
-    def authenticated_userid(self, request):
-        identity = self.identity(request)
-        return identity.userid if identity else None
-
-    def permits(self, request, context, permission):
-        return _permits(self, request, context, permission)
-
-    def remember(self, request, userid, **kw):
-        return self._helper.remember(request, userid, **kw)
-
-    def forget(self, request):
-        return self._helper.forget(request)
 
 
 class LTISecurityPolicy:
@@ -204,6 +166,6 @@ def _get_user(request):
 
 
 def includeme(config):
-    config.set_security_policy(SecurityPolicy(config.registry.settings["lms_secret"]))
+    config.set_security_policy(SecurityPolicy())
     config.add_request_method(_get_lti_user, name="lti_user", property=True, reify=True)
     config.add_request_method(_get_user, name="user", property=True, reify=True)
