@@ -34,7 +34,7 @@ class CanvasGroupingPlugin(GroupingServicePlugin):
             )
         }
 
-        return [sec for sec in sections if sec.lms_id in learner_section_ids]
+        return [sec for sec in sections if sec["id"] in learner_section_ids]
 
     def get_groups_for_learner(self, _svc, course, group_set_id):
         # For learners, the groups they belong within the course
