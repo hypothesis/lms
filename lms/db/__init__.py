@@ -114,7 +114,7 @@ def init(engine, drop=False, stamp=True):  # pragma: nocover
 
 def make_engine(settings):
     """Construct a sqlalchemy engine from the passed ``settings``."""
-    return sqlalchemy.create_engine(settings["sqlalchemy.url"])
+    return sqlalchemy.create_engine(settings["database_url"])
 
 
 SESSION = sessionmaker()
