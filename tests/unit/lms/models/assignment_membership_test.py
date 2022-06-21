@@ -37,10 +37,6 @@ class TestAssignmentMembership:
             db_session.commit()
 
     @pytest.fixture
-    def user(self):
-        return factories.User.create()
-
-    @pytest.fixture
     def assignment(self):
         return factories.Assignment.create()
 

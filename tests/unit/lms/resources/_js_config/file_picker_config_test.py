@@ -110,16 +110,14 @@ class TestFilePickerConfig:
 
         assert config["enabled"] != missing_value
 
-    @pytest.mark.parametrize(
-        "origin_from", (None, "custom_canvas_api_domain", "lms_url")
-    )
+    @pytest.mark.parametrize("origin_from", ("custom_canvas_api_domain", "lms_url"))
     def test_google_files_config(
         self, context, pyramid_request, application_instance, origin_from
     ):
         if origin_from == "custom_canvas_api_domain":
-            context.lti_params["custom_canvas_api_domain"] = sentinel.origin
+            context.lti_params["custom_canvas_api_domain"] = origin_from
         elif origin_from == "lms_url":
-            application_instance.lms_url = sentinel.origin
+            application_instance.lms_url = origin_from
 
         config = FilePickerConfig.google_files_config(
             context, pyramid_request, application_instance
@@ -128,7 +126,7 @@ class TestFilePickerConfig:
         assert config == {
             "clientId": "fake_client_id",
             "developerKey": "fake_developer_key",
-            "origin": sentinel.origin if origin_from else None,
+            "origin": origin_from,
         }
 
     @pytest.mark.parametrize("enabled", (True, False))
@@ -180,12 +178,6 @@ class TestFilePickerConfig:
         context.is_canvas = True
         pyramid_request.params["custom_canvas_course_id"] = sentinel.course_id
         application_instance.developer_key = sentinel.developer_key
-
-    @pytest.fixture
-    def application_instance(self, application_instance):
-        application_instance.lms_url = None
-
-        return application_instance
 
     @pytest.fixture
     def with_is_canvas(self, context):

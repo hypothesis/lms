@@ -7,7 +7,6 @@ from lms.models import ApplicationInstance, LTIParams
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.views.lti.basic_launch import BasicLaunchViews, ResourceLinkParam
-from tests import factories
 
 
 @pytest.mark.usefixtures(
@@ -384,12 +383,6 @@ class TestBasicLaunchViews:
     def is_canvas(self, context):
         """Set the LMS that launched us to Canvas."""
         context.is_canvas = True
-
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.user = factories.User()
-
-        return pyramid_request
 
     @pytest.fixture
     def context(self, pyramid_request):

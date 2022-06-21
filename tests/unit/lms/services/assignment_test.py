@@ -64,8 +64,7 @@ class TestAssignmentService:
         assert result.created >= datetime.now() - timedelta(days=1)
         assert result.updated >= datetime.now() - timedelta(days=1)
 
-    def test_upsert_assignment_membership(self, svc, assignment):
-        user = factories.User()
+    def test_upsert_assignment_membership(self, svc, assignment, user):
         lti_roles = factories.LTIRole.create_batch(3)
         # One existing row
         factories.AssignmentMembership.create(

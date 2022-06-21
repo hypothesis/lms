@@ -1,4 +1,4 @@
-from unittest.mock import create_autospec, sentinel
+from unittest.mock import create_autospec
 
 import pytest
 from h_matchers import Any
@@ -194,8 +194,7 @@ class TestUpsertGroupings:
 
 class TestUpsertGroupingMemberships:
     @pytest.mark.parametrize("flushing", [True, False])
-    def test_it(self, db_session, svc, flushing):
-        user = factories.User()
+    def test_it(self, db_session, svc, flushing, user):
         groups = []
         # Create a group that the user is already a member of.
         group_that_user_was_already_a_member_of = factories.Course()
@@ -288,11 +287,6 @@ class TestGetCourseGroupingsForUser:
     def course(self):
         """Return the course that we'll ask for groupings from."""
         return factories.Course()
-
-    @pytest.fixture
-    def user(self):
-        """Return the user whose groupings we'll ask for."""
-        return factories.User()
 
     @pytest.fixture
     def make_grouping(self, db_session, course, user):

@@ -101,9 +101,12 @@ def pyramid_request(db_session, application_instance, lti_v11_params):
         user_id=lti_v11_params["user_id"],
     )
     pyramid_request.user = factories.User(
-        application_instance_id=application_instance.id,
+        application_instance=application_instance,
         user_id=lti_v11_params["user_id"],
+        h_userid=pyramid_request.lti_user.h_user.userid("authority.example.com"),
     )
+    # Force pyramid_request.user ID population
+    db_session.flush()
     pyramid_request.lti_jwt = {}
     pyramid_request.lti_params = {}
     pyramid_request.product = Product(family=Product.Family.UNKNOWN)
