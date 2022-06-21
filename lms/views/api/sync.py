@@ -9,9 +9,12 @@ from lms.validation._base import PyramidRequestSchema
 class APISyncSchema(PyramidRequestSchema):
     class LMS(Schema):
         tool_consumer_instance_guid = fields.Str(required=True)
+        product = fields.Str(required=True)
 
     class Course(Schema):
         context_id = fields.Str(required=True)
+        custom_canvas_course_id = fields.Str(required=False, allow_none=True)
+        group_set_id = fields.Str(required=False, allow_none=True)
 
     class Assignment(Schema):
         resource_link_id = fields.Str(required=True)
@@ -44,13 +47,20 @@ class Sync:
         course_id = self.request.parsed_params["course"]["context_id"]
         course = self.request.find_service(name="course").get_by_context_id(course_id)
 
-        if group_set_id := self.request.parsed_params("group_set_id"):
+        if group_set_id := self.request.parsed_params["course"].get("group_set_id"):
             groupings = self.grouping_service.get_groups(
-                course, group_set_id, self.request.parsed_params["gradingStudentId"]
+                self.request.user,
+                self.request.lti_user,
+                course,
+                group_set_id,
+                self.request.parsed_params.get("gradingStudentId"),
             )
         else:
             groupings = self.grouping_service.get_sections(
-                course, self.request.parsed_params["gradingStudentId"]
+                self.request.user,
+                self.request.lti_user,
+                course,
+                self.request.parsed_params.get("gradingStudentId"),
             )
 
         self._sync_to_h(groupings)

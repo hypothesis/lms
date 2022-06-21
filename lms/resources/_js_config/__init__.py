@@ -449,10 +449,10 @@ class JSConfig:
         req = self._request
         return {
             "authUrl": self._lms_auth_url,
-            "product": self._request.product.family,
             "path": req.route_path("api.sync"),
             "data": {
                 "lms": {
+                    "product": self._request.product.family,
                     "tool_consumer_instance_guid": self._context.lti_params[
                         "tool_consumer_instance_guid"
                     ],
@@ -462,7 +462,7 @@ class JSConfig:
                     "custom_canvas_course_id": self._context.lti_params.get(
                         "custom_canvas_course_id"
                     ),
-                    "group_set_id": self._context.group_set_id,
+                    "group_set_id": str(self._context.group_set_id),
                 },
                 "assignment": {
                     "resource_link_id": self._context.lti_params["resource_link_id"],
