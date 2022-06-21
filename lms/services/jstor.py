@@ -14,10 +14,7 @@ from lms.views.helpers import via_url
 
 
 class JSTORMetadataSchema(RequestsResponseSchema):
-    """Incomplete response schema for `/metadata/{doi}` endpoint in the JSTOR API."""
-
-    class ReviewedWorks(Schema):
-        title = fields.Str()
+    """Response schema for `/metadata/{doi}` endpoint in the JSTOR API."""
 
     # Title fields for "regular" articles.
     title = fields.List(fields.Str())
@@ -29,6 +26,10 @@ class JSTORMetadataSchema(RequestsResponseSchema):
     tbsub = fields.Str(allow_none=True)
 
     # Fields for articles which are reviews of other works.
+
+    class ReviewedWorks(Schema):
+        title = fields.Str()
+
     reviewed_works = fields.List(fields.Nested(ReviewedWorks, unknown=EXCLUDE))
 
 
