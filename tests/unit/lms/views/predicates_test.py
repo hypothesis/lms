@@ -4,7 +4,8 @@ from unittest.mock import Mock, call, sentinel
 import pytest
 from h_matchers import Any
 
-from lms.views.predicates import LTI_LAUNCH_PREDICATES, Predicate, includeme
+from lms.views.lti.basic_launch import has_document_url
+from lms.views.predicates import Predicate, includeme
 
 
 class TestPredicate:
@@ -38,8 +39,7 @@ class TestPredicate:
         )
 
 
-@pytest.mark.parametrize("name,comparison", LTI_LAUNCH_PREDICATES.items())
-def test_includeme(name, comparison):
+def test_includeme():
     config = Mock(spec_set=["add_view_predicate"])
 
     includeme(config)
@@ -47,9 +47,9 @@ def test_includeme(name, comparison):
     predicate_partial = Any.object.of_type(partial).with_attrs(
         {
             "func": Predicate,
-            "keywords": {"name": name, "comparison": comparison},
+            "keywords": {"name": "has_document_url", "comparison": has_document_url},
         }
     )
     config.add_view_predicate.assert_has_calls(
-        [call(name=name, factory=predicate_partial)]
+        [call(name="has_document_url", factory=predicate_partial)]
     )

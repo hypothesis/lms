@@ -1,16 +1,13 @@
 from unittest import mock
-from unittest.mock import create_autospec, sentinel
+from unittest.mock import create_autospec, patch, sentinel
 
 import pytest
 
 from lms.models import ApplicationInstance, LTIParams
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
-from lms.views.lti.basic_launch import (
-    BasicLaunchViews,
-    has_document_url,
-    is_authorized_to_configure_assignments,
-)
+from lms.security import Permissions
+from lms.views.lti.basic_launch import BasicLaunchViews, has_document_url
 from tests import factories
 
 
@@ -25,34 +22,6 @@ class TestHasDocumentURL:
             sentinel.context, pyramid_request
         )
         assert result == bool(document_url)
-
-
-class TestIsAuthorizedToConfigureAssignments:
-    @pytest.mark.parametrize(
-        "roles,authorized",
-        (
-            ("administrator,noise", True),
-            ("instructor,noise", True),
-            ("INSTRUCTOR,noise", True),
-            ("teachingassistant,noise", True),
-            ("other", False),
-        ),
-    )
-    def test_it(self, pyramid_request, roles, authorized):
-        pyramid_request.lti_user = pyramid_request.lti_user._replace(roles=roles)
-
-        result = is_authorized_to_configure_assignments(
-            sentinel.context, pyramid_request
-        )
-
-        assert result == authorized
-
-    def test_it_returns_false_with_no_user(self, pyramid_request):
-        pyramid_request.lti_user = None
-
-        assert not is_authorized_to_configure_assignments(
-            sentinel.context, pyramid_request
-        )
 
 
 @pytest.mark.usefixtures(
@@ -181,10 +150,24 @@ class TestBasicLaunchViews:
             form_fields={"other_values": "REMAIN", "authorization": authorization},
         )
 
-    def test_unconfigured_launch_not_authorized(self, context, pyramid_request):
-        assert not BasicLaunchViews(
-            context, pyramid_request
-        ).unconfigured_launch_not_authorized()
+    def test_unconfigured_launch_not_authorized(
+        self, context, pyramid_request, has_permission
+    ):
+        has_permission.return_value = False
+
+        response = BasicLaunchViews(context, pyramid_request).unconfigured_launch()
+
+        has_permission.assert_called_once_with(Permissions.LTI_CONFIGURE_ASSIGNMENT)
+        assert (
+            pyramid_request.override_renderer
+            == "lms:templates/lti/basic_launch/unconfigured_launch_not_authorized.html.jinja2"
+        )
+        assert not response
+
+    @pytest.fixture
+    def has_permission(self, pyramid_request):
+        with patch.object(pyramid_request, "has_permission") as has_permission:
+            yield has_permission
 
     def test__show_document(
         self,

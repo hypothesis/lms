@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Any
 
-from lms.views.lti.basic_launch import LTI_LAUNCH_PREDICATES
+from lms.views.lti.basic_launch import has_document_url
 
 
 @dataclass
@@ -44,7 +44,9 @@ class Predicate:
 
 
 def includeme(config):
-    for name, comparison in LTI_LAUNCH_PREDICATES.items():
-        config.add_view_predicate(
-            name=name, factory=partial(Predicate, name=name, comparison=comparison)
-        )
+    config.add_view_predicate(
+        name="has_document_url",
+        factory=partial(
+            Predicate, name="has_document_url", comparison=has_document_url
+        ),
+    )
