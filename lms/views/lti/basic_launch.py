@@ -29,7 +29,7 @@ def has_document_url(context, request):
     )
 
 
-def is_authorized_to_configure_assignments(_context, request):
+def authorized_to_configure_assignments(_context, request):
     """Get if the current user allowed to configured assignments."""
 
     if not request.lti_user:
@@ -40,13 +40,6 @@ def is_authorized_to_configure_assignments(_context, request):
     return any(
         role in roles for role in ["administrator", "instructor", "teachingassistant"]
     )
-
-
-# This is imported in `lms.views.predicates`
-LTI_LAUNCH_PREDICATES = {
-    "has_document_url": has_document_url,
-    "authorized_to_configure_assignments": is_authorized_to_configure_assignments,
-}
 
 
 @view_defaults(

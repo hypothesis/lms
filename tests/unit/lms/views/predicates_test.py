@@ -4,7 +4,11 @@ from unittest.mock import Mock, call, sentinel
 import pytest
 from h_matchers import Any
 
-from lms.views.predicates import LTI_LAUNCH_PREDICATES, Predicate, includeme
+from lms.views.lti.basic_launch import (
+    authorized_to_configure_assignments,
+    has_document_url,
+)
+from lms.views.predicates import Predicate, includeme
 
 
 class TestPredicate:
@@ -31,6 +35,26 @@ class TestPredicate:
 
         assert predicate(sentinel.context, sentinel.request)
 
+    def test_register(self, config):
+        def is_an_example(_config, _request):
+            """Pretend to be a predicate comparison function."""
+
+        Predicate.register(config, is_an_example)
+
+        predicate_partial = Any.object.of_type(partial).with_attrs(
+            {
+                "func": Predicate,
+                "keywords": {"name": "is_an_example", "comparison": is_an_example},
+            }
+        )
+        config.add_view_predicate.assert_has_calls(
+            [call(name="is_an_example", factory=predicate_partial)]
+        )
+
+    @pytest.fixture
+    def config(self):
+        return Mock(spec_set=["add_view_predicate"])
+
     @pytest.fixture
     def predicate(self):
         return Predicate(
@@ -38,18 +62,17 @@ class TestPredicate:
         )
 
 
-@pytest.mark.parametrize("name,comparison", LTI_LAUNCH_PREDICATES.items())
-def test_includeme(name, comparison):
-    config = Mock(spec_set=["add_view_predicate"])
+class TestIncludeme:
+    def test_it(self, Predicate):
+        includeme(sentinel.config)
 
-    includeme(config)
+        Predicate.register.assert_has_calls(
+            [
+                call(sentinel.config, has_document_url),
+                call(sentinel.config, authorized_to_configure_assignments),
+            ]
+        )
 
-    predicate_partial = Any.object.of_type(partial).with_attrs(
-        {
-            "func": Predicate,
-            "keywords": {"name": name, "comparison": comparison},
-        }
-    )
-    config.add_view_predicate.assert_has_calls(
-        [call(name=name, factory=predicate_partial)]
-    )
+    @pytest.fixture
+    def Predicate(self, patch):
+        return patch("lms.views.predicates.Predicate")

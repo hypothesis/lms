@@ -8,8 +8,8 @@ from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.views.lti.basic_launch import (
     BasicLaunchViews,
+    authorized_to_configure_assignments,
     has_document_url,
-    is_authorized_to_configure_assignments,
 )
 from tests import factories
 
@@ -27,7 +27,7 @@ class TestHasDocumentURL:
         assert result == bool(document_url)
 
 
-class TestIsAuthorizedToConfigureAssignments:
+class TestAuthorizedToConfigureAssignments:
     @pytest.mark.parametrize(
         "roles,authorized",
         (
@@ -41,16 +41,14 @@ class TestIsAuthorizedToConfigureAssignments:
     def test_it(self, pyramid_request, roles, authorized):
         pyramid_request.lti_user = pyramid_request.lti_user._replace(roles=roles)
 
-        result = is_authorized_to_configure_assignments(
-            sentinel.context, pyramid_request
-        )
+        result = authorized_to_configure_assignments(sentinel.context, pyramid_request)
 
         assert result == authorized
 
     def test_it_returns_false_with_no_user(self, pyramid_request):
         pyramid_request.lti_user = None
 
-        assert not is_authorized_to_configure_assignments(
+        assert not authorized_to_configure_assignments(
             sentinel.context, pyramid_request
         )
 

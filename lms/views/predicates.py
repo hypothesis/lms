@@ -9,7 +9,10 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Any
 
-from lms.views.lti.basic_launch import LTI_LAUNCH_PREDICATES
+from lms.views.lti.basic_launch import (
+    authorized_to_configure_assignments,
+    has_document_url,
+)
 
 
 @dataclass
@@ -42,9 +45,16 @@ class Predicate:
         # we will accept matches on anything falsy as well as matching values.
         return (value == self.value) or (not value and not self.value)
 
+    @classmethod
+    def register(cls, config, comparison):
+        """Add a callable as a wrapped predicate to Pyramid config."""
+
+        config.add_view_predicate(
+            name=comparison.__name__,
+            factory=partial(Predicate, name=comparison.__name__, comparison=comparison),
+        )
+
 
 def includeme(config):
-    for name, comparison in LTI_LAUNCH_PREDICATES.items():
-        config.add_view_predicate(
-            name=name, factory=partial(Predicate, name=name, comparison=comparison)
-        )
+    Predicate.register(config, has_document_url)
+    Predicate.register(config, authorized_to_configure_assignments)
