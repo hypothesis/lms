@@ -59,6 +59,7 @@ class DevDataFactory:
 
         model = getattr(models, item["type"])
         assert "id" in data, "id key needed when using 'model'"
+        self._update_id_sequence(model, data["id"])
         index_elements = {"id"}
         update_columns = set(data.keys()) - index_elements
         bulk_upsert(self.db, model, [data], index_elements, update_columns)
@@ -116,6 +117,14 @@ class DevDataFactory:
     def setattrs(object_, attrs):
         for name, value in attrs.items():
             setattr(object_, name, value)
+
+    def _update_id_sequence(self, model, value):
+        """Update the sequence of the PK so devdata rows don't overlap with the new ones."""
+        sequence = f"{model.__tablename__}_id_seq"
+        self.db.execute(
+            f"""SELECT SETVAL('{sequence}', GREATEST(:value+1, (SELECT last_value FROM "{sequence}")))""",
+            {"value": value},
+        )
 
 
 def devdata():
