@@ -89,10 +89,8 @@ describe('StudentSelector', () => {
     assert.isTrue(wrapper.find('button').last().prop('disabled'));
   });
 
-  it.skip(
+  it(
     'should pass a11y checks',
-    checkAccessibility({
-      content: () => renderSelector(),
-    })
+    checkAccessibility({ content: () => renderSelector() })
   );
 });
