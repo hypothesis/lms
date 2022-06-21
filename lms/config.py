@@ -1,6 +1,8 @@
 """Configuration for the Pyramid application."""
 
 import os
+from dataclasses import dataclass
+from typing import Callable
 
 from pyramid.config import Configurator, aslist
 from pyramid.settings import asbool
@@ -10,142 +12,110 @@ class SettingError(Exception):
     pass
 
 
-class SettingGetter:
-    """Helper for getting values of settings from envvars or config file."""
+def _append_trailing_slash(string):
+    """Append a slash to a string if none was there before."""
 
-    def __init__(self, settings: dict):
-        """
-        Initialize a new SettingGetter.
+    return string if string.endswith("/") else string + "/"
 
-        :params settings: Config file settings
-        """
-        self._settings = settings
 
-    def get(self, envvar_name, default=None):
-        """
-        Get the setting from the environment or config file
+def _aes_to_16_chars(string):
+    """Get 16 ascii bytes from the provided string."""
 
-        :param envvar_name: The environment variable name. This will be used
-            to generate a lower case version for the config file.
-        :param default: Default to return if no setting is found.
-        """
-        try:
-            return os.environ[envvar_name]
-        except KeyError:
-            pass
+    try:
+        return string.encode("ascii")[0:16] if string else None
+    except UnicodeEncodeError as err:
+        raise SettingError("LMS_SECRET must contain only ASCII characters") from err
 
-        try:
-            return self._settings[envvar_name.lower()]
-        except KeyError:
-            pass
 
-        return default
+@dataclass(frozen=True)
+class _Setting:
+    """The properties of a setting and how to read it."""
+
+    name: str
+    read_from: str = None
+    value_mapper: Callable = None
+
+    def __post_init__(self):
+        if not self.read_from:
+            object.__setattr__(self, "read_from", self.name)
+
+
+SETTINGS = (
+    _Setting("sqlalchemy.url", read_from="database_url"),
+    # Whether we're in "dev" mode (as opposed to QA, production or tests).
+    _Setting("dev", value_mapper=asbool),
+    # The URL of the https://github.com/hypothesis/via instance to
+    # integrate with.
+    _Setting("via_url", value_mapper=_append_trailing_slash),
+    _Setting("via_secret"),
+    _Setting("jwt_secret"),
+    _Setting("google_client_id"),
+    _Setting("google_developer_key"),
+    _Setting("google_app_id"),
+    _Setting("onedrive_client_id"),
+    _Setting("lms_secret"),
+    # We need to use a randomly generated 16 byte array to encrypt secrets.
+    # For now we will use the first 16 bytes of the lms_secret
+    _Setting("aes_secret", read_from="lms_secret", value_mapper=_aes_to_16_chars),
+    _Setting("hashed_pw"),
+    _Setting("salt"),
+    _Setting("username"),
+    # The secret string that's used to sign the session cookie.
+    # This needs to be a 64-byte, securely generated random string.
+    # For example you can generate one using Python 3 on the command line
+    # like this:
+    #     python3 -c 'import secrets; print(secrets.token_hex(nbytes=64))'
+    _Setting("session_cookie_secret"),
+    # The OAuth 2.0 client_id and client_secret for authenticating to the h API.
+    _Setting("h_client_id"),
+    _Setting("h_client_secret"),
+    # The OAuth 2.0 client_id and client_secret for logging users in to h.
+    _Setting("h_jwt_client_id"),
+    _Setting("h_jwt_client_secret"),
+    # The authority that we'll create h users and groups in (e.g. "lms.hypothes.is").
+    _Setting("h_authority"),
+    # The public base URL of the h API (e.g. "https://hypothes.is/api).
+    _Setting("h_api_url_public", value_mapper=_append_trailing_slash),
+    # A private (within-VPC) URL for the same h API. Faster and more secure
+    # than the public one. This is used for internal server-to-server
+    # comms.
+    _Setting("h_api_url_private", value_mapper=_append_trailing_slash),
+    # The postMessage origins from which to accept RPC requests.
+    _Setting("rpc_allowed_origins", value_mapper=aslist),
+    # The secret string that's used to sign the feature flags cookie.
+    # For example you can generate one using Python 3 on the command line
+    # like this:
+    #     python3 -c 'import secrets; print(secrets.token_hex())'
+    _Setting("feature_flags_cookie_secret"),
+    # The list of feature flags that are allowed to be set in the feature flags cookie.
+    _Setting("feature_flags_allowed_in_cookie"),
+    # The secret string that's used to sign the OAuth 2 state param.
+    # For example, you can generate one using Python 3 on the command line
+    # like this:
+    #     python3 -c 'import secrets; print(secrets.token_hex())'
+    _Setting("oauth2_state_secret"),
+    _Setting("vitalsource_api_key"),
+    _Setting("admin_auth_google_client_id"),
+    _Setting("admin_auth_google_client_secret"),
+    _Setting("blackboard_api_client_id"),
+    _Setting("blackboard_api_client_secret"),
+    _Setting("jstor_api_url"),
+    _Setting("jstor_api_secret"),
+)
 
 
 def configure(settings):
     """Return a Configurator for the Pyramid application."""
-    sg = SettingGetter(settings)  # pylint:disable=invalid-name
 
-    env_settings = {
-        # Whether or not we're in "dev" mode (as opposed to QA, production or tests).
-        "dev": sg.get("DEV", default=False),
-        # The URL of the https://github.com/hypothesis/via instance to
-        # integrate with.
-        "via_url": sg.get("VIA_URL"),
-        "via_secret": sg.get("VIA_SECRET"),
-        "jwt_secret": sg.get("JWT_SECRET"),
-        "google_client_id": sg.get("GOOGLE_CLIENT_ID"),
-        "google_developer_key": sg.get("GOOGLE_DEVELOPER_KEY"),
-        "google_app_id": sg.get("GOOGLE_APP_ID"),
-        "onedrive_client_id": sg.get("ONEDRIVE_CLIENT_ID"),
-        "lms_secret": sg.get("LMS_SECRET"),
-        "hashed_pw": sg.get("HASHED_PW"),
-        "salt": sg.get("SALT"),
-        "username": sg.get("USERNAME"),
-        # The secret string that's used to sign the session cookie.
-        # This needs to be a 64-byte, securely generated random string.
-        # For example you can generate one using Python 3 on the command line
-        # like this:
-        #     python3 -c 'import secrets; print(secrets.token_hex(nbytes=64))'
-        "session_cookie_secret": sg.get("SESSION_COOKIE_SECRET"),
-        # We need to use a randomly generated 16 byte array to encrypt secrets.
-        # For now we will use the first 16 bytes of the lms_secret
-        "aes_secret": sg.get("LMS_SECRET"),
-        # The OAuth 2.0 client_id and client_secret for authenticating to the h API.
-        "h_client_id": sg.get("H_CLIENT_ID"),
-        "h_client_secret": sg.get("H_CLIENT_SECRET"),
-        # The OAuth 2.0 client_id and client_secret for logging users in to h.
-        "h_jwt_client_id": sg.get("H_JWT_CLIENT_ID"),
-        "h_jwt_client_secret": sg.get("H_JWT_CLIENT_SECRET"),
-        # The authority that we'll create h users and groups in (e.g. "lms.hypothes.is").
-        "h_authority": sg.get("H_AUTHORITY"),
-        # The public base URL of the h API (e.g. "https://hypothes.is/api).
-        "h_api_url_public": sg.get("H_API_URL_PUBLIC"),
-        # A private (within-VPC) URL for the same h API. Faster and more secure
-        # than the public one. This is used for internal server-to-server
-        # comms.
-        "h_api_url_private": sg.get("H_API_URL_PRIVATE"),
-        # The postMessage origins from which to accept RPC requests.
-        "rpc_allowed_origins": sg.get("RPC_ALLOWED_ORIGINS"),
-        # The secret string that's used to sign the feature flags cookie.
-        # For example you can generate one using Python 3 on the command line
-        # like this:
-        #     python3 -c 'import secrets; print(secrets.token_hex())'
-        "feature_flags_cookie_secret": sg.get("FEATURE_FLAGS_COOKIE_SECRET"),
-        # The list of feature flags that are allowed to be set in the feature flags cookie.
-        "feature_flags_allowed_in_cookie": sg.get("FEATURE_FLAGS_ALLOWED_IN_COOKIE"),
-        # The secret string that's used to sign the OAuth 2 state param.
-        # For example you can generate one using Python 3 on the command line
-        # like this:
-        #     python3 -c 'import secrets; print(secrets.token_hex())'
-        "oauth2_state_secret": sg.get("OAUTH2_STATE_SECRET"),
-        "vitalsource_api_key": sg.get("VITALSOURCE_API_KEY"),
-        "admin_auth_google_client_id": sg.get("ADMIN_AUTH_GOOGLE_CLIENT_ID"),
-        "admin_auth_google_client_secret": sg.get("ADMIN_AUTH_GOOGLE_CLIENT_SECRET"),
-        "blackboard_api_client_id": sg.get("BLACKBOARD_API_CLIENT_ID"),
-        "blackboard_api_client_secret": sg.get("BLACKBOARD_API_CLIENT_SECRET"),
-        "jstor_api_url": sg.get("JSTOR_API_URL"),
-        "jstor_api_secret": sg.get("JSTOR_API_SECRET"),
-    }
-
-    env_settings["dev"] = asbool(env_settings["dev"])
-
-    database_url = sg.get("DATABASE_URL")
-    if database_url:
-        env_settings["sqlalchemy.url"] = database_url
-
-    env_settings["via_url"] = _append_trailing_slash(env_settings["via_url"])
-
-    env_settings["h_api_url_public"] = _append_trailing_slash(
-        env_settings["h_api_url_public"]
-    )
-    env_settings["h_api_url_private"] = _append_trailing_slash(
-        env_settings["h_api_url_private"]
-    )
-
-    if env_settings.get("aes_secret"):
+    for setting in SETTINGS:
         try:
-            env_settings["aes_secret"] = env_settings["aes_secret"].encode("ascii")[
-                0:16
-            ]
-        except UnicodeEncodeError as err:
-            raise SettingError("LMS_SECRET must contain only ASCII characters") from err
+            value = os.environ[setting.read_from.upper()]
+        except KeyError:
+            value = settings.get(setting.read_from)
 
-    env_settings["rpc_allowed_origins"] = aslist(env_settings["rpc_allowed_origins"])
+        if setting.value_mapper:
+            value = setting.value_mapper(value)
 
-    settings.update(env_settings)
+        settings[setting.name] = value
 
-    config = Configurator(settings=settings)
-
-    return config
-
-
-def _append_trailing_slash(s):  # pylint: disable=invalid-name
-    """
-    Return ``s`` with a trailing ``"/"`` appended.
-
-    If ``s`` already ends with a trailing ``"/"`` it'll be returned unmodified.
-    """
-    if not s.endswith("/"):
-        s = s + "/"
-    return s
+    return Configurator(settings=settings)
