@@ -83,7 +83,7 @@ export default function StudentSelector({
             'appearance-none w-full h-touch-minimum',
             'pl-4 pr-8', // Make room on right for custom down-caret Icon
             'xl:w-80', // Fix the width at wider viewports
-            'u-outline-on-keyboard-focus--inset',
+            'focus-visible-ring ring-inset',
             'border border-r-0 border-l-0' // left and right borders off
           )}
           onChange={e => {
@@ -133,7 +133,7 @@ export default function StudentSelector({
             // IconButton styling sets a border radius. Turn it off on the
             // right for better alignment with the select element
             'rounded-r-none',
-            'u-outline-on-keyboard-focus--inset'
+            'focus-visible-ring ring-inset'
           )}
           icon="arrowLeft"
           title="previous student"
@@ -147,7 +147,7 @@ export default function StudentSelector({
             'px-3',
             // Turn off border radius on left for better alignment with select
             'rounded-l-none',
-            'u-outline-on-keyboard-focus--inset'
+            'focus-visible-ring ring-inset'
           )}
           icon="arrowRight"
           title="next student"

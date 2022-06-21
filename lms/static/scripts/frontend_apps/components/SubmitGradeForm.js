@@ -203,7 +203,7 @@ export default function SubmitGradeForm({ student }) {
               className={classnames(
                 'w-14 h-touch-minimum text-center',
                 'disabled:opacity-50',
-                'u-outline-on-keyboard-focus--inset',
+                'focus-visible-ring ring-inset',
                 'border border-r-0',
                 {
                   'animate-gradeSubmitSuccess': gradeSaved,
@@ -227,7 +227,7 @@ export default function SubmitGradeForm({ student }) {
             classes={classnames(
               'h-touch-minimum border',
               'disabled:opacity-50 disabled:cursor-default',
-              'u-outline-on-keyboard-focus--inset'
+              'focus-visible-ring ring-inset'
             )}
             disabled={disabled}
             onClick={onSubmitGrade}

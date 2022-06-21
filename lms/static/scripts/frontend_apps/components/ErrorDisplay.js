@@ -53,7 +53,7 @@ function ErrorDetails({ error }) {
         className={classnames(
           'sticky top-0',
           'bg-grey-1 p-2 cursor-pointer',
-          'yp-u-outline-on-keyboard-focus--inset'
+          'focus-visible-ring ring-inset'
         )}
       >
         Error Details
