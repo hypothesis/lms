@@ -343,7 +343,7 @@ class BasicLaunchViews:
 
         self.application_instance.update_lms_data(self.context.lti_params)
 
-        # Report all LTI assignment launches to the /reports page.
+        # Record all LTILaunches for future reporting
         LtiLaunches.add(
             self.request.db,
             self.context.lti_params.get("context_id"),

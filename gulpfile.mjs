@@ -16,7 +16,6 @@ gulp.task('build-css', () =>
   buildCSS(
     [
       './lms/static/styles/lms.scss',
-      './lms/static/styles/reports.css',
       './lms/static/styles/frontend_apps.scss',
       './lms/static/styles/ui-playground.scss',
     ],

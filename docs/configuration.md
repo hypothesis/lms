@@ -46,7 +46,6 @@ LMS. Each of these is mandatory to get the service working correctly.
 | `LMS_SECRET`                      | `random-string-12345`                  | An arbitrary secret value                       |
 | `OAUTH2_STATE_SECRET`             | `random-string-12345`                  | An arbitrary secret value                       |
 | `RPC_ALLOWED_ORIGINS`             | `https://fr.hypothes.is`               | `h` instances clients can be connecting from    |
-| `SALT`                            | `random-string-12345`                  | An arbitrary secret value                       |
 | `SESSION_COOKIE_SECRET`           | `random-string-12345`                  | An arbitrary secret value                       |
 | `VIA_SECRET`                      | `matching-string-from-via`             | Must match the shared secret from Via           |
 | `VIA_URL`                         | `https://via9.hypothes.is/`            | The matching Via                                |
