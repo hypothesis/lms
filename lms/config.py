@@ -1,10 +1,45 @@
 """Configuration for the Pyramid application."""
 
-from pyramid.authorization import ACLAuthorizationPolicy
+import os
+
 from pyramid.config import Configurator, aslist
 from pyramid.settings import asbool
 
-from lms.config.settings import SettingError, SettingGetter
+
+class SettingError(Exception):
+    pass
+
+
+class SettingGetter:
+    """Helper for getting values of settings from envvars or config file."""
+
+    def __init__(self, settings: dict):
+        """
+        Initialize a new SettingGetter.
+
+        :params settings: Config file settings
+        """
+        self._settings = settings
+
+    def get(self, envvar_name, default=None):
+        """
+        Get the setting from the environment or config file
+
+        :param envvar_name: The environment variable name. This will be used
+            to generate a lower case version for the config file.
+        :param default: Default to return if no setting is found.
+        """
+        try:
+            return os.environ[envvar_name]
+        except KeyError:
+            pass
+
+        try:
+            return self._settings[envvar_name.lower()]
+        except KeyError:
+            pass
+
+        return default
 
 
 def configure(settings):
@@ -114,6 +149,3 @@ def _append_trailing_slash(s):  # pylint: disable=invalid-name
     if not s.endswith("/"):
         s = s + "/"
     return s
-
-
-__all__ = ("configure",)
