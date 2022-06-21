@@ -9,7 +9,6 @@ def includeme(config):  # pylint:disable=too-many-statements
 
     config.add_route("login", "/login")
     config.add_route("logout", "/logout")
-    config.add_route("reports", "/reports")
 
     config.add_route("canvas.v11.config", "/config_xml")
     config.add_route("canvas.v13.config", "/canvas/1.3/config")
