@@ -1,75 +1,12 @@
 from unittest.mock import sentinel
 
 import pytest
-from sqlalchemy.exc import IntegrityError
 
-from lms.models import ApplicationInstance, ApplicationSettings, ReusedConsumerKey
+from lms.models import ApplicationSettings, ReusedConsumerKey
 from tests import factories
 
 
 class TestApplicationInstance:
-    def test_it_persists_application_instance(self, db_session):
-        initial_count = db_session.query(ApplicationInstance).count()
-
-        factories.ApplicationInstance()
-
-        new_count = db_session.query(ApplicationInstance).count()
-        assert new_count == initial_count + 1
-
-    def test_provisioning_defaults_to_True(self, application_instance, db_session):
-        db_session.flush()
-
-        assert application_instance.provisioning is True
-
-    def test_provisioning_can_be_disabled(self, application_instance, db_session):
-        application_instance.provisioning = False
-        db_session.flush()
-
-        assert not application_instance.provisioning
-
-    def test_provisioning_is_not_nullable(self, db_session, application_instance):
-        application_instance.provisioning = None
-
-        db_session.flush()
-
-        assert application_instance.provisioning is not None
-
-    def test_settings_can_be_retrieved(self, application_instance):
-        application_instance.settings = {"group": {"key": "value"}}
-
-        assert application_instance.settings.get("group", "key") == "value"
-
-    def test_can_update_settings(self, application_instance):
-        application_instance.settings = {"group": {"key": "value"}}
-
-        application_instance.settings.set("group", "key", "new_value")
-
-        assert application_instance.settings["group"]["key"] == "new_value"
-
-    def test_consumer_key_cant_be_null(self, db_session, application_instance):
-        application_instance.consumer_key = None
-
-        with pytest.raises(IntegrityError, match="consumer_key"):
-            db_session.flush()
-
-    def test_shared_secret_cant_be_null(self, db_session, application_instance):
-        application_instance.shared_secret = None
-
-        with pytest.raises(IntegrityError, match="shared_secret"):
-            db_session.flush()
-
-    def test_lms_url_cant_be_null(self, db_session, application_instance):
-        application_instance.lms_url = None
-
-        with pytest.raises(IntegrityError, match="lms_url"):
-            db_session.flush()
-
-    def test_requesters_email_cant_be_null(self, db_session, application_instance):
-        application_instance.requesters_email = None
-
-        with pytest.raises(IntegrityError, match="requesters_email"):
-            db_session.flush()
-
     def test_lms_host(self, application_instance):
         application_instance.lms_url = "https://example.com/lms/"
 
