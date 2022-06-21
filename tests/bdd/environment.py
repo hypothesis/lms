@@ -8,7 +8,7 @@ from tests.bdd.step_context import StepContextManager
 from tests.bdd.steps.lms_db import TEST_DATABASE_URL
 from tests.conftest import TEST_SETTINGS
 
-TEST_SETTINGS["sqlalchemy.url"] = TEST_DATABASE_URL
+TEST_SETTINGS["database_url"] = TEST_DATABASE_URL
 
 
 # Create the compiled step file before steps are read

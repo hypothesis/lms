@@ -59,12 +59,6 @@ class TestConfigure:
 
         assert configure({}).registry.settings[setting] == expected
 
-    @pytest.mark.parametrize("setting,source", (("sqlalchemy.url", "database_url"),))
-    def test_it_with_copied_settings(self, environ, setting, source):
-        environ[source.upper()] = "value"
-
-        assert configure({}).registry.settings[setting] == "value"
-
     @pytest.mark.parametrize(
         "lms_secret,aes_secret",
         (
