@@ -90,16 +90,29 @@ class TestLTISecurityPolicy:
 
         assert userid == Identity(userid="", permissions=[])
 
-    def test_identity_when_theres_an_lti_user(self, pyramid_request):
+    @pytest.mark.parametrize(
+        "roles,extra_permissions",
+        (
+            ("administrator,noise", [Permissions.LTI_CONFIGURE_ASSIGNMENT]),
+            ("instructor,noise", [Permissions.LTI_CONFIGURE_ASSIGNMENT]),
+            ("INSTRUCTOR,noise", [Permissions.LTI_CONFIGURE_ASSIGNMENT]),
+            ("teachingassistant,noise", [Permissions.LTI_CONFIGURE_ASSIGNMENT]),
+            ("other", []),
+        ),
+    )
+    def test_identity_when_theres_an_lti_user(
+        self, pyramid_request, roles, extra_permissions
+    ):
         policy = LTISecurityPolicy()
+        pyramid_request.lti_user = pyramid_request.lti_user._replace(roles=roles)
 
         identity = policy.identity(pyramid_request)
 
         assert identity.userid
-        assert identity.permissions == [
-            Permissions.LTI_LAUNCH_ASSIGNMENT,
-            Permissions.API,
-        ]
+        assert (
+            identity.permissions
+            == [Permissions.LTI_LAUNCH_ASSIGNMENT, Permissions.API] + extra_permissions
+        )
 
     def test_remember(self, pyramid_request):
         LTISecurityPolicy().remember(
