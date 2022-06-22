@@ -1,6 +1,16 @@
+from enum import Enum
+
 from lms.models import Grouping
 from lms.services import CanvasAPIError
 from lms.services.grouping._plugin import GroupError, GroupingServicePlugin
+
+
+class ErrorCodes(str, Enum):
+    """Error codes that the FE is going to check for."""
+
+    STUDENT_NOT_IN_GROUP = "canvas_student_not_in_group"
+    GROUP_SET_EMPTY = "canvas_group_set_empty"
+    GROUP_SET_NOT_FOUND = "canvas_group_set_not_found"
 
 
 class CanvasGroupingPlugin(GroupingServicePlugin):
@@ -44,9 +54,7 @@ class CanvasGroupingPlugin(GroupingServicePlugin):
         ):
             return learner_groups
 
-        raise GroupError(
-            GroupError.ErrorCodes.CANVAS_STUDENT_NOT_IN_GROUP, group_set=group_set_id
-        )
+        raise GroupError(ErrorCodes.STUDENT_NOT_IN_GROUP, group_set=group_set_id)
 
     def get_groups_for_instructor(self, _svc, _course, group_set_id):
         try:
@@ -54,13 +62,11 @@ class CanvasGroupingPlugin(GroupingServicePlugin):
             all_course_groups = self._canvas_api.group_category_groups(group_set_id)
         except CanvasAPIError as canvas_api_error:
             raise GroupError(
-                GroupError.ErrorCodes.CANVAS_GROUP_SET_NOT_FOUND, group_set=group_set_id
+                ErrorCodes.GROUP_SET_NOT_FOUND, group_set=group_set_id
             ) from canvas_api_error
 
         if not all_course_groups:
-            raise GroupError(
-                GroupError.ErrorCodes.CANVAS_GROUP_SET_EMPTY, group_set=group_set_id
-            )
+            raise GroupError(ErrorCodes.GROUP_SET_EMPTY, group_set=group_set_id)
 
         return all_course_groups
 

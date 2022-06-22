@@ -4,7 +4,7 @@ import pytest
 
 from lms.services import CanvasAPIError
 from lms.services.grouping._plugin import GroupError
-from lms.services.grouping._plugin.canvas import CanvasGroupingPlugin
+from lms.services.grouping._plugin.canvas import CanvasGroupingPlugin, ErrorCodes
 from tests import factories
 
 
@@ -74,7 +74,7 @@ class TestCanvasGroupingPlugin:
                 grouping_service, course, sentinel.group_set_id
             )
 
-        assert err.value.error_code == GroupError.ErrorCodes.CANVAS_STUDENT_NOT_IN_GROUP
+        assert err.value.error_code == ErrorCodes.STUDENT_NOT_IN_GROUP
 
     def test_get_groups_for_instructor(
         self, canvas_api_client, grouping_service, plugin, course
@@ -98,7 +98,7 @@ class TestCanvasGroupingPlugin:
                 grouping_service, course, sentinel.group_set_id
             )
 
-        assert err.value.error_code == GroupError.ErrorCodes.CANVAS_GROUP_SET_NOT_FOUND
+        assert err.value.error_code == ErrorCodes.GROUP_SET_NOT_FOUND
 
     def test_get_groups_for_instructor_group_set_empty(
         self, grouping_service, canvas_api_client, course, plugin
@@ -110,7 +110,7 @@ class TestCanvasGroupingPlugin:
                 grouping_service, course, sentinel.group_set_id
             )
 
-        assert err.value.error_code == GroupError.ErrorCodes.CANVAS_GROUP_SET_EMPTY
+        assert err.value.error_code == ErrorCodes.GROUP_SET_EMPTY
 
     def test_get_groups_for_grading(
         self, canvas_api_client, grouping_service, plugin, course
