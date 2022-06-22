@@ -310,7 +310,6 @@ class TestJSConfigAPISync:
     def test_when_is_canvas(self, sync, pyramid_request, GroupInfo):
         assert sync == {
             "authUrl": "http://example.com/api/canvas/oauth/authorize",
-            "product": "canvas",
             "path": "/api/canvas/sync",
             "data": {
                 "course": {
@@ -319,7 +318,8 @@ class TestJSConfigAPISync:
                     "group_set": None,
                 },
                 "lms": {
-                    "tool_consumer_instance_guid": "test_tool_consumer_instance_guid"
+                    "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
+                    "product": "canvas",
                 },
                 "group_info": {
                     key: value
@@ -333,7 +333,6 @@ class TestJSConfigAPISync:
     def test_when_is_blackboard(self, sync, pyramid_request, GroupInfo):
         assert sync == {
             "authUrl": "http://example.com/api/blackboard/oauth/authorize",
-            "product": Product.Family.BLACKBOARD,
             "path": "/api/blackboard/sync",
             "data": {
                 "course": {
@@ -343,7 +342,8 @@ class TestJSConfigAPISync:
                     "resource_link_id": "test_resource_link_id",
                 },
                 "lms": {
-                    "tool_consumer_instance_guid": "test_tool_consumer_instance_guid"
+                    "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
+                    "product": Product.Family.BLACKBOARD,
                 },
                 "group_info": {
                     key: value

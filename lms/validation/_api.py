@@ -86,6 +86,7 @@ class APIRecordResultSchema(JSONPyramidRequestSchema):
 class APIBlackboardSyncSchema(PyramidRequestSchema):
     class LMS(Schema):
         tool_consumer_instance_guid = fields.Str(required=True)
+        product = fields.Str(required=True)
 
     class Course(Schema):
         context_id = fields.Str(required=True)

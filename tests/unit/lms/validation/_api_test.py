@@ -190,7 +190,10 @@ class TestAPIBlackboardSyncSchema:
     @pytest.fixture
     def all_fields(self):
         return {
-            "lms": {"tool_consumer_instance_guid": "tool_consumer_instance_guid"},
+            "lms": {
+                "tool_consumer_instance_guid": "tool_consumer_instance_guid",
+                "product": "canvas",
+            },
             "course": {"context_id": "context_id"},
             "assignment": {"resource_link_id": "resource_link_id"},
             "group_info": {"some": "data"},
