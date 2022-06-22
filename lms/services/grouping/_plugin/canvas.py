@@ -1,7 +1,6 @@
 from lms.models import Grouping
 from lms.services import CanvasAPIError
-from lms.services.grouping._plugin.exceptions import GroupError
-from lms.services.grouping.service import GroupingServicePlugin
+from lms.services.grouping._plugin import GroupError, GroupingServicePlugin
 
 
 class CanvasGroupingPlugin(GroupingServicePlugin):

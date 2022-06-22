@@ -3,8 +3,8 @@ from unittest.mock import sentinel
 import pytest
 
 from lms.services import CanvasAPIError
+from lms.services.grouping._plugin import GroupError
 from lms.services.grouping._plugin.canvas import CanvasGroupingPlugin
-from lms.services.grouping._plugin.exceptions import GroupError
 from tests import factories
 
 
