@@ -10,12 +10,13 @@ def test_for_missing_init_files():
     missing = []
 
     for root, dirs, files in os.walk(TEST_ROOT):
+        # Ignore `__pycache__` dirs and don't recurse into them
+        if '__pycache__' in dirs:
+            dirs.remove('__pycache__')
+
         rel_root = relpath(root, TEST_ROOT)
 
         if rel_root.startswith("bdd"):
-            continue
-
-        if rel_root.endswith("__pycache__"):  # pragma: no cover
             continue
 
         if "__init__.py" not in files:  # pragma: no cover
