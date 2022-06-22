@@ -124,6 +124,9 @@ class TestJSTORService:
                 },
                 "Review: Some other work",
             ),
+            # Primary source content (various kinds of item listed under
+            # "Primary source content" in JSTOR search results)
+            ({"item_title": "Some primary source"}, "Some primary source"),
             # Titles with extra whitespace or new lines. These should be cleaned up.
             (
                 {"title": ["   Too\n many\n lines \t and spaces "]},
