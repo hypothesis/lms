@@ -1,6 +1,16 @@
+from enum import Enum
+
 from lms.models import Grouping
 from lms.services import ExternalRequestError
 from lms.services.grouping._plugin import GroupError, GroupingServicePlugin
+
+
+class ErrorCodes(str, Enum):
+    """Error codes that the FE is going to check for."""
+
+    GROUP_SET_NOT_FOUND = "blackboard_group_set_not_found"
+    GROUP_SET_EMPTY = "blackboard_group_set_empty"
+    STUDENT_NOT_IN_GROUP = "blackboard_student_not_in_group"
 
 
 class BlackboardGroupingPlugin(GroupingServicePlugin):
@@ -18,10 +28,7 @@ class BlackboardGroupingPlugin(GroupingServicePlugin):
         ):
             return learner_groups
 
-        raise GroupError(
-            GroupError.ErrorCodes.BLACKBOARD_STUDENT_NOT_IN_GROUP,
-            group_set=group_set_id,
-        )
+        raise GroupError(ErrorCodes.STUDENT_NOT_IN_GROUP, group_set=group_set_id)
 
     def get_groups_for_grading(
         self, svc, course, group_set_id, grading_student_id=None
@@ -36,16 +43,12 @@ class BlackboardGroupingPlugin(GroupingServicePlugin):
         except ExternalRequestError as exc:
             if exc.status_code == 404:
                 raise GroupError(
-                    GroupError.ErrorCodes.BLACKBOARD_GROUP_SET_NOT_FOUND,
-                    group_set=group_set_id,
+                    ErrorCodes.GROUP_SET_NOT_FOUND, group_set=group_set_id
                 ) from exc
 
             raise
 
         if not groups:
-            raise GroupError(
-                GroupError.ErrorCodes.BLACKBOARD_GROUP_SET_EMPTY,
-                group_set=group_set_id,
-            )
+            raise GroupError(ErrorCodes.GROUP_SET_EMPTY, group_set=group_set_id)
 
         return groups

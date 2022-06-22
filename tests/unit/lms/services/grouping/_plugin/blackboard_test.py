@@ -5,7 +5,10 @@ import pytest
 from lms.models import Grouping
 from lms.services.exceptions import ExternalRequestError
 from lms.services.grouping._plugin import GroupError
-from lms.services.grouping._plugin.blackboard import BlackboardGroupingPlugin
+from lms.services.grouping._plugin.blackboard import (
+    BlackboardGroupingPlugin,
+    ErrorCodes,
+)
 from tests import factories
 
 
@@ -31,10 +34,7 @@ class TestBlackboardGroupingPlugin:
             plugin.get_groups_for_learner(
                 grouping_service, course, sentinel.group_set_id
             )
-        assert (
-            err.value.error_code
-            == GroupError.ErrorCodes.BLACKBOARD_STUDENT_NOT_IN_GROUP
-        )
+        assert err.value.error_code == ErrorCodes.STUDENT_NOT_IN_GROUP
 
     def test_get_groups_for_grading(self, plugin, grouping_service, course):
         api_groups = plugin.get_groups_for_grading(
@@ -84,9 +84,7 @@ class TestBlackboardGroupingPlugin:
             plugin.get_groups_for_instructor(
                 grouping_service, course, sentinel.group_set_id
             )
-        assert (
-            err.value.error_code == GroupError.ErrorCodes.BLACKBOARD_GROUP_SET_NOT_FOUND
-        )
+        assert err.value.error_code == ErrorCodes.GROUP_SET_NOT_FOUND
 
     def test_get_groups_for_instructor_group_set_empty(
         self, blackboard_api_client, plugin, grouping_service, course
@@ -97,7 +95,7 @@ class TestBlackboardGroupingPlugin:
             plugin.get_groups_for_instructor(
                 grouping_service, course, sentinel.group_set_id
             )
-        assert err.value.error_code == GroupError.ErrorCodes.BLACKBOARD_GROUP_SET_EMPTY
+        assert err.value.error_code == ErrorCodes.GROUP_SET_EMPTY
 
     @pytest.fixture
     def plugin(self, blackboard_api_client):
