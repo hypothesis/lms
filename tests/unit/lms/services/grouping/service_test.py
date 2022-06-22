@@ -318,40 +318,30 @@ class TestGetCourseGroupingsForUser:
 
 
 class TestGetGroupings:
+    def test_get_sections_when_not_supported(self, lti_user, course, svc):
+        svc.plugin.sections_type = None
+
+        assert not svc.get_sections(user, lti_user, course)
+
     @pytest.mark.usefixtures("user_is_learner")
     def test_get_sections_with_learner(
-        self, user, lti_user, svc, course, assert_to_grouping
+        self, user, lti_user, svc, course, _to_groupings
     ):
         groupings = svc.get_sections(user, lti_user, course)
 
         svc.plugin.get_sections_for_learner.assert_called_once_with(svc, course)
-        assert_to_grouping(
-            svc.plugin.get_sections_for_learner,
-            groupings,
+        _to_groupings.assert_called_once_with(
             user,
+            svc.plugin.get_sections_for_learner.return_value,
+            course,
             svc.plugin.sections_type,
         )
-
-    @pytest.mark.usefixtures("user_is_instructor")
-    def test_get_sections_with_instructor(
-        self, user, lti_user, svc, course, assert_to_grouping
-    ):
-        groupings = svc.get_sections(user, lti_user, course)
-
-        svc.plugin.get_sections_for_instructor.assert_called_once_with(svc, course)
-        assert_to_grouping(
-            svc.plugin.get_sections_for_instructor,
-            groupings,
-            user,
-            svc.plugin.sections_type,
-        )
+        assert groupings == _to_groupings.return_value
 
     @pytest.mark.usefixtures("user_is_instructor")
     def test_get_sections_while_grading(
-        self, user, lti_user, svc, course, assert_to_grouping, plugin_groups
+        self, user, lti_user, svc, course, _to_groupings
     ):
-        svc.plugin.get_sections_for_grading.return_value = plugin_groups
-
         groupings = svc.get_sections(
             user, lti_user, course, sentinel.grading_student_id
         )
@@ -359,50 +349,51 @@ class TestGetGroupings:
         svc.plugin.get_sections_for_grading.assert_called_once_with(
             svc, course, sentinel.grading_student_id
         )
-        assert_to_grouping(
-            svc.plugin.get_sections_for_grading,
-            groupings,
+        _to_groupings(
             user,
+            svc.plugin.get_sections_for_grading.return_value,
+            course,
             svc.plugin.sections_type,
         )
+        assert groupings == _to_groupings.return_value
 
-    def test_get_sections_when_not_supported(self, lti_user, course, svc):
-        svc.plugin.sections_type = None
+    @pytest.mark.usefixtures("user_is_instructor")
+    def test_get_sections_with_instructor(
+        self, user, lti_user, svc, course, _to_groupings
+    ):
+        groupings = svc.get_sections(user, lti_user, course)
 
-        assert not svc.get_sections(user, lti_user, course)
+        svc.plugin.get_sections_for_instructor.assert_called_once_with(svc, course)
+        _to_groupings.assert_called_once_with(
+            user,
+            svc.plugin.get_sections_for_instructor.return_value,
+            course,
+            svc.plugin.sections_type,
+        )
+        assert groupings == _to_groupings.return_value
+
+    def test_get_groups_when_not_supported(self, lti_user, course, svc):
+        svc.plugin.group_type = None
+
+        assert not svc.get_groups(user, lti_user, course, sentinel.group_set_id)
 
     @pytest.mark.usefixtures("user_is_learner")
-    def test_get_groups_with_learner(
-        self, user, lti_user, svc, course, assert_to_grouping
-    ):
+    def test_get_groups_with_learner(self, user, lti_user, svc, course, _to_groupings):
         groupings = svc.get_groups(user, lti_user, course, sentinel.group_set_id)
 
         svc.plugin.get_groups_for_learner.assert_called_once_with(
             svc, course, sentinel.group_set_id
         )
-        assert_to_grouping(
-            svc.plugin.get_groups_for_learner, groupings, user, svc.plugin.group_type
+        _to_groupings.assert_called_once_with(
+            user,
+            svc.plugin.get_groups_for_learner.return_value,
+            course,
+            svc.plugin.group_type,
         )
+        assert groupings == _to_groupings.return_value
 
     @pytest.mark.usefixtures("user_is_instructor")
-    def test_get_groups_with_instructor(
-        self, user, lti_user, svc, course, assert_to_grouping
-    ):
-        groupings = svc.get_groups(user, lti_user, course, sentinel.group_set_id)
-
-        svc.plugin.get_groups_for_instructor.assert_called_once_with(
-            svc, course, sentinel.group_set_id
-        )
-        assert_to_grouping(
-            svc.plugin.get_groups_for_instructor, groupings, user, svc.plugin.group_type
-        )
-
-    @pytest.mark.usefixtures("user_is_instructor")
-    def test_get_groups_while_grading(
-        self, user, lti_user, svc, course, assert_to_grouping, plugin_groups
-    ):
-        svc.plugin.get_groups_for_grading.return_value = plugin_groups
-
+    def test_get_groups_while_grading(self, user, lti_user, svc, course, _to_groupings):
         groupings = svc.get_groups(
             user, lti_user, course, sentinel.group_set_id, sentinel.grading_student_id
         )
@@ -410,64 +401,87 @@ class TestGetGroupings:
         svc.plugin.get_groups_for_grading.assert_called_once_with(
             svc, course, sentinel.group_set_id, sentinel.grading_student_id
         )
-        assert_to_grouping(
-            svc.plugin.get_groups_for_grading, groupings, user, svc.plugin.group_type
+        _to_groupings.assert_called_once_with(
+            user,
+            svc.plugin.get_groups_for_grading.return_value,
+            course,
+            svc.plugin.group_type,
+        )
+        assert groupings == _to_groupings.return_value
+
+    @pytest.mark.usefixtures("user_is_instructor")
+    def test_get_groups_with_instructor(
+        self, user, lti_user, svc, course, _to_groupings
+    ):
+        groupings = svc.get_groups(user, lti_user, course, sentinel.group_set_id)
+
+        svc.plugin.get_groups_for_instructor.assert_called_once_with(
+            svc, course, sentinel.group_set_id
+        )
+        _to_groupings.assert_called_once_with(
+            user,
+            svc.plugin.get_groups_for_instructor.return_value,
+            course,
+            svc.plugin.group_type,
+        )
+        assert groupings == _to_groupings.return_value
+
+    @pytest.mark.parametrize("group_set_key", ("groupSetId", "group_category_id"))
+    def test_to_groupings_with_dicts(
+        self, svc, upsert_groupings, upsert_grouping_memberships, group_set_key
+    ):
+        grouping_dicts = [
+            {
+                "id": sentinel.id,
+                "name": sentinel.name,
+                "settings": sentinel.settings,
+                group_set_key: sentinel.group_set_id,
+            },
+        ]
+
+        # pylint:disable=protected-access
+        groupings = svc._to_groupings(
+            sentinel.user, grouping_dicts, sentinel.course, sentinel.grouping_type
         )
 
-    def test_get_groups_when_not_supported(self, lti_user, course, svc):
-        svc.plugin.group_type = None
+        upsert_groupings.assert_called_once_with(
+            [
+                {
+                    "lms_id": sentinel.id,
+                    "lms_name": sentinel.name,
+                    "extra": {"group_set_id": sentinel.group_set_id},
+                    "settings": sentinel.settings,
+                }
+            ],
+            parent=sentinel.course,
+            type_=sentinel.grouping_type,
+        )
+        upsert_grouping_memberships.assert_called_once_with(
+            sentinel.user, upsert_groupings.return_value
+        )
+        assert groupings == upsert_groupings.return_value
 
-        assert not svc.get_groups(user, lti_user, course, sentinel.group_set_id)
-
-    # pylint:disable=protected-access
     def test_to_groupings_when_already_groupings(
-        self, user, svc, course, upsert_groupings
+        self, svc, upsert_groupings, upsert_grouping_memberships
     ):
+        groupings = factories.CanvasSection.create_batch(5)
+
+        # pylint:disable=protected-access
         svc._to_groupings(
-            user,
-            factories.CanvasSection.create_batch(5),
-            course,
-            Grouping.Type.CANVAS_SECTION,
+            sentinel.user, groupings, sentinel.course, sentinel.grouping_type
         )
 
         upsert_groupings.assert_not_called()
-
-    @pytest.fixture
-    def assert_to_grouping(self, course, upsert_grouping_memberships, upsert_groupings):
-        def assert_to_grouping(plugin_method, groupings, user, type_):
-            upsert_groupings.assert_called_once_with(
-                [
-                    {
-                        "lms_id": grouping["id"],
-                        "lms_name": grouping["name"],
-                        "extra": {
-                            "group_set_id": grouping.get("group_category_id")
-                            or grouping.get("groupSetId")
-                        },
-                        "settings": grouping.get("settings"),
-                    }
-                    for grouping in plugin_method.return_value
-                ],
-                parent=course,
-                type_=type_,
-            )
-            upsert_grouping_memberships.assert_called_once_with(
-                user, upsert_groupings.return_value
-            )
-            assert groupings == upsert_groupings.return_value
-
-        return assert_to_grouping
-
-    @pytest.fixture
-    def plugin_groups(self):
-        return [
-            {"id": sentinel.id1, "name": sentinel.name1},
-            {"id": sentinel.id2, "name": sentinel.name2},
-        ]
+        upsert_grouping_memberships.assert_called_once_with(sentinel.user, groupings)
 
     @pytest.fixture
     def course(self):
         return factories.Course()
+
+    @pytest.fixture
+    def _to_groupings(self, svc):
+        with patch.object(svc, "_to_groupings") as _to_groupings:
+            yield _to_groupings
 
     @pytest.fixture
     def upsert_grouping_memberships(self, svc):
