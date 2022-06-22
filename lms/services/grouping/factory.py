@@ -1,10 +1,11 @@
 from lms.models import Product
-from lms.services.grouping._plugin.blackboard import BlackboardGroupingPlugin
-from lms.services.grouping._plugin.canvas import CanvasGroupingPlugin
+from lms.product.blackboard._plugin.grouping import BlackboardGroupingPlugin
+from lms.product.canvas._plugin.grouping import CanvasGroupingPlugin
 from lms.services.grouping.service import GroupingService, GroupingServicePlugin
 
 
 def service_factory(_context, request):
+    # We plan to put an interface around this soon. So this won't happen here
     if request.product.family == Product.Family.BLACKBOARD:
         plugin = BlackboardGroupingPlugin(
             request.find_service(name="blackboard_api_client")

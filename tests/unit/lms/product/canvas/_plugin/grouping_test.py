@@ -2,8 +2,8 @@ from unittest.mock import sentinel
 
 import pytest
 
+from lms.product.canvas._plugin.grouping import CanvasGroupingPlugin, ErrorCodes
 from lms.services import CanvasAPIError
-from lms.services.grouping._plugin.canvas import CanvasGroupingPlugin, ErrorCodes
 from lms.services.grouping.plugin import GroupError
 from tests import factories
 
