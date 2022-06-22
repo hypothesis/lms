@@ -5,6 +5,8 @@ from lms.services.grouping.service import GroupingServicePlugin
 
 
 class CanvasGroupingPlugin(GroupingServicePlugin):
+    """A plugin which implements Canvas specific grouping functions."""
+
     group_type = Grouping.Type.CANVAS_GROUP
     sections_type = Grouping.Type.CANVAS_SECTION
 
@@ -22,7 +24,7 @@ class CanvasGroupingPlugin(GroupingServicePlugin):
     def get_sections_for_grading(self, _svc, course, grading_student_id):
         custom_course_id = self._custom_course_id(course)
 
-        sections = self._canvas_api.course_sections(custom_course_id)
+        course_sections = self._canvas_api.course_sections(custom_course_id)
 
         # SpeedGrader requests are made by the teacher, but we want the
         # learners sections. The canvas API won't give us names for those so
@@ -34,7 +36,7 @@ class CanvasGroupingPlugin(GroupingServicePlugin):
             )
         }
 
-        return [sec for sec in sections if sec["id"] in learner_section_ids]
+        return [sec for sec in course_sections if sec["id"] in learner_section_ids]
 
     def get_groups_for_learner(self, _svc, course, group_set_id):
         # For learners, the groups they belong within the course

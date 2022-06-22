@@ -3,7 +3,7 @@ from typing import List, Optional, Union
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
 
-from lms.models import Course, Grouping, GroupingMembership, User
+from lms.models import Course, Grouping, GroupingMembership, LTIUser, User
 from lms.models._hashed_id import hashed_id
 from lms.services.grouping._plugin import GroupingServicePlugin
 from lms.services.upsert import bulk_upsert
@@ -144,7 +144,16 @@ class GroupingService:
 
         return query.all()
 
-    def get_sections(self, user, lti_user, course, grading_student_id=None):
+    def get_sections(
+        self, user: User, lti_user: LTIUser, course: Course, grading_student_id=None
+    ) -> Optional[List[Grouping]]:
+        """
+        Get the sections for the given user in the current context.
+
+        This accounts for whether the user is a learner / student or in a
+        grading context etc.
+        """
+
         if not self.plugin.sections_type:
             return None
 
@@ -162,7 +171,20 @@ class GroupingService:
         return self._to_groupings(user, groupings, course, self.plugin.sections_type)
 
     # pylint:disable=too-many-arguments
-    def get_groups(self, user, lti_user, course, group_set_id, grading_student_id=None):
+    def get_groups(
+        self,
+        user: User,
+        lti_user: LTIUser,
+        course: Course,
+        group_set_id,
+        grading_student_id=None,
+    ) -> Optional[List[Grouping]]:
+        """
+        Get the groups for the given user in the current context.
+
+        This accounts for whether the user is a learner / student or in a
+        grading context etc.
+        """
         if not self.plugin.group_type:
             return None
 

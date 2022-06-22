@@ -5,8 +5,10 @@ from lms.services.grouping.service import GroupingServicePlugin
 
 
 class BlackboardGroupingPlugin(GroupingServicePlugin):
+    """A plugin which implements Blackboard specific grouping functions."""
+
     group_type = Grouping.Type.BLACKBOARD_GROUP
-    sections_type = None
+    sections_type = None  # We don't support sections in Blackboard
 
     def __init__(self, blackboard_api):
         self._blackboard_api = blackboard_api
