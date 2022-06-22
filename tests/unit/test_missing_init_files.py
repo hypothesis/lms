@@ -1,5 +1,6 @@
 import os
 from os.path import relpath
+from pathlib import Path
 
 import importlib_resources
 
@@ -7,26 +8,7 @@ TEST_ROOT = importlib_resources.files("tests")
 
 
 def test_for_missing_init_files():
-    missing = []
-
-    for root, dirs, files in os.walk(TEST_ROOT):
-        # Ignore `__pycache__` dirs and don't recurse into them
-        if '__pycache__' in dirs:
-            dirs.remove('__pycache__')
-
-        rel_root = relpath(root, TEST_ROOT)
-
-        if rel_root.startswith("bdd"):
-            continue
-
-        # Git doesn't track completely empty dirs, and we don't care about them
-        # This doesn't completely solve the issue, as dirs with dirs in will
-        # still show up, but it's better
-        if not dirs and not files:
-            continue
-
-        if "__init__.py" not in files:  # pragma: no cover
-            missing.append(f"tests/{rel_root}/__init__.py")
+    missing = list(_find_missing())
 
     message = "You need to add these missing __init__.py file(s):\n\n"
     message += "\n".join(missing)
@@ -37,3 +19,30 @@ def test_for_missing_init_files():
         "https://github.com/hypothesis/lms/issues/1606"
     )
     assert not missing, message
+
+
+def _find_missing():  # pragma: nocover
+    dirs_with_python = set()
+
+    # Find all directories which contain some python and their parents
+    for root, dirs, files in os.walk(TEST_ROOT):
+        # Ignore `__pycache__` dirs and don't recurse into them
+        if "__pycache__" in dirs:
+            dirs.remove("__pycache__")
+
+        rel_root = relpath(root, TEST_ROOT)
+        if rel_root.startswith("bdd"):
+            continue
+
+        for file in files:
+            if file.endswith(".py"):
+                dirs_with_python.add(rel_root)
+                dirs_with_python.update(Path(rel_root).parents)
+                break
+
+    for rel_path in dirs_with_python:
+        expected_init = os.path.join(rel_path, "__init__.py")
+        abs_path = TEST_ROOT / expected_init
+
+        if not os.path.exists(abs_path):
+            yield str(abs_path)
