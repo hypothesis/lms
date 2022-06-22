@@ -17,19 +17,10 @@ class TestConfigure:
 
         assert isinstance(configurator, pyramid.config.Configurator)
 
-    def test_it_reads_from_environment_in_preference(self, config_file):
-        configurator = configure(config_file)
+    def test_it_reads_from_environment(self):
+        configurator = configure({})
 
         expected = {setting.name: "env" for setting in self.NORMAL_SETTINGS}
-        for param, value in expected.items():
-            assert configurator.registry.settings[param] == value
-
-    def test_it_will_read_from_the_config_file(self, environ, config_file):
-        environ.clear()
-
-        configurator = configure(config_file)
-
-        expected = {setting.name: "config_file" for setting in self.NORMAL_SETTINGS}
         for param, value in expected.items():
             assert configurator.registry.settings[param] == value
 
@@ -77,10 +68,6 @@ class TestConfigure:
 
         with pytest.raises(SettingError):
             configure({})
-
-    @pytest.fixture
-    def config_file(self):
-        return {setting.read_from: "config_file" for setting in SETTINGS}
 
     @pytest.fixture(autouse=True)
     def environ(self, patch):

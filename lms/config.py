@@ -105,11 +105,7 @@ def configure(settings):
     """Return a Configurator for the Pyramid application."""
 
     for setting in SETTINGS:
-        try:
-            value = os.environ[setting.read_from.upper()]
-        except KeyError:
-            value = settings.get(setting.read_from)
-
+        value = os.environ.get(setting.read_from.upper())
         if setting.value_mapper:
             value = setting.value_mapper(value)
 
