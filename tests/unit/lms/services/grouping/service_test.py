@@ -324,104 +324,110 @@ class TestGetGroupings:
         assert not svc.get_sections(user, lti_user, course)
 
     @pytest.mark.usefixtures("user_is_learner")
-    def test_get_sections_with_learner(
-        self, user, lti_user, svc, course, _to_groupings
-    ):
-        groupings = svc.get_sections(user, lti_user, course)
+    def test_get_sections_with_learner(self, svc, lti_user, _to_groupings):
+        groupings = svc.get_sections(sentinel.user, lti_user, sentinel.course)
 
-        svc.plugin.get_sections_for_learner.assert_called_once_with(svc, course)
+        svc.plugin.get_sections_for_learner.assert_called_once_with(
+            svc, sentinel.course
+        )
         _to_groupings.assert_called_once_with(
-            user,
+            sentinel.user,
             svc.plugin.get_sections_for_learner.return_value,
-            course,
+            sentinel.course,
             svc.plugin.sections_type,
         )
         assert groupings == _to_groupings.return_value
 
     @pytest.mark.usefixtures("user_is_instructor")
-    def test_get_sections_while_grading(
-        self, user, lti_user, svc, course, _to_groupings
-    ):
+    def test_get_sections_while_grading(self, svc, lti_user, _to_groupings):
         groupings = svc.get_sections(
-            user, lti_user, course, sentinel.grading_student_id
+            sentinel.user, lti_user, sentinel.course, sentinel.grading_student_id
         )
 
         svc.plugin.get_sections_for_grading.assert_called_once_with(
-            svc, course, sentinel.grading_student_id
+            svc, sentinel.course, sentinel.grading_student_id
         )
         _to_groupings(
-            user,
+            sentinel.user,
             svc.plugin.get_sections_for_grading.return_value,
-            course,
+            sentinel.course,
             svc.plugin.sections_type,
         )
         assert groupings == _to_groupings.return_value
 
     @pytest.mark.usefixtures("user_is_instructor")
-    def test_get_sections_with_instructor(
-        self, user, lti_user, svc, course, _to_groupings
-    ):
-        groupings = svc.get_sections(user, lti_user, course)
+    def test_get_sections_with_instructor(self, svc, lti_user, _to_groupings):
+        groupings = svc.get_sections(sentinel.user, lti_user, sentinel.course)
 
-        svc.plugin.get_sections_for_instructor.assert_called_once_with(svc, course)
+        svc.plugin.get_sections_for_instructor.assert_called_once_with(
+            svc, sentinel.course
+        )
         _to_groupings.assert_called_once_with(
-            user,
+            sentinel.user,
             svc.plugin.get_sections_for_instructor.return_value,
-            course,
+            sentinel.course,
             svc.plugin.sections_type,
         )
         assert groupings == _to_groupings.return_value
 
-    def test_get_groups_when_not_supported(self, lti_user, course, svc):
+    def test_get_groups_when_not_supported(self, svc, lti_user):
         svc.plugin.group_type = None
 
-        assert not svc.get_groups(user, lti_user, course, sentinel.group_set_id)
+        assert not svc.get_groups(
+            sentinel.user, lti_user, sentinel.course, sentinel.group_set_id
+        )
 
     @pytest.mark.usefixtures("user_is_learner")
-    def test_get_groups_with_learner(self, user, lti_user, svc, course, _to_groupings):
-        groupings = svc.get_groups(user, lti_user, course, sentinel.group_set_id)
+    def test_get_groups_with_learner(self, svc, lti_user, _to_groupings):
+        groupings = svc.get_groups(
+            sentinel.user, lti_user, sentinel.course, sentinel.group_set_id
+        )
 
         svc.plugin.get_groups_for_learner.assert_called_once_with(
-            svc, course, sentinel.group_set_id
+            svc, sentinel.course, sentinel.group_set_id
         )
         _to_groupings.assert_called_once_with(
-            user,
+            sentinel.user,
             svc.plugin.get_groups_for_learner.return_value,
-            course,
+            sentinel.course,
             svc.plugin.group_type,
         )
         assert groupings == _to_groupings.return_value
 
     @pytest.mark.usefixtures("user_is_instructor")
-    def test_get_groups_while_grading(self, user, lti_user, svc, course, _to_groupings):
+    def test_get_groups_while_grading(self, svc, lti_user, _to_groupings):
         groupings = svc.get_groups(
-            user, lti_user, course, sentinel.group_set_id, sentinel.grading_student_id
+            sentinel.user,
+            lti_user,
+            sentinel.course,
+            sentinel.group_set_id,
+            sentinel.grading_student_id,
         )
 
         svc.plugin.get_groups_for_grading.assert_called_once_with(
-            svc, course, sentinel.group_set_id, sentinel.grading_student_id
+            svc, sentinel.course, sentinel.group_set_id, sentinel.grading_student_id
         )
         _to_groupings.assert_called_once_with(
-            user,
+            sentinel.user,
             svc.plugin.get_groups_for_grading.return_value,
-            course,
+            sentinel.course,
             svc.plugin.group_type,
         )
         assert groupings == _to_groupings.return_value
 
     @pytest.mark.usefixtures("user_is_instructor")
-    def test_get_groups_with_instructor(
-        self, user, lti_user, svc, course, _to_groupings
-    ):
-        groupings = svc.get_groups(user, lti_user, course, sentinel.group_set_id)
+    def test_get_groups_with_instructor(self, svc, lti_user, _to_groupings):
+        groupings = svc.get_groups(
+            sentinel.user, lti_user, sentinel.course, sentinel.group_set_id
+        )
 
         svc.plugin.get_groups_for_instructor.assert_called_once_with(
-            svc, course, sentinel.group_set_id
+            svc, sentinel.course, sentinel.group_set_id
         )
         _to_groupings.assert_called_once_with(
-            user,
+            sentinel.user,
             svc.plugin.get_groups_for_instructor.return_value,
-            course,
+            sentinel.course,
             svc.plugin.group_type,
         )
         assert groupings == _to_groupings.return_value
