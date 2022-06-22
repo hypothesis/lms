@@ -435,13 +435,13 @@ class JSConfig:
         req = self._request
         sync_api_config = {
             "authUrl": req.route_url("canvas_api.oauth.authorize"),
-            "product": self._request.product.family,
             "path": req.route_path("canvas_api.sync"),
             "data": {
                 "lms": {
                     "tool_consumer_instance_guid": self._context.lti_params[
                         "tool_consumer_instance_guid"
                     ],
+                    "product": self._request.product.family,
                 },
                 "course": {
                     "context_id": self._context.lti_params["context_id"],
@@ -470,13 +470,13 @@ class JSConfig:
         req = self._request
         return {
             "authUrl": req.route_url("blackboard_api.oauth.authorize"),
-            "product": self._request.product.family,
             "path": req.route_path("blackboard_api.sync"),
             "data": {
                 "lms": {
                     "tool_consumer_instance_guid": self._context.lti_params[
                         "tool_consumer_instance_guid"
                     ],
+                    "product": self._request.product.family,
                 },
                 "course": {
                     "context_id": self._context.lti_params["context_id"],
