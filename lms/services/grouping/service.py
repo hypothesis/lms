@@ -209,9 +209,12 @@ class GroupingService:
                 {
                     "lms_id": grouping["id"],
                     "lms_name": grouping["name"],
-                    # What is this all about? Looks product specific
+                    # This product specific stuff should really be removed
                     "extra": {
-                        "group_set_id": grouping.get("group_category_id")
+                        "group_set_id":
+                        # Canvas format
+                        grouping.get("group_category_id")
+                        # Blackboard format
                         or grouping.get("groupSetId")
                     },
                     "settings": grouping.get("settings"),
