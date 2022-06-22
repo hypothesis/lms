@@ -209,6 +209,7 @@ class GroupingService:
                 {
                     "lms_id": grouping["id"],
                     "lms_name": grouping["name"],
+                    # What is this all about? Looks product specific
                     "extra": {
                         "group_set_id": grouping.get("group_category_id")
                         or grouping.get("groupSetId")
