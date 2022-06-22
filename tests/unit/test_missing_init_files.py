@@ -1,18 +1,25 @@
 import os
+from os.path import relpath
+
+import importlib_resources
+
+TEST_ROOT = importlib_resources.files("tests")
 
 
 def test_for_missing_init_files():
     missing = []
 
-    for root, _dirs, files in os.walk("tests"):
-        if root.startswith("tests/bdd"):
+    for root, dirs, files in os.walk(TEST_ROOT):
+        rel_root = relpath(root, TEST_ROOT)
+
+        if rel_root.startswith("bdd"):
             continue
 
-        if root.endswith("__pycache__"):  # pragma: no cover
+        if rel_root.endswith("__pycache__"):  # pragma: no cover
             continue
 
         if "__init__.py" not in files:  # pragma: no cover
-            missing.append(root + "/__init__.py")
+            missing.append(f"tests/{rel_root}/__init__.py")
 
     message = "You need to add these missing __init__.py file(s):\n\n"
     message += "\n".join(missing)
