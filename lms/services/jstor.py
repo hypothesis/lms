@@ -14,23 +14,31 @@ from lms.views.helpers import via_url
 
 
 class JSTORMetadataSchema(RequestsResponseSchema):
-    """Response schema for `/metadata/{doi}` endpoint in the JSTOR API."""
+    """
+    Response schema for `/metadata/{doi}` endpoint in the JSTOR API.
 
-    # Title fields for "regular" articles.
+    The schema varies according to the type of item and whether it is
+    "Academic content" or "Primary source content" (see JSTOR search results
+    page).
+    """
+
+    # Fields for Journal articles, book chapters and research reports
     title = fields.List(fields.Str())
     subtitle = fields.List(fields.Str())
 
-    # Title fields for collections (eg. books).
+    # Fields for collections (books, multi-part research reports)
     # These may be present but set to `null` for other types of article.
     tb = fields.Str(allow_none=True)
     tbsub = fields.Str(allow_none=True)
 
     # Fields for articles which are reviews of other works.
-
     class ReviewedWorks(Schema):
         title = fields.Str()
 
     reviewed_works = fields.List(fields.Nested(ReviewedWorks, unknown=EXCLUDE))
+
+    # Fields for Primary source content
+    item_title = fields.Str()
 
 
 class JSTORService:
@@ -173,7 +181,8 @@ class JSTORService:
     def _get_title_from_metadata(cls, metadata: dict) -> Optional[str]:
         subtitle = None
 
-        # "Regular" articles have a title field with a single entry.
+        # Journal articles, book chapters and research reports have a title
+        # field with a single entry.
         if titles := metadata.get("title"):
             title = titles[0]
 
@@ -182,7 +191,8 @@ class JSTORService:
             if subtitles := metadata.get("subtitle"):
                 subtitle = subtitles[0]
 
-        # Collections (eg. books) have their title in separate field
+        # Collections (eg. books, multi-part research reports) have their title
+        # in a separate field.
         elif collection_title := metadata.get("tb"):
             title = collection_title
             subtitle = metadata.get("tbsub")
@@ -191,6 +201,10 @@ class JSTORService:
         # generate one from the reviewed work's metadata.
         elif reviewed_works := metadata.get("reviewed_works"):
             title = f'Review: {reviewed_works[0]["title"]}'
+
+        # "Primary source" items use a different field.
+        elif item_title := metadata.get("item_title"):
+            title = item_title
         else:
             return None
 
