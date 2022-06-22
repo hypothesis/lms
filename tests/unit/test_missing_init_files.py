@@ -19,6 +19,12 @@ def test_for_missing_init_files():
         if rel_root.startswith("bdd"):
             continue
 
+        # Git doesn't track completely empty dirs, and we don't care about them
+        # This doesn't completely solve the issue, as dirs with dirs in will
+        # still show up, but it's better
+        if not dirs and not files:
+            continue
+
         if "__init__.py" not in files:  # pragma: no cover
             missing.append(f"tests/{rel_root}/__init__.py")
 
