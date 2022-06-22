@@ -1,8 +1,8 @@
 from enum import Enum
 
 from lms.models import Grouping
-from lms.services import ExternalRequestError
-from lms.services.grouping._plugin import GroupError, GroupingServicePlugin
+from lms.services.exceptions import ExternalRequestError
+from lms.services.grouping.plugin import GroupError, GroupingServicePlugin
 
 
 class ErrorCodes(str, Enum):

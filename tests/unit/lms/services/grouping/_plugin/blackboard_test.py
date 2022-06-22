@@ -4,11 +4,11 @@ import pytest
 
 from lms.models import Grouping
 from lms.services.exceptions import ExternalRequestError
-from lms.services.grouping._plugin import GroupError
 from lms.services.grouping._plugin.blackboard import (
     BlackboardGroupingPlugin,
     ErrorCodes,
 )
+from lms.services.grouping.plugin import GroupError
 from tests import factories
 
 

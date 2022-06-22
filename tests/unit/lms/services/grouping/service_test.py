@@ -5,7 +5,7 @@ from h_matchers import Any
 
 from lms.models import CanvasGroup, Course, Grouping, GroupingMembership
 from lms.services.grouping import GroupingService
-from lms.services.grouping._plugin import GroupingServicePlugin
+from lms.services.grouping.plugin import GroupingServicePlugin
 from tests import factories
 
 
