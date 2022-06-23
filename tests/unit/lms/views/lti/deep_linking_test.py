@@ -69,10 +69,23 @@ class TestDeepLinkingFieldsView:
                         "url": _get_content_url_mock.return_value,
                     }
                 ],
-                "https://purl.imsglobal.org/spec/lti-dl/claim/data": sentinel.deep_linking_settings,
+                "https://purl.imsglobal.org/spec/lti-dl/claim/data": sentinel.deep_linking_settings_data,
             }
         )
         assert fields["JWT"] == ltia_http_service.sign.return_value
+
+    def test_it_for_v13_missing_deep_linking_settings_data(
+        self, ltia_http_service, views, pyramid_request
+    ):
+        del pyramid_request.parsed_params["deep_linking_settings"]["data"]
+
+        views.file_picker_to_form_fields_v13()
+
+        ltia_http_service.sign.assert_called_once_with(message := Any.dict())
+        assert (
+            "https://purl.imsglobal.org/spec/lti-dl/claim/data "
+            not in message.last_matched()  # pylint: disable=unsupported-membership-test
+        )
 
     def test_it_for_v11(self, views, _get_content_url_mock):
         _get_content_url_mock.return_value = "https://launches-url.com"
@@ -132,7 +145,7 @@ class TestDeepLinkingFieldsView:
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.parsed_params = {
-            "deep_linking_settings": sentinel.deep_linking_settings,
+            "deep_linking_settings": {"data": sentinel.deep_linking_settings_data},
             "content": {"type": "url", "url": "https://example.com"},
             "extra_params": {},
         }
