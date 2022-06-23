@@ -1,10 +1,21 @@
+from lms.product.generic import GenericProduct
 from lms.product.product import Product
 
 
 def get_product_from_request(request):
-    product = Product.from_request(request)
-    product.family = _get_family(request)
+    family = _get_family(request)
+    product_class = _get_implementing_class(family)
+    product = product_class.from_request(request)
+    product.family = family
     return product
+
+
+def _get_implementing_class(family):
+    for lms_class in Product.__subclasses__():
+        if lms_class.family == family:
+            return lms_class
+
+    return GenericProduct
 
 
 def _get_family(request):
