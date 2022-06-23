@@ -40,19 +40,21 @@ export default function SubmitGradeForm({ student }) {
   const [fetchGradeErrorDismissed, setFetchGradeErrorDismissed] =
     useState(false);
   const gradingService = useService(GradingService);
+
+  /** @param {StudentInfo} student */
+  const fetchGrade = async student => {
+    setFetchGradeErrorDismissed(false);
+    const { currentScore = null } = await gradingService.fetchGrade({
+      student,
+    });
+    return currentScore === null
+      ? ''
+      : `${scaleGrade(currentScore, GRADE_MULTIPLIER)}`;
+  };
+
   const grade = useFetch(
     student ? `grade:${student.userid}` : null,
-    student
-      ? async () => {
-          setFetchGradeErrorDismissed(false);
-          const { currentScore = null } = await gradingService.fetchGrade({
-            student,
-          });
-          return currentScore === null
-            ? ''
-            : `${scaleGrade(currentScore, GRADE_MULTIPLIER)}`;
-        }
-      : undefined
+    student ? () => fetchGrade(student) : undefined
   );
 
   // The following is state for saving the grade
