@@ -1,12 +1,13 @@
 from dataclasses import dataclass
 
-from lms.product.product import Product
+from lms.product.product import Plugins, Product
+from lms.services.grouping.plugin import GroupingServicePlugin
 
 
 @dataclass
 class GenericProduct(Product):
-    family: Product.Family = Product.Family.UNKNOWN
+    """Default product when no more specific implementation can be found."""
 
     @classmethod
     def from_request(cls, request):
-        return cls()
+        return cls(plugin=Plugins(grouping_service=GroupingServicePlugin()))
