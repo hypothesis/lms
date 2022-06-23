@@ -396,7 +396,9 @@ class TestGetGroupings:
         )
         assert_groups_returned(groupings, svc.plugin.get_groups_for_instructor)
 
-    @pytest.mark.parametrize("group_set_key", ("groupSetId", "group_category_id"))
+    @pytest.mark.parametrize(
+        "group_set_key", ("groupSetId", "group_category_id", "group_set_id")
+    )
     def test_to_groupings_with_dicts(
         self, svc, upsert_groupings, upsert_grouping_memberships, group_set_key
     ):

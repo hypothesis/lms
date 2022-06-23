@@ -211,11 +211,9 @@ class GroupingService:
                     "lms_name": grouping["name"],
                     # This product specific stuff should really be removed
                     "extra": {
-                        "group_set_id":
-                        # Canvas format
-                        grouping.get("group_category_id")
-                        # Blackboard format
-                        or grouping.get("groupSetId")
+                        "group_set_id": grouping.get("group_set_id")  # Standard format
+                        or grouping.get("group_category_id")  # Canvas format
+                        or grouping.get("groupSetId")  # Blackboard format
                     },
                     "settings": grouping.get("settings"),
                 }
