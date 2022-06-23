@@ -214,15 +214,15 @@ class TestCanvasAPIClientIntegrated:
             timeout=expected_timeout,
         )
 
+    @pytest.mark.parametrize("group_category_id", (1, "1"))
     @pytest.mark.usefixtures("list_groups_response")
-    def test_current_user_groups(self, canvas_api_client):
+    def test_current_user_groups(self, canvas_api_client, group_category_id):
         course_id = 1
-        group_category_id = 1
 
         response = canvas_api_client.current_user_groups(course_id, group_category_id)
 
         assert len(response) == 1
-        assert response[0]["group_category_id"] == group_category_id
+        assert response[0]["group_category_id"] == int(group_category_id)
 
     @pytest.mark.usefixtures("list_groups_response")
     def test_current_user_groups_no_group_category(self, canvas_api_client):
@@ -273,17 +273,17 @@ class TestCanvasAPIClientIntegrated:
         assert len(response) == 1
         assert user_id in [u["id"] for u in response[0]["users"]]
 
+    @pytest.mark.parametrize("group_category_id", (2, "2"))
+    @pytest.mark.parametrize("user_id", (1, "1"))
     @pytest.mark.usefixtures("list_groups_with_users_response")
-    def test_user_groups(self, canvas_api_client):
+    def test_user_groups(self, canvas_api_client, user_id, group_category_id):
         course_id = 1
-        user_id = 1
-        group_category_id = 2
 
         response = canvas_api_client.user_groups(course_id, user_id, group_category_id)
 
         assert len(response) == 1
-        assert user_id in [u["id"] for u in response[0]["users"]]
-        assert response[0]["group_category_id"] == group_category_id
+        assert int(user_id) in [u["id"] for u in response[0]["users"]]
+        assert response[0]["group_category_id"] == int(group_category_id)
 
     @pytest.mark.usefixtures("list_groups_response")
     def test_group_category_groups(self, canvas_api_client, http_session):
