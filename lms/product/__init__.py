@@ -1,3 +1,5 @@
+"""A collection of objects which represent LMS specific details."""
+
 from lms.product.factory import get_product_from_request
 from lms.product.product import Product
 

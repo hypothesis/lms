@@ -5,7 +5,9 @@ from lms.product.generic import GenericProduct
 from lms.product.product import Product
 
 
-def get_product_from_request(request):
+def get_product_from_request(request) -> Product:
+    """Get the correct product object from the provided request."""
+
     family = _get_family(request)
     product_class = _get_implementing_class(family)
     product = product_class.from_request(request)
