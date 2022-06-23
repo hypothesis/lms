@@ -106,24 +106,30 @@ class DeepLinkingFieldsViews:
             name="application_instance"
         ).get_current()
 
-        url = self._get_content_url(self.request)
+        message = {
+            "https://purl.imsglobal.org/spec/lti/claim/deployment_id": application_instance.deployment_id,
+            "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
+            "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
+            "https://purl.imsglobal.org/spec/lti-dl/claim/content_items": [
+                {"type": "ltiResourceLink", "url": self._get_content_url(self.request)}
+            ],
+        }
+
+        # From:
+        #  https://www.imsglobal.org/spec/lti-dl/v2p0#deep-linking-response-message
+        #
+        # The https://purl.imsglobal.org/spec/lti-dl/claim/data value must
+        # match the value of the data property of the
+        # https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings
+        # claim from the `LtiDeepLinkinkingRequest` message.
+        #
+        # This claim is required if present in the `LtiDeepLinkingRequest`
+        # message.
+        if data := self.request.parsed_params["deep_linking_settings"].get("data"):
+            message["https://purl.imsglobal.org/spec/lti-dl/claim/data"] = data
 
         # In LTI1.3 there's just one `JWT` field which includes all the necessary information
-        return {
-            "JWT": self.request.find_service(LTIAHTTPService).sign(
-                {
-                    "https://purl.imsglobal.org/spec/lti/claim/deployment_id": application_instance.deployment_id,
-                    "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
-                    "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
-                    "https://purl.imsglobal.org/spec/lti-dl/claim/content_items": [
-                        {"type": "ltiResourceLink", "url": url}
-                    ],
-                    "https://purl.imsglobal.org/spec/lti-dl/claim/data": self.request.parsed_params[
-                        "deep_linking_settings"
-                    ],
-                }
-            )
-        }
+        return {"JWT": self.request.find_service(LTIAHTTPService).sign(message)}
 
     @view_config(route_name="lti.v11.deep_linking.form_fields")
     def file_picker_to_form_fields_v11(self):
