@@ -2,6 +2,8 @@ import {
   Icon,
   IconButton,
   LabeledButton,
+  Checkbox,
+  Link,
   Modal,
   Thumbnail,
   TextInputWithButton,
@@ -53,6 +55,9 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
   // they have pasted/typed into the input field.
   const [articleId, setArticleId] = useState(/** @type {string|null} */ (null));
 
+  // Whether the T&Cs have been accepted by the user
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+
   /** @type {FetchResult<Metadata>} */
   const metadata = useAPIFetch(
     articleId ? urlPath`/api/jstor/articles/${articleId}` : null
@@ -81,7 +86,10 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
   const previousURL = useRef(/** @type {string|null} */ (null));
 
   const canConfirmSelection =
-    articleId && metadata.data && !metadata.data.is_collection;
+    articleId &&
+    acceptedTerms &&
+    metadata.data !== null &&
+    !metadata.data.is_collection;
 
   const confirmSelection = () => {
     if (canConfirmSelection) {
@@ -152,7 +160,7 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
         </LabeledButton>,
       ]}
     >
-      <div className="flex flex-row space-x-3">
+      <div className="flex flex-row space-x-2">
         <Thumbnail
           classes={classnames(
             // Customize Thumbnail to:
@@ -187,7 +195,7 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
             />
           )}
         </Thumbnail>
-        <div className="space-y-2 grow">
+        <div className="space-y-2 grow flex flex-col">
           <p>Paste a link to the JSTOR article you&apos;d like to use:</p>
 
           <TextInputWithButton>
@@ -217,6 +225,39 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
               )}
               <div className="grow font-bold italic">{metadata.data.title}</div>
             </div>
+          )}
+
+          {metadata.data && (
+            <>
+              <div className="grow" />
+              <div className="flex space-x-2 items-center px-1">
+                <label htmlFor="accept-jstor-terms" className="grow text-right">
+                  I accept the{' '}
+                  <Link
+                    href="https://about.jstor.org/terms/"
+                    classes="underline hover:underline"
+                    target="_blank"
+                  >
+                    terms and conditions
+                  </Link>{' '}
+                  for JSTOR content use
+                </label>
+                <div className="text-lg">
+                  <Checkbox
+                    checked={acceptedTerms}
+                    data-testid="jstor-terms-checkbox"
+                    id="accept-jstor-terms"
+                    name="accept-terms"
+                    onInput={e =>
+                      setAcceptedTerms(
+                        /** @type {HTMLInputElement} */ (e.target).checked
+                      )
+                    }
+                    onKeyDown={onKeyDown}
+                  />
+                </div>
+              </div>
+            </>
           )}
 
           {renderedError && (
