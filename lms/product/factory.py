@@ -1,3 +1,5 @@
+from lms.product.blackboard import BlackboardProduct
+from lms.product.canvas import CanvasProduct
 from lms.product.generic import GenericProduct
 from lms.product.product import Product
 
