@@ -92,7 +92,7 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config.include("lms.session")
     config.include("lms.models")
     config.include("lms.models.lti_params")
-    config.include("lms.models.product")
+    config.include("lms.product")
     config.include("lms.db")
     config.include("lms.routes")
     config.include("lms.assets")

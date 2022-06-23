@@ -1,9 +1,6 @@
-from unittest.mock import create_autospec
-
 import pytest
-from pyramid.config import Configurator
 
-from lms.models.product import Product, includeme
+from lms.product.product import Product
 
 PRODUCT_NAMES = [
     ("BlackbaudK12", Product.Family.BLACKBAUD),
@@ -37,16 +34,3 @@ class TestProduct:
         pyramid_request.lti_params = {"custom_canvas_course_id": "course_id"}
 
         assert Product.from_request(pyramid_request).family == Product.Family.CANVAS
-
-
-class TestIncludeMe:
-    def test_it_sets_request_method(self, configurator):
-        includeme(configurator)
-
-        configurator.add_request_method.assert_called_once_with(
-            Product.from_request, name="product", property=True, reify=True
-        )
-
-    @pytest.fixture()
-    def configurator(self):
-        return create_autospec(Configurator, spec_set=True, instance=True)

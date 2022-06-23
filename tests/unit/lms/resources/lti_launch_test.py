@@ -3,7 +3,8 @@ from unittest import mock
 import pytest
 from pytest import param
 
-from lms.models import ApplicationSettings, Grouping, Product
+from lms.models import ApplicationSettings, Grouping
+from lms.product import Product
 from lms.resources import LTILaunchResource
 from lms.services import ApplicationInstanceNotFound
 

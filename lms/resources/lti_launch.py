@@ -3,7 +3,8 @@
 import logging
 from functools import cached_property
 
-from lms.models import Grouping, LTIParams, Product
+from lms.models import Grouping, LTIParams
+from lms.product import Product
 from lms.resources._js_config import JSConfig
 from lms.services import ApplicationInstanceNotFound
 

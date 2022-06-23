@@ -12,7 +12,7 @@ class Product:
         MOODLE = "moodle"
         SAKAI = "sakai"
         SCHOOLOGY = "schoology"
-        UNKNOWN = "unkown"
+        UNKNOWN = "unknown"
 
         @classmethod
         def _missing_(cls, _value):
@@ -41,9 +41,3 @@ class Product:
             return cls.Family.CANVAS
 
         return cls.Family.UNKNOWN
-
-
-def includeme(config):
-    config.add_request_method(
-        Product.from_request, name="product", property=True, reify=True
-    )

@@ -3,7 +3,8 @@ from unittest.mock import create_autospec, sentinel
 import pytest
 from h_matchers import Any
 
-from lms.models import Grouping, LTIParams, Product
+from lms.models import Grouping, LTIParams
+from lms.product import Product
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
 from lms.services import ApplicationInstanceNotFound, HAPIError
