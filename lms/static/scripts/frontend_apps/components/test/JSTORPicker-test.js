@@ -41,6 +41,16 @@ describe('JSTORPicker', () => {
     });
   }
 
+  function toggleCheckbox(wrapper) {
+    interact(wrapper, () => {
+      const checkbox = wrapper.find(
+        'input[data-testid="jstor-terms-checkbox"]'
+      );
+      checkbox.getDOMNode().click();
+      checkbox.simulate('input');
+    });
+  }
+
   const renderJSTORPicker = (props = {}) => mount(<JSTORPicker {...props} />);
 
   beforeEach(() => {
@@ -178,9 +188,14 @@ describe('JSTORPicker', () => {
       });
       assert.calledOnce(fakeArticleIdFromUserInput);
 
-      // Second enter press, after metadata has been fetched, should "confirm"
-      // the valid URL.
       simulateMetadataFetch(wrapper, 'test title');
+
+      // Second enter press won't do anything if the terms checkbox hasn't been checked
+      input.getDOMNode().dispatchEvent(keyEvent);
+
+      toggleCheckbox(wrapper);
+
+      // Enter will submit if terms are checked and there is valid metadata fetched
       input.getDOMNode().dispatchEvent(keyEvent);
 
       assert.calledOnce(onSelectURL);
@@ -275,7 +290,7 @@ describe('JSTORPicker', () => {
     assert.isFalse(wrapper.exists('[data-testid="selected-book"]'));
   });
 
-  it('enables submit button when a valid JSTOR URL is entered and metadata is fetched', () => {
+  it('does not enable submit button if terms are not accepted', () => {
     const wrapper = renderJSTORPicker();
     const buttonSelector = 'LabeledButton[data-testid="select-button"]';
 
@@ -288,13 +303,32 @@ describe('JSTORPicker', () => {
 
     simulateMetadataFetch(wrapper);
 
-    // Button is enabled once fetch is complete.
+    assert.isTrue(wrapper.find(buttonSelector).props().disabled);
+  });
+
+  it('enables submit button when valid JSTOR metadata has been fetched and terms accepted', () => {
+    const wrapper = renderJSTORPicker();
+    const buttonSelector = 'LabeledButton[data-testid="select-button"]';
+
+    updateURL(wrapper);
+    simulateMetadataFetch(wrapper);
+
+    assert.isTrue(wrapper.find(buttonSelector).props().disabled);
+
+    // Checking the T&Cs checkbox should enable the submit button
+    toggleCheckbox(wrapper);
+
     assert.isFalse(wrapper.find(buttonSelector).props().disabled);
     assert.equal(wrapper.find(buttonSelector).text(), 'Submit');
 
     // Since the chosen item is usable (eg. not a collection), no error should
     // be displayed.
     assert.isFalse(wrapper.exists('[data-testid="error-message"]'));
+
+    // Un-checking the T&Cs checkbox should re-disable the submit button
+    toggleCheckbox(wrapper);
+
+    assert.isTrue(wrapper.find(buttonSelector).props().disabled);
   });
 
   it('disables submit button and shows error if item is a collection', () => {
