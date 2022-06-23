@@ -3,7 +3,7 @@ from unittest.mock import sentinel
 import pytest
 from h_matchers import Any
 
-from lms.models import Product
+from lms.product import Product
 from lms.services.grouping.factory import service_factory
 
 

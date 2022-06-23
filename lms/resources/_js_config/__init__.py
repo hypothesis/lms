@@ -2,7 +2,8 @@ import functools
 from enum import Enum
 from typing import List, Optional
 
-from lms.models import GroupInfo, Grouping, HUser, Product
+from lms.models import GroupInfo, Grouping, HUser
+from lms.product import Product
 from lms.resources._js_config.file_picker_config import FilePickerConfig
 from lms.services import HAPIError, JSTORService
 from lms.validation.authentication import BearerTokenSchema

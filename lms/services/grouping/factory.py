@@ -1,4 +1,4 @@
-from lms.models import Product
+from lms.product import Product
 from lms.product.blackboard._plugin.grouping import BlackboardGroupingPlugin
 from lms.product.canvas._plugin.grouping import CanvasGroupingPlugin
 from lms.services.grouping.service import GroupingService, GroupingServicePlugin
