@@ -346,7 +346,9 @@ class CanvasAPIClient:
 
         if group_category_id:
             user_groups = [
-                g for g in user_groups if g["group_category_id"] == group_category_id
+                g
+                for g in user_groups
+                if g["group_category_id"] == int(group_category_id)
             ]
 
         return user_groups
@@ -363,11 +365,13 @@ class CanvasAPIClient:
         groups = []
         # Look for the student we are grading in all the groups
         for group in canvas_groups:
-            if group_category_id and group["group_category_id"] != group_category_id:
+            if group_category_id and group["group_category_id"] != int(
+                group_category_id
+            ):
                 continue
 
             for user in group["users"]:
-                if user["id"] == user_id:
+                if user["id"] == int(user_id):
                     groups.append(group)
 
         return groups
