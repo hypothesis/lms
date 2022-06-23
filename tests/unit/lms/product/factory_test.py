@@ -22,7 +22,7 @@ class TestGetProductFromRequest:
         ("moodle", Product.Family.MOODLE, GenericProduct),
         ("schoology", Product.Family.SCHOOLOGY, GenericProduct),
         ("sakai", Product.Family.SAKAI, GenericProduct),
-        # Non matching products
+        # Non-matching products
         ("wut", Product.Family.UNKNOWN, GenericProduct),
         ("", Product.Family.UNKNOWN, GenericProduct),
         (None, Product.Family.UNKNOWN, GenericProduct),
@@ -54,6 +54,8 @@ class TestGetProductFromRequest:
 
         product = get_product_from_request(pyramid_request)
 
+        # Pylint doesn't know we patched this
+        # pylint: disable=no-member
         CanvasProduct.from_request.assert_called_once_with(pyramid_request)
         assert product == CanvasProduct.from_request.return_value
         assert product.family == Product.Family.CANVAS

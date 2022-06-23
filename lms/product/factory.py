@@ -1,5 +1,6 @@
-from lms.product.blackboard import BlackboardProduct
-from lms.product.canvas import CanvasProduct
+# We need to import all classes so we are aware of them for the mapping below
+from lms.product.blackboard import BlackboardProduct  # pylint: disable=unused-import
+from lms.product.canvas import CanvasProduct  # pylint: disable=unused-import
 from lms.product.generic import GenericProduct
 from lms.product.product import Product
 
