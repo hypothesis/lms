@@ -3,7 +3,8 @@ from unittest.mock import create_autospec
 import pytest
 from pyramid.config import Configurator
 
-from lms.product import Product, includeme
+from lms.product import includeme
+from lms.product.factory import get_product_from_request
 
 
 class TestIncludeMe:
@@ -11,7 +12,7 @@ class TestIncludeMe:
         includeme(configurator)
 
         configurator.add_request_method.assert_called_once_with(
-            Product.from_request, name="product", property=True, reify=True
+            get_product_from_request, name="product", property=True, reify=True
         )
 
     @pytest.fixture()
