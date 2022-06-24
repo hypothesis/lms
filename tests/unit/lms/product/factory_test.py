@@ -3,19 +3,19 @@ from unittest.mock import patch
 
 import pytest
 
-from lms.product.blackboard import BlackboardProduct
-from lms.product.canvas import CanvasProduct
+from lms.product.blackboard import Blackboard
+from lms.product.canvas import Canvas
 from lms.product.factory import get_product_from_request
 from lms.product.generic import GenericProduct
 from lms.product.product import Product
 
 
 class TestGetProductFromRequest:
-    PRODUCTS = (GenericProduct, BlackboardProduct, CanvasProduct)
+    PRODUCTS = (GenericProduct, Blackboard, Canvas)
     PRODUCT_MAP = [
         # Products with a specific implementation
-        ("BlackboardLearn", Product.Family.BLACKBOARD, BlackboardProduct),
-        ("canvas", Product.Family.CANVAS, CanvasProduct),
+        ("BlackboardLearn", Product.Family.BLACKBOARD, Blackboard),
+        ("canvas", Product.Family.CANVAS, Canvas),
         # Products with no specific implementation
         ("BlackbaudK12", Product.Family.BLACKBAUD, GenericProduct),
         ("desire2learn", Product.Family.D2L, GenericProduct),
@@ -56,8 +56,8 @@ class TestGetProductFromRequest:
 
         # Pylint doesn't know we patched this
         # pylint: disable=no-member
-        CanvasProduct.from_request.assert_called_once_with(pyramid_request)
-        assert product == CanvasProduct.from_request.return_value
+        Canvas.from_request.assert_called_once_with(pyramid_request)
+        assert product == Canvas.from_request.return_value
         assert product.family == Product.Family.CANVAS
 
     @pytest.fixture(autouse=True)

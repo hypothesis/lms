@@ -1,1 +1,1 @@
-from lms.product.canvas.product import CanvasProduct
+from lms.product.canvas.product import Canvas
