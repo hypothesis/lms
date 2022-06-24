@@ -3,6 +3,7 @@
 from dataclasses import asdict, dataclass
 from enum import Enum
 
+from lms.models.lti_params import LTIParamPlugin
 from lms.services.grouping.plugin import GroupingServicePlugin
 
 
@@ -28,6 +29,7 @@ class Plugins:
     """A collection of plugins used to separate LMS specific functionality."""
 
     grouping_service: GroupingServicePlugin
+    lti_param: LTIParamPlugin
 
 
 @dataclass
@@ -36,6 +38,7 @@ class PluginConfig:
 
     # These also provide the default implementations
     grouping_service: type = GroupingServicePlugin
+    lti_param: type = LTIParamPlugin
 
 
 @dataclass

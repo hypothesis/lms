@@ -39,18 +39,14 @@ class TestLTIParams:
         assert params == params.v11 == pyramid_request.params
 
     def test_it_doesnt_set_partial_keys(self, pyramid_request):
-        pyramid_request.lti_jwt = {
-            "https://purl.imsglobal.org/spec/lti/claim/custom": {
-                "canvas_course_id": "SOME_ID"
-            }
-        }
+        pyramid_request.lti_jwt = {f"{CLAIM_PREFIX}/resource_link": {"id": "SOME_ID"}}
 
         params = LTIParams.from_request(pyramid_request)
 
         # The existent params get returned
-        assert params["custom_canvas_course_id"] == "SOME_ID"
+        assert params["resource_link_id"] == "SOME_ID"
         # Nonexistent ones in the same "level" are not present
-        assert "custom_canvas_api_domain" not in params
+        assert "resource_link_title" not in params
 
     def test_prefers_lti1p1_ids(self, pyramid_request):
         pyramid_request.lti_jwt = {
@@ -66,42 +62,6 @@ class TestLTIParams:
 
         assert params["user_id"] == "user_id-v11"
         assert params["resource_link_id"] == "resource_link_id-v11"
-
-
-class TestCanvasLTIParamPlugin:
-    @pytest.mark.parametrize(
-        "speedgrader,expected",
-        (("any_value", "canvas_value"), (None, "standard_value")),
-    )
-    def test_from_request_reads_resource_link_id(
-        self, pyramid_request, speedgrader, expected
-    ):
-        pyramid_request.lti_jwt = {
-            f"{CLAIM_PREFIX}/lti1p1": {"resource_link_id": "standard_value"}
-        }
-        pyramid_request.params["resource_link_id"] = "canvas_value"
-        pyramid_request.params["learner_canvas_user_id"] = speedgrader
-
-        lti_params = LTIParams.from_request(pyramid_request)
-
-        assert lti_params["resource_link_id"] == expected
-
-    @pytest.mark.parametrize(
-        "parameter_name,claim_name",
-        [
-            ("custom_canvas_course_id", "canvas_course_id"),
-            ("custom_canvas_user_id", "canvas_user_id"),
-        ],
-    )
-    def test_integer_canvas_parameters(
-        self, pyramid_request, parameter_name, claim_name
-    ):
-        pyramid_request.lti_jwt = {f"{CLAIM_PREFIX}/custom": {claim_name: 1}}
-
-        params = LTIParams.from_request(pyramid_request)
-
-        assert isinstance(params[parameter_name], str)
-        assert params[parameter_name] == "1"
 
 
 class TestIncludeMe:

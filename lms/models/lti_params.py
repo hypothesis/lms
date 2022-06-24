@@ -27,7 +27,7 @@ class LTIParams(dict):
     def from_request(cls, request):
         """Create an LTIParams from the request."""
 
-        plugin = CanvasLTIParamPlugin()
+        plugin: LTIParamPlugin = request.product.plugin.lti_param
 
         if v13_params := request.lti_jwt:
             v11, v13 = _to_lti_v11(v13_params, plugin.v13_parameter_map), v13_params
@@ -35,14 +35,12 @@ class LTIParams(dict):
             v11, v13 = request.params, None
 
         lti_params = cls(v11=v11, v13=v13)
-
-        # This could be a product plugin
-        lti_params = plugin.modify_params(lti_params, request)
-
-        return lti_params
+        return plugin.modify_params(lti_params, request)
 
 
 class LTIParamPlugin:
+    """An interface for allowing products to customise parameter loading."""
+
     v13_parameter_map: Iterable = (
         # LTI 1.1 key , [LTI 1.3 path in object]
         # We use tuples instead of a dictionary to allow duplicate keys for
@@ -93,63 +91,23 @@ class LTIParamPlugin:
         # available
         #
         # http://www.imsglobal.org/spec/lti/v1p3/migr#lti-1-1-migration-claim
-        (
-            "user_id",
-            [f"{CLAIM_PREFIX}/lti1p1", "user_id"],
-        ),
-        (
-            "resource_link_id",
-            [f"{CLAIM_PREFIX}/lti1p1", "resource_link_id"],
-        ),
+        ("user_id", [f"{CLAIM_PREFIX}/lti1p1", "user_id"]),
+        ("resource_link_id", [f"{CLAIM_PREFIX}/lti1p1", "resource_link_id"]),
     )
 
+    # pylint: disable=unused-argument
     @classmethod
-    def modify_params(cls, lti_params, request):
+    def modify_params(cls, lti_params: LTIParams, request) -> LTIParams:
+        """
+        Modify the LTI params that were passed in.
+
+        This can be done in any way but must return a child of LTIParams.
+        """
         return lti_params
 
-
-class CanvasLTIParamPlugin(LTIParamPlugin):
-    v13_parameter_map: Iterable = list(LTIParamPlugin.v13_parameter_map) + [
-        (
-            "custom_canvas_course_id",
-            [f"{CLAIM_PREFIX}/custom", "canvas_course_id"],
-        ),
-        (
-            "custom_canvas_api_domain",
-            [f"{CLAIM_PREFIX}/custom", "canvas_api_domain"],
-        ),
-        (
-            "custom_canvas_user_id",
-            [f"{CLAIM_PREFIX}/custom", "canvas_user_id"],
-        ),
-    ]
-
     @classmethod
-    def modify_params(cls, lti_params, request):
-        # In LTI1.3 some custom canvas parameters are sent as integers
-        # and as a string in LTI1.1.
-        for canvas_param_name in ["custom_canvas_course_id", "custom_canvas_user_id"]:
-            canvas_param_value = lti_params.get(canvas_param_name)
-            if isinstance(canvas_param_value, int):
-                lti_params[canvas_param_name] = str(canvas_param_value)
-
-        # Canvas SpeedGrader launches LTI apps with the wrong resource_link_id,
-        # see:
-        #
-        # * https://github.com/instructure/canvas-lms/issues/1952
-        # * https://github.com/hypothesis/lms/issues/3228
-        #
-        # We add the correct resource_link_id as a query param on the launch
-        # URL that we submit to Canvas and use that instead of the incorrect
-        # resource_link_id that Canvas puts in the request's body.
-        is_speedgrader = request.params.get("learner_canvas_user_id")
-
-        if is_speedgrader and (
-            resource_link_id := request.params.get("resource_link_id")
-        ):
-            lti_params["resource_link_id"] = resource_link_id
-
-        return lti_params
+    def from_request(cls, request):  # pylint: disable=unused-argument
+        return cls()
 
 
 def _to_lti_v11(v13_params, param_mapping):
