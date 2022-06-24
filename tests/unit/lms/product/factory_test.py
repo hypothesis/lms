@@ -6,26 +6,25 @@ import pytest
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
 from lms.product.factory import get_product_from_request
-from lms.product.generic import GenericProduct
 from lms.product.product import Product
 
 
 class TestGetProductFromRequest:
-    PRODUCTS = (GenericProduct, Blackboard, Canvas)
+    PRODUCTS = (Product, Blackboard, Canvas)
     PRODUCT_MAP = [
         # Products with a specific implementation
         ("BlackboardLearn", Product.Family.BLACKBOARD, Blackboard),
         ("canvas", Product.Family.CANVAS, Canvas),
         # Products with no specific implementation
-        ("BlackbaudK12", Product.Family.BLACKBAUD, GenericProduct),
-        ("desire2learn", Product.Family.D2L, GenericProduct),
-        ("moodle", Product.Family.MOODLE, GenericProduct),
-        ("schoology", Product.Family.SCHOOLOGY, GenericProduct),
-        ("sakai", Product.Family.SAKAI, GenericProduct),
+        ("BlackbaudK12", Product.Family.BLACKBAUD, Product),
+        ("desire2learn", Product.Family.D2L, Product),
+        ("moodle", Product.Family.MOODLE, Product),
+        ("schoology", Product.Family.SCHOOLOGY, Product),
+        ("sakai", Product.Family.SAKAI, Product),
         # Non-matching products
-        ("wut", Product.Family.UNKNOWN, GenericProduct),
-        ("", Product.Family.UNKNOWN, GenericProduct),
-        (None, Product.Family.UNKNOWN, GenericProduct),
+        ("wut", Product.Family.UNKNOWN, Product),
+        ("", Product.Family.UNKNOWN, Product),
+        (None, Product.Family.UNKNOWN, Product),
     ]
 
     @pytest.mark.parametrize("value,family,class_", PRODUCT_MAP)

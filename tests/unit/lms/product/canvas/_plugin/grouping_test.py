@@ -126,6 +126,12 @@ class TestCanvasGroupingPlugin:
         )
         assert canvas_api_client.user_groups.return_value == api_groups
 
+    def test_from_request(self, pyramid_request, canvas_api_client):
+        plugin = CanvasGroupingPlugin.from_request(pyramid_request)
+        assert isinstance(plugin, CanvasGroupingPlugin)
+        # pylint: disable=protected-access
+        assert plugin._canvas_api == canvas_api_client
+
     @pytest.fixture
     def course(self):
         return factories.Course(

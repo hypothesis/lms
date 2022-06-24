@@ -1,18 +1,15 @@
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
-from lms.product.generic import GenericProduct
 from lms.product.product import Product
 
-_PRODUCT_MAP = {
-    product.family: product for product in (Blackboard, Canvas, GenericProduct)
-}
+_PRODUCT_MAP = {product.family: product for product in (Blackboard, Canvas)}
 
 
 def get_product_from_request(request) -> Product:
     """Get the correct product object from the provided request."""
 
     family = _get_family(request)
-    product = _PRODUCT_MAP.get(family, GenericProduct).from_request(request)
+    product = _PRODUCT_MAP.get(family, Product).from_request(request)
     product.family = family
     return product
 

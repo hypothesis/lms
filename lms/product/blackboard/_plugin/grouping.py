@@ -19,6 +19,10 @@ class BlackboardGroupingPlugin(GroupingServicePlugin):
     group_type = Grouping.Type.BLACKBOARD_GROUP
     sections_type = None  # We don't support sections in Blackboard
 
+    @classmethod
+    def from_request(cls, request):
+        return cls(request.find_service(name="blackboard_api_client"))
+
     def __init__(self, blackboard_api):
         self._blackboard_api = blackboard_api
 
