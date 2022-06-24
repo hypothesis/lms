@@ -5,7 +5,7 @@ from lms.product.product import Plugins, Product
 
 
 @dataclass
-class BlackboardProduct(Product):
+class Blackboard(Product):
     """A product for Blackboard specific settings and tweaks."""
 
     family: Product.Family = Product.Family.BLACKBOARD

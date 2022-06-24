@@ -1,13 +1,13 @@
 import pytest
 
-from lms.product.canvas import CanvasProduct
+from lms.product.canvas import Canvas
 
 
-class TestCanvasProduct:
+class TestCanvas:
     def test_from_request(
         self, pyramid_request, canvas_api_client, CanvasGroupingPlugin
     ):
-        product = CanvasProduct.from_request(pyramid_request)
+        product = Canvas.from_request(pyramid_request)
 
         CanvasGroupingPlugin.assert_called_once_with(canvas_api_client)
         assert product.plugin.grouping_service == CanvasGroupingPlugin.return_value

@@ -5,7 +5,7 @@ from lms.product.product import Plugins, Product
 
 
 @dataclass
-class CanvasProduct(Product):
+class Canvas(Product):
     """A product for Canvas specific settings and tweaks."""
 
     family = Product.Family.CANVAS
