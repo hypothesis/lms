@@ -1,4 +1,4 @@
-from unittest.mock import create_autospec, sentinel
+from unittest.mock import create_autospec
 
 import pytest
 from pyramid.config import Configurator
@@ -67,25 +67,8 @@ class TestLTIParams:
         assert params["user_id"] == "user_id-v11"
         assert params["resource_link_id"] == "resource_link_id-v11"
 
-    @pytest.mark.parametrize(
-        "parameter_name,claim_name",
-        [
-            ("custom_canvas_course_id", "canvas_course_id"),
-            ("custom_canvas_user_id", "canvas_user_id"),
-        ],
-    )
-    def test_integer_canvas_parameters(
-        self, pyramid_request, parameter_name, claim_name
-    ):
-        pyramid_request.lti_jwt = {f"{CLAIM_PREFIX}/custom": {claim_name: 1}}
 
-        params = LTIParams.from_request(pyramid_request)
-
-        assert isinstance(params[parameter_name], str)
-        assert params[parameter_name] == "1"
-
-
-class TestCanvasQuirks:
+class TestCanvasLTIParamPlugin:
     @pytest.mark.parametrize(
         "speedgrader,expected",
         (("any_value", "canvas_value"), (None, "standard_value")),
@@ -102,6 +85,23 @@ class TestCanvasQuirks:
         lti_params = LTIParams.from_request(pyramid_request)
 
         assert lti_params["resource_link_id"] == expected
+
+    @pytest.mark.parametrize(
+        "parameter_name,claim_name",
+        [
+            ("custom_canvas_course_id", "canvas_course_id"),
+            ("custom_canvas_user_id", "canvas_user_id"),
+        ],
+    )
+    def test_integer_canvas_parameters(
+        self, pyramid_request, parameter_name, claim_name
+    ):
+        pyramid_request.lti_jwt = {f"{CLAIM_PREFIX}/custom": {claim_name: 1}}
+
+        params = LTIParams.from_request(pyramid_request)
+
+        assert isinstance(params[parameter_name], str)
+        assert params[parameter_name] == "1"
 
 
 class TestIncludeMe:

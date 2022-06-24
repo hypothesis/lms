@@ -1,4 +1,4 @@
-from typing import List
+from typing import Iterable, List
 
 CLAIM_PREFIX = "https://purl.imsglobal.org/spec/lti/claim"
 
@@ -27,109 +27,135 @@ class LTIParams(dict):
     def from_request(cls, request):
         """Create an LTIParams from the request."""
 
+        plugin = CanvasLTIParamPlugin()
+
         if v13_params := request.lti_jwt:
-            v11, v13 = _to_lti_v11(v13_params), v13_params
+            v11, v13 = _to_lti_v11(v13_params, plugin.v13_parameter_map), v13_params
         else:
             v11, v13 = request.params, None
 
         lti_params = cls(v11=v11, v13=v13)
 
         # This could be a product plugin
-        lti_params = _apply_canvas_quirks(lti_params, request)
+        lti_params = plugin.modify_params(lti_params, request)
 
         return lti_params
 
 
-def _apply_canvas_quirks(lti_params, request):
-    # Canvas SpeedGrader launches LTI apps with the wrong resource_link_id,
-    # see:
-    #
-    # * https://github.com/instructure/canvas-lms/issues/1952
-    # * https://github.com/hypothesis/lms/issues/3228
-    #
-    # We add the correct resource_link_id as a query param on the launch
-    # URL that we submit to Canvas and use that instead of the incorrect
-    # resource_link_id that Canvas puts in the request's body.
-    is_speedgrader = request.params.get("learner_canvas_user_id")
+class LTIParamPlugin:
+    v13_parameter_map: Iterable = (
+        # LTI 1.1 key , [LTI 1.3 path in object]
+        # We use tuples instead of a dictionary to allow duplicate keys for
+        # multiple locations.
+        ("user_id", ["sub"]),
+        ("lis_person_name_given", ["given_name"]),
+        ("lis_person_name_family", ["family_name"]),
+        ("lis_person_name_full", ["name"]),
+        ("roles", [f"{CLAIM_PREFIX}/roles"]),
+        ("context_id", [f"{CLAIM_PREFIX}/context", "id"]),
+        ("context_title", [f"{CLAIM_PREFIX}/context", "title"]),
+        ("lti_version", [f"{CLAIM_PREFIX}/version"]),
+        ("lti_message_type", [f"{CLAIM_PREFIX}/message_type"]),
+        ("resource_link_id", [f"{CLAIM_PREFIX}/resource_link", "id"]),
+        ("resource_link_title", [f"{CLAIM_PREFIX}/resource_link", "title"]),
+        ("resource_link_description", [f"{CLAIM_PREFIX}/resource_link", "description"]),
+        # tool_consumer_instance_guid is not sent by the LTI1.3 certification
+        # tool but we include it as a custom parameter in the tool configuration
+        (
+            "tool_consumer_instance_guid",
+            [f"{CLAIM_PREFIX}/custom", "certification_guid"],
+        ),
+        # Usual LTI1.3 location for tool_consumer_instance_guid
+        ("tool_consumer_instance_guid", [f"{CLAIM_PREFIX}/tool_platform", "guid"]),
+        (
+            "tool_consumer_info_product_family_code",
+            [f"{CLAIM_PREFIX}/tool_platform", "product_family_code"],
+        ),
+        (
+            "lis_outcome_service_url",
+            ["https://purl.imsglobal.org/spec/lti-ags/claim/endpoint", "lineitem"],
+        ),
+        ("lis_result_sourcedid", ["sub"]),
+        (
+            "content_item_return_url",
+            [
+                "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings",
+                "deep_link_return_url",
+            ],
+        ),
+        (
+            "deep_linking_settings",
+            ["https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings"],
+        ),
+        # Some LMSs provide a https://purl.imsglobal.org/spec/lti/claim/lti1p1
+        # claim with the LTI1.1 version value of some IDs that are different in
+        # LTI1.3. To make upgrades seamless we prefer the LTI1.1 version when
+        # available
+        #
+        # http://www.imsglobal.org/spec/lti/v1p3/migr#lti-1-1-migration-claim
+        (
+            "user_id",
+            [f"{CLAIM_PREFIX}/lti1p1", "user_id"],
+        ),
+        (
+            "resource_link_id",
+            [f"{CLAIM_PREFIX}/lti1p1", "resource_link_id"],
+        ),
+    )
 
-    if is_speedgrader and (resource_link_id := request.params.get("resource_link_id")):
-        lti_params["resource_link_id"] = resource_link_id
-
-    return lti_params
-
-
-_V11_TO_V13 = (
-    # LTI 1.1 key , [LTI 1.3 path in object]
-    # We use tuples instead of a dictionary to allow duplicate keys for multiple locations.
-    ("user_id", ["sub"]),
-    ("lis_person_name_given", ["given_name"]),
-    ("lis_person_name_family", ["family_name"]),
-    ("lis_person_name_full", ["name"]),
-    ("roles", [f"{CLAIM_PREFIX}/roles"]),
-    ("context_id", [f"{CLAIM_PREFIX}/context", "id"]),
-    ("context_title", [f"{CLAIM_PREFIX}/context", "title"]),
-    ("lti_version", [f"{CLAIM_PREFIX}/version"]),
-    ("lti_message_type", [f"{CLAIM_PREFIX}/message_type"]),
-    ("resource_link_id", [f"{CLAIM_PREFIX}/resource_link", "id"]),
-    ("resource_link_title", [f"{CLAIM_PREFIX}/resource_link", "title"]),
-    ("resource_link_description", [f"{CLAIM_PREFIX}/resource_link", "description"]),
-    # tool_consumer_instance_guid is not sent by the LTI1.3 certification tool but we include
-    # it as a custom parameter in the tool configuration
-    ("tool_consumer_instance_guid", [f"{CLAIM_PREFIX}/custom", "certification_guid"]),
-    # Usual LTI1.3 location for tool_consumer_instance_guid
-    ("tool_consumer_instance_guid", [f"{CLAIM_PREFIX}/tool_platform", "guid"]),
-    (
-        "tool_consumer_info_product_family_code",
-        [f"{CLAIM_PREFIX}/tool_platform", "product_family_code"],
-    ),
-    (
-        "lis_outcome_service_url",
-        ["https://purl.imsglobal.org/spec/lti-ags/claim/endpoint", "lineitem"],
-    ),
-    ("lis_result_sourcedid", ["sub"]),
-    (
-        "content_item_return_url",
-        [
-            "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings",
-            "deep_link_return_url",
-        ],
-    ),
-    (
-        "deep_linking_settings",
-        ["https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings"],
-    ),
-    (
-        "custom_canvas_course_id",
-        [f"{CLAIM_PREFIX}/custom", "canvas_course_id"],
-    ),
-    (
-        "custom_canvas_api_domain",
-        [f"{CLAIM_PREFIX}/custom", "canvas_api_domain"],
-    ),
-    (
-        "custom_canvas_user_id",
-        [f"{CLAIM_PREFIX}/custom", "canvas_user_id"],
-    ),
-    # Some LMSs provide a https://purl.imsglobal.org/spec/lti/claim/lti1p1 claim
-    # with the LTI1.1 version value of some IDs that are different in LTI1.3.
-    # To make upgrades seamless we prefer the LTI1.1 version when available
-    #
-    # http://www.imsglobal.org/spec/lti/v1p3/migr#lti-1-1-migration-claim
-    (
-        "user_id",
-        [f"{CLAIM_PREFIX}/lti1p1", "user_id"],
-    ),
-    (
-        "resource_link_id",
-        [f"{CLAIM_PREFIX}/lti1p1", "resource_link_id"],
-    ),
-)
+    @classmethod
+    def modify_params(cls, lti_params, request):
+        return lti_params
 
 
-def _to_lti_v11(v13_params):
+class CanvasLTIParamPlugin(LTIParamPlugin):
+    v13_parameter_map: Iterable = list(LTIParamPlugin.v13_parameter_map) + [
+        (
+            "custom_canvas_course_id",
+            [f"{CLAIM_PREFIX}/custom", "canvas_course_id"],
+        ),
+        (
+            "custom_canvas_api_domain",
+            [f"{CLAIM_PREFIX}/custom", "canvas_api_domain"],
+        ),
+        (
+            "custom_canvas_user_id",
+            [f"{CLAIM_PREFIX}/custom", "canvas_user_id"],
+        ),
+    ]
+
+    @classmethod
+    def modify_params(cls, lti_params, request):
+        # In LTI1.3 some custom canvas parameters are sent as integers
+        # and as a string in LTI1.1.
+        for canvas_param_name in ["custom_canvas_course_id", "custom_canvas_user_id"]:
+            canvas_param_value = lti_params.get(canvas_param_name)
+            if isinstance(canvas_param_value, int):
+                lti_params[canvas_param_name] = str(canvas_param_value)
+
+        # Canvas SpeedGrader launches LTI apps with the wrong resource_link_id,
+        # see:
+        #
+        # * https://github.com/instructure/canvas-lms/issues/1952
+        # * https://github.com/hypothesis/lms/issues/3228
+        #
+        # We add the correct resource_link_id as a query param on the launch
+        # URL that we submit to Canvas and use that instead of the incorrect
+        # resource_link_id that Canvas puts in the request's body.
+        is_speedgrader = request.params.get("learner_canvas_user_id")
+
+        if is_speedgrader and (
+            resource_link_id := request.params.get("resource_link_id")
+        ):
+            lti_params["resource_link_id"] = resource_link_id
+
+        return lti_params
+
+
+def _to_lti_v11(v13_params, param_mapping):
     v11_params = {}
 
-    for v11_key, v13_path in _V11_TO_V13:
+    for v11_key, v13_path in param_mapping:
         try:
             v11_params[v11_key] = _get_key(v13_params, v13_path)
         except KeyError:
@@ -139,13 +165,6 @@ def _to_lti_v11(v13_params):
     if "roles" in v11_params:
         # We need to squish together the roles for v1.1
         v11_params["roles"] = ",".join(v11_params["roles"])
-
-    for canvas_param_name in ["custom_canvas_course_id", "custom_canvas_user_id"]:
-        # In LTI1.3 some custom canvas parameters are sent as integers
-        # and as a string in LTI1.1.
-        canvas_param_value = v11_params.get(canvas_param_name)
-        if isinstance(canvas_param_value, int):
-            v11_params[canvas_param_name] = str(canvas_param_value)
 
     return v11_params
 
