@@ -93,11 +93,6 @@ class TestDocumentURLService:
             document_url=sentinel.document_url
         )
         context.lti_params[param] = sentinel.link_id
-        # Horrible work around
-        if param == "resource_link_id":
-            context.resource_link_id = sentinel.link_id
-        else:
-            context.resource_link_id = None
 
         result = svc.get_document_url(context, pyramid_request)
 

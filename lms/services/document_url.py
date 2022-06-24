@@ -92,13 +92,7 @@ class DocumentURLService:
             "resource_link_id_history",  # A Blackboard course we can copy
             "ext_d2l_resource_link_id_history",  # Ditto for Brightspace
         ):
-            # Horrible work around
-            if param == "resource_link_id":
-                resource_link_id = context.resource_link_id
-            else:
-                resource_link_id = context.lti_params.get(param)
-
-            if resource_link_id and (
+            if (resource_link_id := context.lti_params.get(param)) and (
                 assigment := self._assignment_service.get_assignment(
                     tool_consumer_instance_guid=context.lti_params.get(
                         "tool_consumer_instance_guid"

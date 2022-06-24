@@ -38,11 +38,6 @@ class LTILaunchResource:
         )
 
     @property
-    def resource_link_id(self):
-        # This should be replaced with direct calls
-        return self.lti_params.get("resource_link_id")
-
-    @property
     def is_canvas(self):
         """Return True if Canvas is the LMS that launched us."""
         return self._request.product.family == Product.Family.CANVAS
@@ -102,7 +97,7 @@ class LTILaunchResource:
                 "tool_consumer_instance_guid"
             ]
             assignment = self._request.find_service(name="assignment").get_assignment(
-                tool_consumer_instance_guid, self.resource_link_id
+                tool_consumer_instance_guid, self.lti_params.get("resource_link_id")
             )
             return assignment.extra.get("group_set_id") if assignment else None
 
