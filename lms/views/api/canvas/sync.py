@@ -15,13 +15,15 @@ class Sync:
         permission=Permissions.API,
     )
     def sync(self):
+        course = self.get_course(self._request.json["course"]["context_id"])
         grading_user_id = self._request.json.get("learner", {}).get("canvas_user_id")
-        if self._is_group_launch:
+
+        if group_set_id := self._request.json["assignment"]["group_set_id"]:
             groupings = self._grouping_service.get_groups(
                 self._request.user,
                 self._request.lti_user,
-                self._get_course(),
-                self.group_set(),
+                course,
+                group_set_id,
                 grading_user_id,
             )
 
@@ -29,7 +31,7 @@ class Sync:
             groupings = self._grouping_service.get_sections(
                 self._request.user,
                 self._request.lti_user,
-                self._get_course(),
+                course,
                 grading_user_id,
             )
 
@@ -39,32 +41,5 @@ class Sync:
         authority = self._request.registry.settings["h_authority"]
         return [group.groupid(authority) for group in groupings]
 
-    @property
-    def _is_speedgrader(self):
-        return "learner" in self._request.json
-
-    def group_set(self):
-        if self._is_speedgrader:
-            return int(self._request.json["learner"].get("group_set"))
-
-        return int(self._request.json["course"].get("group_set"))
-
-    @property
-    def _is_group_launch(self):
-        application_instance = self._request.find_service(
-            name="application_instance"
-        ).get_current()
-        if not application_instance.settings.get("canvas", "groups_enabled"):
-            return False
-
-        try:
-            self.group_set()
-        except (KeyError, ValueError, TypeError):
-            return False
-        else:
-            return True
-
-    def _get_course(self):
-        return self._request.find_service(name="course").get_by_context_id(
-            self._request.json["course"]["context_id"],
-        )
+    def get_course(self, course_id):
+        return self._request.find_service(name="course").get_by_context_id(course_id)
