@@ -91,57 +91,29 @@ class TestJSTORService:
     @pytest.mark.parametrize(
         "api_response, expected_title",
         [
-            # Simple title
-            ({"title": ["Some title"]}, "Some title"),
-            # Empty or missing "title" field, and no other title
-            ({"title": []}, None),
             ({}, None),
-            # Article with subtitle
-            (
-                {
-                    "title": ["Talking about History:"],
-                    "subtitle": [
-                        "The Encomium Emmae reginae and the Court of Harthacnut"
-                    ],
-                },
-                "Talking about History: The Encomium Emmae reginae and the Court of Harthacnut",
-            ),
+            # Simple title
+            ({"title": []}, None),
+            ({"title": ["SIMPLE"]}, "SIMPLE"),
+            ({"title": ["SIMPLE"], "subtitle": []}, "SIMPLE"),
+            ({"title": ["SIMPLE"], "subtitle": ["SUBTITLE"]}, "SIMPLE SUBTITLE"),
             # Collection
-            ({"tb": "Some book"}, "Some book"),
-            # Collection with subtitle
-            (
-                {"tb": "Pizza with pineapple:", "tbsub": "Yay or nay?"},
-                "Pizza with pineapple: Yay or nay?",
-            ),
+            ({"tb": "COLLECTION"}, "COLLECTION"),
+            ({"tb": "COLLECTION", "tbsub": "SUBTITLE"}, "COLLECTION SUBTITLE"),
             # Article that is a review of another work
+            # These have null "tb" and "tbsub" fields, which should be ignored
             (
-                {
-                    # These reviews have null "tb" and "tbsub" fields, which
-                    # should be ignored.
-                    "tb": None,
-                    "tbsub": None,
-                    "reviewed_works": [{"title": "Some other work"}],
-                },
-                "Review: Some other work",
+                {"tb": None, "tbsub": None, "reviewed_works": [{"title": "REVIEW"}]},
+                "Review: REVIEW",
             ),
-            # Primary source content (various kinds of item listed under
-            # "Primary source content" in JSTOR search results)
-            ({"item_title": "Some primary source"}, "Some primary source"),
-            # Titles with extra whitespace or new lines. These should be cleaned up.
-            (
-                {"title": ["   Too\n many\n lines \t and spaces "]},
-                "Too many lines and spaces",
-            ),
-            # Titles with formatting tags. These should be stripped.
-            (
-                {
-                    "title": ["All about the <em>Wunderpus photogenicus</em>:"],
-                    "subtitle": ["an <em>exciting</em> octopus"],
-                },
-                "All about the Wunderpus photogenicus: an exciting octopus",
-            ),
-            ({"title": ["Foo<bar"]}, "Foo<bar"),
-            ({"title": ["Foo<b>bar"]}, "Foobar"),
+            # "Primary source content" in JSTOR search results
+            ({"item_title": "PRIMARY_SOURCE"}, "PRIMARY_SOURCE"),
+            # Titles with extra whitespace, new lines or HTML should be cleaned up.
+            ({"title": ["   A \n B   \t   C  "]}, "A B C"),
+            ({"title": ["A <em>B</em>"], "subtitle": ["C <em>D</em> E"]}, "A B C D E"),
+            ({"title": ["A<b>B"]}, "AB"),
+            # This isn't a tag!
+            ({"title": ["A<B"]}, "A<B"),
         ],
     )
     def test_metadata_formats_title(
