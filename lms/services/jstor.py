@@ -78,11 +78,23 @@ class JSTORService:
         :param request: Pyramid request
         :param document_url: The URL to annotate
         :return: A URL for Via configured to launch the requested document
+        :raises ExternalRequestError: If we get a value which doesn't look like
+            a public URL from JSTOR
         """
+
+        # Get a signed S3 URL for the given JSTOR URL.
+        s3_url = self._api_request(
+            "/pdf-url/{doi}", doi=document_url.replace("jstor://", "")
+        ).text
+
+        if not s3_url.startswith("https://"):
+            raise ExternalRequestError(
+                f"Expected to get an S3 URL but got: '{s3_url}' instead"
+            )
 
         return via_url(
             request,
-            document_url=self._get_public_url(document_url),
+            document_url=s3_url,
             content_type="pdf",
             # Show content partner banner in client for JSTOR.
             options={"via.client.contentPartner": "jstor"},
@@ -94,13 +106,11 @@ class JSTORService:
 
         :param article_id: A JSTOR article ID or DOI
         """
-        doi = self._doi_from_article_id(article_id)
-        response = self._api_request(_format_uri("/metadata/{}", doi))
+
+        response = self._api_request("/metadata/{doi}", doi=article_id)
         metadata = JSTORMetadataSchema(response).parse()
 
-        title = self._get_title_from_metadata(metadata)
-
-        return {"title": title}
+        return {"title": self._get_title_from_metadata(metadata)}
 
     def thumbnail(self, article_id: str):
         """
@@ -110,21 +120,23 @@ class JSTORService:
         source for an `<img>` element.
 
         :param article_id: A JSTOR article ID or DOI
-        :raise ExternalRequestError: If the response doesn't look like a valid `data:` URI
+        :raise ExternalRequestError: If the response doesn't look like a valid
+            `data:` URI
         """
-        doi = self._doi_from_article_id(article_id)
-        params = {
-            # `offset` specifies the page number. The default value of 0 returns
-            # the thumbnail of the last page. Setting it to 1 returns the first
-            # page.
-            "offset": 1,
-            # The frontend currently displays the image with a width of ~140px,
-            # so 280px has enough resolution for a 2x device pixel ratio.
-            # The height will be adjusted to maintain the aspect ratio.
-            "width": 280,
-        }
+
         data_uri = self._api_request(
-            _format_uri("/thumbnail/{}", doi), params=params
+            "/thumbnail/{doi}",
+            doi=article_id,
+            params={
+                # `offset` specifies the page number. The default value of 0
+                # returns the thumbnail of the last page. Setting it to 1
+                # returns the first page.
+                "offset": 1,
+                # The frontend displays the image with a width of ~140px,
+                # so 280px has enough resolution for a 2x device pixel ratio.
+                # The height will be adjusted to maintain the aspect ratio.
+                "width": 280,
+            },
         ).text
 
         if not data_uri.startswith("data:"):
@@ -134,48 +146,26 @@ class JSTORService:
 
         return data_uri
 
-    def _get_public_url(self, url):
+    def _api_request(self, path_template, doi, params=None) -> requests.Response:
         """
-        Get a signed S3 URL for the given JSTOR URL.
-
-        :param url: The URL to stream
-        :return: A public URL
-        :raises ExternalRequestError: If we get bad data back from the service
-        """
-
-        article_id = url.replace("jstor://", "")
-        doi = self._doi_from_article_id(article_id)
-        s3_url = self._api_request(_format_uri("/pdf-url/{}", doi)).text
-
-        if not s3_url.startswith("https://"):
-            raise ExternalRequestError(
-                f"Expected to get an S3 URL but got: '{s3_url}' instead"
-            )
-
-        return s3_url
-
-    def _api_request(
-        self, endpoint: str, params: Optional[dict] = None
-    ) -> requests.Response:
-        """
-        Make an authenticated request to the JSTOR API.
+        Call the JSTOR API with a URL based on an article id.
 
         See the JSTOR API's `/docs` endpoint for details.
         """
+
+        if "/" not in doi:
+            doi = f"{self.DEFAULT_DOI_PREFIX}/{doi}"
+
+        url = self._api_url + path_template.format(doi=quote(doi, safe="/"))
+
         token = JWTService.encode_with_secret(
             {"site_code": self._site_code},
             secret=self._secret,
             lifetime=timedelta(hours=1),
         )
-        url = self._api_url + endpoint
         return self._http.get(
             url=url, headers={"Authorization": f"Bearer {token}"}, params=params
         )
-
-    def _doi_from_article_id(self, article_id):
-        if "/" not in article_id:
-            return f"{self.DEFAULT_DOI_PREFIX}/{article_id}"
-        return article_id
 
     @classmethod
     def _get_title_from_metadata(cls, metadata: dict) -> Optional[str]:
@@ -213,37 +203,22 @@ class JSTORService:
 
         # Some titles contain HTML formatting tags, new lines or unwanted
         # extra spaces. Strip these to simplify downstream processing.
-        return _normalize_whitespace(_strip_html_tags(title))
+        return cls._strip_html_tags(title)
 
+    @staticmethod
+    def _strip_html_tags(html: str) -> str:
+        """Get plain text from a string which may contain HTML tags."""
 
-def _format_uri(template: str, *params: str):
-    """
-    Format a URI string.
+        # Extract text nodes using HTMLParser. We rely on it being tolerant of
+        # invalid markup.
+        chunks = []
+        parser = HTMLParser()
+        parser.handle_data = chunks.append
+        parser.feed(html)
+        parser.close()
 
-    This is like `template.format(*params)` except that the params are
-    percent-encoded.
-    """
-    encoded = [quote(param, safe="/") for param in params]
-    return template.format(*encoded)
-
-
-def _strip_html_tags(html: str) -> str:
-    """Extract plain text from a string which may contain HTML formatting tags."""
-
-    # Extract text nodes using HTMLParser. We rely on it being tolerant of
-    # invalid markup.
-    chunks = []
-    parser = HTMLParser()
-    parser.handle_data = chunks.append
-    parser.feed(html)
-    parser.close()
-
-    return "".join(chunks)
-
-
-def _normalize_whitespace(val: str) -> str:
-    """Convert all whitespace to single spaces and remove leading/trailing spaces."""
-    return " ".join(val.split())
+        # Strip leading/trailing whitespace and duplicate spaces
+        return " ".join("".join(chunks).split())
 
 
 def factory(_context, request):
