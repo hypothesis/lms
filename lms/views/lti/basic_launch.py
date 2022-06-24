@@ -170,7 +170,7 @@ class BasicLaunchViews:
             tool_consumer_instance_guid=self.context.lti_params[
                 "tool_consumer_instance_guid"
             ],
-            resource_link_id=self.context.resource_link_id,
+            resource_link_id=self.context.lti_params.get("resource_link_id"),
             lti_params=self.context.lti_params,
             extra=extra,
             is_gradable=is_gradable,

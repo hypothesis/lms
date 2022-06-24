@@ -13,13 +13,6 @@ pytestmark = pytest.mark.usefixtures(
 )
 
 
-class TestResourceLinkIdk:
-    def test_it(self, pyramid_request):
-        pyramid_request.lti_params['resource_link_id'] = "link_id"
-
-        assert LTILaunchResource(pyramid_request).resource_link_id == "link_id"
-
-
 class TestIsCanvas:
     @pytest.mark.parametrize(
         "product,expected",
