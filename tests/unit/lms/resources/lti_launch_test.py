@@ -14,23 +14,10 @@ pytestmark = pytest.mark.usefixtures(
 
 
 class TestResourceLinkIdk:
-    @pytest.mark.parametrize(
-        "learner_id,get_id,lti_id,expected",
-        [
-            param(None, None, "LTI_ID", "LTI_ID", id="regular"),
-            param("USER_ID", "GET_ID", "LTI_ID", "GET_ID", id="new_speedgrader"),
-            param("USER_ID", None, "LTI_ID", "LTI_ID", id="old_speedgrader"),
-        ],
-    )
-    def test_it(self, pyramid_request, learner_id, get_id, lti_id, expected):
-        pyramid_request.GET = {
-            "learner_canvas_user_id": learner_id,
-            "resource_link_id": get_id,
-        }
-        with mock.patch.object(
-            LTILaunchResource, "lti_params", {"resource_link_id": lti_id}
-        ):
-            assert LTILaunchResource(pyramid_request).resource_link_id == expected
+    def test_it(self, pyramid_request):
+        pyramid_request.lti_params['resource_link_id'] = "link_id"
+
+        assert LTILaunchResource(pyramid_request).resource_link_id == "link_id"
 
 
 class TestIsCanvas:
