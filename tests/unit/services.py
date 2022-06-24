@@ -99,7 +99,12 @@ def application_instance_service(mock_service, application_instance):
 
 @pytest.fixture
 def aes_service(mock_service):
-    return mock_service(AESService)
+    aes_service = mock_service(AESService)
+    # Don't return MagicMock objects from these functions so the output can
+    # be tested against things which store them in the DB
+    aes_service.encrypt.return_value = b"fake_ciphertext"
+    aes_service.build_iv.return_value = b"fake_aes_iv"
+    return aes_service
 
 
 @pytest.fixture
