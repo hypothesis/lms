@@ -32,7 +32,30 @@ class LTIParams(dict):
         else:
             v11, v13 = request.params, None
 
-        return cls(v11=v11, v13=v13)
+        lti_params = cls(v11=v11, v13=v13)
+
+        # This could be a product plugin
+        lti_params = _apply_canvas_quirks(lti_params, request)
+
+        return lti_params
+
+
+def _apply_canvas_quirks(lti_params, request):
+    # Canvas SpeedGrader launches LTI apps with the wrong resource_link_id,
+    # see:
+    #
+    # * https://github.com/instructure/canvas-lms/issues/1952
+    # * https://github.com/hypothesis/lms/issues/3228
+    #
+    # We add the correct resource_link_id as a query param on the launch
+    # URL that we submit to Canvas and use that instead of the incorrect
+    # resource_link_id that Canvas puts in the request's body.
+    is_speedgrader = request.params.get("learner_canvas_user_id")
+
+    if is_speedgrader and (resource_link_id := request.params.get("resource_link_id")):
+        lti_params["resource_link_id"] = resource_link_id
+
+    return lti_params
 
 
 _V11_TO_V13 = (

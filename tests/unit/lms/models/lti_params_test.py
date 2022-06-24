@@ -85,6 +85,25 @@ class TestLTIParams:
         assert params[parameter_name] == "1"
 
 
+class TestCanvasQuirks:
+    @pytest.mark.parametrize(
+        "speedgrader,expected",
+        (("any_value", "canvas_value"), (None, "standard_value")),
+    )
+    def test_from_request_reads_resource_link_id(
+        self, pyramid_request, speedgrader, expected
+    ):
+        pyramid_request.lti_jwt = {
+            f"{CLAIM_PREFIX}/lti1p1": {"resource_link_id": "standard_value"}
+        }
+        pyramid_request.params["resource_link_id"] = "canvas_value"
+        pyramid_request.params["learner_canvas_user_id"] = speedgrader
+
+        lti_params = LTIParams.from_request(pyramid_request)
+
+        assert lti_params["resource_link_id"] == expected
+
+
 class TestIncludeMe:
     def test_it_sets_lti_jwt(self, configurator):
         includeme(configurator)
