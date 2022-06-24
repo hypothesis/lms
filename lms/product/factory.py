@@ -1,26 +1,20 @@
-# We need to import all classes so we are aware of them for the mapping below
-from lms.product.blackboard import Blackboard  # pylint: disable=unused-import
-from lms.product.canvas import Canvas  # pylint: disable=unused-import
+from lms.product.blackboard import Blackboard
+from lms.product.canvas import Canvas
 from lms.product.generic import GenericProduct
 from lms.product.product import Product
+
+_PRODUCT_MAP = {
+    product.family: product for product in (Blackboard, Canvas, GenericProduct)
+}
 
 
 def get_product_from_request(request) -> Product:
     """Get the correct product object from the provided request."""
 
     family = _get_family(request)
-    product_class = _get_implementing_class(family)
-    product = product_class.from_request(request)
+    product = _PRODUCT_MAP.get(family, GenericProduct).from_request(request)
     product.family = family
     return product
-
-
-def _get_implementing_class(family):
-    for lms_class in Product.__subclasses__():
-        if lms_class.family == family:
-            return lms_class
-
-    return GenericProduct
 
 
 def _get_family(request):
