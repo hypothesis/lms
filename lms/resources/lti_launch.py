@@ -38,25 +38,8 @@ class LTILaunchResource:
         )
 
     @property
-    def _is_speedgrader(self):
-        return bool(self._request.GET.get("learner_canvas_user_id"))
-
-    @property
     def resource_link_id(self):
-        # Canvas SpeedGrader launches LTI apps with the wrong resource_link_id,
-        # see:
-        #
-        # * https://github.com/instructure/canvas-lms/issues/1952
-        # * https://github.com/hypothesis/lms/issues/3228
-        #
-        # We add the correct resource_link_id as a query param on the launch
-        # URL that we submit to Canvas and use that instead of the incorrect
-        # resource_link_id that Canvas puts in the request's body.
-        if self._is_speedgrader and (
-            resource_link_id := self._request.GET.get("resource_link_id")
-        ):
-            return resource_link_id
-
+        # This should be replaced with direct calls
         return self.lti_params.get("resource_link_id")
 
     @property
