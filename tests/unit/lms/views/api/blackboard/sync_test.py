@@ -10,13 +10,7 @@ from tests.conftest import TEST_SETTINGS
 @pytest.mark.usefixtures("application_instance_service", "lti_h_service")
 class TestSync:
     def test_sync(
-        self,
-        lti_h_service,
-        grouping_service,
-        lti_user,
-        course_service,
-        pyramid_request,
-        assignment_service,
+        self, lti_h_service, grouping_service, lti_user, course_service, pyramid_request
     ):
         groups = factories.BlackboardGroup.create_batch(5)
         grouping_service.get_groups.return_value = groups
@@ -24,15 +18,11 @@ class TestSync:
         groupids = Sync(pyramid_request).sync()
 
         course_service.get_by_context_id.assert_called_once_with(sentinel.context_id)
-        assignment_service.get_assignment.assert_called_once_with(
-            sentinel.guid,
-            sentinel.resource_link_id,
-        )
         grouping_service.get_groups.assert_called_once_with(
             sentinel.user,
             lti_user,
             course_service.get_by_context_id.return_value,
-            assignment_service.get_assignment.return_value.extra["group_set_id"],
+            sentinel.group_set_id,
             None,
         )
         lti_h_service.sync.assert_called_once_with(
@@ -56,6 +46,9 @@ class TestSync:
                 "custom_canvas_course_id": "test_custom_canvas_course_id",
             },
             "lms": {"tool_consumer_instance_guid": sentinel.guid},
-            "assignment": {"resource_link_id": sentinel.resource_link_id},
+            "assignment": {
+                "resource_link_id": sentinel.resource_link_id,
+                "group_set_id": sentinel.group_set_id,
+            },
             "group_info": sentinel.group_info,
         }

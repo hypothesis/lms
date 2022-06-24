@@ -444,7 +444,6 @@ class JSConfig:
                     "custom_canvas_course_id": self._context.lti_params[
                         "custom_canvas_course_id"
                     ],
-                    "group_set": req.params.get("group_set"),
                 },
                 "assignment": {
                     "resource_link_id": self._context.lti_params["resource_link_id"],
@@ -461,7 +460,6 @@ class JSConfig:
         if "learner_canvas_user_id" in req.params:
             sync_api_config["data"]["learner"] = {
                 "canvas_user_id": req.params["learner_canvas_user_id"],
-                "group_set": req.params.get("group_set"),
             }
 
         return sync_api_config

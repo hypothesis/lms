@@ -62,7 +62,7 @@ class TestSync:
             sentinel.user,
             lti_user,
             course_service.get_by_context_id.return_value,
-            1,
+            sentinel.group_set_id,
             None,
         )
         lti_h_service.sync.assert_called_once_with(
@@ -86,7 +86,7 @@ class TestSync:
             sentinel.user,
             lti_user,
             course_service.get_by_context_id.return_value,
-            100,
+            sentinel.group_set_id,
             sentinel.canvas_user_id,
         )
 
@@ -99,7 +99,7 @@ class TestSync:
 
     @pytest.fixture
     def is_group_launch(self, application_instance_service, request_json):
-        request_json["course"]["group_set"] = 1
+        request_json["assignment"]["group_set_id"] = sentinel.group_set_id
         application_instance_service.get_current.return_value.settings = {
             "canvas": {"groups_enabled": True}
         }
@@ -107,10 +107,10 @@ class TestSync:
     @pytest.fixture
     def is_groups_and_speed_grader(self, application_instance_service, request_json):
         request_json["learner"] = {"canvas_user_id": sentinel.canvas_user_id}
+        request_json["assignment"]["group_set_id"] = sentinel.group_set_id
         application_instance_service.get_current.return_value.settings = {
             "canvas": {"groups_enabled": True}
         }
-        request_json["learner"]["group_set"] = 100
 
     @pytest.fixture
     def is_speedgrader(self, request_json):
@@ -126,5 +126,6 @@ class TestSync:
     def request_json(self):
         return {
             "course": {"context_id": sentinel.context_id},
+            "assignment": {"group_set_id": None},
             "group_info": sentinel.group_info,
         }

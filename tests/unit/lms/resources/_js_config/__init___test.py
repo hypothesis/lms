@@ -297,7 +297,6 @@ class TestJSConfigAPISync:
                 "course": {
                     "context_id": "test_context_id",
                     "custom_canvas_course_id": "test_custom_canvas_course_id",
-                    "group_set": None,
                 },
                 "assignment": {
                     "resource_link_id": "test_resource_link_id",
@@ -344,7 +343,6 @@ class TestJSConfigAPISync:
     def test_it_adds_learner_canvas_user_id_for_SpeedGrader_launches(self, sync):
         assert sync["data"]["learner"] == {
             "canvas_user_id": "test_learner_canvas_user_id",
-            "group_set": None,
         }
 
     def test_its_None_if_section_and_groups_arent_enabled(self, sync):
