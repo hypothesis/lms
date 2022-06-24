@@ -5,7 +5,7 @@ from lms.models import Course, Grouping
 
 
 # pylint: disable=unused-argument
-class GroupingServicePlugin:  # pragma: no cover
+class GroupingServicePlugin:  # pragma: nocover
     """
     An interface between the grouping service and a specific LMS.
 
@@ -61,6 +61,10 @@ class GroupingServicePlugin:  # pragma: no cover
         """Get the groups for a learner when they are being graded."""
 
         return None
+
+    @classmethod
+    def from_request(cls, request):
+        return cls()
 
 
 class GroupError(Exception):

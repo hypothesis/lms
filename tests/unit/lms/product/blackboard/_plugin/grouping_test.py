@@ -94,6 +94,12 @@ class TestBlackboardGroupingPlugin:
             )
         assert err.value.error_code == ErrorCodes.GROUP_SET_EMPTY
 
+    def test_from_request(self, pyramid_request, blackboard_api_client):
+        plugin = BlackboardGroupingPlugin.from_request(pyramid_request)
+        assert isinstance(plugin, BlackboardGroupingPlugin)
+        # pylint: disable=protected-access
+        assert plugin._blackboard_api == blackboard_api_client
+
     @pytest.fixture
     def plugin(self, blackboard_api_client):
         return BlackboardGroupingPlugin(blackboard_api_client)
