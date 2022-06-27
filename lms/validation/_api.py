@@ -93,6 +93,7 @@ class APIBlackboardSyncSchema(PyramidRequestSchema):
 
     class Assignment(Schema):
         resource_link_id = fields.Str(required=True)
+        group_set_id = fields.Str(required=False, allow_none=True)
 
     class GroupInfo(Schema):
         class Meta:
