@@ -17,7 +17,7 @@ LOG = logging.getLogger(__name__)
 
 app = Celery("lms")
 app.conf.update(
-    broker_url=os.environ.get("CELERY_BROKER_URL"),
+    broker_url=os.environ.get("BROKER_URL"),
     # What options should we have when sending messages to the queue?
     broker_transport_options={
         "max_retries": 2,
