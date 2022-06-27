@@ -113,6 +113,7 @@ run-docker:
 		--add-host host.docker.internal:host-gateway \
 		--net lms_default \
 		-e DATABASE_URL=postgresql://postgres@postgres/postgres \
+		-e BROKER_URL=amqp://guest:guest@localhost:5674// \
 		-e FEATURE_FLAGS_COOKIE_SECRET=notasecret \
 		-e H_API_URL_PRIVATE=http://host.docker.internal:5000/api/ \
 		-e H_API_URL_PUBLIC=http://localhost:5000/api/ \
