@@ -450,6 +450,10 @@ class JSConfig:
                     ],
                     "group_set": req.params.get("group_set"),
                 },
+                "assignment": {
+                    "resource_link_id": self._context.lti_params["resource_link_id"],
+                    "group_set_id": self._context.group_set_id,
+                },
                 "group_info": {
                     key: value
                     for key, value in self._context.lti_params.items()
@@ -483,6 +487,7 @@ class JSConfig:
                 },
                 "assignment": {
                     "resource_link_id": self._context.lti_params["resource_link_id"],
+                    "group_set_id": self._context.group_set_id,
                 },
                 "group_info": {
                     key: value

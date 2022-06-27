@@ -307,7 +307,7 @@ class TestJSConfigAPISync:
     """Unit tests for the api.sync sub-dict of JSConfig."""
 
     @pytest.mark.usefixtures("with_sections_on")
-    def test_when_is_canvas(self, sync, pyramid_request, GroupInfo):
+    def test_when_is_canvas(self, sync, pyramid_request, GroupInfo, context):
         assert sync == {
             "authUrl": "http://example.com/api/canvas/oauth/authorize",
             "path": "/api/canvas/sync",
@@ -316,6 +316,10 @@ class TestJSConfigAPISync:
                     "context_id": "test_context_id",
                     "custom_canvas_course_id": "test_custom_canvas_course_id",
                     "group_set": None,
+                },
+                "assignment": {
+                    "resource_link_id": "test_resource_link_id",
+                    "group_set_id": context.group_set_id,
                 },
                 "lms": {
                     "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
@@ -330,7 +334,7 @@ class TestJSConfigAPISync:
         }
 
     @pytest.mark.usefixtures("blackboard_group_launch")
-    def test_when_is_blackboard(self, sync, pyramid_request, GroupInfo):
+    def test_when_is_blackboard(self, sync, pyramid_request, GroupInfo, context):
         assert sync == {
             "authUrl": "http://example.com/api/blackboard/oauth/authorize",
             "path": "/api/blackboard/sync",
@@ -340,6 +344,7 @@ class TestJSConfigAPISync:
                 },
                 "assignment": {
                     "resource_link_id": "test_resource_link_id",
+                    "group_set_id": context.group_set_id,
                 },
                 "lms": {
                     "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
