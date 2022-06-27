@@ -1,6 +1,5 @@
 aiohttp
 alembic
-celery
 gunicorn
 h-api
 h-assets
