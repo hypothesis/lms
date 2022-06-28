@@ -25,7 +25,11 @@ class TestHasDocumentURL:
 
 
 @pytest.mark.usefixtures(
-    "assignment_service", "grading_info_service", "lti_h_service", "lti_role_service"
+    "assignment_service",
+    "grading_info_service",
+    "lti_h_service",
+    "lti_role_service",
+    "grouping_service",
 )
 class TestBasicLaunchViews:
     def test___init___(self, context, pyramid_request):
@@ -171,6 +175,7 @@ class TestBasicLaunchViews:
         lti_h_service,
         assignment_service,
         lti_role_service,
+        grouping_service,
     ):
         # pylint: disable=protected-access
         result = svc._show_document(
@@ -185,6 +190,12 @@ class TestBasicLaunchViews:
 
         lti_h_service.sync.assert_called_once_with([context.course], context.lti_params)
 
+        # `_record_course()`
+        grouping_service.upsert_grouping_memberships.assert_called_once_with(
+            user=pyramid_request.user, groups=[context.course]
+        )
+
+        # `_record_assignment()`
         assignment_service.upsert_assignment.assert_called_once_with(
             tool_consumer_instance_guid=context.lti_params[
                 "tool_consumer_instance_guid"

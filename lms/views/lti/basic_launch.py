@@ -18,6 +18,7 @@ from lms.models import LtiLaunches
 from lms.security import Permissions
 from lms.services import DocumentURLService, LTIRoleService
 from lms.services.assignment import AssignmentService
+from lms.services.grouping import GroupingService
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
 from lms.validation.authentication import BearerTokenSchema
 
@@ -46,6 +47,7 @@ class BasicLaunchViews:
         self.assignment_service: AssignmentService = request.find_service(
             name="assignment"
         )
+        self.grouping_service: GroupingService = request.find_service(name="grouping")
 
         self.context.application_instance.check_guid_aligns(
             self.context.lti_params.get("tool_consumer_instance_guid")
@@ -150,7 +152,8 @@ class BasicLaunchViews:
             self.context.lti_params.get("lis_outcome_service_url")
         )
 
-        # Store lots of info about the assignment
+        # Store lots of info
+        self._record_course()
         self._record_assignment(
             document_url, extra=assignment_extra, is_gradable=assignment_gradable
         )
@@ -184,6 +187,13 @@ class BasicLaunchViews:
         # Store the relationship between the assignment and the course
         self.assignment_service.upsert_assignment_groupings(
             assignment=assignment, groupings=[self.context.course]
+        )
+
+    def _record_course(self):
+        # It's not completely clear but accessing a course in this way actually
+        # is an upsert. So this stores the course as well
+        self.grouping_service.upsert_grouping_memberships(
+            user=self.request.user, groups=[self.context.course]
         )
 
     def _configure_js_to_show_document(self, document_url, assignment_gradable):
