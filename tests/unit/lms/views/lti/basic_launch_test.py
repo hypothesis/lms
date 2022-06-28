@@ -1,9 +1,9 @@
 from unittest import mock
-from unittest.mock import create_autospec, patch, sentinel
+from unittest.mock import patch, sentinel
 
 import pytest
 
-from lms.models import ApplicationInstance, LTIParams
+from lms.models import LTIParams
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.security import Permissions
@@ -25,19 +25,13 @@ class TestHasDocumentURL:
 
 
 @pytest.mark.usefixtures(
-    "application_instance_service",
-    "assignment_service",
-    "grading_info_service",
-    "lti_h_service",
-    "lti_role_service",
+    "assignment_service", "grading_info_service", "lti_h_service", "lti_role_service"
 )
 class TestBasicLaunchViews:
-    def test___init___(self, context, pyramid_request, application_instance_service):
+    def test___init___(self, context, pyramid_request):
         BasicLaunchViews(context, pyramid_request)
 
-        application_instance_service.get_current.assert_called_once_with()
-        application_instance = application_instance_service.get_current.return_value
-        application_instance.check_guid_aligns.assert_called_once_with(
+        context.application_instance.check_guid_aligns.assert_called_once_with(
             context.lti_params["tool_consumer_instance_guid"]
         )
 
@@ -49,9 +43,9 @@ class TestBasicLaunchViews:
         LtiLaunches,
         grading_info_service,
     ):
-        svc = BasicLaunchViews(context, pyramid_request)
+        BasicLaunchViews(context, pyramid_request)
 
-        svc.application_instance.update_lms_data.assert_called_once_with(
+        context.application_instance.update_lms_data.assert_called_once_with(
             context.lti_params
         )
 
@@ -344,16 +338,6 @@ class TestBasicLaunchViews:
         context.is_canvas = False
         context.lti_params = LTIParams(pyramid_request.params)
         return context
-
-    @pytest.fixture
-    def application_instance_service(self, application_instance_service):
-        # Override the "helpful" base behavior or the application instance
-        # service mock so we can assert things about the value returned
-        application_instance_service.get_current.return_value = create_autospec(
-            ApplicationInstance, spec_set=True, instance=True
-        )
-
-        return application_instance_service
 
     @pytest.fixture
     def LtiLaunches(self, patch):

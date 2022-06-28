@@ -6,7 +6,6 @@ from pytest import param
 from lms.models import ApplicationSettings, Grouping
 from lms.product import Product
 from lms.resources import LTILaunchResource
-from lms.services import ApplicationInstanceNotFound
 
 pytestmark = pytest.mark.usefixtures(
     "application_instance_service", "assignment_service"
@@ -70,15 +69,6 @@ class TestSectionsEnabled:
         pyramid_request.params.update(params)
 
         assert lti_launch.sections_enabled is expected
-
-    @pytest.mark.usefixtures("with_canvas")
-    def test_if_application_instance_service_raises(
-        self, lti_launch, application_instance_service
-    ):
-        application_instance_service.get_current.side_effect = (
-            ApplicationInstanceNotFound
-        )
-        assert not lti_launch.sections_enabled
 
     @pytest.mark.usefixtures("with_canvas")
     def test_it_depends_on_developer_key(
