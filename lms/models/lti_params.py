@@ -34,7 +34,9 @@ class LTIParams(dict):
 
         lti_params = cls(v11=v11, v13=v13)
 
-        # This could be a product plugin
+        # This would be good if we could extract this as a product plugin (or
+        # something similar), but unfortunately there's currently a circular
+        # dependency where LTI params are required to get the product
         lti_params = _apply_canvas_quirks(lti_params, request)
 
         return lti_params
@@ -54,6 +56,13 @@ def _apply_canvas_quirks(lti_params, request):
 
     if is_speedgrader and (resource_link_id := request.params.get("resource_link_id")):
         lti_params["resource_link_id"] = resource_link_id
+
+    for canvas_param_name in ["custom_canvas_course_id", "custom_canvas_user_id"]:
+        # In LTI1.3 some custom canvas parameters are sent as integers
+        # and as a string in LTI1.1.
+        canvas_param_value = lti_params.get(canvas_param_name)
+        if isinstance(canvas_param_value, int):
+            lti_params[canvas_param_name] = str(canvas_param_value)
 
     return lti_params
 
@@ -139,13 +148,6 @@ def _to_lti_v11(v13_params):
     if "roles" in v11_params:
         # We need to squish together the roles for v1.1
         v11_params["roles"] = ",".join(v11_params["roles"])
-
-    for canvas_param_name in ["custom_canvas_course_id", "custom_canvas_user_id"]:
-        # In LTI1.3 some custom canvas parameters are sent as integers
-        # and as a string in LTI1.1.
-        canvas_param_value = v11_params.get(canvas_param_name)
-        if isinstance(canvas_param_value, int):
-            v11_params[canvas_param_name] = str(canvas_param_value)
 
     return v11_params
 
