@@ -67,6 +67,26 @@ class TestLTIParams:
         assert params["user_id"] == "user_id-v11"
         assert params["resource_link_id"] == "resource_link_id-v11"
 
+
+class TestCanvasQuirks:
+    @pytest.mark.parametrize(
+        "speedgrader,expected",
+        (("any_value", "canvas_value"), (None, "standard_value")),
+    )
+    def test_from_request_reads_resource_link_id(
+        self, pyramid_request, speedgrader, expected
+    ):
+        pyramid_request.lti_jwt = {
+            f"{CLAIM_PREFIX}/lti1p1": {"resource_link_id": "standard_value"}
+        }
+        pyramid_request.POST["resource_link_id"] = "DECOY"
+        pyramid_request.GET["resource_link_id"] = "canvas_value"
+        pyramid_request.GET["learner_canvas_user_id"] = speedgrader
+
+        lti_params = LTIParams.from_request(pyramid_request)
+
+        assert lti_params["resource_link_id"] == expected
+
     @pytest.mark.parametrize(
         "parameter_name,claim_name",
         [
@@ -83,25 +103,6 @@ class TestLTIParams:
 
         assert isinstance(params[parameter_name], str)
         assert params[parameter_name] == "1"
-
-
-class TestCanvasQuirks:
-    @pytest.mark.parametrize(
-        "speedgrader,expected",
-        (("any_value", "canvas_value"), (None, "standard_value")),
-    )
-    def test_from_request_reads_resource_link_id(
-        self, pyramid_request, speedgrader, expected
-    ):
-        pyramid_request.lti_jwt = {
-            f"{CLAIM_PREFIX}/lti1p1": {"resource_link_id": "standard_value"}
-        }
-        pyramid_request.params["resource_link_id"] = "canvas_value"
-        pyramid_request.params["learner_canvas_user_id"] = speedgrader
-
-        lti_params = LTIParams.from_request(pyramid_request)
-
-        assert lti_params["resource_link_id"] == expected
 
 
 class TestIncludeMe:
