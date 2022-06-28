@@ -7,7 +7,7 @@ from lms.models import Grouping, LTIParams
 from lms.product import Product
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
-from lms.services import ApplicationInstanceNotFound, HAPIError
+from lms.services import HAPIError
 from tests import factories
 
 pytestmark = pytest.mark.usefixtures(
@@ -19,7 +19,6 @@ pytestmark = pytest.mark.usefixtures(
 )
 
 
-@pytest.mark.usefixtures("application_instance_service")
 class TestFilePickerMode:
     def test_it(self, js_config):
         js_config.enable_file_picker_mode(sentinel.form_action, sentinel.form_fields)
@@ -54,7 +53,6 @@ class TestFilePickerMode:
         context,
         pyramid_request,
         FilePickerConfig,
-        application_instance_service,
         config_function,
         key,
     ):
@@ -66,7 +64,7 @@ class TestFilePickerMode:
         config_provider.assert_called_once_with(
             context,
             pyramid_request,
-            application_instance_service.get_current.return_value,
+            context.application_instance,
         )
 
     @pytest.fixture(autouse=True)
@@ -74,7 +72,6 @@ class TestFilePickerMode:
         return patch("lms.resources._js_config.FilePickerConfig")
 
 
-@pytest.mark.usefixtures("application_instance_service")
 class TestEnableLTILaunchMode:
     def test_it(self, bearer_token_schema, context, grant_token_service, js_config):
         js_config.enable_lti_launch_mode()
@@ -104,18 +101,7 @@ class TestEnableLTILaunchMode:
             "rpcServer": {"allowedOrigins": ["http://localhost:5000"]},
         }
 
-    def test_it_raises_if_theres_no_ApplicationInstance(
-        self, application_instance_service, js_config
-    ):
-        application_instance_service.get_current.side_effect = (
-            ApplicationInstanceNotFound
-        )
 
-        with pytest.raises(ApplicationInstanceNotFound):
-            js_config.enable_lti_launch_mode()
-
-
-@pytest.mark.usefixtures("application_instance_service")
 class TestAddDocumentURL:
     """Unit tests for JSConfig.add_document_url()."""
 
@@ -193,7 +179,6 @@ class TestAddCanvasSpeedgraderSettings:
         }
         assert not config.get("hypothesisClient")
 
-    @pytest.mark.usefixtures("application_instance_service")
     def test_it_adds_report_activity_if_submit_on_annotation_enabled(
         self, js_config, pyramid_request
     ):
@@ -212,14 +197,12 @@ class TestAddCanvasSpeedgraderSettings:
 
 
 class TestEnableGradingBar:
-    def test_it(
-        self, js_config, context, grading_info_service, application_instance_service
-    ):
+    def test_it(self, js_config, context, grading_info_service):
         js_config.enable_grading_bar()
 
         grading_info_service.get_by_assignment.assert_called_once_with(
             context_id="test_course_id",
-            application_instance=application_instance_service.get_current.return_value,
+            application_instance=context.application_instance,
             resource_link_id="TEST_RESOURCE_LINK_ID",
         )
 
@@ -253,7 +236,6 @@ class TestEnableGradingBar:
         return pyramid_request
 
 
-@pytest.mark.usefixtures("application_instance_service")
 class TestSetFocusedUser:
     def test_it_sets_the_focused_user_if_theres_a_focused_user_param(
         self, h_api, js_config
@@ -303,7 +285,6 @@ class TestJSConfigAuthToken:
         return config["api"]["authToken"]
 
 
-@pytest.mark.usefixtures("application_instance_service")
 class TestJSConfigAPISync:
     """Unit tests for the api.sync sub-dict of JSConfig."""
 
@@ -413,7 +394,6 @@ class TestJSConfigDebug:
         return config["debug"]
 
 
-@pytest.mark.usefixtures("application_instance_service")
 class TestJSConfigHypothesisClient:
     """Unit tests for the "hypothesisClient" sub-dict of JSConfig."""
 
@@ -464,7 +444,6 @@ class TestJSConfigHypothesisClient:
         return config["hypothesisClient"]
 
 
-@pytest.mark.usefixtures("application_instance_service")
 class TestJSConfigRPCServer:
     """Unit tests for the "rpcServer" sub-dict of JSConfig."""
 
@@ -529,7 +508,6 @@ class TestEnableOAuth2RedirectErrorMode:
         pyramid_config.add_route("auth_route", "/auth")
 
 
-@pytest.mark.usefixtures("application_instance_service")
 class TestAddDeepLinkingAPI:
     def test_it_adds_deep_linking_v11(self, js_config, context):
         context.lti_params = {
@@ -565,9 +543,9 @@ class TestAddDeepLinkingAPI:
         }
 
     @pytest.fixture
-    def with_lti_13(self, application_instance):
+    def with_lti_13(self, context):
         # Make the application instance `lti_version` return "1.3.0"
-        application_instance.lti_registration_id = 100
+        context.application_instance.lti_registration_id = 100
 
 
 class TestEnableErrorDialogMode:
@@ -619,7 +597,7 @@ def config(js_config):
 
 
 @pytest.fixture
-def context(pyramid_request):
+def context(pyramid_request, application_instance):
     return create_autospec(
         LTILaunchResource,
         spec_set=True,
@@ -629,6 +607,7 @@ def context(pyramid_request):
         grouping_type=Grouping.Type.COURSE,
         course=create_autospec(Grouping, instance=True, spec_set=True),
         lti_params=LTIParams(pyramid_request.params),
+        application_instance=application_instance,
     )
 
 
@@ -649,8 +628,8 @@ def with_no_user(pyramid_request):
 
 
 @pytest.fixture
-def with_provisioning_disabled(application_instance_service):
-    application_instance_service.get_current.return_value.provisioning = False
+def with_provisioning_disabled(context):
+    context.application_instance.provisioning = False
 
 
 @pytest.fixture

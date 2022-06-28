@@ -47,10 +47,7 @@ class BasicLaunchViews:
             name="assignment"
         )
 
-        self.application_instance = request.find_service(
-            name="application_instance"
-        ).get_current()
-        self.application_instance.check_guid_aligns(
+        self.context.application_instance.check_guid_aligns(
             self.context.lti_params.get("tool_consumer_instance_guid")
         )
 
@@ -221,7 +218,7 @@ class BasicLaunchViews:
     def _record_launch(self):
         """Persist launch type independent info to the DB."""
 
-        self.application_instance.update_lms_data(self.context.lti_params)
+        self.context.application_instance.update_lms_data(self.context.lti_params)
 
         # Record all LTILaunches for future reporting
         LtiLaunches.add(

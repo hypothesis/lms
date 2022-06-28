@@ -6,7 +6,6 @@ from functools import cached_property
 from lms.models import Grouping, LTIParams
 from lms.product import Product
 from lms.resources._js_config import JSConfig
-from lms.services import ApplicationInstanceNotFound
 
 LOG = logging.getLogger(__name__)
 
@@ -38,6 +37,11 @@ class LTILaunchResource:
         )
 
     @property
+    def application_instance(self):
+        """Return the current request's ApplicationInstance."""
+        return self._request.find_service(name="application_instance").get_current()
+
+    @property
     def is_canvas(self):
         """Return True if Canvas is the LMS that launched us."""
         return self._request.product.family == Product.Family.CANVAS
@@ -60,14 +64,7 @@ class LTILaunchResource:
             # Canvas course sections feature was released.
             return False
 
-        try:
-            application_instance = self._request.find_service(
-                name="application_instance"
-            ).get_current()
-        except ApplicationInstanceNotFound:
-            return False
-
-        if not bool(application_instance.developer_key):
+        if not bool(self.application_instance.developer_key):
             # We need a developer key to talk to the API
             return False
 
