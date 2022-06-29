@@ -13,6 +13,7 @@ from pyramid.view import (
     view_defaults,
 )
 
+from lms.product import Product
 from lms.services import (
     CanvasAPIPermissionError,
     ExternalAsyncRequestError,
@@ -246,11 +247,12 @@ class ErrorBody:
                 # If we don't have an access token we can't refresh it.
                 pass
             else:
-                if request.matched_route.name.startswith("canvas_api."):
+                if request.product.family == Product.Family.CANVAS:
                     path = request.route_path("canvas_api.oauth.refresh")
-                else:
-                    assert request.matched_route.name.startswith("blackboard_api.")
+                elif request.product.family == Product.Family.BLACKBOARD:
                     path = request.route_path("blackboard_api.oauth.refresh")
+                else:
+                    raise ValueError(f"No API for {request.product.family}")
 
                 body["refresh"] = {"method": "POST", "path": path}
 

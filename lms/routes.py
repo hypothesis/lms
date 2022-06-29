@@ -24,6 +24,7 @@ def includeme(config):  # pylint:disable=too-many-statements
         factory="lms.resources.LTILaunchResource",
     )
 
+    config.add_route("api.sync", "/api/sync", request_method="POST")
     config.add_route("api.grant_token", "/api/grant_token", request_method="GET")
 
     config.add_route("api.assignments.create", "/api/assignment", request_method="POST")

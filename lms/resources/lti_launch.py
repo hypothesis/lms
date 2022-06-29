@@ -83,12 +83,9 @@ class LTILaunchResource:
         if self._request.product.family == Product.Family.CANVAS:
             # For canvas we add parameter to the launch URL as we don't store the
             # assignment during deep linking.
-            try:
-                return int(self._request.params.get("group_set"))
-            except (TypeError, ValueError):
-                return None
+            return self._request.params.get("group_set")
 
-        elif self._request.product.family == Product.Family.BLACKBOARD:
+        if self._request.product.family == Product.Family.BLACKBOARD:
             # In blackboard we store the configuration details in the DB
             tool_consumer_instance_guid = self._request.parsed_params[
                 "tool_consumer_instance_guid"
