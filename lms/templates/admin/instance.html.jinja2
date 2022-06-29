@@ -89,7 +89,11 @@
     <fieldset class="box">
         <legend class="label has-text-centered">Content integrations</legend>
         {{ settings_checkbox("Microsoft OneDrive enabled", "microsoft_onedrive", "files_enabled", default=True) }}
+
         {{ settings_checkbox("VitalSource enabled", "vitalsource", "enabled") }}
+        {{ settings_text_field("VitalSource user ID field", "vitalsource", "lti_user_field") }}
+        {{ settings_text_field("VitalSource API key", "vitalsource", "api_key") }}
+
         {{ settings_checkbox("JSTOR enabled", "jstor", "enabled") }}
         {{ settings_text_field("JSTOR site code", "jstor", "site_code") }}
     </fieldset>

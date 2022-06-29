@@ -155,6 +155,8 @@ class AdminApplicationInstanceViews:
             ("blackboard", "groups_enabled", bool),
             ("microsoft_onedrive", "files_enabled", bool),
             ("vitalsource", "enabled", bool),
+            ("vitalsource", "lti_user_field", str),
+            ("vitalsource", "api_key", str),
             ("jstor", "enabled", bool),
             ("jstor", "site_code", str),
         ):
