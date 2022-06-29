@@ -427,78 +427,85 @@ class JSConfig:
         # to the sync API to dynamically get the relevant groupings.
         return "$rpc:requestGroups"
 
-    def _canvas_sync_api(self):
-        req = self._request
-        sync_api_config = {
-            "authUrl": req.route_url("canvas_api.oauth.authorize"),
-            "path": req.route_path("canvas_api.sync"),
-            "data": {
-                "lms": {
-                    "tool_consumer_instance_guid": self._context.lti_params[
-                        "tool_consumer_instance_guid"
-                    ],
-                    "product": self._request.product.family,
-                },
-                "course": {
-                    "context_id": self._context.lti_params["context_id"],
-                    "custom_canvas_course_id": self._context.lti_params[
-                        "custom_canvas_course_id"
-                    ],
-                },
-                "assignment": {
-                    "resource_link_id": self._context.lti_params["resource_link_id"],
-                    "group_set_id": self._context.group_set_id,
-                },
-                "group_info": {
-                    key: value
-                    for key, value in self._context.lti_params.items()
-                    if key in GroupInfo.columns()
-                },
-            },
-        }
-
-        if "learner_canvas_user_id" in req.params:
-            sync_api_config["data"]["learner"] = {
-                "canvas_user_id": req.params["learner_canvas_user_id"],
-            }
-
-        return sync_api_config
-
-    def _blackboard_sync_api(self):
-        req = self._request
-        return {
-            "authUrl": req.route_url("blackboard_api.oauth.authorize"),
-            "path": req.route_path("blackboard_api.sync"),
-            "data": {
-                "lms": {
-                    "tool_consumer_instance_guid": self._context.lti_params[
-                        "tool_consumer_instance_guid"
-                    ],
-                    "product": self._request.product.family,
-                },
-                "course": {
-                    "context_id": self._context.lti_params["context_id"],
-                },
-                "assignment": {
-                    "resource_link_id": self._context.lti_params["resource_link_id"],
-                    "group_set_id": self._context.group_set_id,
-                },
-                "group_info": {
-                    key: value
-                    for key, value in self._context.lti_params.items()
-                    if key in GroupInfo.columns()
-                },
-            },
-        }
-
     def _sync_api(self):
         if self._context.grouping_type == Grouping.Type.COURSE:
             return None
 
         if self._request.product.family == Product.Family.CANVAS:
-            return self._canvas_sync_api()
+            config_class = CanvasConfig
 
-        if self._request.product.family == Product.Family.BLACKBOARD:
-            return self._blackboard_sync_api()
+        elif self._request.product.family == Product.Family.BLACKBOARD:
+            config_class = BlackboardConfig
 
-        return None
+        else:
+            return None
+
+        if not config_class.sync_route:
+            return None
+
+        return {
+            "authUrl": self._request.route_url(config_class.auth_route),
+            "path": self._request.route_path(config_class.sync_route),
+            "data": config_class.customize_grouping_sync_config(
+                self._context,
+                self._request,
+                {
+                    "lms": {
+                        "tool_consumer_instance_guid": self._context.lti_params[
+                            "tool_consumer_instance_guid"
+                        ],
+                        "product": self._request.product.family,
+                    },
+                    "course": {
+                        "context_id": self._context.lti_params["context_id"],
+                    },
+                    "assignment": {
+                        "resource_link_id": self._context.lti_params[
+                            "resource_link_id"
+                        ],
+                        "group_set_id": self._context.group_set_id,
+                    },
+                    "group_info": {
+                        key: value
+                        for key, value in self._context.lti_params.items()
+                        if key in GroupInfo.columns()
+                    },
+                },
+            ),
+        }
+
+
+class GroupingSyncConfigPlugin:
+    sync_route = None
+    """The route to use for syncing grouping info with the client."""
+
+    auth_route = None
+    """If syncing is enable which route to authorize the client."""
+
+    @classmethod
+    def customize_grouping_sync_config(cls, context, request, data):
+        """Customize the data returned from the client during grouping sync."""
+        return data
+
+
+class BlackboardConfig(GroupingSyncConfigPlugin):
+    auth_route = "blackboard_api.oauth.authorize"
+    sync_route = "blackboard_api.sync"
+
+
+class CanvasConfig(GroupingSyncConfigPlugin):
+    auth_route = "canvas_api.oauth.authorize"
+    sync_route = "canvas_api.sync"
+
+    @classmethod
+    def customize_grouping_sync_config(cls, context, request, data):
+        data["course"].update(
+            {"custom_canvas_course_id": context.lti_params["custom_canvas_course_id"]}
+        )
+
+        if "learner_canvas_user_id" in request.params:
+            data["learner"] = {
+                "canvas_user_id": request.params["learner_canvas_user_id"],
+            }
+
+        return data
