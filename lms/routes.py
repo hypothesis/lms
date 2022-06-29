@@ -54,7 +54,6 @@ def includeme(config):  # pylint:disable=too-many-statements
         "blackboard_api.courses.group_sets.list",
         "/api/blackboard/courses/{course_id}/group_sets",
     )
-    config.add_route("blackboard_api.sync", "/api/blackboard/sync")
 
     config.add_route(
         "onedrive.filepicker.redirect_uri", "/onedrive/filepicker/redirect"
@@ -88,8 +87,6 @@ def includeme(config):  # pylint:disable=too-many-statements
         "canvas_api.courses.group_sets.list",
         "/api/canvas/courses/{course_id}/group_sets",
     )
-
-    config.add_route("canvas_api.sync", "/api/canvas/sync", request_method="POST")
 
     config.add_route("lti_api.submissions.record", "/api/lti/submissions")
     config.add_route("lti_api.result.read", "/api/lti/result", request_method="GET")
