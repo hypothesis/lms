@@ -68,9 +68,20 @@ class JSConfig:
                 ),
             }
         elif document_url.startswith("vitalsource://"):
+            lti_params = self._context.lti_params
             vitalsource_svc = self._request.find_service(name="vitalsource")
-            self._config["vitalSource"] = {
-                "launchUrl": vitalsource_svc.get_launch_url(document_url)
+            book_location = vitalsource_svc.parse_document_url(document_url)
+            self._config["api"]["viaUrl"] = {
+                "path": self._request.route_url(
+                    "vitalsource_api.launch_url",
+                    _query={
+                        "book_id": book_location["book_id"],
+                        "cfi": book_location["cfi"],
+                        "user_reference": vitalsource_svc.get_user_reference(
+                            lti_params
+                        ),
+                    },
+                )
             }
         elif jstor_service.enabled and document_url.startswith("jstor://"):
             self._config["viaUrl"] = jstor_service.via_url(self._request, document_url)
