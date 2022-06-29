@@ -39,11 +39,23 @@ class PluginConfig:
 
 
 @dataclass
+class Routes:
+    """A collection of Pyramid route names for various functions."""
+
+    oauth2_authorize: str = None
+    """Authorizing with OAuth 2."""
+
+    oauth2_refresh: str = None
+    """Refreshing OAuth 2 tokens."""
+
+
+@dataclass
 class Product:
     """The main product object which is passed around the app."""
 
     plugin: Plugins
     plugin_config: PluginConfig = PluginConfig()
+    route: Routes = Routes()
     family: Family = Family.UNKNOWN
 
     # Accessor for external consumption

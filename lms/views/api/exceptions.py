@@ -13,7 +13,6 @@ from pyramid.view import (
     view_defaults,
 )
 
-from lms.product import Product
 from lms.services import (
     CanvasAPIPermissionError,
     ExternalAsyncRequestError,
@@ -39,19 +38,19 @@ class APIExceptionViews:
        relevant to the particular error code. For example if "error_code" is
        "canvas_api_permission_error" the frontend should show a
        "You don't have permission" error dialog. The error dialog should
-       include a [Try again] button that opens the "canvas_api.oauth.authorize"
+       include a [Try again] button that opens the OAuth 2 authorize
        route.
 
     2. "message": An error message for the frontend to show to the user.
 
        If "message" is present the frontend will show an error dialog that
        indicates that something went wrong and has a [Try again] button that
-       opens the "canvas_api.oauth.authorize" route. The "message" string
+       opens the OAuth 2 authorize route. The "message" string
        should be rendered by the frontend somewhere in the error dialog.
 
     If no "error_code" or "message" is present the frontend will show a
     standard authorization dialog (not an error dialog) and the button that
-    opens "canvas_api.oauth.authorize" route will be labelled [Authorize].
+    opens the OAuth 2 authorize route will be labelled [Authorize].
 
     3. "details": Optional further error details to show to the user in the
        error dialog, for debugging and support.
@@ -247,12 +246,12 @@ class ErrorBody:
                 # If we don't have an access token we can't refresh it.
                 pass
             else:
-                if request.product.family == Product.Family.CANVAS:
-                    path = request.route_path("canvas_api.oauth.refresh")
-                elif request.product.family == Product.Family.BLACKBOARD:
-                    path = request.route_path("blackboard_api.oauth.refresh")
+                if refresh_route := request.product.route.oauth2_refresh:
+                    path = request.route_path(refresh_route)
                 else:
-                    raise ValueError(f"No API for {request.product.family}")
+                    raise ValueError(
+                        f"No OAuth 2 refresh API for {request.product.family}"
+                    )
 
                 body["refresh"] = {"method": "POST", "path": path}
 

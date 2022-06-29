@@ -3,6 +3,7 @@ import re
 
 from pyramid.view import view_config, view_defaults
 
+from lms.product.blackboard import Blackboard
 from lms.security import Permissions
 from lms.views import helpers
 
@@ -33,7 +34,7 @@ class BlackboardFilesAPIViews:
 
         response_results = []
 
-        auth_url = self.request.route_url("blackboard_api.oauth.authorize")
+        auth_url = self.request.route_url(Blackboard.route.oauth2_authorize)
 
         for result in results:
             response_result = {

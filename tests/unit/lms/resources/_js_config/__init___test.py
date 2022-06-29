@@ -286,31 +286,12 @@ class TestJSConfigAPISync:
     """Unit tests for the api.sync sub-dict of JSConfig."""
 
     @pytest.mark.parametrize(
-        "product_family,auth_url",
-        (
-            (Product.Family.CANVAS, "http://example.com/api/canvas/oauth/authorize"),
-            (
-                Product.Family.BLACKBOARD,
-                "http://example.com/api/blackboard/oauth/authorize",
-            ),
-        ),
-    )
-    @pytest.mark.parametrize(
         "grouping_type", (Grouping.Type.GROUP, Grouping.Type.SECTION)
     )
-    def test_it(
-        self,
-        js_config,
-        context,
-        pyramid_request,
-        product_family,
-        auth_url,
-        grouping_type,
-    ):
+    def test_it(self, js_config, context, pyramid_request, grouping_type):
         pyramid_request.lti_params["context_id"] = "CONTEXT_ID"
-        pyramid_request.params.clear()
         pyramid_request.params["learner_canvas_user_id"] = "CANVAS_USER_ID"
-        pyramid_request.product.family = product_family
+        pyramid_request.product.route.oauth2_authorize = "welcome"
         context.grouping_type = grouping_type
         context.group_set_id = "GROUP_SET_ID"
 
@@ -318,10 +299,10 @@ class TestJSConfigAPISync:
 
         sync_config = js_config.asdict()["api"]["sync"]
         assert sync_config == {
-            "authUrl": auth_url,
+            "authUrl": "http://example.com/welcome",
             "path": "/api/sync",
             "data": {
-                "lms": {"product": product_family},
+                "lms": {"product": pyramid_request.product.family},
                 "context_id": "CONTEXT_ID",
                 "group_set_id": "GROUP_SET_ID",
                 "group_info": {

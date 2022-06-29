@@ -1,3 +1,5 @@
+from lms.product.blackboard import Blackboard
+from lms.product.canvas import Canvas
 from lms.services import JSTORService
 
 
@@ -12,7 +14,7 @@ class FilePickerConfig:
             "blackboard", "groups_enabled"
         )
 
-        auth_url = request.route_url("blackboard_api.oauth.authorize")
+        auth_url = request.route_url(Blackboard.route.oauth2_authorize)
         course_id = context.lti_params.get("context_id")
 
         config = {
@@ -47,7 +49,7 @@ class FilePickerConfig:
         )
         groups_enabled = application_instance.settings.get("canvas", "groups_enabled")
 
-        auth_url = request.route_url("canvas_api.oauth.authorize")
+        auth_url = request.route_url(Canvas.route.oauth2_authorize)
         course_id = context.lti_params.get("custom_canvas_course_id")
 
         config = {

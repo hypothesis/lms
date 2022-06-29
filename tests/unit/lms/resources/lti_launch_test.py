@@ -206,3 +206,13 @@ def has_course(pyramid_request):
 def pyramid_request(pyramid_request):
     pyramid_request.parsed_params = {}
     return pyramid_request
+
+
+@pytest.fixture
+def with_canvas(pyramid_request):
+    pyramid_request.product.family = Product.Family.CANVAS
+
+
+@pytest.fixture
+def with_blackboard(pyramid_request):
+    pyramid_request.product.family = Product.Family.BLACKBOARD
