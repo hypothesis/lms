@@ -2,7 +2,6 @@ import {
   Icon,
   IconButton,
   LabeledButton,
-  Checkbox,
   Link,
   Modal,
   Thumbnail,
@@ -55,9 +54,6 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
   // they have pasted/typed into the input field.
   const [articleId, setArticleId] = useState(/** @type {string|null} */ (null));
 
-  // Whether the T&Cs have been accepted by the user
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
-
   /** @type {FetchResult<Metadata>} */
   const metadata = useAPIFetch(
     articleId ? urlPath`/api/jstor/articles/${articleId}` : null
@@ -86,10 +82,7 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
   const previousURL = useRef(/** @type {string|null} */ (null));
 
   const canConfirmSelection =
-    articleId &&
-    acceptedTerms &&
-    metadata.data !== null &&
-    !metadata.data.is_collection;
+    articleId && metadata.data !== null && !metadata.data.is_collection;
 
   const confirmSelection = () => {
     if (canConfirmSelection) {
@@ -156,7 +149,7 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
           onClick={confirmSelection}
           variant="primary"
         >
-          Submit
+          Accept and continue
         </LabeledButton>,
       ]}
     >
@@ -230,32 +223,17 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
           {metadata.data && (
             <>
               <div className="grow" />
-              <div className="flex space-x-2 items-center px-1">
+              <div className="self-stretch text-right px-1">
                 <label htmlFor="accept-jstor-terms" className="grow text-right">
-                  I accept the{' '}
+                  Your use of JSTOR indicates your acceptance of JSTOR&apos;s{' '}
                   <Link
                     href="https://about.jstor.org/terms/"
                     classes="underline hover:underline"
                     target="_blank"
                   >
-                    terms and conditions
-                  </Link>{' '}
-                  for JSTOR content use
+                    Terms and Conditions of Use.
+                  </Link>
                 </label>
-                <div className="text-lg">
-                  <Checkbox
-                    checked={acceptedTerms}
-                    data-testid="jstor-terms-checkbox"
-                    id="accept-jstor-terms"
-                    name="accept-terms"
-                    onInput={e =>
-                      setAcceptedTerms(
-                        /** @type {HTMLInputElement} */ (e.target).checked
-                      )
-                    }
-                    onKeyDown={onKeyDown}
-                  />
-                </div>
               </div>
             </>
           )}
