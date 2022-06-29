@@ -427,78 +427,34 @@ class JSConfig:
         # to the sync API to dynamically get the relevant groupings.
         return "$rpc:requestGroups"
 
-    def _canvas_sync_api(self):
-        req = self._request
-        sync_api_config = {
-            "authUrl": req.route_url("canvas_api.oauth.authorize"),
-            "path": req.route_path("canvas_api.sync"),
-            "data": {
-                "lms": {
-                    "tool_consumer_instance_guid": self._context.lti_params[
-                        "tool_consumer_instance_guid"
-                    ],
-                    "product": self._request.product.family,
-                },
-                "course": {
-                    "context_id": self._context.lti_params["context_id"],
-                    "custom_canvas_course_id": self._context.lti_params[
-                        "custom_canvas_course_id"
-                    ],
-                },
-                "assignment": {
-                    "resource_link_id": self._context.lti_params["resource_link_id"],
-                    "group_set_id": self._context.group_set_id,
-                },
-                "group_info": {
-                    key: value
-                    for key, value in self._context.lti_params.items()
-                    if key in GroupInfo.columns()
-                },
-            },
-        }
-
-        if "learner_canvas_user_id" in req.params:
-            sync_api_config["data"]["learner"] = {
-                "canvas_user_id": req.params["learner_canvas_user_id"],
-            }
-
-        return sync_api_config
-
-    def _blackboard_sync_api(self):
-        req = self._request
-        return {
-            "authUrl": req.route_url("blackboard_api.oauth.authorize"),
-            "path": req.route_path("blackboard_api.sync"),
-            "data": {
-                "lms": {
-                    "tool_consumer_instance_guid": self._context.lti_params[
-                        "tool_consumer_instance_guid"
-                    ],
-                    "product": self._request.product.family,
-                },
-                "course": {
-                    "context_id": self._context.lti_params["context_id"],
-                },
-                "assignment": {
-                    "resource_link_id": self._context.lti_params["resource_link_id"],
-                    "group_set_id": self._context.group_set_id,
-                },
-                "group_info": {
-                    key: value
-                    for key, value in self._context.lti_params.items()
-                    if key in GroupInfo.columns()
-                },
-            },
-        }
-
     def _sync_api(self):
         if self._context.grouping_type == Grouping.Type.COURSE:
             return None
 
-        if self._request.product.family == Product.Family.CANVAS:
-            return self._canvas_sync_api()
+        req = self._request
 
-        if self._request.product.family == Product.Family.BLACKBOARD:
-            return self._blackboard_sync_api()
+        auth_url = {
+            Product.Family.CANVAS: req.route_url("canvas_api.oauth.authorize"),
+            Product.Family.BLACKBOARD: req.route_url("blackboard_api.oauth.authorize"),
+        }.get(self._request.product.family)
 
-        return None
+        return {
+            "authUrl": auth_url,
+            "path": req.route_path("api.sync"),
+            "data": {
+                "lms": {
+                    "product": self._request.product.family,
+                },
+                "course": {
+                    "context_id": self._context.lti_params["context_id"],
+                },
+                "assignment": {
+                    "group_set_id": self._context.group_set_id,
+                },
+                # The student we are currently grading.
+                # In the case of Canvas this will be present in the SpeedGrader launch URL
+                # and available at launch time.
+                # When using our own grading bar this will be passed by the frontend
+                "gradingStudentId": req.params.get("learner_canvas_user_id"),
+            },
+        }

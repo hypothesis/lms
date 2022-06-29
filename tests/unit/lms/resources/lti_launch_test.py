@@ -135,13 +135,6 @@ class TestGroupSetId:
         assert lti_launch.group_set_id == mock.sentinel.id
 
     @pytest.mark.usefixtures("with_canvas")
-    @pytest.mark.parametrize("group_set", ["", "not a number", None])
-    def test_canvas_false_invalid_group_set_param(self, pyramid_request, group_set):
-        pyramid_request.params.update({"group_set": group_set})
-
-        assert not LTILaunchResource(pyramid_request).group_set_id
-
-    @pytest.mark.usefixtures("with_canvas")
     def test_canvas(self, pyramid_request):
         pyramid_request.params.update({"group_set": 1})
 
@@ -213,13 +206,3 @@ def has_course(pyramid_request):
 def pyramid_request(pyramid_request):
     pyramid_request.parsed_params = {}
     return pyramid_request
-
-
-@pytest.fixture
-def with_canvas(pyramid_request):
-    pyramid_request.product.family = Product.Family.CANVAS
-
-
-@pytest.fixture
-def with_blackboard(pyramid_request):
-    pyramid_request.product.family = Product.Family.BLACKBOARD

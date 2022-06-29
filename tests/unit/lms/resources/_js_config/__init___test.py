@@ -288,61 +288,42 @@ class TestJSConfigAuthToken:
 class TestJSConfigAPISync:
     """Unit tests for the api.sync sub-dict of JSConfig."""
 
-    @pytest.mark.usefixtures("with_sections_on")
-    def test_when_is_canvas(self, sync, pyramid_request, GroupInfo, context):
+    @pytest.mark.usefixtures("with_sections_on", "with_speed_grader")
+    def test_when_is_canvas(self, sync, context):
         assert sync == {
             "authUrl": "http://example.com/api/canvas/oauth/authorize",
-            "path": "/api/canvas/sync",
+            "path": "/api/sync",
             "data": {
                 "course": {
                     "context_id": "test_context_id",
-                    "custom_canvas_course_id": "test_custom_canvas_course_id",
                 },
                 "assignment": {
-                    "resource_link_id": "test_resource_link_id",
                     "group_set_id": context.group_set_id,
                 },
                 "lms": {
-                    "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
-                    "product": "canvas",
+                    "product": Product.Family.CANVAS,
                 },
-                "group_info": {
-                    key: value
-                    for key, value in pyramid_request.params.items()
-                    if key in GroupInfo.columns.return_value
-                },
+                "gradingStudentId": sentinel.learner_canvas_user_id,
             },
         }
 
     @pytest.mark.usefixtures("blackboard_group_launch")
-    def test_when_is_blackboard(self, sync, pyramid_request, GroupInfo, context):
+    def test_when_is_blackboard(self, sync, context):
         assert sync == {
             "authUrl": "http://example.com/api/blackboard/oauth/authorize",
-            "path": "/api/blackboard/sync",
+            "path": "/api/sync",
             "data": {
                 "course": {
                     "context_id": "test_context_id",
                 },
                 "assignment": {
-                    "resource_link_id": "test_resource_link_id",
                     "group_set_id": context.group_set_id,
                 },
                 "lms": {
-                    "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
                     "product": Product.Family.BLACKBOARD,
                 },
-                "group_info": {
-                    key: value
-                    for key, value in pyramid_request.params.items()
-                    if key in GroupInfo.columns.return_value
-                },
+                "gradingStudentId": None,
             },
-        }
-
-    @pytest.mark.usefixtures("with_sections_on", "learner_canvas_user_id")
-    def test_it_adds_learner_canvas_user_id_for_SpeedGrader_launches(self, sync):
-        assert sync["data"]["learner"] == {
-            "canvas_user_id": "test_learner_canvas_user_id",
         }
 
     def test_its_None_if_section_and_groups_arent_enabled(self, sync):
@@ -357,26 +338,20 @@ class TestJSConfigAPISync:
         return config["api"]["sync"]
 
     @pytest.fixture
-    def learner_canvas_user_id(self, pyramid_request):
-        pyramid_request.params["learner_canvas_user_id"] = "test_learner_canvas_user_id"
-
-    @pytest.fixture
     def blackboard_group_launch(self, context, pyramid_request):
         context.grouping_type = Grouping.Type.GROUP
         pyramid_request.product.family = Product.Family.BLACKBOARD
 
+    @pytest.fixture()
+    def with_speed_grader(self, pyramid_request):
+        pyramid_request.params[
+            "learner_canvas_user_id"
+        ] = sentinel.learner_canvas_user_id
+
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.params.clear()
-        pyramid_request.params.update(
-            {
-                "context_id": "test_context_id",
-                "custom_canvas_course_id": "test_custom_canvas_course_id",
-                "resource_link_id": "test_resource_link_id",
-                "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
-                "foo": "bar",  # This item should be missing from group_info.
-            }
-        )
+        pyramid_request.params.update({"context_id": "test_context_id"})
         return pyramid_request
 
 

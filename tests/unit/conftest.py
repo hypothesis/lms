@@ -271,3 +271,13 @@ def oauth_token(lti_user, application_instance):
         user_id=lti_user.user_id,
         application_instance=application_instance,
     )
+
+
+@pytest.fixture
+def with_canvas(pyramid_request):
+    pyramid_request.product.family = Product.Family.CANVAS
+
+
+@pytest.fixture
+def with_blackboard(pyramid_request):
+    pyramid_request.product.family = Product.Family.BLACKBOARD
