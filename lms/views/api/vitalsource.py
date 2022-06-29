@@ -30,6 +30,21 @@ class VitalSourceAPIViews:
         book_toc = self.vitalsource_service.book_toc(book_id)
         return book_toc["table_of_contents"]
 
+    @view_config(route_name="vitalsource_api.launch_url")
+    def launch_url(self):
+        book_id = self.request.params["book_id"]
+        cfi = self.request.params["cfi"]
+        user_reference = self.request.params["user_reference"]
+
+        # The URL is in a `via_url` property so it can be used the same way
+        # as assignments that do use Via. We should rename this to something
+        # more generic.
+        return {
+            "via_url": self.vitalsource_service.get_launch_url(
+                book_id, cfi, user_reference
+            )
+        }
+
     def _get_book_id(self):
         book_id = self.request.matchdict["book_id"]
         if not self._is_valid_book_id(book_id):
