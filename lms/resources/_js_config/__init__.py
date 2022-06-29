@@ -4,6 +4,8 @@ from typing import List, Optional
 
 from lms.models import GroupInfo, Grouping, HUser
 from lms.product import Product
+from lms.product.blackboard import Blackboard
+from lms.product.canvas import Canvas
 from lms.resources._js_config.file_picker_config import FilePickerConfig
 from lms.services import HAPIError, JSTORService
 from lms.validation.authentication import BearerTokenSchema
@@ -50,7 +52,7 @@ class JSConfig:
 
         if document_url.startswith("blackboard://"):
             self._config["api"]["viaUrl"] = {
-                "authUrl": self._request.route_url("blackboard_api.oauth.authorize"),
+                "authUrl": self._request.route_url(Blackboard.route.oauth2_authorize),
                 "path": self._request.route_path(
                     "blackboard_api.files.via_url",
                     course_id=self._context.lti_params["context_id"],
@@ -59,7 +61,7 @@ class JSConfig:
             }
         elif document_url.startswith("canvas://"):
             self._config["api"]["viaUrl"] = {
-                "authUrl": self._request.route_url("canvas_api.oauth.authorize"),
+                "authUrl": self._request.route_url(Canvas.route.oauth2_authorize),
                 "path": self._request.route_path(
                     "canvas_api.files.via_url",
                     resource_link_id=self._context.lti_params["resource_link_id"],
@@ -433,13 +435,8 @@ class JSConfig:
 
         req = self._request
 
-        auth_url = {
-            Product.Family.CANVAS: req.route_url("canvas_api.oauth.authorize"),
-            Product.Family.BLACKBOARD: req.route_url("blackboard_api.oauth.authorize"),
-        }.get(self._request.product.family)
-
         return {
-            "authUrl": auth_url,
+            "authUrl": req.route_url(req.product.route.oauth2_authorize),
             "path": req.route_path("api.sync"),
             # This data is consumed by the view in `lms.views.api.sync` which
             # defines the arguments it expects. We need to match that

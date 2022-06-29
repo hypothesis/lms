@@ -200,30 +200,23 @@ class TestErrorBody:
     def test_json(self, pyramid_request, error_body, expected):
         assert error_body.__json__(pyramid_request) == expected
 
-    @pytest.mark.usefixtures("with_refreshable_exception", "with_canvas")
+    @pytest.mark.usefixtures("with_refreshable_exception")
     def test_json_includes_refresh_info_if_the_exception_is_refreshable(
         self, pyramid_request
     ):
+        pyramid_request.product.route.oauth2_refresh = "welcome"
+
         body = ErrorBody().__json__(pyramid_request)
 
         assert body["refresh"] == {
             "method": "POST",
-            "path": pyramid_request.route_path("canvas_api.oauth.refresh"),
-        }
-
-    @pytest.mark.usefixtures("with_refreshable_exception", "with_blackboard")
-    def test_json_includes_Blackboard_refresh_info_for_Blackboard_APIs(
-        self, pyramid_request
-    ):
-        body = ErrorBody().__json__(pyramid_request)
-
-        assert body["refresh"] == {
-            "method": "POST",
-            "path": pyramid_request.route_path("blackboard_api.oauth.refresh"),
+            "path": pyramid_request.route_path("welcome"),
         }
 
     @pytest.mark.usefixtures("with_refreshable_exception")
-    def test_json_raises_if_unknown_product(self, pyramid_request):
+    def test_json_raises_if_no_refresh_route(self, pyramid_request):
+        pyramid_request.product.route.oauth2_refresh = None
+
         with pytest.raises(ValueError):
             ErrorBody().__json__(pyramid_request)
 
