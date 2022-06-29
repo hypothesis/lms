@@ -18,6 +18,8 @@ class BlackboardGroupingPlugin(GroupingServicePlugin):
 
     group_type = Grouping.Type.BLACKBOARD_GROUP
     sections_type = None  # We don't support sections in Blackboard
+    auth_route = "blackboard_api.oauth.authorize"
+    sync_route = "blackboard_api.sync"
 
     @classmethod
     def from_request(cls, request):

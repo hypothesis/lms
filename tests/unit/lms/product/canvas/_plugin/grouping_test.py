@@ -9,6 +9,25 @@ from tests import factories
 
 
 class TestCanvasGroupingPlugin:
+    def test_get_grouping_sync_config(self, plugin, pyramid_request):
+        pyramid_request.lti_params["custom_canvas_course_id"] = sentinel.course_id
+        pyramid_request.params["learner_canvas_user_id"] = sentinel.learner_id
+
+        data = plugin.get_grouping_sync_config(pyramid_request, {"course": {}})
+
+        assert data == {
+            "course": {"custom_canvas_course_id": sentinel.course_id},
+            "learner": {"canvas_user_id": sentinel.learner_id},
+        }
+
+    def test_get_grouping_sync_config_with_no_learner_id(self, plugin, pyramid_request):
+        pyramid_request.lti_params["custom_canvas_course_id"] = sentinel.course_id
+        pyramid_request.params.pop("learner_canvas_user_id", None)
+
+        data = plugin.get_grouping_sync_config(pyramid_request, {"course": {}})
+
+        assert "learner" not in data
+
     def test_get_sections_for_learner(
         self, canvas_api_client, course, grouping_service, plugin
     ):

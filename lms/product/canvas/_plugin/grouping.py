@@ -18,6 +18,8 @@ class CanvasGroupingPlugin(GroupingServicePlugin):
 
     group_type = Grouping.Type.CANVAS_GROUP
     sections_type = Grouping.Type.CANVAS_SECTION
+    auth_route = "canvas_api.oauth.authorize"
+    sync_route = "canvas_api.sync"
 
     @classmethod
     def from_request(cls, request):
@@ -25,6 +27,18 @@ class CanvasGroupingPlugin(GroupingServicePlugin):
 
     def __init__(self, canvas_api):
         self._canvas_api = canvas_api
+
+    def get_grouping_sync_config(self, request, data):
+        data["course"].update(
+            {"custom_canvas_course_id": request.lti_params["custom_canvas_course_id"]}
+        )
+
+        if "learner_canvas_user_id" in request.params:
+            data["learner"] = {
+                "canvas_user_id": request.params["learner_canvas_user_id"],
+            }
+
+        return data
 
     def get_sections_for_learner(self, _svc, course):
         return self._canvas_api.authenticated_users_sections(

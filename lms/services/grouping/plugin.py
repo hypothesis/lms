@@ -24,6 +24,22 @@ class GroupingServicePlugin:  # pragma: nocover
     sections_type: Grouping.Type = None
     """The type of sections this plugin supports. `None` disables support."""
 
+    sync_route = None
+    """The route to use for syncing grouping info with the client."""
+
+    auth_route = None
+    """If syncing is enable which route to authorize the client."""
+
+    def get_grouping_sync_config(self, request, data) -> dict:
+        """
+        Get the config for grouping syncing used in `lms.resources._js_config`.
+
+        :param request: Pyramid request
+        :param data: Default sync configuration
+        """
+
+        return data
+
     def get_sections_for_learner(self, svc, course) -> Optional[List]:
         """Get the sections from context when launched by a normal learner."""
 

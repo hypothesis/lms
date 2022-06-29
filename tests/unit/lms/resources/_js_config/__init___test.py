@@ -1,4 +1,4 @@
-from unittest.mock import create_autospec, sentinel
+from unittest.mock import create_autospec, patch, sentinel
 
 import pytest
 from h_matchers import Any
@@ -8,6 +8,7 @@ from lms.product import Product
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
 from lms.services import HAPIError
+from lms.services.grouping.plugin import GroupingServicePlugin
 from tests import factories
 
 pytestmark = pytest.mark.usefixtures(
@@ -286,87 +287,66 @@ class TestJSConfigAuthToken:
 
 
 class TestJSConfigAPISync:
-    """Unit tests for the api.sync sub-dict of JSConfig."""
+    @pytest.mark.parametrize(
+        "grouping_type", (Grouping.Type.GROUP, Grouping.Type.SECTION)
+    )
+    def test_it(
+        self, js_config, pyramid_request, context, grouping_plugin, grouping_type
+    ):
+        context.grouping_type = grouping_type
 
-    @pytest.mark.usefixtures("with_sections_on")
-    def test_when_is_canvas(self, sync, pyramid_request, GroupInfo, context):
-        assert sync == {
-            "authUrl": "http://example.com/api/canvas/oauth/authorize",
-            "path": "/api/canvas/sync",
-            "data": {
-                "course": {
+        js_config.enable_lti_launch_mode()
+
+        grouping_plugin.get_grouping_sync_config.assert_called_once_with(
+            pyramid_request,
+            {
+                "lms": {
+                    "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
+                    "product": pyramid_request.product.family,
+                },
+                "course": {"context_id": "test_context_id"},
+                "assignment": {
+                    "resource_link_id": "test_resource_link_id",
+                    "group_set_id": context.group_set_id,
+                },
+                "group_info": {
                     "context_id": "test_context_id",
                     "custom_canvas_course_id": "test_custom_canvas_course_id",
                 },
-                "assignment": {
-                    "resource_link_id": "test_resource_link_id",
-                    "group_set_id": context.group_set_id,
-                },
-                "lms": {
-                    "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
-                    "product": "canvas",
-                },
-                "group_info": {
-                    key: value
-                    for key, value in pyramid_request.params.items()
-                    if key in GroupInfo.columns.return_value
-                },
             },
+        )
+
+        assert js_config.asdict()["api"]["sync"] == {
+            "authUrl": "route:auth_route",
+            "path": "route:sync_route",
+            "data": grouping_plugin.get_grouping_sync_config.return_value,
         }
 
-    @pytest.mark.usefixtures("blackboard_group_launch")
-    def test_when_is_blackboard(self, sync, pyramid_request, GroupInfo, context):
-        assert sync == {
-            "authUrl": "http://example.com/api/blackboard/oauth/authorize",
-            "path": "/api/blackboard/sync",
-            "data": {
-                "course": {
-                    "context_id": "test_context_id",
-                },
-                "assignment": {
-                    "resource_link_id": "test_resource_link_id",
-                    "group_set_id": context.group_set_id,
-                },
-                "lms": {
-                    "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
-                    "product": Product.Family.BLACKBOARD,
-                },
-                "group_info": {
-                    key: value
-                    for key, value in pyramid_request.params.items()
-                    if key in GroupInfo.columns.return_value
-                },
-            },
-        }
+    def test_it_does_not_add_config_if_grouping_is_course(self, js_config):
+        context.grouping_type = Grouping.Type.COURSE
 
-    @pytest.mark.usefixtures("with_sections_on", "learner_canvas_user_id")
-    def test_it_adds_learner_canvas_user_id_for_SpeedGrader_launches(self, sync):
-        assert sync["data"]["learner"] == {
-            "canvas_user_id": "test_learner_canvas_user_id",
-        }
-
-    def test_its_None_if_section_and_groups_arent_enabled(self, sync):
-        assert sync is None
-
-    @pytest.fixture
-    def sync(self, config, js_config):
-        # Call enable_lti_launch_mode() so that the api.sync section gets
-        # inserted into the config.
         js_config.enable_lti_launch_mode()
 
-        return config["api"]["sync"]
+        assert not js_config.asdict()["api"]["sync"]
 
-    @pytest.fixture
-    def learner_canvas_user_id(self, pyramid_request):
-        pyramid_request.params["learner_canvas_user_id"] = "test_learner_canvas_user_id"
-
-    @pytest.fixture
-    def blackboard_group_launch(self, context, pyramid_request):
+    def test_it_does_not_add_config_if_no_sync_url(self, js_config, grouping_plugin):
         context.grouping_type = Grouping.Type.GROUP
-        pyramid_request.product.family = Product.Family.BLACKBOARD
+        grouping_plugin.sync_route = None
+
+        js_config.enable_lti_launch_mode()
+
+        assert not js_config.asdict()["api"]["sync"]
 
     @pytest.fixture
-    def pyramid_request(self, pyramid_request):
+    def grouping_plugin(self):
+        grouping_plugin = create_autospec(GroupingServicePlugin, spec_set=True)
+        grouping_plugin.auth_route = "auth_route"
+        grouping_plugin.sync_route = "sync_route"
+
+        return grouping_plugin
+
+    @pytest.fixture
+    def pyramid_request(self, pyramid_request, grouping_plugin):
         pyramid_request.params.clear()
         pyramid_request.params.update(
             {
@@ -374,10 +354,14 @@ class TestJSConfigAPISync:
                 "custom_canvas_course_id": "test_custom_canvas_course_id",
                 "resource_link_id": "test_resource_link_id",
                 "tool_consumer_instance_guid": "test_tool_consumer_instance_guid",
-                "foo": "bar",  # This item should be missing from group_info.
             }
         )
-        return pyramid_request
+        pyramid_request.product = Product.from_request(pyramid_request)
+        pyramid_request.product.plugin.grouping_service = grouping_plugin
+
+        with patch.object(pyramid_request, "route_url") as route_url:
+            route_url.side_effect = lambda route_name, **kwargs: f"route:{route_name}"
+            yield pyramid_request
 
 
 class TestJSConfigDebug:

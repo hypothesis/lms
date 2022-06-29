@@ -431,23 +431,14 @@ class JSConfig:
         if self._context.grouping_type == Grouping.Type.COURSE:
             return None
 
-        if self._request.product.family == Product.Family.CANVAS:
-            config_class = CanvasConfig
-
-        elif self._request.product.family == Product.Family.BLACKBOARD:
-            config_class = BlackboardConfig
-
-        else:
-            return None
-
-        if not config_class.sync_route:
+        plugin = self._request.product.plugin.grouping_service
+        if not plugin.sync_route:
             return None
 
         return {
-            "authUrl": self._request.route_url(config_class.auth_route),
-            "path": self._request.route_path(config_class.sync_route),
-            "data": config_class.customize_grouping_sync_config(
-                self._context,
+            "authUrl": self._request.route_url(plugin.auth_route),
+            "path": self._request.route_path(plugin.sync_route),
+            "data": plugin.get_grouping_sync_config(
                 self._request,
                 {
                     "lms": {
@@ -473,39 +464,3 @@ class JSConfig:
                 },
             ),
         }
-
-
-class GroupingSyncConfigPlugin:
-    sync_route = None
-    """The route to use for syncing grouping info with the client."""
-
-    auth_route = None
-    """If syncing is enable which route to authorize the client."""
-
-    @classmethod
-    def customize_grouping_sync_config(cls, context, request, data):
-        """Customize the data returned from the client during grouping sync."""
-        return data
-
-
-class BlackboardConfig(GroupingSyncConfigPlugin):
-    auth_route = "blackboard_api.oauth.authorize"
-    sync_route = "blackboard_api.sync"
-
-
-class CanvasConfig(GroupingSyncConfigPlugin):
-    auth_route = "canvas_api.oauth.authorize"
-    sync_route = "canvas_api.sync"
-
-    @classmethod
-    def customize_grouping_sync_config(cls, context, request, data):
-        data["course"].update(
-            {"custom_canvas_course_id": context.lti_params["custom_canvas_course_id"]}
-        )
-
-        if "learner_canvas_user_id" in request.params:
-            data["learner"] = {
-                "canvas_user_id": request.params["learner_canvas_user_id"],
-            }
-
-        return data
