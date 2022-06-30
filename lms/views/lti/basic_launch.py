@@ -154,12 +154,14 @@ class BasicLaunchViews:
 
         # Store lots of info
         self._record_course()
-        self._record_assignment(
+        assignment = self._record_assignment(
             document_url, extra=assignment_extra, is_gradable=assignment_gradable
         )
 
         # Set up the JS config for the front-end
-        self._configure_js_to_show_document(document_url, assignment_gradable)
+        self._configure_js_to_show_document(
+            document_url, assignment, assignment_gradable
+        )
 
         return {}
 
@@ -189,6 +191,8 @@ class BasicLaunchViews:
             assignment=assignment, groupings=[self.context.course]
         )
 
+        return assignment
+
     def _record_course(self):
         # It's not completely clear but accessing a course in this way actually
         # is an upsert. So this stores the course as well
@@ -196,7 +200,9 @@ class BasicLaunchViews:
             user=self.request.user, groups=[self.context.course]
         )
 
-    def _configure_js_to_show_document(self, document_url, assignment_gradable):
+    def _configure_js_to_show_document(
+        self, document_url, assignment, assignment_gradable
+    ):
         if self.context.is_canvas:
             # For students in Canvas with grades to submit we need to enable
             # Speedgrader settings for gradable assignments
@@ -223,7 +229,7 @@ class BasicLaunchViews:
             self.context.js_config.enable_grading_bar()
 
         self.context.js_config.add_document_url(document_url)
-        self.context.js_config.enable_lti_launch_mode()
+        self.context.js_config.enable_lti_launch_mode(assignment)
 
     def _record_launch(self):
         """Persist launch type independent info to the DB."""

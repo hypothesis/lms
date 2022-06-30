@@ -182,12 +182,6 @@ class TestBasicLaunchViews:
             sentinel.document_url, assignment_extra=sentinel.assignment_extra
         )
 
-        context.js_config.enable_lti_launch_mode.assert_called_once_with()
-        context.js_config.set_focused_user.assert_not_called()
-        context.js_config.add_document_url.assert_called_once_with(
-            sentinel.document_url
-        )
-
         lti_h_service.sync.assert_called_once_with([context.course], context.lti_params)
 
         # `_record_course()`
@@ -206,16 +200,22 @@ class TestBasicLaunchViews:
             is_gradable=False,
             extra=sentinel.assignment_extra,
         )
+        assignment = assignment_service.upsert_assignment.return_value
 
         lti_role_service.get_roles.assert_called_once_with(context.lti_params["roles"])
         assignment_service.upsert_assignment_membership.assert_called_once_with(
-            assignment=assignment_service.upsert_assignment.return_value,
+            assignment=assignment,
             user=pyramid_request.user,
             lti_roles=lti_role_service.get_roles.return_value,
         )
         assignment_service.upsert_assignment_groupings.assert_called_once_with(
-            assignment=assignment_service.upsert_assignment.return_value,
-            groupings=[context.course],
+            assignment=assignment, groupings=[context.course]
+        )
+
+        context.js_config.enable_lti_launch_mode.assert_called_once_with(assignment)
+        context.js_config.set_focused_user.assert_not_called()
+        context.js_config.add_document_url.assert_called_once_with(
+            sentinel.document_url
         )
 
         assert result == {}
