@@ -1,4 +1,4 @@
-from marshmallow import INCLUDE, Schema
+from marshmallow import Schema
 from pyramid.view import view_config
 from webargs import fields
 
@@ -10,15 +10,10 @@ class APISyncSchema(PyramidRequestSchema):
     class LMS(Schema):
         product = fields.Str(required=True)
 
-    class GroupInfo(Schema):
-        class Meta:
-            unknown = INCLUDE
-
     lms = fields.Nested(LMS, required=True)
     context_id = fields.Str(required=True)
     group_set_id = fields.Str(required=False, allow_none=True)
-    group_info = fields.Nested(GroupInfo, required=True)
-
+    group_info = fields.Dict(required=True)
     gradingStudentId = fields.Str(required=False, allow_none=True)
 
 
