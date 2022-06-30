@@ -8,6 +8,7 @@ from lms.product import Product
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
 from lms.services import HAPIError
+from lms.views.api.sync import APISyncSchema
 from tests import factories
 
 pytestmark = pytest.mark.usefixtures(
@@ -310,26 +311,29 @@ class TestJSConfigAPISync:
         auth_url,
         grouping_type,
     ):
-        pyramid_request.lti_params["context_id"] = sentinel.context_id
+        pyramid_request.lti_params["context_id"] = "CONTEXT_ID"
         pyramid_request.params.clear()
-        pyramid_request.params[
-            "learner_canvas_user_id"
-        ] = sentinel.learner_canvas_user_id
+        pyramid_request.params["learner_canvas_user_id"] = "CANVAS_USER_ID"
         pyramid_request.product.family = product_family
         context.grouping_type = grouping_type
+        context.group_set_id = "GROUP_SET_ID"
 
         js_config.enable_lti_launch_mode()
 
-        assert js_config.asdict()["api"]["sync"] == {
+        sync_config = js_config.asdict()["api"]["sync"]
+        assert sync_config == {
             "authUrl": auth_url,
             "path": "/api/sync",
             "data": {
                 "lms": {"product": product_family},
-                "context_id": sentinel.context_id,
-                "group_set_id": context.group_set_id,
-                "gradingStudentId": sentinel.learner_canvas_user_id,
+                "context_id": "CONTEXT_ID",
+                "group_set_id": "GROUP_SET_ID",
+                "gradingStudentId": "CANVAS_USER_ID",
             },
         }
+
+        # Confirm we pass the schema for the sync end-point
+        APISyncSchema(pyramid_request).load(sync_config["data"])
 
     def test_it_when_the_grouping_type_is_course(self, js_config, pyramid_request):
         pyramid_request.product.family = Grouping.Type.COURSE
