@@ -2,7 +2,7 @@ import functools
 from enum import Enum
 from typing import List, Optional
 
-from lms.models import GroupInfo, Grouping, HUser
+from lms.models import Assignment, GroupInfo, Grouping, HUser
 from lms.product import Product
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
@@ -144,7 +144,7 @@ class JSConfig:
         if error_details:
             self._config["errorDialog"]["errorDetails"] = error_details
 
-    def enable_lti_launch_mode(self):
+    def enable_lti_launch_mode(self, assignment: Assignment):
         """
         Put the JavaScript code into "LTI launch" mode.
 
@@ -152,7 +152,7 @@ class JSConfig:
         """
         self._config["mode"] = JSConfig.Mode.BASIC_LTI_LAUNCH
 
-        self._config["api"]["sync"] = self._sync_api()
+        self._config["api"]["sync"] = self._sync_api(assignment)
 
         # The config object for the Hypothesis client.
         # Our JSON-RPC server passes this to the Hypothesis client over
@@ -427,7 +427,7 @@ class JSConfig:
         # to the sync API to dynamically get the relevant groupings.
         return "$rpc:requestGroups"
 
-    def _sync_api(self):
+    def _sync_api(self, assignment):
         """Add configuration the front-end will use to get groupings."""
 
         if self._context.grouping_type == Grouping.Type.COURSE:
@@ -443,6 +443,7 @@ class JSConfig:
             # description. Anything we add here should be echoed back by the
             # frontend.
             "data": {
+                "assignment_id": assignment.id,
                 "lms": {
                     "product": self._request.product.family,
                 },

@@ -74,8 +74,10 @@ class TestFilePickerMode:
 
 
 class TestEnableLTILaunchMode:
-    def test_it(self, bearer_token_schema, context, grant_token_service, js_config):
-        js_config.enable_lti_launch_mode()
+    def test_it(
+        self, bearer_token_schema, context, grant_token_service, js_config, assignment
+    ):
+        js_config.enable_lti_launch_mode(assignment)
 
         assert js_config.asdict() == {
             "api": {
@@ -259,9 +261,9 @@ class TestSetFocusedUser:
         )
 
     @pytest.fixture
-    def js_config(self, js_config):
+    def js_config(self, js_config, assignment):
         # `set_focused_user` needs the `hypothesisClient` section to exist
-        js_config.enable_lti_launch_mode()
+        js_config.enable_lti_launch_mode(assignment)
 
         return js_config
 
@@ -290,19 +292,21 @@ class TestJSConfigAPISync:
         "grouping_type", (Grouping.Type.GROUP, Grouping.Type.SECTION)
     )
     def test_it(self, js_config, context, pyramid_request, grouping_type):
+        assignment.id = 123456  # Ensure the assignment has an id
         pyramid_request.lti_params["context_id"] = "CONTEXT_ID"
         pyramid_request.params["learner_canvas_user_id"] = "CANVAS_USER_ID"
         pyramid_request.product.route.oauth2_authorize = "welcome"
         context.grouping_type = grouping_type
         context.group_set_id = "GROUP_SET_ID"
 
-        js_config.enable_lti_launch_mode()
+        js_config.enable_lti_launch_mode(assignment)
 
         sync_config = js_config.asdict()["api"]["sync"]
         assert sync_config == {
             "authUrl": "http://example.com/welcome",
             "path": "/api/sync",
             "data": {
+                "assignment_id": assignment.id,
                 "lms": {"product": pyramid_request.product.family},
                 "context_id": "CONTEXT_ID",
                 "group_set_id": "GROUP_SET_ID",
@@ -322,7 +326,7 @@ class TestJSConfigAPISync:
     def test_it_when_the_grouping_type_is_course(self, js_config, pyramid_request):
         pyramid_request.product.family = Grouping.Type.COURSE
 
-        js_config.enable_lti_launch_mode()
+        js_config.enable_lti_launch_mode(sentinel.assignment)
 
         assert not js_config.asdict()["api"]["sync"]
 
@@ -381,10 +385,10 @@ class TestJSConfigHypothesisClient:
         assert config["a_key"] == "a_value"
 
     @pytest.fixture
-    def config(self, config, js_config):
+    def config(self, config, js_config, assignment):
         # Call enable_lti_launch_mode() so that the "hypothesisClient" section
         # gets inserted into the config.
-        js_config.enable_lti_launch_mode()
+        js_config.enable_lti_launch_mode(assignment)
 
         return config["hypothesisClient"]
 
@@ -409,10 +413,10 @@ class TestJSConfigRPCServer:
         assert config == {"allowedOrigins": ["http://localhost:5000"]}
 
     @pytest.fixture
-    def config(self, config, js_config):
+    def config(self, config, js_config, assignment):
         # Call enable_lti_launch_mode() so that the "rpcServer" section gets
         # inserted into the config.
-        js_config.enable_lti_launch_mode()
+        js_config.enable_lti_launch_mode(assignment)
 
         return config["rpcServer"]
 
@@ -585,6 +589,11 @@ def pyramid_request(pyramid_request):
     )
     pyramid_request.lti_params = LTIParams.from_request(pyramid_request)
     return pyramid_request
+
+
+@pytest.fixture
+def assignment():
+    return factories.Assignment()
 
 
 @pytest.fixture(autouse=True)
