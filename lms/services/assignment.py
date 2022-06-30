@@ -20,6 +20,11 @@ class AssignmentService:
     def __init__(self, db: Session):
         self._db = db
 
+    def get_assignment_by_id(self, assignment_id) -> Assignment:
+        """Get an assignment by id."""
+
+        return self._db.query(Assignment).get(assignment_id)
+
     def get_assignment(self, tool_consumer_instance_guid, resource_link_id):
         """Get an assignment by resource_link_id."""
 
