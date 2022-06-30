@@ -230,10 +230,10 @@ class TestEnableGradingBar:
         return grading_info_service
 
     @pytest.fixture(autouse=True)
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.params["resource_link_title"] = "test_assignment_name"
+    def context(self, context):
+        context.lti_params["resource_link_title"] = "test_assignment_name"
 
-        return pyramid_request
+        return context
 
 
 class TestSetFocusedUser:
@@ -400,6 +400,19 @@ class TestJSConfigHypothesisClient:
 
         return config["hypothesisClient"]
 
+    @pytest.fixture
+    def with_sections_on(self, context, pyramid_request):
+        context.grouping_type = Grouping.Type.SECTION
+        pyramid_request.product.family = Product.Family.CANVAS
+
+    @pytest.fixture
+    def with_groups_on(self, context):
+        context.grouping_type = Grouping.Type.GROUP
+
+    @pytest.fixture
+    def with_provisioning_disabled(self, context):
+        context.application_instance.provisioning = False
+
 
 class TestJSConfigRPCServer:
     """Unit tests for the "rpcServer" sub-dict of JSConfig."""
@@ -463,6 +476,10 @@ class TestEnableOAuth2RedirectErrorMode:
     @pytest.fixture(autouse=True)
     def routes(self, pyramid_config):
         pyramid_config.add_route("auth_route", "/auth")
+
+    @pytest.fixture
+    def with_no_user(self, pyramid_request):
+        pyramid_request.lti_user = None
 
 
 class TestAddDeepLinkingAPI:
@@ -563,30 +580,9 @@ def context(pyramid_request, application_instance):
         sections_enabled=False,
         grouping_type=Grouping.Type.COURSE,
         course=create_autospec(Grouping, instance=True, spec_set=True),
-        lti_params=LTIParams(pyramid_request.params),
+        lti_params=pyramid_request.lti_params,
         application_instance=application_instance,
     )
-
-
-@pytest.fixture
-def with_sections_on(context, pyramid_request):
-    context.grouping_type = Grouping.Type.SECTION
-    pyramid_request.product.family = Product.Family.CANVAS
-
-
-@pytest.fixture
-def with_groups_on(context):
-    context.grouping_type = Grouping.Type.GROUP
-
-
-@pytest.fixture
-def with_no_user(pyramid_request):
-    pyramid_request.lti_user = None
-
-
-@pytest.fixture
-def with_provisioning_disabled(context):
-    context.application_instance.provisioning = False
 
 
 @pytest.fixture
