@@ -328,6 +328,12 @@ class TestJSConfigAPISync:
                 "lms": {"product": product_family},
                 "context_id": "CONTEXT_ID",
                 "group_set_id": "GROUP_SET_ID",
+                "group_info": {
+                    "context_id": "CONTEXT_ID",
+                    "custom_canvas_course_id": "test_course_id",
+                },
+                # This is only actually true for Canvas, but we do it for all
+                # LMS products at the moment
                 "gradingStudentId": "CANVAS_USER_ID",
             },
         }

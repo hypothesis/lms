@@ -451,6 +451,11 @@ class JSConfig:
                 },
                 "context_id": self._request.lti_params["context_id"],
                 "group_set_id": self._context.group_set_id,
+                "group_info": {
+                    key: value
+                    for key, value in self._context.lti_params.items()
+                    if key in GroupInfo.columns()
+                },
                 # The student we are currently grading.
                 # In the case of Canvas this will be present in the SpeedGrader launch URL
                 # and available at launch time.
