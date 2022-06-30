@@ -93,10 +93,7 @@ else
 endif
 
 .PHONY: functests
-functests: build/manifest.json functests-only
-
-.PHONY: functests-only
-functests-only: python
+functests: build/manifest.json
 	@tox -qe functests
 
 .PHONY: docker
