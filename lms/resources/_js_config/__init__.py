@@ -428,6 +428,8 @@ class JSConfig:
         return "$rpc:requestGroups"
 
     def _sync_api(self):
+        """Add configuration the front-end will use to get groupings."""
+
         if self._context.grouping_type == Grouping.Type.COURSE:
             return None
 
@@ -456,10 +458,10 @@ class JSConfig:
                     for key, value in self._context.lti_params.items()
                     if key in GroupInfo.columns()
                 },
-                # The student we are currently grading.
-                # In the case of Canvas this will be present in the SpeedGrader launch URL
-                # and available at launch time.
-                # When using our own grading bar this will be passed by the frontend
+                # The student we are currently grading. In the case of Canvas
+                # this will be present in the SpeedGrader launch URL and
+                # available at launch time. When using our own grading bar this
+                # will be passed by the frontend
                 "gradingStudentId": req.params.get("learner_canvas_user_id"),
             },
         }
