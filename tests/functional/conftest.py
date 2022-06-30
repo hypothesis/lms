@@ -14,9 +14,7 @@ from lms.db import SESSION
 from tests import factories
 from tests.conftest import TEST_SETTINGS, get_test_database_url
 
-TEST_SETTINGS["database_url"] = get_test_database_url(
-    default="postgresql://postgres@localhost:5433/lms_functests"
-)
+TEST_SETTINGS["database_url"] = get_test_database_url()
 
 
 @pytest.fixture(autouse=True)

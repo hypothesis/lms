@@ -8,9 +8,7 @@ from lms import db, models
 from tests.bdd.step_context import StepContext
 from tests.conftest import get_test_database_url
 
-TEST_DATABASE_URL = get_test_database_url(
-    default="postgresql://postgres@localhost:5433/lms_bddtests"
-)
+TEST_DATABASE_URL = get_test_database_url()
 
 
 class LMSDBContext(StepContext):
