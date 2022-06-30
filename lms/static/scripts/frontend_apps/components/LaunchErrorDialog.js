@@ -20,6 +20,15 @@ import ErrorModal from './ErrorModal';
  */
 
 /**
+ * URL that opens the VitalSource bookshelf reader in the current LMS.
+ *
+ * TODO: This should be replaced with an installation-specific link that opens
+ * VitalSource inside the current LMS. This allows an association between the
+ * LTI user and VitalSource account to be established.
+ */
+const vitalsourceBookshelfURL = 'https://bookshelf.vitalsource.com';
+
+/**
  * Render an error that prevents an LTI launch from completing successfully.
  *
  * This is rendered in a non-cancelable modal.
@@ -210,6 +219,45 @@ export default function LaunchErrorDialog({
         </ErrorModal>
       );
 
+    case 'vitalsource_user_not_found':
+      return (
+        <ErrorModal
+          busy={busy}
+          error={error}
+          title="VitalSource account not found"
+        >
+          <p>Hypothesis could not find your VitalSource user account.</p>
+          <p>
+            This account is set up the first time that you open the VitalSource
+            book reader.{' '}
+            <b>
+              To fix the problem, please open the{' '}
+              <Link target="_blank" href={vitalsourceBookshelfURL}>
+                VitalSource book reader
+              </Link>
+              .
+            </b>
+          </p>
+        </ErrorModal>
+      );
+
+    case 'vitalsource_no_book_license':
+      return (
+        // TODO: Add some details of _which_ book is not available.
+        <ErrorModal busy={busy} error={error} title="Book not available">
+          <p>Your VitalSource library does not have this book in it.</p>
+          <p>
+            <b>
+              To fix the problem, open the{' '}
+              <Link target="_blank" href={vitalsourceBookshelfURL}>
+                VitalSource book reader
+              </Link>{' '}
+              and add the book to your library.
+            </b>
+          </p>
+        </ErrorModal>
+      );
+
     case 'error-fetching':
       // Do not display canned text if there is a back-end-provided message
       // to show here, as it's redundant and not useful
@@ -225,6 +273,7 @@ export default function LaunchErrorDialog({
           )}
         </ErrorModal>
       );
+
     case 'error-reporting-submission':
       // nb. There is no retry action here as we just suggest reloading the entire
       // page.
