@@ -17,6 +17,7 @@ class TestSync:
         self,
         pyramid_request,
         grouping_service,
+        assignment_service,
         course_service,
         lti_h_service,
         grouping_method,
@@ -38,6 +39,14 @@ class TestSync:
         lti_h_service.sync.assert_called_once_with(
             grouping_method.return_value, sentinel.group_info
         )
+        assignment_service.get_assignment_by_id.assert_called_once_with(
+            sentinel.assignment_id
+        )
+        assignment_service.upsert_assignment_groupings(
+            assignment=assignment_service.get_assignment_by_id.return_value,
+            groupings=grouping_method.return_value,
+        )
+
         assert returned_ids == [
             group.groupid(TEST_SETTINGS["h_authority"])
             for group in grouping_method.return_value
@@ -56,6 +65,7 @@ class TestSync:
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.parsed_params = {
+            "assignment_id": sentinel.assignment_id,
             "lms": {"tool_consumer_instance_guid": sentinel.guid},
             "context_id": sentinel.context_id,
             "gradingStudentId": sentinel.grading_student_id,

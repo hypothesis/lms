@@ -10,6 +10,15 @@ from tests import factories
 
 
 class TestAssignmentService:
+    def test_get_assignment_by_id(self, svc, db_session, assignment):
+        db_session.add(assignment)
+        db_session.flush()
+
+        assert svc.get_assignment_by_id(assignment.id) == assignment
+
+    def test_get_assignment_by_id_without_match(self, svc):
+        assert not svc.get_assignment_by_id(123456789)
+
     def test_get_assignment(self, svc, assignment, matching_params):
         assert svc.get_assignment(**matching_params) == assignment
 
