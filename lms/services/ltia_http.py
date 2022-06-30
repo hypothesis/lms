@@ -44,7 +44,15 @@ class LTIAHTTPService:
         access_token = self._get_access_token(scopes)
         headers["Authorization"] = f"Bearer {access_token}"
 
-        return self._http.request(method, url, headers=headers, **kwargs)
+        return self._http.request(
+            method,
+            url,
+            headers=headers,
+            # This request could potentially involve the LMS calling us
+            # to the get JWK while we wait. Increase the timeout.
+            timeout=(28, 28),
+            **kwargs,
+        )
 
     def _get_access_token(self, scopes):
         """

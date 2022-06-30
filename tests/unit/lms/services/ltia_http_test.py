@@ -39,6 +39,7 @@ class TestLTIAHTTPService:
             headers={
                 "Authorization": f"Bearer {http_service.post.return_value.json.return_value['access_token']}"
             },
+            timeout=(28, 28),
         )
         assert response == http_service.request.return_value
 
