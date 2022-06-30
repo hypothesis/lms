@@ -11,7 +11,9 @@
  *           'canvas_file_not_found_in_course'|
  *           'canvas_group_set_not_found'|
  *           'canvas_group_set_empty'|
- *           'canvas_student_not_in_group'} LTILaunchServerErrorCode
+ *           'canvas_student_not_in_group'|
+ *           'vitalsource_user_not_found'|
+ *           'vitalsource_no_book_license'} LTILaunchServerErrorCode
  */
 
 /**
@@ -131,6 +133,8 @@ export function isLTILaunchServerError(error) {
       'canvas_group_set_not_found',
       'canvas_group_set_empty',
       'canvas_student_not_in_group',
+      'vitalsource_user_not_found',
+      'vitalsource_no_book_license',
     ].includes(error.errorCode)
   );
 }
