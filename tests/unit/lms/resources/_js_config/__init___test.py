@@ -288,63 +288,55 @@ class TestJSConfigAuthToken:
 class TestJSConfigAPISync:
     """Unit tests for the api.sync sub-dict of JSConfig."""
 
-    @pytest.mark.usefixtures("with_sections_on", "with_speed_grader")
-    def test_when_is_canvas(self, sync, context):
-        assert sync == {
-            "authUrl": "http://example.com/api/canvas/oauth/authorize",
+    @pytest.mark.parametrize(
+        "product_family,auth_url",
+        (
+            (Product.Family.CANVAS, "http://example.com/api/canvas/oauth/authorize"),
+            (
+                Product.Family.BLACKBOARD,
+                "http://example.com/api/blackboard/oauth/authorize",
+            ),
+        ),
+    )
+    @pytest.mark.parametrize(
+        "grouping_type", (Grouping.Type.GROUP, Grouping.Type.SECTION)
+    )
+    def test_it(
+        self,
+        js_config,
+        context,
+        pyramid_request,
+        product_family,
+        auth_url,
+        grouping_type,
+    ):
+        pyramid_request.lti_params["context_id"] = sentinel.context_id
+        pyramid_request.params.clear()
+        pyramid_request.params[
+            "learner_canvas_user_id"
+        ] = sentinel.learner_canvas_user_id
+        pyramid_request.product.family = product_family
+        context.grouping_type = grouping_type
+
+        js_config.enable_lti_launch_mode()
+
+        assert js_config.asdict()["api"]["sync"] == {
+            "authUrl": auth_url,
             "path": "/api/sync",
             "data": {
-                "lms": {
-                    "product": Product.Family.CANVAS,
-                },
-                "context_id": "test_context_id",
+                "lms": {"product": product_family},
+                "context_id": sentinel.context_id,
                 "group_set_id": context.group_set_id,
                 "gradingStudentId": sentinel.learner_canvas_user_id,
             },
         }
 
-    @pytest.mark.usefixtures("blackboard_group_launch")
-    def test_when_is_blackboard(self, sync, context):
-        assert sync == {
-            "authUrl": "http://example.com/api/blackboard/oauth/authorize",
-            "path": "/api/sync",
-            "data": {
-                "lms": {
-                   "product": Product.Family.BLACKBOARD,
-                },
-                "context_id": "test_context_id",
-                "group_set_id": context.group_set_id,
-                "gradingStudentId": None,
-            },
-        }
+    def test_it_when_the_grouping_type_is_course(self, js_config, pyramid_request):
+        pyramid_request.product.family = Grouping.Type.COURSE
 
-    def test_its_None_if_section_and_groups_arent_enabled(self, sync):
-        assert sync is None
-
-    @pytest.fixture
-    def sync(self, config, js_config):
-        # Call enable_lti_launch_mode() so that the api.sync section gets
-        # inserted into the config.
         js_config.enable_lti_launch_mode()
 
-        return config["api"]["sync"]
-
-    @pytest.fixture
-    def blackboard_group_launch(self, context, pyramid_request):
-        context.grouping_type = Grouping.Type.GROUP
-        pyramid_request.product.family = Product.Family.BLACKBOARD
-
-    @pytest.fixture()
-    def with_speed_grader(self, pyramid_request):
-        pyramid_request.params[
-            "learner_canvas_user_id"
-        ] = sentinel.learner_canvas_user_id
-
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.params.clear()
-        pyramid_request.params.update({"context_id": "test_context_id"})
-        return pyramid_request
+        assert not js_config.asdict()["api"]["sync"]
 
 
 class TestJSConfigDebug:
@@ -608,6 +600,7 @@ def pyramid_request(pyramid_request):
             "custom_canvas_user_id": "test_user_id",
         }
     )
+    pyramid_request.lti_params = LTIParams.from_request(pyramid_request)
     return pyramid_request
 
 
