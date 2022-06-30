@@ -482,7 +482,6 @@ describe('BasicLTILaunchApp', () => {
     });
 
     it('does not report the submission when there is no `contentUrl` provided', async () => {
-      // When present, contentUrl becomes the contentUrl
       fakeConfig.contentUrl = null;
       renderLTILaunchApp();
       assert.isTrue(fakeApiCall.notCalled);
