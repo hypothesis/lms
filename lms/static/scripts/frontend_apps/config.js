@@ -51,20 +51,6 @@ import { createContext } from 'preact';
  */
 
 /**
- * Configuration used to launch the VitalSource book viewer.
- *
- * See `VitalSourceService` in the backend for details of the configuration
- * parameters.
- *
- * @typedef VitalSourceConfig
- * @prop {string} launchUrl - URL used to launch the viewer. If using an LTI
- *   launch this is a URL to post a form to, otherwise this is the URL to
- *   load directly inside an iframe.
- * @prop {Record<string,string>} [launchParams] - If using an LTI launch for
- *   the book viewer, the form fields.
- */
-
-/**
  * Configuration for the content/file picker app shown while configuring an
  * assignment.
  *
@@ -182,7 +168,6 @@ import { createContext } from 'preact';
  * @prop {string} viaUrl
  * @prop {OAuthErrorConfig} OAuth2RedirectError
  * @prop {ErrorDialogConfig} errorDialog
- * @prop {VitalSourceConfig} [vitalSource]
  */
 
 /**

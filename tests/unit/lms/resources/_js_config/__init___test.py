@@ -128,9 +128,10 @@ class TestAddDocumentURL:
         js_config.add_document_url(vitalsource_url)
 
         vitalsource_service.get_launch_url.assert_called_with(vitalsource_url)
-        assert js_config.asdict()["vitalSource"] == {
-            "launchUrl": vitalsource_service.get_launch_url.return_value
-        }
+        assert (
+            js_config.asdict()["viaUrl"]
+            == vitalsource_service.get_launch_url.return_value
+        )
 
     def test_jstor_sets_config(self, js_config, jstor_service, pyramid_request):
         jstor_url = "jstor://DOI"

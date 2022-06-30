@@ -414,29 +414,6 @@ describe('BasicLTILaunchApp', () => {
     });
   });
 
-  context('when VitalSource launch params are provided in the config', () => {
-    it('renders the VitalSource book viewer, passing along the launch params', () => {
-      fakeConfig.vitalSource = {
-        launchUrl: 'https://hypothesis.vitalsource.com/launcme',
-        launchParams: {
-          book_id: 'somebook',
-          location: 'chapter-2',
-        },
-      };
-
-      const wrapper = renderLTILaunchApp();
-
-      const vsViewer = wrapper.find('VitalSourceBookViewer');
-      assert.isTrue(vsViewer.exists());
-      assert.isFalse(wrapper.exists('iframe'));
-      assert.deepEqual(vsViewer.props(), {
-        children: [],
-        launchUrl: fakeConfig.vitalSource.launchUrl,
-        launchParams: fakeConfig.vitalSource.launchParams,
-      });
-    });
-  });
-
   describe('Canvas speed grader integration', () => {
     beforeEach(() => {
       fakeConfig.canvas.speedGrader = {
@@ -509,23 +486,6 @@ describe('BasicLTILaunchApp', () => {
       fakeConfig.viaUrl = null;
       renderLTILaunchApp();
       assert.isTrue(fakeApiCall.notCalled);
-    });
-
-    it('reports a submission if VitalSource configuration is present, even if `viaUrl` not set', async () => {
-      fakeConfig.viaUrl = null;
-      // Provide a VitalSource configuration object as an alternative
-      fakeConfig.vitalSource = { foo: 'bar' };
-      renderLTILaunchApp();
-
-      const apiCall = fakeApiCall.getCall(0);
-      assert.deepEqual(apiCall.args[0], {
-        authToken: 'dummyAuthToken',
-        path: '/api/lti/submissions',
-        data: {
-          submitted_at: undefined,
-          ...fakeConfig.canvas.speedGrader.submissionParams,
-        },
-      });
     });
 
     context(
