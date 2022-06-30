@@ -441,16 +441,16 @@ class JSConfig:
         return {
             "authUrl": auth_url,
             "path": req.route_path("api.sync"),
+            # This data is consumed by the view in `lms.views.api.sync` which
+            # defines the arguments it expects. We need to match that
+            # description. Anything we add here should be echoed back by the
+            # frontend.
             "data": {
                 "lms": {
                     "product": self._request.product.family,
                 },
-                "course": {
-                    "context_id": self._context.lti_params["context_id"],
-                },
-                "assignment": {
-                    "group_set_id": self._context.group_set_id,
-                },
+                "context_id": self._context.lti_params["context_id"],
+                "group_set_id": self._context.group_set_id,
                 # The student we are currently grading.
                 # In the case of Canvas this will be present in the SpeedGrader launch URL
                 # and available at launch time.

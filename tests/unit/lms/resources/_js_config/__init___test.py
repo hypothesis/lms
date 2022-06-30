@@ -294,15 +294,11 @@ class TestJSConfigAPISync:
             "authUrl": "http://example.com/api/canvas/oauth/authorize",
             "path": "/api/sync",
             "data": {
-                "course": {
-                    "context_id": "test_context_id",
-                },
-                "assignment": {
-                    "group_set_id": context.group_set_id,
-                },
                 "lms": {
                     "product": Product.Family.CANVAS,
                 },
+                "context_id": "test_context_id",
+                "group_set_id": context.group_set_id,
                 "gradingStudentId": sentinel.learner_canvas_user_id,
             },
         }
@@ -313,15 +309,11 @@ class TestJSConfigAPISync:
             "authUrl": "http://example.com/api/blackboard/oauth/authorize",
             "path": "/api/sync",
             "data": {
-                "course": {
-                    "context_id": "test_context_id",
-                },
-                "assignment": {
-                    "group_set_id": context.group_set_id,
-                },
                 "lms": {
-                    "product": Product.Family.BLACKBOARD,
+                   "product": Product.Family.BLACKBOARD,
                 },
+                "context_id": "test_context_id",
+                "group_set_id": context.group_set_id,
                 "gradingStudentId": None,
             },
         }
