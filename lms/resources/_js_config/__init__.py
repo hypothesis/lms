@@ -449,7 +449,7 @@ class JSConfig:
                 "lms": {
                     "product": self._request.product.family,
                 },
-                "context_id": self._context.lti_params["context_id"],
+                "context_id": self._request.lti_params["context_id"],
                 "group_set_id": self._context.group_set_id,
                 # The student we are currently grading.
                 # In the case of Canvas this will be present in the SpeedGrader launch URL
