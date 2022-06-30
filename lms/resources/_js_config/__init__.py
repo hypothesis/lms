@@ -67,9 +67,10 @@ class JSConfig:
             }
         elif document_url.startswith("vitalsource://"):
             vitalsource_svc = self._request.find_service(name="vitalsource")
-            self._config["vitalSource"] = {
-                "launchUrl": vitalsource_svc.get_launch_url(document_url)
-            }
+
+            # nb. VitalSource doesn't use Via, but is otherwise handled exactly
+            # the same way by the frontend.
+            self._config["viaUrl"] = vitalsource_svc.get_launch_url(document_url)
         elif jstor_service.enabled and document_url.startswith("jstor://"):
             self._config["viaUrl"] = jstor_service.via_url(self._request, document_url)
         else:

@@ -18,7 +18,6 @@ import AuthWindow from '../utils/AuthWindow';
 import ContentFrame from './ContentFrame';
 import LMSGrader from './LMSGrader';
 import LaunchErrorDialog from './LaunchErrorDialog';
-import VitalSourceBookViewer from './VitalSourceBookViewer';
 
 /**
  * Error states managed by this component that can arise during assignment
@@ -60,7 +59,6 @@ export default function BasicLTILaunchApp() {
     // Content URL to show in the iframe.
     viaUrl: viaURL,
     canvas,
-    vitalSource: vitalSourceConfig,
   } = useContext(Config);
 
   const clientRPC = useService(ClientRPC);
@@ -97,7 +95,7 @@ export default function BasicLTILaunchApp() {
 
   // Content is ready to show if we've resolved a contentURL or configuration
   // for a VitalSource document is present
-  const contentReady = !!(contentURL || vitalSourceConfig);
+  const contentReady = !!contentURL;
   const showContent = contentReady && !errorState;
   const showSpinner = fetchCount > 0 && !errorState;
 
@@ -329,32 +327,22 @@ export default function BasicLTILaunchApp() {
     }
   }, [authToken, authURL, fetchContentURL, fetchGroups]);
 
-  // Construct the <iframe> content
-  let iFrameWrapper;
-  const iFrame = vitalSourceConfig ? (
-    <VitalSourceBookViewer
-      launchUrl={vitalSourceConfig.launchUrl}
-      launchParams={vitalSourceConfig.launchParams}
-    />
-  ) : (
-    <ContentFrame url={contentURL || ''} />
-  );
+  const contentFrame = <ContentFrame url={contentURL ?? ''} />;
+  let contentFrameWrapper;
 
   if (grading && grading.enabled) {
-    // Use the LMS Grader
-    iFrameWrapper = (
+    contentFrameWrapper = (
       <LMSGrader
         clientRPC={clientRPC}
         students={grading.students}
         courseName={grading.courseName}
         assignmentName={grading.assignmentName}
       >
-        {iFrame}
+        {contentFrame}
       </LMSGrader>
     );
   } else {
-    // Use speed grader
-    iFrameWrapper = iFrame;
+    contentFrameWrapper = contentFrame;
   }
 
   const content = (
@@ -365,7 +353,7 @@ export default function BasicLTILaunchApp() {
       })}
       data-testid="content-wrapper"
     >
-      {iFrameWrapper}
+      {contentFrameWrapper}
     </div>
   );
 
