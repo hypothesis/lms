@@ -49,7 +49,7 @@ class JSConfig:
         jstor_service = self._request.find_service(iface=JSTORService)
 
         if document_url.startswith("blackboard://"):
-            self._config["api"]["viaUrl"] = {
+            self._config["api"]["contentUrl"] = {
                 "authUrl": self._request.route_url("blackboard_api.oauth.authorize"),
                 "path": self._request.route_path(
                     "blackboard_api.files.via_url",
@@ -58,7 +58,7 @@ class JSConfig:
                 ),
             }
         elif document_url.startswith("canvas://"):
-            self._config["api"]["viaUrl"] = {
+            self._config["api"]["contentUrl"] = {
                 "authUrl": self._request.route_url("canvas_api.oauth.authorize"),
                 "path": self._request.route_path(
                     "canvas_api.files.via_url",
@@ -70,11 +70,13 @@ class JSConfig:
 
             # nb. VitalSource doesn't use Via, but is otherwise handled exactly
             # the same way by the frontend.
-            self._config["viaUrl"] = vitalsource_svc.get_launch_url(document_url)
+            self._config["contentUrl"] = vitalsource_svc.get_launch_url(document_url)
         elif jstor_service.enabled and document_url.startswith("jstor://"):
-            self._config["viaUrl"] = jstor_service.via_url(self._request, document_url)
+            self._config["contentUrl"] = jstor_service.via_url(
+                self._request, document_url
+            )
         else:
-            self._config["viaUrl"] = via_url(self._request, document_url)
+            self._config["contentUrl"] = via_url(self._request, document_url)
 
     def asdict(self):
         """

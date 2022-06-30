@@ -40,7 +40,7 @@ class TestBasicLTILaunch:
 
         js_config = self.get_client_config(response)
         assert js_config["mode"] == JSConfig.Mode.BASIC_LTI_LAUNCH
-        assert urlencode({"url": assignment.document_url}) in js_config["viaUrl"]
+        assert urlencode({"url": assignment.document_url}) in js_config["contentUrl"]
 
     @pytest.mark.parametrize(
         "launch_params_fixture_name,existing_assignment_fixture_name",
@@ -86,7 +86,7 @@ class TestBasicLTILaunch:
         assert js_config["mode"] == JSConfig.Mode.BASIC_LTI_LAUNCH
         assert (
             urlencode({"url": "https://url-configured.com/document.pdf"})
-            in js_config["viaUrl"]
+            in js_config["contentUrl"]
         )
 
     @pytest.mark.parametrize(

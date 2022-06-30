@@ -156,7 +156,7 @@ import { createContext } from 'preact';
  * @prop {object} api
  *   @prop {string} api.authToken
  *   @prop {APICallInfo} api.sync
- *   @prop {APICallInfo} api.viaUrl
+ *   @prop {APICallInfo} api.contentUrl
  * @prop {object} canvas
  *   @prop {SpeedGraderConfig} canvas.speedGrader
  * @prop {boolean} dev
@@ -165,7 +165,7 @@ import { createContext } from 'preact';
  * @prop {ClientConfig} hypothesisClient
  * @prop {object} rpcServer
  *   @prop {string[]} rpcServer.allowedOrigins
- * @prop {string} viaUrl
+ * @prop {string} contentUrl
  * @prop {OAuthErrorConfig} OAuth2RedirectError
  * @prop {ErrorDialogConfig} errorDialog
  */

@@ -49,7 +49,7 @@ export default function BasicLTILaunchApp() {
       // API callback to use to fetch the URL to show in the iframe. This is
       // needed if resolving the content URL involves potentially slow calls
       // to third party APIs (eg. the LMS's file storage).
-      viaUrl: viaAPICallInfo,
+      contentUrl: viaAPICallInfo,
       // Sync API callback and data to asynchronously load the section groups
       // to relay to the sidebar via RPC.
       sync: syncAPICallInfo,
@@ -57,7 +57,7 @@ export default function BasicLTILaunchApp() {
     grading,
     hypothesisClient: clientConfig,
     // Content URL to show in the iframe.
-    viaUrl: viaURL,
+    contentUrl: initialContentURL,
     canvas,
   } = useContext(Config);
 
@@ -80,7 +80,7 @@ export default function BasicLTILaunchApp() {
 
   // URL to display in the content iframe. This is either available immediately,
   // or otherwise we'll have to make an API call to fetch it.
-  const [contentURL, setContentURL] = useState(viaURL || null);
+  const [contentURL, setContentURL] = useState(initialContentURL || null);
 
   // Count of pending API requests which must complete before the assignment
   // content can be shown.

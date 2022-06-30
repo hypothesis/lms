@@ -87,7 +87,7 @@ describe('BasicLTILaunchApp', () => {
 
   context('when a content URL is provided in the config', () => {
     beforeEach(() => {
-      fakeConfig.viaUrl = 'https://via.hypothes.is/123';
+      fakeConfig.contentUrl = 'https://via.hypothes.is/123';
     });
 
     it('displays the content URL in an iframe', () => {
@@ -141,7 +141,7 @@ describe('BasicLTILaunchApp', () => {
     const authUrl = 'https://lms.hypothes.is/authorize-lms';
 
     beforeEach(() => {
-      fakeConfig.api.viaUrl = {
+      fakeConfig.api.contentUrl = {
         authUrl,
         path: 'https://lms.hypothes.is/api/files/1234',
       };
@@ -421,7 +421,7 @@ describe('BasicLTILaunchApp', () => {
           lis_result_sourcedid: 'modelstudent-assignment1',
         },
       };
-      fakeConfig.viaUrl = 'https://via.hypothes.is/123';
+      fakeConfig.contentUrl = 'https://via.hypothes.is/123';
     });
 
     it('reports the submission when the content iframe starts loading', async () => {
@@ -481,9 +481,9 @@ describe('BasicLTILaunchApp', () => {
       assert.notCalled(fakeApiCall);
     });
 
-    it('does not report the submission when there is no `viaUrl` provided', async () => {
-      // When present, viaUrl becomes the contentUrl
-      fakeConfig.viaUrl = null;
+    it('does not report the submission when there is no `contentUrl` provided', async () => {
+      // When present, contentUrl becomes the contentUrl
+      fakeConfig.contentUrl = null;
       renderLTILaunchApp();
       assert.isTrue(fakeApiCall.notCalled);
     });
@@ -497,7 +497,7 @@ describe('BasicLTILaunchApp', () => {
               lis_result_sourcedid: 'modelstudent-assignment1',
             },
           };
-          fakeConfig.viaUrl = 'https://via.hypothes.is/123';
+          fakeConfig.contentUrl = 'https://via.hypothes.is/123';
           fakeConfig.hypothesisClient.reportActivity = {
             method: 'reportActivity',
             events: ['create', 'edit'],
@@ -665,7 +665,7 @@ describe('BasicLTILaunchApp', () => {
         enabled: true,
         students: [{ userid: 'user1' }, { userid: 'user2' }],
       };
-      fakeConfig.viaUrl = 'https://via.hypothes.is/123';
+      fakeConfig.contentUrl = 'https://via.hypothes.is/123';
     });
 
     it('renders the LMSGrader component', () => {
@@ -719,7 +719,7 @@ describe('BasicLTILaunchApp', () => {
       //  2. groups
       fakeConfig.api = {
         authToken: 'dummyAuthToken',
-        viaUrl: {
+        contentUrl: {
           authUrl: 'https://lms.hypothes.is/authorize-lms',
           path: 'https://lms.hypothes.is/api/files/1234',
         },
@@ -907,7 +907,7 @@ describe('BasicLTILaunchApp', () => {
         content: () => {
           fakeConfig = {
             ...fakeConfig,
-            viaUrl: 'https://via.hypothes.is/123',
+            contentUrl: 'https://via.hypothes.is/123',
           };
           return renderLTILaunchApp();
         },

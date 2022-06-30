@@ -106,16 +106,18 @@ class TestEnableLTILaunchMode:
 class TestAddDocumentURL:
     """Unit tests for JSConfig.add_document_url()."""
 
-    def test_it_adds_the_via_url(self, js_config, pyramid_request, via_url):
+    def test_it_adds_content_url(self, js_config, pyramid_request, via_url):
         js_config.add_document_url("example_document_url")
 
         via_url.assert_called_once_with(pyramid_request, "example_document_url")
-        assert js_config.asdict()["viaUrl"] == via_url.return_value
+        assert js_config.asdict()["contentUrl"] == via_url.return_value
 
-    def test_it_adds_the_viaUrl_api_config_for_Blackboard_documents(self, js_config):
+    def test_it_adds_the_contentUrl_api_config_for_Blackboard_documents(
+        self, js_config
+    ):
         js_config.add_document_url("blackboard://content-resource/xyz123")
 
-        assert js_config.asdict()["api"]["viaUrl"] == {
+        assert js_config.asdict()["api"]["contentUrl"] == {
             "authUrl": "http://example.com/api/blackboard/oauth/authorize",
             "path": "/api/blackboard/courses/test_course_id/via_url?document_url=blackboard%3A%2F%2Fcontent-resource%2Fxyz123",
         }
@@ -127,7 +129,7 @@ class TestAddDocumentURL:
 
         vitalsource_service.get_launch_url.assert_called_with(vitalsource_url)
         assert (
-            js_config.asdict()["viaUrl"]
+            js_config.asdict()["contentUrl"]
             == vitalsource_service.get_launch_url.return_value
         )
 
@@ -137,9 +139,9 @@ class TestAddDocumentURL:
         js_config.add_document_url(jstor_url)
 
         jstor_service.via_url.assert_called_with(pyramid_request, jstor_url)
-        assert js_config.asdict()["viaUrl"] == jstor_service.via_url.return_value
+        assert js_config.asdict()["contentUrl"] == jstor_service.via_url.return_value
 
-    def test_it_adds_the_viaUrl_api_config_for_Canvas_documents(
+    def test_it_adds_the_contentUrl_api_config_for_Canvas_documents(
         self, js_config, pyramid_request
     ):
         course_id, file_id = "125", "100"
@@ -150,7 +152,7 @@ class TestAddDocumentURL:
             f"canvas://file/course/{course_id}/file_id/{file_id}"
         )
 
-        assert js_config.asdict()["api"]["viaUrl"] == {
+        assert js_config.asdict()["api"]["contentUrl"] == {
             "authUrl": "http://example.com/api/canvas/oauth/authorize",
             "path": "/api/canvas/assignments/TEST_RESOURCE_LINK_ID/via_url",
         }
