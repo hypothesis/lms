@@ -20,7 +20,7 @@ class LMSDBContext(StepContext):
         super().__init__(**kwargs)
         self.engine = sqlalchemy.create_engine(TEST_DATABASE_URL)
         self.session_maker = sessionmaker(bind=self.engine.connect())
-        db.init(self.engine)
+        db.init(self.engine, stamp=False)
 
         self.session = None
         self.modified_tables = None
