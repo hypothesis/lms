@@ -78,8 +78,8 @@ export default function BasicLTILaunchApp() {
   // The most recent error that occurred when launching the assignment.
   const [error, setError] = useState(/** @type {Error|null} */ (null));
 
-  // When the app is initially displayed, it will use the Via URL if given
-  // or invoke the API callback to fetch the URL otherwise.
+  // URL to display in the content iframe. This is either available immediately,
+  // or otherwise we'll have to make an API call to fetch it.
   const [contentURL, setContentURL] = useState(viaURL || null);
 
   // Count of pending API requests which must complete before the assignment
@@ -93,8 +93,6 @@ export default function BasicLTILaunchApp() {
   // the app's access to the user's files in the LMS.
   const authWindow = useRef(/** @type {AuthWindow|null} */ (null));
 
-  // Content is ready to show if we've resolved a contentURL or configuration
-  // for a VitalSource document is present
   const contentReady = !!contentURL;
   const showContent = contentReady && !errorState;
   const showSpinner = fetchCount > 0 && !errorState;
