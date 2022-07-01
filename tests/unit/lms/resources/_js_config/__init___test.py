@@ -63,7 +63,6 @@ class TestFilePickerMode:
         config_provider = getattr(FilePickerConfig, config_function)
         assert config["filePicker"][key] == config_provider.return_value
         config_provider.assert_called_once_with(
-            context,
             pyramid_request,
             context.application_instance,
         )

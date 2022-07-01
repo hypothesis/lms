@@ -1,7 +1,6 @@
 from lms.product import Product
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
-from lms.product import Product
 from lms.services import JSTORService
 
 
@@ -9,7 +8,7 @@ class FilePickerConfig:
     """Config generation for specific file pickers."""
 
     @classmethod
-    def blackboard_config(cls, _context, request, application_instance):
+    def blackboard_config(cls, request, application_instance):
         """Get Blackboard files config."""
         files_enabled = application_instance.settings.get("blackboard", "files_enabled")
         groups_enabled = application_instance.settings.get(
@@ -43,7 +42,7 @@ class FilePickerConfig:
         return config
 
     @classmethod
-    def canvas_config(cls, _context, request, application_instance):
+    def canvas_config(cls, request, application_instance):
         """Get Canvas files config."""
 
         enabled = (request.product.family == Product.Family.CANVAS) and (
@@ -77,7 +76,7 @@ class FilePickerConfig:
         return config
 
     @classmethod
-    def google_files_config(cls, _context, request, application_instance):
+    def google_files_config(cls, request, application_instance):
         """Get Google file picker config."""
 
         return {
@@ -92,7 +91,7 @@ class FilePickerConfig:
         }
 
     @classmethod
-    def microsoft_onedrive(cls, _context, request, application_instance):
+    def microsoft_onedrive(cls, request, application_instance):
         enabled = application_instance.settings.get(
             "microsoft_onedrive", "files_enabled", default=True
         )
@@ -106,13 +105,13 @@ class FilePickerConfig:
         }
 
     @classmethod
-    def vital_source_config(cls, _context, _request, application_instance):
+    def vital_source_config(cls, _request, application_instance):
         """Get Vital Source config."""
         enabled = application_instance.settings.get("vitalsource", "enabled", False)
         return {"enabled": enabled}
 
     @classmethod
-    def jstor_config(cls, _context, request, _application_instance):
+    def jstor_config(cls, request, _application_instance):
         """Get JSTOR config."""
 
         return {"enabled": request.find_service(JSTORService).enabled}
