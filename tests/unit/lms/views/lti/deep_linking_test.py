@@ -1,13 +1,16 @@
 import json
+from datetime import datetime
 from unittest.mock import create_autospec, patch, sentinel
 
 import pytest
+from freezegun import freeze_time
 from h_matchers import Any
 
 from lms.models import ApplicationInstance
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.views.lti.deep_linking import DeepLinkingFieldsViews, deep_linking_launch
+from tests import factories
 
 
 @pytest.mark.usefixtures("application_instance_service", "lti_h_service")
@@ -53,13 +56,20 @@ class TestDeepLinkingLaunch:
 
 @pytest.mark.usefixtures("application_instance_service")
 class TestDeepLinkingFieldsView:
+    @freeze_time("2022-04-04")
     def test_it_for_v13(
-        self, ltia_http_service, application_instance, views, _get_content_url_mock
+        self, jwt_service, application_instance, views, _get_content_url_mock, uuid
     ):
         fields = views.file_picker_to_form_fields_v13()
 
-        ltia_http_service.sign.assert_called_once_with(
+        jwt_service.encode_with_private_key.assert_called_once_with(
             {
+                "exp": datetime(2022, 4, 4, 1, 0),
+                "iat": datetime(2022, 4, 4, 0, 0),
+                "iss": application_instance.lti_registration.client_id,
+                "sub": application_instance.lti_registration.client_id,
+                "aud": application_instance.lti_registration.issuer,
+                "nonce": uuid.uuid4().hex,
                 "https://purl.imsglobal.org/spec/lti/claim/deployment_id": application_instance.deployment_id,
                 "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
                 "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
@@ -72,16 +82,18 @@ class TestDeepLinkingFieldsView:
                 "https://purl.imsglobal.org/spec/lti-dl/claim/data": sentinel.deep_linking_settings_data,
             }
         )
-        assert fields["JWT"] == ltia_http_service.sign.return_value
+        assert fields["JWT"] == jwt_service.encode_with_private_key.return_value
 
     def test_it_for_v13_missing_deep_linking_settings_data(
-        self, ltia_http_service, views, pyramid_request
+        self, jwt_service, views, pyramid_request
     ):
         del pyramid_request.parsed_params["deep_linking_settings"]["data"]
 
         views.file_picker_to_form_fields_v13()
 
-        ltia_http_service.sign.assert_called_once_with(message := Any.dict())
+        jwt_service.encode_with_private_key.assert_called_once_with(
+            message := Any.dict()
+        )
         assert (
             "https://purl.imsglobal.org/spec/lti-dl/claim/data "
             not in message.last_matched()  # pylint: disable=unsupported-membership-test
@@ -154,6 +166,16 @@ class TestDeepLinkingFieldsView:
     @pytest.fixture
     def views(self, pyramid_request):
         return DeepLinkingFieldsViews(pyramid_request)
+
+    @pytest.fixture
+    def uuid(self, patch):
+        return patch("lms.views.lti.deep_linking.uuid")
+
+    @pytest.mark.usefixtures("db_session")
+    @pytest.fixture
+    def application_instance(self, application_instance):
+        application_instance.lti_registration = factories.LTIRegistration()
+        return application_instance
 
     @pytest.fixture
     def _get_content_url_mock(self, views):

@@ -15,27 +15,6 @@ class LTIAHTTPService:
         self._jwt_service = jwt_service
         self._http = http
 
-    def sign(self, payload: dict):
-        """
-        Sign a payload with one of our private keys.
-
-        We include the default values needed for LTIA APIs
-        Those default claims are defined here:
-
-            https://www.imsglobal.org/spec/security/v1p0/#id-token
-        """
-        now = datetime.utcnow()
-        payload = {
-            "exp": now + timedelta(hours=1),
-            "iat": now,
-            "nonce": uuid.uuid4().hex,
-            "iss": self._lti_registration.client_id,
-            "sub": self._lti_registration.client_id,
-            "aud": self._lti_registration.issuer,
-            **payload,
-        }
-        return self._jwt_service.encode_with_private_key(payload)
-
     def request(self, method, url, scopes, headers=None, **kwargs):
         headers = headers or {}
 
@@ -53,8 +32,13 @@ class LTIAHTTPService:
         https://datatracker.ietf.org/doc/html/rfc7523
         https://canvas.instructure.com/doc/api/file.oauth_endpoints.html#post-login-oauth2-token
         """
-        signed_jwt = self.sign(
+        now = datetime.utcnow()
+        signed_jwt = self._jwt_service.encode_with_private_key(
             {
+                "exp": now + timedelta(hours=1),
+                "iat": now,
+                "iss": self._lti_registration.client_id,
+                "sub": self._lti_registration.client_id,
                 "aud": self._lti_registration.token_url,
                 "jti": uuid.uuid4().hex,
             }
