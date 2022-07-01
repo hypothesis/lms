@@ -4,6 +4,7 @@ import pytest
 from h_matchers import Any
 
 from lms.models import LTIParams
+from lms.product import Product
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import FilePickerConfig
 
@@ -59,14 +60,12 @@ class TestFilePickerConfig:
             True,
         ],
     )
-    def test_canvas_config(
-        self, context, pyramid_request, application_instance, groups_enabled
-    ):
+    def test_canvas_config(self, pyramid_request, application_instance, groups_enabled):
         pyramid_request.lti_params["custom_canvas_course_id"] = "COURSE_ID"
         application_instance.settings.set("canvas", "groups_enabled", groups_enabled)
 
         config = FilePickerConfig.canvas_config(
-            context, pyramid_request, application_instance
+            sentinel.context, pyramid_request, application_instance
         )
 
         expected_config = {
@@ -92,7 +91,7 @@ class TestFilePickerConfig:
     )
     @pytest.mark.usefixtures("canvas_files_enabled")
     def test_canvas_config_enabled(
-        self, context, pyramid_request, application_instance, missing_value
+        self, pyramid_request, application_instance, missing_value
     ):
         if missing_value == "course_id":
             pyramid_request.params.pop("custom_canvas_course_id")
@@ -100,7 +99,7 @@ class TestFilePickerConfig:
             application_instance.developer_key = None
 
         config = FilePickerConfig.canvas_config(
-            context, pyramid_request, application_instance
+            sentinel.context, pyramid_request, application_instance
         )
 
         assert config["enabled"] != missing_value
@@ -167,27 +166,18 @@ class TestFilePickerConfig:
         assert config == {"enabled": enabled}
 
     @pytest.fixture
-    def canvas_files_enabled(self, context, pyramid_request, application_instance):
-        context.is_canvas = True
+    @pytest.mark.usefixtures("with_is_canvas")
+    def canvas_files_enabled(self, pyramid_request, application_instance):
+
         pyramid_request.params["custom_canvas_course_id"] = sentinel.course_id
         application_instance.developer_key = sentinel.developer_key
+
+    @pytest.fixture
+    def with_is_canvas(self, pyramid_request):
+        pyramid_request.product.family = Product.Family.CANVAS
 
     @pytest.fixture
     def application_instance(self, application_instance):
         application_instance.lms_url = None
 
         return application_instance
-
-    @pytest.fixture
-    def with_is_canvas(self, context):
-        context.is_canvas = True
-
-    @pytest.fixture
-    def context(self, pyramid_request):
-        return create_autospec(
-            LTILaunchResource,
-            spec_set=True,
-            instance=True,
-            is_canvas=False,
-            lti_params=LTIParams(pyramid_request.params),
-        )
