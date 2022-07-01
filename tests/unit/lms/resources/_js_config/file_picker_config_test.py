@@ -19,22 +19,17 @@ class TestFilePickerConfig:
         ],
     )
     def test_blackboard_config(
-        self,
-        context,
-        pyramid_request,
-        application_instance,
-        files_enabled,
-        groups_enabled,
+        self, pyramid_request, application_instance, files_enabled, groups_enabled
     ):
 
-        context.lti_params["context_id"] = "COURSE_ID"
+        pyramid_request.lti_params["context_id"] = "COURSE_ID"
         application_instance.settings.set("blackboard", "files_enabled", files_enabled)
         application_instance.settings.set(
             "blackboard", "groups_enabled", groups_enabled
         )
 
         config = FilePickerConfig.blackboard_config(
-            context, pyramid_request, application_instance
+            sentinel.context, pyramid_request, application_instance
         )
 
         expected_config = {
@@ -67,7 +62,7 @@ class TestFilePickerConfig:
     def test_canvas_config(
         self, context, pyramid_request, application_instance, groups_enabled
     ):
-        context.lti_params["custom_canvas_course_id"] = "COURSE_ID"
+        pyramid_request.lti_params["custom_canvas_course_id"] = "COURSE_ID"
         application_instance.settings.set("canvas", "groups_enabled", groups_enabled)
 
         config = FilePickerConfig.canvas_config(
@@ -114,15 +109,15 @@ class TestFilePickerConfig:
         "origin_from", (None, "custom_canvas_api_domain", "lms_url")
     )
     def test_google_files_config(
-        self, context, pyramid_request, application_instance, origin_from
+        self, pyramid_request, application_instance, origin_from
     ):
         if origin_from == "custom_canvas_api_domain":
-            context.lti_params["custom_canvas_api_domain"] = sentinel.origin
+            pyramid_request.lti_params["custom_canvas_api_domain"] = sentinel.origin
         elif origin_from == "lms_url":
             application_instance.lms_url = sentinel.origin
 
         config = FilePickerConfig.google_files_config(
-            context, pyramid_request, application_instance
+            sentinel.context, pyramid_request, application_instance
         )
 
         assert config == {
@@ -132,16 +127,14 @@ class TestFilePickerConfig:
         }
 
     @pytest.mark.parametrize("enabled", (True, False))
-    def test_microsoft_onedrive(
-        self, context, pyramid_request, application_instance, enabled
-    ):
+    def test_microsoft_onedrive(self, pyramid_request, application_instance, enabled):
         pyramid_request.registry.settings["onedrive_client_id"] = sentinel.client_id
         application_instance.settings.set(
             "microsoft_onedrive", "files_enabled", enabled
         )
 
         config = FilePickerConfig.microsoft_onedrive(
-            context, pyramid_request, application_instance
+            sentinel.context, pyramid_request, application_instance
         )
 
         expected = {"enabled": enabled}
@@ -154,13 +147,11 @@ class TestFilePickerConfig:
         assert config == expected
 
     @pytest.mark.parametrize("enabled", (True, False))
-    def test_vital_source_config(
-        self, context, pyramid_request, application_instance, enabled
-    ):
+    def test_vital_source_config(self, pyramid_request, application_instance, enabled):
         application_instance.settings.set("vitalsource", "enabled", enabled)
 
         config = FilePickerConfig.vital_source_config(
-            context, pyramid_request, application_instance
+            sentinel.context, pyramid_request, application_instance
         )
 
         assert config == {"enabled": enabled}

@@ -7,7 +7,7 @@ class FilePickerConfig:
     """Config generation for specific file pickers."""
 
     @classmethod
-    def blackboard_config(cls, context, request, application_instance):
+    def blackboard_config(cls, _context, request, application_instance):
         """Get Blackboard files config."""
         files_enabled = application_instance.settings.get("blackboard", "files_enabled")
         groups_enabled = application_instance.settings.get(
@@ -15,7 +15,7 @@ class FilePickerConfig:
         )
 
         auth_url = request.route_url(Blackboard.route.oauth2_authorize)
-        course_id = context.lti_params.get("context_id")
+        course_id = request.lti_params.get("context_id")
 
         config = {
             "enabled": files_enabled,
@@ -43,14 +43,15 @@ class FilePickerConfig:
     @classmethod
     def canvas_config(cls, context, request, application_instance):
         """Get Canvas files config."""
+
         enabled = context.is_canvas and (
-            "custom_canvas_course_id" in context.lti_params
+            "custom_canvas_course_id" in request.lti_params
             and application_instance.developer_key is not None
         )
         groups_enabled = application_instance.settings.get("canvas", "groups_enabled")
 
         auth_url = request.route_url(Canvas.route.oauth2_authorize)
-        course_id = context.lti_params.get("custom_canvas_course_id")
+        course_id = request.lti_params.get("custom_canvas_course_id")
 
         config = {
             "enabled": enabled,
@@ -74,7 +75,7 @@ class FilePickerConfig:
         return config
 
     @classmethod
-    def google_files_config(cls, context, request, application_instance):
+    def google_files_config(cls, _context, request, application_instance):
         """Get Google file picker config."""
 
         return {
@@ -83,7 +84,7 @@ class FilePickerConfig:
             # Get the URL of the top-most page that the LMS app is running in.
             # The frontend has to pass this to Google Picker, otherwise Google
             # Picker refuses to launch in an iframe.
-            "origin": context.lti_params.get(
+            "origin": request.lti_params.get(
                 "custom_canvas_api_domain", application_instance.lms_url
             ),
         }
