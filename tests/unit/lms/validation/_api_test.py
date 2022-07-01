@@ -4,7 +4,6 @@ import pytest
 
 from lms.validation import ValidationError
 from lms.validation._api import (
-    APIBlackboardSyncSchema,
     APIReadResultSchema,
     APIRecordResultSchema,
     APIRecordSpeedgraderSchema,
@@ -149,55 +148,6 @@ class TestAPIRecordResultSchema:
             "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
             "lis_result_sourcedid": "modelstudent-assignment1",
             "score": 0.5,
-        }
-
-
-class TestAPIBlackboardSyncSchema:
-    def test_it_parses_request(self, json_request, all_fields):
-        request = json_request(all_fields)
-
-        parsed_params = APIBlackboardSyncSchema(request).parse()
-
-        assert parsed_params == all_fields
-
-    @pytest.mark.parametrize(
-        "field",
-        [
-            "lms",
-            "course",
-            "assignment",
-            "group_info",
-        ],
-    )
-    def test_it_raises_if_required_fields_missing(
-        self, json_request, all_fields, field
-    ):
-        request = json_request(all_fields, exclude=[field])
-
-        schema = APIBlackboardSyncSchema(request)
-
-        with pytest.raises(ValidationError):
-            schema.parse()
-
-    @pytest.mark.parametrize("field", ["gradingStudentId"])
-    def test_it_doesnt_raise_if_optional_fields_missing(
-        self, json_request, all_fields, field
-    ):
-        request = json_request(all_fields, exclude=[field])
-
-        APIBlackboardSyncSchema(request).parse()
-
-    @pytest.fixture
-    def all_fields(self):
-        return {
-            "lms": {
-                "tool_consumer_instance_guid": "tool_consumer_instance_guid",
-                "product": "canvas",
-            },
-            "course": {"context_id": "context_id"},
-            "assignment": {"resource_link_id": "resource_link_id"},
-            "group_info": {"some": "data"},
-            "gradingStudentId": "gradingStudentId",
         }
 
 
