@@ -3,7 +3,7 @@
 import logging
 from functools import cached_property
 
-from lms.models import Grouping, LTIParams
+from lms.models import Grouping
 from lms.product import Product
 from lms.resources._js_config import JSConfig
 
@@ -87,11 +87,12 @@ class LTILaunchResource:
 
         if self._request.product.family == Product.Family.BLACKBOARD:
             # In blackboard we store the configuration details in the DB
-            tool_consumer_instance_guid = self._request.parsed_params[
+            tool_consumer_instance_guid = self._request.lti_params[
                 "tool_consumer_instance_guid"
             ]
             assignment = self._request.find_service(name="assignment").get_assignment(
-                tool_consumer_instance_guid, self.lti_params.get("resource_link_id")
+                tool_consumer_instance_guid,
+                self._request.lti_params.get("resource_link_id"),
             )
             return assignment.extra.get("group_set_id") if assignment else None
 
@@ -113,11 +114,6 @@ class LTILaunchResource:
             return Grouping.Type.SECTION
 
         return Grouping.Type.COURSE
-
-    @property
-    def lti_params(self) -> LTIParams:
-        """Return the requests LTI parameters."""
-        return self._request.lti_params
 
     def _course_extra(self):
         """Extra information to store for courses."""
