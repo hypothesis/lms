@@ -142,6 +142,25 @@ frontend-lint: node_modules/.uptodate
 bddtests: python
 	@tox -qe bddtests
 
+PIP_COMPILE := pyenv exec pip-compile
+
+requirements/%.txt: requirements/%.in
+	$(PIP_COMPILE) --allow-unsafe --quiet $(PIP_COMPILE_FLAGS) $<
+
+requirements/dev.txt: requirements/requirements.txt
+requirements/tests.txt: requirements/requirements.txt
+requirements/functests.txt: requirements/requirements.txt
+requirements/bddtests.txt: requirements/requirements.txt
+requirements/lint.txt: requirements/tests.txt requirements/functests.txt requirements/bddtests.txt
+
+pip_compile_executable := $(shell pyenv root)/versions/$(shell pyenv version-name)/bin/pip-compile
+
+$(pip_compile_executable):
+	pyenv exec pip install --quiet --disable-pip-version-check pip-tools
+
+.PHONY: requirements requirements/
+requirements requirements/: $(pip_compile_executable) $(wildcard requirements/*.txt)
+
 .PHONY: sure
 sure: checkformatting backend-lint frontend-lint backend-tests coverage frontend-tests functests bddtests
 
