@@ -36,7 +36,7 @@ class TestBasicLaunchViews:
         BasicLaunchViews(context, pyramid_request)
 
         context.application_instance.check_guid_aligns.assert_called_once_with(
-            context.lti_params["tool_consumer_instance_guid"]
+            pyramid_request.lti_params["tool_consumer_instance_guid"]
         )
 
     @pytest.mark.usefixtures("user_is_learner")
@@ -50,13 +50,13 @@ class TestBasicLaunchViews:
         BasicLaunchViews(context, pyramid_request)
 
         context.application_instance.update_lms_data.assert_called_once_with(
-            context.lti_params
+            pyramid_request.lti_params
         )
 
         LtiLaunches.add.assert_called_once_with(
             pyramid_request.db,
-            context.lti_params["context_id"],
-            context.lti_params["oauth_consumer_key"],
+            pyramid_request.lti_params["context_id"],
+            pyramid_request.lti_params["oauth_consumer_key"],
         )
 
         grading_info_service.upsert_from_request.assert_called_once_with(
@@ -127,7 +127,7 @@ class TestBasicLaunchViews:
     def test_unconfigured_launch(
         self, svc, BearerTokenSchema, context, pyramid_request
     ):
-        context.lti_params = {
+        pyramid_request.lti_params = {
             "oauth_nonce": "STRIPPED",
             "oauth_timestamp": "STRIPPED",
             "oauth_signature": "STRIPPED",
@@ -182,7 +182,9 @@ class TestBasicLaunchViews:
             sentinel.document_url, assignment_extra=sentinel.assignment_extra
         )
 
-        lti_h_service.sync.assert_called_once_with([context.course], context.lti_params)
+        lti_h_service.sync.assert_called_once_with(
+            [context.course], pyramid_request.lti_params
+        )
 
         # `_record_course()`
         grouping_service.upsert_grouping_memberships.assert_called_once_with(
@@ -191,18 +193,20 @@ class TestBasicLaunchViews:
 
         # `_record_assignment()`
         assignment_service.upsert_assignment.assert_called_once_with(
-            tool_consumer_instance_guid=context.lti_params[
+            tool_consumer_instance_guid=pyramid_request.lti_params[
                 "tool_consumer_instance_guid"
             ],
-            resource_link_id=context.lti_params["resource_link_id"],
+            resource_link_id=pyramid_request.lti_params["resource_link_id"],
             document_url=sentinel.document_url,
-            lti_params=context.lti_params,
+            lti_params=pyramid_request.lti_params,
             is_gradable=False,
             extra=sentinel.assignment_extra,
         )
         assignment = assignment_service.upsert_assignment.return_value
 
-        lti_role_service.get_roles.assert_called_once_with(context.lti_params["roles"])
+        lti_role_service.get_roles.assert_called_once_with(
+            pyramid_request.lti_params["roles"]
+        )
         assignment_service.upsert_assignment_membership.assert_called_once_with(
             assignment=assignment,
             user=pyramid_request.user,
@@ -312,15 +316,15 @@ class TestBasicLaunchViews:
         context.js_config.add_canvas_speedgrader_settings.assert_not_called()
 
     @pytest.fixture
-    def with_gradable_assignment(self, context):
+    def with_gradable_assignment(self, pyramid_request):
         # This shows the assignment itself is gradable
-        context.lti_params["lis_outcome_service_url"] = "http://example.com"
+        pyramid_request.lti_params["lis_outcome_service_url"] = "http://example.com"
 
     @pytest.fixture
-    def with_student_grading_id(self, context):
+    def with_student_grading_id(self, pyramid_request):
         # This shows that a student has launched the assignment and a grade
         # is assignable to them
-        context.lti_params["lis_result_sourcedid"] = "9083745892345834h5"
+        pyramid_request.lti_params["lis_result_sourcedid"] = "9083745892345834h5"
 
     @pytest.fixture
     def svc(self, context, pyramid_request):
@@ -339,6 +343,7 @@ class TestBasicLaunchViews:
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.user = factories.User()
+        pyramid_request.lti_params = LTIParams.from_request(pyramid_request)
 
         return pyramid_request
 
@@ -347,7 +352,6 @@ class TestBasicLaunchViews:
         context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
         context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
         context.is_canvas = False
-        context.lti_params = LTIParams(pyramid_request.params)
         return context
 
     @pytest.fixture
