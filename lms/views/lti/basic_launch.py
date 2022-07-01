@@ -23,16 +23,14 @@ from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
 from lms.validation.authentication import BearerTokenSchema
 
 
-def has_document_url(context, request):
+def has_document_url(_context, request):
     """
     Get if the current launch has a resolvable document URL.
 
     This is imported into `lms.views.predicates` to provide the
     `has_document_url` predicate.
     """
-    return bool(
-        request.find_service(DocumentURLService).get_document_url(context, request)
-    )
+    return bool(request.find_service(DocumentURLService).get_document_url(request))
 
 
 @view_defaults(
@@ -65,7 +63,7 @@ class BasicLaunchViews:
 
         return self._show_document(
             document_url=self.request.find_service(DocumentURLService).get_document_url(
-                self.context, self.request
+                self.request
             )
         )
 

@@ -1,17 +1,16 @@
-from unittest.mock import create_autospec, sentinel
+from unittest.mock import sentinel
 
 import pytest
 
 from lms.models import LTIParams
-from lms.resources import LTILaunchResource
 from lms.services import DocumentURLService
 from lms.services.document_url import factory
 from tests import factories
 
 
 class TestDocumentURLService:
-    def test_get_document_url(self, svc, context, pyramid_request):
-        assert not svc.get_document_url(context, pyramid_request)
+    def test_get_document_url(self, svc, pyramid_request):
+        assert not svc.get_document_url(pyramid_request)
 
     @pytest.mark.parametrize(
         "url,expected",
@@ -46,32 +45,32 @@ class TestDocumentURLService:
         ),
     )
     def test_get_document_url_with_deeplinking_url(
-        self, svc, context, pyramid_request, url, expected
+        self, svc, pyramid_request, url, expected
     ):
         if url:
             pyramid_request.params["url"] = url
 
-        assert svc.get_document_url(context, pyramid_request) == expected
+        assert svc.get_document_url(pyramid_request) == expected
 
-    def test_get_document_url_with_canvas_files(self, svc, context, pyramid_request):
+    def test_get_document_url_with_canvas_files(self, svc, pyramid_request):
         pyramid_request.params["canvas_file"] = "any"
         pyramid_request.params["file_id"] = "FILE_ID"
-        context.lti_params["custom_canvas_course_id"] = "COURSE_ID"
+        pyramid_request.lti_params["custom_canvas_course_id"] = "COURSE_ID"
 
-        result = svc.get_document_url(context, pyramid_request)
+        result = svc.get_document_url(pyramid_request)
 
         assert result == "canvas://file/course/COURSE_ID/file_id/FILE_ID"
 
     @pytest.mark.parametrize("cfi", (None, sentinel.cfi))
     def test_get_document_url_with_legacy_vitalsource_book(
-        self, svc, context, pyramid_request, VitalSourceService, cfi
+        self, svc, pyramid_request, VitalSourceService, cfi
     ):
         pyramid_request.params["vitalsource_book"] = "any"
         pyramid_request.params["book_id"] = sentinel.book_id
         if cfi:
             pyramid_request.params["cfi"] = cfi
 
-        result = svc.get_document_url(context, pyramid_request)
+        result = svc.get_document_url(pyramid_request)
 
         VitalSourceService.generate_document_url.assert_called_once_with(
             book_id=sentinel.book_id, cfi=cfi
@@ -87,17 +86,17 @@ class TestDocumentURLService:
         ),
     )
     def test_get_document_url_with_assignment_in_db(
-        self, svc, context, pyramid_request, assignment_service, param
+        self, svc, pyramid_request, assignment_service, param
     ):
         assignment_service.get_assignment.return_value = factories.Assignment(
             document_url=sentinel.document_url
         )
-        context.lti_params[param] = sentinel.link_id
+        pyramid_request.lti_params[param] = sentinel.link_id
 
-        result = svc.get_document_url(context, pyramid_request)
+        result = svc.get_document_url(pyramid_request)
 
         assignment_service.get_assignment.assert_called_once_with(
-            tool_consumer_instance_guid=context.lti_params[
+            tool_consumer_instance_guid=pyramid_request.lti_params[
                 "tool_consumer_instance_guid"
             ],
             resource_link_id=sentinel.link_id,
@@ -114,10 +113,9 @@ class TestDocumentURLService:
         return assignment_service
 
     @pytest.fixture
-    def context(self):
-        context = create_autospec(LTILaunchResource, spec_set=True, instance=True)
-        context.lti_params = LTIParams({"tool_consumer_instance_guid": "guid"})
-        return context
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.lti_params = LTIParams({"tool_consumer_instance_guid": "guid"})
+        return pyramid_request
 
     @pytest.fixture
     def VitalSourceService(self, patch):
