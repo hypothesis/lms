@@ -50,7 +50,7 @@ class BasicLaunchViews:
         self.grouping_service: GroupingService = request.find_service(name="grouping")
 
         self.context.application_instance.check_guid_aligns(
-            self.context.lti_params.get("tool_consumer_instance_guid")
+            self.request.lti_params.get("tool_consumer_instance_guid")
         )
 
         self._record_launch()
@@ -91,7 +91,7 @@ class BasicLaunchViews:
 
         form_fields = {
             param: value
-            for param, value in self.context.lti_params.items()
+            for param, value in self.request.lti_params.items()
             # Don't send over auth related params. We'll use our own
             # authorization header
             if param
@@ -143,13 +143,13 @@ class BasicLaunchViews:
         # Before any LTI assignments launch, create or update the Hypothesis
         # user and group corresponding to the LTI user and course.
         self.request.find_service(name="lti_h").sync(
-            [self.context.course], self.context.lti_params
+            [self.context.course], self.request.lti_params
         )
 
         # An assignment has been configured in the LMS as "gradable" if it has
         # the `lis_outcome_service_url` param
         assignment_gradable = bool(
-            self.context.lti_params.get("lis_outcome_service_url")
+            self.request.lti_params.get("lis_outcome_service_url")
         )
 
         # Store lots of info
@@ -169,11 +169,11 @@ class BasicLaunchViews:
         # Store assignment details
         assignment = self.assignment_service.upsert_assignment(
             document_url=document_url,
-            tool_consumer_instance_guid=self.context.lti_params[
+            tool_consumer_instance_guid=self.request.lti_params[
                 "tool_consumer_instance_guid"
             ],
-            resource_link_id=self.context.lti_params.get("resource_link_id"),
-            lti_params=self.context.lti_params,
+            resource_link_id=self.request.lti_params.get("resource_link_id"),
+            lti_params=self.request.lti_params,
             extra=extra,
             is_gradable=is_gradable,
         )
@@ -183,7 +183,7 @@ class BasicLaunchViews:
             assignment=assignment,
             user=self.request.user,
             lti_roles=self.request.find_service(LTIRoleService).get_roles(
-                self.context.lti_params["roles"]
+                self.request.lti_params["roles"]
             ),
         )
         # Store the relationship between the assignment and the course
@@ -211,7 +211,7 @@ class BasicLaunchViews:
             if (
                 assignment_gradable
                 and self.request.lti_user.is_learner
-                and self.context.lti_params.get("lis_result_sourcedid")
+                and self.request.lti_params.get("lis_result_sourcedid")
             ):
                 self.context.js_config.add_canvas_speedgrader_settings(document_url)
 
@@ -234,13 +234,13 @@ class BasicLaunchViews:
     def _record_launch(self):
         """Persist launch type independent info to the DB."""
 
-        self.context.application_instance.update_lms_data(self.context.lti_params)
+        self.context.application_instance.update_lms_data(self.request.lti_params)
 
         # Record all LTILaunches for future reporting
         LtiLaunches.add(
             self.request.db,
-            self.context.lti_params.get("context_id"),
-            self.context.lti_params.get("oauth_consumer_key"),
+            self.request.lti_params.get("context_id"),
+            self.request.lti_params.get("oauth_consumer_key"),
         )
 
         if not self.request.lti_user.is_instructor and not self.context.is_canvas:
