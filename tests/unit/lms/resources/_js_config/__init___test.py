@@ -119,7 +119,6 @@ class TestAddDocumentURL:
 
         assert js_config.asdict()["api"]["viaUrl"] == {
             "authUrl": "http://example.com/api/blackboard/oauth/authorize",
-            "product": pyramid_request.product.family,
             "path": "/api/blackboard/courses/test_course_id/via_url?document_url=blackboard%3A%2F%2Fcontent-resource%2Fxyz123",
         }
 
@@ -154,7 +153,6 @@ class TestAddDocumentURL:
 
         assert js_config.asdict()["api"]["viaUrl"] == {
             "authUrl": "http://example.com/api/canvas/oauth/authorize",
-            "product": pyramid_request.product.family,
             "path": "/api/canvas/assignments/TEST_RESOURCE_LINK_ID/via_url",
         }
 
@@ -440,7 +438,7 @@ class TestJSConfigRPCServer:
 
 
 class TestEnableOAuth2RedirectErrorMode:
-    def test_it(self, js_config, pyramid_request):
+    def test_it(self, js_config):
         js_config.enable_oauth2_redirect_error_mode(
             "auth_route",
             sentinel.error_code,
@@ -452,7 +450,6 @@ class TestEnableOAuth2RedirectErrorMode:
         assert config["mode"] == JSConfig.Mode.OAUTH2_REDIRECT_ERROR
         assert config["OAuth2RedirectError"] == {
             "authUrl": "http://example.com/auth?authorization=Bearer%3A+token_value",
-            "product": pyramid_request.product.family,
             "errorCode": sentinel.error_code,
             "errorDetails": sentinel.error_details,
             "canvasScopes": sentinel.canvas_scopes,
