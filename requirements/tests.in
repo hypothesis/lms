@@ -1,3 +1,4 @@
+pip-tools
 coverage
 httpretty
 aioresponses

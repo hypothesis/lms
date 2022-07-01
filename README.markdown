@@ -98,6 +98,8 @@ You should now be able to run the tests successfully by typing:
 
     make test
 
+See [`HACKING.md`](HACKING.md) for documentation of common development tasks.
+
 ### Bypassing the browser's "unsafe scripts" (mixed content) blocking
 
 If you use our hosted Canvas instance at <https://hypothesis.instructure.com/>
