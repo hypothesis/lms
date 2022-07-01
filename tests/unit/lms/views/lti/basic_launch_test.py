@@ -18,9 +18,7 @@ class TestHasDocumentURL:
 
         result = has_document_url(sentinel.context, pyramid_request)
 
-        document_url_service.get_document_url.assert_called_once_with(
-            sentinel.context, pyramid_request
-        )
+        document_url_service.get_document_url.assert_called_once_with(pyramid_request)
         assert result == bool(document_url)
 
 
@@ -112,13 +110,11 @@ class TestBasicLaunchViews:
         )
 
     def test_configured_launch(
-        self, svc, document_url_service, context, pyramid_request, _show_document
+        self, svc, document_url_service, pyramid_request, _show_document
     ):
         svc.configured_launch()
 
-        document_url_service.get_document_url.assert_called_once_with(
-            context, pyramid_request
-        )
+        document_url_service.get_document_url.assert_called_once_with(pyramid_request)
 
         _show_document.assert_called_once_with(
             document_url=document_url_service.get_document_url.return_value

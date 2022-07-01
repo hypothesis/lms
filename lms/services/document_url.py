@@ -14,7 +14,7 @@ class DocumentURLService:
         self._assignment_service = assignment_service
 
     @lru_cache(1)
-    def get_document_url(self, context, request) -> Optional[str]:
+    def get_document_url(self, request) -> Optional[str]:
         """
         Get the configured document for this LTI launch.
 
@@ -27,7 +27,7 @@ class DocumentURLService:
             self._from_legacy_vitalsource_book,
             self._from_assignment_in_db,
         ):
-            if document_url := document_url_source(context, request):
+            if document_url := document_url_source(request):
                 return document_url
 
         return None
@@ -35,7 +35,7 @@ class DocumentURLService:
     _ENCODED_URL = re.compile("^(?:https?|canvas|vitalsource)%3a", re.IGNORECASE)
 
     @classmethod
-    def _from_deep_linking_provided_url(cls, _context, request):
+    def _from_deep_linking_provided_url(cls, request):
         """
         Get the URL from the deep linking information.
 
@@ -53,7 +53,7 @@ class DocumentURLService:
         return url
 
     @classmethod
-    def _from_canvas_file(cls, context, request):
+    def _from_canvas_file(cls, request):
         """
         Get a Canvas file URL.
 
@@ -61,7 +61,7 @@ class DocumentURLService:
         """
 
         if request.params.get("canvas_file"):
-            course_id = context.lti_params["custom_canvas_course_id"]
+            course_id = request.lti_params["custom_canvas_course_id"]
             file_id = request.params["file_id"]
 
             return f"canvas://file/course/{course_id}/file_id/{file_id}"
@@ -69,7 +69,7 @@ class DocumentURLService:
         return None
 
     @classmethod
-    def _from_legacy_vitalsource_book(cls, _context, request):
+    def _from_legacy_vitalsource_book(cls, request):
         """
         Respond to a legacy configured VitalSource assignment.
 
@@ -84,7 +84,7 @@ class DocumentURLService:
 
         return None
 
-    def _from_assignment_in_db(self, context, _request):
+    def _from_assignment_in_db(self, request):
         """Get a document URL from an assignment in the DB matching a param."""
 
         for param in (
@@ -92,9 +92,9 @@ class DocumentURLService:
             "resource_link_id_history",  # A Blackboard course we can copy
             "ext_d2l_resource_link_id_history",  # Ditto for Brightspace
         ):
-            if (resource_link_id := context.lti_params.get(param)) and (
+            if (resource_link_id := request.lti_params.get(param)) and (
                 assigment := self._assignment_service.get_assignment(
-                    tool_consumer_instance_guid=context.lti_params.get(
+                    tool_consumer_instance_guid=request.lti_params.get(
                         "tool_consumer_instance_guid"
                     ),
                     resource_link_id=resource_link_id,
