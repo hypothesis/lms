@@ -39,13 +39,15 @@ Canvas LMS's Content Item docs are also useful:
 
 """
 import json
+import uuid
+from datetime import datetime, timedelta
 from urllib.parse import urlencode, urlparse
 
 from pyramid.view import view_config, view_defaults
 from webargs import fields
 
 from lms.security import Permissions
-from lms.services import LTIAHTTPService
+from lms.services import JWTService
 from lms.validation import DeepLinkingLTILaunchSchema
 from lms.validation._base import JSONPyramidRequestSchema
 
@@ -103,7 +105,14 @@ class DeepLinkingFieldsViews:
             name="application_instance"
         ).get_current()
 
+        now = datetime.utcnow()
         message = {
+            "exp": now + timedelta(hours=1),
+            "iat": now,
+            "iss": application_instance.lti_registration.client_id,
+            "sub": application_instance.lti_registration.client_id,
+            "aud": application_instance.lti_registration.issuer,
+            "nonce": uuid.uuid4().hex,
             "https://purl.imsglobal.org/spec/lti/claim/deployment_id": application_instance.deployment_id,
             "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
             "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
@@ -126,7 +135,11 @@ class DeepLinkingFieldsViews:
             message["https://purl.imsglobal.org/spec/lti-dl/claim/data"] = data
 
         # In LTI1.3 there's just one `JWT` field which includes all the necessary information
-        return {"JWT": self.request.find_service(LTIAHTTPService).sign(message)}
+        return {
+            "JWT": self.request.find_service(JWTService).encode_with_private_key(
+                message
+            )
+        }
 
     @view_config(route_name="lti.v11.deep_linking.form_fields")
     def file_picker_to_form_fields_v11(self):

@@ -18,7 +18,6 @@ class TestLTIAHTTPService:
                 "aud": application_instance.lti_registration.token_url,
                 "exp": datetime(2022, 4, 4, 1, 0),
                 "iat": datetime(2022, 4, 4, 0, 0),
-                "nonce": uuid.uuid4.return_value.hex,
                 "iss": application_instance.lti_registration.client_id,
                 "sub": application_instance.lti_registration.client_id,
                 "jti": uuid.uuid4.return_value.hex,
