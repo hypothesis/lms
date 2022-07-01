@@ -176,7 +176,7 @@ class JSConfig:
             HTML form that we submit
         """
 
-        args = self._context, self._request, self._context.application_instance
+        args = self._request, self._context.application_instance
 
         self._config.update(
             {

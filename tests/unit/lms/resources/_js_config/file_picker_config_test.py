@@ -1,11 +1,9 @@
-from unittest.mock import create_autospec, sentinel
+from unittest.mock import sentinel
 
 import pytest
 from h_matchers import Any
 
-from lms.models import LTIParams
 from lms.product import Product
-from lms.resources import LTILaunchResource
 from lms.resources._js_config import FilePickerConfig
 
 
@@ -30,7 +28,7 @@ class TestFilePickerConfig:
         )
 
         config = FilePickerConfig.blackboard_config(
-            sentinel.context, pyramid_request, application_instance
+            pyramid_request, application_instance
         )
 
         expected_config = {
@@ -64,9 +62,7 @@ class TestFilePickerConfig:
         pyramid_request.lti_params["custom_canvas_course_id"] = "COURSE_ID"
         application_instance.settings.set("canvas", "groups_enabled", groups_enabled)
 
-        config = FilePickerConfig.canvas_config(
-            sentinel.context, pyramid_request, application_instance
-        )
+        config = FilePickerConfig.canvas_config(pyramid_request, application_instance)
 
         expected_config = {
             "enabled": Any(),
@@ -98,9 +94,7 @@ class TestFilePickerConfig:
         elif missing_value == "developer_key":
             application_instance.developer_key = None
 
-        config = FilePickerConfig.canvas_config(
-            sentinel.context, pyramid_request, application_instance
-        )
+        config = FilePickerConfig.canvas_config(pyramid_request, application_instance)
 
         assert config["enabled"] != missing_value
 
@@ -116,7 +110,7 @@ class TestFilePickerConfig:
             application_instance.lms_url = sentinel.origin
 
         config = FilePickerConfig.google_files_config(
-            sentinel.context, pyramid_request, application_instance
+            pyramid_request, application_instance
         )
 
         assert config == {
@@ -133,7 +127,7 @@ class TestFilePickerConfig:
         )
 
         config = FilePickerConfig.microsoft_onedrive(
-            sentinel.context, pyramid_request, application_instance
+            pyramid_request, application_instance
         )
 
         expected = {"enabled": enabled}
@@ -150,7 +144,7 @@ class TestFilePickerConfig:
         application_instance.settings.set("vitalsource", "enabled", enabled)
 
         config = FilePickerConfig.vital_source_config(
-            sentinel.context, pyramid_request, application_instance
+            pyramid_request, application_instance
         )
 
         assert config == {"enabled": enabled}
@@ -160,7 +154,7 @@ class TestFilePickerConfig:
         jstor_service.enabled = enabled
 
         config = FilePickerConfig.jstor_config(
-            sentinel.context, pyramid_request, sentinel.application_instance
+            pyramid_request, sentinel.application_instance
         )
 
         assert config == {"enabled": enabled}
@@ -168,7 +162,6 @@ class TestFilePickerConfig:
     @pytest.fixture
     @pytest.mark.usefixtures("with_is_canvas")
     def canvas_files_enabled(self, pyramid_request, application_instance):
-
         pyramid_request.params["custom_canvas_course_id"] = sentinel.course_id
         application_instance.developer_key = sentinel.developer_key
 
