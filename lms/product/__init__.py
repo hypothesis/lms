@@ -5,6 +5,14 @@ from lms.product.product import Product
 
 
 def includeme(config):
+    # Register the default plugins
+    config.include("lms.product.plugin")
+
+    # Give everyone a chance to register their plugins etc.
+    config.include("lms.product.canvas")
+    config.include("lms.product.blackboard")
+
+    # Add the `request.product` method
     config.add_request_method(
         get_product_from_request, name="product", property=True, reify=True
     )

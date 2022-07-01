@@ -4,8 +4,8 @@ import pytest
 
 from lms.models import Grouping
 from lms.product.blackboard._plugin.grouping import BlackboardGroupingPlugin, ErrorCodes
+from lms.product.plugin.grouping_service import GroupError
 from lms.services.exceptions import ExternalRequestError
-from lms.services.grouping.plugin import GroupError
 from tests import factories
 
 
@@ -94,8 +94,8 @@ class TestBlackboardGroupingPlugin:
             )
         assert err.value.error_code == ErrorCodes.GROUP_SET_EMPTY
 
-    def test_from_request(self, pyramid_request, blackboard_api_client):
-        plugin = BlackboardGroupingPlugin.from_request(pyramid_request)
+    def test_factory(self, pyramid_request, blackboard_api_client):
+        plugin = BlackboardGroupingPlugin.factory(sentinel.context, pyramid_request)
         assert isinstance(plugin, BlackboardGroupingPlugin)
         # pylint: disable=protected-access
         assert plugin._blackboard_api == blackboard_api_client

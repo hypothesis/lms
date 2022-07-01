@@ -1,9 +1,9 @@
 """Core models of the product."""
 
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from enum import Enum
 
-from lms.services.grouping.plugin import GroupingServicePlugin
+from lms.product.plugin import PluginConfig, Plugins
 
 
 class Family(str, Enum):
@@ -21,21 +21,6 @@ class Family(str, Enum):
     @classmethod
     def _missing_(cls, _value):
         return cls.UNKNOWN
-
-
-@dataclass
-class Plugins:
-    """A collection of plugins used to separate LMS specific functionality."""
-
-    grouping_service: GroupingServicePlugin
-
-
-@dataclass
-class PluginConfig:
-    """A collection of plugin class definitions."""
-
-    # These also provide the default implementations
-    grouping_service: type = GroupingServicePlugin
 
 
 @dataclass
@@ -65,9 +50,4 @@ class Product:
     def from_request(cls, request):
         """Create a populated product object from the provided request."""
 
-        plugins = {
-            name: plugin_class.from_request(request)
-            for name, plugin_class in asdict(cls.plugin_config).items()
-        }
-
-        return cls(plugin=Plugins(**plugins))
+        return cls(plugin=Plugins(request, cls.plugin_config))

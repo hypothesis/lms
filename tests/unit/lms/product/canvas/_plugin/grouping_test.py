@@ -3,8 +3,8 @@ from unittest.mock import sentinel
 import pytest
 
 from lms.product.canvas._plugin.grouping import CanvasGroupingPlugin, ErrorCodes
+from lms.product.plugin.grouping_service import GroupError
 from lms.services import CanvasAPIError
-from lms.services.grouping.plugin import GroupError
 from tests import factories
 
 
@@ -126,8 +126,8 @@ class TestCanvasGroupingPlugin:
         )
         assert canvas_api_client.user_groups.return_value == api_groups
 
-    def test_from_request(self, pyramid_request, canvas_api_client):
-        plugin = CanvasGroupingPlugin.from_request(pyramid_request)
+    def test_factory(self, pyramid_request, canvas_api_client):
+        plugin = CanvasGroupingPlugin.factory(sentinel.context, pyramid_request)
         assert isinstance(plugin, CanvasGroupingPlugin)
         # pylint: disable=protected-access
         assert plugin._canvas_api == canvas_api_client

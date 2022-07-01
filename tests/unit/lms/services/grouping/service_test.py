@@ -5,8 +5,8 @@ import pytest
 from h_matchers import Any
 
 from lms.models import CanvasGroup, Course, Grouping, GroupingMembership
+from lms.product.plugin.grouping_service import GroupingServicePlugin
 from lms.services.grouping import GroupingService
-from lms.services.grouping.plugin import GroupingServicePlugin
 from tests import factories
 
 

@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from unittest import mock
 
 import httpretty
@@ -81,6 +82,14 @@ def lti_v13_params():
             "canvas_api_domain": "hypothesis.instructure.com",
         },
     }
+
+
+@pytest.fixture
+def with_plugins(pyramid_request, mock_service):
+    # Ensure that when plugins are read from the current product, all of its
+    # plugins are mocked and ready to be looked up
+    for plugin_class in asdict(pyramid_request.product.plugin_config).values():
+        mock_service(plugin_class)
 
 
 @pytest.fixture
