@@ -147,7 +147,7 @@ class TestGroupSetId:
 
     @pytest.fixture(autouse=True)
     def pyramid_request(self, pyramid_request):
-        pyramid_request.parsed_params = {
+        pyramid_request.lti_params = {
             "tool_consumer_instance_guid": "test_tool_consumer_instance_guid"
         }
         return pyramid_request
@@ -171,16 +171,6 @@ class TestGroupingType:
             group_set_id=group_set_id,
         ):
             assert lti_launch.grouping_type == expected
-
-
-class TestLTIParams:
-    def test_it_when_lti_jwt(self, lti_launch):
-        assert lti_launch.lti_params == mock.sentinel.lti_params
-
-    @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.lti_params = mock.sentinel.lti_params
-        return pyramid_request
 
 
 @pytest.fixture
