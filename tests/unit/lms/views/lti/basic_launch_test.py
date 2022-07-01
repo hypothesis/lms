@@ -344,7 +344,7 @@ class TestBasicLaunchViews:
         return pyramid_request
 
     @pytest.fixture
-    def context(self, pyramid_request):
+    def context(self):
         context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
         context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
         context.is_canvas = False

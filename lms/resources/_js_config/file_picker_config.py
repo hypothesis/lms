@@ -1,5 +1,7 @@
+from lms.product import Product
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
+from lms.product import Product
 from lms.services import JSTORService
 
 
@@ -41,10 +43,10 @@ class FilePickerConfig:
         return config
 
     @classmethod
-    def canvas_config(cls, context, request, application_instance):
+    def canvas_config(cls, _context, request, application_instance):
         """Get Canvas files config."""
 
-        enabled = context.is_canvas and (
+        enabled = (request.product.family == Product.Family.CANVAS) and (
             "custom_canvas_course_id" in request.lti_params
             and application_instance.developer_key is not None
         )
