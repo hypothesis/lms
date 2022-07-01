@@ -1,4 +1,4 @@
-from unittest.mock import Mock, call, sentinel
+from unittest.mock import call, sentinel
 
 import pytest
 import requests
@@ -243,9 +243,6 @@ class TestErrorBody:
         # exception that was raised by the original view:
         # https://docs.pylonsproject.org/projects/pyramid/en/latest/api/request.html#pyramid.request.Request.exception
         pyramid_request.exception = ValueError()
-
-        pyramid_request.matched_route = Mock(spec_set=["name"])
-
         return pyramid_request
 
     @pytest.fixture
