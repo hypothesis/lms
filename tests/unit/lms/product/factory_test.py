@@ -1,5 +1,5 @@
 from contextlib import ExitStack
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -37,6 +37,17 @@ class TestGetProductFromRequest:
         assert product == class_.from_request.return_value
         assert product.family == family
 
+    @pytest.mark.parametrize(
+        "route_name,family",
+        [
+            ("canvas_api.endpoint", Product.Family.CANVAS),
+            ("blackboard_api.endpoint", Product.Family.BLACKBOARD),
+        ],
+    )
+    def test_from_request_route_name(self, pyramid_request, route_name, family):
+        pyramid_request.matched_route.name = route_name
+        assert get_product_from_request(pyramid_request).family == family
+
     @pytest.mark.parametrize("value,family,class_", PRODUCT_MAP)
     def test_from_request_api(self, pyramid_request, value, family, class_):
         pyramid_request.content_type = "application/json"
@@ -68,3 +79,9 @@ class TestGetProductFromRequest:
             ]
 
             yield from_requests
+
+    @pytest.fixture()
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.matched_route = Mock(spec_set=["name"])
+        pyramid_request.matched_route.name = "some.route"
+        return pyramid_request

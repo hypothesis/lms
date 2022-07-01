@@ -112,9 +112,7 @@ class TestAddDocumentURL:
         via_url.assert_called_once_with(pyramid_request, "example_document_url")
         assert js_config.asdict()["viaUrl"] == via_url.return_value
 
-    def test_it_adds_the_viaUrl_api_config_for_Blackboard_documents(
-        self, js_config, pyramid_request
-    ):
+    def test_it_adds_the_viaUrl_api_config_for_Blackboard_documents(self, js_config):
         js_config.add_document_url("blackboard://content-resource/xyz123")
 
         assert js_config.asdict()["api"]["viaUrl"] == {

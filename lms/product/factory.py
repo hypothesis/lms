@@ -19,7 +19,7 @@ def _get_family(request):
     if request.matched_route.name.startswith("canvas_api."):
         return Product.Family.CANVAS
 
-    if request.matched_route.name.startswith("blackboard_api.."):
+    if request.matched_route.name.startswith("blackboard_api."):
         return Product.Family.BLACKBOARD
 
     # If we are in an API request, where we are forwarding the product type ourselves
