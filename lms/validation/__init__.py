@@ -44,7 +44,6 @@ suitable validation schema's ``__init__()`` method and then call the schema's
         ...
 """
 from lms.validation._api import (
-    APIBlackboardSyncSchema,
     APIReadResultSchema,
     APIRecordResultSchema,
     APIRecordSpeedgraderSchema,

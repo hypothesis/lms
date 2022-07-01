@@ -1,7 +1,6 @@
 """Schema for JSON APIs exposed to the frontend."""
 
 import marshmallow
-from marshmallow import INCLUDE, Schema
 from webargs import fields
 
 from lms.validation._base import JSONPyramidRequestSchema, PyramidRequestSchema
@@ -81,27 +80,3 @@ class APIRecordResultSchema(JSONPyramidRequestSchema):
     """
     Score — i.e. grade — for this submission. A value between 0 and 1, inclusive.
     """
-
-
-class APIBlackboardSyncSchema(PyramidRequestSchema):
-    class LMS(Schema):
-        tool_consumer_instance_guid = fields.Str(required=True)
-        product = fields.Str(required=True)
-
-    class Course(Schema):
-        context_id = fields.Str(required=True)
-
-    class Assignment(Schema):
-        resource_link_id = fields.Str(required=True)
-        group_set_id = fields.Str(required=False, allow_none=True)
-
-    class GroupInfo(Schema):
-        class Meta:
-            unknown = INCLUDE
-
-    lms = fields.Nested(LMS, required=True)
-    course = fields.Nested(Course, required=True)
-    assignment = fields.Nested(Assignment, required=True)
-    group_info = fields.Nested(GroupInfo, required=True)
-
-    gradingStudentId = fields.Str(required=False, allow_none=True)
