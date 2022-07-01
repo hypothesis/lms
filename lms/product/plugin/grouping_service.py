@@ -62,10 +62,6 @@ class GroupingServicePlugin:  # pragma: nocover
 
         return None
 
-    @classmethod
-    def from_request(cls, request):
-        return cls()
-
 
 class GroupError(Exception):
     """Exceptions raised by plugins."""

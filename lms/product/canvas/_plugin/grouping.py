@@ -1,8 +1,8 @@
 from enum import Enum
 
 from lms.models import Grouping
+from lms.product.plugin.grouping_service import GroupError, GroupingServicePlugin
 from lms.services.exceptions import CanvasAPIError
-from lms.services.grouping.plugin import GroupError, GroupingServicePlugin
 
 
 class ErrorCodes(str, Enum):
@@ -18,10 +18,6 @@ class CanvasGroupingPlugin(GroupingServicePlugin):
 
     group_type = Grouping.Type.CANVAS_GROUP
     sections_type = Grouping.Type.CANVAS_SECTION
-
-    @classmethod
-    def from_request(cls, request):
-        return cls(request.find_service(name="canvas_api_client"))
 
     def __init__(self, canvas_api):
         self._canvas_api = canvas_api
@@ -84,3 +80,7 @@ class CanvasGroupingPlugin(GroupingServicePlugin):
 
     def _custom_course_id(self, course):
         return course.extra["canvas"]["custom_canvas_course_id"]
+
+    @classmethod
+    def factory(cls, _context, request):
+        return cls(request.find_service(name="canvas_api_client"))

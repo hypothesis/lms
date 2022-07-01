@@ -1,8 +1,8 @@
 from enum import Enum
 
 from lms.models import Grouping
+from lms.product.plugin.grouping_service import GroupError, GroupingServicePlugin
 from lms.services.exceptions import ExternalRequestError
-from lms.services.grouping.plugin import GroupError, GroupingServicePlugin
 
 
 class ErrorCodes(str, Enum):
@@ -18,10 +18,6 @@ class BlackboardGroupingPlugin(GroupingServicePlugin):
 
     group_type = Grouping.Type.BLACKBOARD_GROUP
     sections_type = None  # We don't support sections in Blackboard
-
-    @classmethod
-    def from_request(cls, request):
-        return cls(request.find_service(name="blackboard_api_client"))
 
     def __init__(self, blackboard_api):
         self._blackboard_api = blackboard_api
@@ -56,3 +52,7 @@ class BlackboardGroupingPlugin(GroupingServicePlugin):
             raise GroupError(ErrorCodes.GROUP_SET_EMPTY, group_set=group_set_id)
 
         return groups
+
+    @classmethod
+    def factory(cls, _context, request):
+        return cls(request.find_service(name="blackboard_api_client"))

@@ -5,7 +5,7 @@ import pytest
 from lms.services.grouping.factory import service_factory
 
 
-@pytest.mark.usefixtures("application_instance_service")
+@pytest.mark.usefixtures("application_instance_service", "with_plugins")
 class TestFactory:
     def test_it(self, pyramid_request, application_instance_service, GroupingService):
         svc = service_factory(sentinel.context, pyramid_request)

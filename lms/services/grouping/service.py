@@ -5,7 +5,7 @@ from sqlalchemy.orm import aliased
 
 from lms.models import Course, Grouping, GroupingMembership, LTIUser, User
 from lms.models._hashed_id import hashed_id
-from lms.services.grouping.plugin import GroupingServicePlugin
+from lms.product.plugin.grouping_service import GroupingServicePlugin
 from lms.services.upsert import bulk_upsert
 
 
