@@ -63,8 +63,7 @@ class TestFilePickerMode:
         config_provider = getattr(FilePickerConfig, config_function)
         assert config["filePicker"][key] == config_provider.return_value
         config_provider.assert_called_once_with(
-            pyramid_request,
-            context.application_instance,
+            pyramid_request, context.application_instance
         )
 
     @pytest.fixture(autouse=True)
@@ -159,7 +158,7 @@ class TestAddDocumentURL:
 
 class TestAddCanvasSpeedgraderSettings:
     @pytest.mark.parametrize("group_set", (sentinel.group_set, None))
-    def test_it(self, js_config, pyramid_request, context, group_set):
+    def test_it(self, js_config, pyramid_request, group_set):
         pyramid_request.feature.return_value = False
         if group_set:
             pyramid_request.params["group_set"] = group_set
@@ -172,9 +171,13 @@ class TestAddCanvasSpeedgraderSettings:
             "group_set": group_set,
             "document_url": sentinel.document_url,
             "resource_link_id": pyramid_request.params["resource_link_id"],
-            "lis_result_sourcedid": context.lti_params["lis_result_sourcedid"],
-            "lis_outcome_service_url": context.lti_params["lis_outcome_service_url"],
-            "learner_canvas_user_id": context.lti_params["custom_canvas_user_id"],
+            "lis_result_sourcedid": pyramid_request.lti_params["lis_result_sourcedid"],
+            "lis_outcome_service_url": pyramid_request.lti_params[
+                "lis_outcome_service_url"
+            ],
+            "learner_canvas_user_id": pyramid_request.lti_params[
+                "custom_canvas_user_id"
+            ],
         }
         assert not config.get("hypothesisClient")
 
@@ -196,7 +199,7 @@ class TestAddCanvasSpeedgraderSettings:
 
 
 class TestEnableGradingBar:
-    def test_it(self, js_config, context, grading_info_service):
+    def test_it(self, js_config, context, pyramid_request, grading_info_service):
         js_config.enable_grading_bar()
 
         grading_info_service.get_by_assignment.assert_called_once_with(
@@ -207,8 +210,8 @@ class TestEnableGradingBar:
 
         assert js_config.asdict()["grading"] == {
             "enabled": True,
-            "courseName": context.lti_params["context_title"],
-            "assignmentName": context.lti_params["resource_link_title"],
+            "courseName": pyramid_request.lti_params["context_title"],
+            "assignmentName": pyramid_request.lti_params["resource_link_title"],
             "students": [
                 {
                     "userid": f"acct:{grading_info.h_username}@TEST_AUTHORITY",
@@ -229,10 +232,10 @@ class TestEnableGradingBar:
         return grading_info_service
 
     @pytest.fixture(autouse=True)
-    def context(self, context):
-        context.lti_params["resource_link_title"] = "test_assignment_name"
+    def pyramid_request(self, pyramid_request):
+        pyramid_request.lti_params["resource_link_title"] = "test_assignment_name"
 
-        return context
+        return pyramid_request
 
 
 class TestSetFocusedUser:
@@ -473,8 +476,8 @@ class TestEnableOAuth2RedirectErrorMode:
 
 
 class TestAddDeepLinkingAPI:
-    def test_it_adds_deep_linking_v11(self, js_config, context):
-        context.lti_params = {
+    def test_it_adds_deep_linking_v11(self, js_config, pyramid_request):
+        pyramid_request.lti_params = {
             "content_item_return_url": sentinel.content_item_return_url,
         }
 
@@ -489,8 +492,8 @@ class TestAddDeepLinkingAPI:
         }
 
     @pytest.mark.usefixtures("with_lti_13")
-    def test_it_adds_deep_linking_v13(self, js_config, context):
-        context.lti_params = {
+    def test_it_adds_deep_linking_v13(self, js_config, pyramid_request):
+        pyramid_request.lti_params = {
             "deep_linking_settings": sentinel.deep_linking_settings,
             "content_item_return_url": sentinel.content_item_return_url,
         }
@@ -561,7 +564,7 @@ def config(js_config):
 
 
 @pytest.fixture
-def context(pyramid_request, application_instance):
+def context(application_instance):
     return create_autospec(
         LTILaunchResource,
         spec_set=True,
@@ -570,7 +573,6 @@ def context(pyramid_request, application_instance):
         sections_enabled=False,
         grouping_type=Grouping.Type.COURSE,
         course=create_autospec(Grouping, instance=True, spec_set=True),
-        lti_params=pyramid_request.lti_params,
         application_instance=application_instance,
     )
 

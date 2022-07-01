@@ -55,7 +55,7 @@ class JSConfig:
                 "authUrl": self._request.route_url(Blackboard.route.oauth2_authorize),
                 "path": self._request.route_path(
                     "blackboard_api.files.via_url",
-                    course_id=self._context.lti_params["context_id"],
+                    course_id=self._request.lti_params["context_id"],
                     _query={"document_url": document_url},
                 ),
             }
@@ -64,7 +64,7 @@ class JSConfig:
                 "authUrl": self._request.route_url(Canvas.route.oauth2_authorize),
                 "path": self._request.route_path(
                     "canvas_api.files.via_url",
-                    resource_link_id=self._context.lti_params["resource_link_id"],
+                    resource_link_id=self._request.lti_params["resource_link_id"],
                 ),
             }
         elif document_url.startswith("vitalsource://"):
@@ -212,7 +212,7 @@ class JSConfig:
         config = {
             "path": self._request.route_path("lti.v11.deep_linking.form_fields"),
             "data": {
-                "content_item_return_url": self._context.lti_params[
+                "content_item_return_url": self._request.lti_params[
                     "content_item_return_url"
                 ],
             },
@@ -221,7 +221,7 @@ class JSConfig:
             config["path"] = self._request.route_path(
                 "lti.v13.deep_linking.form_fields"
             )
-            config["data"]["deep_linking_settings"] = self._context.lti_params.get(
+            config["data"]["deep_linking_settings"] = self._request.lti_params.get(
                 "deep_linking_settings"
             )
 
@@ -237,8 +237,8 @@ class JSConfig:
 
         grading_infos = self._grading_info_service.get_by_assignment(
             application_instance=self._context.application_instance,
-            context_id=self._context.lti_params.get("context_id"),
-            resource_link_id=self._context.lti_params.get("resource_link_id"),
+            context_id=self._request.lti_params.get("context_id"),
+            resource_link_id=self._request.lti_params.get("resource_link_id"),
         )
 
         for grading_info in grading_infos:
@@ -258,8 +258,8 @@ class JSConfig:
 
         self._config["grading"] = {
             "enabled": True,
-            "courseName": self._context.lti_params.get("context_title"),
-            "assignmentName": self._context.lti_params.get("resource_link_title"),
+            "courseName": self._request.lti_params.get("context_title"),
+            "assignmentName": self._request.lti_params.get("resource_link_title"),
             "students": students,
         }
 
@@ -291,7 +291,7 @@ class JSConfig:
         :raise HTTPBadRequest: if a request param needed to generate the config
             is missing
         """
-        lti_params = self._context.lti_params
+        lti_params = self._request.lti_params
 
         self._config["canvas"]["speedGrader"] = {
             "submissionParams": {
@@ -451,7 +451,7 @@ class JSConfig:
                 "group_set_id": self._context.group_set_id,
                 "group_info": {
                     key: value
-                    for key, value in self._context.lti_params.items()
+                    for key, value in self._request.lti_params.items()
                     if key in GroupInfo.columns()
                 },
                 # The student we are currently grading. In the case of Canvas
