@@ -25,7 +25,7 @@ class TestDeepLinkingLaunch:
         deep_linking_launch(context, pyramid_request)
 
         context.application_instance.update_lms_data.assert_called_once_with(
-            context.lti_params
+            pyramid_request.lti_params
         )
         lti_h_service.sync.assert_called_once_with(
             [context.course], pyramid_request.params

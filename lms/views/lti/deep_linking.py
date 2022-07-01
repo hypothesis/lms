@@ -61,7 +61,7 @@ from lms.validation._base import JSONPyramidRequestSchema
 )
 def deep_linking_launch(context, request):
     """Handle deep linking launches."""
-    context.application_instance.update_lms_data(context.lti_params)
+    context.application_instance.update_lms_data(request.lti_params)
 
     request.find_service(name="lti_h").sync([context.course], request.params)
 
