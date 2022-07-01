@@ -145,7 +145,7 @@ bddtests: python
 PIP_COMPILE := pyenv exec pip-compile
 
 requirements/%.txt: requirements/%.in
-	$(PIP_COMPILE) --allow-unsafe --quiet $(PIP_COMPILE_FLAGS) $<
+	$(PIP_COMPILE) --allow-unsafe --generate-hashes --quiet $(PIP_COMPILE_FLAGS) $<
 
 requirements/dev.txt: requirements/requirements.txt
 requirements/tests.txt: requirements/requirements.txt
