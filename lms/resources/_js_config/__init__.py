@@ -51,7 +51,6 @@ class JSConfig:
         if document_url.startswith("blackboard://"):
             self._config["api"]["viaUrl"] = {
                 "authUrl": self._request.route_url("blackboard_api.oauth.authorize"),
-                "product": self._request.product.family,
                 "path": self._request.route_path(
                     "blackboard_api.files.via_url",
                     course_id=self._context.lti_params["context_id"],
@@ -61,7 +60,6 @@ class JSConfig:
         elif document_url.startswith("canvas://"):
             self._config["api"]["viaUrl"] = {
                 "authUrl": self._request.route_url("canvas_api.oauth.authorize"),
-                "product": self._request.product.family,
                 "path": self._request.route_path(
                     "canvas_api.files.via_url",
                     resource_link_id=self._context.lti_params["resource_link_id"],
@@ -123,7 +121,6 @@ class JSConfig:
                 "mode": JSConfig.Mode.OAUTH2_REDIRECT_ERROR,
                 "OAuth2RedirectError": {
                     "authUrl": auth_url,
-                    "product": self._request.product.family,
                     "errorCode": error_code,
                     "canvasScopes": canvas_scopes or [],
                 },
