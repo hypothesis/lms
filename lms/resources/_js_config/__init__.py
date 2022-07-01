@@ -448,7 +448,9 @@ class JSConfig:
                     "product": self._request.product.family,
                 },
                 "context_id": self._request.lti_params["context_id"],
-                "group_set_id": self._context.group_set_id,
+                "group_set_id": self._request.find_service(
+                    name="grouping"
+                ).get_group_set_id(),
                 "group_info": {
                     key: value
                     for key, value in self._request.lti_params.items()

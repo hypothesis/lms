@@ -71,34 +71,6 @@ class LTILaunchResource:
         return self.course.settings.get("canvas", "sections_enabled")
 
     @property
-    def group_set_id(self):
-        """
-        Get the group set ID for group launches.
-
-        A course can be divided in multiple "small groups" but it's possible to
-        have different sets of groups for the same course.
-
-        This ID identifies a collection of groups.
-        """
-        if self._request.product.family == Product.Family.CANVAS:
-            # For canvas we add parameter to the launch URL as we don't store the
-            # assignment during deep linking.
-            return self._request.params.get("group_set")
-
-        if self._request.product.family == Product.Family.BLACKBOARD:
-            # In blackboard we store the configuration details in the DB
-            tool_consumer_instance_guid = self._request.lti_params[
-                "tool_consumer_instance_guid"
-            ]
-            assignment = self._request.find_service(name="assignment").get_assignment(
-                tool_consumer_instance_guid,
-                self._request.lti_params.get("resource_link_id"),
-            )
-            return assignment.extra.get("group_set_id") if assignment else None
-
-        return None
-
-    @property
     def grouping_type(self) -> Grouping.Type:
         """
         Return the type of grouping used in this launch.
@@ -106,7 +78,7 @@ class LTILaunchResource:
         Grouping types describe how the course members are divided.
         If neither of the LMS grouping features are used "COURSE" is the default.
         """
-        if bool(self.group_set_id):
+        if self._request.find_service(name="grouping").get_group_set_id():
             return Grouping.Type.GROUP
 
         if self.sections_enabled:

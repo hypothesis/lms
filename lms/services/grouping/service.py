@@ -10,8 +10,11 @@ from lms.services.upsert import bulk_upsert
 
 
 class GroupingService:
-    def __init__(self, db, application_instance, plugin: GroupingServicePlugin):
+    def __init__(
+        self, db, request, application_instance, plugin: GroupingServicePlugin
+    ):
         self._db = db
+        self._request = request
         self.application_instance = application_instance
         self.plugin = plugin
 
@@ -169,6 +172,24 @@ class GroupingService:
             groupings = self.plugin.get_sections_for_instructor(self, course)
 
         return self._to_groupings(user, groupings, course, self.plugin.sections_type)
+
+    def get_group_set_id(self):
+        """
+        Get the group set ID for group launches if any.
+
+        A course can be divided in multiple "small groups" but it's possible to
+        have different sets of groups for the same course.
+        """
+        if self.plugin.deep_linking:
+            return self._request.params.get("group_set")
+
+        if assignment := self._request.find_service(name="assignment").get_assignment(
+            self._request.lti_params["tool_consumer_instance_guid"],
+            self._request.lti_params.get("resource_link_id"),
+        ):
+            return assignment.extra.get("group_set_id")
+
+        return None
 
     # pylint:disable=too-many-arguments
     def get_groups(

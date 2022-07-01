@@ -4,6 +4,7 @@ from lms.services.grouping.service import GroupingService
 def service_factory(_context, request):
     return GroupingService(
         db=request.db,
+        request=request,
         application_instance=request.find_service(
             name="application_instance"
         ).get_current(),

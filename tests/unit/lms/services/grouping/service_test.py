@@ -318,6 +318,33 @@ class TestGetCourseGroupingsForUser:
         return make_grouping
 
 
+class TestGetGroupSetId:
+    @pytest.mark.parametrize("group_set", ("123", None))
+    def test_it_with_deeplinking(self, svc, pyramid_request, group_set):
+        svc.plugin.deep_linking = True
+        if group_set:
+            pyramid_request.params["group_set"] = group_set
+
+        assert svc.get_group_set_id() == group_set
+
+    def test_it_with_assignment_configuration(
+        self, svc, pyramid_request, assignment_service
+    ):
+        svc.plugin.deep_linking = False
+        pyramid_request.lti_params["tool_consumer_instance_guid"] = sentinel.guid
+        pyramid_request.lti_params["resource_link_id"] = sentinel.resource_link_id
+        assignment_service.get_assignment.return_value.extra = {
+            "group_set_id": sentinel.group_set_id
+        }
+
+        result = svc.get_group_set_id()
+
+        assignment_service.get_assignment.assert_called_once_with(
+            sentinel.guid, sentinel.resource_link_id
+        )
+        assert result == sentinel.group_set_id
+
+
 class TestGetGroupings:
     def test_get_sections_when_not_supported(self, lti_user, course, svc):
         svc.plugin.sections_type = None
@@ -497,9 +524,10 @@ def user():
 
 
 @pytest.fixture
-def svc(db_session, application_instance):
+def svc(db_session, pyramid_request, application_instance):
     return GroupingService(
-        db_session,
-        application_instance,
+        db=db_session,
+        request=pyramid_request,
+        application_instance=application_instance,
         plugin=create_autospec(GroupingServicePlugin, spec_set=True, instance=True),
     )
