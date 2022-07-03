@@ -78,6 +78,7 @@ test: backend-tests frontend-tests
 # we need to run them with different Docker images, but `make test` runs both.
 .PHONY: backend-tests
 backend-tests: python
+	@bin/create-db lms_test
 	@tox -qe tests
 
 .PHONY: coverage
@@ -97,6 +98,7 @@ functests: build/manifest.json functests-only
 
 .PHONY: functests-only
 functests-only: python
+	@bin/create-db lms_functests
 	@tox -qe functests
 
 .PHONY: docker
@@ -140,6 +142,7 @@ frontend-lint: node_modules/.uptodate
 
 .PHONY: bddtests
 bddtests: python
+	@bin/create-db lms_bddtests
 	@tox -qe bddtests
 
 .PHONY: sure
