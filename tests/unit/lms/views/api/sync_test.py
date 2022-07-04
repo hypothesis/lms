@@ -39,11 +39,8 @@ class TestSync:
         lti_h_service.sync.assert_called_once_with(
             grouping_method.return_value, sentinel.group_info
         )
-        assignment_service.get_assignment_by_id.assert_called_once_with(
-            sentinel.assignment_id
-        )
         assignment_service.upsert_assignment_groupings(
-            assignment=assignment_service.get_assignment_by_id.return_value,
+            assignment_id=sentinel.assignment_id,
             groupings=grouping_method.return_value,
         )
 
