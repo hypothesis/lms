@@ -20,11 +20,6 @@ class AssignmentService:
     def __init__(self, db: Session):
         self._db = db
 
-    def get_assignment_by_id(self, assignment_id) -> Assignment:
-        """Get an assignment by id."""
-
-        return self._db.query(Assignment).get(assignment_id)
-
     def get_assignment(self, tool_consumer_instance_guid, resource_link_id):
         """Get an assignment by resource_link_id."""
 
@@ -102,7 +97,7 @@ class AssignmentService:
         )
 
     def upsert_assignment_groupings(
-        self, assignment: Assignment, groupings: List[Grouping]
+        self, assignment_id, groupings: List[Grouping]
     ) -> List[AssignmentGrouping]:
         """Store details of any groups and courses an assignment is in."""
 
@@ -110,7 +105,7 @@ class AssignmentService:
         self._db.flush()
 
         values = [
-            {"assignment_id": assignment.id, "grouping_id": grouping.id}
+            {"assignment_id": assignment_id, "grouping_id": grouping.id}
             for grouping in groupings
         ]
 

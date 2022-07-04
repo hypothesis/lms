@@ -186,7 +186,7 @@ class BasicLaunchViews:
         )
         # Store the relationship between the assignment and the course
         self.assignment_service.upsert_assignment_groupings(
-            assignment=assignment, groupings=[self.context.course]
+            assignment_id=assignment.id, groupings=[self.context.course]
         )
 
         return assignment

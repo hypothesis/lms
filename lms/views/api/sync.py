@@ -55,12 +55,8 @@ def sync(request):
     )
 
     # Store the relationship between the assignment and the groupings
-    assignment_service = request.find_service(name="assignment")
-    assignment_service.upsert_assignment_groupings(
-        assignment=assignment_service.get_assignment_by_id(
-            request.parsed_params["assignment_id"]
-        ),
-        groupings=groupings,
+    request.find_service(name="assignment").upsert_assignment_groupings(
+        assignment_id=request.parsed_params["assignment_id"], groupings=groupings
     )
 
     authority = request.registry.settings["h_authority"]

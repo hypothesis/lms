@@ -10,15 +10,6 @@ from tests import factories
 
 
 class TestAssignmentService:
-    def test_get_assignment_by_id(self, svc, db_session, assignment):
-        db_session.add(assignment)
-        db_session.flush()
-
-        assert svc.get_assignment_by_id(assignment.id) == assignment
-
-    def test_get_assignment_by_id_without_match(self, svc):
-        assert not svc.get_assignment_by_id(123456789)
-
     def test_get_assignment(self, svc, assignment, matching_params):
         assert svc.get_assignment(**matching_params) == assignment
 
@@ -96,14 +87,15 @@ class TestAssignmentService:
             ).only()
         )
 
-    def test_upsert_assignment_grouping(self, svc, assignment):
+    def test_upsert_assignment_grouping(self, svc, assignment, db_session):
         groupings = factories.CanvasGroup.create_batch(3)
         # One existing row
         factories.AssignmentGrouping.create(
             assignment=assignment, grouping=groupings[0]
         )
+        db_session.flush()
 
-        refs = svc.upsert_assignment_groupings(assignment, groupings)
+        refs = svc.upsert_assignment_groupings(assignment.id, groupings)
 
         assert refs == Any.list.containing(
             [
