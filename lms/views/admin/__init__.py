@@ -4,7 +4,11 @@ from pyramid.view import forbidden_view_config, notfound_view_config, view_confi
 
 @forbidden_view_config(path_info="/admin/*")
 def logged_out(request):
-    return HTTPFound(location=request.route_url("pyramid_googleauth.login"))
+    return HTTPFound(
+        location=request.route_url(
+            "pyramid_googleauth.login", _query={"next": request.url}
+        ),
+    )
 
 
 @notfound_view_config(path_info="/admin/*", append_slash=True)

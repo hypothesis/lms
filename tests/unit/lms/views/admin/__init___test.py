@@ -8,7 +8,9 @@ def test_logged_out_redirects_to_login(pyramid_request):
     assert response.status_code == 302
 
     assert response == temporary_redirect_to(
-        pyramid_request.route_url("pyramid_googleauth.login")
+        pyramid_request.route_url(
+            "pyramid_googleauth.login", _query={"next": pyramid_request.url}
+        )
     )
 
 
