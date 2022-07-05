@@ -26,20 +26,36 @@ class LTILaunchResource:
         """Return the context resource for an LTI launch request."""
         self._request = request
 
-    @cached_property
-    def course(self):
-        """Get the course this LTI launch based on the request's params."""
-
-        return self._request.find_service(name="course").upsert_course(
-            context_id=self._request.parsed_params["context_id"],
-            name=self._request.parsed_params["context_title"],
-            extra=self._course_extra(),
-        )
-
     @property
     def application_instance(self):
         """Return the current request's ApplicationInstance."""
         return self._request.find_service(name="application_instance").get_current()
+
+    @cached_property
+    def course(self):
+        """Get the course this LTI launch based on the request's params."""
+
+        extra = {}
+        if self._request.product.family == Product.Family.CANVAS:
+            extra = {
+                "canvas": {
+                    "custom_canvas_course_id": self._request.parsed_params.get(
+                        "custom_canvas_course_id"
+                    )
+                }
+            }
+
+        return self._request.find_service(name="course").upsert_course(
+            context_id=self._request.parsed_params["context_id"],
+            name=self._request.parsed_params["context_title"],
+            extra=extra,
+        )
+
+    @property
+    def grouping_type(self) -> Grouping.Type:
+        """Get the type of grouping used in this launch."""
+
+        return self._request.find_service(name="grouping").get_grouping_type()
 
     @property
     def is_canvas(self):
@@ -49,24 +65,3 @@ class LTILaunchResource:
     @cached_property
     def js_config(self):
         return JSConfig(self, self._request)
-
-    @property
-    def grouping_type(self) -> Grouping.Type:
-        """Get the type of grouping used in this launch."""
-
-        return self._request.find_service(name="grouping").get_grouping_type()
-
-    def _course_extra(self):
-        """Extra information to store for courses."""
-        extra = {}
-
-        if self.is_canvas:
-            extra = {
-                "canvas": {
-                    "custom_canvas_course_id": self._request.parsed_params.get(
-                        "custom_canvas_course_id"
-                    )
-                }
-            }
-
-        return extra
