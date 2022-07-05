@@ -43,6 +43,7 @@ class BasicLaunchViews:
     def __init__(self, context, request):
         self.context = context
         self.request = request
+        self.plugin = self.request.product.plugin.lti_launch
         self.assignment_service: AssignmentService = request.find_service(
             name="assignment"
         )
@@ -221,7 +222,11 @@ class BasicLaunchViews:
             if focused_user := self.request.params.get("focused_user"):
                 self.context.js_config.set_focused_user(focused_user)
 
-        elif assignment_gradable and self.request.lti_user.is_instructor:
+        if (
+            self.plugin.supports_grading_bar
+            and assignment_gradable
+            and self.request.lti_user.is_instructor
+        ):
             # Only show the grading interface to teachers who aren't in Canvas,
             # as Canvas uses its own built in Speedgrader
 
@@ -242,10 +247,7 @@ class BasicLaunchViews:
             self.request.lti_params.get("oauth_consumer_key"),
         )
 
-        if (
-            not self.request.lti_user.is_instructor
-            and self.request.product.family != Product.Family.CANVAS
-        ):
+        if self.plugin.supports_grading_bar and not self.request.lti_user.is_instructor:
             # Create or update a record of LIS result data for a student launch
             self.request.find_service(name="grading_info").upsert_from_request(
                 self.request

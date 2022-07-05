@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from lms.product.canvas._plugin.course_service import CanvasCoursePlugin
 from lms.product.canvas._plugin.grouping import CanvasGroupingPlugin
+from lms.product.canvas._plugin.lti_launch import CanvasLTILaunchPlugin
 from lms.product.product import PluginConfig, Product, Routes
 
 
@@ -17,5 +18,7 @@ class Canvas(Product):
     )
 
     plugin_config: PluginConfig = PluginConfig(
-        grouping_service=CanvasGroupingPlugin, course_service=CanvasCoursePlugin
+        grouping_service=CanvasGroupingPlugin,
+        course_service=CanvasCoursePlugin,
+        lti_launch=CanvasLTILaunchPlugin,
     )

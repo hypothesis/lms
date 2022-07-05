@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from lms.product.plugin.course_service import CourseServicePlugin
 from lms.product.plugin.grouping_service import GroupingServicePlugin
+from lms.product.plugin.lti_launch import LTILaunchPlugin
 
 
 @dataclass
@@ -11,6 +12,7 @@ class PluginConfig:
     # These also provide the default implementations
     grouping_service: type = GroupingServicePlugin
     course_service: type = CourseServicePlugin
+    lti_launch: type = LTILaunchPlugin
 
 
 class Plugins:
@@ -31,6 +33,7 @@ class Plugins:
 
     grouping_service: GroupingServicePlugin = _LazyPlugin()
     course_service: CourseServicePlugin = _LazyPlugin()
+    lti_launch: LTILaunchPlugin = _LazyPlugin()
 
     def __init__(self, request, plugin_config: PluginConfig):
         self._request = request
