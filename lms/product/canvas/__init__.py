@@ -14,5 +14,5 @@ def includeme(config):  # pragma: nocover
         CanvasCoursePlugin.factory, iface=CanvasCoursePlugin
     )
     config.register_service_factory(
-        CanvasLTILaunchPlugin(), iface=CanvasLTILaunchPlugin
+        CanvasLTILaunchPlugin.factory, iface=CanvasLTILaunchPlugin
     )
