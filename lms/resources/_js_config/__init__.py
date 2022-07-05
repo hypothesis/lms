@@ -263,62 +263,6 @@ class JSConfig:
             "students": students,
         }
 
-    def set_focused_user(self, focused_user):
-        """Configure the client to only show one users' annotations."""
-        self._hypothesis_client["focus"] = {"user": {"username": focused_user}}
-
-        # Unfortunately we need to pass the user's current display name to the
-        # Hypothesis client, and we need to make a request to the h API to
-        # retrieve that display name.
-        try:
-            display_name = (
-                self._request.find_service(name="h_api")
-                .get_user(focused_user)
-                .display_name
-            )
-        except HAPIError:
-            display_name = "(Couldn't fetch student name)"
-
-        self._hypothesis_client["focus"]["user"]["displayName"] = display_name
-
-    def add_canvas_speedgrader_settings(self, document_url):
-        """
-        Add config for students to record submissions with Canvas Speedgrader.
-
-        This adds the config to call our `record_canvas_speedgrader_submission`
-        API.
-
-        :raise HTTPBadRequest: if a request param needed to generate the config
-            is missing
-        """
-        lti_params = self._request.lti_params
-
-        self._config["canvas"]["speedGrader"] = {
-            "submissionParams": {
-                "h_username": self._h_user.username,
-                "group_set": self._request.params.get("group_set"),
-                "document_url": document_url,
-                # Canvas doesn't send the right value for this on speed grader launches
-                # sending instead the same value as for "context_id"
-                "resource_link_id": lti_params.get("resource_link_id"),
-                "lis_result_sourcedid": lti_params["lis_result_sourcedid"],
-                "lis_outcome_service_url": lti_params["lis_outcome_service_url"],
-                "learner_canvas_user_id": lti_params["custom_canvas_user_id"],
-            },
-        }
-
-        # Enable the LMS frontend to receive notifications on annotation activity
-        # We'll use this information to only send the submission to canvas on first annotation.
-        if self._request.feature("submit_on_annotation"):
-            # The `reportActivity` setting causes the front-end to make a call
-            # back to the parent iframe for the specified events. The method in
-            # the iframe happens to be called `reportActivity` too, but this is
-            # a co-incidence. It could have any name.
-            self._hypothesis_client["reportActivity"] = {
-                "method": "reportActivity",
-                "events": ["create", "update"],
-            }
-
     def _auth_token(self):
         """Return the authToken setting."""
         return BearerTokenSchema(self._request).authorization_param(self._lti_user)

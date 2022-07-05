@@ -15,7 +15,6 @@ doesn't actually require basic launch requests to have this parameter.
 from pyramid.view import view_config, view_defaults
 
 from lms.models import LtiLaunches
-from lms.product import Product
 from lms.security import Permissions
 from lms.services import DocumentURLService, LTIRoleService
 from lms.services.assignment import AssignmentService
@@ -203,7 +202,12 @@ class BasicLaunchViews:
     def _configure_js_to_show_document(
         self, document_url, assignment, assignment_gradable
     ):
-        self.plugin.add_to_launch_js_config(self.context.js_config)
+        # Plugin point to allow products to add arbitrary config if they want
+        self.plugin.add_to_launch_js_config(
+            js_config=self.context.js_config,
+            document_url=document_url,
+            assignment_gradable=assignment_gradable,
+        )
 
         if (
             self.plugin.supports_grading_bar
