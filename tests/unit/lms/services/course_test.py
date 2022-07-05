@@ -45,23 +45,20 @@ class TestCourseService:
         assert svc.get_by_context_id("NO MATCH") is None
 
     def test_upsert_course(self, svc, grouping_service, application_instance, plugin):
-        course = svc.upsert_course(
-            context_id=sentinel.context_id,
-            name=sentinel.name,
-            extra=sentinel.extra,
-        )
+        course = svc.upsert_course(context_id=sentinel.context_id, name=sentinel.name)
 
         plugin.get_new_course_settings.assert_called_once_with(
             settings=application_instance.settings,
             authority_provided_id=grouping_service.get_authority_provided_id.return_value,
         )
+        plugin.get_new_course_extra.assert_called_once_with()
 
         grouping_service.upsert_groupings.assert_called_once_with(
             [
                 {
                     "lms_id": sentinel.context_id,
                     "lms_name": sentinel.name,
-                    "extra": sentinel.extra,
+                    "extra": plugin.get_new_course_extra.return_value,
                     "settings": plugin.get_new_course_settings.return_value,
                 }
             ],

@@ -56,25 +56,22 @@ class CourseService:
             .one_or_none()
         )
 
-    def upsert_course(self, context_id, name, extra) -> Course:
+    def upsert_course(self, context_id, name) -> Course:
         """
         Create or update a course based on the provided values.
 
         :param context_id: The course id from LTI params
         :param name: The name of the course
-        :param extra: Additional LMS specific values
         """
-
-        settings = self._plugin.get_new_course_settings(
-            settings=deepcopy(self._application_instance.settings),
-            authority_provided_id=self._get_authority_provided_id(context_id),
-        )
 
         grouping = {
             "lms_id": context_id,
             "lms_name": name,
-            "extra": extra,
-            "settings": settings,
+            "extra": self._plugin.get_new_course_extra(),
+            "settings": self._plugin.get_new_course_settings(
+                settings=deepcopy(self._application_instance.settings),
+                authority_provided_id=self._get_authority_provided_id(context_id),
+            ),
         }
 
         return self._grouping_service.upsert_groupings(

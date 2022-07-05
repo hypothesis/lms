@@ -9,3 +9,8 @@ class CourseServicePlugin:  # pragma: nocover
         """Get settings for a new course."""
 
         return settings
+
+    def get_new_course_extra(self) -> dict:
+        """Get extra dict for a new course."""
+
+        return {}

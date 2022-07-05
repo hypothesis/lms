@@ -1,20 +1,16 @@
 """Traversal resources for LTI launch views."""
 
-import logging
 from functools import cached_property
 
 from lms.models import Grouping
-from lms.product import Product
 from lms.resources._js_config import JSConfig
-
-LOG = logging.getLogger(__name__)
 
 
 class LTILaunchResource:
     """
     Context resource for LTI launch requests.
 
-    Many methods and properties of this class are only meant to be called when
+    Some methods and properties of this class are only meant to be called when
     request.parsed_params holds validated params from an LTI launch request and
     might crash otherwise. So you should only call these methods after the
     request has been validated with BasicLTILaunchSchema or similar (for
@@ -35,20 +31,9 @@ class LTILaunchResource:
     def course(self):
         """Get the course this LTI launch based on the request's params."""
 
-        extra = {}
-        if self._request.product.family == Product.Family.CANVAS:
-            extra = {
-                "canvas": {
-                    "custom_canvas_course_id": self._request.parsed_params.get(
-                        "custom_canvas_course_id"
-                    )
-                }
-            }
-
         return self._request.find_service(name="course").upsert_course(
             context_id=self._request.parsed_params["context_id"],
             name=self._request.parsed_params["context_title"],
-            extra=extra,
         )
 
     @property

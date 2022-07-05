@@ -1,9 +1,7 @@
 from unittest.mock import sentinel
 
 import pytest
-from h_matchers import Any
 
-from lms.product import Product
 from lms.resources import LTILaunchResource
 
 
@@ -24,21 +22,8 @@ class TestLTILaunchResource:
         course_service.upsert_course.assert_called_once_with(
             context_id=pyramid_request.parsed_params["context_id"],
             name=pyramid_request.parsed_params["context_title"],
-            extra={},
         )
         assert course == course_service.upsert_course.return_value
-
-    def test_course_with_canvas(self, ctx, pyramid_request, course_service):
-        pyramid_request.product.family = Product.Family.CANVAS
-        pyramid_request.parsed_params["custom_canvas_course_id"] = "ID"
-
-        assert ctx.course
-
-        course_service.upsert_course.assert_called_once_with(
-            context_id=Any(),
-            name=Any(),
-            extra={"canvas": {"custom_canvas_course_id": "ID"}},
-        )
 
     def test_grouping_type(self, ctx, grouping_service):
         grouping_type = ctx.grouping_type

@@ -21,6 +21,15 @@ class TestCanvasCoursePlugin:
 
         assert not settings.get("canvas", "sections_enabled")
 
+    @pytest.mark.parametrize("value", (None, "something"))
+    def test_get_new_course_extra(self, plugin, parsed_params, value):
+        if value:
+            parsed_params["custom_canvas_course_id"] = value
+
+        assert plugin.get_new_course_extra() == {
+            "canvas": {"custom_canvas_course_id": value}
+        }
+
     @pytest.fixture
     def pre_sections_course(self, db_session):
         pre_sections = CourseGroupsExportedFromH(
@@ -36,5 +45,9 @@ class TestCanvasCoursePlugin:
         return settings
 
     @pytest.fixture
-    def plugin(self, db_session):
-        return CanvasCoursePlugin(db_session)
+    def parsed_params(self):
+        return {}
+
+    @pytest.fixture
+    def plugin(self, db_session, parsed_params):
+        return CanvasCoursePlugin(db_session, parsed_params)
