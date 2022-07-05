@@ -2,15 +2,23 @@ import json
 from copy import deepcopy
 from typing import Optional
 
-from lms.models import Course, CourseGroupsExportedFromH, Grouping
+from lms.models import Course, Grouping
+from lms.product.plugin import CourseServicePlugin
 from lms.services.grouping import GroupingService
 
 
 class CourseService:
-    def __init__(self, db, application_instance, grouping_service: GroupingService):
+    def __init__(
+        self,
+        db,
+        application_instance,
+        grouping_service: GroupingService,
+        plugin: CourseServicePlugin,
+    ):
         self._db = db
         self._application_instance = application_instance
         self._grouping_service = grouping_service
+        self._plugin = plugin
 
     def any_with_setting(self, group, key, value=True) -> bool:
         """
@@ -57,35 +65,26 @@ class CourseService:
         :param extra: Additional LMS specific values
         """
 
-        settings = self._new_course_settings(
+        settings = self._plugin.get_new_course_settings(
             settings=deepcopy(self._application_instance.settings),
             authority_provided_id=self._get_authority_provided_id(context_id),
         )
 
+        grouping = {
+            "lms_id": context_id,
+            "lms_name": name,
+            "extra": extra,
+            "settings": settings,
+        }
+
         return self._grouping_service.upsert_groupings(
-            [
-                {
-                    "lms_id": context_id,
-                    "lms_name": name,
-                    "extra": extra,
-                    "settings": settings,
-                }
-            ],
-            type_=Grouping.Type.COURSE,
+            [grouping], type_=Grouping.Type.COURSE
         )[0]
 
     def _get_authority_provided_id(self, context_id):
         return self._grouping_service.get_authority_provided_id(
             lms_id=context_id, type_=Grouping.Type.COURSE
         )
-
-    def _new_course_settings(self, settings, authority_provided_id):
-        # If the group was pre-sections, and we've just seen it for the first
-        # time, turn sections off
-        if self._db.query(CourseGroupsExportedFromH).get(authority_provided_id):
-            settings.set("canvas", "sections_enabled", False)
-
-        return settings
 
 
 def course_service_factory(_context, request):
@@ -95,4 +94,5 @@ def course_service_factory(_context, request):
             name="application_instance"
         ).get_current(),
         grouping_service=request.find_service(name="grouping"),
+        plugin=request.product.plugin.course_service,
     )

@@ -1,10 +1,9 @@
-import datetime
-from unittest.mock import sentinel
+from unittest.mock import create_autospec, sentinel
 
 import pytest
-from h_matchers import Any
 
-from lms.models import CourseGroupsExportedFromH, Grouping
+from lms.models import Grouping
+from lms.product.plugin import CourseServicePlugin
 from lms.services.course import CourseService, course_service_factory
 from tests import factories
 
@@ -45,11 +44,16 @@ class TestCourseService:
     def test_get_by_context_id_with_no_match(self, svc):
         assert svc.get_by_context_id("NO MATCH") is None
 
-    def test_upsert_course(self, svc, grouping_service, application_instance):
+    def test_upsert_course(self, svc, grouping_service, application_instance, plugin):
         course = svc.upsert_course(
             context_id=sentinel.context_id,
             name=sentinel.name,
             extra=sentinel.extra,
+        )
+
+        plugin.get_new_course_settings.assert_called_once_with(
+            settings=application_instance.settings,
+            authority_provided_id=grouping_service.get_authority_provided_id.return_value,
         )
 
         grouping_service.upsert_groupings.assert_called_once_with(
@@ -58,43 +62,13 @@ class TestCourseService:
                     "lms_id": sentinel.context_id,
                     "lms_name": sentinel.name,
                     "extra": sentinel.extra,
-                    "settings": application_instance.settings,
+                    "settings": plugin.get_new_course_settings.return_value,
                 }
             ],
             type_=Grouping.Type.COURSE,
         )
 
         assert course == grouping_service.upsert_groupings.return_value[0]
-
-    @pytest.mark.parametrize("canvas_sections_enabled", [True, False])
-    def test_upsert_course_sets_canvas_sections_enabled_based_on_legacy_rows(
-        self,
-        application_instance,
-        db_session,
-        svc,
-        canvas_sections_enabled,
-        grouping_service,
-    ):
-        db_session.add(
-            CourseGroupsExportedFromH(
-                authority_provided_id=grouping_service.get_authority_provided_id.return_value,
-                created=datetime.datetime.utcnow(),
-            )
-        )
-        application_instance.settings.set(
-            "canvas", "sections_enabled", canvas_sections_enabled
-        )
-
-        svc.upsert_course("context_id", "new course name", {})
-
-        grouping_service.upsert_groupings.assert_called_once_with(
-            [
-                Any.dict.containing(
-                    {"settings": {"canvas": {"sections_enabled": False}}}
-                )
-            ],
-            type_=Any(),
-        )
 
     @pytest.fixture
     def course(self, application_instance, grouping_service):
@@ -118,15 +92,21 @@ class TestCourseService:
         return grouping_service
 
     @pytest.fixture
-    def svc(self, db_session, application_instance, grouping_service):
+    def svc(self, db_session, application_instance, grouping_service, plugin):
         return CourseService(
             db=db_session,
             application_instance=application_instance,
             grouping_service=grouping_service,
+            plugin=plugin,
         )
+
+    @pytest.fixture
+    def plugin(self):
+        return create_autospec(CourseServicePlugin, instance=True, spec_set=True)
 
 
 class TestCourseServiceFactory:
+    @pytest.mark.usefixtures("with_plugins")
     def test_it(
         self,
         pyramid_request,
@@ -142,6 +122,7 @@ class TestCourseServiceFactory:
             db=pyramid_request.db,
             application_instance=application_instance_service.get_current.return_value,
             grouping_service=grouping_service,
+            plugin=pyramid_request.product.plugin.course_service,
         )
 
         assert svc == CourseService.return_value

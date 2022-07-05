@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from lms.product.plugin.course_service import CourseServicePlugin
 from lms.product.plugin.grouping_service import GroupingServicePlugin
 
 
@@ -9,6 +10,7 @@ class PluginConfig:
 
     # These also provide the default implementations
     grouping_service: type = GroupingServicePlugin
+    course_service: type = CourseServicePlugin
 
 
 class Plugins:
@@ -28,6 +30,7 @@ class Plugins:
             return plugin
 
     grouping_service: GroupingServicePlugin = _LazyPlugin()
+    course_service: CourseServicePlugin = _LazyPlugin()
 
     def __init__(self, request, plugin_config: PluginConfig):
         self._request = request
