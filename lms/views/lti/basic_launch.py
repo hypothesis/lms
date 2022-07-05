@@ -203,24 +203,7 @@ class BasicLaunchViews:
     def _configure_js_to_show_document(
         self, document_url, assignment, assignment_gradable
     ):
-        if self.request.product.family == Product.Family.CANVAS:
-            # For students in Canvas with grades to submit we need to enable
-            # Speedgrader settings for gradable assignments
-            # `lis_result_sourcedid` associates a specific user with an
-            # assignment.
-            if (
-                assignment_gradable
-                and self.request.lti_user.is_learner
-                and self.request.lti_params.get("lis_result_sourcedid")
-            ):
-                self.context.js_config.add_canvas_speedgrader_settings(document_url)
-
-            # We add a `focused_user` query param to the SpeedGrader LTI launch
-            # URLs we submit to Canvas for each student when the student
-            # launches an assignment. Later, Canvas uses these URLs to launch
-            # us when a teacher grades the assignment in SpeedGrader.
-            if focused_user := self.request.params.get("focused_user"):
-                self.context.js_config.set_focused_user(focused_user)
+        self.plugin.add_to_launch_js_config(self.context.js_config)
 
         if (
             self.plugin.supports_grading_bar
