@@ -445,15 +445,13 @@ class JSConfig:
             "data": {
                 "assignment_id": assignment.id,
                 "lms": {
-                    "product": self._request.product.family,
+                    "product": req.product.family,
                 },
-                "context_id": self._request.lti_params["context_id"],
-                "group_set_id": self._request.find_service(
-                    name="grouping"
-                ).get_group_set_id(),
+                "context_id": req.lti_params["context_id"],
+                "group_set_id": req.find_service(name="grouping").get_group_set_id(),
                 "group_info": {
                     key: value
-                    for key, value in self._request.lti_params.items()
+                    for key, value in req.lti_params.items()
                     if key in GroupInfo.columns()
                 },
                 # The student we are currently grading. In the case of Canvas
