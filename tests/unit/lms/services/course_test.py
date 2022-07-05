@@ -45,12 +45,11 @@ class TestCourseService:
     def test_get_by_context_id_with_no_match(self, svc):
         assert svc.get_by_context_id("NO MATCH") is None
 
-    def test_upsert_course(self, svc, grouping_service):
+    def test_upsert_course(self, svc, grouping_service, application_instance):
         course = svc.upsert_course(
             context_id=sentinel.context_id,
             name=sentinel.name,
             extra=sentinel.extra,
-            settings=sentinel.settings,
         )
 
         grouping_service.upsert_groupings.assert_called_once_with(
@@ -59,7 +58,7 @@ class TestCourseService:
                     "lms_id": sentinel.context_id,
                     "lms_name": sentinel.name,
                     "extra": sentinel.extra,
-                    "settings": sentinel.settings,
+                    "settings": application_instance.settings,
                 }
             ],
             type_=Grouping.Type.COURSE,

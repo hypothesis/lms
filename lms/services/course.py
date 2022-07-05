@@ -48,15 +48,16 @@ class CourseService:
             .one_or_none()
         )
 
-    def upsert_course(self, context_id, name, extra, settings=None) -> Course:
+    def upsert_course(self, context_id, name, extra) -> Course:
         """
         Create or update a course based on the provided values.
 
         :param context_id: The course id from LTI params
         :param name: The name of the course
         :param extra: Additional LMS specific values
-        :param settings: A dict of settings for the course
         """
+
+        settings = deepcopy(self._application_instance.settings)
 
         return self._grouping_service.upsert_groupings(
             [
@@ -64,7 +65,7 @@ class CourseService:
                     "lms_id": context_id,
                     "lms_name": name,
                     "extra": extra,
-                    "settings": settings or self._new_course_settings(context_id),
+                    "settings": self._new_course_settings(settings, context_id),
                 }
             ],
             type_=Grouping.Type.COURSE,
@@ -75,19 +76,13 @@ class CourseService:
             lms_id=context_id, type_=Grouping.Type.COURSE
         )
 
-    def _new_course_settings(self, context_id):
-        # By default we'll make our course setting have the same settings
-        # as the application instance
-        course_settings = deepcopy(self._application_instance.settings)
+    def _new_course_settings(self, settings, context_id):
+        # If the group was pre-sections, and we've just seen it for the first
+        # time, turn sections off
+        if self._is_pre_sections(context_id):
+            settings.set("canvas", "sections_enabled", False)
 
-        # Unless! The group was pre-sections, and we've just seen it for the
-        # first time in which case turn sections off
-        if course_settings.get("canvas", "sections_enabled") and self._is_pre_sections(
-            context_id
-        ):
-            course_settings.set("canvas", "sections_enabled", False)
-
-        return course_settings
+        return settings
 
     def _is_pre_sections(self, context_id):
         return bool(
