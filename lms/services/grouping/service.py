@@ -173,6 +173,16 @@ class GroupingService:
 
         return self._to_groupings(user, groupings, course, self.plugin.sections_type)
 
+    def get_grouping_type(self) -> Grouping.Type:
+        """
+        Get the type of grouping used in this launch.
+
+        Grouping types describe how the course members are divided. If neither
+        of the LMS grouping features are used "COURSE" is the default.
+        """
+
+        return self.plugin.get_grouping_type(self)
+
     def get_group_set_id(self):
         """
         Get the group set ID for group launches if any.

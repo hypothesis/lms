@@ -1,14 +1,47 @@
-from unittest.mock import sentinel
+from unittest.mock import create_autospec, sentinel
 
 import pytest
 
+from lms.models import ApplicationSettings, Grouping
 from lms.product.canvas._plugin.grouping import CanvasGroupingPlugin, ErrorCodes
 from lms.product.plugin.grouping_service import GroupError
+from lms.resources import LTILaunchResource
 from lms.services import CanvasAPIError
 from tests import factories
 
 
 class TestCanvasGroupingPlugin:
+    @pytest.mark.parametrize("developer_key", (True, False))
+    @pytest.mark.parametrize("sections_enabled", (True, False))
+    def test_get_grouping_type(
+        self, plugin, context, grouping_service, developer_key, sections_enabled
+    ):
+        context.application_instance.developer_key = developer_key
+        context.course.settings.set("canvas", "sections_enabled", sections_enabled)
+
+        assert (
+            plugin.get_grouping_type(grouping_service) == Grouping.Type.SECTION
+        ) == bool(developer_key and sections_enabled)
+
+    @pytest.mark.parametrize(
+        "params,is_sections",
+        (
+            ({}, True),
+            ({"focused_user": "any", "learner_canvas_user_id": "any"}, True),
+            ({"focused_user": "any"}, False),
+        ),
+    )
+    def test_get_grouping_type_speedgrader_quirks(
+        self, plugin, context, pyramid_request, grouping_service, params, is_sections
+    ):
+        pyramid_request.params = params
+        context.application_instance.developer_key = True
+        context.course.settings.set("canvas", "sections_enabled", True)
+
+        assert (
+            plugin.get_grouping_type(grouping_service) == Grouping.Type.SECTION
+        ) == is_sections
+
     def test_get_sections_for_learner(
         self, canvas_api_client, course, grouping_service, plugin
     ):
@@ -139,5 +172,11 @@ class TestCanvasGroupingPlugin:
         )
 
     @pytest.fixture
-    def plugin(self, canvas_api_client):
-        return CanvasGroupingPlugin(canvas_api_client)
+    def plugin(self, context, pyramid_request, canvas_api_client):
+        return CanvasGroupingPlugin(context, pyramid_request, canvas_api_client)
+
+    @pytest.fixture
+    def context(self):
+        context = create_autospec(LTILaunchResource, instance=True, spec_set=True)
+        context.course = factories.Course(settings=ApplicationSettings())
+        return context

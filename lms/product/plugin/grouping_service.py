@@ -31,6 +31,14 @@ class GroupingServicePlugin:  # pragma: nocover
     If so we will read group set info from the URL rather than the DB.
     """
 
+    def get_grouping_type(self, svc) -> Grouping.Type:
+        """Get the type of grouping used in this launch."""
+
+        if svc.get_group_set_id():
+            return Grouping.Type.GROUP
+
+        return Grouping.Type.COURSE
+
     def get_sections_for_learner(self, svc, course) -> Optional[List]:
         """Get the sections from context when launched by a normal learner."""
 

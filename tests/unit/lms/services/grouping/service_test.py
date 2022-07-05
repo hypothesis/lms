@@ -318,6 +318,14 @@ class TestGetCourseGroupingsForUser:
         return make_grouping
 
 
+class TestGetGroupingType:
+    def test_it(self, svc):
+        grouping_type = svc.get_grouping_type()
+
+        svc.plugin.get_grouping_type.assert_called_once_with(svc)
+        assert grouping_type == svc.plugin.get_grouping_type.return_value
+
+
 class TestGetGroupSetId:
     @pytest.mark.parametrize("group_set", ("123", None))
     def test_it_with_deeplinking(self, svc, pyramid_request, group_set):
@@ -343,6 +351,15 @@ class TestGetGroupSetId:
             sentinel.guid, sentinel.resource_link_id
         )
         assert result == sentinel.group_set_id
+
+    def test_it_with_assignment_config_and_no_assignment(
+        self, svc, pyramid_request, assignment_service
+    ):
+        svc.plugin.deep_linking = False
+        assignment_service.get_assignment.return_value = None
+        pyramid_request.lti_params["tool_consumer_instance_guid"] = sentinel.guid
+
+        assert not svc.get_group_set_id()
 
 
 class TestGetGroupings:

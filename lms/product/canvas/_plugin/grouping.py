@@ -20,8 +20,33 @@ class CanvasGroupingPlugin(GroupingServicePlugin):
     sections_type = Grouping.Type.CANVAS_SECTION
     deep_linking = True
 
-    def __init__(self, canvas_api):
+    def __init__(self, context, request, canvas_api):
+        self._context = context
+        self._request = request
         self._canvas_api = canvas_api
+
+    def get_grouping_type(self, svc) -> Grouping.Type:
+        """
+        Return the type of grouping used in this launch.
+
+        Grouping types describe how the course members are divided.
+        If neither of the LMS grouping features are used "COURSE" is the default.
+        """
+
+        if (
+            # This is a legacy SpeedGrader URL, submitted to Canvas before our
+            # Canvas course sections feature was released.
+            not (
+                "focused_user" in self._request.params
+                and "learner_canvas_user_id" not in self._request.params
+            )
+            # We need a developer key to talk to the API
+            and self._context.application_instance.developer_key
+            and self._context.course.settings.get("canvas", "sections_enabled")
+        ):
+            return Grouping.Type.SECTION
+
+        return super().get_grouping_type(svc)
 
     def get_sections_for_learner(self, _svc, course):
         return self._canvas_api.authenticated_users_sections(
@@ -83,5 +108,9 @@ class CanvasGroupingPlugin(GroupingServicePlugin):
         return course.extra["canvas"]["custom_canvas_course_id"]
 
     @classmethod
-    def factory(cls, _context, request):
-        return cls(request.find_service(name="canvas_api_client"))
+    def factory(cls, context, request):
+        return cls(
+            context=context,
+            request=request,
+            canvas_api=request.find_service(name="canvas_api_client"),
+        )
