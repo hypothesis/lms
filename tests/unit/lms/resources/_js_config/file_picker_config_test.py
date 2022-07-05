@@ -50,7 +50,7 @@ class TestFilePickerConfig:
 
         assert config == expected_config
 
-    @pytest.mark.usefixtures("with_is_canvas")
+    @pytest.mark.usefixtures("with_canvas")
     @pytest.mark.parametrize(
         "groups_enabled",
         [
@@ -160,13 +160,13 @@ class TestFilePickerConfig:
         assert config == {"enabled": enabled}
 
     @pytest.fixture
-    @pytest.mark.usefixtures("with_is_canvas")
+    @pytest.mark.usefixtures("with_canvas")
     def canvas_files_enabled(self, pyramid_request, application_instance):
         pyramid_request.params["custom_canvas_course_id"] = sentinel.course_id
         application_instance.developer_key = sentinel.developer_key
 
     @pytest.fixture
-    def with_is_canvas(self, pyramid_request):
+    def with_canvas(self, pyramid_request):
         pyramid_request.product.family = Product.Family.CANVAS
 
     @pytest.fixture

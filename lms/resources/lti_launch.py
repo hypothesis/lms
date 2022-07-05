@@ -57,11 +57,6 @@ class LTILaunchResource:
 
         return self._request.find_service(name="grouping").get_grouping_type()
 
-    @property
-    def is_canvas(self):
-        """Return True if Canvas is the LMS that launched us."""
-        return self._request.product.family == Product.Family.CANVAS
-
     @cached_property
     def js_config(self):
         return JSConfig(self, self._request)
