@@ -57,7 +57,10 @@ class CourseService:
         :param extra: Additional LMS specific values
         """
 
-        settings = deepcopy(self._application_instance.settings)
+        settings = self._new_course_settings(
+            settings=deepcopy(self._application_instance.settings),
+            authority_provided_id=self._get_authority_provided_id(context_id),
+        )
 
         return self._grouping_service.upsert_groupings(
             [
@@ -65,7 +68,7 @@ class CourseService:
                     "lms_id": context_id,
                     "lms_name": name,
                     "extra": extra,
-                    "settings": self._new_course_settings(settings, context_id),
+                    "settings": settings,
                 }
             ],
             type_=Grouping.Type.COURSE,
@@ -76,20 +79,13 @@ class CourseService:
             lms_id=context_id, type_=Grouping.Type.COURSE
         )
 
-    def _new_course_settings(self, settings, context_id):
+    def _new_course_settings(self, settings, authority_provided_id):
         # If the group was pre-sections, and we've just seen it for the first
         # time, turn sections off
-        if self._is_pre_sections(context_id):
+        if self._db.query(CourseGroupsExportedFromH).get(authority_provided_id):
             settings.set("canvas", "sections_enabled", False)
 
         return settings
-
-    def _is_pre_sections(self, context_id):
-        return bool(
-            self._db.query(CourseGroupsExportedFromH).get(
-                self._get_authority_provided_id(context_id)
-            )
-        )
 
 
 def course_service_factory(_context, request):
