@@ -20,11 +20,8 @@ def includeme(config):
             # the cookie from cross-site scripting vulnerabilities, see:
             # https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/sessions.html
             httponly=True,
-            # This is the timeout and reissue time recommended in the Pyramid
-            # docs for auto-expiring cookies. See:
-            # https://docs.pylonsproject.org/projects/pyramid/en/latest/api/session.html
-            timeout=1200,
-            reissue_time=120,
+            # 30 days
+            max_age=60 * 60 * 24 * 30,
             # The Pyramid docs recommend JSONSerializer instead of the default
             # serializer for security reasons. See:
             # https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/sessions.html
