@@ -46,19 +46,6 @@ class TestLTILaunchResource:
         grouping_service.get_grouping_type.assert_called_once_with()
         assert grouping_type == grouping_service.get_grouping_type.return_value
 
-    @pytest.mark.parametrize(
-        "product,expected",
-        [
-            (Product.Family.CANVAS, True),
-            (Product.Family.BLACKBOARD, False),
-            (Product.Family.UNKNOWN, False),
-        ],
-    )
-    def test_is_canvas(self, ctx, pyramid_request, product, expected):
-        pyramid_request.product.family = product
-
-        assert ctx.is_canvas == expected
-
     def test_js_config(self, ctx, pyramid_request, JSConfig):
         js_config = ctx.js_config
 

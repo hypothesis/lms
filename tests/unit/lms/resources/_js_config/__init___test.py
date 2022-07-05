@@ -579,7 +579,6 @@ def context(application_instance):
         LTILaunchResource,
         spec_set=True,
         instance=True,
-        is_canvas=True,
         grouping_type=Grouping.Type.COURSE,
         course=create_autospec(Grouping, instance=True, spec_set=True),
         application_instance=application_instance,
