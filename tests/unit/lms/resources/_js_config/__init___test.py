@@ -293,13 +293,15 @@ class TestJSConfigAPISync:
     @pytest.mark.parametrize(
         "grouping_type", (Grouping.Type.GROUP, Grouping.Type.SECTION)
     )
-    def test_it(self, js_config, context, pyramid_request, grouping_type):
+    def test_it(
+        self, js_config, context, pyramid_request, grouping_type, grouping_service
+    ):
         assignment.id = 123456  # Ensure the assignment has an id
         pyramid_request.lti_params["context_id"] = "CONTEXT_ID"
         pyramid_request.params["learner_canvas_user_id"] = "CANVAS_USER_ID"
         pyramid_request.product.route.oauth2_authorize = "welcome"
         context.grouping_type = grouping_type
-        context.group_set_id = "GROUP_SET_ID"
+        grouping_service.get_group_set_id.return_value = "GROUP_SET_ID"
 
         js_config.enable_lti_launch_mode(assignment)
 
@@ -345,6 +347,7 @@ class TestJSConfigDebug:
         return config["debug"]
 
 
+@pytest.mark.usefixtures("grouping_service")
 class TestJSConfigHypothesisClient:
     """Unit tests for the "hypothesisClient" sub-dict of JSConfig."""
 
@@ -406,6 +409,13 @@ class TestJSConfigHypothesisClient:
     @pytest.fixture
     def with_provisioning_disabled(self, context):
         context.application_instance.provisioning = False
+
+    @pytest.fixture(autouse=True)
+    def with_routes(self, pyramid_request):
+        # This test 100% should not need this, but because everything is bound
+        # together in this class and can't be tested separately, we need this
+        # setup so other parts of the code work
+        pyramid_request.product.route.oauth2_authorize = "welcome"
 
 
 class TestJSConfigRPCServer:
@@ -570,7 +580,6 @@ def context(application_instance):
         spec_set=True,
         instance=True,
         is_canvas=True,
-        sections_enabled=False,
         grouping_type=Grouping.Type.COURSE,
         course=create_autospec(Grouping, instance=True, spec_set=True),
         application_instance=application_instance,

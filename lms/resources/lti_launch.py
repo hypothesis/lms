@@ -51,41 +51,10 @@ class LTILaunchResource:
         return JSConfig(self, self._request)
 
     @property
-    def sections_enabled(self):
-        """Return if sections are enabled for this request."""
-
-        if not self.is_canvas:
-            # Sections are only implemented in Canvas
-            return False
-
-        params = self._request.params
-        if "focused_user" in params and "learner_canvas_user_id" not in params:
-            # This is a legacy SpeedGrader URL, submitted to Canvas before our
-            # Canvas course sections feature was released.
-            return False
-
-        if not bool(self.application_instance.developer_key):
-            # We need a developer key to talk to the API
-            return False
-
-        return self.course.settings.get("canvas", "sections_enabled")
-
-    @property
     def grouping_type(self) -> Grouping.Type:
-        """
-        Return the type of grouping used in this launch.
+        """Get the type of grouping used in this launch."""
 
-        Grouping types describe how the course members are divided.
-        If neither of the LMS grouping features are used "COURSE" is the default.
-        """
-        if self._request.find_service(name="grouping").get_group_set_id():
-            return Grouping.Type.GROUP
-
-        if self.sections_enabled:
-            # Sections is the default when available. Groups must take precedence
-            return Grouping.Type.SECTION
-
-        return Grouping.Type.COURSE
+        return self._request.find_service(name="grouping").get_grouping_type()
 
     def _course_extra(self):
         """Extra information to store for courses."""
