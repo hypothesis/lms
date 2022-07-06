@@ -248,7 +248,7 @@ pyramid==2.0
     #   pyramid-tm
 pyramid-exclog==1.1
     # via -r requirements/requirements.txt
-pyramid-googleauth==1.0.2
+pyramid-googleauth==1.0.3
     # via -r requirements/requirements.txt
 pyramid-ipython==0.2
     # via -r requirements/dev.in
