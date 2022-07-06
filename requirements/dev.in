@@ -1,4 +1,5 @@
 pip-tools
+pip-sync-faster
 factory-boy
 pyramid-ipython
 supervisor
