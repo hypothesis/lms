@@ -1,5 +1,6 @@
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.view import forbidden_view_config, notfound_view_config, view_config
+from lms.validation._exceptions import ValidationError
 
 
 @forbidden_view_config(path_info="/admin/*")
@@ -17,14 +18,11 @@ def index(request):
     return HTTPFound(location=request.route_url("admin.instances"))
 
 
-def flash_missing_fields(request, fields):
-    missing_fields = [field for field in fields if not request.params.get(field)]
-    if missing_fields:
-        is_plural = len(missing_fields) > 1
-        request.session.flash(
-            f"{', '.join(missing_fields)} {'are' if is_plural else 'is'} required",
-            "errors",
-        )
+def flash_validation(request, schema):
+    try:
+        schema(request).parse()
+    except ValidationError as err:
+        request.session.flash(err.messages["form"], "validation")
         return True
 
     return False
