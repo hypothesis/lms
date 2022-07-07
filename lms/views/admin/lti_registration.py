@@ -1,23 +1,26 @@
+from urllib.parse import urlparse
+
+from marshmallow import validate
 from pyramid.httpexceptions import HTTPFound
 from pyramid.renderers import render_to_response
 from pyramid.view import view_config, view_defaults
-from webargs import fields
 from sqlalchemy.exc import IntegrityError
+from webargs import fields
 
 from lms.security import Permissions
 from lms.services import LTIRegistrationService
-from lms.views.admin import flash_validation
 from lms.validation._base import PyramidRequestSchema
+from lms.views.admin import flash_validation
 
 
 class LTIRegistrationBaseSchema(PyramidRequestSchema):
     location = "form"
 
     issuer = fields.URL(required=True)
-    client_id = fields.Str(required=True)
+    client_id = fields.Str(required=True, validate=validate.Length(min=1))
 
 
-class LTIRegistrationURLSSchema(PyramidRequestSchema):
+class LTIRegistrationSchema(LTIRegistrationBaseSchema):
     location = "form"
 
     auth_login_url = fields.URL(required=True)
@@ -25,8 +28,28 @@ class LTIRegistrationURLSSchema(PyramidRequestSchema):
     token_url = fields.URL(required=True)
 
 
-class LTIRegistrationSchema(LTIRegistrationBaseSchema, LTIRegistrationURLSSchema):
-    location = "form"
+URL_SUGGESTIONS = {
+    "https://blackboard.com": {
+        "auth_login_url": "https://developer.blackboard.com/api/v1/gateway/oidcauth",
+        "key_set_url": "https://developer.blackboard.com/api/v1/management/applications/{client_id}/jwks.json",
+        "token_url": "https://developer.blackboard.com/api/v1/gateway/oauth2/jwttoken",
+    },
+    ".instructure.com": {
+        "auth_login_url": "https://canvas.instructure.com/api/lti/authorize_redirect",
+        "key_set_url": "https://canvas.instructure.com/api/lti/security/jwks",
+        "token_url": "https://canvas.instructure.com/login/oauth2/token",
+    },
+    ".brightspace.com": {
+        "auth_login_url": "https://{issuer_host}/d2l/lti/authenticate",
+        "key_set_url": "https://{issuer_host}/d2l/.well-known/jwks",
+        "token_url": "https://{issuer_host}/core/connect/token",
+    },
+    ".moodlecloud.com": {
+        "auth_login_url": "https://{issuer_host}/mod/lti/auth.php",
+        "key_set_url": "https://{issuer_host}/mod/lti/certs.php",
+        "token_url": "https://{issuer_host}/mod/lti/token.php",
+    },
+}
 
 
 @view_defaults(request_method="GET", permission=Permissions.ADMIN)
@@ -54,12 +77,25 @@ class AdminLTIRegistrationViews:
         return {}
 
     @view_config(
+        route_name="admin.registration.suggest_urls",
+        request_method="POST",
+        renderer="lms:templates/admin/registration.new.html.jinja2",
+    )
+    def suggest_lms_urls(self):
+        if flash_validation(self.request, LTIRegistrationBaseSchema):
+            self.request.response.status_code = 400
+            return {}
+
+        return self._get_url_suggestions(
+            self.request.params["issuer"], self.request.params["client_id"]
+        )
+
+    @view_config(
         route_name="admin.registration.new",
         request_method="POST",
     )
     def new_registration_callback(self):
         params = self.request.params
-
         if flash_validation(self.request, LTIRegistrationSchema):
             response = render_to_response(
                 "lms:templates/admin/registration.new.html.jinja2",
@@ -147,3 +183,24 @@ class AdminLTIRegistrationViews:
                 self.request.matchdict["id_"]
             )
         }
+
+    @staticmethod
+    def _get_url_suggestions(issuer, client_id):
+        """
+        Get suggestion for the registration endpoints.
+
+        Registration endpoints tend to be the same across the same LMS or at
+        least be based on the issuer and client_id.
+        """
+        for suffix, url_templates in URL_SUGGESTIONS.items():
+            if issuer.endswith(suffix):
+                # For some LMS the path part of the URL is the same but
+                # anchored in the same host as `issuer`
+                issuer_host = urlparse(issuer).netloc
+
+                return {
+                    key: template.format(issuer_host=issuer_host, client_id=client_id)
+                    for key, template in url_templates.items()
+                }
+
+        return {"auth_login_url": None, "key_set_url": None, "token_url": None}

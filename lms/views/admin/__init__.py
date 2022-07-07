@@ -1,5 +1,6 @@
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.view import forbidden_view_config, notfound_view_config, view_config
+
 from lms.validation._exceptions import ValidationError
 
 
