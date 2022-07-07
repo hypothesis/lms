@@ -1,11 +1,32 @@
 from pyramid.httpexceptions import HTTPFound
 from pyramid.renderers import render_to_response
 from pyramid.view import view_config, view_defaults
+from webargs import fields
 from sqlalchemy.exc import IntegrityError
 
 from lms.security import Permissions
 from lms.services import LTIRegistrationService
-from lms.views.admin import flash_missing_fields
+from lms.views.admin import flash_validation
+from lms.validation._base import PyramidRequestSchema
+
+
+class LTIRegistrationBaseSchema(PyramidRequestSchema):
+    location = "form"
+
+    issuer = fields.URL(required=True)
+    client_id = fields.Str(required=True)
+
+
+class LTIRegistrationURLSSchema(PyramidRequestSchema):
+    location = "form"
+
+    auth_login_url = fields.URL(required=True)
+    key_set_url = fields.URL(required=True)
+    token_url = fields.URL(required=True)
+
+
+class LTIRegistrationSchema(LTIRegistrationBaseSchema, LTIRegistrationURLSSchema):
+    location = "form"
 
 
 @view_defaults(request_method="GET", permission=Permissions.ADMIN)
@@ -39,10 +60,7 @@ class AdminLTIRegistrationViews:
     def new_registration_callback(self):
         params = self.request.params
 
-        if flash_missing_fields(
-            self.request,
-            ["issuer", "client_id", "auth_login_url", "key_set_url", "token_url"],
-        ):
+        if flash_validation(self.request, LTIRegistrationSchema):
             response = render_to_response(
                 "lms:templates/admin/registration.new.html.jinja2",
                 {},

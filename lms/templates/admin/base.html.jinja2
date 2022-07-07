@@ -61,6 +61,27 @@
   </section>
   {% endif %}
 
+  {% if request.session.peek_flash("validation")  %}
+  <section class="section">
+    <div class="container">
+    <article class="message is-danger">
+    <div class="message-header">
+      <p>Errors</p>
+    </div>
+    <div class="message-body">
+    {% for validation in request.session.pop_flash("validation") %}
+        {% for field, messages in validation.items() %}
+            <ul>{{field}}: {{messages|join}}</ul>
+        {% endfor %}
+    {% endfor %}
+    </div>
+    </article>
+    </div>
+  </section>
+  {% endif %}
+
+
+
   {% if request.session.peek_flash("messages")  %}
   <section class="section">
     <div class="container">

@@ -6,7 +6,17 @@ from sqlalchemy.exc import IntegrityError
 from lms.models import ApplicationInstance
 from lms.security import Permissions
 from lms.services import ApplicationInstanceNotFound, LTIRegistrationService
-from lms.views.admin import flash_missing_fields
+from lms.views.admin import flash_validation
+from webargs import fields
+from lms.validation._base import PyramidRequestSchema
+
+
+class ApplicationInstanceSchema(PyramidRequestSchema):
+    location = "form"
+
+    deployment_id = fields.Str(required=True)
+    lms_url = fields.URL(required=True)
+    email = fields.Email(required=True)
 
 
 @view_defaults(request_method="GET", permission=Permissions.ADMIN)
@@ -38,7 +48,7 @@ class AdminApplicationInstanceViews:
             self.request.matchdict["id_"]
         )
 
-        if flash_missing_fields(self.request, ["deployment_id", "lms_url", "email"]):
+        if flash_validation(self.request, ApplicationInstanceSchema):
             response = render_to_response(
                 "lms:templates/admin/instance.new.html.jinja2",
                 {"lti_registration": lti_registration.id},
