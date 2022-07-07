@@ -17,9 +17,14 @@ New registration
         {{ macros.form_text_field(request, "Issuer", "issuer") }}
         {{ macros.form_text_field(request, "Client ID", "client_id") }}
 
-        {{ macros.form_text_field(request, "Auth login URL", "auth_login_url") }}
-        {{ macros.form_text_field(request, "Key set URL", "key_set_url") }}
-        {{ macros.form_text_field(request, "Token URL", "token_url") }}
+
+        <div class="block has-text-right">
+            <input type="submit" class="button is-primary" value="Suggest URLs" formaction="{{ request.route_url("admin.registration.suggest_urls") }}"/>
+        </div>
+
+        {{ macros.form_text_field(request, "Auth login URL", "auth_login_url", auth_login_url) }}
+        {{ macros.form_text_field(request, "Key set URL", "key_set_url", key_set_url) }}
+        {{ macros.form_text_field(request, "Token URL", "token_url", token_url) }}
     </fieldset>
 
     <input type="submit" class="button is-info" value="New"/>

@@ -1,20 +1,21 @@
+from marshmallow import validate
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.renderers import render_to_response
 from pyramid.view import view_config, view_defaults
 from sqlalchemy.exc import IntegrityError
+from webargs import fields
 
 from lms.models import ApplicationInstance
 from lms.security import Permissions
 from lms.services import ApplicationInstanceNotFound, LTIRegistrationService
-from lms.views.admin import flash_validation
-from webargs import fields
 from lms.validation._base import PyramidRequestSchema
+from lms.views.admin import flash_validation
 
 
 class ApplicationInstanceSchema(PyramidRequestSchema):
     location = "form"
 
-    deployment_id = fields.Str(required=True)
+    deployment_id = fields.Str(required=True, validate=validate.Length(min=1))
     lms_url = fields.URL(required=True)
     email = fields.Email(required=True)
 

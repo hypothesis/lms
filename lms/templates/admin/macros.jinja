@@ -31,10 +31,12 @@
     {% endcall %}
 {% endmacro %}
 
-{% macro form_text_field(request, label, field_name) %}
+{% macro form_text_field(request, label, field_name, field_value=None) %}
     {% call field_body(label) %}
-        {% if request.params.get(field_name) %}
-            <input class="input" name="{{field_name}}" value="{{request.params.get(field_name) }}" type="text">
+        {% if field_value %}
+            <input class="input" name="{{field_name}}" value="{{ field_value }}" type="text">
+        {% elif request.params.get(field_name) %}
+            <input class="input" name="{{field_name}}" value="{{ request.params.get(field_name) }}" type="text">
         {% else %}
             <input class="input" name="{{field_name}}" type="text">
         {% endif %}

@@ -21,8 +21,8 @@ class TestAdminApplicationInstanceViews:
         response = views.new_instance()
 
         application_instance_service.create_application_instance.assert_called_once_with(
-            lms_url="LMS_URL",
-            email="EMAIL",
+            lms_url="http://lms-url.com",
+            email="test@email.com",
             deployment_id="DEPLOYMENT_ID",
             developer_key="",
             developer_secret="",
@@ -39,7 +39,7 @@ class TestAdminApplicationInstanceViews:
     @pytest.mark.usefixtures("with_form_submission")
     @pytest.mark.parametrize("missing", ["lms_url", "email", "deployment_id"])
     def test_instance_new_missing_params(self, views, missing, pyramid_request):
-        del pyramid_request.params[missing]
+        del pyramid_request.POST[missing]
 
         response = views.new_instance()
 
@@ -234,11 +234,16 @@ class TestAdminApplicationInstanceViews:
 
     @pytest.fixture
     def with_form_submission(self, pyramid_request):
-        pyramid_request.params["lms_url"] = "LMS_URL"
-        pyramid_request.params["email"] = "EMAIL"
-        pyramid_request.params["deployment_id"] = "DEPLOYMENT_ID"
-
+        application_instance_data = {
+            "lms_url": "http://lms-url.com",
+            "email": "test@email.com",
+            "deployment_id": "DEPLOYMENT_ID",
+        }
         pyramid_request.matchdict["id_"] = sentinel.lti_registration_id
+        # Real pyramid request have the same params available
+        # via POST and params
+        pyramid_request.POST.update(application_instance_data)
+        pyramid_request.params.update(application_instance_data)
 
         return pyramid_request
 
