@@ -52,7 +52,7 @@ class AdminApplicationInstanceViews:
         if flash_validation(self.request, ApplicationInstanceSchema):
             response = render_to_response(
                 "lms:templates/admin/instance.new.html.jinja2",
-                {"lti_registration": lti_registration.id},
+                {"lti_registration": lti_registration},
                 request=self.request,
             )
             response.status = 400
