@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 import sqlalchemy as sa
 
 from lms.db import BASE
@@ -37,3 +39,62 @@ class LTIRegistration(CreatedUpdatedMixin, BASE):
     application_instances = sa.orm.relationship(
         "ApplicationInstance", back_populates="lti_registration"
     )
+
+    @staticmethod
+    def urls(issuer, client_id):
+        auth_login_url = key_set_url = token_url = None
+        issuer_host = urlparse(issuer).netloc
+
+        if issuer == "https://blackboard.com":
+            # For blackboard all LTI1.3 apps use the same registration
+            auth_login_url = "https://developer.blackboard.com/api/v1/gateway/oidcauth"
+            key_set_url = f"https://developer.blackboard.com/api/v1/management/applications/{client_id}/jwks.json"
+            token_url = (
+                "https://developer.blackboard.com/api/v1/gateway/oauth2/jwttoken"
+            )
+        elif issuer.endswith(".instructure.com"):
+            # Different instructure hosted canvas use the same URLs
+            auth_login_url = "https://canvas.instructure.com/api/lti/authorize_redirect"
+            key_set_url = "https://canvas.instructure.com/api/lti/security/jwks"
+            token_url = "https://canvas.instructure.com/login/oauth2/token"
+        elif issuer.endswith(".brightspace.com"):
+            # Hosted D2L use the issuer URL as the base
+            auth_login_url = (
+                urlparse("https://brightspace.com/d2l/lti/authenticate")
+                ._replace(netloc=issuer_host)
+                .geturl()
+            )
+            key_set_url = (
+                urlparse("https://brightspace.com/d2l/.well-known/jwks")
+                ._replace(netloc=issuer_host)
+                .geturl()
+            )
+            token_url = (
+                urlparse("https://brightspace.com/core/connect/token")
+                ._replace(netloc=issuer_host)
+                .geturl()
+            )
+
+        elif issuer.endswith(".moodlecloud.com"):
+            # Hosted moodle use the issuer URL as the base
+            auth_login_url = (
+                urlparse("https://moodlecloud.com/mod/lti/auth.php")
+                ._replace(netloc=issuer_host)
+                .geturl()
+            )
+            key_set_url = (
+                urlparse("https://moodlecloud.com/mod/lti/certs.php")
+                ._replace(netloc=issuer_host)
+                .geturl()
+            )
+            token_url = (
+                urlparse("https://moodlecloud.com/mod/lti/certs.php")
+                ._replace(netloc=issuer_host)
+                .geturl()
+            )
+
+        return {
+            "auth_login_url": auth_login_url,
+            "key_set_url": key_set_url,
+            "token_url": token_url,
+        }
