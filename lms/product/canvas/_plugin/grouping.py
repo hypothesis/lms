@@ -18,7 +18,6 @@ class CanvasGroupingPlugin(GroupingServicePlugin):
 
     group_type = Grouping.Type.CANVAS_GROUP
     sections_type = Grouping.Type.CANVAS_SECTION
-    deep_linking = True
 
     def __init__(self, context, request, canvas_api):
         self._context = context

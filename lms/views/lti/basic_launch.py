@@ -42,7 +42,6 @@ class BasicLaunchViews:
     def __init__(self, context, request):
         self.context = context
         self.request = request
-        self.plugin = self.request.product.plugin.lti_launch
         self.assignment_service: AssignmentService = request.find_service(
             name="assignment"
         )
@@ -203,14 +202,14 @@ class BasicLaunchViews:
         self, document_url, assignment, assignment_gradable
     ):
         # Plugin point to allow products to add arbitrary config if they want
-        self.plugin.add_to_launch_js_config(
+        self.request.product.plugin.lti_launch.add_to_launch_js_config(
             js_config=self.context.js_config,
             document_url=document_url,
             assignment_gradable=assignment_gradable,
         )
 
         if (
-            self.plugin.supports_grading_bar
+            self.request.product.supports_grading_bar
             and assignment_gradable
             and self.request.lti_user.is_instructor
         ):
@@ -234,7 +233,7 @@ class BasicLaunchViews:
             self.request.lti_params.get("oauth_consumer_key"),
         )
 
-        if self.plugin.supports_grading_bar and not self.request.lti_user.is_instructor:
+        if self.request.product.supports_grading_bar and not self.request.lti_user.is_instructor:
             # Create or update a record of LIS result data for a student launch
             self.request.find_service(name="grading_info").upsert_from_request(
                 self.request

@@ -11,12 +11,13 @@ from lms.services.upsert import bulk_upsert
 
 class GroupingService:
     def __init__(
-        self, db, request, application_instance, plugin: GroupingServicePlugin
+        self, db, request, application_instance, plugin: GroupingServicePlugin, deep_linking
     ):
         self._db = db
         self._request = request
         self.application_instance = application_instance
         self.plugin = plugin
+        self.deep_linking = deep_linking
 
     def get_authority_provided_id(
         self, lms_id, type_: Grouping.Type, parent: Optional[Grouping] = None

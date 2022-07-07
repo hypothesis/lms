@@ -12,6 +12,9 @@ class Canvas(Product):
 
     family: Product.Family = Product.Family.CANVAS
 
+    deep_linking: bool = True
+    supports_grading_bar: bool = False
+
     route: Routes = Routes(
         oauth2_authorize="canvas_api.oauth.authorize",
         oauth2_refresh="canvas_api.oauth.refresh",

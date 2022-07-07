@@ -9,4 +9,5 @@ def service_factory(_context, request):
             name="application_instance"
         ).get_current(),
         plugin=request.product.plugin.grouping_service,
+        deep_linking=request.product.deep_linking
     )

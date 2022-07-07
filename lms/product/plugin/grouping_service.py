@@ -24,13 +24,6 @@ class GroupingServicePlugin:  # pragma: nocover
     sections_type: Grouping.Type = None
     """The type of sections this plugin supports. `None` disables support."""
 
-    deep_linking = False
-    """
-    Does this product use deep linking to configure assignments?
-
-    If so we will read group set info from the URL rather than the DB.
-    """
-
     def get_grouping_type(self, svc) -> Grouping.Type:
         """Get the type of grouping used in this launch."""
 

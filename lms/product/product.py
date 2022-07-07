@@ -38,6 +38,16 @@ class Routes:
 class Product:
     """The main product object which is passed around the app."""
 
+    deep_linking = False
+    """
+    Does this product use deep linking to configure assignments?
+
+    If so we will read group set info from the URL rather than the DB.
+    """
+
+    supports_grading_bar = True
+    """Does this product support our built in grading bar?"""
+
     plugin: Plugins
     plugin_config: PluginConfig = PluginConfig()
     route: Routes = Routes()

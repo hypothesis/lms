@@ -4,8 +4,6 @@ from tests.unit.lms.resources.oauth2_redirect_test import JSConfig
 
 
 class CanvasLTILaunchPlugin(LTILaunchPlugin):
-    supports_grading_bar = False
-
     def __init__(self, request):
         self._request = request
 
