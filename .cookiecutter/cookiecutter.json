@@ -1,0 +1,24 @@
+{
+  "template": "https://github.com/hypothesis/cookiecutters",
+  "directory": "pyramid-app",
+  "ignore": ["tests/functional/app_test.py"],
+  "extra_context": {
+    "name": "LMS",
+    "package_name": "lms",
+    "slug": "lms",
+    "short_description": "An LTI app that integrates Hypothesis with Learning Management Systems.",
+    "python_version": "3.8.12",
+    "port": "8001",
+    "github_owner": "hypothesis",
+    "copyright_holder": "Hypothesis",
+    "public": "True",
+    "__github_url": "https://github.com/hypothesis/lms",
+    "__docker": "yes",
+    "__docker_namespace": "hypothesis",
+    "__docker_network": "lms_default",
+    "__services": "yes",
+    "__db": "yes",
+    "__frontend": "yes",
+    "__frontend_typechecking": "yes"
+  }
+}

@@ -1,7 +1,8 @@
 pip-tools
+-r tests.txt
+-r functests.txt
+toml # Needed for pydocstyle to support pyproject.toml.
 pylint
 pydocstyle
 pycodestyle
--r tests.txt
--r functests.txt
 -r bddtests.txt

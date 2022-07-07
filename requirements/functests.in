@@ -1,7 +1,7 @@
 pip-tools
+-r prod.txt
 httpretty
 pytest
 factory-boy
-h-matchers>=1.2.8
+h-matchers
 webtest
--r requirements.txt

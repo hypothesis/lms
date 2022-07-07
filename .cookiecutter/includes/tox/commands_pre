@@ -1,0 +1,3 @@
+tests: sh bin/create-db lms_test
+functests: sh bin/create-db lms_functests
+bddtests: sh bin/create-db lms_bddtests
