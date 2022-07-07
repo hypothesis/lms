@@ -10,7 +10,7 @@ class CourseServicePlugin:  # pragma: nocover
 
         return settings
 
-    def get_new_course_extra(self) -> dict:
-        """Get extra dict for a new course."""
+    def get_course_extras(self) -> dict:
+        """Get extra dict for when upserting courses."""
 
         return {}

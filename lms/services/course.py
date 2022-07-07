@@ -67,7 +67,7 @@ class CourseService:
         grouping = {
             "lms_id": context_id,
             "lms_name": name,
-            "extra": self._plugin.get_new_course_extra(),
+            "extra": self._plugin.get_course_extras(),
             "settings": self._plugin.get_new_course_settings(
                 settings=deepcopy(self._application_instance.settings),
                 authority_provided_id=self._get_authority_provided_id(context_id),

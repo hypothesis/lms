@@ -17,7 +17,7 @@ class CanvasCoursePlugin(CourseServicePlugin):
 
         return settings
 
-    def get_new_course_extra(self) -> dict:
+    def get_course_extras(self) -> dict:
         return {
             "canvas": {
                 "custom_canvas_course_id": self._parsed_params.get(
