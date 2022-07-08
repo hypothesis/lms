@@ -64,6 +64,20 @@ class Assignment(CreatedUpdatedMixin, BASE):
     description = sa.Column(sa.Unicode, nullable=True)
     """The resource link description from LTI params."""
 
+    user_memberships = sa.orm.relationship(
+        "AssignmentMembership", back_populates="assignment"
+    )
+
+    assignment_groupings = sa.orm.relationship(
+        "AssignmentGrouping", back_populates="assignment"
+    )
+    groupings = sa.orm.relationship(
+        "Grouping",
+        secondary="assignment_grouping",
+        back_populates="assignments",
+        viewonly=True,
+    )
+
     def get_canvas_mapped_file_id(self, file_id):
         return self.extra.get("canvas_file_mappings", {}).get(file_id, file_id)
 

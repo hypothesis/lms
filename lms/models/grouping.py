@@ -129,7 +129,19 @@ class Grouping(CreatedUpdatedMixin, BASE):
         nullable=False,
     )
 
+    # Related users relationships
     memberships = sa.orm.relationship("GroupingMembership", back_populates="grouping")
+
+    # All related assignments
+    assignment_groupings = sa.orm.relationship(
+        "AssignmentGrouping", back_populates="grouping"
+    )
+    assignments = sa.orm.relationship(
+        "Assignment",
+        secondary="assignment_grouping",
+        back_populates="groupings",
+        viewonly=True,
+    )
 
     @property
     def name(self):

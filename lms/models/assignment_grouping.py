@@ -14,11 +14,17 @@ class AssignmentGrouping(CreatedUpdatedMixin, BASE):
         sa.ForeignKey("assignment.id", ondelete="cascade"),
         primary_key=True,
     )
-    assignment = sa.orm.relationship("Assignment", foreign_keys=[assignment_id])
+    assignment = sa.orm.relationship(
+        "Assignment",
+        foreign_keys=[assignment_id],
+        back_populates="assignment_groupings",
+    )
     """The assignment."""
 
     grouping_id = sa.Column(
         sa.Integer(), sa.ForeignKey("grouping.id", ondelete="cascade"), primary_key=True
     )
-    grouping = sa.orm.relationship("Grouping", foreign_keys=[grouping_id])
+    grouping = sa.orm.relationship(
+        "Grouping", foreign_keys=[grouping_id], back_populates="assignment_groupings"
+    )
     """The grouping the assignment is a part of."""
