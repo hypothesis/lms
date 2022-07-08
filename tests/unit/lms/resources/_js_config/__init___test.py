@@ -512,7 +512,8 @@ class TestAddDeepLinkingAPI:
     @pytest.fixture
     def with_lti_13(self, context):
         # Make the application instance `lti_version` return "1.3.0"
-        context.application_instance.lti_registration_id = 100
+        context.application_instance.lti_registration_id = sentinel.registration_id
+        context.application_instance.deployment_id = sentinel.deployment_id
 
 
 class TestEnableErrorDialogMode:

@@ -202,7 +202,7 @@ class ApplicationInstance(BASE):
         The return values (LTI-1p0, "1.3.0) are the same the spec defines
         and will match the version parameter on lti launches.
         """
-        if self.lti_registration_id:
+        if self.lti_registration_id and self.deployment_id:
             return "1.3.0"
 
         return "LTI-1p0"
