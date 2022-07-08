@@ -14,17 +14,18 @@ def includeme(config):
 
     config.set_session_factory(
         SignedCookieSessionFactory(
+            # https://docs.pylonsproject.org/projects/pyramid/en/latest/api/session.html#pyramid.session.SignedCookieSessionFactory
             secret=config.registry.settings["session_cookie_secret"],
             secure=secure,
             # ``httponly=True`` is recommended by the Pyramid docs to protect
-            # the cookie from cross-site scripting vulnerabilities, see:
-            # https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/sessions.html
+            # the cookie from cross-site scripting vulnerabilities.
             httponly=True,
             # 30 days
             max_age=60 * 60 * 24 * 30,
+            # Disable autoexpiring sessions. Rely only on max_age
+            timeout=None,
             # The Pyramid docs recommend JSONSerializer instead of the default
-            # serializer for security reasons. See:
-            # https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/sessions.html
+            # serializer for security reasons.
             serializer=JSONSerializer(),
         )
     )
