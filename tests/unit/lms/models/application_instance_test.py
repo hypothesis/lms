@@ -127,10 +127,19 @@ class TestApplicationInstance:
         assert application_instance.tool_consumer_instance_guid == "EXISTING_GUID"
 
     @pytest.mark.parametrize(
-        "lti_registration_id,lti_version", [(None, "LTI-1p0"), (1, "1.3.0")]
+        "lti_registration_id,deployment_id,lti_version",
+        [
+            (None, None, "LTI-1p0"),
+            (None, "deployment_id", "LTI-1p0"),
+            (1, None, "LTI-1p0"),
+            (1, "deployment_id", "1.3.0"),
+        ],
     )
-    def test_lti_version(self, lti_registration_id, lti_version, application_instance):
+    def test_lti_version(
+        self, lti_registration_id, deployment_id, lti_version, application_instance
+    ):
         application_instance.lti_registration_id = lti_registration_id
+        application_instance.deployment_id = deployment_id
 
         assert application_instance.lti_version == lti_version
 
