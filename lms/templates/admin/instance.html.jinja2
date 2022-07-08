@@ -3,6 +3,10 @@
 {% extends "lms:templates/admin/base.html.jinja2" %}
 {% block header %}
     Application instance {{instance.id}}
+
+    <span class="tag is-link is-normal">
+        LTI {% if instance.lti_version == "1.3.0" %}1.3{% else %}1.1{% endif %}
+    </span>
 {% endblock %}
 
 {% macro settings_checkbox(label, setting, sub_setting, field_name, default=False) %}
