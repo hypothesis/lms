@@ -1,7 +1,7 @@
 import datetime
 from urllib.parse import urlparse
 
-import jwt
+from lms.services.jwt import JWTService
 
 
 class GrantTokenService:
@@ -16,13 +16,19 @@ class GrantTokenService:
     See https://h.readthedocs.io/en/latest/publishers/authorization-grant-tokens/
     """
 
-    def __init__(
-        self, h_api_url_public, h_authority, h_jwt_client_id, h_jwt_client_secret
+    def __init__(  # pylint: disable=too-many-arguments
+        self,
+        h_api_url_public,
+        h_authority,
+        h_jwt_client_id,
+        h_jwt_client_secret,
+        jwt_service,
     ):
         self._h_api_url_public = h_api_url_public
         self._h_authority = h_authority
         self._h_jwt_client_id = h_jwt_client_id
         self._h_jwt_client_secret = h_jwt_client_secret
+        self._jwt_service = jwt_service
 
     def generate_token(self, h_user):
         """
@@ -39,13 +45,10 @@ class GrantTokenService:
             "iss": self._h_jwt_client_id,
             "sub": h_user.userid(self._h_authority),
             "nbf": now,
-            "exp": now + datetime.timedelta(minutes=5),
         }
 
-        return jwt.encode(
-            claims,
-            self._h_jwt_client_secret,
-            algorithm="HS256",
+        return self._jwt_service.encode_with_secret(
+            claims, self._h_jwt_client_secret, lifetime=datetime.timedelta(minutes=5)
         )
 
 
@@ -57,4 +60,5 @@ def factory(_context, request):
         h_authority=settings["h_authority"],
         h_jwt_client_id=settings["h_jwt_client_id"],
         h_jwt_client_secret=settings["h_jwt_client_secret"],
+        jwt_service=request.find_service(JWTService),
     )
