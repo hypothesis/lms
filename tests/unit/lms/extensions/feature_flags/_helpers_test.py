@@ -1,7 +1,7 @@
 from unittest.mock import sentinel
 
-import jwt
 import pytest
+from jose import jwt
 from pyramid.httpexceptions import HTTPFound
 
 from lms.extensions.feature_flags._exceptions import SettingError

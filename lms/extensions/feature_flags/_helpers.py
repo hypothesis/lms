@@ -1,5 +1,5 @@
-import jwt
-from jwt.exceptions import InvalidTokenError
+from jose import jwt
+from jose.exceptions import JWTError
 from pyramid.settings import asbool, aslist
 
 from ._exceptions import SettingError
@@ -93,5 +93,5 @@ class JWTCookieHelper:
 
         try:
             return jwt.decode(jwt_bytes, self._secret, algorithms=["HS256"])
-        except InvalidTokenError:
+        except JWTError:
             return {}
