@@ -2,9 +2,9 @@ import json
 from datetime import datetime
 
 import importlib_resources
-import jwt
 import pytest
 from httpretty import httpretty
+from jose import jwt
 from pytest import register_assert_rewrite
 
 from tests import factories
