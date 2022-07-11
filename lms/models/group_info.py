@@ -32,10 +32,6 @@ class GroupInfo(BASE):
     #: DB.
     authority_provided_id = sa.Column(sa.UnicodeText(), nullable=False, unique=True)
 
-    #: The LTI consumer_key (oauth_consumer_key) of the application instance
-    #: that this access token belongs to.
-    consumer_key = sa.Column(sa.Unicode(), nullable=True)
-
     #: The ApplicationInstance that this group belongs to foreign key
     application_instance_id = sa.Column(
         sa.Integer(),

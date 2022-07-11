@@ -47,7 +47,6 @@ class GradingInfo(CreatedUpdatedMixin, BASE):
     id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
     lis_result_sourcedid = sa.Column(sa.UnicodeText(), nullable=False)
     lis_outcome_service_url = sa.Column(sa.UnicodeText(), nullable=False)
-    oauth_consumer_key = sa.Column(sa.UnicodeText(), nullable=True)
 
     #: The ApplicationInstance FK that this grading info belongs to
     application_instance_id = sa.Column(

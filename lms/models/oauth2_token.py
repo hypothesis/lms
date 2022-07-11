@@ -25,10 +25,6 @@ class OAuth2Token(BASE):
     #: The LTI user_id of the LMS user who this access token belongs to.
     user_id = sa.Column(sa.UnicodeText(), nullable=False)
 
-    #: The LTI consumer_key (oauth_consumer_key) of the application instance
-    #: that this access token belongs to.
-    consumer_key = sa.Column(sa.Unicode(), nullable=True)
-
     #: The ApplicationInstance that this token belongs to foreign key
     application_instance_id = sa.Column(
         sa.Integer(),
