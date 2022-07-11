@@ -28,7 +28,7 @@ certifi==2020.6.20
     # via
     #   requests
     #   sentry-sdk
-cffi==1.15.0
+cffi==1.15.1
     # via cryptography
 charset-normalizer==2.0.1
     # via
@@ -46,8 +46,8 @@ click-plugins==1.1.1
     # via celery
 click-repl==0.2.0
     # via celery
-cryptography==36.0.2
-    # via pyjwt
+cryptography==37.0.4
+    # via python-jose
 ecdsa==0.17.0
     # via python-jose
 frozenlist==1.2.0
@@ -137,9 +137,8 @@ pycparser==2.21
     # via cffi
 pycryptodomex==3.15.0
     # via -r requirements/requirements.in
-pyjwt[crypto]==2.4.0
+pyjwt==2.4.0
     # via
-    #   -r requirements/requirements.in
     #   h-vialib
     #   pyramid-googleauth
 pyparsing==3.0.6
@@ -169,7 +168,7 @@ pyramid-tm==2.5
     # via -r requirements/requirements.in
 pyrsistent==0.17.3
     # via jsonschema
-python-jose[crypto]==3.3.0
+python-jose[cryptography]==3.3.0
     # via -r requirements/requirements.in
 pytz==2022.1
     # via celery

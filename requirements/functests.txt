@@ -45,7 +45,7 @@ certifi==2020.6.20
     #   -r requirements/requirements.txt
     #   requests
     #   sentry-sdk
-cffi==1.15.0
+cffi==1.15.1
     # via
     #   -r requirements/requirements.txt
     #   cryptography
@@ -74,10 +74,10 @@ click-repl==0.2.0
     # via
     #   -r requirements/requirements.txt
     #   celery
-cryptography==36.0.2
+cryptography==37.0.4
     # via
     #   -r requirements/requirements.txt
-    #   pyjwt
+    #   python-jose
 ecdsa==0.17.0
     # via
     #   -r requirements/requirements.txt
@@ -224,7 +224,7 @@ pycparser==2.21
     #   cffi
 pycryptodomex==3.15.0
     # via -r requirements/requirements.txt
-pyjwt[crypto]==2.4.0
+pyjwt==2.4.0
     # via
     #   -r requirements/requirements.txt
     #   h-vialib
@@ -264,7 +264,7 @@ pytest==7.1.2
     # via -r requirements/functests.in
 python-dateutil==2.8.1
     # via faker
-python-jose[crypto]==3.3.0
+python-jose[cryptography]==3.3.0
     # via -r requirements/requirements.txt
 pytz==2022.1
     # via

@@ -82,7 +82,7 @@ certifi==2020.6.20
     #   -r requirements/tests.txt
     #   requests
     #   sentry-sdk
-cffi==1.15.0
+cffi==1.15.1
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -125,12 +125,12 @@ click-repl==0.2.0
     #   celery
 coverage==6.4.1
     # via -r requirements/tests.txt
-cryptography==36.0.2
+cryptography==37.0.4
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-    #   pyjwt
+    #   python-jose
 dill==0.3.4
     # via pylint
 ecdsa==0.17.0
@@ -409,7 +409,7 @@ pycryptodomex==3.15.0
     #   -r requirements/tests.txt
 pydocstyle==6.1.1
     # via -r requirements/lint.in
-pyjwt[crypto]==2.4.0
+pyjwt==2.4.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -485,7 +485,7 @@ python-dateutil==2.8.1
     #   -r requirements/tests.txt
     #   faker
     #   freezegun
-python-jose[crypto]==3.3.0
+python-jose[cryptography]==3.3.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
