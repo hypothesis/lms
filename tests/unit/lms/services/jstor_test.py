@@ -66,11 +66,11 @@ class TestJSTORService:
         "article_id, expected_api_url",
         [
             # Typical JSTOR article, with no DOI prefix given
-            ("12345", f"{JSTOR_API_URL}/metadata/10.2307/12345"),
+            ("12345", f"{JSTOR_API_URL}/metadata-new/10.2307/12345"),
             # Article ID that needs to be encoded
-            ("123:45", f"{JSTOR_API_URL}/metadata/10.2307/123%3A45"),
+            ("123:45", f"{JSTOR_API_URL}/metadata-new/10.2307/123%3A45"),
             # Article with custom DOI prefix
-            ("10.123/12345", f"{JSTOR_API_URL}/metadata/10.123/12345"),
+            ("10.123/12345", f"{JSTOR_API_URL}/metadata-new/10.123/12345"),
         ],
     )
     def test_metadata_calls_jstor_api(
@@ -91,29 +91,24 @@ class TestJSTORService:
     @pytest.mark.parametrize(
         "api_response, expected_title",
         [
-            ({}, None),
             # Simple title
-            ({"title": []}, None),
-            ({"title": ["SIMPLE"]}, "SIMPLE"),
-            ({"title": ["SIMPLE"], "subtitle": []}, "SIMPLE"),
-            ({"title": ["SIMPLE"], "subtitle": ["SUBTITLE"]}, "SIMPLE SUBTITLE"),
-            # Collection
-            ({"tb": "COLLECTION"}, "COLLECTION"),
-            ({"tb": "COLLECTION", "tbsub": "SUBTITLE"}, "COLLECTION SUBTITLE"),
+            ({"title": ""}, "[Unknown title]"),
+            ({"title": "SIMPLE"}, "SIMPLE"),
+            ({"title": "SIMPLE", "subtitle": ""}, "SIMPLE"),
+            ({"title": "SIMPLE", "subtitle": "SUBTITLE"}, "SIMPLE: SUBTITLE"),
+            ({"title": "SIMPLE:", "subtitle": "SUBTITLE"}, "SIMPLE: SUBTITLE"),
             # Article that is a review of another work
             # These have null "tb" and "tbsub" fields, which should be ignored
             (
-                {"tb": None, "tbsub": None, "reviewed_works": [{"title": "REVIEW"}]},
-                "Review: REVIEW",
+                {"title": "Ignored", "reviewed_works": ["Reviewed work"]},
+                "Review: Reviewed work",
             ),
-            # "Primary source content" in JSTOR search results
-            ({"item_title": "PRIMARY_SOURCE"}, "PRIMARY_SOURCE"),
             # Titles with extra whitespace, new lines or HTML should be cleaned up.
-            ({"title": ["   A \n B   \t   C  "]}, "A B C"),
-            ({"title": ["A <em>B</em>"], "subtitle": ["C <em>D</em> E"]}, "A B C D E"),
-            ({"title": ["A<b>B"]}, "AB"),
+            ({"title": "   A \n B   \t   C  "}, "A B C"),
+            ({"title": "A <em>B</em>", "subtitle": "C <em>D</em> E"}, "A B: C D E"),
+            ({"title": "A<b>B"}, "AB"),
             # This isn't a tag!
-            ({"title": ["A<B"]}, "A<B"),
+            ({"title": "A<B"}, "A<B"),
         ],
     )
     def test_metadata_formats_title(
@@ -126,7 +121,7 @@ class TestJSTORService:
         assert metadata["title"] == expected_title
 
     def test_metadata_raises_if_schema_mismatch(self, svc, http_service):
-        invalid_api_response = {"title": "This should be a list"}
+        invalid_api_response = {"title": ["This should be a string"]}
         http_service.get.return_value = factories.requests.Response(
             json_data=invalid_api_response
         )
