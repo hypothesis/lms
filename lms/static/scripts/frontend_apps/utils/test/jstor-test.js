@@ -21,6 +21,12 @@ describe('utils/jstor', () => {
       ['https://www.jstor.org/stable/1234/', '1234'],
       ['https://www.jstor.org/stable/1234//', '1234'],
 
+      // Leading and trailing whitespace ignored
+      ['10.2307/1234  ', '10.2307/1234'],
+      ['  10.2307/1234  ', '10.2307/1234'],
+      [' https://www.jstor.org/stable/1234 ', '1234'],
+      [' 1234  ', '1234'],
+
       // http protocol OK
       ['http://www.jstor.org/stable/1234', '1234'],
 
