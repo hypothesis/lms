@@ -27,6 +27,8 @@ function isDOI(value) {
  * @returns {string|null}
  */
 export function articleIdFromUserInput(value) {
+  value = value.trim();
+
   // Plain JSTOR article ID
   if (/^[0-9a-z.]+$/.test(value)) {
     return value;
