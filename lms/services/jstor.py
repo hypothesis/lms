@@ -16,7 +16,7 @@ class JSTORMetadataSchema(RequestsResponseSchema):
     """
     Response schema for `/metadata/{doi}` endpoint in the JSTOR API.
 
-    See https://hypothes-is.slack.com/archives/C02T75RKBTK/p1655930468948019.
+    See https://labs.jstor.org/api/anno/docs
     """
 
     title = fields.Str()
