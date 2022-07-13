@@ -56,6 +56,11 @@ class TestGatewayHLTI:
 
         gateway_launch(required_params, status=status)
 
+    def test_guid_must_match(self, gateway_launch, required_params):
+        required_params["tool_consumer_instance_guid"] = "NOT MATCHING"
+
+        gateway_launch(required_params, status=403)
+
     @pytest.mark.parametrize("auth_field", ("consumer_key", "shared_secret"))
     def test_signature_must_be_valid(
         self, gateway_launch, required_params, oauth1_credentials, auth_field

@@ -1,7 +1,9 @@
 from marshmallow import fields
 from marshmallow.validate import Equal
+from pyramid.exceptions import HTTPForbidden
 from pyramid.view import view_config
 
+from lms.models import ReusedConsumerKey
 from lms.security import Permissions
 from lms.validation import LTIV11CoreSchema
 
@@ -30,12 +32,23 @@ class GatewayLTISchema(LTIV11CoreSchema):
     route_name="api.gateway.h.lti",
     schema=GatewayLTISchema,
 )
-def h_lti(request):
+def h_lti(context, request):
     """
     Provide tokens and information to allow customers to query H.
 
     We expect the user to authenticate with us using an LTI launch.
     """
+
+    # Ensure no funny business is going on trying to access content out of the
+    # current application instance scope.
+    try:
+        context.application_instance.check_guid_aligns(
+            request.lti_params["tool_consumer_instance_guid"]
+        )
+    except ReusedConsumerKey as err:
+        raise HTTPForbidden(
+            "Claimed `tool_consumer_instance_guid` does not match credentials."
+        ) from err
 
     # Add API end-point details
     h_api_url = request.registry.settings["h_api_url_public"]

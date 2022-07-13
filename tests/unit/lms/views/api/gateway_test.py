@@ -1,14 +1,17 @@
-from unittest.mock import sentinel
+from unittest.mock import create_autospec, sentinel
 
 import pytest
+from pyramid.httpexceptions import HTTPForbidden
 
+from lms.models import ReusedConsumerKey
+from lms.resources import LTILaunchResource
 from lms.views.api.gateway import h_lti
 
 
 @pytest.mark.usefixtures("grant_token_service")
 class TestHLTI:
-    def test_it_adds_h_api_details(self, pyramid_request, grant_token_service):
-        response = h_lti(pyramid_request)
+    def test_it_adds_h_api_details(self, context, pyramid_request, grant_token_service):
+        response = h_lti(context, pyramid_request)
 
         grant_token_service.generate_token.assert_called_once_with(
             pyramid_request.lti_user.h_user
@@ -33,6 +36,18 @@ class TestHLTI:
                 },
             },
         }
+
+    def test_it_checks_for_guid_agreement(self, context, pyramid_request):
+        context.application_instance.check_guid_aligns.side_effect = ReusedConsumerKey(
+            "old", "new"
+        )
+
+        with pytest.raises(HTTPForbidden):
+            h_lti(context, pyramid_request)
+
+    @pytest.fixture
+    def context(self):
+        return create_autospec(LTILaunchResource, instance=True, spec_set=True)
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
