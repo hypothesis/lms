@@ -166,10 +166,8 @@ class JSTORService:
             # Some articles have a subtitle which needs to be appended for the
             # title to make sense.
             if subtitle := metadata.get("subtitle"):
-                # Some titles include a delimiter, some do not.
-                if title.endswith(":"):
-                    title = title[:-1]
-                title = f"{title}: {subtitle}"
+                # Some titles include a trailing ':' delimiter, some do not.
+                title = f"{title.rstrip(':')}: {subtitle}"
 
         else:
             title = "[Unknown title]"
