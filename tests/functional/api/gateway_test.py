@@ -41,6 +41,12 @@ class TestGatewayHLTI:
             ("tool_consumer_instance_guid", 403),
             ("user_id", 403),
             ("roles", 403),
+            # Required for us to work
+            ("context_id", 422),
+            # Us being picky, but useful for checking it's a well-formed
+            # LTI launch
+            ("lti_version", 422),
+            ("lti_message_type", 422),
         ),
     )
     def test_each_param_is_required(

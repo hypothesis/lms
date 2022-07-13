@@ -1,13 +1,34 @@
+from marshmallow import fields
+from marshmallow.validate import Equal
 from pyramid.view import view_config
 
 from lms.security import Permissions
+from lms.validation import LTIV11CoreSchema
+
+
+class GatewayLTISchema(LTIV11CoreSchema):
+    location = "form"
+
+    # Specify the context (either assignment or whole course level)
+    context_id = fields.Str(required=True)
+    resource_link_id = fields.Str()
+
+    # We don't need these exactly, but it proves the caller is sending us a
+    # well-formed LTI request. It also limits us to 1.1, because this whole
+    # approach doesn't really work with 1.3 at the moment.
+    lti_version = fields.Str(validate=Equal("LTI-1p0"), required=True)
+    lti_message_type = fields.Str(
+        validate=Equal("basic-lti-launch-request"),
+        required=True,
+    )
 
 
 @view_config(
     request_method="POST",
     permission=Permissions.API,
     renderer="json",
-    route_name="api.gateway.h.lti"
+    route_name="api.gateway.h.lti",
+    schema=GatewayLTISchema,
 )
 def h_lti(request):
     """
