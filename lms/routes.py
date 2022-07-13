@@ -29,6 +29,15 @@ def includeme(config):  # pylint:disable=too-many-statements
 
     config.add_route("api.assignments.create", "/api/assignment", request_method="POST")
 
+    # The gateway end-point is a bit of an oddball as it uses LTI launch as the
+    # authentication method, and so requires the LTILaunch resource
+    config.add_route(
+        "api.gateway.h.lti",
+        "/api/gateway/h/lti",
+        request_method="POST",
+        factory="lms.resources.LTILaunchResource",
+    )
+
     config.add_route(
         "blackboard_api.oauth.authorize",
         "/api/blackboard/oauth/authorize",
