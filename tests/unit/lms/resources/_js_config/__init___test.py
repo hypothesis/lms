@@ -218,7 +218,9 @@ class TestEnableGradingBar:
                     "displayName": grading_info.h_display_name,
                     "lmsId": grading_info.user_id,
                     "LISResultSourcedId": grading_info.lis_result_sourcedid,
-                    "LISOutcomeServiceUrl": grading_info.lis_outcome_service_url,
+                    "LISOutcomeServiceUrl": pyramid_request.lti_params[
+                        "lis_outcome_service_url"
+                    ],
                 }
                 for grading_info in grading_info_service.get_by_assignment.return_value
             ],
