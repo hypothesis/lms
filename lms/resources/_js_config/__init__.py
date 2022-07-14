@@ -252,7 +252,14 @@ class JSConfig:
                     "displayName": h_user.display_name,
                     "lmsId": grading_info.user_id,
                     "LISResultSourcedId": grading_info.lis_result_sourcedid,
-                    "LISOutcomeServiceUrl": grading_info.lis_outcome_service_url,
+                    # We are using the value from the request instead of the one stored in GradingInfo.
+                    # This allows us to still read and submit grades when something in the LMS changes.
+                    # For example in LTI version upgrades, the endpoint is likely to change as we move from
+                    # LTI 1.1 basic outcomes API to LTI1.3's Assignment and Grade Services.
+                    # Also when the install's domain is updated all the records in the DB will be outdated.
+                    "LISOutcomeServiceUrl": self._request.lti_params[
+                        "lis_outcome_service_url"
+                    ],
                 }
             )
 
