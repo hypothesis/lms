@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
-"""Call an LTI style OAuth1 end-point using a JSON definition file."""
+"""
+Call an LTI style OAuth1 end-point using a JSON definition file.
+
+See `docs/gateway/03_testing_tools.md` for more details.
+"""
 
 import json
 import random

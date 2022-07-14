@@ -4,7 +4,7 @@
         "shared_secret": "__SHARED_SECRET__"
     },
     "request": {
-        "url": "https://qa.hypothes.is/lti_launches",
+        "url": "https://qa.hypothes.is/api/gateway/h/lti",
         "headers": {
             "Accept": "application/vnd.hypothesis.v2+json",
             "Content-Type": "application/x-www-form-urlencoded"
@@ -13,7 +13,6 @@
             "tool_consumer_instance_guid": "GUID",
 
             "context_id": "__COURSE_ID__",
-            "context_title": "Course name",
             "resource_link_id": "__ASSIGNMENT_ID__",
 
             "user_id":  "__USER_ID__",
