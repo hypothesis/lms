@@ -7,8 +7,10 @@ from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
 from lms.product.factory import get_product_from_request
 from lms.product.product import Product
+from lms.services.application_instance import ApplicationInstanceNotFound
 
 
+@pytest.mark.usefixtures("application_instance_service")
 class TestGetProductFromRequest:
     PRODUCTS = (Product, Blackboard, Canvas)
     PRODUCT_MAP = [
@@ -69,6 +71,29 @@ class TestGetProductFromRequest:
         Canvas.from_request.assert_called_once_with(pyramid_request)
         assert product == Canvas.from_request.return_value
         assert product.family == Product.Family.CANVAS
+
+    @pytest.mark.parametrize("value,family,class_", PRODUCT_MAP)
+    def test_from_application_instance(
+        self, pyramid_request, application_instance, value, family, class_
+    ):
+        application_instance.tool_consumer_info_product_family_code = value
+
+        product = get_product_from_request(pyramid_request)
+
+        class_.from_request.assert_called_once_with(pyramid_request)
+        assert product == class_.from_request.return_value
+        assert product.family == family
+
+    def test_from_application_instance_when_missing(
+        self, pyramid_request, application_instance_service
+    ):
+        application_instance_service.get_current.side_effect = (
+            ApplicationInstanceNotFound()
+        )
+
+        product = get_product_from_request(pyramid_request)
+
+        assert product.family == Product.Family.UNKNOWN
 
     @pytest.fixture(autouse=True)
     def with_mocked_from_request(self):
