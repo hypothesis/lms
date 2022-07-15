@@ -137,13 +137,14 @@ importlib-resources==5.9.0
     #   -r requirements/requirements.txt
     #   alembic
     #   h-api
+    #   jsonschema
 iniconfig==1.1.1
     # via pytest
 jinja2==2.11.3
     # via
     #   -r requirements/requirements.txt
     #   pyramid-jinja2
-jsonschema==3.2.0
+jsonschema==4.7.2
     # via
     #   -r requirements/requirements.txt
     #   h-api
@@ -302,7 +303,6 @@ six==1.15.0
     #   click-repl
     #   ecdsa
     #   google-auth
-    #   jsonschema
     #   parse-type
     #   python-dateutil
 soupsieve==2.2.1
@@ -405,7 +405,6 @@ setuptools==62.6.0
     #   -r requirements/requirements.txt
     #   google-auth
     #   gunicorn
-    #   jsonschema
     #   pip-tools
     #   plaster
     #   pyramid

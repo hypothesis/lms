@@ -83,9 +83,10 @@ importlib-resources==5.9.0
     #   -r requirements/requirements.in
     #   alembic
     #   h-api
+    #   jsonschema
 jinja2==2.11.3
     # via pyramid-jinja2
-jsonschema==3.2.0
+jsonschema==4.7.2
     # via h-api
 kombu==5.2.4
     # via celery
@@ -192,7 +193,6 @@ six==1.15.0
     #   click-repl
     #   ecdsa
     #   google-auth
-    #   jsonschema
 sqlalchemy==1.4.39
     # via
     #   -r requirements/requirements.in
@@ -255,7 +255,6 @@ setuptools==62.6.0
     # via
     #   google-auth
     #   gunicorn
-    #   jsonschema
     #   plaster
     #   pyramid
     #   zope-deprecation

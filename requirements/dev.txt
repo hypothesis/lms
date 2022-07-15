@@ -136,6 +136,7 @@ importlib-resources==5.9.0
     #   -r requirements/requirements.txt
     #   alembic
     #   h-api
+    #   jsonschema
 ipython==8.4.0
     # via pyramid-ipython
 jedi==0.18.1
@@ -144,7 +145,7 @@ jinja2==2.11.3
     # via
     #   -r requirements/requirements.txt
     #   pyramid-jinja2
-jsonschema==3.2.0
+jsonschema==4.7.2
     # via
     #   -r requirements/requirements.txt
     #   h-api
@@ -307,7 +308,6 @@ six==1.15.0
     #   click-repl
     #   ecdsa
     #   google-auth
-    #   jsonschema
     #   python-dateutil
 sqlalchemy==1.4.39
     # via
@@ -408,7 +408,6 @@ setuptools==62.6.0
     #   google-auth
     #   gunicorn
     #   ipython
-    #   jsonschema
     #   pip-tools
     #   plaster
     #   pyramid

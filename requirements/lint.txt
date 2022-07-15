@@ -238,6 +238,7 @@ importlib-resources==5.9.0
     #   -r requirements/tests.txt
     #   alembic
     #   h-api
+    #   jsonschema
 iniconfig==1.1.1
     # via
     #   -r requirements/bddtests.txt
@@ -252,7 +253,7 @@ jinja2==2.11.3
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid-jinja2
-jsonschema==3.2.0
+jsonschema==4.7.2
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -530,7 +531,6 @@ six==1.15.0
     #   click-repl
     #   ecdsa
     #   google-auth
-    #   jsonschema
     #   parse-type
     #   python-dateutil
 snowballstemmer==2.1.0
@@ -705,7 +705,6 @@ setuptools==62.6.0
     #   astroid
     #   google-auth
     #   gunicorn
-    #   jsonschema
     #   pip-tools
     #   plaster
     #   pyramid
