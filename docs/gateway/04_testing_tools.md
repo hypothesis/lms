@@ -71,12 +71,12 @@ STDOUT, which allows you to view each separately:
 
 ## `h_call.py` - Calling the `h` API using Gateway data 
 
-[The `oauth_call.py` script](../../bin/gateway/h_call.py) can make calls to the 
+[The `h_call.py` script](../../bin/gateway/h_call.py) can make calls to the 
 `h` API using the format returned by the Gateway end-point.
 
 It can read those values from a JSON file, or directly from `oauth_call.py`. 
-You can use this to make authenticated calls using an exchanged token and to
-store a list of tests calls in a file.
+You can use this to make authenticated calls (using an exchanged token) against
+a stored list of API calls you define.
 
 ### Examples
 

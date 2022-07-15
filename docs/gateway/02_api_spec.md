@@ -24,6 +24,11 @@ Accept: application/json
 Content-Type: application/x-www-form-urlencoded
 ```
 
+### Authentication
+
+You will need to OAuth1 sign the parameters in order to pass authentication.
+For details of how to do this see [Authentication](03_authentication.md).
+
 ### Post body fields
 
 We accept any and all LTI 1.1 parameters.
@@ -34,6 +39,8 @@ It is recommended for stability and the best performance that you pass all LTI
 parameters received onto this end-point. This will ensure compatibility as the
 more features may be added in future which require fields which were previously
 optional.
+
+
 
 | Field                         | Example                    | Notes                                                                   |
 |-------------------------------|----------------------------|-------------------------------------------------------------------------|
