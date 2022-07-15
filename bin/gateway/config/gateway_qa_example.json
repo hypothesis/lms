@@ -1,0 +1,30 @@
+{
+    "auth": {
+        "consumer_key": "__CONSUMER_KEY__",
+        "shared_secret": "__SHARED_SECRET__"
+    },
+    "request": {
+        "url": "https://qa.hypothes.is/lti_launches",
+        "headers": {
+            "Accept": "application/vnd.hypothesis.v2+json",
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        "data": {
+            "tool_consumer_instance_guid": "GUID",
+
+            "context_id": "__COURSE_ID__",
+            "context_title": "Course name",
+            "resource_link_id": "__ASSIGNMENT_ID__",
+
+            "user_id":  "__USER_ID__",
+            "roles": "Instructor",
+            "lis_person_name_given": "Charlie",
+            "lis_person_name_family": "Smith",
+            "lis_person_name_full": "Charlie Bobby Smith",
+
+            "tool_consumer_info_product_family_code": "canvas",
+            "lti_version": "LTI-1p0",
+            "lti_message_type": "basic-lti-launch-request"
+        }
+    }
+}
