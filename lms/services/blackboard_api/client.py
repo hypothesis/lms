@@ -169,7 +169,9 @@ class BlackboardAPIClient:
             responses = self._request.find_service(name="async_oauth_http").request(
                 "GET", self_enrollment_check_urls
             )
-            for group, response in zip(self_enrollment_groups, responses):
+            # We are going to be modifying `self_enrollment_groups` within the loop
+            # Create a copy here to iterate over.
+            for group, response in zip(list(self_enrollment_groups), responses):
                 # If we are a member of any of the SelfEnrollment groups
                 # we'll get a 200 response from the endpoint
                 if response.status == 200:
