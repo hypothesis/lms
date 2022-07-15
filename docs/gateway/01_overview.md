@@ -2,7 +2,8 @@
 
 _See also:_
 
- * [API Specification](02_api_spec.md) - Details of the end-points
+ * [Hypothesis API Specfication](https://h.readthedocs.io/en/latest/api-reference/) - 
+ * [Gateway API Specification](02_api_spec.md) - Details of the Gateway end-points used to gain access
  * [Testing tools](03_testing_tools.md) - Testing tools and reference implementation
 
 ## Overview
@@ -59,7 +60,10 @@ In order to authenticate with the Gateway you will need:
 If you do not know any of these values you can work with 
 [Hypothesis support](https://web.hypothes.is/help/) to get the correct values.
 
-### Calling the gateway
+### Calling the Gateway
+
+_Note: [See the `oauth_call.py` tool](03_testing_tools.md) for a demonstration 
+this process._
 
 You will need to make an OAuth1 signed post request. This involves adding 
 certain extra OAuth specific fields to the form data, cryptographically signing
@@ -78,3 +82,53 @@ can adapt the implementation.
 |-------------------|-------------------------|-----------------|
 | `consumer_key`    | `oauth_consumer_key`    | `client_key`    |
 | `consumer_secret` | `oauth_consumer_secret` | `client_secret` |
+
+### Swapping the grant token for an access token
+
+_Note: [See the `h_call.py` tool](03_testing_tools.md) for a demonstration 
+this process._
+
+If you successfully call the Gateway end-point then the response you receive
+will include a section called `h_api` which will list a number of pre-prepared
+requests you can make.
+
+One of these requests is called `grant_token_exchange` and provies the call you
+need to make to get access tokens for the `h` API.
+
+These are formatted so you can pass them directly to Python's 
+[`requests` library](https://requests.readthedocs.io/en/latest/), (but the same
+details can be used with any HTTP library). For example:
+
+```python
+from requests import Session
+ 
+gateway_response = ...  # The response data from the Gateway end-point 
+response = Session().request(**gateway_response['h_api']['grant_token_exchange'])
+print(response.json())
+```
+This will return you a set of OAuth2 credentials you can use with the `h` API.
+
+```json
+{
+    "access_token": "5218-fV8jIXVx3aprt-PyL3H456456456645AcJGbWiJJs",
+    "expires_in": 3600.0,
+    "token_type": "Bearer",
+    "refresh_token": "4344-k2RMSX234534563478YBBMDHj4UYk8nsBvKP4"
+}
+```
+
+### Using the OAuth 2 access
+
+You can then use the access token in future requests to the `h` API by 
+including a header like this (using the value you received):
+
+```
+Authorization: Bearer 5218-fV8jIXVx3aprt-PyL3H456456456645AcJGbWiJJs
+```
+
+You can also perform OAuth2 token refreshes to keep access tokens alive, and 
+prevent you from having to perform this step each time.
+
+By combining this token, URL and header details provided and the 
+[Hypothesis API Specification](https://h.readthedocs.io/en/latest/api-reference/) 
+you should be able to make any calls you need to the `h` API.
