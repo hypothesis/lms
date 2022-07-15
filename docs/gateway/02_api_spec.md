@@ -13,21 +13,16 @@ All end-points here are specified with reference to these base URLs:
 Unless you are familiar with Hypothesis development, we recommend you start 
 with the public QA test environment.
 
-## POST `/lti_launches`*
+## POST `/api/gateway/h/lti`
 
-_* Note: This is the main HTML launch URL, a new URL will be provided for
-the gateway soon._
-
-This end-point will allow you to test the authentication mechanism while the 
-final end-point is being written.
+Returns connection details and contextual information about the current user,
+course and optionally assignment.
 
 ### Headers
 ```
-Accept: text/html
+Accept: application/json
 Content-Type: application/x-www-form-urlencoded
 ```
-
-_Note: The final end-point will return `application/json` not HTML_
 
 ### Post body fields
 
@@ -48,15 +43,16 @@ optional.
 | `user_id`                     | `2978763`                  | The user id we should act on behalf of                                  |
 | `roles`                       | `Instructor`               | The role that user has (used in permission generation)                  |
 | `context_id`                  | `454`                      | Specify the course you want to access                                   |
-| `context_title`               | `My course name`           | _Note: This is only a required field for now_                           |
 | `resource_link_id`            | `22`                       | _(optional)_ Narrow the scope to a single assignment                    |
 
 ### Responses
 
 **200 - OK**
 
-Everything worked correctly. At the moment this will return HTML, but in the 
-end you should receive JSON.
+Everything worked correctly. You should receive a JSON payload which matches 
+[this schema](schema.json) (in [JSON Schema](http://json-schema.org/) format).
+
+This schema file also includes an example of the output you can expect.
 
 **403 - Not authorized**
 

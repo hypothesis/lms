@@ -35,7 +35,7 @@ You should then be able to run the commands:
 python oauth_call.py
 ```
 
-## Calling the gateway with `oauth_call.py`
+## `oauth_call.py` - Calling the Gateway 
 
 [The `oauth_call.py` script](../../bin/gateway/oauth_call.py) can be used to
 make an OAuth1 signed POST request to an end-point such as the Gateway.
@@ -68,3 +68,59 @@ STDOUT, which allows you to view each separately:
 ```shell
 ./oauth_call.py --spec gateway.json 1>response.txt 2>errors.txt
 ```
+
+## `h_call.py` - Calling the `h` API using Gateway data 
+
+[The `oauth_call.py` script](../../bin/gateway/h_call.py) can make calls to the 
+`h` API using the format returned by the Gateway end-point.
+
+It can read those values from a JSON file, or directly from `oauth_call.py`. 
+You can use this to make authenticated calls using an exchanged token and to
+store a list of tests calls in a file.
+
+### Examples
+
+By default `h_call.py` just lists the calls that are available, but doesn't 
+call any of them. Here we use an example file to provide a call.
+
+```shell
+./h_call.py --spec config/h_calls_qa.json
+```
+```shell
+Available end-points:
+	 * profile
+```
+We can use the name of these end-points to make a call:
+
+```shell
+./h_call.py --spec config/h_calls_qa.json --call profile
+```
+
+As we are not authenticated we will get default anonymous user info back.
+
+### Examples combining with `oauth_call.py`
+
+We can read the spec details directly from the `oauth_call.py` script instead 
+of using JSON:
+
+```shell
+./oauth_call.py --quiet --spec gateway.json | ./h_call.py --stdin --call list_endpoints
+```
+
+We can combine this with automatic token exchange, and our predefined JSON 
+calls to call the profile end-point again, but as the user we specified in 
+our `gateway.json` config:
+
+```shell
+./oauth_call.py --quiet --spec gateway.json | ./h_call.py --stdin --spec config/h_calls_qa.json --authenticate --call profile
+```
+
+You should now see user specific details. As this is a bit long winded, short
+codes are provided for each command. This is the same command as above:
+
+```shell
+./oauth_call.py -qs gateway.json | ./h_call.py -ais config/h_calls_qa.json -c profile
+```
+
+Using this method you can keep a list of pre-prepared calls to the `h` API in
+a file and conveniently call them with the correct authentication for testing.
