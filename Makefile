@@ -139,10 +139,29 @@ frontend-lint: node_modules/.uptodate
 bddtests: python
 	@tox -qe bddtests
 
+# Find the prerequisites ('-r foo.txt' lines) in a requirements/*.in file.
+#
+# This is a sed command of the form:
+#
+#     sed -n 's/<regex>/<replacement>/p'
+#
+# * The -n tells sed *not* to print the non-matching lines
+# * The /p tells sed to print the matching lines
+# * The regex part matches '-r foo.txt' or '-c bar.txt' lines
+# * The replacement part prints 'requirements/foo.txt' without the -r or -c,
+#   whitespace, and comments
+# * The $* in "requirements/$*.in" is a Make "automatic variable" that resolves
+#   to the "stem" (just the % part) of the requirements/%.txt file being
+#   compiled.
+# * The tr at the very end joins the output onto one line
+find_prerequisites = $(shell sed -n 's/^[[:blank:]]*\(-r\|-c\)[[:blank:]]*\([[:alnum:]\/-_\.]\+\).*$$/requirements\/\2/p' "requirements/$*.in" | tr '\n' ' ')
+
 # Tell make how to compile requirements/*.txt files.
 #
+# .SECONDEXPANSION is needed to make the '$*.in' in find_prerequisites work.
+#
 # `touch` is used to pre-create an empty requirements/%.txt file if none
-# exists, otherwise tox-pip-sync crashes.
+# exists, otherwise tox crashes.
 #
 # $(subst) is used because in the special case of making requirements.txt we
 # actually need to touch dev.txt not requirements.txt and we need to run
@@ -150,18 +169,10 @@ bddtests: python
 #
 # $(basename $(notdir $@))) gets just the environment name from the
 # requirements/%.txt filename, for example requirements/foo.txt -> foo.
-requirements/%.txt: requirements/%.in
+.SECONDEXPANSION:
+requirements/%.txt: requirements/%.in $$(find_prerequisites)
 	@touch -a $(subst requirements.txt,dev.txt,$@)
 	@tox -qe $(subst requirements,dev,$(basename $(notdir $@))) --run-command 'pip-compile --allow-unsafe --quiet $(args) $<'
-
-# Inform make of the dependencies between our requirements files so that it
-# knows what order to re-compile them in and knows to re-compile a file if a
-# file that it depends on has been changed.
-requirements/dev.txt: requirements/requirements.txt
-requirements/tests.txt: requirements/requirements.txt
-requirements/functests.txt: requirements/requirements.txt
-requirements/bddtests.txt: requirements/requirements.txt
-requirements/lint.txt: requirements/tests.txt requirements/functests.txt requirements/bddtests.txt
 
 # Add a requirements target so you can just run `make requirements` to
 # re-compile *all* the requirements files at once.
