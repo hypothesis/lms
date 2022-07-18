@@ -17,8 +17,11 @@ New application instance
         {{ macros.registration_preview(request, lti_registration) }}
     </fieldset>
 
+
     <fieldset class="box mt-6">
         <legend class="label has-text-centered">Application instance</legend>
+        {{ macros.form_text_field(request, "Consumer key", "consumer_key",
+            placeholder="Optional. Existing application instance's consumer key. It will be upgraded to LTI 1.3 using this registration") }}
         {{ macros.form_text_field(request, "Deployment ID", "deployment_id") }}
         {{ macros.form_text_field(request, "LMS URL", "lms_url") }}
         {{ macros.form_text_field(request, "Email", "email") }}
