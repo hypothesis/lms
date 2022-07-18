@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 
 from lms.services import ApplicationInstanceNotFound
 from lms.views.admin.application_instance import AdminApplicationInstanceViews
+from tests import factories
 from tests.matchers import Any, temporary_redirect_to
 
 
@@ -49,6 +50,95 @@ class TestAdminApplicationInstanceViews:
     def test_instance_with_duplicate(self, views, application_instance_service):
         application_instance_service.create_application_instance.side_effect = (
             IntegrityError(Any(), Any(), Any())
+        )
+
+        response = views.new_instance()
+
+        assert response.status_code == 400
+
+    @pytest.mark.usefixtures("with_upgrade_form")
+    def test_upgrade_instance(
+        self,
+        application_instance_service,
+        views,
+        pyramid_request,
+        application_instance,
+        lti_registration_service,
+    ):
+        lti_registration = factories.LTIRegistration()
+        lti_registration_service.get_by_id.return_value = lti_registration
+        assert not application_instance.lti_registration
+
+        response = views.new_instance()
+
+        application_instance_service.get_by_consumer_key(
+            application_instance.consumer_key
+        )
+
+        assert application_instance.lti_registration == lti_registration
+        assert (
+            application_instance.deployment_id
+            == pyramid_request.params["deployment_id"]
+        )
+        assert response == temporary_redirect_to(
+            pyramid_request.route_url("admin.instance.id", id_=application_instance.id)
+        )
+
+    @pytest.mark.usefixtures("with_upgrade_form")
+    @pytest.mark.parametrize("parameter", ["lms_url", "email"])
+    def test_upgrade_instance_allows_empty(
+        self,
+        views,
+        pyramid_request,
+        parameter,
+        lti_registration_service,
+        application_instance,
+    ):
+        lti_registration_service.get_by_id.return_value = factories.LTIRegistration()
+
+        # Replicate real's pyramid_request behavkour
+        pyramid_request.POST[parameter] = ""
+        pyramid_request.params[parameter] = ""
+
+        response = views.new_instance()
+
+        assert response == temporary_redirect_to(
+            pyramid_request.route_url("admin.instance.id", id_=application_instance.id)
+        )
+
+    @pytest.mark.usefixtures("with_upgrade_form")
+    def test_upgrade_no_deployment_id(self, views, pyramid_request):
+        del pyramid_request.POST["deployment_id"]
+
+        response = views.new_instance()
+
+        assert response.status_code == 400
+
+    @pytest.mark.usefixtures("with_upgrade_form")
+    def test_upgrade_already_upgraded(self, views, application_instance):
+        application_instance.lti_registration_id = 100
+        application_instance.deployment_id = "ID"
+
+        response = views.new_instance()
+
+        assert response.status_code == 400
+
+    @pytest.mark.usefixtures("with_upgrade_form")
+    def test_upgrade_duplicate(self, views, lti_registration_service):
+        lti_registration = factories.LTIRegistration()
+        lti_registration_service.get_by_id.return_value = lti_registration
+        factories.ApplicationInstance(
+            lti_registration=lti_registration, deployment_id="DEPLOYMENT_ID"
+        )
+
+        response = views.new_instance()
+
+        assert response.status_code == 400
+
+    @pytest.mark.usefixtures("with_upgrade_form")
+    def test_upgrade_non_existing_instance(self, views, application_instance_service):
+        application_instance_service.get_by_consumer_key.side_effect = (
+            ApplicationInstanceNotFound
         )
 
         response = views.new_instance()
@@ -246,6 +336,11 @@ class TestAdminApplicationInstanceViews:
         pyramid_request.params.update(application_instance_data)
 
         return pyramid_request
+
+    @pytest.fixture
+    def with_upgrade_form(self, with_form_submission, application_instance):
+        with_form_submission.params["consumer_key"] = application_instance.consumer_key
+        return with_form_submission
 
     @pytest.fixture
     def views(self, pyramid_request):
