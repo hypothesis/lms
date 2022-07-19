@@ -1,10 +1,12 @@
 {
-    "h_api": {
-        "profile": {
-            "method": "GET",
-            "url": "http://localhost:5000/api/profile",
-            "headers": {
-                "Accept": "application/vnd.hypothesis.v2+json"
+    "api": {
+        "h": {
+            "profile": {
+                "method": "GET",
+                "url": "http://localhost:5000/api/profile",
+                "headers": {
+                    "Accept": "application/vnd.hypothesis.v2+json"
+                }
             }
         }
     }

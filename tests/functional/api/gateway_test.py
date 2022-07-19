@@ -13,24 +13,26 @@ class TestGatewayHLTI:
 
         assert response.headers["Content-Type"] == "application/json"
         assert response.json == {
-            "h_api": {
-                "list_endpoints": {
-                    "headers": {"Accept": "application/vnd.hypothesis.v2+json"},
-                    "method": "GET",
-                    "url": "https://example.com/api/",
-                },
-                "exchange_grant_token": {
-                    "data": {
-                        "assertion": Any.string(),
-                        "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "api": {
+                "h": {
+                    "list_endpoints": {
+                        "headers": {"Accept": "application/vnd.hypothesis.v2+json"},
+                        "method": "GET",
+                        "url": "https://example.com/api/",
                     },
-                    "headers": {
-                        "Accept": "application/vnd.hypothesis.v2+json",
-                        "Content-Type": "application/x-www-form-urlencoded",
+                    "exchange_grant_token": {
+                        "data": {
+                            "assertion": Any.string(),
+                            "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+                        },
+                        "headers": {
+                            "Accept": "application/vnd.hypothesis.v2+json",
+                            "Content-Type": "application/x-www-form-urlencoded",
+                        },
+                        "method": "POST",
+                        "url": "https://example.com/api/token",
                     },
-                    "method": "POST",
-                    "url": "https://example.com/api/token",
-                },
+                }
             }
         }
 
