@@ -4,22 +4,24 @@
 
     "examples": [
         {
-            "h_api": {
-                "list_endpoints": {
-                    "method": "GET",
-                    "url": "https://h.example.com/api",
-                    "headers": {"Accept": "application/vnd.hypothesis.v2+json"}
-                },
-                "exchange_grant_token": {
-                    "method": "POST",
-                    "url": "https://h.example.com/api/token",
-                    "headers": {
-                        "Accept": "application/vnd.hypothesis.v2+json",
-                        "Content-Type": "application/x-www-form-urlencoded"
+            "api": {
+                "h": {
+                    "list_endpoints": {
+                        "method": "GET",
+                        "url": "https://h.example.com/api",
+                        "headers": {"Accept": "application/vnd.hypothesis.v2+json"}
                     },
-                    "data": {
-                        "assertion": "abcdef0123456789",
-                        "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer"
+                    "exchange_grant_token": {
+                        "method": "POST",
+                        "url": "https://h.example.com/api/token",
+                        "headers": {
+                            "Accept": "application/vnd.hypothesis.v2+json",
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        "data": {
+                            "assertion": "abcdef0123456789",
+                            "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer"
+                        }
                     }
                 }
             }
@@ -28,24 +30,29 @@
 
     "type": "object",
     "properties": {
-        "h_api": {
-            "description": "Pre-defined calls to H API end-points",
-            "type": "object",
+        "api": {
             "properties": {
-                "list_endpoints": {
-                    "description": "List all end-points in the H API",
-                    "$ref": "#/$defs/api_call"
-                },
-                "exchange_grant_token": {
-                    "description": "Exchange grant token for access and refresh tokens",
-                    "$ref": "#/$defs/api_call"
+                "h": {
+                    "description": "Pre-defined calls to H API end-points",
+                    "type": "object",
+                    "properties": {
+                        "list_endpoints": {
+                            "description": "List all end-points in the H API",
+                            "$ref": "#/$defs/api_call"
+                        },
+                        "exchange_grant_token": {
+                            "description": "Exchange grant token for access and refresh tokens",
+                            "$ref": "#/$defs/api_call"
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": ["list_endpoints", "exchange_grant_token"]
                 }
             },
-            "additionalProperties": false,
-            "required": ["list_endpoints", "exchange_grant_token"]
+            "required": ["h"]
         }
     },
-    "required": ["h_api"],
+    "required": ["api"],
     "additionalProperties": false,
 
     "$defs": {

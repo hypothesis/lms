@@ -46,12 +46,12 @@ def main(args):
     # Read the spec file from the usual location if piped in from
     # `oauth_call.py`
     if args.stdin:
-        h_end_points.update(json.load(sys.stdin)["h_api"])
+        h_end_points.update(json.load(sys.stdin)["api"]["h"])
 
     # Also read from a JSON file for a manually curated set of calls
     if args.spec:
         with open(args.spec, encoding="utf-8") as handle:
-            h_end_points.update(json.load(handle)["h_api"])
+            h_end_points.update(json.load(handle)["api"]["h"])
 
     if not h_end_points:
         raise ValueError("No config loaded!")

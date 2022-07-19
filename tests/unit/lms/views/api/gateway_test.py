@@ -20,7 +20,7 @@ class TestHLTI:
             pyramid_request.lti_user.h_user
         )
         h_api_url = pyramid_request.registry.settings["h_api_url_public"]
-        assert response["h_api"] == {
+        assert response["api"]["h"] == {
             "list_endpoints": {
                 "method": "GET",
                 "url": h_api_url,
