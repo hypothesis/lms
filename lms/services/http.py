@@ -1,5 +1,4 @@
-import requests
-from requests import RequestException
+from requests import RequestException, Session
 
 from lms.services.exceptions import ExternalRequestError
 
@@ -7,14 +6,18 @@ from lms.services.exceptions import ExternalRequestError
 class HTTPService:
     """Send HTTP requests with `requests` and receive the responses."""
 
-    def __init__(self, _session=None):
-        # A requests session is used so that cookies are persisted across
+    # This is here mostly to let auto-spec know about it in the tests
+    session: Session = None
+    """The underlying requests Session."""
+
+    def __init__(self):
+        # A session is used so that cookies are persisted across
         # requests and urllib3 connection pooling is used (which means that
         # underlying TCP connections are re-used when making multiple requests
         # to the same host, e.g. pagination).
-        #
+
         # See https://docs.python-requests.org/en/latest/user/advanced/#session-objects
-        self._session = _session or requests.Session()
+        self.session = Session()
 
     def get(self, *args, **kwargs):
         return self.request("GET", *args, **kwargs)
@@ -75,12 +78,7 @@ class HTTPService:
         response = None
 
         try:
-            response = self._session.request(
-                method,
-                url,
-                timeout=timeout,
-                **kwargs,
-            )
+            response = self.session.request(method, url, timeout=timeout, **kwargs)
             response.raise_for_status()
         except RequestException as err:
             raise ExternalRequestError(request=err.request, response=response) from err

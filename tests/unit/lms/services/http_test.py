@@ -1,4 +1,4 @@
-from unittest.mock import Mock, create_autospec, sentinel
+from unittest.mock import create_autospec, sentinel
 
 import httpretty
 import pytest
@@ -63,21 +63,19 @@ class TestHTTPService:
 
         assert httpretty.last_request().headers["Authorization"] == "Basic dXNlcjpwYXNz"
 
-    def test_it_uses_custom_timeouts(self, session):
-        svc = HTTPService(session)
-
+    @pytest.mark.usefixtures("with_mock_session")
+    def test_it_uses_custom_timeouts(self, svc):
         svc.request("GET", "https://example.com", timeout=3)
 
-        assert session.request.call_args[1]["timeout"] == 3
+        assert svc.session.request.call_args[1]["timeout"] == 3
 
+    @pytest.mark.usefixtures("with_mock_session")
     def test_it_passes_arbitrary_kwargs_to_requests(self, svc):
-        session = Mock()
-        svc = HTTPService(session)
+        svc.request("GET", "https://example.com", headers={"key": "value"})
 
-        svc.request("GET", "https://example.com", foo="bar")
+        assert svc.session.request.call_args[1]["headers"] == {"key": "value"}
 
-        assert session.request.call_args[1]["foo"] == "bar"
-
+    @pytest.mark.usefixtures("with_mock_session")
     @pytest.mark.parametrize(
         "exception",
         [
@@ -87,9 +85,8 @@ class TestHTTPService:
             requests.TooManyRedirects(),
         ],
     )
-    def test_it_raises_if_sending_the_request_fails(self, exception, session):
-        session.request.side_effect = exception
-        svc = HTTPService(session)
+    def test_it_raises_if_sending_the_request_fails(self, svc, exception):
+        svc.session.request.side_effect = exception
 
         with pytest.raises(ExternalRequestError) as exc_info:
             svc.request("GET", "https://example.com")
@@ -121,12 +118,12 @@ class TestHTTPService:
         )
 
     @pytest.fixture
-    def session(self):
-        return create_autospec(requests.Session, instance=True, spec_set=True)
-
-    @pytest.fixture
     def svc(self):
         return HTTPService()
+
+    @pytest.fixture
+    def with_mock_session(self, svc):
+        svc.session = create_autospec(requests.Session, instance=True, spec_set=True)
 
 
 class TestFactory:
