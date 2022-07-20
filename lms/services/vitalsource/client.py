@@ -1,8 +1,10 @@
 import re
 
+from marshmallow import EXCLUDE, Schema, fields
+
 from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService
-from lms.services.vitalsource._schemas import BookInfoSchema, BookTOCSchema
+from lms.validation._base import RequestsResponseSchema
 
 #: A regex for parsing the BOOK_ID and CFI parts out of one of our custom
 #: vitalsource://book/bookID/BOOK_ID/cfi/CFI URLs.
@@ -25,6 +27,18 @@ class VitalSourceService:
         self._http_service = HTTPService()
         self._http_service.session.headers = {"X-VitalSource-API-Key": api_key}
 
+    class _BookInfoSchema(RequestsResponseSchema):
+        vbid = fields.Str(required=True)
+        title = fields.Str(required=True)
+
+        class ResourceLinks(Schema):
+            class Meta:
+                unknown = EXCLUDE
+
+            cover_image = fields.Str(required=True)
+
+        resource_links = fields.Nested(ResourceLinks, required=True)
+
     def get_book_info(self, book_id: str):
         try:
             response = self._get(f"products/{book_id}")
@@ -34,7 +48,21 @@ class VitalSourceService:
 
             raise
 
-        return BookInfoSchema(response).parse()
+        return self._BookInfoSchema(response).parse()
+
+    class _BookTOCSchema(RequestsResponseSchema):
+        class Chapter(Schema):
+            class Meta:
+                unknown = EXCLUDE
+
+            title = fields.Str(required=True)
+            cfi = fields.Str(required=True)
+            page = fields.Str(required=True)
+
+            url = fields.Str(required=False)
+            """vitalsource:// like url identifying the book and chapter"""
+
+        table_of_contents = fields.List(fields.Nested(Chapter), required=True)
 
     def get_book_toc(self, book_id: str):
         try:
@@ -45,7 +73,7 @@ class VitalSourceService:
 
             raise
 
-        toc = BookTOCSchema(response).parse()
+        toc = self._BookTOCSchema(response).parse()
         for chapter in toc["table_of_contents"]:
             chapter["url"] = self.get_document_url(book_id, chapter["cfi"])
 
