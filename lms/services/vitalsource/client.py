@@ -6,12 +6,6 @@ from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService
 from lms.validation._base import RequestsResponseSchema
 
-#: A regex for parsing the BOOK_ID and CFI parts out of one of our custom
-#: vitalsource://book/bookID/BOOK_ID/cfi/CFI URLs.
-DOCUMENT_URL_REGEX = re.compile(
-    r"vitalsource:\/\/book\/bookID\/(?P<book_id>[^\/]*)\/cfi\/(?P<cfi>.*)"
-)
-
 
 class VitalSourceService:
     def __init__(self, api_key: str):
@@ -79,9 +73,15 @@ class VitalSourceService:
 
         return toc
 
-    @staticmethod
-    def parse_document_url(document_url):
-        return DOCUMENT_URL_REGEX.search(document_url).groupdict()
+    #: A regex for parsing the BOOK_ID and CFI parts out of one of our custom
+    #: vitalsource://book/bookID/BOOK_ID/cfi/CFI URLs.
+    _DOCUMENT_URL_REGEX = re.compile(
+        r"vitalsource:\/\/book\/bookID\/(?P<book_id>[^\/]*)\/cfi\/(?P<cfi>.*)"
+    )
+
+    @classmethod
+    def parse_document_url(cls, document_url):
+        return cls._DOCUMENT_URL_REGEX.search(document_url).groupdict()
 
     @staticmethod
     def get_document_url(book_id, cfi):
