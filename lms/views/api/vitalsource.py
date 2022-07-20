@@ -16,7 +16,7 @@ class VitalSourceAPIViews:
     def book_info(self):
         book_id = self._get_book_id()
 
-        book_info = self.vitalsource_service.book_info(book_id)
+        book_info = self.vitalsource_service.get_book_info(book_id)
         return {
             "id": book_info["vbid"],
             "title": book_info["title"],
@@ -27,7 +27,7 @@ class VitalSourceAPIViews:
     def table_of_contents(self):
         book_id = self._get_book_id()
 
-        book_toc = self.vitalsource_service.book_toc(book_id)
+        book_toc = self.vitalsource_service.get_book_toc(book_id)
         return book_toc["table_of_contents"]
 
     def _get_book_id(self):

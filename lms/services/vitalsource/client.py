@@ -11,11 +11,7 @@ DOCUMENT_URL_REGEX = re.compile(
 
 
 class VitalSourceService:
-    def __init__(
-        self,
-        http_service,
-        api_key: str,
-    ):
+    def __init__(self, http_service, api_key: str):
         """
         Return a new VitalSourceService.
 
@@ -35,7 +31,7 @@ class VitalSourceService:
             url, headers={"X-VitalSource-API-Key": self._api_key}
         )
 
-    def book_info(self, book_id: str):
+    def get_book_info(self, book_id: str):
         try:
             response = self.get(f"products/{book_id}")
         except ExternalRequestError as err:
@@ -46,7 +42,7 @@ class VitalSourceService:
 
         return BookInfoSchema(response).parse()
 
-    def book_toc(self, book_id: str):
+    def get_book_toc(self, book_id: str):
         try:
             response = self.get(f"products/{book_id}/toc")
         except ExternalRequestError as err:
@@ -64,7 +60,7 @@ class VitalSourceService:
         return DOCUMENT_URL_REGEX.search(document_url).groupdict()
 
     @staticmethod
-    def generate_document_url(book_id, cfi):
+    def get_document_url(book_id, cfi):
         return f"vitalsource://book/bookID/{book_id}/cfi/{cfi}"
 
     def get_launch_url(self, document_url: str) -> str:
