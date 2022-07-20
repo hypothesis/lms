@@ -69,7 +69,7 @@ class JSTORService:
 
         # Get a signed S3 URL for the given JSTOR URL.
         s3_url = self._api_request(
-            "/pdf-url/{doi}", doi=document_url.replace("jstor://", "")
+            "/pdf/{doi}", doi=document_url.replace("jstor://", "")
         ).text
 
         if not s3_url.startswith("https://"):
