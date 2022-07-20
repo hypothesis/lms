@@ -72,7 +72,7 @@ def includeme(config):
         "lms.services.assignment.factory", name="assignment"
     )
     config.register_service_factory(
-        "lms.services.vitalsource.factory", name="vitalsource"
+        "lms.services.vitalsource.service_factory", name="vitalsource"
     )
     config.register_service_factory(
         "lms.services.grant_token.factory", name="grant_token"

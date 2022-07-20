@@ -21,7 +21,7 @@ class TestIncludeme:
             ("group_info", GroupInfoService),
             ("lti_h", LTIHService),
             ("oauth1", OAuth1Service),
-            ("vitalsource", vitalsource.factory),
+            ("vitalsource", vitalsource.service_factory),
         ),
     )
     def test_it_has_the_expected_service(self, name, service_class, pyramid_config):
