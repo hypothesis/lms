@@ -92,7 +92,7 @@ class JSTORService:
         :param article_id: A JSTOR article ID or DOI
         """
 
-        response = self._api_request("/metadata-new/{doi}", doi=article_id)
+        response = self._api_request("/metadata/{doi}", doi=article_id)
         metadata = JSTORMetadataSchema(response).parse()
 
         return {"title": self._get_title_from_metadata(metadata)}
