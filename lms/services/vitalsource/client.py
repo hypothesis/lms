@@ -10,7 +10,7 @@ from lms.validation._base import RequestsResponseSchema
 
 @dataclass
 class VSBookLocation:
-    """A location within a Vitalsource Book."""
+    """A location within a VitalSource Book."""
 
     book_id: str
     """Id of the book"""
@@ -37,10 +37,10 @@ class VSBookLocation:
         return cls(**cls._DOCUMENT_URL_REGEX.search(document_url).groupdict())
 
 
-class VitalSourceService:
+class VitalSourceClient:
     def __init__(self, api_key: str):
         """
-        Return a new VitalSourceService.
+        Initialise a client object.
 
         :param api_key: Key for VitalSource API
         :raises ValueError: If credentials are invalid
@@ -103,11 +103,23 @@ class VitalSourceService:
 
         return toc
 
+    def _get(self, endpoint):
+        return self._http_service.request(
+            method="GET", url=f"https://api.vitalsource.com/{endpoint}"
+        )
+
+
+class VitalSourceService:
+    def __init__(self, client: VitalSourceClient):
+        self.client = client
+
     def get_launch_url(self, document_url: str) -> str:
         """
-        Return a URL to load the VitalSource book viewer at a particular book and location.
+        Return a URL to load the VitalSource book viewer at a particular book
+        and location.
 
-        That URL can be used to load VitalSource content in an iframe like we do with other types of content.
+        That URL can be used to load VitalSource content in an iframe like we
+        do with other types of content.
 
         Note that this method is an alternative to `get_launch_params` below.
 
@@ -117,11 +129,14 @@ class VitalSourceService:
 
         return f"https://hypothesis.vitalsource.com/books/{loc.book_id}/cfi/{loc.cfi}"
 
-    def _get(self, endpoint):
-        return self._http_service.request(
-            method="GET", url=f"https://api.vitalsource.com/{endpoint}"
-        )
+    def get_book_toc(self, book_id: str):
+        return self.client.get_book_toc(book_id)
+
+    def get_book_info(self, book_id: str):
+        return self.client.get_book_info(book_id)
 
 
 def factory(_context, request):
-    return VitalSourceService(api_key=request.registry.settings["vitalsource_api_key"])
+    return VitalSourceService(
+        VitalSourceClient(api_key=request.registry.settings["vitalsource_api_key"])
+    )
