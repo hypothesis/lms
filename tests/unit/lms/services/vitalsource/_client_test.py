@@ -3,7 +3,7 @@ from unittest.mock import sentinel
 import pytest
 
 from lms.services.exceptions import ExternalRequestError
-from lms.services.vitalsource.client import VitalSourceClient
+from lms.services.vitalsource._client import VitalSourceClient
 from tests import factories
 
 
@@ -103,6 +103,6 @@ class TestVitalSourceClient:
 
     @pytest.fixture(autouse=True)
     def http_service(self, patch):
-        HTTPService = patch("lms.services.vitalsource.client.HTTPService")
+        HTTPService = patch("lms.services.vitalsource._client.HTTPService")
 
         return HTTPService.return_value
