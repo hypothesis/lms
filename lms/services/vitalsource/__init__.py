@@ -1,1 +1,1 @@
-from lms.services.vitalsource.client import VitalSourceService, factory
+from lms.services.vitalsource.client import VitalSourceService, VSBookLocation, factory

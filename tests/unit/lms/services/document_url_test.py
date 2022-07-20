@@ -63,7 +63,7 @@ class TestDocumentURLService:
 
     @pytest.mark.parametrize("cfi", (None, sentinel.cfi))
     def test_get_document_url_with_legacy_vitalsource_book(
-        self, svc, pyramid_request, VitalSourceService, cfi
+        self, svc, pyramid_request, VSBookLocation, cfi
     ):
         pyramid_request.params["vitalsource_book"] = "any"
         pyramid_request.params["book_id"] = sentinel.book_id
@@ -72,10 +72,8 @@ class TestDocumentURLService:
 
         result = svc.get_document_url(pyramid_request)
 
-        VitalSourceService.get_document_url.assert_called_once_with(
-            book_id=sentinel.book_id, cfi=cfi
-        )
-        assert result == VitalSourceService.get_document_url.return_value
+        VSBookLocation.assert_called_once_with(book_id=sentinel.book_id, cfi=cfi)
+        assert result == VSBookLocation.return_value.document_url
 
     @pytest.mark.parametrize(
         "param",
@@ -118,8 +116,8 @@ class TestDocumentURLService:
         return pyramid_request
 
     @pytest.fixture
-    def VitalSourceService(self, patch):
-        return patch("lms.services.document_url.VitalSourceService")
+    def VSBookLocation(self, patch):
+        return patch("lms.services.document_url.VSBookLocation")
 
 
 class TestFactory:
