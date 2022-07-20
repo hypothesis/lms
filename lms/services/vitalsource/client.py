@@ -1,6 +1,7 @@
 import re
 
 from lms.services.exceptions import ExternalRequestError
+from lms.services.http import HTTPService
 from lms.services.vitalsource._schemas import BookInfoSchema, BookTOCSchema
 
 #: A regex for parsing the BOOK_ID and CFI parts out of one of our custom
@@ -11,7 +12,7 @@ DOCUMENT_URL_REGEX = re.compile(
 
 
 class VitalSourceService:
-    def __init__(self, http_service, api_key: str):
+    def __init__(self, api_key: str):
         """
         Return a new VitalSourceService.
 
@@ -21,7 +22,7 @@ class VitalSourceService:
         if not api_key:
             raise ValueError("VitalSource credentials are missing")
 
-        self._http_service = http_service
+        self._http_service = HTTPService()
         self._api_key = api_key
 
     def get(self, endpoint):
@@ -78,7 +79,4 @@ class VitalSourceService:
 
 
 def factory(_context, request):
-    return VitalSourceService(
-        request.find_service(name="http"),
-        request.registry.settings["vitalsource_api_key"],
-    )
+    return VitalSourceService(api_key=request.registry.settings["vitalsource_api_key"])
