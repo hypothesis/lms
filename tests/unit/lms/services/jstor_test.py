@@ -66,11 +66,11 @@ class TestJSTORService:
         "article_id, expected_api_url",
         [
             # Typical JSTOR article, with no DOI prefix given
-            ("12345", f"{JSTOR_API_URL}/metadata-new/10.2307/12345"),
+            ("12345", f"{JSTOR_API_URL}/metadata/10.2307/12345"),
             # Article ID that needs to be encoded
-            ("123:45", f"{JSTOR_API_URL}/metadata-new/10.2307/123%3A45"),
+            ("123:45", f"{JSTOR_API_URL}/metadata/10.2307/123%3A45"),
             # Article with custom DOI prefix
-            ("10.123/12345", f"{JSTOR_API_URL}/metadata-new/10.123/12345"),
+            ("10.123/12345", f"{JSTOR_API_URL}/metadata/10.123/12345"),
         ],
     )
     def test_metadata_calls_jstor_api(
