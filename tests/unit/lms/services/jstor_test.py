@@ -25,9 +25,9 @@ class TestJSTORService:
         [
             (
                 "jstor://ARTICLE_ID",
-                f"{JSTOR_API_URL}/pdf-url/10.2307/ARTICLE_ID",
+                f"{JSTOR_API_URL}/pdf/10.2307/ARTICLE_ID",
             ),
-            ("jstor://PREFIX/SUFFIX", f"{JSTOR_API_URL}/pdf-url/PREFIX/SUFFIX"),
+            ("jstor://PREFIX/SUFFIX", f"{JSTOR_API_URL}/pdf/PREFIX/SUFFIX"),
         ],
     )
     def test_via_url(
