@@ -23,14 +23,10 @@ class VitalSourceService:
             raise ValueError("VitalSource credentials are missing")
 
         self._http_service = HTTPService()
-        self._api_key = api_key
+        self._http_service.session.headers = {"X-VitalSource-API-Key": api_key}
 
     def get(self, endpoint):
-        url = f"https://api.vitalsource.com/v4/{endpoint}"
-
-        return self._http_service.get(
-            url, headers={"X-VitalSource-API-Key": self._api_key}
-        )
+        return self._http_service.get(url=f"https://api.vitalsource.com/v4/{endpoint}")
 
     def get_book_info(self, book_id: str):
         try:

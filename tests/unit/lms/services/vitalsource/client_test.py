@@ -9,6 +9,14 @@ from tests import factories
 
 
 class TestVitalSourceService:
+    def test_init(self):
+        svc = VitalSourceService(api_key=sentinel.api_key)
+
+        # pylint: disable=protected-access
+        assert svc._http_service.session.headers == {
+            "X-VitalSource-API-Key": sentinel.api_key
+        }
+
     def test_init_raises_if_launch_credentials_invalid(self):
         with pytest.raises(ValueError, match="VitalSource credentials are missing"):
             VitalSourceService(api_key=None)
@@ -38,8 +46,7 @@ class TestVitalSourceService:
         svc.get("endpoint/path")
 
         http_service.get.assert_called_once_with(
-            "https://api.vitalsource.com/v4/endpoint/path",
-            headers={"X-VitalSource-API-Key": "api_key"},
+            url="https://api.vitalsource.com/v4/endpoint/path"
         )
 
     def test_get_book_info_api(self, svc, book_info_schema):
