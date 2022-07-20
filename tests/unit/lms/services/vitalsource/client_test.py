@@ -1,11 +1,11 @@
-from unittest.mock import sentinel
+from unittest.mock import create_autospec, sentinel
 
 import pytest
 from h_matchers import Any
 
 from lms.services.exceptions import ExternalRequestError
 from lms.services.vitalsource import VitalSourceService, factory
-from lms.services.vitalsource.client import VSBookLocation
+from lms.services.vitalsource.client import VitalSourceClient, VSBookLocation
 from tests import factories
 
 
@@ -31,18 +31,6 @@ class TestVSBookLocation:
 
 
 class TestVitalSourceService:
-    def test_init(self):
-        svc = VitalSourceService(api_key=sentinel.api_key)
-
-        # pylint: disable=protected-access
-        assert svc._http_service.session.headers == {
-            "X-VitalSource-API-Key": sentinel.api_key
-        }
-
-    def test_init_raises_if_launch_credentials_invalid(self):
-        with pytest.raises(ValueError, match="VitalSource credentials are missing"):
-            VitalSourceService(api_key=None)
-
     def test_get_launch_url(self, svc):
         document_url = "vitalsource://book/bookID/book-id/cfi//abc"
 
@@ -51,7 +39,43 @@ class TestVitalSourceService:
             == "https://hypothesis.vitalsource.com/books/book-id/cfi//abc"
         )
 
-    def test_get_book_info(self, svc, http_service):
+    @pytest.mark.parametrize(
+        "proxy_method,args",
+        (
+            ("get_book_toc", [sentinel.book_id]),
+            ("get_book_info", [sentinel.book_id]),
+        ),
+    )
+    def test_proxied_methods(self, svc, client, proxy_method, args):
+        result = getattr(svc, proxy_method)(*args)
+
+        proxied_method = getattr(client, proxy_method)
+        proxied_method.assert_called_once_with(*args)
+        assert result == proxied_method.return_value
+
+    @pytest.fixture
+    def client(self):
+        return create_autospec(VitalSourceClient, instance=True, spec_set=True)
+
+    @pytest.fixture
+    def svc(self, client):
+        return VitalSourceService(client)
+
+
+class TestVitalSourceClient:
+    def test_init(self):
+        client = VitalSourceClient(api_key=sentinel.api_key)
+
+        # pylint: disable=protected-access
+        assert client._http_service.session.headers == {
+            "X-VitalSource-API-Key": sentinel.api_key
+        }
+
+    def test_init_raises_if_launch_credentials_invalid(self):
+        with pytest.raises(ValueError):
+            VitalSourceClient(api_key=None)
+
+    def test_get_book_info(self, client, http_service):
         json_data = {
             "vbid": "VBID",
             "title": "TITLE",
@@ -61,39 +85,39 @@ class TestVitalSourceService:
             json_data=json_data
         )
 
-        book_info = svc.get_book_info("BOOK_ID")
+        book_info = client.get_book_info("BOOK_ID")
 
         http_service.request.assert_called_once_with(
             "GET", "https://api.vitalsource.com/v4/products/BOOK_ID"
         )
         assert book_info == json_data
 
-    def test_get_book_info_not_found(self, svc, http_service):
+    def test_get_book_info_not_found(self, client, http_service):
         http_service.request.side_effect = ExternalRequestError(
             response=factories.requests.Response(status_code=404)
         )
 
         with pytest.raises(ExternalRequestError) as exc_info:
-            svc.get_book_info("BOOK_ID")
+            client.get_book_info("BOOK_ID")
 
         assert exc_info.value.message == "Book BOOK_ID not found"
 
-    def test_get_book_info_error(self, svc, http_service):
+    def test_get_book_info_error(self, client, http_service):
         http_service.request.side_effect = ExternalRequestError(
             response=factories.requests.Response(status_code=500)
         )
 
         with pytest.raises(ExternalRequestError):
-            svc.get_book_info("BOOK_ID")
+            client.get_book_info("BOOK_ID")
 
-    def test_get_book_toc(self, svc, http_service):
+    def test_get_book_toc(self, client, http_service):
         http_service.request.return_value = factories.requests.Response(
             json_data={
                 "table_of_contents": [{"title": "TITLE", "cfi": "CFI", "page": "PAGE"}]
             }
         )
 
-        book_toc = svc.get_book_toc("BOOK_ID")
+        book_toc = client.get_book_toc("BOOK_ID")
 
         http_service.request.assert_called_once_with(
             "GET", "https://api.vitalsource.com/v4/products/BOOK_ID/toc"
@@ -110,27 +134,27 @@ class TestVitalSourceService:
             ]
         }
 
-    def test_get_book_toc_not_found(self, svc, http_service):
+    def test_get_book_toc_not_found(self, client, http_service):
         http_service.request.side_effect = ExternalRequestError(
             response=factories.requests.Response(status_code=404)
         )
 
         with pytest.raises(ExternalRequestError) as exc_info:
-            svc.get_book_toc("BOOK_ID")
+            client.get_book_toc("BOOK_ID")
 
         assert exc_info.value.message == "Book BOOK_ID not found"
 
-    def test_get_book_toc_error(self, svc, http_service):
+    def test_get_book_toc_error(self, client, http_service):
         http_service.request.side_effect = ExternalRequestError(
             response=factories.requests.Response(status_code=500)
         )
 
         with pytest.raises(ExternalRequestError):
-            svc.get_book_toc("BOOK_ID")
+            client.get_book_toc("BOOK_ID")
 
     @pytest.fixture
-    def svc(self):
-        return VitalSourceService("api_key")
+    def client(self):
+        return VitalSourceClient("api_key")
 
     @pytest.fixture(autouse=True)
     def http_service(self, patch):
@@ -140,14 +164,17 @@ class TestVitalSourceService:
 
 
 class TestFactory:
-    def test_it(self, pyramid_request, VitalSourceService):
+    def test_it(self, pyramid_request, VitalSourceService, VitalSourceClient):
         svc = factory(sentinel.context, pyramid_request)
 
-        VitalSourceService.assert_called_once_with(
-            "test_vs_api_key",
-        )
+        VitalSourceClient.assert_called_once_with(api_key="test_vs_api_key")
+        VitalSourceService.assert_called_once_with(VitalSourceClient.return_value)
         assert svc == VitalSourceService.return_value
 
-    @pytest.fixture(autouse=True)
+    @pytest.fixture
     def VitalSourceService(self, patch):
         return patch("lms.services.vitalsource.client.VitalSourceService")
+
+    @pytest.fixture
+    def VitalSourceClient(self, patch):
+        return patch("lms.services.vitalsource.client.VitalSourceClient")
