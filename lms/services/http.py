@@ -1,4 +1,4 @@
-from requests import RequestException, Session
+from requests import RequestException, Response, Session
 
 from lms.services.exceptions import ExternalRequestError
 
@@ -19,6 +19,28 @@ class HTTPService:
         # See https://docs.python-requests.org/en/latest/user/advanced/#session-objects
         self.session = Session()
 
+    def request(self, method, url, timeout=(10, 10), **kwargs) -> Response:
+        """
+        Send a request with `requests` and return the response object.
+
+        This method accepts the same arguments as `requests.Session.request`
+        with the same meaning which can be seen here:
+
+        https://requests.readthedocs.io/en/latest/api/#requests.Session.request
+
+        :raises ExternalRequestError: For any request based failure or if the
+            response is an error (4xx or 5xx response).
+        """
+        response = None
+
+        try:
+            response = self.session.request(method, url, timeout=timeout, **kwargs)
+            response.raise_for_status()
+        except RequestException as err:
+            raise ExternalRequestError(request=err.request, response=response) from err
+
+        return response
+
     def get(self, *args, **kwargs):
         return self.request("GET", *args, **kwargs)
 
@@ -33,57 +55,6 @@ class HTTPService:
 
     def delete(self, *args, **kwargs):
         return self.request("DELETE", *args, **kwargs)
-
-    def request(self, method, url, timeout=(10, 10), **kwargs):
-        r"""
-        Send a request with `requests` and return the requests.Response object.
-
-        :param method: The HTTP method to use, one of "GET", "PUT", "POST",
-            "PATCH", "DELETE", "OPTIONS" or "HEAD"
-        :param url: The URL to request
-        :param timeout: How long (in seconds) to wait before raising an error.
-
-            This can be a (connect_timeout, read_timeout) 2-tuple or it can be
-            a single float that will be used as both the connect and read
-            timeout.
-
-            Good practice is to set this to slightly larger than a multiple of
-            3, which is the default TCP packet retransmission window. See:
-            https://docs.python-requests.org/en/master/user/advanced/#timeouts
-
-            Note that the read_timeout is *not* a time limit on the entire
-            response download. It's a time limit on how long to wait *between
-            bytes from the server*. The entire download can take much longer.
-        :param \**kwargs: Any other keyword arguments will be passed directly to
-            requests.Session().request():
-            https://docs.python-requests.org/en/latest/api/#requests.Session.request
-        :raise ExternalRequestError: If sending the request or receiving the
-            response fails (DNS failure, refused connection, timeout, too many
-            redirects, etc).
-
-            The original exception from requests will be available as
-            ExternalRequestError.__cause__.
-
-            In this case ExternalRequestError.response will be None.
-
-        :raise ExternalRequestError: If an error response (4xx or 5xx) is
-            received.
-
-            The original exception from requests will be available as
-            ExternalRequestError.__cause__.
-
-            The error response will be available as
-            ExternalRequestError.response.
-        """
-        response = None
-
-        try:
-            response = self.session.request(method, url, timeout=timeout, **kwargs)
-            response.raise_for_status()
-        except RequestException as err:
-            raise ExternalRequestError(request=err.request, response=response) from err
-
-        return response
 
 
 def factory(_context, _request):
