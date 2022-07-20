@@ -42,14 +42,14 @@ class TestVitalSourceService:
             headers={"X-VitalSource-API-Key": "api_key"},
         )
 
-    def test_book_info_api(self, svc, book_info_schema):
+    def test_get_book_info_api(self, svc, book_info_schema):
         with mock.patch.object(VitalSourceService, "get") as get:
-            book_toc = svc.book_info("BOOK_ID")
+            book_toc = svc.get_book_info("BOOK_ID")
             get.assert_called_once_with("products/BOOK_ID")
 
         assert book_toc == book_info_schema.parse.return_value
 
-    def test_book_info_not_found(self, svc):
+    def test_get_book_info_not_found(self, svc):
         with mock.patch.object(
             VitalSourceService,
             "get",
@@ -58,11 +58,11 @@ class TestVitalSourceService:
             ),
         ):
             with pytest.raises(ExternalRequestError) as exc_info:
-                svc.book_info("BOOK_ID")
+                svc.get_book_info("BOOK_ID")
 
             assert exc_info.value.message == "Book BOOK_ID not found"
 
-    def test_book_info_error(self, svc):
+    def test_get_book_info_error(self, svc):
         with mock.patch.object(
             VitalSourceService,
             "get",
@@ -71,16 +71,16 @@ class TestVitalSourceService:
             ),
         ):
             with pytest.raises(ExternalRequestError):
-                svc.book_info("BOOK_ID")
+                svc.get_book_info("BOOK_ID")
 
-    def test_book_toc_api(self, svc, book_toc_schema):
+    def test_get_book_toc_api(self, svc, book_toc_schema):
         with mock.patch.object(VitalSourceService, "get") as get:
-            book_toc = svc.book_toc("BOOK_ID")
+            book_toc = svc.get_book_toc("BOOK_ID")
             get.assert_called_once_with("products/BOOK_ID/toc")
 
         assert book_toc == book_toc_schema.parse.return_value
 
-    def test_book_toc_not_found(self, svc):
+    def test_get_book_toc_not_found(self, svc):
         with mock.patch.object(
             VitalSourceService,
             "get",
@@ -89,11 +89,11 @@ class TestVitalSourceService:
             ),
         ):
             with pytest.raises(ExternalRequestError) as exc_info:
-                svc.book_toc("BOOK_ID")
+                svc.get_book_toc("BOOK_ID")
 
             assert exc_info.value.message == "Book BOOK_ID not found"
 
-    def test_book_toc_error(self, svc):
+    def test_get_book_toc_error(self, svc):
         with mock.patch.object(
             VitalSourceService,
             "get",
@@ -102,7 +102,7 @@ class TestVitalSourceService:
             ),
         ):
             with pytest.raises(ExternalRequestError):
-                svc.book_toc("BOOK_ID")
+                svc.get_book_toc("BOOK_ID")
 
     @pytest.fixture
     def svc(self, http_service):

@@ -38,7 +38,7 @@ class BookTOCSchema(RequestsResponseSchema):
             # pylint:disable=import-outside-toplevel, cyclic-import
             from lms.services.vitalsource.client import VitalSourceService
 
-            in_data["url"] = VitalSourceService.generate_document_url(
+            in_data["url"] = VitalSourceService.get_document_url(
                 self.context["book_id"], in_data["cfi"]
             )
             return in_data

@@ -17,7 +17,7 @@ class TestVitalSourceAPIViews:
     def test_book_info_returns_metadata(
         self, pyramid_request, vitalsource_service, api_book_info
     ):
-        vitalsource_service.book_info.return_value = api_book_info
+        vitalsource_service.get_book_info.return_value = api_book_info
 
         pyramid_request.matchdict["book_id"] = "BOOKSHELF-TUTORIAL"
 
@@ -39,7 +39,7 @@ class TestVitalSourceAPIViews:
     def test_table_of_contents_returns_chapter_data(
         self, pyramid_request, vitalsource_service, api_book_table_of_contents
     ):
-        vitalsource_service.book_toc.return_value = api_book_table_of_contents
+        vitalsource_service.get_book_toc.return_value = api_book_table_of_contents
 
         pyramid_request.matchdict["book_id"] = "BOOKSHELF-TUTORIAL"
         toc = VitalSourceAPIViews(pyramid_request).table_of_contents()

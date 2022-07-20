@@ -72,10 +72,10 @@ class TestDocumentURLService:
 
         result = svc.get_document_url(pyramid_request)
 
-        VitalSourceService.generate_document_url.assert_called_once_with(
+        VitalSourceService.get_document_url.assert_called_once_with(
             book_id=sentinel.book_id, cfi=cfi
         )
-        assert result == VitalSourceService.generate_document_url.return_value
+        assert result == VitalSourceService.get_document_url.return_value
 
     @pytest.mark.parametrize(
         "param",

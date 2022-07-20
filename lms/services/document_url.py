@@ -77,7 +77,7 @@ class DocumentURLService:
         `vitalsource://...`
         """
         if request.params.get("vitalsource_book"):
-            return VitalSourceService.generate_document_url(
+            return VitalSourceService.get_document_url(
                 book_id=request.params["book_id"],
                 cfi=request.params.get("cfi"),
             )
