@@ -1,40 +1,9 @@
-import re
-from dataclasses import dataclass
-
 from marshmallow import EXCLUDE, Schema, fields
 
 from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService
+from lms.services.vitalsource.model import VSBookLocation
 from lms.validation._base import RequestsResponseSchema
-
-
-@dataclass
-class VSBookLocation:
-    """A location within a VitalSource Book."""
-
-    book_id: str
-    """Id of the book"""
-
-    cfi: str
-    """Location within than book."""
-
-    @property
-    def document_url(self):
-        """Get our internal representation of this location."""
-
-        return f"vitalsource://book/bookID/{self.book_id}/cfi/{self.cfi}"
-
-    #: A regex for parsing the BOOK_ID and CFI parts out of one of our custom
-    #: vitalsource://book/bookID/BOOK_ID/cfi/CFI URLs.
-    _DOCUMENT_URL_REGEX = re.compile(
-        r"vitalsource:\/\/book\/bookID\/(?P<book_id>[^\/]*)\/cfi\/(?P<cfi>.*)"
-    )
-
-    @classmethod
-    def from_document_url(cls, document_url):
-        """Get a location from our internal representation."""
-
-        return cls(**cls._DOCUMENT_URL_REGEX.search(document_url).groupdict())
 
 
 class VitalSourceClient:
@@ -107,36 +76,3 @@ class VitalSourceClient:
         return self._http_service.request(
             method="GET", url=f"https://api.vitalsource.com/{endpoint}"
         )
-
-
-class VitalSourceService:
-    def __init__(self, client: VitalSourceClient):
-        self.client = client
-
-    def get_launch_url(self, document_url: str) -> str:
-        """
-        Return a URL to load the VitalSource book viewer at a particular book
-        and location.
-
-        That URL can be used to load VitalSource content in an iframe like we
-        do with other types of content.
-
-        Note that this method is an alternative to `get_launch_params` below.
-
-        :param document_url: `vitalsource://` type URL identifying the document
-        """
-        loc = VSBookLocation.from_document_url(document_url)
-
-        return f"https://hypothesis.vitalsource.com/books/{loc.book_id}/cfi/{loc.cfi}"
-
-    def get_book_toc(self, book_id: str):
-        return self.client.get_book_toc(book_id)
-
-    def get_book_info(self, book_id: str):
-        return self.client.get_book_info(book_id)
-
-
-def factory(_context, request):
-    return VitalSourceService(
-        VitalSourceClient(api_key=request.registry.settings["vitalsource_api_key"])
-    )
