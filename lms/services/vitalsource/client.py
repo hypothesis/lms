@@ -45,9 +45,11 @@ class VitalSourceService:
 
             raise
 
-        schema = BookTOCSchema(response)
-        schema.context["book_id"] = book_id
-        return schema.parse()
+        toc = BookTOCSchema(response).parse()
+        for chapter in toc["table_of_contents"]:
+            chapter["url"] = self.get_document_url(book_id, chapter["cfi"])
+
+        return toc
 
     @staticmethod
     def parse_document_url(document_url):
