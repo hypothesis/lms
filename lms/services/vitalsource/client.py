@@ -7,6 +7,12 @@ from lms.validation._base import RequestsResponseSchema
 
 
 class VitalSourceClient:
+    """
+    A client for making individual calls to VitalSource API.
+
+    See: https://developer.vitalsource.com/hc/en-us/categories/360001974433
+    """
+
     def __init__(self, api_key: str):
         """
         Initialise a client object.
@@ -33,6 +39,9 @@ class VitalSourceClient:
         resource_links = fields.Nested(ResourceLinks, required=True)
 
     def get_book_info(self, book_id: str):
+        """Get details of a book."""
+
+        # See: https://developer.vitalsource.com/hc/en-us/articles/360010967153-GET-v4-products-vbid-Title-TOC-Metadata
         try:
             response = self._get(f"v4/products/{book_id}")
         except ExternalRequestError as err:
@@ -58,6 +67,10 @@ class VitalSourceClient:
         table_of_contents = fields.List(fields.Nested(Chapter), required=True)
 
     def get_book_toc(self, book_id: str):
+        """Get the table of contents for a book."""
+
+        # See: https://developer.vitalsource.com/hc/en-us/articles/360010967153-GET-v4-products-vbid-Title-TOC-Metadata
+
         try:
             response = self._get(f"v4/products/{book_id}/toc")
         except ExternalRequestError as err:
