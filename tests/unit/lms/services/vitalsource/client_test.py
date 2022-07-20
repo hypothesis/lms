@@ -1,4 +1,3 @@
-from unittest import mock
 from unittest.mock import sentinel
 
 import pytest
@@ -42,13 +41,22 @@ class TestVitalSourceService:
             == "https://hypothesis.vitalsource.com/books/book-id/cfi//abc"
         )
 
-    def test_get_book_info_api(self, svc, book_info_schema, http_service):
-        book_toc = svc.get_book_info("BOOK_ID")
+    def test_get_book_info(self, svc, http_service):
+        json_data = {
+            "vbid": "VBID",
+            "title": "TITLE",
+            "resource_links": {"cover_image": "COVER_IMAGE"},
+        }
+        http_service.request.return_value = factories.requests.Response(
+            json_data=json_data
+        )
+
+        book_info = svc.get_book_info("BOOK_ID")
 
         http_service.request.assert_called_once_with(
             "GET", "https://api.vitalsource.com/v4/products/BOOK_ID"
         )
-        assert book_toc == book_info_schema.parse.return_value
+        assert book_info == json_data
 
     def test_get_book_info_not_found(self, svc, http_service):
         http_service.request.side_effect = ExternalRequestError(
@@ -68,13 +76,29 @@ class TestVitalSourceService:
         with pytest.raises(ExternalRequestError):
             svc.get_book_info("BOOK_ID")
 
-    def test_get_book_toc_api(self, svc, book_toc_schema, http_service):
+    def test_get_book_toc(self, svc, http_service):
+        http_service.request.return_value = factories.requests.Response(
+            json_data={
+                "table_of_contents": [{"title": "TITLE", "cfi": "CFI", "page": "PAGE"}]
+            }
+        )
+
         book_toc = svc.get_book_toc("BOOK_ID")
 
         http_service.request.assert_called_once_with(
             "GET", "https://api.vitalsource.com/v4/products/BOOK_ID/toc"
         )
-        assert book_toc == book_toc_schema.parse.return_value
+
+        assert book_toc == {
+            "table_of_contents": [
+                {
+                    "title": "TITLE",
+                    "cfi": "CFI",
+                    "page": "PAGE",
+                    "url": "vitalsource://book/bookID/BOOK_ID/cfi/CFI",
+                }
+            ]
+        }
 
     def test_get_book_toc_not_found(self, svc, http_service):
         http_service.request.side_effect = ExternalRequestError(
@@ -97,23 +121,6 @@ class TestVitalSourceService:
     @pytest.fixture
     def svc(self):
         return VitalSourceService("api_key")
-
-    @pytest.fixture(autouse=True)
-    def BookTOCSchema(self, patch):
-        return patch("lms.services.vitalsource.client.BookTOCSchema")
-
-    @pytest.fixture
-    def book_toc_schema(self, BookTOCSchema):
-        BookTOCSchema.return_value.context = {}
-        return BookTOCSchema.return_value
-
-    @pytest.fixture(autouse=True)
-    def BookInfoSchema(self, patch):
-        return patch("lms.services.vitalsource.client.BookInfoSchema")
-
-    @pytest.fixture
-    def book_info_schema(self, BookInfoSchema):
-        return BookInfoSchema.return_value
 
     @pytest.fixture(autouse=True)
     def http_service(self, patch):
