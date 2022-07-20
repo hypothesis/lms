@@ -1,131 +1,86 @@
 from unittest.mock import create_autospec, sentinel
 
-import httpretty
 import pytest
 import requests
-from h_matchers import Any
+from requests import RequestException
 
 from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService, factory
 
 
 class TestHTTPService:
-    @pytest.mark.parametrize("method", ["GET", "PUT", "POST", "PATCH", "DELETE"])
-    def test_it_sends_the_request_and_returns_the_response(self, svc, method, url):
-        httpretty.register_uri(method, url, body="test_response")
+    def test_request(self, svc, passed_args):
+        response = svc.request(sentinel.method, sentinel.url, **passed_args)
 
-        response = svc.request(method, url)
+        svc.session.request.assert_called_once_with(
+            sentinel.method, sentinel.url, **passed_args
+        )
+        assert response == svc.session.request.return_value
 
-        assert response.status_code == 200
-        assert response.text == "test_response"
-        assert httpretty.last_request() == Any.object.with_attrs(
-            {"url": url, "method": method}
+    @pytest.mark.parametrize("method", ["get", "put", "post", "patch", "delete"])
+    def test_convenience_methods(self, svc, method, passed_args):
+        response = getattr(svc, method.lower())(sentinel.url, **passed_args)
+
+        svc.session.request.assert_called_once_with(
+            method.upper(), sentinel.url, **passed_args
+        )
+        assert response == svc.session.request.return_value
+
+    def test_request_defaults(self, svc):
+        svc.request(sentinel.method, sentinel.url)
+
+        svc.session.request.assert_called_once_with(
+            sentinel.method, sentinel.url, timeout=(10, 10)
         )
 
-    @pytest.mark.parametrize("method", ["GET", "PUT", "POST", "PATCH", "DELETE"])
-    def test_convenience_methods(self, svc, url, method):
-        httpretty.register_uri(method, url, body="test_response")
-
-        getattr(svc, method.lower())(url)
-
-        assert httpretty.last_request() == Any.object.with_attrs(
-            {"url": url, "method": method}
+    def test_it_raises_if_sending_the_request_fails(self, svc):
+        svc.session.request.side_effect = RequestException(
+            request=sentinel.err_request, response=sentinel.err_response
         )
-
-    def test_it_sends_request_params(self, svc, url):
-        svc.request("GET", url, params={"test_param": "test_value"})
-
-        assert httpretty.last_request() == Any.object.with_attrs(
-            {"url": f"{url}?test_param=test_value"}
-        )
-
-    def test_it_sends_request_data(self, svc, url):
-        svc.request("GET", url, data={"test_key": "test_value"})
-
-        assert httpretty.last_request() == Any.object.with_attrs(
-            {"body": b"test_key=test_value"}
-        )
-
-    def test_it_sends_request_json(self, svc, url):
-        svc.request("GET", url, json={"test_key": "test_value"})
-
-        assert httpretty.last_request() == Any.object.with_attrs(
-            {"body": b'{"test_key": "test_value"}'}
-        )
-
-    def test_it_sends_request_headers(self, svc, url):
-        svc.request("GET", url, headers={"HEADER_KEY": "HEADER_VALUE"})
-
-        assert httpretty.last_request().headers["HEADER_KEY"] == "HEADER_VALUE"
-
-    def test_it_sends_request_auth(self, svc, url):
-        svc.request("GET", url, auth=("user", "pass"))
-
-        assert httpretty.last_request().headers["Authorization"] == "Basic dXNlcjpwYXNz"
-
-    @pytest.mark.usefixtures("with_mock_session")
-    def test_it_uses_custom_timeouts(self, svc):
-        svc.request("GET", "https://example.com", timeout=3)
-
-        assert svc.session.request.call_args[1]["timeout"] == 3
-
-    @pytest.mark.usefixtures("with_mock_session")
-    def test_it_passes_arbitrary_kwargs_to_requests(self, svc):
-        svc.request("GET", "https://example.com", headers={"key": "value"})
-
-        assert svc.session.request.call_args[1]["headers"] == {"key": "value"}
-
-    @pytest.mark.usefixtures("with_mock_session")
-    @pytest.mark.parametrize(
-        "exception",
-        [
-            requests.ConnectionError(),
-            requests.HTTPError(),
-            requests.ReadTimeout(),
-            requests.TooManyRedirects(),
-        ],
-    )
-    def test_it_raises_if_sending_the_request_fails(self, svc, exception):
-        svc.session.request.side_effect = exception
 
         with pytest.raises(ExternalRequestError) as exc_info:
             svc.request("GET", "https://example.com")
 
+        assert exc_info.value.request == sentinel.err_request
         assert exc_info.value.response is None
-        assert exc_info.value.__cause__ == exception
 
-    @pytest.mark.parametrize("status", [400, 401, 403, 404, 500])
-    def test_it_raises_if_the_response_is_an_error(self, svc, url, status):
-        httpretty.register_uri("GET", url, status=status)
+    def test_it_raises_if_the_response_is_an_error(self, svc):
+        response = svc.session.request.return_value
+        response.raise_for_status.side_effect = RequestException(
+            request=sentinel.err_request, response=sentinel.err_response
+        )
 
         with pytest.raises(ExternalRequestError) as exc_info:
-            svc.request("GET", url)
+            svc.request("GET", "https://example.com")
 
-        assert isinstance(exc_info.value.__cause__, requests.HTTPError)
-        assert exc_info.value.response == Any.instance_of(requests.Response).with_attrs(
-            {"status_code": status}
-        )
+        assert exc_info.value.request == sentinel.err_request
+        assert exc_info.value.response == response
 
-    @pytest.fixture
-    def url(self):
-        """Return the URL that we'll be sending test requests to."""
-        return "https://example.com/example"
-
-    @pytest.fixture(autouse=True)
-    def test_response(self, url):
-        httpretty.register_uri(
-            "GET", url, body='{"test_response_key": "test_response_value"}', priority=-1
-        )
+    @pytest.fixture()
+    def passed_args(self):
+        return {
+            "headers": sentinel.headers,
+            "params": sentinel.params,
+            "json": sentinel.json,
+            "data": sentinel.data,
+            "auth": sentinel.auth,
+            "timeout": sentinel.timeout,
+        }
 
     @pytest.fixture
     def svc(self):
-        return HTTPService()
-
-    @pytest.fixture
-    def with_mock_session(self, svc):
+        svc = HTTPService()
         svc.session = create_autospec(requests.Session, instance=True, spec_set=True)
+        return svc
 
 
 class TestFactory:
-    def test_it(self, pyramid_request):
-        assert isinstance(factory(sentinel.context, pyramid_request), HTTPService)
+    def test_it(self, pyramid_request, HTTPService):
+        svc = factory(sentinel.context, pyramid_request)
+
+        HTTPService.assert_called_once_with()
+        assert svc == HTTPService.return_value
+
+    @pytest.fixture
+    def HTTPService(self, patch):
+        return patch("lms.services.http.HTTPService")
