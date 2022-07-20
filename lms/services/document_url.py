@@ -4,7 +4,7 @@ from typing import Optional
 from urllib.parse import unquote
 
 from lms.services.assignment import AssignmentService
-from lms.services.vitalsource import VitalSourceService
+from lms.services.vitalsource import VSBookLocation
 
 
 class DocumentURLService:
@@ -77,10 +77,10 @@ class DocumentURLService:
         `vitalsource://...`
         """
         if request.params.get("vitalsource_book"):
-            return VitalSourceService.get_document_url(
+            return VSBookLocation(
                 book_id=request.params["book_id"],
                 cfi=request.params.get("cfi"),
-            )
+            ).document_url
 
         return None
 

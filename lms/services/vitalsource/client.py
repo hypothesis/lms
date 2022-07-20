@@ -1,10 +1,40 @@
 import re
+from dataclasses import dataclass
 
 from marshmallow import EXCLUDE, Schema, fields
 
 from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService
 from lms.validation._base import RequestsResponseSchema
+
+
+@dataclass
+class VSBookLocation:
+    """A location within a Vitalsource Book."""
+
+    book_id: str
+    """Id of the book"""
+
+    cfi: str
+    """Location within than book."""
+
+    @property
+    def document_url(self):
+        """Get our internal representation of this location."""
+
+        return f"vitalsource://book/bookID/{self.book_id}/cfi/{self.cfi}"
+
+    #: A regex for parsing the BOOK_ID and CFI parts out of one of our custom
+    #: vitalsource://book/bookID/BOOK_ID/cfi/CFI URLs.
+    _DOCUMENT_URL_REGEX = re.compile(
+        r"vitalsource:\/\/book\/bookID\/(?P<book_id>[^\/]*)\/cfi\/(?P<cfi>.*)"
+    )
+
+    @classmethod
+    def from_document_url(cls, document_url):
+        """Get a location from our internal representation."""
+
+        return cls(**cls._DOCUMENT_URL_REGEX.search(document_url).groupdict())
 
 
 class VitalSourceService:
@@ -69,23 +99,9 @@ class VitalSourceService:
 
         toc = self._BookTOCSchema(response).parse()
         for chapter in toc["table_of_contents"]:
-            chapter["url"] = self.get_document_url(book_id, chapter["cfi"])
+            chapter["url"] = VSBookLocation(book_id, chapter["cfi"]).document_url
 
         return toc
-
-    #: A regex for parsing the BOOK_ID and CFI parts out of one of our custom
-    #: vitalsource://book/bookID/BOOK_ID/cfi/CFI URLs.
-    _DOCUMENT_URL_REGEX = re.compile(
-        r"vitalsource:\/\/book\/bookID\/(?P<book_id>[^\/]*)\/cfi\/(?P<cfi>.*)"
-    )
-
-    @classmethod
-    def parse_document_url(cls, document_url):
-        return cls._DOCUMENT_URL_REGEX.search(document_url).groupdict()
-
-    @staticmethod
-    def get_document_url(book_id, cfi):
-        return f"vitalsource://book/bookID/{book_id}/cfi/{cfi}"
 
     def get_launch_url(self, document_url: str) -> str:
         """
@@ -97,8 +113,9 @@ class VitalSourceService:
 
         :param document_url: `vitalsource://` type URL identifying the document
         """
-        url_params = self.parse_document_url(document_url)
-        return f"https://hypothesis.vitalsource.com/books/{url_params['book_id']}/cfi/{url_params['cfi']}"
+        loc = VSBookLocation.from_document_url(document_url)
+
+        return f"https://hypothesis.vitalsource.com/books/{loc.book_id}/cfi/{loc.cfi}"
 
     def _get(self, endpoint):
         return self._http_service.request(
