@@ -42,74 +42,57 @@ class TestVitalSourceService:
             == "https://hypothesis.vitalsource.com/books/book-id/cfi//abc"
         )
 
-    def test_get(self, svc, http_service):
-        svc.get("endpoint/path")
+    def test_get_book_info_api(self, svc, book_info_schema, http_service):
+        book_toc = svc.get_book_info("BOOK_ID")
 
-        http_service.get.assert_called_once_with(
-            url="https://api.vitalsource.com/v4/endpoint/path"
+        http_service.request.assert_called_once_with(
+            "GET", "https://api.vitalsource.com/v4/products/BOOK_ID"
         )
-
-    def test_get_book_info_api(self, svc, book_info_schema):
-        with mock.patch.object(VitalSourceService, "get") as get:
-            book_toc = svc.get_book_info("BOOK_ID")
-            get.assert_called_once_with("products/BOOK_ID")
-
         assert book_toc == book_info_schema.parse.return_value
 
-    def test_get_book_info_not_found(self, svc):
-        with mock.patch.object(
-            VitalSourceService,
-            "get",
-            side_effect=ExternalRequestError(
-                response=factories.requests.Response(status_code=404)
-            ),
-        ):
-            with pytest.raises(ExternalRequestError) as exc_info:
-                svc.get_book_info("BOOK_ID")
+    def test_get_book_info_not_found(self, svc, http_service):
+        http_service.request.side_effect = ExternalRequestError(
+            response=factories.requests.Response(status_code=404)
+        )
 
-            assert exc_info.value.message == "Book BOOK_ID not found"
+        with pytest.raises(ExternalRequestError) as exc_info:
+            svc.get_book_info("BOOK_ID")
 
-    def test_get_book_info_error(self, svc):
-        with mock.patch.object(
-            VitalSourceService,
-            "get",
-            side_effect=ExternalRequestError(
-                response=factories.requests.Response(status_code=500)
-            ),
-        ):
-            with pytest.raises(ExternalRequestError):
-                svc.get_book_info("BOOK_ID")
+        assert exc_info.value.message == "Book BOOK_ID not found"
 
-    def test_get_book_toc_api(self, svc, book_toc_schema):
-        with mock.patch.object(VitalSourceService, "get") as get:
-            book_toc = svc.get_book_toc("BOOK_ID")
-            get.assert_called_once_with("products/BOOK_ID/toc")
+    def test_get_book_info_error(self, svc, http_service):
+        http_service.request.side_effect = ExternalRequestError(
+            response=factories.requests.Response(status_code=500)
+        )
 
+        with pytest.raises(ExternalRequestError):
+            svc.get_book_info("BOOK_ID")
+
+    def test_get_book_toc_api(self, svc, book_toc_schema, http_service):
+        book_toc = svc.get_book_toc("BOOK_ID")
+
+        http_service.request.assert_called_once_with(
+            "GET", "https://api.vitalsource.com/v4/products/BOOK_ID/toc"
+        )
         assert book_toc == book_toc_schema.parse.return_value
 
-    def test_get_book_toc_not_found(self, svc):
-        with mock.patch.object(
-            VitalSourceService,
-            "get",
-            side_effect=ExternalRequestError(
-                response=factories.requests.Response(status_code=404)
-            ),
-        ):
-            with pytest.raises(ExternalRequestError) as exc_info:
-                svc.get_book_toc("BOOK_ID")
+    def test_get_book_toc_not_found(self, svc, http_service):
+        http_service.request.side_effect = ExternalRequestError(
+            response=factories.requests.Response(status_code=404)
+        )
 
-            assert exc_info.value.message == "Book BOOK_ID not found"
+        with pytest.raises(ExternalRequestError) as exc_info:
+            svc.get_book_toc("BOOK_ID")
 
-    def test_get_book_toc_error(self, svc):
-        with mock.patch.object(
-            VitalSourceService,
-            "get",
-            side_effect=ExternalRequestError(
-                response=factories.requests.Response(status_code=500)
-            ),
-        ):
-            with pytest.raises(ExternalRequestError):
-                svc.get_book_toc("BOOK_ID")
+        assert exc_info.value.message == "Book BOOK_ID not found"
+
+    def test_get_book_toc_error(self, svc, http_service):
+        http_service.request.side_effect = ExternalRequestError(
+            response=factories.requests.Response(status_code=500)
+        )
+
+        with pytest.raises(ExternalRequestError):
+            svc.get_book_toc("BOOK_ID")
 
     @pytest.fixture
     def svc(self):

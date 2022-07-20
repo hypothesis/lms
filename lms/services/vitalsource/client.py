@@ -25,12 +25,9 @@ class VitalSourceService:
         self._http_service = HTTPService()
         self._http_service.session.headers = {"X-VitalSource-API-Key": api_key}
 
-    def get(self, endpoint):
-        return self._http_service.get(url=f"https://api.vitalsource.com/v4/{endpoint}")
-
     def get_book_info(self, book_id: str):
         try:
-            response = self.get(f"products/{book_id}")
+            response = self._get(f"products/{book_id}")
         except ExternalRequestError as err:
             if err.status_code == 404:
                 err.message = f"Book {book_id} not found"
@@ -41,7 +38,7 @@ class VitalSourceService:
 
     def get_book_toc(self, book_id: str):
         try:
-            response = self.get(f"products/{book_id}/toc")
+            response = self._get(f"products/{book_id}/toc")
         except ExternalRequestError as err:
             if err.status_code == 404:
                 err.message = f"Book {book_id} not found"
@@ -72,6 +69,11 @@ class VitalSourceService:
         """
         url_params = self.parse_document_url(document_url)
         return f"https://hypothesis.vitalsource.com/books/{url_params['book_id']}/cfi/{url_params['cfi']}"
+
+    def _get(self, endpoint):
+        return self._http_service.request(
+            method="GET", url=f"https://api.vitalsource.com/v4/{endpoint}"
+        )
 
 
 def factory(_context, request):
