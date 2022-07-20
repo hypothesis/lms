@@ -1,4 +1,4 @@
-from lms.services.vitalsource.client import VitalSourceClient
+from lms.services.vitalsource._client import VitalSourceClient
 from lms.services.vitalsource.service import VitalSourceService
 
 
