@@ -30,7 +30,7 @@ describe('JSTORPicker', () => {
   function simulateMetadataFetch(wrapper, title, otherMetadata = {}) {
     simulateAPIFetch(wrapper, '/api/jstor/articles/1234', {
       title,
-      is_collection: false,
+      content_status: 'available',
       ...otherMetadata,
     });
   }
@@ -292,22 +292,33 @@ describe('JSTORPicker', () => {
     assert.isFalse(wrapper.exists('[data-testid="error-message"]'));
   });
 
-  it('disables submit button and shows error if item is a collection', () => {
-    const wrapper = renderJSTORPicker();
-    const buttonSelector = 'LabeledButton[data-testid="select-button"]';
+  [
+    {
+      contentStatus: 'no_access',
+      expectedError: 'Your institution does not have access to this item.',
+    },
+    {
+      contentStatus: 'no_content',
+      expectedError:
+        'No content is available for this item. For collections, enter the link for a specific article or chapter.',
+    },
+  ].forEach(({ contentStatus, expectedError }) => {
+    it('disables submit button and shows error if content is not available', () => {
+      const wrapper = renderJSTORPicker();
+      const buttonSelector = 'LabeledButton[data-testid="select-button"]';
 
-    assert.isTrue(wrapper.find(buttonSelector).props().disabled);
-    updateURL(wrapper);
+      assert.isTrue(wrapper.find(buttonSelector).props().disabled);
+      updateURL(wrapper);
 
-    simulateMetadataFetch(wrapper, 'Some book', { is_collection: true });
+      simulateMetadataFetch(wrapper, 'Some book', {
+        content_status: contentStatus,
+      });
 
-    assert.isTrue(wrapper.find(buttonSelector).props().disabled);
+      assert.isTrue(wrapper.find(buttonSelector).props().disabled);
 
-    const errorMessage = wrapper.find('[data-testid="error-message"]');
-    assert.isTrue(errorMessage.exists());
-    assert.equal(
-      errorMessage.text().trim(),
-      'This work is a collection. Enter the link for a specific article in the collection.'
-    );
+      const errorMessage = wrapper.find('[data-testid="error-message"]');
+      assert.isTrue(errorMessage.exists());
+      assert.equal(errorMessage.text().trim(), expectedError);
+    });
   });
 });

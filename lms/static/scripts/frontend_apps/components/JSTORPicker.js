@@ -62,9 +62,11 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
       metadata.error,
       'Unable to fetch article details'
     );
-  } else if (metadata.data?.is_collection) {
+  } else if (metadata.data?.content_status === 'no_content') {
     renderedError =
-      'This work is a collection. Enter the link for a specific article in the collection.';
+      'No content is available for this item. For collections, enter the link for a specific article or chapter.';
+  } else if (metadata.data?.content_status === 'no_access') {
+    renderedError = 'Your institution does not have access to this item.';
   }
 
   const inputRef = /** @type {{ current: HTMLInputElement }} */ (useRef());
@@ -72,7 +74,9 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
   const previousURL = useRef(/** @type {string|null} */ (null));
 
   const canConfirmSelection =
-    articleId && metadata.data !== null && !metadata.data.is_collection;
+    articleId &&
+    metadata.data !== null &&
+    metadata.data.content_status === 'available';
 
   const confirmSelection = () => {
     if (canConfirmSelection) {
@@ -211,7 +215,7 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
             </div>
           )}
 
-          {metadata.data && (
+          {metadata.data && canConfirmSelection && (
             <>
               <div className="grow" />
               <div className="self-stretch text-right px-1">
