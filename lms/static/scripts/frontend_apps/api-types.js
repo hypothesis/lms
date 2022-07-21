@@ -52,7 +52,7 @@
  * Response for an `/api/jstor/articles/{article_id}` call.
  *
  * @typedef JSTORMetadata
- * @prop {boolean} is_collection
+ * @prop {'available'|'no_content'|'no_access'} content_status
  * @prop {string} title
  */
 
