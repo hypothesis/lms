@@ -64,7 +64,7 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
     );
   } else if (metadata.data?.content_status === 'no_content') {
     renderedError =
-      'No content is available for this item. For collections, enter the link for a specific article or chapter.';
+      'There is no content available for this item. To select an item within a journal or book, enter a link to a specific article or chapter.';
   } else if (metadata.data?.content_status === 'no_access') {
     renderedError = 'Your institution does not have access to this item.';
   }

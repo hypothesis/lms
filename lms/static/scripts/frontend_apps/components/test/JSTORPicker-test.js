@@ -300,7 +300,7 @@ describe('JSTORPicker', () => {
     {
       contentStatus: 'no_content',
       expectedError:
-        'No content is available for this item. For collections, enter the link for a specific article or chapter.',
+        'There is no content available for this item. To select an item within a journal or book, enter a link to a specific article or chapter.',
     },
   ].forEach(({ contentStatus, expectedError }) => {
     it('disables submit button and shows error if content is not available', () => {
