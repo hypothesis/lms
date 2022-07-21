@@ -6,10 +6,13 @@ import pytest
 
 from lms.models import ApplicationSettings
 from lms.services import ExternalRequestError
-from lms.services.jstor import JSTORService, factory
+from lms.services.jstor import ContentStatus, JSTORService, factory
 from tests import factories
 
 JSTOR_API_URL = "http://api.jstor.org"
+
+# Defaults for required fields in `/metadata/{doi}` responses.
+METADATA_RESPONSE_DEFAULTS = {"has_pdf": True, "requestor_access_level": "full_access"}
 
 
 class TestJSTORService:
@@ -80,7 +83,9 @@ class TestJSTORService:
         article_id,
         expected_api_url,
     ):
-        http_service.get.return_value = factories.requests.Response(json_data={})
+        http_service.get.return_value = factories.requests.Response(
+            json_data=METADATA_RESPONSE_DEFAULTS
+        )
 
         svc.metadata(article_id)
 
@@ -115,15 +120,46 @@ class TestJSTORService:
         self, svc, http_service, api_response, expected_title
     ):
         http_service.get.return_value = factories.requests.Response(
+            json_data={**METADATA_RESPONSE_DEFAULTS, **api_response}
+        )
+
+        metadata = svc.metadata("12345")
+
+        assert metadata["title"] == expected_title
+
+    @pytest.mark.parametrize(
+        "has_pdf, access_level, expected_status",
+        [
+            (True, "full_access", ContentStatus.AVAILABLE),
+            (False, "full_access", ContentStatus.NO_CONTENT),
+            (True, "preview_access", ContentStatus.NO_ACCESS),
+        ],
+    )
+    def test_metadata_returns_content_status(
+        self, svc, http_service, has_pdf, access_level, expected_status
+    ):
+        api_response = {"has_pdf": has_pdf, "requestor_access_level": access_level}
+        http_service.get.return_value = factories.requests.Response(
             json_data=api_response
         )
         metadata = svc.metadata("12345")
-        assert metadata["title"] == expected_title
+        assert metadata["content_status"] == expected_status
 
-    def test_metadata_raises_if_schema_mismatch(self, svc, http_service):
-        invalid_api_response = {"title": ["This should be a string"]}
+    @pytest.mark.parametrize(
+        "api_response",
+        [
+            (
+                {
+                    "title": ["This should be a string"],
+                    **METADATA_RESPONSE_DEFAULTS,
+                }
+            ),
+            ({"title": "Test with missing fields"}),
+        ],
+    )
+    def test_metadata_raises_if_schema_mismatch(self, svc, http_service, api_response):
         http_service.get.return_value = factories.requests.Response(
-            json_data=invalid_api_response
+            json_data=api_response
         )
 
         with pytest.raises(ExternalRequestError) as exc:

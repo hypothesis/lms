@@ -14,7 +14,9 @@ class TestJSTORAPIViews:
         jstor_service.metadata.assert_called_once_with("test-article")
         assert metadata == {
             "title": jstor_service.metadata.return_value["title"],
-            "is_collection": False,
+            "content_status": jstor_service.metadata.return_value[
+                "content_status"
+            ].name.lower(),
         }
 
     def test_article_thumbnail(self, jstor_service, pyramid_request):

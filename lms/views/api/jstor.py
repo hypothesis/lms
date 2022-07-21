@@ -8,16 +8,18 @@ from lms.services import JSTORService
 class JSTORAPIViews:
     def __init__(self, request):
         self.request = request
-        self.jstor_service = request.find_service(iface=JSTORService)
+        self.jstor_service: JSTORService = request.find_service(iface=JSTORService)
 
     @view_config(route_name="jstor_api.articles.metadata")
     def article_metadata(self):
         article_id = self.request.matchdict["article_id"]
         article_info = self.jstor_service.metadata(article_id)
+        content_status = article_info["content_status"]
 
-        is_collection = False  # Placeholder
-
-        return {"title": article_info["title"], "is_collection": is_collection}
+        return {
+            "title": article_info["title"],
+            "content_status": content_status.name.lower(),
+        }
 
     @view_config(route_name="jstor_api.articles.thumbnail")
     def article_thumbnail(self):
