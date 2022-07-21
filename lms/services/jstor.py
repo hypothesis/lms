@@ -1,5 +1,7 @@
 from datetime import timedelta
+from enum import Enum, auto
 from html.parser import HTMLParser
+from typing import TypedDict
 from urllib.parse import quote
 
 import requests
@@ -22,8 +24,45 @@ class JSTORMetadataSchema(RequestsResponseSchema):
     title = fields.Str()
     subtitle = fields.Str()
 
-    # List of titles of works that this item is a review of.
     reviewed_works = fields.List(fields.Str())
+    """List of titles of works that this item is a review of."""
+
+    has_pdf = fields.Boolean(required=True)
+    """
+    Does this item have a PDF?
+
+    This can be false if the item is a collection (eg. of book chapters or
+    journal articles).
+    """
+
+    requestor_access_level = fields.Str(required=True)
+    """
+    Does the current institution have access to the PDF?
+
+    The "current" institution is the one identified by the site code specified
+    in the Authorization header of the request.
+
+    This will be "full_access" if the institution has access to the PDF,
+    or another value (eg. "preview_access") otherwise.
+    """
+
+
+class ContentStatus(Enum):
+    """Indicates whether an item has content available for use with Hypothesis."""
+
+    AVAILABLE = auto()
+    """Content is available for the item."""
+
+    NO_CONTENT = auto()
+    """Item does not have associated content (eg. a PDF)."""
+
+    NO_ACCESS = auto()
+    """This item has content, but the current institution does not have access to it."""
+
+
+class MetadataResult(TypedDict):
+    title: str
+    content_status: ContentStatus
 
 
 class JSTORService:
@@ -85,7 +124,7 @@ class JSTORService:
             options={"via.client.contentPartner": "jstor"},
         )
 
-    def metadata(self, article_id: str):
+    def metadata(self, article_id: str) -> MetadataResult:
         """
         Fetch metadata about a JSTOR article.
 
@@ -95,7 +134,17 @@ class JSTORService:
         response = self._api_request("/metadata/{doi}", doi=article_id)
         metadata = JSTORMetadataSchema(response).parse()
 
-        return {"title": self._get_title_from_metadata(metadata)}
+        if metadata["has_pdf"] and metadata["requestor_access_level"] == "full_access":
+            content_status = ContentStatus.AVAILABLE
+        elif metadata["has_pdf"]:
+            content_status = ContentStatus.NO_ACCESS
+        else:
+            content_status = ContentStatus.NO_CONTENT
+
+        return {
+            "title": self._get_title_from_metadata(metadata),
+            "content_status": content_status,
+        }
 
     def thumbnail(self, article_id: str):
         """
