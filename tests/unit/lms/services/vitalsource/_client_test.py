@@ -13,7 +13,8 @@ class TestVitalSourceClient:
 
         # pylint: disable=protected-access
         assert client._http_service.session.headers == {
-            "X-VitalSource-API-Key": sentinel.api_key
+            "X-VitalSource-API-Key": sentinel.api_key,
+            "Accept": "application/json",
         }
 
     def test_init_raises_if_launch_credentials_invalid(self):
