@@ -152,6 +152,24 @@ class VitalSourceService:
         # Check that we have at least one.
         return result["licenses"] and "license" in result["licenses"]
 
+    def user_opted_out(self, course_id, book_id: str) -> bool:
+        response = self._request(
+            api_key=self._user_api_key,
+            endpoint=f"https://launch.vitalsource.com/api/v4/courses/{course_id}/opt_outs",
+            json=True,
+        )
+        print(response)
+        return False
+
+    def get_courses(self):
+        response = self._request(
+            api_key=self._user_api_key,
+            endpoint=f"https://launch.vitalsource.com/api/v4/courses",
+            json=True,
+        )
+        print(response)
+        return False
+
     def get_launch_url(self, book_id: str, cfi: str, user_reference: str) -> str:
         """
         Return a temporary URL to load the VitalSource book viewer.
@@ -204,6 +222,7 @@ class VitalSourceService:
         params: Optional[dict] = None,
         data: Union[str, Optional[dict]] = None,
         access_token: Optional[str] = None,
+        json=False,
     ) -> requests.Response:
         """
         Make a request to the VitalSource API.
@@ -216,9 +235,15 @@ class VitalSourceService:
         """
 
         method = "POST" if data else "GET"
-        url = f"https://api.vitalsource.com/{endpoint}"
+        if endpoint.startswith("http"):
+            url = endpoint
+        else:
+            url = f"https://api.vitalsource.com/{endpoint}"
 
         headers = {"X-VitalSource-API-Key": api_key}
+        if json:
+            headers["accept"] = "application/json"
+            headers["content-type"] = "application/json"
         if access_token:
             headers["X-VitalSource-Access-Token"] = access_token
 

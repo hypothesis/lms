@@ -34,6 +34,14 @@ def has_document_url(context, request):
     )
 
 
+class VitalSourceMissingLicense(Exception):
+    pass
+
+
+class VitalSourceOptedOut(Exception):
+    pass
+
+
 @view_defaults(
     request_method="POST",
     permission=Permissions.LTI_LAUNCH_ASSIGNMENT,
@@ -47,9 +55,31 @@ class BasicLaunchViews:
             name="assignment"
         )
 
-        self.context.application_instance.check_guid_aligns(
+        application_instance = self.context.application_instance
+        print(application_instance)
+
+        application_instance.check_guid_aligns(
             self.context.lti_params.get("tool_consumer_instance_guid")
         )
+
+        # If application_instance.settings['vitalsource']['inclusive_access']
+        if True:
+            # Is this always the same? Or varies per institution
+            h_book_id = "L-999-70049"
+
+            vitalsource_svc = self.request.find_service(name="vitalsource")
+
+            user_reference = vitalsource_svc.get_user_reference(request.lti_params)
+            access_token = vitalsource_svc.get_user_access_token(user_reference)
+            if not vitalsource_svc.user_has_book_license(access_token, h_book_id):
+                raise VitalSourceMissingLicense()
+
+            courses = vitalsource_svc.get_courses()
+            # TODO Filter courses by context_id
+            vs_course_id = 2870799
+
+            if vitalsource_svc.user_opted_out(vs_course_id, h_book_id):
+                raise VitalSourceOptedOut()
 
         self._record_launch()
 
