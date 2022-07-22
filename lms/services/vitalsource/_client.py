@@ -13,6 +13,8 @@ class VitalSourceClient:
     See: https://developer.vitalsource.com/hc/en-us/categories/360001974433
     """
 
+    VS_API = "https://api.vitalsource.com"
+
     def __init__(self, api_key: str):
         """
         Initialise a client object.
@@ -36,7 +38,7 @@ class VitalSourceClient:
         """
 
         try:
-            response = self._json_request("GET", f"v4/products/{book_id}")
+            response = self._json_request("GET", f"{self.VS_API}/v4/products/{book_id}")
         except ExternalRequestError as err:
             if err.status_code == 404:
                 err.message = f"Book {book_id} not found"
@@ -53,7 +55,9 @@ class VitalSourceClient:
         """
 
         try:
-            response = self._json_request("GET", f"v4/products/{book_id}/toc")
+            response = self._json_request(
+                "GET", f"{self.VS_API}/v4/products/{book_id}/toc"
+            )
         except ExternalRequestError as err:
             if err.status_code == 404:
                 err.message = f"Book {book_id} not found"
@@ -67,13 +71,10 @@ class VitalSourceClient:
         return toc
 
     def _json_request(self, method, endpoint):
-        return self._request(method, endpoint, headers={"Accept": "application/json"})
-
-    def _request(self, method, endpoint, **kwargs):
         # As we are using a requests Session, headers and auth etc. set in the
         # session will take effect here in addition to the values passed in.
         return self._http_session.request(
-            method=method, url=f"https://api.vitalsource.com/{endpoint}", **kwargs
+            method, endpoint, headers={"Accept": "application/json"}
         )
 
 
