@@ -13,10 +13,10 @@ class VitalSourceService:
 
         return self.client.get_book_info(book_id)
 
-    def get_book_toc(self, book_id: str):
+    def get_table_of_contents(self, book_id: str):
         """Get the table of contents for a book."""
 
-        return self.client.get_book_toc(book_id)
+        return self.client.get_table_of_contents(book_id)
 
     def get_launch_url(self, document_url: str) -> str:
         """

@@ -18,8 +18,8 @@ class TestVitalSourceService:
     @pytest.mark.parametrize(
         "proxy_method,args",
         (
-            ("get_book_toc", [sentinel.book_id]),
             ("get_book_info", [sentinel.book_id]),
+            ("get_table_of_contents", [sentinel.book_id]),
         ),
     )
     def test_proxied_methods(self, svc, client, proxy_method, args):

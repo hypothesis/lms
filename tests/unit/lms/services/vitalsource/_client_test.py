@@ -57,14 +57,14 @@ class TestVitalSourceClient:
         with pytest.raises(ExternalRequestError):
             client.get_book_info("BOOK_ID")
 
-    def test_get_book_toc(self, client, http_service):
+    def test_get_table_of_contents(self, client, http_service):
         http_service.request.return_value = factories.requests.Response(
             json_data={
                 "table_of_contents": [{"title": "TITLE", "cfi": "CFI", "page": "PAGE"}]
             }
         )
 
-        book_toc = client.get_book_toc("BOOK_ID")
+        book_toc = client.get_table_of_contents("BOOK_ID")
 
         http_service.request.assert_called_once_with(
             "GET",
@@ -72,34 +72,32 @@ class TestVitalSourceClient:
             headers={"Accept": "application/json"},
         )
 
-        assert book_toc == {
-            "table_of_contents": [
-                {
-                    "title": "TITLE",
-                    "cfi": "CFI",
-                    "page": "PAGE",
-                    "url": "vitalsource://book/bookID/BOOK_ID/cfi/CFI",
-                }
-            ]
-        }
+        assert book_toc == [
+            {
+                "title": "TITLE",
+                "cfi": "CFI",
+                "page": "PAGE",
+                "url": "vitalsource://book/bookID/BOOK_ID/cfi/CFI",
+            }
+        ]
 
-    def test_get_book_toc_not_found(self, client, http_service):
+    def test_get_table_of_contents_not_found(self, client, http_service):
         http_service.request.side_effect = ExternalRequestError(
             response=factories.requests.Response(status_code=404)
         )
 
         with pytest.raises(ExternalRequestError) as exc_info:
-            client.get_book_toc("BOOK_ID")
+            client.get_table_of_contents("BOOK_ID")
 
         assert exc_info.value.message == "Book BOOK_ID not found"
 
-    def test_get_book_toc_error(self, client, http_service):
+    def test_get_table_of_contents_error(self, client, http_service):
         http_service.request.side_effect = ExternalRequestError(
             response=factories.requests.Response(status_code=500)
         )
 
         with pytest.raises(ExternalRequestError):
-            client.get_book_toc("BOOK_ID")
+            client.get_table_of_contents("BOOK_ID")
 
     @pytest.fixture
     def client(self):

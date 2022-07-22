@@ -47,7 +47,7 @@ class VitalSourceClient:
 
         return _BookInfoSchema(response).parse()
 
-    def get_book_toc(self, book_id: str):
+    def get_table_of_contents(self, book_id: str):
         """
         Get the table of contents for a book.
 
@@ -64,8 +64,8 @@ class VitalSourceClient:
 
             raise
 
-        toc = _BookTOCSchema(response).parse()
-        for chapter in toc["table_of_contents"]:
+        toc = _BookTOCSchema(response).parse()["table_of_contents"]
+        for chapter in toc:
             chapter["url"] = VSBookLocation(book_id, chapter["cfi"]).document_url
 
         return toc
