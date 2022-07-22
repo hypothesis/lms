@@ -7,7 +7,7 @@ from lms.product import Product
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
 from lms.resources._js_config.file_picker_config import FilePickerConfig
-from lms.services import HAPIError, JSTORService
+from lms.services import HAPIError, JSTORService, VitalSourceService
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
 
@@ -68,7 +68,7 @@ class JSConfig:
                 ),
             }
         elif document_url.startswith("vitalsource://"):
-            vitalsource_svc = self._request.find_service(name="vitalsource")
+            vitalsource_svc = self._request.find_service(VitalSourceService)
 
             # nb. VitalSource doesn't use Via, but is otherwise handled exactly
             # the same way by the frontend.

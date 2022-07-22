@@ -27,6 +27,7 @@ from lms.services.lti_role_service import LTIRoleService
 from lms.services.ltia_http import LTIAHTTPService
 from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
+from lms.services.vitalsource import VitalSourceService
 
 
 def includeme(config):
@@ -72,7 +73,7 @@ def includeme(config):
         "lms.services.assignment.factory", name="assignment"
     )
     config.register_service_factory(
-        "lms.services.vitalsource.service_factory", name="vitalsource"
+        "lms.services.vitalsource.service_factory", iface=VitalSourceService
     )
     config.register_service_factory(
         "lms.services.grant_token.factory", name="grant_token"

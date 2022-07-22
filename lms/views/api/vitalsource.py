@@ -4,13 +4,14 @@ from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
+from lms.services import VitalSourceService
 
 
 @view_defaults(renderer="json", permission=Permissions.API)
 class VitalSourceAPIViews:
     def __init__(self, request):
         self.request = request
-        self.vitalsource_service = request.find_service(name="vitalsource")
+        self.vitalsource_service = request.find_service(VitalSourceService)
 
     @view_config(route_name="vitalsource_api.books.info")
     def book_info(self):
