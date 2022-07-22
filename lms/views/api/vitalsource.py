@@ -15,13 +15,7 @@ class VitalSourceAPIViews:
 
     @view_config(route_name="vitalsource_api.books.info")
     def book_info(self):
-        book_info = self.svc.get_book_info(self._book_id)
-
-        return {
-            "id": book_info["vbid"],
-            "title": book_info["title"],
-            "cover_image": book_info["resource_links"]["cover_image"],
-        }
+        return self.svc.get_book_info(self._book_id)
 
     @view_config(route_name="vitalsource_api.books.toc")
     def table_of_contents(self):

@@ -21,13 +21,12 @@ class TestVitalSourceClient:
             VitalSourceClient(api_key=None)
 
     def test_get_book_info(self, client, http_service):
-        json_data = {
-            "vbid": "VBID",
-            "title": "TITLE",
-            "resource_links": {"cover_image": "COVER_IMAGE"},
-        }
         http_service.request.return_value = factories.requests.Response(
-            json_data=json_data
+            json_data={
+                "vbid": "VBID",
+                "title": "TITLE",
+                "resource_links": {"cover_image": "COVER_IMAGE"},
+            }
         )
 
         book_info = client.get_book_info("BOOK_ID")
@@ -37,7 +36,11 @@ class TestVitalSourceClient:
             "https://api.vitalsource.com/v4/products/BOOK_ID",
             headers={"Accept": "application/json"},
         )
-        assert book_info == json_data
+        assert book_info == {
+            "id": "VBID",
+            "title": "TITLE",
+            "cover_image": "COVER_IMAGE",
+        }
 
     def test_get_book_info_not_found(self, client, http_service):
         http_service.request.side_effect = ExternalRequestError(
