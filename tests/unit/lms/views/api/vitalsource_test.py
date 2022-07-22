@@ -6,31 +6,21 @@ from lms.views.api.vitalsource import VitalSourceAPIViews
 
 @pytest.mark.usefixtures("vitalsource_service")
 class TestVitalSourceAPIViews:
-    def test_book_info_returns_metadata(self, pyramid_request, vitalsource_service):
-        api_book_info = {
-            "vbid": "VBID",
-            "title": "BOOK  TITLE",
-            "resource_links": {"cover_image": "http://cover_image/url"},
-        }
+    def test_book_info(self, pyramid_request, vitalsource_service):
+        pyramid_request.matchdict["book_id"] = "BOOK-ID"
 
-        vitalsource_service.get_book_info.return_value = api_book_info
+        response = VitalSourceAPIViews(pyramid_request).book_info()
 
-        pyramid_request.matchdict["book_id"] = "BOOKSHELF-TUTORIAL"
-
-        metadata = VitalSourceAPIViews(pyramid_request).book_info()
-
-        assert metadata == {
-            "id": api_book_info["vbid"],
-            "title": api_book_info["title"],
-            "cover_image": api_book_info["resource_links"]["cover_image"],
-        }
+        vitalsource_service.get_book_info.assert_called_once_with("BOOK-ID")
+        assert response == vitalsource_service.get_book_info.return_value
 
     def test_table_of_contents(self, pyramid_request, vitalsource_service):
-        pyramid_request.matchdict["book_id"] = "BOOKSHELF-TUTORIAL"
+        pyramid_request.matchdict["book_id"] = "BOOK-ID"
 
-        toc = VitalSourceAPIViews(pyramid_request).table_of_contents()
+        response = VitalSourceAPIViews(pyramid_request).table_of_contents()
 
-        assert toc == vitalsource_service.get_table_of_contents.return_value
+        vitalsource_service.get_table_of_contents.assert_called_once_with("BOOK-ID")
+        assert response == vitalsource_service.get_table_of_contents.return_value
 
     @pytest.mark.parametrize("method", ("book_info", "table_of_contents"))
     @pytest.mark.parametrize("invalid_book_id", ["", "lowercase", "OTHER#CHARS-OTHER"])

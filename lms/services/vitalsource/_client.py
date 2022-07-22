@@ -45,7 +45,13 @@ class VitalSourceClient:
 
             raise
 
-        return _BookInfoSchema(response).parse()
+        book_info = _BookInfoSchema(response).parse()
+
+        return {
+            "id": book_info["vbid"],
+            "title": book_info["title"],
+            "cover_image": book_info["resource_links"]["cover_image"],
+        }
 
     def get_table_of_contents(self, book_id: str):
         """
