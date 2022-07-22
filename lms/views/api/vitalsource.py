@@ -25,8 +25,7 @@ class VitalSourceAPIViews:
 
     @view_config(route_name="vitalsource_api.books.toc")
     def table_of_contents(self):
-        book_toc = self.svc.get_book_toc(self._book_id)
-        return book_toc["table_of_contents"]
+        return self.svc.get_table_of_contents(self._book_id)
 
     _VALID_BOOK_ID = re.compile(r"^[\dA-Z-]+$")
 

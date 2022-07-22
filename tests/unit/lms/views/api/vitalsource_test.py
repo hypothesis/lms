@@ -25,19 +25,12 @@ class TestVitalSourceAPIViews:
             "cover_image": api_book_info["resource_links"]["cover_image"],
         }
 
-    def test_table_of_contents_returns_chapter_data(
-        self, pyramid_request, vitalsource_service
-    ):
-        vitalsource_service.get_book_toc.return_value = {
-            "table_of_contents": [
-                {"title": "chapter 1", "cfi": "XXXX", "page": "1"},
-                ...,
-            ]
-        }
-
+    def test_table_of_contents(self, pyramid_request, vitalsource_service):
         pyramid_request.matchdict["book_id"] = "BOOKSHELF-TUTORIAL"
+
         toc = VitalSourceAPIViews(pyramid_request).table_of_contents()
-        assert toc == vitalsource_service.get_book_toc.return_value["table_of_contents"]
+
+        assert toc == vitalsource_service.get_table_of_contents.return_value
 
     @pytest.mark.parametrize("method", ("book_info", "table_of_contents"))
     @pytest.mark.parametrize("invalid_book_id", ["", "lowercase", "OTHER#CHARS-OTHER"])
