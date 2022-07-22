@@ -24,7 +24,10 @@ class VitalSourceClient:
             raise ValueError("VitalSource credentials are missing")
 
         self._http_service = HTTPService()
-        self._http_service.session.headers = {"X-VitalSource-API-Key": api_key}
+        self._http_service.session.headers = {
+            "X-VitalSource-API-Key": api_key,
+            "Accept": "application/json",
+        }
 
     class _BookInfoSchema(RequestsResponseSchema):
         vbid = fields.Str(required=True)
