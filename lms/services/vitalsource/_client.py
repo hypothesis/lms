@@ -23,72 +23,83 @@ class VitalSourceClient:
         if not api_key:
             raise ValueError("VitalSource credentials are missing")
 
-        self._http_service = HTTPService()
-        self._http_service.session.headers = {
-            "X-VitalSource-API-Key": api_key,
-            "Accept": "application/json",
-        }
+        self._http_session = HTTPService()
 
-    class _BookInfoSchema(RequestsResponseSchema):
-        vbid = fields.Str(required=True)
-        title = fields.Str(required=True)
-
-        class ResourceLinks(Schema):
-            class Meta:
-                unknown = EXCLUDE
-
-            cover_image = fields.Str(required=True)
-
-        resource_links = fields.Nested(ResourceLinks, required=True)
+        # Set headers in the session which will be passed with every request
+        self._http_session.session.headers = {"X-VitalSource-API-Key": api_key}
 
     def get_book_info(self, book_id: str):
-        """Get details of a book."""
+        """
+        Get details of a book.
 
-        # See: https://developer.vitalsource.com/hc/en-us/articles/360010967153-GET-v4-products-vbid-Title-TOC-Metadata
+        See: https://developer.vitalsource.com/hc/en-us/articles/360010967153-GET-v4-products-vbid-Title-TOC-Metadata
+        """
+
         try:
-            response = self._get(f"v4/products/{book_id}")
+            response = self._json_request("GET", f"v4/products/{book_id}")
         except ExternalRequestError as err:
             if err.status_code == 404:
                 err.message = f"Book {book_id} not found"
 
             raise
 
-        return self._BookInfoSchema(response).parse()
-
-    class _BookTOCSchema(RequestsResponseSchema):
-        class Chapter(Schema):
-            class Meta:
-                unknown = EXCLUDE
-
-            title = fields.Str(required=True)
-            cfi = fields.Str(required=True)
-            page = fields.Str(required=True)
-
-            url = fields.Str(required=False)
-            """vitalsource:// like url identifying the book and chapter"""
-
-        table_of_contents = fields.List(fields.Nested(Chapter), required=True)
+        return _BookInfoSchema(response).parse()
 
     def get_book_toc(self, book_id: str):
-        """Get the table of contents for a book."""
+        """
+        Get the table of contents for a book.
 
-        # See: https://developer.vitalsource.com/hc/en-us/articles/360010967153-GET-v4-products-vbid-Title-TOC-Metadata
+        See: https://developer.vitalsource.com/hc/en-us/articles/360010967153-GET-v4-products-vbid-Title-TOC-Metadata
+        """
 
         try:
-            response = self._get(f"v4/products/{book_id}/toc")
+            response = self._json_request("GET", f"v4/products/{book_id}/toc")
         except ExternalRequestError as err:
             if err.status_code == 404:
                 err.message = f"Book {book_id} not found"
 
             raise
 
-        toc = self._BookTOCSchema(response).parse()
+        toc = _BookTOCSchema(response).parse()
         for chapter in toc["table_of_contents"]:
             chapter["url"] = VSBookLocation(book_id, chapter["cfi"]).document_url
 
         return toc
 
-    def _get(self, endpoint):
-        return self._http_service.request(
-            method="GET", url=f"https://api.vitalsource.com/{endpoint}"
+    def _json_request(self, method, endpoint):
+        return self._request(method, endpoint, headers={"Accept": "application/json"})
+
+    def _request(self, method, endpoint, **kwargs):
+        # As we are using a requests Session, headers and auth etc. set in the
+        # session will take effect here in addition to the values passed in.
+        return self._http_session.request(
+            method=method, url=f"https://api.vitalsource.com/{endpoint}", **kwargs
         )
+
+
+class _BookInfoSchema(RequestsResponseSchema):
+    vbid = fields.Str(required=True)
+    title = fields.Str(required=True)
+
+    class ResourceLinks(Schema):
+        class Meta:
+            unknown = EXCLUDE
+
+        cover_image = fields.Str(required=True)
+
+    resource_links = fields.Nested(ResourceLinks, required=True)
+
+
+class _BookTOCSchema(RequestsResponseSchema):
+    class Chapter(Schema):
+        class Meta:
+            unknown = EXCLUDE
+
+        title = fields.Str(required=True)
+        cfi = fields.Str(required=True)
+        page = fields.Str(required=True)
+
+        url = fields.Str(required=False)
+        """vitalsource:// like url identifying the book and chapter"""
+
+    table_of_contents = fields.List(fields.Nested(Chapter), required=True)
