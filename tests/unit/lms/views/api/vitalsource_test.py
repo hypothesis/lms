@@ -3,17 +3,9 @@ from pyramid.httpexceptions import HTTPBadRequest
 
 from lms.views.api.vitalsource import VitalSourceAPIViews
 
-pytestmark = pytest.mark.usefixtures("http_service")
 
-
+@pytest.mark.usefixtures("vitalsource_service")
 class TestVitalSourceAPIViews:
-    @pytest.mark.usefixtures("vitalsource_service")
-    @pytest.mark.parametrize("book_id", ["", "lowercase", "OTHER#CHARS-OTHER"])
-    def test_invalid_book_ids(self, pyramid_request, book_id):
-        assert not VitalSourceAPIViews(  # pylint: disable=protected-access
-            pyramid_request
-        )._is_valid_book_id(book_id)
-
     def test_book_info_returns_metadata(
         self, pyramid_request, vitalsource_service, api_book_info
     ):
@@ -29,13 +21,6 @@ class TestVitalSourceAPIViews:
             "cover_image": api_book_info["resource_links"]["cover_image"],
         }
 
-    @pytest.mark.usefixtures("vitalsource_service")
-    def test_book_info_invalid_book_id(self, pyramid_request):
-        pyramid_request.matchdict["book_id"] = "invalid_book_id"
-
-        with pytest.raises(HTTPBadRequest):
-            VitalSourceAPIViews(pyramid_request).book_info()
-
     def test_table_of_contents_returns_chapter_data(
         self, pyramid_request, vitalsource_service, api_book_table_of_contents
     ):
@@ -45,12 +30,15 @@ class TestVitalSourceAPIViews:
         toc = VitalSourceAPIViews(pyramid_request).table_of_contents()
         assert toc == api_book_table_of_contents["table_of_contents"]
 
-    @pytest.mark.usefixtures("vitalsource_service")
-    def test_book_toc_invalid_book_id(self, pyramid_request):
-        pyramid_request.matchdict["book_id"] = "invalid_book_id"
+    @pytest.mark.parametrize("method", ("book_info", "table_of_contents"))
+    @pytest.mark.parametrize("invalid_book_id", ["", "lowercase", "OTHER#CHARS-OTHER"])
+    def test_we_check_book_id_validity(self, pyramid_request, method, invalid_book_id):
+        view = VitalSourceAPIViews(pyramid_request)
+
+        pyramid_request.matchdict["book_id"] = invalid_book_id
 
         with pytest.raises(HTTPBadRequest):
-            VitalSourceAPIViews(pyramid_request).table_of_contents()
+            getattr(view, method)()
 
     @pytest.fixture
     def api_book_table_of_contents(self):
