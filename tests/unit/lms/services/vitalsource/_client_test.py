@@ -12,9 +12,8 @@ class TestVitalSourceClient:
         client = VitalSourceClient(api_key=sentinel.api_key)
 
         # pylint: disable=protected-access
-        assert client._http_service.session.headers == {
-            "X-VitalSource-API-Key": sentinel.api_key,
-            "Accept": "application/json",
+        assert client._http_session.session.headers == {
+            "X-VitalSource-API-Key": sentinel.api_key
         }
 
     def test_init_raises_if_launch_credentials_invalid(self):
@@ -34,7 +33,9 @@ class TestVitalSourceClient:
         book_info = client.get_book_info("BOOK_ID")
 
         http_service.request.assert_called_once_with(
-            "GET", "https://api.vitalsource.com/v4/products/BOOK_ID"
+            "GET",
+            "https://api.vitalsource.com/v4/products/BOOK_ID",
+            headers={"Accept": "application/json"},
         )
         assert book_info == json_data
 
@@ -66,7 +67,9 @@ class TestVitalSourceClient:
         book_toc = client.get_book_toc("BOOK_ID")
 
         http_service.request.assert_called_once_with(
-            "GET", "https://api.vitalsource.com/v4/products/BOOK_ID/toc"
+            "GET",
+            "https://api.vitalsource.com/v4/products/BOOK_ID/toc",
+            headers={"Accept": "application/json"},
         )
 
         assert book_toc == {
