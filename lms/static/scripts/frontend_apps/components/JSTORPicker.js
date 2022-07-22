@@ -199,6 +199,7 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
               onInput={() => setArticleId(null)}
               onKeyDown={onKeyDown}
               placeholder="e.g. https://www.jstor.org/stable/1234"
+              spellcheck={false}
             />
             <IconButton
               icon="arrowRight"

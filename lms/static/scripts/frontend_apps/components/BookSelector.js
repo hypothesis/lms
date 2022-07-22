@@ -170,6 +170,7 @@ export default function BookSelector({
             onChange={() => onUpdateURL(false /* confirmSelectedBook */)}
             onKeyDown={onKeyDown}
             placeholder="e.g. https://bookshelf.vitalsource.com/#/books/012345678..."
+            spellcheck={false}
           />
           <IconButton
             icon="arrowRight"
