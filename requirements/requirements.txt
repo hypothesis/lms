@@ -104,7 +104,7 @@ multidict==5.2.0
     # via
     #   aiohttp
     #   yarl
-newrelic==7.14.0.177
+newrelic==7.16.0.178
     # via -r requirements/requirements.in
 oauthlib==3.2.0
     # via
