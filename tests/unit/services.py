@@ -269,4 +269,4 @@ def user_service(mock_service):
 
 @pytest.fixture
 def vitalsource_service(mock_service):
-    return mock_service(VitalSourceService, service_name="vitalsource")
+    return mock_service(VitalSourceService)

@@ -1,6 +1,6 @@
 import pytest
 
-from lms.services import includeme, vitalsource
+from lms.services import includeme
 from lms.services.canvas_api import canvas_api_client_factory
 from lms.services.grading_info import GradingInfoService
 from lms.services.group_info import GroupInfoService
@@ -21,7 +21,6 @@ class TestIncludeme:
             ("group_info", GroupInfoService),
             ("lti_h", LTIHService),
             ("oauth1", OAuth1Service),
-            ("vitalsource", vitalsource.service_factory),
         ),
     )
     def test_it_has_the_expected_service(self, name, service_class, pyramid_config):
