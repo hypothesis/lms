@@ -1,9 +1,14 @@
-from typing import List
+from functools import lru_cache
+from typing import List, Optional
 
+import xmltodict
 from marshmallow import EXCLUDE, Schema, fields
+from requests import Request
+from requests.auth import AuthBase
 
 from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService
+from lms.services.vitalsource.exceptions import VitalSourceError
 from lms.services.vitalsource.model import VSBookLocation
 from lms.validation._base import RequestsResponseSchema
 
@@ -84,6 +89,94 @@ class VitalSourceClient:
 
         return toc
 
+    def get_user_book_license(self, user_reference, book_id) -> Optional[dict]:
+        """
+        Get a user licence for a specific book (if any).
+
+        See: https://developer.vitalsource.com/hc/en-us/articles/204332688-GET-v3-licenses-Read
+
+        :param user_reference: String identifying the current user
+        :param book_id: Id of the book or VBID, to get the license for
+        """
+        result = self._xml_request(
+            "GET",
+            f"{self.VS_API}/v3/licenses.xml",
+            params={"sku": book_id},
+            auth=_VSUserAuth(self, user_reference),
+        )
+
+        # The result is a list of active licenses that match the given book
+        # ID/SKU.
+        try:
+            return self._to_camel_case(self._pick_first(result["licenses"]["license"]))
+        except (KeyError, TypeError):
+            return None
+
+    def get_sso_redirect(self, user_reference, url) -> str:
+        """
+        Get a URL which logs in a user then redirects to a URL.
+
+        See: https://developer.vitalsource.com/hc/en-us/articles/204317878-POST-v3-redirects-SSO-to-Bookshelf-eReader
+
+        :param user_reference: String identifying the current user
+        :param url: The URL to redirect to after login
+        """
+        result = self._xml_request(
+            "POST",
+            f"{self.VS_API}/v3/redirects.xml",
+            data={"redirect": {"destination": url}},
+            auth=_VSUserAuth(self, user_reference),
+        )
+
+        return result["redirect"]["@auto-signin"]
+
+    # This is used in `_VSUserAuth` authentication mechanism below. We want to
+    # cache this so that repeated calls for the same user are only issued once.
+    @lru_cache(1)
+    def get_user_credentials(self, user_reference: str) -> dict:
+        """
+        Get user credentials that can be used with user-specific queries.
+
+        See: https://developer.vitalsource.com/hc/en-us/articles/204315388-POST-v3-credentials-Verify-Credentials
+
+        :param user_reference: String identifying the current user
+        :raises VitalSourceError: If no credentials are found for the user
+        """
+
+        result = self._xml_request(
+            "POST",
+            f"{self.VS_API}/v3/credentials.xml",
+            data={"credentials": {"credential": {"@reference": user_reference}}},
+        )
+
+        if credentials := result["credentials"].get("credential"):
+            return self._to_camel_case(self._pick_first(credentials))
+
+        raise VitalSourceError("vitalsource_user_not_found")
+
+    @staticmethod
+    def _pick_first(list_or_item):
+        """
+        Pick the first thing if this is a list, or the whole item if not.
+
+        Due to the nature of XML and `xmltodict`, we can't tell the
+        difference between a list with a single item, or a single nested
+        item. This allows us to smooth over the difference.
+        """
+        if isinstance(list_or_item, list):
+            return list_or_item[0]
+
+        return list_or_item
+
+    @staticmethod
+    def _to_camel_case(data: dict) -> dict:
+        """
+        Remove `xmltodict` specific formatting for attributes.
+
+        This converts from things like `@attribute-name` to `attribute_name`.
+        """
+        return {key.lstrip("@").replace("-", "_"): value for key, value in data.items()}
+
     def _json_request(self, method, url):
         """
         Make a request to a VitalSource endpoint that accepts/returns JSON.
@@ -96,6 +189,43 @@ class VitalSourceClient:
         return self._http_session.request(
             method, url, headers={"Accept": "application/json"}
         )
+
+    def _xml_request(self, method, url, data=None, **kwargs) -> dict:
+        """
+        Make a request to a VitalSource endpoint that accepts/returns XML.
+
+        The VitalSource API endpoints prefixed with "v3/" use XML.
+        """
+        kwargs["headers"] = {"Accept": "application/xml; charset=utf-8"}
+
+        if data:
+            kwargs["data"] = xmltodict.unparse(data)
+            kwargs["headers"]["Content-Type"] = "application/xml; charset=utf-8"
+
+        response = self._http_session.request(method, url, **kwargs)
+        return xmltodict.parse(response.text)
+
+
+class _VSUserAuth(AuthBase):
+    """
+    A requests authentication method for user based access tokens.
+
+    See: https://requests.readthedocs.io/en/latest/user/advanced/#custom-authentication
+
+    Using this allows us to completely separate authentication from other
+    behaviors which leads to simpler tests, and code. Authentication is also
+    transparent to the caller and results can be cached.
+    """
+
+    def __init__(self, client: VitalSourceClient, user_reference: str):
+        self._client = client
+        self._user_reference = user_reference
+
+    def __call__(self, request: Request) -> Request:
+        credentials = self._client.get_user_credentials(self._user_reference)
+        request.headers["X-VitalSource-Access-Token"] = credentials["access_token"]
+
+        return request
 
 
 class _BookInfoSchema(RequestsResponseSchema):
