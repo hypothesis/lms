@@ -38,7 +38,9 @@ class TestServiceFactory:
 
         svc = service_factory(sentinel.context, pyramid_request)
 
-        VitalSourceService.assert_called_once_with(client=None, enabled=Any())
+        VitalSourceService.assert_called_once_with(
+            client=None, enabled=Any(), user_lti_param=Any()
+        )
         assert svc == VitalSourceService.return_value
 
     @pytest.fixture

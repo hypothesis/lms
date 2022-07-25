@@ -1,10 +1,17 @@
-from unittest.mock import sentinel
+from unittest.mock import create_autospec, sentinel
 
 import pytest
+from h_matchers import Any
+from requests import Request
 
 from lms.services.exceptions import ExternalRequestError
-from lms.services.vitalsource._client import VitalSourceClient
+from lms.services.vitalsource._client import VitalSourceClient, _VSUserAuth
+from lms.services.vitalsource.exceptions import VitalSourceError
 from tests import factories
+
+
+def xml_like(body):
+    return Any.string.matching(rf'^<\?xml version="1.0" encoding="utf-8"\?>\n{body}$')
 
 
 class TestVitalSourceClient:
@@ -102,6 +109,149 @@ class TestVitalSourceClient:
         with pytest.raises(ExternalRequestError):
             client.get_table_of_contents("BOOK_ID")
 
+    @pytest.mark.parametrize(
+        "response_xml",
+        (
+            # There are many more attributes in real results than these, but at the
+            # moment we don't really care about any of them.
+            """<?xml version="1.0" encoding="UTF-8"?>
+                <licenses>
+                    <license imprint="IMPRINT" name="NAME"/>
+                </licenses>
+            """,
+            """<?xml version="1.0" encoding="UTF-8"?>
+                <licenses>
+                    <license imprint="IMPRINT" name="NAME"/>
+                    <license imprint="IMPRINT2" name="NAME2"/>
+                </licenses>
+            """,
+        ),
+    )
+    def test_get_user_book_license(
+        self, client, http_service, response_xml, _VSUserAuth
+    ):
+        http_service.request.return_value = factories.requests.Response(
+            status_code=200, raw=response_xml
+        )
+
+        result = client.get_user_book_license(
+            user_reference=sentinel.user_ref, book_id=sentinel.book_id
+        )
+
+        _VSUserAuth.assert_called_once_with(client, sentinel.user_ref)
+        http_service.request.assert_called_once_with(
+            "GET",
+            "https://api.vitalsource.com/v3/licenses.xml",
+            params={"sku": sentinel.book_id},
+            headers={"Accept": "application/xml; charset=utf-8"},
+            auth=_VSUserAuth.return_value,
+        )
+
+        # This isn't nice output, but we currently use it as a bool
+        assert result == {"imprint": "IMPRINT", "name": "NAME"}
+
+    def test_get_user_book_license_with_no_license(self, client, http_service):
+        http_service.request.return_value = factories.requests.Response(
+            status=200,
+            raw="""<?xml version="1.0" encoding="UTF-8"?>
+                <licenses>
+                </licenses>
+            """,
+        )
+
+        assert (
+            client.get_user_book_license(
+                user_reference=sentinel.user_ref, book_id=sentinel.book_id
+            )
+            is None
+        )
+
+    def test_get_sso_redirect(self, client, http_service, _VSUserAuth):
+        http_service.request.return_value = factories.requests.Response(
+            status_code=200,
+            # There are many more attributes in real results than these, but
+            # at the moment we only care about `auto-signin`.
+            raw="""<?xml version="1.0"?>
+                <redirect
+                    auto-signin="http://example.com/redirect"
+                    expires="2019-08-12 14:12:59 UTC"
+                />
+            """,
+        )
+
+        result = client.get_sso_redirect(user_reference=sentinel.user_ref, url="URL")
+
+        _VSUserAuth.assert_called_once_with(client, sentinel.user_ref)
+        http_service.request.assert_called_once_with(
+            "POST",
+            "https://api.vitalsource.com/v3/redirects.xml",
+            data=xml_like("<redirect><destination>URL</destination></redirect>"),
+            headers={
+                "Accept": "application/xml; charset=utf-8",
+                "Content-Type": "application/xml; charset=utf-8",
+            },
+            auth=_VSUserAuth.return_value,
+        )
+
+        assert result == "http://example.com/redirect"
+
+    def test_get_user_credentials(self, client, http_service):
+        http_service.request.return_value = factories.requests.Response(
+            status_code=200,
+            raw="""<?xml version="1.0" encoding="UTF-8"?>
+                <credentials>
+                    <credential access-token="ACCESS_TOKEN" other="FAKE">
+                    </credential>
+                </credentials>
+            """,
+        )
+
+        result = client.get_user_credentials("USER_REF")
+
+        http_service.request.assert_called_once_with(
+            "POST",
+            "https://api.vitalsource.com/v3/credentials.xml",
+            data=xml_like(
+                '<credentials><credential reference="USER_REF"></credential></credentials>'
+            ),
+            headers={
+                "Accept": "application/xml; charset=utf-8",
+                "Content-Type": "application/xml; charset=utf-8",
+            },
+        )
+
+        assert result == {"access_token": "ACCESS_TOKEN", "other": "FAKE"}
+
+    @pytest.mark.parametrize(
+        "response_xml",
+        (
+            # There are many more attributes in real results than these, but at the
+            # moment we don't really care about any of them.
+            """<?xml version="1.0" encoding="UTF-8"?>
+                <credentials>
+                    <error code="603" email="" message="Invalid reference value" guid="" reference="123"></error>
+                </credentials>
+            """,
+            # This probably should raise a different error
+            """<?xml version="1.0" encoding="UTF-8"?>
+                <credentials>
+                    <error code="650" email="" message="Malformed credentials request" guid=""></error>
+                </credentials>
+            """,
+        ),
+    )
+    def test_get_user_credentials_with_no_credentials(
+        self, client, http_service, response_xml
+    ):
+        http_service.request.return_value = factories.requests.Response(
+            status_code=200, raw=response_xml
+        )
+
+        with pytest.raises(VitalSourceError) as exc:
+            assert client.get_user_credentials("USER_REF")
+
+        assert exc.value.error_code == "vitalsource_user_not_found"
+
     @pytest.fixture
     def client(self):
         return VitalSourceClient("api_key")
@@ -111,3 +261,30 @@ class TestVitalSourceClient:
         HTTPService = patch("lms.services.vitalsource._client.HTTPService")
 
         return HTTPService.return_value
+
+    @pytest.fixture
+    def _VSUserAuth(self, patch):
+        return patch("lms.services.vitalsource._client._VSUserAuth")
+
+
+class Test_VSUserAuth:
+    def test_it(self, client):
+        request = Request(headers={"Existing": "Header"})
+        client.get_user_credentials.return_value = {
+            "access_token": sentinel.access_token,
+            "other": "IGNORED",
+        }
+
+        auth = _VSUserAuth(client, sentinel.user_reference)
+        result = auth(request)
+
+        client.get_user_credentials.assert_called_once_with(sentinel.user_reference)
+        assert isinstance(result, Request)
+        assert result.headers == {
+            "Existing": "Header",
+            "X-VitalSource-Access-Token": sentinel.access_token,
+        }
+
+    @pytest.fixture
+    def client(self):
+        return create_autospec(VitalSourceClient, instance=True, spec_set=True)
