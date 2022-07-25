@@ -128,7 +128,4 @@ class _BookTOCSchema(RequestsResponseSchema):
         page = fields.Str(required=True)
         """The start page of the chapter."""
 
-        url = fields.Str(required=False)
-        """vitalsource:// like url identifying the book and chapter"""
-
     table_of_contents = fields.List(fields.Nested(Chapter), required=True)
