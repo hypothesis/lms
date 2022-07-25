@@ -7,6 +7,13 @@ from lms.services.vitalsource.service import VitalSourceService
 
 
 class TestVitalSourceService:
+    @pytest.mark.parametrize("client", (sentinel.client, None))
+    @pytest.mark.parametrize("enabled", (sentinel.client, None))
+    def test_enabled(self, client, enabled):
+        svc = VitalSourceService(client=client, enabled=enabled)
+
+        assert svc.enabled == bool(client and enabled)
+
     def test_get_launch_url(self, svc):
         document_url = "vitalsource://book/bookID/book-id/cfi//abc"
 
@@ -35,4 +42,4 @@ class TestVitalSourceService:
 
     @pytest.fixture
     def svc(self, client):
-        return VitalSourceService(client)
+        return VitalSourceService(client=client, enabled=True)

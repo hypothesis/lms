@@ -6,11 +6,29 @@ from lms.services.vitalsource.factory import service_factory
 
 
 class TestServiceFactory:
-    def test_it(self, pyramid_request, VitalSourceService, VitalSourceClient):
+    @pytest.mark.parametrize(
+        "enabled,expected", ((sentinel.enabled, sentinel.enabled), (None, False))
+    )
+    def test_it(
+        self,
+        pyramid_request,
+        VitalSourceService,
+        VitalSourceClient,
+        application_instance_service,
+        enabled,
+        expected,
+    ):
+        # This fixture is a bit odd and returns a real application instance
+        ai = application_instance_service.get_current()
+        if enabled:
+            ai.settings.set("vitalsource", "enabled", enabled)
+
         svc = service_factory(sentinel.context, pyramid_request)
 
         VitalSourceClient.assert_called_once_with(api_key="test_vs_api_key")
-        VitalSourceService.assert_called_once_with(VitalSourceClient.return_value)
+        VitalSourceService.assert_called_once_with(
+            client=VitalSourceClient.return_value, enabled=expected
+        )
         assert svc == VitalSourceService.return_value
 
     @pytest.fixture
