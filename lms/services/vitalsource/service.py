@@ -1,3 +1,5 @@
+from typing import List
+
 from lms.services.vitalsource._client import VitalSourceClient
 from lms.services.vitalsource.model import VSBookLocation
 
@@ -8,12 +10,12 @@ class VitalSourceService:
     def __init__(self, client: VitalSourceClient):
         self.client = client
 
-    def get_book_info(self, book_id: str):
+    def get_book_info(self, book_id: str) -> dict:
         """Get details of a book."""
 
         return self.client.get_book_info(book_id)
 
-    def get_table_of_contents(self, book_id: str):
+    def get_table_of_contents(self, book_id: str) -> List[dict]:
         """Get the table of contents for a book."""
 
         return self.client.get_table_of_contents(book_id)
