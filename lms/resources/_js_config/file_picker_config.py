@@ -1,7 +1,7 @@
 from lms.product import Product
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
-from lms.services import JSTORService
+from lms.services import JSTORService, VitalSourceService
 
 
 class FilePickerConfig:
@@ -105,10 +105,10 @@ class FilePickerConfig:
         }
 
     @classmethod
-    def vital_source_config(cls, _request, application_instance):
-        """Get Vital Source config."""
-        enabled = application_instance.settings.get("vitalsource", "enabled", False)
-        return {"enabled": enabled}
+    def vitalsource_config(cls, request, _application_instance):
+        """Get VitalSource config."""
+
+        return {"enabled": request.find_service(VitalSourceService).enabled}
 
     @classmethod
     def jstor_config(cls, request, _application_instance):

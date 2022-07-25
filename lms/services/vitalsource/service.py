@@ -7,8 +7,15 @@ from lms.services.vitalsource.model import VSBookLocation
 class VitalSourceService:
     """A high-level interface for dealing with VitalSource."""
 
-    def __init__(self, client: VitalSourceClient):
+    def __init__(self, client: VitalSourceClient, enabled):
+        self._enabled = enabled
         self.client = client
+
+    @property
+    def enabled(self) -> bool:
+        """Check if the service has everything it needs to work."""
+
+        return bool(self._enabled and self.client)
 
     def get_book_info(self, book_id: str) -> dict:
         """Get details of a book."""

@@ -139,15 +139,12 @@ class TestFilePickerConfig:
 
         assert config == expected
 
-    @pytest.mark.parametrize("enabled", (True, False))
-    def test_vital_source_config(self, pyramid_request, application_instance, enabled):
-        application_instance.settings.set("vitalsource", "enabled", enabled)
-
-        config = FilePickerConfig.vital_source_config(
-            pyramid_request, application_instance
+    def test_vitalsource_config(self, pyramid_request, vitalsource_service):
+        config = FilePickerConfig.vitalsource_config(
+            pyramid_request, sentinel.application_instance
         )
 
-        assert config == {"enabled": enabled}
+        assert config == {"enabled": vitalsource_service.enabled}
 
     @pytest.mark.parametrize("enabled", (True, False))
     def test_jstor_config(self, pyramid_request, jstor_service, enabled):
