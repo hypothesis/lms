@@ -91,7 +91,6 @@ will not work.
 | `GOOGLE_CLIENT_ID`                | Google Drive     | `abcdef012.apps.googleusercontent.com` | A client ID from an OAuth2 key from Google  |
 | `GOOGLE_DEVELOPER_KEY`            | Google Drive     | `01234567-89ab-cdef-0123-456789abcdef` | A developer key from Google                 |
 | `ONEDRIVE_CLIENT_ID`              | MS OneDrive      | `01234567-89ab-cdef-0123-456789abcdef` | Developer key from Microsoft OneDrive       |
-| `VITALSOURCE_API_KEY`             | VitalSource      | `0123456789ABCEDF`                     |                                             |
 
 ### Getting Blackboard credentials
 

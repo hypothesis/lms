@@ -91,7 +91,6 @@ SETTINGS = (
     # like this:
     #     python3 -c 'import secrets; print(secrets.token_hex())'
     _Setting("oauth2_state_secret"),
-    _Setting("vitalsource_api_key"),
     _Setting("admin_auth_google_client_id"),
     _Setting("admin_auth_google_client_secret"),
     _Setting("blackboard_api_client_id"),

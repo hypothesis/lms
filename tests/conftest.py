@@ -39,7 +39,6 @@ TEST_SETTINGS = {
     "via_secret": "not_a_secret",
     "blackboard_api_client_id": "test_blackboard_api_client_id",
     "blackboard_api_client_secret": "test_blackboard_api_client_secret",
-    "vitalsource_api_key": "test_vs_api_key",
 }
 
 
