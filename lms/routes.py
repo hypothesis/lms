@@ -117,6 +117,7 @@ def includeme(config):  # pylint:disable=too-many-statements
     config.add_route(
         "vitalsource_api.books.toc", "/api/vitalsource/books/{book_id}/toc"
     )
+    config.add_route("vitalsource_api.launch_url", "/api/vitalsource/launch_url")
 
     config.add_route("admin.index", "/admin/")
     config.add_route("admin.instances", "/admin/instances/")

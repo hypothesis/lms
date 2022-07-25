@@ -120,16 +120,19 @@ class TestAddDocumentURL:
             "path": "/api/blackboard/courses/test_course_id/via_url?document_url=blackboard%3A%2F%2Fcontent-resource%2Fxyz123",
         }
 
-    def test_vitalsource_sets_config(self, js_config, vitalsource_service):
-        vitalsource_url = "vitalsource://book/bookID/book-id/cfi//abc"
+    def test_vitalsource_sets_config(
+        self, js_config, pyramid_request, vitalsource_service
+    ):
+        document_url = "vitalsource://book/bookID/book-id/cfi//abc"
+        vitalsource_service.user_lti_param = "user_id"
+        pyramid_request.lti_params["user_id"] = "USER_REF"
 
-        js_config.add_document_url(vitalsource_url)
+        js_config.add_document_url(document_url)
 
-        vitalsource_service.get_launch_url.assert_called_with(vitalsource_url)
-        assert (
-            js_config.asdict()["viaUrl"]
-            == vitalsource_service.get_launch_url.return_value
-        )
+        proxy_api_call = Any.url.matching(
+            "http://example.com/api/vitalsource/launch_url"
+        ).with_query({"user_reference": "USER_REF", "document_url": document_url})
+        assert js_config.asdict()["api"]["viaUrl"] == {"path": proxy_api_call}
 
     def test_jstor_sets_config(self, js_config, jstor_service, pyramid_request):
         jstor_url = "jstor://DOI"
