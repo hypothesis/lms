@@ -1,3 +1,5 @@
+from typing import List
+
 from marshmallow import EXCLUDE, Schema, fields
 
 from lms.services.exceptions import ExternalRequestError
@@ -20,7 +22,7 @@ class VitalSourceClient:
         Initialise a client object.
 
         :param api_key: Key for VitalSource API
-        :raises ValueError: If credentials are invalid
+        :raises ValueError: If `api_key` is missing
         """
         if not api_key:
             raise ValueError("VitalSource credentials are missing")
@@ -30,11 +32,14 @@ class VitalSourceClient:
         # Set headers in the session which will be passed with every request
         self._http_session.session.headers = {"X-VitalSource-API-Key": api_key}
 
-    def get_book_info(self, book_id: str):
+    def get_book_info(self, book_id: str) -> dict:
         """
         Get details of a book.
 
         See: https://developer.vitalsource.com/hc/en-us/articles/360010967153-GET-v4-products-vbid-Title-TOC-Metadata
+
+        :param book_id: Id of the book or VBID in VS speak
+        :raises ExternalRequestError: If the book cannot be found
         """
 
         try:
@@ -53,11 +58,14 @@ class VitalSourceClient:
             "cover_image": book_info["resource_links"]["cover_image"],
         }
 
-    def get_table_of_contents(self, book_id: str):
+    def get_table_of_contents(self, book_id: str) -> List[dict]:
         """
         Get the table of contents for a book.
 
         See: https://developer.vitalsource.com/hc/en-us/articles/360010967153-GET-v4-products-vbid-Title-TOC-Metadata
+
+        :param book_id: Id of the book or VBID in VS speak
+        :raises ExternalRequestError: If the book cannot be found
         """
 
         try:
@@ -76,17 +84,26 @@ class VitalSourceClient:
 
         return toc
 
-    def _json_request(self, method, endpoint):
+    def _json_request(self, method, url):
+        """
+        Make a request to a VitalSource endpoint that accepts/returns JSON.
+
+        The VitalSource API endpoints prefixed with "v4/" use JSON or XML.
+        """
+
         # As we are using a requests Session, headers and auth etc. set in the
         # session will take effect here in addition to the values passed in.
         return self._http_session.request(
-            method, endpoint, headers={"Accept": "application/json"}
+            method, url, headers={"Accept": "application/json"}
         )
 
 
 class _BookInfoSchema(RequestsResponseSchema):
     vbid = fields.Str(required=True)
+    """The primary key of the book. We refer to this as book id elsewhere."""
+
     title = fields.Str(required=True)
+    """The title of the book."""
 
     class ResourceLinks(Schema):
         class Meta:
@@ -103,8 +120,13 @@ class _BookTOCSchema(RequestsResponseSchema):
             unknown = EXCLUDE
 
         title = fields.Str(required=True)
+        """Title of the chapter."""
+
         cfi = fields.Str(required=True)
+        """A reference to the location within the book."""
+
         page = fields.Str(required=True)
+        """The start page of the chapter."""
 
         url = fields.Str(required=False)
         """vitalsource:// like url identifying the book and chapter"""
