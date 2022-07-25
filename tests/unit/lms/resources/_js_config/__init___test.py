@@ -131,13 +131,10 @@ class TestAddDocumentURL:
 
         js_config.add_document_url(document_url)
 
-        vitalsource_service.get_sso_redirect.assert_called_with(
-            user_reference="USER_REF", document_url=document_url
-        )
-        assert (
-            js_config.asdict()["viaUrl"]
-            == vitalsource_service.get_sso_redirect.return_value
-        )
+        proxy_api_call = Any.url.matching(
+            "http://example.com/api/vitalsource/launch_url"
+        ).with_query({"user_reference": "USER_REF", "document_url": document_url})
+        assert js_config.asdict()["api"]["viaUrl"] == {"path": proxy_api_call}
 
     def test_vitalsource_sets_config_without_sso(self, js_config, vitalsource_service):
         document_url = "vitalsource://book/bookID/book-id/cfi//abc"

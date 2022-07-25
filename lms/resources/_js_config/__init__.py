@@ -3,7 +3,6 @@ from enum import Enum
 from typing import List, Optional
 
 from lms.models import Assignment, GroupInfo, Grouping, HUser
-from lms.product import Product
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
 from lms.resources._js_config.file_picker_config import FilePickerConfig
@@ -73,10 +72,17 @@ class JSConfig:
             if svc.sso_enabled:
                 # nb. VitalSource doesn't use Via, but is otherwise handled
                 # exactly the same way by the frontend.
-                self._config["viaUrl"] = svc.get_sso_redirect(
-                    user_reference=self._request.lti_params[svc.user_lti_param],
-                    document_url=document_url,
-                )
+                self._config["api"]["viaUrl"] = {
+                    "path": self._request.route_url(
+                        "vitalsource_api.launch_url",
+                        _query={
+                            "user_reference": self._request.lti_params[
+                                svc.user_lti_param
+                            ],
+                            "document_url": document_url,
+                        },
+                    )
+                }
             else:
                 # This looks a bit silly, but pretty soon the above will
                 # be setting `api.viaURL` not `viaURL`
