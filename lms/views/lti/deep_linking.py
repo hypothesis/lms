@@ -46,6 +46,7 @@ from urllib.parse import urlencode, urlparse
 from pyramid.view import view_config, view_defaults
 from webargs import fields
 
+from lms.events import LTIDeepLinkingEvent
 from lms.security import Permissions
 from lms.services import JWTService
 from lms.validation import DeepLinkingLTILaunchSchema
@@ -105,6 +106,8 @@ class DeepLinkingFieldsViews:
             name="application_instance"
         ).get_current()
 
+        document_url = self._get_content_url(self.request)
+
         now = datetime.utcnow()
         message = {
             "exp": now + timedelta(hours=1),
@@ -117,7 +120,7 @@ class DeepLinkingFieldsViews:
             "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
             "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
             "https://purl.imsglobal.org/spec/lti-dl/claim/content_items": [
-                {"type": "ltiResourceLink", "url": self._get_content_url(self.request)}
+                {"type": "ltiResourceLink", "url": document_url}
             ],
         }
 
@@ -134,6 +137,10 @@ class DeepLinkingFieldsViews:
         if data := self.request.parsed_params["deep_linking_settings"].get("data"):
             message["https://purl.imsglobal.org/spec/lti-dl/claim/data"] = data
 
+        self.request.registry.notify(
+            LTIDeepLinkingEvent(request=self.request, document_url=document_url)
+        )
+
         # In LTI1.3 there's just one `JWT` field which includes all the necessary information
         return {
             "JWT": self.request.find_service(JWTService).encode_with_private_key(
@@ -149,7 +156,9 @@ class DeepLinkingFieldsViews:
         See https://www.imsglobal.org/specs/lticiv1p0/specification.
         """
         url = self._get_content_url(self.request)
-
+        self.request.registry.notify(
+            LTIDeepLinkingEvent(request=self.request, document_url=url)
+        )
         return {
             "content_items": json.dumps(
                 {
