@@ -13,6 +13,7 @@ class GatewayLTISchema(LTIV11CoreSchema):
 
     # Specify the context (either assignment or whole course level)
     context_id = fields.Str(required=True)
+    context_title = fields.Str(required=True)
     resource_link_id = fields.Str()
 
     # We don't need these exactly, but it proves the caller is sending us a
@@ -49,6 +50,13 @@ def h_lti(context, request):
         raise HTTPForbidden(
             "Claimed `tool_consumer_instance_guid` does not match credentials."
         ) from err
+
+    # Before the credentials we provide will be accepted by `h` the user must
+    # exist. So we'll sync over the details to `h`. We also put the user in the
+    # course group. This means they will see annotations at the course level
+    # right away. If the course uses groups or sections, they won't see
+    # anything until they launch an assignment and get put in a group.
+    request.find_service(name="lti_h").sync([context.course], request.lti_params)
 
     # Add API end-point details
     h_api_url = request.registry.settings["h_api_url_public"]

@@ -40,8 +40,6 @@ parameters received onto this end-point. This will ensure compatibility as the
 more features may be added in future which require fields which were previously
 optional.
 
-
-
 | Field                         | Example                    | Notes                                                                   |
 |-------------------------------|----------------------------|-------------------------------------------------------------------------|
 | `lti_version`                 | `LTI-1p0`                  | Specify LTI version (only 1.1 supported at present)                     |
@@ -50,6 +48,7 @@ optional.
 | `user_id`                     | `2978763`                  | The user id we should act on behalf of                                  |
 | `roles`                       | `Instructor`               | The role that user has (used in permission generation)                  |
 | `context_id`                  | `454`                      | Specify the course you want to access                                   |
+| `context_title`               | `Course name`              | Specify the course name (used to update records)                        |
 | `resource_link_id`            | `22`                       | _(optional)_ Narrow the scope to a single assignment                    |
 
 ### Responses

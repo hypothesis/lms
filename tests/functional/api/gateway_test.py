@@ -9,6 +9,7 @@ from tests.functional.oauth1 import *
 
 
 class TestGatewayHLTI:
+    @pytest.mark.usefixtures("intercept_http_calls_to_h")
     def test_minimum_viable_login(self, gateway_launch, required_params):
         response = gateway_launch(required_params)
 
@@ -46,6 +47,7 @@ class TestGatewayHLTI:
             ("roles", 403),
             # Required for us to work
             ("context_id", 422),
+            ("context_title", 422),
             # Us being picky, but useful for checking it's a well-formed
             # LTI launch
             ("lti_version", 422),
@@ -79,6 +81,7 @@ class TestGatewayHLTI:
             "user_id": "123",
             "roles": "Instructor",
             "context_id": "321",
+            "context_title": "Course name",
             "lti_version": "LTI-1p0",
             "lti_message_type": "basic-lti-launch-request",
         }
