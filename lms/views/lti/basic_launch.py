@@ -14,7 +14,7 @@ doesn't actually require basic launch requests to have this parameter.
 
 from pyramid.view import view_config, view_defaults
 
-from lms.models import LtiLaunches
+from lms.events import LTILaunchEvent
 from lms.security import Permissions
 from lms.services import DocumentURLService, LTIRoleService
 from lms.services.assignment import AssignmentService
@@ -50,7 +50,6 @@ class BasicLaunchViews:
         self.context.application_instance.check_guid_aligns(
             self.request.lti_params.get("tool_consumer_instance_guid")
         )
-
         self._record_launch()
 
     @view_config(
@@ -61,11 +60,13 @@ class BasicLaunchViews:
     def configured_launch(self):
         """Display a document if we can resolve one to show."""
 
-        return self._show_document(
+        self._show_document(
             document_url=self.request.find_service(DocumentURLService).get_document_url(
                 self.request
             )
         )
+        self.request.registry.notify(LTILaunchEvent(self.request))
+        return {}
 
     @view_config(
         route_name="lti_launches",
@@ -233,13 +234,6 @@ class BasicLaunchViews:
         """Persist launch type independent info to the DB."""
 
         self.context.application_instance.update_lms_data(self.request.lti_params)
-
-        # Record all LTILaunches for future reporting
-        LtiLaunches.add(
-            self.request.db,
-            self.request.lti_params.get("context_id"),
-            self.request.lti_params.get("oauth_consumer_key"),
-        )
 
         if not self.request.lti_user.is_instructor and not self.context.is_canvas:
             # Create or update a record of LIS result data for a student launch
