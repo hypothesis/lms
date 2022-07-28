@@ -219,6 +219,10 @@ class JSConfig:
                 "content_item_return_url": self._request.lti_params[
                     "content_item_return_url"
                 ],
+                "lms": {
+                    "product": self._request.product.family,
+                },
+                "context_id": self._request.lti_params["context_id"],
             },
         }
         if self._context.application_instance.lti_version == "1.3.0":
