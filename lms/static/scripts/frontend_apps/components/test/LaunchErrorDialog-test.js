@@ -109,6 +109,20 @@ describe('LaunchErrorDialog', () => {
       withError: true,
     },
     {
+      errorState: 'vitalsource_user_not_found',
+      expectedText: 'Hypothesis could not find your VitalSource user account',
+      expectedTitle: 'VitalSource account not found',
+      hasRetry: false,
+      withError: true,
+    },
+    {
+      errorState: 'vitalsource_no_book_license',
+      expectedText: 'Your VitalSource library does not have this book in it',
+      expectedTitle: 'Book not available',
+      hasRetry: false,
+      withError: true,
+    },
+    {
       errorState: 'error-fetching',
       expectedText: 'There was a problem fetching this Hypothesis assignment',
       expectedTitle: 'Something went wrong',
