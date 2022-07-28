@@ -484,9 +484,11 @@ class TestEnableOAuth2RedirectErrorMode:
 
 class TestAddDeepLinkingAPI:
     def test_it_adds_deep_linking_v11(self, js_config, pyramid_request):
-        pyramid_request.lti_params = {
-            "content_item_return_url": sentinel.content_item_return_url,
-        }
+        pyramid_request.lti_params.update(
+            {
+                "content_item_return_url": sentinel.content_item_return_url,
+            }
+        )
 
         js_config.add_deep_linking_api()
 
@@ -495,15 +497,19 @@ class TestAddDeepLinkingAPI:
             "path": "/lti/1.1/deep_linking/form_fields",
             "data": {
                 "content_item_return_url": sentinel.content_item_return_url,
+                "lms": {"product": Product.Family.UNKNOWN},
+                "context_id": pyramid_request.lti_params["context_id"],
             },
         }
 
     @pytest.mark.usefixtures("with_lti_13")
     def test_it_adds_deep_linking_v13(self, js_config, pyramid_request):
-        pyramid_request.lti_params = {
-            "deep_linking_settings": sentinel.deep_linking_settings,
-            "content_item_return_url": sentinel.content_item_return_url,
-        }
+        pyramid_request.lti_params.update(
+            {
+                "deep_linking_settings": sentinel.deep_linking_settings,
+                "content_item_return_url": sentinel.content_item_return_url,
+            }
+        )
 
         js_config.add_deep_linking_api()
 
@@ -513,6 +519,8 @@ class TestAddDeepLinkingAPI:
             "data": {
                 "content_item_return_url": sentinel.content_item_return_url,
                 "deep_linking_settings": sentinel.deep_linking_settings,
+                "lms": {"product": Product.Family.UNKNOWN},
+                "context_id": pyramid_request.lti_params["context_id"],
             },
         }
 
