@@ -13,6 +13,7 @@
             "tool_consumer_instance_guid": "GUID",
 
             "context_id": "__COURSE_ID__",
+            "context_title": "__COURSE_NAME__",
             "resource_link_id": "__ASSIGNMENT_ID__",
 
             "user_id":  "__USER_ID__",

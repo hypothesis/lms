@@ -11,7 +11,7 @@ from lms.resources import LTILaunchResource
 from lms.views.api.gateway import h_lti
 
 
-@pytest.mark.usefixtures("grant_token_service")
+@pytest.mark.usefixtures("grant_token_service", "lti_h_service")
 class TestHLTI:
     def test_it_adds_h_api_details(self, context, pyramid_request, grant_token_service):
         response = h_lti(context, pyramid_request)
@@ -48,8 +48,15 @@ class TestHLTI:
         with pytest.raises(HTTPForbidden):
             h_lti(context, pyramid_request)
 
+    def test_syncs_the_user_to_h(self, context, pyramid_request, lti_h_service):
+        h_lti(context, pyramid_request)
 
-@pytest.mark.usefixtures("grant_token_service")
+        lti_h_service.sync.assert_called_once_with(
+            [context.course], pyramid_request.lti_params
+        )
+
+
+@pytest.mark.usefixtures("grant_token_service", "lti_h_service")
 class TestHLTIConsumer:
     # These tests are "consumer tests" and ensure we meet the spec we have
     # provided to our users in our documentation
