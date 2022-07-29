@@ -14,6 +14,9 @@ class HAPIContext(StepContext):
 
         httpretty.reset()
 
+        # Start interception
+        httpretty.enable()
+
         # This is the URL we expect all H API calls to go to
         httpretty.register_uri(
             method=Any(),
@@ -26,9 +29,6 @@ class HAPIContext(StepContext):
             raise NotImplementedError(f"Unexpected call to URL: {request.method} {uri}")
 
         httpretty.register_uri(method=Any(), uri=re.compile(".*"), body=error_response)
-
-        # Start interception
-        httpretty.enable()
 
     def do_teardown(self):
         # Stop interception

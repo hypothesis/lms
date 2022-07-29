@@ -94,21 +94,21 @@ def intercept_http_calls_to_h():
     Monkey-patch Python's socket core module to mock all HTTP responses.
 
     We will catch calls to H's API and return 200. All other calls will
-    raise an exception, allowing to you see who are are trying to call.
+    raise an exception, allowing to you see who we are trying to call.
     """
-    # Mock all calls to the H API
-    httpretty.register_uri(
-        method=Any(),
-        uri=re.compile(r"^https://example.com/private/api/.*"),
-        body="",
-    )
 
     # Catch URLs we aren't expecting or have failed to mock
     def error_response(request, uri, _response_headers):
         raise NotImplementedError(f"Unexpected call to URL: {request.method} {uri}")
 
-    httpretty.register_uri(method=Any(), uri=re.compile(".*"), body=error_response)
+    with httpretty.enabled():
+        # Mock all calls to the H API
+        httpretty.register_uri(
+            method=Any(),
+            uri=re.compile(r"^https://example.com/private/api/.*"),
+            body="",
+        )
 
-    httpretty.enable()
-    yield
-    httpretty.disable()
+        httpretty.register_uri(method=Any(), uri=re.compile(".*"), body=error_response)
+
+        yield
