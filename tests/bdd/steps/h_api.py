@@ -20,7 +20,7 @@ class HAPIContext(StepContext):
         # This is the URL we expect all H API calls to go to
         httpretty.register_uri(
             method=Any(),
-            uri=re.compile(r"^https://example.com/private/api/.*"),
+            uri=re.compile(r"^https://h.example.com/.*"),
             body="",
         )
 

@@ -4,6 +4,7 @@ import pytest
 from h_matchers import Any
 
 # pylint: disable=wildcard-import,unused-wildcard-import
+from tests.conftest import TEST_SETTINGS
 from tests.functional.oauth1 import *
 
 
@@ -18,7 +19,7 @@ class TestGatewayHLTI:
                     "list_endpoints": {
                         "headers": {"Accept": "application/vnd.hypothesis.v2+json"},
                         "method": "GET",
-                        "url": "https://example.com/api/",
+                        "url": TEST_SETTINGS["h_api_url_public"],
                     },
                     "exchange_grant_token": {
                         "data": {
@@ -30,7 +31,7 @@ class TestGatewayHLTI:
                             "Content-Type": "application/x-www-form-urlencoded",
                         },
                         "method": "POST",
-                        "url": "https://example.com/api/token",
+                        "url": TEST_SETTINGS["h_api_url_public"] + "token",
                     },
                 }
             }

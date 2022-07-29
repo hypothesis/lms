@@ -10,6 +10,7 @@ from lms.resources._js_config import JSConfig
 from lms.services import HAPIError
 from lms.views.api.sync import APISyncSchema
 from tests import factories
+from tests.conftest import TEST_SETTINGS
 
 pytestmark = pytest.mark.usefixtures(
     "grading_info_service",
@@ -90,8 +91,8 @@ class TestEnableLTILaunchMode:
                     {
                         "allowFlagging": False,
                         "allowLeavingGroups": False,
-                        "apiUrl": "https://example.com/api/",
-                        "authority": "TEST_AUTHORITY",
+                        "apiUrl": TEST_SETTINGS["h_api_url_public"],
+                        "authority": TEST_SETTINGS["h_authority"],
                         "enableShareLinks": False,
                         "grantToken": grant_token_service.generate_token.return_value,
                         "groups": [context.course.groupid.return_value],
@@ -359,8 +360,8 @@ class TestJSConfigHypothesisClient:
             {
                 "allowFlagging": False,
                 "allowLeavingGroups": False,
-                "apiUrl": "https://example.com/api/",
-                "authority": "TEST_AUTHORITY",
+                "apiUrl": TEST_SETTINGS["h_api_url_public"],
+                "authority": TEST_SETTINGS["h_authority"],
                 "enableShareLinks": False,
                 "grantToken": grant_token_service.generate_token.return_value,
                 "groups": [context.course.groupid.return_value],
