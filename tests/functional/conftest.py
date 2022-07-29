@@ -104,9 +104,7 @@ def intercept_http_calls_to_h():
     with httpretty.enabled():
         # Mock all calls to the H API
         httpretty.register_uri(
-            method=Any(),
-            uri=re.compile(r"^https://example.com/private/api/.*"),
-            body="",
+            method=Any(), uri=re.compile(r"^https://h.example.com/.*"), body=""
         )
 
         httpretty.register_uri(method=Any(), uri=re.compile(".*"), body=error_response)

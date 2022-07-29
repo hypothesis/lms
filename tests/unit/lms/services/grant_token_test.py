@@ -1,5 +1,6 @@
 import datetime
 from unittest.mock import sentinel
+from urllib.parse import urlparse
 
 import jwt
 import pytest
@@ -16,8 +17,10 @@ class TestGrantTokenService:
 
         grant_token = svc.generate_token(user)
         secret = TEST_SETTINGS["h_jwt_client_secret"]
+        audience = urlparse(TEST_SETTINGS["h_api_url_public"]).netloc
+
         claims = jwt.decode(
-            grant_token, secret, audience="example.com", algorithms=["HS256"]
+            grant_token, secret, audience=audience, algorithms=["HS256"]
         )
 
         assert claims["iss"] == TEST_SETTINGS["h_jwt_client_id"]

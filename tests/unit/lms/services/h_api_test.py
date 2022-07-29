@@ -8,6 +8,7 @@ from lms.models import HUser
 from lms.services import HAPIError
 from lms.services.h_api import HAPI
 from lms.services.http import ExternalRequestError
+from tests.conftest import TEST_SETTINGS
 
 pytestmark = pytest.mark.usefixtures("http_service")
 
@@ -68,7 +69,7 @@ class TestHAPI:
         assert http_service.request.call_args_list == [
             call(
                 method=sentinel.method,
-                url="https://example.com/private/api/dummy-path",
+                url=TEST_SETTINGS["h_api_url_private"] + "dummy-path",
                 # It adds the authentication headers.
                 auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
                 headers={"Hypothesis-Application": "lms"},
