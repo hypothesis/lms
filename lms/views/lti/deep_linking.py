@@ -46,7 +46,8 @@ from urllib.parse import urlencode, urlparse
 from pyramid.view import view_config, view_defaults
 from webargs import fields
 
-from lms.events import LTIDeepLinkingEvent
+from lms.events import LTIEvent
+from lms.models import EventType
 from lms.security import Permissions
 from lms.services import JWTService
 from lms.validation import DeepLinkingLTILaunchSchema
@@ -138,7 +139,11 @@ class DeepLinkingFieldsViews:
             message["https://purl.imsglobal.org/spec/lti-dl/claim/data"] = data
 
         self.request.registry.notify(
-            LTIDeepLinkingEvent(request=self.request, document_url=document_url)
+            LTIEvent(
+                request=self.request,
+                type=EventType.Type.DEEP_LINKING,
+                data={"document_url": document_url},
+            )
         )
 
         # In LTI1.3 there's just one `JWT` field which includes all the necessary information
@@ -157,7 +162,11 @@ class DeepLinkingFieldsViews:
         """
         url = self._get_content_url(self.request)
         self.request.registry.notify(
-            LTIDeepLinkingEvent(request=self.request, document_url=url)
+            LTIEvent(
+                request=self.request,
+                type=EventType.Type.DEEP_LINKING,
+                data={"document_url": url},
+            )
         )
         return {
             "content_items": json.dumps(
