@@ -6,7 +6,6 @@ from tests.functional.lti_certification.v13.assertions import (
 )
 
 
-@pytest.mark.usefixtures("intercept_http_calls_to_h")
 class TestValidTeacherPayloads:
     """
     Following the known "bad" payload launches are valid Teacher payloads.

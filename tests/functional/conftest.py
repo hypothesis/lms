@@ -88,7 +88,7 @@ def do_lti_launch(app):
     return do_lti_launch
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def intercept_http_calls_to_h():
     """
     Monkey-patch Python's socket core module to mock all HTTP responses.
