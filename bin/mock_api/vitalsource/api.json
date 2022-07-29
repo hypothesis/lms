@@ -1,0 +1,513 @@
+{
+  "uuid": "ee09894f-86ad-4759-93ae-e68f5080530f",
+  "lastMigration": 20,
+  "name": "VitalSource API",
+  "endpointPrefix": "",
+  "latency": 0,
+  "port": 3001,
+  "hostname": "0.0.0.0",
+  "routes": [
+    {
+      "uuid": "da720aa1-543d-497b-ac93-4ba8a0a6ff4a",
+      "documentation": "https://developer.vitalsource.com/hc/en-us/articles/360010967153-GET-v4-products-vbid-Title-TOC-Metadata",
+      "method": "get",
+      "endpoint": "v4/products/:book_id",
+      "responses": [
+        {
+          "uuid": "c96db0e4-6154-4223-9d12-279677c3d491",
+          "body": "{\n  \"vbid\": \"{{urlParam 'book_id'}}\",\n  \"title\": \"Wuthering Heights\",\n  \"resource_links\": {\n    {\"cover_image\": \"https://covers.vitalbook.com/vbid/L-999-70867/width/480\"}\n  }\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "X-VitalSource-API-Key",
+              "value": "API_KEY",
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        },
+        {
+          "uuid": "37bd2dc7-42a2-4ce2-be9d-e03c4378d611",
+          "body": "{\"errors\": [\"Product 404 not found.\"]}",
+          "latency": 0,
+          "statusCode": 404,
+          "label": "",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "X-VitalSource-API-Key",
+              "value": "API_KEY",
+              "operator": "equals"
+            },
+            {
+              "target": "params",
+              "modifier": "book_id",
+              "value": "404",
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "AND",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        },
+        {
+          "uuid": "617b16a0-5077-4815-a9d9-e158e7b93122",
+          "body": "",
+          "latency": 0,
+          "statusCode": 403,
+          "label": "",
+          "headers": [],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true
+        }
+      ],
+      "enabled": true,
+      "randomResponse": false,
+      "sequentialResponse": false
+    },
+    {
+      "uuid": "9bed503d-b72a-418a-aa7c-7a48e0bfec62",
+      "documentation": "https://developer.vitalsource.com/hc/en-us/articles/360010967153-GET-v4-products-vbid-Title-TOC-Metadata",
+      "method": "get",
+      "endpoint": "v4/products/:book_id/toc",
+      "responses": [
+        {
+          "uuid": "71ddfb05-c3b8-4858-a68b-3024382150a3",
+          "body": "{\n\t\"table_of_contents\": [\n\t\t{\n\t\t\t\"title\": \"CHAPTER I\",\n\t\t\t\"path\": \"/OPS/loc_001.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/4[idloc_001.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"2\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER II\",\n\t\t\t\"path\": \"/OPS/loc_002.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/6[idloc_002.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"4\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER III\",\n\t\t\t\"path\": \"/OPS/loc_003.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/8[idloc_003.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"8\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER IV\",\n\t\t\t\"path\": \"/OPS/loc_004.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/10[idloc_004.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"12\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER V\",\n\t\t\t\"path\": \"/OPS/loc_005.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/12[idloc_005.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"15\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER VI\",\n\t\t\t\"path\": \"/OPS/loc_006.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/14[idloc_006.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"16\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER VII\",\n\t\t\t\"path\": \"/OPS/loc_007.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/16[idloc_007.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"18\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER VIII\",\n\t\t\t\"path\": \"/OPS/loc_008.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/18[idloc_008.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"22\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER IX\",\n\t\t\t\"path\": \"/OPS/loc_009.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/20[idloc_009.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"26\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER X\",\n\t\t\t\"path\": \"/OPS/loc_010.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/22[idloc_010.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"32\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XI\",\n\t\t\t\"path\": \"/OPS/loc_011.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/24[idloc_011.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"38\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XII\",\n\t\t\t\"path\": \"/OPS/loc_012.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/26[idloc_012.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"42\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XIII\",\n\t\t\t\"path\": \"/OPS/loc_013.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/28[idloc_013.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"47\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XIV\",\n\t\t\t\"path\": \"/OPS/loc_014.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/30[idloc_014.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"51\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XV\",\n\t\t\t\"path\": \"/OPS/loc_015.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/32[idloc_015.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"54\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XVI\",\n\t\t\t\"path\": \"/OPS/loc_016.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/34[idloc_016.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"57\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XVII\",\n\t\t\t\"path\": \"/OPS/loc_017.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/36[idloc_017.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"59\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XVIII\",\n\t\t\t\"path\": \"/OPS/loc_018.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/38[idloc_018.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"66\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XIX\",\n\t\t\t\"path\": \"/OPS/loc_019.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/40[idloc_019.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"69\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XX\",\n\t\t\t\"path\": \"/OPS/loc_020.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/42[idloc_020.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"71\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XXI\",\n\t\t\t\"path\": \"/OPS/loc_021.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/44[idloc_021.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"74\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XXII\",\n\t\t\t\"path\": \"/OPS/loc_022.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/46[idloc_022.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"80\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XXIII\",\n\t\t\t\"path\": \"/OPS/loc_023.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/48[idloc_023.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"83\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XXIV\",\n\t\t\t\"path\": \"/OPS/loc_024.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/50[idloc_024.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"86\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XXV\",\n\t\t\t\"path\": \"/OPS/loc_025.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/52[idloc_025.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"90\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XXVI\",\n\t\t\t\"path\": \"/OPS/loc_026.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/54[idloc_026.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"91\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XXVII\",\n\t\t\t\"path\": \"/OPS/loc_027.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/56[idloc_027.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"92\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XXVIII\",\n\t\t\t\"path\": \"/OPS/loc_028.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/58[idloc_028.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"97\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XXIX\",\n\t\t\t\"path\": \"/OPS/loc_029.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/60[idloc_029.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"100\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XXX\",\n\t\t\t\"path\": \"/OPS/loc_030.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/62[idloc_030.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"103\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XXXI\",\n\t\t\t\"path\": \"/OPS/loc_031.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/64[idloc_031.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"106\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XXXII\",\n\t\t\t\"path\": \"/OPS/loc_032.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/66[idloc_032.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"108\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XXXIII\",\n\t\t\t\"path\": \"/OPS/loc_033.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/68[idloc_033.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"112\",\n\t\t\t\"data\": []\n\t\t},\n\t\t{\n\t\t\t\"title\": \"CHAPTER XXXIV\",\n\t\t\t\"path\": \"/OPS/loc_034.xhtml\",\n\t\t\t\"level\": 1,\n\t\t\t\"cfi\": \"/6/70[idloc_034.xhtml-itemref]\",\n\t\t\t\"kind\": \"document\",\n\t\t\t\"page\": \"115\",\n\t\t\t\"data\": []\n\t\t}\n\t]\n}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "X-VitalSource-API-Key",
+              "value": "API_KEY",
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        },
+        {
+          "uuid": "2cae72ad-dc86-4ad2-ad49-3487d7f355e2",
+          "body": "{\"errors\": [\"Book not found\"]}",
+          "latency": 0,
+          "statusCode": 404,
+          "label": "",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "X-VitalSource-API-Key",
+              "value": "404",
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        },
+        {
+          "uuid": "b7ae51cb-e18c-4b86-a27b-90a3666f5bb7",
+          "body": "",
+          "latency": 0,
+          "statusCode": 403,
+          "label": "",
+          "headers": [],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true
+        }
+      ],
+      "enabled": true,
+      "randomResponse": false,
+      "sequentialResponse": false
+    },
+    {
+      "uuid": "45948d1d-1f16-4d7e-8d7b-5fe3493fac05",
+      "documentation": "https://developer.vitalsource.com/hc/en-us/articles/204315388-POST-v3-credentials-Verify-Credentials",
+      "method": "post",
+      "endpoint": "v3/credentials.xml",
+      "responses": [
+        {
+          "uuid": "502333b2-bb01-452b-9b43-426ffded234a",
+          "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<credentials>\n <credential email=“lettersandnumbers@placeholder.23332.edu\" access-token=“ACCESS_TOKEN” guid=“numbersandUPPERCASE” reference=\"{{ body 'credentials.credential._attributes.reference' }}\" email_verification_required=\"false\" email_verification_completed=\"false\">\n </credential>\n</credentials>",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/xml; charset=utf-8"
+            }
+          ],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "X-VitalSource-API-Key",
+              "value": "API_KEY",
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "AND",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        },
+        {
+          "uuid": "d0388476-a7c2-4cb9-a12e-60ec7a1491d9",
+          "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<credentials>\n\t<error code=\"603\" email=\"\" message=\"Invalid reference value\" guid=\"\" reference=\"214\"></error>\n</credentials>",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/xml; charset=utf-8"
+            }
+          ],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "X-VitalSource-API-Key",
+              "value": "API_KEY",
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        },
+        {
+          "uuid": "c770fca3-edd2-482f-847d-177fbd9fdcf1",
+          "body": "",
+          "latency": 0,
+          "statusCode": 403,
+          "label": "",
+          "headers": [],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true
+        }
+      ],
+      "enabled": true,
+      "randomResponse": false,
+      "sequentialResponse": false
+    },
+    {
+      "uuid": "19eb3a58-bded-4a23-a503-69294edbd466",
+      "documentation": "https://developer.vitalsource.com/hc/en-us/articles/204332688-GET-v3-licenses-Read",
+      "method": "get",
+      "endpoint": "v3/licenses.xml",
+      "responses": [
+        {
+          "uuid": "a0ca8af3-c8fb-4362-9fb4-6bce3609941d",
+          "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<licenses>\n    <license imprint=\"IMPRINT\" name=\"NAME\"/>\n</licenses>",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/xml; charset=utf-8"
+            }
+          ],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "X-VitalSource-API-Key",
+              "value": "API_KEY",
+              "operator": "equals"
+            },
+            {
+              "target": "header",
+              "modifier": "X-VitalSource-Access-Token",
+              "value": "ACCESS_TOKEN",
+              "operator": "equals"
+            },
+            {
+              "target": "request_number",
+              "modifier": "",
+              "value": "\\d*[02468]",
+              "operator": "regex"
+            }
+          ],
+          "rulesOperator": "AND",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        },
+        {
+          "uuid": "c4eebf3a-84cf-4a64-849b-ba6f43e2426b",
+          "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<licenses>\n    <license imprint=\"IMPRINT\" name=\"NAME\"/>\n    <license imprint=\"IMPRINT2\" name=\"NAME2\"/>\n</licenses>",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/xml; charset=utf-8"
+            }
+          ],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "X-VitalSource-API-Key",
+              "value": "API_KEY",
+              "operator": "equals"
+            },
+            {
+              "target": "header",
+              "modifier": "X-VitalSource-Access-Token",
+              "value": "ACCESS_TOKEN",
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "AND",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        },
+        {
+          "uuid": "f2d40507-ea20-4137-b757-404d6e6bca27",
+          "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<licenses>\n</licenses>",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/xml; charset=utf-8"
+            }
+          ],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "X-VitalSource-API-Key",
+              "value": "API_KEY",
+              "operator": "equals"
+            },
+            {
+              "target": "header",
+              "modifier": "X-VitalSource-Access-Token",
+              "value": "ACCESS_KEY",
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "AND",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        },
+        {
+          "uuid": "00ae147f-bdbe-4a12-b9a3-07829ad60220",
+          "body": "",
+          "latency": 0,
+          "statusCode": 403,
+          "label": "",
+          "headers": [],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true
+        }
+      ],
+      "enabled": true,
+      "randomResponse": false,
+      "sequentialResponse": false
+    },
+    {
+      "uuid": "a6a579ed-3265-43a1-94c0-5face0462e36",
+      "documentation": "https://developer.vitalsource.com/hc/en-us/articles/204317878-POST-v3-redirects-SSO-to-Bookshelf-eReader",
+      "method": "post",
+      "endpoint": "v3/redirects.xml",
+      "responses": [
+        {
+          "uuid": "ee1f9d6f-3515-404a-811d-53027958e551",
+          "body": "<?xml version=\"1.0\"?>\n<redirect\n    auto-signin=\"{{ body 'redirect.destination' }}\"\n    expires=\"2019-08-12 14:12:59 UTC\"\n/>",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/xml; charset=utf-8"
+            }
+          ],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [
+            {
+              "target": "header",
+              "modifier": "X-VitalSource-API-Key",
+              "value": "API_KEY",
+              "operator": "equals"
+            },
+            {
+              "target": "header",
+              "modifier": "X-VitalSource-Access-Token",
+              "value": "ACCESS_TOKEN",
+              "operator": "equals"
+            }
+          ],
+          "rulesOperator": "AND",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        },
+        {
+          "uuid": "0b3fd836-d5f4-4afd-93ff-27f66c51ca34",
+          "body": "HTTP Code: 473 Invalid or expired signin token",
+          "latency": 0,
+          "statusCode": 473,
+          "label": "",
+          "headers": [],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        },
+        {
+          "uuid": "e413d124-788b-4d35-8275-88176ad4ff70",
+          "body": "<?xml version=\"1.0\"?>\n<error message=\"Invalid access token\"/>",
+          "latency": 0,
+          "statusCode": 401,
+          "label": "",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/xml; charset=utf-8"
+            }
+          ],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": false
+        },
+        {
+          "uuid": "27b261a8-fc31-46b6-91f9-5865c6d90674",
+          "body": "<?xml version=\"1.0\"?>\n<error message=\"Invalid access token\"/>",
+          "latency": 0,
+          "statusCode": 401,
+          "label": "",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/xml; charset=utf-8"
+            }
+          ],
+          "filePath": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true
+        }
+      ],
+      "enabled": true,
+      "randomResponse": false,
+      "sequentialResponse": false
+    }
+  ],
+  "proxyMode": false,
+  "proxyHost": "",
+  "proxyRemovePrefix": false,
+  "tlsOptions": {
+    "enabled": false,
+    "type": "CERT",
+    "pfxPath": "",
+    "certPath": "",
+    "keyPath": "",
+    "caPath": "",
+    "passphrase": ""
+  },
+  "cors": true,
+  "headers": [],
+  "proxyReqHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "proxyResHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ]
+}
