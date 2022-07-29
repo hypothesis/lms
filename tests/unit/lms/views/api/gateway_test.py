@@ -8,19 +8,50 @@ from pyramid.httpexceptions import HTTPForbidden
 
 from lms.models import ReusedConsumerKey
 from lms.resources import LTILaunchResource
-from lms.views.api.gateway import h_lti
+from lms.views.api.gateway import _GatewayService, h_lti
 
 
-@pytest.mark.usefixtures("grant_token_service", "lti_h_service")
+@pytest.mark.usefixtures("lti_h_service")
 class TestHLTI:
-    def test_it_adds_h_api_details(self, context, pyramid_request, grant_token_service):
+    def test_it(self, context, pyramid_request, _GatewayService):
         response = h_lti(context, pyramid_request)
+
+        _GatewayService.render_h_connection_info.assert_called_once_with(
+            pyramid_request
+        )
+        assert response == {
+            "api": {"h": _GatewayService.render_h_connection_info.return_value}
+        }
+
+    def test_it_checks_for_guid_agreement(self, context, pyramid_request):
+        context.application_instance.check_guid_aligns.side_effect = ReusedConsumerKey(
+            "old", "new"
+        )
+
+        with pytest.raises(HTTPForbidden):
+            h_lti(context, pyramid_request)
+
+    def test_syncs_the_user_to_h(self, context, pyramid_request, lti_h_service):
+        h_lti(context, pyramid_request)
+
+        lti_h_service.sync.assert_called_once_with(
+            [context.course], pyramid_request.lti_params
+        )
+
+    @pytest.fixture(autouse=True)
+    def _GatewayService(self, patch):
+        return patch("lms.views.api.gateway._GatewayService")
+
+
+class Test_GatewayService:
+    def test_render_h_connection_info(self, pyramid_request, grant_token_service):
+        connection_info = _GatewayService.render_h_connection_info(pyramid_request)
 
         grant_token_service.generate_token.assert_called_once_with(
             pyramid_request.lti_user.h_user
         )
         h_api_url = pyramid_request.registry.settings["h_api_url_public"]
-        assert response["api"]["h"] == {
+        assert connection_info == {
             "list_endpoints": {
                 "method": "GET",
                 "url": h_api_url,
@@ -39,21 +70,6 @@ class TestHLTI:
                 },
             },
         }
-
-    def test_it_checks_for_guid_agreement(self, context, pyramid_request):
-        context.application_instance.check_guid_aligns.side_effect = ReusedConsumerKey(
-            "old", "new"
-        )
-
-        with pytest.raises(HTTPForbidden):
-            h_lti(context, pyramid_request)
-
-    def test_syncs_the_user_to_h(self, context, pyramid_request, lti_h_service):
-        h_lti(context, pyramid_request)
-
-        lti_h_service.sync.assert_called_once_with(
-            [context.course], pyramid_request.lti_params
-        )
 
 
 @pytest.mark.usefixtures("grant_token_service", "lti_h_service")
