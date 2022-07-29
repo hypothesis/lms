@@ -13,7 +13,6 @@ from lms.resources._js_config import JSConfig
 from tests import factories
 
 
-@pytest.mark.usefixtures("intercept_http_calls_to_h")
 class TestBasicLTILaunch:
     def test_requests_with_no_oauth_signature_are_forbidden(
         self, lti_params, do_lti_launch

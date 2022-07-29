@@ -64,14 +64,12 @@ def application_instance(lti_registration):
 
 @pytest.fixture(autouse=True)
 def mock_http_jwt_endpoint(lti_registration, jwt_public_key):
-    """Mock the response of the platform's JWT HTTP enpoint."""
+    """Mock the response of the platform's JWT HTTP end-point."""
     jwk = {"keys": [jwt_public_key]}
 
     with httpretty.enabled():
         httpretty.register_uri(
-            method="GET",
-            uri=lti_registration.key_set_url,
-            body=json.dumps(jwk),
+            method="GET", uri=lti_registration.key_set_url, body=json.dumps(jwk)
         )
 
         yield
