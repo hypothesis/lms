@@ -1,10 +1,10 @@
 import json
 from datetime import datetime
 
+import httpretty
 import importlib_resources
 import jwt
 import pytest
-from httpretty import httpretty
 from pytest import register_assert_rewrite
 
 from tests import factories
@@ -63,18 +63,18 @@ def application_instance(lti_registration):
 
 
 @pytest.fixture(autouse=True)
-def jwk_endpoint_intercept(lti_registration, jwt_public_key):
+def mock_http_jwt_endpoint(lti_registration, jwt_public_key):
+    """Mock the response of the platform's JWT HTTP enpoint."""
     jwk = {"keys": [jwt_public_key]}
 
-    httpretty.register_uri(
-        method="GET",
-        uri=lti_registration.key_set_url,
-        body=json.dumps(jwk),
-    )
+    with httpretty.enabled():
+        httpretty.register_uri(
+            method="GET",
+            uri=lti_registration.key_set_url,
+            body=json.dumps(jwk),
+        )
 
-    httpretty.enable()
-    yield
-    httpretty.disable()
+        yield
 
 
 @pytest.fixture
