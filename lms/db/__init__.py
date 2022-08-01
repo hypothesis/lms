@@ -10,7 +10,9 @@ from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.orm.properties import ColumnProperty
 
-__all__ = ("BASE", "init")
+from lms.db._columns import varchar_enum
+
+__all__ = ("BASE", "init", "varchar_enum")
 
 
 LOG = logging.getLogger(__name__)
