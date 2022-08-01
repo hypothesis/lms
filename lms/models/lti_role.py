@@ -3,7 +3,7 @@ from enum import Enum, unique
 import sqlalchemy as sa
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from lms.db import BASE
+from lms.db import BASE, varchar_enum
 
 
 @unique
@@ -33,25 +33,7 @@ class LTIRole(BASE):
     _value = sa.Column("value", sa.UnicodeText(), nullable=False, unique=True)
     """The raw string from LTI params."""
 
-    type = sa.Column(
-        "type",
-        sa.Enum(
-            RoleType,
-            # In order to maintain maximum flexibility we will only enforce the
-            # type on the Python side, and leave the Postgres side open as a plain
-            # VARCHAR
-            native_enum=False,
-            create_constraint=False,
-            validate_strings=True,
-            # Without a length SQLAlchemy will constrain it to the longest value
-            # we happen to have right now, which could limit us in future
-            length=64,
-            # Use the string values, not the keys to persist the values
-            values_callable=lambda obj: [item.value for item in obj],
-        ),
-        nullable=False,
-        unique=False,
-    )
+    type = varchar_enum(RoleType)
     """Our interpretation of the value."""
 
     @hybrid_property
