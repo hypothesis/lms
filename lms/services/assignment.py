@@ -1,5 +1,6 @@
 from typing import List
 
+import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
 from lms.models import (
@@ -21,28 +22,35 @@ class AssignmentService:
         self._db = db
 
     def get_assignment(
-        self, tool_consumer_instance_guid, resource_link_id
+        self, tool_consumer_instance_guid, resource_link_id, eager_load=False
     ) -> Assignment:
         """Get an assignment by resource_link_id."""
 
-        return (
-            self._db.query(Assignment)
-            .filter_by(
-                tool_consumer_instance_guid=tool_consumer_instance_guid,
-                resource_link_id=resource_link_id,
-            )
-            .one_or_none()
+        query = self._db.query(Assignment).filter_by(
+            tool_consumer_instance_guid=tool_consumer_instance_guid,
+            resource_link_id=resource_link_id,
         )
 
-    def get_assignments_for_grouping(self, grouping_id) -> List[Assignment]:
+        if eager_load:
+            query = self._eager_load_groupings(query)
+
+        return query.one_or_none()
+
+    def get_assignments_for_grouping(
+        self, grouping_id, eager_load=False
+    ) -> List[Assignment]:
         """Get all assignments within a specified grouping."""
 
-        return (
+        query = (
             self._db.query(Assignment)
             .join(AssignmentGrouping)
             .join(Grouping, Grouping.id == grouping_id)
-            .all()
         )
+
+        if eager_load:
+            query = self._eager_load_groupings(query)
+
+        return query.all()
 
     # pylint: disable=too-many-arguments
     def upsert_assignment(
@@ -128,6 +136,14 @@ class AssignmentService:
                 values=values,
                 index_elements=["assignment_id", "grouping_id"],
                 update_columns=["updated"],
+            )
+        )
+
+    @staticmethod
+    def _eager_load_groupings(query, grouping_join=None):
+        return query.options(
+            sa.orm.subqueryload(Assignment.groupings, grouping_join).options(
+                sa.orm.subqueryload(Grouping.parent)
             )
         )
 
