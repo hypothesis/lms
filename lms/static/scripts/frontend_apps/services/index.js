@@ -2,6 +2,7 @@ import { createContext } from 'preact';
 import { useContext, useMemo } from 'preact/hooks';
 
 export { ClientRPC } from './client-rpc';
+export { ContentInfoFetcher } from './content-info-fetcher';
 export { GradingService } from './grading';
 export { VitalSourceService } from './vitalsource';
 
