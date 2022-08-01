@@ -144,6 +144,18 @@ import { createContext } from 'preact';
  */
 
 /**
+ * Configuration for the content info banner which is displayed by the client.
+ *
+ * This banner is a contractual requirement for some document sources. It shows
+ * basic document metadata along with relevant links into the content provider's
+ * site.
+ *
+ * @typedef ContentBannerConfig
+ * @prop {string} source
+ * @prop {string} itemId
+ */
+
+/**
  * Data/configuration needed for frontend applications in the LMS app.
  * The `mode` property specifies which frontend application should load and
  * the available configuration/data depends on the mode and LTI user role.
@@ -159,6 +171,7 @@ import { createContext } from 'preact';
  *   @prop {APICallInfo} api.viaUrl
  * @prop {object} canvas
  *   @prop {SpeedGraderConfig} canvas.speedGrader
+ * @prop {ContentBannerConfig} [contentBanner]
  * @prop {boolean} dev
  * @prop {FilePickerConfig} filePicker
  * @prop {GradingConfig} grading
