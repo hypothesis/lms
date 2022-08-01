@@ -273,7 +273,6 @@ class TestAdminApplicationInstanceViews:
         "setting,value,expected",
         (
             ("lms_url", "http://some-url.com", "http://some-url.com"),
-            ("custom_canvas_api_domain", "some.domain.com", "some.domain.com"),
             ("deployment_id", "DEPLOYMENT_ID", "DEPLOYMENT_ID"),
         ),
     )
@@ -291,7 +290,6 @@ class TestAdminApplicationInstanceViews:
         "setting,value",
         (
             ("lms_url", ""),
-            ("custom_canvas_api_domain", ""),
             ("deployment_id", "    "),
         ),
     )
