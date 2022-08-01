@@ -59,7 +59,7 @@ class NewApplicationInstanceSchema(PyramidRequestSchema):
     email = fields.Email(required=True)
 
 
-class UpdateApplicationInstanceSchema(ApplicationInstanceSchema):
+class UpgradeApplicationInstanceSchema(ApplicationInstanceSchema):
     location = "form"
 
     lms_url = EmptyStringURL(required=False, allow_none=True)
@@ -132,7 +132,7 @@ class AdminApplicationInstanceViews:
         )
 
     def upgrade_instance(self, lti_registration, consumer_key):
-        if flash_validation(self.request, UpdateApplicationInstanceSchema):
+        if flash_validation(self.request, UpgradeApplicationInstanceSchema):
             response = render_to_response(
                 "lms:templates/admin/instance.new.html.jinja2",
                 {"lti_registration": lti_registration},
