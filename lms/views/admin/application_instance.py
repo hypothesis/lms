@@ -265,7 +265,7 @@ class AdminApplicationInstanceViews:
     def update_instance(self):
         ai = self._get_ai_or_404(**self.request.matchdict)
 
-        for ai_field in ["lms_url", "custom_canvas_api_domain", "deployment_id"]:
+        for ai_field in ["lms_url", "deployment_id"]:
             if value := self.request.params.get(ai_field, "").strip():
                 setattr(ai, ai_field, value)
 
