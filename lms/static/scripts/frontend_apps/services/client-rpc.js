@@ -25,6 +25,43 @@ import { JWT } from '../utils/jwt';
  */
 
 /**
+ * Content provider logo details.
+ *
+ * @typedef ContentInfoLogo
+ * @prop {string} logo
+ * @prop {string} title
+ * @prop {string} link
+ */
+
+/**
+ * Metadata for the current document, for display in the content info banner.
+ *
+ * @typedef ContentInfoItem
+ * @prop {string} title - Title of the current article, chapter etc.
+ * @prop {string} containerTitle - Title of the journal issue, book etc. which
+ *   contains the current work
+ */
+
+/**
+ * Links related to the current document, for display in the content info banner.
+ *
+ * @typedef ContentInfoLinks
+ * @prop {string} [previousItem] - Previous item in the book, journal etc.
+ * @prop {string} [nextItem] - Next item in the book, journal etc.
+ */
+
+/**
+ * Configuration for content information banner in client.
+ *
+ * This and other `ContentInfo*` types are copied from the hypothesis/client repo.
+ *
+ * @typedef {object} ContentInfoConfig
+ * @prop {ContentInfoLogo} logo - Logo of the content provider
+ * @prop {ContentInfoItem} item
+ * @prop {ContentInfoLinks} links
+ */
+
+/**
  * Service for communicating with the Hypothesis client.
  *
  * This service handles:
@@ -131,17 +168,35 @@ export class ClientRPC extends TinyEmitter {
    *  focused user's groups
    */
   async setFocusedUser(user, groups) {
+    await this._callClient('changeFocusModeUser', {
+      // Passing `undefined` as the `username` disables focus mode in the client.
+      //
+      // TODO: The `username` property is deprecated in the client and should be
+      // changed to `userid` once the client no longer references `username`.
+      username: user ? user.userid : undefined,
+      displayName: user ? user.displayName : undefined,
+      groups: groups ?? undefined,
+    });
+  }
+
+  /**
+   * Show the content information banner above the content the user is
+   * annotating.
+   *
+   * @param {ContentInfoConfig} info
+   */
+  async showContentInfo(info) {
+    await this._callClient('showContentInfo', info);
+  }
+
+  /**
+   * Make an RPC request to the client.
+   *
+   * @param {string} method
+   * @param {unknown[]} args
+   */
+  async _callClient(method, ...args) {
     const sidebar = await this._server.sidebarWindow;
-    rpcCall(sidebar.frame, sidebar.origin, 'changeFocusModeUser', [
-      {
-        // Passing `undefined` as the `username` disables focus mode in the client.
-        //
-        // TODO: The `username` property is deprecated in the client and should be
-        // changed to `userid` once the client no longer references `username`.
-        username: user ? user.userid : undefined,
-        displayName: user ? user.displayName : undefined,
-        groups: groups ?? undefined,
-      },
-    ]);
+    return rpcCall(sidebar.frame, sidebar.origin, method, args);
   }
 }

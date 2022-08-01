@@ -250,4 +250,21 @@ describe('ClientRPC', () => {
       );
     });
   });
+
+  describe('showContentInfo', () => {
+    it('sends content banner data to client', async () => {
+      const contentInfo = { item: { title: 'Test article' } };
+      const clientRPC = createClientRPC();
+
+      await clientRPC.showContentInfo(contentInfo);
+
+      assert.calledWith(
+        fakeRpcCall,
+        fakeSidebarWindow.frame,
+        fakeSidebarWindow.origin,
+        'showContentInfo',
+        [contentInfo]
+      );
+    });
+  });
 });
