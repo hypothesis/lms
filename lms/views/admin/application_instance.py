@@ -266,8 +266,8 @@ class AdminApplicationInstanceViews:
         ai = self._get_ai_or_404(**self.request.matchdict)
 
         for ai_field in ["lms_url", "custom_canvas_api_domain", "deployment_id"]:
-            if value := self.request.params.get(ai_field):
-                setattr(ai, ai_field, value.strip())
+            if value := self.request.params.get(ai_field, "").strip():
+                setattr(ai, ai_field, value)
 
         for setting, sub_setting, setting_type in (
             ("canvas", "sections_enabled", bool),

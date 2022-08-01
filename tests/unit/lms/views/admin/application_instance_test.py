@@ -278,23 +278,34 @@ class TestAdminApplicationInstanceViews:
         ),
     )
     def test_update_instance_save_ai_fields(
-        self,
-        setting,
-        value,
-        expected,
-        pyramid_request,
-        application_instance_service,
-        application_instance,
+        self, setting, value, expected, pyramid_request, application_instance
     ):
         pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
         pyramid_request.params[setting] = value
 
         AdminApplicationInstanceViews(pyramid_request).update_instance()
 
-        application_instance = (
-            application_instance_service.get_by_consumer_key.return_value
-        )
         assert getattr(application_instance, setting) == expected
+
+    @pytest.mark.parametrize(
+        "setting,value",
+        (
+            ("lms_url", ""),
+            ("custom_canvas_api_domain", ""),
+            ("deployment_id", "    "),
+        ),
+    )
+    def test_update_instance_save_ai_fields_keeps_existing(
+        self, setting, value, pyramid_request, application_instance
+    ):
+        pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
+        pyramid_request.params[setting] = value
+
+        existing_value = getattr(application_instance, setting)
+
+        AdminApplicationInstanceViews(pyramid_request).update_instance()
+
+        assert getattr(application_instance, setting) == existing_value
 
     @pytest.mark.parametrize(
         "setting,sub_setting,value,expected",
