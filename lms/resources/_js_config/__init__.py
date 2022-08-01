@@ -75,6 +75,10 @@ class JSConfig:
             self._config["viaUrl"] = vitalsource_svc.get_launch_url(document_url)
         elif jstor_service.enabled and document_url.startswith("jstor://"):
             self._config["viaUrl"] = jstor_service.via_url(self._request, document_url)
+            self._config["contentBanner"] = {
+                "source": "jstor",
+                "itemId": document_url.replace("jstor://", ""),
+            }
         else:
             self._config["viaUrl"] = via_url(self._request, document_url)
 
