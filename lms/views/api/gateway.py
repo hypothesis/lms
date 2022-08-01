@@ -100,6 +100,7 @@ class _GatewayService:
     @classmethod
     def render_lti_context(cls, request):
         assignments = cls._get_assignments_from_lti(request)
+        authority = request.registry.settings["h_authority"]
 
         return {
             "assignments": [
@@ -112,9 +113,28 @@ class _GatewayService:
                         "resource_link_title": assignment.title,
                         "resource_link_description": assignment.description,
                     },
+                    # Dump groupings in relation to this assignment
+                    "groups": [
+                        cls._render_grouping(grouping, authority)
+                        for grouping in assignment.groupings
+                    ],
                 }
                 for assignment in assignments
             ]
+        }
+
+    @staticmethod
+    def _render_grouping(grouping, authority):
+        return {
+            "groupid": grouping.groupid(authority),
+            "name": grouping.name,
+            # In the general case groups can't really have an "LTI" section
+            # because they can come from all over the place.
+            "lms": {
+                "id": grouping.lms_id,
+                "parentId": grouping.parent.lms_id if grouping.parent else None,
+                "type": grouping.type,
+            },
         }
 
     @classmethod
@@ -127,12 +147,15 @@ class _GatewayService:
                     "tool_consumer_instance_guid"
                 ],
                 resource_link_id=resource_link_id,
+                eager_load=True,
             ):
                 return [assignment]
 
         elif course := request.find_service(name="course").get_by_context_id(
             request.lti_params["context_id"]
         ):
-            return assignment_svc.get_assignments_for_grouping(course.id)
+            return assignment_svc.get_assignments_for_grouping(
+                course.id, eager_load=True
+            )
 
         return []

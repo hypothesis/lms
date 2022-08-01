@@ -37,7 +37,27 @@
                             "resource_link_id": "23987234",
                             "resource_link_title": "Assignment name",
                             "resource_link_description": "Assignment description"
-                        }
+                        },
+                        "groups": [
+                            {
+                                "groupid":  "group:a86d8uerg@lms.hypothes.is",
+                                "lms": {
+                                    "id": "123",
+                                    "parentId": null,
+                                    "type": "course"
+                                },
+                                "name": "Course name"
+                            },
+                            {
+                                "groupid":  "group:a234545gds@lms.hypothes.is",
+                                "lms": {
+                                    "id": "645",
+                                    "parentId": "123",
+                                    "type": "canvas_section"
+                                },
+                                "name": "Section name"
+                            }
+                        ]
                     }
                 ]
             }
@@ -83,6 +103,19 @@
     "additionalProperties": false,
 
     "$defs": {
+        "api_call": {
+            "title": "Pre-defined API call",
+            "type": "object",
+
+            "properties": {
+                "method": {"type": "string", "enum": ["GET", "POST"]},
+                "url": {"type":  "string", "format": "uri"},
+                "headers": {"type":  "object"},
+                "data": {"type":  "object"}
+            },
+            "additionalProperties": false,
+            "required": ["method", "url"]
+        },
         "assignment": {
             "type": "object",
             "properties": {
@@ -98,8 +131,8 @@
                     "type": "object",
                     "properties": {
                         "resource_link_id": {"type":  "string"},
-                        "resource_link_title": {"type":  "string"},
-                        "resource_link_description": {"type":  "string"}
+                        "resource_link_title": {"type":  ["string", "null"]},
+                        "resource_link_description": {"type":  ["string", "null"]}
                     },
                     "additionalProperties": false,
                     "required": [
@@ -107,23 +140,33 @@
                         "resource_link_title",
                         "resource_link_description"
                     ]
+                },
+                "groups": {
+                    "type": "array",
+                    "items":  {"$ref": "#/$defs/group"}
                 }
             },
             "additionalProperties": false,
-            "required": ["lms", "lti"]
+            "required": ["lms", "lti", "groups"]
         },
-        "api_call": {
-            "title": "Pre-defined API call",
+        "group": {
             "type": "object",
-
             "properties": {
-                "method": {"type": "string", "enum": ["GET", "POST"]},
-                "url": {"type":  "string", "format": "uri"},
-                "headers": {"type":  "object"},
-                "data": {"type":  "object"}
+                "groupid": {"type": "string"},
+                "lms": {
+                    "type": "object",
+                     "properties": {
+                        "id": {"type": "string"},
+                        "parentId": {"type": ["string", "null"]},
+                        "type": {"type": "string"}
+                     },
+                    "additionalProperties": false,
+                    "required": ["id", "parentId", "type"]
+                },
+                "name": {"type": ["string", "null"]}
             },
             "additionalProperties": false,
-            "required": ["method", "url"]
+            "required": ["groupid", "lms", "name"]
         }
     }
 }

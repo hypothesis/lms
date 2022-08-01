@@ -6,7 +6,7 @@ import pytest
 from jsonschema import Draft202012Validator
 from pyramid.httpexceptions import HTTPForbidden
 
-from lms.models import ReusedConsumerKey
+from lms.models import Grouping, ReusedConsumerKey
 from lms.resources import LTILaunchResource
 from lms.views.api.gateway import _GatewayService, h_lti
 from tests import factories
@@ -86,7 +86,7 @@ class Test_GatewayService:
 
         course_service.get_by_context_id.assert_called_once_with(sentinel.context_id)
         assignment_service.get_assignments_for_grouping.assert_called_once_with(
-            course_service.get_by_context_id.return_value.id
+            course_service.get_by_context_id.return_value.id, eager_load=True
         )
 
         self.assert_render_lti_context_correct(result)
@@ -114,6 +114,7 @@ class Test_GatewayService:
         assignment_service.get_assignment.assert_called_once_with(
             tool_consumer_instance_guid=sentinel.tool_consumer_instance_guid,
             resource_link_id=sentinel.resource_link_id,
+            eager_load=True,
         )
         self.assert_render_lti_context_correct(result)
 
@@ -140,6 +141,35 @@ class Test_GatewayService:
                         "resource_link_id": "resource_link_id",
                         "resource_link_title": "title",
                     },
+                    "groups": [
+                        {
+                            "groupid": "group:s1_id@TEST_AUTHORITY",
+                            "lms": {
+                                "id": "s1_lms_id",
+                                "parentId": "c_lms_id",
+                                "type": Grouping.Type.CANVAS_SECTION,
+                            },
+                            "name": "section_name_1",
+                        },
+                        {
+                            "groupid": "group:s2_id@TEST_AUTHORITY",
+                            "lms": {
+                                "id": "s2_lms_id",
+                                "parentId": "c_lms_id",
+                                "type": Grouping.Type.CANVAS_SECTION,
+                            },
+                            "name": "section_name_2",
+                        },
+                        {
+                            "groupid": "group:c_id@TEST_AUTHORITY",
+                            "lms": {
+                                "id": "c_lms_id",
+                                "parentId": None,
+                                "type": Grouping.Type.COURSE,
+                            },
+                            "name": "course_name",
+                        },
+                    ],
                 }
             ]
         }
@@ -183,12 +213,32 @@ class TestHLTIConsumer:
 @pytest.fixture
 def assignment():
     # Use baked values, so we can have static comparisons in the tests
-    return factories.Assignment.create(
+
+    course = factories.Course(
+        lms_name="course_name", authority_provided_id="c_id", lms_id="c_lms_id"
+    )
+    groups = [
+        factories.CanvasSection(
+            lms_name="section_name_1", authority_provided_id="s1_id", lms_id="s1_lms_id"
+        ),
+        factories.CanvasSection(
+            lms_name="section_name_2", authority_provided_id="s2_id", lms_id="s2_lms_id"
+        ),
+    ]
+    course.children = groups
+    for group in groups:
+        group.parent = course
+
+    assignment = factories.Assignment.create(
         document_url="document_url",
         resource_link_id="resource_link_id",
         title="title",
         description="description",
     )
+
+    assignment.groupings = list(groups) + [course]
+
+    return assignment
 
 
 @pytest.fixture
