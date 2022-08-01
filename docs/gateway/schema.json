@@ -9,7 +9,9 @@
                     "list_endpoints": {
                         "method": "GET",
                         "url": "https://h.example.com/api",
-                        "headers": {"Accept": "application/vnd.hypothesis.v2+json"}
+                        "headers": {
+                            "Accept": "application/vnd.hypothesis.v2+json"
+                        }
                     },
                     "exchange_grant_token": {
                         "method": "POST",
@@ -24,6 +26,20 @@
                         }
                     }
                 }
+            },
+            "data": {
+                "assignments": [
+                    {
+                        "lms": {
+                            "document_url": "https://example.com"
+                        },
+                        "lti": {
+                            "resource_link_id": "23987234",
+                            "resource_link_title": "Assignment name",
+                            "resource_link_description": "Assignment description"
+                        }
+                    }
+                ]
             }
         }
     ],
@@ -50,12 +66,52 @@
                 }
             },
             "required": ["h"]
+        },
+        "data": {
+            "type": "object",
+            "properties": {
+                "assignments": {
+                    "type": "array",
+                    "items": {"$ref": "#/$defs/assignment"}
+                }
+            },
+            "required": ["assignments"],
+            "additionalProperties": false
         }
     },
-    "required": ["api"],
+    "required": ["api", "data"],
     "additionalProperties": false,
 
     "$defs": {
+        "assignment": {
+            "type": "object",
+            "properties": {
+                "lms": {
+                    "type": "object",
+                    "properties": {
+                        "document_url": {"type":  "string"}
+                    },
+                    "additionalProperties": false,
+                    "required": ["document_url"]
+                },
+                "lti": {
+                    "type": "object",
+                    "properties": {
+                        "resource_link_id": {"type":  "string"},
+                        "resource_link_title": {"type":  "string"},
+                        "resource_link_description": {"type":  "string"}
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "resource_link_id",
+                        "resource_link_title",
+                        "resource_link_description"
+                    ]
+                }
+            },
+            "additionalProperties": false,
+            "required": ["lms", "lti"]
+        },
         "api_call": {
             "title": "Pre-defined API call",
             "type": "object",

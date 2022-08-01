@@ -9,6 +9,7 @@ from pyramid.httpexceptions import HTTPForbidden
 from lms.models import ReusedConsumerKey
 from lms.resources import LTILaunchResource
 from lms.views.api.gateway import _GatewayService, h_lti
+from tests import factories
 
 
 @pytest.mark.usefixtures("lti_h_service")
@@ -19,8 +20,10 @@ class TestHLTI:
         _GatewayService.render_h_connection_info.assert_called_once_with(
             pyramid_request
         )
+        _GatewayService.render_lti_context.assert_called_once_with(pyramid_request)
         assert response == {
-            "api": {"h": _GatewayService.render_h_connection_info.return_value}
+            "api": {"h": _GatewayService.render_h_connection_info.return_value},
+            "data": _GatewayService.render_lti_context.return_value,
         }
 
     def test_it_checks_for_guid_agreement(self, context, pyramid_request):
@@ -43,6 +46,7 @@ class TestHLTI:
         return patch("lms.views.api.gateway._GatewayService")
 
 
+@pytest.mark.usefixtures("assignment_service", "course_service", "grant_token_service")
 class Test_GatewayService:
     def test_render_h_connection_info(self, pyramid_request, grant_token_service):
         connection_info = _GatewayService.render_h_connection_info(pyramid_request)
@@ -71,8 +75,79 @@ class Test_GatewayService:
             },
         }
 
+    def test_render_lti_context_for_course(
+        self, pyramid_request, assignment_service, course_service, assignment
+    ):
+        pyramid_request.lti_params.pop("resource_link_id", None)
+        pyramid_request.lti_params["context_id"] = sentinel.context_id
+        assignment_service.get_assignments_for_grouping.return_value = [assignment]
 
-@pytest.mark.usefixtures("grant_token_service", "lti_h_service")
+        result = _GatewayService.render_lti_context(pyramid_request)
+
+        course_service.get_by_context_id.assert_called_once_with(sentinel.context_id)
+        assignment_service.get_assignments_for_grouping.assert_called_once_with(
+            course_service.get_by_context_id.return_value.id
+        )
+
+        self.assert_render_lti_context_correct(result)
+
+    def test_render_lti_context_with_no_course(self, pyramid_request, course_service):
+        pyramid_request.lti_params.pop("resource_link_id", None)
+        pyramid_request.lti_params["context_id"] = sentinel.context_id
+        course_service.get_by_context_id.return_value = None
+
+        assert _GatewayService.render_lti_context(pyramid_request) == {
+            "assignments": []
+        }
+
+    def test_render_lti_context_for_assignment(
+        self, pyramid_request, assignment_service, assignment
+    ):
+        pyramid_request.lti_params[
+            "tool_consumer_instance_guid"
+        ] = sentinel.tool_consumer_instance_guid
+        pyramid_request.lti_params["resource_link_id"] = sentinel.resource_link_id
+        assignment_service.get_assignment.return_value = assignment
+
+        result = _GatewayService.render_lti_context(pyramid_request)
+
+        assignment_service.get_assignment.assert_called_once_with(
+            tool_consumer_instance_guid=sentinel.tool_consumer_instance_guid,
+            resource_link_id=sentinel.resource_link_id,
+        )
+        self.assert_render_lti_context_correct(result)
+
+    def test_render_lti_context_with_no_assigment(
+        self, pyramid_request, assignment_service
+    ):
+        pyramid_request.lti_params[
+            "tool_consumer_instance_guid"
+        ] = sentinel.tool_consumer_instance_guid
+        pyramid_request.lti_params["resource_link_id"] = sentinel.resource_link_id
+        assignment_service.get_assignment.return_value = None
+
+        assert _GatewayService.render_lti_context(pyramid_request) == {
+            "assignments": []
+        }
+
+    def assert_render_lti_context_correct(self, result):
+        assert result == {
+            "assignments": [
+                {
+                    "lms": {"document_url": "document_url"},
+                    "lti": {
+                        "resource_link_description": "description",
+                        "resource_link_id": "resource_link_id",
+                        "resource_link_title": "title",
+                    },
+                }
+            ]
+        }
+
+
+@pytest.mark.usefixtures(
+    "grant_token_service", "lti_h_service", "assignment_service", "course_service"
+)
 class TestHLTIConsumer:
     # These tests are "consumer tests" and ensure we meet the spec we have
     # provided to our users in our documentation
@@ -85,8 +160,12 @@ class TestHLTIConsumer:
             validator.validate(example)
 
     def test_gateway_output_matches_the_schema(
-        self, validator, context, pyramid_request
+        self, validator, context, pyramid_request, assignment_service, assignment
     ):
+        # Flip into course mode and provide some content to format
+        pyramid_request.lti_params["context_id"] = sentinel.context_id
+        assignment_service.get_assignments_for_grouping.return_value = [assignment]
+
         response = h_lti(context, pyramid_request)
 
         validator.validate(response)
@@ -99,6 +178,17 @@ class TestHLTIConsumer:
     @pytest.fixture
     def validator(self, schema):
         return Draft202012Validator(schema)
+
+
+@pytest.fixture
+def assignment():
+    # Use baked values, so we can have static comparisons in the tests
+    return factories.Assignment.create(
+        document_url="document_url",
+        resource_link_id="resource_link_id",
+        title="title",
+        description="description",
+    )
 
 
 @pytest.fixture

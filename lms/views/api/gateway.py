@@ -5,6 +5,7 @@ from pyramid.view import view_config
 
 from lms.models import ReusedConsumerKey
 from lms.security import Permissions
+from lms.services.assignment import AssignmentService
 from lms.validation import LTIV11CoreSchema
 
 
@@ -58,7 +59,10 @@ def h_lti(context, request):
     # anything until they launch an assignment and get put in a group.
     request.find_service(name="lti_h").sync([context.course], request.lti_params)
 
-    return {"api": {"h": _GatewayService.render_h_connection_info(request)}}
+    return {
+        "api": {"h": _GatewayService.render_h_connection_info(request)},
+        "data": _GatewayService.render_lti_context(request),
+    }
 
 
 class _GatewayService:
@@ -92,3 +96,43 @@ class _GatewayService:
                 },
             },
         }
+
+    @classmethod
+    def render_lti_context(cls, request):
+        assignments = cls._get_assignments_from_lti(request)
+
+        return {
+            "assignments": [
+                {
+                    # The document is required so the user can tie annotations
+                    # back to the document they relate to
+                    "lms": {"document_url": assignment.document_url},
+                    "lti": {
+                        "resource_link_id": assignment.resource_link_id,
+                        "resource_link_title": assignment.title,
+                        "resource_link_description": assignment.description,
+                    },
+                }
+                for assignment in assignments
+            ]
+        }
+
+    @classmethod
+    def _get_assignments_from_lti(cls, request):
+        assignment_svc: AssignmentService = request.find_service(name="assignment")
+
+        if resource_link_id := request.lti_params.get("resource_link_id"):
+            if assignment := assignment_svc.get_assignment(
+                tool_consumer_instance_guid=request.lti_params[
+                    "tool_consumer_instance_guid"
+                ],
+                resource_link_id=resource_link_id,
+            ):
+                return [assignment]
+
+        elif course := request.find_service(name="course").get_by_context_id(
+            request.lti_params["context_id"]
+        ):
+            return assignment_svc.get_assignments_for_grouping(course.id)
+
+        return []
