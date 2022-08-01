@@ -22,7 +22,7 @@ class ApplicationInstanceService:
     @lru_cache(maxsize=1)
     def get_current(self) -> ApplicationInstance:
         """
-        Return the the current request's `ApplicationInstance`.
+        Return the current request's `ApplicationInstance`.
 
         This is the `ApplicationInstance` with `id` matching
         `request.application_instance_id`.
