@@ -8,6 +8,7 @@ import ErrorDialogApp from './components/ErrorDialogApp';
 import FilePickerApp from './components/FilePickerApp';
 import {
   ClientRPC,
+  ContentInfoFetcher,
   GradingService,
   Services,
   VitalSourceService,
@@ -38,19 +39,27 @@ export function init() {
   let app;
   switch (config.mode) {
     case 'basic-lti-launch':
-      services.set(
-        ClientRPC,
-        new ClientRPC({
-          authToken: config.api.authToken,
+      {
+        const { authToken } = config.api;
+        const clientRPC = new ClientRPC({
+          authToken,
           allowedOrigins: config.rpcServer.allowedOrigins,
           clientConfig: /** @type {ClientConfig} */ (config.hypothesisClient),
-        })
-      );
-      services.set(
-        GradingService,
-        new GradingService({ authToken: config.api.authToken })
-      );
-      app = <BasicLTILaunchApp />;
+        });
+        const contentInfoFetcher = new ContentInfoFetcher(authToken, clientRPC);
+        const gradingService = new GradingService({
+          authToken: config.api.authToken,
+        });
+        services.set(ClientRPC, clientRPC);
+        services.set(ContentInfoFetcher, contentInfoFetcher);
+        services.set(GradingService, gradingService);
+
+        if (config.contentBanner) {
+          contentInfoFetcher.fetch(config.contentBanner);
+        }
+
+        app = <BasicLTILaunchApp />;
+      }
       break;
     case 'content-item-selection':
       services.set(
