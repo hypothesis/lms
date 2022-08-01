@@ -43,7 +43,7 @@ paramiko==2.10.1
     # via docker
 pep517==0.12.0
     # via build
-pip-sync-faster==0.0.1
+pip-sync-faster==0.0.2
     # via -r requirements/dockercompose.in
 pip-tools==6.8.0
     # via
