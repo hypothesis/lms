@@ -1,7 +1,7 @@
 """
 Backfills the events table using the data from  `lti_launches`.
 
-Also renames the table and create a view with the same name to keep 
+Also renames the old table and create a view with the same name to keep
 any reports based on it backward compatible.
 
 
@@ -10,9 +10,8 @@ Revises: 42b39684836f
 Create Date: 2022-08-01 14:30:34.211522
 
 """
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "48955a83f040"
@@ -62,9 +61,9 @@ def upgrade():
                 grouping.lms_id AS context_id,
                 application_instances.consumer_key AS lti_key
             FROM event
-            JOIN application_instances 
+            JOIN application_instances
                 ON event.application_instance_id = application_instances.id
-            JOIN grouping 
+            JOIN grouping
                 ON event.course_id = grouping.id
             WHERE event.type_id = {launch_event_type_id}
         )"""

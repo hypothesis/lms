@@ -41,19 +41,12 @@ class TestBasicLaunchViews:
         self,
         context,
         pyramid_request,
-        LtiLaunches,
         grading_info_service,
     ):
         BasicLaunchViews(context, pyramid_request)
 
         context.application_instance.update_lms_data.assert_called_once_with(
             pyramid_request.lti_params
-        )
-
-        LtiLaunches.add.assert_called_once_with(
-            pyramid_request.db,
-            pyramid_request.lti_params["context_id"],
-            pyramid_request.lti_params["oauth_consumer_key"],
         )
 
         grading_info_service.upsert_from_request.assert_called_once_with(
@@ -351,10 +344,6 @@ class TestBasicLaunchViews:
         context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
         context.is_canvas = False
         return context
-
-    @pytest.fixture
-    def LtiLaunches(self, patch):
-        return patch("lms.views.lti.basic_launch.LtiLaunches")
 
     @pytest.fixture(autouse=True)
     def BearerTokenSchema(self, patch):
