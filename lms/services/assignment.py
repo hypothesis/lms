@@ -20,7 +20,9 @@ class AssignmentService:
     def __init__(self, db: Session):
         self._db = db
 
-    def get_assignment(self, tool_consumer_instance_guid, resource_link_id):
+    def get_assignment(
+        self, tool_consumer_instance_guid, resource_link_id
+    ) -> Assignment:
         """Get an assignment by resource_link_id."""
 
         return (
@@ -30,6 +32,16 @@ class AssignmentService:
                 resource_link_id=resource_link_id,
             )
             .one_or_none()
+        )
+
+    def get_assignments_for_grouping(self, grouping_id) -> List[Assignment]:
+        """Get all assignments within a specified grouping."""
+
+        return (
+            self._db.query(Assignment)
+            .join(AssignmentGrouping)
+            .join(Grouping, Grouping.id == grouping_id)
+            .all()
         )
 
     # pylint: disable=too-many-arguments

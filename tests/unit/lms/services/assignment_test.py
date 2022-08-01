@@ -16,6 +16,17 @@ class TestAssignmentService:
     def test_get_assignment_without_match(self, svc, non_matching_params):
         assert svc.get_assignment(**non_matching_params) is None
 
+    def test_get_assignments_for_grouping(self, svc, db_session):
+        course = factories.Course()
+        assignments = factories.Assignment.create_batch(2)
+        for assignment in assignments:
+            factories.AssignmentGrouping(assignment=assignment, grouping=course)
+        db_session.flush()
+
+        results = svc.get_assignments_for_grouping(course.id)
+
+        assert results == assignments
+
     upsert_kwargs = {
         "document_url": "new_document_url",
         "extra": {"new": "values"},
