@@ -270,6 +270,33 @@ class TestAdminApplicationInstanceViews:
         )
 
     @pytest.mark.parametrize(
+        "setting,value,expected",
+        (
+            ("lms_url", "http://some-url.com", "http://some-url.com"),
+            ("custom_canvas_api_domain", "some.domain.com", "some.domain.com"),
+            ("deployment_id", "DEPLOYMENT_ID", "DEPLOYMENT_ID"),
+        ),
+    )
+    def test_update_instance_save_ai_fields(
+        self,
+        setting,
+        value,
+        expected,
+        pyramid_request,
+        application_instance_service,
+        application_instance,
+    ):
+        pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
+        pyramid_request.params[setting] = value
+
+        AdminApplicationInstanceViews(pyramid_request).update_instance()
+
+        application_instance = (
+            application_instance_service.get_by_consumer_key.return_value
+        )
+        assert getattr(application_instance, setting) == expected
+
+    @pytest.mark.parametrize(
         "setting,sub_setting,value,expected",
         (
             # Boolean fields
@@ -285,6 +312,8 @@ class TestAdminApplicationInstanceViews:
             ("jstor", "site_code", "  CODE  ", "CODE"),
             ("jstor", "site_code", "", None),
             ("jstor", "site_code", None, None),
+            ("vitalsource", "user_lti_param", "user_id", "user_id"),
+            ("vitalsource", "api_key", "api_key", "api_key"),
         ),
     )
     def test_update_instance_saves_ai_settings(
