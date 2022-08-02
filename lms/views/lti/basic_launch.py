@@ -15,7 +15,6 @@ doesn't actually require basic launch requests to have this parameter.
 from pyramid.view import view_config, view_defaults
 
 from lms.events import LTIEvent
-from lms.models import EventType
 from lms.security import Permissions
 from lms.services import DocumentURLService, LTIRoleService
 from lms.services.assignment import AssignmentService
@@ -67,7 +66,7 @@ class BasicLaunchViews:
             )
         )
         self.request.registry.notify(
-            LTIEvent(self.request, EventType.Type.CONFIGURED_LAUNCH)
+            LTIEvent(self.request, LTIEvent.Type.CONFIGURED_LAUNCH)
         )
         return {}
 
