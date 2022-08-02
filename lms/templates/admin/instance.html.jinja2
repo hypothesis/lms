@@ -101,8 +101,22 @@
         {{ settings_text_field("JSTOR site code", "jstor", "site_code") }}
     </fieldset>
 
-    {% call macros.field_body(label="") %}
+    <div class="has-text-right mb-6">
         <input type="submit" class="button is-primary" value="Save" />
-    {% endcall %}
+    </div>
+
+
+    <fieldset class="box has-background-danger-light">
+        <legend class="label has-text-centered has-text-danger">Danger zone</legend>
+
+        {% call macros.field_body(label="Downgrade to LTI 1.1") %}
+            <input type="submit" class="button mb-2" formaction="{{ request.route_url("admin.instance.downgrade", id_=instance.id) }}" value="Downgrade">
+            <p>Downgrade this instance to LTI 1.1 removing its association with a registration and its deployment ID.</p>
+            <p>This action will <b>break any existing LTI 1.3 assignments</b>. To undo it, upgrade it back again to LTI 1.3 using the same registration and deployment ID.</p>
+        {% endcall %}
+
+    </fieldset>
+
+
 </form>
 {% endblock %}

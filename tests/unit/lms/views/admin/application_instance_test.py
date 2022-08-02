@@ -56,6 +56,62 @@ class TestAdminApplicationInstanceViews:
 
         assert response.status_code == 400
 
+    def test_downgrade_instance(
+        self,
+        views,
+        pyramid_request,
+        application_instance,
+        db_session,
+        application_instance_service,
+    ):
+        lti_registration = factories.LTIRegistration()
+        db_session.flush()
+        application_instance.lti_registration_id = lti_registration.id
+        application_instance.deployment_id = "ID"
+        application_instance_service.get_by_id.return_value = application_instance
+
+        response = views.downgrade_instance()
+
+        assert not application_instance.lti_registration_id
+        assert not application_instance.deployment_id
+        assert response == temporary_redirect_to(
+            pyramid_request.route_url("admin.instance.id", id_=application_instance.id)
+        )
+
+    def test_downgrade_instance_no_lti13(
+        self,
+        views,
+        pyramid_request,
+        application_instance,
+        application_instance_service,
+    ):
+        application_instance_service.get_by_id.return_value = application_instance
+
+        views.downgrade_instance()
+
+        assert pyramid_request.session.peek_flash("errors")
+
+    def test_downgrade_instance_no_consumer_key(
+        self,
+        views,
+        pyramid_request,
+        application_instance,
+        application_instance_service,
+        db_session,
+    ):
+        lti_registration = factories.LTIRegistration()
+        db_session.flush()
+        application_instance.lti_registration_id = lti_registration.id
+        application_instance.deployment_id = "ID"
+        application_instance.consumer_key = None
+        application_instance_service.get_by_id.return_value = application_instance
+
+        application_instance_service.get_by_id.return_value = application_instance
+
+        views.downgrade_instance()
+
+        assert pyramid_request.session.peek_flash("errors")
+
     @pytest.mark.usefixtures("with_upgrade_form")
     def test_upgrade_instance(
         self,
@@ -71,10 +127,9 @@ class TestAdminApplicationInstanceViews:
 
         response = views.new_instance()
 
-        application_instance_service.get_by_consumer_key(
+        application_instance_service.get_by_consumer_key.assert_called_once_with(
             application_instance.consumer_key
         )
-
         assert application_instance.lti_registration == lti_registration
         assert (
             application_instance.deployment_id
@@ -96,7 +151,7 @@ class TestAdminApplicationInstanceViews:
     ):
         lti_registration_service.get_by_id.return_value = factories.LTIRegistration()
 
-        # Replicate real's pyramid_request behavkour
+        # Replicate real's pyramid_request behaviour
         pyramid_request.POST[parameter] = ""
         pyramid_request.params[parameter] = ""
 
