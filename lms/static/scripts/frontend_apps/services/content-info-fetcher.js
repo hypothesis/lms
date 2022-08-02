@@ -1,15 +1,8 @@
 import { apiCall, urlPath } from '../utils/api';
 
 /**
+ * @typedef {import('../config').ContentBannerConfig} ContentBannerConfig
  * @typedef {import('./client-rpc').ContentInfoConfig} ContentInfoConfig
- */
-
-/**
- * Identifies the metadata provider and item ID for the content being displayed.
- *
- * @typedef ContentId
- * @prop {string} source
- * @prop {string} itemId
  */
 
 /**
@@ -37,7 +30,7 @@ export class ContentInfoFetcher {
    * Fetch metadata for content and send it to the client for display in the
    * content info banner.
    *
-   * @param {ContentId} contentId
+   * @param {ContentBannerConfig} contentId
    */
   async fetch(contentId) {
     if (contentId.source !== 'jstor') {

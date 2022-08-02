@@ -151,7 +151,7 @@ import { createContext } from 'preact';
  * site.
  *
  * @typedef ContentBannerConfig
- * @prop {string} source
+ * @prop {'jstor'} source - Identifier for the metadata source
  * @prop {string} itemId
  */
 
