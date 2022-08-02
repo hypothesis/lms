@@ -16,23 +16,13 @@ import { urlPath, useAPIFetch } from '../utils/api';
 import { articleIdFromUserInput, jstorURLFromArticleId } from '../utils/jstor';
 
 /**
+ * @typedef {import('../api-types').JSTORMetadata} JSTORMetadata
+ * @typedef {import('../api-types').JSTORThumbnail} JSTORThumbnail
+ */
+
+/**
  * @template T
  * @typedef {import('../utils/fetch').FetchResult<T>} FetchResult
- */
-
-/**
- * Response for an `/api/jstor/articles/{article_id}` call.
- *
- * @typedef Metadata
- * @prop {boolean} is_collection
- * @prop {string} title
- */
-
-/**
- * Response for an `/api/jstor/articles/{article_id}/thumbnail` call.
- *
- * @typedef Thumbnail
- * @prop {string} image
  */
 
 /**
@@ -54,12 +44,12 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
   // they have pasted/typed into the input field.
   const [articleId, setArticleId] = useState(/** @type {string|null} */ (null));
 
-  /** @type {FetchResult<Metadata>} */
+  /** @type {FetchResult<JSTORMetadata>} */
   const metadata = useAPIFetch(
     articleId ? urlPath`/api/jstor/articles/${articleId}` : null
   );
 
-  /** @type {FetchResult<Thumbnail>} */
+  /** @type {FetchResult<JSTORThumbnail>} */
   const thumbnail = useAPIFetch(
     articleId ? urlPath`/api/jstor/articles/${articleId}/thumbnail` : null
   );

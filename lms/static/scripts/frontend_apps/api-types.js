@@ -48,5 +48,20 @@
  * @prop {string} url - Document URL to use for this chapter when creating an assignment
  */
 
+/**
+ * Response for an `/api/jstor/articles/{article_id}` call.
+ *
+ * @typedef JSTORMetadata
+ * @prop {boolean} is_collection
+ * @prop {string} title
+ */
+
+/**
+ * Response for an `/api/jstor/articles/{article_id}/thumbnail` call.
+ *
+ * @typedef JSTORThumbnail
+ * @prop {string} image
+ */
+
 // Make TS treat this file as a module.
 export {};
