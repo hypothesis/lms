@@ -180,10 +180,9 @@ export class ClientRPC extends TinyEmitter {
   }
 
   /**
-   * Show the content information banner above the content the user is
-   * annotating.
+   * Instruct the client to show a content information banner.
    *
-   * @param {ContentInfoConfig} info
+   * @param {ContentInfoConfig} info - Data to show in the banner
    */
   async showContentInfo(info) {
     await this._callClient('showContentInfo', info);
