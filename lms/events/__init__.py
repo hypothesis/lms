@@ -24,6 +24,9 @@ class BaseEvent:  # pylint:disable=too-many-instance-attributes
 
 @dataclass
 class LTIEvent(BaseEvent):
+    Type = EventType.Type
+    """Expose the type here for the callers convenience"""
+
     def __post_init__(self):
         # pylint:disable=no-member
         if not self.user_id:
