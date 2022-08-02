@@ -338,6 +338,7 @@ class TestBasicLaunchViews:
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
+        pyramid_request.user = factories.User()
         pyramid_request.lti_params = LTIParams.from_request(pyramid_request)
 
         return pyramid_request
