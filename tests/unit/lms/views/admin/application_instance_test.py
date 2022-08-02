@@ -60,22 +60,21 @@ class TestAdminApplicationInstanceViews:
         self,
         views,
         pyramid_request,
-        application_instance,
-        db_session,
+        application_instance_lti_13,
         application_instance_service,
     ):
-        lti_registration = factories.LTIRegistration()
-        db_session.flush()
-        application_instance.lti_registration_id = lti_registration.id
-        application_instance.deployment_id = "ID"
-        application_instance_service.get_by_id.return_value = application_instance
+        application_instance_service.get_by_id.return_value = (
+            application_instance_lti_13
+        )
 
         response = views.downgrade_instance()
 
-        assert not application_instance.lti_registration_id
-        assert not application_instance.deployment_id
+        assert not application_instance_lti_13.lti_registration_id
+        assert not application_instance_lti_13.deployment_id
         assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.instance.id", id_=application_instance.id)
+            pyramid_request.route_url(
+                "admin.instance.id", id_=application_instance_lti_13.id
+            )
         )
 
     def test_downgrade_instance_no_lti13(
@@ -95,18 +94,17 @@ class TestAdminApplicationInstanceViews:
         self,
         views,
         pyramid_request,
-        application_instance,
         application_instance_service,
-        db_session,
+        application_instance_lti_13,
     ):
-        lti_registration = factories.LTIRegistration()
-        db_session.flush()
-        application_instance.lti_registration_id = lti_registration.id
-        application_instance.deployment_id = "ID"
-        application_instance.consumer_key = None
-        application_instance_service.get_by_id.return_value = application_instance
+        application_instance_lti_13.consumer_key = None
+        application_instance_service.get_by_id.return_value = (
+            application_instance_lti_13
+        )
 
-        application_instance_service.get_by_id.return_value = application_instance
+        application_instance_service.get_by_id.return_value = (
+            application_instance_lti_13
+        )
 
         views.downgrade_instance()
 
@@ -414,6 +412,16 @@ class TestAdminApplicationInstanceViews:
     def pyramid_request(self, pyramid_request):
         pyramid_request.params = {}
         return pyramid_request
+
+    @pytest.fixture
+    def application_instance_lti_13(self, application_instance, db_session):
+        lti_registration = factories.LTIRegistration()
+        # Get an valid ID for the registration
+        db_session.flush()
+        application_instance.lti_registration_id = lti_registration.id
+        application_instance.deployment_id = "ID"
+
+        return application_instance
 
     @pytest.fixture
     def with_form_submission(self, pyramid_request):
