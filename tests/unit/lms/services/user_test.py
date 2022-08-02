@@ -14,7 +14,7 @@ class TestUserService:
     def test_upsert_user(self, service, lti_user, db_session):
         user = service.upsert_user(lti_user)
 
-        saved_user = db_session.query(User).one()
+        saved_user = db_session.query(User).order_by(User.id.desc()).first()
         assert saved_user == Any.instance_of(User).with_attrs(
             {
                 "id": Any.int(),
@@ -33,9 +33,7 @@ class TestUserService:
     ):
         user = service.upsert_user(lti_user)
 
-        list(db_session.query(User))
-
-        saved_user = db_session.query(User).one()
+        saved_user = db_session.query(User).get(user.id)
         assert saved_user.id == user.id
         assert saved_user.roles == lti_user.roles
         assert user == saved_user
