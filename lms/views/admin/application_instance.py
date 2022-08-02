@@ -193,6 +193,35 @@ class AdminApplicationInstanceViews:
             )
         )
 
+    @view_config(route_name="admin.instance.downgrade", request_method="POST")
+    def downgrade_instance(self):
+        ai = self._get_ai_or_404(**self.request.matchdict)
+
+        if ai.lti_version != "1.3.0":
+            self.request.session.flash(
+                f"Application instance: '{ai.id}' is not on LTI 1.3.", "errors"
+            )
+            return HTTPFound(
+                location=self.request.route_url("admin.instance.id", id_=ai.id)
+            )
+
+        if not ai.consumer_key:
+            self.request.session.flash(
+                f"Application instance: '{ai.id}' doesn't have a consumer key to fallback to.",
+                "errors",
+            )
+            return HTTPFound(
+                location=self.request.route_url("admin.instance.id", id_=ai.id)
+            )
+
+        ai.lti_registration_id = None
+        ai.deployment_id = None
+
+        self.request.session.flash("Downgraded LTI 1.1 successful", "messages")
+        return HTTPFound(
+            location=self.request.route_url("admin.instance.id", id_=ai.id)
+        )
+
     @view_config(
         route_name="admin.instances.search",
         request_method="POST",
