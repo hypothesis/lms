@@ -140,9 +140,9 @@ class AssignmentService:
         )
 
     @staticmethod
-    def _eager_load_groupings(query, grouping_join=None):
+    def _eager_load_groupings(query):
         return query.options(
-            sa.orm.subqueryload(Assignment.groupings, grouping_join).options(
+            sa.orm.subqueryload(Assignment.groupings).options(
                 sa.orm.subqueryload(Grouping.parent)
             )
         )
