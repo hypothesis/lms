@@ -171,6 +171,8 @@ def pyramid_config(pyramid_request):
 
         config.action(None, configure_jinja2_assets, args=(config,))
 
+        config.registry.notify = mock.Mock()
+
         apply_request_extensions(pyramid_request)
 
         yield config
