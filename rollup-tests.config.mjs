@@ -30,6 +30,7 @@ export default {
       preventAssignment: true,
       values: {
         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+        'LMS_FRONTEND_TESTS': 'true',
       },
     }),
     nodeResolve({
