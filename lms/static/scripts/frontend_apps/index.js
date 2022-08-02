@@ -19,7 +19,7 @@ import { registerIcons } from '@hypothesis/frontend-shared';
 import iconSet from './icons';
 registerIcons(iconSet);
 
-function init() {
+export function init() {
   // Read configuration embedded into page by backend.
   const config = readConfig();
 
@@ -69,9 +69,11 @@ function init() {
 
   // Render frontend application.
   const rootEl = document.querySelector('#app');
+  /* istanbul ignore next */
   if (!rootEl) {
     throw new Error('#app container for LMS frontend is missing');
   }
+
   render(
     <Config.Provider value={config}>
       <Services.Provider value={services}>{app}</Services.Provider>
@@ -80,4 +82,8 @@ function init() {
   );
 }
 
-init();
+/* istanbul ignore next */
+// @ts-expect-error - Ignore LMS_FRONTEND_TESTS global set by Rollup
+if (typeof LMS_FRONTEND_TESTS === 'undefined') {
+  init();
+}
