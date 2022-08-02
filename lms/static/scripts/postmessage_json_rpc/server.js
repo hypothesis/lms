@@ -64,6 +64,12 @@ export class Server {
      */
     this._registeredMethods = {};
 
+    /**
+     * Promise that resolves with a reference to the Hypothesis client's sidebar
+     * iframe.
+     *
+     * @type {Promise<{ frame: Window, origin: string }>}
+     */
     this.sidebarWindow = new Promise(resolve => {
       this._resolveSidebarWindow = resolve;
     });
@@ -106,7 +112,7 @@ export class Server {
     // Resolve the promise we created in the constructor with the saved
     // sidebar frame and origin.
     this._resolveSidebarWindow({
-      frame: event.source,
+      frame: /** @type {Window} */ (event.source),
       origin: event.origin,
     });
 
