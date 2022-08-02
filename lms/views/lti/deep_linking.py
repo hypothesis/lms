@@ -47,7 +47,6 @@ from pyramid.view import view_config, view_defaults
 from webargs import fields
 
 from lms.events import LTIEvent
-from lms.models import EventType
 from lms.security import Permissions
 from lms.services import JWTService
 from lms.validation import DeepLinkingLTILaunchSchema
@@ -141,7 +140,7 @@ class DeepLinkingFieldsViews:
         self.request.registry.notify(
             LTIEvent(
                 request=self.request,
-                type=EventType.Type.DEEP_LINKING,
+                type=LTIEvent.Type.DEEP_LINKING,
                 data={"document_url": document_url},
             )
         )
@@ -164,7 +163,7 @@ class DeepLinkingFieldsViews:
         self.request.registry.notify(
             LTIEvent(
                 request=self.request,
-                type=EventType.Type.DEEP_LINKING,
+                type=LTIEvent.Type.DEEP_LINKING,
                 data={"document_url": url},
             )
         )
