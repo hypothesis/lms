@@ -10,6 +10,7 @@ from lms.services.async_oauth_http import AsyncOAuthHTTPService
 from lms.services.blackboard_api.client import BlackboardAPIClient
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.course import CourseService
+from lms.services.event import EventService
 from lms.services.file import FileService
 from lms.services.grading_info import GradingInfoService
 from lms.services.grant_token import GrantTokenService
@@ -45,6 +46,7 @@ __all__ = (
     "canvas_service",
     "course_service",
     "document_url_service",
+    "event_service",
     "file_service",
     "grading_info_service",
     "grant_token_service",
@@ -146,6 +148,11 @@ def course_service(mock_service):
 @pytest.fixture
 def document_url_service(mock_service):
     return mock_service(DocumentURLService)
+
+
+@pytest.fixture
+def event_service(mock_service):
+    return mock_service(EventService)
 
 
 @pytest.fixture

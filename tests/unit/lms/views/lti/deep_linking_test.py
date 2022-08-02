@@ -58,7 +58,14 @@ class TestDeepLinkingLaunch:
 class TestDeepLinkingFieldsView:
     @freeze_time("2022-04-04")
     def test_it_for_v13(
-        self, jwt_service, application_instance, views, _get_content_url_mock, uuid
+        self,
+        jwt_service,
+        application_instance,
+        views,
+        _get_content_url_mock,
+        uuid,
+        LTIEvent,
+        pyramid_request,
     ):
         fields = views.file_picker_to_form_fields_v13()
 
@@ -82,8 +89,15 @@ class TestDeepLinkingFieldsView:
                 "https://purl.imsglobal.org/spec/lti-dl/claim/data": sentinel.deep_linking_settings_data,
             }
         )
+        LTIEvent.assert_called_once_with(
+            request=pyramid_request,
+            type=LTIEvent.Type.DEEP_LINKING,
+            data={"document_url": _get_content_url_mock.return_value},
+        )
+        pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
         assert fields["JWT"] == jwt_service.encode_with_private_key.return_value
 
+    @pytest.mark.usefixtures("LTIEvent")
     def test_it_for_v13_missing_deep_linking_settings_data(
         self, jwt_service, views, pyramid_request
     ):
@@ -99,10 +113,17 @@ class TestDeepLinkingFieldsView:
             not in message.last_matched()  # pylint: disable=unsupported-membership-test
         )
 
-    def test_it_for_v11(self, views, _get_content_url_mock):
+    def test_it_for_v11(self, views, _get_content_url_mock, pyramid_request, LTIEvent):
         _get_content_url_mock.return_value = "https://launches-url.com"
 
         fields = views.file_picker_to_form_fields_v11()
+
+        LTIEvent.assert_called_once_with(
+            request=pyramid_request,
+            type=LTIEvent.Type.DEEP_LINKING,
+            data={"document_url": _get_content_url_mock.return_value},
+        )
+        pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
 
         assert json.loads(fields["content_items"]) == {
             "@context": "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",
@@ -170,6 +191,10 @@ class TestDeepLinkingFieldsView:
     @pytest.fixture
     def uuid(self, patch):
         return patch("lms.views.lti.deep_linking.uuid")
+
+    @pytest.fixture
+    def LTIEvent(self, patch):
+        return patch("lms.views.lti.deep_linking.LTIEvent")
 
     @pytest.mark.usefixtures("db_session")
     @pytest.fixture

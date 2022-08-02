@@ -10,24 +10,38 @@ from lms.services import EventService, LTIRoleService
 
 @dataclass
 class BaseEvent:  # pylint:disable=too-many-instance-attributes
+    """Base class for generic events."""
+
     request: Request
+    """Reference to the current request"""
+
     type: EventType.Type
+    """Type of the event"""
 
     user_id: Optional[int] = None
+    """Which user is related to this event"""
+
     role_ids: List[int] = field(default_factory=list)
+    """Which roles does the user have in relation to this event"""
+
     application_instance_id: Optional[int] = None
     course_id: Optional[int] = None
     assignment_id: Optional[int] = None
     grouping_id: Optional[int] = None
+
     data: Optional[dict] = None
+    """Extra data to associate with this event"""
 
 
 @dataclass
 class LTIEvent(BaseEvent):
+    """Class to represent LTI-related events."""
+
     Type = EventType.Type
     """Expose the type here for the callers convenience"""
 
     def __post_init__(self):
+        """Fill any missing fields from requests parameters or DB data."""
         # pylint:disable=no-member
         if not self.user_id:
             self.user_id = self.request.user.id
@@ -53,19 +67,18 @@ class LTIEvent(BaseEvent):
                 self.course_id = course.id
 
         if not self.assignment_id:
-            self.assignment_id = (
-                self.request.find_service(name="assignment")
-                .get_assignment(
-                    self.request.lti_params.get("tool_consumer_instance_guid"),
-                    self.request.lti_params.get("resource_link_id"),
-                )
-                .id
-            )
+            if assignment := self.request.find_service(
+                name="assignment"
+            ).get_assignment(
+                self.request.lti_params.get("tool_consumer_instance_guid"),
+                self.request.lti_params.get("resource_link_id"),
+            ):
+                self.assignment_id = assignment.id
 
 
 @subscriber(BaseEvent)
 def handle_event(event: BaseEvent):
-    # Record the event in the Event model's table
+    """Record the event in the Event model's table."""
     event.request.find_service(EventService).insert_event(event)
 
 

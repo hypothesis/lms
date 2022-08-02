@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from lms.models import Event, EventData, EventType, EventUser
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from lms.events import BaseEvent
 
 
@@ -36,6 +36,8 @@ class EventService:
 
         if event.data:
             self._db.add(EventData(event=db_event, data=event.data))
+
+        return event
 
     @lru_cache
     def _get_type_pk(self, type_: EventType.Type) -> int:
