@@ -1,4 +1,5 @@
-from dataclasses import dataclass, field
+import json
+from dataclasses import dataclass, field, fields
 from typing import List, Optional
 
 from pyramid.events import subscriber
@@ -32,48 +33,61 @@ class BaseEvent:  # pylint:disable=too-many-instance-attributes
     data: Optional[dict] = None
     """Extra data to associate with this event"""
 
+    def __post_init__(self):
+        for event_field in fields(self):
+            getter_name = f"_get_{event_field.name}"
+
+            # If we don't have a value for `field` and we have implemented
+            # a _get_`field.name` method, use that to get a default
+            if not getattr(self, event_field.name) and hasattr(self, getter_name):
+                setattr(self, event_field.name, getattr(self, getter_name)())
+
 
 @dataclass
 class LTIEvent(BaseEvent):
     """Class to represent LTI-related events."""
 
+    # pylint:disable=no-member
+
     Type = EventType.Type
     """Expose the type here for the callers convenience"""
 
-    def __post_init__(self):
-        """Fill any missing fields from requests parameters or DB data."""
-        # pylint:disable=no-member
-        if not self.user_id:
-            self.user_id = self.request.user.id
+    def _get_user_id(self):
+        return self.request.user.id
 
-        if not self.role_ids:
-            self.role_ids = [
-                role.id
-                for role in self.request.find_service(LTIRoleService).get_roles(
-                    self.request.lti_params.get("roles")
-                )
-            ]
+    def _get_role_ids(self):
+        return [
+            role.id
+            for role in self.request.find_service(LTIRoleService).get_roles(
+                self.request.lti_user.roles
+            )
+        ]
 
-        if not self.application_instance_id:
-            if application_instance := self.request.find_service(
-                name="application_instance"
-            ).get_current():
-                self.application_instance_id = application_instance.id
+    def _get_application_instance_id(self):
+        if application_instance := self.request.find_service(
+            name="application_instance"
+        ).get_current():
+            return application_instance.id
 
-        if not self.course_id:
-            if course := self.request.find_service(name="course").get_by_context_id(
-                self.request.lti_params.get("context_id")
-            ):
-                self.course_id = course.id
+        return None
 
-        if not self.assignment_id:
-            if assignment := self.request.find_service(
-                name="assignment"
-            ).get_assignment(
-                self.request.lti_params.get("tool_consumer_instance_guid"),
-                self.request.lti_params.get("resource_link_id"),
-            ):
-                self.assignment_id = assignment.id
+    def _get_course_id(self):
+        context_id = self.request.lti_params.get("context_id")
+        if course := self.request.find_service(name="course").get_by_context_id(
+            context_id
+        ):
+            return course.id
+
+        return None
+
+    def _get_assignment_id(self):
+        if assignment := self.request.find_service(name="assignment").get_assignment(
+            self.request.lti_params.get("tool_consumer_instance_guid"),
+            self.request.lti_params.get("resource_link_id"),
+        ):
+            return assignment.id
+
+        return None
 
 
 @subscriber(BaseEvent)
