@@ -24,6 +24,15 @@
                         }
                     }
                 }
+            },
+            "data": {
+                "profile": {
+                    "userid": "acct:9238ae778956bcaff126@lms.hypothes.is",
+                    "display_name": "Mrs Example Name",
+                    "lti": {
+                        "user_id": "9782345"
+                    }
+                }
             }
         }
     ],
@@ -50,9 +59,20 @@
                 }
             },
             "required": ["h"]
+        },
+        "data": {
+            "type": "object",
+            "properties": {
+                "profile": {
+                    "description": "Details of the current user",
+                    "$ref": "#/$defs/user"
+                }
+            },
+            "required": ["profile"],
+            "additionalProperties": false
         }
     },
-    "required": ["api"],
+    "required": ["api", "data"],
     "additionalProperties": false,
 
     "$defs": {
@@ -68,6 +88,26 @@
             },
             "additionalProperties": false,
             "required": ["method", "url"]
+        },
+
+        "user": {
+            "title": "A user",
+            "type": "object",
+
+            "properties": {
+                "userid": {"type": "string"},
+                "display_name": {"type": "string"},
+                "lti": {
+                    "type": "object",
+                    "properties": {
+                        "user_id": {"type": "string"}
+                    },
+                    "additionalProperties": false,
+                    "required": ["user_id"]
+                }
+            },
+            "additionalProperties": false,
+            "required": ["userid", "display_name", "lti"]
         }
     }
 }
