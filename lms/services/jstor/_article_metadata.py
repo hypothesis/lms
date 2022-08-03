@@ -38,19 +38,6 @@ class _ArticleMetadataSchema(RequestsResponseSchema):
     """
 
 
-class _ContentStatus:
-    """Indicates whether an item has content available for use with Hypothesis."""
-
-    AVAILABLE = "available"
-    """Content is available for the item."""
-
-    NO_CONTENT = "no_content"
-    """Item does not have associated content (eg. a PDF)."""
-
-    NO_ACCESS = "no_access"
-    """This item has content, but the current institution does not have access to it."""
-
-
 class ArticleMetadata:
     def __init__(self, data):
         self._data = data
@@ -65,11 +52,16 @@ class ArticleMetadata:
     @property
     def content_status(self) -> str:
         if not self._data["has_pdf"]:
-            return _ContentStatus.NO_CONTENT
-        elif self._data["requestor_access_level"] == "full_access":
-            return _ContentStatus.AVAILABLE
-        else:
-            return _ContentStatus.NO_ACCESS
+            # Item does not have associated content (eg. a PDF)
+            return "no_content"
+
+        if self._data["requestor_access_level"] == "full_access":
+            # Content is available for the item
+            return "available"
+
+        # This item has content, but the current institution does not have
+        # access to it
+        return "no_access"
 
     @property
     def title(self) -> str:
