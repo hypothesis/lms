@@ -85,7 +85,9 @@ def includeme(config):
         "lms.services.grouping.service_factory", name="grouping"
     )
     config.register_service_factory("lms.services.file.factory", name="file")
-    config.register_service_factory("lms.services.jstor.factory", iface=JSTORService)
+    config.register_service_factory(
+        "lms.services.jstor.service_factory", iface=JSTORService
+    )
     config.register_service_factory(
         "lms.services.lti_names_roles.factory", iface=LTINamesRolesService
     )

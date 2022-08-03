@@ -4,9 +4,8 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.models import ApplicationSettings
 from lms.services import ExternalRequestError
-from lms.services.jstor import JSTORService, _ContentStatus, factory
+from lms.services.jstor.service import JSTORService, _ContentStatus
 from tests import factories
 
 JSTOR_API_URL = "http://api.jstor.org"
@@ -222,10 +221,6 @@ class TestJSTORService:
         return http_service
 
     @pytest.fixture
-    def via_url(self, patch):
-        return patch("lms.services.jstor.via_url")
-
-    @pytest.fixture
     def get_service(self, http_service):
         return partial(
             JSTORService,
@@ -240,45 +235,12 @@ class TestJSTORService:
     def svc(self, get_service):
         return get_service()
 
+    @pytest.fixture
+    def via_url(self, patch):
+        return patch("lms.services.jstor.service.via_url")
+
     @pytest.fixture(autouse=True)
     def JWTService(self, patch):
-        svc = patch("lms.services.jstor.JWTService")
+        svc = patch("lms.services.jstor.service.JWTService")
         svc.encode_with_secret.return_value = "TOKEN"
         return svc
-
-
-class TestFactory:
-    def test_it(
-        self, pyramid_request, application_instance_service, http_service, JSTORService
-    ):
-        application_instance_service.get_current.return_value.settings = (
-            ApplicationSettings(
-                {
-                    "jstor": {
-                        "enabled": sentinel.jstor_enabled,
-                        "site_code": sentinel.jstor_site_code,
-                    }
-                }
-            )
-        )
-        pyramid_request.registry.settings.update(
-            {
-                "jstor_api_url": sentinel.jstor_api_url,
-                "jstor_api_secret": sentinel.jstor_api_secret,
-            }
-        )
-
-        svc = factory(sentinel.context, pyramid_request)
-
-        JSTORService.assert_called_once_with(
-            api_url=sentinel.jstor_api_url,
-            secret=sentinel.jstor_api_secret,
-            enabled=sentinel.jstor_enabled,
-            site_code=sentinel.jstor_site_code,
-            http_service=http_service,
-        )
-        assert svc == JSTORService.return_value
-
-    @pytest.fixture(autouse=True)
-    def JSTORService(self, patch):
-        return patch("lms.services.jstor.JSTORService")
