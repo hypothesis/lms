@@ -60,12 +60,6 @@ class TestEventService:
         )
         assert not db_session.query(EventData).one_or_none()
 
-    @pytest.fixture(autouse=True)
-    def with_event_types(self, db_session):
-        for type_ in EventType.Type:
-            db_session.add(EventType(type=type_))
-        db_session.commit()
-
     @pytest.fixture
     def svc(self, db_session):
         return EventService(db_session)
