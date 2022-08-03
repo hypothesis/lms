@@ -8,7 +8,7 @@ from lms.services import ExternalRequestError
 from lms.services.jstor.service import JSTORService
 from tests import factories
 
-JSTOR_API_URL = "http://api.jstor.org"
+API_URL = "http://api.jstor.org"
 
 
 class TestJSTORService:
@@ -22,11 +22,8 @@ class TestJSTORService:
     @pytest.mark.parametrize(
         "url,expected",
         [
-            (
-                "jstor://ARTICLE_ID",
-                f"{JSTOR_API_URL}/pdf/10.2307/ARTICLE_ID",
-            ),
-            ("jstor://PREFIX/SUFFIX", f"{JSTOR_API_URL}/pdf/PREFIX/SUFFIX"),
+            ("jstor://ARTICLE_ID", f"{API_URL}/pdf/10.2307/ARTICLE_ID"),
+            ("jstor://PREFIX/SUFFIX", f"{API_URL}/pdf/PREFIX/SUFFIX"),
         ],
     )
     def test_via_url(
@@ -65,11 +62,11 @@ class TestJSTORService:
         "article_id, expected_api_url",
         [
             # Typical JSTOR article, with no DOI prefix given
-            ("12345", f"{JSTOR_API_URL}/metadata/10.2307/12345"),
+            ("12345", f"{API_URL}/metadata/10.2307/12345"),
             # Article ID that needs to be encoded
-            ("123:45", f"{JSTOR_API_URL}/metadata/10.2307/123%3A45"),
+            ("123:45", f"{API_URL}/metadata/10.2307/123%3A45"),
             # Article with custom DOI prefix
-            ("10.123/12345", f"{JSTOR_API_URL}/metadata/10.123/12345"),
+            ("10.123/12345", f"{API_URL}/metadata/10.123/12345"),
         ],
     )
     def test_get_article_metadata(
@@ -86,49 +83,30 @@ class TestJSTORService:
         meta = ArticleMetadata.from_response.return_value
         assert response == meta.as_dict.return_value
 
-    @pytest.fixture
-    def ArticleMetadata(self, patch):
-        return patch("lms.services.jstor.service.ArticleMetadata")
-
     @pytest.mark.parametrize(
-        "article_id, api_response, expected_api_url",
+        "article_id,expected_api_url",
         [
             # Typical JSTOR article, with no DOI prefix given
-            (
-                "12345",
-                "data:image/jpeg;base64,ABCD",
-                f"{JSTOR_API_URL}/thumbnail/10.2307/12345",
-            ),
+            ("12345", f"{API_URL}/thumbnail/10.2307/12345"),
             # Article ID that needs to be encoded
-            (
-                "123:45",
-                "data:image/jpeg;base64,ABCD",
-                f"{JSTOR_API_URL}/thumbnail/10.2307/123%3A45",
-            ),
+            ("123:45", f"{API_URL}/thumbnail/10.2307/123%3A45"),
             # Article with custom DOI prefix
-            (
-                "10.123/12345",
-                "data:image/jpeg;base64,ABCD",
-                f"{JSTOR_API_URL}/thumbnail/10.123/12345",
-            ),
+            ("10.123/12345", f"{API_URL}/thumbnail/10.123/12345"),
         ],
     )
-    def test_thumbnail(
-        self, svc, http_service, article_id, api_response, expected_api_url
-    ):
-        http_service.get.return_value = factories.requests.Response(raw=api_response)
+    def test_thumbnail(self, svc, http_service, article_id, expected_api_url):
+        http_service.get.return_value = factories.requests.Response(
+            raw="data:image/jpeg;base64,ABCD"
+        )
 
         data_uri = svc.thumbnail(article_id)
 
         http_service.get.assert_called_with(
             url=expected_api_url,
             headers={"Authorization": "Bearer TOKEN"},
-            params={
-                "offset": 1,
-                "width": 280,
-            },
+            params={"offset": 1, "width": 280},
         )
-        assert data_uri == api_response
+        assert data_uri == "data:image/jpeg;base64,ABCD"
 
     def test_thumbnail_raises_if_response_not_image(self, svc, http_service):
         http_service.get.return_value = factories.requests.Response(
@@ -152,7 +130,7 @@ class TestJSTORService:
     def get_service(self, http_service):
         return partial(
             JSTORService,
-            api_url=JSTOR_API_URL,
+            api_url=API_URL,
             secret=sentinel.secret,
             enabled=True,
             site_code=sentinel.site_code,
@@ -162,6 +140,10 @@ class TestJSTORService:
     @pytest.fixture
     def svc(self, get_service):
         return get_service()
+
+    @pytest.fixture
+    def ArticleMetadata(self, patch):
+        return patch("lms.services.jstor.service.ArticleMetadata")
 
     @pytest.fixture
     def via_url(self, patch):
