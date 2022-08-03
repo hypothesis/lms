@@ -14,6 +14,9 @@ class TestArticleMetadata:
                 "subtitle": "Subtitle",
                 "has_pdf": True,
                 "requestor_access_level": "full_access",
+                "next": "next",
+                "previous": "previous",
+                "journal": "Journal title",
             }
         )
 
@@ -22,6 +25,8 @@ class TestArticleMetadata:
         assert data == {
             "item": {"title": "Title", "subtitle": "Subtitle"},
             "content_status": "available",
+            "container": {"type": "journal", "title": "Journal title"},
+            "related_items": {"next_id": "next", "previous_id": "previous"},
         }
 
     def test_from_request_with_bad_response(self):
@@ -29,6 +34,44 @@ class TestArticleMetadata:
             ArticleMetadata.from_response(
                 factories.requests.Response(json_data={"not": "valid"})
             )
+
+    @pytest.mark.parametrize(
+        "response,related_items",
+        (
+            ({}, {}),
+            ({"next": "", "previous": ""}, {}),
+            (
+                {"next": "next", "previous": "previous"},
+                {"next_id": "next", "previous_id": "previous"},
+            ),
+        ),
+    )
+    def test_related_items(self, response, related_items):
+        assert ArticleMetadata(response).related_items == related_items
+
+    @pytest.mark.parametrize(
+        "response,container",
+        (
+            ({}, {"type": None, "title": None}),
+            ({"book_title": "book_title"}, {"type": "book", "title": "book_title"}),
+            (
+                {"book_title": " <a> book_title</a> "},
+                {"type": "book", "title": "book_title"},
+            ),
+            (
+                {"book_title": "book_title", "book_subtitle": "book_subtitle"},
+                {"type": "book", "title": "book_title", "subtitle": "book_subtitle"},
+            ),
+            ({"journal": "journal"}, {"type": "journal", "title": "journal"}),
+            ({"journal": " <a>journal</a> "}, {"type": "journal", "title": "journal"}),
+            (
+                {"book_title": "book_title", "journal": "journal"},
+                {"type": "book", "title": "book_title"},
+            ),
+        ),
+    )
+    def test_container_title(self, response, container):
+        assert ArticleMetadata(response).container == container
 
     @pytest.mark.parametrize(
         "response,expected_titles",
