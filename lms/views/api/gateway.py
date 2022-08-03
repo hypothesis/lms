@@ -58,7 +58,10 @@ def h_lti(context, request):
     # anything until they launch an assignment and get put in a group.
     request.find_service(name="lti_h").sync([context.course], request.lti_params)
 
-    return {"api": {"h": _GatewayService.render_h_connection_info(request)}}
+    return {
+        "api": {"h": _GatewayService.render_h_connection_info(request)},
+        "data": _GatewayService.render_lti_context(request),
+    }
 
 
 class _GatewayService:
@@ -91,4 +94,20 @@ class _GatewayService:
                     "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
                 },
             },
+        }
+
+    @classmethod
+    def render_lti_context(cls, request):
+        h_user = request.lti_user.h_user
+        authority = request.registry.settings["h_authority"]
+
+        return {
+            # Details of the current user
+            "profile": {
+                "userid": h_user.userid(authority),
+                "display_name": h_user.display_name,
+                "lti": {
+                    "user_id": h_user.provider_unique_id,
+                },
+            }
         }

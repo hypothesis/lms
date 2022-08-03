@@ -3,12 +3,14 @@ from unittest.mock import create_autospec, sentinel
 
 import importlib_resources
 import pytest
+from h_matchers import Any
 from jsonschema import Draft202012Validator
 from pyramid.httpexceptions import HTTPForbidden
 
 from lms.models import ReusedConsumerKey
 from lms.resources import LTILaunchResource
 from lms.views.api.gateway import _GatewayService, h_lti
+from tests import factories
 
 
 @pytest.mark.usefixtures("lti_h_service")
@@ -19,8 +21,10 @@ class TestHLTI:
         _GatewayService.render_h_connection_info.assert_called_once_with(
             pyramid_request
         )
+        _GatewayService.render_lti_context.assert_called_once_with(pyramid_request)
         assert response == {
-            "api": {"h": _GatewayService.render_h_connection_info.return_value}
+            "api": {"h": _GatewayService.render_h_connection_info.return_value},
+            "data": _GatewayService.render_lti_context.return_value,
         }
 
     def test_it_checks_for_guid_agreement(self, context, pyramid_request):
@@ -69,6 +73,19 @@ class Test_GatewayService:
                     "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
                 },
             },
+        }
+
+    def test_render_lti_context_renders_profile(self, pyramid_request):
+        pyramid_request.lti_user = factories.LTIUser(
+            user_id=sentinel.user_id, display_name=sentinel.display_name
+        )
+
+        data = _GatewayService.render_lti_context(pyramid_request)
+
+        assert data["profile"] == {
+            "display_name": sentinel.display_name,
+            "lti": {"user_id": sentinel.user_id},
+            "userid": Any.string.matching("^acct:.*@TEST_AUTHORITY$"),
         }
 
 

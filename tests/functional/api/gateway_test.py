@@ -34,8 +34,9 @@ class TestGatewayHLTI:
                         "method": "POST",
                         "url": TEST_SETTINGS["h_api_url_public"] + "token",
                     },
-                }
-            }
+                },
+            },
+            "data": Any.dict(),
         }
 
     @pytest.mark.parametrize(
