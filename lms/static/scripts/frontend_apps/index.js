@@ -55,6 +55,9 @@ export function init() {
         services.set(GradingService, gradingService);
 
         if (config.contentBanner) {
+          // Fetch data for content info banner displayed by the client. If this
+          // fails, the banner won't be shown but everything else should
+          // continue to work.
           contentInfoFetcher.fetch(config.contentBanner);
         }
 
