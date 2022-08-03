@@ -15,6 +15,15 @@ class _ArticleMetadataSchema(RequestsResponseSchema):
     title = fields.Str()
     subtitle = fields.Str()
 
+    # Ids of the related items
+    next = fields.Str()
+    previous = fields.Str()
+
+    # Titles of the containing item
+    book_title = fields.Str()
+    book_subtitle = fields.Str()
+    journal = fields.Str()
+
     reviewed_works = fields.List(fields.Str())
     """List of titles of works that this item is a review of."""
 
@@ -47,7 +56,23 @@ class ArticleMetadata:
         return cls(_ArticleMetadataSchema(response).parse())
 
     def as_dict(self):
-        return {"item": self.titles, "content_status": self.content_status}
+        return {
+            "item": self.titles,
+            "container": self.container,
+            "content_status": self.content_status,
+            "related_items": self.related_items,
+        }
+
+    @property
+    def container(self):
+        if titles := self._get_titles("book_title", "book_subtitle"):
+            titles["type"] = "book"
+            return titles
+
+        if journal := self._data.get("journal"):
+            return {"type": "journal", "title": self._strip_html_tags(journal)}
+
+        return {"type": None, "title": None}
 
     @property
     def content_status(self) -> str:
@@ -62,6 +87,18 @@ class ArticleMetadata:
         # This item has content, but the current institution does not have
         # access to it
         return "no_access"
+
+    @property
+    def related_items(self):
+        items = {}
+
+        if next_id := self._data.get("next"):
+            items["next_id"] = next_id
+
+        if previous_id := self._data.get("previous"):
+            items["previous_id"] = previous_id
+
+        return items
 
     @property
     def titles(self) -> dict:
