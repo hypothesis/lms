@@ -15,6 +15,7 @@ const minimalConfig = {
 
 describe('LMS frontend entry', () => {
   let container;
+  let fakeContentInfoFetcher;
   let fakeReadConfig;
 
   beforeEach(() => {
@@ -22,6 +23,9 @@ describe('LMS frontend entry', () => {
     container.id = 'app';
     document.body.append(container);
 
+    fakeContentInfoFetcher = {
+      fetch: sinon.stub(),
+    };
     fakeReadConfig = sinon.stub().returns(minimalConfig);
 
     $imports.$mock({
@@ -45,6 +49,7 @@ describe('LMS frontend entry', () => {
 
       './services': {
         ClientRPC: sinon.stub(),
+        ContentInfoFetcher: sinon.stub().returns(fakeContentInfoFetcher),
         GradingService: sinon.stub(),
         Services,
         VitalSourceService: sinon.stub(),
@@ -81,6 +86,17 @@ describe('LMS frontend entry', () => {
       init();
 
       assert.ok(container.querySelector(`[data-component=${appComponent}`));
+    });
+  });
+
+  describe('LTI launch', () => {
+    it('fetches data for content banner, if configured', () => {
+      const contentBanner = { source: 'jstor', itemId: '12345' };
+      fakeReadConfig.returns({ ...minimalConfig, contentBanner });
+
+      init();
+
+      assert.calledWith(fakeContentInfoFetcher.fetch, contentBanner);
     });
   });
 });
