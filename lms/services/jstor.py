@@ -1,7 +1,5 @@
 from datetime import timedelta
-from enum import Enum, auto
 from html.parser import HTMLParser
-from typing import TypedDict
 from urllib.parse import quote
 
 import requests
@@ -47,22 +45,17 @@ class JSTORMetadataSchema(RequestsResponseSchema):
     """
 
 
-class ContentStatus(Enum):
+class _ContentStatus:
     """Indicates whether an item has content available for use with Hypothesis."""
 
-    AVAILABLE = auto()
+    AVAILABLE = "available"
     """Content is available for the item."""
 
-    NO_CONTENT = auto()
+    NO_CONTENT = "no_content"
     """Item does not have associated content (eg. a PDF)."""
 
-    NO_ACCESS = auto()
+    NO_ACCESS = "no_access"
     """This item has content, but the current institution does not have access to it."""
-
-
-class MetadataResult(TypedDict):
-    title: str
-    content_status: ContentStatus
 
 
 class JSTORService:
@@ -124,7 +117,7 @@ class JSTORService:
             options={"via.client.contentPartner": "jstor"},
         )
 
-    def metadata(self, article_id: str) -> MetadataResult:
+    def get_article_metadata(self, article_id: str):
         """
         Fetch metadata about a JSTOR article.
 
@@ -134,12 +127,12 @@ class JSTORService:
         response = self._api_request("/metadata/{doi}", doi=article_id)
         metadata = JSTORMetadataSchema(response).parse()
 
-        if metadata["has_pdf"] and metadata["requestor_access_level"] == "full_access":
-            content_status = ContentStatus.AVAILABLE
-        elif metadata["has_pdf"]:
-            content_status = ContentStatus.NO_ACCESS
+        if not metadata["has_pdf"]:
+            content_status = _ContentStatus.NO_CONTENT
+        elif metadata["requestor_access_level"] == "full_access":
+            content_status = _ContentStatus.AVAILABLE
         else:
-            content_status = ContentStatus.NO_CONTENT
+            content_status = _ContentStatus.NO_ACCESS
 
         return {
             "title": self._get_title_from_metadata(metadata),
