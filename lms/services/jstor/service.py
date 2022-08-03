@@ -1,61 +1,13 @@
 from datetime import timedelta
-from html.parser import HTMLParser
 from urllib.parse import quote
 
 import requests
-from marshmallow import fields
 
 from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService
+from lms.services.jstor._article_metadata import ArticleMetadata
 from lms.services.jwt import JWTService
-from lms.validation._base import RequestsResponseSchema
 from lms.views.helpers import via_url
-
-
-class JSTORMetadataSchema(RequestsResponseSchema):
-    """
-    Response schema for `/metadata/{doi}` endpoint in the JSTOR API.
-
-    See https://labs.jstor.org/api/anno/docs
-    """
-
-    title = fields.Str()
-    subtitle = fields.Str()
-
-    reviewed_works = fields.List(fields.Str())
-    """List of titles of works that this item is a review of."""
-
-    has_pdf = fields.Boolean(required=True)
-    """
-    Does this item have a PDF?
-
-    This can be false if the item is a collection (eg. of book chapters or
-    journal articles).
-    """
-
-    requestor_access_level = fields.Str(required=True)
-    """
-    Does the current institution have access to the PDF?
-
-    The "current" institution is the one identified by the site code specified
-    in the Authorization header of the request.
-
-    This will be "full_access" if the institution has access to the PDF,
-    or another value (eg. "preview_access") otherwise.
-    """
-
-
-class _ContentStatus:
-    """Indicates whether an item has content available for use with Hypothesis."""
-
-    AVAILABLE = "available"
-    """Content is available for the item."""
-
-    NO_CONTENT = "no_content"
-    """Item does not have associated content (eg. a PDF)."""
-
-    NO_ACCESS = "no_access"
-    """This item has content, but the current institution does not have access to it."""
 
 
 class JSTORService:
@@ -125,19 +77,8 @@ class JSTORService:
         """
 
         response = self._api_request("/metadata/{doi}", doi=article_id)
-        metadata = JSTORMetadataSchema(response).parse()
 
-        if not metadata["has_pdf"]:
-            content_status = _ContentStatus.NO_CONTENT
-        elif metadata["requestor_access_level"] == "full_access":
-            content_status = _ContentStatus.AVAILABLE
-        else:
-            content_status = _ContentStatus.NO_ACCESS
-
-        return {
-            "title": self._get_title_from_metadata(metadata),
-            "content_status": content_status,
-        }
+        return ArticleMetadata.from_response(response).as_dict()
 
     def thumbnail(self, article_id: str):
         """
@@ -193,42 +134,3 @@ class JSTORService:
         return self._http.get(
             url=url, headers={"Authorization": f"Bearer {token}"}, params=params
         )
-
-    @classmethod
-    def _get_title_from_metadata(cls, metadata: dict) -> str:
-        # Reviews of other works may not have a title of their own, but we can
-        # generate one from the reviewed work's metadata.
-        if reviewed_works := metadata.get("reviewed_works"):
-            title = f"Review: {reviewed_works[0]}"
-
-        # Journal articles, book chapters and research reports have a title
-        # field with a single entry.
-        elif title := metadata.get("title"):
-
-            # Some articles have a subtitle which needs to be appended for the
-            # title to make sense.
-            if subtitle := metadata.get("subtitle"):
-                # Some titles include a trailing ':' delimiter, some do not.
-                title = f"{title.rstrip(':')}: {subtitle}"
-
-        else:
-            title = "[Unknown title]"
-
-        # Some titles contain HTML formatting tags, new lines or unwanted
-        # extra spaces. Strip these to simplify downstream processing.
-        return cls._strip_html_tags(title)
-
-    @staticmethod
-    def _strip_html_tags(html: str) -> str:
-        """Get plain text from a string which may contain HTML tags."""
-
-        # Extract text nodes using HTMLParser. We rely on it being tolerant of
-        # invalid markup.
-        chunks = []
-        parser = HTMLParser()
-        parser.handle_data = chunks.append
-        parser.feed(html)
-        parser.close()
-
-        # Strip leading/trailing whitespace and duplicate spaces
-        return " ".join("".join(chunks).split())

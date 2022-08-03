@@ -5,7 +5,8 @@ from unittest.mock import sentinel
 import pytest
 
 from lms.services import ExternalRequestError
-from lms.services.jstor.service import JSTORService, _ContentStatus
+from lms.services.jstor._article_metadata import _ContentStatus
+from lms.services.jstor.service import JSTORService
 from tests import factories
 
 JSTOR_API_URL = "http://api.jstor.org"
