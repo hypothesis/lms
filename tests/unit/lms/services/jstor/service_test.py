@@ -5,14 +5,10 @@ from unittest.mock import sentinel
 import pytest
 
 from lms.services import ExternalRequestError
-from lms.services.jstor._article_metadata import _ContentStatus
 from lms.services.jstor.service import JSTORService
 from tests import factories
 
 JSTOR_API_URL = "http://api.jstor.org"
-
-# Defaults for required fields in `/metadata/{doi}` responses.
-METADATA_RESPONSE_DEFAULTS = {"has_pdf": True, "requestor_access_level": "full_access"}
 
 
 class TestJSTORService:
@@ -77,91 +73,22 @@ class TestJSTORService:
         ],
     )
     def test_get_article_metadata(
-        self, svc, http_service, article_id, expected_api_url
+        self, svc, http_service, article_id, expected_api_url, ArticleMetadata
     ):
-        http_service.get.return_value = factories.requests.Response(
-            json_data=METADATA_RESPONSE_DEFAULTS
-        )
-
         response = svc.get_article_metadata(article_id)
 
         http_service.get.assert_called_with(
             url=expected_api_url, headers={"Authorization": "Bearer TOKEN"}, params=None
         )
-        assert response == {"content_status": "available", "title": "[Unknown title]"}
-
-    @pytest.mark.parametrize(
-        "api_response, expected_title",
-        [
-            # Simple title
-            ({"title": ""}, "[Unknown title]"),
-            ({"title": "SIMPLE"}, "SIMPLE"),
-            ({"title": "SIMPLE", "subtitle": ""}, "SIMPLE"),
-            ({"title": "SIMPLE", "subtitle": "SUBTITLE"}, "SIMPLE: SUBTITLE"),
-            ({"title": "SIMPLE:", "subtitle": "SUBTITLE"}, "SIMPLE: SUBTITLE"),
-            # Article that is a review of another work
-            # These have null "tb" and "tbsub" fields, which should be ignored
-            (
-                {"title": "Ignored", "reviewed_works": ["Reviewed work"]},
-                "Review: Reviewed work",
-            ),
-            # Titles with extra whitespace, new lines or HTML should be cleaned up.
-            ({"title": "   A \n B   \t   C  "}, "A B C"),
-            ({"title": "A <em>B</em>", "subtitle": "C <em>D</em> E"}, "A B: C D E"),
-            ({"title": "A<b>B"}, "AB"),
-            # This isn't a tag!
-            ({"title": "A<B"}, "A<B"),
-        ],
-    )
-    def test_get_article_metadata_formats_title(
-        self, svc, http_service, api_response, expected_title
-    ):
-        http_service.get.return_value = factories.requests.Response(
-            json_data={**METADATA_RESPONSE_DEFAULTS, **api_response}
+        ArticleMetadata.from_response.assert_called_once_with(
+            http_service.get.return_value
         )
+        meta = ArticleMetadata.from_response.return_value
+        assert response == meta.as_dict.return_value
 
-        metadata = svc.get_article_metadata("12345")
-
-        assert metadata["title"] == expected_title
-
-    @pytest.mark.parametrize(
-        "has_pdf, access_level, expected_status",
-        [
-            (True, "full_access", _ContentStatus.AVAILABLE),
-            (False, "full_access", _ContentStatus.NO_CONTENT),
-            (True, "preview_access", _ContentStatus.NO_ACCESS),
-        ],
-    )
-    def test_get_article_metadata_returns_content_status(
-        self, svc, http_service, has_pdf, access_level, expected_status
-    ):
-        api_response = {"has_pdf": has_pdf, "requestor_access_level": access_level}
-        http_service.get.return_value = factories.requests.Response(
-            json_data=api_response
-        )
-
-        metadata = svc.get_article_metadata("12345")
-
-        assert metadata["content_status"] == expected_status
-
-    @pytest.mark.parametrize(
-        "api_response",
-        [
-            {"title": ["This should be a string"], **METADATA_RESPONSE_DEFAULTS},
-            {"title": "Test with missing fields"},
-        ],
-    )
-    def test_get_article_metadata_raises_if_schema_mismatch(
-        self, svc, http_service, api_response
-    ):
-        http_service.get.return_value = factories.requests.Response(
-            json_data=api_response
-        )
-
-        with pytest.raises(ExternalRequestError) as exc:
-            svc.get_article_metadata("1234")
-
-        assert exc.value.validation_errors is not None
+    @pytest.fixture
+    def ArticleMetadata(self, patch):
+        return patch("lms.services.jstor.service.ArticleMetadata")
 
     @pytest.mark.parametrize(
         "article_id, api_response, expected_api_url",
