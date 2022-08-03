@@ -20,12 +20,10 @@ class LMSDBContext(StepContext):
         super().__init__(**kwargs)
         self.engine = sqlalchemy.create_engine(TEST_DATABASE_URL)
         self.session_maker = sessionmaker(bind=self.engine.connect())
-        db.init(self.engine, stamp=False)
+        db.init(self.engine, stamp=False, drop=True)
 
         self.session = None
         self.modified_tables = None
-
-        self._initial_wipe()
 
     def create_row(self, model_class, data):
         model_class = getattr(models, model_class)
@@ -42,13 +40,6 @@ class LMSDBContext(StepContext):
         table_names = ", ".join(f'"{table.name}"' for table in tables)
         self.session.execute(f"TRUNCATE {table_names} CASCADE;")
         self.session.commit()
-
-    def _initial_wipe(self):
-        self.session = self.session_maker()
-        try:
-            self.wipe(db.BASE.metadata.sorted_tables)
-        finally:
-            self.session.close()
 
     def do_setup(self):
         self.session = self.session_maker()
