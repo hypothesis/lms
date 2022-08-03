@@ -1,7 +1,7 @@
 import pytest
 
 from lms.services import ExternalRequestError
-from lms.services.jstor._article_metadata import ArticleMetadata, _ContentStatus
+from lms.services.jstor._article_metadata import ArticleMetadata
 from tests import factories
 
 
@@ -68,9 +68,9 @@ class TestArticleMetadata:
     @pytest.mark.parametrize(
         "has_pdf, access_level, expected_status",
         [
-            (True, "full_access", _ContentStatus.AVAILABLE),
-            (False, "full_access", _ContentStatus.NO_CONTENT),
-            (True, "preview_access", _ContentStatus.NO_ACCESS),
+            (True, "full_access", "available"),
+            (False, "full_access", "no_content"),
+            (True, "preview_access", "no_access"),
         ],
     )
     def test_get_article_metadata_returns_content_status(
