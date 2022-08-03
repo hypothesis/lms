@@ -20,27 +20,14 @@ class TestArticleMetadata:
 
         assert data == {"content_status": "available", "title": "Title"}
 
-    @pytest.mark.parametrize(
-        "response",
-        [
-            {
-                "title": ["This should be a string"],
-                "has_pdf": True,
-                "requestor_access_level": "full_access",
-            },
-            {"title": "Test with missing fields"},
-        ],
-    )
-    def test_from_request_with_bad_responses(self, response):
-        with pytest.raises(ExternalRequestError) as exc:
+    def test_from_request_with_bad_response(self):
+        with pytest.raises(ExternalRequestError):
             ArticleMetadata.from_response(
-                factories.requests.Response(json_data=response)
+                factories.requests.Response(json_data={"not": "valid"})
             )
 
-        assert exc.value.validation_errors is not None
-
     @pytest.mark.parametrize(
-        "response, expected_title",
+        "response,expected_title",
         [
             # Simple title
             ({"title": ""}, "[Unknown title]"),
@@ -66,7 +53,7 @@ class TestArticleMetadata:
         assert ArticleMetadata(response).title == expected_title
 
     @pytest.mark.parametrize(
-        "has_pdf, access_level, expected_status",
+        "has_pdf,access_level,expected_status",
         [
             (True, "full_access", "available"),
             (False, "full_access", "no_content"),
