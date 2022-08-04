@@ -6,7 +6,20 @@ describe('ContentInfoFetcher', () => {
   let fakeClientRPC;
 
   beforeEach(() => {
-    fakeAPICall = sinon.stub().resolves({ item: { title: 'Test article' } });
+    fakeAPICall = sinon.stub().resolves({
+      container: {
+        title: 'Test container',
+        subtitle: 'Test container subtitle',
+      },
+      item: {
+        title: 'Test article',
+        subtitle: 'Test article subtitle',
+      },
+      related_items: {
+        previous_id: '111111',
+        next_id: '333333',
+      },
+    });
     fakeClientRPC = {
       showContentInfo: sinon.stub().resolves(),
     };
@@ -42,12 +55,21 @@ describe('ContentInfoFetcher', () => {
           title: 'JSTOR homepage',
           link: 'https://www.jstor.org',
         },
+        container: {
+          title: 'Test container',
+          subtitle: 'Test container subtitle',
+        },
         item: {
           title: 'Test article',
-          containerTitle: '',
+          subtitle: 'Test article subtitle',
+          containerTitle: 'Test container',
         },
 
-        links: {},
+        links: {
+          currentItem: 'https://www.jstor.org/stable/123456',
+          nextItem: 'https://www.jstor.org/stable/333333',
+          previousItem: 'https://www.jstor.org/stable/111111',
+        },
       });
     });
 

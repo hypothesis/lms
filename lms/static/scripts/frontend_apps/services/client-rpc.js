@@ -38,8 +38,9 @@ import { JWT } from '../utils/jwt';
  *
  * @typedef ContentInfoItem
  * @prop {string} title - Title of the current article, chapter etc.
- * @prop {string} containerTitle - Title of the journal issue, book etc. which
- *   contains the current work
+ * @prop {string} [subtitle]
+ * @prop {string} [containerTitle] - Title of the journal issue, book etc. which
+ *   contains the current work. DEPRECATED
  */
 
 /**
@@ -48,6 +49,7 @@ import { JWT } from '../utils/jwt';
  * @typedef ContentInfoLinks
  * @prop {string} [previousItem] - Previous item in the book, journal etc.
  * @prop {string} [nextItem] - Next item in the book, journal etc.
+ * @prop {string} currentItem
  */
 
 /**
@@ -58,6 +60,7 @@ import { JWT } from '../utils/jwt';
  * @typedef {object} ContentInfoConfig
  * @prop {ContentInfoLogo} logo - Logo of the content provider
  * @prop {ContentInfoItem} item
+ * @prop {ContentInfoItem} container
  * @prop {ContentInfoLinks} links
  */
 
