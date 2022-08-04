@@ -5,7 +5,7 @@ from unittest.mock import sentinel
 import pytest
 
 from lms.services import ExternalRequestError
-from lms.services.jstor.service import JSTORService
+from lms.services.jstor.service import ArticleNotFound, JSTORService
 from tests import factories
 
 API_URL = "http://api.jstor.org"
@@ -84,6 +84,32 @@ class TestJSTORService:
         assert response == meta.as_dict.return_value
 
     @pytest.mark.parametrize(
+        "response,exception",
+        (
+            ({}, ArticleNotFound),
+            ({"headers": {"Content-Type": "application/json"}}, ArticleNotFound),
+            ({"headers": {"Content-Type": "text/html"}}, ExternalRequestError),
+            ({"status_code": 501}, ExternalRequestError),
+            ({"raw": "Any"}, ExternalRequestError),
+        ),
+    )
+    def test_get_article_metadata_handles_404s(
+        self, svc, http_service, response, exception
+    ):
+        # The exact values that indicate a missing resource
+        resp_kwargs = {
+            "status_code": 404,
+            "headers": {"Content-Type": "application/json;charset=UTF-8"},
+            "raw": "null",
+        }
+        http_service.get.side_effect = ExternalRequestError(
+            response=factories.requests.Response(**dict(resp_kwargs, **response))
+        )
+
+        with pytest.raises(exception):
+            svc.get_article_metadata("article_id")
+
+    @pytest.mark.parametrize(
         "article_id,expected_api_url",
         [
             # Typical JSTOR article, with no DOI prefix given
@@ -117,6 +143,29 @@ class TestJSTORService:
             svc.thumbnail("1234")
 
         assert exc_info.value.message.startswith("Expected to get data URI")
+
+    @pytest.mark.parametrize(
+        "response,exception",
+        (
+            ({}, ArticleNotFound),
+            ({"headers": {"Content-Type": "text/plain"}}, ArticleNotFound),
+            ({"headers": {"Content-Type": "application/json"}}, ExternalRequestError),
+            ({"status_code": 501}, ExternalRequestError),
+        ),
+    )
+    def test_thumbnail_handles_404s(self, svc, http_service, response, exception):
+        # The exact values that indicate a missing resource
+        resp_kwargs = {
+            "status_code": 404,
+            "headers": {"Content-Type": "text/plain;charset=UTF-8"},
+        }
+
+        http_service.get.side_effect = ExternalRequestError(
+            response=factories.requests.Response(**dict(resp_kwargs, **response))
+        )
+
+        with pytest.raises(exception):
+            svc.thumbnail("article_id")
 
     @pytest.fixture
     def http_service(self, http_service):

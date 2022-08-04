@@ -3,11 +3,16 @@ from urllib.parse import quote
 
 import requests
 
-from lms.services.exceptions import ExternalRequestError
+from lms.services.exceptions import ExternalRequestError, SerializableError
 from lms.services.http import HTTPService
 from lms.services.jstor._article_metadata import ArticleMetadata
 from lms.services.jwt import JWTService
 from lms.views.helpers import via_url
+
+
+class ArticleNotFound(SerializableError):
+    def __init__(self, article_id):
+        super().__init__(message=f"Article '{article_id}' not found")
 
 
 class JSTORService:
@@ -69,18 +74,36 @@ class JSTORService:
             options={"via.client.contentPartner": "jstor"},
         )
 
-    def get_article_metadata(self, article_id: str):
+    def get_article_metadata(self, article_id: str) -> dict:
         """
         Fetch metadata about a JSTOR article.
 
         :param article_id: A JSTOR article ID or DOI
+        :raise ArticleNotFound: If the article cannot be found
+        :raise ExternalRequestError: For any unexpected errors
         """
 
-        response = self._api_request("/metadata/{doi}", doi=article_id)
+        try:
+            response = self._api_request("/metadata/{doi}", doi=article_id)
+
+        except ExternalRequestError as err:
+            # We can distinguish between a 404 when the URL is wrong, and when
+            # the URL is correct but the article can't be found by carefully
+            # inspecting the response. There's no documentation of this, it's
+            # all from experimentation.
+            resp = err.response
+            if (
+                resp.status_code == 404
+                and resp.headers.get("Content-Type", "").startswith("application/json")
+                and resp.text == "null"
+            ):
+                raise ArticleNotFound(article_id) from err
+
+            raise
 
         return ArticleMetadata.from_response(response).as_dict()
 
-    def thumbnail(self, article_id: str):
+    def thumbnail(self, article_id: str) -> str:
         """
         Fetch a thumbnail image for an article.
 
@@ -90,22 +113,37 @@ class JSTORService:
         :param article_id: A JSTOR article ID or DOI
         :raise ExternalRequestError: If the response doesn't look like a valid
             `data:` URI
+        :raise ArticleNotFound: If the article cannot be found
         """
 
-        data_uri = self._api_request(
-            "/thumbnail/{doi}",
-            doi=article_id,
-            params={
-                # `offset` specifies the page number. The default value of 0
-                # returns the thumbnail of the last page. Setting it to 1
-                # returns the first page.
-                "offset": 1,
-                # The frontend displays the image with a width of ~140px,
-                # so 280px has enough resolution for a 2x device pixel ratio.
-                # The height will be adjusted to maintain the aspect ratio.
-                "width": 280,
-            },
-        ).text
+        try:
+            data_uri = self._api_request(
+                "/thumbnail/{doi}",
+                doi=article_id,
+                params={
+                    # `offset` specifies the page number. The default value of 0
+                    # returns the thumbnail of the last page. Setting it to 1
+                    # returns the first page.
+                    "offset": 1,
+                    # The frontend displays the image with a width of ~140px,
+                    # so 280px has enough resolution for a 2x device pixel ratio.
+                    # The height will be adjusted to maintain the aspect ratio.
+                    "width": 280,
+                },
+            ).text
+
+        except ExternalRequestError as err:
+            # We can distinguish between a 404 when the URL is wrong, and when
+            # the URL is correct but the article can't be found by carefully
+            # inspecting the response. There's no documentation of this, it's
+            # all from experimentation.
+            resp = err.response
+            if resp.status_code == 404 and resp.headers.get(
+                "Content-Type", ""
+            ).startswith("text/plain"):
+                raise ArticleNotFound(article_id) from err
+
+            raise
 
         if not data_uri.startswith("data:"):
             raise ExternalRequestError(
@@ -124,7 +162,7 @@ class JSTORService:
         if "/" not in doi:
             doi = f"{self.DEFAULT_DOI_PREFIX}/{doi}"
 
-        url = self._api_url + path_template.format(doi=quote(doi, safe="/"))
+        url = self._api_url.rstrip("/") + path_template.format(doi=quote(doi, safe="/"))
 
         token = JWTService.encode_with_secret(
             {"site_code": self._site_code},
