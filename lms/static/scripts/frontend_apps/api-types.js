@@ -51,9 +51,13 @@
 /**
  * Response for an `/api/jstor/articles/{article_id}` call.
  *
+ * @typedef JSTORContentItemInfo
+ * @prop {string} title
+ * @prop {string} [subtitle]
+ *
  * @typedef JSTORMetadata
  * @prop {'available'|'no_content'|'no_access'} content_status
- * @prop {string} title
+ * @prop {JSTORContentItemInfo} item
  */
 
 /**

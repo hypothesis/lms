@@ -6,7 +6,7 @@ describe('ContentInfoFetcher', () => {
   let fakeClientRPC;
 
   beforeEach(() => {
-    fakeAPICall = sinon.stub().resolves({ title: 'Test article' });
+    fakeAPICall = sinon.stub().resolves({ item: { title: 'Test article' } });
     fakeClientRPC = {
       showContentInfo: sinon.stub().resolves(),
     };

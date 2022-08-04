@@ -54,7 +54,7 @@ export class ContentInfoFetcher {
         link: 'https://www.jstor.org',
       },
       item: {
-        title: metadata.title,
+        title: metadata.item.title,
 
         // TODO - Fill in this information from the API
         containerTitle: '',
