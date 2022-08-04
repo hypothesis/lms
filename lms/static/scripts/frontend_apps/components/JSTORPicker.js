@@ -211,7 +211,12 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
               {canConfirmSelection && (
                 <Icon name="check" classes="text-green-success" />
               )}
-              <div className="grow font-bold italic">{metadata.data.title}</div>
+              <div className="grow font-bold italic">
+                {metadata.data.item.title}
+                {metadata.data.item.subtitle && (
+                  <>: {metadata.data.item.subtitle}</>
+                )}
+              </div>
             </div>
           )}
 

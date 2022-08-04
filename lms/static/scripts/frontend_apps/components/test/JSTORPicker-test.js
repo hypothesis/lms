@@ -29,7 +29,10 @@ describe('JSTORPicker', () => {
 
   function simulateMetadataFetch(wrapper, title, otherMetadata = {}) {
     simulateAPIFetch(wrapper, '/api/jstor/articles/1234', {
-      title,
+      item: {
+        title: title,
+        subtitle: 'The sequel',
+      },
       content_status: 'available',
       ...otherMetadata,
     });
@@ -232,7 +235,7 @@ describe('JSTORPicker', () => {
     simulateMetadataFetch(wrapper, 'Some interesting article');
     simulateThumbnailFetch(wrapper);
 
-    assert.include(wrapper.text(), 'Some interesting article');
+    assert.include(wrapper.text(), 'Some interesting article: The sequel');
     const thumbnail = wrapper.find('img');
     assert.equal(thumbnail.prop('src'), 'data:thumbnail-image-data');
   });
