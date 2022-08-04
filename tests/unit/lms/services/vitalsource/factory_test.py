@@ -1,6 +1,7 @@
 from unittest.mock import sentinel
 
 import pytest
+from h_matchers import Any
 
 from lms.services.vitalsource.factory import service_factory
 
@@ -29,6 +30,15 @@ class TestServiceFactory:
         VitalSourceService.assert_called_once_with(
             client=VitalSourceClient.return_value, enabled=expected
         )
+        assert svc == VitalSourceService.return_value
+
+    @pytest.mark.usefixtures("application_instance_service")
+    def test_it_when_no_api_key(self, pyramid_request, VitalSourceService):
+        pyramid_request.registry.settings["vitalsource_api_key"] = None
+
+        svc = service_factory(sentinel.context, pyramid_request)
+
+        VitalSourceService.assert_called_once_with(client=None, enabled=Any())
         assert svc == VitalSourceService.return_value
 
     @pytest.fixture
