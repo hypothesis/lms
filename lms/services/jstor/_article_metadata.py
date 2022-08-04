@@ -47,7 +47,7 @@ class ArticleMetadata:
         return cls(_ArticleMetadataSchema(response).parse())
 
     def as_dict(self):
-        return {"title": self.title, "content_status": self.content_status}
+        return {"item": self.titles, "content_status": self.content_status}
 
     @property
     def content_status(self) -> str:
@@ -64,28 +64,33 @@ class ArticleMetadata:
         return "no_access"
 
     @property
-    def title(self) -> str:
+    def titles(self) -> dict:
         # Reviews of other works may not have a title of their own, but we can
         # generate one from the reviewed work's metadata.
         if reviewed_works := self._data.get("reviewed_works"):
-            title = f"Review: {reviewed_works[0]}"
+            return {"title": self._strip_html_tags(f"Review: {reviewed_works[0]}")}
+
+        if titles := self._get_titles("title", "subtitle"):
+            return titles
+
+        return {"title": "[Unknown title]"}
+
+    def _get_titles(self, title_key, subtitle_key):
+        titles = {}
 
         # Journal articles, book chapters and research reports have a title
         # field with a single entry.
-        elif title := self._data.get("title"):
+        if title := self._data.get(title_key):
+            # Some titles have a colon on the end. We'll remove these, so we
+            # can more easily format these without checking for it.
+            titles["title"] = self._strip_html_tags(title).rstrip(": ")
 
             # Some articles have a subtitle which needs to be appended for the
             # title to make sense.
-            if subtitle := self._data.get("subtitle"):
-                # Some titles include a trailing ':' delimiter, some do not.
-                title = f"{title.rstrip(':')}: {subtitle}"
+            if subtitle := self._data.get(subtitle_key):
+                titles["subtitle"] = self._strip_html_tags(subtitle)
 
-        else:
-            title = "[Unknown title]"
-
-        # Some titles contain HTML formatting tags, new lines or unwanted
-        # extra spaces. Strip these to simplify downstream processing.
-        return self._strip_html_tags(title)
+        return titles
 
     @staticmethod
     def _strip_html_tags(html: str) -> str:
