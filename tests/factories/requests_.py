@@ -3,10 +3,10 @@ from io import BytesIO
 
 import requests
 from factory import Factory, Faker, post_generation
+from requests.structures import CaseInsensitiveDict
+
 
 # pylint:disable=no-self-argument,method-hidden
-
-
 class Response(Factory):
     class Meta:
         model = requests.Response
@@ -20,7 +20,9 @@ class Response(Factory):
     def headers(response, _create, headers, **_kwargs):
         """Lower-case all header names. Requests requires this."""
         if headers:
-            response.headers = {key.lower(): value for key, value in headers.items()}
+            response.headers = CaseInsensitiveDict(
+                {key.lower(): value for key, value in headers.items()}
+            )
 
     @post_generation
     def json_data(response, _create, json_data, **_kwargs):
