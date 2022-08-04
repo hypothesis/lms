@@ -3,7 +3,15 @@ import { apiCall, urlPath } from '../utils/api';
 /**
  * @typedef {import('../config').ContentBannerConfig} ContentBannerConfig
  * @typedef {import('./client-rpc').ContentInfoConfig} ContentInfoConfig
+ * @typedef {import('./client-rpc').ContentInfoLinks} ContentInfoLinks
  */
+
+/**
+ * @param {string} itemId
+ */
+function itemURL(itemId) {
+  return `https://www.jstor.org/stable/${itemId}`;
+}
 
 /**
  * Service that fetches metadata and links for the Hypothesis client's content
@@ -43,6 +51,18 @@ export class ContentInfoFetcher {
       path: urlPath`/api/jstor/articles/${contentId.itemId}`,
     });
 
+    const links = /** @type ContentInfoLinks */ ({
+      currentItem: itemURL(contentId.itemId),
+    });
+
+    if (metadata.related_items.next_id) {
+      links.nextItem = itemURL(metadata.related_items.next_id);
+    }
+
+    if (metadata.related_items.previous_id) {
+      links.previousItem = itemURL(metadata.related_items.previous_id);
+    }
+
     /** @type {ContentInfoConfig} */
     const contentInfo = {
       logo: {
@@ -55,13 +75,17 @@ export class ContentInfoFetcher {
       },
       item: {
         title: metadata.item.title,
-
-        // TODO - Fill in this information from the API
-        containerTitle: '',
+        subtitle: metadata.item.subtitle,
+        // TODO Remove once client updated to look this up in the
+        // `container` object
+        containerTitle: metadata.container.title,
+      },
+      container: {
+        title: metadata.container.title,
+        subtitle: metadata.container.subtitle,
       },
 
-      // TODO - Fill in these links from the API
-      links: {},
+      links,
     };
 
     return this._clientRPC.showContentInfo(contentInfo);

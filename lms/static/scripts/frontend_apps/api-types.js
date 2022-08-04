@@ -55,9 +55,15 @@
  * @prop {string} title
  * @prop {string} [subtitle]
  *
+ * @typedef JSTORRelatedItemsInfo
+ * @prop {string} [next_id]
+ * @prop {string} [previous_id]
+ *
  * @typedef JSTORMetadata
  * @prop {'available'|'no_content'|'no_access'} content_status
  * @prop {JSTORContentItemInfo} item
+ * @prop {JSTORContentItemInfo} container
+ * @prop {JSTORRelatedItemsInfo} related_items
  */
 
 /**
