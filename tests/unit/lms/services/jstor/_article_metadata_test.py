@@ -11,6 +11,7 @@ class TestArticleMetadata:
         response = factories.requests.Response(
             json_data={
                 "title": "Title",
+                "subtitle": "Subtitle",
                 "has_pdf": True,
                 "requestor_access_level": "full_access",
             }
@@ -18,7 +19,10 @@ class TestArticleMetadata:
 
         data = ArticleMetadata.from_response(response).as_dict()
 
-        assert data == {"content_status": "available", "title": "Title"}
+        assert data == {
+            "item": {"title": "Title", "subtitle": "Subtitle"},
+            "content_status": "available",
+        }
 
     def test_from_request_with_bad_response(self):
         with pytest.raises(ExternalRequestError):
@@ -27,30 +31,34 @@ class TestArticleMetadata:
             )
 
     @pytest.mark.parametrize(
-        "response,expected_title",
+        "response,expected_titles",
         [
             # Simple title
-            ({"title": ""}, "[Unknown title]"),
-            ({"title": "SIMPLE"}, "SIMPLE"),
-            ({"title": "SIMPLE", "subtitle": ""}, "SIMPLE"),
-            ({"title": "SIMPLE", "subtitle": "SUBTITLE"}, "SIMPLE: SUBTITLE"),
-            ({"title": "SIMPLE:", "subtitle": "SUBTITLE"}, "SIMPLE: SUBTITLE"),
+            ({}, {"title": "[Unknown title]"}),
+            ({"title": ""}, {"title": "[Unknown title]"}),
+            ({"title": "SIMPLE"}, {"title": "SIMPLE"}),
+            ({"title": " <b>COLON :</b> "}, {"title": "COLON"}),
+            ({"title": "SIMPLE", "subtitle": ""}, {"title": "SIMPLE"}),
+            (
+                {"title": "SIMPLE", "subtitle": "SUBTITLE"},
+                {"title": "SIMPLE", "subtitle": "SUBTITLE"},
+            ),
             # Article that is a review of another work
-            # These have null "tb" and "tbsub" fields, which should be ignored
             (
                 {"title": "Ignored", "reviewed_works": ["Reviewed work"]},
-                "Review: Reviewed work",
+                {"title": "Review: Reviewed work"},
             ),
-            # Titles with extra whitespace, new lines or HTML should be cleaned up.
-            ({"title": "   A \n B   \t   C  "}, "A B C"),
-            ({"title": "A <em>B</em>", "subtitle": "C <em>D</em> E"}, "A B: C D E"),
-            ({"title": "A<b>B"}, "AB"),
+            # Extra whitespace, new lines or HTML should be cleaned up
+            (
+                {"title": " A <em>B</em>", "subtitle": " C <em>D</em> E"},
+                {"title": "A B", "subtitle": "C D E"},
+            ),
             # This isn't a tag!
-            ({"title": "A<B"}, "A<B"),
+            ({"title": "A<B"}, {"title": "A<B"}),
         ],
     )
-    def test_title(self, response, expected_title):
-        assert ArticleMetadata(response).title == expected_title
+    def test_titles(self, response, expected_titles):
+        assert ArticleMetadata(response).titles == expected_titles
 
     @pytest.mark.parametrize(
         "has_pdf,access_level,expected_status",
