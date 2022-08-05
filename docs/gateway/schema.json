@@ -32,7 +32,27 @@
                     "lti": {
                         "user_id": "9782345"
                     }
-                }
+                },
+                "groups": [
+                    {
+                        "groupid": "group:b978234ff77e34a@lms.hypothes.is",
+                        "name": "My course name",
+                        "lms": {
+                            "id": "1234",
+                            "parentId": null,
+                            "type": "course"
+                        }
+                    },
+                    {
+                        "groupid": "group:f5b22dcb29f52e61@lms.hypothes.is",
+                        "name": "Section 1",
+                        "lms": {
+                            "id": "4321",
+                            "parentId": "1234",
+                            "type": "canvas_section"
+                        }
+                    }
+                ]
             }
         }
     ],
@@ -60,15 +80,21 @@
             },
             "required": ["h"]
         },
+
         "data": {
             "type": "object",
             "properties": {
                 "profile": {
                     "description": "Details of the current user",
                     "$ref": "#/$defs/user"
+                },
+                "groups": {
+                    "description": "A list of groups in the course which the user is a member of",
+                    "type": "array",
+                    "items": {"$ref": "#/$defs/group"}
                 }
             },
-            "required": ["profile"],
+            "required": ["profile", "groups"],
             "additionalProperties": false
         }
     },
@@ -88,6 +114,28 @@
             },
             "additionalProperties": false,
             "required": ["method", "url"]
+        },
+
+        "group": {
+            "title": "A group the user is in",
+            "type": "object",
+
+            "properties": {
+                "groupid": {"type": "string"},
+                "name": {"type": ["string", "null"]},
+                "lms": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                        "parentId": {"type": ["string", "null"]},
+                        "type": {"type": "string"}
+                    },
+                    "additionalProperties": false,
+                    "required": ["id", "parentId", "type"]
+                }
+            },
+            "additionalProperties": false,
+            "required": ["groupid", "name", "lms"]
         },
 
         "user": {
