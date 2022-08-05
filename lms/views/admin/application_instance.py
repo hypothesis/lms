@@ -177,9 +177,15 @@ class AdminApplicationInstanceViews:
             application_instance.lms_url = lms_url
 
         try:
-            # Flush here to find if we are making a duplicate in the process of upgrading
+            # Flush here to find if we are making a duplicate in the process of
+            # upgrading
             self.request.db.flush()
         except IntegrityError:
+            # Leave a clean transaction, otherwise  we get a:
+            #   "PendingRollbackError: This Session's transaction has been
+            #   rolled back due to a previous exception during flush."
+            self.request.db.rollback()
+
             return error_render_to_response(
                 self.request,
                 f"Application instance with deployment_id: {self.request.params['deployment_id']} already exists",
