@@ -4,6 +4,7 @@ import pytest
 from pyramid.httpexceptions import HTTPNotFound
 from sqlalchemy.exc import IntegrityError
 
+from lms.models import ApplicationInstance
 from lms.services import ApplicationInstanceNotFound
 from lms.views.admin.application_instance import AdminApplicationInstanceViews
 from tests import factories
@@ -177,7 +178,7 @@ class TestAdminApplicationInstanceViews:
         assert response.status_code == 400
 
     @pytest.mark.usefixtures("with_upgrade_form")
-    def test_upgrade_duplicate(self, views, lti_registration_service):
+    def test_upgrade_duplicate(self, views, db_session, lti_registration_service):
         lti_registration = factories.LTIRegistration()
         lti_registration_service.get_by_id.return_value = lti_registration
         factories.ApplicationInstance(
@@ -187,6 +188,11 @@ class TestAdminApplicationInstanceViews:
         response = views.new_instance()
 
         assert response.status_code == 400
+
+        # Show that the DB connection has not been permanently broken. This
+        # would cause us to fail completely when trying to present the error.
+        # We are checking we do _not_ raise `PendingRollbackError` here.
+        db_session.query(ApplicationInstance).all()
 
     @pytest.mark.usefixtures("with_upgrade_form")
     def test_upgrade_non_existing_instance(self, views, application_instance_service):
