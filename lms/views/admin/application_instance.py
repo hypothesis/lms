@@ -294,9 +294,35 @@ class AdminApplicationInstanceViews:
     def update_instance(self):
         ai = self._get_ai_or_404(**self.request.matchdict)
 
-        for ai_field in ["lms_url", "deployment_id"]:
-            if value := self.request.params.get(ai_field, "").strip():
-                setattr(ai, ai_field, value)
+        if lms_url := self.request.params.get("lms_url", "").strip():
+            ai.lms_url = lms_url
+
+        if deployment_id := self.request.params.get("deployment_id", "").strip():
+            if ai.lti_version == "1.3.0":
+                try:
+                    duplicated_ai = (
+                        self.application_instance_service.get_by_deployment_id(
+                            issuer=ai.lti_registration.issuer,
+                            client_id=ai.lti_registration.client_id,
+                            deployment_id=deployment_id,
+                        )
+                    )
+                except ApplicationInstanceNotFound:
+                    # No duplicated AI, we can update the current one.
+                    pass
+                else:
+                    if duplicated_ai.id != ai.id:
+                        self.request.session.flash(
+                            f"Can't set deployment_id to '{deployment_id}'. Already in use on: {self._get_ai_link(duplicated_ai)}",
+                            "errors",
+                        )
+
+                        return HTTPFound(
+                            location=self.request.route_url(
+                                "admin.instance.id", id_=ai.id
+                            )
+                        )
+            ai.deployment_id = deployment_id
 
         for setting, sub_setting, setting_type in (
             ("canvas", "sections_enabled", bool),
@@ -336,3 +362,6 @@ class AdminApplicationInstanceViews:
 
         except ApplicationInstanceNotFound as err:
             raise HTTPNotFound() from err
+
+    def _get_ai_link(self, ai) -> str:
+        return f"""<a href="{self.request.route_url('admin.instance.id', id_=ai.id)}">Application instance {ai.id}</a>"""

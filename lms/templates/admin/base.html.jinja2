@@ -53,7 +53,7 @@
     </div>
     <div class="message-body">
     {% for error in request.session.pop_flash("errors") %}
-        <ul>{{ error }}</ul>
+        <ul>{{ error|safe }}</ul>
     {% endfor %}
     </div>
     </article>
