@@ -19,6 +19,7 @@ from lms.services import (
     ExternalRequestError,
     OAuth2TokenError,
 )
+from lms.services.exceptions import SerializableError
 from lms.validation import ValidationError
 
 _ = i18n.TranslationStringFactory(__package__)
@@ -170,6 +171,7 @@ class APIExceptionViews:
         context=CanvasAPIPermissionError
     )
     @exception_view_config(context=Exception)
+    @exception_view_config(context=SerializableError)
     def api_error(self):
         """
         General fallback error handler for API requests.
@@ -178,16 +180,15 @@ class APIExceptionViews:
 
         1. The `error_code` attribute will be used as the "error_code" field in
            the response's JSON body
-
         2. The response's HTTP status will be 400
-
         3. If the exception also has a `details` attribute this will be used as
            "details" field in the response's body
 
+        You can use `SerializableError` or a child if you'd like to trigger
+        this conveniently.
+
         If the exception does not have an `error_code` attribute then:
-
         1. The response's HTTP status will be 500
-
         2. A fixed string (see below) will be used as the "message" field in
            the response's JSON body
         """
@@ -195,6 +196,7 @@ class APIExceptionViews:
         if hasattr(self.context, "error_code"):
             return ErrorBody(
                 error_code=self.context.error_code,
+                message=getattr(self.context, "message", None),
                 details=getattr(self.context, "details", None),
             )
 

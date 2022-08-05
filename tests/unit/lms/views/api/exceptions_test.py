@@ -4,11 +4,7 @@ import pytest
 import requests
 from pyramid.httpexceptions import HTTPBadRequest
 
-from lms.services import (
-    CanvasAPIPermissionError,
-    ExternalRequestError,
-    OAuth2TokenError,
-)
+from lms.services import ExternalRequestError, OAuth2TokenError, SerializableError
 from lms.validation import ValidationError
 from lms.views.api.exceptions import APIExceptionViews, ErrorBody, strip_queryparams
 from tests import factories
@@ -141,13 +137,32 @@ class TestHTTPBadRequest:
 
 
 class TestAPIError:
-    def test_it_with_a_CanvasAPIPermissionError(self, pyramid_request, views):
-        context = views.context = CanvasAPIPermissionError()
+    def test_it_with_an_APIError(self, pyramid_request, views):
+        views.context = SerializableError(
+            error_code=sentinel.error_code,
+            message=sentinel.message,
+            details=sentinel.details,
+        )
 
         error_body = views.api_error()
 
         assert pyramid_request.response.status_code == 400
-        assert error_body == ErrorBody(error_code=context.error_code)
+        assert error_body == ErrorBody(
+            error_code=sentinel.error_code,
+            message=sentinel.message,
+            details=sentinel.details,
+        )
+
+    def test_it_with_a_minimal_viable_error(self, pyramid_request, views):
+        class MinimalError:
+            error_code = sentinel.error_code
+
+        views.context = MinimalError()
+
+        error_body = views.api_error()
+
+        assert pyramid_request.response.status_code == 400
+        assert error_body == ErrorBody(error_code=sentinel.error_code)
 
     def test_it_with_an_unexpected_error(self, pyramid_request, views):
         views.context = RuntimeError("Totally unexpected")
