@@ -303,7 +303,7 @@ class TestAdminApplicationInstanceViews:
         with pytest.raises(HTTPNotFound):
             views.show_instance()
 
-    def test_update_instance(
+    def test_update_instance_no_changes(
         self, pyramid_request, application_instance_service, views
     ):
         pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
@@ -324,10 +324,7 @@ class TestAdminApplicationInstanceViews:
 
     @pytest.mark.parametrize(
         "setting,value,expected",
-        (
-            ("lms_url", "http://some-url.com", "http://some-url.com"),
-            ("deployment_id", "DEPLOYMENT_ID", "DEPLOYMENT_ID"),
-        ),
+        (("lms_url", "http://some-url.com", "http://some-url.com"),),
     )
     def test_update_instance_save_ai_fields(
         self, setting, value, expected, pyramid_request, application_instance
@@ -358,34 +355,19 @@ class TestAdminApplicationInstanceViews:
 
         assert getattr(application_instance, setting) == existing_value
 
-    def test_update_instance_deployment_id(
-        self, pyramid_request, application_instance_lti_13
+    def test_update_instance_deployment_id_on_lti_1_1(
+        self, application_instance, application_instance_service, pyramid_request
     ):
-        pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
+        application_instance_service.get_by_id.return_value = application_instance
         pyramid_request.params["deployment_id"] = "NEW_DEPLOYMENT_ID"
 
         AdminApplicationInstanceViews(pyramid_request).update_instance()
 
-        assert pyramid_request.session.peek_flash("errors")
-        application_instance_lti_13.deployment_id = "NEW_DEPLOYMENT_ID"
-
-    def test_update_instance_deployment_id_same_value(
-        self, pyramid_request, application_instance_lti_13, application_instance_service
-    ):
-        existing_deployment_id = application_instance_lti_13.deployment_id
-        application_instance_service.get_by_deployment_id.return_value = (
-            application_instance_lti_13
-        )
-        pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
-        pyramid_request.params["deployment_id"] = existing_deployment_id
-
-        AdminApplicationInstanceViews(pyramid_request).update_instance()
-
         assert not pyramid_request.session.peek_flash("errors")
-        application_instance_lti_13.deployment_id = existing_deployment_id
+        application_instance.deployment_id = "NEW_DEPLOYMENT_ID"
 
-    def test_update_instance_deployment_id_no_duplicate(
-        self, pyramid_request, application_instance_service, application_instance_lti_13
+    def test_update_instance_deployment_id_no_conflict(
+        self, pyramid_request, application_instance_lti_13, application_instance_service
     ):
         application_instance_service.get_by_id.return_value = (
             application_instance_lti_13
@@ -400,21 +382,40 @@ class TestAdminApplicationInstanceViews:
         assert not pyramid_request.session.peek_flash("errors")
         application_instance_lti_13.deployment_id = "NEW_DEPLOYMENT_ID"
 
-    def test_update_instance_duplicated_deployment_id(
+    def test_update_instance_deployment_id_no_conflict_with_itself(
+        self, pyramid_request, application_instance_lti_13, application_instance_service
+    ):
+        application_instance_service.get_by_id.return_value = (
+            application_instance_lti_13
+        )
+        existing_deployment_id = application_instance_lti_13.deployment_id
+        application_instance_service.get_by_deployment_id.return_value = (
+            application_instance_lti_13
+        )
+        pyramid_request.params["deployment_id"] = existing_deployment_id
+
+        AdminApplicationInstanceViews(pyramid_request).update_instance()
+
+        assert not pyramid_request.session.peek_flash("errors")
+        application_instance_lti_13.deployment_id = existing_deployment_id
+
+    def test_update_instance_deployment_id_with_conflict(
         self,
         db_session,
         pyramid_request,
         application_instance_lti_13,
         application_instance_service,
     ):
+        application_instance_service.get_by_id.return_value = (
+            application_instance_lti_13
+        )
         existing_ai = factories.ApplicationInstance(
             lti_registration_id=application_instance_lti_13.lti_registration_id,
-            deployment_id="NEW_DEPLOYMENT_ID",
+            deployment_id="EXISTING_DEPLOYMENT_ID",
         )
         db_session.flush()
         application_instance_service.get_by_deployment_id.return_value = existing_ai
-        pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
-        pyramid_request.params["deployment_id"] = "NEW_DEPLOYMENT_ID"
+        pyramid_request.params["deployment_id"] = "EXISTING_DEPLOYMENT_ID"
 
         response = AdminApplicationInstanceViews(pyramid_request).update_instance()
 

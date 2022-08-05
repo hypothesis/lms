@@ -300,7 +300,7 @@ class AdminApplicationInstanceViews:
         if deployment_id := self.request.params.get("deployment_id", "").strip():
             if ai.lti_version == "1.3.0":
                 try:
-                    duplicated_ai = (
+                    existing_ai = (
                         self.application_instance_service.get_by_deployment_id(
                             issuer=ai.lti_registration.issuer,
                             client_id=ai.lti_registration.client_id,
@@ -311,9 +311,9 @@ class AdminApplicationInstanceViews:
                     # No duplicated AI, we can update the current one.
                     pass
                 else:
-                    if duplicated_ai.id != ai.id:
+                    if existing_ai.id != ai.id:
                         self.request.session.flash(
-                            f"Can't set deployment_id to '{deployment_id}'. Already in use on: {self._get_ai_link(duplicated_ai)}",
+                            f"Can't set deployment_id to '{deployment_id}'. Already in use on: {self._get_ai_link(existing_ai)}",
                             "errors",
                         )
 
