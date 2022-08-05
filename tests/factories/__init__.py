@@ -22,6 +22,7 @@ from tests.factories.file import File
 from tests.factories.grading_info import GradingInfo
 from tests.factories.group_info import GroupInfo
 from tests.factories.grouping import BlackboardGroup, CanvasGroup, CanvasSection, Course
+from tests.factories.grouping_membership import GroupingMembership
 from tests.factories.h_user import HUser
 from tests.factories.lti_registration import LTIRegistration
 from tests.factories.lti_role import LTIRole
