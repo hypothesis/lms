@@ -21,7 +21,9 @@ class TestHLTI:
         _GatewayService.render_h_connection_info.assert_called_once_with(
             pyramid_request
         )
-        _GatewayService.render_lti_context.assert_called_once_with(pyramid_request)
+        _GatewayService.render_lti_context.assert_called_once_with(
+            pyramid_request, context.course
+        )
         assert response == {
             "api": {"h": _GatewayService.render_h_connection_info.return_value},
             "data": _GatewayService.render_lti_context.return_value,
@@ -47,6 +49,7 @@ class TestHLTI:
         return patch("lms.views.api.gateway._GatewayService")
 
 
+@pytest.mark.usefixtures("grouping_service")
 class Test_GatewayService:
     def test_render_h_connection_info(self, pyramid_request, grant_token_service):
         connection_info = _GatewayService.render_h_connection_info(pyramid_request)
@@ -75,12 +78,12 @@ class Test_GatewayService:
             },
         }
 
-    def test_render_lti_context_renders_profile(self, pyramid_request):
+    def test_render_lti_context_renders_profile(self, pyramid_request, course):
         pyramid_request.lti_user = factories.LTIUser(
             user_id=sentinel.user_id, display_name=sentinel.display_name
         )
 
-        data = _GatewayService.render_lti_context(pyramid_request)
+        data = _GatewayService.render_lti_context(pyramid_request, course)
 
         assert data["profile"] == {
             "display_name": sentinel.display_name,
@@ -88,8 +91,48 @@ class Test_GatewayService:
             "userid": Any.string.matching("^acct:.*@TEST_AUTHORITY$"),
         }
 
+    def test_tender_lti_context_renders_groups(
+        self, pyramid_request, course, grouping_service
+    ):
+        grouping = factories.BlackboardGroup(
+            lms_name="grouping_lms_name",
+            authority_provided_id="grouping_authority_provided_id",
+            parent=course,
+        )
+        grouping_service.get_known_groupings.return_value = [course, grouping]
 
-@pytest.mark.usefixtures("grant_token_service", "lti_h_service")
+        data = _GatewayService.render_lti_context(pyramid_request, course)
+
+        assert data["groups"] == [
+            {
+                "groupid": "group:course_authority_provided_id@TEST_AUTHORITY",
+                "name": "course_lms_name",
+                "lms": {
+                    "id": course.lms_id,
+                    "parentId": None,
+                    "type": course.type,
+                },
+            },
+            {
+                "groupid": "group:grouping_authority_provided_id@TEST_AUTHORITY",
+                "name": "grouping_lms_name",
+                "lms": {
+                    "id": grouping.lms_id,
+                    "parentId": course.lms_id,
+                    "type": grouping.type,
+                },
+            },
+        ]
+
+    @pytest.fixture
+    def course(self):
+        return factories.Course(
+            lms_name="course_lms_name",
+            authority_provided_id="course_authority_provided_id",
+        )
+
+
+@pytest.mark.usefixtures("grant_token_service", "lti_h_service", "grouping_service")
 class TestHLTIConsumer:
     # These tests are "consumer tests" and ensure we meet the spec we have
     # provided to our users in our documentation
@@ -102,8 +145,12 @@ class TestHLTIConsumer:
             validator.validate(example)
 
     def test_gateway_output_matches_the_schema(
-        self, validator, context, pyramid_request
+        self, validator, context, pyramid_request, grouping_service
     ):
+        grouping_service.get_known_groupings.return_value = (
+            factories.BlackboardGroup.create_batch(2) + [factories.Course()]
+        )
+
         response = h_lti(context, pyramid_request)
 
         validator.validate(response)
@@ -125,6 +172,7 @@ def context():
 
 @pytest.fixture
 def pyramid_request(pyramid_request):
+    pyramid_request.user = factories.User()
     pyramid_request.lti_params["tool_consumer_instance_guid"] = sentinel.guid
 
     return pyramid_request

@@ -60,7 +60,7 @@ def h_lti(context, request):
 
     return {
         "api": {"h": _GatewayService.render_h_connection_info(request)},
-        "data": _GatewayService.render_lti_context(request),
+        "data": _GatewayService.render_lti_context(request, context.course),
     }
 
 
@@ -97,9 +97,12 @@ class _GatewayService:
         }
 
     @classmethod
-    def render_lti_context(cls, request):
+    def render_lti_context(cls, request, course):
         h_user = request.lti_user.h_user
         authority = request.registry.settings["h_authority"]
+        groupings = request.find_service(name="grouping").get_known_groupings(
+            request.user, course
+        )
 
         return {
             # Details of the current user
@@ -109,5 +112,19 @@ class _GatewayService:
                 "lti": {
                     "user_id": h_user.provider_unique_id,
                 },
-            }
+            },
+            "groups": [
+                {
+                    "groupid": grouping.groupid(authority),
+                    "name": grouping.lms_name,
+                    # In the general case groups can't really have an "LTI"
+                    # section because they can come from all over the place.
+                    "lms": {
+                        "id": grouping.lms_id,
+                        "parentId": grouping.parent.lms_id if grouping.parent else None,
+                        "type": grouping.type,
+                    },
+                }
+                for grouping in groupings
+            ],
         }
