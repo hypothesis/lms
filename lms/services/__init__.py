@@ -11,6 +11,7 @@ from lms.services.exceptions import (
     ExternalAsyncRequestError,
     ExternalRequestError,
     OAuth2TokenError,
+    SerializableError,
 )
 from lms.services.h_api import HAPIError
 from lms.services.jstor import JSTORService

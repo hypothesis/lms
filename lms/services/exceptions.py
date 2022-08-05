@@ -258,6 +258,29 @@ class BlackboardFileNotFoundInCourse(Exception):
         super().__init__(self.details)
 
 
+class SerializableError(Exception):
+    """An exception compatible with our default error handling for APIs."""
+
+    def __init__(
+        self,
+        message: str = None,
+        error_code: Optional[str] = None,
+        details: Optional[dict] = None,
+    ):
+        """
+        Initialise the error.
+
+        :param message: Message to display to the user (if any)
+        :param error_code: Error code to allow client side code to detect
+            this error
+        :param details: A JSON serializable payload of extra info
+        """
+        super().__init__(message)
+        self.error_code = error_code
+        self.message = message
+        self.details = details
+
+
 def _repr_external_request_exception(exception):
     # Include the details of the request and response for debugging. This
     # appears in the logs and in tools like Sentry and Papertrail.
