@@ -5,7 +5,11 @@ from h_matchers import Any
 from requests import Request
 
 from lms.services.exceptions import ExternalRequestError
-from lms.services.vitalsource._client import VitalSourceClient, _VSUserAuth
+from lms.services.vitalsource._client import (
+    BookNotFound,
+    VitalSourceClient,
+    _VSUserAuth,
+)
 from lms.services.vitalsource.exceptions import VitalSourceError
 from tests import factories
 
@@ -51,17 +55,22 @@ class TestVitalSourceClient:
 
     def test_get_book_info_not_found(self, client, http_service):
         http_service.request.side_effect = ExternalRequestError(
-            response=factories.requests.Response(status_code=404)
+            response=factories.requests.Response(
+                status_code=404,
+                headers={"Content-Type": "application/json; charset=utf-8"},
+                json_data={"errors": ["Product BOOK_ID not fonud"]},
+            )
         )
 
-        with pytest.raises(ExternalRequestError) as exc_info:
+        with pytest.raises(BookNotFound):
             client.get_book_info("BOOK_ID")
 
-        assert exc_info.value.message == "Book BOOK_ID not found"
-
-    def test_get_book_info_error(self, client, http_service):
+    @pytest.mark.parametrize("status_code", (404, 500))
+    def test_get_book_info_error(self, client, http_service, status_code):
         http_service.request.side_effect = ExternalRequestError(
-            response=factories.requests.Response(status_code=500)
+            response=factories.requests.Response(
+                status_code=status_code, headers={"Content-Type": "application/json"}
+            )
         )
 
         with pytest.raises(ExternalRequestError):
@@ -93,17 +102,22 @@ class TestVitalSourceClient:
 
     def test_get_table_of_contents_not_found(self, client, http_service):
         http_service.request.side_effect = ExternalRequestError(
-            response=factories.requests.Response(status_code=404)
+            response=factories.requests.Response(
+                status_code=404,
+                headers={"Content-Type": "application/json; charset=utf-8"},
+                json_data={"errors": ["Book not found"]},
+            )
         )
 
-        with pytest.raises(ExternalRequestError) as exc_info:
+        with pytest.raises(BookNotFound):
             client.get_table_of_contents("BOOK_ID")
 
-        assert exc_info.value.message == "Book BOOK_ID not found"
-
-    def test_get_table_of_contents_error(self, client, http_service):
+    @pytest.mark.parametrize("status_code", (404, 500))
+    def test_get_table_of_contents_error(self, client, http_service, status_code):
         http_service.request.side_effect = ExternalRequestError(
-            response=factories.requests.Response(status_code=500)
+            response=factories.requests.Response(
+                status_code=status_code, headers={"Content-Type": "application/json"}
+            )
         )
 
         with pytest.raises(ExternalRequestError):

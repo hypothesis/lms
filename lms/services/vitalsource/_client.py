@@ -3,14 +3,19 @@ from typing import List, Optional
 
 import xmltodict
 from marshmallow import EXCLUDE, Schema, fields
-from requests import Request
+from requests import JSONDecodeError, Request
 from requests.auth import AuthBase
 
-from lms.services.exceptions import ExternalRequestError
+from lms.services.exceptions import ExternalRequestError, SerializableError
 from lms.services.http import HTTPService
 from lms.services.vitalsource.exceptions import VitalSourceError
 from lms.services.vitalsource.model import VSBookLocation
 from lms.validation._base import RequestsResponseSchema
+
+
+class BookNotFound(SerializableError):
+    def __init__(self, book_id):
+        super().__init__(message=f"Book {book_id} not found")
 
 
 class VitalSourceClient:
@@ -44,14 +49,15 @@ class VitalSourceClient:
         See: https://developer.vitalsource.com/hc/en-us/articles/360010967153-GET-v4-products-vbid-Title-TOC-Metadata
 
         :param book_id: Id of the book or VBID in VS speak
-        :raises ExternalRequestError: If the book cannot be found
+        :raises BookNotFound: If the book cannot be found
+        :raises ExternalRequestError: For all other problems contacting VS
         """
 
         try:
             response = self._json_request("GET", f"{self.VS_API}/v4/products/{book_id}")
         except ExternalRequestError as err:
-            if err.status_code == 404:
-                err.message = f"Book {book_id} not found"
+            if self._is_resource_not_found(err):
+                raise BookNotFound(book_id) from err
 
             raise
 
@@ -70,7 +76,8 @@ class VitalSourceClient:
         See: https://developer.vitalsource.com/hc/en-us/articles/360010967153-GET-v4-products-vbid-Title-TOC-Metadata
 
         :param book_id: Id of the book or VBID in VS speak
-        :raises ExternalRequestError: If the book cannot be found
+        :raises BookNotFound: If the book cannot be found
+        :raises ExternalRequestError: For all other problems contacting VS
         """
 
         try:
@@ -78,8 +85,8 @@ class VitalSourceClient:
                 "GET", f"{self.VS_API}/v4/products/{book_id}/toc"
             )
         except ExternalRequestError as err:
-            if err.status_code == 404:
-                err.message = f"Book {book_id} not found"
+            if self._is_resource_not_found(err):
+                raise BookNotFound(book_id) from err
 
             raise
 
@@ -153,6 +160,22 @@ class VitalSourceClient:
             return self._to_camel_case(self._pick_first(credentials))
 
         raise VitalSourceError("vitalsource_user_not_found")
+
+    @staticmethod
+    def _is_resource_not_found(err: ExternalRequestError) -> bool:
+        """Get if an exception is due to a missing resource or a bad URL."""
+
+        if err.status_code == 404 and err.response.headers.get(
+            "Content-Type", ""
+        ).startswith("application/json"):
+            # Many errors from VitalSource say they are JSON, but don't include
+            # any actual JSON data to decode
+            try:
+                return "errors" in err.response.json()
+            except JSONDecodeError:
+                pass
+
+        return False
 
     @staticmethod
     def _pick_first(list_or_item):
