@@ -39,8 +39,6 @@ import { JWT } from '../utils/jwt';
  * @typedef ContentInfoItem
  * @prop {string} title - Title of the current article, chapter etc.
  * @prop {string} [subtitle]
- * @prop {string} [containerTitle] - Title of the journal issue, book etc. which
- *   contains the current work. DEPRECATED
  */
 
 /**

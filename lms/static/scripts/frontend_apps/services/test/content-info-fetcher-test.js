@@ -62,7 +62,6 @@ describe('ContentInfoFetcher', () => {
         item: {
           title: 'Test article',
           subtitle: 'Test article subtitle',
-          containerTitle: 'Test container',
         },
 
         links: {

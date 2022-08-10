@@ -76,9 +76,6 @@ export class ContentInfoFetcher {
       item: {
         title: metadata.item.title,
         subtitle: metadata.item.subtitle,
-        // TODO Remove once client updated to look this up in the
-        // `container` object
-        containerTitle: metadata.container.title,
       },
       container: {
         title: metadata.container.title,
