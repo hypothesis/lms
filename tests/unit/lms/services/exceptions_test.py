@@ -208,7 +208,20 @@ class TestCanvasAPIError:
                 OAuth2TokenError,
             ),
             # A permissions error from Canvas, because the Canvas user doesn't
-            # have permission to make the API call.
+            # have permission to make the API call. Updated Canvas instances
+            # will send 403, rather than 401.
+            (
+                403,
+                json.dumps(
+                    {
+                        "status": "unauthorized",
+                        "errors": [
+                            {"message": "user not authorized to perform that action"}
+                        ],
+                    }
+                ),
+                CanvasAPIPermissionError,
+            ),
             (
                 401,
                 json.dumps(
@@ -223,11 +236,7 @@ class TestCanvasAPIError:
             ),
             # A 400 Bad Request response from Canvas, because we sent an invalid
             # parameter or something.
-            (
-                400,
-                json.dumps({"test": "body"}),
-                CanvasAPIServerError,
-            ),
+            (400, json.dumps({"test": "body"}), CanvasAPIServerError),
             # An unexpected error response from Canvas.
             (500, "test_body", CanvasAPIServerError),
         ],
