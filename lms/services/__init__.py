@@ -27,6 +27,7 @@ from lms.services.lti_names_roles import LTINamesRolesService
 from lms.services.lti_registration import LTIRegistrationService
 from lms.services.lti_role_service import LTIRoleService
 from lms.services.ltia_http import LTIAHTTPService
+from lms.services.organization import OrganizationService
 from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
 from lms.services.vitalsource import VitalSourceService
@@ -109,3 +110,6 @@ def includeme(config):
         "lms.services.document_url.factory", iface=DocumentURLService
     )
     config.register_service_factory("lms.services.event.factory", iface=EventService)
+    config.register_service_factory(
+        "lms.services.organization.service_factory", iface=OrganizationService
+    )
