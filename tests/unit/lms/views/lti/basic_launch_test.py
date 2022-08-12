@@ -24,6 +24,7 @@ class TestHasDocumentURL:
 
 @pytest.mark.usefixtures(
     "assignment_service",
+    "application_instance_service",
     "grading_info_service",
     "lti_h_service",
     "lti_role_service",
@@ -43,11 +44,12 @@ class TestBasicLaunchViews:
         context,
         pyramid_request,
         grading_info_service,
+        application_instance_service,
     ):
         BasicLaunchViews(context, pyramid_request)
 
-        context.application_instance.update_lms_data.assert_called_once_with(
-            pyramid_request.lti_params
+        application_instance_service.update_from_lti_params.assert_called_once_with(
+            context.application_instance, pyramid_request.lti_params
         )
 
         grading_info_service.upsert_from_request.assert_called_once_with(

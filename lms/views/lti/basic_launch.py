@@ -236,7 +236,9 @@ class BasicLaunchViews:
     def _record_launch(self):
         """Persist launch type independent info to the DB."""
 
-        self.context.application_instance.update_lms_data(self.request.lti_params)
+        self.request.find_service(name="application_instance").update_from_lti_params(
+            self.context.application_instance, self.request.lti_params
+        )
 
         if not self.request.lti_user.is_instructor and not self.context.is_canvas:
             # Create or update a record of LIS result data for a student launch
