@@ -31,6 +31,13 @@ class TestLTIParams:
 
         assert LTIParams.from_request(pyramid_request)[lti_11_key] == value
 
+    def test_v13_custom_fields(self, pyramid_request):
+        pyramid_request.lti_jwt = {
+            "https://purl.imsglobal.org/spec/lti/claim/custom": {"name": "value"}
+        }
+
+        assert LTIParams.from_request(pyramid_request)["custom_name"] == "value"
+
     def test_v11(self, pyramid_request):
         pyramid_request.params = {"test": "key"}
 
