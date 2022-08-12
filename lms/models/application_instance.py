@@ -30,11 +30,20 @@ class ApplicationInstance(BASE):
     )
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
+
+    organization_id = sa.Column(
+        sa.Integer(), sa.ForeignKey("organization.id"), nullable=True
+    )
+    organization = sa.orm.relationship("Organization")
+    """The organization this application instance belongs to."""
+
     consumer_key = sa.Column(sa.Unicode, unique=True, nullable=True)
     shared_secret = sa.Column(sa.Unicode, nullable=False)
     lms_url = sa.Column(sa.Unicode(2048), nullable=False)
     requesters_email = sa.Column(sa.Unicode(2048), nullable=False)
+
     created = sa.Column(sa.TIMESTAMP, default=datetime.utcnow(), nullable=False)
+
     developer_key = sa.Column(sa.Unicode)
     developer_secret = sa.Column(sa.LargeBinary)
     aes_cipher_iv = sa.Column(sa.LargeBinary)
