@@ -106,18 +106,6 @@ _V11_TO_V13 = (
         "deep_linking_settings",
         ["https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings"],
     ),
-    (
-        "custom_canvas_course_id",
-        [f"{CLAIM_PREFIX}/custom", "canvas_course_id"],
-    ),
-    (
-        "custom_canvas_api_domain",
-        [f"{CLAIM_PREFIX}/custom", "canvas_api_domain"],
-    ),
-    (
-        "custom_canvas_user_id",
-        [f"{CLAIM_PREFIX}/custom", "canvas_user_id"],
-    ),
     # Some LMSs provide a https://purl.imsglobal.org/spec/lti/claim/lti1p1 claim
     # with the LTI1.1 version value of some IDs that are different in LTI1.3.
     # To make upgrades seamless we prefer the LTI1.1 version when available
@@ -143,6 +131,11 @@ def _to_lti_v11(v13_params):
         except KeyError:
             # We don't want to add partial values along v13_path
             continue
+
+    # Deal with the custom params. See:
+    # https://www.imsglobal.org/spec/lti/v1p3/#custom-properties-and-variable-substitution
+    if custom := v13_params.get(f"{CLAIM_PREFIX}/custom"):
+        v11_params.update({f"custom_{key}": value for key, value in custom.items()})
 
     if "roles" in v11_params:
         # We need to squish together the roles for v1.1
