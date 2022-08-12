@@ -6,7 +6,6 @@ import pytest
 from freezegun import freeze_time
 from h_matchers import Any
 
-from lms.models import ApplicationInstance
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.views.lti.deep_linking import DeepLinkingFieldsViews, deep_linking_launch
@@ -18,15 +17,12 @@ class TestDeepLinkingLaunch:
     def test_it(
         self, context, pyramid_request, lti_h_service, application_instance_service
     ):
-        application_instance_service.get_current.return_value = create_autospec(
-            ApplicationInstance, spec_set=True, instance=True
-        )
-
         deep_linking_launch(context, pyramid_request)
 
-        context.application_instance.update_lms_data.assert_called_once_with(
-            pyramid_request.lti_params
+        application_instance_service.update_from_lti_params.assert_called_once_with(
+            context.application_instance, pyramid_request.lti_params
         )
+
         lti_h_service.sync.assert_called_once_with(
             [context.course], pyramid_request.params
         )

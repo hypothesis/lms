@@ -2,7 +2,9 @@ from unittest import mock
 
 import pytest
 from factory import Faker
+from h_matchers import Any
 
+from lms.models import LTIParams, ReusedConsumerKey
 from lms.services import ApplicationInstanceNotFound
 from lms.services.application_instance import ApplicationInstanceService, factory
 from tests import factories
@@ -138,6 +140,46 @@ class TestApplicationInstanceService:
             found_instances = service.search(**{field: getattr(instance, field)})
             assert len(found_instances) == 1
             assert getattr(instance, field) == getattr(found_instances[0], field)
+
+    @pytest.mark.parametrize(
+        "field",
+        (
+            "tool_consumer_info_product_family_code",
+            "tool_consumer_instance_description",
+            "tool_consumer_instance_url",
+            "tool_consumer_instance_name",
+            "tool_consumer_instance_contact_email",
+            "tool_consumer_info_version",
+            "custom_canvas_api_domain",
+        ),
+    )
+    def test_update_from_lti_params(self, service, application_instance, field):
+        lms_data = {field: field + "_value", "tool_consumer_instance_guid": "GUID"}
+
+        service.update_from_lti_params(application_instance, LTIParams(lms_data))
+
+        assert application_instance == Any.object.with_attrs(lms_data)
+
+    def test_update_from_lti_params_no_guid_doesnt_change_values(
+        self, service, application_instance
+    ):
+        service.update_from_lti_params(
+            application_instance, LTIParams({"tool_consumer_instance_url": "NO EFFECT"})
+        )
+
+        assert application_instance.tool_consumer_instance_guid is None
+        assert application_instance.tool_consumer_info_product_family_code is None
+
+    def test_update_from_lti_params_existing_guid(self, service, application_instance):
+        application_instance.tool_consumer_instance_guid = "EXISTING_GUID"
+
+        with pytest.raises(ReusedConsumerKey):
+            service.update_from_lti_params(
+                application_instance,
+                LTIParams({"tool_consumer_instance_guid": "NEW GUID"}),
+            )
+
+        assert application_instance.tool_consumer_instance_guid == "EXISTING_GUID"
 
     @pytest.fixture
     def with_application_instances_for_search(self):

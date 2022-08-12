@@ -5,7 +5,7 @@ from typing import List
 
 from sqlalchemy.exc import NoResultFound
 
-from lms.models import ApplicationInstance, LTIRegistration
+from lms.models import ApplicationInstance, LTIParams, LTIRegistration
 from lms.services.aes import AESService
 
 
@@ -156,6 +156,34 @@ class ApplicationInstanceService:
         self._db.flush()  # Force the returned AI to have an ID
 
         return application_instance
+
+    def update_from_lti_params(self, application_instance, params: LTIParams):
+        """
+        Update all the LMS-related attributes present in `params`.
+
+        If the current instance already has a `tool_consumer_instance_guid`
+        report it on logging and don't update any of the columns.
+        """
+
+        tool_consumer_instance_guid = params.get("tool_consumer_instance_guid")
+        if not tool_consumer_instance_guid:
+            # guid identifies the rest of the LMS data, if not there skip any
+            # updates
+            return
+
+        application_instance.check_guid_aligns(tool_consumer_instance_guid)
+
+        for attr in [
+            "tool_consumer_info_product_family_code",
+            "tool_consumer_instance_description",
+            "tool_consumer_instance_url",
+            "tool_consumer_instance_name",
+            "tool_consumer_instance_contact_email",
+            "tool_consumer_instance_guid",
+            "tool_consumer_info_version",
+            "custom_canvas_api_domain",
+        ]:
+            setattr(application_instance, attr, params.get(attr))
 
 
 def factory(_context, request):

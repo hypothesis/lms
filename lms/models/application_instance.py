@@ -153,37 +153,6 @@ class ApplicationInstance(BASE):
 
         return lms_host
 
-    def update_lms_data(self, params: dict):
-        """
-        Update all the LMS-related attributes present in `params`.
-
-        If the current instance already has a `tool_consumer_instance_guid`
-        report it on logging and don't update any of the columns.
-        """
-
-        tool_consumer_instance_guid = params.get("tool_consumer_instance_guid")
-        if not tool_consumer_instance_guid:
-            # guid identifies the rest of the LMS data, if not there skip any updates
-            return
-
-        self.check_guid_aligns(tool_consumer_instance_guid)
-
-        # This looks a bit weird after the statement above, but our GUID might
-        # be null and still pass the check above
-        self.tool_consumer_instance_guid = tool_consumer_instance_guid
-
-        for attr in [
-            "tool_consumer_info_product_family_code",
-            "tool_consumer_instance_description",
-            "tool_consumer_instance_url",
-            "tool_consumer_instance_name",
-            "tool_consumer_instance_contact_email",
-            "tool_consumer_info_version",
-            "custom_canvas_api_domain",
-        ]:
-
-            setattr(self, attr, params.get(attr))
-
     def check_guid_aligns(self, tool_consumer_instance_guid):
         """
         Check there is no conflict between the provided GUID and ours.
