@@ -32,6 +32,7 @@ class OrganizationService:
                     GroupInfo.tool_consumer_instance_guid == guid,
                 )
             )
+            .order_by(Organization.updated.desc())
             .all()
         )
 
@@ -43,6 +44,8 @@ class OrganizationService:
 
         If there is no GUID matching is skipped, and we return `None`. If no
         match can be found, then a new organization is created.
+
+        When more than one organization is found, the most recent will be used.
         """
 
         # We can't match by GUID if there isn't one

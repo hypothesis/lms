@@ -7,6 +7,7 @@ from sqlalchemy.exc import NoResultFound
 
 from lms.models import ApplicationInstance, LTIParams, LTIRegistration
 from lms.services.aes import AESService
+from lms.services.organization import OrganizationService
 
 
 class ApplicationInstanceNotFound(Exception):
@@ -14,10 +15,17 @@ class ApplicationInstanceNotFound(Exception):
 
 
 class ApplicationInstanceService:
-    def __init__(self, db, request, aes_service):
+    def __init__(
+        self,
+        db,
+        request,
+        aes_service: AESService,
+        organization_service: OrganizationService,
+    ):
         self._db = db
         self._request = request
         self._aes_service = aes_service
+        self._organization_service = organization_service
 
     @lru_cache(maxsize=1)
     def get_current(self) -> ApplicationInstance:
@@ -195,6 +203,9 @@ class ApplicationInstanceService:
 
         application_instance.check_guid_aligns(tool_consumer_instance_guid)
 
+        # Make sure this application instance is associated with an org.
+        self._organization_service.auto_assign_organization(application_instance)
+
         for attr in [
             "tool_consumer_info_product_family_code",
             "tool_consumer_instance_description",
@@ -210,7 +221,8 @@ class ApplicationInstanceService:
 
 def factory(_context, request):
     return ApplicationInstanceService(
-        request.db,
-        request,
-        request.find_service(AESService),
+        db=request.db,
+        request=request,
+        aes_service=request.find_service(AESService),
+        organization_service=request.find_service(OrganizationService),
     )
