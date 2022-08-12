@@ -153,24 +153,32 @@ class TestApplicationInstanceService:
             "custom_canvas_api_domain",
         ),
     )
-    def test_update_from_lti_params(self, service, application_instance, field):
+    def test_update_from_lti_params(
+        self, service, organization_service, application_instance, field
+    ):
         lms_data = {field: field + "_value", "tool_consumer_instance_guid": "GUID"}
 
         service.update_from_lti_params(application_instance, LTIParams(lms_data))
 
+        organization_service.auto_assign_organization.assert_called_once_with(
+            application_instance
+        )
         assert application_instance == Any.object.with_attrs(lms_data)
 
     def test_update_from_lti_params_no_guid_doesnt_change_values(
-        self, service, application_instance
+        self, service, organization_service, application_instance
     ):
         service.update_from_lti_params(
             application_instance, LTIParams({"tool_consumer_instance_url": "NO EFFECT"})
         )
 
+        organization_service.auto_assign_organization.assert_not_called()
         assert application_instance.tool_consumer_instance_guid is None
         assert application_instance.tool_consumer_info_product_family_code is None
 
-    def test_update_from_lti_params_existing_guid(self, service, application_instance):
+    def test_update_from_lti_params_existing_guid(
+        self, service, organization_service, application_instance
+    ):
         application_instance.tool_consumer_instance_guid = "EXISTING_GUID"
 
         with pytest.raises(ReusedConsumerKey):
@@ -179,6 +187,7 @@ class TestApplicationInstanceService:
                 LTIParams({"tool_consumer_instance_guid": "NEW GUID"}),
             )
 
+        organization_service.auto_assign_organization.assert_not_called()
         assert application_instance.tool_consumer_instance_guid == "EXISTING_GUID"
 
     @pytest.fixture
@@ -199,9 +208,12 @@ class TestApplicationInstanceService:
         return registrations, instances
 
     @pytest.fixture
-    def service(self, db_session, pyramid_request, aes_service):
+    def service(self, db_session, pyramid_request, aes_service, organization_service):
         return ApplicationInstanceService(
-            db=db_session, request=pyramid_request, aes_service=aes_service
+            db=db_session,
+            request=pyramid_request,
+            aes_service=aes_service,
+            organization_service=organization_service,
         )
 
     @pytest.fixture(autouse=True)
@@ -210,11 +222,20 @@ class TestApplicationInstanceService:
 
 
 class TestFactory:
-    def test_it(self, ApplicationInstanceService, pyramid_request, aes_service):
+    def test_it(
+        self,
+        ApplicationInstanceService,
+        pyramid_request,
+        aes_service,
+        organization_service,
+    ):
         application_instance_service = factory(mock.sentinel.context, pyramid_request)
 
         ApplicationInstanceService.assert_called_once_with(
-            pyramid_request.db, pyramid_request, aes_service
+            db=pyramid_request.db,
+            request=pyramid_request,
+            aes_service=aes_service,
+            organization_service=organization_service,
         )
         assert application_instance_service == ApplicationInstanceService.return_value
 
