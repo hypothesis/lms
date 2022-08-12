@@ -28,6 +28,7 @@ from tests.factories.lti_registration import LTIRegistration
 from tests.factories.lti_role import LTIRole
 from tests.factories.lti_user import LTIUser
 from tests.factories.oauth2_token import OAuth2Token
+from tests.factories.organization import Organization
 from tests.factories.rsa_key import RSAKey
 from tests.factories.user import User
 
