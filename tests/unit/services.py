@@ -2,7 +2,12 @@ from unittest import mock
 
 import pytest
 
-from lms.services import CanvasService, DocumentURLService, LTIRoleService
+from lms.services import (
+    CanvasService,
+    DocumentURLService,
+    LTIRoleService,
+    OrganizationService,
+)
 from lms.services.aes import AESService
 from lms.services.application_instance import ApplicationInstanceService
 from lms.services.assignment import AssignmentService
@@ -65,6 +70,7 @@ __all__ = (
     "oauth1_service",
     "oauth2_token_service",
     "oauth_http_service",
+    "organization_service",
     "rsa_key_service",
     "user_service",
     "vitalsource_service",
@@ -219,6 +225,11 @@ def async_oauth_http_service(mock_service):
         AsyncOAuthHTTPService, service_name="async_oauth_http"
     )
     return async_oauth_http_service
+
+
+@pytest.fixture
+def organization_service(mock_service):
+    return mock_service(OrganizationService)
 
 
 @pytest.fixture
