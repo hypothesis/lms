@@ -1,4 +1,3 @@
-pip-tools
 pip-sync-faster
 pylint
 pydocstyle

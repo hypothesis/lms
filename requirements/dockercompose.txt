@@ -46,9 +46,7 @@ pep517==0.12.0
 pip-sync-faster==0.0.2
     # via -r requirements/dockercompose.in
 pip-tools==6.8.0
-    # via
-    #   -r requirements/dockercompose.in
-    #   pip-sync-faster
+    # via pip-sync-faster
 pycparser==2.20
     # via cffi
 pynacl==1.4.0

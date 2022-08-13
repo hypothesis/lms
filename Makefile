@@ -140,20 +140,10 @@ bddtests: python
 	@tox -qe bddtests
 
 # Tell make how to compile requirements/*.txt files.
-#
-# `touch` is used to pre-create an empty requirements/%.txt file if none
-# exists, otherwise tox crashes.
-#
-# $(subst) is used because in the special case of making requirements.txt we
-# actually need to touch dev.txt not requirements.txt and we need to run
-# `tox -e dev ...` not `tox -e requirements ...`
-#
-# $(basename $(notdir $@))) gets just the environment name from the
-# requirements/%.txt filename, for example requirements/foo.txt -> foo.
 requirements/%.txt: requirements/%.in
-	@touch -a $(subst requirements.txt,dev.txt,$@)
-	@tox -qe $(subst requirements,dev,$(basename $(notdir $@))) --run-command 'pip --quiet --disable-pip-version-check install pip-tools'
-	@tox -qe $(subst requirements,dev,$(basename $(notdir $@))) --run-command 'pip-compile --allow-unsafe --quiet $(args) $<'
+	@touch -a requirements/pipcompile.txt
+	@tox -qe pipcompile --run-command 'pip --quiet --disable-pip-version-check install pip-sync-faster'
+	@tox -qe pipcompile -- --allow-unsafe --quiet $(args) $<
 
 # Inform make of the dependencies between our requirements files so that it
 # knows what order to re-compile them in and knows to re-compile a file if a

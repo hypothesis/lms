@@ -347,7 +347,6 @@ pip-tools==6.8.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
-    #   -r requirements/lint.in
     #   -r requirements/tests.txt
     #   pip-sync-faster
 plaster==1.0

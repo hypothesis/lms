@@ -25,9 +25,7 @@ pep517==0.12.0
 pip-sync-faster==0.0.2
     # via -r requirements/format.in
 pip-tools==6.8.0
-    # via
-    #   -r requirements/format.in
-    #   pip-sync-faster
+    # via pip-sync-faster
 platformdirs==2.4.0
     # via black
 pyparsing==3.0.9

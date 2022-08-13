@@ -201,9 +201,7 @@ pickleshare==0.7.5
 pip-sync-faster==0.0.2
     # via -r requirements/dev.in
 pip-tools==6.8.0
-    # via
-    #   -r requirements/dev.in
-    #   pip-sync-faster
+    # via pip-sync-faster
 plaster==1.0
     # via
     #   -r requirements/requirements.txt
@@ -309,6 +307,7 @@ sentry-sdk==0.17.6
 six==1.15.0
     # via
     #   -r requirements/requirements.txt
+    #   asttokens
     #   click-repl
     #   ecdsa
     #   google-auth

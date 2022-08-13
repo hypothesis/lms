@@ -39,7 +39,6 @@ pip-sync-faster==0.0.2
     #   -r requirements/format.txt
 pip-tools==6.8.0
     # via
-    #   -r requirements/checkformatting.in
     #   -r requirements/format.txt
     #   pip-sync-faster
 platformdirs==2.4.0
