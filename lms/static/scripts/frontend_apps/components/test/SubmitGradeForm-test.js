@@ -2,7 +2,7 @@ import { mount } from 'enzyme';
 
 import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
-import { waitFor } from '../../../test-util/wait';
+import { waitFor, waitForElement } from '../../../test-util/wait';
 import { GradingService, withServices } from '../../services';
 import SubmitGradeForm, { $imports } from '../SubmitGradeForm';
 
@@ -198,17 +198,19 @@ describe('SubmitGradeForm', () => {
       assert.isTrue(wrapper.find('FullScreenSpinner').exists());
     });
 
-    it('shows the error dialog when the grade request throws an error', () => {
+    it('shows the error dialog when the grade request throws an error', async () => {
       const wrapper = renderForm();
       const error = {
         serverMessage: 'message',
         details: 'details',
       };
-      fakeGradingService.submitGrade.throws(error);
+      fakeGradingService.submitGrade.rejects(error);
+
       wrapper.find('button[type="submit"]').simulate('click');
-      assert.isTrue(wrapper.find('ErrorModal').exists());
+
+      const errorModal = await waitForElement(wrapper, 'ErrorModal');
       // Ensure the error object passed to ErrorDialog is the same as the one thrown
-      assert.equal(wrapper.find('ErrorModal').prop('error'), error);
+      assert.equal(errorModal.prop('error'), error);
 
       // Error message should be hidden when its close action is triggered.
       wrapper.find('ErrorModal').invoke('onCancel')();
