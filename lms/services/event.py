@@ -1,14 +1,9 @@
-from __future__ import annotations
-
 from functools import lru_cache
-from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Session
 
+from lms.events.event import BaseEvent
 from lms.models import Event, EventData, EventType, EventUser
-
-if TYPE_CHECKING:  # pragma: no cover
-    from lms.events import BaseEvent
 
 
 class EventService:
@@ -16,7 +11,11 @@ class EventService:
         self._db = db
 
     def insert_event(self, event: BaseEvent):
+        """
+        Insert an event into the DB.
 
+        Takes a `BaseEvent` and inserts a new row in the `events` table.
+        """
         db_event = Event(
             type_id=self._get_type_pk(event.type),
             application_instance_id=event.application_instance_id,
@@ -39,8 +38,9 @@ class EventService:
 
         return event
 
-    @lru_cache
+    @lru_cache(maxsize=10)
     def _get_type_pk(self, type_: EventType.Type) -> int:
+        """Cache the PK of the event_type table to avoid an extra query while inserting events."""
         return self._db.query(EventType).filter_by(type=type_).one().id
 
 

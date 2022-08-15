@@ -3,15 +3,7 @@ from unittest.mock import Mock, sentinel
 
 import pytest
 
-from lms.events import BaseEvent, LTIEvent, handle_event
-
-
-def test_handle_event(event_service, pyramid_request):
-    event = BaseEvent(request=pyramid_request, type=sentinel.type)
-
-    handle_event(event)
-
-    event_service.insert_event.assert_called_once_with(event)
+from lms.events import LTIEvent
 
 
 class TestLTIEvent:
