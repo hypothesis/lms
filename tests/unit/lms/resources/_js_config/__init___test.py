@@ -84,7 +84,10 @@ class TestEnableLTILaunchMode:
                 "sync": None,
             },
             "canvas": {},
-            "debug": {"tags": [Any.string.matching("^role:.*")]},
+            "debug": {
+                "tags": [Any.string.matching("^role:.*")],
+                "values": {"LTI version": "LTI-1p0"},
+            },
             "dev": False,
             "hypothesisClient": {
                 "services": [
