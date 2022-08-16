@@ -205,10 +205,11 @@ class GroupingService:
 
     def get_known_groupings(self, user, course):
         """
-        Get the groupings we already know about for the provided user.
+        Get the groupings from the DB for the provided user.
 
         This will include the course, and any sections / groups we have seen
-        before. This does not attempt to retrieve the groups from the LMS.
+        before. This does not attempt to retrieve the groups from the tool
+        consumer using their API (for example by calling Canvas API).
 
         This only works for direct children of the course, not children of
         children.
