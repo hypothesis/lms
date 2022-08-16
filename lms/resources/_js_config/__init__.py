@@ -189,6 +189,9 @@ class JSConfig:
             "allowedOrigins": self._request.registry.settings["rpc_allowed_origins"]
         }
 
+        ai = self._context.application_instance
+        self._config["debug"]["values"]["LTI version"] = ai.lti_version
+
     def enable_file_picker_mode(self, form_action, form_fields):
         """
         Put the JavaScript code into "file picker" mode.
@@ -394,8 +397,12 @@ class JSConfig:
                 "authToken": self._auth_token()
             },
             "canvas": {},
-            # Some debug information, currently used in the Gherkin tests.
-            "debug": {"tags": []},
+            "debug": {
+                # Some debug information, currently used in the Gherkin tests.
+                "tags": [],
+                # Info dumped to the console to help support.
+                "values": {},
+            },
             # Tell the JavaScript code whether we're in "dev" mode.
             "dev": self._request.registry.settings["dev"],
             # What "mode" to put the JavaScript code in.

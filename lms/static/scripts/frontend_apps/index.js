@@ -35,6 +35,16 @@ export function init() {
    */
   const services = new Map();
 
+  if (config.debug?.values && Object.keys(config.debug.values).length) {
+    /* eslint-disable no-console */
+    console.groupCollapsed('Hypothesis debug info');
+    Object.entries(config.debug.values).forEach(([key, value]) =>
+      console.log(key + ': ' + value)
+    );
+    console.groupEnd();
+    /* eslint-enable no-console */
+  }
+
   // Render main component for current route.
   let app;
   switch (config.mode) {

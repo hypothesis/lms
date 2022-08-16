@@ -157,6 +157,14 @@ import { createContext } from 'preact';
  */
 
 /**
+ * Debug information sent by the backend.
+ *
+ * @typedef DebugInfo
+ * @prop {string[]} [tags]
+ * @prop {Record<string,any>} [values]
+ */
+
+/**
  * Data/configuration needed for frontend applications in the LMS app.
  * The `mode` property specifies which frontend application should load and
  * the available configuration/data depends on the mode and LTI user role.
@@ -182,6 +190,7 @@ import { createContext } from 'preact';
  * @prop {string} viaUrl
  * @prop {OAuthErrorConfig} OAuth2RedirectError
  * @prop {ErrorDialogConfig} errorDialog
+ * @prop {DebugInfo} [debug]
  */
 
 /**

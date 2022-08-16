@@ -89,6 +89,23 @@ describe('LMS frontend entry', () => {
     });
   });
 
+  it('console logs debug values', () => {
+    const log = sinon.stub(console, 'log');
+
+    try {
+      fakeReadConfig.returns({
+        ...minimalConfig,
+        debug: { values: { key: 'value' } },
+      });
+
+      init();
+
+      assert.calledWith(log, 'key: value');
+    } finally {
+      log.restore();
+    }
+  });
+
   describe('LTI launch', () => {
     it('fetches data for content banner, if configured', () => {
       const contentBanner = { source: 'jstor', itemId: '12345' };
