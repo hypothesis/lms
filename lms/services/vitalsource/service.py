@@ -28,7 +28,13 @@ class VitalSourceService:
         """
 
         self._enabled = enabled
+        # We can use either the customers API key (if they have one), or our
+        # generic fallback key. It's better to use the customer key as it
+        # ensures the books they can pick are available in their institution.
         self._metadata_client = customer_client or global_client
+        # For SSO we *must* use the customers API key as the user ids only make
+        # sense in the context of an institutional relationship between the uni
+        # and VitalSource.
         self._sso_client = customer_client
         self.user_lti_param = user_lti_param
 
