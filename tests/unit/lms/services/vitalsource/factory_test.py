@@ -28,6 +28,7 @@ class TestServiceFactory:
         # This fixture is a bit odd and returns a real application instance
         ai = application_instance_service.get_current()
         ai.settings.set("vitalsource", "user_lti_param", sentinel.user_lti_param)
+        ai.settings.set("vitalsource", "user_lti_pattern", sentinel.user_lti_pattern)
         ai.settings.set("vitalsource", "api_key", customer_api_key)
         if enabled:
             ai.settings.set("vitalsource", "enabled", enabled)
@@ -50,6 +51,7 @@ class TestServiceFactory:
             if customer_api_key
             else None,
             user_lti_param=sentinel.user_lti_param,
+            user_lti_pattern=sentinel.user_lti_pattern,
             enable_licence_check=not (disable_licence_check),
         )
         assert svc == VitalSourceService.return_value
@@ -72,6 +74,7 @@ class TestServiceFactory:
             global_client=VitalSourceClient.return_value if global_api_key else None,
             customer_client=Any(),
             user_lti_param=Any(),
+            user_lti_pattern=Any(),
             enable_licence_check=Any(),
         )
 

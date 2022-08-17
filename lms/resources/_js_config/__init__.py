@@ -78,9 +78,9 @@ class JSConfig:
                     "path": self._request.route_url(
                         "vitalsource_api.launch_url",
                         _query={
-                            "user_reference": self._request.lti_params[
-                                svc.user_lti_param
-                            ],
+                            "user_reference": svc.get_user_reference(
+                                self._request.lti_params
+                            ),
                             "document_url": document_url,
                         },
                     )

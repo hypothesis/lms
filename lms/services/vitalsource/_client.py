@@ -159,7 +159,7 @@ class VitalSourceClient:
         if credentials := result["credentials"].get("credential"):
             return self._to_camel_case(self._pick_first(credentials))
 
-        raise VitalSourceError("vitalsource_user_not_found")
+        raise VitalSourceError(error_code="vitalsource_user_not_found")
 
     @staticmethod
     def _is_resource_not_found(err: ExternalRequestError) -> bool:
