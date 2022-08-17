@@ -8,36 +8,55 @@ from lms.services.vitalsource.service import VitalSourceService
 
 
 class TestVitalSourceService:
-    @pytest.mark.parametrize("client", (sentinel.client, None))
+    @pytest.mark.parametrize("global_client", (sentinel.global_client, None))
+    @pytest.mark.parametrize("customer_client", (sentinel.customer_client, None))
     @pytest.mark.parametrize("enabled", (sentinel.client, None))
-    @pytest.mark.parametrize("user_lti_param", (sentinel.user_lti_param, None))
-    def test_enabled(self, client, enabled, user_lti_param):
+    def test_enabled(self, enabled, global_client, customer_client):
         svc = VitalSourceService(
-            client=client, enabled=enabled, user_lti_param=user_lti_param
+            enabled=enabled,
+            global_client=global_client,
+            customer_client=customer_client,
         )
 
-        assert svc.enabled == bool(client and enabled and user_lti_param)
+        assert svc.enabled == bool(enabled and (global_client or customer_client))
 
-    def test_get_launch_url(self, svc, client):
-        result = svc.get_launch_url(
+    @pytest.mark.parametrize("enabled", (sentinel.client, None))
+    @pytest.mark.parametrize("customer_client", (sentinel.customer_client, None))
+    @pytest.mark.parametrize("user_lti_param", (sentinel.user_lti_param, None))
+    def test_sso_enabled(self, enabled, customer_client, user_lti_param):
+        svc = VitalSourceService(
+            enabled=enabled,
+            customer_client=customer_client,
+            user_lti_param=user_lti_param,
+        )
+
+        assert svc.sso_enabled == bool(enabled and customer_client and user_lti_param)
+
+    def test_get_book_reader_url(self, svc):
+        url = svc.get_book_reader_url("vitalsource://book/bookID/BOOK-ID/cfi/CFI")
+
+        assert url == "https://hypothesis.vitalsource.com/books/BOOK-ID/cfi/CFI"
+
+    def test_get_sso_redirect(self, svc, customer_client):
+        result = svc.get_sso_redirect(
             sentinel.user_reference,
             document_url="vitalsource://book/bookID/BOOK-ID/cfi/CFI",
         )
 
-        client.get_user_book_license.assert_called_once_with(
+        customer_client.get_user_book_license.assert_called_once_with(
             sentinel.user_reference, "BOOK-ID"
         )
-        client.get_sso_redirect.assert_called_once_with(
+        customer_client.get_sso_redirect.assert_called_once_with(
             sentinel.user_reference,
             "https://hypothesis.vitalsource.com/books/BOOK-ID/cfi/CFI",
         )
-        assert result == client.get_sso_redirect.return_value
+        assert result == customer_client.get_sso_redirect.return_value
 
-    def test_get_launch_url_with_no_book_license(self, svc, client):
-        client.get_user_book_license.return_value = None
+    def test_get_sso_redirect_with_no_book_license(self, svc, customer_client):
+        customer_client.get_user_book_license.return_value = None
 
         with pytest.raises(VitalSourceError) as exc:
-            svc.get_launch_url(
+            svc.get_sso_redirect(
                 sentinel.user_reference,
                 document_url="vitalsource://book/bookID/BOOK-ID/cfi/CFI",
             )
@@ -51,19 +70,42 @@ class TestVitalSourceService:
             ("get_table_of_contents", [sentinel.book_id]),
         ),
     )
-    def test_proxied_methods(self, svc, client, proxy_method, args):
+    @pytest.mark.parametrize("customer_client_present", (True, False))
+    def test_metadata_methods(
+        self,
+        global_client,
+        customer_client,
+        customer_client_present,
+        proxy_method,
+        args,
+    ):
+        svc = VitalSourceService(
+            enabled=True,
+            global_client=global_client,
+            customer_client=customer_client if customer_client_present else None,
+        )
+
         result = getattr(svc, proxy_method)(*args)
 
-        proxied_method = getattr(client, proxy_method)
+        proxied_method = getattr(
+            customer_client if customer_client_present else global_client, proxy_method
+        )
         proxied_method.assert_called_once_with(*args)
         assert result == proxied_method.return_value
 
     @pytest.fixture
-    def client(self):
+    def global_client(self):
         return create_autospec(VitalSourceClient, instance=True, spec_set=True)
 
     @pytest.fixture
-    def svc(self, client):
+    def customer_client(self):
+        return create_autospec(VitalSourceClient, instance=True, spec_set=True)
+
+    @pytest.fixture
+    def svc(self, global_client, customer_client):
         return VitalSourceService(
-            client=client, enabled=True, user_lti_param=sentinel.user_lti_param
+            enabled=True,
+            global_client=global_client,
+            customer_client=customer_client,
+            user_lti_param=sentinel.user_lti_param,
         )
