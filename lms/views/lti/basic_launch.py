@@ -14,6 +14,7 @@ doesn't actually require basic launch requests to have this parameter.
 
 from pyramid.view import view_config, view_defaults
 
+from lms.events import LTIEvent
 from lms.models import LtiLaunches
 from lms.security import Permissions
 from lms.services import DocumentURLService, LTIRoleService
@@ -61,11 +62,15 @@ class BasicLaunchViews:
     def configured_launch(self):
         """Display a document if we can resolve one to show."""
 
-        return self._show_document(
+        self._show_document(
             document_url=self.request.find_service(DocumentURLService).get_document_url(
                 self.request
             )
         )
+        self.request.registry.notify(
+            LTIEvent(request=self.request, type=LTIEvent.Type.CONFIGURED_LAUNCH)
+        )
+        return {}
 
     @view_config(
         route_name="lti_launches",
