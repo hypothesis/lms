@@ -59,6 +59,8 @@ class LTIEvent(BaseEvent):
     def _get_user_id(self):
         return self.request.user.id
 
+    # These methods provide defaults for each field and are used in
+    # `BaseEvent.__post_init__` above.
     def _get_role_ids(self):
         return [
             role.id
