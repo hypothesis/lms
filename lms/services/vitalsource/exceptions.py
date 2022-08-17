@@ -1,14 +1,16 @@
-class VitalSourceError(Exception):
+from lms.services.exceptions import SerializableError
+
+
+class VitalSourceError(SerializableError):
     """Indicate a failure in the VitalSource service or client."""
 
-    def __init__(self, error_code, message=None):
-        """
-        Instantiate the error.
 
-        :param error_code: A string code used to present specific dialogs in
-            the front end. For details of the codes see:
-            lms/static/scripts/frontend_apps/components/LaunchErrorDialog.js
-        :param message: A normal error message, mostly for debugging
-        """
-        self.error_code = error_code
-        super().__init__(message)
+class VitalSourceMalformedRegex(VitalSourceError):
+    """An issue with the user regex."""
+
+    def __init__(self, description, pattern):
+        super().__init__(
+            error_code="bad_user_lti_pattern",
+            message="There is a problem with the configured VitalSource configuration",
+            details={"error": description, "pattern": pattern},
+        )

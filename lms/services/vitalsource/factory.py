@@ -16,6 +16,7 @@ def service_factory(_context, request):
         global_client=VitalSourceClient(global_key) if global_key else None,
         customer_client=VitalSourceClient(customer_key) if customer_key else None,
         user_lti_param=settings.get("vitalsource", "user_lti_param"),
+        user_lti_pattern=settings.get("vitalsource", "user_lti_pattern"),
         enable_licence_check=not bool(
             settings.get("vitalsource", "disable_licence_check")
         ),

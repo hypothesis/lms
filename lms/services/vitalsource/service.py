@@ -1,15 +1,17 @@
+import re
 from typing import List, Optional
 
+from lms.models import LTIParams
 from lms.services.vitalsource._client import VitalSourceClient
-from lms.services.vitalsource.exceptions import VitalSourceError
+from lms.services.vitalsource.exceptions import (
+    VitalSourceError,
+    VitalSourceMalformedRegex,
+)
 from lms.services.vitalsource.model import VSBookLocation
 
 
 class VitalSourceService:
     """A high-level interface for dealing with VitalSource."""
-
-    user_lti_param = None
-    """The LTI parameter to use to work out the LTI user."""
 
     # pylint: disable=too-many-arguments
     def __init__(
@@ -18,6 +20,7 @@ class VitalSourceService:
         global_client: Optional[VitalSourceClient] = None,
         customer_client: Optional[VitalSourceClient] = None,
         user_lti_param: Optional[str] = None,
+        user_lti_pattern: Optional[str] = None,
         enable_licence_check: bool = True,
     ):
         """
@@ -27,6 +30,8 @@ class VitalSourceService:
         :param global_client: Client for making generic API calls
         :param customer_client: Client for making customer specific API calls
         :param user_lti_param: Field to lookup user details for SSO
+        :param user_lti_pattern: A regex to apply to the user value to get the
+            id. The first capture group will be used
         :param enable_licence_check: Check users have a book licence before
             launching an SSO redirect
         """
@@ -41,7 +46,8 @@ class VitalSourceService:
         # and VitalSource.
         self._sso_client = customer_client
         self._enable_licence_check = enable_licence_check
-        self.user_lti_param = user_lti_param
+        self._user_lti_param = user_lti_param
+        self._user_lti_pattern = user_lti_pattern
 
     @property
     def enabled(self) -> bool:
@@ -53,7 +59,7 @@ class VitalSourceService:
     def sso_enabled(self) -> bool:
         """Check if the service can use single sign on."""
 
-        return bool(self.enabled and self._sso_client and self.user_lti_param)
+        return bool(self.enabled and self._sso_client and self._user_lti_param)
 
     def get_book_info(self, book_id: str) -> dict:
         """Get details of a book."""
@@ -76,16 +82,18 @@ class VitalSourceService:
 
         return f"https://hypothesis.vitalsource.com/books/{loc.book_id}/cfi/{loc.cfi}"
 
-    def get_sso_redirect(self, user_reference, document_url) -> str:
+    def get_sso_redirect(self, document_url, user_reference: str) -> str:
         """
         Get the public URL for VitalSource book viewer from our internal URL.
 
         That URL can be used to load VitalSource content in an iframe like we
         do with other types of content.
 
-        :param user_reference: The reference of the user
         :param document_url: `vitalsource://` type URL identifying the document
+        :param user_reference: The user reference (you can use
+            `get_user_reference()` to help you with this)
         :raises VitalSourceError: If the user has no licences for the material
+            or if the service is misconfigured.
         """
         loc = VSBookLocation.from_document_url(document_url)
 
@@ -96,8 +104,47 @@ class VitalSourceService:
         if self._enable_licence_check and not self._sso_client.get_user_book_license(
             user_reference, loc.book_id
         ):
-            raise VitalSourceError("vitalsource_no_book_license")
+            raise VitalSourceError(error_code="vitalsource_no_book_license")
 
         return self._sso_client.get_sso_redirect(
             user_reference, self.get_book_reader_url(document_url)
         )
+
+    def get_user_reference(self, lti_params: LTIParams) -> Optional[str]:
+        """Get the user reference from the provided LTI params."""
+
+        value = lti_params.get(self._user_lti_param)
+        if not value:
+            return None
+
+        # Some customers have wacky values in their user params which require
+        # some parsing.
+        if pattern := self.compile_user_lti_pattern(self._user_lti_pattern):
+            match = pattern.search(value)
+            return match.group(1) if match else None
+
+        return value
+
+    @staticmethod
+    def compile_user_lti_pattern(pattern: str) -> Optional[re.Pattern]:
+        """
+        Compile and vet a user id pattern.
+
+        :pattern: String format of the regex to parse
+        :raise VitalSourceMalformedRegex: For any issues with the regex
+        """
+
+        if not pattern:
+            return None
+
+        try:
+            compiled_pattern = re.compile(pattern)
+        except re.error as err:
+            raise VitalSourceMalformedRegex(str(err), pattern=pattern) from err
+
+        if compiled_pattern.groups != 1:
+            raise VitalSourceMalformedRegex(
+                "The user regex must have one capture group (brackets)", pattern=pattern
+            )
+
+        return compiled_pattern
