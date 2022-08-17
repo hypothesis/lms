@@ -94,8 +94,9 @@
         {{ settings_checkbox("Microsoft OneDrive enabled", "microsoft_onedrive", "files_enabled", default=True) }}
 
         {{ settings_checkbox("VitalSource enabled", "vitalsource", "enabled") }}
-        {{ settings_text_field("VitalSource user ID param", "vitalsource", "user_lti_param") }}
         {{ settings_text_field("VitalSource API key", "vitalsource", "api_key") }}
+        {{ settings_text_field("VitalSource SSO user ID field", "vitalsource", "user_lti_param") }}
+        {{ settings_text_field("VitalSource SSO user ID regex", "vitalsource", "user_lti_pattern") }}
         {{ settings_checkbox("VitalSource disable licence check on SSO", "vitalsource", "disable_licence_check") }}
 
         {{ settings_checkbox("JSTOR enabled", "jstor", "enabled") }}
