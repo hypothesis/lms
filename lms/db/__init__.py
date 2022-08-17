@@ -128,10 +128,9 @@ def create_data(engine):
     Creating it here allows the data to available in the development environment and tests.
     """
     engine.execute(
-        """INSERT INTO event_type (type) values ('configured_launch') ON CONFLICT DO NOTHING"""
-    )
-    engine.execute(
-        """INSERT INTO event_type (type) values ('deep_linking') ON CONFLICT DO NOTHING"""
+        """INSERT INTO event_type (type)
+        VALUES ('configured_launch'), ('deep_linking')
+        ON CONFLICT DO NOTHING"""
     )
 
 
