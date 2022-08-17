@@ -380,8 +380,9 @@ class TestAdminApplicationInstanceViews:
             ("jstor", "site_code", "  CODE  ", "CODE"),
             ("jstor", "site_code", "", None),
             ("jstor", "site_code", None, None),
-            ("vitalsource", "user_lti_param", "user_id", "user_id"),
             ("vitalsource", "api_key", "api_key", "api_key"),
+            ("vitalsource", "user_lti_param", "user_id", "user_id"),
+            ("vitalsource", "user_lti_pattern", "name_(.*)", "name_(.*)"),
         ),
     )
     def test_update_instance_saves_ai_settings(
