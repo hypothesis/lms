@@ -110,7 +110,7 @@ class TestBasicLaunchViews:
         )
 
     def test_configured_launch(
-        self, svc, document_url_service, pyramid_request, _show_document
+        self, svc, document_url_service, pyramid_request, _show_document, LTIEvent
     ):
         svc.configured_launch()
 
@@ -119,6 +119,11 @@ class TestBasicLaunchViews:
         _show_document.assert_called_once_with(
             document_url=document_url_service.get_document_url.return_value
         )
+        LTIEvent.assert_called_once_with(
+            request=pyramid_request,
+            type=LTIEvent.Type.CONFIGURED_LAUNCH,
+        )
+        pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
 
     def test_unconfigured_launch(
         self, svc, BearerTokenSchema, context, pyramid_request
@@ -357,3 +362,7 @@ class TestBasicLaunchViews:
     @pytest.fixture(autouse=True)
     def BearerTokenSchema(self, patch):
         return patch("lms.views.lti.basic_launch.BearerTokenSchema")
+
+    @pytest.fixture
+    def LTIEvent(self, patch):
+        return patch("lms.views.lti.basic_launch.LTIEvent")
