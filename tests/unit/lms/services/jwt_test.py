@@ -12,7 +12,13 @@ from pyramid.config import Configurator
 from pytest import param
 
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
-from lms.services.jwt import JWTService, _get_lti_jwt, factory, includeme
+from lms.services.jwt import (
+    JWTService,
+    _get_lti_jwt,
+    _RequestsPyJWKClient,
+    factory,
+    includeme,
+)
 from tests import factories
 
 
@@ -77,7 +83,9 @@ class TestJWTService:
         )
         assert encoded_jwt == jwt.encode.return_value
 
-    def test_decode_lti_token(self, svc, jwt, lti_registration_service):
+    def test_decode_lti_token(
+        self, svc, jwt, _RequestsPyJWKClient, lti_registration_service
+    ):
         registration = factories.LTIRegistration(key_set_url="http://jwk.com")
         lti_registration_service.get.return_value = registration
         jwt.decode.return_value = {"aud": "AUD", "iss": "ISS"}
@@ -86,12 +94,12 @@ class TestJWTService:
 
         jwt.get_unverified_header.assert_called_once_with(sentinel.id_token)
         lti_registration_service.get.assert_called_once_with("ISS", "AUD")
-        jwt.PyJWKClient.assert_called_once_with(
+        _RequestsPyJWKClient.assert_called_once_with(
             lti_registration_service.get.return_value.key_set_url
         )
         jwt.decode.assert_called_with(
             sentinel.id_token,
-            key=jwt.PyJWKClient.return_value.get_signing_key_from_jwt.return_value.key,
+            key=_RequestsPyJWKClient.return_value.get_signing_key_from_jwt.return_value.key,
             audience="AUD",
             algorithms=["RS256"],
         )
@@ -144,12 +152,32 @@ class TestJWTService:
     def jwt(self, patch):
         return patch("lms.services.jwt.jwt")
 
+    @pytest.fixture()
+    def _RequestsPyJWKClient(self, patch):
+        return patch("lms.services.jwt._RequestsPyJWKClient")
+
     @pytest.fixture
     def svc(self, lti_registration_service, rsa_key_service):
         svc = JWTService(lti_registration_service, rsa_key_service)
         # Clear the lru_cache to make tests independent
         svc._get_jwk_client.cache_clear()  # pylint: disable=protected-access
         return svc
+
+
+class Test_RequestsPyJWKClient:
+    def test_fetch_data(self, requests):
+        keys = _RequestsPyJWKClient(sentinel.url).fetch_data()
+
+        requests.get.assert_called_once_with(
+            sentinel.url, headers={"User-Agent": "requests"}
+        )
+        assert (
+            keys == requests.get.return_value.__enter__.return_value.json.return_value
+        )
+
+    @pytest.fixture
+    def requests(self, patch):
+        return patch("lms.services.jwt.requests")
 
 
 class TestFactory:
