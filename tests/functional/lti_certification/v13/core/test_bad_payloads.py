@@ -1,6 +1,7 @@
 import logging
 
 import pytest
+from h_matchers import Any
 
 
 class TestBadPayloads:
@@ -29,7 +30,9 @@ class TestBadPayloads:
 
         do_lti_launch({"id_token": make_jwt(test_payload, jwt_headers)}, status=403)
         assert (
-            'Invalid JWT. Unable to find a signing key that matches: "imstester_66067"'
+            Any.string.matching(
+                "^Invalid JWT for:.* Unable to find a signing key that matches:.*$"
+            )
             in caplog.messages
         )
 
