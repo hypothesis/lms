@@ -4,6 +4,7 @@ import logging
 from functools import lru_cache
 
 import jwt
+import requests
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError, PyJWTError
 
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
@@ -115,7 +116,21 @@ class JWTService:
         PyJWKClient maintains a cache of keys it has seen we want to keep
         the clients around with `lru_cache` in case we can reuse that internal cache
         """
-        return jwt.PyJWKClient(jwk_url)
+        return _RequestsPyJWKClient(jwk_url)
+
+
+class _RequestsPyJWKClient(jwt.PyJWKClient):
+    """
+    Version of PyJWKClient which uses requests to gather JWKs.
+
+    Having our own class and using request allows for easier customization.
+    """
+
+    def fetch_data(self):
+        # We found that some Moodle instances return 403s
+        # on request without an User-Agent.
+        with requests.get(self.uri, headers={"User-Agent": "requests"}) as response:
+            return response.json()
 
 
 def factory(_context, request):
