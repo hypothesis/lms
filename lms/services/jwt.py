@@ -95,7 +95,7 @@ class JWTService:
                 id_token, key=signing_key.key, audience=aud, algorithms=["RS256"]
             )
         except PyJWTError as err:
-            LOG.debug("Invalid JWT. %s", str(err))
+            LOG.debug("Invalid JWT for: %s, %s. %s", iss, aud, str(err))
             return {}
 
     def encode_with_private_key(self, payload: dict):
