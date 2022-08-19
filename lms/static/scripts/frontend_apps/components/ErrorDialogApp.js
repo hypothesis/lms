@@ -19,6 +19,7 @@ export default function ErrorDialogApp() {
   const error = {
     errorCode: errorDialog?.errorCode,
     details: errorDialog?.errorDetails ?? '',
+    message: errorDialog?.errorMessage ?? '',
   };
 
   let description;

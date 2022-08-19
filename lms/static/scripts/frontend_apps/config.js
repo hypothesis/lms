@@ -93,6 +93,7 @@ import { createContext } from 'preact';
  * @typedef ConfigErrorBase
  * @prop {AppLaunchServerErrorCode|OAuthServerErrorCode} [errorCode]
  * @prop {object|string} [errorDetails]
+ * @prop {string} [errorMessage]
  */
 
 /**
