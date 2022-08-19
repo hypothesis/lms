@@ -450,7 +450,7 @@ pyramid-exclog==1.1
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-pyramid-googleauth==1.0.4
+pyramid-googleauth==1.0.5
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
