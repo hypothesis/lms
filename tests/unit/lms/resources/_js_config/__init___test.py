@@ -551,13 +551,18 @@ class TestAddDeepLinkingAPI:
 
 class TestEnableErrorDialogMode:
     def test_it(self, js_config):
-        js_config.enable_error_dialog_mode(sentinel.error_code, sentinel.error_details)
+        js_config.enable_error_dialog_mode(
+            error_code=sentinel.error_code,
+            error_details=sentinel.error_details,
+            message=sentinel.message,
+        )
         config = js_config.asdict()
 
         assert config["mode"] == JSConfig.Mode.ERROR_DIALOG
         assert config["errorDialog"] == {
             "errorCode": sentinel.error_code,
             "errorDetails": sentinel.error_details,
+            "errorMessage": sentinel.message,
         }
 
     def test_it_omits_errorDetails_if_no_error_details_argument_is_given(

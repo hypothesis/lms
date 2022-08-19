@@ -9,7 +9,7 @@ from pyramid.view import (
 )
 
 from lms.models import ReusedConsumerKey
-from lms.services import HAPIError
+from lms.services import HAPIError, SerializableError
 from lms.validation import ValidationError
 
 _ = i18n.TranslationStringFactory(__package__)
@@ -56,6 +56,20 @@ class ExceptionViews:
                 "existing_tool_consumer_instance_guid": self.exception.existing_guid,
                 "new_tool_consumer_instance_guid": self.exception.new_guid,
             },
+        )
+
+        return {}
+
+    @exception_view_config(
+        context=SerializableError, renderer="lms:templates/error_dialog.html.jinja2"
+    )
+    def serializable_error(self):
+        self.request.response.status_int = 400
+
+        self.request.context.js_config.enable_error_dialog_mode(
+            error_code=self.exception.error_code,
+            message=self.exception.message,
+            error_details=self.exception.details,
         )
 
         return {}

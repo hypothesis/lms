@@ -2,6 +2,8 @@ import functools
 from enum import Enum
 from typing import List, Optional
 
+from pyramid.httpexceptions import HTTPClientError
+
 from lms.models import Assignment, GroupInfo, Grouping, HUser
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
@@ -154,7 +156,7 @@ class JSConfig:
         if error_details:
             self._config["OAuth2RedirectError"]["errorDetails"] = error_details
 
-    def enable_error_dialog_mode(self, error_code, error_details=None):
+    def enable_error_dialog_mode(self, error_code, error_details=None, message=None):
         self._config.update(
             {
                 "mode": JSConfig.Mode.ERROR_DIALOG,
@@ -164,6 +166,9 @@ class JSConfig:
 
         if error_details:
             self._config["errorDialog"]["errorDetails"] = error_details
+
+        if message:
+            self._config["errorDialog"]["errorMessage"] = message
 
     def enable_lti_launch_mode(self, assignment: Assignment):
         """
