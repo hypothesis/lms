@@ -60,9 +60,6 @@ class AdminApplicationInstanceViews:
             self.request.matchdict["id_"]
         )
 
-        if consumer_key := self.request.params.get("consumer_key", "").strip():
-            return self.upgrade_instance(lti_registration, consumer_key)
-
         if flash_validation(self.request, NewApplicationInstanceSchema):
             response = render_to_response(
                 "lms:templates/admin/instance.new.html.jinja2",
@@ -96,7 +93,16 @@ class AdminApplicationInstanceViews:
             location=self.request.route_url("admin.instance.id", id_=ai.id)
         )
 
-    def upgrade_instance(self, lti_registration, consumer_key):
+    @view_config(
+        route_name="admin.registration.new.instance",
+        request_method="POST",
+        renderer="lms:templates/admin/instance.new.html.jinja2",
+    )
+    def upgrade_instance(self):
+        lti_registration = self.lti_registration_service.get_by_id(
+            self.request.matchdict["id_"]
+        )
+
         if flash_validation(self.request, UpgradeApplicationInstanceSchema):
             response = render_to_response(
                 "lms:templates/admin/instance.new.html.jinja2",
@@ -105,6 +111,9 @@ class AdminApplicationInstanceViews:
             )
             response.status = 400
             return response
+
+        consumer_key = self.request.params["consumer_key"].strip()
+        deployment_id = self.request.params["deployment_id"].strip()
 
         # Find the Application instance we are upgrading
         try:
@@ -130,17 +139,7 @@ class AdminApplicationInstanceViews:
 
         # Set the LTI1.3 values
         application_instance.lti_registration = lti_registration
-        application_instance.deployment_id = self.request.params[
-            "deployment_id"
-        ].strip()
-
-        # And upgrade any other values present in the request
-        if email := self.request.params["email"].strip():
-            application_instance.requesters_email = email
-
-        if lms_url := self.request.params["lms_url"].strip():
-            application_instance.lms_url = lms_url
-
+        application_instance.deployment_id = deployment_id
         try:
             # Flush here to find if we are making a duplicate in the process of
             # upgrading

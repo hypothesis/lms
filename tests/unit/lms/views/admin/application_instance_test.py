@@ -124,7 +124,7 @@ class TestAdminApplicationInstanceViews:
         lti_registration_service.get_by_id.return_value = lti_registration
         assert not application_instance.lti_registration
 
-        response = views.new_instance()
+        response = views.upgrade_instance()
 
         application_instance_service.get_by_consumer_key.assert_called_once_with(
             application_instance.consumer_key
@@ -139,32 +139,10 @@ class TestAdminApplicationInstanceViews:
         )
 
     @pytest.mark.usefixtures("with_upgrade_form")
-    @pytest.mark.parametrize("parameter", ["lms_url", "email"])
-    def test_upgrade_instance_allows_empty(
-        self,
-        views,
-        pyramid_request,
-        parameter,
-        lti_registration_service,
-        application_instance,
-    ):
-        lti_registration_service.get_by_id.return_value = factories.LTIRegistration()
-
-        # Replicate real's pyramid_request behaviour
-        pyramid_request.POST[parameter] = ""
-        pyramid_request.params[parameter] = ""
-
-        response = views.new_instance()
-
-        assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.instance.id", id_=application_instance.id)
-        )
-
-    @pytest.mark.usefixtures("with_upgrade_form")
     def test_upgrade_no_deployment_id(self, views, pyramid_request):
         del pyramid_request.POST["deployment_id"]
 
-        response = views.new_instance()
+        response = views.upgrade_instance()
 
         assert response.status_code == 400
 
@@ -173,7 +151,7 @@ class TestAdminApplicationInstanceViews:
         application_instance.lti_registration_id = 100
         application_instance.deployment_id = "ID"
 
-        response = views.new_instance()
+        response = views.upgrade_instance()
 
         assert response.status_code == 400
 
@@ -185,7 +163,7 @@ class TestAdminApplicationInstanceViews:
             lti_registration=lti_registration, deployment_id="DEPLOYMENT_ID"
         )
 
-        response = views.new_instance()
+        response = views.upgrade_instance()
 
         assert response.status_code == 400
 
@@ -200,7 +178,7 @@ class TestAdminApplicationInstanceViews:
             ApplicationInstanceNotFound
         )
 
-        response = views.new_instance()
+        response = views.upgrade_instance()
 
         assert response.status_code == 400
 
@@ -447,7 +425,9 @@ class TestAdminApplicationInstanceViews:
 
     @pytest.fixture
     def with_upgrade_form(self, with_form_submission, application_instance):
-        with_form_submission.params["consumer_key"] = application_instance.consumer_key
+        with_form_submission.params["consumer_key"] = with_form_submission.POST[
+            "consumer_key"
+        ] = application_instance.consumer_key
         return with_form_submission
 
     @pytest.fixture
