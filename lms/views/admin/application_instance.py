@@ -12,41 +12,6 @@ from lms.validation._base import PyramidRequestSchema
 from lms.views.admin import error_render_to_response, flash_validation
 
 
-class EmptyStringNoneMixin:
-    """
-    Allows empty string as "missing value".
-
-    Marshmallow doesn't have a clean solution yet to POSTed values
-    (that are always present in the request as empty strings)
-
-    Here we convert them explicitly to None
-
-    https://github.com/marshmallow-code/marshmallow/issues/713
-    """
-
-    def deserialize(self, value, attr, data, **kwargs):
-        if not value:
-            return None
-        return super().deserialize(value, attr, data, **kwargs)
-
-
-class EmptyStringURL(EmptyStringNoneMixin, fields.URL):
-    ...
-
-
-class EmptyStringEmail(EmptyStringNoneMixin, fields.Email):
-    ...
-
-
-class ApplicationInstanceSchema(PyramidRequestSchema):
-    location = "form"
-
-    deployment_id = fields.Str(required=True, validate=validate.Length(min=1))
-
-    developer_key = fields.Str(required=False, allow_none=True)
-    developer_secret = fields.Str(required=False, allow_none=True)
-
-
 class NewApplicationInstanceSchema(PyramidRequestSchema):
     location = "form"
 
@@ -59,11 +24,11 @@ class NewApplicationInstanceSchema(PyramidRequestSchema):
     email = fields.Email(required=True)
 
 
-class UpgradeApplicationInstanceSchema(ApplicationInstanceSchema):
+class UpgradeApplicationInstanceSchema(PyramidRequestSchema):
     location = "form"
 
-    lms_url = EmptyStringURL(required=False, allow_none=True)
-    email = EmptyStringEmail(required=False, allow_none=True)
+    consumer_key = fields.Str(required=True)
+    deployment_id = fields.Str(required=True, validate=validate.Length(min=1))
 
 
 @view_defaults(request_method="GET", permission=Permissions.ADMIN)
