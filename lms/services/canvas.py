@@ -93,7 +93,11 @@ class CanvasFileFinder:
         Return None if no matching file is found.
         """
         for file_id in file_ids:
-            file = self._file_service.get(file_id, type_="canvas_file")
+            # Use both `get` (the most common scenario, files in th same application instance)
+            # and `get_with_guid` as a fallback for installs in the same LMS with multiple application instances.
+            file = self._file_service.get(
+                file_id, type_="canvas_file"
+            ) or self._file_service.get_with_guid(file_id, type_="canvas_file")
 
             if not file:
                 continue

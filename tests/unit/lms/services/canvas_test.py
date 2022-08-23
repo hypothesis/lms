@@ -213,6 +213,16 @@ class TestCanvasFileFinder:
         canvas_api_client.list_files.assert_called_once_with(sentinel.course_id)
         assert matching_file_id == str(sentinel.matching_file_id)
 
+    def test_fallback_to_guid_matching(self, finder, file_service):
+        file_service.get.return_value = None
+
+        finder.find_matching_file_in_course(sentinel.course_id, [sentinel.file_id])
+
+        file_service.get.assert_called_once_with(sentinel.file_id, type_="canvas_file")
+        file_service.get_with_guid.assert_called_once_with(
+            sentinel.file_id, type_="canvas_file"
+        )
+
     def test_find_matching_file_in_course_with_multiple_file_ids(
         self, finder, canvas_api_client, file_service
     ):
@@ -225,6 +235,9 @@ class TestCanvasFileFinder:
             # The third file_id *will* be found in the course.
             matching_file,
         ]
+        # The with GUID fallback doesn't returning anything else
+        file_service.get_with_guid.return_value = None
+
         canvas_api_client.list_files.return_value = [
             {
                 "id": sentinel.matching_file_id,
