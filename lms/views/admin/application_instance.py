@@ -94,7 +94,7 @@ class AdminApplicationInstanceViews:
         )
 
     @view_config(
-        route_name="admin.registration.new.instance",
+        route_name="admin.registration.upgrade.instance",
         request_method="POST",
         renderer="lms:templates/admin/instance.new.html.jinja2",
     )

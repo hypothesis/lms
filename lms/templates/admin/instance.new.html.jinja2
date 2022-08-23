@@ -19,18 +19,28 @@ New application instance
 
 
     <fieldset class="box mt-6">
-        <legend class="label has-text-centered">Application instance</legend>
-        {{ macros.form_text_field(request, "Consumer key", "consumer_key",
-            placeholder="Optional. Existing application instance's consumer key. It will be upgraded to LTI 1.3 using this registration") }}
+        <legend class="label has-text-centered">Create new Application instance</legend>
         {{ macros.form_text_field(request, "Deployment ID", "deployment_id") }}
         {{ macros.form_text_field(request, "LMS URL", "lms_url") }}
         {{ macros.form_text_field(request, "Email", "email") }}
-
         {{ macros.form_text_field(request, "Canvas developer key", "developer_key") }}
         {{ macros.form_text_field(request, "Canvas developer secret", "developer_secret") }}
     </fieldset>
 
     <input type="submit" class="button is-info" value="New"/>
+</form>
+
+<form method="POST" action="{{ request.route_url("admin.registration.upgrade.instance", id_=lti_registration.id) }}">
+    <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
+
+    <fieldset class="box mt-6">
+        <legend class="label has-text-centered">Upgrade exsiting Application instance</legend>
+        {{ macros.form_text_field(request, "Consumer key", "consumer_key",
+            placeholder="Existing application instance's consumer key. It will be upgraded to LTI 1.3 using this registration") }}
+        {{ macros.form_text_field(request, "Deployment ID", "deployment_id") }}
+    </fieldset>
+
+    <input type="submit" class="button is-info" value="Upgrade"/>
 </form>
 
 {% endblock %}
