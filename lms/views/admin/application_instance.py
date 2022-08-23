@@ -313,6 +313,7 @@ class AdminApplicationInstanceViews:
             ("vitalsource", "enabled", bool),
             ("vitalsource", "user_lti_param", str),
             ("vitalsource", "api_key", str),
+            ("vitalsource", "disable_licence_check", bool),
             ("jstor", "enabled", bool),
             ("jstor", "site_code", str),
         ):

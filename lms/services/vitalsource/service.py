@@ -11,12 +11,14 @@ class VitalSourceService:
     user_lti_param = None
     """The LTI parameter to use to work out the LTI user."""
 
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
         enabled: bool = False,
         global_client: Optional[VitalSourceClient] = None,
         customer_client: Optional[VitalSourceClient] = None,
         user_lti_param: Optional[str] = None,
+        enable_licence_check: bool = True,
     ):
         """
         Initialise the service.
@@ -25,6 +27,8 @@ class VitalSourceService:
         :param global_client: Client for making generic API calls
         :param customer_client: Client for making customer specific API calls
         :param user_lti_param: Field to lookup user details for SSO
+        :param enable_licence_check: Check users have a book licence before
+            launching an SSO redirect
         """
 
         self._enabled = enabled
@@ -36,6 +40,7 @@ class VitalSourceService:
         # sense in the context of an institutional relationship between the uni
         # and VitalSource.
         self._sso_client = customer_client
+        self._enable_licence_check = enable_licence_check
         self.user_lti_param = user_lti_param
 
     @property
@@ -84,7 +89,13 @@ class VitalSourceService:
         """
         loc = VSBookLocation.from_document_url(document_url)
 
-        if not self._sso_client.get_user_book_license(user_reference, loc.book_id):
+        # The licence check seems to unnecessarily cause problems for some
+        # customers where users do have licences but the check says they
+        # don't. Setting `_enable_licence_check` to `False` provides an option
+        # to work around this while we work through the issue.
+        if self._enable_licence_check and not self._sso_client.get_user_book_license(
+            user_reference, loc.book_id
+        ):
             raise VitalSourceError("vitalsource_no_book_license")
 
         return self._sso_client.get_sso_redirect(

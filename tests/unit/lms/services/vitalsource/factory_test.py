@@ -12,6 +12,7 @@ class TestServiceFactory:
         "enabled,expected", ((sentinel.enabled, sentinel.enabled), (None, False))
     )
     @pytest.mark.parametrize("customer_api_key", (sentinel.customer_api_key, None))
+    @pytest.mark.parametrize("disable_licence_check", (None, True))
     def test_it(
         self,
         pyramid_request,
@@ -21,6 +22,7 @@ class TestServiceFactory:
         enabled,
         expected,
         customer_api_key,
+        disable_licence_check,
     ):
         pyramid_request.registry.settings["vitalsource_api_key"] = None
         # This fixture is a bit odd and returns a real application instance
@@ -29,6 +31,10 @@ class TestServiceFactory:
         ai.settings.set("vitalsource", "api_key", customer_api_key)
         if enabled:
             ai.settings.set("vitalsource", "enabled", enabled)
+        if disable_licence_check:
+            ai.settings.set(
+                "vitalsource", "disable_licence_check", disable_licence_check
+            )
 
         svc = service_factory(sentinel.context, pyramid_request)
 
@@ -44,6 +50,7 @@ class TestServiceFactory:
             if customer_api_key
             else None,
             user_lti_param=sentinel.user_lti_param,
+            enable_licence_check=not (disable_licence_check),
         )
         assert svc == VitalSourceService.return_value
 
@@ -65,6 +72,7 @@ class TestServiceFactory:
             global_client=VitalSourceClient.return_value if global_api_key else None,
             customer_client=Any(),
             user_lti_param=Any(),
+            enable_licence_check=Any(),
         )
 
     @pytest.fixture

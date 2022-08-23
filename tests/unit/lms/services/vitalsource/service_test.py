@@ -63,6 +63,23 @@ class TestVitalSourceService:
 
         assert exc.value.error_code == "vitalsource_no_book_license"
 
+    def test_get_sso_redirect_with_no_book_licence_with_checking_disabled(
+        self, customer_client
+    ):
+        customer_client.get_user_book_license.return_value = None
+        svc = VitalSourceService(
+            customer_client=customer_client, enable_licence_check=False
+        )
+
+        result = svc.get_sso_redirect(
+            sentinel.user_reference,
+            document_url="vitalsource://book/bookID/BOOK-ID/cfi/CFI",
+        )
+
+        customer_client.get_user_book_license.assert_not_called()
+
+        assert result == customer_client.get_sso_redirect.return_value
+
     @pytest.mark.parametrize(
         "proxy_method,args",
         (
@@ -108,4 +125,5 @@ class TestVitalSourceService:
             global_client=global_client,
             customer_client=customer_client,
             user_lti_param=sentinel.user_lti_param,
+            enable_licence_check=True,
         )
