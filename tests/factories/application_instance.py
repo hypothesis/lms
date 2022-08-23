@@ -1,4 +1,4 @@
-from factory import Faker, make_factory
+from factory import Faker, Sequence, make_factory
 from factory.alchemy import SQLAlchemyModelFactory
 
 from lms import models
@@ -12,4 +12,5 @@ ApplicationInstance = make_factory(
     lms_url=Faker("url", schemes=["https"]),
     requesters_email=Faker("email"),
     settings={},
+    tool_consumer_instance_guid=Sequence(lambda n: f"GUID-{n}"),
 )

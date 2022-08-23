@@ -103,6 +103,7 @@ class TestApplicationInstance:
         assert application_instance.decrypted_developer_secret(aes_service) is None
 
     def test_update_lms_data(self, application_instance, lms_data):
+        application_instance.tool_consumer_instance_guid = None
         lms_data["tool_consumer_instance_guid"] = "GUID"
         application_instance.update_lms_data(lms_data)
 
@@ -112,9 +113,10 @@ class TestApplicationInstance:
     def test_update_lms_data_no_guid_doesnt_change_values(
         self, application_instance, lms_data
     ):
+        existing_guid = application_instance.tool_consumer_instance_guid
         application_instance.update_lms_data(lms_data)
 
-        assert application_instance.tool_consumer_instance_guid is None
+        assert application_instance.tool_consumer_instance_guid == existing_guid
         assert application_instance.tool_consumer_info_product_family_code is None
 
     def test_update_lms_data_existing_guid(self, application_instance, lms_data):
