@@ -135,6 +135,10 @@ def includeme(config):  # pylint:disable=too-many-statements
     config.add_route(
         "admin.registration.new.instance", "/admin/registration/id/{id_}/new/instance"
     )
+    config.add_route(
+        "admin.registration.upgrade.instance",
+        "/admin/registration/id/{id_}/upgrade/instance",
+    )
     config.add_route("admin.registration.new", "/admin/registration")
     config.add_route("admin.registration.suggest_urls", "/admin/registration/urls")
 
