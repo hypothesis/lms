@@ -116,6 +116,29 @@ class ApplicationInstanceService:
 
         return query.all()
 
+    def update_application_instance(  # pylint:disable=too-many-arguments
+        self,
+        application_instance,
+        lms_url=None,
+        deployment_id=None,
+        developer_key=None,
+        developer_secret=None,
+    ):
+        if lms_url:
+            application_instance.lms_url = lms_url
+
+        if deployment_id:
+            application_instance.deployment_id = deployment_id
+
+        if developer_key:
+            application_instance.developer_key = developer_key
+
+        if developer_secret:
+            aes_iv = self._aes_service.build_iv()
+            encrypted_secret = self._aes_service.encrypt(aes_iv, developer_secret)
+            application_instance.aes_cipher_iv = aes_iv
+            application_instance.developer_secret = encrypted_secret
+
     def create_application_instance(  # pylint:disable=too-many-arguments
         self,
         lms_url,
@@ -131,26 +154,25 @@ class ApplicationInstanceService:
             "Hypothesis" + secrets.token_hex(16) if not deployment_id else None
         )
 
-        if developer_secret and developer_key:
-            aes_iv = self._aes_service.build_iv()
-            encrypted_secret = self._aes_service.encrypt(aes_iv, developer_secret)
-        else:
-            # If either one of developer_key or developer_secret is missing, then we
-            # don't save the other one either.
-            developer_key = encrypted_secret = developer_secret = aes_iv = None
-
         application_instance = ApplicationInstance(
             consumer_key=consumer_key,
             shared_secret=secrets.token_hex(32),
             lms_url=lms_url,
             requesters_email=email,
-            developer_key=developer_key,
-            developer_secret=encrypted_secret,
-            aes_cipher_iv=aes_iv,
             created=datetime.utcnow(),
             settings=settings or {},
             deployment_id=deployment_id,
             lti_registration_id=lti_registration_id,
+        )
+        # If either one of developer_key or developer_secret is missing,
+        # then we won't set either on creation
+        if not all([developer_secret, developer_key]):
+            developer_key = developer_secret = None
+
+        self.update_application_instance(
+            application_instance,
+            developer_key=developer_key,
+            developer_secret=developer_secret,
         )
         self._db.add(application_instance)
         self._db.flush()  # Force the returned AI to have an ID

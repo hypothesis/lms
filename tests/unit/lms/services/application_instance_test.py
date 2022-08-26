@@ -75,20 +75,60 @@ class TestApplicationInstanceService:
         with pytest.raises(ApplicationInstanceNotFound):
             service.get_by_deployment_id(issuer, client_id, deployment_id)
 
-    @pytest.mark.parametrize(
-        "developer_secret,developer_key",
-        [
-            ("TEST_DEVELOPER_SECRET", "DEVELOPER_KEY"),
-            ("TEST_DEVELOPER_SECRET", None),
-            (None, "DEVELOPER_KEY"),
-            (None, None),
-        ],
-    )
+    @pytest.mark.parametrize("lms_url", (None, "http://lms-url.com"))
+    @pytest.mark.parametrize("deployment_id", (None, "DEPLOYMENT_ID"))
+    @pytest.mark.parametrize("developer_key", (None, "KEY"))
+    @pytest.mark.parametrize("developer_secret", (None, "SECRET"))
+    def test_update_application_instance(
+        self,
+        service,
+        application_instance,
+        lms_url,
+        deployment_id,
+        developer_key,
+        developer_secret,
+        aes_service,
+    ):
+
+        service.update_application_instance(
+            application_instance,
+            lms_url=lms_url,
+            deployment_id=deployment_id,
+            developer_key=developer_key,
+            developer_secret=developer_secret,
+        )
+
+        if developer_secret:
+            aes_service.build_iv.assert_called_once()
+            aes_service.encrypt.assert_called_once_with(
+                aes_service.build_iv.return_value, developer_secret
+            )
+
+            assert application_instance.developer_secret
+
+        if developer_key:
+            assert application_instance.developer_key == developer_key
+
+        if lms_url:
+            assert application_instance.lms_url == lms_url
+
+        if deployment_id:
+            assert application_instance.deployment_id == deployment_id
+
+    @pytest.mark.parametrize("developer_key", ("key", None))
+    @pytest.mark.parametrize("developer_secret", ("secret", None))
     def test_create_application_instance(
-        self, developer_secret, developer_key, service, aes_service
+        self,
+        service,
+        aes_service,
+        update_application_instance,
+        developer_key,
+        developer_secret,
     ):
         aes_service.build_iv.return_value = b"iv"
         aes_service.encrypt.return_value = b"secret"
+        if not all([developer_secret, developer_key]):
+            developer_key = developer_secret = None
 
         application_instance = service.create_application_instance(
             "https://example.com/",
@@ -103,14 +143,11 @@ class TestApplicationInstanceService:
         assert application_instance.lms_url == "https://example.com/"
         assert application_instance.requesters_email == "example@example.com"
         assert application_instance.settings == {}
-        if developer_secret and developer_key:
-            aes_service.build_iv.assert_called_once()
-            aes_service.encrypt.assert_called_once_with(
-                aes_service.build_iv.return_value, developer_secret
-            )
-
-            assert application_instance.developer_key == developer_key
-            assert application_instance.developer_secret
+        update_application_instance.assert_called_once_with(
+            application_instance,
+            developer_key=developer_key,
+            developer_secret=developer_secret,
+        )
 
     @pytest.mark.parametrize("field", ["issuer", "client_id"])
     def test_search_by_registration_fields(
@@ -161,6 +198,13 @@ class TestApplicationInstanceService:
         return ApplicationInstanceService(
             db=db_session, request=pyramid_request, aes_service=aes_service
         )
+
+    @pytest.fixture
+    def update_application_instance(self, service):
+        with mock.patch.object(
+            service, "update_application_instance"
+        ) as update_application_instance:
+            yield update_application_instance
 
     @pytest.fixture(autouse=True)
     def with_application_instance_noise(self):
