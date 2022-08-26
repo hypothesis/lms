@@ -1,6 +1,6 @@
 from urllib.parse import urlparse
 
-from marshmallow import validate
+from marshmallow import ValidationError, validate, validates
 from pyramid.httpexceptions import HTTPFound
 from pyramid.renderers import render_to_response
 from pyramid.view import view_config, view_defaults
@@ -18,6 +18,12 @@ class LTIRegistrationBaseSchema(PyramidRequestSchema):
 
     issuer = fields.URL(required=True)
     client_id = fields.Str(required=True, validate=validate.Length(min=1))
+
+    @validates("issuer")
+    def validate_issuer(self, value):
+        if value.endswith("/"):
+            # Prevent confusion with application instance LMS URL.
+            raise ValidationError("Issuer can't end with '/'")
 
 
 class LTIRegistrationSchema(LTIRegistrationBaseSchema):

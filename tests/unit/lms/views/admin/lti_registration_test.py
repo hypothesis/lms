@@ -122,6 +122,14 @@ class TestAdminApplicationInstanceViews:
 
         assert response.status_code == 400
 
+    @pytest.mark.usefixtures("with_form_submission")
+    def test_new_registration_bad_issuer(self, pyramid_request, views):
+        pyramid_request.POST["issuer"] = "https://issuer.com/"
+
+        response = views.new_registration_callback()
+
+        assert response.status_code == 400
+
     def test_search_not_query(self, pyramid_request):
         response = AdminLTIRegistrationViews(pyramid_request).search()
 
