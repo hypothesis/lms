@@ -1,19 +1,26 @@
 import { LabeledButton } from '@hypothesis/frontend-shared';
-
 import { useCallback, useEffect, useRef } from 'preact/hooks';
 
 import AuthWindow from '../utils/AuthWindow';
 
-/**
- * @typedef AuthButtonProps
- * @prop {string} authURL - Initial URL for the authorization popup. See `AuthWindow`.
- * @prop {string} authToken - Auth token between the LMS frontend and backend. See `AuthWindow`.
- * @prop {string} [label] - Custom label for the "Authorize" button
- * @prop {() => void} onAuthComplete - Callback invoked when the authorization flow completes.
- *   This does not guarantee that authorization was successful. Instead
- *   the caller should retry whatever operation triggered the authorization
- *   prompt and check whether it succeeds.
- */
+type AuthButtonProps = {
+  /** Initial URL for the authorization popup. See {@link AuthWindow}. */
+  authURL: string;
+  /** Auth token between the LMS frontend and backend. See {@link AuthWindow}. */
+  authToken: string;
+
+  /** Custom label for the "Authorize" button. */
+  label?: string;
+
+  /**
+   * Callback invoked when the authorization flow completes.
+   *
+   * This does not guarantee that authorization was successful. Instead the
+   * caller should retry whatever operation triggered the authorization prompt
+   * and check whether it succeeds.
+   */
+  onAuthComplete: () => void;
+};
 
 /**
  * Button that prompts the user to authorize the Hypothesis LMS app to access
@@ -22,17 +29,14 @@ import AuthWindow from '../utils/AuthWindow';
  * This component is typically shown to the user when an attempt to fetch data
  * from the LMS via an LMS-specific API fails, requiring the user to complete
  * an OAuth or OAuth-like authentication flow before the attempt can proceed.
- *
- * @param {AuthButtonProps} props
  */
 export default function AuthButton({
   authURL,
   authToken,
   label = 'Authorize',
   onAuthComplete,
-}) {
-  /** @type {{ current: AuthWindow|null }} */
-  const authWindow = useRef(null);
+}: AuthButtonProps) {
+  const authWindow = useRef<AuthWindow | null>(null);
 
   const authorize = useCallback(async () => {
     if (authWindow.current) {
