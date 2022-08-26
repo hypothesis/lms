@@ -392,6 +392,61 @@ class TestAdminApplicationInstanceViews:
         with pytest.raises(HTTPNotFound):
             AdminApplicationInstanceViews(pyramid_request).update_instance()
 
+    def test_update_canvas_api_details(
+        self, pyramid_request, application_instance_service
+    ):
+        pyramid_request.matchdict["id_"] = sentinel.id
+
+        response = AdminApplicationInstanceViews(
+            pyramid_request
+        ).update_canvas_api_details()
+
+        assert (
+            response["instance"].id
+            == application_instance_service.get_by_id.return_value.id
+        )
+
+    def test_update_canvas_api_details_callback(
+        self, pyramid_request, application_instance_service
+    ):
+        pyramid_request.params["developer_key"] = sentinel.key
+        pyramid_request.params["developer_secret"] = sentinel.secret
+
+        response = AdminApplicationInstanceViews(
+            pyramid_request
+        ).update_canvas_api_details_callback()
+
+        application_instance_service.set_canvas_api_details.assert_called_once_with(
+            application_instance_service.get_by_id.return_value,
+            sentinel.key,
+            sentinel.secret,
+        )
+        assert response == temporary_redirect_to(
+            pyramid_request.route_url(
+                "admin.instance.id",
+                id_=application_instance_service.get_by_id.return_value.id,
+            )
+        )
+
+    @pytest.mark.parametrize(
+        "key,secret",
+        [("key", None), (None, "secret"), (None, None)],
+    )
+    def test_update_canvas_api_details_callback_missing_params(
+        self, pyramid_request, key, secret, application_instance_service
+    ):
+        pyramid_request.params["developer_key"] = key
+        pyramid_request.params["developer_secret"] = secret
+
+        response = AdminApplicationInstanceViews(
+            pyramid_request
+        ).update_canvas_api_details_callback()
+
+        assert pyramid_request.response.status_code == 400
+        assert response == {
+            "instance": application_instance_service.get_by_id.return_value
+        }
+
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.params = {}

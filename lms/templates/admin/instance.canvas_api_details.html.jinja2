@@ -1,0 +1,18 @@
+{% import "macros.jinja" as macros %}
+
+{% extends "lms:templates/admin/base.html.jinja2" %}
+
+{% block content %}
+<form method="POST" action="{{ request.route_url("admin.instance.canvas.api", id_=instance.id) }}">
+    <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
+
+    <fieldset class="box mt-6">
+        <legend class="label has-text-centered">Canvas API details</legend>
+
+        {{ macros.form_text_field(request, "API Key", "developer_key") }}
+        {{ macros.form_text_field(request, "API Secret", "developer_secret") }}
+    </fieldset>
+
+    <input type="submit" class="button is-info" value="Update"/>
+</form>
+{% endblock %}

@@ -295,6 +295,42 @@ class AdminApplicationInstanceViews:
             location=self.request.route_url("admin.instance.id", id_=ai.id)
         )
 
+    @view_config(
+        route_name="admin.instance.canvas.api",
+        request_method="GET",
+        renderer="lms:templates/admin/instance.canvas_api_details.html.jinja2",
+    )
+    def update_canvas_api_details(self):
+        return {"instance": self._get_ai_or_404(**self.request.matchdict)}
+
+    @view_config(
+        route_name="admin.instance.canvas.api",
+        request_method="POST",
+        renderer="lms:templates/admin/instance.canvas_api_details.html.jinja2",
+    )
+    def update_canvas_api_details_callback(self):
+        ai = self._get_ai_or_404(**self.request.matchdict)
+        developer_key = self.request.params["developer_key"]
+        developer_secret = self.request.params["developer_secret"]
+
+        if not developer_key or not developer_secret:
+            self.request.session.flash(
+                "Both Developer key and secret are required", "errors"
+            )
+            self.request.response.status_code = 400
+            return {"instance": self._get_ai_or_404(**self.request.matchdict)}
+
+        self.application_instance_service.set_canvas_api_details(
+            ai,
+            self.request.params["developer_key"],
+            self.request.params["developer_secret"],
+        )
+
+        self.request.session.flash("Updated canvas API details", "messages")
+        return HTTPFound(
+            location=self.request.route_url("admin.instance.id", id_=ai.id)
+        )
+
     def _get_ai_or_404(self, consumer_key=None, id_=None) -> ApplicationInstance:
         try:
             if consumer_key:

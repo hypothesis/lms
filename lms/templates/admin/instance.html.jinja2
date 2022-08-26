@@ -79,7 +79,12 @@
     <fieldset class="box">
         <legend class="label has-text-centered">Canvas settings</legend>
         {{ macros.disabled_text_field("API domain", instance.custom_canvas_api_domain) }}
+
         {{ macros.disabled_text_field("Developer key", instance.developer_key) }}
+        <div class="has-text-right mb-6">
+            <a class="button is-primary" href="{{ request.route_url("admin.instance.canvas.api", id_=instance.id) }}">Update API details</a>
+        </div>
+
         {{ settings_checkbox("Sections enabled", "canvas", "sections_enabled") }}
         {{ settings_checkbox("Groups enabled", "canvas", "groups_enabled") }}
     </fieldset>
