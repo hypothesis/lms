@@ -30,11 +30,12 @@ export default {
       preventAssignment: true,
       values: {
         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-        'LMS_FRONTEND_TESTS': 'true',
+        LMS_FRONTEND_TESTS: 'true',
       },
     }),
     nodeResolve({
       browser: true,
+      extensions: ['.js', '.ts', '.tsx'],
 
       // Disallow use of browser polyfills for Node builtin modules. We're
       // trying to avoid dependencies which rely on these.
@@ -55,6 +56,7 @@ export default {
     babel({
       babelHelpers: 'bundled',
       exclude: 'node_modules/**',
+      extensions: ['.js', '.ts', '.tsx'],
       presets: [
         [
           '@babel/preset-react',

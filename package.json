@@ -9,8 +9,8 @@
   },
   "scripts": {
     "build": "gulp build",
-    "checkformatting": "prettier --check lms/**/*.{js,scss} scripts/**/*.js",
-    "format": "prettier --list-different --write lms/**/*.{js,scss} scripts/**/*.js",
+    "checkformatting": "prettier --check lms/**/*.{js,scss,ts,tsx}",
+    "format": "prettier --list-different --write lms/**/*.{js,scss,ts,tsx}",
     "lint": "eslint --ignore-pattern build .",
     "test": "gulp test",
     "typecheck": "tsc --build lms/static/scripts/tsconfig.json"
@@ -55,10 +55,13 @@
     "tiny-emitter": "^2.1.0"
   },
   "devDependencies": {
+    "@babel/preset-typescript": "^7.18.6",
     "@types/gapi": "^0.0.42",
+    "@typescript-eslint/eslint-plugin": "^5.35.1",
+    "@typescript-eslint/parser": "^5.35.1",
     "axe-core": "^4.4.3",
     "babel-plugin-istanbul": "^6.1.1",
-    "babel-plugin-mockable-imports": "^2.0.0",
+    "babel-plugin-mockable-imports": "^2.0.1",
     "chai": "^4.3.6",
     "diff": "^5.1.0",
     "enzyme": "^3.11.0",
