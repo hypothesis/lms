@@ -84,25 +84,19 @@ class TestApplicationInstanceService:
             (None, None),
         ],
     )
-    def test_create_application_instance(
-        self, developer_secret, developer_key, service, aes_service
+    def test_set_canvas_api_details(
+        self,
+        service,
+        application_instance,
+        developer_secret,
+        developer_key,
+        aes_service,
     ):
-        aes_service.build_iv.return_value = b"iv"
-        aes_service.encrypt.return_value = b"secret"
 
-        application_instance = service.create_application_instance(
-            "https://example.com/",
-            "example@example.com",
-            developer_key,
-            developer_secret,
-            {},
+        service.set_canvas_api_details(
+            application_instance, developer_key, developer_secret
         )
 
-        assert application_instance.consumer_key
-        assert application_instance.shared_secret
-        assert application_instance.lms_url == "https://example.com/"
-        assert application_instance.requesters_email == "example@example.com"
-        assert application_instance.settings == {}
         if developer_secret and developer_key:
             aes_service.build_iv.assert_called_once()
             aes_service.encrypt.assert_called_once_with(
@@ -111,6 +105,32 @@ class TestApplicationInstanceService:
 
             assert application_instance.developer_key == developer_key
             assert application_instance.developer_secret
+        else:
+            aes_service.build_iv.assert_not_called()
+            aes_service.encrypt.assert_not_called()
+
+    def test_create_application_instance(
+        self, service, aes_service, set_canvas_api_details
+    ):
+        aes_service.build_iv.return_value = b"iv"
+        aes_service.encrypt.return_value = b"secret"
+
+        application_instance = service.create_application_instance(
+            "https://example.com/",
+            "example@example.com",
+            "TEST_DEVELOPER_KEY",
+            "TEST_DEVELOPER_SECRET",
+            {},
+        )
+
+        assert application_instance.consumer_key
+        assert application_instance.shared_secret
+        assert application_instance.lms_url == "https://example.com/"
+        assert application_instance.requesters_email == "example@example.com"
+        assert application_instance.settings == {}
+        set_canvas_api_details.assert_called_once_with(
+            application_instance, "TEST_DEVELOPER_KEY", "TEST_DEVELOPER_SECRET"
+        )
 
     @pytest.mark.parametrize("field", ["issuer", "client_id"])
     def test_search_by_registration_fields(
@@ -161,6 +181,13 @@ class TestApplicationInstanceService:
         return ApplicationInstanceService(
             db=db_session, request=pyramid_request, aes_service=aes_service
         )
+
+    @pytest.fixture
+    def set_canvas_api_details(self, service):
+        with mock.patch.object(
+            service, "set_canvas_api_details"
+        ) as set_canvas_api_details:
+            yield set_canvas_api_details
 
     @pytest.fixture(autouse=True)
     def with_application_instance_noise(self):
