@@ -44,15 +44,12 @@
 {% endmacro %}
 
 
-{% macro registrations_fields(request, lti_registration, view_button=False) %}
-<fieldset class="box">
-    <legend class="label has-text-centered">Registration</legend>
+{% macro registration_fields(request, lti_registration, view_button=False) %}
     {% if view_button %}
     <div class="block has-text-right">
         <a class="button" href="{{ request.route_url("admin.registration.id", id_=lti_registration.id) }}">View</a>
     </div>
     {% endif %}
-
     <div class="columns">
         <div class="column is-half">
             {{ disabled_text_field("Issuer", lti_registration.issuer) }}
@@ -61,16 +58,9 @@
             {{ disabled_text_field("Client ID", lti_registration.client_id) }}
         </div>
     </div>
-    <div class="columns">
-        <div class="column is-half">
-            {{ disabled_text_field("Auth login URL", lti_registration.auth_login_url) }}
-        </div>
-        <div class="column is-half">
-            {{ disabled_text_field("Key set URL", lti_registration.key_set_url) }}
-        </div>
-    </div>
-    {{ disabled_text_field("Token URL", lti_registration.token_url) }}
-</fieldset>
+    {{ form_text_field(request, "Auth login URL", "auth_login_url", lti_registration.auth_login_url) }}
+    {{ form_text_field(request, "Key set URL", "key_set_url", lti_registration.key_set_url) }}
+    {{ form_text_field(request, "Token URL", "token_url", lti_registration.token_url) }}
 {% endmacro %}
 
 {% macro instances_table(request, instances) %}
