@@ -1,6 +1,7 @@
 from typing import NamedTuple
 
 from lms.models.h_user import HUser
+from lms.validation import ValidationError
 
 
 class LTIUser(NamedTuple):
@@ -23,6 +24,24 @@ class LTIUser(NamedTuple):
 
     email: str = ""
     """The user's email address."""
+
+    validation_error: ValidationError = None
+    """Exception found while trying to construct a LTIUser from the request"""
+
+    def __bool__(self):
+        """
+        Override the bool behaviour of LTIUser.
+
+        In case when we want to return an "empty" LTIUser behave like false so checks like:
+
+            `if request.lti_user:`
+
+        produce the expected result.
+        """
+        # Behave as "falsy" if neither the user_id or application_instance are present
+        return bool(
+            self.user_id and self.application_instance_id and not self.validation_error
+        )
 
     @property
     def h_user(self):
@@ -56,6 +75,18 @@ class LTIUser(NamedTuple):
                 lti_core_schema["lis_person_name_full"],
             ),
             email=lti_core_schema["lis_person_contact_email_primary"],
+        )
+
+    @staticmethod
+    def from_validation_error(validation_error):
+        return LTIUser(
+            user_id=None,
+            application_instance_id=None,
+            roles=None,
+            tool_consumer_instance_guid=None,
+            display_name=None,
+            email=None,
+            validation_error=validation_error,
         )
 
 
