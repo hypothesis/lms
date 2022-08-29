@@ -20,6 +20,14 @@ class LTIRegistrationBaseSchema(PyramidRequestSchema):
     client_id = fields.Str(required=True, validate=validate.Length(min=1))
 
 
+class UpdateLTIRegistrationSchema(PyramidRequestSchema):
+    location = "form"
+
+    auth_login_url = fields.URL(required=True)
+    key_set_url = fields.URL(required=True)
+    token_url = fields.URL(required=True)
+
+
 class LTIRegistrationSchema(LTIRegistrationBaseSchema):
     location = "form"
 
@@ -171,6 +179,28 @@ class AdminLTIRegistrationViews:
                 self.request.matchdict["id_"]
             )
         }
+
+    @view_config(
+        route_name="admin.registration.id",
+        renderer="lms:templates/admin/registration.html.jinja2",
+        request_method="POST",
+        require_csrf=True,
+    )
+    def update_registration(self):
+        lti_registration = self.lti_registration_service.get_by_id(
+            self.request.matchdict["id_"]
+        )
+        if flash_validation(self.request, UpdateLTIRegistrationSchema):
+            self.request.response.status_code = 400
+            return {"registration": lti_registration}
+
+        params = self.request.params
+        lti_registration.auth_login_url = params["auth_login_url"].strip()
+        lti_registration.key_set_url = params["key_set_url"].strip()
+        lti_registration.token_url = params["token_url"].strip()
+
+        self.request.session.flash("Updated registration", "messages")
+        return {"registration": lti_registration}
 
     @view_config(
         route_name="admin.registration.new.instance",

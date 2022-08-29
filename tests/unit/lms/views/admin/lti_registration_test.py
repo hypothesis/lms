@@ -176,6 +176,34 @@ class TestAdminApplicationInstanceViews:
             response["registration"] == lti_registration_service.get_by_id.return_value
         )
 
+    @pytest.mark.usefixtures("with_form_submission")
+    def test_update_registration(
+        self, pyramid_request, lti_registration_service, views
+    ):
+        pyramid_request.matchdict["id_"] = sentinel.id_
+
+        response = views.update_registration()
+
+        lti_registration_service.get_by_id.assert_called_once_with(sentinel.id_)
+        assert (
+            response["registration"] == lti_registration_service.get_by_id.return_value
+        )
+        assert pyramid_request.session.peek_flash("messages")
+
+    @pytest.mark.usefixtures("with_form_submission")
+    def test_update_registration_failed_validation(
+        self, pyramid_request, lti_registration_service, views
+    ):
+        pyramid_request.matchdict["id_"] = sentinel.id_
+        del pyramid_request.POST["auth_login_url"]
+
+        response = views.update_registration()
+
+        assert (
+            response["registration"] == lti_registration_service.get_by_id.return_value
+        )
+        assert pyramid_request.session.peek_flash("validation")
+
     def test_registration_new_instance(
         self, pyramid_request, lti_registration_service, views
     ):
