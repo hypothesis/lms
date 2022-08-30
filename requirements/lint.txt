@@ -202,7 +202,7 @@ h-pyramid-sentry==1.2.4
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-h-vialib==1.0.19
+h-vialib==1.0.20
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
