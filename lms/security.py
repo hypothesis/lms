@@ -80,12 +80,8 @@ class _LTIUserBasedSecurityPolicy:
     def forget(self, request):
         pass
 
-    @classmethod
-    def authenticated_userid(cls, request):
-        lti_user = cls.get_lti_user(request)
-        if lti_user is None:
-            return None
-
+    @staticmethod
+    def get_userid(lti_user):
         # urlsafe_b64encode() requires bytes, so encode the userid to bytes.
         user_id_bytes = lti_user.user_id.encode()
 
@@ -97,21 +93,27 @@ class _LTIUserBasedSecurityPolicy:
 
         return ":".join([safe_user_id, str(lti_user.application_instance_id)])
 
+    def authenticated_userid(self, request):
+        identity = self.identity(request)
+        if identity is None or not identity.userid:
+            return None
+
+        return identity.userid
+
     def identity(self, request):
-        userid = self.authenticated_userid(request)
+        lti_user = self.get_lti_user(request)
+        if lti_user is None:
+            return Identity("", [])
 
-        if userid:
-            permissions = [Permissions.LTI_LAUNCH_ASSIGNMENT, Permissions.API]
+        permissions = [Permissions.LTI_LAUNCH_ASSIGNMENT, Permissions.API]
 
-            if any(
-                role in self.get_lti_user(request).roles.lower()
-                for role in ["administrator", "instructor", "teachingassistant"]
-            ):
-                permissions.append(Permissions.LTI_CONFIGURE_ASSIGNMENT)
+        if any(
+            role in self.get_lti_user(request).roles.lower()
+            for role in ["administrator", "instructor", "teachingassistant"]
+        ):
+            permissions.append(Permissions.LTI_CONFIGURE_ASSIGNMENT)
 
-            return Identity(userid, permissions)
-
-        return Identity("", [])
+        return Identity(self.get_userid(lti_user), permissions)
 
 
 class LTISecurityPolicy(_LTIUserBasedSecurityPolicy):
