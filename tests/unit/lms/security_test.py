@@ -9,6 +9,7 @@ from lms.security import (
     Identity,
     LMSGoogleSecurityPolicy,
     LTISecurityPolicy,
+    PathPolicyGetter,
     Permissions,
     SecurityPolicy,
     _get_lti_user,
@@ -20,18 +21,32 @@ from tests import factories
 
 
 class TestIncludeMe:
-    def test_it_sets_security_policy(self, pyramid_config, SecurityPolicy):
+    def test_it_sets_security_policy(
+        self, pyramid_config, SecurityPolicy, PathPolicyGetter
+    ):
         includeme(pyramid_config)
 
-        SecurityPolicy.assert_called_once_with()
+        PathPolicyGetter.assert_called_once_with(
+            path_policy_mapping={
+                "/admin": LMSGoogleSecurityPolicy,
+                "/googleauth": LMSGoogleSecurityPolicy,
+                # Fallback for the rest
+                "/": LTISecurityPolicy,
+            }
+        )
+        SecurityPolicy.assert_called_once_with(PathPolicyGetter.return_value)
         assert (
             pyramid_config.registry.queryUtility(ISecurityPolicy)
             == SecurityPolicy.return_value
         )
 
-    @pytest.fixture(autouse=True)
+    @pytest.fixture()
     def SecurityPolicy(self, patch):
         return patch("lms.security.SecurityPolicy")
+
+    @pytest.fixture()
+    def PathPolicyGetter(self, patch):
+        return patch("lms.security.PathPolicyGetter")
 
 
 class TestLMSGoogleSecurityPolicy:
@@ -116,7 +131,7 @@ class TestLTISecurityPolicy:
 
     def test_remember(self, pyramid_request):
         LTISecurityPolicy().remember(
-            pyramid_request, "TEST_USERID", kwarg=mock.sentinel.kwarg
+            pyramid_request, "TEST_USERID", kwarg=sentinel.kwarg
         )
 
     def test_forget(self, pyramid_request):
@@ -160,103 +175,94 @@ class TestLTISecurityPolicy:
         assert policy.authenticated_userid(pyramid_request) == expected_userid
 
 
+class TestPathPolicyGetter:
+    @pytest.mark.parametrize(
+        "route,expected",
+        [
+            ("/match/specific", sentinel.match_specific),
+            ("/match", sentinel.match),
+            ("/no_match", sentinel.fallback),
+        ],
+    )
+    def test_it(self, policy_getter, pyramid_request, route, expected):
+        pyramid_request.path = route
+
+        policy = policy_getter(pyramid_request)
+
+        assert policy == expected
+
+    def test_no_match_found(self, pyramid_request):
+        pyramid_request.path = "/"
+
+        with pytest.raises(ValueError):
+            PathPolicyGetter({})(pyramid_request)
+
+    @pytest.fixture
+    def policy_getter(self):
+        return PathPolicyGetter(
+            {
+                "/match/specific": mock.Mock(return_value=sentinel.match_specific),
+                "/match": mock.Mock(return_value=sentinel.match),
+                "/": mock.Mock(return_value=sentinel.fallback),
+            }
+        )
+
+
 class TestSecurityPolicy:
-    def test_it_returns_the_userid_from_LTISecurityPolicy(
-        self, policy, LTISecurityPolicy, lti_security_policy
-    ):
-        lti_security_policy.authenticated_userid.return_value = "user"
-        user_id = policy.authenticated_userid(mock.sentinel.request)
+    def test_authenticated_userid(self, policy, PathPolicyGetter):
+        user_id = policy.authenticated_userid(sentinel.request)
 
-        LTISecurityPolicy.assert_called_once_with()
-        lti_security_policy.authenticated_userid.assert_called_with(
-            mock.sentinel.request
+        PathPolicyGetter.assert_called_once_with(sentinel.request)
+        PathPolicyGetter.return_value.authenticated_userid.assert_called_once_with(
+            sentinel.request
         )
-        assert user_id == "user"
-
-    def test_it_falls_back_on_LMSGoogleSecurityPolicy(
-        self, lti_security_policy, google_security_policy, policy
-    ):
-        lti_security_policy.authenticated_userid.return_value = None
-
-        google_security_policy.authenticated_userid.return_value = "google-oauth-user"
-
-        user_id = policy.authenticated_userid(mock.sentinel.request)
-
-        google_security_policy.authenticated_userid.assert_called_with(
-            mock.sentinel.request
-        )
-        assert user_id == "google-oauth-user"
-
-    def test_it_falls_back_to_last(
-        self, lti_security_policy, google_security_policy, policy
-    ):
-        lti_security_policy.authenticated_userid.return_value = None
-        google_security_policy.authenticated_userid.return_value = None
-
-        user_id = policy.authenticated_userid(mock.sentinel.request)
-
-        google_security_policy.authenticated_userid.assert_called_with(
-            mock.sentinel.request
-        )
-        assert user_id is None
-
-    def test_remember_delegates_to_LTISecurityPolicy(
-        self, policy, LTISecurityPolicy, lti_security_policy
-    ):
-        policy.remember(
-            mock.sentinel.request, mock.sentinel.userid, kwarg=mock.sentinel.kwarg
+        assert (
+            user_id == PathPolicyGetter.return_value.authenticated_userid.return_value
         )
 
-        LTISecurityPolicy.assert_called_once_with()
-        lti_security_policy.remember.assert_called_once_with(
-            mock.sentinel.request, mock.sentinel.userid, kwarg=mock.sentinel.kwarg
+    def test_identity(self, policy, PathPolicyGetter):
+        user_id = policy.identity(sentinel.request)
+
+        PathPolicyGetter.assert_called_once_with(sentinel.request)
+        PathPolicyGetter.return_value.identity.assert_called_once_with(sentinel.request)
+        assert user_id == PathPolicyGetter.return_value.identity.return_value
+
+    def test_permits(self, policy, PathPolicyGetter):
+        user_id = policy.permits(
+            sentinel.request, sentinel.context, sentinel.permission
         )
 
-    def test_forget_delegates_to_LTISecurityPolicy(
-        self, policy, LTISecurityPolicy, lti_security_policy
-    ):
-        policy.forget(mock.sentinel.request)
-
-        LTISecurityPolicy.assert_called_once_with()
-        lti_security_policy.forget.assert_called_once_with(mock.sentinel.request)
-
-    def test_identity_delegates_to_LTISecurityPolicy(
-        self, policy, LTISecurityPolicy, lti_security_policy
-    ):
-        policy.identity(mock.sentinel.request)
-
-        LTISecurityPolicy.assert_called_once_with()
-        lti_security_policy.identity.assert_called_once_with(mock.sentinel.request)
-
-    def test_permits_delegates_to_LTISecurityPolicy(
-        self, policy, LTISecurityPolicy, lti_security_policy
-    ):
-        policy.permits(mock.sentinel.request, mock.sentinel.context, "some-permission")
-
-        LTISecurityPolicy.assert_called_once_with()
-        lti_security_policy.permits.assert_called_once_with(
-            mock.sentinel.request, mock.sentinel.context, "some-permission"
+        PathPolicyGetter.assert_called_once_with(sentinel.request)
+        PathPolicyGetter.return_value.permits.assert_called_once_with(
+            sentinel.request, sentinel.context, sentinel.permission
         )
+        assert user_id == PathPolicyGetter.return_value.permits.return_value
+
+    def test_remember(self, policy, PathPolicyGetter):
+        user_id = policy.remember(
+            sentinel.request, sentinel.userid, kwarg=sentinel.kwargs
+        )
+
+        PathPolicyGetter.assert_called_once_with(sentinel.request)
+        PathPolicyGetter.return_value.remember.assert_called_once_with(
+            sentinel.request, sentinel.userid, kwarg=sentinel.kwargs
+        )
+        assert user_id == PathPolicyGetter.return_value.remember.return_value
+
+    def test_forgets(self, policy, pyramid_request, PathPolicyGetter):
+        user_id = policy.forget(pyramid_request)
+
+        PathPolicyGetter.assert_called_once_with(pyramid_request)
+        PathPolicyGetter.return_value.forget.assert_called_once_with(pyramid_request)
+        assert user_id == PathPolicyGetter.return_value.forget.return_value
 
     @pytest.fixture
-    def policy(self):
-        return SecurityPolicy()
-
-    @pytest.fixture(autouse=True)
-    def LTISecurityPolicy(self, patch):
-        return patch("lms.security.LTISecurityPolicy")
-
-    @pytest.fixture(autouse=True)
-    def LMSGoogleSecurityPolicy(self, patch):
-        return patch("lms.security.LMSGoogleSecurityPolicy")
+    def PathPolicyGetter(self, patch):
+        return patch("lms.security.PathPolicyGetter").return_value
 
     @pytest.fixture
-    def lti_security_policy(self, LTISecurityPolicy):
-        return LTISecurityPolicy.return_value
-
-    @pytest.fixture
-    def google_security_policy(self, LMSGoogleSecurityPolicy):
-        return LMSGoogleSecurityPolicy.return_value
+    def policy(self, PathPolicyGetter):
+        return SecurityPolicy(policy_getter=PathPolicyGetter)
 
 
 @pytest.mark.usefixtures("user_service")
