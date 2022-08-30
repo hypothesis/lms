@@ -61,7 +61,7 @@ class SecurityPolicy:
 class LTISecurityPolicy:
     @classmethod
     def authenticated_userid(cls, request):
-        if not request.lti_user:
+        if request.lti_user is None:
             return None
 
         # urlsafe_b64encode() requires bytes, so encode the userid to bytes.
@@ -143,29 +143,19 @@ def _get_lti_user(request):
         partial(bearer_token_schema.lti_user, location="form"),
         OAuthCallbackSchema(request).lti_user,
     ]
-
-    lti_user = None
     # Avoid checking for the LTI1.3 JWT if not there
     if "id_token" in request.params:
+        # Don't replace all auth methods in case somehow we have a bogus token
+        # but try this one first.
+        schemas.insert(0, LTI13AuthSchema(request).lti_user)
+
+    lti_user = None
+    for schema in schemas:
         try:
-            lti_user = LTI13AuthSchema(request).lti_user()
-        except ValidationError as err:
-            from lms.models import LTIUser  # pylint:disable=import-outside-toplevel
-
-            # If we haven't been able to get an LTIUser still return
-            # an empty one including the ValidationError.
-            # We'll be able to use the exception later in the exception view.
-            #
-            # Directly raising here won't be picked by the exception views.
-            return LTIUser.from_validation_error(err)
-
-    else:
-        for schema in schemas:
-            try:
-                lti_user = schema()
-                break
-            except ValidationError:
-                continue
+            lti_user = schema()
+            break
+        except ValidationError:
+            continue
 
     if lti_user:
         # Make a record of the user for analytics so we can map from the

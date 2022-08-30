@@ -27,17 +27,6 @@ class ExceptionViews:
 
     @forbidden_view_config()
     def forbidden(self):
-        if self.request.lti_user is not None and self.request.lti_user.validation_error:
-            # We haven't found a view with the right permissions and we have
-            # found an error while trying to get an LTIUser.
-            # Treat this forbidden_view as a direct cause of
-            # that error and display information on the resulting page
-            self.request.override_renderer = (
-                "lms:templates/validation_error.html.jinja2"
-            )
-            self.request.response.status_int = 403
-            return {"error": self.request.lti_user.validation_error}
-
         return self.error_response(403, _("You're not authorized to view this page"))
 
     @exception_view_config(context=HTTPClientError)
