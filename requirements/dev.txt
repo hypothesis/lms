@@ -114,7 +114,7 @@ h-api==1.0.1
     # via -r requirements/requirements.txt
 h-assets==1.0.4
     # via -r requirements/requirements.txt
-h-pyramid-sentry==1.2.3
+h-pyramid-sentry==1.2.4
     # via -r requirements/requirements.txt
 h-vialib==1.0.19
     # via -r requirements/requirements.txt
