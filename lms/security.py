@@ -1,7 +1,7 @@
 import base64
 from enum import Enum
 from functools import lru_cache, partial
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Optional
 
 from pyramid.security import Allowed, Denied
 from pyramid_googleauth import GoogleSecurityPolicy
@@ -19,6 +19,7 @@ from lms.validation.authentication import (
 class Identity(NamedTuple):
     userid: str
     permissions: List[str]
+    denied_reason: Optional[ValidationError] = None
 
 
 class Permissions(Enum):
@@ -26,6 +27,12 @@ class Permissions(Enum):
     LTI_CONFIGURE_ASSIGNMENT = "lti_configure_assignment"
     API = "api"
     ADMIN = "admin"
+
+
+class DeniedWithReason(Denied):
+    def __init__(self, reason: ValidationError):
+        self.reason = reason
+        super().__init__()
 
 
 class SecurityPolicy:
@@ -55,13 +62,13 @@ class SecurityPolicy:
             if policy.authenticated_userid(request):
                 return policy
 
-        return self._subpolicies[-1]
+        return self._subpolicies[0]
 
 
 class LTISecurityPolicy:
     @classmethod
     def authenticated_userid(cls, request):
-        if request.lti_user is None:
+        if not request.lti_user:
             return None
 
         # urlsafe_b64encode() requires bytes, so encode the userid to bytes.
@@ -89,7 +96,7 @@ class LTISecurityPolicy:
 
             return Identity(userid, permissions)
 
-        return Identity("", [])
+        return Identity("", [], request.lti_user.validation_error)
 
     def permits(self, request, context, permission):
         return _permits(self, request, context, permission)
@@ -119,6 +126,9 @@ def _permits(policy, request, _context, permission):
     if identity and permission in identity.permissions:
         return Allowed("allowed")
 
+    if identity.denied_reason:
+        return DeniedWithReason(identity.denied_reason)
+
     return Denied("denied")
 
 
@@ -143,19 +153,20 @@ def _get_lti_user(request):
         partial(bearer_token_schema.lti_user, location="form"),
         OAuthCallbackSchema(request).lti_user,
     ]
+    lti_user = None
+
     # Avoid checking for the LTI1.3 JWT if not there
     if "id_token" in request.params:
-        # Don't replace all auth methods in case somehow we have a bogus token
-        # but try this one first.
-        schemas.insert(0, LTI13AuthSchema(request).lti_user)
+        lti_user = LTI13AuthSchema(request).lti_user()
 
-    lti_user = None
-    for schema in schemas:
-        try:
-            lti_user = schema()
-            break
-        except ValidationError:
-            continue
+    else:
+
+        for schema in schemas:
+            try:
+                lti_user = schema()
+                break
+            except ValidationError:
+                continue
 
     if lti_user:
         # Make a record of the user for analytics so we can map from the

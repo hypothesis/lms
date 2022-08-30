@@ -112,16 +112,20 @@ class LTI13AuthSchema(LTIV11CoreSchema):
 
         :raise ValidationError: if the request isn't a valid LTI launch request
         """
-        kwargs = self.parse(location="form")
+        try:
+            kwargs = self.parse(location="form")
+        except ValidationError as err:
+            return LTIUser.from_validation_error(err)
+
         try:
             application_instance = (
                 self._application_instance_service.get_by_deployment_id(
-                    kwargs["iss"], kwargs["aud"], kwargs["deployment_id"]
+                    kwargs["iss"], kwargs["aud"], kwargs["deployment_id"] + "HOLA"
                 )
             )
         except ApplicationInstanceNotFound as err:
-            raise ValidationError(
-                "Invalid LTI1.3 params. Unknown application_instance."
-            ) from err
+            return LTIUser.from_validation_error(
+                ValidationError(messages={"iss": ["Unknown application_instance."]})
+            )
 
         return LTIUser.from_auth_params(application_instance, kwargs)
