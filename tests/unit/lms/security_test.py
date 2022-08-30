@@ -8,7 +8,7 @@ from pyramid.security import Allowed, Denied
 from lms.security import (
     Identity,
     LMSGoogleSecurityPolicy,
-    LTISecurityPolicy,
+    LTIUserSecurityPolicy,
     Permissions,
     SecurityPolicy,
     _get_lti_user,
@@ -82,10 +82,12 @@ class TestLMSGoogleSecurityPolicy:
 
 
 @pytest.mark.usefixtures("pyramid_config")
-class TestLTISecurityPolicy:
-    def test_it_returns_empty_identity_if_theres_no_lti_user(self, pyramid_request):
-        pyramid_request.lti_user = None
-        policy = LTISecurityPolicy()
+class TestLTIUserSecurityPolicy:
+    def test_it_returns_empty_identity_if_theres_no_lti_user(
+        self, pyramid_request, _get_lti_user
+    ):
+        _get_lti_user.return_value = None
+        policy = LTIUserSecurityPolicy()
         userid = policy.identity(pyramid_request)
 
         assert userid == Identity(userid="", permissions=[])
@@ -101,10 +103,10 @@ class TestLTISecurityPolicy:
         ),
     )
     def test_identity_when_theres_an_lti_user(
-        self, pyramid_request, roles, extra_permissions
+        self, pyramid_request, roles, extra_permissions, _get_lti_user
     ):
-        policy = LTISecurityPolicy()
-        pyramid_request.lti_user = pyramid_request.lti_user._replace(roles=roles)
+        policy = LTIUserSecurityPolicy()
+        _get_lti_user.return_value = pyramid_request.lti_user._replace(roles=roles)
 
         identity = policy.identity(pyramid_request)
 
@@ -115,26 +117,26 @@ class TestLTISecurityPolicy:
         )
 
     def test_remember(self, pyramid_request):
-        LTISecurityPolicy().remember(
+        LTIUserSecurityPolicy().remember(
             pyramid_request, "TEST_USERID", kwarg=mock.sentinel.kwarg
         )
 
     def test_forget(self, pyramid_request):
-        LTISecurityPolicy().forget(pyramid_request)
+        LTIUserSecurityPolicy().forget(pyramid_request)
 
-    def test_permits_allow(self, pyramid_request):
-        pyramid_request.lti_user = factories.LTIUser()
-        policy = LTISecurityPolicy()
+    def test_permits_allow(self, pyramid_request, _get_lti_user):
+        _get_lti_user.return_value = factories.LTIUser()
+        policy = LTIUserSecurityPolicy()
         is_allowed = policy.permits(
             pyramid_request, None, Permissions.LTI_LAUNCH_ASSIGNMENT
         )
 
         assert is_allowed == Allowed("allowed")
 
-    def test_permits_denied(self, pyramid_request):
-        pyramid_request.lti_user = None
+    def test_permits_denied(self, pyramid_request, _get_lti_user):
+        _get_lti_user.return_value = None
 
-        policy = LTISecurityPolicy()
+        policy = LTIUserSecurityPolicy()
 
         is_allowed = policy.permits(pyramid_request, None, "some-permission")
 
@@ -153,89 +155,89 @@ class TestLTISecurityPolicy:
             ),
         ],
     )
-    def test_authenticated_userid(self, lti_user, expected_userid, pyramid_request):
-        policy = LTISecurityPolicy()
-        pyramid_request.lti_user = lti_user
+    def test_authenticated_userid(
+        self, lti_user, expected_userid, pyramid_request, _get_lti_user
+    ):
+        policy = LTIUserSecurityPolicy()
+        _get_lti_user.return_value = lti_user
 
         assert policy.authenticated_userid(pyramid_request) == expected_userid
 
+    @pytest.fixture()
+    def _get_lti_user(self, patch):
+        return patch("lms.security._get_lti_user")
+
 
 class TestSecurityPolicy:
-    def test_it_returns_the_userid_from_LTISecurityPolicy(
-        self, policy, LTISecurityPolicy, lti_security_policy
+    def test_it_returns_the_userid_from_LTIUserSecurityPolicy(
+        self, policy, LTIUserSecurityPolicy, lti_security_policy, pyramid_request
     ):
         lti_security_policy.authenticated_userid.return_value = "user"
-        user_id = policy.authenticated_userid(mock.sentinel.request)
+        user_id = policy.authenticated_userid(pyramid_request)
 
-        LTISecurityPolicy.assert_called_once_with()
-        lti_security_policy.authenticated_userid.assert_called_with(
-            mock.sentinel.request
-        )
+        LTIUserSecurityPolicy.assert_called_once_with()
+        lti_security_policy.authenticated_userid.assert_called_with(pyramid_request)
         assert user_id == "user"
 
     def test_it_falls_back_on_LMSGoogleSecurityPolicy(
-        self, lti_security_policy, google_security_policy, policy
+        self, lti_security_policy, google_security_policy, policy, pyramid_request
     ):
         lti_security_policy.authenticated_userid.return_value = None
 
         google_security_policy.authenticated_userid.return_value = "google-oauth-user"
 
-        user_id = policy.authenticated_userid(mock.sentinel.request)
+        user_id = policy.authenticated_userid(pyramid_request)
 
-        google_security_policy.authenticated_userid.assert_called_with(
-            mock.sentinel.request
-        )
+        google_security_policy.authenticated_userid.assert_called_with(pyramid_request)
         assert user_id == "google-oauth-user"
 
     def test_it_falls_back_to_last(
-        self, lti_security_policy, google_security_policy, policy
+        self, lti_security_policy, google_security_policy, policy, pyramid_request
     ):
         lti_security_policy.authenticated_userid.return_value = None
         google_security_policy.authenticated_userid.return_value = None
 
-        user_id = policy.authenticated_userid(mock.sentinel.request)
+        user_id = policy.authenticated_userid(pyramid_request)
 
-        google_security_policy.authenticated_userid.assert_called_with(
-            mock.sentinel.request
-        )
+        google_security_policy.authenticated_userid.assert_called_with(pyramid_request)
         assert user_id is None
 
-    def test_remember_delegates_to_LTISecurityPolicy(
-        self, policy, LTISecurityPolicy, lti_security_policy
+    def test_remember_delegates_to_LTIUserSecurityPolicy(
+        self, policy, LTIUserSecurityPolicy, lti_security_policy, pyramid_request
     ):
         policy.remember(
-            mock.sentinel.request, mock.sentinel.userid, kwarg=mock.sentinel.kwarg
+            pyramid_request, mock.sentinel.userid, kwarg=mock.sentinel.kwarg
         )
 
-        LTISecurityPolicy.assert_called_once_with()
+        LTIUserSecurityPolicy.assert_called_once_with()
         lti_security_policy.remember.assert_called_once_with(
-            mock.sentinel.request, mock.sentinel.userid, kwarg=mock.sentinel.kwarg
+            pyramid_request, mock.sentinel.userid, kwarg=mock.sentinel.kwarg
         )
 
-    def test_forget_delegates_to_LTISecurityPolicy(
-        self, policy, LTISecurityPolicy, lti_security_policy
+    def test_forget_delegates_to_LTIUserSecurityPolicy(
+        self, policy, LTIUserSecurityPolicy, lti_security_policy, pyramid_request
     ):
-        policy.forget(mock.sentinel.request)
+        policy.forget(pyramid_request)
 
-        LTISecurityPolicy.assert_called_once_with()
-        lti_security_policy.forget.assert_called_once_with(mock.sentinel.request)
+        LTIUserSecurityPolicy.assert_called_once_with()
+        lti_security_policy.forget.assert_called_once_with(pyramid_request)
 
-    def test_identity_delegates_to_LTISecurityPolicy(
-        self, policy, LTISecurityPolicy, lti_security_policy
+    def test_identity_delegates_to_LTIUserSecurityPolicy(
+        self, policy, LTIUserSecurityPolicy, lti_security_policy, pyramid_request
     ):
-        policy.identity(mock.sentinel.request)
+        policy.identity(pyramid_request)
 
-        LTISecurityPolicy.assert_called_once_with()
-        lti_security_policy.identity.assert_called_once_with(mock.sentinel.request)
+        LTIUserSecurityPolicy.assert_called_once_with()
+        lti_security_policy.identity.assert_called_once_with(pyramid_request)
 
-    def test_permits_delegates_to_LTISecurityPolicy(
-        self, policy, LTISecurityPolicy, lti_security_policy
+    def test_permits_delegates_to_LTIUserSecurityPolicy(
+        self, policy, LTIUserSecurityPolicy, lti_security_policy, pyramid_request
     ):
-        policy.permits(mock.sentinel.request, mock.sentinel.context, "some-permission")
+        policy.permits(pyramid_request, mock.sentinel.context, "some-permission")
 
-        LTISecurityPolicy.assert_called_once_with()
+        LTIUserSecurityPolicy.assert_called_once_with()
         lti_security_policy.permits.assert_called_once_with(
-            mock.sentinel.request, mock.sentinel.context, "some-permission"
+            pyramid_request, mock.sentinel.context, "some-permission"
         )
 
     @pytest.fixture
@@ -243,16 +245,16 @@ class TestSecurityPolicy:
         return SecurityPolicy()
 
     @pytest.fixture(autouse=True)
-    def LTISecurityPolicy(self, patch):
-        return patch("lms.security.LTISecurityPolicy")
+    def LTIUserSecurityPolicy(self, patch):
+        return patch("lms.security.LTIUserSecurityPolicy")
 
     @pytest.fixture(autouse=True)
     def LMSGoogleSecurityPolicy(self, patch):
         return patch("lms.security.LMSGoogleSecurityPolicy")
 
     @pytest.fixture
-    def lti_security_policy(self, LTISecurityPolicy):
-        return LTISecurityPolicy.return_value
+    def lti_security_policy(self, LTIUserSecurityPolicy):
+        return LTIUserSecurityPolicy.return_value
 
     @pytest.fixture
     def google_security_policy(self, LMSGoogleSecurityPolicy):
