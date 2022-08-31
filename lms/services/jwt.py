@@ -10,6 +10,7 @@ from jwt.exceptions import ExpiredSignatureError, InvalidTokenError, PyJWTError
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 from lms.services.lti_registration import LTIRegistrationService
 from lms.services.rsa_key import RSAKeyService
+from lms.validation import ValidationError
 
 LOG = logging.getLogger(__name__)
 
@@ -75,7 +76,9 @@ class JWTService:
 
         if not jwt.get_unverified_header(id_token).get("kid"):
             LOG.debug("Missing 'kid' value in JWT header")
-            return {}
+            raise ValidationError(
+                messages={"jwt": ["Missing 'kid' value in JWT header"]}
+            )
 
         unverified_payload = jwt.decode(id_token, options={"verify_signature": False})
         iss, aud = unverified_payload.get("iss"), unverified_payload.get("aud")
@@ -84,7 +87,11 @@ class JWTService:
         registration = self._registration_service.get(iss, aud)
         if not registration:
             LOG.debug("Unknown registration for lti_token. iss:%s aud:%s.", iss, aud)
-            return {}
+            raise ValidationError(
+                messages={
+                    "jwt": [f"Unknown registration for JWT. iss:{iss} aud:{aud}."]
+                }
+            )
 
         try:
             signing_key = self._get_jwk_client(
@@ -96,7 +103,9 @@ class JWTService:
             )
         except PyJWTError as err:
             LOG.debug("Invalid JWT for: %s, %s. %s", iss, aud, str(err))
-            return {}
+            raise ValidationError(
+                messages={"jwt": [f"Invalid JWT for: {iss}, {aud}. {err}"]}
+            ) from err
 
     def encode_with_private_key(self, payload: dict):
         key = self._rsa_key_service.get_random_key()

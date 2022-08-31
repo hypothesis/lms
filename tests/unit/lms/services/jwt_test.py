@@ -19,6 +19,7 @@ from lms.services.jwt import (
     factory,
     includeme,
 )
+from lms.validation import ValidationError
 from tests import factories
 
 
@@ -111,7 +112,10 @@ class TestJWTService:
     def test_decode_lti_token_with_no_kid(self, svc):
         jwt_str = self.encode_jwt({"key": "value"}, headers={"key": "value"})
 
-        assert not svc.decode_lti_token(jwt_str)
+        with pytest.raises(ValidationError) as exc_info:
+            svc.decode_lti_token(jwt_str)
+
+        assert "jwt" in exc_info.value.messages
 
     def test_decode_lti_token_with_no_registration(
         self, svc, jwt, lti_registration_service
@@ -119,12 +123,18 @@ class TestJWTService:
         jwt.decode.return_value = {"aud": "AUD", "iss": "ISS"}
         lti_registration_service.get.return_value = None
 
-        assert not svc.decode_lti_token(sentinel.id_token)
+        with pytest.raises(ValidationError) as exc_info:
+            svc.decode_lti_token(sentinel.id_token)
+
+        assert "jwt" in exc_info.value.messages
 
     def test_decode_lti_token_with_invalid_jwt(self, svc, jwt):
         jwt.decode.side_effect = [{"aud": "AUD", "iss": "ISS"}, InvalidTokenError()]
 
-        assert not svc.decode_lti_token(sentinel.id_token)
+        with pytest.raises(ValidationError) as exc_info:
+            svc.decode_lti_token(sentinel.id_token)
+
+        assert "jwt" in exc_info.value.messages
 
     @staticmethod
     def encode_jwt(
