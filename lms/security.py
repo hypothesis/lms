@@ -176,6 +176,10 @@ def get_lti_user(request, from_identity=False) -> Optional[LTIUser]:
         Defaults to False to avoid a circular dependency and allow
         security policies to use this function.
 
+    :param: from_identity Use the lt_user from request.identity.
+        Defaults to false to avoid a circular dependency and allow
+        security policies to use this function.
+
     :rtype: models.LTIUser
     """
     lti_user = None
