@@ -18,6 +18,14 @@ from lms.validation.authentication import (
 )
 
 
+class DeniedWithValidationError(Denied):
+    """A denial of an action due to a validation error."""
+
+    def __init__(self, validation_error: ValidationError):
+        super().__init__()
+        self.validation_error = validation_error
+
+
 class Identity(NamedTuple):
     userid: str
     permissions: List[str]
@@ -65,6 +73,7 @@ class LTIUserSecurityPolicy:
 
     def __init__(self, get_lti_user: Callable[[Request], LTIUser]):
         self._get_lti_user = get_lti_user
+        self._validation_error = None
 
     @staticmethod
     def _get_userid(lti_user):
@@ -87,7 +96,16 @@ class LTIUserSecurityPolicy:
         return identity.userid
 
     def identity(self, request):
-        lti_user = self._get_lti_user(request)
+        lti_user = None
+        try:
+            lti_user = self._get_lti_user(request)
+        except ValidationError as err:
+            # Keep a reference to the exception
+            # to later return a DeniedWithValidationError in `permits`
+            self._validation_error = err
+        else:
+            self._validation_error = None
+
         if lti_user is None:
             return Identity("", [])
 
@@ -102,7 +120,11 @@ class LTIUserSecurityPolicy:
         return Identity(self._get_userid(lti_user), permissions)
 
     def permits(self, request, _context, permission):
-        return _permits(self.identity(request), permission)
+        identity = self.identity(request)
+        if self._validation_error:
+            return DeniedWithValidationError(self._validation_error)
+
+        return _permits(identity, permission)
 
     def remember(self, request, userid, **kw):
         pass

@@ -8,6 +8,7 @@ from lms.security import (
     Identity,
     LMSGoogleSecurityPolicy,
     LTIUserSecurityPolicy,
+    DeniedWithReason,
     Permissions,
     SecurityPolicy,
     _get_lti_user,
@@ -146,6 +147,14 @@ class TestLTIUserSecurityPolicy:
         is_allowed = policy.permits(pyramid_request, None, "some-permission")
 
         assert is_allowed == Denied("denied")
+
+    def test_permits_denied_with_validation_error(self, pyramid_request):
+        validation_error = ValidationError(sentinel.message)
+        policy = LTIUserSecurityPolicy(Mock(side_effect=validation_error))
+
+        is_allowed = policy.permits(pyramid_request, None, "some-permission")
+
+        assert is_allowed.validation_error == validation_error
 
     @pytest.mark.parametrize(
         "lti_user,expected_userid",
