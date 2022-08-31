@@ -95,9 +95,10 @@ class TestLTIUserSecurityPolicy:
         get_lti_user_ = create_autospec(
             get_lti_user, side_effect=ValidationError(sentinel.messages)
         )
-        policy = LTIUserSecurityPolicy(get_lti_user_)
-        userid = policy.identity(pyramid_request)
 
+        policy = LTIUserSecurityPolicy(get_lti_user_)
+
+        userid = policy.identity(pyramid_request)
         assert userid == Identity(userid="", permissions=[])
 
     @pytest.mark.parametrize(

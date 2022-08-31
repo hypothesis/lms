@@ -19,7 +19,7 @@ class TestBadPayloads:
         """
         del jwt_headers["kid"]
 
-        do_lti_launch({"id_token": make_jwt(test_payload, jwt_headers)}, status=403)
+        do_lti_launch({"id_token": make_jwt(test_payload, jwt_headers)}, status=422)
 
         assert "Missing 'kid' value in JWT header" in caplog.messages
 
@@ -28,7 +28,7 @@ class TestBadPayloads:
     ):
         jwt_headers["kid"] = "imstester_66067"
 
-        do_lti_launch({"id_token": make_jwt(test_payload, jwt_headers)}, status=403)
+        do_lti_launch({"id_token": make_jwt(test_payload, jwt_headers)}, status=422)
         assert (
             Any.string.matching(
                 "^Invalid JWT for:.* Unable to find a signing key that matches:.*$"
@@ -58,9 +58,9 @@ class TestBadPayloads:
         """The provided JSON is NOT a 1.3 JWT launch"""
         payload = {"name": "badltilaunch"}
 
-        response = do_lti_launch({"id_token": make_jwt(payload)}, status=403)
+        response = do_lti_launch({"id_token": make_jwt(payload)}, status=422)
 
-        assert response.status_code == 403
+        assert response.status_code == 422
 
     def test_missing_lti_claims(self, test_payload, do_lti_launch, make_jwt):
         """The provided 1.3 JWT launch is missing one or more required claims"""
@@ -74,9 +74,9 @@ class TestBadPayloads:
         for missing_claim in missing_claims:
             del test_payload[missing_claim]
 
-        response = do_lti_launch({"id_token": make_jwt(test_payload)}, status=403)
+        response = do_lti_launch({"id_token": make_jwt(test_payload)}, status=422)
 
-        assert response.status_code == 403
+        assert response.status_code == 422
         assert response.html
 
     def test_timestamps_incorrect(self, test_payload, do_lti_launch, make_jwt):
@@ -84,7 +84,7 @@ class TestBadPayloads:
         test_payload["iat"] = 11111
         test_payload["exp"] = 22222
 
-        response = do_lti_launch({"id_token": make_jwt(test_payload)}, status=403)
+        response = do_lti_launch({"id_token": make_jwt(test_payload)}, status=422)
         assert response.html
 
     def test_message_type_claim_missing(self, test_payload, assert_missing_claim):
