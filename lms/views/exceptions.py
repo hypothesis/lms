@@ -27,6 +27,13 @@ class ExceptionViews:
 
     @forbidden_view_config()
     def forbidden(self):
+        if validation_error := getattr(self.exception.result, "validation_error", None):
+            self.request.override_renderer = (
+                "lms:templates/validation_error.html.jinja2"
+            )
+            self.request.response.status_int = 403
+            return {"error": validation_error}
+
         return self.error_response(403, _("You're not authorized to view this page"))
 
     @exception_view_config(context=HTTPClientError)
