@@ -6,10 +6,10 @@ const successGreen =
 export default {
   presets: [tailwindConfig],
   content: [
-    './lms/static/scripts/frontend_apps/**/*.js',
-    './lms/static/scripts/ui-playground/**/*.js',
+    './lms/static/scripts/frontend_apps/**/*.{js,ts,tsx}',
+    './lms/static/scripts/ui-playground/**/*.{js,ts,tsx}',
     // This script adds a DOM element with the `.browser-check-warning` class
-    './lms/static/scripts/browser_check/index.js',
+    './lms/static/scripts/browser_check/index.ts',
     './node_modules/@hypothesis/frontend-shared/lib/**/*.js',
   ],
   theme: {
