@@ -48,9 +48,9 @@ def get_policy(request):
         return LMSGoogleSecurityPolicy()
 
     if path in {"/lti_launches", "/content_item_selection", "/api/gateway/h/lti"}:
-        return LTIUserSecurityPolicy(_get_lti_user_from_lti_launch_params)
+        return LTIUserSecurityPolicy(get_lti_user_from_launch_params)
 
-    return LTIUserSecurityPolicy(_get_lti_user)
+    return LTIUserSecurityPolicy(get_lti_user)
 
 
 class SecurityPolicy:
@@ -75,9 +75,8 @@ class SecurityPolicy:
 class LTIUserSecurityPolicy:
     """Security policy based on the information of an LTIUser."""
 
-    def __init__(self, get_lti_user: Callable[[Request], LTIUser]):
-        self._get_lti_user = get_lti_user
-        self._validation_error = None
+    def __init__(self, get_lti_user_: Callable[[Request], LTIUser]):
+        self._get_lti_user = get_lti_user_
 
     @staticmethod
     def _get_userid(lti_user):
@@ -100,15 +99,10 @@ class LTIUserSecurityPolicy:
         return identity.userid
 
     def identity(self, request):
-        lti_user = None
         try:
             lti_user = self._get_lti_user(request)
-        except ValidationError as err:
-            # Keep a reference to the exception
-            # to later return a DeniedWithValidationError in `permits`
-            self._validation_error = err
-        else:
-            self._validation_error = None
+        except ValidationError:
+            return Identity("", [])
 
         if lti_user is None:
             return Identity("", [])
@@ -124,11 +118,14 @@ class LTIUserSecurityPolicy:
         return Identity(self._get_userid(lti_user), permissions, lti_user)
 
     def permits(self, request, _context, permission):
-        identity = self.identity(request)
-        if self._validation_error:
-            return DeniedWithValidationError(self._validation_error)
+        try:
+            # Getting lti_use here again for the potential exception
+            # side effect and allow us to return DeniedWithValidationError accordingly
+            self._get_lti_user(request)
+        except ValidationError as err:
+            return DeniedWithValidationError(err)
 
-        return _permits(identity, permission)
+        return _permits(self.identity(request), permission)
 
     def remember(self, request, userid, **kw):
         pass
@@ -157,49 +154,48 @@ def _permits(identity, permission):
     return Denied("denied")
 
 
-def _get_lti_user_from_lti_launch_params(request) -> LTIUser:
-    schema = LTI11AuthSchema(request).lti_user
+@lru_cache(maxsize=1)
+def get_lti_user_from_launch_params(request) -> LTIUser:
     if "id_token" in request.params:
-        schema = LTI13AuthSchema(request).lti_user
-    return schema()
+        return LTI13AuthSchema(request).lti_user()
+
+    return LTI11AuthSchema(request).lti_user()
 
 
-def _get_lti_user(request, from_identity=False) -> LTIUser:
+@lru_cache(maxsize=1)
+def get_lti_user(request, from_identity=False) -> Optional[LTIUser]:
     """
     Return a models.LTIUser for the authenticated LTI user.
 
-    Get the authenticated user from the validated LTI launch params or, failing
-    that, from one of our LTI bearer tokens (also validated).
+    Get the authenticated user from one of our LTI bearer tokens.
 
-    If the request doesn't contain either valid LTI launch params or a valid
-    bearer token then return ``None``.
+    If the request doesn't contain a valid bearer token then return None.
+
+    :param request: Current request.
+    :param from_identity: Use the lti_user from request.identity.
+        Defaults to False to avoid a circular dependency and allow
+        security policies to use this function.
 
     :rtype: models.LTIUser
     """
-    if from_identity and request.identity and request.identity.lti_user:
-        return request.identity.lti_user
-
-    bearer_token_schema = BearerTokenSchema(request)
-    schemas = [
-        LTI11AuthSchema(request).lti_user,
-        partial(bearer_token_schema.lti_user, location="headers"),
-        partial(bearer_token_schema.lti_user, location="querystring"),
-        partial(bearer_token_schema.lti_user, location="form"),
-        OAuthCallbackSchema(request).lti_user,
-    ]
-    # Avoid checking for the LTI1.3 JWT if not there
-    if "id_token" in request.params:
-        # Don't replace all auth methods in case somehow we have a bogus token
-        # but try this one first.
-        schemas.insert(0, LTI13AuthSchema(request).lti_user)
-
     lti_user = None
-    for schema in schemas:
-        try:
-            lti_user = schema()
-            break
-        except ValidationError:
-            continue
+    if from_identity and request.identity and request.identity.lti_user:
+        lti_user = request.identity.lti_user
+    else:
+
+        bearer_token_schema = BearerTokenSchema(request)
+        schemas = [
+            partial(bearer_token_schema.lti_user, location="headers"),
+            partial(bearer_token_schema.lti_user, location="querystring"),
+            partial(bearer_token_schema.lti_user, location="form"),
+            OAuthCallbackSchema(request).lti_user,
+        ]
+        for schema in schemas:
+            try:
+                lti_user = schema()
+                break
+            except ValidationError:
+                continue
 
     if lti_user:
         # Make a record of the user for analytics so we can map from the
@@ -219,7 +215,7 @@ def _get_user(request):
 def includeme(config):
     config.set_security_policy(SecurityPolicy())
     config.add_request_method(
-        partial(_get_lti_user, from_identity=True),
+        partial(get_lti_user, from_identity=True),
         name="lti_user",
         property=True,
         reify=True,
