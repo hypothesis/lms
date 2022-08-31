@@ -1,8 +1,9 @@
-from unittest.mock import call, create_autospec, sentinel
+from unittest.mock import PropertyMock, call, create_autospec, patch, sentinel
 
 import pytest
 from pyramid.interfaces import ISecurityPolicy
 from pyramid.security import Allowed, Denied
+from pyramid.testing import DummyRequest
 
 from lms.security import (
     DeniedWithValidationError,
@@ -95,9 +96,10 @@ class TestLTIUserSecurityPolicy:
         get_lti_user_ = create_autospec(
             get_lti_user, side_effect=ValidationError(sentinel.messages)
         )
-        policy = LTIUserSecurityPolicy(get_lti_user_)
-        userid = policy.identity(pyramid_request)
 
+        policy = LTIUserSecurityPolicy(get_lti_user_)
+
+        userid = policy.identity(pyramid_request)
         assert userid == Identity(userid="", permissions=[])
 
     @pytest.mark.parametrize(
