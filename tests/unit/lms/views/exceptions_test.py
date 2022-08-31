@@ -6,6 +6,7 @@ from pyramid import httpexceptions
 from lms.models import ReusedConsumerKey
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
+from lms.security import DeniedWithValidationError
 from lms.services import HAPIError, SerializableError
 from lms.validation import ValidationError
 from lms.views.exceptions import ExceptionViews
@@ -27,6 +28,21 @@ class TestExceptionViews:
 
         assert pyramid_request.response.status_int == 403
         assert template_data == {"message": "You're not authorized to view this page"}
+
+    def test_forbidden_with_reason(self, pyramid_request):
+        validation_exception = ValidationError(sentinel.messages)
+        exception = httpexceptions.HTTPForbidden(
+            result=DeniedWithValidationError(validation_exception)
+        )
+
+        template_data = ExceptionViews(exception, pyramid_request).forbidden()
+
+        assert (
+            pyramid_request.override_renderer
+            == "lms:templates/validation_error.html.jinja2"
+        )
+        assert pyramid_request.response.status_int == 403
+        assert template_data == {"error": validation_exception}
 
     def test_http_client_error(self, pyramid_request):
         exception = httpexceptions.HTTPBadRequest(sentinel.message)
