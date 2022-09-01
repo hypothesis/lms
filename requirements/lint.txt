@@ -231,6 +231,7 @@ importlib-metadata==4.8.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   alembic
+    #   pip-sync-faster
 importlib-resources==5.9.0
     # via
     #   -r requirements/bddtests.txt
@@ -337,7 +338,7 @@ pep517==0.12.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   build
-pip-sync-faster==0.0.2
+pip-sync-faster==0.0.3
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt

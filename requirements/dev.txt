@@ -131,6 +131,7 @@ importlib-metadata==4.8.1
     # via
     #   -r requirements/requirements.txt
     #   alembic
+    #   pip-sync-faster
 importlib-resources==5.9.0
     # via
     #   -r requirements/requirements.txt
@@ -198,7 +199,7 @@ pexpect==4.8.0
     # via ipython
 pickleshare==0.7.5
     # via ipython
-pip-sync-faster==0.0.2
+pip-sync-faster==0.0.3
     # via -r requirements/dev.in
 pip-tools==6.8.0
     # via

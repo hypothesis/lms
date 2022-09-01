@@ -132,6 +132,7 @@ importlib-metadata==4.8.1
     # via
     #   -r requirements/requirements.txt
     #   alembic
+    #   pip-sync-faster
 importlib-resources==5.9.0
     # via
     #   -r requirements/requirements.txt
@@ -196,7 +197,7 @@ pastedeploy==2.1.0
     #   plaster-pastedeploy
 pep517==0.12.0
     # via build
-pip-sync-faster==0.0.2
+pip-sync-faster==0.0.3
     # via -r requirements/bddtests.in
 pip-tools==6.8.0
     # via
