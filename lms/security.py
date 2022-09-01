@@ -1,7 +1,7 @@
 import base64
 from enum import Enum
 from functools import lru_cache, partial
-from typing import Callable, List, NamedTuple
+from typing import Callable, List, NamedTuple, Optional
 
 from pyramid.request import Request
 from pyramid.security import Allowed, Denied
@@ -29,6 +29,7 @@ class DeniedWithValidationError(Denied):
 class Identity(NamedTuple):
     userid: str
     permissions: List[str]
+    lti_user: Optional[LTIUser] = None
 
 
 class Permissions(Enum):
@@ -120,7 +121,7 @@ class LTIUserSecurityPolicy:
         ):
             permissions.append(Permissions.LTI_CONFIGURE_ASSIGNMENT)
 
-        return Identity(self._get_userid(lti_user), permissions)
+        return Identity(self._get_userid(lti_user), permissions, lti_user)
 
     def permits(self, request, _context, permission):
         identity = self.identity(request)
@@ -163,7 +164,7 @@ def _get_lti_user_from_lti_launch_params(request) -> LTIUser:
     return schema()
 
 
-def _get_lti_user(request) -> LTIUser:
+def _get_lti_user(request, from_identity=False) -> LTIUser:
     """
     Return a models.LTIUser for the authenticated LTI user.
 
@@ -175,8 +176,10 @@ def _get_lti_user(request) -> LTIUser:
 
     :rtype: models.LTIUser
     """
-    bearer_token_schema = BearerTokenSchema(request)
+    if from_identity and request.identity and request.identity.lti_user:
+        return request.identity.lti_user
 
+    bearer_token_schema = BearerTokenSchema(request)
     schemas = [
         LTI11AuthSchema(request).lti_user,
         partial(bearer_token_schema.lti_user, location="headers"),
@@ -215,5 +218,10 @@ def _get_user(request):
 
 def includeme(config):
     config.set_security_policy(SecurityPolicy())
-    config.add_request_method(_get_lti_user, name="lti_user", property=True, reify=True)
+    config.add_request_method(
+        partial(_get_lti_user, from_identity=True),
+        name="lti_user",
+        property=True,
+        reify=True,
+    )
     config.add_request_method(_get_user, name="user", property=True, reify=True)
