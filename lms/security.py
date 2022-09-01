@@ -1,8 +1,9 @@
 import base64
 from enum import Enum
 from functools import lru_cache, partial
-from typing import List, NamedTuple
+from typing import Callable, List, NamedTuple
 
+from pyramid.request import Request
 from pyramid.security import Allowed, Denied
 from pyramid_googleauth import GoogleSecurityPolicy
 
@@ -37,7 +38,7 @@ def get_policy(request):
     if path.startswith("/admin") or path.startswith("/googleauth"):
         return LMSGoogleSecurityPolicy()
 
-    return LTISecurityPolicy()
+    return LTIUserSecurityPolicy(_get_lti_user)
 
 
 class SecurityPolicy:
@@ -59,29 +60,14 @@ class SecurityPolicy:
         return get_policy(request).forget(request)
 
 
-class _LTIUserBasedSecurityPolicy:
-    """Base class for `LTIUser` based security policies."""
+class LTIUserSecurityPolicy:
+    """Security policy based on the information of an LTIUser."""
 
-    @classmethod
-    def get_lti_user(cls, request) -> LTIUser:  # pragma: no cover
-        """
-        Get and LTIUser to use as the authenticated user in this policy.
-
-        How this LTIUser is constructed is up to the subclasses.
-        """
-        raise NotImplementedError()
-
-    def permits(self, request, context, permission):
-        return _permits(self, request, context, permission)
-
-    def remember(self, request, userid, **kw):
-        pass
-
-    def forget(self, request):
-        pass
+    def __init__(self, get_lti_user: Callable[[Request], LTIUser]):
+        self._get_lti_user = get_lti_user
 
     @staticmethod
-    def get_userid(lti_user):
+    def _get_userid(lti_user):
         # urlsafe_b64encode() requires bytes, so encode the userid to bytes.
         user_id_bytes = lti_user.user_id.encode()
 
@@ -101,25 +87,28 @@ class _LTIUserBasedSecurityPolicy:
         return identity.userid
 
     def identity(self, request):
-        lti_user = self.get_lti_user(request)
+        lti_user = self._get_lti_user(request)
         if lti_user is None:
             return Identity("", [])
 
         permissions = [Permissions.LTI_LAUNCH_ASSIGNMENT, Permissions.API]
 
         if any(
-            role in self.get_lti_user(request).roles.lower()
+            role in lti_user.roles.lower()
             for role in ["administrator", "instructor", "teachingassistant"]
         ):
             permissions.append(Permissions.LTI_CONFIGURE_ASSIGNMENT)
 
-        return Identity(self.get_userid(lti_user), permissions)
+        return Identity(self._get_userid(lti_user), permissions)
 
+    def permits(self, request, context, permission):
+        return _permits(self, request, context, permission)
 
-class LTISecurityPolicy(_LTIUserBasedSecurityPolicy):
-    @classmethod
-    def get_lti_user(cls, request):
-        return request.lti_user
+    def remember(self, request, userid, **kw):
+        pass
+
+    def forget(self, request):
+        pass
 
 
 class LMSGoogleSecurityPolicy(GoogleSecurityPolicy):
@@ -143,7 +132,7 @@ def _permits(policy, request, _context, permission):
     return Denied("denied")
 
 
-def _get_lti_user(request):
+def _get_lti_user(request) -> LTIUser:
     """
     Return a models.LTIUser for the authenticated LTI user.
 
