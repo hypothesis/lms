@@ -62,7 +62,7 @@ greenlet==1.0.0
     # via sqlalchemy
 gunicorn==20.1.0
     # via -r requirements/requirements.in
-h-api==1.0.1
+h-api==1.0.2
     # via -r requirements/requirements.in
 h-assets==1.0.4
     # via -r requirements/requirements.in
