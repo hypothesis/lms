@@ -46,6 +46,9 @@ def get_policy(request):
     if path.startswith("/admin") or path.startswith("/googleauth"):
         return LMSGoogleSecurityPolicy()
 
+    if path in {"/lti_launches", "/content_item_selection", "/api/gateway/h/lti"}:
+        return LTIUserSecurityPolicy(_get_lti_user_from_lti_launch_params)
+
     return LTIUserSecurityPolicy(_get_lti_user)
 
 
@@ -151,6 +154,13 @@ def _permits(identity, permission):
         return Allowed("allowed")
 
     return Denied("denied")
+
+
+def _get_lti_user_from_lti_launch_params(request) -> LTIUser:
+    schema = LTI11AuthSchema(request).lti_user
+    if "id_token" in request.params:
+        schema = LTI13AuthSchema(request).lti_user
+    return schema()
 
 
 def _get_lti_user(request) -> LTIUser:
