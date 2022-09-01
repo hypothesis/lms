@@ -101,8 +101,8 @@ class LTIUserSecurityPolicy:
 
         return Identity(self._get_userid(lti_user), permissions)
 
-    def permits(self, request, context, permission):
-        return _permits(self, request, context, permission)
+    def permits(self, request, _context, permission):
+        return _permits(self.identity(request), permission)
 
     def remember(self, request, userid, **kw):
         pass
@@ -120,12 +120,11 @@ class LMSGoogleSecurityPolicy(GoogleSecurityPolicy):
 
         return Identity("", [])
 
-    def permits(self, request, context, permission):
-        return _permits(self, request, context, permission)
+    def permits(self, request, _context, permission):
+        return _permits(self.identity(request), permission)
 
 
-def _permits(policy, request, _context, permission):
-    identity = policy.identity(request)
+def _permits(identity, permission):
     if identity and permission in identity.permissions:
         return Allowed("allowed")
 
