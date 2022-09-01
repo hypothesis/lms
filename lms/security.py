@@ -28,54 +28,34 @@ class Permissions(Enum):
     ADMIN = "admin"
 
 
-class PathPolicyGetter:
-    """Callable that returns different policies based on the request path."""
+@lru_cache(maxsize=1)
+def get_policy(request):
+    """Pick the right policy based the request's path."""
+    path = request.path
 
-    def __init__(self, path_policy_mapping):
-        """
-        Create a new PathPolicyGetter.
+    if path.startswith("/admin") or path.startswith("/googleauth"):
+        return LMSGoogleSecurityPolicy()
 
-        :param path_policy_mapping: Map between route paths and policies
-        """
-        self.path_policy_mapping = path_policy_mapping
-
-    @lru_cache(maxsize=1)
-    def __call__(self, request):
-        """Get the corresponding policy based on the request path."""
-        for path, policy in self.path_policy_mapping.items():
-            # We rely on dict's preserved insertion order
-            # and expect that more specific routes are found first.
-            if request.path.startswith(path):
-                return policy()
-
-        raise ValueError(f"No policy found for {request.path}")
+    return LTISecurityPolicy()
 
 
 class SecurityPolicy:
     """Top-level authentication policy that delegates to sub-policies."""
 
-    def __init__(self, policy_getter):
-        """
-        Create a new SecurityPolicy.
-
-        :param policy_getter: Callable that will pick the right policy based on the request object
-        """
-        self._policy_getter = policy_getter
-
     def authenticated_userid(self, request):
-        return self._policy_getter(request).authenticated_userid(request)
+        return get_policy(request).authenticated_userid(request)
 
     def identity(self, request):
-        return self._policy_getter(request).identity(request)
+        return get_policy(request).identity(request)
 
     def permits(self, request, context, permission):
-        return self._policy_getter(request).permits(request, context, permission)
+        return get_policy(request).permits(request, context, permission)
 
     def remember(self, request, userid, **kw):
-        return self._policy_getter(request).remember(request, userid, **kw)
+        return get_policy(request).remember(request, userid, **kw)
 
     def forget(self, request):
-        return self._policy_getter(request).forget(request)
+        return get_policy(request).forget(request)
 
 
 class LTISecurityPolicy:
@@ -193,20 +173,6 @@ def _get_user(request):
 
 
 def includeme(config):
-    config.set_security_policy(
-        SecurityPolicy(
-            PathPolicyGetter(
-                path_policy_mapping={
-                    # Paths are tested in sequence so the order here
-                    # is relevant.
-                    # More specific routes should be higher than shorter ones.
-                    "/admin": LMSGoogleSecurityPolicy,
-                    "/googleauth": LMSGoogleSecurityPolicy,
-                    # Fallback for the rest
-                    "/": LTISecurityPolicy,
-                }
-            )
-        )
-    )
+    config.set_security_policy(SecurityPolicy())
     config.add_request_method(_get_lti_user, name="lti_user", property=True, reify=True)
     config.add_request_method(_get_user, name="user", property=True, reify=True)
