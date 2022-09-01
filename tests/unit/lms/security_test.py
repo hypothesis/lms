@@ -12,6 +12,7 @@ from lms.security import (
     Permissions,
     SecurityPolicy,
     _get_lti_user,
+    _get_lti_user_from_lti_launch_params,
     _get_user,
     get_policy,
     includeme,
@@ -193,9 +194,22 @@ class TestGetPolicy:
 
     @pytest.mark.parametrize(
         "path",
-        ["/", "/lti_launches", "/api/canvas"],
+        ["/lti_launches", "/content_item_selection", "/api/gateway/h/lti"],
     )
-    def test_picks_lti_security_policy(
+    def test_picks_lti_launches_security_policy(
+        self, path, pyramid_request, LTIUserSecurityPolicy
+    ):
+        pyramid_request.path = path
+
+        policy = get_policy(pyramid_request)
+
+        LTIUserSecurityPolicy.assert_called_once_with(
+            _get_lti_user_from_lti_launch_params
+        )
+        assert policy == LTIUserSecurityPolicy.return_value
+
+    @pytest.mark.parametrize("path", ["/", "/api/canvas"])
+    def test_picks_default_lti_user_security_policy(
         self, path, pyramid_request, LTIUserSecurityPolicy
     ):
         pyramid_request.path = path
@@ -267,6 +281,38 @@ class TestSecurityPolicy:
     @pytest.fixture
     def policy(self):
         return SecurityPolicy()
+
+
+@pytest.mark.usefixtures("user_service")
+class TestGetLaunchesLTIUser:
+    def test_it_with_lti11(self, LTI11AuthSchema, lti11_auth_schema, pyramid_request):
+        lti_user = _get_lti_user_from_lti_launch_params(pyramid_request)
+
+        LTI11AuthSchema.assert_called_once_with(pyramid_request)
+        assert lti_user == lti11_auth_schema.lti_user.return_value
+
+    def test_it_with_lti13(self, LTI13AuthSchema, lti13_auth_schema, pyramid_request):
+        pyramid_request.params = {"id_token": sentinel.token}
+        lti_user = _get_lti_user_from_lti_launch_params(pyramid_request)
+
+        LTI13AuthSchema.assert_called_once_with(pyramid_request)
+        assert lti_user == lti13_auth_schema.lti_user.return_value
+
+    @pytest.fixture(autouse=True)
+    def LTI11AuthSchema(self, patch):
+        return patch("lms.security.LTI11AuthSchema")
+
+    @pytest.fixture
+    def lti11_auth_schema(self, LTI11AuthSchema):
+        return LTI11AuthSchema.return_value
+
+    @pytest.fixture(autouse=True)
+    def LTI13AuthSchema(self, patch):
+        return patch("lms.security.LTI13AuthSchema")
+
+    @pytest.fixture
+    def lti13_auth_schema(self, LTI13AuthSchema):
+        return LTI13AuthSchema.return_value
 
 
 @pytest.mark.usefixtures("user_service")
