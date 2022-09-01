@@ -1,4 +1,4 @@
-from unittest.mock import call, sentinel
+from unittest.mock import Mock, call, sentinel
 
 import pytest
 from pyramid.interfaces import ISecurityPolicy
@@ -7,7 +7,7 @@ from pyramid.security import Allowed, Denied
 from lms.security import (
     Identity,
     LMSGoogleSecurityPolicy,
-    LTISecurityPolicy,
+    LTIUserSecurityPolicy,
     Permissions,
     SecurityPolicy,
     _get_lti_user,
@@ -82,10 +82,9 @@ class TestLMSGoogleSecurityPolicy:
 
 
 @pytest.mark.usefixtures("pyramid_config")
-class TestLTISecurityPolicy:
+class TestLTIUserSecurityPolicy:
     def test_it_returns_empty_identity_if_theres_no_lti_user(self, pyramid_request):
-        pyramid_request.lti_user = None
-        policy = LTISecurityPolicy()
+        policy = LTIUserSecurityPolicy(Mock(return_value=None))
         userid = policy.identity(pyramid_request)
 
         assert userid == Identity(userid="", permissions=[])
@@ -103,8 +102,9 @@ class TestLTISecurityPolicy:
     def test_identity_when_theres_an_lti_user(
         self, pyramid_request, roles, extra_permissions
     ):
-        policy = LTISecurityPolicy()
-        pyramid_request.lti_user = pyramid_request.lti_user._replace(roles=roles)
+        policy = LTIUserSecurityPolicy(
+            Mock(return_value=pyramid_request.lti_user._replace(roles=roles))
+        )
 
         identity = policy.identity(pyramid_request)
 
@@ -115,16 +115,16 @@ class TestLTISecurityPolicy:
         )
 
     def test_remember(self, pyramid_request):
-        LTISecurityPolicy().remember(
+        LTIUserSecurityPolicy(sentinel.get_lti_user).remember(
             pyramid_request, "TEST_USERID", kwarg=sentinel.kwarg
         )
 
     def test_forget(self, pyramid_request):
-        LTISecurityPolicy().forget(pyramid_request)
+        LTIUserSecurityPolicy(sentinel.get_lti_user).forget(pyramid_request)
 
     def test_permits_allow(self, pyramid_request):
-        pyramid_request.lti_user = factories.LTIUser()
-        policy = LTISecurityPolicy()
+        policy = LTIUserSecurityPolicy(Mock(return_value=factories.LTIUser()))
+
         is_allowed = policy.permits(
             pyramid_request, None, Permissions.LTI_LAUNCH_ASSIGNMENT
         )
@@ -132,9 +132,7 @@ class TestLTISecurityPolicy:
         assert is_allowed == Allowed("allowed")
 
     def test_permits_denied(self, pyramid_request):
-        pyramid_request.lti_user = None
-
-        policy = LTISecurityPolicy()
+        policy = LTIUserSecurityPolicy(Mock(return_value=None))
 
         is_allowed = policy.permits(pyramid_request, None, "some-permission")
 
@@ -154,8 +152,7 @@ class TestLTISecurityPolicy:
         ],
     )
     def test_authenticated_userid(self, lti_user, expected_userid, pyramid_request):
-        policy = LTISecurityPolicy()
-        pyramid_request.lti_user = lti_user
+        policy = LTIUserSecurityPolicy(Mock(return_value=lti_user))
 
         assert policy.authenticated_userid(pyramid_request) == expected_userid
 
@@ -178,20 +175,23 @@ class TestGetPolicy:
         "path",
         ["/", "/lti_launches", "/api/canvas"],
     )
-    def test_picks_lti_security_policy(self, path, pyramid_request, LTISecurityPolicy):
+    def test_picks_lti_security_policy(
+        self, path, pyramid_request, LTIUserSecurityPolicy
+    ):
         pyramid_request.path = path
 
         policy = get_policy(pyramid_request)
 
-        assert policy == LTISecurityPolicy.return_value
+        LTIUserSecurityPolicy.assert_called_once_with(_get_lti_user)
+        assert policy == LTIUserSecurityPolicy.return_value
 
     @pytest.fixture(autouse=True)
     def LMSGoogleSecurityPolicy(self, patch):
         return patch("lms.security.LMSGoogleSecurityPolicy")
 
     @pytest.fixture(autouse=True)
-    def LTISecurityPolicy(self, patch):
-        return patch("lms.security.LTISecurityPolicy")
+    def LTIUserSecurityPolicy(self, patch):
+        return patch("lms.security.LTIUserSecurityPolicy")
 
 
 class TestSecurityPolicy:
