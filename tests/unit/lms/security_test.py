@@ -1,4 +1,4 @@
-from unittest.mock import Mock, call, sentinel
+from unittest.mock import call, create_autospec, sentinel
 
 import pytest
 from pyramid.interfaces import ISecurityPolicy
@@ -84,7 +84,9 @@ class TestLMSGoogleSecurityPolicy:
 @pytest.mark.usefixtures("pyramid_config")
 class TestLTIUserSecurityPolicy:
     def test_it_returns_empty_identity_if_theres_no_lti_user(self, pyramid_request):
-        policy = LTIUserSecurityPolicy(Mock(return_value=None))
+        policy = LTIUserSecurityPolicy(
+            create_autospec(_get_lti_user, return_value=None)
+        )
         userid = policy.identity(pyramid_request)
 
         assert userid == Identity(userid="", permissions=[])
@@ -103,7 +105,10 @@ class TestLTIUserSecurityPolicy:
         self, pyramid_request, roles, extra_permissions
     ):
         policy = LTIUserSecurityPolicy(
-            Mock(return_value=pyramid_request.lti_user._replace(roles=roles))
+            create_autospec(
+                _get_lti_user,
+                return_value=pyramid_request.lti_user._replace(roles=roles),
+            )
         )
 
         identity = policy.identity(pyramid_request)
@@ -123,7 +128,9 @@ class TestLTIUserSecurityPolicy:
         LTIUserSecurityPolicy(sentinel.get_lti_user).forget(pyramid_request)
 
     def test_permits_allow(self, pyramid_request):
-        policy = LTIUserSecurityPolicy(Mock(return_value=factories.LTIUser()))
+        policy = LTIUserSecurityPolicy(
+            create_autospec(_get_lti_user, return_value=factories.LTIUser())
+        )
 
         is_allowed = policy.permits(
             pyramid_request, None, Permissions.LTI_LAUNCH_ASSIGNMENT
@@ -132,7 +139,9 @@ class TestLTIUserSecurityPolicy:
         assert is_allowed == Allowed("allowed")
 
     def test_permits_denied(self, pyramid_request):
-        policy = LTIUserSecurityPolicy(Mock(return_value=None))
+        policy = LTIUserSecurityPolicy(
+            create_autospec(_get_lti_user, return_value=None)
+        )
 
         is_allowed = policy.permits(pyramid_request, None, "some-permission")
 
@@ -152,7 +161,9 @@ class TestLTIUserSecurityPolicy:
         ],
     )
     def test_authenticated_userid(self, lti_user, expected_userid, pyramid_request):
-        policy = LTIUserSecurityPolicy(Mock(return_value=lti_user))
+        policy = LTIUserSecurityPolicy(
+            create_autospec(_get_lti_user, return_value=lti_user)
+        )
 
         assert policy.authenticated_userid(pyramid_request) == expected_userid
 
