@@ -3,6 +3,7 @@ from functools import partial
 from unittest.mock import sentinel
 
 import pytest
+from h_matchers import Any
 
 from lms.services import ExternalRequestError
 from lms.services.jstor.service import ArticleNotFound, JSTORService
@@ -167,6 +168,21 @@ class TestJSTORService:
         with pytest.raises(exception):
             svc.thumbnail("article_id")
 
+    def test_api_calls_include_tracking_info(
+        self, get_service, pyramid_request, http_service
+    ):
+        svc = get_service(tracking_user_id="userfoo", tracking_user_agent="Chrome 100")
+
+        svc.via_url(pyramid_request, document_url="jstor://1234")
+
+        http_service.get.assert_called_once_with(
+            url=Any.string(),
+            headers=Any.dict.containing(
+                {"Tracking-User-ID": "userfoo", "Tracking-User-Agent": "Chrome 100"}
+            ),
+            params=None,
+        )
+
     @pytest.fixture
     def http_service(self, http_service):
         http_service.get.return_value = factories.requests.Response(
@@ -184,6 +200,8 @@ class TestJSTORService:
             enabled=True,
             site_code=sentinel.site_code,
             http_service=http_service,
+            tracking_user_id=None,
+            tracking_user_agent=None,
         )
 
     @pytest.fixture

@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Optional
 from urllib.parse import quote
 
 import requests
@@ -22,7 +23,16 @@ class JSTORService:
     """Used when no DOI prefix can be found."""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, api_url, secret, enabled, site_code, http_service: HTTPService):
+    def __init__(
+        self,
+        api_url,
+        secret,
+        enabled,
+        site_code,
+        http_service: HTTPService,
+        tracking_user_id: Optional[str],
+        tracking_user_agent: Optional[str],
+    ):
         """
         Initialise the JSTOR service.
 
@@ -31,6 +41,8 @@ class JSTORService:
         :param enabled: Whether JSTOR is enabled on this instance
         :param site_code: The site code to use to identify the organization
         :param http_service: HTTPService instance
+        :param tracking_user_id: Unique user ID, passed to JSTOR for analytics purposes
+        :param tracking_user_agent: User-Agent header from user's browser, passed to JSTOR for analytics purposes
         """
         self._api_url = api_url
         self._secret = secret
@@ -38,6 +50,8 @@ class JSTORService:
         self._site_code = site_code
 
         self._http = http_service
+        self._tracking_user_id = tracking_user_id
+        self._tracking_user_agent = tracking_user_agent
 
     @property
     def enabled(self) -> bool:
@@ -169,6 +183,15 @@ class JSTORService:
             secret=self._secret,
             lifetime=timedelta(hours=1),
         )
+        headers = {"Authorization": f"Bearer {token}"}
+
+        if self._tracking_user_id:
+            headers["Tracking-User-ID"] = self._tracking_user_id
+        if self._tracking_user_agent:
+            headers["Tracking-User-Agent"] = self._tracking_user_agent
+
         return self._http.get(
-            url=url, headers={"Authorization": f"Bearer {token}"}, params=params
+            url=url,
+            headers=headers,
+            params=params,
         )
