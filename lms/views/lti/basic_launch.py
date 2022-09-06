@@ -16,7 +16,7 @@ from pyramid.view import view_config, view_defaults
 
 from lms.events import LTIEvent
 from lms.security import Permissions
-from lms.services import DocumentURLService, LTIRoleService
+from lms.services import DocumentURLService, LTIRoleService, VitalSourceService
 from lms.services.assignment import AssignmentService
 from lms.services.grouping import GroupingService
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
@@ -50,6 +50,7 @@ class BasicLaunchViews:
         self.context.application_instance.check_guid_aligns(
             self.request.lti_params.get("tool_consumer_instance_guid")
         )
+        self._check_inclusive_access()
 
         self._record_launch()
 
@@ -239,9 +240,26 @@ class BasicLaunchViews:
         self.request.find_service(name="application_instance").update_from_lti_params(
             self.context.application_instance, self.request.lti_params
         )
-
         if not self.request.lti_user.is_instructor and not self.context.is_canvas:
             # Create or update a record of LIS result data for a student launch
             self.request.find_service(name="grading_info").upsert_from_request(
                 self.request
             )
+
+    def _check_inclusive_access(self):
+        if not self.request.lti_user.is_learner:
+            # Inclusive access only applies to students
+            return
+
+        # Inclusive access is a VS only concept for now
+        vitalsource_svc: VitalSourceService = self.request.find_service(
+            VitalSourceService
+        )
+
+        if not vitalsource_svc.inclusive_access_enabled:
+            # Nothing else to check if the current schools doesn't use IA
+            return False
+
+        vitalsource_svc.inclusive_access_student_allowed(
+            self.request.lti_params, self.context.course
+        )

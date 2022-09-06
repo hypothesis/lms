@@ -26,6 +26,7 @@ class VitalSourceClient:
     """
 
     VS_API = "https://api.vitalsource.com"
+    VS_LAUNCH_API = "https://launch.vitalsource.com"
 
     def __init__(self, api_key: str):
         """
@@ -95,6 +96,22 @@ class VitalSourceClient:
             chapter["url"] = VSBookLocation(book_id, chapter["cfi"]).document_url
 
         return toc
+
+    def get_courses(self):
+        # https://developer.vitalsource.com/hc/en-us/articles/360025486773-GET-v4-courses-Read
+        return self._json_request("GET", f"{self.VS_LAUNCH_API}/api/v4/courses").json()[
+            "courses"
+        ]
+
+    def get_course_roster(self, course_id):
+        return self._json_request(
+            "GET", f"{self.VS_LAUNCH_API}/api/v4/courses/{course_id}/rosters"
+        ).json()
+
+    def get_course_opt_outs(self, course_id):
+        return self._json_request(
+            "GET", f"{self.VS_LAUNCH_API}/api/v4/courses/{course_id}/opt_outs"
+        ).json()
 
     def get_user_book_license(self, user_reference, book_id) -> Optional[dict]:
         """

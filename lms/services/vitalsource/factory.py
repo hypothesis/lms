@@ -20,4 +20,7 @@ def service_factory(_context, request):
         enable_licence_check=not bool(
             settings.get("vitalsource", "disable_licence_check")
         ),
+        enable_inclusive_access=not bool(
+            settings.get("vitalsource", "inclusive_access")
+        ),
     )
