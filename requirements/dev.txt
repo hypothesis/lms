@@ -314,7 +314,7 @@ six==1.15.0
     #   ecdsa
     #   google-auth
     #   python-dateutil
-sqlalchemy==1.4.40
+sqlalchemy==1.4.41
     # via
     #   -r requirements/requirements.txt
     #   alembic
