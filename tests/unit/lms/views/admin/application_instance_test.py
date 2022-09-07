@@ -306,41 +306,36 @@ class TestAdminApplicationInstanceViews:
             pyramid_request.route_url("admin.instance.id", id_=application_instance.id)
         )
 
-    @pytest.mark.parametrize(
-        "setting,value,expected",
-        (
-            ("lms_url", "http://some-url.com", "http://some-url.com"),
-            ("deployment_id", "DEPLOYMENT_ID", "DEPLOYMENT_ID"),
-        ),
-    )
-    def test_update_instance_save_ai_fields(
-        self, setting, value, expected, pyramid_request, application_instance
+    @pytest.mark.parametrize("key,", (" ", " key "))
+    @pytest.mark.parametrize("secret", (" ", " secret "))
+    @pytest.mark.parametrize("lms_url", (" ", "http://some-url.com    "))
+    @pytest.mark.parametrize("deployment_id", (" ", " DEPLOYMENT_ID"))
+    def test_update_application_instance(
+        self,
+        pyramid_request,
+        application_instance_service,
+        views,
+        key,
+        secret,
+        lms_url,
+        deployment_id,
     ):
-        pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
-        pyramid_request.params[setting] = value
+        pyramid_request.params = {
+            "developer_key": key,
+            "developer_secret": secret,
+            "lms_url": lms_url,
+            "deployment_id": deployment_id,
+        }
 
-        AdminApplicationInstanceViews(pyramid_request).update_instance()
+        views.update_instance()
 
-        assert getattr(application_instance, setting) == expected
-
-    @pytest.mark.parametrize(
-        "setting,value",
-        (
-            ("lms_url", ""),
-            ("deployment_id", "    "),
-        ),
-    )
-    def test_update_instance_save_ai_fields_keeps_existing(
-        self, setting, value, pyramid_request, application_instance
-    ):
-        pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
-        pyramid_request.params[setting] = value
-
-        existing_value = getattr(application_instance, setting)
-
-        AdminApplicationInstanceViews(pyramid_request).update_instance()
-
-        assert getattr(application_instance, setting) == existing_value
+        application_instance_service.update_application_instance.assert_called_once_with(
+            application_instance_service.get_by_id.return_value,
+            lms_url=lms_url.strip() if lms_url else "",
+            deployment_id=deployment_id.strip() if deployment_id else "",
+            developer_key=key.strip() if key else "",
+            developer_secret=secret.strip() if secret else "",
+        )
 
     @pytest.mark.parametrize(
         "setting,sub_setting,value,expected",

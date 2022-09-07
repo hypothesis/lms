@@ -264,9 +264,13 @@ class AdminApplicationInstanceViews:
     def update_instance(self):
         ai = self._get_ai_or_404(**self.request.matchdict)
 
-        for ai_field in ["lms_url", "deployment_id"]:
-            if value := self.request.params.get(ai_field, "").strip():
-                setattr(ai, ai_field, value)
+        self.application_instance_service.update_application_instance(
+            ai,
+            lms_url=self.request.params.get("lms_url", "").strip(),
+            deployment_id=self.request.params.get("deployment_id", "").strip(),
+            developer_key=self.request.params.get("developer_key", "").strip(),
+            developer_secret=self.request.params.get("developer_secret", "").strip(),
+        )
 
         for setting, sub_setting, setting_type in (
             ("canvas", "sections_enabled", bool),
