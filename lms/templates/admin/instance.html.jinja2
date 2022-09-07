@@ -79,7 +79,13 @@
     <fieldset class="box">
         <legend class="label has-text-centered">Canvas settings</legend>
         {{ macros.disabled_text_field("API domain", instance.custom_canvas_api_domain) }}
-        {{ macros.disabled_text_field("Developer key", instance.developer_key) }}
+        {{ macros.form_text_field(request, "Developer key", "developer_key", field_value=instance.developer_key) }}
+        {{ macros.form_text_field(
+            request,
+            "Developer secret",
+            "developer_secret",
+            placeholder="*" * 25 if instance.developer_secret else "")
+        }}
         {{ settings_checkbox("Sections enabled", "canvas", "sections_enabled") }}
         {{ settings_checkbox("Groups enabled", "canvas", "groups_enabled") }}
     </fieldset>
