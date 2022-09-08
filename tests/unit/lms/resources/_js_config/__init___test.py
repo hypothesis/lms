@@ -74,8 +74,19 @@ class TestFilePickerMode:
 
 class TestEnableLTILaunchMode:
     def test_it(
-        self, bearer_token_schema, context, grant_token_service, js_config, assignment
+        self,
+        bearer_token_schema,
+        context,
+        grant_token_service,
+        js_config,
+        assignment,
+        db_session,
     ):
+        context.application_instance.organization = factories.Organization(
+            _public_id="PUBLIC_ID"
+        )
+        db_session.flush()
+
         js_config.enable_lti_launch_mode(assignment)
 
         assert js_config.asdict() == {
@@ -86,7 +97,11 @@ class TestEnableLTILaunchMode:
             "canvas": {},
             "debug": {
                 "tags": [Any.string.matching("^role:.*")],
-                "values": {"LTI version": "LTI-1p0"},
+                "values": {
+                    "Organization ID": "us.lms.org.PUBLIC_ID",
+                    "Application Instance ID": context.application_instance.id,
+                    "LTI version": "LTI-1p0",
+                },
             },
             "dev": False,
             "hypothesisClient": {
