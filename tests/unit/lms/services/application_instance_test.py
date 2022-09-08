@@ -6,12 +6,20 @@ from h_matchers import Any
 
 from lms.models import LTIParams, ReusedConsumerKey
 from lms.services import ApplicationInstanceNotFound
-from lms.services.application_instance import ApplicationInstanceService, factory
+from lms.services.application_instance import (
+    AccountDisabled,
+    ApplicationInstanceService,
+    factory,
+)
 from tests import factories
 
 
 class TestApplicationInstanceService:
-    def test_get_current(self, service, application_instance):
+    @pytest.mark.parametrize("has_org", (True, False))
+    def test_get_current(self, service, application_instance, has_org):
+        if has_org:
+            application_instance.organization = factories.Organization(enabled=True)
+
         assert service.get_current() == application_instance
 
     def test_get_current_raises_ApplicationInstanceNotFound_with_no_user(
@@ -28,6 +36,14 @@ class TestApplicationInstanceService:
         )
 
         with pytest.raises(ApplicationInstanceNotFound):
+            service.get_current()
+
+    def test_get_current_raises_for_disabled_organisations(
+        self, service, application_instance
+    ):
+        application_instance.organization = factories.Organization(enabled=False)
+
+        with pytest.raises(AccountDisabled):
             service.get_current()
 
     def test_get_by_consumer_key(self, service, application_instance):

@@ -1,17 +1,36 @@
 import secrets
 from datetime import datetime
 from functools import lru_cache
+from logging import getLogger
 from typing import List
 
 from sqlalchemy.exc import NoResultFound
 
 from lms.models import ApplicationInstance, LTIParams, LTIRegistration
+from lms.models.region import Region
 from lms.services.aes import AESService
+from lms.services.exceptions import SerializableError
 from lms.services.organization import OrganizationService
+
+LOG = getLogger(__name__)
 
 
 class ApplicationInstanceNotFound(Exception):
     """The requested ApplicationInstance wasn't found in the database."""
+
+
+class AccountDisabled(SerializableError):
+    """Indicate that we have disabled this account through it's org."""
+
+    def __init__(self, application_instance: ApplicationInstance, region: Region):
+        super().__init__(
+            message="Account has been disabled",
+            error_code="account_disabled",
+            details={
+                "organization_id": application_instance.organization.public_id(region),
+                "application_instance_id": application_instance.id,
+            },
+        )
 
 
 class ApplicationInstanceService:
@@ -35,11 +54,31 @@ class ApplicationInstanceService:
         This is the `ApplicationInstance` with `id` matching
         `request.application_instance_id`.
 
-        :raise ApplicationInstanceNotFound: if there's no matching
+        :raises ApplicationInstanceNotFound: if there's no matching
             `ApplicationInstance`
+        :raise AccountDisabled: If the organization associated with this
+            instance is disabled
         """
         if self._request.lti_user and self._request.lti_user.application_instance_id:
-            return self.get_by_id(self._request.lti_user.application_instance_id)
+            application_instance = self.get_by_id(
+                self._request.lti_user.application_instance_id
+            )
+
+            # Check to see if this application instance belongs to a disabled
+            # organization.
+            if (
+                application_instance
+                and (org := application_instance.organization)
+                and not org.enabled
+            ):
+                LOG.info(
+                    "Account access was blocked for application_instance=%s org=%s",
+                    application_instance.id,
+                    org.id,
+                )
+                raise AccountDisabled(application_instance, region=self._request.region)
+
+            return application_instance
 
         raise ApplicationInstanceNotFound()
 
