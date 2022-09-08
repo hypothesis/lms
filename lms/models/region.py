@@ -28,7 +28,7 @@ class Regions:
     _AUTHORITY_MAP = {region.authority: region for region in ALL}
 
     @classmethod
-    def from_authority(cls, request: Request) -> Region:
+    def from_request(cls, request: Request) -> Region:
         """
         Get a region object based on a request.
 
@@ -42,3 +42,9 @@ class Regions:
             raise ValueError(
                 f"Cannot find a region for the authority '{authority}'"
             ) from err
+
+
+def includeme(config):
+    config.add_request_method(
+        Regions.from_request, name="region", property=True, reify=True
+    )
