@@ -1,5 +1,4 @@
 import logging
-from functools import cached_property
 
 import alembic.command
 import alembic.config
@@ -7,7 +6,7 @@ import sqlalchemy
 import zope.sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.inspection import inspect
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.properties import ColumnProperty
 
 from lms.db._columns import varchar_enum
@@ -24,6 +23,7 @@ class BaseClass:
     @classmethod
     def columns(cls):
         """Return a list of all declared SQLAlchemy column names."""
+
         return [
             property.key
             for property in inspect(cls).iterate_properties
@@ -59,13 +59,10 @@ class BaseClass:
                 setattr(self, key, data[key])
 
     def __repr__(self):
-        return "{class_}({kwargs})".format(  # pylint: disable=consider-using-f-string
-            class_=self.__class__.__name__,
-            kwargs=", ".join(
-                f"{kwarg}={repr(getattr(self, kwarg))}"
-                for kwarg in self.__table__.columns.keys()  # pylint:disable=no-member
-            ),
+        kwargs = ", ".join(
+            f"{column}={repr(getattr(self, column))}" for column in self.columns()
         )
+        return f"{self.__class__.__name__}({kwargs})"
 
 
 BASE = declarative_base(
