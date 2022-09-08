@@ -9,6 +9,7 @@ from pyramid.request import apply_request_extensions
 
 from lms.db import SESSION
 from lms.models import ApplicationSettings
+from lms.models.region import Regions
 from lms.product import Product
 from tests import factories
 from tests.conftest import TEST_SETTINGS, get_test_database_url
@@ -119,6 +120,7 @@ def pyramid_request(db_session, application_instance, lti_v11_params):
     pyramid_request.lti_jwt = {}
     pyramid_request.lti_params = {}
     pyramid_request.product = Product.from_request(pyramid_request)
+    pyramid_request.region = Regions.US
 
     # The DummyRequest request lacks a content_type property which the real
     # request has
