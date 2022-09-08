@@ -25,7 +25,7 @@ def upgrade():
             "updated", sa.DateTime(), server_default=sa.text("now()"), nullable=False
         ),
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("name", sa.UnicodeText(), nullable=False),
+        sa.Column("name", sa.UnicodeText(), nullable=True),
         sa.Column("enabled", sa.Boolean(), nullable=False),
         sa.Column("public_id", sa.UnicodeText(), nullable=False),
         sa.Column("parent_id", sa.Integer(), nullable=True),
