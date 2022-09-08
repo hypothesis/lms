@@ -188,9 +188,7 @@ class JSConfig:
         self._config["rpcServer"] = {
             "allowedOrigins": self._request.registry.settings["rpc_allowed_origins"]
         }
-
-        ai = self._context.application_instance
-        self._config["debug"]["values"]["LTI version"] = ai.lti_version
+        self._config["debug"]["values"] = self._set_lti_launch_debug_values()
 
     def enable_file_picker_mode(self, form_action, form_fields):
         """
@@ -229,6 +227,7 @@ class JSConfig:
                 },
             }
         )
+        self._config["debug"]["values"] = self._set_lti_launch_debug_values()
 
     def add_deep_linking_api(self):
         """
@@ -505,3 +504,8 @@ class JSConfig:
                 "gradingStudentId": req.params.get("learner_canvas_user_id"),
             },
         }
+
+    def _set_lti_launch_debug_values(self):
+        """Debug values common to different types of LTI launches."""
+        ai = self._context.application_instance
+        return {"LTI version": ai.lti_version}
