@@ -88,7 +88,7 @@ class Test_GatewayService:
         assert data["profile"] == {
             "display_name": sentinel.display_name,
             "lti": {"user_id": sentinel.user_id},
-            "userid": Any.string.matching("^acct:.*@TEST_AUTHORITY$"),
+            "userid": Any.string.matching("^acct:.*@lms.hypothes.is$"),
         }
 
     def test_tender_lti_context_renders_groups(
@@ -105,7 +105,7 @@ class Test_GatewayService:
 
         assert data["groups"] == [
             {
-                "groupid": "group:course_authority_provided_id@TEST_AUTHORITY",
+                "groupid": "group:course_authority_provided_id@lms.hypothes.is",
                 "name": "course_lms_name",
                 "lms": {
                     "id": course.lms_id,
@@ -114,7 +114,7 @@ class Test_GatewayService:
                 },
             },
             {
-                "groupid": "group:grouping_authority_provided_id@TEST_AUTHORITY",
+                "groupid": "group:grouping_authority_provided_id@lms.hypothes.is",
                 "name": "grouping_lms_name",
                 "lms": {
                     "id": grouping.lms_id,

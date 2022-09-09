@@ -263,7 +263,7 @@ class TestEnableGradingBar:
             "assignmentName": pyramid_request.lti_params["resource_link_title"],
             "students": [
                 {
-                    "userid": f"acct:{grading_info.h_username}@TEST_AUTHORITY",
+                    "userid": f"acct:{grading_info.h_username}@lms.hypothes.is",
                     "displayName": grading_info.h_display_name,
                     "lmsId": grading_info.user_id,
                     "LISResultSourcedId": grading_info.lis_result_sourcedid,
