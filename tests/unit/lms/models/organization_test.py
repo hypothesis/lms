@@ -51,7 +51,6 @@ class TestOrganization:
     def test_public_id(self, organization, db_session):
         # Flush to ensure the default is applied
         db_session.flush()
-        print(organization.public_id(Regions.CA))
 
         assert organization.public_id(Regions.CA) == Any.string.matching(
             r"ca\.lms\.org\.[A-Za-z0-9-_]{22}"

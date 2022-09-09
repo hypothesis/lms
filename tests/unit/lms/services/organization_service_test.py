@@ -5,6 +5,7 @@ from h_matchers import Any
 
 from lms.models import Organization
 from lms.services.organization import OrganizationService, service_factory
+from lms.validation import ValidationError
 from tests import factories
 
 
@@ -49,6 +50,24 @@ class TestOrganizationService:
         )
 
         assert not svc.get_by_linked_guid(None)
+
+    def test_get_by_public_id(self, svc, pyramid_request, db_session):
+        orgs = factories.Organization.create_batch(2)
+        # Set the _public_id in the models
+        db_session.flush()
+
+        assert (
+            svc.get_by_public_id(orgs[0].public_id(pyramid_request.region)) == orgs[0]
+        )
+
+    @pytest.mark.parametrize(
+        "public_id",
+        ("ID", "es.lms.org.ID", "us.h.org.ID", "us.lms.user.ID"),
+        ids=["wrong format", "wrong region", "wrong app", "wrong type"],
+    )
+    def test_get_by_public_id_with_invalid(self, svc, public_id):
+        with pytest.raises(ValidationError):
+            svc.get_by_public_id(public_id)
 
     def test_auto_assign_organization_with_no_guid(self, svc, application_instance):
         application_instance.tool_consumer_instance_guid = None
@@ -105,8 +124,8 @@ class TestOrganizationService:
         )
 
     @pytest.fixture
-    def svc(self, db_session):
-        return OrganizationService(db_session=db_session)
+    def svc(self, db_session, pyramid_request):
+        return OrganizationService(db_session=db_session, region=pyramid_request.region)
 
     @pytest.fixture
     def application_instance(self):
@@ -119,7 +138,9 @@ class TestServiceFactory:
     def test_it(self, pyramid_request, OrganizationService):
         svc = service_factory(sentinel.context, pyramid_request)
 
-        OrganizationService.assert_called_once_with(db_session=pyramid_request.db)
+        OrganizationService.assert_called_once_with(
+            db_session=pyramid_request.db, region=pyramid_request.region
+        )
         assert svc == OrganizationService.return_value
 
     @pytest.fixture

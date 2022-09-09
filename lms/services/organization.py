@@ -5,6 +5,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
 from lms.models import ApplicationInstance, GroupInfo, Organization
+from lms.validation import ValidationError
 
 LOG = getLogger(__name__)
 
@@ -12,8 +13,9 @@ LOG = getLogger(__name__)
 class OrganizationService:
     """A service for dealing with organization actions."""
 
-    def __init__(self, db_session: Session):
+    def __init__(self, db_session: Session, region):
         self._db_session = db_session
+        self._region = region
 
     def get_by_id(self, id_) -> Optional[Organization]:
         return self._db_session.query(Organization).filter_by(id=id_).one_or_none()
@@ -37,6 +39,41 @@ class OrganizationService:
             )
             .order_by(Organization.updated.desc())
             .all()
+        )
+
+    def get_by_public_id(self, public_id: str):
+        try:
+            region_code, app, type_, public_id = public_id.split(".")
+        except ValueError as err:
+            raise ValidationError(
+                messages={"public_id": [f"{public_id} doesn't have the right format"]}
+            ) from err
+
+        if region_code != self._region.code:
+            raise ValidationError(
+                messages={
+                    "public_id": [
+                        f"{region_code} doesn't match current region: {self._region.code}"
+                    ]
+                }
+            )
+
+        if app != "lms":
+            raise ValidationError(
+                messages={"public_id": [f"{app} doesn't match app region: lms"]}
+            )
+
+        if type_ != "org":
+            raise ValidationError(
+                messages={
+                    "public_id": [f"{type_} doesn't match organization type: 'org'"]
+                }
+            )
+
+        return (
+            self._db_session.query(Organization)
+            .filter_by(_public_id=public_id)
+            .one_or_none()
         )
 
     def auto_assign_organization(
@@ -81,4 +118,4 @@ class OrganizationService:
 def service_factory(_context, request) -> OrganizationService:
     """Get a new instance of OrganizationService."""
 
-    return OrganizationService(db_session=request.db)
+    return OrganizationService(db_session=request.db, region=request.region)
