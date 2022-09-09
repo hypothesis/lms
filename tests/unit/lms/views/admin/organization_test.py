@@ -27,19 +27,29 @@ class TestAdminOrganizationViews:
 
         organization_service.get_by_id.assert_called_once_with(sentinel.id_)
 
-    @pytest.mark.parametrize("value,expected", [("", None), (" name", "name")])
-    def test_update_organization_name(
-        self, pyramid_request, organization_service, views, value, expected
+    @pytest.mark.parametrize("name,expected_name", [("", ""), (" name", "name")])
+    @pytest.mark.parametrize("enabled, expected_enabled", [("on", True), ("", False)])
+    def test_update_organization(
+        self,
+        pyramid_request,
+        organization_service,
+        views,
+        name,
+        expected_name,
+        enabled,
+        expected_enabled,
     ):
         pyramid_request.matchdict["id_"] = sentinel.id_
-        pyramid_request.params["name"] = value
+        pyramid_request.params = {"name": name, "enabled": enabled}
         organization_service.get_by_id.return_value = factories.Organization()
 
         response = views.update_organization()
         org = response["org"]
 
+        organization_service.update_organization.assert_called_once_with(
+            org, name=expected_name, enabled=expected_enabled
+        )
         assert org == organization_service.get_by_id.return_value
-        assert org.name == expected
 
     @pytest.fixture
     def views(self, pyramid_request):

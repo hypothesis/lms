@@ -1,8 +1,8 @@
 from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config, view_defaults
 
+from lms.events import AuditTrailEvent
 from lms.models import Organization
-from lms.events import AdminChangeEvent
 from lms.security import Permissions
 from lms.services import OrganizationService
 
@@ -38,7 +38,8 @@ class AdminOrganizationViews:
             enabled=self.request.params.get("enabled", "") == "on",
         )
 
-        AdminChangeEvent.notify_changes(self.request, org)
+        AuditTrailEvent.notify(self.request, org)
+        self.request.session.flash(f"Updated organization {org.id}", "messages")
         return {"org": org}
 
     def _get_org_or_404(self, id_) -> Organization:

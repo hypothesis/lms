@@ -76,6 +76,19 @@ class OrganizationService:
             .one_or_none()
         )
 
+    def update_organization(self, organization: Organization, **kwargs):
+        for field in ["name", "enabled"]:
+            current_value = getattr(organization, field)
+            update_value = kwargs[field]
+            # Don't set any values if they match the ones in the object.
+            # Otherwise the session is marked as dirty making difficult to track
+            # changes and the `updated` field keeps getting a new value despite not
+            # having any new values.
+            if current_value != update_value:
+                setattr(organization, field, update_value)
+
+        return organization
+
     def auto_assign_organization(
         self, application_instance: ApplicationInstance
     ) -> Optional[Organization]:
