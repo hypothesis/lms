@@ -59,5 +59,5 @@ SELECT
     ids_and_guids_right.application_instance_id AS right_id
 FROM ids_and_guids AS ids_and_guids_left
 JOIN ids_and_guids AS ids_and_guids_right
-    ON ids_and_guids_left.application_instance_id = ids_and_guids_right.application_instance_id
+    ON ids_and_guids_left.guid = ids_and_guids_right.guid
 GROUP BY left_id, right_id
