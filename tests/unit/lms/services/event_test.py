@@ -60,6 +60,27 @@ class TestEventService:
         )
         assert not db_session.query(EventData).one_or_none()
 
+    def test_insert_event_type(self, svc, db_session):
+        type_query = db_session.query(EventType).filter_by(
+            type=EventType.Type.CONFIGURED_LAUNCH
+        )
+
+        # Insert the event type for the first time
+        svc.insert_event(
+            BaseEvent(request=sentinel.request, type=EventType.Type.CONFIGURED_LAUNCH)
+        )
+
+        # It will create a new type
+        event_type = type_query.one()
+        # Clear the @lru_cache of the private method
+        svc._get_type_pk.cache_clear()  # pylint:disable=protected-access
+        # Insert the event type again
+        svc.insert_event(
+            BaseEvent(request=sentinel.request, type=EventType.Type.CONFIGURED_LAUNCH)
+        )
+        # The type is the same as the first insert
+        assert event_type == type_query.one()
+
     @pytest.fixture
     def svc(self, db_session):
         return EventService(db_session)
