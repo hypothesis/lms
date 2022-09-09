@@ -36,6 +36,11 @@
     <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
 
     <fieldset class="box mt-6">
+        <legend class="label has-text-centered">Organization</legend>
+        {{ macros.organization_preview(request, instance.organization) }}
+    </fieldset>
+
+    <fieldset class="box mt-6">
         <legend class="label has-text-centered">Registration</legend>
         {{ macros.registration_preview(request, instance.lti_registration) }}
     </fieldset>
