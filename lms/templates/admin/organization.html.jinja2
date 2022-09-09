@@ -1,6 +1,7 @@
 {% import "macros.jinja" as macros %}
 
 {% extends "lms:templates/admin/base.html.jinja2" %}
+{% set public_id = org.public_id(request.region) %}
 {% block header %}
     Organization {{org.name}} / {{ public_id }}
 {% endblock %}
@@ -8,15 +9,21 @@
 {% block content %}
     <fieldset class="box">
     <legend class="label has-text-centered">Organization</legend>
-    {{ macros.disabled_text_field("ID", public_id) }}
-    {{ macros.disabled_text_field("Name", org.name) }}
-    {% call macros.field_body("Enabled") %}
-        <label class="checkbox">
-            <input {% if org.enabled %}checked{% endif%} type="checkbox"
-                name="enabled" disabled>
-        </label>
-    {% endcall %}
-    {{ macros.created_updated_fields(org) }}
+    <form method="POST" action="{{ request.route_url("admin.organization", public_id=public_id) }}">
+        <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
+        {{ macros.disabled_text_field("ID", public_id) }}
+        {{ macros.form_text_field(request, "Name", "name", org.name) }}
+        {% call macros.field_body("Enabled") %}
+            <label class="checkbox">
+                <input {% if org.enabled %}checked{% endif%} type="checkbox"
+                    name="enabled" disabled>
+            </label>
+        {% endcall %}
+        {{ macros.created_updated_fields(org) }}
+        <div class="has-text-right mb-6">
+            <input type="submit" class="button is-primary" value="Save" />
+        </div>
+    </form>
 
     <legend class="label has-text-centered">Organization application instances</legend>
         {% if org.application_instances %}
