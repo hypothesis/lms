@@ -41,7 +41,13 @@ class EventService:
     @lru_cache(maxsize=10)
     def _get_type_pk(self, type_: EventType.Type) -> int:
         """Cache the PK of the event_type table to avoid an extra query while inserting events."""
-        return self._db.query(EventType).filter_by(type=type_).one().id
+        event_type = self._db.query(EventType).filter_by(type=type_).one_or_none()
+        if not event_type:
+            event_type = EventType(type=type_)
+            self._db.add(event_type)
+            self._db.flush()
+
+        return event_type.id
 
 
 def factory(_context, request):
