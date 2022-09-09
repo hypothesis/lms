@@ -63,6 +63,16 @@
     {{ form_text_field(request, "Token URL", "token_url", lti_registration.token_url) }}
 {% endmacro %}
 
+
+{% macro created_updated_fields(model) %}
+    <fieldset class="box">
+    {{ disabled_text_field("Created", model.created) }}
+    {% if model.updated %}
+        {{ disabled_text_field("Updated", model.updated) }}
+    {% endif %}
+    </fieldset>
+{% endmacro %}
+
 {% macro instances_table(request, instances) %}
 <table class="table is-fullwidth">
   <thead>
