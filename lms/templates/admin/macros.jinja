@@ -132,7 +132,6 @@
     <div class="block has-text-right">
         <a class="button" href="{{ request.route_url("admin.registration.id", id_=lti_registration.id) }}">View</a>
     </div>
-    {% endif %}
     <div class="columns">
             <div class="column is-half">
             {{ disabled_text_field("Issuer", lti_registration.issuer) }}
@@ -141,4 +140,28 @@
             {{ disabled_text_field("Client ID", lti_registration.client_id) }}
         </div>
     </div>
+    {% else %}
+    <div class="is-size-5 has-text-centered">No LTI registration</div>
+    {% endif %}
+{% endmacro %}
+
+
+{% macro organization_preview(request, org) %}
+    {% if org %}
+    {% set public_id = org.public_id(request.region) %}
+    <div class="block has-text-right">
+        <a class="button" href="{{ request.route_url("admin.organization", public_id=public_id) }}">View</a>
+    </div>
+    <div class="columns">
+            <div class="column is-half">
+            {{ disabled_text_field("Name", org.name) }}
+        </div>
+        <div class="column is-half">
+            {{ disabled_text_field("ID", public_id) }}
+        </div>
+    </div>
+    {% else %}
+    <div class="is-size-5 has-text-centered">No organization</div>
+    {% endif %}
+
 {% endmacro %}
