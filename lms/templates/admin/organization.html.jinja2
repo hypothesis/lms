@@ -1,0 +1,19 @@
+{% import "macros.jinja" as macros %}
+
+{% extends "lms:templates/admin/base.html.jinja2" %}
+{% block header %}
+    Organization {{org.name}} / {{ public_id }}
+{% endblock %}
+
+{% block content %}
+    <fieldset class="box">
+    <legend class="label has-text-centered">Organization</legend>
+    {{ macros.disabled_text_field("ID", public_id) }}
+    {{ macros.disabled_text_field("Name", org.name) }}
+    {% call macros.field_body("Enabled") %}
+        <label class="checkbox">
+            <input {% if org.enabled %}checked{% endif%} type="checkbox"
+                name="enabled" disabled>
+        </label>
+    {% endcall %}
+{% endblock %}
