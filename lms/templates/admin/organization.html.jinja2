@@ -17,4 +17,11 @@
         </label>
     {% endcall %}
     {{ macros.created_updated_fields(org) }}
+
+    <legend class="label has-text-centered">Organization application instances</legend>
+        {% if org.application_instances %}
+            {{ macros.instances_table(request, org.application_instances) }}
+        {% endif %}
+    </fieldset/>
+
 {% endblock %}
