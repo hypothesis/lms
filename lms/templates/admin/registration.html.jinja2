@@ -11,7 +11,7 @@
     <form method="POST" action="{{ request.route_url("admin.registration.id", id_=registration.id) }}">
         <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
         {{ macros.registration_fields(request, registration) }}
-
+        {{ macros.created_updated_fields(registration) }}
         <div class="has-text-right mb-6">
             <input type="submit" class="button is-primary" value="Save" />
         </div>
