@@ -27,7 +27,7 @@ class TestHAPI:
                     {
                         "body": Any.object.with_attrs(
                             {
-                                "effective_user": "acct:lms@TEST_AUTHORITY",
+                                "effective_user": "acct:lms@lms.hypothes.is",
                                 "total_instructions": 3,
                             }
                         )
@@ -58,7 +58,7 @@ class TestHAPI:
         user = h_api.get_user("username")
 
         _api_request.assert_called_once_with(
-            "GET", path="users/acct:username@TEST_AUTHORITY"
+            "GET", path="users/acct:username@lms.hypothes.is"
         )
 
         assert user == HUser(username="username", display_name=sentinel.display_name)
