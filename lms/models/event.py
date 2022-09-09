@@ -13,6 +13,7 @@ class EventType(BASE):
     class Type(str, Enum):
         CONFIGURED_LAUNCH = "configured_launch"
         DEEP_LINKING = "deep_linking"
+        AUDIT_TRAIL = "audit_trail"
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
     type = varchar_enum(Type)

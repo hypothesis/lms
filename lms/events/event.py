@@ -3,14 +3,19 @@ from dataclasses import dataclass, field, fields
 from typing import List, Optional
 
 from pyramid.request import Request
+from sqlalchemy import inspect
 
 from lms.models import EventType
+from lms.db import BASE
 from lms.services.lti_role_service import LTIRoleService
 
 
 @dataclass
 class BaseEvent:  # pylint:disable=too-many-instance-attributes
     """Base class for generic events."""
+
+    Type = EventType.Type
+    """Expose the type here for the callers convenience"""
 
     request: Request
     """Reference to the current request"""
@@ -52,9 +57,6 @@ class LTIEvent(BaseEvent):
     """
 
     # pylint:disable=no-member
-
-    Type = EventType.Type
-    """Expose the type here for the callers convenience"""
 
     def _get_user_id(self):
         return self.request.user.id
@@ -101,3 +103,44 @@ class LTIEvent(BaseEvent):
             return assignment.id
 
         return None
+
+
+@dataclass
+class AuditTrailEvent(BaseEvent):
+    type: EventType.Type = EventType.Type.AUDIT_TRAIL
+
+    instance: BASE = None
+    action: str = None
+
+    def _get_data(self):
+        changes = {}
+        instance_details = inspect(self.instance)
+        for attr in instance_details.attrs:
+            history = instance_details.get_history(attr.key, True)
+
+            if not history.has_changes():
+                continue
+
+            changes[attr.key] = (
+                history.deleted[0] if history.deleted else None,
+                history.added[0] if history.added else None,
+            )
+
+        return {
+            "model": self.instance.__class__.__name__,
+            "id": self.instance.id,
+            "action": self.action,
+            "userid": self.request.identity.userid,
+            "changes": changes,
+        }
+
+    @staticmethod
+    def notify(request: Request, instance: BASE):
+        if request.db.is_modified(instance):
+            request.registry.notify(
+                AuditTrailEvent(
+                    request=request,
+                    instance=instance,
+                    action="update",
+                )
+            )
