@@ -2,6 +2,7 @@ from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config, view_defaults
 
 from lms.models import Organization
+from lms.events import AdminChangeEvent
 from lms.security import Permissions
 from lms.services import OrganizationService
 
@@ -31,10 +32,13 @@ class AdminOrganizationViews:
     def update_organization(self):
         org = self._get_org_or_404(self.request.matchdict["id_"])
 
-        org.name = self.request.params.get("name", "").strip() or None
+        self.organization_service.update_organization(
+            org,
+            name=self.request.params.get("name", "").strip(),
+            enabled=self.request.params.get("enabled", "") == "on",
+        )
 
-        org.enabled = self.request.params.get("enabled", "") == "on"
-
+        AdminChangeEvent.notify_changes(self.request, org)
         return {"org": org}
 
     def _get_org_or_404(self, id_) -> Organization:

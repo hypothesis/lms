@@ -85,7 +85,7 @@ BASE = declarative_base(
 )
 
 
-def init(engine, drop=False, stamp=True, data=True):  # pragma: nocover
+def init(engine, drop=False, stamp=True):  # pragma: nocover
     """
     Create all the database tables if they don't already exist.
 
@@ -99,7 +99,6 @@ def init(engine, drop=False, stamp=True, data=True):  # pragma: nocover
     :param engine: the sqlalchemy Engine object
     :param drop: whether or not to delete existing tables
     :param stamp: whether or not to stamp alembic latest revision
-    :param data: whether or not to create any data needed by the application
     """
     try:
         engine.execute("select 1 from alembic_version")
@@ -110,25 +109,6 @@ def init(engine, drop=False, stamp=True, data=True):  # pragma: nocover
 
         if stamp:
             alembic.command.stamp(alembic.config.Config("conf/alembic.ini"), "head")
-
-        if data:
-            create_data(engine)
-
-
-def create_data(engine):
-    """
-    Create any data needed for the application.
-
-    This type of data is usually crated by migrations which are not executed
-    while using `init` above
-
-    Creating it here allows the data to available in the development environment and tests.
-    """
-    engine.execute(
-        """INSERT INTO event_type (type)
-        VALUES ('configured_launch'), ('deep_linking')
-        ON CONFLICT DO NOTHING"""
-    )
 
 
 def make_engine(settings):
