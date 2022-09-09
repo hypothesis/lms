@@ -2,8 +2,10 @@ import json
 from unittest.mock import Mock, sentinel
 
 import pytest
+from h_matchers import Any
 
-from lms.events import LTIEvent
+from lms.events import AuditTrailEvent, LTIEvent
+from tests import factories
 
 
 class TestLTIEvent:
@@ -121,3 +123,51 @@ class TestLTIEvent:
         )
 
         return pyramid_request
+
+
+class TestAuditTrailEvent:
+    def test__get_data(self, db_session, pyramid_request):
+        org = factories.Organization(name="OLD_NAME", enabled=True)
+        db_session.flush()
+        org.name = "NEW_NAME"
+        org.enabled = False
+
+        event = AuditTrailEvent(
+            request=pyramid_request,
+            instance=org,
+            action=sentinel.action,
+            source=sentinel.source,
+        )
+
+        assert event.data == {
+            "model": "Organization",
+            "id": Any.int(),
+            "userid": pyramid_request.identity.userid,
+            "source": sentinel.source,
+            "action": sentinel.action,
+            "changes": {"name": ("OLD_NAME", "NEW_NAME"), "enabled": (True, False)},
+        }
+
+    def test_notify_update_with_changes(self, pyramid_request, db_session):
+        org = factories.Organization(name="OLD_NAME", enabled=True)
+        db_session.flush()
+        org.name = "NEW_NAME"
+
+        AuditTrailEvent.notify(pyramid_request, org, source=sentinel.source)
+
+        pyramid_request.registry.notify.assert_called_once_with(
+            AuditTrailEvent(
+                request=pyramid_request,
+                instance=org,
+                action="update",
+                source=sentinel.source,
+            )
+        )
+
+    def test_notify_no_changes(self, pyramid_request, db_session):
+        org = factories.Organization(name="OLD_NAME", enabled=True)
+        db_session.flush()
+
+        AuditTrailEvent.notify(pyramid_request, org, source=sentinel.source)
+
+        pyramid_request.registry.notify.assert_not_called()

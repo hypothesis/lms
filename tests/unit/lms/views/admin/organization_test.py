@@ -66,7 +66,13 @@ class TestAdminOrganizationViews:
 
     @pytest.mark.parametrize("value,expected", [("", False), ("on", True)])
     def test_toggle_organization_enabled(
-        self, value, expected, pyramid_request, organization_service, views
+        self,
+        value,
+        expected,
+        pyramid_request,
+        organization_service,
+        views,
+        AuditTrailEvent,
     ):
         pyramid_request.matchdict["id_"] = sentinel.id_
         pyramid_request.params["enabled"] = value
@@ -77,6 +83,13 @@ class TestAdminOrganizationViews:
         organization_service.update_organization(
             organization_service.get_by_id.return_value, enabled=expected
         )
+        AuditTrailEvent.notify.assert_called_once_with(
+            pyramid_request, organization_service.get_by_id.return_value
+        )
+
+    @pytest.fixture
+    def AuditTrailEvent(self, patch):
+        return patch("lms.views.admin.organization.AuditTrailEvent")
 
     def test_search_by_public_id(self, pyramid_request, organization_service, views):
         pyramid_request.params["public_id"] = sentinel.public_id
