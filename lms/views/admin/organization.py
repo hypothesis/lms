@@ -33,6 +33,8 @@ class AdminOrganizationViews:
 
         org.name = self.request.params.get("name", "").strip() or None
 
+        org.enabled = self.request.params.get("enabled", "") == "on"
+
         return {"org": org}
 
     def _get_org_or_404(self, id_) -> Organization:
