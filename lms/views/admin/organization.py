@@ -1,11 +1,13 @@
+from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config, view_defaults
 
+from lms.models import Organization
 from lms.security import Permissions
 from lms.services import OrganizationService
 
 
 @view_defaults(request_method="GET", permission=Permissions.ADMIN)
-class AdminLTIRegistrationViews:
+class AdminOrganizationViews:
     def __init__(self, request):
         self.request = request
         self.organization_service: OrganizationService = request.find_service(
@@ -17,22 +19,24 @@ class AdminLTIRegistrationViews:
         request_method="GET",
         renderer="lms:templates/admin/organization.html.jinja2",
     )
-    def org_details(self):
-        public_id = self.request.matchdict["public_id"]
-        return {
-            "org": self.organization_service.get_by_public_id(public_id),
-        }
+    def show_organization(self):
+        org = self._get_org_or_404(self.request.matchdict["public_id"])
+        return {"org": org}
 
     @view_config(
         route_name="admin.organization",
         request_method="POST",
         renderer="lms:templates/admin/organization.html.jinja2",
     )
-    def org_update(self):
-        public_id = self.request.matchdict["public_id"]
-        org = self.organization_service.get_by_public_id(public_id)
+    def update_organization(self):
+        org = self._get_org_or_404(self.request.matchdict["public_id"])
 
-        if name := self.request.params.get("name", "").strip():
-            org.name = name
+        org.name = self.request.params.get("name", "").strip() or None
 
         return {"org": org}
+
+    def _get_org_or_404(self, public_id) -> Organization:
+        if org := self.organization_service.get_by_public_id(public_id):
+            return org
+
+        raise HTTPNotFound()
