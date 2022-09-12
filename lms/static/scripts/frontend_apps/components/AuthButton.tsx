@@ -8,10 +8,8 @@ type AuthButtonProps = {
   authURL: string;
   /** Auth token between the LMS frontend and backend. See {@link AuthWindow}. */
   authToken: string;
-
   /** Custom label for the "Authorize" button. */
   label?: string;
-
   /**
    * Callback invoked when the authorization flow completes.
    *
