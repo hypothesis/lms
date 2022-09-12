@@ -74,30 +74,36 @@
 {% endmacro %}
 
 {% macro instances_table(request, instances) %}
-<table class="table is-fullwidth">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Consumer Key</th>
-      <th>GUID</th>
-      <th>Issuer</th>
-      <th>Deployment ID</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-{% for instance in instances %}
-    <tr>
-      <td>{{instance.id}}</td>
-      <td>{{instance.consumer_key}}</th>
-      <td>{{instance.tool_consumer_instance_guid}}</td>
-      <td>{{instance.lti_registration.issuer}}</td>
-      <td>{{instance.deployment_id}}</td>
-      <td>
-        <a class="button" href="{{ request.route_url("admin.instance.id", id_=instance.id) }}">View</a>
-      </td>
-    </tr>
-{% endfor %}
+<div class="container">
+    <div class="table-container">
+        <table class="table is-fullwidth">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Consumer Key</th>
+              <th>GUID</th>
+              <th>Issuer</th>
+              <th>Deployment ID</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for instance in instances %}
+                <tr>
+                  <td>{{instance.id}}</td>
+                  <td>{{instance.consumer_key}}</th>
+                  <td>{{instance.tool_consumer_instance_guid}}</td>
+                  <td>{{instance.lti_registration.issuer}}</td>
+                  <td>{{instance.deployment_id}}</td>
+                  <td>
+                    <a class="button" href="{{ request.route_url("admin.instance.id", id_=instance.id) }}">View</a>
+                  </td>
+                </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+    </div>
+</div>
 {% endmacro %}
 
 
@@ -105,24 +111,29 @@
 {% if not registrations %}
     <div class="is-size-4 has-text-centered">No registrations found</div>
 {% else %}
-<table class="table is-fullwidth">
-  <thead>
-    <tr>
-      <th>Issuer</th>
-      <th>Client ID</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-{% for registration in registrations %}
-    <tr>
-      <td>{{registration.issuer}}</th>
-      <td>{{registration.client_id}}</td>
-      <td>
-        <a class="button" href="{{ request.route_url("admin.registration.id", id_=registration.id) }}">View</a>
-      </td>
-    </tr>
-{% endfor %}
+<div class="container">
+    <div class="table-container">
+        <table class="table is-fullwidth">
+          <thead>
+            <tr>
+              <th>Issuer</th>
+              <th>Client ID</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for registration in registrations %}
+                <tr>
+                  <td>{{registration.issuer}}</th>
+                  <td>{{registration.client_id}}</td>
+                  <td>
+                    <a class="button" href="{{ request.route_url("admin.registration.id", id_=registration.id) }}">View</a>
+                  </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </div>
+</div>
 {% endif %}
 {% endmacro %}
 
