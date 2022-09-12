@@ -11,6 +11,7 @@ from lms.db import SESSION
 from lms.models import ApplicationSettings
 from lms.models.region import Regions
 from lms.product import Product
+from lms.security import Identity
 from tests import factories
 from tests.conftest import TEST_SETTINGS, get_test_database_url
 from tests.unit.services import *  # pylint: disable=wildcard-import,unused-wildcard-import
@@ -149,7 +150,7 @@ def configure_jinja2_assets(config):
 
 
 @pytest.fixture
-def pyramid_config(pyramid_request):
+def pyramid_config(pyramid_request, lti_v11_params):
     """
     Return a test Pyramid config (Configurator) object.
 
@@ -159,6 +160,12 @@ def pyramid_config(pyramid_request):
     """
 
     with testing.testConfig(request=pyramid_request, settings=TEST_SETTINGS) as config:
+        # Align request.identity with request.lti_user
+        config.testing_securitypolicy(
+            userid=lti_v11_params["user_id"],
+            identity=Identity(lti_v11_params["user_id"], permissions=[]),
+        )
+
         config.include("pyramid_jinja2")
         config.include("pyramid_services")
         config.include("pyramid_tm")
