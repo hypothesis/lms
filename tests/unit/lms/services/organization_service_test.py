@@ -10,6 +10,13 @@ from tests import factories
 
 class TestOrganizationService:
     @pytest.mark.usefixtures("with_matching_noise")
+    def test_get_by_id(self, svc, db_session):
+        org = factories.Organization()
+        db_session.flush()
+
+        assert org == svc.get_by_id(org.id)
+
+    @pytest.mark.usefixtures("with_matching_noise")
     def test_get_by_linked_guid_matches_from_ai(self, svc):
         orgs = factories.Organization.create_batch(2)
         for org in orgs:
