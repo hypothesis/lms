@@ -38,6 +38,7 @@
     <fieldset class="box mt-6">
         <legend class="label has-text-centered">Organization</legend>
         {{ macros.organization_preview(request, instance.organization) }}
+        {{ macros.form_text_field(request, "Move to organization ID", "org_public_id") }}
     </fieldset>
 
     <fieldset class="box mt-6">
