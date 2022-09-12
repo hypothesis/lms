@@ -148,16 +148,15 @@
 
 {% macro organization_preview(request, org) %}
     {% if org %}
-    {% set public_id = org.public_id(request.region) %}
     <div class="block has-text-right">
-        <a class="button" href="{{ request.route_url("admin.organization", public_id=public_id) }}">View</a>
+        <a class="button" href="{{ request.route_url("admin.organization", id_=org.id) }}">View</a>
     </div>
     <div class="columns">
             <div class="column is-half">
             {{ disabled_text_field("Name", org.name) }}
         </div>
         <div class="column is-half">
-            {{ disabled_text_field("ID", public_id) }}
+            {{ disabled_text_field("ID", org.public_id(request.region)) }}
         </div>
     </div>
     {% else %}

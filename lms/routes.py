@@ -129,10 +129,7 @@ def includeme(config):  # pylint:disable=too-many-statements
         "admin.instance.new.registration", "/admin/instance/new/registration"
     )
 
-    org_public_id_pat = r"\w{2}\.lms\.org\.\w+"
-    config.add_route(
-        "admin.organization", f"/admin/org/{{public_id:{org_public_id_pat}}}/"
-    )
+    config.add_route("admin.organization", "/admin/org/{id_}")
 
     config.add_route("admin.registrations", "/admin/registrations/")
     config.add_route("admin.registrations.search", "/admin/registrations/search")

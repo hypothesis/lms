@@ -15,6 +15,9 @@ class OrganizationService:
     def __init__(self, db_session: Session):
         self._db_session = db_session
 
+    def get_by_id(self, id_) -> Optional[Organization]:
+        return self._db_session.query(Organization).filter_by(id=id_).one_or_none()
+
     def get_by_linked_guid(self, guid) -> List[Organization]:
         """Get organizations which match the provided GUID."""
 

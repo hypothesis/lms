@@ -1,17 +1,16 @@
 {% import "macros.jinja" as macros %}
 
 {% extends "lms:templates/admin/base.html.jinja2" %}
-{% set public_id = org.public_id(request.region) %}
 {% block header %}
-    Organization {{org.name}} / {{ public_id }}
+    Organization {{org.id}}
 {% endblock %}
 
 {% block content %}
     <fieldset class="box">
     <legend class="label has-text-centered">Organization</legend>
-    <form method="POST" action="{{ request.route_url("admin.organization", public_id=public_id) }}">
+    <form method="POST" action="{{ request.route_url("admin.organization", id_=org.id) }}">
         <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
-        {{ macros.disabled_text_field("ID", public_id) }}
+        {{ macros.disabled_text_field("ID", org.public_id(request.region)) }}
         {{ macros.form_text_field(request, "Name", "name", org.name) }}
         {% call macros.field_body("Enabled") %}
             <label class="checkbox">

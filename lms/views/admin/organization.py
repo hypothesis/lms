@@ -20,7 +20,7 @@ class AdminOrganizationViews:
         renderer="lms:templates/admin/organization.html.jinja2",
     )
     def show_organization(self):
-        org = self._get_org_or_404(self.request.matchdict["public_id"])
+        org = self._get_org_or_404(self.request.matchdict["id_"])
         return {"org": org}
 
     @view_config(
@@ -29,14 +29,14 @@ class AdminOrganizationViews:
         renderer="lms:templates/admin/organization.html.jinja2",
     )
     def update_organization(self):
-        org = self._get_org_or_404(self.request.matchdict["public_id"])
+        org = self._get_org_or_404(self.request.matchdict["id_"])
 
         org.name = self.request.params.get("name", "").strip() or None
 
         return {"org": org}
 
-    def _get_org_or_404(self, public_id) -> Organization:
-        if org := self.organization_service.get_by_public_id(public_id):
+    def _get_org_or_404(self, id_) -> Organization:
+        if org := self.organization_service.get_by_id(id_):
             return org
 
         raise HTTPNotFound()
