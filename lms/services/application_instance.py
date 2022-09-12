@@ -170,6 +170,7 @@ class ApplicationInstanceService:
         deployment_id=None,
         developer_key=None,
         developer_secret=None,
+        organization_id=None,
     ):
         if lms_url:
             application_instance.lms_url = lms_url
@@ -185,6 +186,8 @@ class ApplicationInstanceService:
             encrypted_secret = self._aes_service.encrypt(aes_iv, developer_secret)
             application_instance.aes_cipher_iv = aes_iv
             application_instance.developer_secret = encrypted_secret
+
+        application_instance.organization_id = organization_id
 
     def create_application_instance(  # pylint:disable=too-many-arguments
         self,
