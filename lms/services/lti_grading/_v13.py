@@ -39,7 +39,7 @@ class LTI13GradingService(LTIGradingService):
 
         try:
             return results[-1]["resultScore"] / results[-1]["resultMaximum"]
-        except (ZeroDivisionError, KeyError, IndexError):
+        except (TypeError, ZeroDivisionError, KeyError, IndexError):
             return None
 
     def record_result(self, grading_id, score=None, pre_record_hook=None):
