@@ -65,40 +65,34 @@
 
 
 {% macro created_updated_fields(model) %}
-    <fieldset class="box">
     {{ disabled_text_field("Created", model.created) }}
     {% if model.updated %}
         {{ disabled_text_field("Updated", model.updated) }}
     {% endif %}
-    </fieldset>
 {% endmacro %}
 
-{% macro instances_table(request, instances) %}
+{% macro object_list_table(request, route, objects, headers, fields) %}
 <div class="container">
     <div class="table-container">
         <table class="table is-fullwidth">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Consumer Key</th>
-              <th>GUID</th>
-              <th>Issuer</th>
-              <th>Deployment ID</th>
               <th></th>
+              {% for heading in headers %}
+              <th>{{heading}}</th>
+              {% endfor %}
             </tr>
           </thead>
           <tbody>
-            {% for instance in instances %}
+            {% for object in objects %}
                 <tr>
-                  <td>{{instance.id}}</td>
-                  <td>{{instance.consumer_key}}</th>
-                  <td>{{instance.tool_consumer_instance_guid}}</td>
-                  <td>{{instance.lti_registration.issuer}}</td>
-                  <td>{{instance.deployment_id}}</td>
                   <td>
-                    <a class="button" href="{{ request.route_url("admin.instance.id", id_=instance.id) }}">View</a>
+                    <a class="button" href="{{ request.route_url(route, id_=object.id) }}">View</a>
                   </td>
-                </tr>
+                  {% for field in fields %}
+                  <td>{{object[field]}}</th>
+                  {% endfor %}
+               </tr>
             {% endfor %}
           </tbody>
         </table>
@@ -107,34 +101,13 @@
 {% endmacro %}
 
 
-{% macro registrations_table(request, registrations) %}
-{% if not registrations %}
-    <div class="is-size-4 has-text-centered">No registrations found</div>
-{% else %}
-<div class="container">
-    <div class="table-container">
-        <table class="table is-fullwidth">
-          <thead>
-            <tr>
-              <th>Issuer</th>
-              <th>Client ID</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for registration in registrations %}
-                <tr>
-                  <td>{{registration.issuer}}</th>
-                  <td>{{registration.client_id}}</td>
-                  <td>
-                    <a class="button" href="{{ request.route_url("admin.registration.id", id_=registration.id) }}">View</a>
-                  </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </div>
-</div>
-{% endif %}
+{% macro instances_table(request,  instances) %}
+{{ object_list_table(request, 'admin.instance.id', instances, ['Consumer key', 'GUID', 'Deployment ID'], ['consumer_key', 'tool_consumer_instance_guid', 'deployment_id']) }}
+{% endmacro %}
+
+
+{% macro registrations_table(request,  instances) %}
+{{ object_list_table(request, 'admin.instance.id', instances, ['Issuer', 'Client ID'], ['issuer', 'client_id']) }}
 {% endmacro %}
 
 
@@ -173,5 +146,4 @@
     {% else %}
     <div class="is-size-5 has-text-centered">No organization</div>
     {% endif %}
-
 {% endmacro %}
