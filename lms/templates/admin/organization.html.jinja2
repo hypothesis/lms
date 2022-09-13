@@ -24,10 +24,14 @@
         </div>
     </form>
 
-    <legend class="label has-text-centered">Organization application instances</legend>
+    <legend class="label has-text-centered">Application instances</legend>
         {% if org.application_instances %}
-            {{ macros.instances_table(request, org.application_instances) }}
+            {{ macros.object_list_table(
+                    request, 'admin.instance.id', org.application_instances,
+                    ['Consumer key', 'Deployment ID', 'Tool name', 'URL', "Email"],
+                    ['consumer_key', 'deployment_id', 'tool_consumer_instance_name', 'lms_url', 'requesters_email']
+               )
+            }}
         {% endif %}
     </fieldset/>
-
 {% endblock %}
