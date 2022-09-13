@@ -1,3 +1,4 @@
+from lms.events import AuditTrailEvent
 from marshmallow import validate
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.renderers import render_to_response
@@ -295,6 +296,7 @@ class AdminApplicationInstanceViews:
 
             ai.settings.set(setting, sub_setting, value)
 
+        AuditTrailEvent.notify(self.request, ai)
         self.request.session.flash(f"Updated application instance {ai.id}", "messages")
 
         return HTTPFound(

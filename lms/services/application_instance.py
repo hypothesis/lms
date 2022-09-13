@@ -163,24 +163,18 @@ class ApplicationInstanceService:
 
         return query.all()
 
-    def update_application_instance(  # pylint:disable=too-many-arguments
-        self,
-        application_instance,
-        lms_url=None,
-        deployment_id=None,
-        developer_key=None,
-        developer_secret=None,
-    ):
-        if lms_url:
-            application_instance.lms_url = lms_url
+    def update_application_instance(self, application_instance, **kwargs):
+        for field in ["lms_url", "deployment_id", "developer_key"]:
+            current_value = getattr(application_instance, field)
+            update_value = kwargs[field]
+            # Don't set any values if they match the ones in the object.
+            # Otherwise the session is marked as dirty making difficult to track
+            # changes and the `updated` field keeps getting a new value despite not
+            # having any new values.
+            if current_value != update_value:
+                setattr(application_instance, field, update_value)
 
-        if deployment_id:
-            application_instance.deployment_id = deployment_id
-
-        if developer_key:
-            application_instance.developer_key = developer_key
-
-        if developer_secret:
+        if developer_secret := kwargs.get("developer_secret"):
             aes_iv = self._aes_service.build_iv()
             encrypted_secret = self._aes_service.encrypt(aes_iv, developer_secret)
             application_instance.aes_cipher_iv = aes_iv
