@@ -94,10 +94,11 @@ class TestDeepLinkingFieldsView:
         assert fields["JWT"] == jwt_service.encode_with_private_key.return_value
 
     @pytest.mark.usefixtures("LTIEvent")
+    @pytest.mark.parametrize("settings", [None, {}, {"data": None}])
     def test_it_for_v13_missing_deep_linking_settings_data(
-        self, jwt_service, views, pyramid_request
+        self, jwt_service, views, pyramid_request, settings
     ):
-        del pyramid_request.parsed_params["deep_linking_settings"]["data"]
+        pyramid_request.parsed_params["deep_linking_settings"] = settings
 
         views.file_picker_to_form_fields_v13()
 

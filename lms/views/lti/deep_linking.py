@@ -136,7 +136,8 @@ class DeepLinkingFieldsViews:
         #
         # This claim is required if present in the `LtiDeepLinkingRequest`
         # message.
-        if data := self.request.parsed_params["deep_linking_settings"].get("data"):
+        settings = self.request.parsed_params["deep_linking_settings"] or {}
+        if data := settings.get("data"):
             message["https://purl.imsglobal.org/spec/lti-dl/claim/data"] = data
 
         self.request.registry.notify(
