@@ -3,6 +3,7 @@ from unittest.mock import Mock, sentinel
 import pytest
 from freezegun import freeze_time
 from h_matchers import Any
+from pytest import param
 
 from lms.services.exceptions import ExternalRequestError
 from lms.services.lti_grading._v13 import LTI13GradingService
@@ -50,9 +51,10 @@ class TestLTI13GradingService:
     @pytest.mark.parametrize(
         "bad_response",
         (
-            [{"resultScore": 1, "resultMaximum": 0}],
-            [{"resultScore": 1}],
-            [{"resultMaximum": 10}],
+            param([{"resultScore": None, "resultMaximum": 100}], id="TypeError"),
+            param([{"resultScore": 1, "resultMaximum": 0}], id="ZeroDivisionError"),
+            param([{"resultScore": 1}], id="KeyError (max)"),
+            param([{"resultMaximum": 10}], id="KeyError (score)"),
         ),
     )
     def test_read_bad_response_lti_result(self, svc, ltia_http_service, bad_response):
