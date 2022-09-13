@@ -26,7 +26,12 @@
 
     <legend class="label has-text-centered">Organization application instances</legend>
         {% if org.application_instances %}
-            {{ macros.instances_table(request, org.application_instances) }}
+            {{ macros.object_list_table(
+                    request, 'admin.instance.id', org.application_instances,
+                    ['Consumer key', 'Deployment ID', 'Tool name', 'URL'],
+                    ['consumer_key', 'deployment_id', 'tool_consumer_instance_name', 'lms_url']
+               )
+            }}
         {% endif %}
     </fieldset/>
 
