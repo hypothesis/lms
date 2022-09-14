@@ -1,6 +1,5 @@
 from unittest.mock import sentinel
 
-import marshmallow
 import pytest
 from pyramid.httpexceptions import HTTPUnprocessableEntity
 
@@ -45,7 +44,7 @@ class TestLTI11AuthSchema:
             ApplicationInstanceNotFound
         )
 
-        with pytest.raises(marshmallow.ValidationError):
+        with pytest.raises(ValidationError):
             schema.lti_user()
 
     def test_it_does_oauth_1_verification(self, launch_verifier, schema):
