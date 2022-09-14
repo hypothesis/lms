@@ -178,7 +178,10 @@ class TestBasicLTILaunch:
 
     @pytest.fixture(autouse=True)
     def application_instance(self, db_session):  # pylint:disable=unused-argument
-        return factories.ApplicationInstance(tool_consumer_instance_guid="IMS Testing")
+        return factories.ApplicationInstance(
+            tool_consumer_instance_guid="IMS Testing",
+            organization=factories.Organization(),
+        )
 
     @pytest.fixture
     def assignment(self, db_session, application_instance, lti_params):
