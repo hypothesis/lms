@@ -59,6 +59,7 @@ def application_instance(lti_registration):
         tool_consumer_instance_guid="TEST_CONSUMER_INSTANCE_GUID",
         lti_registration=lti_registration,
         deployment_id="testdeploy",
+        organization=factories.Organization(),
     )
 
 
