@@ -56,8 +56,8 @@ class LTI11AuthSchema(LTIV11CoreSchema):
                 )
             )
         except ApplicationInstanceNotFound as err:
-            raise marshmallow.ValidationError(
-                "Invalid OAuth 1 signature. Unknown consumer key."
+            raise ValidationError(
+                {"consumer_key": ["Invalid OAuth 1 signature. Unknown consumer key."]}
             ) from err
 
         return LTIUser.from_auth_params(application_instance, kwargs)
@@ -121,7 +121,7 @@ class LTI13AuthSchema(LTIV11CoreSchema):
             )
         except ApplicationInstanceNotFound as err:
             raise ValidationError(
-                "Invalid LTI1.3 params. Unknown application_instance."
+                {"JWT": ["Invalid LTI1.3 params. Unknown application_instance."]}
             ) from err
 
         return LTIUser.from_auth_params(application_instance, kwargs)
