@@ -329,7 +329,6 @@ class TestAdminApplicationInstanceViews:
             "developer_secret": secret,
             "lms_url": lms_url,
             "deployment_id": deployment_id,
-            "org_public_id": "",
         }
 
         views.update_instance()
@@ -340,7 +339,7 @@ class TestAdminApplicationInstanceViews:
             deployment_id=deployment_id.strip() if deployment_id else "",
             developer_key=key.strip() if key else "",
             developer_secret=secret.strip() if secret else "",
-            organization_id=application_instance_service.get_by_id.return_value.organization_id,
+            organization_public_id=application_instance_service.get_by_id.return_value.organization.public_id.return_value,
         )
 
     @pytest.mark.parametrize(

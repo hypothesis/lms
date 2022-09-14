@@ -11,6 +11,7 @@ from lms.models.region import Region
 from lms.services.aes import AESService
 from lms.services.exceptions import SerializableError
 from lms.services.organization import OrganizationService
+from lms.validation import ValidationError
 
 LOG = getLogger(__name__)
 
@@ -170,7 +171,7 @@ class ApplicationInstanceService:
         deployment_id=None,
         developer_key=None,
         developer_secret=None,
-        organization_id=None,
+        organization_public_id=None,
     ):
         if lms_url:
             application_instance.lms_url = lms_url
@@ -187,7 +188,18 @@ class ApplicationInstanceService:
             application_instance.aes_cipher_iv = aes_iv
             application_instance.developer_secret = encrypted_secret
 
-        application_instance.organization_id = organization_id
+        if organization_public_id:
+            org = self._organization_service.get_by_public_id(organization_public_id)
+            if org:
+                application_instance.organization = org
+            else:
+                raise ValidationError(
+                    messages={
+                        "organization_public_id": [
+                            f"Organization {organization_public_id} not found"
+                        ]
+                    }
+                )
 
     def create_application_instance(  # pylint:disable=too-many-arguments
         self,

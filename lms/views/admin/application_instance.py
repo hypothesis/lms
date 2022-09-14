@@ -12,7 +12,7 @@ from lms.services import (
     LTIRegistrationService,
     OrganizationService,
 )
-from lms.validation._base import PyramidRequestSchema, ValidationError
+from lms.validation._base import PyramidRequestSchema
 from lms.views.admin import error_render_to_response, flash_validation
 
 
@@ -277,10 +277,9 @@ class AdminApplicationInstanceViews:
             deployment_id=self.request.params.get("deployment_id", "").strip(),
             developer_key=self.request.params.get("developer_key", "").strip(),
             developer_secret=self.request.params.get("developer_secret", "").strip(),
-            organization_public_id=(
-                self.request.params.get("org_public_id", "").strip()
-                or (
-                    # Keep the same org if no public_id is sent
+            organization_public_id=self.request.params.get("org_public_id", "").strip()
+            or (  # Keep the same org if no public_id is sent
+                (
                     ai.organization.public_id(self.request.region)
                     if ai.organization
                     else None
