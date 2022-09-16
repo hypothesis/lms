@@ -11,8 +11,8 @@ from lms.services.application_instance import (
     ApplicationInstanceService,
     factory,
 )
-from tests import factories
 from lms.validation import ValidationError
+from tests import factories
 
 
 class TestApplicationInstanceService:
