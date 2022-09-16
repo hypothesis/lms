@@ -8,12 +8,8 @@ from webargs import fields
 
 from lms.models import ApplicationInstance
 from lms.security import Permissions
-from lms.services import (
-    ApplicationInstanceNotFound,
-    LTIRegistrationService,
-    OrganizationService,
-)
-from lms.validation._base import PyramidRequestSchema
+from lms.services import ApplicationInstanceNotFound, LTIRegistrationService
+from lms.validation._base import PyramidRequestSchema, ValidationError
 from lms.views.admin import error_render_to_response, flash_validation
 
 
@@ -45,9 +41,6 @@ class AdminApplicationInstanceViews:
         )
         self.lti_registration_service: LTIRegistrationService = request.find_service(
             LTIRegistrationService
-        )
-        self.organization_service: OrganizationService = request.find_service(
-            OrganizationService
         )
 
     @view_config(
@@ -272,21 +265,24 @@ class AdminApplicationInstanceViews:
     def update_instance(self):
         ai = self._get_ai_or_404(**self.request.matchdict)
 
-        self.application_instance_service.update_application_instance(
-            ai,
-            lms_url=self.request.params.get("lms_url", "").strip(),
-            deployment_id=self.request.params.get("deployment_id", "").strip(),
-            developer_key=self.request.params.get("developer_key", "").strip(),
-            developer_secret=self.request.params.get("developer_secret", "").strip(),
-            organization_public_id=self.request.params.get("org_public_id", "").strip()
-            or (  # Keep the same org if no public_id is sent
-                (
-                    ai.organization.public_id(self.request.region)
-                    if ai.organization
-                    else None
-                )
-            ),
-        )
+        try:
+            self.application_instance_service.update_application_instance(
+                ai,
+                lms_url=self.request.params.get("lms_url", "").strip(),
+                deployment_id=self.request.params.get("deployment_id", "").strip(),
+                developer_key=self.request.params.get("developer_key", "").strip(),
+                developer_secret=self.request.params.get(
+                    "developer_secret", ""
+                ).strip(),
+                organization_public_id=self.request.params.get(
+                    "org_public_id", ""
+                ).strip(),
+            )
+        except ValidationError as err:
+            self.request.session.flash(err.messages, "validation")
+            return HTTPFound(
+                location=self.request.route_url("admin.instance.id", id_=ai.id)
+            )
 
         for setting, sub_setting, setting_type in (
             ("canvas", "sections_enabled", bool),

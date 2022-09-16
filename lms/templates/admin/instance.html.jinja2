@@ -38,7 +38,6 @@
     <fieldset class="box mt-6">
         <legend class="label has-text-centered">Organization</legend>
         {{ macros.organization_preview(request, instance.organization) }}
-        {{ macros.form_text_field(request, "Move to organization ID", "org_public_id") }}
     </fieldset>
 
     <fieldset class="box mt-6">
@@ -120,19 +119,29 @@
     <div class="has-text-right mb-6">
         <input type="submit" class="button is-primary" value="Save" />
     </div>
+</form>
 
 
-    <fieldset class="box has-background-danger-light">
-        <legend class="label has-text-centered has-text-danger">Danger zone</legend>
+<fieldset class="box has-background-danger-light">
+    <legend class="label has-text-centered has-text-danger">Danger zone</legend>
 
-        {% call macros.field_body(label="Downgrade to LTI 1.1") %}
-            <input type="submit" class="button mb-2" formaction="{{ request.route_url("admin.instance.downgrade", id_=instance.id) }}" value="Downgrade">
+    {% call macros.field_body(label="Downgrade to LTI 1.1") %}
+        <form method="POST" action="{{ request.route_url("admin.instance.downgrade", id_=instance.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+            <input type="submit" class="button mb-2" value="Downgrade">
             <p>Downgrade this instance to LTI 1.1 removing its association with a registration and its deployment ID.</p>
             <p>This action will <b>break any existing LTI 1.3 assignments</b>. To undo it, upgrade it back again to LTI 1.3 using the same registration and deployment ID.</p>
-        {% endcall %}
+        </form>
+    {% endcall %}
 
-    </fieldset>
 
-
-</form>
+    {% call macros.field_body(label="Move to organization") %}
+        <form method="POST" action="{{ request.route_url("admin.instance.id", id_=instance.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+          <input class="input" type="text" name="org_public_id">
+          <input type="submit" class="button mb-2" value="Move">
+        </form>
+        <p>Moving this application instance might have destructive effects.</p>
+    {% endcall %}
+</fieldset>
 {% endblock %}
