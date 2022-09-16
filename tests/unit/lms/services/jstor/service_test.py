@@ -3,16 +3,20 @@ from functools import partial
 from unittest.mock import sentinel
 
 import pytest
-from h_matchers import Any
 
 from lms.services import ExternalRequestError
 from lms.services.jstor.service import ArticleNotFound, JSTORService
 from tests import factories
 
-API_URL = "http://api.jstor.org"
+API_URL = "http://jstore_api.example.com"
 
 
 class TestJSTORService:
+    def test_it_sets_tracking_headers(self, get_service, http_service):
+        get_service(headers={"X-Header": "value"})
+
+        assert http_service.session.headers == {"X-Header": "value"}
+
     @pytest.mark.parametrize("enabled", (True, False, None))
     @pytest.mark.parametrize("site_code", ("code", None, ""))
     def test_enabled(self, get_service, enabled, site_code):
@@ -168,40 +172,14 @@ class TestJSTORService:
         with pytest.raises(exception):
             svc.thumbnail("article_id")
 
-    def test_api_calls_include_tracking_info(
-        self, get_service, pyramid_request, http_service
-    ):
-        svc = get_service(tracking_user_id="userfoo", tracking_user_agent="Chrome 100")
-
-        svc.via_url(pyramid_request, document_url="jstor://1234")
-
-        http_service.get.assert_called_once_with(
-            url=Any.string(),
-            headers=Any.dict.containing(
-                {"Tracking-User-ID": "userfoo", "Tracking-User-Agent": "Chrome 100"}
-            ),
-            params=None,
-        )
-
     @pytest.fixture
-    def http_service(self, http_service):
-        http_service.get.return_value = factories.requests.Response(
-            raw="https://s3.example.com/pdf"
-        )
-
-        return http_service
-
-    @pytest.fixture
-    def get_service(self, http_service):
+    def get_service(self):
         return partial(
             JSTORService,
             api_url=API_URL,
             secret=sentinel.secret,
             enabled=True,
             site_code=sentinel.site_code,
-            http_service=http_service,
-            tracking_user_id=None,
-            tracking_user_agent=None,
         )
 
     @pytest.fixture
@@ -215,6 +193,14 @@ class TestJSTORService:
     @pytest.fixture
     def via_url(self, patch):
         return patch("lms.services.jstor.service.via_url")
+
+    @pytest.fixture
+    def http_service(self, HTTPService):
+        return HTTPService.return_value
+
+    @pytest.fixture(autouse=True)
+    def HTTPService(self, patch):
+        return patch("lms.services.jstor.service.HTTPService")
 
     @pytest.fixture(autouse=True)
     def JWTService(self, patch):
