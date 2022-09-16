@@ -1,9 +1,9 @@
 import pytest
 
-from tests import factories
-from lms.validation import ValidationError
-from lms.services.public_id import get_by_public_id
 from lms.models import Organization
+from lms.services.public_id import get_by_public_id
+from lms.validation import ValidationError
+from tests import factories
 
 
 class TestGetByPublicId:
