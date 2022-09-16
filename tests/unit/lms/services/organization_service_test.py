@@ -51,13 +51,11 @@ class TestOrganizationService:
 
         assert not svc.get_by_linked_guid(None)
 
-    def test_get_by_public_id(self, svc, pyramid_request, db_session):
-        orgs = factories.Organization.create_batch(2)
-        # Set the _public_id in the models
-        db_session.flush()
+    def test_get_by_public_id(self, svc, pyramid_request, db_session, get_by_public_id):
+        svc.get_by_public_id(sentinel.public_id)
 
-        assert (
-            svc.get_by_public_id(orgs[0].public_id(pyramid_request.region)) == orgs[0]
+        get_by_public_id.assert_called_once_with(
+            db_session, Organization, sentinel.public_id, region=pyramid_request.region
         )
 
     @pytest.mark.parametrize(
@@ -135,6 +133,10 @@ class TestOrganizationService:
         return factories.ApplicationInstance(
             tool_consumer_instance_guid="guid", tool_consumer_instance_name="ai_name"
         )
+
+    @pytest.fixture
+    def get_by_public_id(self, patch):
+        return patch("lms.services.organization.get_by_public_id")
 
 
 class TestServiceFactory:
