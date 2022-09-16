@@ -76,6 +76,9 @@ class TestOrganizationService:
         assert application_instance.organization == result
         if org:
             assert result == org
+        else:
+            # For the newly created org case, make sure we have an ID
+            assert result.id
 
         assert result == Any.instance_of(Organization).with_attrs({"name": name})
 
