@@ -12,6 +12,7 @@ from lms.services.application_instance import (
     factory,
 )
 from tests import factories
+from lms.validation import ValidationError
 
 
 class TestApplicationInstanceService:
@@ -132,6 +133,35 @@ class TestApplicationInstanceService:
 
         if deployment_id:
             assert application_instance.deployment_id == deployment_id
+
+    def test_update_application_instance_with_invalid_org_id(
+        self, organization_service, application_instance, service
+    ):
+        organization_service.get_by_public_id.return_value = None
+
+        with pytest.raises(ValidationError):
+            service.update_application_instance(
+                application_instance, organization_public_id=mock.sentinel.org_id
+            )
+
+        organization_service.get_by_public_id.assert_called_once_with(
+            mock.sentinel.org_id
+        )
+
+    def test_update_application_instance_with_org_id(
+        self, organization_service, application_instance, service
+    ):
+        org = factories.Organization()
+        organization_service.get_by_public_id.return_value = org
+
+        service.update_application_instance(
+            application_instance, organization_public_id=mock.sentinel.org_id
+        )
+
+        organization_service.get_by_public_id.assert_called_once_with(
+            mock.sentinel.org_id
+        )
+        assert application_instance.organization == org
 
     @pytest.mark.parametrize("developer_key", ("key", None))
     @pytest.mark.parametrize("developer_secret", ("secret", None))

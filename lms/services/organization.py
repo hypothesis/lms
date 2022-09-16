@@ -4,8 +4,8 @@ from typing import List, Optional
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
-from lms.models import ApplicationInstance, GroupInfo, Organization
-from lms.validation import ValidationError
+from lms.models import ApplicationInstance, GroupInfo, Organization, Region
+from lms.services.public_id import get_by_public_id
 
 LOG = getLogger(__name__)
 
@@ -13,7 +13,7 @@ LOG = getLogger(__name__)
 class OrganizationService:
     """A service for dealing with organization actions."""
 
-    def __init__(self, db_session: Session, region):
+    def __init__(self, db_session: Session, region: Region):
         self._db_session = db_session
         self._region = region
 
@@ -41,39 +41,10 @@ class OrganizationService:
             .all()
         )
 
-    def get_by_public_id(self, public_id: str):
-        try:
-            region_code, app, type_, public_id = public_id.split(".")
-        except ValueError as err:
-            raise ValidationError(
-                messages={"public_id": [f"{public_id} doesn't have the right format"]}
-            ) from err
-
-        if region_code != self._region.code:
-            raise ValidationError(
-                messages={
-                    "public_id": [
-                        f"{region_code} doesn't match current region: {self._region.code}"
-                    ]
-                }
-            )
-
-        if app != "lms":
-            raise ValidationError(
-                messages={"public_id": [f"{app} doesn't match app region: lms"]}
-            )
-
-        if type_ != "org":
-            raise ValidationError(
-                messages={
-                    "public_id": [f"{type_} doesn't match organization type: 'org'"]
-                }
-            )
-
-        return (
-            self._db_session.query(Organization)
-            .filter_by(_public_id=public_id)
-            .one_or_none()
+    def get_by_public_id(self, public_id: str) -> Optional[List]:
+        """Get an organization by its public_id."""
+        return get_by_public_id(
+            self._db_session, Organization, public_id, region=self._region
         )
 
     def update_organization(self, organization: Organization, **kwargs):
