@@ -2,7 +2,6 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.models import ApplicationSettings
 from lms.services.jstor.factory import service_factory
 
 
@@ -17,22 +16,13 @@ class TestServiceFactory:
         user_agent,
         with_user,
     ):
-        application_instance_service.get_current.return_value.settings = (
-            ApplicationSettings(
-                {
-                    "jstor": {
-                        "enabled": sentinel.jstor_enabled,
-                        "site_code": sentinel.jstor_site_code,
-                    }
-                }
-            )
-        )
-        pyramid_request.registry.settings.update(
-            {
-                "jstor_api_url": sentinel.jstor_api_url,
-                "jstor_api_secret": sentinel.jstor_api_secret,
-            }
-        )
+        ai_settings = application_instance_service.get_current.return_value.settings
+        ai_settings.set("jstor", "enabled", sentinel.jstor_enabled)
+        ai_settings.set("jstor", "site_code", sentinel.jstor_site_code)
+
+        reg_settings = pyramid_request.registry.settings
+        reg_settings["jstor_api_url"] = sentinel.jstor_api_url
+        reg_settings["jstor_api_secret"] = sentinel.jstor_api_secret
 
         if user_agent:
             pyramid_request.headers["User-Agent"] = user_agent
