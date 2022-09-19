@@ -87,12 +87,23 @@ class OrganizationService:
         return org
 
     def create_organization(self, name=None) -> Organization:
+        """Create new organizations."""
         org = Organization(name=name)
         self._db_session.add(org)
         # Ensure we have ids
         self._db_session.flush()
 
         return org
+
+    def update_organization(self, organization, name=None, enabled=None):
+        """Update an existing organization."""
+        if name:
+            organization.name = name
+
+        if enabled is not None:
+            organization.enabled = enabled
+
+        return organization
 
 
 def service_factory(_context, request) -> OrganizationService:
