@@ -1,0 +1,18 @@
+{% import "macros.html.jinja2" as macros %}
+
+{% extends "lms:templates/admin/base.html.jinja2" %}
+{% block header %}
+Organizations
+{% endblock %}
+
+{% block content %}
+
+<fieldset class="box mt-6">
+    <div class="block has-text-right">
+        <a class="button is-primary" 
+            href="{{ request.route_url("admin.organization.new") }}">
+            New organization
+        </a>
+    </div>
+</fieldset>
+{% endblock %}

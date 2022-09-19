@@ -5,9 +5,29 @@ from pyramid.httpexceptions import HTTPNotFound
 
 from lms.views.admin.organization import AdminOrganizationViews
 from tests import factories
+from tests.matchers import temporary_redirect_to
 
 
+@pytest.mark.usefixtures("organization_service")
 class TestAdminOrganizationViews:
+    def test_new_organization_callback(
+        self, pyramid_request, organization_service, views
+    ):
+        pyramid_request.POST["name"] = "NAME"
+
+        response = views.new_organization_callback()
+
+        organization_service.create_organization.assert_called_once_with(name="NAME")
+        assert response == temporary_redirect_to(
+            pyramid_request.route_url(
+                "admin.organization",
+                id_=organization_service.create_organization.return_value.id,
+            )
+        )
+
+    def test_new_organization_callback_invalid_payload(self, views):
+        assert not views.new_organization_callback()
+
     def test_show_organization(self, pyramid_request, organization_service, views):
         pyramid_request.matchdict["id_"] = sentinel.id_
 

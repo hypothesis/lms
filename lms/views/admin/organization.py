@@ -1,10 +1,20 @@
-from pyramid.httpexceptions import HTTPNotFound
+from marshmallow import validate
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.view import view_config, view_defaults
+from webargs import fields
 
 from lms.events import AuditTrailEvent
 from lms.models import Organization
 from lms.security import Permissions
 from lms.services import OrganizationService
+from lms.validation._base import PyramidRequestSchema
+from lms.views.admin import flash_validation
+
+
+class NewOrganizationSchema(PyramidRequestSchema):
+    location = "form"
+
+    name = fields.Str(required=True, validate=validate.Length(min=1))
 
 
 @view_defaults(request_method="GET", permission=Permissions.ADMIN)
@@ -13,6 +23,39 @@ class AdminOrganizationViews:
         self.request = request
         self.organization_service: OrganizationService = request.find_service(
             OrganizationService
+        )
+
+    @view_config(
+        route_name="admin.organizations",
+        request_method="GET",
+        renderer="lms:templates/admin/organizations.html.jinja2",
+    )
+    def organizations(self):  # pragma: no cover
+        return {}
+
+    @view_config(
+        route_name="admin.organization.new",
+        request_method="GET",
+        renderer="lms:templates/admin/organization.new.html.jinja2",
+    )
+    def new_organization(self):  # pragma: no cover
+        return {}
+
+    @view_config(
+        route_name="admin.organization.new",
+        request_method="POST",
+        renderer="lms:templates/admin/organization.new.html.jinja2",
+    )
+    def new_organization_callback(self):
+        if flash_validation(self.request, NewOrganizationSchema):
+            return {}
+
+        org = self.organization_service.create_organization(
+            name=self.request.params["name"].strip()
+        )
+
+        return HTTPFound(
+            location=self.request.route_url("admin.organization", id_=org.id)
         )
 
     @view_config(

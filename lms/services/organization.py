@@ -90,16 +90,21 @@ class OrganizationService:
             org = orgs[0]
 
         else:
-            org = Organization()
-            self._db_session.add(org)
-            # Ensure we have ids
-            self._db_session.flush()
+            org = self.create_organization()
 
         # Fill out missing names
         if not org.name and (name := application_instance.tool_consumer_instance_name):
             org.name = name
 
         application_instance.organization = org
+        return org
+
+    def create_organization(self, name=None) -> Organization:
+        org = Organization(name=name)
+        self._db_session.add(org)
+        # Ensure we have ids
+        self._db_session.flush()
+
         return org
 
 
