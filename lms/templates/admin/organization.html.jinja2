@@ -12,18 +12,29 @@
         <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
         {{ macros.disabled_text_field("ID", org.public_id(request.region)) }}
         {{ macros.form_text_field(request, "Name", "name", org.name) }}
-        {% call macros.field_body("Enabled") %}
-            <label class="checkbox">
-                <input {% if org.enabled %}checked{% endif%} type="checkbox"
-                    name="enabled" disabled>
-            </label>
-        {% endcall %}
         {{ macros.created_updated_fields(org) }}
         <div class="has-text-right mb-6">
             <input type="submit" class="button is-primary" value="Save" />
         </div>
     </form>
+    </fieldset>
 
+    <fieldset class="box has-background-danger-light">
+        <legend class="label has-text-centered has-text-danger">Danger zone</legend>
+
+        {% call macros.field_body("Enabled") %}
+            <form method="POST" action="{{ request.route_url("admin.organization.toggle", id_=org.id) }}">
+            <label class="checkbox">
+                <input {% if org.enabled %}checked{% endif%} type="checkbox"
+                    name="enabled">
+            </label>
+            <p><b>Disabling the organization will disable all associated application instances. ALL LMS integrations will break.</b></p>
+            <input type="submit" class="button mb-2" value="Update">
+            </form>
+        {% endcall %}
+    </fieldset>
+
+    <fieldset class="box">
     <legend class="label has-text-centered">Application instances</legend>
         {% if org.application_instances %}
             {{ macros.object_list_table(

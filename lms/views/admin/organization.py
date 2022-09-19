@@ -74,7 +74,23 @@ class AdminOrganizationViews:
     def update_organization(self):
         org = self._get_org_or_404(self.request.matchdict["id_"])
 
-        org.name = self.request.params.get("name", "").strip() or None
+        self.organization_service.update_organization(
+            org, name=self.request.params.get("name", "").strip()
+        )
+
+        return {"org": org}
+
+    @view_config(
+        route_name="admin.organization.toggle",
+        request_method="POST",
+        renderer="lms:templates/admin/organization.html.jinja2",
+    )
+    def toggle_organization_enabled(self):
+        org = self._get_org_or_404(self.request.matchdict["id_"])
+
+        self.organization_service.update_organization(
+            org, enabled=self.request.params.get("enabled", "") == "on"
+        )
 
         return {"org": org}
 

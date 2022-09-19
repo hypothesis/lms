@@ -130,6 +130,7 @@ def includeme(config):  # pylint:disable=too-many-statements
     )
 
     config.add_route("admin.organization", "/admin/org/{id_}")
+    config.add_route("admin.organization.toggle", "/admin/org/{id_}/toggle")
     config.add_route("admin.organizations", "/admin/orgs")
     config.add_route("admin.organization.new", "/admin/org")
 

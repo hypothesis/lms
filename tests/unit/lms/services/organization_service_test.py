@@ -117,6 +117,24 @@ class TestOrganizationService:
         assert result in orgs  # You'll get one, but we don't say which
         assert application_instance.organization == result
 
+    def test_create_organization(self, svc):
+        org = svc.create_organization(name="NAME")
+
+        assert org.name == "NAME"
+
+    @pytest.mark.parametrize("name", (None, "NAME"))
+    @pytest.mark.parametrize("enabled", (None, True, False))
+    def test_update_organization(self, svc, name, enabled):
+        org = svc.update_organization(
+            factories.Organization(), name=name, enabled=enabled
+        )
+
+        if name:
+            assert org.name == name
+
+        if enabled is not None:
+            assert org.enabled == enabled
+
     @pytest.fixture
     def with_matching_noise(self):
         factories.ApplicationInstance(
