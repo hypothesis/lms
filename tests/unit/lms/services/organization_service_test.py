@@ -135,6 +135,12 @@ class TestOrganizationService:
         if enabled is not None:
             assert org.enabled == enabled
 
+    @pytest.mark.usefixtures("with_matching_noise")
+    def test_search_by_name(self, svc):
+        org = factories.Organization(name="NAME")
+
+        assert svc.search(name="NAME") == [org]
+
     @pytest.fixture
     def with_matching_noise(self):
         factories.ApplicationInstance(

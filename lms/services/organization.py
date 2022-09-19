@@ -47,6 +47,24 @@ class OrganizationService:
             self._db_session, Organization, public_id, region=self._region
         )
 
+    def search(self, name, limit=100):
+        """
+        Search organizations.
+
+        :param name: Match organization by name. Case insensitive.
+        :param limit: Limit the number of results
+        """
+        return (
+            self._db_session.query(Organization)
+            .filter(
+                sa.func.to_tsvector("english", Organization.name).op("@@")(
+                    sa.func.websearch_to_tsquery(name, postgresql_regconfig="english")
+                )
+            )
+            .limit(limit)
+            .all()
+        )
+
     def auto_assign_organization(
         self, application_instance: ApplicationInstance
     ) -> Optional[Organization]:

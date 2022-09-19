@@ -6,13 +6,54 @@ Organizations
 {% endblock %}
 
 {% block content %}
+<div class="block has-text-right">
+    <a class="button is-primary" 
+        href="{{ request.route_url("admin.organization.new") }}">
+        New organization
+    </a>
+</div>
 
 <fieldset class="box mt-6">
-    <div class="block has-text-right">
-        <a class="button is-primary" 
-            href="{{ request.route_url("admin.organization.new") }}">
-            New organization
-        </a>
-    </div>
+   <legend class="label has-text-centered">Find organization</legend>
+    <form method="POST" action="{{ request.route_url("admin.organizations") }}">
+        <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
+
+        {{ macros.form_text_field(request, "Public ID", "public_id") }}
+        {{ macros.form_text_field(request, "Name", "name") }}
+        {% call macros.field_body(label="") %}
+            <input type="submit" class="button is-info" value="Search" />
+        {% endcall %}
+    </form>
 </fieldset>
+
+{% if organizations is defined %} 
+<fieldset class="box mt-6">
+<legend class="label has-text-centered">Results</legend>
+<div class="container">
+    <div class="table-container">
+        <table class="table is-fullwidth">
+          <thead>
+            <tr>
+              <th></th>
+              <th>ID</th>
+              <th>Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for org in organizations %}
+                <tr>
+                  <td>
+                    <a class="button" href="{{ request.route_url('admin.organization', id_=org.id) }}">View</a>
+                  </td>
+                  <td>{{org.public_id(request.region)}}</td>
+                  <td>{{org.name}}</td>
+               </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+    </div>
+</div>
+</fieldset>
+{% endif %}
+
 {% endblock %}
