@@ -78,7 +78,6 @@ class AdminOrganizationViews:
             org, name=self.request.params.get("name", "").strip()
         )
 
-        self.request.session.flash("Updated organization", "messages")
         return {"org": org}
 
     @view_config(
@@ -95,6 +94,21 @@ class AdminOrganizationViews:
 
         self.request.session.flash("Updated organization", "messages")
         return {"org": org}
+
+    @view_config(
+        route_name="admin.organizations",
+        request_method="POST",
+        renderer="lms:templates/admin/organizations.html.jinja2",
+    )
+    def search(self):
+        if public_id := self.request.params.get("public_id"):
+            orgs = [self.organization_service.get_by_public_id(public_id)]
+        else:
+            orgs = self.organization_service.search(
+                name=self.request.params.get("name", "").strip()
+            )
+
+        return {"organizations": orgs}
 
     def _get_org_or_404(self, id_) -> Organization:
         if org := self.organization_service.get_by_id(id_):

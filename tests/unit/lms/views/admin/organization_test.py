@@ -8,6 +8,7 @@ from tests import factories
 from tests.matchers import temporary_redirect_to
 
 
+@pytest.mark.usefixtures("organization_service")
 class TestAdminOrganizationViews:
     def test_new_organization_callback(
         self, pyramid_request, organization_service, views
@@ -24,7 +25,6 @@ class TestAdminOrganizationViews:
             )
         )
 
-    @pytest.mark.usefixtures("organization_service")
     def test_new_organization_callback_invalid_payload(self, views):
         assert not views.new_organization_callback()
 
@@ -77,6 +77,26 @@ class TestAdminOrganizationViews:
         organization_service.update_organization(
             organization_service.get_by_id.return_value, enabled=expected
         )
+
+    def test_search_by_public_id(self, pyramid_request, organization_service, views):
+        pyramid_request.params["public_id"] = sentinel.public_id
+
+        result = views.search()
+
+        organization_service.get_by_public_id.assert_called_once_with(
+            sentinel.public_id
+        )
+        assert result == {
+            "organizations": [organization_service.get_by_public_id.return_value]
+        }
+
+    def test_search_by_name(self, pyramid_request, organization_service, views):
+        pyramid_request.params["name"] = "   NAME "
+
+        result = views.search()
+
+        organization_service.search.assert_called_once_with(name="NAME")
+        assert result == {"organizations": organization_service.search.return_value}
 
     @pytest.fixture
     def views(self, pyramid_request):
