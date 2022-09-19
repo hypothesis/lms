@@ -32,6 +32,8 @@
                     ['consumer_key', 'deployment_id', 'tool_consumer_instance_name', 'lms_url', 'requesters_email']
                )
             }}
+        {% else %}
+            <div class="is-size-5 has-text-centered">No application instances</div>
         {% endif %}
     </fieldset/>
 {% endblock %}
