@@ -8,7 +8,6 @@ from tests import factories
 from tests.matchers import temporary_redirect_to
 
 
-@pytest.mark.usefixtures("organization_service")
 class TestAdminOrganizationViews:
     def test_new_organization_callback(
         self, pyramid_request, organization_service, views
@@ -25,6 +24,7 @@ class TestAdminOrganizationViews:
             )
         )
 
+    @pytest.mark.usefixtures("organization_service")
     def test_new_organization_callback_invalid_payload(self, views):
         assert not views.new_organization_callback()
 
@@ -47,29 +47,36 @@ class TestAdminOrganizationViews:
 
         organization_service.get_by_id.assert_called_once_with(sentinel.id_)
 
-    @pytest.mark.parametrize("name,expected_name", [("", ""), (" name", "name")])
-    @pytest.mark.parametrize("enabled, expected_enabled", [("on", True), ("", False)])
-    def test_update_organization(
-        self,
-        pyramid_request,
-        organization_service,
-        views,
-        name,
-        expected_name,
-        enabled,
-        expected_enabled,
+    @pytest.mark.parametrize("name", ["  ", " name"])
+    def test_update_organization_name(
+        self, pyramid_request, organization_service, views, name
     ):
         pyramid_request.matchdict["id_"] = sentinel.id_
-        pyramid_request.params = {"name": name, "enabled": enabled}
+        pyramid_request.params["name"] = name
         organization_service.get_by_id.return_value = factories.Organization()
 
         response = views.update_organization()
-        org = response["org"]
 
         organization_service.update_organization.assert_called_once_with(
-            org, name=expected_name, enabled=expected_enabled
+            organization_service.get_by_id.return_value,
+            name=name.strip() if name else "",
         )
+        org = response["org"]
         assert org == organization_service.get_by_id.return_value
+
+    @pytest.mark.parametrize("value,expected", [("", False), ("on", True)])
+    def test_toggle_organization_enabled(
+        self, value, expected, pyramid_request, organization_service, views
+    ):
+        pyramid_request.matchdict["id_"] = sentinel.id_
+        pyramid_request.params["enabled"] = value
+        organization_service.get_by_id.return_value = factories.Organization()
+
+        views.toggle_organization_enabled()
+
+        organization_service.update_organization(
+            organization_service.get_by_id.return_value, enabled=expected
+        )
 
     @pytest.fixture
     def views(self, pyramid_request):

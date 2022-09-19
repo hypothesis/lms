@@ -78,7 +78,21 @@ class AdminOrganizationViews:
         self.organization_service.update_organization(
             org,
             name=self.request.params.get("name", "").strip(),
-            enabled=self.request.params.get("enabled", "") == "on",
+        )
+        AuditTrailEvent.notify(self.request, org)
+        self.request.session.flash(f"Updated organization {org.id}", "messages")
+        return {"org": org}
+
+    @view_config(
+        route_name="admin.organization.toggle",
+        request_method="POST",
+        renderer="lms:templates/admin/organization.html.jinja2",
+    )
+    def toggle_organization_enabled(self):
+        org = self._get_org_or_404(self.request.matchdict["id_"])
+
+        self.organization_service.update_organization(
+            org, enabled=self.request.params.get("enabled", "") == "on"
         )
 
         AuditTrailEvent.notify(self.request, org)
