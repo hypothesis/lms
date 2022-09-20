@@ -123,63 +123,6 @@ class TestVitalSourceClient:
         with pytest.raises(ExternalRequestError):
             client.get_table_of_contents("BOOK_ID")
 
-    @pytest.mark.parametrize(
-        "response_xml",
-        (
-            # There are many more attributes in real results than these, but at the
-            # moment we don't really care about any of them.
-            """<?xml version="1.0" encoding="UTF-8"?>
-                <licenses>
-                    <license imprint="IMPRINT" name="NAME"/>
-                </licenses>
-            """,
-            """<?xml version="1.0" encoding="UTF-8"?>
-                <licenses>
-                    <license imprint="IMPRINT" name="NAME"/>
-                    <license imprint="IMPRINT2" name="NAME2"/>
-                </licenses>
-            """,
-        ),
-    )
-    def test_get_user_book_license(
-        self, client, http_service, response_xml, _VSUserAuth
-    ):
-        http_service.request.return_value = factories.requests.Response(
-            status_code=200, raw=response_xml
-        )
-
-        result = client.get_user_book_license(
-            user_reference=sentinel.user_ref, book_id=sentinel.book_id
-        )
-
-        _VSUserAuth.assert_called_once_with(client, sentinel.user_ref)
-        http_service.request.assert_called_once_with(
-            "GET",
-            "https://api.vitalsource.com/v3/licenses.xml",
-            params={"sku": sentinel.book_id},
-            headers={"Accept": "application/xml; charset=utf-8"},
-            auth=_VSUserAuth.return_value,
-        )
-
-        # This isn't nice output, but we currently use it as a bool
-        assert result == {"imprint": "IMPRINT", "name": "NAME"}
-
-    def test_get_user_book_license_with_no_license(self, client, http_service):
-        http_service.request.return_value = factories.requests.Response(
-            status=200,
-            raw="""<?xml version="1.0" encoding="UTF-8"?>
-                <licenses>
-                </licenses>
-            """,
-        )
-
-        assert (
-            client.get_user_book_license(
-                user_reference=sentinel.user_ref, book_id=sentinel.book_id
-            )
-            is None
-        )
-
     def test_get_sso_redirect(self, client, http_service, _VSUserAuth):
         http_service.request.return_value = factories.requests.Response(
             status_code=200,
@@ -209,15 +152,28 @@ class TestVitalSourceClient:
 
         assert result == "http://example.com/redirect"
 
-    def test_get_user_credentials(self, client, http_service):
-        http_service.request.return_value = factories.requests.Response(
-            status_code=200,
-            raw="""<?xml version="1.0" encoding="UTF-8"?>
+    @pytest.mark.parametrize(
+        "xml",
+        (
+            """<?xml version="1.0" encoding="UTF-8"?>
                 <credentials>
                     <credential access-token="ACCESS_TOKEN" other="FAKE">
                     </credential>
                 </credentials>
             """,
+            """<?xml version="1.0" encoding="UTF-8"?>
+                <credentials>
+                    <credential access-token="ACCESS_TOKEN" other="FAKE">
+                    </credential>
+                    <credential access-token="SHOULD BE IGNORED" other="IGNORED">
+                    </credential>
+                </credentials>
+            """,
+        ),
+    )
+    def test_get_user_credentials(self, client, http_service, xml):
+        http_service.request.return_value = factories.requests.Response(
+            status_code=200, raw=xml
         )
 
         result = client.get_user_credentials("USER_REF")
