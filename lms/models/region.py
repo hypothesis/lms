@@ -26,6 +26,19 @@ class Regions:
     ALL = US, CA
 
     _AUTHORITY_MAP = {region.authority: region for region in ALL}
+    _CODE_MAP = {region.code: region for region in ALL}
+
+    @classmethod
+    def from_code(cls, code: str) -> Region:
+        """
+        Get a region object based on its code.
+
+        :raises ValueError: If no valid region can be found.
+        """
+        try:
+            return cls._CODE_MAP[code]
+        except KeyError as err:
+            raise ValueError(f"Cannot find a region for the code '{code}'") from err
 
     @classmethod
     def from_request(cls, request: Request) -> Region:
