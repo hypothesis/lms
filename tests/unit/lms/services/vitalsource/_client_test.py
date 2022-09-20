@@ -8,6 +8,7 @@ from lms.services.exceptions import ExternalRequestError
 from lms.services.vitalsource._client import (
     BookNotFound,
     VitalSourceClient,
+    VitalSourceConfigurationError,
     _VSUserAuth,
 )
 from lms.services.vitalsource.exceptions import VitalSourceError
@@ -53,29 +54,6 @@ class TestVitalSourceClient:
             "cover_image": "COVER_IMAGE",
         }
 
-    def test_get_book_info_not_found(self, client, http_service):
-        http_service.request.side_effect = ExternalRequestError(
-            response=factories.requests.Response(
-                status_code=404,
-                headers={"Content-Type": "application/json; charset=utf-8"},
-                json_data={"errors": ["Product BOOK_ID not fonud"]},
-            )
-        )
-
-        with pytest.raises(BookNotFound):
-            client.get_book_info("BOOK_ID")
-
-    @pytest.mark.parametrize("status_code", (404, 500))
-    def test_get_book_info_error(self, client, http_service, status_code):
-        http_service.request.side_effect = ExternalRequestError(
-            response=factories.requests.Response(
-                status_code=status_code, headers={"Content-Type": "application/json"}
-            )
-        )
-
-        with pytest.raises(ExternalRequestError):
-            client.get_book_info("BOOK_ID")
-
     def test_get_table_of_contents(self, client, http_service):
         http_service.request.return_value = factories.requests.Response(
             json_data={
@@ -100,28 +78,71 @@ class TestVitalSourceClient:
             }
         ]
 
-    def test_get_table_of_contents_not_found(self, client, http_service):
-        http_service.request.side_effect = ExternalRequestError(
-            response=factories.requests.Response(
-                status_code=404,
-                headers={"Content-Type": "application/json; charset=utf-8"},
-                json_data={"errors": ["Book not found"]},
-            )
-        )
+    @pytest.mark.parametrize(
+        "response,exception_class",
+        (
+            (
+                factories.requests.Response(
+                    status_code=404,
+                    headers={"Content-Type": "application/json"},
+                    json_data={"errors": ["Book not found"]},
+                ),
+                BookNotFound,
+            ),
+            (
+                factories.requests.Response(
+                    status_code=404,
+                    headers={"Content-Type": "application/json"},
+                    json_data={"errors": ["Product BOOK_ID not found"]},
+                ),
+                BookNotFound,
+            ),
+            (
+                factories.requests.Response(
+                    # We don't actually know the error code, because we didn't
+                    # capture it at the time
+                    status_code=500,
+                    headers={"Content-Type": "application/json; charset=utf-8"},
+                    json_data={"errors": ["Catalog not found"]},
+                ),
+                VitalSourceConfigurationError,
+            ),
+            (
+                factories.requests.Response(
+                    status_code=500,
+                    headers={"Content-Type": "application/json"},
+                    json_data={"errors": ["Any valid string"]},
+                ),
+                ExternalRequestError,
+            ),
+            (
+                factories.requests.Response(
+                    status_code=404,
+                    headers={"Content-Type": "application/json"},
+                    json_data="Not the expected dict",
+                ),
+                ExternalRequestError,
+            ),
+            (
+                factories.requests.Response(
+                    status_code=404,
+                    headers={"Content-Type": "application/json"},
+                    raw=b"[not valid json...",
+                ),
+                ExternalRequestError,
+            ),
+            (factories.requests.Response(status_code=400), ExternalRequestError),
+            (factories.requests.Response(status_code=500), ExternalRequestError),
+        ),
+    )
+    @pytest.mark.parametrize("method", ("get_table_of_contents", "get_book_info"))
+    def test_book_method_errors(
+        self, client, http_service, response, exception_class, method
+    ):
+        http_service.request.side_effect = ExternalRequestError(response=response)
 
-        with pytest.raises(BookNotFound):
-            client.get_table_of_contents("BOOK_ID")
-
-    @pytest.mark.parametrize("status_code", (404, 500))
-    def test_get_table_of_contents_error(self, client, http_service, status_code):
-        http_service.request.side_effect = ExternalRequestError(
-            response=factories.requests.Response(
-                status_code=status_code, headers={"Content-Type": "application/json"}
-            )
-        )
-
-        with pytest.raises(ExternalRequestError):
-            client.get_table_of_contents("BOOK_ID")
+        with pytest.raises(exception_class):
+            getattr(client, method)("BOOK_ID")
 
     def test_get_sso_redirect(self, client, http_service, _VSUserAuth):
         http_service.request.return_value = factories.requests.Response(
