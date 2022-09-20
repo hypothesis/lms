@@ -78,6 +78,7 @@ class AdminOrganizationViews:
             org, name=self.request.params.get("name", "").strip()
         )
 
+        self.request.session.flash("Updated organization", "messages")
         return {"org": org}
 
     @view_config(
@@ -92,6 +93,7 @@ class AdminOrganizationViews:
             org, enabled=self.request.params.get("enabled", "") == "on"
         )
 
+        self.request.session.flash("Updated organization", "messages")
         return {"org": org}
 
     def _get_org_or_404(self, id_) -> Organization:
