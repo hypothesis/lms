@@ -6,10 +6,7 @@ from _pytest.mark import param
 
 from lms.models import LTIParams
 from lms.services.vitalsource._client import VitalSourceClient
-from lms.services.vitalsource.exceptions import (
-    VitalSourceError,
-    VitalSourceMalformedRegex,
-)
+from lms.services.vitalsource.exceptions import VitalSourceMalformedRegex
 from lms.services.vitalsource.service import VitalSourceService
 
 
@@ -49,41 +46,10 @@ class TestVitalSourceService:
             user_reference=sentinel.user_reference,
         )
 
-        customer_client.get_user_book_license.assert_called_once_with(
-            sentinel.user_reference, "BOOK-ID"
-        )
         customer_client.get_sso_redirect.assert_called_once_with(
             sentinel.user_reference,
             "https://hypothesis.vitalsource.com/books/BOOK-ID/cfi/CFI",
         )
-        assert result == customer_client.get_sso_redirect.return_value
-
-    def test_get_sso_redirect_with_no_book_license(self, svc, customer_client):
-        customer_client.get_user_book_license.return_value = None
-
-        with pytest.raises(VitalSourceError) as exc:
-            svc.get_sso_redirect(
-                document_url="vitalsource://book/bookID/BOOK-ID/cfi/CFI",
-                user_reference=sentinel.user_reference,
-            )
-
-        assert exc.value.error_code == "vitalsource_no_book_license"
-
-    def test_get_sso_redirect_with_no_book_licence_with_checking_disabled(
-        self, customer_client
-    ):
-        customer_client.get_user_book_license.return_value = None
-        svc = VitalSourceService(
-            customer_client=customer_client, enable_licence_check=False
-        )
-
-        result = svc.get_sso_redirect(
-            document_url="vitalsource://book/bookID/BOOK-ID/cfi/CFI",
-            user_reference=sentinel.user_reference,
-        )
-
-        customer_client.get_user_book_license.assert_not_called()
-
         assert result == customer_client.get_sso_redirect.return_value
 
     @pytest.mark.parametrize(
@@ -165,5 +131,4 @@ class TestVitalSourceService:
             global_client=global_client,
             customer_client=customer_client,
             user_lti_param=sentinel.user_lti_param,
-            enable_licence_check=True,
         )

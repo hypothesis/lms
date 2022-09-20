@@ -3,10 +3,7 @@ from typing import List, Optional
 
 from lms.models import LTIParams
 from lms.services.vitalsource._client import VitalSourceClient
-from lms.services.vitalsource.exceptions import (
-    VitalSourceError,
-    VitalSourceMalformedRegex,
-)
+from lms.services.vitalsource.exceptions import VitalSourceMalformedRegex
 from lms.services.vitalsource.model import VSBookLocation
 
 
@@ -21,7 +18,6 @@ class VitalSourceService:
         customer_client: Optional[VitalSourceClient] = None,
         user_lti_param: Optional[str] = None,
         user_lti_pattern: Optional[str] = None,
-        enable_licence_check: bool = True,
     ):
         """
         Initialise the service.
@@ -32,8 +28,6 @@ class VitalSourceService:
         :param user_lti_param: Field to lookup user details for SSO
         :param user_lti_pattern: A regex to apply to the user value to get the
             id. The first capture group will be used
-        :param enable_licence_check: Check users have a book licence before
-            launching an SSO redirect
         """
 
         self._enabled = enabled
@@ -45,7 +39,6 @@ class VitalSourceService:
         # sense in the context of an institutional relationship between the uni
         # and VitalSource.
         self._sso_client = customer_client
-        self._enable_licence_check = enable_licence_check
         self._user_lti_param = user_lti_param
         self._user_lti_pattern = user_lti_pattern
 
@@ -92,20 +85,7 @@ class VitalSourceService:
         :param document_url: `vitalsource://` type URL identifying the document
         :param user_reference: The user reference (you can use
             `get_user_reference()` to help you with this)
-        :raises VitalSourceError: If the user has no licences for the material
-            or if the service is misconfigured.
         """
-        loc = VSBookLocation.from_document_url(document_url)
-
-        # The licence check seems to unnecessarily cause problems for some
-        # customers where users do have licences but the check says they
-        # don't. Setting `_enable_licence_check` to `False` provides an option
-        # to work around this while we work through the issue.
-        if self._enable_licence_check and not self._sso_client.get_user_book_license(
-            user_reference, loc.book_id
-        ):
-            raise VitalSourceError(error_code="vitalsource_no_book_license")
-
         return self._sso_client.get_sso_redirect(
             user_reference, self.get_book_reader_url(document_url)
         )
