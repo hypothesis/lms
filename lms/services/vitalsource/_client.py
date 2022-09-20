@@ -18,6 +18,11 @@ class BookNotFound(SerializableError):
         super().__init__(message=f"Book {book_id} not found")
 
 
+class VitalSourceConfigurationError(SerializableError):
+    def __init__(self, message):
+        super().__init__(message=f"VitalSource is misconfigured: {message}")
+
+
 class VitalSourceClient:
     """
     A client for making individual calls to VitalSource API.
@@ -56,10 +61,7 @@ class VitalSourceClient:
         try:
             response = self._json_request("GET", f"{self.VS_API}/v4/products/{book_id}")
         except ExternalRequestError as err:
-            if self._is_resource_not_found(err):
-                raise BookNotFound(book_id) from err
-
-            raise
+            self._handle_book_errors(book_id, err)
 
         book_info = _BookInfoSchema(response).parse()
 
@@ -85,10 +87,7 @@ class VitalSourceClient:
                 "GET", f"{self.VS_API}/v4/products/{book_id}/toc"
             )
         except ExternalRequestError as err:
-            if self._is_resource_not_found(err):
-                raise BookNotFound(book_id) from err
-
-            raise
+            self._handle_book_errors(book_id, err)
 
         toc = _BookTOCSchema(response).parse()["table_of_contents"]
         for chapter in toc:
@@ -161,21 +160,30 @@ class VitalSourceClient:
 
         raise VitalSourceError(error_code="vitalsource_user_not_found")
 
-    @staticmethod
-    def _is_resource_not_found(err: ExternalRequestError) -> bool:
-        """Get if an exception is due to a missing resource or a bad URL."""
+    @classmethod
+    def _handle_book_errors(cls, book_id: str, err: ExternalRequestError):
+        if json_errors := cls._get_json_errors(err):
+            if "Catalog not found" in json_errors:
+                raise VitalSourceConfigurationError(
+                    "The catalog has not been initialized"
+                )
 
-        if err.status_code == 404 and err.response.headers.get(
-            "Content-Type", ""
-        ).startswith("application/json"):
+            if err.status_code == 404:
+                raise BookNotFound(book_id) from err
+
+        raise err
+
+    @staticmethod
+    def _get_json_errors(err: ExternalRequestError) -> Optional[list]:
+        if err.response.headers.get("Content-Type", "").startswith("application/json"):
             # Many errors from VitalSource say they are JSON, but don't include
             # any actual JSON data to decode
             try:
-                return "errors" in err.response.json()
-            except JSONDecodeError:
+                return err.response.json().get("errors")
+            except (JSONDecodeError, AttributeError):
                 pass
 
-        return False
+        return None
 
     @staticmethod
     def _pick_first(list_or_item):
