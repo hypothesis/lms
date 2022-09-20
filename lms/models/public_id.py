@@ -1,0 +1,105 @@
+from base64 import urlsafe_b64encode
+from dataclasses import astuple, dataclass, is_dataclass
+from uuid import uuid4
+
+from lms.models.region import Region, Regions
+
+
+class InvalidPublicId(Exception):
+    """Indicate an error with the specified public id."""
+
+
+@dataclass
+class PublicId:
+    region: Region
+    """Region this model is in."""
+
+    model_code: str
+    """Short identifier of the model type."""
+
+    app_code: str = "lms"
+    """Code representing the product this model is in."""
+
+    instance_id: str = None
+    """Identifier for the specific model instance."""
+
+    def __post_init__(self):
+        if self.instance_id is None:
+            self.instance_id = self.generate_instance_id()
+
+    @classmethod
+    def generate_instance_id(cls) -> str:
+        """Get a new instance id."""
+
+        # We don't use a standard UUID-4 format here as they are common in Tool
+        # Consumer Instance GUIDs, and might be confused for them. These also
+        # happen to be shorter and guaranteed URL safe.
+        return urlsafe_b64encode(uuid4().bytes).decode("ascii").rstrip("=")
+
+    @classmethod
+    def parse(
+        cls,
+        public_id: str,
+        expect_app_code="lms",
+        expect_model_code=None,
+        expect_region: Region = None,
+    ):
+        """
+        Parse a public id string into a PublicID object.
+
+        :param public_id: Public id to parse
+        :param expect_app_code: Expect the specified app code
+        :param expect_model_code: Expect the specified model code
+        :param expect_region: Expect the specified region
+
+        :raise InvalidPublicId: If the publid id is malformed or any expectations
+            are not met
+        """
+        parts = public_id.split(".")
+        if not len(parts) == 4:
+            raise InvalidPublicId(
+                f"Malformed public id: '{public_id}'. Expected 4 dot separated parts."
+            )
+
+        region_code, app_code, model_code, instance_id = parts
+
+        if expect_app_code and app_code != expect_app_code:
+            raise InvalidPublicId(f"Expected app '{expect_app_code}', found {app_code}")
+
+        if expect_model_code and model_code != expect_model_code:
+            raise InvalidPublicId(
+                f"Expected model '{expect_model_code}', found {model_code}"
+            )
+
+        try:
+            region = Regions.from_code(region_code)
+        except ValueError as exc:
+            raise InvalidPublicId(exc.args[0]) from exc
+
+        if expect_region and region != expect_region:
+            raise InvalidPublicId(f"Expected region '{expect_region}', found {region}")
+
+        return cls(
+            region=region,
+            app_code=app_code,
+            model_code=model_code,
+            instance_id=instance_id,
+        )
+
+    def __str__(self):
+        # Ensure we stringify to the public code naturally
+
+        # We use '.' as the separator here because it's not in base64, but it
+        # is URL safe. The other option is '~'.
+        # See: https://www.ietf.org/rfc/rfc3986.txt (2.3)
+        # >    unreserved  = ALPHA / DIGIT / "-" / "." / "_" / "~"
+        return (
+            f"{self.region.code}.{self.app_code}.{self.model_code}.{self.instance_id}"
+        )
+
+    def __eq__(self, other):
+        # We want to be equal to other public id type objects, but also native
+        # strings.
+        return (isinstance(other, str) and (str(self) == other)) or (
+            is_dataclass(other) and (astuple(self) == astuple(other))
+        )
