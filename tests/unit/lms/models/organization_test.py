@@ -1,7 +1,7 @@
 import pytest
 from h_matchers import Any
 
-from lms.models import ApplicationInstance
+from lms.models import ApplicationInstance, PublicId
 from lms.models.region import Regions
 from tests import factories
 
@@ -52,8 +52,14 @@ class TestOrganization:
         # Flush to ensure the default is applied
         db_session.flush()
 
-        assert organization.public_id(Regions.CA) == Any.string.matching(
-            r"ca\.lms\.org\.[A-Za-z0-9-_]{22}"
+        public_id = organization.public_id(Regions.CA)
+
+        # Swap the order here as public id objects have their own `__eq__`
+        assert (
+            Any.instance_of(PublicId).with_attrs(
+                {"region": Regions.CA, "model_code": "org", "instance_id": Any.string()}
+            )
+            == public_id
         )
 
     @pytest.fixture
