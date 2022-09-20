@@ -9,6 +9,15 @@ from lms.models.region import Regions, includeme
 
 
 class TestRegions:
+    @pytest.mark.parametrize("code,region", (("us", Regions.US), ("ca", Regions.CA)))
+    def test_from_code(self, code, region):
+        assert Regions.from_code(code) == region
+
+    @pytest.mark.parametrize("bad_code", (None, "UNRECOGNIZED"))
+    def test_from_code_raises_ValueError_for_bad_code(self, bad_code):
+        with pytest.raises(ValueError):
+            Regions.from_code(bad_code)
+
     def test_get_region(self, current_region):
         current_region.return_value = Regions.CA
 
