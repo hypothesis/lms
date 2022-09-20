@@ -80,7 +80,7 @@ class AdminOrganizationViews:
             name=self.request.params.get("name", "").strip(),
         )
         AuditTrailEvent.notify(self.request, org)
-        self.request.session.flash(f"Updated organization {org.id}", "messages")
+        self.request.session.flash("Updated organization", "messages")
         return {"org": org}
 
     @view_config(
@@ -96,7 +96,7 @@ class AdminOrganizationViews:
         )
 
         AuditTrailEvent.notify(self.request, org)
-        self.request.session.flash(f"Updated organization {org.id}", "messages")
+        self.request.session.flash("Updated organization", "messages")
         return {"org": org}
 
     def _get_org_or_404(self, id_) -> Organization:
