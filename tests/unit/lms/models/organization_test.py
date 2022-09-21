@@ -1,8 +1,7 @@
 import pytest
 from h_matchers import Any
 
-from lms.models import ApplicationInstance, PublicId
-from lms.models.region import Regions
+from lms.models import ApplicationInstance
 from tests import factories
 
 
@@ -46,20 +45,6 @@ class TestOrganization:
                 )
                 for ai_id in ai_ids
             ]
-        )
-
-    def test_public_id(self, organization, db_session):
-        # Flush to ensure the default is applied
-        db_session.flush()
-
-        public_id = organization.public_id(Regions.CA)
-
-        # Swap the order here as public id objects have their own `__eq__`
-        assert (
-            Any.instance_of(PublicId).with_attrs(
-                {"region": Regions.CA, "model_code": "org", "instance_id": Any.string()}
-            )
-            == public_id
         )
 
     @pytest.fixture
