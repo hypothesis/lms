@@ -51,12 +51,6 @@ class TestPublicId:
     def test___str__(self, public_id):
         assert str(public_id) == "us.APP_CODE.MODEL_CODE.INSTANCE_ID"
 
-    def test___eq__(self, public_id):
-        assert public_id == public_id
-        assert public_id != PublicId(Regions.CA, model_code="different")
-        assert public_id == "us.APP_CODE.MODEL_CODE.INSTANCE_ID"
-        assert public_id != "us.APP_CODE.MODEL_CODE.different"
-
     @pytest.fixture
     def public_id(self):
         return PublicId(

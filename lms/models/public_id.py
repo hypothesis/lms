@@ -96,10 +96,3 @@ class PublicId:
         return (
             f"{self.region.code}.{self.app_code}.{self.model_code}.{self.instance_id}"
         )
-
-    def __eq__(self, other):
-        # We want to be equal to other public id type objects, but also native
-        # strings.
-        return (isinstance(other, str) and (str(self) == other)) or (
-            is_dataclass(other) and (astuple(self) == astuple(other))
-        )
