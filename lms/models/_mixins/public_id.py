@@ -26,7 +26,7 @@ class PublicIdMixin:
     public_id_model_code = None
     """The short code which identifies this type of model."""
 
-    def public_id(self, region: Region) -> PublicId:
+    def public_id(self, region: Region) -> str:
         """
         Get the globally unique id which also indicates the region.
 
@@ -37,8 +37,10 @@ class PublicIdMixin:
         outside a single region LMS context.
         """
 
-        return PublicId(
-            region=region,
-            model_code=self.public_id_model_code,
-            instance_id=self._public_id,
+        return str(
+            PublicId(
+                region=region,
+                model_code=self.public_id_model_code,
+                instance_id=self._public_id,
+            )
         )

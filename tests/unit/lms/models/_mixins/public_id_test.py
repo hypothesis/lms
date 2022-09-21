@@ -36,7 +36,7 @@ class TestPublicIdMixin:
             model_code=ModelTestHost.public_id_model_code,
             instance_id=model._public_id,
         )
-        assert result == PublicId.return_value
+        assert result == str(PublicId.return_value)
 
     @pytest.fixture(autouse=True)
     def PublicId(self, patch):
