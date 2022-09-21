@@ -47,19 +47,6 @@ class OrganizationService:
             self._db_session, Organization, public_id, region=self._region
         )
 
-    def update_organization(self, organization: Organization, **kwargs):
-        for field in ["name", "enabled"]:
-            current_value = getattr(organization, field)
-            update_value = kwargs[field]
-            # Don't set any values if they match the ones in the object.
-            # Otherwise the session is marked as dirty making difficult to track
-            # changes and the `updated` field keeps getting a new value despite not
-            # having any new values.
-            if current_value != update_value:
-                setattr(organization, field, update_value)
-
-        return organization
-
     def auto_assign_organization(
         self, application_instance: ApplicationInstance
     ) -> Optional[Organization]:
@@ -109,11 +96,18 @@ class OrganizationService:
         return org
 
     def update_organization(self, organization, name=None, enabled=None):
-        """Update an existing organization."""
-        if name:
+        """
+        Update an existing organization.
+
+        This method doesn't set any values if they match the ones already in the object.
+        The session is marked as dirty otherwise making difficult to track
+        changes and the `updated` field keeps getting a new value despite not
+        having any new values.
+        """
+        if name and name != organization.name:
             organization.name = name
 
-        if enabled is not None:
+        if enabled is not None and enabled != organization.enabled:
             organization.enabled = enabled
 
         return organization

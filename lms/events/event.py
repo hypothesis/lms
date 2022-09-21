@@ -5,8 +5,8 @@ from typing import List, Optional
 from pyramid.request import Request
 from sqlalchemy import inspect
 
-from lms.models import EventType
 from lms.db import BASE
+from lms.models import EventType
 from lms.services.lti_role_service import LTIRoleService
 
 

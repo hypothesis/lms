@@ -1,4 +1,3 @@
-from lms.events import AuditTrailEvent
 from marshmallow import validate
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.renderers import render_to_response
@@ -6,6 +5,7 @@ from pyramid.view import view_config, view_defaults
 from sqlalchemy.exc import IntegrityError
 from webargs import fields
 
+from lms.events import AuditTrailEvent
 from lms.models import ApplicationInstance
 from lms.security import Permissions
 from lms.services import ApplicationInstanceNotFound, LTIRegistrationService
