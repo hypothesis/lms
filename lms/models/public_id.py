@@ -1,8 +1,13 @@
 from base64 import urlsafe_b64encode
 from dataclasses import dataclass
+from typing import Optional
 from uuid import uuid4
 
-from lms.models.region import Region
+from lms.models.region import Region, Regions
+
+
+class InvalidPublicId(Exception):
+    """Indicate an error with the specified public id."""
 
 
 @dataclass
@@ -39,6 +44,56 @@ class PublicId:
         # Consumer Instance GUIDs, and might be confused for them. These also
         # happen to be shorter and guaranteed URL safe.
         return urlsafe_b64encode(uuid4().bytes).decode("ascii").rstrip("=")
+
+    @classmethod
+    def parse(
+        cls,
+        public_id: str,
+        expect_app_code: Optional[str] = "lms",
+        expect_model_code: Optional[str] = None,
+        expect_region: Optional[Region] = None,
+    ):
+        """
+        Parse a public id string into a PublicID object.
+
+        :param public_id: Public id to parse
+        :param expect_app_code: Expect the specified app code
+        :param expect_model_code: Expect the specified model code
+        :param expect_region: Expect the specified region
+
+        :raises InvalidPublicId: If the public id is malformed or any
+            expectations are not met
+        """
+        parts = public_id.split(".")
+        if not len(parts) == 4:
+            raise InvalidPublicId(
+                f"Malformed public id: '{public_id}'. Expected 4 dot separated parts."
+            )
+
+        region_code, app_code, model_code, instance_id = parts
+
+        if expect_app_code and app_code != expect_app_code:
+            raise InvalidPublicId(f"Expected app '{expect_app_code}', found {app_code}")
+
+        if expect_model_code and model_code != expect_model_code:
+            raise InvalidPublicId(
+                f"Expected model '{expect_model_code}', found {model_code}"
+            )
+
+        try:
+            region = Regions.from_code(region_code)
+        except ValueError as exc:
+            raise InvalidPublicId(exc.args[0]) from exc
+
+        if expect_region and region != expect_region:
+            raise InvalidPublicId(f"Expected region '{expect_region}', found {region}")
+
+        return cls(
+            region=region,
+            app_code=app_code,
+            model_code=model_code,
+            instance_id=instance_id,
+        )
 
     def __str__(self):
         # Ensure we stringify to the public code naturally
