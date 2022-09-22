@@ -140,6 +140,10 @@ class VitalSourceClient:
     @classmethod
     def _handle_book_errors(cls, book_id: str, err: ExternalRequestError):
         if json_errors := cls._get_json_errors(err):
+            # This isn't something we can do anything about, but we can check
+            # for it. If the catalog is not initialized we get this error and
+            # VS need to do "something" to configure it. This shouldn't happen
+            # at random, only when onboarding new customers.
             if "Catalog not found" in json_errors:
                 raise VitalSourceConfigurationError(
                     "The catalog has not been initialized"
