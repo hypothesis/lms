@@ -5,7 +5,6 @@ from h_matchers import Any
 
 from lms.models import Organization
 from lms.services.organization import OrganizationService, service_factory
-from lms.validation import ValidationError
 from tests import factories
 
 
@@ -51,21 +50,14 @@ class TestOrganizationService:
 
         assert not svc.get_by_linked_guid(None)
 
-    def test_get_by_public_id(self, svc, pyramid_request, db_session, get_by_public_id):
-        svc.get_by_public_id(sentinel.public_id)
+    def test_get_by_public_id(self, svc, pyramid_request, db_session):
+        orgs = factories.Organization.create_batch(2)
+        db_session.add_all(orgs)
+        db_session.flush()
 
-        get_by_public_id.assert_called_once_with(
-            db_session, Organization, sentinel.public_id, region=pyramid_request.region
-        )
+        result = svc.get_by_public_id(orgs[1].public_id(pyramid_request.region))
 
-    @pytest.mark.parametrize(
-        "public_id",
-        ("ID", "es.lms.org.ID", "us.h.org.ID", "us.lms.user.ID"),
-        ids=["wrong format", "wrong region", "wrong app", "wrong type"],
-    )
-    def test_get_by_public_id_with_invalid(self, svc, public_id):
-        with pytest.raises(ValidationError):
-            svc.get_by_public_id(public_id)
+        assert result == orgs[1]
 
     def test_auto_assign_organization_with_no_guid(self, svc, application_instance):
         application_instance.tool_consumer_instance_guid = None
@@ -157,10 +149,6 @@ class TestOrganizationService:
         return factories.ApplicationInstance(
             tool_consumer_instance_guid="guid", tool_consumer_instance_name="ai_name"
         )
-
-    @pytest.fixture
-    def get_by_public_id(self, patch):
-        return patch("lms.services.organization.get_by_public_id")
 
 
 class TestServiceFactory:

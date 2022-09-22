@@ -38,3 +38,26 @@ class PublicIdMixin:
                 instance_id=self._public_id,
             )
         )
+
+    @classmethod
+    def public_id_eq(cls, public_id, region: Region):
+        """
+        Get a comparator for queries which asserts we match the public id.
+
+        This is intended to be used in filter assertions as follows:
+
+            query.filter(Model.public_id_eq(public_id, region))
+
+        :raises InvalidPublicId: If the public id is malformed or any expectations
+            are not met
+        """
+
+        return (
+            cls._public_id
+            == PublicId.parse(
+                # Using str here allows us to accept a public id object
+                public_id=str(public_id),
+                expect_model_code=cls.public_id_model_code,
+                expect_region=region,
+            ).instance_id
+        )

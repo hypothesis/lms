@@ -5,7 +5,6 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
 from lms.models import ApplicationInstance, GroupInfo, Organization, Region
-from lms.services.public_id import get_by_public_id
 
 LOG = getLogger(__name__)
 
@@ -43,8 +42,11 @@ class OrganizationService:
 
     def get_by_public_id(self, public_id: str) -> Optional[List]:
         """Get an organization by its public_id."""
-        return get_by_public_id(
-            self._db_session, Organization, public_id, region=self._region
+
+        return (
+            self._db_session.query(Organization)
+            .filter(Organization.public_id_eq(public_id, self._region))
+            .one_or_none()
         )
 
     def search(self, name, limit=100):
