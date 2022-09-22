@@ -1,10 +1,25 @@
 from typing import Optional
 
 import sqlalchemy as sa
-from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.hybrid import Comparator, hybrid_property
 
 from lms.models.public_id import PublicId
 from lms.models.region import Regions
+
+
+class _PublicIdComparator(Comparator):  # pylint: disable=abstract-method
+    """A comparator for covering over details of comparing public ids."""
+
+    def __eq__(self, other):
+        return (
+            self.__clause_element__()
+            == PublicId.parse(
+                # Using str here allows us to accept a public id object
+                public_id=str(other),
+                expect_model_code=self.expression.class_.public_id_model_code,
+                expect_region=Regions.get_region(),
+            ).instance_id
+        )
 
 
 class PublicIdMixin:
@@ -40,3 +55,7 @@ class PublicIdMixin:
                 instance_id=self._public_id,
             )
         )
+
+    @public_id.comparator
+    def public_id(self):
+        return _PublicIdComparator(self._public_id)
