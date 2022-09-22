@@ -2,7 +2,6 @@ import json
 from unittest.mock import Mock, sentinel
 
 import pytest
-from h_matchers import Any
 
 from lms.events import AuditTrailEvent, LTIEvent
 from tests import factories
@@ -126,27 +125,38 @@ class TestLTIEvent:
 
 
 class TestAuditTrailEvent:
-    def test__get_data(self, db_session, pyramid_request):
+    def test_model_change_from_instance(self, db_session):
         org = factories.Organization(name="OLD_NAME", enabled=True)
         db_session.flush()
         org.name = "NEW_NAME"
         org.enabled = False
 
-        event = AuditTrailEvent(
-            request=pyramid_request,
-            instance=org,
-            action=sentinel.action,
+        assert AuditTrailEvent.ModelChange.from_instance(
+            org, action=sentinel.action, source=sentinel.source, userid=sentinel.userid
+        ) == AuditTrailEvent.ModelChange(
+            model="Organization",
+            id=org.id,
             source=sentinel.source,
+            action=sentinel.action,
+            userid=sentinel.userid,
+            changes={"name": ("OLD_NAME", "NEW_NAME"), "enabled": (True, False)},
         )
 
-        assert event.data == {
-            "model": "Organization",
-            "id": Any.int(),
-            "userid": pyramid_request.identity.userid,
+    def test__get_data(self, pyramid_request):
+        kwargs = {
+            "id": sentinel.id,
+            "model": sentinel.model,
             "source": sentinel.source,
             "action": sentinel.action,
-            "changes": {"name": ("OLD_NAME", "NEW_NAME"), "enabled": (True, False)},
+            "userid": sentinel.userid,
+            "changes": sentinel.changes,
         }
+
+        event = AuditTrailEvent(
+            request=pyramid_request, change=AuditTrailEvent.ModelChange(**kwargs)
+        )
+
+        assert event.data == kwargs
 
     def test_notify_update_with_changes(self, pyramid_request, db_session):
         org = factories.Organization(name="OLD_NAME", enabled=True)
@@ -158,9 +168,14 @@ class TestAuditTrailEvent:
         pyramid_request.registry.notify.assert_called_once_with(
             AuditTrailEvent(
                 request=pyramid_request,
-                instance=org,
-                action="update",
-                source=sentinel.source,
+                change=AuditTrailEvent.ModelChange(
+                    id=org.id,
+                    model="Organization",
+                    action="update",
+                    source=sentinel.source,
+                    userid=pyramid_request.identity.userid,
+                    changes={"name": ("OLD_NAME", "NEW_NAME")},
+                ),
             )
         )
 

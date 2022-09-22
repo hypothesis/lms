@@ -1,6 +1,6 @@
 import json
-from dataclasses import dataclass, field, fields
-from typing import List, Optional
+from dataclasses import asdict, dataclass, field, fields
+from typing import Dict, List, Optional
 
 from pyramid.request import Request
 from sqlalchemy import inspect
@@ -107,16 +107,39 @@ class LTIEvent(BaseEvent):
 
 @dataclass
 class AuditTrailEvent(BaseEvent):
+    @dataclass
+    class ModelChange:
+        action: str
+        model: str
+        id: int  # pylint: disable=invalid-name
+        source: str
+        userid: str
+        changes: Dict[str, tuple]
+
+        @classmethod
+        def from_instance(cls, instance, **kwargs):
+            changes = {}
+            instance_details = inspect(instance)
+            for attr in instance_details.attrs:
+                history = instance_details.get_history(attr.key, True)
+
+                if not history.has_changes():
+                    continue
+
+                changes[attr.key] = (
+                    history.deleted[0] if history.deleted else None,
+                    history.added[0] if history.added else None,
+                )
+
+            return cls(
+                model=instance.__class__.__name__,
+                id=instance.id,
+                changes=changes,
+                **kwargs,
+            )
+
     type: EventType.Type = EventType.Type.AUDIT_TRAIL
-
-    instance: BASE = None
-    """Object for which we are tracking changes"""
-
-    action: str = None
-    """What happen to the object: crated,updated,deleted..."""
-
-    source: str = None
-    """In which context the change happen"""
+    change: ModelChange = None
 
     def _get_data(self):
         """
@@ -124,30 +147,7 @@ class AuditTrailEvent(BaseEvent):
 
         This is called on BaseEvent.__post_init__
         """
-        changes = {}
-        instance_details = inspect(self.instance)
-        for attr in instance_details.attrs:
-            history = instance_details.get_history(attr.key, True)
-
-            if not history.has_changes():
-                continue
-
-            changes[attr.key] = (
-                history.deleted[0] if history.deleted else None,
-                history.added[0] if history.added else None,
-            )
-
-        return {
-            "model": self.instance.__class__.__name__,
-            "id": self.instance.id,
-            "action": self.action,
-            "source": self.source,
-            # LTI users will have a FK to the User table.
-            # userid is useful for other authentication methods.
-            # For example this will be the user's email while using google oauth.
-            "userid": self.request.identity.userid,
-            "changes": changes,
-        }
+        return asdict(self.change)
 
     @staticmethod
     def notify(request: Request, instance: BASE, source="admin_pages"):
@@ -155,8 +155,14 @@ class AuditTrailEvent(BaseEvent):
             request.registry.notify(
                 AuditTrailEvent(
                     request=request,
-                    instance=instance,
-                    action="update",
-                    source=source,
+                    change=AuditTrailEvent.ModelChange.from_instance(
+                        instance,
+                        action="update",
+                        source=source,
+                        # LTI users will have a FK to the User table.
+                        # userid is useful for other authentication methods.
+                        # For example this will be the user's email while using google oauth.
+                        userid=request.identity.userid,
+                    ),
                 )
             )
