@@ -105,17 +105,14 @@ class AdminOrganizationViews:
         renderer="lms:templates/admin/organizations.html.jinja2",
     )
     def search(self):
-        if public_id := self.request.params.get("public_id"):
-            try:
-                orgs = [self.organization_service.get_by_public_id(public_id)]
-            except InvalidPublicId as err:
-                self.request.session.flash(str(err), "errors")
-                orgs = []
-
-        else:
+        try:
             orgs = self.organization_service.search(
-                name=self.request.params.get("name", "").strip()
+                name=self.request.params.get("name"),
+                public_id=self.request.params.get("public_id"),
             )
+        except InvalidPublicId as err:
+            self.request.session.flash(str(err), "errors")
+            orgs = []
 
         return {"organizations": orgs}
 
