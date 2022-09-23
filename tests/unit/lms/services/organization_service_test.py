@@ -10,13 +10,6 @@ from tests import factories
 
 class TestOrganizationService:
     @pytest.mark.usefixtures("with_matching_noise")
-    def test_get_by_id(self, svc, db_session):
-        org = factories.Organization()
-        db_session.flush()
-
-        assert org == svc.get_by_id(org.id)
-
-    @pytest.mark.usefixtures("with_matching_noise")
     def test_get_by_linked_guid_matches_from_ai(self, svc):
         orgs = factories.Organization.create_batch(2)
         for org in orgs:
@@ -50,6 +43,13 @@ class TestOrganizationService:
 
         assert not svc.get_by_linked_guid(None)
 
+    @pytest.mark.usefixtures("with_matching_noise")
+    def test_get_by_id(self, svc, db_session):
+        org = factories.Organization()
+        db_session.flush()
+
+        assert org == svc.get_by_id(org.id)
+
     def test_get_by_public_id(self, svc, db_session):
         orgs = factories.Organization.create_batch(2)
         db_session.add_all(orgs)
@@ -58,6 +58,38 @@ class TestOrganizationService:
         result = svc.get_by_public_id(orgs[1].public_id)
 
         assert result == orgs[1]
+
+    @pytest.mark.usefixtures("with_matching_noise")
+    @pytest.mark.parametrize(
+        "param,field", (("name", "name"), ("public_id", "public_id"))
+    )
+    def test_search(self, svc, param, field, db_session):
+        org = factories.Organization(name="NAME")
+        # Ensure ids are written
+        db_session.add(org)
+        db_session.flush()
+
+        assert svc.search(**{param: getattr(org, field)}) == [org]
+
+    def test_search_limit(self, svc):
+        orgs = factories.Organization.create_batch(10)
+
+        result = svc.search(limit=5)
+
+        assert len(result) == 5
+        assert orgs == Any.list.containing(result)
+
+    @pytest.mark.usefixtures("with_matching_noise")
+    def test_search_performs_an_or_by_default(self, svc, db_session):
+        orgs = factories.Organization.create_batch(2)
+        # Ensure ids are written
+        db_session.add_all(orgs)
+        db_session.flush()
+
+        assert (
+            svc.search(name=orgs[0].name, public_id=orgs[1].public_id)
+            == Any.list.containing(orgs).only()
+        )
 
     def test_auto_assign_organization_with_no_guid(self, svc, application_instance):
         application_instance.tool_consumer_instance_guid = None
@@ -126,12 +158,6 @@ class TestOrganizationService:
 
         if enabled is not None:
             assert org.enabled == enabled
-
-    @pytest.mark.usefixtures("with_matching_noise")
-    def test_search_by_name(self, svc):
-        org = factories.Organization(name="NAME")
-
-        assert svc.search(name="NAME") == [org]
 
     @pytest.fixture
     def with_matching_noise(self):
