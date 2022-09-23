@@ -108,6 +108,7 @@ class AdminOrganizationViews:
         try:
             orgs = self.organization_service.search(
                 name=self.request.params.get("name"),
+                id_=self.request.params.get("id"),
                 public_id=self.request.params.get("public_id"),
             )
         except InvalidPublicId as err:

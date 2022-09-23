@@ -19,6 +19,7 @@ Organizations
         <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
 
         {{ macros.form_text_field(request, "Public ID", "public_id") }}
+        {{ macros.form_text_field(request, "ID", "id") }}
         {{ macros.form_text_field(request, "Name", "name") }}
         {% call macros.field_body(label="") %}
             <input type="submit" class="button is-info" value="Search" />
@@ -35,6 +36,7 @@ Organizations
           <thead>
             <tr>
               <th></th>
+              <th>Public ID</th>
               <th>ID</th>
               <th>Name</th>
             </tr>
@@ -46,6 +48,7 @@ Organizations
                     <a class="button" href="{{ request.route_url('admin.organization', id_=org.id) }}">View</a>
                   </td>
                   <td>{{org.public_id}}</td>
+                  <td>{{org.id}}</td>
                   <td>{{org.name}}</td>
                </tr>
             {% endfor %}
