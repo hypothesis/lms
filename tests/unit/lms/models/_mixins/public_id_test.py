@@ -25,6 +25,14 @@ class TestPublicIdMixin:
             r"ca\.lms\.model_test\.[A-Za-z0-9-_]{22}"
         )
 
+    def test_public_id_is_not_generated_when_there_is_no_instance_id(self):
+        model = ModelTestHost()
+        # Note we aren't flushing, so this should not have a `_public_id`
+        # pylint: disable=protected-access
+        assert not model._public_id
+
+        assert not model.public_id(Regions.US)
+
     @pytest.fixture
     def model(self, db_session):
         model = ModelTestHost()
