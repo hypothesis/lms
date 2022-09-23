@@ -96,11 +96,15 @@ class TestAdminOrganizationViews:
         pyramid_request.params["public_id"] = sentinel.public_id
         pyramid_request.params["name"] = sentinel.name
         pyramid_request.params["id"] = sentinel.id
+        pyramid_request.params["guid"] = sentinel.guid
 
         result = views.search()
 
         organization_service.search.assert_called_once_with(
-            name=sentinel.name, public_id=sentinel.public_id, id_=sentinel.id
+            name=sentinel.name,
+            public_id=sentinel.public_id,
+            id_=sentinel.id,
+            guid=sentinel.guid,
         )
         assert result == {"organizations": organization_service.search.return_value}
 

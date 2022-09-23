@@ -21,6 +21,7 @@ Organizations
         {{ macros.form_text_field(request, "Public ID", "public_id") }}
         {{ macros.form_text_field(request, "ID", "id") }}
         {{ macros.form_text_field(request, "Name", "name") }}
+        {{ macros.form_text_field(request, "Linked GUID", "guid") }}
         {% call macros.field_body(label="") %}
             <input type="submit" class="button is-info" value="Search" />
         {% endcall %}
