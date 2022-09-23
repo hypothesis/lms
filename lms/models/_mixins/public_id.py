@@ -28,6 +28,9 @@ class PublicIdMixin:
     def public_id(self, region: Region) -> Optional[str]:
         """Get the globally unique id which also indicates the region."""
 
+        if not self._public_id:
+            return None
+
         return str(
             PublicId(
                 region=region,
