@@ -4,9 +4,28 @@ from typing import List, Optional
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
-from lms.models import ApplicationInstance, GroupInfo, Organization
+from lms.models import ApplicationInstance, GroupInfo, Organization, Region
+from lms.models.public_id import InvalidPublicId, PublicId
 
 LOG = getLogger(__name__)
+
+
+def _cast_to_int(value):
+    try:
+        if (int_value := int(value)) and int_value < 2147483647:
+            return int_value
+
+    except (ValueError, TypeError):
+        return None
+
+
+def _cast_to_public_id(string, region):
+    try:
+        return str(
+            PublicId.parse(string, expect_model_code="org", expect_region=region)
+        )
+    except InvalidPublicId:
+        return None
 
 
 class OrganizationService:
@@ -47,6 +66,19 @@ class OrganizationService:
             )
             .limit(limit)
             .all()
+        )
+
+    def web_search(self, query, limit=100) -> List[Organization]:
+        """Search for organizations based on a single query string."""
+
+        # The trick here is we will attempt to search in every way we can
+        # simultaneously, using the same query, as long as we can interpret it
+        return self.search(
+            id_=_cast_to_int(query),
+            public_id=_cast_to_public_id(query, self._region),
+            name=query,
+            guid=query.strip(),
+            limit=limit,
         )
 
     def _organization_search_query(

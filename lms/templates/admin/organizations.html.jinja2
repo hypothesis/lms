@@ -18,10 +18,7 @@ Organizations
     <form method="POST" action="{{ request.route_url("admin.organizations") }}">
         <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
 
-        {{ macros.form_text_field(request, "Public ID", "public_id") }}
-        {{ macros.form_text_field(request, "ID", "id") }}
-        {{ macros.form_text_field(request, "Name", "name") }}
-        {{ macros.form_text_field(request, "Linked GUID", "guid") }}
+        {{ macros.form_text_field(request, "Query", "query") }}
         {% call macros.field_body(label="") %}
             <input type="submit" class="button is-info" value="Search" />
         {% endcall %}
