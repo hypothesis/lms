@@ -69,7 +69,7 @@ class OrganizationService:
             )
 
         if guid:
-            query = query.join(ApplicationInstance).outerjoin(GroupInfo)
+            query = query.outerjoin(ApplicationInstance).outerjoin(GroupInfo)
 
             clauses.extend(
                 sa.or_(
