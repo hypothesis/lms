@@ -3,6 +3,7 @@ from unittest.mock import sentinel
 import pytest
 from pyramid.httpexceptions import HTTPNotFound
 
+from lms.models.public_id import InvalidPublicId
 from lms.views.admin.organization import AdminOrganizationViews
 from tests import factories
 from tests.matchers import temporary_redirect_to
@@ -102,6 +103,17 @@ class TestAdminOrganizationViews:
         assert result == {
             "organizations": [organization_service.get_by_public_id.return_value]
         }
+
+    def test_search_handles_invalid_public_id(
+        self, pyramid_request, organization_service, views
+    ):
+        organization_service.get_by_public_id.side_effect = InvalidPublicId
+        pyramid_request.params["public_id"] = "NOT A VALID PUBLIC ID"
+
+        result = views.search()
+
+        assert pyramid_request.session.peek_flash("errors")
+        assert result == {"organizations": []}
 
     def test_search_by_name(self, pyramid_request, organization_service, views):
         pyramid_request.params["name"] = "   NAME "
