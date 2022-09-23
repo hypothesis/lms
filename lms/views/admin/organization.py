@@ -5,6 +5,7 @@ from webargs import fields
 
 from lms.events import AuditTrailEvent
 from lms.models import Organization
+from lms.models.public_id import InvalidPublicId
 from lms.security import Permissions
 from lms.services import OrganizationService
 from lms.validation._base import PyramidRequestSchema
@@ -105,7 +106,12 @@ class AdminOrganizationViews:
     )
     def search(self):
         if public_id := self.request.params.get("public_id"):
-            orgs = [self.organization_service.get_by_public_id(public_id)]
+            try:
+                orgs = [self.organization_service.get_by_public_id(public_id)]
+            except InvalidPublicId as err:
+                self.request.session.flash(str(err), "errors")
+                orgs = []
+
         else:
             orgs = self.organization_service.search(
                 name=self.request.params.get("name", "").strip()
