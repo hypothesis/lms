@@ -15,9 +15,6 @@ class OrganizationService:
     def __init__(self, db_session: Session):
         self._db_session = db_session
 
-    def get_by_id(self, id_) -> Optional[Organization]:
-        return self._db_session.query(Organization).filter_by(id=id_).one_or_none()
-
     def get_by_linked_guid(self, guid) -> List[Organization]:
         """Get organizations which match the provided GUID."""
 
@@ -39,29 +36,40 @@ class OrganizationService:
             .all()
         )
 
+    def get_by_id(self, id_) -> Optional[Organization]:
+        """Get an organization by its private primary key."""
+
+        return self._organization_search_query(id_=id_).one_or_none()
+
     def get_by_public_id(self, public_id: str) -> Optional[List]:
         """Get an organization by its public_id."""
 
         return self._organization_search_query(public_id=public_id).one_or_none()
 
-    def search(self, public_id=None, name=None, limit=100) -> List[Organization]:
+    def search(
+        self, id_=None, public_id=None, name=None, limit=100
+    ) -> List[Organization]:
         """
         Search for organizations.
 
         The results are returned as an OR of the specified filters.
 
+        :param id_: Match on primary key
         :param public_id: Match on public id
         :param name: Match organization by name. Case-insensitive.
         :param limit: Limit the number of results
         """
         return (
-            self._organization_search_query(public_id=public_id, name=name)
+            self._organization_search_query(id_=id_, public_id=public_id, name=name)
             .limit(limit)
             .all()
         )
 
-    def _organization_search_query(self, public_id=None, name=None):
+    def _organization_search_query(self, id_=None, public_id=None, name=None):
         clauses = []
+
+        if id_:
+            clauses.append(Organization.id == id_)
 
         if public_id:
             clauses.append(Organization.public_id == public_id)

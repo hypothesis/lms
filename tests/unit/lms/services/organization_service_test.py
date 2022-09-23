@@ -61,7 +61,7 @@ class TestOrganizationService:
 
     @pytest.mark.usefixtures("with_matching_noise")
     @pytest.mark.parametrize(
-        "param,field", (("name", "name"), ("public_id", "public_id"))
+        "param,field", (("name", "name"), ("public_id", "public_id"), ("id_", "id"))
     )
     def test_search(self, svc, param, field, db_session):
         org = factories.Organization(name="NAME")
