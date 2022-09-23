@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import List
+from typing import List, Optional
 
 import xmltodict
 from marshmallow import EXCLUDE, Schema, fields
