@@ -15,19 +15,6 @@ class OrganizationService:
     def __init__(self, db_session: Session):
         self._db_session = db_session
 
-    def get_by_linked_guid(self, guid) -> List[Organization]:
-        """Get organizations which match the provided GUID."""
-
-        # There are huge numbers of null GUIDs, don't match on them
-        if not guid:
-            return []
-
-        return (
-            self._organization_search_query(guid=guid)
-            .order_by(Organization.updated.desc())
-            .all()
-        )
-
     def get_by_id(self, id_) -> Optional[Organization]:
         """Get an organization by its private primary key."""
 
@@ -116,7 +103,11 @@ class OrganizationService:
         if application_instance.organization:
             org = application_instance.organization
 
-        elif orgs := self.get_by_linked_guid(guid):
+        elif (
+            orgs := self._organization_search_query(guid=guid)
+            .order_by(Organization.updated.desc())
+            .all()
+        ):
             if len(orgs) > 1:
                 LOG.warning(
                     "Multiple organization matches found for application instance %s",
