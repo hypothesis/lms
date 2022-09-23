@@ -44,14 +44,17 @@ class OrganizationService:
 
         return self._search_query(public_id=public_id).one_or_none()
 
-    def search(self, name, limit=100):
+    def search(self, public_id=None, name=None, limit=100) -> List[Organization]:
         """
-        Search organizations.
+        Search for organizations.
 
+        The results are returned as an OR of the specified filters.
+
+        :param public_id: Match on public id
         :param name: Match organization by name. Case-insensitive.
         :param limit: Limit the number of results
         """
-        return self._search_query(name=name).limit(limit).all()
+        return self._search_query(public_id=public_id, name=name).limit(limit).all()
 
     def _search_query(self, public_id=None, name=None):
         clauses = []
