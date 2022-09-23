@@ -110,6 +110,7 @@ class AdminOrganizationViews:
                 name=self.request.params.get("name"),
                 id_=self.request.params.get("id"),
                 public_id=self.request.params.get("public_id"),
+                guid=self.request.params.get("guid"),
             )
         except InvalidPublicId as err:
             self.request.session.flash(str(err), "errors")
