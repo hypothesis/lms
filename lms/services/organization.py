@@ -52,19 +52,26 @@ class OrganizationService:
         """
         Search organizations.
 
-        :param name: Match organization by name. Case insensitive.
+        :param name: Match organization by name. Case-insensitive.
         :param limit: Limit the number of results
         """
-        return (
-            self._db_session.query(Organization)
-            .filter(
+        return self._search_query(name=name).limit(limit).all()
+
+    def _search_query(self, name=None):
+        query = self._db_session.query(Organization)
+
+        clauses = []
+        if name:
+            clauses.append(
                 sa.func.to_tsvector("english", Organization.name).op("@@")(
                     sa.func.websearch_to_tsquery(name, postgresql_regconfig="english")
                 )
             )
-            .limit(limit)
-            .all()
-        )
+
+        if clauses:
+            query = query.filter(sa.or_(*clauses))
+
+        return query
 
     def auto_assign_organization(
         self, application_instance: ApplicationInstance
