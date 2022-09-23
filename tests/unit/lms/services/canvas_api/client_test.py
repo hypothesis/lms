@@ -176,6 +176,7 @@ class TestCanvasAPIClientIntegrated:
                 "name": "Group 1",
                 "description": "Group 1",
                 "group_category_id": 1,
+                "users": [{"id": 1}],
             },
             {
                 "id": 2,
@@ -184,6 +185,7 @@ class TestCanvasAPIClientIntegrated:
                 "group_category_id": 1,
             },
         ]
+
         http_session.send.return_value = factories.requests.Response(
             status_code=200, json_data=groups
         )
@@ -191,6 +193,9 @@ class TestCanvasAPIClientIntegrated:
         response = canvas_api_client.course_groups(
             "COURSE_ID", only_own_groups=only_own_groups, include_users=include_users
         )
+
+        if include_users:
+            groups[1]["users"] = []
 
         assert response == groups
 

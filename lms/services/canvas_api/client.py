@@ -327,13 +327,21 @@ class CanvasAPIClient:
             # requests.
             send_kwargs["timeout"] = (31, 31)
 
-        return self._client.send(
+        groups = self._client.send(
             "GET",
             f"courses/{course_id}/groups",
             params=params,
             schema=self._ListGroups,
             **send_kwargs,
         )
+
+        # Sometimes Canvas doesn't send us users, even if we ask for them, so
+        # to ensure nobody crashes down-stream, we'll pop back in blank lists
+        if include_users:
+            for group in groups:
+                group.setdefault("users", [])
+
+        return groups
 
     def current_user_groups(self, course_id, group_category_id=None):
         """
@@ -385,10 +393,7 @@ class CanvasAPIClient:
 
             id = fields.Integer(required=True)
 
-        users = fields.List(
-            fields.Nested(_Users),
-            required=False,
-        )
+        users = fields.List(fields.Nested(_Users), required=False)
 
         many = True
         id = fields.Integer(required=True)
