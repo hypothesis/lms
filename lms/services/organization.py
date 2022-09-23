@@ -42,11 +42,7 @@ class OrganizationService:
     def get_by_public_id(self, public_id: str) -> Optional[List]:
         """Get an organization by its public_id."""
 
-        return (
-            self._db_session.query(Organization)
-            .filter(Organization.public_id == public_id)
-            .one_or_none()
-        )
+        return self._search_query(public_id=public_id).one_or_none()
 
     def search(self, name, limit=100):
         """
@@ -57,10 +53,12 @@ class OrganizationService:
         """
         return self._search_query(name=name).limit(limit).all()
 
-    def _search_query(self, name=None):
-        query = self._db_session.query(Organization)
-
+    def _search_query(self, public_id=None, name=None):
         clauses = []
+
+        if public_id:
+            clauses.append(Organization.public_id == public_id)
+
         if name:
             clauses.append(
                 sa.func.to_tsvector("english", Organization.name).op("@@")(
@@ -68,6 +66,7 @@ class OrganizationService:
                 )
             )
 
+        query = self._db_session.query(Organization)
         if clauses:
             query = query.filter(sa.or_(*clauses))
 
