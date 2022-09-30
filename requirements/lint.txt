@@ -123,7 +123,7 @@ click-repl==0.2.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   celery
-coverage==6.4.4
+coverage==6.5.0
     # via -r requirements/tests.txt
 cryptography==36.0.2
     # via
