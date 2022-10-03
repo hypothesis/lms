@@ -134,7 +134,7 @@ def devdata():
             git_dir = os.path.join(tmpdirname, "devdata")
 
             subprocess.check_call(
-                ["git", "clone", "git@github.com:hypothesis/devdata.git", git_dir]
+                ["git", "clone", "https://github.com/hypothesis/devdata.git", git_dir]
             )
 
             # Copy devdata env file into place.
