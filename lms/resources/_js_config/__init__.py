@@ -510,9 +510,7 @@ class JSConfig:
         ai = self._context.application_instance
 
         return {
-            "Organization ID": ai.organization.public_id(self._request.region)
-            if ai.organization
-            else None,
+            "Organization ID": ai.organization.public_id if ai.organization else None,
             "Application Instance ID": ai.id,
             "LTI version": ai.lti_version,
         }

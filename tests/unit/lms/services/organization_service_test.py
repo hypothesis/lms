@@ -51,11 +51,11 @@ class TestOrganizationService:
 
         assert not svc.get_by_linked_guid(None)
 
-    def test_get_by_public_id(self, svc, pyramid_request, db_session, get_by_public_id):
+    def test_get_by_public_id(self, svc, db_session, get_by_public_id):
         svc.get_by_public_id(sentinel.public_id)
 
         get_by_public_id.assert_called_once_with(
-            db_session, Organization, sentinel.public_id, region=pyramid_request.region
+            db_session, Organization, sentinel.public_id
         )
 
     @pytest.mark.parametrize(
@@ -149,8 +149,8 @@ class TestOrganizationService:
         )
 
     @pytest.fixture
-    def svc(self, db_session, pyramid_request):
-        return OrganizationService(db_session=db_session, region=pyramid_request.region)
+    def svc(self, db_session):
+        return OrganizationService(db_session=db_session)
 
     @pytest.fixture
     def application_instance(self):
@@ -167,9 +167,7 @@ class TestServiceFactory:
     def test_it(self, pyramid_request, OrganizationService):
         svc = service_factory(sentinel.context, pyramid_request)
 
-        OrganizationService.assert_called_once_with(
-            db_session=pyramid_request.db, region=pyramid_request.region
-        )
+        OrganizationService.assert_called_once_with(db_session=pyramid_request.db)
         assert svc == OrganizationService.return_value
 
     @pytest.fixture

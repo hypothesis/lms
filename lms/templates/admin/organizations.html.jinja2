@@ -7,7 +7,7 @@ Organizations
 
 {% block content %}
 <div class="block has-text-right">
-    <a class="button is-primary" 
+    <a class="button is-primary"
         href="{{ request.route_url("admin.organization.new") }}">
         New organization
     </a>
@@ -26,7 +26,7 @@ Organizations
     </form>
 </fieldset>
 
-{% if organizations is defined %} 
+{% if organizations is defined %}
 <fieldset class="box mt-6">
 <legend class="label has-text-centered">Results</legend>
 <div class="container">
@@ -45,7 +45,7 @@ Organizations
                   <td>
                     <a class="button" href="{{ request.route_url('admin.organization', id_=org.id) }}">View</a>
                   </td>
-                  <td>{{org.public_id(request.region)}}</td>
+                  <td>{{org.public_id}}</td>
                   <td>{{org.name}}</td>
                </tr>
             {% endfor %}

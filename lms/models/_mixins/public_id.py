@@ -1,9 +1,10 @@
 from typing import Optional
 
 import sqlalchemy as sa
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from lms.models.public_id import PublicId
-from lms.models.region import Region
+from lms.models.region import Regions
 
 
 class PublicIdMixin:
@@ -25,7 +26,8 @@ class PublicIdMixin:
     public_id_model_code = None
     """The short code which identifies this type of model."""
 
-    def public_id(self, region: Region) -> Optional[str]:
+    @hybrid_property
+    def public_id(self) -> Optional[str]:
         """Get the globally unique id which also indicates the region."""
 
         if not self._public_id:
@@ -33,7 +35,7 @@ class PublicIdMixin:
 
         return str(
             PublicId(
-                region=region,
+                region=Regions.get_region(),
                 model_code=self.public_id_model_code,
                 instance_id=self._public_id,
             )
