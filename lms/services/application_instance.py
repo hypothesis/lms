@@ -7,7 +7,6 @@ from typing import List
 from sqlalchemy.exc import NoResultFound
 
 from lms.models import ApplicationInstance, LTIParams, LTIRegistration
-from lms.models.region import Region
 from lms.services.aes import AESService
 from lms.services.exceptions import SerializableError
 from lms.services.organization import OrganizationService
@@ -23,12 +22,12 @@ class ApplicationInstanceNotFound(Exception):
 class AccountDisabled(SerializableError):
     """Indicate that we have disabled this account through it's org."""
 
-    def __init__(self, application_instance: ApplicationInstance, region: Region):
+    def __init__(self, application_instance: ApplicationInstance):
         super().__init__(
             message="Account has been disabled",
             error_code="account_disabled",
             details={
-                "organization_id": application_instance.organization.public_id(region),
+                "organization_id": application_instance.organization.public_id,
                 "application_instance_id": application_instance.id,
             },
         )
@@ -77,7 +76,7 @@ class ApplicationInstanceService:
                     application_instance.id,
                     org.id,
                 )
-                raise AccountDisabled(application_instance, region=self._request.region)
+                raise AccountDisabled(application_instance)
 
             return application_instance
 

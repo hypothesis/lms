@@ -7,9 +7,9 @@ import sqlalchemy
 from pyramid import testing
 from pyramid.request import apply_request_extensions
 
+from lms import models
 from lms.db import SESSION
 from lms.models import ApplicationSettings
-from lms.models.region import Regions
 from lms.product import Product
 from lms.security import Identity
 from tests import factories
@@ -121,7 +121,6 @@ def pyramid_request(db_session, application_instance, lti_v11_params):
     pyramid_request.lti_jwt = {}
     pyramid_request.lti_params = {}
     pyramid_request.product = Product.from_request(pyramid_request)
-    pyramid_request.region = Regions.US
 
     # The DummyRequest request lacks a content_type property which the real
     # request has
@@ -297,3 +296,8 @@ def oauth_token(lti_user, application_instance):
         user_id=lti_user.user_id,
         application_instance=application_instance,
     )
+
+
+@pytest.fixture(autouse=True, scope="session")
+def with_us_region():
+    models.Regions.set_region(authority="lms.hypothes.is")

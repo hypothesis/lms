@@ -2,7 +2,6 @@ import pytest
 from h_matchers import Any
 
 from lms.models import ApplicationInstance
-from lms.models.region import Regions
 from tests import factories
 
 
@@ -52,8 +51,8 @@ class TestOrganization:
         # Flush to ensure the default is applied
         db_session.flush()
 
-        assert organization.public_id(Regions.CA) == Any.string.matching(
-            r"ca\.lms\.org\.[A-Za-z0-9-_]{22}"
+        assert organization.public_id == Any.string.matching(
+            r"us\.lms\.org\.[A-Za-z0-9-_]{22}"
         )
 
     @pytest.fixture

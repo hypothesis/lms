@@ -4,7 +4,6 @@ from h_matchers import Any
 
 from lms.db import BASE
 from lms.models._mixins.public_id import PublicIdMixin
-from lms.models.region import Regions
 
 
 class ModelTestHost(PublicIdMixin, BASE):
@@ -20,9 +19,8 @@ class TestPublicIdMixin:
         assert model._public_id == Any.string.matching(r"[A-Za-z0-9-_]{22}")
 
     def test_public_id(self, model):
-        public_id = model.public_id(region=Regions.CA)
-        assert public_id == Any.string.matching(
-            r"ca\.lms\.model_test\.[A-Za-z0-9-_]{22}"
+        assert model.public_id == Any.string.matching(
+            r"us\.lms\.model_test\.[A-Za-z0-9-_]{22}"
         )
 
     def test_public_id_is_not_generated_when_there_is_no_instance_id(self):
@@ -31,7 +29,7 @@ class TestPublicIdMixin:
         # pylint: disable=protected-access
         assert not model._public_id
 
-        assert not model.public_id(Regions.US)
+        assert not model.public_id
 
     @pytest.fixture
     def model(self, db_session):

@@ -4,7 +4,7 @@ from typing import List, Optional
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
-from lms.models import ApplicationInstance, GroupInfo, Organization, Region
+from lms.models import ApplicationInstance, GroupInfo, Organization
 from lms.services.public_id import get_by_public_id
 
 LOG = getLogger(__name__)
@@ -13,9 +13,8 @@ LOG = getLogger(__name__)
 class OrganizationService:
     """A service for dealing with organization actions."""
 
-    def __init__(self, db_session: Session, region: Region):
+    def __init__(self, db_session: Session):
         self._db_session = db_session
-        self._region = region
 
     def get_by_id(self, id_) -> Optional[Organization]:
         return self._db_session.query(Organization).filter_by(id=id_).one_or_none()
@@ -43,9 +42,7 @@ class OrganizationService:
 
     def get_by_public_id(self, public_id: str) -> Optional[List]:
         """Get an organization by its public_id."""
-        return get_by_public_id(
-            self._db_session, Organization, public_id, region=self._region
-        )
+        return get_by_public_id(self._db_session, Organization, public_id)
 
     def search(self, name, limit=100):
         """
@@ -127,4 +124,4 @@ class OrganizationService:
 def service_factory(_context, request) -> OrganizationService:
     """Get a new instance of OrganizationService."""
 
-    return OrganizationService(db_session=request.db, region=request.region)
+    return OrganizationService(db_session=request.db)
