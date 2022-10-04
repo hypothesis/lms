@@ -10,7 +10,7 @@
     <legend class="label has-text-centered">Organization</legend>
     <form method="POST" action="{{ request.route_url("admin.organization", id_=org.id) }}">
         <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
-        {{ macros.disabled_text_field("ID", org.public_id(request.region)) }}
+        {{ macros.disabled_text_field("ID", org.public_id) }}
         {{ macros.form_text_field(request, "Name", "name", org.name) }}
         {{ macros.created_updated_fields(org) }}
         <div class="has-text-right mb-6">

@@ -1,13 +1,13 @@
 from typing import Optional, TypeVar
 
-from lms.models import Region
+from lms.models.region import Regions
 from lms.validation import ValidationError
 
 Model = TypeVar("Model")
 
 
-def get_by_public_id(  # pylint:disable=too-many-arguments
-    db, model: Model, public_id: str, region: Region, app="lms", type_="org"
+def get_by_public_id(
+    db, model: Model, public_id: str, app="lms", type_="org"
 ) -> Optional[Model]:
     """
     Get a `model` by their public_id.
@@ -28,6 +28,7 @@ def get_by_public_id(  # pylint:disable=too-many-arguments
             messages={"public_id": [f"{public_id} doesn't have the right format"]}
         ) from err
 
+    region = Regions.get_region()
     if id_region != region.code:
         raise ValidationError(
             messages={
