@@ -1,4 +1,5 @@
 from unittest import mock
+from unittest.mock import sentinel
 
 import pytest
 
@@ -26,10 +27,29 @@ class TestConfigureJinja2Assets:
 
 
 class TestCreateApp:
-    def test_it_doesnt_crash(self, pyramid_config):
-        create_app(pyramid_config)
+    def test_it(self, configure, Regions):
+        settings = {"key": "value"}
 
+        create_app(sentinel.pyramid_config, **settings)
 
-@pytest.fixture(autouse=True)
-def configure(patch):
-    return patch("lms.app.configure")
+        configure.assert_called_once_with(settings=settings)
+        Regions.set_region.assert_called_once_with(sentinel.h_authority)
+
+    @pytest.fixture(autouse=True)
+    def registry(self, configure):
+        registry = configure.return_value.registry
+        registry.settings = {
+            "h_authority": sentinel.h_authority,
+            "lms_secret": sentinel.lms_secret,
+            "admin_auth_google_client_id": sentinel.admin_auth_google_client_id,
+            "admin_auth_google_client_secret": sentinel.admin_auth_google_client_secret,
+        }
+        return registry
+
+    @pytest.fixture(autouse=True)
+    def Regions(self, patch):
+        return patch("lms.app.Regions")
+
+    @pytest.fixture(autouse=True)
+    def configure(self, patch):
+        return patch("lms.app.configure")

@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 
-from pyramid.request import Request
-
 
 @dataclass(frozen=True)
 class Region:
@@ -27,17 +25,36 @@ class Regions:
 
     _AUTHORITY_MAP = {region.authority: region for region in ALL}
 
+    _current_region: Region = None
+
     @classmethod
-    def from_request(cls, request: Request) -> Region:
+    def get_region(cls) -> Region:
         """
-        Get a region object based on a request.
+        Get the region this app is running in.
 
-        :raises ValueError: If no valid region can be found.
+        :raises ValueError: If the active region has not been set
         """
-        authority = request.registry.settings["h_authority"]
+        if cls._current_region is None:
+            raise ValueError(
+                "You must set the active region with `set_region()` "
+                "before it can be accessed"
+            )
 
+        return cls._current_region
+
+    @classmethod
+    def set_region(cls, authority: str):
+        """
+        Set the region this app is running in.
+
+        This is intended to be called once and accessed as a singleton via
+        `get_region()`.
+        :param authority: The H authority for this app.
+
+        :raises ValueError: If the authority provided doesn't match a region
+        """
         try:
-            return cls._AUTHORITY_MAP[authority]
+            cls._current_region = cls._AUTHORITY_MAP[authority]
         except KeyError as err:
             raise ValueError(
                 f"Cannot find a region for the authority '{authority}'"
@@ -46,5 +63,8 @@ class Regions:
 
 def includeme(config):
     config.add_request_method(
-        Regions.from_request, name="region", property=True, reify=True
+        lambda _request: Regions.get_region(),
+        name="region",
+        property=True,
+        reify=True,
     )
