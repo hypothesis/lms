@@ -1,0 +1,4 @@
+paths-ignore:
+  - 'tests/**/**/*.py'
+  - 'tests/**/*.py'
+  - 'lms/static/scripts/frontend_apps/utils/test/*-test.js'
