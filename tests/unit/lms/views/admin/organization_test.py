@@ -104,6 +104,16 @@ class TestAdminOrganizationViews:
             "organizations": [organization_service.get_by_public_id.return_value]
         }
 
+    def test_search_by_public_id_no_results(
+        self, pyramid_request, organization_service, views
+    ):
+        organization_service.get_by_public_id.return_value = None
+        pyramid_request.params["public_id"] = sentinel.public_id
+
+        result = views.search()
+
+        assert result == {"organizations": []}
+
     def test_search_handles_invalid_public_id(
         self, pyramid_request, organization_service, views
     ):

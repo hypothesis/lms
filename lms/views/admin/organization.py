@@ -105,18 +105,18 @@ class AdminOrganizationViews:
         renderer="lms:templates/admin/organizations.html.jinja2",
     )
     def search(self):
+        orgs = []
         if public_id := self.request.params.get("public_id"):
             try:
-                orgs = [self.organization_service.get_by_public_id(public_id)]
+                if org := self.organization_service.get_by_public_id(public_id):
+                    orgs = [org]
             except InvalidPublicId as err:
                 self.request.session.flash(str(err), "errors")
-                orgs = []
 
         else:
             orgs = self.organization_service.search(
                 name=self.request.params.get("name", "").strip()
             )
-
         return {"organizations": orgs}
 
     def _get_org_or_404(self, id_) -> Organization:
