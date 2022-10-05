@@ -107,10 +107,10 @@ class AdminOrganizationViews:
     def search(self):
         try:
             orgs = self.organization_service.search(
-                name=self.request.params.get("name"),
-                id_=self.request.params.get("id"),
-                public_id=self.request.params.get("public_id"),
-                guid=self.request.params.get("guid"),
+                name=self.request.params.get("name", "").strip(),
+                id_=self.request.params.get("id", "").strip(),
+                public_id=self.request.params.get("public_id", "").strip(),
+                guid=self.request.params.get("guid", "").strip(),
             )
         except InvalidPublicId as err:
             self.request.session.flash(str(err), "errors")
