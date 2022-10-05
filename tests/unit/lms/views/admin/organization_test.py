@@ -93,20 +93,24 @@ class TestAdminOrganizationViews:
         return patch("lms.views.admin.organization.AuditTrailEvent")
 
     def test_search(self, pyramid_request, organization_service, views):
-        pyramid_request.params["public_id"] = sentinel.public_id
-        pyramid_request.params["name"] = sentinel.name
-        pyramid_request.params["id"] = sentinel.id
-        pyramid_request.params["guid"] = sentinel.guid
+        pyramid_request.params["public_id"] = " PUBLIC_ID "
+        pyramid_request.params["name"] = " NAME "
+        pyramid_request.params["id"] = " ID "
+        pyramid_request.params["guid"] = " GUID  "
 
         result = views.search()
 
         organization_service.search.assert_called_once_with(
-            name=sentinel.name,
-            public_id=sentinel.public_id,
-            id_=sentinel.id,
-            guid=sentinel.guid,
+            name="NAME", public_id="PUBLIC_ID", id_="ID", guid="GUID"
         )
         assert result == {"organizations": organization_service.search.return_value}
+
+    def test_blank_search(self, views, organization_service):
+        views.search()
+
+        organization_service.search.assert_called_once_with(
+            name="", public_id="", id_="", guid=""
+        )
 
     def test_search_handles_invalid_public_id(
         self, pyramid_request, organization_service, views
