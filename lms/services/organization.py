@@ -42,7 +42,7 @@ class OrganizationService:
     def get_by_public_id(self, public_id: str) -> Optional[List]:
         """Get an organization by its public_id."""
 
-        return self._search_query(public_id=public_id).one_or_none()
+        return self._organization_search_query(public_id=public_id).one_or_none()
 
     def search(self, public_id=None, name=None, limit=100) -> List[Organization]:
         """
@@ -54,9 +54,13 @@ class OrganizationService:
         :param name: Match organization by name. Case-insensitive.
         :param limit: Limit the number of results
         """
-        return self._search_query(public_id=public_id, name=name).limit(limit).all()
+        return (
+            self._organization_search_query(public_id=public_id, name=name)
+            .limit(limit)
+            .all()
+        )
 
-    def _search_query(self, public_id=None, name=None):
+    def _organization_search_query(self, public_id=None, name=None):
         clauses = []
 
         if public_id:
