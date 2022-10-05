@@ -69,7 +69,7 @@ class OrganizationService:
         if name:
             clauses.append(
                 sa.func.to_tsvector("english", Organization.name).op("@@")(
-                    sa.func.websearch_to_tsquery(name, postgresql_regconfig="english")
+                    sa.func.websearch_to_tsquery("english", name)
                 )
             )
 
