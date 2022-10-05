@@ -23,15 +23,7 @@ class OrganizationService:
             return []
 
         return (
-            self._db_session.query(Organization)
-            .join(ApplicationInstance)
-            .outerjoin(GroupInfo)
-            .filter(
-                sa.or_(
-                    ApplicationInstance.tool_consumer_instance_guid == guid,
-                    GroupInfo.tool_consumer_instance_guid == guid,
-                )
-            )
+            self._organization_search_query(guid=guid)
             .order_by(Organization.updated.desc())
             .all()
         )
@@ -46,8 +38,9 @@ class OrganizationService:
 
         return self._organization_search_query(public_id=public_id).one_or_none()
 
+    # pylint:disable=too-many-arguments
     def search(
-        self, id_=None, public_id=None, name=None, limit=100
+        self, id_=None, public_id=None, name=None, guid=None, limit=100
     ) -> List[Organization]:
         """
         Search for organizations.
@@ -57,15 +50,22 @@ class OrganizationService:
         :param id_: Match on primary key
         :param public_id: Match on public id
         :param name: Match organization by name. Case-insensitive.
+        :param guid: Match organizations linked in any way to the specified
+            tool consumer instance GUID
         :param limit: Limit the number of results
         """
         return (
-            self._organization_search_query(id_=id_, public_id=public_id, name=name)
+            self._organization_search_query(
+                id_=id_, public_id=public_id, name=name, guid=guid
+            )
             .limit(limit)
             .all()
         )
 
-    def _organization_search_query(self, id_=None, public_id=None, name=None):
+    def _organization_search_query(
+        self, id_=None, public_id=None, name=None, guid=None
+    ):
+        query = self._db_session.query(Organization)
         clauses = []
 
         if id_:
@@ -81,7 +81,16 @@ class OrganizationService:
                 )
             )
 
-        query = self._db_session.query(Organization)
+        if guid:
+            query = query.join(ApplicationInstance).outerjoin(GroupInfo)
+
+            clauses.extend(
+                sa.or_(
+                    ApplicationInstance.tool_consumer_instance_guid == guid,
+                    GroupInfo.tool_consumer_instance_guid == guid,
+                )
+            )
+
         if clauses:
             query = query.filter(sa.or_(*clauses))
 
