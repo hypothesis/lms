@@ -1,9 +1,5 @@
 name: Deploy
 
-concurrency:
-  group: ${{ github.event.repository.name }}-deploy
-  cancel-in-progress: true
-
 on:
   workflow_dispatch:
   push:
@@ -16,6 +12,9 @@ jobs:
     name: continuous integration
 
   create-image:
+    concurrency:
+      group: ${{ github.event.repository.name }}-deploy-dockerhub
+      cancel-in-progress: false
     needs: continuous-integration
     uses: hypothesis/workflows/.github/workflows/dockerhub.yml@main
     with:
@@ -23,6 +22,9 @@ jobs:
     secrets: inherit
 
   qa-us-west-1:
+    concurrency:
+      group: ${{ github.event.repository.name }}-deploy-qa
+      cancel-in-progress: false
     needs: create-image
     name: ${{ github.event.repository.name }}
     uses: hypothesis/workflows/.github/workflows/eb-update.yml@main
@@ -35,6 +37,9 @@ jobs:
     secrets: inherit
 
   prod-us-west-1:
+    concurrency:
+      group: ${{ github.event.repository.name }}-deploy-us
+      cancel-in-progress: true
     needs: qa-us-west-1
     name: ${{ github.event.repository.name }}
     uses: hypothesis/workflows/.github/workflows/eb-update.yml@main
@@ -47,6 +52,9 @@ jobs:
     secrets: inherit
 
   prod-ca-central-1:
+    concurrency:
+      group: ${{ github.event.repository.name }}-deploy-ca
+      cancel-in-progress: true
     needs: qa-us-west-1
     name: ${{ github.event.repository.name }}
     uses: hypothesis/workflows/.github/workflows/eb-update.yml@main
