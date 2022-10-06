@@ -6,7 +6,7 @@ from sqlalchemy import PrimaryKeyConstraint
 
 
 from lms.db import BASE
-from lms.models import Organization, Event, ApplicationInstance
+from lms.models import Organization, Event, ApplicationInstance, EventUser, LTIRole
 
 LOG = logging.getLogger(__name__)
 
@@ -75,4 +75,41 @@ class RollUpOrganizationEvents(BASE, RollUpMixin):
             .join(ApplicationInstance)
             .join(Organization)
             .group_by(Organization.id, Event.type_id, column("day"))
+        )
+
+
+class RollUpUsersByOrganization(BASE, RollUpMixin):
+    __tablename__ = "rollup_users_by_org"
+
+    organization_id = sa.Column(
+        sa.Integer(), sa.ForeignKey("organization.id"), nullable=True
+    )
+    organization = sa.orm.relationship("Organization")
+
+    role = sa.Column(sa.Text())
+
+    timestamp = sa.Column(sa.DateTime(), nullable=False, index=True)
+
+    count = sa.Column(sa.Integer(), nullable=False)
+    __table_args__ = (PrimaryKeyConstraint(organization_id, role, timestamp),)
+
+    rollup_index_elements = [organization_id, role, timestamp]
+    rollup_condition = Event.timestamp >= func.date_trunc("day", func.now())
+
+    @classmethod
+    def rollup_query(cls):
+        return (
+            select(
+                Organization.id.label("organization_id"),
+                LTIRole.type,
+                func.date_trunc("day", Event.timestamp).label("day"),
+                func.count(EventUser.user_id.distinct()).label("count"),
+            )
+            .select_from(Event)
+            .join(EventUser)
+            .join(LTIRole)
+            .join(ApplicationInstance)
+            .join(Organization)
+            .where(Event.type_id == 1)  # Launch
+            .group_by(Organization.id, LTIRole.type, column("day"))
         )
