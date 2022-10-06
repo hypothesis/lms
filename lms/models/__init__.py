@@ -30,6 +30,8 @@ from lms.models.region import Region, Regions
 from lms.models.rsa_key import RSAKey
 from lms.models.user import User
 
+from lms.models.reporting import *
+
 
 def includeme(_config):
     pass
