@@ -121,7 +121,7 @@ export class OneDrivePickerClient {
    */
   static downloadURL(sharingURL) {
     const url = new URL(sharingURL);
-    if (url.hostname.endsWith('sharepoint.com')) {
+    if (url.hostname.endsWith('.sharepoint.com')) {
       url.search = 'download=1';
       return url.href;
     } else {
