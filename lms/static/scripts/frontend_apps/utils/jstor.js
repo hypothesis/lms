@@ -6,7 +6,7 @@
  * @param {string} value
  */
 function isDOI(value) {
-  return /^10.([0-9]+\.?)+\/.*/.test(value);
+  return /^10\.([0-9]+\.?)+\/.*/.test(value);
 }
 
 /**
