@@ -61,6 +61,9 @@ describe('utils/jstor', () => {
       // Not a URL or ID
       'foo-bar',
 
+      // DOI-like, but doesn't start with "10."
+      '10a2407/1234',
+
       // Missing "/stable/"
       'http://www.jstor.org/1234',
       'https://www.jstor.org/10.1086/508573',
