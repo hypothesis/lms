@@ -36,11 +36,26 @@ jobs:
       Version: latest
     secrets: inherit
 
+  approval-step:
+    # This step is here just to get approval, without it GHA will proceed onto
+    # the next steps, check the concurrency rules and cancel them in certain
+    # cases. The resolution order appears to be:
+    # 1. Move to next job
+    # 2. Check concurrency (cancelling here is not what we want)
+    # 3. Ask for approval
+    needs: qa-us-west-1
+    with:
+      Environment: prod
+    steps:
+      # We need some dummy content for this job to be valid in GHAs eyes
+      - name: Log approval
+        run: echo "Approval granted"
+
   prod-us-west-1:
     concurrency:
       group: ${{ github.event.repository.name }}-deploy-us
       cancel-in-progress: true
-    needs: qa-us-west-1
+    needs: approval-step
     name: ${{ github.event.repository.name }}
     uses: hypothesis/workflows/.github/workflows/eb-update.yml@main
     with:
@@ -55,7 +70,7 @@ jobs:
     concurrency:
       group: ${{ github.event.repository.name }}-deploy-ca
       cancel-in-progress: true
-    needs: qa-us-west-1
+    needs: approval-step
     name: ${{ github.event.repository.name }}
     uses: hypothesis/workflows/.github/workflows/eb-update.yml@main
     with:
