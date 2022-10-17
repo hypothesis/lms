@@ -136,7 +136,7 @@
 
 
     {% call macros.field_body(label="Move to organization") %}
-        <form method="POST" action="{{ request.route_url("admin.instance.id", id_=instance.id) }}">
+        <form method="POST" action="{{ request.route_url("admin.instance.move_org", id_=instance.id) }}">
           <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
           <input class="input" type="text" name="org_public_id">
           <input type="submit" class="button mb-2" value="Move">

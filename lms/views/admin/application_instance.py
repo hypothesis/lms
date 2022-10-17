@@ -252,6 +252,34 @@ class AdminApplicationInstanceViews:
         return {"instance": ai}
 
     @view_config(
+        route_name="admin.instance.move_org",
+        request_method="POST",
+        require_csrf=True,
+    )
+    def move_application_instance_org(self):
+        ai = self._get_ai_or_404(**self.request.matchdict)
+
+        try:
+            self.application_instance_service.update_application_instance(
+                ai,
+                organization_public_id=self.request.params.get(
+                    "org_public_id", ""
+                ).strip(),
+            )
+            self.request.session.flash(
+                f"Updated application instance {ai.id}", "messages"
+            )
+        except ValidationError as err:
+            self.request.session.flash(err.messages, "validation")
+            return HTTPFound(
+                location=self.request.route_url("admin.instance.id", id_=ai.id)
+            )
+
+        return HTTPFound(
+            location=self.request.route_url("admin.instance.id", id_=ai.id)
+        )
+
+    @view_config(
         route_name="admin.instance.id",
         request_method="POST",
         require_csrf=True,
@@ -264,24 +292,13 @@ class AdminApplicationInstanceViews:
     def update_instance(self):
         ai = self._get_ai_or_404(**self.request.matchdict)
 
-        try:
-            self.application_instance_service.update_application_instance(
-                ai,
-                lms_url=self.request.params.get("lms_url", "").strip(),
-                deployment_id=self.request.params.get("deployment_id", "").strip(),
-                developer_key=self.request.params.get("developer_key", "").strip(),
-                developer_secret=self.request.params.get(
-                    "developer_secret", ""
-                ).strip(),
-                organization_public_id=self.request.params.get(
-                    "org_public_id", ""
-                ).strip(),
-            )
-        except ValidationError as err:
-            self.request.session.flash(err.messages, "validation")
-            return HTTPFound(
-                location=self.request.route_url("admin.instance.id", id_=ai.id)
-            )
+        self.application_instance_service.update_application_instance(
+            ai,
+            lms_url=self.request.params.get("lms_url", "").strip(),
+            deployment_id=self.request.params.get("deployment_id", "").strip(),
+            developer_key=self.request.params.get("developer_key", "").strip(),
+            developer_secret=self.request.params.get("developer_secret", "").strip(),
+        )
 
         for setting, sub_setting, setting_type in (
             ("canvas", "sections_enabled", bool),
