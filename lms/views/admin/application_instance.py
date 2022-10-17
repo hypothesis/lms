@@ -5,6 +5,7 @@ from pyramid.view import view_config, view_defaults
 from sqlalchemy.exc import IntegrityError
 from webargs import fields
 
+from lms.events import AuditTrailEvent
 from lms.models import ApplicationInstance
 from lms.security import Permissions
 from lms.services import ApplicationInstanceNotFound, LTIRegistrationService
@@ -275,6 +276,7 @@ class AdminApplicationInstanceViews:
                 location=self.request.route_url("admin.instance.id", id_=ai.id)
             )
 
+        AuditTrailEvent.notify(self.request, ai)
         return HTTPFound(
             location=self.request.route_url("admin.instance.id", id_=ai.id)
         )

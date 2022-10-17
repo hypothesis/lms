@@ -67,6 +67,7 @@ class TestAdminApplicationInstanceViews:
         pyramid_request,
         application_instance,
         application_instance_service,
+        AuditTrailEvent,
     ):
         application_instance_service.get_by_id.return_value = application_instance
         pyramid_request.params["org_public_id"] = "PUBLIC_ID"
@@ -75,6 +76,9 @@ class TestAdminApplicationInstanceViews:
 
         application_instance_service.update_application_instance.assert_called_once_with(
             application_instance, organization_public_id="PUBLIC_ID"
+        )
+        AuditTrailEvent.notify.assert_called_once_with(
+            pyramid_request, application_instance
         )
         assert response == temporary_redirect_to(
             pyramid_request.route_url("admin.instance.id", id_=application_instance.id)
@@ -466,6 +470,10 @@ class TestAdminApplicationInstanceViews:
             "consumer_key"
         ] = application_instance.consumer_key
         return with_form_submission
+
+    @pytest.fixture
+    def AuditTrailEvent(self, patch):
+        return patch("lms.views.admin.application_instance.AuditTrailEvent")
 
     @pytest.fixture
     def views(self, pyramid_request):

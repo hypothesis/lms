@@ -190,7 +190,7 @@ class ApplicationInstanceService:
         if organization_public_id:
             org = self._organization_service.get_by_public_id(organization_public_id)
             if org:
-                application_instance.organization = org
+                application_instance.organization_id = org.id
             else:
                 raise ValidationError(
                     messages={

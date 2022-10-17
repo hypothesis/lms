@@ -120,8 +120,14 @@ class AuditTrailEvent(BaseEvent):
         def from_instance(cls, instance, **kwargs):
             changes = {}
             instance_details = inspect(instance)
-            for attr in instance_details.attrs:
-                history = instance_details.get_history(attr.key, True)
+
+            # Iterate only over the table columns.
+            # This might be a subset of the defined SQLA columns but it will
+            # avoid unserializable and duplicated values
+            # eg: `relationship` vs foreign key columns.
+            for column in instance.__table__.columns.keys():
+                history = instance_details.get_history(column, True)
+                attr = instance_details.attrs[column]
 
                 if not history.has_changes():
                     continue
