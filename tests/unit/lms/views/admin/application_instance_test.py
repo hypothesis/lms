@@ -61,6 +61,44 @@ class TestAdminApplicationInstanceViews:
 
         assert response.status_code == 400
 
+    def test_move_application_instance_org(
+        self,
+        views,
+        pyramid_request,
+        application_instance,
+        application_instance_service,
+    ):
+        application_instance_service.get_by_id.return_value = application_instance
+        pyramid_request.params["org_public_id"] = "PUBLIC_ID"
+
+        response = views.move_application_instance_org()
+
+        application_instance_service.update_application_instance.assert_called_once_with(
+            application_instance, organization_public_id="PUBLIC_ID"
+        )
+        assert response == temporary_redirect_to(
+            pyramid_request.route_url("admin.instance.id", id_=application_instance.id)
+        )
+
+    def test_move_application_instance_org_invalid_organization_id(
+        self, pyramid_request, application_instance_service, views
+    ):
+
+        pyramid_request.params["org_public_id"] = "PUBLIC_ID"
+        application_instance_service.update_application_instance.side_effect = (
+            ValidationError(messages=sentinel.messages)
+        )
+
+        response = views.move_application_instance_org()
+
+        assert pyramid_request.session.peek_flash("validation")
+        assert response == temporary_redirect_to(
+            pyramid_request.route_url(
+                "admin.instance.id",
+                id_=application_instance_service.get_by_id.return_value.id,
+            )
+        )
+
     def test_downgrade_instance(
         self,
         views,
@@ -314,7 +352,6 @@ class TestAdminApplicationInstanceViews:
     @pytest.mark.parametrize("secret", (" ", " secret "))
     @pytest.mark.parametrize("lms_url", (" ", "http://some-url.com    "))
     @pytest.mark.parametrize("deployment_id", (" ", " DEPLOYMENT_ID"))
-    @pytest.mark.parametrize("org_public_id", (" ", " ORG_ID"))
     def test_update_application_instance(
         self,
         pyramid_request,
@@ -324,14 +361,12 @@ class TestAdminApplicationInstanceViews:
         secret,
         lms_url,
         deployment_id,
-        org_public_id,
     ):
         pyramid_request.params = {
             "developer_key": key,
             "developer_secret": secret,
             "lms_url": lms_url,
             "deployment_id": deployment_id,
-            "org_public_id": org_public_id,
         }
 
         views.update_instance()
@@ -342,7 +377,6 @@ class TestAdminApplicationInstanceViews:
             deployment_id=deployment_id.strip() if deployment_id else "",
             developer_key=key.strip() if key else "",
             developer_secret=secret.strip() if secret else "",
-            organization_public_id=org_public_id.strip() if secret else "",
         )
 
     @pytest.mark.parametrize(
@@ -384,25 +418,6 @@ class TestAdminApplicationInstanceViews:
             application_instance_service.get_by_consumer_key.return_value
         )
         assert application_instance.settings.get(setting, sub_setting) == expected
-
-    def test_update_application_instance_invalid_organization_id(
-        self, pyramid_request, application_instance_service, views
-    ):
-
-        pyramid_request.params["org_public_id"] = "PUBLIC_ID"
-        application_instance_service.update_application_instance.side_effect = (
-            ValidationError(messages=sentinel.messages)
-        )
-
-        response = views.update_instance()
-
-        assert pyramid_request.session.peek_flash("validation")
-        assert response == temporary_redirect_to(
-            pyramid_request.route_url(
-                "admin.instance.id",
-                id_=application_instance_service.get_by_id.return_value.id,
-            )
-        )
 
     def test_update_instance_not_found(
         self, pyramid_request, application_instance_service
