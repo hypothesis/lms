@@ -52,6 +52,7 @@ class BasicClient:
         try:
             return self._oauth_http_service.request(method, path, **kwargs)
         except ExternalRequestError as err:
+            err.refreshable = getattr(err.response, "status_code", None) == 401
             raise
 
     def api_url(self, path, product="lp"):
@@ -154,6 +155,7 @@ class D2LAPIClient:
         #    allow_redirects=False,  # No luck, no redirect
         # )
         # print(response)
+        # Maybe try: https://docs.valence.desire2learn.com/res/content.html#get--d2l-api-le-(version)-(orgUnitId)-content-topics-(topicId)-file
         return self._api.api_url(f"/{ou}/managefiles/file?path={file_path}")
 
 
