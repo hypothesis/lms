@@ -18,10 +18,10 @@ class Grouping(CreatedUpdatedMixin, BASE):
         CANVAS_GROUP = "canvas_group"
         BLACKBOARD_GROUP = "blackboard_group"
 
-        # These are the LMS agnostic versions of the ones avobe.
+        # These are the LMS agnostic versions of the ones above.
         # They don't get stored in the DB but are meaningful in the codebase
         SECTION = "section"
-        GROUP = "group"
+        GROUP = "group"  # 'small_group' ? lms_group?
 
     __tablename__ = "grouping"
     __mapper_args__ = {"polymorphic_on": "type"}
@@ -66,7 +66,7 @@ class Grouping(CreatedUpdatedMixin, BASE):
         ),
         # Only certain values are allowed in the `type` column.
         sa.CheckConstraint(
-            "type in ('course', 'canvas_section', 'canvas_group', 'blackboard_group')",
+            "type in ('course', 'canvas_section', 'canvas_group', 'blackboard_group', 'group')",
             name="grouping_type_must_be_a_valid_value",
         ),
     )
@@ -155,6 +155,10 @@ class CanvasGroup(Grouping):
 
 class BlackboardGroup(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.BLACKBOARD_GROUP}
+
+
+class LMSGroup(Grouping):
+    __mapper_args__ = {"polymorphic_identity": Grouping.Type.GROUP}
 
 
 class Course(Grouping):
