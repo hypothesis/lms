@@ -119,6 +119,7 @@ _V11_TO_V13 = (
         "resource_link_id",
         [f"{CLAIM_PREFIX}/lti1p1", "resource_link_id"],
     ),
+    ("lms_user_id", [f"{CLAIM_PREFIX}/custom", "User.id"]),
 )
 
 

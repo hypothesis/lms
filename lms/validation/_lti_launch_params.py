@@ -31,6 +31,8 @@ class LTIV11CoreSchema(PyramidRequestSchema):
     lis_person_name_full = fields.Str(load_default="")
     lis_person_contact_email_primary = fields.Str(load_default="")
 
+    lms_user_id = fields.Str(required=True)
+
     @pre_load
     def _decode_jwt(self, data, **_kwargs):
         """Use the values encoded in the `id_token` JWT if present."""

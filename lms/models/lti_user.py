@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import NamedTuple, Any
 
 from lms.models.h_user import HUser
 
@@ -23,6 +23,8 @@ class LTIUser(NamedTuple):
 
     email: str = ""
     """The user's email address."""
+
+    lms_user_id: Any = None
 
     @property
     def h_user(self):
@@ -56,6 +58,7 @@ class LTIUser(NamedTuple):
                 lti_core_schema["lis_person_name_full"],
             ),
             email=lti_core_schema["lis_person_contact_email_primary"],
+            lms_user_id=lti_core_schema["lms_user_id"],
         )
 
 
