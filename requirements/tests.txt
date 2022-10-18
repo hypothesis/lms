@@ -178,7 +178,7 @@ multidict==5.2.0
     #   yarl
 newrelic==8.2.1
     # via -r requirements/requirements.txt
-oauthlib==3.2.1
+oauthlib==3.2.2
     # via
     #   -r requirements/requirements.txt
     #   requests-oauthlib

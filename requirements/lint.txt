@@ -302,7 +302,7 @@ newrelic==8.2.1
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-oauthlib==3.2.1
+oauthlib==3.2.2
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
