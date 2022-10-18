@@ -32,6 +32,8 @@ from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
 from lms.services.vitalsource import VitalSourceService
 
+from lms.services.d2l_api import D2LAPIClient
+
 
 def includeme(config):
     config.register_service_factory("lms.services.http.factory", name="http")
@@ -113,3 +115,4 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.organization.service_factory", iface=OrganizationService
     )
+    config.register_service_factory("lms.services.d2l_api.factory", iface=D2LAPIClient)
