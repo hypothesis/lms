@@ -1,9 +1,10 @@
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
+from lms.product.d2l import D2L
 from lms.product.product import Product
 from lms.services.application_instance import ApplicationInstanceNotFound
 
-_PRODUCT_MAP = {product.family: product for product in (Blackboard, Canvas)}
+_PRODUCT_MAP = {product.family: product for product in (Blackboard, Canvas, D2L)}
 
 
 def get_product_from_request(request) -> Product:

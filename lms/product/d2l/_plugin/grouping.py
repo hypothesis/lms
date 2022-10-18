@@ -1,0 +1,62 @@
+from enum import Enum
+
+from lms.models import Grouping
+from lms.product.plugin.grouping_service import GroupError, GroupingServicePlugin
+from lms.services.exceptions import ExternalRequestError
+from lms.services import D2LAPIClient
+
+
+class ErrorCodes(str, Enum):
+    """Error codes that the FE is going to check for."""
+
+    GROUP_SET_NOT_FOUND = "d2l_group_set_not_found"
+    GROUP_SET_EMPTY = "d2l_group_set_empty"
+    STUDENT_NOT_IN_GROUP = "d2l_student_not_in_group"
+
+
+class D2LGroupingPlugin(GroupingServicePlugin):
+    """A plugin which implements D2L specific grouping functions."""
+
+    group_type = Grouping.Type.GROUP
+    sections_type = None  # We don't support sections in D2L
+
+    def __init__(self, d2l_api):
+        self._d2l_api = d2l_api
+
+    def get_groups_for_learner(self, _svc, course, group_set_id, d2l_user_id):
+        if learner_groups := self._d2l_api.group_set_groups(
+            course.lms_id, group_set_id, d2l_user_id
+        ):
+            return learner_groups
+
+        raise GroupError(ErrorCodes.STUDENT_NOT_IN_GROUP, group_set=group_set_id)
+
+    def get_groups_for_grading(
+        self, svc, course, group_set_id, grading_student_id=None
+    ):
+        return svc.get_course_groupings_for_user(
+            course,
+            grading_student_id,
+            type_=self.group_type,
+            group_set_id=int(group_set_id),
+        )
+
+    def get_groups_for_instructor(self, _svc, course, group_set_id):
+        try:
+            groups = self._d2l_api.group_set_groups(course.lms_id, group_set_id)
+        except ExternalRequestError as exc:
+            if exc.status_code == 404:
+                raise GroupError(
+                    ErrorCodes.GROUP_SET_NOT_FOUND, group_set=group_set_id
+                ) from exc
+
+            raise
+
+        if not groups:
+            raise GroupError(ErrorCodes.GROUP_SET_EMPTY, group_set=group_set_id)
+
+        return groups
+
+    @classmethod
+    def factory(cls, _context, request):
+        return cls(request.find_service(D2LAPIClient))

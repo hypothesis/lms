@@ -9,8 +9,9 @@ def includeme(config):
     config.include("lms.product.plugin")
 
     # Give everyone a chance to register their plugins etc.
-    config.include("lms.product.canvas")
     config.include("lms.product.blackboard")
+    config.include("lms.product.canvas")
+    config.include("lms.product.d2l")
 
     # Add the `request.product` method
     config.add_request_method(
