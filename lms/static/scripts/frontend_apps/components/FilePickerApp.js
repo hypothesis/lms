@@ -56,6 +56,9 @@ function formatContentURL(content) {
   if (content.url.startsWith('blackboard://')) {
     return 'PDF file in Blackboard';
   }
+  if (content.url.startsWith('d2l://')) {
+    return 'PDF file in D2L';
+  }
   if (content.url.startsWith('vitalsource://')) {
     return 'Book from VitalSource';
   }
@@ -90,13 +93,21 @@ export default function FilePickerApp({ onSubmit }) {
   const submitButton = /** @type {{ current: HTMLInputElement }} */ (useRef());
   const {
     api: { authToken },
-    filePicker: { deepLinkingAPI, formAction, formFields, blackboard, canvas, d2l },
+    filePicker: {
+      deepLinkingAPI,
+      formAction,
+      formFields,
+      blackboard,
+      canvas,
+      d2l,
+    },
   } = useContext(Config);
 
   const [content, setContent] = useState(/** @type {Content|null} */ (null));
 
   // TODO we don't need to pick this from each product, just expose one groupsEnabled and pick that up
-  const enableGroupConfig = blackboard?.groupsEnabled || canvas?.groupsEnabled || d2l?.groupsEnabled;
+  const enableGroupConfig =
+    blackboard?.groupsEnabled || canvas?.groupsEnabled || d2l?.groupsEnabled;
 
   const [groupConfig, setGroupConfig] = useState(
     /** @type {GroupConfig} */ ({

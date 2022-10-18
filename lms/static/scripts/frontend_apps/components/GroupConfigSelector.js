@@ -147,7 +147,8 @@ export default function GroupConfigSelector({
 
   const useGroupSet = groupConfig.useGroupSet;
   const groupSet = useGroupSet ? groupConfig.groupSet : null;
-  const listGroupSetsAPI = canvas?.listGroupSets ?? blackboard?.listGroupSets ?? d2l?.listGroupSets;
+  const listGroupSetsAPI =
+    canvas?.listGroupSets ?? blackboard?.listGroupSets ?? d2l?.listGroupSets;
 
   const fetchingGroupSets = !groupSets && !fetchError && useGroupSet;
 

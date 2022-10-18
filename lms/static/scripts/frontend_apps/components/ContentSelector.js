@@ -18,7 +18,7 @@ import URLPicker from './URLPicker';
  *
  * @typedef {import('./FilePickerApp').ErrorInfo} ErrorInfo
  *
- * @typedef {'blackboardFile'|'canvasFile'|'jstor'|'url'|'vitalSourceBook'|null} DialogType
+ * @typedef {'blackboardFile'|'canvasFile'|'d2lFile'|'jstor'|'url'|'vitalSourceBook'|null} DialogType
  *
  * @typedef {import('../utils/content-item').Content} Content
  */
@@ -48,6 +48,7 @@ export default function ContentSelector({
         listFiles: blackboardListFilesApi,
       },
       canvas: { enabled: canvasFilesEnabled, listFiles: listFilesApi },
+      d2l: { enabled: d2lFilesEnabled, listFiles: d2lListFilesApi },
       google: {
         clientId: googleClientId,
         developerKey: googleDeveloperKey,
@@ -124,7 +125,7 @@ export default function ContentSelector({
   };
 
   /** @param {File} file */
-  const selectBlackboardFile = file => {
+  const selectLMSFile = file => {
     cancelDialog();
     // file.id shall be a url of the form blackboard://content-resource/{file_id}
     onSelectContent({ type: 'url', url: file.id });
@@ -164,7 +165,7 @@ export default function ContentSelector({
           authToken={authToken}
           listFilesApi={blackboardListFilesApi}
           onCancel={cancelDialog}
-          onSelectFile={selectBlackboardFile}
+          onSelectFile={selectLMSFile}
           // An alias we maintain that provides multiple external documentation links for
           // different versions of Blackboard (Classic vs. Ultra)
           missingFilesHelpLink={'https://web.hypothes.is/help/bb-files'}
@@ -172,6 +173,21 @@ export default function ContentSelector({
         />
       );
       break;
+    case 'd2lFile':
+      dialog = (
+        <LMSFilePicker
+          authToken={authToken}
+          listFilesApi={d2lListFilesApi}
+          onCancel={cancelDialog}
+          onSelectFile={selectLMSFile}
+          // An alias we maintain that provides multiple external documentation links for
+          // different versions of Blackboard (Classic vs. Ultra)
+          missingFilesHelpLink={'https://web.hypothes.is/help/bb-files'}
+          withBreadcrumbs
+        />
+      );
+      break;
+
     case 'jstor':
       dialog = <JSTORPicker onCancel={cancelDialog} onSelectURL={selectURL} />;
       break;
@@ -257,6 +273,16 @@ export default function ContentSelector({
               Select PDF from Blackboard
             </LabeledButton>
           )}
+          {d2lFilesEnabled && (
+            <LabeledButton
+              onClick={() => selectDialog('d2lFile')}
+              variant="primary"
+              data-testid="blackboard-file-button"
+            >
+              Select PDF from D2L
+            </LabeledButton>
+          )}
+
           {googlePicker && (
             <LabeledButton
               onClick={showGooglePicker}
