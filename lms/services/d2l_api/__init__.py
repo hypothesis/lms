@@ -1,4 +1,5 @@
 from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
+from urllib.parse import urlencode
 from lms.services.aes import AESService
 
 
@@ -44,14 +45,17 @@ class BasicClient:
             auth=(self.client_id, self.client_secret),
         )
 
-    def request(self, method, path):
+    def request(self, method, path, **kwargs):
+        if path.startswith("/"):
+            path = self.api_url(path)
+
         try:
-            return self._oauth_http_service.request(method, self._api_url(path))
+            return self._oauth_http_service.request(method, path, **kwargs)
         except ExternalRequestError as err:
             raise
 
-    def _api_url(self, path):
-        return f"https://{self.lms_host}/d2l/api/lp/{self.api_version}{path}"
+    def api_url(self, path, product="lp"):
+        return f"https://{self.lms_host}/d2l/api/{product}/{self.api_version}{path}"
 
 
 from marshmallow import EXCLUDE, Schema, fields, post_load
@@ -134,6 +138,23 @@ class D2LAPIClient:
             groups = [group for group in groups if int(user_id) in group["enrollments"]]
 
         return groups
+
+    def course_table_of_contents(self, ou):
+        response = self._api.request(
+            "GET", self._api.api_url(f"/{ou}/content/toc", product="le")
+        )
+        return response
+
+    def public_url(self, ou, file_path):
+        query = {"path": file_path}
+        # response = self._api.request(
+        #    "GET",
+        #    # self._api.api_url(f"/{ou}/managefiles/file?{urlencode(query)}"),
+        #    self._api.api_url(f"/{ou}/managefiles/file?path={file_path}"),
+        #    allow_redirects=False,  # No luck, no redirect
+        # )
+        # print(response)
+        return self._api.api_url(f"/{ou}/managefiles/file?path={file_path}")
 
 
 def factory(_context, request):

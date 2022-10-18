@@ -52,6 +52,8 @@ def includeme(config):  # pylint:disable=too-many-statements
         "d2l_api.courses.group_sets.list",
         "/api/d2l/courses/{course_id}/group_sets",
     )
+    config.add_route("d2l_api.courses.files.list", "/api/d2l/courses/{course_id}/files")
+    config.add_route("d2l_api.files.via_url", "/api/d2l/courses/{course_id}/via_url")
 
     config.add_route(
         "blackboard_api.oauth.authorize",

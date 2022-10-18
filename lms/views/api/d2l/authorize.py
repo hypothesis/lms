@@ -32,7 +32,7 @@ def authorize(request):
                         "response_type": "code",
                         "redirect_uri": request.route_url("d2l_api.oauth.callback"),
                         "state": state,
-                        "scope": "core:*:* groups:*:*",
+                        "scope": "core:*:* groups:*:* content:toc:read managefiles:files:read",
                     }
                 ),
                 "",
