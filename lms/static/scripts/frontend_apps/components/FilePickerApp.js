@@ -90,12 +90,13 @@ export default function FilePickerApp({ onSubmit }) {
   const submitButton = /** @type {{ current: HTMLInputElement }} */ (useRef());
   const {
     api: { authToken },
-    filePicker: { deepLinkingAPI, formAction, formFields, blackboard, canvas },
+    filePicker: { deepLinkingAPI, formAction, formFields, blackboard, canvas, d2l },
   } = useContext(Config);
 
   const [content, setContent] = useState(/** @type {Content|null} */ (null));
 
-  const enableGroupConfig = blackboard?.groupsEnabled || canvas?.groupsEnabled;
+  // TODO we don't need to pick this from each product, just expose one groupsEnabled and pick that up
+  const enableGroupConfig = blackboard?.groupsEnabled || canvas?.groupsEnabled || d2l?.groupsEnabled;
 
   const [groupConfig, setGroupConfig] = useState(
     /** @type {GroupConfig} */ ({

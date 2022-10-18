@@ -64,6 +64,9 @@ import { createContext } from 'preact';
  *   @prop {boolean} blackboard.groupsEnabled
  *   @prop {APICallInfo} blackboard.listFiles
  *   @prop {APICallInfo} blackboard.listGroupSets
+ * @prop {object} d2l
+ *   @prop {boolean} canvas.groupsEnabled
+ *   @prop {APICallInfo} canvas.listGroupSets
  * @prop {object} canvas
  *   @prop {boolean} canvas.enabled
  *   @prop {boolean} canvas.groupsEnabled

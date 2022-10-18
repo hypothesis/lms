@@ -142,12 +142,12 @@ export default function GroupConfigSelector({
 
   const {
     api: { authToken },
-    filePicker: { blackboard, canvas },
+    filePicker: { blackboard, canvas, d2l },
   } = useContext(Config);
 
   const useGroupSet = groupConfig.useGroupSet;
   const groupSet = useGroupSet ? groupConfig.groupSet : null;
-  const listGroupSetsAPI = canvas?.listGroupSets ?? blackboard?.listGroupSets;
+  const listGroupSetsAPI = canvas?.listGroupSets ?? blackboard?.listGroupSets ?? d2l?.listGroupSets;
 
   const fetchingGroupSets = !groupSets && !fetchError && useGroupSet;
 
