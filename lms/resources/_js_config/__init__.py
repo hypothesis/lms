@@ -220,6 +220,22 @@ class JSConfig:
                     # Specific config for pickers
                     "blackboard": FilePickerConfig.blackboard_config(*args),
                     "canvas": FilePickerConfig.canvas_config(*args),
+                    # TODO we don't need to check canvas/blackbaord/d2l -> groups_enabled
+                    # we should just provide "groups_enabled"
+                    # Also this is displayed and  relevant by the "file picker"
+                    # but it shouldn't be owned by it
+                    "d2l": {
+                        "groupsEnabled": True,
+                        "listGroupSets": {
+                            "authUrl": self._request.route_url(
+                                "d2l_api.oauth.authorize"
+                            ),
+                            "path": self._request.route_path(
+                                "d2l_api.courses.group_sets.list",
+                                course_id=self._request.lti_params.get("context_id"),
+                            ),
+                        },
+                    },
                     "google": FilePickerConfig.google_files_config(*args),
                     "microsoftOneDrive": FilePickerConfig.microsoft_onedrive(*args),
                     "vitalSource": FilePickerConfig.vitalsource_config(*args),
