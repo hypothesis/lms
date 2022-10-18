@@ -189,7 +189,9 @@ class GroupingService:
             return None
 
         if lti_user.is_learner:
-            groupings = self.plugin.get_groups_for_learner(self, course, group_set_id)
+            groupings = self.plugin.get_groups_for_learner(
+                self, course, group_set_id, lti_user.lms_user_id
+            )
 
         elif grading_student_id:
             groupings = self.plugin.get_groups_for_grading(
