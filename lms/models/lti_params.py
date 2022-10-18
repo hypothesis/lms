@@ -1,6 +1,9 @@
+import logging
 from typing import List
 
 CLAIM_PREFIX = "https://purl.imsglobal.org/spec/lti/claim"
+
+LOG = logging.getLogger(__name__)
 
 
 class LTIParams(dict):
@@ -57,10 +60,15 @@ def _apply_canvas_quirks(lti_params, request):
         lti_params["resource_link_id"] = resource_link_id
 
     for canvas_param_name in ["custom_canvas_course_id", "custom_canvas_user_id"]:
-        # In LTI1.3 some custom canvas parameters are sent as integers
-        # and as a string in LTI1.1.
+        # In LTI1.3 some custom canvas parameters were sent as integers
+        # and as strings in LTI1.1.
+        # With this update:
+        #   https://community.canvaslms.com/t5/Canvas-Change-Log/Canvas-Platform-Breaking-Changes/ta-p/262015
+        # They should also be strings in LTI1.3 but not all
+        # canvas instances run the last version so we are keeping this for some time
         canvas_param_value = lti_params.get(canvas_param_name)
         if isinstance(canvas_param_value, int):
+            LOG.debug("Canvas: integer value for %s", canvas_param_name)
             lti_params[canvas_param_name] = str(canvas_param_value)
 
     return lti_params
