@@ -39,6 +39,21 @@ def includeme(config):  # pylint:disable=too-many-statements
     )
 
     config.add_route(
+        "d2l_api.oauth.authorize",
+        "/api/d2l/oauth/authorize",
+        factory="lms.resources.OAuth2RedirectResource",
+    )
+    config.add_route(
+        "d2l_api.oauth.callback",
+        "/api/d2l/oauth/callback",
+        factory="lms.resources.OAuth2RedirectResource",
+    )
+    config.add_route(
+        "d2l_api.courses.group_sets.list",
+        "/api/d2l/courses/{course_id}/group_sets",
+    )
+
+    config.add_route(
         "blackboard_api.oauth.authorize",
         "/api/blackboard/oauth/authorize",
         factory="lms.resources.OAuth2RedirectResource",
