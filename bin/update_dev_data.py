@@ -143,6 +143,13 @@ def devdata():
                 os.path.join(pathlib.Path(lms.__file__).parent.parent, ".devdata.env"),
             )
 
+            # Copy any certificates
+            shutil.copytree(
+                os.path.join(git_dir, "lms", "certificates"),
+                os.path.join(pathlib.Path(lms.__file__).parent.parent, ".certificates"),
+                dirs_exist_ok=True,
+            )
+
             with open(
                 os.path.join(git_dir, "lms", "devdata.json"), encoding="utf-8"
             ) as handle:

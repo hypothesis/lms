@@ -24,11 +24,14 @@ yarn-error.log
 include/
 .pytest_cache
 
-# Devloper Specific Files
+# Developer Specific Files
 secret_env.sh
 .autoenv
 docker.sh
+
+# Files created by make devdata
 .devdata.env
+.certificates
 
 # yalc related files
 yalc.lock
