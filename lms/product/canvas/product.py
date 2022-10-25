@@ -16,3 +16,5 @@ class Canvas(Product):
     )
 
     plugin_config: PluginConfig = PluginConfig(grouping_service=CanvasGroupingPlugin)
+
+    settings_key = "canvas"

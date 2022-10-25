@@ -18,3 +18,4 @@ class Blackboard(Product):
     plugin_config: PluginConfig = PluginConfig(
         grouping_service=BlackboardGroupingPlugin
     )
+    settings_key = "blackboard"
