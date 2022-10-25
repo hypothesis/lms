@@ -208,6 +208,7 @@ class JSConfig:
         self._config.update(
             {
                 "mode": JSConfig.Mode.FILE_PICKER,
+                "product": self._get_product_info(),
                 "filePicker": {
                     "formAction": form_action,
                     "formFields": form_fields,
@@ -409,13 +410,6 @@ class JSConfig:
             # launches its BasicLtiLaunchApp, whereas in
             # "content-item-selection" mode it launches its FilePickerApp.
             "mode": None,
-            "product": {
-                "family": self._request.product.family,
-                "features": {
-                    "groups": self._request.product.settings.groups_enabled,
-                },
-                "api": self._product_api_config(),
-            },
         }
 
         if self._lti_user:
@@ -425,18 +419,25 @@ class JSConfig:
 
         return config
 
-    def _product_api_config(self):
+    def _get_product_info(self):
         product = self._request.product
-        # This should be abstracted as "lms_course_id" or similar in either
-        # LTIParams or as part of product.
-        api_course_id = self._request.lti_params.get(
-            "custom_canvas_course_id"
-        ) or self._request.lti_params.get("context_id")
 
-        api_config = {}
+        product_info = {
+            "family": product.family,
+            "features": {
+                "groups": self._request.product.settings.groups_enabled,
+            },
+            "api": {},
+        }
 
         if product.route.list_group_sets:
-            api_config["listGroupSets"] = {
+            # This should be abstracted as "lms_course_id" or similar in either
+            # LTIParams or as part of product.
+            api_course_id = self._request.lti_params.get(
+                "custom_canvas_course_id"
+            ) or self._request.lti_params.get("context_id")
+
+            product_info["api"]["listGroupSets"] = {
                 "authUrl": self._request.route_url(product.route.oauth2_authorize),
                 "path": self._request.route_path(
                     product.route.list_group_sets,
@@ -444,7 +445,7 @@ class JSConfig:
                 ),
             }
 
-        return api_config
+        return product_info
 
     @property
     @functools.lru_cache()
