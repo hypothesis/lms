@@ -33,15 +33,14 @@ describe('FilePickerApp', () => {
   beforeEach(() => {
     fakeConfig = {
       api: { authToken: 'DUMMY_AUTH_TOKEN' },
+      product: {
+        features: {
+          groups: false,
+        },
+      },
       filePicker: {
         formAction: 'https://www.shinylms.com/',
         formFields: { hidden_field: 'hidden_value' },
-        blackboard: {
-          groupsEnabled: false,
-        },
-        canvas: {
-          groupsEnabled: false,
-        },
       },
     };
 
@@ -215,133 +214,128 @@ describe('FilePickerApp', () => {
   });
 
   context('when group configuration is enabled', () => {
-    ['blackboard', 'canvas'].forEach(lmsWithGroups => {
-      beforeEach(() => {
-        fakeConfig.filePicker[lmsWithGroups].groupsEnabled = true;
-      });
+    beforeEach(() => {
+      fakeConfig.product.features.groups = true;
+    });
 
-      it('does not submit form when content is selected', () => {
+    it('does not submit form when content is selected', () => {
+      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+      const wrapper = renderFilePicker({ onSubmit });
+
+      selectContent(wrapper, 'https://example.com');
+
+      assert.notCalled(onSubmit);
+    });
+
+    [
+      {
+        content: 'https://example.com',
+        summary: 'https://example.com',
+      },
+      {
+        content: {
+          type: 'url',
+          name: 'Super-cali-fragi-listic.pdf',
+          url: 'https://could.be.anything.com/really.pdf',
+        },
+        summary: 'Super-cali-fragi-listic.pdf',
+      },
+      {
+        content: {
+          type: 'url',
+          url: 'blackboard://content-resource/_8615_1/',
+        },
+        summary: 'PDF file in Blackboard',
+      },
+      {
+        content: { type: 'file', id: 'abcd' },
+        summary: 'PDF file in Canvas',
+      },
+      {
+        content: { type: 'url', url: 'vitalsource://bookID/BOOK/cfi/CFI' },
+        summary: 'Book from VitalSource',
+      },
+      {
+        content: { type: 'url', url: 'jstor://1234' },
+        summary: 'JSTOR article',
+      },
+    ].forEach(({ content, summary }) => {
+      it('displays a summary of the assignment content', () => {
+        const wrapper = renderFilePicker();
+
+        selectContent(wrapper, content);
+
+        assert.equal(
+          wrapper.find('[data-testid="content-summary"]').text(),
+          summary
+        );
+      });
+    });
+
+    it('truncates long URLs in assignment content summary', () => {
+      const wrapper = renderFilePicker();
+
+      selectContent(
+        wrapper,
+        'https://en.wikipedia.org/wiki/Cannonball_Baker_Sea-To-Shining-Sea_Memorial_Trophy_Dash'
+      );
+
+      assert.equal(
+        wrapper.find('[data-testid="content-summary"]').text(),
+        'en.wikipedia.org/…/Cannonball_Baker_Sea-To-Shining-Sea_Memorial_…'
+      );
+    });
+
+    it('disables "Continue" button when group sets are enabled but no group set is selected', () => {
+      const wrapper = renderFilePicker();
+
+      selectContent(wrapper, 'https://example.com');
+      selectGroupConfig(wrapper, { useGroupSet: true, groupSet: null });
+
+      assert.isTrue(
+        wrapper.find('LabeledButton[children="Continue"]').prop('disabled')
+      );
+    });
+
+    [true, false].forEach(useGroupSet => {
+      it('submits form when "Continue" button is clicked', () => {
         const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
         const wrapper = renderFilePicker({ onSubmit });
 
         selectContent(wrapper, 'https://example.com');
+        selectGroupConfig(wrapper, { useGroupSet, groupSet: 'groupSet1' });
 
         assert.notCalled(onSubmit);
-      });
-
-      [
-        {
-          content: 'https://example.com',
-          summary: 'https://example.com',
-        },
-        {
-          content: {
-            type: 'url',
-            name: 'Super-cali-fragi-listic.pdf',
-            url: 'https://could.be.anything.com/really.pdf',
-          },
-          summary: 'Super-cali-fragi-listic.pdf',
-        },
-        {
-          content: {
-            type: 'url',
-            url: 'blackboard://content-resource/_8615_1/',
-          },
-          summary: 'PDF file in Blackboard',
-        },
-        {
-          content: { type: 'file', id: 'abcd' },
-          summary: 'PDF file in Canvas',
-        },
-        {
-          content: { type: 'url', url: 'vitalsource://bookID/BOOK/cfi/CFI' },
-          summary: 'Book from VitalSource',
-        },
-        {
-          content: { type: 'url', url: 'jstor://1234' },
-          summary: 'JSTOR article',
-        },
-      ].forEach(({ content, summary }) => {
-        it('displays a summary of the assignment content', () => {
-          const wrapper = renderFilePicker();
-
-          selectContent(wrapper, content);
-
-          assert.equal(
-            wrapper.find('[data-testid="content-summary"]').text(),
-            summary
-          );
-        });
-      });
-
-      it('truncates long URLs in assignment content summary', () => {
-        const wrapper = renderFilePicker();
-
-        selectContent(
-          wrapper,
-          'https://en.wikipedia.org/wiki/Cannonball_Baker_Sea-To-Shining-Sea_Memorial_Trophy_Dash'
-        );
-
-        assert.equal(
-          wrapper.find('[data-testid="content-summary"]').text(),
-          'en.wikipedia.org/…/Cannonball_Baker_Sea-To-Shining-Sea_Memorial_…'
-        );
-      });
-
-      it('disables "Continue" button when group sets are enabled but no group set is selected', () => {
-        const wrapper = renderFilePicker();
-
-        selectContent(wrapper, 'https://example.com');
-        selectGroupConfig(wrapper, { useGroupSet: true, groupSet: null });
-
-        assert.isTrue(
-          wrapper.find('LabeledButton[children="Continue"]').prop('disabled')
-        );
-      });
-
-      [true, false].forEach(useGroupSet => {
-        it('submits form when "Continue" button is clicked', () => {
-          const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
-          const wrapper = renderFilePicker({ onSubmit });
-
-          selectContent(wrapper, 'https://example.com');
-          selectGroupConfig(wrapper, { useGroupSet, groupSet: 'groupSet1' });
-
-          assert.notCalled(onSubmit);
-          interact(wrapper, () => {
-            wrapper
-              .find('LabeledButton[children="Continue"]')
-              .props()
-              .onClick();
-          });
-
-          assert.called(onSubmit);
-          checkFormFields(
-            wrapper,
-            {
-              type: 'url',
-              url: 'https://example.com',
-            },
-            useGroupSet ? 'groupSet1' : null
-          );
-        });
-      });
-
-      it('shows activity indicator when form is submitted', () => {
-        const wrapper = renderFilePicker();
-        assert.isFalse(wrapper.exists('FullScreenSpinner'));
-
-        selectContent(wrapper, 'https://example.com');
-        selectGroupConfig(wrapper, {
-          useGroupSet: true,
-          groupSet: 'groupSet1',
-        });
         interact(wrapper, () => {
           wrapper.find('LabeledButton[children="Continue"]').props().onClick();
         });
 
-        assert.isTrue(wrapper.exists('FullScreenSpinner'));
+        assert.called(onSubmit);
+        checkFormFields(
+          wrapper,
+          {
+            type: 'url',
+            url: 'https://example.com',
+          },
+          useGroupSet ? 'groupSet1' : null
+        );
       });
+    });
+
+    it('shows activity indicator when form is submitted', () => {
+      const wrapper = renderFilePicker();
+      assert.isFalse(wrapper.exists('FullScreenSpinner'));
+
+      selectContent(wrapper, 'https://example.com');
+      selectGroupConfig(wrapper, {
+        useGroupSet: true,
+        groupSet: 'groupSet1',
+      });
+      interact(wrapper, () => {
+        wrapper.find('LabeledButton[children="Continue"]').props().onClick();
+      });
+
+      assert.isTrue(wrapper.exists('FullScreenSpinner'));
     });
   });
 

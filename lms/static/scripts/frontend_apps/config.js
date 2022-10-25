@@ -61,14 +61,10 @@ import { createContext } from 'preact';
  * @prop {string} ltiLaunchUrl
  * @prop {object} blackboard
  *   @prop {boolean} blackboard.enabled
- *   @prop {boolean} blackboard.groupsEnabled
  *   @prop {APICallInfo} blackboard.listFiles
- *   @prop {APICallInfo} blackboard.listGroupSets
  * @prop {object} canvas
  *   @prop {boolean} canvas.enabled
- *   @prop {boolean} canvas.groupsEnabled
  *   @prop {APICallInfo} canvas.listFiles
- *   @prop {APICallInfo} canvas.listGroupSets
  * @prop {object} google
  *   @prop {string} google.clientId
  *   @prop {string} google.developerKey

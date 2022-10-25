@@ -8,33 +8,19 @@ from lms.resources._js_config import FilePickerConfig
 
 
 class TestFilePickerConfig:
-    @pytest.mark.parametrize(
-        "files_enabled,groups_enabled",
-        [
-            (False, False),
-            (True, False),
-            (False, True),
-            (True, True),
-        ],
-    )
+    @pytest.mark.parametrize("files_enabled", [False, True])
     def test_blackboard_config(
-        self, pyramid_request, application_instance, files_enabled, groups_enabled
+        self, pyramid_request, application_instance, files_enabled
     ):
 
         pyramid_request.lti_params["context_id"] = "COURSE_ID"
         application_instance.settings.set("blackboard", "files_enabled", files_enabled)
-        application_instance.settings.set(
-            "blackboard", "groups_enabled", groups_enabled
-        )
 
         config = FilePickerConfig.blackboard_config(
             pyramid_request, application_instance
         )
 
-        expected_config = {
-            "enabled": files_enabled,
-            "groupsEnabled": groups_enabled,
-        }
+        expected_config = {"enabled": files_enabled}
 
         if files_enabled:
             expected_config["listFiles"] = {
@@ -42,42 +28,21 @@ class TestFilePickerConfig:
                 "path": "/api/blackboard/courses/COURSE_ID/files",
             }
 
-        if groups_enabled:
-            expected_config["listGroupSets"] = {
-                "authUrl": "http://example.com/api/blackboard/oauth/authorize",
-                "path": "/api/blackboard/courses/COURSE_ID/group_sets",
-            }
-
         assert config == expected_config
 
     @pytest.mark.usefixtures("with_is_canvas")
-    @pytest.mark.parametrize(
-        "groups_enabled",
-        [
-            False,
-            True,
-        ],
-    )
-    def test_canvas_config(self, pyramid_request, application_instance, groups_enabled):
+    def test_canvas_config(self, pyramid_request, application_instance):
         pyramid_request.lti_params["custom_canvas_course_id"] = "COURSE_ID"
-        application_instance.settings.set("canvas", "groups_enabled", groups_enabled)
 
         config = FilePickerConfig.canvas_config(pyramid_request, application_instance)
 
         expected_config = {
             "enabled": Any(),
-            "groupsEnabled": groups_enabled,
             "listFiles": {
                 "authUrl": "http://example.com/api/canvas/oauth/authorize",
                 "path": "/api/canvas/courses/COURSE_ID/files",
             },
         }
-
-        if groups_enabled:
-            expected_config["listGroupSets"] = {
-                "authUrl": "http://example.com/api/canvas/oauth/authorize",
-                "path": "/api/canvas/courses/COURSE_ID/group_sets",
-            }
 
         assert config == expected_config
 
