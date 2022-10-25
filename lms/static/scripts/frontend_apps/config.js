@@ -165,6 +165,27 @@ import { createContext } from 'preact';
  */
 
 /**
+ * Each product type known
+ * @typedef {'BlackbaudK12'|'BlackboardLearn'|'canvas'|'desire2learn'|'moodle'|'sakai'| 'schoology' | 'unknown'} ProductFamily
+ *
+ */
+
+/**
+ * Features enabled for the current product
+ *
+ * @typedef ProductFeatures
+ * @prop {boolean} groups
+ */
+
+/**
+ * Information for the current productr
+ *
+ * @typedef Product
+ * @prop {ProductFamily} family
+ * @prop {ProductFeatures} features
+ */
+
+/**
  * Data/configuration needed for frontend applications in the LMS app.
  * The `mode` property specifies which frontend application should load and
  * the available configuration/data depends on the mode and LTI user role.
@@ -191,6 +212,7 @@ import { createContext } from 'preact';
  * @prop {OAuthErrorConfig} OAuth2RedirectError
  * @prop {ErrorDialogConfig} errorDialog
  * @prop {DebugInfo} [debug]
+ * @prop {Product} product
  */
 
 /**
