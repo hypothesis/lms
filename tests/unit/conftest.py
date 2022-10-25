@@ -120,7 +120,9 @@ def pyramid_request(db_session, application_instance, lti_v11_params):
 
     pyramid_request.lti_jwt = {}
     pyramid_request.lti_params = {}
-    pyramid_request.product = Product.from_request(pyramid_request)
+    pyramid_request.product = Product.from_request(
+        pyramid_request, dict(application_instance.settings)
+    )
 
     # The DummyRequest request lacks a content_type property which the real
     # request has

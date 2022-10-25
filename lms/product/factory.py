@@ -9,13 +9,22 @@ _PRODUCT_MAP = {product.family: product for product in (Blackboard, Canvas)}
 def get_product_from_request(request) -> Product:
     """Get the correct product object from the provided request."""
 
-    family = _get_family(request)
-    product = _PRODUCT_MAP.get(family, Product).from_request(request)
+    try:
+        ai = request.find_service(name="application_instance").get_current()
+    except ApplicationInstanceNotFound:
+        ai = None
+
+    family = _get_family(request, ai)
+    product = _PRODUCT_MAP.get(family, Product).from_request(
+        request, dict(ai.settings) if ai else {}
+    )
     product.family = family
     return product
 
 
-def _get_family(request):  # pylint:disable=too-many-return-statements
+def _get_family(
+    request, application_instance
+):  # pylint:disable=too-many-return-statements
     # First, if we are in an LMS specific route, return that
     # These are generally GET routes where we don't pass the `product` parameter back to us
     if request.matched_route.name.startswith("canvas_api."):
@@ -38,12 +47,9 @@ def _get_family(request):  # pylint:disable=too-many-return-statements
 
     # Finally try to match using the stored family_code in the application instance
     # We use this in LTIOutcomesViews
-    try:
-        application_instance = request.find_service(
-            name="application_instance"
-        ).get_current()
+    if application_instance:
         return Product.Family(
             application_instance.tool_consumer_info_product_family_code
         )
-    except ApplicationInstanceNotFound:
-        return Product.Family.UNKNOWN
+
+    return Product.Family.UNKNOWN

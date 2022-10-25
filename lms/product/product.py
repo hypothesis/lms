@@ -64,10 +64,9 @@ class Product:
     Family = Family
 
     @classmethod
-    def from_request(cls, request):
+    def from_request(cls, request, ai_settings: Dict):
         """Create a populated product object from the provided request."""
-        ai = request.find_service(name="application_instance").get_current()
-        product_settings = ai.settings.get(cls.settings_key, {})
+        product_settings = ai_settings.get(cls.settings_key, {})
 
         return cls(
             plugin=Plugins(request, cls.plugin_config),
