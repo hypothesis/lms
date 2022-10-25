@@ -409,6 +409,12 @@ class JSConfig:
             # launches its BasicLtiLaunchApp, whereas in
             # "content-item-selection" mode it launches its FilePickerApp.
             "mode": None,
+            "product": {
+                "family": self._request.product.family,
+                "features": {
+                    "groups": self._request.product.settings.groups_enabled,
+                },
+            },
         }
 
         if self._lti_user:
