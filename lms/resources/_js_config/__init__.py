@@ -414,6 +414,7 @@ class JSConfig:
                 "features": {
                     "groups": self._request.product.settings.groups_enabled,
                 },
+                "api": self._product_api_config(),
             },
         }
 
@@ -423,6 +424,27 @@ class JSConfig:
             )
 
         return config
+
+    def _product_api_config(self):
+        product = self._request.product
+        # This should be abstracted as "lms_course_id" or similar in either
+        # LTIParams or as part of product.
+        api_course_id = self._request.lti_params.get(
+            "custom_canvas_course_id"
+        ) or self._request.lti_params.get("context_id")
+
+        api_config = {}
+
+        if product.route.list_group_sets:
+            api_config["listGroupSets"] = {
+                "authUrl": self._request.route_url(product.route.oauth2_authorize),
+                "path": self._request.route_path(
+                    product.route.list_group_sets,
+                    course_id=api_course_id,
+                ),
+            }
+
+        return api_config
 
     @property
     @functools.lru_cache()

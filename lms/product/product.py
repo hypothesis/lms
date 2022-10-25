@@ -28,11 +28,14 @@ class Family(str, Enum):
 class Routes:
     """A collection of Pyramid route names for various functions."""
 
-    oauth2_authorize: str = None
+    oauth2_authorize: Optional[str] = None
     """Authorizing with OAuth 2."""
 
-    oauth2_refresh: str = None
+    oauth2_refresh: Optional[str] = None
     """Refreshing OAuth 2 tokens."""
+
+    list_group_sets: Optional[str] = None
+    """List available group sets. Takes a course_id parameter"""
 
 
 @dataclass
