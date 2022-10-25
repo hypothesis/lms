@@ -178,11 +178,19 @@ import { createContext } from 'preact';
  */
 
 /**
- * Information for the current productr
+ * API endpoints for the product
+ *
+ * @typedef ProductAPI
+ * @prop {APICallInfo} listGroupSets
+ */
+
+/**
+ * Information for the current product
  *
  * @typedef Product
  * @prop {ProductFamily} family
  * @prop {ProductFeatures} features
+ * @prop {ProductAPI} api
  */
 
 /**
