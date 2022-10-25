@@ -11,31 +11,17 @@ class FilePickerConfig:
     def blackboard_config(cls, request, application_instance):
         """Get Blackboard files config."""
         files_enabled = application_instance.settings.get("blackboard", "files_enabled")
-        groups_enabled = application_instance.settings.get(
-            "blackboard", "groups_enabled"
-        )
 
         auth_url = request.route_url(Blackboard.route.oauth2_authorize)
         course_id = request.lti_params.get("context_id")
 
-        config = {
-            "enabled": files_enabled,
-            "groupsEnabled": groups_enabled,
-        }
+        config = {"enabled": files_enabled}
 
         if files_enabled:
             config["listFiles"] = {
                 "authUrl": auth_url,
                 "path": request.route_path(
                     "blackboard_api.courses.files.list", course_id=course_id
-                ),
-            }
-
-        if groups_enabled:
-            config["listGroupSets"] = {
-                "authUrl": auth_url,
-                "path": request.route_path(
-                    "blackboard_api.courses.group_sets.list", course_id=course_id
                 ),
             }
 
@@ -49,14 +35,12 @@ class FilePickerConfig:
             "custom_canvas_course_id" in request.lti_params
             and application_instance.developer_key is not None
         )
-        groups_enabled = application_instance.settings.get("canvas", "groups_enabled")
 
         auth_url = request.route_url(Canvas.route.oauth2_authorize)
         course_id = request.lti_params.get("custom_canvas_course_id")
 
         config = {
             "enabled": enabled,
-            "groupsEnabled": groups_enabled,
             "listFiles": {
                 "authUrl": auth_url,
                 "path": request.route_path(
@@ -64,14 +48,6 @@ class FilePickerConfig:
                 ),
             },
         }
-
-        if groups_enabled:
-            config["listGroupSets"] = {
-                "authUrl": auth_url,
-                "path": request.route_path(
-                    "canvas_api.courses.group_sets.list", course_id=course_id
-                ),
-            }
 
         return config
 
