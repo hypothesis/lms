@@ -67,6 +67,33 @@ class TestFilePickerMode:
             pyramid_request, context.application_instance
         )
 
+    def test_it_adds_product_info(self, js_config):
+        js_config.enable_file_picker_mode(sentinel.form_action, sentinel.form_fields)
+
+        assert js_config.asdict()["product"] == {
+            "api": {},
+            "family": "unknown",
+            "features": {"groups": False},
+        }
+
+    def test_product_with_list_group_sets(self, js_config, pyramid_request):
+        pyramid_request.product.route.list_group_sets = "welcome"
+        pyramid_request.product.route.oauth2_authorize = "welcome"
+        pyramid_request.product.settings.groups_enabled = True
+
+        js_config.enable_file_picker_mode(sentinel.form_action, sentinel.form_fields)
+
+        assert js_config.asdict()["product"] == {
+            "family": "unknown",
+            "api": {
+                "listGroupSets": {
+                    "authUrl": "http://example.com/welcome",
+                    "path": "/welcome",
+                }
+            },
+            "features": {"groups": True},
+        }
+
     @pytest.fixture(autouse=True)
     def FilePickerConfig(self, patch):
         return patch("lms.resources._js_config.FilePickerConfig")
@@ -93,11 +120,6 @@ class TestEnableLTILaunchMode:
             "api": {
                 "authToken": bearer_token_schema.authorization_param.return_value,
                 "sync": None,
-            },
-            "product": {
-                "api": {},
-                "family": Product.Family.UNKNOWN,
-                "features": {"groups": False},
             },
             "canvas": {},
             "debug": {
@@ -607,21 +629,6 @@ class TestEnableErrorDialogMode:
     @pytest.fixture
     def context(self):
         return create_autospec(OAuth2RedirectResource, spec_set=True, instance=True)
-
-
-class TestProductAPIConfig:
-    def test_empty(self, js_config):
-        assert js_config.asdict()["product"]["api"] == {}
-
-    def test_with_list_group_sets(self, js_config, pyramid_request):
-        pyramid_request.product.route.list_group_sets = "welcome"
-
-        assert js_config.asdict()["product"]["api"] == {
-            "listGroupSets": {
-                "authUrl": "http://example.com/welcome",
-                "path": "/welcome",
-            }
-        }
 
 
 @pytest.fixture(autouse=True)
