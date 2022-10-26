@@ -319,10 +319,14 @@ sqlalchemy==1.4.42
     #   -r requirements/requirements.txt
     #   alembic
     #   zope-sqlalchemy
+sqlparse==0.4.3
+    # via -r requirements/requirements.txt
 stack-data==0.3.0
     # via ipython
 supervisor==4.2.4
     # via -r requirements/dev.in
+tabulate==0.9.0
+    # via -r requirements/requirements.txt
 tomli==2.0.1
     # via
     #   build

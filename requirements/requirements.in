@@ -24,6 +24,8 @@ pyramid-tm
 requests
 requests-oauthlib
 sqlalchemy
+sqlparse
+tabulate
 webargs
 xmltodict
 zope.sqlalchemy
