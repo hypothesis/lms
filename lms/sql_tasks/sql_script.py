@@ -41,6 +41,8 @@ class SQLScript:
 
         :param task_dir: The directory to read from
         :param template_vars: Variables to include in Jinja2 SQL files
+
+        :raises NotADirectoryError: When the provided `task_dir` is invalid
         """
         if not os.path.isdir(task_dir):
             raise NotADirectoryError(f"Cannot find the task directory: '{task_dir}'")
