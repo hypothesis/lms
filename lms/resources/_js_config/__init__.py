@@ -208,6 +208,7 @@ class JSConfig:
         self._config.update(
             {
                 "mode": JSConfig.Mode.FILE_PICKER,
+                # Info about the product we are currently running in
                 "product": self._get_product_info(),
                 "filePicker": {
                     "formAction": form_action,
@@ -420,13 +421,16 @@ class JSConfig:
         return config
 
     def _get_product_info(self):
+        """Return product (Canvas, BB, D2L..) configuration."""
         product = self._request.product
 
         product_info = {
             "family": product.family,
-            "features": {
-                "groups": self._request.product.settings.groups_enabled,
+            "settings": {
+                # Is the small groups feature enabled
+                "groupsEnabled": self._request.product.settings.groups_enabled,
             },
+            # List of API endpoints we proxy for this product
             "api": {},
         }
 
