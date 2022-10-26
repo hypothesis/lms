@@ -1,0 +1,57 @@
+# Run various SQL defined tasks, usually related to the report aggregations
+
+name: SQL tasks
+on:
+  workflow_dispatch:
+    inputs:
+      Task:
+        type: choice
+        description: "The SQL task to perform"
+        required: true
+        options:
+          - "hello_world"
+      Environment:
+        type: choice
+        description: "The environment to target"
+        required: true
+        default: 'qa'
+        options:
+          - 'qa'
+          - 'prod'
+      Region:
+        type: choice
+        description: "The AWS region to target"
+        required: true
+        default: 'all'
+        options:
+          - 'all'
+          - 'ca-central-1'
+          - 'us-west-1'
+      Destructive:
+        description: Check to confirm you are happy to proceed with a destructive operation
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  check_for_danger:
+    runs-on: ubuntu-latest
+    name: "Check for approval for dangerous actions"
+    steps:
+      - name: "Approval not given!"
+        if: contains(fromJson('["report/create_from_scratch"]'), inputs.Task) && inputs.Destructive == false
+        run: |
+          echo "::error::'${{ inputs.Task }}' needs destructive option"
+          exit 1
+
+  run_task:
+    needs: check_for_danger
+    name: "Run '${{ inputs.Task }}' SQL task in ${{ inputs.Environment }} / ${{ inputs.Region }}"
+    uses: hypothesis/workflows/.github/workflows/eb-task.yml@main
+    with:
+      App: ${{ github.event.repository.name }}
+      Env: ${{ inputs.Environment }}
+      Timeout: 3600
+      Region: ${{ inputs.Region }}
+      Command: 'python bin/run_sql_task.py --config-file conf/production.ini --task ${{ inputs.Task }}'
+    secrets: inherit
