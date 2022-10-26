@@ -18,6 +18,13 @@ TEST_SETTINGS["database_url"] = get_test_database_url(
     default="postgresql://postgres@localhost:5433/lms_functests"
 )
 
+TEST_ENVIRONMENT = {
+    key.upper(): value for key, value in TEST_SETTINGS.items() if isinstance(value, str)
+}
+TEST_ENVIRONMENT.update(
+    {"RPC_ALLOWED_ORIGINS": ",".join(TEST_SETTINGS["rpc_allowed_origins"])}
+)
+
 
 @pytest.fixture(autouse=True)
 def clean_database(db_engine):
