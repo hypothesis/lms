@@ -56,7 +56,7 @@
     "tiny-emitter": "^2.1.0"
   },
   "devDependencies": {
-    "@types/gapi": "^0.0.42",
+    "@types/gapi": "^0.0.43",
     "@typescript-eslint/eslint-plugin": "^5.40.1",
     "@typescript-eslint/parser": "^5.40.0",
     "axe-core": "^4.4.3",
