@@ -212,7 +212,7 @@ prompt-toolkit==3.0.29
     # via
     #   -r requirements/requirements.txt
     #   click-repl
-psycopg2==2.9.4
+psycopg2==2.9.5
     # via -r requirements/requirements.txt
 pyasn1==0.4.8
     # via
