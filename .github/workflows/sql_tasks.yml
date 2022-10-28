@@ -10,6 +10,7 @@ on:
         required: true
         options:
           - "hello_world"
+          - "fdw/create_from_scratch"
       Environment:
         type: choice
         description: "The environment to target"
