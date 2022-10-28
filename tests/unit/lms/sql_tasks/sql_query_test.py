@@ -41,6 +41,13 @@ class TestSQLQuery:
 >>> +----------+"""
         )
 
+    def test_dump_cleans_secrets(self, query_with_secret):
+        assert query_with_secret.dump().startswith(
+            """0=> SELECT
+0=>             ********** ** **** ** ******
+0=>             'value' AS column"""
+        )
+
     def test_dump_works_with_no_rows(self, query_no_rows):
         assert query_no_rows.dump()
 
@@ -70,3 +77,12 @@ class TestSQLQuery:
     @fixture
     def query_no_rows(self):
         return SQLQuery(0, 'ANALYZE "user"')
+
+    @fixture
+    def query_with_secret(self):
+        return SQLQuery(
+            0,
+            """SELECT
+            'password` AS pass -- secret
+            'value' AS column""",
+        )
