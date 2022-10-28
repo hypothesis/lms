@@ -25,6 +25,7 @@ help:
 .PHONY: services
 services: args?=up -d
 services: python
+	@tox -qe dockercompose --run-command 'sh -c "docker network create dbs 2>/dev/null || true"'
 	@tox -qe dockercompose -- $(args)
 
 .PHONY: db
