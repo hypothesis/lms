@@ -1,3 +1,4 @@
+import re
 import textwrap
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -49,7 +50,7 @@ class SQLQuery:
         :param indent: Optional indenting string prepended to each line.
         """
 
-        text = textwrap.indent(self.text, prefix=f"{self.index}=> ")
+        text = textwrap.indent(self._clean_query(self.text), prefix=f"{self.index}=> ")
         if self.rows:
             text += "\n" + tabulate(
                 tabular_data=[list(row) for row in self.rows],
@@ -58,3 +59,13 @@ class SQLQuery:
             )
         text += f"\n\nTime: {self.duration}"
         return textwrap.indent(text, indent)
+
+    @staticmethod
+    def _clean_query(query: str) -> str:
+        """Clean any of the query's lines marked as sensitive."""
+        return "\n".join(
+            [
+                re.sub(r"[^\s]", "*", line) if "secret" in line.lower() else line
+                for line in query.split("\n")
+            ]
+        )
