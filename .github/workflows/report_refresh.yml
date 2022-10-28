@@ -15,5 +15,5 @@ jobs:
       Env: 'qa'
       Timeout: 3600
       Region: 'us-west-1'
-      Command: 'python bin/run_sql_task.py --config-file conf/production.ini --task hello_world'
+      Command: 'python bin/run_sql_task.py --config-file conf/production.ini --task report/refresh'
     secrets: inherit
