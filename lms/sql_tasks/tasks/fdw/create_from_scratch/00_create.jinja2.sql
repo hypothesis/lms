@@ -1,7 +1,7 @@
 DROP SERVER IF EXISTS "{{h_fdw_server_name}}" CASCADE;
+
 CREATE SERVER {{h_fdw_server_name}} FOREIGN DATA WRAPPER postgres_fdw 
     OPTIONS (host '{{h_fdw_host}}', port '{{h_fdw_port}}', dbname '{{h_fdw_dbname}}');
-
 
 DROP USER MAPPING IF EXISTS FOR "{{db_user}}" SERVER "{{h_fdw_server_name}}";
 CREATE USER MAPPING IF NOT EXISTS FOR "{{db_user}}"
