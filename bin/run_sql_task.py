@@ -46,16 +46,9 @@ def main():
                 "db_user": parse_dsn(settings["database_url"].strip())["user"],
                 "region": Regions.get_region(),
                 # Hardcoded values to test GHA password masking
-                "h_fdw_server_name": "h_fdw_server",
-                "h_fdw_host": "h_postgres_1",
-                "h_fdw_port": "5432",
-                "h_fdw_dbname": "postgres",
-                "h_fdw_user": "postgres",
-                "h_fdw_password": "postgres",
-                "h_fdw_tables": [
-                    ("public", "annotation"),
-                    ("public", "groups"),
-                ],
+                "h_fdw": parse_dsn(
+                    "postgresql://postgres:password@h_postgres_1:5432/postgres"
+                ),
             },
         )
 
