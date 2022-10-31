@@ -22,7 +22,7 @@ CREATE USER MAPPING IF NOT EXISTS FOR "{{db_user}}"
 
 DROP SCHEMA IF EXISTS h CASCADE;
 -- Keep foreign tables on its own schema
-CREATE SCHEMA h;
+CREATE SCHEMA h AUTHORIZATION "{{h_fdw.user}}";
 
 IMPORT FOREIGN SCHEMA "report" LIMIT TO (
     "authorities",
