@@ -12,24 +12,33 @@ from tests.functional.conftest import TEST_ENVIRONMENT
 class TestRunSQLTask:
     # We use "db_engine" here to ensure the schema is created
     @pytest.mark.usefixtures("db_engine")
-    def test_reporting_tasks(self, environ):
-        for task_name in ("hello_world",):
-            result = check_output(
-                [
-                    sys.executable,
-                    "bin/run_sql_task.py",
-                    "--config-file",
-                    "conf/development.ini",
-                    "--task",
-                    task_name,
-                ],
-                env=environ,
-            )
+    @pytest.mark.parametrize(
+        "report_path",
+        [
+            "hello_world",
+            pytest.param(
+                "fwd/create_from_scratch",
+                marks=pytest.mark.xfail(reason="dependency on H tables"),
+            ),
+        ],
+    )
+    def test_reporting_tasks(self, environ, report_path):
+        result = check_output(
+            [
+                sys.executable,
+                "bin/run_sql_task.py",
+                "--config-file",
+                "conf/development.ini",
+                "--task",
+                report_path,
+            ],
+            env=environ,
+        )
 
-            assert result
+        assert result
 
-            print(f"Task {task_name} OK!")
-            print(result.decode("utf-8"))
+        print(f"Task {report_path} OK!")
+        print(result.decode("utf-8"))
 
     @fixture
     def environ(self):
