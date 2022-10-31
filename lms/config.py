@@ -42,6 +42,7 @@ class _Setting:
 
 SETTINGS = (
     _Setting("database_url"),
+    _Setting("h_fdw_database_url"),
     # Whether we're in "dev" mode (as opposed to QA, production or tests).
     _Setting("dev", value_mapper=asbool),
     # The URL of the https://github.com/hypothesis/via instance to

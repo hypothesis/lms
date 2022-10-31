@@ -45,10 +45,7 @@ def main():
             template_vars={
                 "db_user": parse_dsn(settings["database_url"].strip())["user"],
                 "region": Regions.get_region(),
-                # Hardcoded values to test GHA password masking
-                "h_fdw": parse_dsn(
-                    "postgresql://postgres:password@h_postgres_1:5432/postgres"
-                ),
+                "h_fdw": parse_dsn(settings["h_fdw_database_url"]),
             },
         )
 
