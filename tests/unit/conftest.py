@@ -74,6 +74,11 @@ def lti_v13_params():
         "https://purl.imsglobal.org/spec/lti/claim/tool_platform": {
             "guid": "GUID",
             "product_family_code": "FAMILY_CODE",
+            "contact_email": "CONTACT_EMAIL",
+            "name": "PLATFORM_NAME",
+            "description": "PLATFORM_DESCRIPTION",
+            "url": "PLATFORM_URL",
+            "version": "PLATFORM_VERSION",
         },
         "https://purl.imsglobal.org/spec/lti/claim/roles": [
             "Instructor",
