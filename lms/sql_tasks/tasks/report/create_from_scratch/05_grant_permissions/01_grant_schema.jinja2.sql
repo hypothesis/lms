@@ -4,3 +4,8 @@
 GRANT USAGE ON SCHEMA public TO "{{fdw_user}}";
 GRANT SELECT ON public.organization TO "{{fdw_user}}";
 {% endfor %}
+
+{% for fdw_user in fdw_users %}
+GRANT USAGE ON SCHEMA report TO "{{fdw_user}}";
+GRANT SELECT ON ALL TABLES IN SCHEMA report TO "{{fdw_user}}";
+{% endfor %}
