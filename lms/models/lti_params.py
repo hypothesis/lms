@@ -100,6 +100,26 @@ _V11_TO_V13 = (
         [f"{CLAIM_PREFIX}/tool_platform", "product_family_code"],
     ),
     (
+        "tool_consumer_instance_contact_email",
+        [f"{CLAIM_PREFIX}/tool_platform", "contact_email"],
+    ),
+    (
+        "tool_consumer_instance_name",
+        [f"{CLAIM_PREFIX}/tool_platform", "name"],
+    ),
+    (
+        "tool_consumer_instance_description",
+        [f"{CLAIM_PREFIX}/tool_platform", "description"],
+    ),
+    (
+        "tool_consumer_instance_url",
+        [f"{CLAIM_PREFIX}/tool_platform", "url"],
+    ),
+    (
+        "tool_consumer_info_version",
+        [f"{CLAIM_PREFIX}/tool_platform", "version"],
+    ),
+    (
         "lis_outcome_service_url",
         ["https://purl.imsglobal.org/spec/lti-ags/claim/endpoint", "lineitem"],
     ),
