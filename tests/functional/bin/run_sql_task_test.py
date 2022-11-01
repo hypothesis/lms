@@ -12,33 +12,27 @@ from tests.functional.conftest import TEST_ENVIRONMENT
 class TestRunSQLTask:
     # We use "db_engine" here to ensure the schema is created
     @pytest.mark.usefixtures("db_engine")
-    @pytest.mark.parametrize(
-        "report_path",
-        [
-            "hello_world",
-            pytest.param(
-                "fwd/create_from_scratch",
-                marks=pytest.mark.xfail(reason="dependency on H tables"),
-            ),
-        ],
-    )
-    def test_reporting_tasks(self, environ, report_path):
-        result = check_output(
-            [
-                sys.executable,
-                "bin/run_sql_task.py",
-                "--config-file",
-                "conf/development.ini",
-                "--task",
-                report_path,
-            ],
-            env=environ,
-        )
+    # If you want to run these tests, you first need to start services in H
+    # and run the `report/create_from_scratch` task there.
+    @pytest.mark.xfail(reason="Requires reporting tasks to be run in H")
+    def test_reporting_tasks(self, environ):
+        for report_path in ('report/create_from_scratch', 'report/refresh', 'report/create_from_scratch'):
+            result = check_output(
+                [
+                    sys.executable,
+                    "bin/run_sql_task.py",
+                    "--config-file",
+                    "conf/development.ini",
+                    "--task",
+                    report_path,
+                ],
+                env=environ,
+            )
 
-        assert result
+            assert result
 
-        print(f"Task {report_path} OK!")
-        print(result.decode("utf-8"))
+            print(f"Task {report_path} OK!")
+            print(result.decode("utf-8"))
 
     @fixture
     def environ(self):
