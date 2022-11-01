@@ -17,6 +17,7 @@ class TestLTIParams:
             ("lis_person_name_given", "GIVEN_NAME"),
             ("lis_person_name_family", "FAMILY_NAME"),
             ("lis_person_name_full", "FULL_NAME"),
+            ("lis_person_contact_email_primary", "EMAIL"),
             ("context_id", "CONTEXT_ID"),
             ("context_title", "CONTEXT_TITLE"),
             ("lti_version", "LTI_VERSION"),
