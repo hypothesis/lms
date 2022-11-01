@@ -6,7 +6,6 @@ currently only used to perform the aggregations and mappings required for
 reporting.
 """
 
-
 from argparse import ArgumentParser
 
 import importlib_resources
@@ -50,8 +49,8 @@ def main():
         )
 
         # Run the update in a transaction, so we roll back if it goes wrong
-        with request.tm:
-            with request.db.bind.connect() as connection:
+        with request.db.bind.connect() as connection:
+            with connection.begin():
                 for script in scripts:
                     print(f"Executing: {script.path}")
 

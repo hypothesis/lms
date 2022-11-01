@@ -16,7 +16,11 @@ class TestRunSQLTask:
     # and run the `report/create_from_scratch` task there.
     @pytest.mark.xfail(reason="Requires reporting tasks to be run in H")
     def test_reporting_tasks(self, environ):
-        for report_path in ('report/create_from_scratch', 'report/refresh', 'report/create_from_scratch'):
+        for report_path in (
+            "report/create_from_scratch",
+            "report/refresh",
+            "report/create_from_scratch",
+        ):
             result = check_output(
                 [
                     sys.executable,
