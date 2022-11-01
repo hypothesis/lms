@@ -32,7 +32,8 @@ LMS. Each of these is mandatory to get the service working correctly.
 |-----------------------------------|----------------------------------------|-------------------------------------------------|
 | `ADMIN_AUTH_GOOGLE_CLIENT_ID`     | `abcdef012.apps.googleusercontent.com` | An OAuth2 pair from Google for `/admin` pages   |
 | `ADMIN_AUTH_GOOGLE_CLIENT_SECRET` | `01234567-89ab-cdef-0123-456789abcdef` | The matching secret from the above              |
-| `DATABASE_URL`                    | `postgresql://user:pw@host/lms`        | Postgres DSN                                    |
+| `DATABASE_URL`                    | `postgresql://user:pw@host/lms`        | Postgres DSN of this service main DB            | 
+| `H_FDW_DATABASE_URL`              | `postgresql://user:pw@host/h`          | Postgres DSN pointing to H's DB                 | 
 | `H_API_URL_PRIVATE`               | `https://cloud.hosting.url/api`        | URL for service to service communication        |
 | `H_API_URL_PUBLIC`                | `https://fr.hypothes.is/api`           | URL for client to service communication         |
 | `H_AUTHORITY`                     | `lms.eg.hypothes.is`                   | An authority to separate LMS annotations in `h` |
