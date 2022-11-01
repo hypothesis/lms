@@ -81,6 +81,7 @@ _V11_TO_V13 = (
     ("lis_person_name_given", ["given_name"]),
     ("lis_person_name_family", ["family_name"]),
     ("lis_person_name_full", ["name"]),
+    ("lis_person_contact_email_primary", ["email"]),
     ("roles", [f"{CLAIM_PREFIX}/roles"]),
     ("context_id", [f"{CLAIM_PREFIX}/context", "id"]),
     ("context_title", [f"{CLAIM_PREFIX}/context", "title"]),

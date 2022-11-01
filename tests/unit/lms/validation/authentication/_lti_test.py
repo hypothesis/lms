@@ -22,7 +22,7 @@ class TestLTI11AuthSchema:
             {
                 "oauth_signature_method": "SHA256",
                 "lis_person_name_family": "TEST_FAMILY_NAME",
-                "lis_person_contact_email_primary": "test_lis_person_contact_email_primary",
+                "lis_person_contact_email_primary": "EMAIL",
                 "oauth_nonce": "TEST_NONCE",
                 "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
                 "lis_person_name_full": "TEST_FULL_NAME",
