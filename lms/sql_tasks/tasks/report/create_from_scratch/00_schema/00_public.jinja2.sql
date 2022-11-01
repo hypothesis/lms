@@ -1,0 +1,6 @@
+-- The public schema already exists but
+-- we need to grant usage to the user will map via fdw.
+{% for fdw_user in fdw_users %}
+GRANT USAGE ON SCHEMA public TO "{{fdw_user}}";
+GRANT SELECT ON public.organization TO "{{fdw_user}}";
+{% endfor %}
