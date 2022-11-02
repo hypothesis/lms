@@ -15,45 +15,50 @@ jobs:
     uses: ./.github/workflows/continuous-integration.yml
     name: continuous integration
 
-  create-image:
+  Docker_Hub:
+    name: Docker Hub
     needs: continuous-integration
     uses: hypothesis/workflows/.github/workflows/dockerhub.yml@main
     with:
       Application: ${{ github.event.repository.name }}
     secrets: inherit
 
-  qa-us-west-1:
-    needs: create-image
-    name: ${{ github.event.repository.name }}
-    uses: hypothesis/workflows/.github/workflows/eb-update.yml@main
+  QA:
+    needs: Docker_Hub
+    uses: hypothesis/workflows/.github/workflows/deploy.yml@main
     with:
-      Application: ${{ github.event.repository.name }}
-      Environment: qa
-      Region: us-west-1
-      Operation: deploy
-      Version: ${{ needs.create-image.outputs.docker_tag }}
+      operation: deploy
+      github_environment_name: QA
+      github_environment_url: https://hypothesis.instructure.com/courses/125/assignments
+      aws_region: us-west-1
+      elasticbeanstalk_application: lms
+      elasticbeanstalk_environment: qa
+      docker_tag: ${{ needs.Docker_Hub.outputs.docker_tag }}
     secrets: inherit
 
-  prod-us-west-1:
-    needs: [create-image, qa-us-west-1]
-    name: ${{ github.event.repository.name }}
-    uses: hypothesis/workflows/.github/workflows/eb-update.yml@main
+  Production:
+    needs: [Docker_Hub, QA]
+    uses: hypothesis/workflows/.github/workflows/deploy.yml@main
     with:
-      Application: ${{ github.event.repository.name }}
-      Environment: prod
-      Region: us-west-1
-      Operation: deploy
-      Version: ${{ needs.create-image.outputs.docker_tag }}
+      operation: deploy
+      github_environment_name: Production
+      github_environment_url: https://hypothesis.instructure.com/courses/125/assignments
+      aws_region: us-west-1
+      elasticbeanstalk_application: lms
+      elasticbeanstalk_environment: prod
+      docker_tag: ${{ needs.Docker_Hub.outputs.docker_tag }}
     secrets: inherit
 
-  prod-ca-central-1:
-    needs: [create-image, qa-us-west-1]
+  Production_Canada:
+    needs: [Docker_Hub, QA]
     name: ${{ github.event.repository.name }}
-    uses: hypothesis/workflows/.github/workflows/eb-update.yml@main
+    uses: hypothesis/workflows/.github/workflows/deploy.yml@main
     with:
-      Application: ${{ github.event.repository.name }}
-      Environment: prod
-      Region: ca-central-1
-      Operation: deploy
-      Version: ${{ needs.create-image.outputs.docker_tag }}
+      operation: deploy
+      github_environment_name: Production (Canada)
+      github_environment_url: https://hypothesis.instructure.com/courses/315
+      aws_region: ca-central-1 
+      elasticbeanstalk_application: lms
+      elasticbeanstalk_environment: prod
+      docker_tag: ${{ needs.Docker_Hub.outputs.docker_tag }}
     secrets: inherit
