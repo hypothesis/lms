@@ -51,7 +51,7 @@ jobs:
 
   Production_Canada:
     needs: [Docker_Hub, QA]
-    name: ${{ github.event.repository.name }}
+    name: Production (Canada)
     uses: hypothesis/workflows/.github/workflows/deploy.yml@main
     with:
       operation: deploy
