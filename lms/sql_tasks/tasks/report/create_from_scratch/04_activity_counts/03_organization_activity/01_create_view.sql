@@ -51,7 +51,7 @@ CREATE MATERIALIZED VIEW report.organization_activity AS (
         -- Then we join onto this facets table and use it to group our data in
         -- all of the different combos.
 
-        annotation_counts AS (
+        user_annotation_counts AS (
             SELECT
                 period,
                 timescale,
@@ -66,6 +66,28 @@ CREATE MATERIALIZED VIEW report.organization_activity AS (
                 group_activity.group_id = group_map.group_id
             GROUP BY
                 period, timescale, group_map.organization_id
+        ),
+
+        -- We calculate this differently from the group above because it's
+        -- faster to it from the groups for users, but for teachers it's not
+        -- an option. Doing users this way results in similar, but slightly
+        -- different numbers
+        teacher_annotation_counts AS (
+            SELECT
+                period,
+                timescale,
+                organization_id,
+                SUM(annotation_count) AS annotation_count
+            -- We don't have annotation counts by teacher, so this is user only
+            -- so we'll use "periods" instead of the full "facets"
+            FROM periods
+            JOIN report.user_activity ON
+                user_activity.created_week = periods.timestamp_week
+            JOIN report.organization_roles ON
+                user_activity.user_id = organization_roles.user_id
+                AND organization_roles.role = 'teacher'
+            GROUP BY
+                period, timescale, organization_id
         ),
 
         active AS (
@@ -119,16 +141,23 @@ CREATE MATERIALIZED VIEW report.organization_activity AS (
             SELECT
                 period, timescale, organization_id, 'user'::report.roles AS role,
                 annotation_count, 0 AS active, 0 AS billable
-            FROM annotation_counts
+            FROM user_annotation_counts
 
-            UNION
+            UNION ALL
+
+            SELECT
+                period, timescale, organization_id, 'teacher'::report.roles AS role,
+                annotation_count, 0 AS active, 0 AS billable
+            FROM teacher_annotation_counts
+
+            UNION ALL
 
             SELECT
                 period, timescale, organization_id, role,
                 0, active, 0
             FROM active
 
-            UNION
+            UNION ALL
 
             SELECT
                 period, timescale, organization_id, role,
