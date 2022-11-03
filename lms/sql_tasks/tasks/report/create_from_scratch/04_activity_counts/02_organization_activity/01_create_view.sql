@@ -134,20 +134,50 @@ CREATE MATERIALIZED VIEW report.organization_activity AS (
                 period, timescale, organization_id, role,
                 0, 0, billable
             FROM billable
+        ),
+
+        -- We can then MAX over the columns to get a single row with each
+        -- value in it's own column.
+        unified_metrics AS (
+            SELECT
+                timescale,
+                period AS timestamp,
+                report.present_date(timescale::text, period) as period,
+                role,
+                organization_id,
+                COALESCE(MAX(annotation_count), 0) AS annotation_count,
+                COALESCE(MAX(active), 0) AS active,
+                COALESCE(MAX(billable), 0) AS billable
+            FROM unioned_metrics
+            GROUP BY period, timestamp, timescale, role, organization_id
         )
 
-    -- We can then finally MAX over the columns to get a single row with each
-    -- value in it's own column.
-
+    -- Finally we will gather the counts and compare them with the previous row
+    -- using a window function to calculate growth over the period. This isn't
+    -- actually correct, as if we have a row missing we will calculate the
+    -- growth over a longer period. But I suspect it's practically good enough
+    -- as you need every metric to be zero at once, which isn't very likely.
     SELECT
         timescale,
-        report.present_date(timescale::text, period) as period,
+        timestamp,
+        period,
         role,
         organization_id,
-        COALESCE(MAX(annotation_count), 0) AS annotation_count,
-        COALESCE(MAX(active), 0) AS active,
-        COALESCE(MAX(billable), 0) AS billable
-    FROM unioned_metrics
-    GROUP BY period, timescale, role, organization_id
-    ORDER BY period, timescale, role, organization_id
+        annotation_count,
+        report.growth_ratio(
+            LAG(annotation_count) OVER (PARTITION BY timescale, role, organization_id ORDER BY timestamp),
+            annotation_count
+        ) as annotation_count_growth,
+        active,
+        report.growth_ratio(
+            LAG(active) OVER (PARTITION BY timescale, role, organization_id ORDER BY timestamp),
+            active
+        ) AS active_growth,
+        billable,
+        report.growth_ratio(
+            LAG(billable) OVER (PARTITION BY timescale, role, organization_id ORDER BY timestamp),
+            billable
+        ) AS billable_growth
+    FROM unified_metrics
+    ORDER BY timescale, role, period, organization_id
 ) WITH NO DATA;
