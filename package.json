@@ -57,7 +57,7 @@
   },
   "devDependencies": {
     "@types/gapi": "^0.0.43",
-    "@typescript-eslint/eslint-plugin": "^5.40.1",
+    "@typescript-eslint/eslint-plugin": "^5.42.0",
     "@typescript-eslint/parser": "^5.40.0",
     "axe-core": "^4.4.3",
     "babel-plugin-istanbul": "^6.1.1",
