@@ -59,7 +59,7 @@
     "@types/gapi": "^0.0.43",
     "@typescript-eslint/eslint-plugin": "^5.40.1",
     "@typescript-eslint/parser": "^5.40.0",
-    "axe-core": "^4.4.3",
+    "axe-core": "^4.5.1",
     "babel-plugin-istanbul": "^6.1.1",
     "babel-plugin-mockable-imports": "^2.0.1",
     "chai": "^4.3.6",
