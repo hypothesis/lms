@@ -14,6 +14,6 @@ jobs:
       App: ${{ github.event.repository.name }}
       Env: 'prod'
       Timeout: 3600
-      Region: 'us-west-1'
+      Region: 'all'
       Command: 'python bin/run_sql_task.py --config-file conf/production.ini --task report/refresh'
     secrets: inherit
