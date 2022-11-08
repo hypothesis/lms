@@ -141,7 +141,8 @@ CREATE MATERIALIZED VIEW report.organization_activity AS (
 
     SELECT
         timescale,
-        report.present_date(timescale::text, period) as period,
+        period::DATE AS calendar_date,
+        report.present_date(timescale::text, period) AS period,
         role,
         organization_id,
         COALESCE(MAX(annotation_count), 0) AS annotation_count,
