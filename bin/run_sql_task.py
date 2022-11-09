@@ -45,6 +45,11 @@ def main():
                 "db_user": parse_dsn(settings["database_url"].strip())["user"],
                 "region": Regions.get_region(),
                 "h_fdw": parse_dsn(settings["h_fdw_database_url"]),
+                "h_fdw_tables": [
+                    "authorities",
+                    "annotation_group_counts",
+                    "annotation_user_counts",
+                ],
                 "fdw_users": settings["fdw_users"],
             },
         )

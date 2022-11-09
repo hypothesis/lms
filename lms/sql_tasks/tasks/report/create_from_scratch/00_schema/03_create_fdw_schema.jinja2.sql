@@ -26,7 +26,5 @@ IMPORT FOREIGN SCHEMA "public" LIMIT TO (
 ) FROM SERVER "h_server" INTO h;
 
 IMPORT FOREIGN SCHEMA "report" LIMIT TO (
-    authorities,
-    annotation_group_counts,
-    annotation_user_counts
+    {{ h_fdw_tables|join(",") }}
 ) FROM SERVER "h_server" INTO h;
