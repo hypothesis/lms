@@ -6,7 +6,6 @@ from typing import List
 import jinja2
 import sqlparse
 
-from lms.sql_tasks import filters
 from lms.sql_tasks.sql_query import SQLQuery
 
 
@@ -26,7 +25,6 @@ class SQLScript:
     _jinja_env = jinja2.Environment(undefined=jinja2.StrictUndefined)
 
     def __post_init__(self):
-        self._jinja_env.filters["sql_literal"] = filters.sql_literal
         if not self.queries:
             self.queries = self._parse()
 
