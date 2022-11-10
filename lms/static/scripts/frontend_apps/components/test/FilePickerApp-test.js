@@ -34,8 +34,8 @@ describe('FilePickerApp', () => {
     fakeConfig = {
       api: { authToken: 'DUMMY_AUTH_TOKEN' },
       product: {
-        features: {
-          groups: false,
+        settings: {
+          groupsEnabled: false,
         },
       },
       filePicker: {
@@ -215,7 +215,7 @@ describe('FilePickerApp', () => {
 
   context('when group configuration is enabled', () => {
     beforeEach(() => {
-      fakeConfig.product.features.groups = true;
+      fakeConfig.product.settings.groupsEnabled = true;
     });
 
     it('does not submit form when content is selected', () => {

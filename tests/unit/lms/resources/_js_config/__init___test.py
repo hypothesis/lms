@@ -73,7 +73,7 @@ class TestFilePickerMode:
         assert js_config.asdict()["product"] == {
             "api": {},
             "family": "unknown",
-            "features": {"groups": False},
+            "settings": {"groupsEnabled": False},
         }
 
     def test_product_with_list_group_sets(self, js_config, pyramid_request):
@@ -91,7 +91,7 @@ class TestFilePickerMode:
                     "path": "/welcome",
                 }
             },
-            "features": {"groups": True},
+            "settings": {"groupsEnabled": True},
         }
 
     @pytest.fixture(autouse=True)
