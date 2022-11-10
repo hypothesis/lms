@@ -161,10 +161,10 @@ import { createContext } from 'preact';
  */
 
 /**
- * Features enabled for the current product
+ * Settings or the current product
  *
- * @typedef ProductFeatures
- * @prop {boolean} groups
+ * @typedef ProductSettings
+ * @prop {boolean} groupsEnabled
  */
 
 /**
@@ -179,7 +179,7 @@ import { createContext } from 'preact';
  *
  * @typedef Product
  * @prop {string} family
- * @prop {ProductFeatures} features
+ * @prop {ProductSettings} settings
  * @prop {ProductAPI} api
  */
 

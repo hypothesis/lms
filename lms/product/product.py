@@ -42,10 +42,10 @@ class Routes:
 class Settings:
     """Product specific settings."""
 
+    product_settings: InitVar[Dict]
+
     groups_enabled: bool = False
     """Is the course groups feature enabled"""
-
-    product_settings: InitVar[Dict] = field(default_factory=dict)
 
     def __post_init__(self, product_settings):
         self.groups_enabled = product_settings.get("groups_enabled", False)
