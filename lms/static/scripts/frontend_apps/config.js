@@ -161,12 +161,6 @@ import { createContext } from 'preact';
  */
 
 /**
- * Each product type known
- * @typedef {'BlackbaudK12'|'BlackboardLearn'|'canvas'|'desire2learn'|'moodle'|'sakai'| 'schoology' | 'unknown'} ProductFamily
- *
- */
-
-/**
  * Features enabled for the current product
  *
  * @typedef ProductFeatures
@@ -184,7 +178,7 @@ import { createContext } from 'preact';
  * Information for the current product
  *
  * @typedef Product
- * @prop {ProductFamily} family
+ * @prop {string} family
  * @prop {ProductFeatures} features
  * @prop {ProductAPI} api
  */
