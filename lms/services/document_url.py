@@ -60,10 +60,11 @@ class DocumentURLService:
         These values are ephemeral and can't be stored.
         """
 
-        if request.params.get("canvas_file"):
-            course_id = request.lti_params["custom_canvas_course_id"]
-            file_id = request.params["file_id"]
-
+        if (
+            request.params.get("canvas_file")
+            and (course_id := request.lti_params.get("custom_canvas_course_id"))
+            and (file_id := request.params["file_id"])
+        ):
             return f"canvas://file/course/{course_id}/file_id/{file_id}"
 
         return None
