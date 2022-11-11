@@ -161,7 +161,7 @@ import { createContext } from 'preact';
  */
 
 /**
- * Settings or the current product
+ * Settings of the current product
  *
  * @typedef ProductSettings
  * @prop {boolean} groupsEnabled
@@ -175,7 +175,7 @@ import { createContext } from 'preact';
  */
 
 /**
- * Information for the current product
+ * Information about the current product
  *
  * @typedef Product
  * @prop {string} family

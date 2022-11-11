@@ -142,12 +142,13 @@ export default function GroupConfigSelector({
 
   const {
     api: { authToken },
-    product: { api },
+    product: {
+      api: { listGroupSets: listGroupSetsAPI },
+    },
   } = useContext(Config);
 
   const useGroupSet = groupConfig.useGroupSet;
   const groupSet = useGroupSet ? groupConfig.groupSet : null;
-  const listGroupSetsAPI = api.listGroupSets;
 
   const fetchingGroupSets = !groupSets && !fetchError && useGroupSet;
 
