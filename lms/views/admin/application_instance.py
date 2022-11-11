@@ -296,15 +296,16 @@ class AdminApplicationInstanceViews:
             ai,
             lms_url=self.request.params.get("lms_url", "").strip(),
             deployment_id=self.request.params.get("deployment_id", "").strip(),
-            developer_key=self.request.params.get("developer_key", "").strip(),
-            developer_secret=self.request.params.get("developer_secret", "").strip(),
+            developer_key=self._getall_unique("developer_key", "").strip(),
+            developer_secret=self._getall_unique("developer_secret", "").strip(),
         )
 
         for setting, sub_setting, setting_type in (
-            ("canvas", "sections_enabled", bool),
-            ("canvas", "groups_enabled", bool),
             ("blackboard", "files_enabled", bool),
             ("blackboard", "groups_enabled", bool),
+            ("canvas", "sections_enabled", bool),
+            ("canvas", "groups_enabled", bool),
+            ("d2l", "groups_enabled", bool),
             ("microsoft_onedrive", "files_enabled", bool),
             ("vitalsource", "enabled", bool),
             ("vitalsource", "user_lti_param", str),
@@ -340,3 +341,27 @@ class AdminApplicationInstanceViews:
 
         except ApplicationInstanceNotFound as err:
             raise HTTPNotFound() from err
+
+    def _getall_unique(self, parameter, default=None):
+        """
+        Get an unique value from a MultiDict.
+
+        Raise if that value is not unique in all entries.
+
+        Useful for values that are duplicated in the form and we want to make sure
+        that don't get submitted with different values.
+        """
+        try:
+            values = {value for value in self.request.params.getall(parameter) if value}
+        except KeyError:
+            return default
+
+        if not values:
+            return default
+
+        if len(values) > 1:
+            raise ValidationError(
+                messages={parameter: [f"Received two different values. {values}"]}
+            )
+
+        return values.pop()
