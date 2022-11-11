@@ -84,10 +84,13 @@
     <fieldset class="box">
         <legend class="label has-text-centered">Canvas settings</legend>
         {{ macros.disabled_text_field("API domain", instance.custom_canvas_api_domain) }}
-        {{ macros.form_text_field(request, "Developer key", "developer_key", field_value=instance.developer_key) }}
+        {# Note the mismatch betwween canvas nomenclature and ours #}
+        {# developer id -> developer key #}
+        {# developer key -> developer secret #}
+        {{ macros.form_text_field(request, "Developer ID", "developer_key", field_value=instance.developer_key) }}
         {{ macros.form_text_field(
             request,
-            "Developer secret",
+            "Developer key",
             "developer_secret",
             placeholder="*" * 25 if instance.developer_secret else "")
         }}
