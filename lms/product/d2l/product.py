@@ -8,3 +8,5 @@ class D2L(Product):
     """A product for D2L specific settings and tweaks."""
 
     family: Product.Family = Product.Family.D2L
+
+    settings_key = "desire2learn"

@@ -1,5 +1,4 @@
 from unittest.mock import sentinel
-from multidict import MultiDict
 
 import pytest
 from pyramid.httpexceptions import HTTPNotFound
@@ -363,14 +362,12 @@ class TestAdminApplicationInstanceViews:
         lms_url,
         deployment_id,
     ):
-        pyramid_request.params = MultiDict(
-            {
-                "developer_key": key,
-                "developer_secret": secret,
-                "lms_url": lms_url,
-                "deployment_id": deployment_id,
-            }
-        )
+        pyramid_request.params = {
+            "developer_key": key,
+            "developer_secret": secret,
+            "lms_url": lms_url,
+            "deployment_id": deployment_id,
+        }
 
         views.update_instance()
 
@@ -390,6 +387,8 @@ class TestAdminApplicationInstanceViews:
             ("canvas", "sections_enabled", "", False),
             ("blackboard", "files_enabled", "other", False),
             ("blackboard", "groups_enabled", "off", False),
+            ("desire2learn", "client_id", "client_id", "client_id"),
+            ("desire2learn", "groups_enabled", "off", False),
             ("microsoft_onedrive", "files_enabled", "on", True),
             ("vitalsource", "enabled", "on", True),
             ("jstor", "enabled", "off", False),
@@ -435,7 +434,7 @@ class TestAdminApplicationInstanceViews:
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.params = MultiDict()
+        pyramid_request.params = {}
         return pyramid_request
 
     @pytest.fixture

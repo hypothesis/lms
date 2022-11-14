@@ -106,14 +106,9 @@
 
     <fieldset class="box">
         <legend class="label has-text-centered">D2L settings (EXPERIMENTAL)</legend>
-        {{ macros.form_text_field(request, "Developer key", "developer_key", field_value=instance.developer_key) }}
-        {{ macros.form_text_field(
-            request,
-            "Developer secret",
-            "developer_secret",
-            placeholder="*" * 25 if instance.developer_secret else "")
-        }}
-        {{ settings_checkbox("Groups enabled", "d2l", "groups_enabled") }}
+        {{ settings_text_field("API Client ID", "desire2learn", "client_id") }}
+        {{ settings_text_field("API Client secret", "desire2learn", "client_secret") }}
+        {{ settings_checkbox("Groups enabled", "desire2learn", "groups_enabled") }}
     </fieldset>
 
     <fieldset class="box">
