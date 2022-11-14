@@ -16,7 +16,7 @@ from pyramid.view import view_config, view_defaults
 
 from lms.events import LTIEvent
 from lms.security import Permissions
-from lms.services import DocumentURLService, LTIRoleService
+from lms.services import DocumentURLService
 from lms.services.assignment import AssignmentService
 from lms.services.grouping import GroupingService
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
@@ -184,9 +184,7 @@ class BasicLaunchViews:
         self.assignment_service.upsert_assignment_membership(
             assignment=assignment,
             user=self.request.user,
-            lti_roles=self.request.find_service(LTIRoleService).get_roles(
-                self.request.lti_params["roles"]
-            ),
+            lti_roles=self.request.lti_user.roles,
         )
         # Store the relationship between the assignment and the course
         self.assignment_service.upsert_assignment_groupings(

@@ -7,7 +7,6 @@ from sqlalchemy import inspect
 
 from lms.db import BASE
 from lms.models import EventType
-from lms.services.lti_role_service import LTIRoleService
 
 
 @dataclass
@@ -64,12 +63,7 @@ class LTIEvent(BaseEvent):
     # These methods provide defaults for each field and are used in
     # `BaseEvent.__post_init__` above.
     def _get_role_ids(self):
-        return [
-            role.id
-            for role in self.request.find_service(LTIRoleService).get_roles(
-                self.request.lti_user.roles
-            )
-        ]
+        return [role.id for role in self.request.lti_user.roles]
 
     def _get_application_instance_id(self):
         if application_instance := self.request.find_service(
