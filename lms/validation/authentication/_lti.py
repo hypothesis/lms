@@ -1,7 +1,11 @@
+from typing import List
+
 import marshmallow
 
 from lms.models import CLAIM_PREFIX, LTIUser
+from lms.models.lti_role import LTIRole
 from lms.services import ApplicationInstanceNotFound, LTILaunchVerificationError
+from lms.services.lti_role_service import LTIRoleService
 from lms.validation._exceptions import ValidationError
 from lms.validation._lti_launch_params import LTIV11CoreSchema
 
@@ -60,7 +64,11 @@ class LTI11AuthSchema(LTIV11CoreSchema):
                 {"consumer_key": ["Invalid OAuth 1 signature. Unknown consumer key."]}
             ) from err
 
-        return LTIUser.from_auth_params(application_instance, kwargs)
+        return LTIUser.from_auth_params(
+            application_instance,
+            _get_lti_roles(self.context["request"], kwargs["roles"]),
+            kwargs,
+        )
 
     @marshmallow.validates_schema
     def _verify_oauth_1(self, _data, **_kwargs):
@@ -124,4 +132,12 @@ class LTI13AuthSchema(LTIV11CoreSchema):
                 {"JWT": ["Invalid LTI1.3 params. Unknown application_instance."]}
             ) from err
 
-        return LTIUser.from_auth_params(application_instance, kwargs)
+        return LTIUser.from_auth_params(
+            application_instance,
+            _get_lti_roles(self.context["request"], kwargs["roles"]),
+            kwargs,
+        )
+
+
+def _get_lti_roles(request, roles) -> List[LTIRole]:
+    return request.find_service(LTIRoleService).get_roles(roles)

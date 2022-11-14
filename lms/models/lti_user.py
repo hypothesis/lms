@@ -1,6 +1,7 @@
-from typing import NamedTuple
+from typing import List, NamedTuple
 
 from lms.models.h_user import HUser
+from lms.models.lti_role import LTIRole, RoleScope, RoleType
 
 
 class LTIUser(NamedTuple):
@@ -9,7 +10,7 @@ class LTIUser(NamedTuple):
     user_id: str
     """The user_id LTI launch parameter."""
 
-    roles: str
+    roles: List[LTIRole]
     """The user's LTI roles."""
 
     tool_consumer_instance_guid: str
@@ -43,12 +44,14 @@ class LTIUser(NamedTuple):
         return "learner" in self.roles.lower()
 
     @staticmethod
-    def from_auth_params(application_instance, lti_core_schema):
+    def from_auth_params(
+        application_instance, lti_roles: List[LTIRole], lti_core_schema
+    ):
         """Create an LTIUser from a LTIV11CoreSchema like dict."""
         return LTIUser(
             user_id=lti_core_schema["user_id"],
             application_instance_id=application_instance.id,
-            roles=lti_core_schema["roles"],
+            roles=lti_roles,
             tool_consumer_instance_guid=lti_core_schema["tool_consumer_instance_guid"],
             display_name=display_name(
                 lti_core_schema["lis_person_name_given"],
