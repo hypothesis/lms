@@ -1,3 +1,6 @@
+import base64
+from typing import Optional
+
 from sqlalchemy.ext.mutable import MutableDict
 
 
@@ -58,6 +61,44 @@ class ApplicationSettings(MutableDict):
         :param value: The value to set
         """
         super().setdefault(group, {})[key] = value
+
+    def set_secret(self, aes_service, group, key, value: str):
+        """
+        Store a setting as a secret.
+
+        Store the setting AES encrypted.
+
+        :param aes_service: AESService to encrypt the string
+        :param group: The name of the group of settings
+        :param key: The key in that group
+        :param value: The value to set
+        """
+        aes_iv = aes_service.build_iv()
+        value = aes_service.encrypt(aes_iv, value)
+
+        # Store both the setting and the IV
+        # We can't store the bytes directly in JSON so we store it as base64
+        super().setdefault(group, {})[key] = base64.b64encode(value).decode("utf-8")
+        super().setdefault(group, {})[f"{key}_aes_iv"] = base64.b64encode(
+            aes_iv
+        ).decode("utf-8")
+
+    def get_secret(self, aes_service, group, key) -> Optional[str]:
+        """
+        Get a secret setting.
+
+        :param aes_service: AESService to decrypt the string
+        :param group: The name of the group of settings
+        :param key: The key in that group
+        """
+        value = super().get(group, {}).get(key)
+        if not value:
+            return None
+
+        aes_value = base64.b64decode(value)
+        aes_iv = base64.b64decode(super().get(group, {}).get(f"{key}_aes_iv"))
+
+        return aes_service.decrypt(aes_iv, aes_value).decode("utf-8")
 
     def __repr__(self):
         return f"{self.__class__.__name__}({super().__repr__()})"

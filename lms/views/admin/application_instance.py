@@ -5,6 +5,7 @@ from pyramid.view import view_config, view_defaults
 from sqlalchemy.exc import IntegrityError
 from webargs import fields
 
+from lms.services.aes import AESService
 from lms.models import ApplicationInstance
 from lms.security import Permissions
 from lms.services import ApplicationInstanceNotFound, LTIRegistrationService
@@ -41,6 +42,7 @@ class AdminApplicationInstanceViews:
         self.lti_registration_service: LTIRegistrationService = request.find_service(
             LTIRegistrationService
         )
+        self._aes_service = request.find_service(AESService)
 
     @view_config(
         route_name="admin.instances",

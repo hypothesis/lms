@@ -38,6 +38,9 @@ class AESService:
         # Using the cryptographic secure Cryptodome.Random instead of the stlib random package.
         return Random.new().read(AES.block_size)
 
+    class AESSecret:
+        """Dummy type to identify strings that must be encrypted."""
+
 
 def factory(_context, request):
     return AESService(secret=request.registry.settings["aes_secret"])
