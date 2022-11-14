@@ -31,6 +31,17 @@
 {% endmacro %}
 
 
+{% macro settings_secret_field(label, setting, sub_setting, field_name, default='') %}
+    {% call macros.field_body(label) %}
+        <input
+            value="{{ "*" * 25 if instance.settings.get(setting, sub_setting, default) else '' }}"
+            class="input"
+            type="text"
+            name="{{ setting }}.{{ sub_setting }}">
+    {% endcall %}
+{% endmacro %}
+
+
 {% block content %}
 <form method="POST" action="{{ request.route_url("admin.instance.id", id_=instance.id) }}">
     <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
@@ -107,7 +118,7 @@
     <fieldset class="box">
         <legend class="label has-text-centered">D2L settings (EXPERIMENTAL)</legend>
         {{ settings_text_field("API Client ID", "desire2learn", "client_id") }}
-        {{ settings_text_field("API Client secret", "desire2learn", "client_secret") }}
+        {{ settings_secret_field("API Client secret", "desire2learn", "client_secret") }}
         {{ settings_checkbox("Groups enabled", "desire2learn", "groups_enabled") }}
     </fieldset>
 

@@ -1,4 +1,4 @@
-from unittest.mock import sentinel
+from unittest.mock import create_autospec, sentinel
 
 import pytest
 from pyramid.httpexceptions import HTTPNotFound
@@ -17,6 +17,7 @@ from tests.matchers import Any, temporary_redirect_to
     "application_instance_service",
     "lti_registration_service",
     "organization_service",
+    "aes_service",
 )
 class TestAdminApplicationInstanceViews:
     def test_instances(self, views):
@@ -420,6 +421,31 @@ class TestAdminApplicationInstanceViews:
             application_instance_service.get_by_consumer_key.return_value
         )
         assert application_instance.settings.get(setting, sub_setting) == expected
+
+    @pytest.mark.parametrize(
+        "setting,sub_setting", (("desire2learn", "client_secret"),)
+    )
+    def test_update_instance_saves_secret_settings(
+        self,
+        application_instance_service,
+        aes_service,
+        pyramid_request,
+        setting,
+        sub_setting,
+    ):
+        pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
+        pyramid_request.params[f"{setting}.{sub_setting}"] = "SECRET"
+        # This fixture returns a real AI, let's use a mock for this test
+        application_instance_service.get_by_consumer_key.return_value = create_autospec(
+            ApplicationInstance
+        )
+
+        AdminApplicationInstanceViews(pyramid_request).update_instance()
+
+        ai = application_instance_service.get_by_consumer_key.return_value
+        ai.settings.set_secret.assert_called_once_with(
+            aes_service, setting, sub_setting, "SECRET"
+        )
 
     def test_update_instance_not_found(
         self, pyramid_request, application_instance_service

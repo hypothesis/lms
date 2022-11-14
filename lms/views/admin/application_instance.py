@@ -5,10 +5,10 @@ from pyramid.view import view_config, view_defaults
 from sqlalchemy.exc import IntegrityError
 from webargs import fields
 
-from lms.services.aes import AESService
 from lms.models import ApplicationInstance
 from lms.security import Permissions
 from lms.services import ApplicationInstanceNotFound, LTIRegistrationService
+from lms.services.aes import AESService
 from lms.validation._base import PyramidRequestSchema, ValidationError
 from lms.views.admin import error_render_to_response, flash_validation
 
@@ -322,11 +322,18 @@ class AdminApplicationInstanceViews:
             value = self.request.params.get(f"{setting}.{sub_setting}")
             if setting_type == bool:
                 value = value == "on"
+                ai.settings.set(setting, sub_setting, value)
+            elif setting_type == AESService.AESSecret:
+                value = value.strip() if value else None
+                if not value:
+                    continue
+
+                ai.settings.set_secret(self._aes_service, setting, sub_setting, value)
+
             else:
                 assert setting_type == str
                 value = value.strip() if value else None
-
-            ai.settings.set(setting, sub_setting, value)
+                ai.settings.set(setting, sub_setting, value)
 
         self.request.session.flash(f"Updated application instance {ai.id}", "messages")
 
