@@ -33,15 +33,23 @@ class LTIUser(NamedTuple):
     @property
     def is_instructor(self):
         """Whether this user is an instructor."""
+        if any(role.type == RoleType.ADMIN for role in self.roles):
+            # Admin are not instructors but we treat them as such
+            return True
+
+        # For instructors check that role is for this course's scope
         return any(
-            role in self.roles.lower()
-            for role in ("administrator", "instructor", "teachingassistant")
+            role.scope == RoleScope.COURSE and role.type == RoleType.INSTRUCTOR
+            for role in self.roles
         )
 
     @property
     def is_learner(self):
         """Whether this user is a learner."""
-        return "learner" in self.roles.lower()
+        return any(
+            role.scope == RoleScope.COURSE and role.type == RoleType.LEARNER
+            for role in self.roles
+        )
 
     @staticmethod
     def from_auth_params(
