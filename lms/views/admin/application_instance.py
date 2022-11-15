@@ -302,13 +302,16 @@ class AdminApplicationInstanceViews:
             developer_secret=self.request.params.get("developer_secret", "").strip(),
         )
 
+        # Helper to declare settings as secret
+        aes_secret = object()
+
         for setting, sub_setting, setting_type in (
             ("blackboard", "files_enabled", bool),
             ("blackboard", "groups_enabled", bool),
             ("canvas", "sections_enabled", bool),
             ("canvas", "groups_enabled", bool),
             ("desire2learn", "client_id", str),
-            ("desire2learn", "client_secret", AESService.AESSecret),
+            ("desire2learn", "client_secret", aes_secret),
             ("desire2learn", "groups_enabled", bool),
             ("microsoft_onedrive", "files_enabled", bool),
             ("vitalsource", "enabled", bool),
@@ -323,7 +326,7 @@ class AdminApplicationInstanceViews:
             if setting_type == bool:
                 value = value == "on"
                 ai.settings.set(setting, sub_setting, value)
-            elif setting_type == AESService.AESSecret:
+            elif setting_type == aes_secret:
                 value = value.strip() if value else None
                 if not value:
                     continue
