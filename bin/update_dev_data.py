@@ -5,13 +5,13 @@ Usage:
 
     devdata conf/development.ini
 """
+import argparse
 import base64
 import json
 import os
 import pathlib
 import shutil
 import subprocess
-import sys
 import tempfile
 
 from pyramid.paster import bootstrap
@@ -128,14 +128,24 @@ class DevDataFactory:
 
 
 def devdata():
-    with bootstrap(sys.argv[1]) as env:
+    parser = argparse.ArgumentParser(
+        prog="devdata", description="Inserts standard dev data into the DB"
+    )
+    parser.add_argument("config", help="Location of the paster configuration file")
+    parser.add_argument(
+        "-u",
+        "--repo-url",
+        default="https://github.com/hypothesis/devdata.git",
+        help="Location of the devdata repository",
+    )
+    args = parser.parse_args()
+
+    with bootstrap(args.config) as env:
         with tempfile.TemporaryDirectory() as tmpdirname:
             # The directory that we'll clone the devdata git repo into.
             git_dir = os.path.join(tmpdirname, "devdata")
 
-            subprocess.check_call(
-                ["git", "clone", "https://github.com/hypothesis/devdata.git", git_dir]
-            )
+            subprocess.check_call(["git", "clone", args.repo_url, git_dir])
 
             # Copy devdata env file into place.
             shutil.copyfile(
