@@ -12,6 +12,7 @@ class D2L(Product):
     route: Routes = Routes(
         oauth2_authorize="d2l_api.oauth.authorize",
         oauth2_refresh="d2l_api.oauth.refresh",
+        list_group_sets="d2l_api.courses.group_sets.list",
     )
 
     settings_key = "desire2learn"
