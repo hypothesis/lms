@@ -82,7 +82,6 @@ class TestOAuth2RedirectError:
         return pyramid_request
 
 
-@pytest.mark.usefixtures("blackboard_api_client")
 class TestOAuth2Redirect:
     def test_it_gets_a_new_access_token_for_the_user(
         self, pyramid_request, blackboard_api_client
