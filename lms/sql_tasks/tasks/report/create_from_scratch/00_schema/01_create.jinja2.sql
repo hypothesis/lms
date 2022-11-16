@@ -1,3 +1,6 @@
 DROP SCHEMA IF EXISTS report CASCADE;
+
 -- CREATE SCHEMA report AUTHORIZATION "postgres";
-CREATE SCHEMA report AUTHORIZATION "{{db_user}}";
+
+CREATE SCHEMA report
+AUTHORIZATION "{{db_user}}";

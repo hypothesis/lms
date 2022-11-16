@@ -5,14 +5,12 @@ DROP MATERIALIZED VIEW IF EXISTS report.users CASCADE;
 -- the reporting space. That happens to basically be an H user at the moment,
 -- but we are likely to tack on extra details in future, like email address
 -- etc.
-CREATE MATERIALIZED VIEW report.users AS (
-    SELECT
-         id,
-         username,
-         registered_date::date
-    FROM h.user AS users
-    WHERE
-        users.authority = '{{ region.authority }}'
-        -- users.authority = 'lms.hypothes.is'
-    ORDER BY registered_date
-) WITH NO DATA;
+
+CREATE MATERIALIZED VIEW report.users AS 
+  (SELECT id, 
+          username, 
+          registered_date::date 
+   FROM h.user AS users 
+   WHERE users.authority = '{{ region.authority }}' -- users.authority = 'lms.hypothes.is'
+
+   ORDER BY registered_date) WITH NO DATA;

@@ -5,10 +5,7 @@
 -- * academic_year - Truncating to the start of the academic year
 -- * semester - Truncating to the nearest 6 months
 
-CREATE OR REPLACE FUNCTION report.multi_truncate(resolution TEXT, date DATE)
-RETURNS DATE
-IMMUTABLE
-AS $$
+CREATE OR REPLACE FUNCTION report.multi_truncate(resolution TEXT, date DATE) RETURNS DATE IMMUTABLE AS $$
     SELECT CASE
         WHEN resolution = 'all_time' THEN '1901-01-01'::DATE
         WHEN resolution = 'academic_year' THEN (DATE_TRUNC('year', date - INTERVAL '6 month') + INTERVAL '6 month')::DATE
@@ -20,8 +17,7 @@ AS $$
         ))::DATE
         ELSE DATE_TRUNC(resolution, date)::date
     END
-$$
-LANGUAGE SQL;
+$$ LANGUAGE SQL;
 
 -- A function for representing dates at various resolutions. This will create
 -- a human readable version of a date as follows:
@@ -33,10 +29,7 @@ LANGUAGE SQL;
 -- * month - YYYY-MM-DD
 -- * week - YYYY-MM-DD
 
-CREATE OR REPLACE FUNCTION report.present_date(resolution TEXT, date DATE)
-RETURNS TEXT
-IMMUTABLE
-AS $$ SELECT
+CREATE OR REPLACE FUNCTION report.present_date(resolution TEXT, date DATE) RETURNS TEXT IMMUTABLE AS $$ SELECT
     CASE
         WHEN resolution = 'all_time' THEN 'All time'
         WHEN resolution = 'academic_year' THEN TO_CHAR(date - INTERVAL '6 month', 'YYYY')
@@ -52,5 +45,4 @@ AS $$ SELECT
         WHEN resolution = 'month' THEN TO_CHAR(date, 'YYYY-MM')
         ELSE date::TEXT
     END
-$$
-LANGUAGE SQL;
+$$ LANGUAGE SQL;
