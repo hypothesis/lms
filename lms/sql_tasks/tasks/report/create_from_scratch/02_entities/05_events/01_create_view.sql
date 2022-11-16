@@ -38,5 +38,3 @@ CREATE MATERIALIZED VIEW report.events AS (
         timestamp_week, organization_id, event_type, user_id
     ORDER BY timestamp_week, organization_id, event_type, user_id
 ) WITH NO DATA;
-
-

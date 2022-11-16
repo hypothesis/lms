@@ -1,6 +1,6 @@
 ALTER SERVER "h_server" OPTIONS(
     SET host '{{h_fdw.host}}', -- SECRET
-    SET port '{{h_fdw.port}}', 
+    SET port '{{h_fdw.port}}',
     SET dbname '{{h_fdw.dbname}}'
 );
 
