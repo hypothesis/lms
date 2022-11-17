@@ -78,7 +78,14 @@ describe('LaunchErrorDialog', () => {
       hasRetry: false,
       withError: true,
     },
-
+    {
+      errorState: 'd2l_group_set_not_found',
+      expectedText:
+        "Hypothesis couldn't load this assignment because the assignment's group set no longer exists.To fix this problem, an instructor needs to edit the assignment settings and select a new group set.",
+      expectedTitle: "Assignment's group set no longer exists",
+      hasRetry: false,
+      withError: true,
+    },
     {
       errorState: 'blackboard_group_set_empty',
       expectedText: 'The group set for this Hypothesis assignment is empty',
@@ -94,6 +101,13 @@ describe('LaunchErrorDialog', () => {
       withError: true,
     },
     {
+      errorState: 'd2l_group_set_empty',
+      expectedText: 'The group set for this Hypothesis assignment is empty',
+      expectedTitle: "Assignment's group set is empty",
+      hasRetry: false,
+      withError: true,
+    },
+    {
       errorState: 'blackboard_student_not_in_group',
       expectedText: 'an instructor needs to add your Blackboard user',
       expectedTitle: "You're not in any of this assignment's groups",
@@ -102,6 +116,14 @@ describe('LaunchErrorDialog', () => {
     },
     {
       errorState: 'canvas_student_not_in_group',
+      expectedText:
+        "you aren't in any of the groups in the assignment's group set",
+      expectedTitle: "You're not in any of this assignment's groups",
+      hasRetry: false,
+      withError: true,
+    },
+    {
+      errorState: 'd2l_student_not_in_group',
       expectedText:
         "you aren't in any of the groups in the assignment's group set",
       expectedTitle: "You're not in any of this assignment's groups",

@@ -142,6 +142,7 @@ export default function LaunchErrorDialog({
 
     case 'blackboard_group_set_not_found':
     case 'canvas_group_set_not_found':
+    case 'd2l_group_set_not_found':
       return (
         <ErrorModal
           busy={busy}
@@ -163,6 +164,7 @@ export default function LaunchErrorDialog({
 
     case 'blackboard_group_set_empty':
     case 'canvas_group_set_empty':
+    case 'd2l_group_set_empty':
       return (
         <ErrorModal
           busy={busy}
@@ -213,6 +215,26 @@ export default function LaunchErrorDialog({
           <p>
             <b>
               To fix the problem, an instructor needs to add your Canvas user
+              account to one of this assignment&apos;s groups.
+            </b>
+          </p>
+        </ErrorModal>
+      );
+
+    case 'd2l_student_not_in_group':
+      return (
+        <ErrorModal
+          busy={busy}
+          error={error}
+          title="You're not in any of this assignment's groups"
+        >
+          <p>
+            Hypothesis couldn&apos;t launch this assignment because you
+            aren&apos;t in any of the groups in the assignment&apos;s group set.
+          </p>
+          <p>
+            <b>
+              To fix the problem, an instructor needs to add your D2L user
               account to one of this assignment&apos;s groups.
             </b>
           </p>

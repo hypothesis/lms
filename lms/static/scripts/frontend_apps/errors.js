@@ -7,6 +7,9 @@
  *           'blackboard_group_set_empty' |
  *           'blackboard_group_set_not_found' |
  *           'blackboard_student_not_in_group' |
+ *           'd2l_group_set_not_found' |
+ *           'd2l_group_set_empty' |
+ *           'd2l_student_not_in_group' |
  *           'canvas_api_permission_error'|
  *           'canvas_file_not_found_in_course'|
  *           'canvas_group_set_not_found'|
@@ -128,6 +131,9 @@ export function isLTILaunchServerError(error) {
       'blackboard_group_set_empty',
       'blackboard_group_set_not_found',
       'blackboard_student_not_in_group',
+      'd2l_group_set_not_found',
+      'd2l_group_set_empty',
+      'd2l_student_not_in_group',
       'canvas_api_permission_error',
       'canvas_file_not_found_in_course',
       'canvas_group_set_not_found',
