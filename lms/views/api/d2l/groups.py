@@ -12,5 +12,5 @@ from lms.services.d2l_api import D2LAPIClient
 )
 def course_group_sets(_context, request):
     return request.find_service(D2LAPIClient).course_group_sets(
-        request.matchdict["course_id"]
+        org_unit=request.matchdict["course_id"]
     )
