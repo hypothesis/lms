@@ -28,6 +28,37 @@ class TestD2LAPIClient:
         D2LGroupSetsSchema.assert_called_once_with(basic_client.request.return_value)
         assert group_sets == d2l_group_sets_schema.parse.return_value
 
+    def test_group_set_groups(
+        self, svc, basic_client, D2LGroupsSchema, d2l_groups_schema, groups
+    ):
+        d2l_groups_schema.parse.return_value = groups
+
+        response = svc.group_set_groups("COURSE_ID", "GROUP_SET")
+
+        basic_client.request.assert_called_once_with(
+            "GET", "/COURSE_ID/groupcategories/GROUP_SET/groups/"
+        )
+        D2LGroupsSchema.assert_called_once_with(basic_client.request.return_value)
+        assert response == [dict(values, group_set_id="GROUP_SET") for values in groups]
+
+    def test_group_set_groups_with_user_id(self, svc, d2l_groups_schema, groups):
+        d2l_groups_schema.parse.return_value = groups
+
+        response = svc.group_set_groups("COURSE_ID", "GROUP_SET", user_id=100)
+
+        assert response == [
+            dict(values, group_set_id="GROUP_SET")
+            for values in groups
+            if 100 in values["enrollments"]
+        ]
+
+    @pytest.fixture
+    def groups(self):
+        return [
+            {"id": 1, "name": "1", "enrollments": [100, 200]},
+            {"id": 2, "name": "2", "enrollments": [200, 300]},
+        ]
+
     @pytest.fixture(autouse=True)
     def D2LGroupSetsSchema(self, patch):
         return patch("lms.services.d2l_api.client.D2LGroupSetsSchema")
@@ -35,6 +66,14 @@ class TestD2LAPIClient:
     @pytest.fixture
     def d2l_group_sets_schema(self, D2LGroupSetsSchema):
         return D2LGroupSetsSchema.return_value
+
+    @pytest.fixture(autouse=True)
+    def D2LGroupsSchema(self, patch):
+        return patch("lms.services.d2l_api.client.D2LGroupsSchema")
+
+    @pytest.fixture
+    def d2l_groups_schema(self, D2LGroupsSchema):
+        return D2LGroupsSchema.return_value
 
     @pytest.fixture
     def basic_client(self):
