@@ -36,11 +36,11 @@ class D2LAPIClient:
         """
         self._api.refresh_access_token()
 
-    def course_group_sets(self, ou):
+    def course_group_sets(self, org_unit):
         """
-        Get the group categories of an org unit (OU).
+        Get the group categories of an org unit.
 
         https://docs.valence.desire2learn.com/res/groups.html#get--d2l-api-lp-(version)-(orgUnitId)-groupcategories-
         """
-        response = self._api.request("GET", f"/{ou}/groupcategories/")
+        response = self._api.request("GET", f"/{org_unit}/groupcategories/")
         return D2LGroupSetsSchema(response).parse()
