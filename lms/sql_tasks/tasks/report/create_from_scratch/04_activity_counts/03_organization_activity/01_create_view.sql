@@ -170,7 +170,8 @@ CREATE MATERIALIZED VIEW report.organization_activity AS (
 
     SELECT
         timescale,
-        period::DATE AS calendar_date,
+        period::DATE AS start_date,
+        (period + report.single_interval(timescale::text))::DATE AS end_date,
         report.present_date(timescale::text, period) AS period,
         role,
         organization_id,
