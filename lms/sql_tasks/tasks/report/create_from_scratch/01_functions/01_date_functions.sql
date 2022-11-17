@@ -23,6 +23,28 @@ AS $$
 $$
 LANGUAGE SQL;
 
+-- A function for getting intervals. This accepts the same resolutions as
+-- `report.multi_truncate` above.
+
+CREATE OR REPLACE FUNCTION report.single_interval(resolution TEXT)
+RETURNS INTERVAL
+IMMUTABLE
+AS $$
+    SELECT CASE
+        -- Our start date for "all time" is '1901' so add 200 years to ensure
+        -- the other end is far in the future
+        WHEN resolution = 'all_time' THEN INTERVAL '200 years'
+        WHEN resolution = 'year' THEN INTERVAL '1 year'
+        WHEN resolution = 'academic_year' THEN INTERVAL '1 year'
+        WHEN resolution = 'semester' THEN INTERVAL '6 months'
+        WHEN resolution = 'quarter' THEN INTERVAL '3 months'
+        WHEN resolution = 'month' THEN INTERVAL '1 month'
+        WHEN resolution = 'week' THEN INTERVAL '7 days'
+        WHEN resolution = 'day' THEN INTERVAL '1 day'
+    END
+$$
+LANGUAGE SQL;
+
 -- A function for representing dates at various resolutions. This will create
 -- a human readable version of a date as follows:
 --
