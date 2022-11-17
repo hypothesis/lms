@@ -60,17 +60,18 @@ class D2LGroupingPlugin(GroupingServicePlugin):
 
     @staticmethod
     def _get_api_user_id(user_id: str):
-        """Get the user id to use with the API from the LTI user_id."""
-        id_parts = user_id.split("_")
-        if len(id_parts) > 1:
-            # D2L seems to send the LTI1.3 user id (sub) as the expected
-            # UUID format *except* they attach the API user id at the end separated by "_"
-            api_user_id = id_parts[1]
-        else:
-            # In LTI1.1 they just sent the whole user_id
-            api_user_id = user_id
+        """
+        Get the user id to use with the API from the LTI user_id.
 
-        return api_user_id
+        D2L user_id seem to follow two schemas:
+
+        LONG-UUID-HEX_ID
+        shorthumanreadablename_ID
+
+        Note that in the second type we've seen names that include "_"
+        so we don't take the second part of the string but the last.
+        """
+        return user_id.split("_")[-1]
 
     @classmethod
     def factory(cls, _context, request):
