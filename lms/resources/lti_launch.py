@@ -85,8 +85,11 @@ class LTILaunchResource:
             # assignment during deep linking.
             return self._request.params.get("group_set")
 
-        if self._request.product.family == Product.Family.BLACKBOARD:
-            # In blackboard we store the configuration details in the DB
+        if self._request.product.family in [
+            Product.Family.BLACKBOARD,
+            Product.Family.D2L,
+        ]:
+            # In other LMS we store the configuration details in the DB
             tool_consumer_instance_guid = self._request.lti_params[
                 "tool_consumer_instance_guid"
             ]
