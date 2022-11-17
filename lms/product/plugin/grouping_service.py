@@ -18,10 +18,10 @@ class GroupingServicePlugin:  # pragma: nocover
     supported in this LMS.
     """
 
-    group_type: Grouping.Type = None
+    group_type: Optional[Grouping.Type] = None
     """The type of groups this plugin supports. `None` disables support."""
 
-    sections_type: Grouping.Type = None
+    sections_type: Optional[Grouping.Type] = None
     """The type of sections this plugin supports. `None` disables support."""
 
     def get_sections_for_learner(self, svc, course) -> Optional[List]:
