@@ -98,9 +98,9 @@ class TestD2LGroupingPlugin:
     @pytest.mark.parametrize(
         "user_id,api_user_id",
         [
-            ("API-USER-ID", "API-USER-ID"),
-            ("USERID_API-USER-ID", "API-USER-ID"),
-            ("USERID_API-USER-ID", "API-USER-ID"),
+            ("shoolname_ID", "ID"),
+            ("shoolname_prod_ID", "ID"),
+            ("a72b0b30-5af8-4408-92a8-bffef472c4a7_ID", "ID"),
         ],
     )
     def test__get_api_user_id(self, user_id, api_user_id):
