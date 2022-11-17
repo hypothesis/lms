@@ -169,6 +169,11 @@ def _to_lti_v11(v13_params):
     if "roles" in v11_params:
         context_roles = []
         for role in v11_params["roles"]:
+            # Consider administrator regardless of their scope
+            if role.endswith("Administrator"):
+                context_roles.append(role)
+                continue
+
             # From: https://www.imsglobal.org/spec/lti/v1p3#role-vocabularies
             #
             # Conforming implementations MAY recognize the simple
