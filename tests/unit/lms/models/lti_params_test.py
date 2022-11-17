@@ -90,6 +90,8 @@ class TestLTIParams:
                 # We should accept either of these formats
                 "http://purl.imsglobal.org/vocab/lis/v2/membership#Learner",
                 "Mentor",
+                # But we make an exception for admins, we consider them regarless of the scope
+                "http://purl.imsglobal.org/vocab/lis/v2/institution/person#Administrator",
             ],
         }
 
@@ -97,7 +99,7 @@ class TestLTIParams:
 
         assert (
             params["roles"]
-            == "http://purl.imsglobal.org/vocab/lis/v2/membership#Learner,Mentor"
+            == "http://purl.imsglobal.org/vocab/lis/v2/membership#Learner,Mentor,http://purl.imsglobal.org/vocab/lis/v2/institution/person#Administrator"
         )
 
 
