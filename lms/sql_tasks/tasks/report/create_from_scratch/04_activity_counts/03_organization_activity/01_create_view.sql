@@ -179,6 +179,7 @@ CREATE MATERIALIZED VIEW report.organization_activity AS (
         COALESCE(MAX(active), 0) AS active,
         COALESCE(MAX(billable), 0) AS billable
     FROM unioned_metrics
+    WHERE organization_id IS NOT NULL
     GROUP BY period, timescale, role, organization_id
     ORDER BY period, timescale, role, organization_id
 ) WITH NO DATA;
