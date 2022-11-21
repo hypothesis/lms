@@ -104,6 +104,10 @@ def init(engine, drop=False, stamp=True):  # pragma: nocover
         engine.execute("select 1 from alembic_version")
     except sqlalchemy.exc.ProgrammingError:
         if drop:
+            # SQLAlchemy doesnt' know about the report schema, and will end up
+            # trying to drop tables without cascade that have dependent tables
+            # in the report schema and failing. Clear it out first.
+            engine.execute("DROP SCHEMA IF EXISTS report CASCADE")
             BASE.metadata.drop_all(engine)
         BASE.metadata.create_all(engine)
 
