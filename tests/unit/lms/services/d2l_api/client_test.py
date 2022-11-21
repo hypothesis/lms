@@ -52,6 +52,17 @@ class TestD2LAPIClient:
             if 100 in values["enrollments"]
         ]
 
+    @pytest.mark.parametrize(
+        "user_id,api_user_id",
+        [
+            ("shoolname_ID", "ID"),
+            ("shoolname_prod_ID", "ID"),
+            ("a72b0b30-5af8-4408-92a8-bffef472c4a7_ID", "ID"),
+        ],
+    )
+    def test_get_api_user_id(self, svc, user_id, api_user_id):
+        assert svc.get_api_user_id(user_id) == api_user_id
+
     @pytest.fixture
     def groups(self):
         return [
