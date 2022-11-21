@@ -79,7 +79,7 @@
     "mocha": "^10.1.0",
     "prettier": "2.7.1",
     "sinon": "^14.0.2",
-    "typescript": "^4.8.4"
+    "typescript": "^4.9.3"
   },
   "browserslist": "chrome 70, firefox 70, safari 11.1"
 }
