@@ -18,11 +18,7 @@ from lms.services.exceptions import (
 from lms.services.h_api import HAPIError
 from lms.services.jstor import JSTORService
 from lms.services.jwt import JWTService
-from lms.services.launch_verifier import (
-    ConsumerKeyLaunchVerificationError,
-    LTILaunchVerificationError,
-    LTIOAuthError,
-)
+from lms.services.launch_verifier import LTILaunchVerificationError, LTIOAuthError
 from lms.services.lti_grading import LTIGradingService
 from lms.services.lti_names_roles import LTINamesRolesService
 from lms.services.lti_registration import LTIRegistrationService

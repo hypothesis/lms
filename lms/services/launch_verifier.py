@@ -14,10 +14,6 @@ class LTILaunchVerificationError(Exception):
     """
 
 
-class ConsumerKeyLaunchVerificationError(LTILaunchVerificationError):
-    """Raised when the request's consumer_key doesn't exist in the DB."""
-
-
 class LTIOAuthError(LTILaunchVerificationError):
     """Raised when OAuth signature verification of a launch request fails."""
 
@@ -28,18 +24,10 @@ class LaunchVerifier:
     def __init__(self, _context, request):
         self._request = request
 
-        self._oauth1_endpoint = SignatureOnlyEndpoint(
-            _OAuthRequestValidator(
-                application_instance_service=self._request.find_service(
-                    name="application_instance"
-                )
-            )
-        )
-
         self._request_verified = False
         self._exception = None
 
-    def verify(self):
+    def verify(self, secret):
         """
         Raise if the current request isn't a valid LTI launch request.
 
@@ -50,16 +38,12 @@ class LaunchVerifier:
         :raise NoConsumerKey: If the request has no oauth_consumer_key
           parameter (maybe it's not an LTI launch request at all?)
 
-        :raise ConsumerKeyLaunchVerificationError: If the request's
-          oauth_consumer_key parameter isn't found in our database (this
-          appears to be an invalid LTI launch request).
-
         :raise LTIOAuthError: If OAuth 1.0 verification of the request and its
           signature fails
         """
         if not self._request_verified:
             try:
-                self._verify()
+                self._verify(secret)
             except LTILaunchVerificationError as err:
                 self._exception = err
             finally:
@@ -68,7 +52,7 @@ class LaunchVerifier:
         if self._exception:
             raise self._exception
 
-    def _verify(self):
+    def _verify(self, secret):
         # As part of our parsing, LTI11AuthSchema has been applied to
         # the request before we get this far. This means that all of the
         # results are in `params` but they might have come from either the body
@@ -79,7 +63,11 @@ class LaunchVerifier:
         if method != "POST":
             raise LTIOAuthError("LTI launches should use POST")
 
-        is_valid, _request = self._oauth1_endpoint.validate_request(
+        oauth1_endpoint = self._oauth1_endpoint = SignatureOnlyEndpoint(
+            _OAuthRequestValidator(secret=secret)
+        )
+
+        is_valid, _request = oauth1_endpoint.validate_request(
             # The docs for `validate_request` say to send the full URL with
             # params, but here we don't. I think LTI tool consumers sign
             # without any params, but some times add some (looking at you
@@ -102,10 +90,10 @@ class _OAuthRequestValidator(RequestValidator):
     # Tell oauthlib we are chill about http for local testing
     enforce_ssl = False
 
-    def __init__(self, application_instance_service):
+    def __init__(self, secret):
         super().__init__()
 
-        self.application_instance_service = application_instance_service
+        self._secret = secret
 
     def check_client_key(self, client_key):
         """Check that the client key only contains safe characters."""
@@ -139,15 +127,8 @@ class _OAuthRequestValidator(RequestValidator):
         # key is fine! Even though this might not be true. This is because
         # we would have to look up the DB to find out, and we _have_ to do
         # that in the next step `get_client_secret()`
-
         return True
 
     def get_client_secret(self, client_key, request):
         """Retrieve the client secret associated with the client key."""
-
-        try:
-            return self.application_instance_service.get_by_consumer_key(
-                client_key
-            ).shared_secret
-        except ApplicationInstanceNotFound as err:
-            raise ConsumerKeyLaunchVerificationError() from err
+        return self._secret

@@ -49,31 +49,35 @@ class LTI11AuthSchema(LTIV11CoreSchema):
         """
         kwargs = self.parse(location="form")
 
-        try:
-            application_instance = (
-                self._application_instance_service.get_by_consumer_key(
-                    kwargs["oauth_consumer_key"]
-                )
-            )
-        except ApplicationInstanceNotFound as err:
-            raise ValidationError(
-                {"consumer_key": ["Invalid OAuth 1 signature. Unknown consumer key."]}
-            ) from err
-
+        application_instance = self._get_application_instance(
+            kwargs["oauth_consumer_key"]
+        )
         return LTIUser.from_auth_params(application_instance, kwargs)
 
     @marshmallow.validates_schema
-    def _verify_oauth_1(self, _data, **_kwargs):
+    def _verify_oauth_1(self, data, **_kwargs):
         """
         Verify the request's OAuth 1 signature, timestamp, etc.
 
         :raise marshmallow.ValidationError: if the request doesn't have a valid
             OAuth 1 signature
         """
+        application_instance = self._get_application_instance(
+            data["oauth_consumer_key"]
+        )
         try:
-            self._launch_verifier.verify()
+            self._launch_verifier.verify(application_instance.shared_secret)
         except LTILaunchVerificationError as err:
             raise marshmallow.ValidationError("Invalid OAuth 1 signature.") from err
+
+    def _get_application_instance(self, consumer_key):
+        try:
+
+            return self._application_instance_service.get_by_consumer_key(consumer_key)
+        except ApplicationInstanceNotFound as err:
+            raise ValidationError(
+                {"consumer_key": ["Invalid OAuth 1 signature. Unknown consumer key."]}
+            ) from err
 
 
 class LTI13AuthSchema(LTIV11CoreSchema):
