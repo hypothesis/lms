@@ -77,3 +77,18 @@ class D2LAPIClient:
             groups = [group for group in groups if int(user_id) in group["enrollments"]]
 
         return groups
+
+    @staticmethod
+    def get_api_user_id(user_id: str):
+        """
+        Get the user id to use with the API from the LTI user_id.
+
+        D2L user_id seem to follow two schemas:
+
+        LONG-UUID-HEX_ID
+        shorthumanreadablename_ID
+
+        Note that in the second type we've seen names that include "_"
+        so we don't take the second part of the string but the last.
+        """
+        return user_id.split("_")[-1]

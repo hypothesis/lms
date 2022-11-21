@@ -95,18 +95,6 @@ class TestD2LGroupingPlugin:
             )
         assert err.value.error_code == ErrorCodes.GROUP_SET_EMPTY
 
-    @pytest.mark.parametrize(
-        "user_id,api_user_id",
-        [
-            ("shoolname_ID", "ID"),
-            ("shoolname_prod_ID", "ID"),
-            ("a72b0b30-5af8-4408-92a8-bffef472c4a7_ID", "ID"),
-        ],
-    )
-    def test__get_api_user_id(self, user_id, api_user_id):
-        # pylint: disable=protected-access
-        assert D2LGroupingPlugin._get_api_user_id(user_id) == api_user_id
-
     def test_factory(self, pyramid_request, d2l_api_client):
         plugin = D2LGroupingPlugin.factory(sentinel.context, pyramid_request)
         assert isinstance(plugin, D2LGroupingPlugin)

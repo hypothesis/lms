@@ -58,24 +58,10 @@ class D2LGroupingPlugin(GroupingServicePlugin):
 
         return groups
 
-    @staticmethod
-    def _get_api_user_id(user_id: str):
-        """
-        Get the user id to use with the API from the LTI user_id.
-
-        D2L user_id seem to follow two schemas:
-
-        LONG-UUID-HEX_ID
-        shorthumanreadablename_ID
-
-        Note that in the second type we've seen names that include "_"
-        so we don't take the second part of the string but the last.
-        """
-        return user_id.split("_")[-1]
-
     @classmethod
     def factory(cls, _context, request):
+        d2l_api = request.find_service(D2LAPIClient)
         return cls(
-            d2l_api=request.find_service(D2LAPIClient),
-            api_user_id=cls._get_api_user_id(request.lti_user.user_id),
+            d2l_api=d2l_api,
+            api_user_id=d2l_api.get_api_user_id(request.lti_user.user_id),
         )
