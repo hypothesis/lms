@@ -27,6 +27,7 @@ CREATE MATERIALIZED VIEW report.groups AS (
                         WHEN 'course_group' THEN 'course'
                         WHEN 'blackboard_group_group' THEN 'blackboard_group'
                         WHEN 'canvas_group_group' THEN 'canvas_group'
+                        WHEN 'd2l_group_group' THEN 'canvas_group'
                         WHEN 'section_group' THEN 'canvas_section'
                     END
                 FROM group_info
