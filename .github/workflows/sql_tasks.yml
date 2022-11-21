@@ -9,7 +9,6 @@ on:
         description: "The SQL task to perform"
         required: true
         options:
-          - "hello_world"
           - "report/refresh"
           - "report/create_from_scratch"
       Environment:
