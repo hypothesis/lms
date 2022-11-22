@@ -18,6 +18,14 @@ def test_rotate_keys(pyramid_request, rsa_key_service):
     rsa_key_service.rotate.assert_called_once_with(TARGET_KEYS)
 
 
+def test_rotate_keys_disabled(pyramid_request, rsa_key_service):
+    pyramid_request.registry.settings["disable_key_rotation"] = True
+
+    rotate_keys()
+
+    rsa_key_service.rotate.assert_not_called()
+
+
 @pytest.fixture(autouse=True)
 def app(patch, pyramid_request):
     app = patch("lms.tasks.rsa_key.app")

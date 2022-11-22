@@ -100,6 +100,7 @@ SETTINGS = (
     _Setting("blackboard_api_client_secret"),
     _Setting("jstor_api_url"),
     _Setting("jstor_api_secret"),
+    _Setting("disable_key_rotation", value_mapper=asbool),
 )
 
 
