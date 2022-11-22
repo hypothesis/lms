@@ -9,17 +9,19 @@ from pytest import fixture
 from tests.functional.conftest import TEST_ENVIRONMENT
 
 
+# We use "db_engine" here to ensure the schema is created
+@pytest.mark.usefixtures("db_engine")
 class TestRunSQLTask:
-    def test_sanity(self, environ):
-        self.run_task(environ, "hello_world")
+    @pytest.mark.parametrize("task_name", ("hello_world", "report/create_dev_users"))
+    def test_it(self, environ, task_name):
+        self.run_task(environ, task_name)
 
-    # We use "db_engine" here to ensure the schema is created
-    @pytest.mark.usefixtures("db_engine")
     # If you want to run these tests, you first need to start services in H
     # and run the `report/create_from_scratch` task there.
     @pytest.mark.xfail(reason="Requires reporting tasks to be run in H")
     def test_reporting_tasks(self, environ):
         for task_name in (
+            "report/create_dev_users",
             "report/create_from_scratch",
             "report/refresh",
             "report/create_from_scratch",
