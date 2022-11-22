@@ -132,6 +132,27 @@ CREATE MATERIALIZED VIEW report.organization_activity AS (
                  facets.period, facets.timescale, facets.role, group_map.organization_id
         ),
 
+        launch_count AS (
+            SELECT
+                period,
+                timescale,
+                organization_roles.role,
+                events.organization_id,
+                SUM(events.event_count) AS launch_count
+            FROM report.events
+            JOIN report.organization_roles ON
+                events.user_id = organization_roles.user_id
+                AND events.organization_id = organization_roles.organization_id
+            JOIN facets ON
+                events.timestamp_week = facets.timestamp_week
+                AND organization_roles.role = facets.role
+            WHERE event_type = 'configured_launch'
+            GROUP BY
+                period, timescale, organization_roles.role, events.organization_id
+            ORDER BY
+                period, timescale, organization_roles.role, events.organization_id
+        ),
+
         -- We need to combine the data. A join seems the most natural way of
         -- doing it but causes trouble as we aren't guaranteed a row for each
         -- different type of data. To get around this we'll union all the rows
@@ -140,29 +161,36 @@ CREATE MATERIALIZED VIEW report.organization_activity AS (
         unioned_metrics AS (
             SELECT
                 period, timescale, organization_id, 'user'::report.roles AS role,
-                annotation_count, 0 AS active, 0 AS billable
+                annotation_count, 0 AS active, 0 AS billable, 0 AS launch_count
             FROM user_annotation_counts
 
             UNION ALL
 
             SELECT
                 period, timescale, organization_id, 'teacher'::report.roles AS role,
-                annotation_count, 0 AS active, 0 AS billable
+                annotation_count, 0 AS active, 0 AS billable, 0 AS launch_count
             FROM teacher_annotation_counts
 
             UNION ALL
 
             SELECT
                 period, timescale, organization_id, role,
-                0, active, 0
+                0, active, 0, 0
             FROM active
 
             UNION ALL
 
             SELECT
                 period, timescale, organization_id, role,
-                0, 0, billable
+                0, 0, billable, 0
             FROM billable
+
+            UNION ALL
+
+            SELECT
+                period, timescale, organization_id, role,
+                0, 0, 0, launch_count
+            FROM launch_count
         )
 
     -- We can then finally MAX over the columns to get a single row with each
@@ -175,9 +203,10 @@ CREATE MATERIALIZED VIEW report.organization_activity AS (
         report.present_date(timescale::text, period) AS period,
         role,
         organization_id,
-        COALESCE(MAX(annotation_count), 0) AS annotation_count,
         COALESCE(MAX(active), 0) AS active,
-        COALESCE(MAX(billable), 0) AS billable
+        COALESCE(MAX(billable), 0) AS billable,
+        COALESCE(MAX(annotation_count), 0) AS annotation_count,
+        COALESCE(MAX(launch_count), 0) AS launch_count
     FROM unioned_metrics
     WHERE organization_id IS NOT NULL
     GROUP BY period, timescale, role, organization_id
