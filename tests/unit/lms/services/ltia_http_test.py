@@ -44,7 +44,10 @@ class TestLTIAHTTPService:
     @pytest.fixture
     def svc(self, application_instance, jwt_service, http_service):
         return LTIAHTTPService(
-            application_instance.lti_registration, jwt_service, http_service
+            application_instance.lti_registration,
+            application_instance.lti_registration.client_id,
+            jwt_service,
+            http_service,
         )
 
     @pytest.fixture
@@ -65,7 +68,10 @@ class TestFactory:
         ltia_http_service = factory(sentinel.context, pyramid_request)
 
         LTIAHTTPService.assert_called_once_with(
-            application_instance.lti_registration, jwt_service, http_service
+            application_instance.lti_registration,
+            pyramid_request.product.lti_aud_claim.return_value,
+            jwt_service,
+            http_service,
         )
         assert ltia_http_service == LTIAHTTPService.return_value
 

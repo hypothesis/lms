@@ -73,6 +73,10 @@ class Product:
     def configure_assigment(self):
         pass
 
+    def ltia_aud_claim(self, lti_registration):
+        """Return the value of the `aud` claim used in LTI advantage requests."""
+        return lti_registration.client_id
+
     @classmethod
     def from_request(cls, request, ai_settings: Dict):
         """Create a populated product object from the provided request."""

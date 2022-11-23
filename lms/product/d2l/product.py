@@ -29,6 +29,10 @@ class D2L(Product):
 
         return super().is_gradable(lti_params)
 
+    def ltia_aud_claim(self, _lti_registration):
+        # In D2L this value is always the same
+        return "https://api.brightspace.com/auth/token"
+
     def configure_assignment(self, request):
         lti_params = request.lti_params
         resource_link_id = lti_params.get("resource_link_id")
