@@ -123,6 +123,10 @@ _V11_TO_V13 = (
         "lis_outcome_service_url",
         ["https://purl.imsglobal.org/spec/lti-ags/claim/endpoint", "lineitem"],
     ),
+    (
+        "lineitems",
+        ["https://purl.imsglobal.org/spec/lti-ags/claim/endpoint", "lineitems"],
+    ),
     ("lis_result_sourcedid", ["sub"]),
     (
         "content_item_return_url",

@@ -62,6 +62,47 @@ class LTI13GradingService(LTIGradingService):
             headers={"Content-Type": "application/vnd.ims.lis.v1.score+json"},
         )
 
+    def read_lineitems(self, lineitems_url, resource_link_id=None):
+        """
+        Read all the lineitem present in the `lineitems_url` container.
+
+        https://www.imsglobal.org/spec/lti-ags/v2p0#container-request-filters
+        """
+        params = {}
+
+        if resource_link_id:
+            params["resource_link_id"] = resource_link_id
+
+        return self._ltia_service.request(
+            "GET",
+            lineitems_url,
+            scopes=self.LTIA_SCOPES,
+            params=params,
+            headers={"Accept": "application/vnd.ims.lis.v2.lineitemcontainer+json"},
+        ).json()
+
+    def create_lineitem(
+        self, lineitems_url, resource_link_id, resource_title, score_maximum=100
+    ):
+        """
+        Create a new lineitem associated to one resource_link_id.
+
+        https://www.imsglobal.org/spec/lti-ags/v2p0#container-request-filters
+        """
+
+        payload = {
+            "scoreMaximum": score_maximum,
+            "label": resource_title,
+            "resourceLinkId": resource_link_id,
+        }
+        return self._ltia_service.request(
+            "POST",
+            lineitems_url,
+            scopes=self.LTIA_SCOPES,
+            json=payload,
+            headers={"Content-Type": "application/vnd.ims.lis.v2.lineitem+json"},
+        ).json()
+
     @staticmethod
     def _service_url(base_url, endpoint):
         """

@@ -31,3 +31,9 @@ class LTIGradingService:  # pragma: no cover
         :raise TypeError: if the given pre_record_hook returns a non-dict
         """
         raise NotImplementedError()
+
+    def read_lineitems(self, lineitems_url, resource_link_id=None):
+        raise NotImplementedError()
+
+    def create_lineitem(self, lineitems_url, resource_link_id, resource_title):
+        raise NotImplementedError()

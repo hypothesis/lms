@@ -46,6 +46,14 @@ class LTI11GradingService(LTIGradingService):
 
         self._send_request({"replaceResultRequest": request})
 
+    def read_lineitems(self, lineitems_url, resource_link_id=None):  # pragma: no cover
+        raise NotImplementedError("Not relevant in LTI 1.1")
+
+    def create_lineitem(
+        self, lineitems_url, resource_link_id, resource_title
+    ):  # pragma: no cover
+        raise NotImplementedError("Not relevant in LTI 1.1")
+
     def _send_request(self, request_body) -> dict:
         """
         Send a signed request to an LMS's Outcome Management Service endpoint.
