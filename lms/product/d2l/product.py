@@ -19,3 +19,11 @@ class D2L(Product):
     )
 
     settings_key = "desire2learn"
+
+    def is_gradable(self, lti_params):
+        if lti_params["lti_version"] != "1.3.0":
+            # D2L doesn't automatically create a line item for assignments by default like it does for 1.1.
+            # If we are creating them automatically in our end all of them will be gradable.
+            return True
+
+        return super().is_gradable(lti_params)

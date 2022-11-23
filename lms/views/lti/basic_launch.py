@@ -150,9 +150,7 @@ class BasicLaunchViews:
 
         # An assignment has been configured in the LMS as "gradable" if it has
         # the `lis_outcome_service_url` param
-        assignment_gradable = bool(
-            self.request.lti_params.get("lis_outcome_service_url")
-        )
+        assignment_gradable = self.request.product.is_gradable(self.request.lti_params)
 
         # Store lots of info
         self._record_course()

@@ -66,6 +66,10 @@ class Product:
     # Accessor for external consumption
     Family = Family
 
+    def is_gradable(self, lti_params):
+        """Check if the assignment of the current launch is gradable."""
+        return bool(lti_params.get("lis_outcome_service_url"))
+
     @classmethod
     def from_request(cls, request, ai_settings: Dict):
         """Create a populated product object from the provided request."""
