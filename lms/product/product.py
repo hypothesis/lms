@@ -70,6 +70,9 @@ class Product:
         """Check if the assignment of the current launch is gradable."""
         return bool(lti_params.get("lis_outcome_service_url"))
 
+    def configure_assigment(self):
+        pass
+
     @classmethod
     def from_request(cls, request, ai_settings: Dict):
         """Create a populated product object from the provided request."""

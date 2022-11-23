@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from lms.product.d2l._plugin.grouping import D2LGroupingPlugin
 from lms.product.product import PluginConfig, Product, Routes
+from lms.services import LTIGradingService
 
 
 @dataclass
@@ -27,3 +28,27 @@ class D2L(Product):
             return True
 
         return super().is_gradable(lti_params)
+
+    def configure_assignment(self, request):
+        lti_params = request.lti_params
+        resource_link_id = lti_params.get("resource_link_id")
+        resource_link_title = lti_params.get("resource_link_title")
+
+        lti_grading_service: LTIGradingService = request.find_service(LTIGradingService)
+
+        if not lti_grading_service.read_lineitems(
+            lti_params.get("lineitems"), resource_link_id
+        ):
+            lineitem = lti_grading_service.create_lineitem(
+                lti_params.get("lineitems"),
+                resource_link_id,
+                resource_link_title,
+            )
+
+            assert not lti_params.get(
+                "lis_outcome_service_url"
+            ), "We just created the lineitem, we expect it to be empty in the original request params"
+
+            # This is a bit nasty, mutating the "lti_params" to fake the existence of lis_outcome_service_url
+            # at the moment of the request as the rest of the code base assumes but so it's D2L behaviour.
+            lti_params["lis_outcome_service_url"] = lineitem["id"]

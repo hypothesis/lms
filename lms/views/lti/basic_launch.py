@@ -128,6 +128,9 @@ class BasicLaunchViews:
         if group_set := self.request.parsed_params.get("group_set"):
             extra["group_set_id"] = group_set
 
+        # Do any product specific tasks to configure the assignment
+        self.request.product.configure_assignment(self.request)
+
         return self._show_document(
             document_url=self.request.parsed_params["document_url"],
             assignment_extra=extra,
