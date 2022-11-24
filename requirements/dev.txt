@@ -79,6 +79,8 @@ cryptography==36.0.2
     # via
     #   -r requirements/requirements.txt
     #   pyjwt
+data-tasks==0.0.2
+    # via -r requirements/requirements.txt
 decorator==5.1.1
     # via ipython
 ecdsa==0.17.0
@@ -131,11 +133,13 @@ importlib-metadata==4.8.1
     # via
     #   -r requirements/requirements.txt
     #   alembic
+    #   data-tasks
     #   pip-sync-faster
 importlib-resources==5.10.0
     # via
     #   -r requirements/requirements.txt
     #   alembic
+    #   data-tasks
     #   h-api
     #   jsonschema
 ipython==8.4.0
@@ -145,6 +149,7 @@ jedi==0.18.1
 jinja2==2.11.3
     # via
     #   -r requirements/requirements.txt
+    #   data-tasks
     #   pyramid-jinja2
 jsonschema==4.7.2
     # via
@@ -318,15 +323,20 @@ sqlalchemy==1.4.44
     # via
     #   -r requirements/requirements.txt
     #   alembic
+    #   data-tasks
     #   zope-sqlalchemy
 sqlparse==0.4.3
-    # via -r requirements/requirements.txt
+    # via
+    #   -r requirements/requirements.txt
+    #   data-tasks
 stack-data==0.3.0
     # via ipython
 supervisor==4.2.4
     # via -r requirements/dev.in
 tabulate==0.9.0
-    # via -r requirements/requirements.txt
+    # via
+    #   -r requirements/requirements.txt
+    #   data-tasks
 tomli==2.0.1
     # via
     #   build
