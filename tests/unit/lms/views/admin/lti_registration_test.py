@@ -142,6 +142,7 @@ class TestAdminApplicationInstanceViews:
         self, pyramid_request, lti_registration_service, views
     ):
         pyramid_request.params = {
+            "id": sentinel.id,
             "issuer": sentinel.issuer,
             "client_id": sentinel.client_id,
         }
@@ -149,7 +150,7 @@ class TestAdminApplicationInstanceViews:
         response = views.search()
 
         lti_registration_service.search_registrations.assert_called_once_with(
-            issuer=sentinel.issuer, client_id=sentinel.client_id
+            id_=sentinel.id, issuer=sentinel.issuer, client_id=sentinel.client_id
         )
 
         assert response == {

@@ -20,6 +20,7 @@ Registrations
     <form method="POST" action="{{ request.route_url("admin.registrations.search") }}">
         <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
 
+        {{ macros.form_text_field(request, "ID", "id") }}
         {{ macros.form_text_field(request, "Issuer", "issuer") }}
         {{ macros.form_text_field(request, "Client ID", "client_id") }}
         {% call macros.field_body(label="") %}

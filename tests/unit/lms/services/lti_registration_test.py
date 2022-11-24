@@ -11,6 +11,10 @@ class TestLTIRegistrationService:
     def test_get(self, svc, registration):
         assert svc.get(registration.issuer, registration.client_id) == registration
 
+    @pytest.mark.usefixtures("registration")
+    def test_get_none_issuer(self, svc):
+        assert not svc.get(None)
+
     def test_get_without_client_id(self, svc, registration):
         assert svc.get(registration.issuer) == registration
 
@@ -57,6 +61,7 @@ class TestLTIRegistrationService:
 
     @pytest.fixture
     def registration(self):
+        factories.LTIRegistration.create_batch(4)
         return factories.LTIRegistration()
 
     @pytest.fixture
