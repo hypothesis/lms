@@ -153,14 +153,6 @@ class AdminLTIRegistrationViews:
         renderer="lms:templates/admin/registrations.html.jinja2",
     )
     def search(self):
-        if not any(
-            (self.request.params.get(param) for param in ["issuer", "client_id"])
-        ):
-            self.request.session.flash(
-                "Need to pass at least one search criteria", "errors"
-            )
-            return HTTPFound(location=self.request.route_url("admin.registrations"))
-
         registrations = self.lti_registration_service.search_registrations(
             id_=self.request.params.get("id"),
             issuer=self.request.params.get("issuer"),

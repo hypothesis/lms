@@ -4,7 +4,6 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from lms.views.admin.lti_registration import AdminLTIRegistrationViews
-from tests import factories
 from tests.matchers import Any, temporary_redirect_to
 
 
@@ -130,17 +129,7 @@ class TestAdminApplicationInstanceViews:
 
         assert response.status_code == 400
 
-    def test_search_not_query(self, pyramid_request):
-        response = AdminLTIRegistrationViews(pyramid_request).search()
-
-        assert pyramid_request.session.peek_flash("errors")
-        assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.registrations")
-        )
-
-    def test_search_multiple_results(
-        self, pyramid_request, lti_registration_service, views
-    ):
+    def test_search(self, pyramid_request, lti_registration_service, views):
         pyramid_request.params = {
             "id": sentinel.id,
             "issuer": sentinel.issuer,
@@ -233,7 +222,3 @@ class TestAdminApplicationInstanceViews:
     @pytest.fixture
     def views(self, pyramid_request):
         return AdminLTIRegistrationViews(pyramid_request)
-
-    @pytest.fixture
-    def lti_registration(self):
-        return factories.LTIRegistration()
