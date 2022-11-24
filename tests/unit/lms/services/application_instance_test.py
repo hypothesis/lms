@@ -63,7 +63,7 @@ class TestApplicationInstanceService:
 
     def test_get_by_not_found(self, service):
         with pytest.raises(ApplicationInstanceNotFound):
-            service.get_by_id(0)
+            service.get_by_id(100_000_000)
 
     def test_get_by_deployment_id(
         self,
