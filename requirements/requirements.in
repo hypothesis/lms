@@ -1,6 +1,7 @@
 aiohttp
 alembic
 celery
+data-tasks
 gunicorn
 h-api
 h-assets

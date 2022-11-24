@@ -48,6 +48,8 @@ click-repl==0.2.0
     # via celery
 cryptography==36.0.2
     # via pyjwt
+data-tasks==0.0.2
+    # via -r requirements/requirements.in
 ecdsa==0.17.0
     # via python-jose
 frozenlist==1.2.0
@@ -77,15 +79,20 @@ idna==2.10
     #   requests
     #   yarl
 importlib-metadata==4.8.1
-    # via alembic
+    # via
+    #   alembic
+    #   data-tasks
 importlib-resources==5.10.0
     # via
     #   -r requirements/requirements.in
     #   alembic
+    #   data-tasks
     #   h-api
     #   jsonschema
 jinja2==2.11.3
-    # via pyramid-jinja2
+    # via
+    #   data-tasks
+    #   pyramid-jinja2
 jsonschema==4.7.2
     # via h-api
 kombu==5.2.4
@@ -197,11 +204,16 @@ sqlalchemy==1.4.44
     # via
     #   -r requirements/requirements.in
     #   alembic
+    #   data-tasks
     #   zope-sqlalchemy
 sqlparse==0.4.3
-    # via -r requirements/requirements.in
+    # via
+    #   -r requirements/requirements.in
+    #   data-tasks
 tabulate==0.9.0
-    # via -r requirements/requirements.in
+    # via
+    #   -r requirements/requirements.in
+    #   data-tasks
 transaction==2.4.0
     # via
     #   pyramid-tm
