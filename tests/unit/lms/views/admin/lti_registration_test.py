@@ -138,24 +138,6 @@ class TestAdminApplicationInstanceViews:
             pyramid_request.route_url("admin.registrations")
         )
 
-    def test_search_single_result(
-        self, pyramid_request, lti_registration_service, lti_registration, views
-    ):
-        lti_registration_service.search_registrations.return_value = [lti_registration]
-        pyramid_request.params["issuer"] = sentinel.issuer
-
-        response = views.search()
-
-        lti_registration_service.search_registrations.assert_called_once_with(
-            issuer=sentinel.issuer, client_id=None
-        )
-        assert response == temporary_redirect_to(
-            pyramid_request.route_url(
-                "admin.registration.id",
-                id_=lti_registration_service.search_registrations.return_value[0].id,
-            )
-        )
-
     def test_search_multiple_results(
         self, pyramid_request, lti_registration_service, views
     ):
