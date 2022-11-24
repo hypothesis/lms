@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from lms.models import LTIRegistration
 
@@ -20,27 +20,42 @@ class LTIRegistrationService:
         :param client_id: provided by the LMS, should be unique within the
             issuer
         """
-        query = self._db.query(LTIRegistration).filter_by(issuer=issuer)
+        if not issuer:
+            return None
 
-        if client_id:
-            query = query.filter_by(client_id=client_id)
+        return self._registration_search_query(
+            issuer=issuer, client_id=client_id
+        ).one_or_none()
 
-        return query.one_or_none()
+    def get_by_id(self, id_) -> Optional[LTIRegistration]:
+        return self._registration_search_query(id_=id_).one_or_none()
 
-    def get_by_id(self, id_) -> LTIRegistration:
-        return self._db.query(LTIRegistration).get(id_)
-
-    def search_registrations(self, *, issuer=None, client_id=None) -> LTIRegistration:
+    def search_registrations(
+        self, *, id_=None, issuer=None, client_id=None, limit=100
+    ) -> List[LTIRegistration]:
         """Return the registrations that match all of the passed parameters."""
 
+        return (
+            self._registration_search_query(id_=id_, issuer=issuer, client_id=client_id)
+            .limit(limit)
+            .all()
+        )
+
+    def _registration_search_query(
+        self, *, id_=None, issuer=None, client_id=None
+    ) -> LTIRegistration:
+
         query = self._db.query(LTIRegistration)
+        if id_:
+            query = query.filter_by(id=id_)
+
         if issuer:
             query = query.filter_by(issuer=issuer)
 
         if client_id:
             query = query.filter_by(client_id=client_id)
 
-        return query.all()
+        return query
 
     def create_registration(  # pylint:disable=too-many-arguments
         self,
