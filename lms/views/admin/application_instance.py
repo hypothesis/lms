@@ -201,24 +201,8 @@ class AdminApplicationInstanceViews:
         renderer="lms:templates/admin/instances.html.jinja2",
     )
     def search(self):
-        if not any(
-            (
-                self.request.params.get(param)
-                for param in [
-                    "consumer_key",
-                    "issuer",
-                    "client_id",
-                    "deployment_id",
-                    "tool_consumer_instance_guid",
-                ]
-            )
-        ):
-            self.request.session.flash(
-                "Need to pass at least one search criteria", "errors"
-            )
-            return HTTPFound(location=self.request.route_url("admin.instances"))
-
         instances = self.application_instance_service.search(
+            id_=self.request.params.get("id"),
             consumer_key=self.request.params.get("consumer_key"),
             issuer=self.request.params.get("issuer"),
             client_id=self.request.params.get("client_id"),
@@ -227,10 +211,6 @@ class AdminApplicationInstanceViews:
                 "tool_consumer_instance_guid"
             ),
         )
-
-        if not instances:
-            self.request.session.flash("No instances found", "errors")
-            return HTTPFound(location=self.request.route_url("admin.instances"))
 
         if len(instances) == 1:
             return HTTPFound(

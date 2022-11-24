@@ -225,34 +225,6 @@ class TestAdminApplicationInstanceViews:
 
         assert response.status_code == 400
 
-    def test_search_not_query(self, pyramid_request, views):
-        response = views.search()
-
-        assert pyramid_request.session.peek_flash("errors")
-        assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.instances")
-        )
-
-    def test_search_no_results(
-        self, pyramid_request, application_instance_service, views
-    ):
-        application_instance_service.search.return_value = None
-        pyramid_request.params["issuer"] = sentinel.issuer
-
-        response = views.search()
-
-        application_instance_service.search.assert_called_once_with(
-            consumer_key=None,
-            issuer=sentinel.issuer,
-            client_id=None,
-            deployment_id=None,
-            tool_consumer_instance_guid=None,
-        )
-        assert pyramid_request.session.peek_flash("errors")
-        assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.instances")
-        )
-
     def test_search_single_result(
         self, pyramid_request, application_instance_service, application_instance, views
     ):
@@ -262,6 +234,7 @@ class TestAdminApplicationInstanceViews:
         response = views.search()
 
         application_instance_service.search.assert_called_once_with(
+            id_=None,
             consumer_key=None,
             issuer=sentinel.issuer,
             client_id=None,
@@ -279,6 +252,7 @@ class TestAdminApplicationInstanceViews:
         self, pyramid_request, application_instance_service, views
     ):
         pyramid_request.params = {
+            "id": sentinel.id,
             "consumer_key": sentinel.consumer_key,
             "issuer": sentinel.issuer,
             "client_id": sentinel.client_id,
@@ -289,6 +263,7 @@ class TestAdminApplicationInstanceViews:
         response = views.search()
 
         application_instance_service.search.assert_called_once_with(
+            id_=sentinel.id,
             consumer_key=sentinel.consumer_key,
             issuer=sentinel.issuer,
             client_id=sentinel.client_id,
