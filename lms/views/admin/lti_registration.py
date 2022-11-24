@@ -166,13 +166,6 @@ class AdminLTIRegistrationViews:
             client_id=self.request.params.get("client_id"),
         )
 
-        if registrations and len(registrations) == 1:
-            return HTTPFound(
-                location=self.request.route_url(
-                    "admin.registration.id", id_=registrations[0].id
-                )
-            )
-
         return {"registrations": registrations}
 
     @view_config(
