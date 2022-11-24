@@ -162,6 +162,7 @@ class AdminLTIRegistrationViews:
             return HTTPFound(location=self.request.route_url("admin.registrations"))
 
         registrations = self.lti_registration_service.search_registrations(
+            id_=self.request.params.get("id"),
             issuer=self.request.params.get("issuer"),
             client_id=self.request.params.get("client_id"),
         )
