@@ -225,32 +225,7 @@ class TestAdminApplicationInstanceViews:
 
         assert response.status_code == 400
 
-    def test_search_single_result(
-        self, pyramid_request, application_instance_service, application_instance, views
-    ):
-        application_instance_service.search.return_value = [application_instance]
-        pyramid_request.params["issuer"] = sentinel.issuer
-
-        response = views.search()
-
-        application_instance_service.search.assert_called_once_with(
-            id_=None,
-            consumer_key=None,
-            issuer=sentinel.issuer,
-            client_id=None,
-            deployment_id=None,
-            tool_consumer_instance_guid=None,
-        )
-        assert response == temporary_redirect_to(
-            pyramid_request.route_url(
-                "admin.instance.id",
-                id_=application_instance_service.search.return_value[0].id,
-            )
-        )
-
-    def test_search_multiple_results(
-        self, pyramid_request, application_instance_service, views
-    ):
+    def test_search(self, pyramid_request, application_instance_service, views):
         pyramid_request.params = {
             "id": sentinel.id,
             "consumer_key": sentinel.consumer_key,
