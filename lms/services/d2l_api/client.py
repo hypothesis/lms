@@ -61,7 +61,7 @@ class D2LAPIClient:
         """
         Get the groups in a group category.
 
-        https://docs.valence.desire2learn.com/res/groups.html#post--d2l-api-lp-(version)-(orgUnitId)-groupcategories-(groupCategoryId)-groups-
+        https://docs.valence.desire2learn.com/res/groups.html#get--d2l-api-lp-(version)-(orgUnitId)-groupcategories-(groupCategoryId)-groups-
         """
         response = self._api.request(
             "GET",
