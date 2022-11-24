@@ -33,28 +33,35 @@ import ErrorModal from './ErrorModal';
  * @prop {GroupSet[]|null} groupSets
  * @prop {(id: string|null) => void} onInput
  * @prop {string|null} selectedGroupSetId
+ * @prop {string} productFamily - Which product (canvas, blackboard...) we are running in.
  *
  * @param {GroupSelectProps} props
  */
-function GroupSelect({ busy, groupSets, onInput, selectedGroupSetId }) {
+function GroupSelect({
+  busy,
+  groupSets,
+  onInput,
+  selectedGroupSetId,
+  productFamily,
+}) {
   const selectId = useUniqueId('GroupSetSelector__select');
 
   return (
     <>
-      <label htmlFor={selectId}>Group set: </label>
-      <select
+      <GroupSelectHeader htmlFor={selectId} productFamily={productFamily} /> <select
         disabled={busy}
         id={selectId}
         onInput={e =>
           onInput(/** @type {HTMLInputElement} */ (e.target).value || null)
         }
       >
-        {busy && <option>Fetching group sets…</option>}
+        {busy && <GroupSelectLoadingOption productFamily={productFamily} />}
         {groupSets && (
           <>
-            <option disabled selected={selectedGroupSetId === null}>
-              Select group set
-            </option>
+            <GroupSelectPromptOption
+              productFamily={productFamily}
+              groupSelected={selectedGroupSetId === null}
+            />
             <hr />
             {groupSets.map(gs => (
               <option
@@ -74,12 +81,114 @@ function GroupSelect({ busy, groupSets, onInput, selectedGroupSetId }) {
 }
 
 /**
+ *
+ *  @typedef GroupSelectHeaderProps
+ * @prop {string} htmlFor
+ * @prop {string} productFamily
+ *
+ * @param {GroupSelectHeaderProps} props
+ */
+function GroupSelectHeader({ htmlFor, productFamily }) {
+  if (productFamily === 'desire2learn') {
+    return <label htmlFor={htmlFor}>Group category: </label>;
+  } else {
+    return <label htmlFor={htmlFor}>Group set: </label>;
+  }
+}
+
+/**
+ *
+ *  @typedef GroupSelectLoadingOptionProps
+ * @prop {string} productFamily
+ *
+ * @param {GroupSelectLoadingOptionProps} props
+ */
+
+function GroupSelectLoadingOption({ productFamily }) {
+  if (productFamily === 'desire2learn') {
+    return <option>Fetching group categories…</option>;
+  } else {
+    return <option>Fetching group sets…</option>;
+  }
+}
+
+/**
+ *
+ *  @typedef GroupSelectPromptOptionProps
+ * @prop {string} productFamily
+ * @prop {boolean} groupSelected
+ *
+ * @param {GroupSelectPromptOptionProps} props
+ */
+
+function GroupSelectPromptOption({ productFamily, groupSelected }) {
+  const groupSetNaming =
+    productFamily === 'desire2learn' ? 'group categories' : 'group set';
+
+  return (
+    <option disabled selected={groupSelected}>
+      Select {groupSetNaming}
+    </option>
+  );
+}
+
+/**
  * ErrorModal shown when the fetched list of course group sets is empty
  *
  * @param {object} props
  *   @param {() => void} props.onCancel
+ *   @param {string} props.productFamily
  */
-function NoGroupsError({ onCancel }) {
+function NoGroupsError({ onCancel, productFamily }) {
+  if (productFamily === 'desire2learn') {
+    return (
+      <ErrorModal onCancel={onCancel} title="No group categories found">
+        <>
+          <p>
+            Hypothesis relies on group categories to place students into groups,
+            but we could not find any available group categories in this course.
+          </p>
+          <p>
+            Please add one or more group category to your course and try again.
+            We also have some{' '}
+            <Link
+              // No KB article for D2L yet
+              href="https://web.hypothes.is/?s=group&ht-kb-search=1&lang=%0D%0A%09%09"
+              target="_blank"
+            >
+              help articles about using groups
+            </Link>
+            .
+          </p>
+        </>
+      </ErrorModal>
+    );
+  } else if (productFamily === 'canvas') {
+    return (
+      <ErrorModal onCancel={onCancel} title="No group sets found">
+        <>
+          <p>
+            Hypothesis relies on canvas group sets to place students into
+            groups, but we could not find any available group sets in this
+            course.
+          </p>
+          <p>
+            Please add one or more group sets to your course and try again. We
+            also have a{' '}
+            <Link
+              href="https://web.hypothes.is/help/using-canvas-groups-to-create-hypothesis-reading-groups/"
+              target="_blank"
+            >
+              help article about using groups in Canvas
+            </Link>
+            .
+          </p>
+        </>
+      </ErrorModal>
+    );
+  }
+  // TODO BLACKBOARD
+
   return (
     <ErrorModal onCancel={onCancel} title="No group sets found">
       <>
@@ -143,6 +252,7 @@ export default function GroupConfigSelector({
   const {
     api: { authToken },
     product: {
+      family: productFamily,
       api: { listGroupSets: listGroupSetsAPI },
     },
   } = useContext(Config);
@@ -211,8 +321,11 @@ export default function GroupConfigSelector({
 
   if (fetchError) {
     if (fetchError instanceof GroupListEmptyError) {
-      return <NoGroupsError onCancel={onErrorCancel} />;
+      return (
+        <NoGroupsError onCancel={onErrorCancel} productFamily={productFamily} />
+      );
     } else if (isAuthorizationError(fetchError)) {
+      // TODO
       return (
         <AuthorizationModal
           authURL={/** @type {string} */ (listGroupSetsAPI.authUrl)}
@@ -224,6 +337,7 @@ export default function GroupConfigSelector({
         </AuthorizationModal>
       );
     } else {
+      // TODO
       return (
         <ErrorModal
           cancelLabel="Cancel"
@@ -260,6 +374,7 @@ export default function GroupConfigSelector({
           groupSets={groupSets}
           selectedGroupSetId={groupSet}
           onInput={onGroupSelectChange}
+          productFamily={productFamily}
         />
       )}
     </>
