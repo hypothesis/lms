@@ -85,7 +85,7 @@ class ApplicationInstanceService:
     @lru_cache(maxsize=1)
     def get_by_id(self, id_) -> ApplicationInstance:
         try:
-            return self._db.query(ApplicationInstance).filter_by(id=id_).one()
+            return self._ai_search_query(id_=id_).one()
         except NoResultFound as err:
             raise ApplicationInstanceNotFound() from err
 
@@ -102,11 +102,7 @@ class ApplicationInstanceService:
             raise ApplicationInstanceNotFound()
 
         try:
-            return (
-                self._db.query(ApplicationInstance)
-                .filter_by(consumer_key=consumer_key)
-                .one()
-            )
+            return self._ai_search_query(consumer_key=consumer_key).one()
         except NoResultFound as err:
             raise ApplicationInstanceNotFound() from err
 
@@ -134,15 +130,42 @@ class ApplicationInstanceService:
     def search(
         self,
         *,
+        id_=None,
         consumer_key=None,
         issuer=None,
         client_id=None,
         deployment_id=None,
         tool_consumer_instance_guid=None,
+        limit=100,
     ) -> List[ApplicationInstance]:
         """Return the instances that match all of the passed parameters."""
+        return (
+            self._ai_search_query(
+                id_=id_,
+                consumer_key=consumer_key,
+                issuer=issuer,
+                client_id=client_id,
+                deployment_id=deployment_id,
+                tool_consumer_instance_guid=tool_consumer_instance_guid,
+            )
+            .limit(limit)
+            .all()
+        )
 
+    def _ai_search_query(
+        self,
+        *,
+        id_=None,
+        consumer_key=None,
+        issuer=None,
+        client_id=None,
+        deployment_id=None,
+        tool_consumer_instance_guid=None,
+    ):
+        """Return a query with the passed parameters applied as filters."""
         query = self._db.query(ApplicationInstance).outerjoin(LTIRegistration)
+        if id_:
+            query = query.filter(ApplicationInstance.id == id_)
         if consumer_key:
             query = query.filter(ApplicationInstance.consumer_key == consumer_key)
 
@@ -161,7 +184,7 @@ class ApplicationInstanceService:
                 == tool_consumer_instance_guid
             )
 
-        return query.all()
+        return query
 
     def update_application_instance(  # pylint:disable=too-many-arguments
         self,
