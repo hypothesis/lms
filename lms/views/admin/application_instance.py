@@ -212,13 +212,6 @@ class AdminApplicationInstanceViews:
             ),
         )
 
-        if len(instances) == 1:
-            return HTTPFound(
-                location=self.request.route_url(
-                    "admin.instance.id", id_=instances[0].id
-                )
-            )
-
         return {"instances": instances}
 
     @view_config(
