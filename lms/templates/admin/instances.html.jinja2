@@ -11,6 +11,7 @@ Application instances
     <legend class="label has-text-centered">Find application instances</legend>
     <form method="POST" action="{{ request.route_url("admin.instances.search") }}">
         <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
+        {{ macros.form_text_field(request, "ID", "id") }}
         {{ macros.form_text_field(request, "Consumer key", "consumer_key") }}
         {{ macros.form_text_field(request, "Issuer", "issuer") }}
         {{ macros.form_text_field(request, "Client ID", "client_id") }}
