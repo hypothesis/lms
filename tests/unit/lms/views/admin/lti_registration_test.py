@@ -1,6 +1,7 @@
 from unittest.mock import sentinel
 
 import pytest
+from pyramid.httpexceptions import HTTPNotFound
 from sqlalchemy.exc import IntegrityError
 
 from lms.views.admin.lti_registration import AdminLTIRegistrationViews
@@ -155,6 +156,15 @@ class TestAdminApplicationInstanceViews:
         assert (
             response["registration"] == lti_registration_service.get_by_id.return_value
         )
+
+    def test_show_registration_404(
+        self, pyramid_request, lti_registration_service, views
+    ):
+        pyramid_request.matchdict["id_"] = sentinel.id_
+        lti_registration_service.get_by_id.return_value = None
+
+        with pytest.raises(HTTPNotFound):
+            views.show_registration()
 
     @pytest.mark.usefixtures("with_form_submission")
     def test_update_registration(
