@@ -1,12 +1,13 @@
 from urllib.parse import urlparse
 
 from marshmallow import ValidationError, validate, validates
-from pyramid.httpexceptions import HTTPFound
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.renderers import render_to_response
 from pyramid.view import view_config, view_defaults
 from sqlalchemy.exc import IntegrityError
 from webargs import fields
 
+from lms.models import LTIRegistration
 from lms.security import Permissions
 from lms.services import LTIRegistrationService
 from lms.validation._base import PyramidRequestSchema
@@ -167,9 +168,7 @@ class AdminLTIRegistrationViews:
     )
     def show_registration(self):
         return {
-            "registration": self.lti_registration_service.get_by_id(
-                self.request.matchdict["id_"]
-            )
+            "registration": self._get_registration_or_404(self.request.matchdict["id_"])
         }
 
     @view_config(
@@ -179,9 +178,7 @@ class AdminLTIRegistrationViews:
         require_csrf=True,
     )
     def update_registration(self):
-        lti_registration = self.lti_registration_service.get_by_id(
-            self.request.matchdict["id_"]
-        )
+        lti_registration = self._get_registration_or_404(self.request.matchdict["id_"])
         if flash_validation(self.request, UpdateLTIRegistrationSchema):
             self.request.response.status_code = 400
             return {"registration": lti_registration}
@@ -201,7 +198,7 @@ class AdminLTIRegistrationViews:
     )
     def registration_new_instance(self):
         return {
-            "lti_registration": self.lti_registration_service.get_by_id(
+            "lti_registration": self._get_registration_or_404(
                 self.request.matchdict["id_"]
             )
         }
@@ -226,3 +223,9 @@ class AdminLTIRegistrationViews:
                 }
 
         return {"auth_login_url": None, "key_set_url": None, "token_url": None}
+
+    def _get_registration_or_404(self, id_) -> LTIRegistration:
+        if org := self.lti_registration_service.get_by_id(id_):
+            return org
+
+        raise HTTPNotFound()
