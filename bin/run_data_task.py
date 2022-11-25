@@ -16,10 +16,10 @@ from pyramid.paster import bootstrap
 
 from lms.models import Regions
 
-TASK_ROOT = importlib_resources.files("lms.sql_tasks") / "tasks"
+TASK_ROOT = importlib_resources.files("lms.data_tasks")
 
 parser = ArgumentParser(
-    description=f"A script for running SQL tasks defined in: {TASK_ROOT}"
+    description=f"A script for running tasks defined in: {TASK_ROOT}"
 )
 parser.add_argument(
     "-c",
@@ -28,7 +28,7 @@ parser.add_argument(
     help="The paster config for this application. (e.g. development.ini)",
 )
 
-parser.add_argument("-t", "--task", required=True, help="The SQL task name to run")
+parser.add_argument("-t", "--task", required=True, help="The data task name to run")
 
 parser.add_argument(
     "--no-python",
