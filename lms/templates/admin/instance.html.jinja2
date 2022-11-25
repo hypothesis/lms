@@ -116,10 +116,11 @@
     </fieldset>
 
     <fieldset class="box">
-        <legend class="label has-text-centered">D2L settings (EXPERIMENTAL)</legend>
+        <legend class="label has-text-centered">D2L settings</legend>
         {{ settings_text_field("API Client ID", "desire2learn", "client_id") }}
         {{ settings_secret_field("API Client secret", "desire2learn", "client_secret") }}
         {{ settings_checkbox("Groups enabled", "desire2learn", "groups_enabled") }}
+        {{ settings_checkbox("Create grade items", "desire2learn", "auto_create_lineitem") }}
     </fieldset>
 
     <fieldset class="box">

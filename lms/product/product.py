@@ -47,8 +47,12 @@ class Settings:
     groups_enabled: bool = False
     """Is the course groups feature enabled"""
 
+    auto_create_lineitem: bool = False
+    """Create lineitem on assignment configuration"""
+
     def __post_init__(self, product_settings):
         self.groups_enabled = product_settings.get("groups_enabled", False)
+        self.groups_enabled = product_settings.get("auto_create_lineitem", False)
 
 
 @dataclass
