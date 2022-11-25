@@ -1,7 +1,7 @@
 from enum import Enum
 
 from lms.models import Grouping
-from lms.product.plugin.grouping_service import GroupError, GroupingServicePlugin
+from lms.product.plugin.grouping import GroupError, GroupingPlugin
 from lms.services.exceptions import CanvasAPIError
 
 
@@ -13,7 +13,7 @@ class ErrorCodes(str, Enum):
     GROUP_SET_NOT_FOUND = "canvas_group_set_not_found"
 
 
-class CanvasGroupingPlugin(GroupingServicePlugin):
+class CanvasGroupingPlugin(GroupingPlugin):
     """A plugin which implements Canvas specific grouping functions."""
 
     group_type = Grouping.Type.CANVAS_GROUP

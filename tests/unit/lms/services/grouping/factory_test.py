@@ -15,7 +15,7 @@ class TestFactory:
         GroupingService.assert_called_once_with(
             db=pyramid_request.db,
             application_instance=application_instance_service.get_current.return_value,
-            plugin=pyramid_request.product.plugin.grouping_service,
+            plugin=pyramid_request.product.plugin.grouping,
         )
 
         assert svc == GroupingService.return_value

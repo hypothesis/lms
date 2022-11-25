@@ -7,5 +7,5 @@ def service_factory(_context, request):
         application_instance=request.find_service(
             name="application_instance"
         ).get_current(),
-        plugin=request.product.plugin.grouping_service,
+        plugin=request.product.plugin.grouping,
     )

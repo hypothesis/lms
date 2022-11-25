@@ -5,9 +5,9 @@ from lms.models import Course, Grouping
 
 
 # pylint: disable=unused-argument
-class GroupingServicePlugin:  # pragma: nocover
+class GroupingPlugin:  # pragma: nocover
     """
-    An interface between the grouping service and a specific LMS.
+    An abstraction between a specific LMS API and different grouping types.
 
     This is intended to give a place for product specific actions to take
     place. For example if you are creating a Canvas plugin, it will be implicit

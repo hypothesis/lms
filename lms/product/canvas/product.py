@@ -16,6 +16,6 @@ class Canvas(Product):
         list_group_sets="canvas_api.courses.group_sets.list",
     )
 
-    plugin_config: PluginConfig = PluginConfig(grouping_service=CanvasGroupingPlugin)
+    plugin_config: PluginConfig = PluginConfig(grouping=CanvasGroupingPlugin)
 
     settings_key = "canvas"
