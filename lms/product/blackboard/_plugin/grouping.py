@@ -1,7 +1,7 @@
 from enum import Enum
 
 from lms.models import Grouping
-from lms.product.plugin.grouping_service import GroupError, GroupingServicePlugin
+from lms.product.plugin.grouping import GroupError, GroupingPlugin
 from lms.services.exceptions import ExternalRequestError
 
 
@@ -13,7 +13,7 @@ class ErrorCodes(str, Enum):
     STUDENT_NOT_IN_GROUP = "blackboard_student_not_in_group"
 
 
-class BlackboardGroupingPlugin(GroupingServicePlugin):
+class BlackboardGroupingPlugin(GroupingPlugin):
     """A plugin which implements Blackboard specific grouping functions."""
 
     group_type = Grouping.Type.BLACKBOARD_GROUP

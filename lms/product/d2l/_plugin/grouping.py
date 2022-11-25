@@ -1,7 +1,7 @@
 from enum import Enum
 
 from lms.models import Grouping
-from lms.product.plugin.grouping_service import GroupError, GroupingServicePlugin
+from lms.product.plugin.grouping import GroupError, GroupingPlugin
 from lms.services import D2LAPIClient
 from lms.services.exceptions import ExternalRequestError
 
@@ -14,7 +14,7 @@ class ErrorCodes(str, Enum):
     STUDENT_NOT_IN_GROUP = "d2l_student_not_in_group"
 
 
-class D2LGroupingPlugin(GroupingServicePlugin):
+class D2LGroupingPlugin(GroupingPlugin):
     """A plugin which implements D2L specific grouping functions."""
 
     group_type = Grouping.Type.D2L_GROUP

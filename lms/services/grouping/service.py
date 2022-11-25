@@ -5,12 +5,12 @@ from sqlalchemy.orm import aliased, subqueryload
 
 from lms.models import Course, Grouping, GroupingMembership, LTIUser, User
 from lms.models._hashed_id import hashed_id
-from lms.product.plugin.grouping_service import GroupingServicePlugin
+from lms.product.plugin.grouping import GroupingPlugin
 from lms.services.upsert import bulk_upsert
 
 
 class GroupingService:
-    def __init__(self, db, application_instance, plugin: GroupingServicePlugin):
+    def __init__(self, db, application_instance, plugin: GroupingPlugin):
         self._db = db
         self.application_instance = application_instance
         self.plugin = plugin

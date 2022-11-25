@@ -10,7 +10,7 @@ class D2L(Product):
 
     family: Product.Family = Product.Family.D2L
 
-    plugin_config: PluginConfig = PluginConfig(grouping_service=D2LGroupingPlugin)
+    plugin_config: PluginConfig = PluginConfig(grouping=D2LGroupingPlugin)
 
     route: Routes = Routes(
         oauth2_authorize="d2l_api.oauth.authorize",

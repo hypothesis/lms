@@ -4,7 +4,7 @@ import pytest
 
 from lms.models import Grouping
 from lms.product.d2l._plugin.grouping import D2LGroupingPlugin, ErrorCodes
-from lms.product.plugin.grouping_service import GroupError
+from lms.product.plugin.grouping import GroupError
 from lms.services.exceptions import ExternalRequestError
 from tests import factories
 

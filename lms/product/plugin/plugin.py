@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from lms.product.plugin.grouping_service import GroupingServicePlugin
+from lms.product.plugin.grouping import GroupingPlugin
 
 
 @dataclass
@@ -8,7 +8,7 @@ class PluginConfig:
     """A collection of plugin class definitions."""
 
     # These also provide the default implementations
-    grouping_service: type = GroupingServicePlugin
+    grouping: type = GroupingPlugin
 
 
 class Plugins:
@@ -27,7 +27,7 @@ class Plugins:
             setattr(instance, self.plugin_name, plugin)  # Overwrite the attr
             return plugin
 
-    grouping_service: GroupingServicePlugin = _LazyPlugin()
+    grouping: GroupingPlugin = _LazyPlugin()
 
     def __init__(self, request, plugin_config: PluginConfig):
         self._request = request

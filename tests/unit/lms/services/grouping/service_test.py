@@ -5,7 +5,7 @@ import pytest
 from h_matchers import Any
 
 from lms.models import CanvasGroup, Course, Grouping, GroupingMembership
-from lms.product.plugin.grouping_service import GroupingServicePlugin
+from lms.product.plugin.grouping import GroupingPlugin
 from lms.services.grouping import GroupingService
 from tests import factories
 
@@ -513,5 +513,5 @@ def svc(db_session, application_instance):
     return GroupingService(
         db_session,
         application_instance,
-        plugin=create_autospec(GroupingServicePlugin, spec_set=True, instance=True),
+        plugin=create_autospec(GroupingPlugin, spec_set=True, instance=True),
     )

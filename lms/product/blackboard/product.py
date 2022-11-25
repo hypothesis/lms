@@ -16,7 +16,5 @@ class Blackboard(Product):
         list_group_sets="blackboard_api.courses.group_sets.list",
     )
 
-    plugin_config: PluginConfig = PluginConfig(
-        grouping_service=BlackboardGroupingPlugin
-    )
+    plugin_config: PluginConfig = PluginConfig(grouping=BlackboardGroupingPlugin)
     settings_key = "blackboard"
