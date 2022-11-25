@@ -52,11 +52,9 @@ class D2L(Product):
                 resource_link_id,
                 resource_link_title,
             )
-
-            assert not lti_params.get(
-                "lis_outcome_service_url"
-            ), "We just created the lineitem, we expect it to be empty in the original request params"
-
-            # This is a bit nasty, mutating the "lti_params" to fake the existence of lis_outcome_service_url
-            # at the moment of the request as the rest of the code base assumes but so it's D2L behaviour.
-            lti_params["lis_outcome_service_url"] = lineitem["id"]
+            # We could now do something like:
+            #   lti_params["lis_outcome_service_url"] = lineitem["id"]
+            # to align the lti_params and the lineitem we just created.
+            # This is not necessary as we only creating the lineitem on assignment configuration,
+            # when we know we won't have any student submissions.
+            # The next launches will have the right value in `lis_outcome_service_url`
