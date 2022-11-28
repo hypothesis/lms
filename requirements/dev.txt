@@ -244,7 +244,7 @@ pycparser==2.21
     # via
     #   -r requirements/requirements.txt
     #   cffi
-pycryptodomex==3.15.0
+pycryptodomex==3.16.0
     # via -r requirements/requirements.txt
 pygments==2.12.0
     # via ipython
