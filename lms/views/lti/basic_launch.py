@@ -161,9 +161,7 @@ class BasicLaunchViews:
         )
 
         # Set up the JS config for the front-end
-        self._configure_js_to_show_document(
-            document_url, assignment, assignment_gradable
-        )
+        self._configure_js_to_show_document(document_url, assignment)
 
         return {}
 
@@ -202,16 +200,14 @@ class BasicLaunchViews:
             user=self.request.user, groups=[self.context.course]
         )
 
-    def _configure_js_to_show_document(
-        self, document_url, assignment, assignment_gradable
-    ):
+    def _configure_js_to_show_document(self, document_url, assignment):
         if self.context.is_canvas:
             # For students in Canvas with grades to submit we need to enable
             # Speedgrader settings for gradable assignments
             # `lis_result_sourcedid` associates a specific user with an
             # assignment.
             if (
-                assignment_gradable
+                assignment.is_gradable
                 and self.request.lti_user.is_learner
                 and self.request.lti_params.get("lis_result_sourcedid")
             ):
@@ -224,7 +220,7 @@ class BasicLaunchViews:
             if focused_user := self.request.params.get("focused_user"):
                 self.context.js_config.set_focused_user(focused_user)
 
-        elif assignment_gradable and self.request.lti_user.is_instructor:
+        elif assignment.is_gradable and self.request.lti_user.is_instructor:
             # Only show the grading interface to teachers who aren't in Canvas,
             # as Canvas uses its own built in Speedgrader
 
