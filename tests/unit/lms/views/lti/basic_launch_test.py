@@ -251,7 +251,7 @@ class TestBasicLaunchViews:
 
         context.js_config.enable_grading_bar.assert_not_called()
 
-    @pytest.mark.usefixtures("user_is_instructor")
+    @pytest.mark.usefixtures("user_is_instructor", "with_non_gradable_assignment")
     def test__show_document_does_not_enable_without_a_gradable_assignment(
         self, svc, context
     ):
@@ -312,9 +312,16 @@ class TestBasicLaunchViews:
         context.js_config.add_canvas_speedgrader_settings.assert_not_called()
 
     @pytest.fixture
-    def with_gradable_assignment(self, pyramid_request):
-        # This shows the assignment itself is gradable
-        pyramid_request.lti_params["lis_outcome_service_url"] = "http://example.com"
+    def with_gradable_assignment(self, assignment_service):
+        assignment_service.upsert_assignment.return_value = factories.Assignment(
+            is_gradable=True
+        )
+
+    @pytest.fixture
+    def with_non_gradable_assignment(self, assignment_service):
+        assignment_service.upsert_assignment.return_value = factories.Assignment(
+            is_gradable=False
+        )
 
     @pytest.fixture
     def with_student_grading_id(self, pyramid_request):
