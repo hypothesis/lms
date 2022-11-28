@@ -9,7 +9,17 @@ from lms.models.public_id import InvalidPublicId
 from lms.security import Permissions
 from lms.services import OrganizationService
 from lms.validation._base import PyramidRequestSchema
-from lms.views.admin import flash_validation
+from lms.views.admin import EmptyStringInt, flash_validation
+
+
+class SearchOrganizationSchema(PyramidRequestSchema):
+    location = "form"
+
+    # Max value for postgres `integer` type
+    id = EmptyStringInt(required=False, validate=validate.Range(max=2147483647))
+    name = fields.Str(required=False)
+    public_id = fields.Str(required=False)
+    guid = fields.Str(required=False)
 
 
 class NewOrganizationSchema(PyramidRequestSchema):
@@ -105,6 +115,9 @@ class AdminOrganizationViews:
         renderer="lms:templates/admin/organizations.html.jinja2",
     )
     def search(self):
+        if flash_validation(self.request, SearchOrganizationSchema):
+            return {}
+
         try:
             orgs = self.organization_service.search(
                 name=self.request.params.get("name", "").strip(),

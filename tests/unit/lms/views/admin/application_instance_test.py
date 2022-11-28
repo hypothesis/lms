@@ -226,28 +226,34 @@ class TestAdminApplicationInstanceViews:
         assert response.status_code == 400
 
     def test_search(self, pyramid_request, application_instance_service, views):
-        pyramid_request.params = {
-            "id": sentinel.id,
-            "consumer_key": sentinel.consumer_key,
-            "issuer": sentinel.issuer,
-            "client_id": sentinel.client_id,
-            "deployment_id": sentinel.deployment_id,
-            "tool_consumer_instance_guid": sentinel.tool_consumer_instance_guid,
-        }
+        pyramid_request.params = pyramid_request.POST = dict(
+            id="1",
+            consumer_key="CONSUMER_KEY",
+            issuer="ISSUER",
+            client_id="CLIENT_ID",
+            deployment_id="DEPLOYMENT_ID",
+            tool_consumer_instance_guid="TOOL_CONSUMER_INSTANCE_GUID",
+        )
 
         response = views.search()
 
         application_instance_service.search.assert_called_once_with(
-            id_=sentinel.id,
-            consumer_key=sentinel.consumer_key,
-            issuer=sentinel.issuer,
-            client_id=sentinel.client_id,
-            deployment_id=sentinel.deployment_id,
-            tool_consumer_instance_guid=sentinel.tool_consumer_instance_guid,
+            id_="1",
+            consumer_key="CONSUMER_KEY",
+            issuer="ISSUER",
+            client_id="CLIENT_ID",
+            deployment_id="DEPLOYMENT_ID",
+            tool_consumer_instance_guid="TOOL_CONSUMER_INSTANCE_GUID",
         )
         assert response == {
             "instances": application_instance_service.search.return_value
         }
+
+    def test_search_invalid(self, pyramid_request, views):
+        pyramid_request.POST = {"id": "not a number"}
+
+        assert not views.search()
+        assert pyramid_request.session.peek_flash
 
     def test_show_instance_consumer_key(
         self, pyramid_request, application_instance_service

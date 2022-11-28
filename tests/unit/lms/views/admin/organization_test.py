@@ -95,15 +95,21 @@ class TestAdminOrganizationViews:
     def test_search(self, pyramid_request, organization_service, views):
         pyramid_request.params["public_id"] = " PUBLIC_ID "
         pyramid_request.params["name"] = " NAME "
-        pyramid_request.params["id"] = " ID "
+        pyramid_request.params["id"] = " 100 "
         pyramid_request.params["guid"] = " GUID  "
 
         result = views.search()
 
         organization_service.search.assert_called_once_with(
-            name="NAME", public_id="PUBLIC_ID", id_="ID", guid="GUID"
+            name="NAME", public_id="PUBLIC_ID", id_="100", guid="GUID"
         )
         assert result == {"organizations": organization_service.search.return_value}
+
+    def test_search_invalid(self, pyramid_request, views):
+        pyramid_request.params["id"] = "not a number"
+
+        assert not views.search()
+        assert pyramid_request.session.peek_flash
 
     def test_blank_search(self, views, organization_service):
         views.search()

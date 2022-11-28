@@ -11,7 +11,7 @@ from lms.models import LTIRegistration
 from lms.security import Permissions
 from lms.services import LTIRegistrationService
 from lms.validation._base import PyramidRequestSchema
-from lms.views.admin import flash_validation
+from lms.views.admin import EmptyStringInt, flash_validation
 
 
 class LTIRegistrationBaseSchema(PyramidRequestSchema):
@@ -25,6 +25,15 @@ class LTIRegistrationBaseSchema(PyramidRequestSchema):
         if value.endswith("/"):
             # Prevent confusion with application instance LMS URL.
             raise ValidationError("Issuer can't end with '/'")
+
+
+class SearchLTIRegistrationSchema(PyramidRequestSchema):
+    location = "form"
+
+    # Max value for postgres `integer` type
+    id = EmptyStringInt(required=False, validate=validate.Range(max=2147483647))
+    issuer = fields.Str(required=False)
+    client_id = fields.Str(required=False)
 
 
 class UpdateLTIRegistrationSchema(PyramidRequestSchema):
@@ -154,6 +163,9 @@ class AdminLTIRegistrationViews:
         renderer="lms:templates/admin/registrations.html.jinja2",
     )
     def search(self):
+        if flash_validation(self.request, SearchLTIRegistrationSchema):
+            return {}
+
         registrations = self.lti_registration_service.search_registrations(
             id_=self.request.params.get("id"),
             issuer=self.request.params.get("issuer"),

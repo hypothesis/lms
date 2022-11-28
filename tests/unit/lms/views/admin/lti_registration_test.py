@@ -131,21 +131,27 @@ class TestAdminApplicationInstanceViews:
         assert response.status_code == 400
 
     def test_search(self, pyramid_request, lti_registration_service, views):
-        pyramid_request.params = {
-            "id": sentinel.id,
-            "issuer": sentinel.issuer,
-            "client_id": sentinel.client_id,
+        pyramid_request.POST = pyramid_request.params = {
+            "id": "1",
+            "issuer": "ISSUER",
+            "client_id": "CLIENT_ID",
         }
 
         response = views.search()
 
         lti_registration_service.search_registrations.assert_called_once_with(
-            id_=sentinel.id, issuer=sentinel.issuer, client_id=sentinel.client_id
+            id_="1", issuer="ISSUER", client_id="CLIENT_ID"
         )
 
         assert response == {
             "registrations": lti_registration_service.search_registrations.return_value
         }
+
+    def test_search_invalid(self, pyramid_request, views):
+        pyramid_request.POST["id"] = "not a number"
+
+        assert not views.search()
+        assert pyramid_request.session.peek_flash
 
     def test_show_registration(self, pyramid_request, lti_registration_service, views):
         pyramid_request.matchdict["id_"] = sentinel.id_
