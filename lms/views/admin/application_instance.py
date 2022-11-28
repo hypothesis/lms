@@ -10,7 +10,7 @@ from lms.security import Permissions
 from lms.services import ApplicationInstanceNotFound, LTIRegistrationService
 from lms.services.aes import AESService
 from lms.validation._base import PyramidRequestSchema, ValidationError
-from lms.views.admin import error_render_to_response, flash_validation
+from lms.views.admin import EmptyStringInt, error_render_to_response, flash_validation
 
 
 class NewApplicationInstanceSchema(PyramidRequestSchema):
@@ -30,6 +30,18 @@ class UpgradeApplicationInstanceSchema(PyramidRequestSchema):
 
     consumer_key = fields.Str(required=True)
     deployment_id = fields.Str(required=True, validate=validate.Length(min=1))
+
+
+class SearchApplicationInstanceSchema(PyramidRequestSchema):
+    location = "form"
+
+    # Max value for postgres `integer` type
+    id = EmptyStringInt(required=False, validate=validate.Range(max=2147483647))
+    consumer_key = fields.Str(required=False)
+    issuer = fields.Str(required=False)
+    client_id = fields.Str(required=False)
+    deployment_id = fields.Str(required=False)
+    tool_consumer_instance_guid = fields.Str(required=False)
 
 
 @view_defaults(request_method="GET", permission=Permissions.ADMIN)
@@ -201,6 +213,9 @@ class AdminApplicationInstanceViews:
         renderer="lms:templates/admin/instances.html.jinja2",
     )
     def search(self):
+        if flash_validation(self.request, SearchApplicationInstanceSchema):
+            return {}
+
         instances = self.application_instance_service.search(
             id_=self.request.params.get("id"),
             consumer_key=self.request.params.get("consumer_key"),

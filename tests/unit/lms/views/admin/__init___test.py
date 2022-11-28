@@ -1,4 +1,7 @@
-from lms.views.admin import index, logged_out, notfound
+import pytest
+
+from lms.validation._base import PyramidRequestSchema, ValidationError
+from lms.views.admin import EmptyStringInt, index, logged_out, notfound
 from tests.matchers import temporary_redirect_to
 
 
@@ -26,3 +29,27 @@ def test_index(pyramid_request):
     assert response == temporary_redirect_to(
         pyramid_request.route_url("admin.instances")
     )
+
+
+class TestEmptyStringInt:
+    @pytest.mark.parametrize("value", ["1", "", "   "])
+    def test_valid(self, pyramid_request, value, TestSchema):
+        pyramid_request.POST["id"] = value
+
+        assert TestSchema(pyramid_request).parse()
+
+    @pytest.mark.parametrize("value", ["not a number"])
+    def test_invalid(self, pyramid_request, value, TestSchema):
+        pyramid_request.POST["id"] = value
+
+        with pytest.raises(ValidationError):
+            TestSchema(pyramid_request).parse()
+
+    @pytest.fixture
+    def TestSchema(self):
+        class _TestSchema(PyramidRequestSchema):
+            location = "form"
+
+            id = EmptyStringInt()
+
+        return _TestSchema
