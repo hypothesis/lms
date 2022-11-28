@@ -168,8 +168,8 @@ class AdminLTIRegistrationViews:
 
         registrations = self.lti_registration_service.search_registrations(
             id_=self.request.params.get("id"),
-            issuer=self.request.params.get("issuer"),
-            client_id=self.request.params.get("client_id"),
+            issuer=self.request.params.get("issuer", "").strip(),
+            client_id=self.request.params.get("client_id", "").strip(),
         )
 
         return {"registrations": registrations}
