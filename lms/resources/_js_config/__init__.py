@@ -524,7 +524,7 @@ class JSConfig:
                     "product": self._request.product.family,
                 },
                 "context_id": self._request.lti_params["context_id"],
-                "group_set_id": self._request.product.plugin.grouping.group_set_id(
+                "group_set_id": self._request.product.plugin.grouping.get_group_set_id(
                     self._request, assignment
                 ),
                 "group_info": {

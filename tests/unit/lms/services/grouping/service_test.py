@@ -470,7 +470,7 @@ class TestGetGroupings:
         self, svc, grouping_plugin, sections_enabled, group_set_id, expected
     ):
         grouping_plugin.sections_enabled.return_value = sections_enabled
-        grouping_plugin.group_set_id.return_value = group_set_id
+        grouping_plugin.get_group_set_id.return_value = group_set_id
 
         assert (
             svc.get_launch_grouping_type(
