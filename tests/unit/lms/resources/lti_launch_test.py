@@ -11,6 +11,14 @@ pytestmark = pytest.mark.usefixtures(
 )
 
 
+class TestApplicationInstance:
+    def test_it(self, lti_launch, application_instance_service):
+        assert (
+            lti_launch.application_instance
+            == application_instance_service.get_current.return_value
+        )
+
+
 class TestIsCanvas:
     @pytest.mark.parametrize(
         "product,expected",
@@ -55,6 +63,10 @@ class TestCourseExtra:
             "canvas": {"custom_canvas_course_id": "ID"}
         }
 
+    @pytest.fixture
+    def with_canvas(self, pyramid_request):
+        pyramid_request.product.family = Product.Family.CANVAS
+
 
 class TestGroupingType:
     def test_it(
@@ -63,7 +75,6 @@ class TestGroupingType:
         lti_launch,
         course_service,
         assignment_service,
-        application_instance,
         pyramid_request,
     ):
         assert (
@@ -75,7 +86,6 @@ class TestGroupingType:
         )
         grouping_service.get_launch_grouping_type.assert_called_once_with(
             pyramid_request,
-            application_instance,
             course_service.upsert_course.return_value,
             assignment_service.get_assignment.return_value,
         )
@@ -100,8 +110,3 @@ def pyramid_request(pyramid_request):
         "context_title": mock.sentinel.context_title,
     }
     return pyramid_request
-
-
-@pytest.fixture
-def with_canvas(pyramid_request):
-    pyramid_request.product.family = Product.Family.CANVAS
