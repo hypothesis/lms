@@ -84,24 +84,6 @@ class GroupingPlugin:
 
         return assignment.extra.get("group_set_id") if assignment else None
 
-    def launch_grouping_type(
-        self, request, application_instance, course, assignment
-    ) -> Grouping.Type:
-        """
-        Return the type of grouping used in this launch.
-
-        Grouping types describe how the course members are divided.
-        If neither of the LMS grouping features are used "COURSE" is the default.
-        """
-        if bool(self.group_set_id(request, assignment)):
-            return Grouping.Type.GROUP
-
-        if self.sections_enabled(request, application_instance, course):
-            # Sections is the default when available. Groups must take precedence
-            return Grouping.Type.SECTION
-
-        return Grouping.Type.COURSE
-
 
 class GroupError(Exception):
     """Exceptions raised by plugins."""

@@ -1,4 +1,4 @@
-from unittest.mock import patch, sentinel
+from unittest.mock import sentinel
 
 import pytest
 
@@ -32,31 +32,6 @@ class TestGroupingServicePlugin:
         assert (
             plugin_with_groups.group_set_id(sentinel.request, assignment) == sentinel.id
         )
-
-    @pytest.mark.parametrize(
-        "sections_enabled,group_set_id,expected",
-        [
-            (True, 1, Grouping.Type.GROUP),
-            (True, None, Grouping.Type.SECTION),
-            (False, 1, Grouping.Type.GROUP),
-            (False, None, Grouping.Type.COURSE),
-        ],
-    )
-    def test_launch_grouping_type(
-        self, plugin, sections_enabled, group_set_id, expected
-    ):
-        with patch.object(
-            plugin, "sections_enabled", return_value=sections_enabled
-        ), patch.object(plugin, "group_set_id", return_value=group_set_id):
-            assert (
-                plugin.launch_grouping_type(
-                    sentinel.request,
-                    sentinel.application_instance,
-                    sentinel.course,
-                    sentinel.assignment,
-                )
-                == expected
-            )
 
     @pytest.fixture
     def plugin(self):
