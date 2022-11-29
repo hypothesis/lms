@@ -51,72 +51,15 @@ class LTILaunchResource:
         return JSConfig(self, self._request)
 
     @property
-    def sections_enabled(self):
-        """Return if sections are enabled for this request."""
-
-        if not self.is_canvas:
-            # Sections are only implemented in Canvas
-            return False
-
-        params = self._request.params
-        if "focused_user" in params and "learner_canvas_user_id" not in params:
-            # This is a legacy SpeedGrader URL, submitted to Canvas before our
-            # Canvas course sections feature was released.
-            return False
-
-        if not bool(self.application_instance.developer_key):
-            # We need a developer key to talk to the API
-            return False
-
-        return self.course.settings.get("canvas", "sections_enabled")
-
-    @property
-    def group_set_id(self):
-        """
-        Get the group set ID for group launches.
-
-        A course can be divided in multiple "small groups" but it's possible to
-        have different sets of groups for the same course.
-
-        This ID identifies a collection of groups.
-        """
-        if self._request.product.family == Product.Family.CANVAS:
-            # For canvas we add parameter to the launch URL as we don't store the
-            # assignment during deep linking.
-            return self._request.params.get("group_set")
-
-        if self._request.product.family in [
-            Product.Family.BLACKBOARD,
-            Product.Family.D2L,
-        ]:
-            # In other LMS we store the configuration details in the DB
-            tool_consumer_instance_guid = self._request.lti_params[
-                "tool_consumer_instance_guid"
-            ]
-            assignment = self._request.find_service(name="assignment").get_assignment(
-                tool_consumer_instance_guid,
-                self._request.lti_params.get("resource_link_id"),
-            )
-            return assignment.extra.get("group_set_id") if assignment else None
-
-        return None
-
-    @property
     def grouping_type(self) -> Grouping.Type:
-        """
-        Return the type of grouping used in this launch.
+        assignment = self._request.find_service(name="assignment").get_assignment(
+            self._request.lti_params["tool_consumer_instance_guid"],
+            self._request.lti_params.get("resource_link_id"),
+        )
 
-        Grouping types describe how the course members are divided.
-        If neither of the LMS grouping features are used "COURSE" is the default.
-        """
-        if bool(self.group_set_id):
-            return Grouping.Type.GROUP
-
-        if self.sections_enabled:
-            # Sections is the default when available. Groups must take precedence
-            return Grouping.Type.SECTION
-
-        return Grouping.Type.COURSE
+        return self._request.product.plugin.grouping_service.launch_grouping_type(
+            self._request, self.application_instance, self.course, assignment
+        )
 
     def _course_extra(self):
         """Extra information to store for courses."""

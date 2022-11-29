@@ -5,7 +5,7 @@ from lms.models import Course, Grouping
 
 
 # pylint: disable=unused-argument
-class GroupingPlugin:  # pragma: nocover
+class GroupingPlugin:
     """
     An abstraction between a specific LMS API and different grouping types.
 
@@ -24,43 +24,83 @@ class GroupingPlugin:  # pragma: nocover
     sections_type: Optional[Grouping.Type] = None
     """The type of sections this plugin supports. `None` disables support."""
 
-    def get_sections_for_learner(self, svc, course) -> Optional[List]:
+    def get_sections_for_learner(
+        self, svc, course
+    ) -> Optional[List]:  # pragma: nocover
         """Get the sections from context when launched by a normal learner."""
 
         return None
 
-    def get_sections_for_instructor(self, svc, course: Course) -> Optional[List]:
+    def get_sections_for_instructor(
+        self, svc, course: Course
+    ) -> Optional[List]:  # pragma: nocover
         """Get the sections from context when launched by an instructor."""
 
         return None
 
     def get_sections_for_grading(
         self, svc, course: Course, grading_student_id
-    ) -> Optional[List]:
+    ) -> Optional[List]:  # pragma: nocover
         """Get the sections for a learner when they are being graded."""
 
         return None
 
     def get_groups_for_learner(
         self, svc, course: Course, group_set_id
-    ) -> Optional[List]:
+    ) -> Optional[List]:  # pragma: nocover
         """Get the sections from context when launched by a normal learner."""
 
         return None
 
     def get_groups_for_instructor(
         self, svc, course: Course, group_set_id
-    ) -> Optional[List]:
+    ) -> Optional[List]:  # pragma: nocover
         """Get the groups from context when launched by an instructor."""
 
         return None
 
     def get_groups_for_grading(
         self, svc, course: Course, group_set_id, grading_student_id
-    ) -> Optional[List]:
+    ) -> Optional[List]:  # pragma: nocover
         """Get the groups for a learner when they are being graded."""
 
         return None
+
+    def sections_enabled(self, request, application_instance, course) -> bool:
+        """Check if sections are enabled for this LMS, instance and course."""
+        return False  # Disabled by default
+
+    def group_set_id(self, request, assignment):
+        """
+        Get the group set ID for group launches.
+
+        A course can be divided in multiple "small groups" but it's possible to
+        have different sets of groups for the same course.
+
+        This ID identifies a collection of groups.
+        """
+        if not self.group_type or not assignment:
+            return None
+
+        return assignment.extra.get("group_set_id") if assignment else None
+
+    def launch_grouping_type(
+        self, request, application_instance, course, assignment
+    ) -> Grouping.Type:
+        """
+        Return the type of grouping used in this launch.
+
+        Grouping types describe how the course members are divided.
+        If neither of the LMS grouping features are used "COURSE" is the default.
+        """
+        if bool(self.group_set_id(request, assignment)):
+            return Grouping.Type.GROUP
+
+        if self.sections_enabled(request, application_instance, course):
+            # Sections is the default when available. Groups must take precedence
+            return Grouping.Type.SECTION
+
+        return Grouping.Type.COURSE
 
 
 class GroupError(Exception):

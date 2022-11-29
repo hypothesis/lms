@@ -2,6 +2,7 @@ from unittest.mock import sentinel
 
 import pytest
 
+from lms.models import ApplicationSettings
 from lms.product.canvas._plugin.grouping import CanvasGroupingPlugin, ErrorCodes
 from lms.product.plugin.grouping import GroupError
 from lms.services import CanvasAPIError
@@ -125,6 +126,36 @@ class TestCanvasGroupingPlugin:
             sentinel.group_set_id,
         )
         assert canvas_api_client.user_groups.return_value == api_groups
+
+    def test_sections_enabled_speedgrader(self, plugin, pyramid_request):
+        pyramid_request.params.update({"focused_user": sentinel.focused_user})
+
+        assert not plugin.sections_enabled(
+            pyramid_request, sentinel.ai, sentinel.course
+        )
+
+    def test_sections_enabled_developer_key(self, plugin, pyramid_request):
+        application_instance = factories.ApplicationInstance(developer_key=None)
+        assert not plugin.sections_enabled(
+            pyramid_request, application_instance, sentinel.course
+        )
+
+    @pytest.mark.parametrize("enabled", [True, False])
+    def test_sections_enabled_course_settings(self, plugin, enabled, pyramid_request):
+        application_instance = factories.ApplicationInstance(developer_key=True)
+        course = factories.Course(
+            settings=ApplicationSettings({"canvas": {"sections_enabled": enabled}})
+        )
+
+        assert (
+            plugin.sections_enabled(pyramid_request, application_instance, course)
+            == enabled
+        )
+
+    def test_group_set_id(self, pyramid_request, plugin):
+        pyramid_request.params.update({"group_set": 1})
+
+        assert plugin.group_set_id(pyramid_request, sentinel.assignment) == 1
 
     def test_factory(self, pyramid_request, canvas_api_client):
         plugin = CanvasGroupingPlugin.factory(sentinel.context, pyramid_request)
