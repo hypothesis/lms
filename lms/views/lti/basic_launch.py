@@ -14,11 +14,9 @@ doesn't actually require basic launch requests to have this parameter.
 
 from pyramid.view import view_config, view_defaults
 
-from lms.events import LTIEvent
+from lms.events.event import LTIEvent
 from lms.security import Permissions
-from lms.services import DocumentURLService, LTIRoleService
-from lms.services.assignment import AssignmentService
-from lms.services.grouping import GroupingService
+from lms.services import DocumentURLService, LTILaunchService
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
 from lms.validation.authentication import BearerTokenSchema
 
@@ -42,16 +40,12 @@ class BasicLaunchViews:
     def __init__(self, context, request):
         self.context = context
         self.request = request
-        self.assignment_service: AssignmentService = request.find_service(
-            name="assignment"
-        )
-        self.grouping_service: GroupingService = request.find_service(name="grouping")
-
-        self.context.application_instance.check_guid_aligns(
-            self.request.lti_params.get("tool_consumer_instance_guid")
+        self.lti_launch_service: LTILaunchService = request.find_service(
+            LTILaunchService
         )
 
-        self._record_launch()
+        self.lti_launch_service.validate_launch()
+        self.lti_launch_service.record_launch(request)
 
     @view_config(
         route_name="lti_launches",
@@ -142,63 +136,19 @@ class BasicLaunchViews:
             when updating metadata.
         """
 
+        course = self.lti_launch_service.record_course()
+        assignment = self.lti_launch_service.record_assignment(
+            course, document_url, extra=assignment_extra
+        )
+
         # Before any LTI assignments launch, create or update the Hypothesis
         # user and group corresponding to the LTI user and course.
-        self.request.find_service(name="lti_h").sync(
-            [self.context.course], self.request.lti_params
-        )
-
-        # An assignment has been configured in the LMS as "gradable" if it has
-        # the `lis_outcome_service_url` param
-        assignment_gradable = bool(
-            self.request.lti_params.get("lis_outcome_service_url")
-        )
-
-        # Store lots of info
-        self._record_course()
-        assignment = self._record_assignment(
-            document_url, extra=assignment_extra, is_gradable=assignment_gradable
-        )
+        self.request.find_service(name="lti_h").sync([course], self.request.lti_params)
 
         # Set up the JS config for the front-end
         self._configure_js_to_show_document(document_url, assignment)
 
         return {}
-
-    def _record_assignment(self, document_url, extra, is_gradable):
-        # Store assignment details
-        assignment = self.assignment_service.upsert_assignment(
-            document_url=document_url,
-            tool_consumer_instance_guid=self.request.lti_params[
-                "tool_consumer_instance_guid"
-            ],
-            resource_link_id=self.request.lti_params.get("resource_link_id"),
-            lti_params=self.request.lti_params,
-            extra=extra,
-            is_gradable=is_gradable,
-        )
-
-        # Store the relationship between the assignment and the course
-        self.assignment_service.upsert_assignment_membership(
-            assignment=assignment,
-            user=self.request.user,
-            lti_roles=self.request.find_service(LTIRoleService).get_roles(
-                self.request.lti_params["roles"]
-            ),
-        )
-        # Store the relationship between the assignment and the course
-        self.assignment_service.upsert_assignment_groupings(
-            assignment_id=assignment.id, groupings=[self.context.course]
-        )
-
-        return assignment
-
-    def _record_course(self):
-        # It's not completely clear but accessing a course in this way actually
-        # is an upsert. So this stores the course as well
-        self.grouping_service.upsert_grouping_memberships(
-            user=self.request.user, groups=[self.context.course]
-        )
 
     def _configure_js_to_show_document(self, document_url, assignment):
         if self.context.is_canvas:
@@ -228,16 +178,3 @@ class BasicLaunchViews:
 
         self.context.js_config.add_document_url(document_url)
         self.context.js_config.enable_lti_launch_mode(assignment)
-
-    def _record_launch(self):
-        """Persist launch type independent info to the DB."""
-
-        self.request.find_service(name="application_instance").update_from_lti_params(
-            self.context.application_instance, self.request.lti_params
-        )
-
-        if not self.request.lti_user.is_instructor and not self.context.is_canvas:
-            # Create or update a record of LIS result data for a student launch
-            self.request.find_service(name="grading_info").upsert_from_request(
-                self.request
-            )

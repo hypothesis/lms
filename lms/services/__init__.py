@@ -24,6 +24,7 @@ from lms.services.launch_verifier import (
     LTIOAuthError,
 )
 from lms.services.lti_grading import LTIGradingService
+from lms.services.lti_launch import LTILaunchService
 from lms.services.lti_names_roles import LTINamesRolesService
 from lms.services.lti_registration import LTIRegistrationService
 from lms.services.lti_role_service import LTIRoleService
@@ -116,4 +117,7 @@ def includeme(config):
     )
     config.register_service_factory(
         "lms.services.d2l_api.d2l_api_client_factory", iface=D2LAPIClient
+    )
+    config.register_service_factory(
+        "lms.services.lti_launch.factory", iface=LTILaunchService
     )

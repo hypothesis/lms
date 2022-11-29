@@ -9,7 +9,7 @@ from pyramid.request import apply_request_extensions
 
 from lms import models
 from lms.db import SESSION
-from lms.models import ApplicationSettings
+from lms.models import ApplicationSettings, LTIParams
 from lms.product import Product
 from lms.security import Identity
 from tests import factories
@@ -124,7 +124,7 @@ def pyramid_request(db_session, application_instance, lti_v11_params):
     )
 
     pyramid_request.lti_jwt = {}
-    pyramid_request.lti_params = {}
+    pyramid_request.lti_params = LTIParams(lti_v11_params)
     pyramid_request.product = Product.from_request(
         pyramid_request, dict(application_instance.settings)
     )

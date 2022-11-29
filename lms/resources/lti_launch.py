@@ -6,6 +6,7 @@ from functools import cached_property
 from lms.models import Grouping
 from lms.product import Product
 from lms.resources._js_config import JSConfig
+from lms.services.lti_launch import LTILaunchService
 
 LOG = logging.getLogger(__name__)
 
@@ -29,12 +30,7 @@ class LTILaunchResource:
     @cached_property
     def course(self):
         """Get the course this LTI launch based on the request's params."""
-
-        return self._request.find_service(name="course").upsert_course(
-            context_id=self._request.parsed_params["context_id"],
-            name=self._request.parsed_params["context_title"],
-            extra=self._course_extra(),
-        )
+        return self._request.find_service(LTILaunchService).record_course()
 
     @property
     def application_instance(self):
@@ -59,18 +55,3 @@ class LTILaunchResource:
         return self._request.find_service(name="grouping").get_launch_grouping_type(
             self._request, self.course, assignment
         )
-
-    def _course_extra(self):
-        """Extra information to store for courses."""
-        extra = {}
-
-        if self.is_canvas:
-            extra = {
-                "canvas": {
-                    "custom_canvas_course_id": self._request.parsed_params.get(
-                        "custom_canvas_course_id"
-                    )
-                }
-            }
-
-        return extra

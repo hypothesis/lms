@@ -63,6 +63,9 @@ class Product:
     settings_key: Optional[str] = None
     """Key in the ai.settings dictionary that holds the product specific settings"""
 
+    use_grading_bar: bool = True
+    """Wether we use our own grading bar for this LMS (True) or integrate with the product provided alternative eg: Canvas Speedgrader (False)"""
+
     # Accessor for external consumption
     Family = Family
 

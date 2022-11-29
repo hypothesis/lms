@@ -19,3 +19,6 @@ class Canvas(Product):
     plugin_config: PluginConfig = PluginConfig(grouping=CanvasGroupingPlugin)
 
     settings_key = "canvas"
+
+    use_grading_bar = False
+    """We integrate with SpeedGrader and don't need to use the grading bar"""

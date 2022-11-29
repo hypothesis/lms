@@ -5,6 +5,7 @@ from pyramid.view import view_config
 
 from lms.models import ReusedConsumerKey
 from lms.security import Permissions
+from lms.services import LTILaunchService
 from lms.validation import LTIV11CoreSchema
 
 
@@ -33,34 +34,34 @@ class GatewayLTISchema(LTIV11CoreSchema):
     route_name="api.gateway.h.lti",
     schema=GatewayLTISchema,
 )
-def h_lti(context, request):
+def h_lti(_context, request):
     """
     Provide tokens and information to allow customers to query H.
 
     We expect the user to authenticate with us using an LTI launch.
     """
 
-    # Ensure no funny business is going on trying to access content out of the
-    # current application instance scope.
+    lti_launch_service = request.find_service(LTILaunchService)
     try:
-        context.application_instance.check_guid_aligns(
-            request.lti_params["tool_consumer_instance_guid"]
-        )
+        # Ensure no funny business is going on trying to access content out of the
+        # current application instance scope
+        lti_launch_service.validate_launch()
     except ReusedConsumerKey as err:
         raise HTTPForbidden(
             "Claimed `tool_consumer_instance_guid` does not match credentials."
         ) from err
 
+    course = lti_launch_service.record_course()
     # Before the credentials we provide will be accepted by `h` the user must
     # exist. So we'll sync over the details to `h`. We also put the user in the
     # course group. This means they will see annotations at the course level
     # right away. If the course uses groups or sections, they won't see
     # anything until they launch an assignment and get put in a group.
-    request.find_service(name="lti_h").sync([context.course], request.lti_params)
+    request.find_service(name="lti_h").sync([course], request.lti_params)
 
     return {
         "api": {"h": _GatewayService.render_h_connection_info(request)},
-        "data": _GatewayService.render_lti_context(request, context.course),
+        "data": _GatewayService.render_lti_context(request, course),
     }
 
 

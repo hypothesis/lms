@@ -86,6 +86,7 @@ class TestGetProductFromRequest:
     def test_from_application_instance(
         self, pyramid_request, application_instance, value, family, class_
     ):
+        del pyramid_request.lti_params["tool_consumer_info_product_family_code"]
         application_instance.tool_consumer_info_product_family_code = value
 
         product = get_product_from_request(pyramid_request)
@@ -99,6 +100,7 @@ class TestGetProductFromRequest:
     def test_from_application_instance_when_missing(
         self, pyramid_request, application_instance_service
     ):
+        del pyramid_request.lti_params["tool_consumer_info_product_family_code"]
         application_instance_service.get_current.side_effect = (
             ApplicationInstanceNotFound()
         )

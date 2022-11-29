@@ -14,17 +14,12 @@ from tests import factories
 
 @pytest.mark.usefixtures("application_instance_service", "lti_h_service")
 class TestDeepLinkingLaunch:
-    def test_it(
-        self, context, pyramid_request, lti_h_service, application_instance_service
-    ):
+    def test_it(self, context, pyramid_request, lti_h_service, lti_launch_service):
         deep_linking_launch(context, pyramid_request)
 
-        application_instance_service.update_from_lti_params.assert_called_once_with(
-            context.application_instance, pyramid_request.lti_params
-        )
-
+        lti_launch_service.record_course.assert_called_once()
         lti_h_service.sync.assert_called_once_with(
-            [context.course], pyramid_request.params
+            [lti_launch_service.record_course.return_value], pyramid_request.params
         )
         context.js_config.enable_file_picker_mode.assert_called_once_with(
             form_action="TEST_CONTENT_ITEM_RETURN_URL",

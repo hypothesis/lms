@@ -44,36 +44,12 @@ class TestJSConfig:
         assert js_config == JSConfig.return_value
 
 
-class TestCourseExtra:
-    # pylint: disable=protected-access
-    def test_empty_in_non_canvas(self, pyramid_request):
-        parsed_params = {}
-        pyramid_request.parsed_params = parsed_params
-
-        assert not LTILaunchResource(pyramid_request)._course_extra()
-
-    @pytest.mark.usefixtures("with_canvas")
-    def test_includes_course_id(self, pyramid_request):
-        parsed_params = {
-            "custom_canvas_course_id": "ID",
-        }
-        pyramid_request.parsed_params = parsed_params
-
-        assert LTILaunchResource(pyramid_request)._course_extra() == {
-            "canvas": {"custom_canvas_course_id": "ID"}
-        }
-
-    @pytest.fixture
-    def with_canvas(self, pyramid_request):
-        pyramid_request.product.family = Product.Family.CANVAS
-
-
 class TestGroupingType:
     def test_it(
         self,
         grouping_service,
         lti_launch,
-        course_service,
+        lti_launch_service,
         assignment_service,
         pyramid_request,
     ):
@@ -86,7 +62,7 @@ class TestGroupingType:
         )
         grouping_service.get_launch_grouping_type.assert_called_once_with(
             pyramid_request,
-            course_service.upsert_course.return_value,
+            lti_launch_service.record_course.return_value,
             assignment_service.get_assignment.return_value,
         )
 

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from lms.product.plugin.grouping import GroupingPlugin
+from lms.product.plugin.launch import LaunchPlugin
 
 
 @dataclass
@@ -9,6 +10,7 @@ class PluginConfig:
 
     # These also provide the default implementations
     grouping: type = GroupingPlugin
+    launch: type = LaunchPlugin
 
 
 class Plugins:
@@ -28,6 +30,7 @@ class Plugins:
             return plugin
 
     grouping: GroupingPlugin = _LazyPlugin()
+    launch: LaunchPlugin = _LazyPlugin()
 
     def __init__(self, request, plugin_config: PluginConfig):
         self._request = request

@@ -48,7 +48,7 @@ from webargs import fields
 
 from lms.events import LTIEvent
 from lms.security import Permissions
-from lms.services import JWTService
+from lms.services import JWTService, LTILaunchService
 from lms.validation import DeepLinkingLTILaunchSchema
 from lms.validation._base import JSONPyramidRequestSchema
 
@@ -62,11 +62,13 @@ from lms.validation._base import JSONPyramidRequestSchema
 )
 def deep_linking_launch(context, request):
     """Handle deep linking launches."""
+    lti_launch_service: LTILaunchService = request.find_service(LTILaunchService)
 
-    request.find_service(name="application_instance").update_from_lti_params(
-        context.application_instance, request.lti_params
-    )
-    request.find_service(name="lti_h").sync([context.course], request.params)
+    lti_launch_service.validate_launch()
+    course = lti_launch_service.record_course()
+    lti_launch_service.record_launch(request)
+
+    request.find_service(name="lti_h").sync([course], request.params)
 
     context.js_config.enable_file_picker_mode(
         form_action=request.parsed_params["content_item_return_url"],

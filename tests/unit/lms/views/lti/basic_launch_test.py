@@ -29,48 +29,14 @@ class TestHasDocumentURL:
     "lti_h_service",
     "lti_role_service",
     "grouping_service",
+    "lti_launch_service",
 )
 class TestBasicLaunchViews:
-    def test___init___(self, context, pyramid_request):
+    def test___init___(self, context, pyramid_request, lti_launch_service):
         BasicLaunchViews(context, pyramid_request)
 
-        context.application_instance.check_guid_aligns.assert_called_once_with(
-            pyramid_request.lti_params["tool_consumer_instance_guid"]
-        )
-
-    @pytest.mark.usefixtures("user_is_learner")
-    def test__init__stores_data(
-        self,
-        context,
-        pyramid_request,
-        grading_info_service,
-        application_instance_service,
-    ):
-        BasicLaunchViews(context, pyramid_request)
-
-        application_instance_service.update_from_lti_params.assert_called_once_with(
-            context.application_instance, pyramid_request.lti_params
-        )
-
-        grading_info_service.upsert_from_request.assert_called_once_with(
-            pyramid_request
-        )
-
-    @pytest.mark.usefixtures("user_is_instructor")
-    def test__init___doesnt_update_grading_info_for_instructors(
-        self, context, pyramid_request, grading_info_service
-    ):
-        BasicLaunchViews(context, pyramid_request)
-
-        grading_info_service.upsert_from_request.assert_not_called()
-
-    @pytest.mark.usefixtures("user_is_learner", "is_canvas")
-    def test__init___doesnt_update_grading_info_for_canvas(
-        self, context, pyramid_request, grading_info_service
-    ):
-        BasicLaunchViews(context, pyramid_request)
-
-        grading_info_service.upsert_from_request.assert_not_called()
+        lti_launch_service.validate_launch.assert_called()
+        lti_launch_service.record_launch.assert_called_once_with(pyramid_request)
 
     @pytest.mark.parametrize(
         "parsed_params,expected_extras",
@@ -169,48 +135,21 @@ class TestBasicLaunchViews:
         pyramid_request,
         context,
         lti_h_service,
-        assignment_service,
-        lti_role_service,
-        grouping_service,
+        lti_launch_service,
     ):
         # pylint: disable=protected-access
         result = svc._show_document(
             sentinel.document_url, assignment_extra=sentinel.assignment_extra
         )
 
-        lti_h_service.sync.assert_called_once_with(
-            [context.course], pyramid_request.lti_params
+        lti_launch_service.record_course.assert_called()
+        course = lti_launch_service.record_course.return_value
+        lti_launch_service.record_assignment.assert_called_once_with(
+            course, sentinel.document_url, sentinel.assignment_extra
         )
 
-        # `_record_course()`
-        grouping_service.upsert_grouping_memberships.assert_called_once_with(
-            user=pyramid_request.user, groups=[context.course]
-        )
-
-        # `_record_assignment()`
-        assignment_service.upsert_assignment.assert_called_once_with(
-            tool_consumer_instance_guid=pyramid_request.lti_params[
-                "tool_consumer_instance_guid"
-            ],
-            resource_link_id=pyramid_request.lti_params["resource_link_id"],
-            document_url=sentinel.document_url,
-            lti_params=pyramid_request.lti_params,
-            is_gradable=False,
-            extra=sentinel.assignment_extra,
-        )
-        assignment = assignment_service.upsert_assignment.return_value
-
-        lti_role_service.get_roles.assert_called_once_with(
-            pyramid_request.lti_params["roles"]
-        )
-        assignment_service.upsert_assignment_membership.assert_called_once_with(
-            assignment=assignment,
-            user=pyramid_request.user,
-            lti_roles=lti_role_service.get_roles.return_value,
-        )
-        assignment_service.upsert_assignment_groupings.assert_called_once_with(
-            assignment_id=assignment.id, groupings=[context.course]
-        )
+        assignment = lti_launch_service.record_assignment.return_value
+        lti_h_service.sync.assert_called_once_with([course], pyramid_request.lti_params)
 
         context.js_config.enable_lti_launch_mode.assert_called_once_with(assignment)
         context.js_config.set_focused_user.assert_not_called()
@@ -312,14 +251,14 @@ class TestBasicLaunchViews:
         context.js_config.add_canvas_speedgrader_settings.assert_not_called()
 
     @pytest.fixture
-    def with_gradable_assignment(self, assignment_service):
-        assignment_service.upsert_assignment.return_value = factories.Assignment(
+    def with_gradable_assignment(self, lti_launch_service):
+        lti_launch_service.record_assignment.return_value = factories.Assignment(
             is_gradable=True
         )
 
     @pytest.fixture
-    def with_non_gradable_assignment(self, assignment_service):
-        assignment_service.upsert_assignment.return_value = factories.Assignment(
+    def with_non_gradable_assignment(self, lti_launch_service):
+        lti_launch_service.record_assignment.return_value = factories.Assignment(
             is_gradable=False
         )
 

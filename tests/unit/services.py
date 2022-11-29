@@ -3,6 +3,7 @@ from unittest import mock
 import pytest
 
 from lms.product.plugin.grouping import GroupingPlugin
+from lms.product.plugin.launch import LaunchPlugin
 from lms.services import (
     CanvasService,
     DocumentURLService,
@@ -30,6 +31,7 @@ from lms.services.jwt import JWTService
 from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_grading import LTIGradingService
 from lms.services.lti_h import LTIHService
+from lms.services.lti_launch import LTILaunchService
 from lms.services.lti_registration import LTIRegistrationService
 from lms.services.ltia_http import LTIAHTTPService
 from lms.services.oauth1 import OAuth1Service
@@ -67,6 +69,7 @@ __all__ = (
     "launch_verifier",
     "lti_grading_service",
     "lti_h_service",
+    "lti_launch_service",
     "lti_registration_service",
     "lti_role_service",
     "ltia_http_service",
@@ -79,6 +82,7 @@ __all__ = (
     "vitalsource_service",
     # Product plugins
     "grouping_plugin",
+    "launch_plugin",
 )
 
 
@@ -303,3 +307,13 @@ def vitalsource_service(mock_service):
 @pytest.fixture
 def grouping_plugin(mock_service):
     return mock_service(GroupingPlugin)
+
+
+@pytest.fixture
+def launch_plugin(mock_service):
+    return mock_service(LaunchPlugin)
+
+
+@pytest.fixture
+def lti_launch_service(mock_service):
+    return mock_service(LTILaunchService)
