@@ -379,7 +379,7 @@ class TestJSConfigAPISync:
         pyramid_request.params["learner_canvas_user_id"] = "CANVAS_USER_ID"
         pyramid_request.product.route.oauth2_authorize = "welcome"
         context.grouping_type = grouping_type
-        grouping_plugin.group_set_id.return_value = "GROUP_SET_ID"
+        grouping_plugin.get_group_set_id.return_value = "GROUP_SET_ID"
 
         js_config.enable_lti_launch_mode(assignment)
 

@@ -21,24 +21,25 @@ class TestGroupingServicePlugin:
             == expected
         )
 
-    def test_group_set_id_when_disabled(self, plugin):
+    def test_get_group_set_id_when_disabled(self, plugin):
         plugin.group_type = None
 
-        assert not plugin.group_set_id(sentinel.request, sentinel.assignment)
+        assert not plugin.get_group_set_id(sentinel.request, sentinel.assignment)
 
-    def test_group_set_id_when_no_assignment(self, plugin_with_groups):
-        assert not plugin_with_groups.group_set_id(sentinel.request, None)
+    def test_get_group_set_id_when_no_assignment(self, plugin_with_groups):
+        assert not plugin_with_groups.get_group_set_id(sentinel.request, None)
 
-    def test_group_set_id_when_no_group_set(self, plugin):
+    def test_get_group_set_id_when_no_group_set(self, plugin):
         assignment = factories.Assignment(extra={})
 
-        assert not plugin.group_set_id(sentinel.request, assignment)
+        assert not plugin.get_group_set_id(sentinel.request, assignment)
 
-    def test_group_set(self, plugin_with_groups):
+    def test_get_group_set_id(self, plugin_with_groups):
         assignment = factories.Assignment(extra={"group_set_id": sentinel.id})
 
         assert (
-            plugin_with_groups.group_set_id(sentinel.request, assignment) == sentinel.id
+            plugin_with_groups.get_group_set_id(sentinel.request, assignment)
+            == sentinel.id
         )
 
     @pytest.fixture
