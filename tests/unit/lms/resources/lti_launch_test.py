@@ -59,7 +59,7 @@ class TestCourseExtra:
 class TestGroupingType:
     def test_it(
         self,
-        grouping_plugin,
+        grouping_service,
         lti_launch,
         course_service,
         assignment_service,
@@ -68,12 +68,12 @@ class TestGroupingType:
     ):
         assert (
             lti_launch.grouping_type
-            == grouping_plugin.launch_grouping_type.return_value
+            == grouping_service.get_launch_grouping_type.return_value
         )
         assignment_service.get_assignment.assert_called_once_with(
             mock.sentinel.tool_guid, mock.sentinel.resource_link_id
         )
-        grouping_plugin.launch_grouping_type.assert_called_once_with(
+        grouping_service.get_launch_grouping_type.assert_called_once_with(
             pyramid_request,
             application_instance,
             course_service.upsert_course.return_value,
