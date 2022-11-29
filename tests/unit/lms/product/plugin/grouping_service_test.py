@@ -8,9 +8,17 @@ from tests import factories
 
 
 class TestGroupingServicePlugin:
-    def test_sections_enabled(self, plugin):
-        assert not plugin.sections_enabled(
-            sentinel.request, sentinel.application_instance, sentinel.course
+    @pytest.mark.parametrize(
+        "sections_type,expected", [(None, False), (Grouping.Type.CANVAS_SECTION, True)]
+    )
+    def test_sections_enabled(self, plugin, sections_type, expected):
+        plugin.sections_type = sections_type
+
+        assert (
+            plugin.sections_enabled(
+                sentinel.request, sentinel.application_instance, sentinel.course
+            )
+            == expected
         )
 
     def test_group_set_id_when_disabled(self, plugin):

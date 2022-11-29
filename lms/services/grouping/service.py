@@ -229,9 +229,7 @@ class GroupingService:
 
         return [course] + groupings
 
-    def get_launch_grouping_type(
-        self, request, application_instance, course, assignment
-    ) -> Grouping.Type:
+    def get_launch_grouping_type(self, request, course, assignment) -> Grouping.Type:
         """
         Return the type of grouping used in the current LTI launch.
 
@@ -241,7 +239,7 @@ class GroupingService:
         if bool(self.plugin.group_set_id(request, assignment)):
             return Grouping.Type.GROUP
 
-        if self.plugin.sections_enabled(request, application_instance, course):
+        if self.plugin.sections_enabled(request, self.application_instance, course):
             # Sections is the default when available. Groups must take precedence
             return Grouping.Type.SECTION
 

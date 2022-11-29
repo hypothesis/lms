@@ -475,7 +475,6 @@ class TestGetGroupings:
         assert (
             svc.get_launch_grouping_type(
                 sentinel.request,
-                sentinel.application_instance,
                 sentinel.course,
                 sentinel.assignment,
             )

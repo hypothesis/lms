@@ -68,7 +68,7 @@ class GroupingPlugin:
 
     def sections_enabled(self, request, application_instance, course) -> bool:
         """Check if sections are enabled for this LMS, instance and course."""
-        return False  # Disabled by default
+        return bool(self.sections_type)
 
     def group_set_id(self, request, assignment):
         """
