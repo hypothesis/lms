@@ -78,6 +78,24 @@ class CanvasGroupingPlugin(GroupingPlugin):
             self._custom_course_id(course), grading_student_id, group_set_id
         )
 
+    def sections_enabled(self, request, application_instance, course):
+        params = request.params
+        if "focused_user" in params and "learner_canvas_user_id" not in params:
+            # This is a legacy SpeedGrader URL, submitted to Canvas before our
+            # Canvas course sections feature was released.
+            return False
+
+        if not bool(application_instance.developer_key):
+            # We need a developer key to talk to the API
+            return False
+
+        return course.settings.get("canvas", "sections_enabled")
+
+    def group_set_id(self, request, assignment):
+        # For canvas we add parameter to the launch URL as we don't store the
+        # assignment during deep linking.
+        return request.params.get("group_set")
+
     def _custom_course_id(self, course):
         return course.extra["canvas"]["custom_canvas_course_id"]
 
