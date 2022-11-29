@@ -229,6 +229,24 @@ class GroupingService:
 
         return [course] + groupings
 
+    def get_launch_grouping_type(
+        self, request, application_instance, course, assignment
+    ) -> Grouping.Type:
+        """
+        Return the type of grouping used in the current LTI launch.
+
+        Grouping types describe how the course members are divided.
+        If neither of the LMS grouping features are used "COURSE" is the default.
+        """
+        if bool(self.plugin.group_set_id(request, assignment)):
+            return Grouping.Type.GROUP
+
+        if self.plugin.sections_enabled(request, application_instance, course):
+            # Sections is the default when available. Groups must take precedence
+            return Grouping.Type.SECTION
+
+        return Grouping.Type.COURSE
+
     def _to_groupings(self, user, groupings, course, type_):
         if groupings and not isinstance(groupings[0], Grouping):
             groupings = [

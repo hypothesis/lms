@@ -457,6 +457,31 @@ class TestGetGroupings:
         # We get the course no matter what + only the grouping we are in
         assert results == Any.list.containing([course, groupings[1]])
 
+    @pytest.mark.parametrize(
+        "sections_enabled,group_set_id,expected",
+        [
+            (True, 1, Grouping.Type.GROUP),
+            (True, None, Grouping.Type.SECTION),
+            (False, 1, Grouping.Type.GROUP),
+            (False, None, Grouping.Type.COURSE),
+        ],
+    )
+    def test_launch_grouping_type(
+        self, svc, grouping_plugin, sections_enabled, group_set_id, expected
+    ):
+        grouping_plugin.sections_enabled.return_value = sections_enabled
+        grouping_plugin.group_set_id.return_value = group_set_id
+
+        assert (
+            svc.get_launch_grouping_type(
+                sentinel.request,
+                sentinel.application_instance,
+                sentinel.course,
+                sentinel.assignment,
+            )
+            == expected
+        )
+
     @pytest.fixture
     def assert_groups_returned(self, svc, assert_groupings_returned):
         return partial(assert_groupings_returned, grouping_type=svc.plugin.group_type)

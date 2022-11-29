@@ -56,8 +56,7 @@ class LTILaunchResource:
             self._request.lti_params["tool_consumer_instance_guid"],
             self._request.lti_params.get("resource_link_id"),
         )
-
-        return self._request.product.plugin.grouping_service.launch_grouping_type(
+        return self._request.find_service(name="grouping").get_launch_grouping_type(
             self._request, self.application_instance, self.course, assignment
         )
 
