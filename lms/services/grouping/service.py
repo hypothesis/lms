@@ -236,7 +236,7 @@ class GroupingService:
         Grouping types describe how the course members are divided.
         If neither of the LMS grouping features are used "COURSE" is the default.
         """
-        if bool(self.plugin.group_set_id(request, assignment)):
+        if bool(self.plugin.get_group_set_id(request, assignment)):
             return Grouping.Type.GROUP
 
         if self.plugin.sections_enabled(request, self.application_instance, course):

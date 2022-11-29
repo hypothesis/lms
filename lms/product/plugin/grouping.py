@@ -70,7 +70,7 @@ class GroupingPlugin:
         """Check if sections are enabled for this LMS, instance and course."""
         return bool(self.sections_type)
 
-    def group_set_id(self, request, assignment):
+    def get_group_set_id(self, request, assignment):
         """
         Get the group set ID for group launches.
 
