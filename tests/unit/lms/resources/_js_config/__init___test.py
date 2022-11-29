@@ -371,13 +371,15 @@ class TestJSConfigAPISync:
     @pytest.mark.parametrize(
         "grouping_type", (Grouping.Type.GROUP, Grouping.Type.SECTION)
     )
-    def test_it(self, js_config, context, pyramid_request, grouping_type):
+    def test_it(
+        self, js_config, context, pyramid_request, grouping_type, grouping_plugin
+    ):
         assignment.id = 123456  # Ensure the assignment has an id
         pyramid_request.lti_params["context_id"] = "CONTEXT_ID"
         pyramid_request.params["learner_canvas_user_id"] = "CANVAS_USER_ID"
         pyramid_request.product.route.oauth2_authorize = "welcome"
         context.grouping_type = grouping_type
-        context.group_set_id = "GROUP_SET_ID"
+        grouping_plugin.group_set_id.return_value = "GROUP_SET_ID"
 
         js_config.enable_lti_launch_mode(assignment)
 
@@ -443,13 +445,13 @@ class TestJSConfigHypothesisClient:
             }
         ]
 
-    @pytest.mark.usefixtures("with_sections_on")
+    @pytest.mark.usefixtures("with_sections_on", "grouping_plugin")
     def test_configures_the_client_to_fetch_the_groups_over_RPC_with_sections(
         self, config
     ):
         assert config["services"][0]["groups"] == "$rpc:requestGroups"
 
-    @pytest.mark.usefixtures("with_groups_on")
+    @pytest.mark.usefixtures("with_groups_on", "grouping_plugin")
     def test_it_configures_the_client_to_fetch_the_groups_over_RPC_with_groups(
         self, config
     ):
@@ -662,7 +664,6 @@ def context(application_instance):
         spec_set=True,
         instance=True,
         is_canvas=True,
-        sections_enabled=False,
         grouping_type=Grouping.Type.COURSE,
         course=create_autospec(Grouping, instance=True, spec_set=True),
         application_instance=application_instance,

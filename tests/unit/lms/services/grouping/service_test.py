@@ -1,11 +1,10 @@
 from functools import partial
-from unittest.mock import create_autospec, patch, sentinel
+from unittest.mock import patch, sentinel
 
 import pytest
 from h_matchers import Any
 
 from lms.models import CanvasGroup, Course, Grouping, GroupingMembership
-from lms.product.plugin.grouping import GroupingPlugin
 from lms.services.grouping import GroupingService
 from tests import factories
 
@@ -509,9 +508,5 @@ def user():
 
 
 @pytest.fixture
-def svc(db_session, application_instance):
-    return GroupingService(
-        db_session,
-        application_instance,
-        plugin=create_autospec(GroupingPlugin, spec_set=True, instance=True),
-    )
+def svc(db_session, application_instance, grouping_plugin):
+    return GroupingService(db_session, application_instance, plugin=grouping_plugin)
