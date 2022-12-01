@@ -10,7 +10,8 @@ from lms.security import Permissions
 from lms.services import ApplicationInstanceNotFound, LTIRegistrationService
 from lms.services.aes import AESService
 from lms.validation._base import PyramidRequestSchema, ValidationError
-from lms.views.admin import EmptyStringInt, error_render_to_response, flash_validation
+from lms.views.admin import error_render_to_response, flash_validation
+from lms.views.admin._schemas import EmptyStringInt
 
 
 class NewApplicationInstanceSchema(PyramidRequestSchema):
@@ -309,6 +310,7 @@ class AdminApplicationInstanceViews:
             ("vitalsource", "disable_licence_check", bool),
             ("jstor", "enabled", bool),
             ("jstor", "site_code", str),
+            ("hypothesis", "notes", str),
         ):
             value = self.request.params.get(f"{setting}.{sub_setting}")
             if setting_type == bool:
