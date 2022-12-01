@@ -26,8 +26,8 @@ class TestDocumentURLService:
                 "http://example.com/path?param=value",
             ),
             (
-                "http%3a%2F%2Fexample.com%2Fpath%3Fparam%3Dvalue",
-                "http://example.com/path?param=value",
+                "HTTP%3a%2F%2Fexample.com%2Fpath%3Fparam%3Dvalue",
+                "HTTP://example.com/path?param=value",
             ),
             (
                 "canvas%3A%2F%2Ffile%2Fcourse_id%2FCOURSE_ID%2Ffile_if%2FFILE_ID",
@@ -37,6 +37,10 @@ class TestDocumentURLService:
                 "jstor%3A%2F%2FDOI",
                 "jstor://DOI",
             ),
+            (
+                "vitalsource%3A%2F%2Fbook%2FbookID%2FL-999-70469%2Fcfi%2F%2F6%2F8",
+                "vitalsource://book/bookID/L-999-70469/cfi//6/8",
+            ),
             # Non-URL encoded paths
             (
                 "https://example.com/path?param=value",
@@ -45,6 +49,25 @@ class TestDocumentURLService:
             (
                 "http://example.com/path?param=%25foo%25",
                 "http://example.com/path?param=%25foo%25",
+            ),
+            (
+                "canvas://file/course_id/COURSE_ID/file_if/FILE_ID",
+                "canvas://file/course_id/COURSE_ID/file_if/FILE_ID",
+            ),
+            ("jstor://DOI", "jstor://DOI"),
+            (
+                "vitalsource://book/bookID/L-999-70469/cfi//6/8",
+                "vitalsource://book/bookID/L-999-70469/cfi//6/8",
+            ),
+            # Unknown but valid (RFC3986) schemas get decoded
+            (
+                "j5-tor.r%3A%2F%2FDOI",
+                "j5-tor.r://DOI",
+            ),
+            # Invalid schemas don't get decoded
+            (
+                "1stor%3A%2F%2FDOI",
+                "1stor%3A%2F%2FDOI",
             ),
         ),
     )
