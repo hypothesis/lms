@@ -357,6 +357,8 @@ class TestAdminApplicationInstanceViews:
             ("vitalsource", "api_key", "api_key", "api_key"),
             ("vitalsource", "user_lti_param", "user_id", "user_id"),
             ("vitalsource", "user_lti_pattern", "name_(.*)", "name_(.*)"),
+            ("hypothesis", "notes", "  NOTES ", "NOTES"),
+            ("hypothesis", "notes", "", None),
         ),
     )
     def test_update_instance_saves_ai_settings(
