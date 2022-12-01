@@ -32,7 +32,9 @@ class DocumentURLService:
 
         return None
 
-    _ENCODED_URL = re.compile("^(?:https?|canvas|vitalsource|jstor)%3a", re.IGNORECASE)
+    # If the URL looks like "schema%3a" (schema:) it's double-encoded
+    # https://www.rfc-editor.org/rfc/rfc3986#section-3.1
+    _ENCODED_URL = re.compile("^[a-z][a-z0-9+.-]*%3a", re.IGNORECASE)
 
     @classmethod
     def _from_deep_linking_provided_url(cls, request):
