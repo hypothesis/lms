@@ -32,7 +32,7 @@ class DocumentURLService:
 
         return None
 
-    _ENCODED_URL = re.compile("^(?:https?|canvas|vitalsource)%3a", re.IGNORECASE)
+    _ENCODED_URL = re.compile("^(?:https?|canvas|vitalsource|jstor)%3a", re.IGNORECASE)
 
     @classmethod
     def _from_deep_linking_provided_url(cls, request):
