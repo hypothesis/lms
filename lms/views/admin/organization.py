@@ -9,7 +9,8 @@ from lms.models.public_id import InvalidPublicId
 from lms.security import Permissions
 from lms.services import OrganizationService
 from lms.validation._base import PyramidRequestSchema
-from lms.views.admin import EmptyStringInt, flash_validation
+from lms.views.admin import flash_validation
+from lms.views.admin._schemas import EmptyStringInt
 
 
 class SearchOrganizationSchema(PyramidRequestSchema):

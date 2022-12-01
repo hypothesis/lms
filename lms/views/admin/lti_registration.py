@@ -11,7 +11,8 @@ from lms.models import LTIRegistration
 from lms.security import Permissions
 from lms.services import LTIRegistrationService
 from lms.validation._base import PyramidRequestSchema
-from lms.views.admin import EmptyStringInt, flash_validation
+from lms.views.admin import flash_validation
+from lms.views.admin._schemas import EmptyStringInt
 
 
 class LTIRegistrationBaseSchema(PyramidRequestSchema):
