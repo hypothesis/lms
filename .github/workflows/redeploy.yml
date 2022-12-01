@@ -22,7 +22,7 @@ jobs:
     with:
       operation: redeploy
       github_environment_name: QA
-      github_environment_url: https://hypothesis.instructure.com/courses/125/assignments
+      github_environment_url: https://hypothesis.instructure.com/courses/125/assignments/879
       aws_region: us-west-1
       elasticbeanstalk_application: lms
       elasticbeanstalk_environment: qa
@@ -34,7 +34,7 @@ jobs:
     with:
       operation: redeploy
       github_environment_name: Production
-      github_environment_url: https://hypothesis.instructure.com/courses/125/assignments
+      github_environment_url: https://hypothesis.instructure.com/courses/125/assignments/884
       aws_region: us-west-1
       elasticbeanstalk_application: lms
       elasticbeanstalk_environment: prod
@@ -46,7 +46,7 @@ jobs:
     with:
       operation: redeploy
       github_environment_name: Production (Canada)
-      github_environment_url: https://hypothesis.instructure.com/courses/315
+      github_environment_url: https://hypothesis.instructure.com/courses/315/assignments/2735
       aws_region: ca-central-1
       elasticbeanstalk_application: lms
       elasticbeanstalk_environment: prod
