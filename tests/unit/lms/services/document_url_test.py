@@ -33,6 +33,10 @@ class TestDocumentURLService:
                 "canvas%3A%2F%2Ffile%2Fcourse_id%2FCOURSE_ID%2Ffile_if%2FFILE_ID",
                 "canvas://file/course_id/COURSE_ID/file_if/FILE_ID",
             ),
+            (
+                "jstor%3A%2F%2FDOI",
+                "jstor://DOI",
+            ),
             # Non-URL encoded paths
             (
                 "https://example.com/path?param=value",
