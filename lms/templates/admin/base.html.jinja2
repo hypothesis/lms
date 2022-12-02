@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}LMS Admin{% endblock %}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.2/css/bulma.min.css">
+    <style>
+        .tabs-content li {
+            display: none;
+            list-style: none;
+        }
+
+        .tabs-content li.is-active {
+            display: block;
+        }
+    </style>
   </head>
   <body>
 
@@ -108,4 +118,5 @@
     </div>
   </section>
   </body>
+  <script src="https://cdn.jsdelivr.net/npm/@vizuaalog/bulmajs@0.12.1/dist/tabs.js"></script>
 </html>
