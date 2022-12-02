@@ -32,7 +32,8 @@
 
 {% macro settings_textarea(label, setting, sub_setting, field_name, default='') %}
     {% call macros.field_body(label) %}
-        <textarea class="textarea" name="{{ setting }}.{{ sub_setting }}">{{ instance.settings.get(setting, sub_setting, default) or '' }}</textarea>
+        {% set text = instance.settings.get(setting, sub_setting, default) or ''  %}
+        <textarea class="textarea" name="{{ setting }}.{{ sub_setting }}">{{ text }}</textarea>
     {% endcall %}
 {% endmacro %}
 
@@ -51,6 +52,14 @@
 <form method="POST" action="{{ request.route_url("admin.instance.id", id_=instance.id) }}">
     <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
 
+    <fieldset class="box">
+        {{ settings_textarea("Notes", "hypothesis", "notes") }}
+        {{ macros.disabled_text_field("Consumer key", instance.consumer_key) }}
+        {{ macros.form_text_field(request, "Deployment ID", "deployment_id", field_value=instance.deployment_id) }}
+        {{ macros.form_text_field(request, "LMS URL", "lms_url", field_value=instance.lms_url) }}
+    </fieldset>
+
+
     <fieldset class="box mt-6">
         <legend class="label has-text-centered">Organization</legend>
         {{ macros.organization_preview(request, instance.organization) }}
@@ -59,12 +68,6 @@
     <fieldset class="box mt-6">
         <legend class="label has-text-centered">Registration</legend>
         {{ macros.registration_preview(request, instance.lti_registration) }}
-    </fieldset>
-
-    <fieldset class="box">
-        {{ macros.disabled_text_field("Consumer key", instance.consumer_key) }}
-        {{ macros.form_text_field(request, "Deployment ID", "deployment_id", field_value=instance.deployment_id) }}
-        {{ macros.form_text_field(request, "LMS URL", "lms_url", field_value=instance.lms_url) }}
     </fieldset>
 
     <fieldset class="box">
@@ -141,7 +144,6 @@
         {{ settings_text_field("JSTOR site code", "jstor", "site_code") }}
     </fieldset>
 
-    {{ settings_textarea("Notes", "hypothesis", "notes") }}
     {{ macros.created_updated_fields(instance) }}
 
     <div class="has-text-right mb-6">
