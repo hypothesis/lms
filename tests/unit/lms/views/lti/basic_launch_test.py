@@ -87,6 +87,7 @@ class TestBasicLaunchViews:
         parsed_params,
         expected_extras,
         _show_document,
+        misc_plugin,
     ):
         # The document_url, resource_link_id and tool_consumer_instance_guid parsed
         # params are always present when configure_assignment() is called.
@@ -100,13 +101,19 @@ class TestBasicLaunchViews:
 
         svc.configure_assignment()
 
+        misc_plugin.post_configure_assignment.assert_called_once_with(pyramid_request)
         _show_document.assert_called_once_with(
             document_url=pyramid_request.parsed_params["document_url"],
             assignment_extra=expected_extras,
         )
 
     def test_configured_launch(
-        self, svc, document_url_service, pyramid_request, _show_document, LTIEvent
+        self,
+        svc,
+        document_url_service,
+        pyramid_request,
+        _show_document,
+        LTIEvent,
     ):
         svc.configured_launch()
 
@@ -115,6 +122,7 @@ class TestBasicLaunchViews:
         _show_document.assert_called_once_with(
             document_url=document_url_service.get_document_url.return_value
         )
+
         LTIEvent.assert_called_once_with(
             request=pyramid_request,
             type=LTIEvent.Type.CONFIGURED_LAUNCH,
