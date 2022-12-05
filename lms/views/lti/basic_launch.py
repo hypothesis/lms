@@ -66,6 +66,9 @@ class BasicLaunchViews:
                 self.request
             )
         )
+        # Make any product-specific actions after configuring the assignment
+        self.request.product.plugin.misc.post_configure_assignment()
+
         self.request.registry.notify(
             LTIEvent(request=self.request, type=LTIEvent.Type.CONFIGURED_LAUNCH)
         )
