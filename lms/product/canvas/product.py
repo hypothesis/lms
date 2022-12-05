@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from lms.product.canvas._plugin.grouping import CanvasGroupingPlugin
+from lms.product.canvas._plugin.launch import CanvasLaunchPlugin
 from lms.product.product import PluginConfig, Product, Routes
 
 
@@ -16,7 +17,9 @@ class Canvas(Product):
         list_group_sets="canvas_api.courses.group_sets.list",
     )
 
-    plugin_config: PluginConfig = PluginConfig(grouping=CanvasGroupingPlugin)
+    plugin_config: PluginConfig = PluginConfig(
+        grouping=CanvasGroupingPlugin, launch=CanvasLaunchPlugin
+    )
 
     settings_key = "canvas"
 
