@@ -7,15 +7,14 @@ Registrations
 
 {% block content %}
 
+<div class="block has-text-right">
+    <a class="button is-primary" 
+        href="{{ request.route_url("admin.registration.new", _query={"issuer": request.params.get("issuer", "").strip(), "client_id": request.params.get("client_id", "").strip()}) }}">
+        New registration
+    </a>
+</div>
 
 <fieldset class="box mt-6">
-    <div class="block has-text-right">
-        <a class="button is-primary" 
-            href="{{ request.route_url("admin.registration.new", _query={"issuer": request.params.get("issuer", "").strip(), "client_id": request.params.get("client_id", "").strip()}) }}">
-            New registration
-        </a>
-    </div>
-
     <legend class="label has-text-centered">Find registration</legend>
     <form method="POST" action="{{ request.route_url("admin.registrations.search") }}">
         <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
