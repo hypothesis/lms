@@ -40,12 +40,10 @@
   </div>
   </nav>
   {% endblock %}
-  <section class="section">
-    <div class="container">
+  <div class="block has-text-centered mt-5">
       <h1 class="title">{% block header %} Admin {% endblock %}</h1>
       <p class="subtitle">{% block subtitle %}{% endblock %}</p>
-    </div>
-  </section>
+  </div>
   {% if request.session.peek_flash("errors")  %}
   <section class="section">
     <div class="container">
