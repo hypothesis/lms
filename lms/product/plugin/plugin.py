@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from lms.product.plugin.files import FilesPlugin
 from lms.product.plugin.grouping import GroupingPlugin
 
 
@@ -9,6 +10,7 @@ class PluginConfig:
 
     # These also provide the default implementations
     grouping: type = GroupingPlugin
+    files: type = FilesPlugin
 
 
 class Plugins:
@@ -28,6 +30,7 @@ class Plugins:
             return plugin
 
     grouping: GroupingPlugin = _LazyPlugin()
+    files: FilesPlugin = _LazyPlugin()
 
     def __init__(self, request, plugin_config: PluginConfig):
         self._request = request

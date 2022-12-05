@@ -37,6 +37,9 @@ class Routes:
     list_group_sets: Optional[str] = None
     """List available group sets. Takes a course_id parameter"""
 
+    list_course_files: Optional[str] = None
+    """List available files. Takes a course_id parameter"""
+
 
 @dataclass
 class Settings:
@@ -47,8 +50,12 @@ class Settings:
     groups_enabled: bool = False
     """Is the course groups feature enabled"""
 
+    files_enabled: bool = False
+    """Is the integrations with the LMS's files feature enabled"""
+
     def __post_init__(self, product_settings):
         self.groups_enabled = product_settings.get("groups_enabled", False)
+        self.files_enabled = product_settings.get("files_enabled", False)
 
 
 @dataclass

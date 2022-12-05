@@ -219,9 +219,9 @@ class JSConfig:
                     # construct these launch URLs our JavaScript code needs the
                     # base URL of our LTI launch endpoint.
                     "ltiLaunchUrl": self._request.route_url("lti_launches"),
-                    # Specific config for pickers
-                    "blackboard": FilePickerConfig.blackboard_config(*args),
-                    "canvas": FilePickerConfig.canvas_config(*args),
+                    # Current LMS files integration
+                    "lms": FilePickerConfig.lms_files_config(*args),
+                    # Specific config for third party pickers
                     "google": FilePickerConfig.google_files_config(*args),
                     "microsoftOneDrive": FilePickerConfig.microsoft_onedrive(*args),
                     "vitalSource": FilePickerConfig.vitalsource_config(*args),

@@ -1,22 +1,21 @@
+# pylint: disable=pointless-string-statement
 from unittest.mock import sentinel
 
 import pytest
-from h_matchers import Any
 
 from lms.product import Product
 from lms.resources._js_config import FilePickerConfig
 
 
 class TestFilePickerConfig:
-    @pytest.mark.parametrize("files_enabled", [False, True])
-    def test_blackboard_config(
+    def test_lms_files_config_disabled(
         self, pyramid_request, application_instance, files_enabled
     ):
 
         pyramid_request.lti_params["context_id"] = "COURSE_ID"
         application_instance.settings.set("blackboard", "files_enabled", files_enabled)
 
-        config = FilePickerConfig.blackboard_config(
+        config = FilePickerConfig.lms_files_config(
             pyramid_request, application_instance
         )
 

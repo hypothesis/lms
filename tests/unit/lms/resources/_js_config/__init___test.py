@@ -41,8 +41,7 @@ class TestFilePickerMode:
     @pytest.mark.parametrize(
         "config_function,key",
         (
-            ("blackboard_config", "blackboard"),
-            ("canvas_config", "canvas"),
+            ("lms_files_config", "lms"),
             ("google_files_config", "google"),
             ("microsoft_onedrive", "microsoftOneDrive"),
             ("vitalsource_config", "vitalSource"),

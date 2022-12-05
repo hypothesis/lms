@@ -1,6 +1,3 @@
-from lms.product import Product
-from lms.product.blackboard import Blackboard
-from lms.product.canvas import Canvas
 from lms.services import JSTORService, VitalSourceService
 
 
@@ -8,46 +5,18 @@ class FilePickerConfig:
     """Config generation for specific file pickers."""
 
     @classmethod
-    def blackboard_config(cls, request, application_instance):
-        """Get Blackboard files config."""
-        files_enabled = application_instance.settings.get("blackboard", "files_enabled")
-
-        auth_url = request.route_url(Blackboard.route.oauth2_authorize)
-        course_id = request.lti_params.get("context_id")
-
-        config = {"enabled": files_enabled}
-
-        if files_enabled:
-            config["listFiles"] = {
-                "authUrl": auth_url,
-                "path": request.route_path(
-                    "blackboard_api.courses.files.list", course_id=course_id
-                ),
-            }
-
-        return config
-
-    @classmethod
-    def canvas_config(cls, request, application_instance):
-        """Get Canvas files config."""
-
-        enabled = (request.product.family == Product.Family.CANVAS) and (
-            "custom_canvas_course_id" in request.lti_params
-            and application_instance.developer_key is not None
-        )
-
-        auth_url = request.route_url(Canvas.route.oauth2_authorize)
-        course_id = request.lti_params.get("custom_canvas_course_id")
+    def lms_files_config(cls, request, application_instance):
+        """Get config for the current LMS files integration."""
+        product = request.product
+        files_enabled = product.plugin.files.enabled(request, application_instance)
 
         config = {
-            "enabled": enabled,
-            "listFiles": {
-                "authUrl": auth_url,
-                "path": request.route_path(
-                    "canvas_api.courses.files.list", course_id=course_id
-                ),
-            },
+            "enabled": files_enabled,
+            "missingFilesHelpLink": product.plugin.files.missing_files_help_link,
         }
+
+        if files_enabled:
+            config["listFiles"] = product.plugin.files.list_files_config(request)
 
         return config
 
