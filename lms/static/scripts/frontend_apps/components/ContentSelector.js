@@ -18,7 +18,7 @@ import URLPicker from './URLPicker';
  *
  * @typedef {import('./FilePickerApp').ErrorInfo} ErrorInfo
  *
- * @typedef {'blackboardFile'|'canvasFile'|'jstor'|'url'|'vitalSourceBook'|null} DialogType
+ * @typedef {'lmsFile'|'jstor'|'url'|'vitalSourceBook'|null} DialogType
  *
  * @typedef {import('../utils/content-item').Content} Content
  */
@@ -42,12 +42,13 @@ export default function ContentSelector({
 }) {
   const {
     api: { authToken },
+    product: { family },
     filePicker: {
-      blackboard: {
-        enabled: blackboardFilesEnabled,
-        listFiles: blackboardListFilesApi,
+      lms: {
+        enabled: lmsFilesEnabled,
+        listFiles: listFilesApi,
+        missingFilesHelpLink: missingFilesHelpLink,
       },
-      canvas: { enabled: canvasFilesEnabled, listFiles: listFilesApi },
       google: {
         clientId: googleClientId,
         developerKey: googleDeveloperKey,
@@ -118,16 +119,15 @@ export default function ContentSelector({
   };
 
   /** @param {File} file */
-  const selectCanvasFile = file => {
+  const selectLMSFile = file => {
     cancelDialog();
-    onSelectContent({ type: 'file', file });
-  };
 
-  /** @param {File} file */
-  const selectBlackboardFile = file => {
-    cancelDialog();
-    // file.id shall be a url of the form blackboard://content-resource/{file_id}
-    onSelectContent({ type: 'url', url: file.id });
+    if (family === 'canvas') {
+      onSelectContent({ type: 'file', file });
+    } else {
+      // file.id shall be a url of the form blackboard://content-resource/{file_id}
+      onSelectContent({ type: 'url', url: file.id });
+    }
   };
 
   /**
@@ -147,28 +147,14 @@ export default function ContentSelector({
     case 'url':
       dialog = <URLPicker onCancel={cancelDialog} onSelectURL={selectURL} />;
       break;
-    case 'canvasFile':
+    case 'lmsFile':
       dialog = (
         <LMSFilePicker
           authToken={authToken}
           listFilesApi={listFilesApi}
           onCancel={cancelDialog}
-          onSelectFile={selectCanvasFile}
-          missingFilesHelpLink="https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-upload-a-file-to-a-course/ta-p/618"
-        />
-      );
-      break;
-    case 'blackboardFile':
-      dialog = (
-        <LMSFilePicker
-          authToken={authToken}
-          listFilesApi={blackboardListFilesApi}
-          onCancel={cancelDialog}
-          onSelectFile={selectBlackboardFile}
-          // An alias we maintain that provides multiple external documentation links for
-          // different versions of Blackboard (Classic vs. Ultra)
-          missingFilesHelpLink={'https://web.hypothes.is/help/bb-files'}
-          withBreadcrumbs
+          onSelectFile={selectLMSFile}
+          missingFilesHelpLink={missingFilesHelpLink}
         />
       );
       break;
@@ -239,18 +225,18 @@ export default function ContentSelector({
           >
             Enter URL of web page or PDF
           </LabeledButton>
-          {canvasFilesEnabled && (
+          {lmsFilesEnabled && family === 'canvas' && (
             <LabeledButton
-              onClick={() => selectDialog('canvasFile')}
+              onClick={() => selectDialog('lmsFile')}
               variant="primary"
               data-testid="canvas-file-button"
             >
               Select PDF from Canvas
             </LabeledButton>
           )}
-          {blackboardFilesEnabled && (
+          {lmsFilesEnabled && family === 'BlackboardLearn' && (
             <LabeledButton
-              onClick={() => selectDialog('blackboardFile')}
+              onClick={() => selectDialog('lmsFile')}
               variant="primary"
               data-testid="blackboard-file-button"
             >

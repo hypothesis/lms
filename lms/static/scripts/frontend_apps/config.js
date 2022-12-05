@@ -59,12 +59,10 @@ import { createContext } from 'preact';
  * @prop {Record<string,string>} formFields
  * @prop {APICallInfo} [deepLinkingAPI]
  * @prop {string} ltiLaunchUrl
- * @prop {object} blackboard
- *   @prop {boolean} blackboard.enabled
- *   @prop {APICallInfo} blackboard.listFiles
- * @prop {object} canvas
- *   @prop {boolean} canvas.enabled
- *   @prop {APICallInfo} canvas.listFiles
+ * @prop {object} lms
+ *   @prop {boolean} lms.enabled
+ *   @prop {APICallInfo} lms.listFiles
+ *   @prop {string} lms.missingFilesHelpLink
  * @prop {object} google
  *   @prop {string} google.clientId
  *   @prop {string} google.developerKey
