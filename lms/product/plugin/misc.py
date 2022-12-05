@@ -34,7 +34,6 @@ class MiscPlugin:
 
     def is_assignment_gradable(self, lti_params: LTIParams) -> bool:
         """Check if the assignment of the current launch is gradable."""
-
         return bool(lti_params.get("lis_outcome_service_url"))
 
     def get_ltia_aud_claim(self, lti_registration: LTIRegistration) -> str:

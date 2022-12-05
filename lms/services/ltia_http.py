@@ -9,11 +9,16 @@ class LTIAHTTPService:
     """Send LTI Advantage requests and return the responses."""
 
     def __init__(
-        self, lti_registration: LTIRegistration, jwt_service: JWTService, http
+        self,
+        lti_registration: LTIRegistration,
+        aud_claim: str,
+        jwt_service: JWTService,
+        http,
     ):
         self._lti_registration = lti_registration
         self._jwt_service = jwt_service
         self._http = http
+        self._aud_claim = aud_claim
 
     def request(self, method, url, scopes, headers=None, **kwargs):
         headers = headers or {}
@@ -39,7 +44,7 @@ class LTIAHTTPService:
                 "iat": now,
                 "iss": self._lti_registration.client_id,
                 "sub": self._lti_registration.client_id,
-                "aud": self._lti_registration.token_url,
+                "aud": self._aud_claim,
                 "jti": uuid.uuid4().hex,
             }
         )
@@ -58,10 +63,13 @@ class LTIAHTTPService:
 
 
 def factory(_context, request):
+    lti_registration = (
+        request.find_service(name="application_instance").get_current().lti_registration
+    )
+
     return LTIAHTTPService(
-        request.find_service(name="application_instance")
-        .get_current()
-        .lti_registration,
+        lti_registration,
+        request.product.plugin.misc.get_ltia_aud_claim(lti_registration),
         request.find_service(JWTService),
         request.find_service(name="http"),
     )
