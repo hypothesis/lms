@@ -122,7 +122,6 @@ class TestBasicLaunchViews:
         _show_document.assert_called_once_with(
             document_url=document_url_service.get_document_url.return_value
         )
-
         LTIEvent.assert_called_once_with(
             request=pyramid_request,
             type=LTIEvent.Type.CONFIGURED_LAUNCH,
