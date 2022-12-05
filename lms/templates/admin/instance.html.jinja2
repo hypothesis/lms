@@ -30,12 +30,6 @@
     {% endcall %}
 {% endmacro %}
 
-{% macro settings_textarea(label, setting, sub_setting, field_name, default='') %}
-    {% call macros.field_body(label) %}
-        {% set text = instance.settings.get(setting, sub_setting, default) or ''  %}
-        <textarea class="textarea" name="{{ setting }}.{{ sub_setting }}">{{ text }}</textarea>
-    {% endcall %}
-{% endmacro %}
 
 {% macro settings_secret_field(label, setting, sub_setting, field_name, default='') %}
     {% call macros.field_body(label) %}
@@ -52,14 +46,6 @@
 <form method="POST" action="{{ request.route_url("admin.instance.id", id_=instance.id) }}">
     <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
 
-    <fieldset class="box">
-        {{ settings_textarea("Notes", "hypothesis", "notes") }}
-        {{ macros.disabled_text_field("Consumer key", instance.consumer_key) }}
-        {{ macros.form_text_field(request, "Deployment ID", "deployment_id", field_value=instance.deployment_id) }}
-        {{ macros.form_text_field(request, "LMS URL", "lms_url", field_value=instance.lms_url) }}
-    </fieldset>
-
-
     <fieldset class="box mt-6">
         <legend class="label has-text-centered">Organization</legend>
         {{ macros.organization_preview(request, instance.organization) }}
@@ -68,6 +54,12 @@
     <fieldset class="box mt-6">
         <legend class="label has-text-centered">Registration</legend>
         {{ macros.registration_preview(request, instance.lti_registration) }}
+    </fieldset>
+
+    <fieldset class="box">
+        {{ macros.disabled_text_field("Consumer key", instance.consumer_key) }}
+        {{ macros.form_text_field(request, "Deployment ID", "deployment_id", field_value=instance.deployment_id) }}
+        {{ macros.form_text_field(request, "LMS URL", "lms_url", field_value=instance.lms_url) }}
     </fieldset>
 
     <fieldset class="box">
@@ -124,10 +116,11 @@
     </fieldset>
 
     <fieldset class="box">
-        <legend class="label has-text-centered">D2L settings (EXPERIMENTAL)</legend>
+        <legend class="label has-text-centered">D2L settings</legend>
         {{ settings_text_field("API Client ID", "desire2learn", "client_id") }}
         {{ settings_secret_field("API Client secret", "desire2learn", "client_secret") }}
         {{ settings_checkbox("Groups enabled", "desire2learn", "groups_enabled") }}
+        {{ settings_checkbox("Create grade items", "desire2learn", "create_lineitem") }}
     </fieldset>
 
     <fieldset class="box">
