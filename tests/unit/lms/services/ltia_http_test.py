@@ -10,12 +10,14 @@ from tests import factories
 
 class TestLTIAHTTPService:
     @freeze_time("2022-04-04")
-    def test_request(self, svc, jwt_service, application_instance, uuid, http_service):
+    def test_request(
+        self, svc, jwt_service, application_instance, uuid, http_service, misc_plugin
+    ):
         response = svc.request("POST", "https://example.com", ["SCOPE_1", "SCOPE_2"])
 
         jwt_service.encode_with_private_key.assert_called_once_with(
             {
-                "aud": application_instance.lti_registration.token_url,
+                "aud": misc_plugin.get_ltia_aud_claim.return_value,
                 "exp": datetime(2022, 4, 4, 1, 0),
                 "iat": datetime(2022, 4, 4, 0, 0),
                 "iss": application_instance.lti_registration.client_id,
@@ -42,9 +44,12 @@ class TestLTIAHTTPService:
         assert response == http_service.request.return_value
 
     @pytest.fixture
-    def svc(self, application_instance, jwt_service, http_service):
+    def svc(self, application_instance, jwt_service, http_service, misc_plugin):
         return LTIAHTTPService(
-            application_instance.lti_registration, jwt_service, http_service
+            application_instance.lti_registration,
+            misc_plugin.get_ltia_aud_claim.return_value,
+            jwt_service,
+            http_service,
         )
 
     @pytest.fixture
@@ -61,11 +66,15 @@ class TestFactory:
         application_instance,
         http_service,
         jwt_service,
+        misc_plugin,
     ):
         ltia_http_service = factory(sentinel.context, pyramid_request)
 
         LTIAHTTPService.assert_called_once_with(
-            application_instance.lti_registration, jwt_service, http_service
+            application_instance.lti_registration,
+            misc_plugin.get_ltia_aud_claim.return_value,
+            jwt_service,
+            http_service,
         )
         assert ltia_http_service == LTIAHTTPService.return_value
 
