@@ -7,7 +7,7 @@ from lms.product.plugin.grouping import GroupingPlugin
 from tests import factories
 
 
-class TestGroupingServicePlugin:
+class TestGroupingPlugin:
     @pytest.mark.parametrize(
         "sections_type,expected", [(None, False), (Grouping.Type.CANVAS_SECTION, True)]
     )

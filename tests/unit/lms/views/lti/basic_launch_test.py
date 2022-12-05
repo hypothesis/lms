@@ -29,6 +29,7 @@ class TestHasDocumentURL:
     "lti_h_service",
     "lti_role_service",
     "grouping_service",
+    "misc_plugin",
 )
 class TestBasicLaunchViews:
     def test___init___(self, context, pyramid_request):
@@ -172,6 +173,7 @@ class TestBasicLaunchViews:
         assignment_service,
         lti_role_service,
         grouping_service,
+        misc_plugin,
     ):
         # pylint: disable=protected-access
         result = svc._show_document(
@@ -195,7 +197,7 @@ class TestBasicLaunchViews:
             resource_link_id=pyramid_request.lti_params["resource_link_id"],
             document_url=sentinel.document_url,
             lti_params=pyramid_request.lti_params,
-            is_gradable=False,
+            is_gradable=misc_plugin.is_assignment_gradable.return_value,
             extra=sentinel.assignment_extra,
         )
         assignment = assignment_service.upsert_assignment.return_value

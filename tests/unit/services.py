@@ -3,6 +3,7 @@ from unittest import mock
 import pytest
 
 from lms.product.plugin.grouping import GroupingPlugin
+from lms.product.plugin.misc import MiscPlugin
 from lms.services import (
     CanvasService,
     DocumentURLService,
@@ -79,6 +80,7 @@ __all__ = (
     "vitalsource_service",
     # Product plugins
     "grouping_plugin",
+    "misc_plugin",
 )
 
 
@@ -303,3 +305,8 @@ def vitalsource_service(mock_service):
 @pytest.fixture
 def grouping_plugin(mock_service):
     return mock_service(GroupingPlugin)
+
+
+@pytest.fixture
+def misc_plugin(mock_service):
+    return mock_service(MiscPlugin)
