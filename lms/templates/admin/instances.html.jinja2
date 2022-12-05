@@ -17,10 +17,9 @@ Application instances
         {{ macros.form_text_field(request, "Client ID", "client_id") }}
         {{ macros.form_text_field(request, "Deployment ID", "deployment_id") }}
         {{ macros.form_text_field(request, "GUID", "tool_consumer_instance_guid") }}
-        <div class="field is-grouped">
-          <div class="control">
-            <input type="submit" class="button is-info" value="Search"/>
-          </div>
+        {% call macros.field_body(label="") %}
+            <input type="submit" class="button is-info" value="Search" />
+        {% endcall %}
       </div>
     </form>
 </fieldset>
