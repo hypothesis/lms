@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from lms.product.canvas._plugin.files import CanvasFilesPlugin
 from lms.product.canvas._plugin.grouping import CanvasGroupingPlugin
 from lms.product.product import PluginConfig, Product, Routes
 
@@ -14,8 +15,11 @@ class Canvas(Product):
         oauth2_authorize="canvas_api.oauth.authorize",
         oauth2_refresh="canvas_api.oauth.refresh",
         list_group_sets="canvas_api.courses.group_sets.list",
+        list_course_files="canvas_api.courses.files.list",
     )
 
-    plugin_config: PluginConfig = PluginConfig(grouping=CanvasGroupingPlugin)
+    plugin_config: PluginConfig = PluginConfig(
+        grouping=CanvasGroupingPlugin, files=CanvasFilesPlugin
+    )
 
     settings_key = "canvas"
