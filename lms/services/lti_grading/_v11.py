@@ -8,6 +8,7 @@ from lms.services.lti_grading.interface import LTIGradingService
 from lms.services.oauth1 import OAuth1Service
 
 
+# pylint:disable=abstract-method
 class LTI11GradingService(LTIGradingService):
     #  See: LTI1.1 Outcomes https://www.imsglobal.org/specs/ltiomv1p0/specification
     def __init__(
