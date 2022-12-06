@@ -47,12 +47,12 @@ class Settings:
     groups_enabled: bool = False
     """Is the course groups feature enabled"""
 
-    create_lineitem: bool = False
-    """Create lineitem on assignment configuration"""
+    custom: Optional[dict] = None
+    """Other non-standard settings."""
 
     def __post_init__(self, product_settings):
         self.groups_enabled = product_settings.get("groups_enabled", False)
-        self.create_lineitem = product_settings.get("create_lineitem", False)
+        self.custom = product_settings
 
 
 @dataclass
