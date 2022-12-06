@@ -35,7 +35,7 @@ def _get_family(
         return Product.Family.BLACKBOARD
 
     # If we are in an API request, where we are forwarding the product type ourselves
-    if request.content_type == "application/json":
+    if request.content_type == "application/json" and "lms" in request.json:
         return Product.Family(request.json["lms"]["product"])
 
     # In an LTI launch we'll use the parameters available to guess
