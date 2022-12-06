@@ -3,7 +3,6 @@ from unittest.mock import sentinel
 import pytest
 
 from lms.product.d2l._plugin.misc import D2LMiscPlugin
-from lms.product.product import Settings
 
 
 class TestD2LMiscPlugin:
@@ -16,15 +15,10 @@ class TestD2LMiscPlugin:
             "resource_link_title": sentinel.resource_link_title,
         }
         # pylint:disable=protected-access
-        plugin._settings.create_lineitem = True
-        lti_grading_service.read_lineitems.return_value = []
+        plugin._create_lineitem = True
 
         plugin.post_configure_assignment(pyramid_request)
 
-        lti_grading_service.read_lineitems.assert_called_once_with(
-            sentinel.lineitems,
-            sentinel.resource_link_id,
-        )
         lti_grading_service.create_lineitem.assert_called_once_with(
             sentinel.lineitems,
             sentinel.resource_link_id,
@@ -38,17 +32,13 @@ class TestD2LMiscPlugin:
             "lineitems": sentinel.lineitems,
             "resource_link_id": sentinel.resource_link_id,
             "resource_link_title": sentinel.resource_link_title,
+            "lis_outcome_service_url": sentinel.lis_outcome_service_url,
         }
         # pylint:disable=protected-access
-        plugin._settings.create_lineitem = True
-        lti_grading_service.read_lineitems.return_value = sentinel.lineitem
+        plugin._create_lineitem = True
 
         plugin.post_configure_assignment(pyramid_request)
 
-        lti_grading_service.read_lineitems.assert_called_once_with(
-            sentinel.lineitems,
-            sentinel.resource_link_id,
-        )
         lti_grading_service.create_lineitem.assert_not_called()
 
     def test_post_configure_assignment_create_lineitem_disabled(
@@ -56,7 +46,7 @@ class TestD2LMiscPlugin:
     ):
         plugin.post_configure_assignment(pyramid_request)
 
-        lti_grading_service.read_lineitems.assert_not_called()
+        lti_grading_service.create_lineitem.assert_not_called()
 
     @pytest.mark.parametrize(
         "create_lineitem,version,expected",
@@ -69,7 +59,7 @@ class TestD2LMiscPlugin:
     )
     def test_is_assignment_gradable(self, plugin, create_lineitem, version, expected):
         # pylint:disable=protected-access
-        plugin._settings.create_lineitem = create_lineitem
+        plugin._create_lineitem = create_lineitem
 
         assert plugin.is_assignment_gradable({"lti_version": version}) == expected
 
@@ -85,4 +75,4 @@ class TestD2LMiscPlugin:
 
     @pytest.fixture
     def plugin(self):
-        return D2LMiscPlugin(Settings({}))
+        return D2LMiscPlugin(create_lineitem=False)

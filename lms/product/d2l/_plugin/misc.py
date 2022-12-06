@@ -3,8 +3,8 @@ from lms.services.lti_grading.interface import LTIGradingService
 
 
 class D2LMiscPlugin(MiscPlugin):
-    def __init__(self, settings: Settings):
-        self._settings = settings
+    def __init__(self, create_lineitem: bool):
+        self._create_lineitem = create_lineitem
 
     def post_configure_assignment(self, request):
         """
@@ -20,7 +20,7 @@ class D2LMiscPlugin(MiscPlugin):
         lti_params = request.lti_params
         lti_grading_service = request.find_service(LTIGradingService)
 
-        if not self._settings.create_lineitem:
+        if not self._create_lineitem:
             # No need to do anything if this option is off.
             return
 
@@ -54,4 +54,4 @@ class D2LMiscPlugin(MiscPlugin):
 
     @classmethod
     def factory(cls, _context, request):
-        return cls(request.product.settings)
+        return cls(request.product.settings.custom.get("create_lineitem", False))
