@@ -32,14 +32,6 @@ class LTIGradingService:  # pragma: no cover
         """
         raise NotImplementedError()
 
-    def read_lineitems(self, lineitems_url, resource_link_id=None):
-        """
-        Read all the lineitem present in the `lineitems_url` container.
-
-        https://www.imsglobal.org/spec/lti-ags/v2p0#container-request-filters
-        """
-        raise NotImplementedError()
-
     def create_lineitem(self, lineitems_url, resource_link_id, label):
         """
         Create a new lineitem associated to one resource_link_id.

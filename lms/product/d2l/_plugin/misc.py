@@ -27,9 +27,9 @@ class D2LMiscPlugin(MiscPlugin):
         resource_link_id = lti_params.get("resource_link_id")
         resource_link_title = lti_params.get("resource_link_title")
 
-        if not lti_grading_service.read_lineitems(
-            lti_params.get("lineitems"), resource_link_id
-        ):
+        # If we already identified this assignment as gradable no need to
+        # create anything
+        if not super().is_assignment_gradable(lti_params):
             # If there are no existing lineitems, create one.
             lti_grading_service.create_lineitem(
                 lti_params.get("lineitems"),
