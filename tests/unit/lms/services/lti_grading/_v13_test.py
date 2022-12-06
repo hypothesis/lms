@@ -84,28 +84,6 @@ class TestLTI13GradingService:
         )
         assert response == ltia_http_service.request.return_value
 
-    @pytest.mark.parametrize(
-        "resource_link_id,params",
-        [
-            (None, {}),
-            (
-                sentinel.resource_link_id,
-                {"resource_link_id": sentinel.resource_link_id},
-            ),
-        ],
-    )
-    def test_read_lineitems(self, svc, ltia_http_service, resource_link_id, params):
-        response = svc.read_lineitems(sentinel.lineitems_url, resource_link_id)
-
-        ltia_http_service.request.assert_called_once_with(
-            "GET",
-            sentinel.lineitems_url,
-            scopes=svc.LTIA_SCOPES,
-            params=params,
-            headers={"Accept": "application/vnd.ims.lis.v2.lineitemcontainer+json"},
-        )
-        assert response == ltia_http_service.request.return_value.json.return_value
-
     def test_create_lineitem(self, svc, ltia_http_service):
         response = svc.create_lineitem(
             sentinel.lineitems_url,
