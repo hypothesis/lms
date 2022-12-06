@@ -69,6 +69,15 @@ class TestGetProductFromRequest:
         assert product == class_.from_request.return_value
         assert product.family == family
 
+    @pytest.mark.parametrize("value", Product.Family)
+    def test_from_request_api_with_no_key(self, pyramid_request, value):
+        pyramid_request.content_type = "application/json"
+        pyramid_request.json = {"OTHERKEY": {"product": value}}
+
+        assert (
+            get_product_from_request(pyramid_request).family == Product.Family.UNKNOWN
+        )
+
     def test_from_request_canvas_custom(self, pyramid_request, application_instance):
         pyramid_request.lti_params = {"custom_canvas_course_id": "course_id"}
 
