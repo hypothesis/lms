@@ -82,7 +82,7 @@ importlib-metadata==4.8.1
     # via
     #   alembic
     #   data-tasks
-importlib-resources==5.10.0
+importlib-resources==5.10.1
     # via
     #   -r requirements/requirements.in
     #   alembic
