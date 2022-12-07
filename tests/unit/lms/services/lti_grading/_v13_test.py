@@ -13,7 +13,7 @@ class TestLTI13GradingService:
     @freeze_time("2022-04-04")
     def test_read_lti_result(self, svc, response, ltia_http_service):
         ltia_http_service.request.return_value.json.return_value = response
-        svc.grading_url = "https://lms.com/lineitems?param=1"
+        svc.line_item_url = "https://lms.com/lineitems?param=1"
 
         score = svc.read_result(sentinel.user_id)
 
@@ -64,7 +64,7 @@ class TestLTI13GradingService:
 
     @freeze_time("2022-04-04")
     def test_record_result(self, svc, ltia_http_service):
-        svc.grading_url = "https://lms.com/lineitems?param=1"
+        svc.line_item_url = "https://lms.com/lineitems?param=1"
 
         response = svc.record_result(sentinel.user_id, sentinel.score)
 
@@ -84,9 +84,8 @@ class TestLTI13GradingService:
         )
         assert response == ltia_http_service.request.return_value
 
-    def test_create_lineitem(self, svc, ltia_http_service):
-        response = svc.create_lineitem(
-            sentinel.lineitems_url,
+    def test_create_line_item(self, svc, ltia_http_service):
+        response = svc.create_line_item(
             sentinel.resource_link_id,
             sentinel.label,
             sentinel.score_maximum,
@@ -94,7 +93,7 @@ class TestLTI13GradingService:
 
         ltia_http_service.request.assert_called_once_with(
             "POST",
-            sentinel.lineitems_url,
+            svc.line_item_container_url,
             scopes=svc.LTIA_SCOPES,
             json={
                 "scoreMaximum": sentinel.score_maximum,
@@ -113,7 +112,7 @@ class TestLTI13GradingService:
         my_hook.assert_called_once_with(request_body=Any.dict(), score=1.5)
         ltia_http_service.request.assert_called_once_with(
             "POST",
-            "http://example.com/service_url/scores",
+            "http://example.com/lineitem/scores",
             scopes=svc.LTIA_SCOPES,
             json={"my_dict": 1},
             headers={"Content-Type": "application/vnd.ims.lis.v1.score+json"},
@@ -134,4 +133,8 @@ class TestLTI13GradingService:
 
     @pytest.fixture
     def svc(self, ltia_http_service):
-        return LTI13GradingService("http://example.com/service_url", ltia_http_service)
+        return LTI13GradingService(
+            "http://example.com/lineitem",
+            "http://example.com/linesitems",
+            ltia_http_service,
+        )

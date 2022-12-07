@@ -1,8 +1,37 @@
 class LTIGradingService:  # pragma: no cover
-    """Service for sending grades back to the LMS."""
+    """
+    Service for sending grades back to the LMS.
 
-    def __init__(self, grading_url):
-        self.grading_url = grading_url
+    From https://www.imsglobal.org/spec/lti-ags/v2p0#nomenclature:
+
+    Line item
+        A line item is usually a column in the tool platform's gradebook; it is able to hold the results associated with a specific activity for a set of users.
+
+    Line item container
+        A line item container has an array of line items.
+
+    Result
+        A result is usually a cell in the tool platform's gradebook; it is unique for a specific line item and user.
+
+    Score
+        A score represents the last score obtained by the student for the tool's activity. It also exposes the current status of the activity (like completed or in progress), and status of the grade.
+
+
+    These are the LTI1.3 concepts but with the exception of line item container they have a counter part in LTI 1.1:
+
+    https://www.imsglobal.org/spec/lti-ags/v2p0#migrating-from-basic-outcomes-service
+    """
+
+    def __init__(self, line_item_url: str, line_item_container_url: str):
+        self.line_item_url = line_item_url
+        """
+        Identifies one line item to read/write grades to.
+
+        In LTI 1.1 this maps to the equivalent `lis_outcome_service_url` parameter.
+        """
+
+        self.line_item_container_url = line_item_container_url
+        """Identifies a container that might hold many line items."""
 
     def read_result(self, grading_id):
         """
@@ -32,9 +61,9 @@ class LTIGradingService:  # pragma: no cover
         """
         raise NotImplementedError()
 
-    def create_lineitem(self, lineitems_url, resource_link_id, label):
+    def create_line_item(self, resource_link_id, label):
         """
-        Create a new lineitem associated to one resource_link_id.
+        Create a new line item associated to one resource_link_id.
 
         https://www.imsglobal.org/spec/lti-ags/v2p0#container-request-filters
         """

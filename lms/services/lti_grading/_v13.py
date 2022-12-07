@@ -15,15 +15,17 @@ class LTI13GradingService(LTIGradingService):
         "https://purl.imsglobal.org/spec/lti-ags/scope/score",
     ]
 
-    def __init__(self, grading_url, ltia_service: LTIAHTTPService):
-        super().__init__(grading_url)
+    def __init__(
+        self, line_item_url, line_item_container_url, ltia_service: LTIAHTTPService
+    ):
+        super().__init__(line_item_url, line_item_container_url)
         self._ltia_service = ltia_service
 
     def read_result(self, grading_id):
         try:
             response = self._ltia_service.request(
                 "GET",
-                self._service_url(self.grading_url, "/results"),
+                self._service_url(self.line_item_url, "/results"),
                 scopes=self.LTIA_SCOPES,
                 params={"user_id": grading_id},
                 headers={"Accept": "application/vnd.ims.lis.v2.resultcontainer+json"},
@@ -56,24 +58,21 @@ class LTI13GradingService(LTIGradingService):
 
         return self._ltia_service.request(
             "POST",
-            self._service_url(self.grading_url, "/scores"),
+            self._service_url(self.line_item_url, "/scores"),
             scopes=self.LTIA_SCOPES,
             json=payload,
             headers={"Content-Type": "application/vnd.ims.lis.v1.score+json"},
         )
 
-    def create_lineitem(
-        self, lineitems_url, resource_link_id, label, score_maximum=100
-    ):
+    def create_line_item(self, resource_link_id, label, score_maximum=100):
         """
-        Create a new lineitem associated to one resource_link_id.
+        Create a new line item associated to one resource_link_id.
 
         https://www.imsglobal.org/spec/lti-ags/v2p0#container-request-filters
 
-        :param lineitems_url: URL of the lineitems container
-        :param resource_link_id: ID of the assignment this lineitem will belong to.
-        :param label: Name for the new lineitem.
-        :param score_maximum: Max score for the grades in the new lineitem.
+        :param resource_link_id: ID of the assignment this line item will belong to.
+        :param label: Name for the new line item.
+        :param score_maximum: Max score for the grades in the new line item.
         """
         payload = {
             "scoreMaximum": score_maximum,
@@ -82,7 +81,7 @@ class LTI13GradingService(LTIGradingService):
         }
         return self._ltia_service.request(
             "POST",
-            lineitems_url,
+            self.line_item_container_url,
             scopes=self.LTIA_SCOPES,
             json=payload,
             headers={"Content-Type": "application/vnd.ims.lis.v2.lineitem+json"},

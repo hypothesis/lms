@@ -12,9 +12,9 @@ from lms.services.oauth1 import OAuth1Service
 class LTI11GradingService(LTIGradingService):
     #  See: LTI1.1 Outcomes https://www.imsglobal.org/specs/ltiomv1p0/specification
     def __init__(
-        self, grading_url, http_service: HTTPService, oauth1_service: OAuth1Service
+        self, line_item_url, http_service: HTTPService, oauth1_service: OAuth1Service
     ):
-        super().__init__(grading_url)
+        super().__init__(line_item_url, None)
         self.http_service = http_service
         self.oauth1_service = oauth1_service
 
@@ -62,7 +62,7 @@ class LTI11GradingService(LTIGradingService):
 
         try:
             response = self.http_service.post(
-                url=self.grading_url,
+                url=self.line_item_url,
                 data=xml_body,
                 headers={"Content-Type": "application/xml"},
                 auth=self.oauth1_service.get_client(),
