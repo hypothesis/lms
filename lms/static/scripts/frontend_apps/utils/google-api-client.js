@@ -1,4 +1,29 @@
 /**
+ * Load the Google Identity Services client library, if not already loaded.
+ *
+ * See https://developers.google.com/identity/oauth2/web/guides/load-3p-authorization-library.
+ *
+ * @return {Promise<typeof window.google.accounts>}
+ */
+export async function loadIdentityServicesLibrary() {
+  if (window.google?.accounts) {
+    return window.google.accounts;
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.onload = () => {
+      resolve(window.google.accounts);
+    };
+    script.onerror = () => {
+      reject(new Error('Failed to load Google Identity Services client'));
+    };
+    document.body.appendChild(script);
+  });
+}
+
+/**
  * Load the Google API loader script (`window.gapi`), if not already loaded.
  */
 async function loadGAPI() {

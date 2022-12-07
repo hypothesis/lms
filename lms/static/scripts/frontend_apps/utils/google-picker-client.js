@@ -1,5 +1,8 @@
 import { PickerCanceledError } from '../errors';
-import { loadLibraries } from './google-api-client';
+import {
+  loadLibraries,
+  loadIdentityServicesLibrary,
+} from './google-api-client';
 
 export const GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
 
@@ -63,9 +66,10 @@ export class GooglePickerClient {
     this._developerKey = developerKey;
     this._origin = addHttps(origin);
 
-    const libs = loadLibraries(['auth2', 'client', 'picker']);
+    const libs = loadLibraries(['client', 'picker']);
 
-    this._gapiAuth2 = libs.then(({ auth2 }) => auth2);
+    this._identityServices = loadIdentityServicesLibrary();
+
     this._gapiClient = libs.then(({ client }) => client);
     this._gapiPicker = libs.then(({ picker }) => picker.api);
   }
@@ -76,15 +80,53 @@ export class GooglePickerClient {
    * @return {Promise<string>} - An access token for making Google Drive API requests.
    */
   async _authorizeDriveAccess() {
-    const auth2 = await this._gapiAuth2;
-    const googleAuth = auth2.init({
-      client_id: this._clientId,
-      scope: GOOGLE_DRIVE_SCOPE,
+    const idServices = await this._identityServices;
+
+    /** @type {(err: Error) => void} */
+    let rejectAccessToken;
+
+    /** @type {(token: string) => void} */
+    let resolveAccessToken;
+    const accessToken = new Promise((resolve, reject) => {
+      resolveAccessToken = resolve;
+      rejectAccessToken = reject;
     });
 
-    const user = await googleAuth.signIn();
-    const authResponse = await user.getAuthResponse();
-    return authResponse.access_token;
+    // See https://developers.google.com/identity/oauth2/web/reference/js-reference#CodeClientConfig.
+    const client = idServices.oauth2.initTokenClient({
+      client_id: this._clientId,
+      scope: GOOGLE_DRIVE_SCOPE,
+
+      // Callback used for successful responses and OAuth errors.
+      callback: response => {
+        if (response.access_token) {
+          resolveAccessToken(response.access_token);
+        } else {
+          rejectAccessToken(
+            new Error(
+              `Getting Google access token failed: ${response.error_description}`
+            )
+          );
+        }
+      },
+
+      // Callback used for non-OAuth errors.
+      error_callback: response => {
+        if (response.type === 'popup_closed') {
+          rejectAccessToken(new PickerCanceledError());
+        } else {
+          rejectAccessToken(
+            new Error(
+              `Showing Google authorization dialog failed: ${response.type}`
+            )
+          );
+        }
+      },
+    });
+
+    client.requestAccessToken();
+
+    return accessToken;
   }
 
   /**
@@ -98,19 +140,7 @@ export class GooglePickerClient {
    */
   async showPicker() {
     const pickerLib = await this._gapiPicker;
-    let accessToken;
-    try {
-      accessToken = await this._authorizeDriveAccess();
-    } catch (err) {
-      if (err.error === 'popup_closed_by_user') {
-        throw new PickerCanceledError();
-      } else if (err.error) {
-        // Error returned by the Google API client (not an instance of `Error`)
-        throw new Error(err.error);
-      } else {
-        throw err;
-      }
-    }
+    const accessToken = await this._authorizeDriveAccess();
 
     /** @type {(doc: PickerDocument) => void} */
     let resolve;

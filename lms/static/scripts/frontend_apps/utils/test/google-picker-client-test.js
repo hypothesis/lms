@@ -13,20 +13,6 @@ function createGoogleLibFakes() {
     resolve => (resolvePickerVisible = resolve)
   );
 
-  const user = {
-    getAuthResponse: sinon
-      .stub()
-      .resolves({ access_token: 'the-access-token' }),
-  };
-
-  const googleAuth = {
-    signIn: sinon.stub().resolves(user),
-  };
-
-  const auth2 = {
-    init: sinon.stub().returns(googleAuth),
-  };
-
   const pickerBuilder = {
     addView: sinon.stub().returnsThis(),
     build: sinon.stub().returnsThis(),
@@ -74,7 +60,6 @@ function createGoogleLibFakes() {
 
   return {
     // Fakes
-    auth2,
     client,
     picker: {
       api: pickerLib,
@@ -86,7 +71,41 @@ function createGoogleLibFakes() {
   };
 }
 
+/**
+ * Fake version of the TokenClient object returned by Google Identity Service's
+ * `initTokenClient` function.
+ *
+ * See https://developers.google.com/identity/oauth2/web/reference/js-reference#TokenClient.
+ */
+class FakeTokenClient {
+  constructor(config, authError) {
+    this.config = config;
+    this.requestAccessToken = sinon.stub().callsFake(() => {
+      if (authError) {
+        if (authError.useErrorCallback) {
+          // Report a non-OAuth error
+          this.config.error_callback(authError.response);
+        } else {
+          // Report an OAuth error
+          this.config.callback(authError.response);
+        }
+      } else {
+        this.config.callback({ access_token: 'the-access-token' });
+      }
+    });
+  }
+}
+
 describe('GooglePickerClient', () => {
+  // Authentication error to report when `requestAccessToken` method from
+  // Google Identity Services library is called. Errors fall into two
+  // categories, OAuth and non-OAuth errors. These are reported via different
+  // JS callbacks. See FakeTokenClient.
+  let authError;
+
+  // FakeTokenClient created by most recent call to `initTokenClient`.
+  let fakeTokenClient;
+
   let fakeLoadLibraries;
   let fakeGoogleLibs;
 
@@ -106,21 +125,32 @@ describe('GooglePickerClient', () => {
     fakeGoogleLibs = createGoogleLibFakes();
     fakeLoadLibraries = sinon.stub().resolves(fakeGoogleLibs);
 
+    const fakeIdentityServicesLibrary = {
+      oauth2: {
+        initTokenClient: config => {
+          fakeTokenClient = new FakeTokenClient(config, authError);
+          return fakeTokenClient;
+        },
+      },
+    };
+
     $imports.$mock({
       './google-api-client': {
+        loadIdentityServicesLibrary: async () => fakeIdentityServicesLibrary,
         loadLibraries: fakeLoadLibraries,
       },
     });
   });
 
   afterEach(() => {
+    authError = null;
     $imports.$restore();
   });
 
   describe('#constructor', () => {
     it('loads Google API client', () => {
       createClient();
-      assert.calledWith(fakeLoadLibraries, ['auth2', 'client', 'picker']);
+      assert.calledWith(fakeLoadLibraries, ['client', 'picker']);
     });
   });
 
@@ -131,10 +161,12 @@ describe('GooglePickerClient', () => {
 
       await fakeGoogleLibs.pickerVisible;
 
-      assert.calledWith(fakeGoogleLibs.auth2.init, {
+      assert.ok(fakeTokenClient);
+      assert.match(fakeTokenClient.config, {
         client_id: '12345',
         scope: GOOGLE_DRIVE_SCOPE,
       });
+      assert.calledOnce(fakeTokenClient.requestAccessToken);
       const builder = fakeGoogleLibs.picker.api.PickerBuilder();
       assert.calledWith(builder.setOAuthToken, 'the-access-token');
     });
@@ -163,9 +195,14 @@ describe('GooglePickerClient', () => {
     });
 
     it('rejects with a `PickerCanceledError` if the user cancels authorization', async () => {
+      authError = {
+        useErrorCallback: true,
+        response: {
+          type: 'popup_closed',
+        },
+      };
+
       const client = createClient();
-      const auth = fakeGoogleLibs.auth2.init();
-      auth.signIn.rejects({ error: 'popup_closed_by_user' });
 
       let err;
       try {
@@ -179,18 +216,24 @@ describe('GooglePickerClient', () => {
 
     [
       {
-        makeError: () => ({ error: 'something-went-wrong' }),
-        expectedMessage: 'something-went-wrong',
+        useErrorCallback: true,
+        response: { type: 'popup_failed_to_open' },
+        expectedMessage:
+          'Showing Google authorization dialog failed: popup_failed_to_open',
       },
       {
-        makeError: () => new Error('Something failed'),
-        expectedMessage: 'Something failed',
+        useErrorCallback: false,
+        response: { error_description: 'Invalid client ID' },
+        expectedMessage:
+          'Getting Google access token failed: Invalid client ID',
       },
-    ].forEach(({ makeError, expectedMessage }) => {
+    ].forEach(({ useErrorCallback, response, expectedMessage }) => {
       it('rejects with the upstream Error if authorization fails for other reasons', async () => {
+        authError = {
+          useErrorCallback,
+          response,
+        };
         const client = createClient();
-        const auth = fakeGoogleLibs.auth2.init();
-        auth.signIn.rejects(makeError());
 
         let err;
         try {
