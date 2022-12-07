@@ -15,6 +15,9 @@ class TestLTIAHTTPService:
     ):
         response = svc.request("POST", "https://example.com", ["SCOPE_1", "SCOPE_2"])
 
+        misc_plugin.get_ltia_aud_claim.assert_called_once_with(
+            application_instance.lti_registration
+        )
         jwt_service.encode_with_private_key.assert_called_once_with(
             {
                 "aud": misc_plugin.get_ltia_aud_claim.return_value,
@@ -47,7 +50,7 @@ class TestLTIAHTTPService:
     def svc(self, application_instance, jwt_service, http_service, misc_plugin):
         return LTIAHTTPService(
             application_instance.lti_registration,
-            misc_plugin.get_ltia_aud_claim.return_value,
+            misc_plugin,
             jwt_service,
             http_service,
         )
@@ -72,7 +75,7 @@ class TestFactory:
 
         LTIAHTTPService.assert_called_once_with(
             application_instance.lti_registration,
-            misc_plugin.get_ltia_aud_claim.return_value,
+            misc_plugin,
             jwt_service,
             http_service,
         )
