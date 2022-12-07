@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime, timedelta
 
 from lms.models import LTIRegistration
+from lms.product.plugin.misc import MiscPlugin
 from lms.services.jwt import JWTService
 
 
@@ -11,14 +12,14 @@ class LTIAHTTPService:
     def __init__(
         self,
         lti_registration: LTIRegistration,
-        aud_claim: str,
+        plugin: MiscPlugin,
         jwt_service: JWTService,
         http,
     ):
         self._lti_registration = lti_registration
         self._jwt_service = jwt_service
         self._http = http
-        self._aud_claim = aud_claim
+        self._plugin = plugin
 
     def request(self, method, url, scopes, headers=None, **kwargs):
         headers = headers or {}
@@ -44,7 +45,7 @@ class LTIAHTTPService:
                 "iat": now,
                 "iss": self._lti_registration.client_id,
                 "sub": self._lti_registration.client_id,
-                "aud": self._aud_claim,
+                "aud": self._plugin.get_ltia_aud_claim(self._lti_registration),
                 "jti": uuid.uuid4().hex,
             }
         )
@@ -69,7 +70,7 @@ def factory(_context, request):
 
     return LTIAHTTPService(
         lti_registration,
-        request.product.plugin.misc.get_ltia_aud_claim(lti_registration),
+        request.product.plugin.misc,
         request.find_service(JWTService),
         request.find_service(name="http"),
     )
