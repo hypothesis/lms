@@ -37,7 +37,7 @@ class TestFactory:
         svc = service_factory(sentinel.context, pyramid_request)
 
         LTI13GradingService.assert_called_once_with(
-            sentinel.grading_url, ltia_http_service
+            sentinel.grading_url, sentinel.lineitems, ltia_http_service
         )
         assert svc == LTI13GradingService.return_value
 
@@ -46,6 +46,8 @@ class TestFactory:
         pyramid_request.parsed_params = {
             "lis_outcome_service_url": sentinel.grading_url
         }
+        pyramid_request.lti_params = {"lineitems": sentinel.lineitems}
+
         return pyramid_request
 
     @pytest.fixture

@@ -10,12 +10,13 @@ def service_factory(_context, request):
 
     if application_instance.lti_version == "1.3.0":
         return LTI13GradingService(
-            grading_url=request.parsed_params.get("lis_outcome_service_url"),
+            line_item_url=request.parsed_params.get("lis_outcome_service_url"),
+            line_item_container_url=request.lti_params.get("lineitems"),
             ltia_service=request.find_service(LTIAHTTPService),
         )
 
     return LTI11GradingService(
-        grading_url=request.parsed_params.get("lis_outcome_service_url"),
+        line_item_url=request.parsed_params.get("lis_outcome_service_url"),
         http_service=request.find_service(name="http"),
         oauth1_service=request.find_service(name="oauth1"),
     )

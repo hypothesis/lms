@@ -3,24 +3,24 @@ from lms.services.lti_grading.interface import LTIGradingService
 
 
 class D2LMiscPlugin(MiscPlugin):
-    def __init__(self, create_lineitem: bool):
-        self._create_lineitem = create_lineitem
+    def __init__(self, create_line_item: bool):
+        self._create_line_item = create_line_item
 
     def post_configure_assignment(self, request):
         """
         Run any actions needed after configuring an assignment.
 
-        D2L doesn't create the container that holds grades (lineitems) LTI 1.3
+        D2L doesn't create the container that holds grades (line item) LTI 1.3
         assignments.
 
         As a work-around, as soon as we configure the assignment on our end
-        we'll use the LTIA grading API to create a new lineitem we can use
+        we'll use the LTIA grading API to create a new line item we can use
         later to record the grade.
         """
         lti_params = request.lti_params
         lti_grading_service = request.find_service(LTIGradingService)
 
-        if not self._create_lineitem:
+        if not self._create_line_item:
             # No need to do anything if this option is off.
             return
 
@@ -30,12 +30,7 @@ class D2LMiscPlugin(MiscPlugin):
         # If we already identified this assignment as gradable no need to
         # create anything
         if not super().is_assignment_gradable(lti_params):
-            # If there are no existing lineitems, create one.
-            lti_grading_service.create_lineitem(
-                lti_params.get("lineitems"),
-                resource_link_id,
-                resource_link_title,
-            )
+            lti_grading_service.create_line_item(resource_link_id, resource_link_title)
 
     def is_assignment_gradable(self, lti_params):
         """Check if the assignment of the current launch is gradable."""
@@ -54,4 +49,4 @@ class D2LMiscPlugin(MiscPlugin):
 
     @classmethod
     def factory(cls, _context, request):
-        return cls(request.product.settings.custom.get("create_lineitem", False))
+        return cls(request.product.settings.custom.get("create_line_item", False))
