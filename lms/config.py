@@ -53,7 +53,6 @@ SETTINGS = (
     _Setting("jwt_secret"),
     _Setting("google_client_id"),
     _Setting("google_developer_key"),
-    _Setting("google_app_id"),
     _Setting("onedrive_client_id"),
     _Setting("lms_secret"),
     # We need to use a randomly generated 16 byte array to encrypt secrets.

@@ -19,7 +19,6 @@ TEST_SETTINGS = {
     "jwt_secret": "test_secret",
     "google_client_id": "fake_client_id",
     "google_developer_key": "fake_developer_key",
-    "google_app_id": "fake_app_id",
     "lms_secret": "TEST_LMS_SECRET",
     "aes_secret": b"TSeQ7E3dzbHgu5ydX2xCrKJiXTmfJbOe",
     "jinja2.filters": {
