@@ -1,3 +1,4 @@
+import logging
 from enum import Enum, unique
 
 import sqlalchemy as sa
@@ -5,14 +6,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from lms.db import BASE, varchar_enum
 
-
-@unique
-class RoleScope(str, Enum):
-    """Enum for the different scopes of a role."""
-
-    COURSE = "course"
-    INSTITUTION = "institution"
-    SYSTEM = "system"
+LOG = logging.getLogger(__name__)
 
 
 @unique
@@ -24,12 +18,53 @@ class RoleType(str, Enum):
     ADMIN = "admin"
 
     @classmethod
-    def parse_lti_role(cls, role):
+    def parse(cls, role):
         """Parse an LTI role string into one of our role types."""
 
         # We have to do this work around because Enums can't have private
         # attributes. They are just interpreted as extra values for the enum.
         return _RoleParser.parse_role(role)
+
+
+@unique
+class RoleScope(str, Enum):
+    """Enum for the different scopes of a role."""
+
+    COURSE = "course"
+    """Context in the spec"""
+
+    INSTITUTION = "institution"
+    SYSTEM = "system"
+
+    @classmethod
+    def parse(cls, role):
+        """Parse an LTI role string into one of our role scopes."""
+
+        scopes_prefixes = {
+            # LTI 1.1 https://www.imsglobal.org/specs/ltiv1p0/implementation-guide
+            "urn:lti:sysrole:ims": cls.SYSTEM,
+            "urn:lti:instrole:ims": cls.INSTITUTION,
+            "urn:lti:role:ims": cls.COURSE,
+            # LTI 1.3 https://www.imsglobal.org/spec/lti/v1p3/#role-vocabularies
+            "http://purl.imsglobal.org/vocab/lti/system": cls.SYSTEM,
+            "http://purl.imsglobal.org/vocab/lis/v2/system": cls.SYSTEM,
+            "http://purl.imsglobal.org/vocab/lis/v2/institution": cls.INSTITUTION,
+            "http://purl.imsglobal.org/vocab/lis/v2/membership": cls.COURSE,
+        }
+        for prefix, scope in scopes_prefixes.items():
+            if role.startswith(prefix):
+                return scope
+
+        # Non scoped roles are deprecated but allowed in LTI 1.3
+        # Conforming implementations MAY recognize the simple names for context roles;
+        # thus, for example, vendors can use the following roles interchangeably:
+        #   http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor
+        #   Instructor
+        # However, support for simple names in this manner for context roles is deprecated;
+        # by best practice, vendors should use the full URIs for all roles (context roles included).
+        #
+        # If we can't match any, pick the most restrictive
+        return cls.COURSE
 
 
 class LTIRole(BASE):
@@ -55,7 +90,8 @@ class LTIRole(BASE):
     @value.setter
     def value(self, value):
         self._value = value
-        self.type = RoleType.parse_lti_role(value)
+        self.type = RoleType.parse(value)
+        self.scope = RoleScope.parse(value)
 
 
 class _RoleParser:
@@ -63,9 +99,12 @@ class _RoleParser:
 
     @classmethod
     def parse_role(cls, role) -> RoleType:
-        return (
-            cls._parse_v13_role(role) or cls._parse_v11_role(role) or RoleType.LEARNER
-        )
+        if role := cls._parse_v13_role(role) or cls._parse_v11_role(role):
+            return role
+
+        # If we can't match any, pick the most restrictive
+        LOG.debug("Can't find role type for %s", role)
+        return RoleType.LEARNER
 
     _V11_INSTRUCTOR_STRINGS = (
         "instructor",
@@ -77,7 +116,7 @@ class _RoleParser:
     )
 
     @classmethod
-    def _parse_v11_role(cls, role):
+    def _parse_v11_role(cls, role) -> RoleType:
         role = role.lower()
 
         for string in cls._V11_INSTRUCTOR_STRINGS:
