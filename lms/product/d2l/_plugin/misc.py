@@ -17,20 +17,16 @@ class D2LMiscPlugin(MiscPlugin):
         we'll use the LTIA grading API to create a new line item we can use
         later to record the grade.
         """
-        lti_params = request.lti_params
-        lti_grading_service = request.find_service(LTIGradingService)
-
-        if not self._create_line_item:
-            # No need to do anything if this option is off.
+        # Nothing to do if line item creation is off, or it's already there
+        if not self._create_line_item or super().is_assignment_gradable(
+            request.lti_params
+        ):
             return
 
-        resource_link_id = lti_params.get("resource_link_id")
-        resource_link_title = lti_params.get("resource_link_title")
-
-        # If we already identified this assignment as gradable no need to
-        # create anything
-        if not super().is_assignment_gradable(lti_params):
-            lti_grading_service.create_line_item(resource_link_id, resource_link_title)
+        request.find_service(LTIGradingService).create_line_item(
+            resource_link_id=request.lti_params.get("resource_link_id"),
+            label=request.lti_params.get("resource_link_title"),
+        )
 
     def is_assignment_gradable(self, lti_params):
         """Check if the assignment of the current launch is gradable."""
