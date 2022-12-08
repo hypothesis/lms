@@ -72,14 +72,22 @@ export class GooglePickerClient {
 
     this._gapiClient = libs.then(({ client }) => client);
     this._gapiPicker = libs.then(({ picker }) => picker.api);
+
+    /** @type {string|null} */
+    this._accessToken = null;
   }
 
   /**
    * Authorize this application's access to the user's files in Google Drive.
    *
    * @return {Promise<string>} - An access token for making Google Drive API requests.
+   *   The access token is cached for use in future Drive API calls.
    */
-  async _authorizeDriveAccess() {
+  async requestAuthorization() {
+    if (this._accessToken) {
+      return this._accessToken;
+    }
+
     const idServices = await this._identityServices;
 
     /** @type {(err: Error) => void} */
@@ -126,12 +134,17 @@ export class GooglePickerClient {
 
     client.requestAccessToken();
 
-    return accessToken;
+    const token = await accessToken;
+    this._accessToken = token;
+    return token;
   }
 
   /**
    * Show the Google file picker and return the document ID and
    * URL of the selected file.
+   *
+   * This will automatically call {@link requestAuthorization} to acquire
+   * an access token.
    *
    * @return {Promise<{ id: string, name: string, url: string }>}
    *   Document ID, filename and download URL of the selected file.
@@ -140,7 +153,7 @@ export class GooglePickerClient {
    */
   async showPicker() {
     const pickerLib = await this._gapiPicker;
-    const accessToken = await this._authorizeDriveAccess();
+    const accessToken = await this.requestAuthorization();
 
     /** @type {(doc: PickerDocument) => void} */
     let resolve;
@@ -189,6 +202,25 @@ export class GooglePickerClient {
     });
   }
 
+  /** Prepare Google API client library for making Google Drive API requests. */
+  async _initAPIClient() {
+    const gapiClient = await this._gapiClient;
+
+    if (!this._accessToken) {
+      throw new Error('Google Drive API access has not been authorized');
+    }
+    gapiClient.setToken({ access_token: this._accessToken });
+
+    await gapiClient.init({
+      apiKey: this._developerKey,
+      discoveryDocs: [
+        'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
+      ],
+    });
+
+    return gapiClient;
+  }
+
   /**
    * Change the sharing settings on a document in Google Drive to make it
    * publicly viewable to anyone with the link.
@@ -196,18 +228,7 @@ export class GooglePickerClient {
    * @param {string} docId
    */
   async enablePublicViewing(docId) {
-    const gapiClient = await this._gapiClient;
-
-    // Prepare Google API client library for making Google Drive API requests.
-    await gapiClient.init({
-      apiKey: this._developerKey,
-      clientId: this._clientId,
-      discoveryDocs: [
-        'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
-      ],
-      scope: GOOGLE_DRIVE_SCOPE,
-    });
-
+    const gapiClient = await this._initAPIClient();
     const body = {
       type: 'anyone',
       role: 'reader',
