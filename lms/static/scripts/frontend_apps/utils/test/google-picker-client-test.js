@@ -155,12 +155,11 @@ describe('GooglePickerClient', () => {
     });
   });
 
-  describe('#showPicker', () => {
+  describe('#requestAuthorization', () => {
     it("requests the user's authorization to access their Google Drive files", async () => {
       const client = createClient();
-      client.showPicker();
 
-      await fakeGoogleLibs.pickerVisible;
+      await client.requestAuthorization();
 
       assert.ok(fakeTokenClient);
       assert.match(fakeTokenClient.config, {
@@ -168,6 +167,29 @@ describe('GooglePickerClient', () => {
         scope: GOOGLE_DRIVE_SCOPE,
       });
       assert.calledOnce(fakeTokenClient.requestAccessToken);
+    });
+
+    it('does nothing if called a second time', async () => {
+      const client = createClient();
+
+      await client.requestAuthorization();
+
+      const tokenClient = fakeTokenClient;
+      await client.requestAuthorization();
+      assert.equal(fakeTokenClient, tokenClient);
+
+      assert.calledOnce(fakeTokenClient.requestAccessToken);
+    });
+  });
+
+  describe('#showPicker', () => {
+    it('requests authorization and sets token used by picker', async () => {
+      const client = createClient();
+      client.showPicker();
+
+      await fakeGoogleLibs.pickerVisible;
+
+      assert.ok(fakeTokenClient);
       const builder = fakeGoogleLibs.picker.api.PickerBuilder();
       assert.calledWith(builder.setOAuthToken, 'the-access-token');
     });
