@@ -1,11 +1,60 @@
+from dataclasses import dataclass
+from enum import Enum
 from xml.parsers.expat import ExpatError
 
 import xmltodict
+from requests import Response
 
 from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService
+from lms.services.lti_grading.exceptions import UnknownGradingStudent
 from lms.services.lti_grading.interface import LTIGradingService
 from lms.services.oauth1 import OAuth1Service
+
+
+class _StatusCode(str, Enum):
+    SUCCESS = "success"
+    FAILURE = "failure"
+    UNSUPPORTED = "unsupported"
+
+
+@dataclass
+class LTIOutcomesMessage:
+    body: dict
+    header: dict
+    status: _StatusCode
+
+    _response: Response
+
+    @classmethod
+    def from_response(cls, response):
+        try:
+            data = xmltodict.parse(response.text)
+        except ExpatError as err:
+            raise ExternalRequestError(
+                "Unable to parse XML response from LTI Outcomes service", response
+            ) from err
+
+        try:
+            header = data["imsx_POXEnvelopeResponse"]["imsx_POXHeader"]
+            return cls(
+                body=data["imsx_POXEnvelopeResponse"]["imsx_POXBody"],
+                header=header,
+                status=header["imsx_POXResponseHeaderInfo"]["imsx_statusInfo"][
+                    "imsx_codeMajor"
+                ],
+                _response=response,
+            )
+        except KeyError as err:
+            raise ExternalRequestError(
+                "Malformed LTI outcome response", response=response
+            ) from err
+
+    def raise_for_status(self):
+        if self.status != _StatusCode.SUCCESS:
+            raise ExternalRequestError(
+                message="LTI outcome request failed", response=self._response
+            )
 
 
 # pylint:disable=abstract-method
@@ -26,12 +75,22 @@ class LTI11GradingService(LTIGradingService):
                 }
             }
         )
+        if result.status == _StatusCode.FAILURE:
+            if (
+                result.header.get("imsx_POXResponseHeaderInfo", {})
+                .get("imsx_statusInfo", {})
+                .get("imsx_description", "")
+                .startswith("Incorrect sourcedId")
+            ):
+                raise UnknownGradingStudent(
+                    "Unable to fetch grade. Is the student still in the course mate?"
+                )
 
         try:
             return float(
-                result["readResultResponse"]["result"]["resultScore"]["textString"]
+                result.body["readResultResponse"]["result"]["resultScore"]["textString"]
             )
-        except (TypeError, KeyError, ValueError):
+        except (TypeError, KeyError, ValueError) as err:
             return None
 
     def record_result(self, grading_id, score=None, pre_record_hook=None):
@@ -45,9 +104,10 @@ class LTI11GradingService(LTIGradingService):
         if pre_record_hook:
             request = pre_record_hook(score=score, request_body=request)
 
-        self._send_request({"replaceResultRequest": request})
+        lti_outcomes_message = self._send_request({"replaceResultRequest": request})
+        lti_outcomes_message.raise_for_status()
 
-    def _send_request(self, request_body) -> dict:
+    def _send_request(self, request_body) -> LTIOutcomesMessage:
         """
         Send a signed request to an LMS's Outcome Management Service endpoint.
 
@@ -71,37 +131,7 @@ class LTI11GradingService(LTIGradingService):
             err.message = "Error calling LTI Outcomes service"
             raise
 
-        try:
-            data = xmltodict.parse(response.text)
-        except ExpatError as err:
-            raise ExternalRequestError(
-                "Unable to parse XML response from LTI Outcomes service", response
-            ) from err
-
-        try:
-            return self._get_body(data)
-        except ExternalRequestError as err:
-            err.response = response
-            raise
-
-    @classmethod
-    def _get_body(cls, data):
-        """Return the POX body element, checking for errors."""
-
-        try:
-            body = data["imsx_POXEnvelopeResponse"]["imsx_POXBody"]
-            header = data["imsx_POXEnvelopeResponse"]["imsx_POXHeader"]
-            status = header["imsx_POXResponseHeaderInfo"]["imsx_statusInfo"][
-                "imsx_codeMajor"
-            ]
-
-        except KeyError as err:
-            raise ExternalRequestError("Malformed LTI outcome response") from err
-
-        if status != "success":
-            raise ExternalRequestError(message="LTI outcome request failed")
-
-        return body
+        return LTIOutcomesMessage.from_response(response)
 
     @staticmethod
     def _pox_envelope(body) -> dict:

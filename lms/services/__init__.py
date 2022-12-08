@@ -23,7 +23,7 @@ from lms.services.launch_verifier import (
     LTILaunchVerificationError,
     LTIOAuthError,
 )
-from lms.services.lti_grading import LTIGradingService
+from lms.services.lti_grading import LTIGradingService, UnknownGradingStudent
 from lms.services.lti_names_roles import LTINamesRolesService
 from lms.services.lti_registration import LTIRegistrationService
 from lms.services.lti_role_service import LTIRoleService
