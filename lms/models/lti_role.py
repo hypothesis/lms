@@ -7,6 +7,15 @@ from lms.db import BASE, varchar_enum
 
 
 @unique
+class RoleScope(str, Enum):
+    """Enum for the different scopes of a role."""
+
+    COURSE = "course"
+    INSTITUTION = "institution"
+    SYSTEM = "system"
+
+
+@unique
 class RoleType(str, Enum):
     """Enum for the different types of role a user can have."""
 
@@ -35,6 +44,9 @@ class LTIRole(BASE):
 
     type = varchar_enum(RoleType)
     """Our interpretation of the value."""
+
+    scope = varchar_enum(RoleScope, nullable=True)
+    """Scope where this role applies"""
 
     @hybrid_property
     def value(self):
