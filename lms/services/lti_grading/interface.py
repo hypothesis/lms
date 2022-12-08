@@ -2,36 +2,41 @@ class LTIGradingService:  # pragma: no cover
     """
     Service for sending grades back to the LMS.
 
-    From https://www.imsglobal.org/spec/lti-ags/v2p0#nomenclature:
+    Line item:
+        A line item is usually a column in the tool platform's gradebook; it is
+        able to hold the results associated with a specific activity
+        (assignment) for a set of users.
 
-    Line item
-        A line item is usually a column in the tool platform's gradebook; it is able to hold the results associated with a specific activity for a set of users.
+    Line item container:
+        A line item container has an array of line items (for a course).
 
-    Line item container
-        A line item container has an array of line items.
+    Result:
+        A result is usually a cell in the tool platform's gradebook; it is
+        unique for a specific line item and user.
 
-    Result
-        A result is usually a cell in the tool platform's gradebook; it is unique for a specific line item and user.
+    Score:
+        A score represents the last score obtained by the student for the
+        tool's activity. It also exposes the current status of the activity
+        (like completed or in progress), and status of the grade.
 
-    Score
-        A score represents the last score obtained by the student for the tool's activity. It also exposes the current status of the activity (like completed or in progress), and status of the grade.
-
-
-    These are the LTI1.3 concepts but with the exception of line item container they have a counter part in LTI 1.1:
+    These are the LTI1.3 concepts, but they have a counter-part in LTI 1.1
+    (except for the line item container):
 
     https://www.imsglobal.org/spec/lti-ags/v2p0#migrating-from-basic-outcomes-service
     """
 
     def __init__(self, line_item_url: str, line_item_container_url: str):
+        """
+        Initialize the service.
+
+        :param line_item_url: Identifies one line item to read/write grades
+            to. In LTI 1.1 this maps to the equivalent
+            `lis_outcome_service_url` parameter.
+        :param line_item_container_url: Identifies a container that might hold
+            many line items
+        """
         self.line_item_url = line_item_url
-        """
-        Identifies one line item to read/write grades to.
-
-        In LTI 1.1 this maps to the equivalent `lis_outcome_service_url` parameter.
-        """
-
         self.line_item_container_url = line_item_container_url
-        """Identifies a container that might hold many line items."""
 
     def read_result(self, grading_id):
         """

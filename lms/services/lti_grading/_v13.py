@@ -70,7 +70,8 @@ class LTI13GradingService(LTIGradingService):
 
         https://www.imsglobal.org/spec/lti-ags/v2p0#container-request-filters
 
-        :param resource_link_id: ID of the assignment this line item will belong to.
+        :param resource_link_id: ID of the assignment this line item will
+            belong to.
         :param label: Name for the new line item.
         :param score_maximum: Max score for the grades in the new line item.
         """
