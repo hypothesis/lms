@@ -50,6 +50,7 @@ function createGoogleLibFakes() {
   };
 
   const client = {
+    setToken: sinon.stub(),
     init: sinon.stub(),
     drive: {
       permissions: {
@@ -326,20 +327,37 @@ describe('GooglePickerClient', () => {
 
     it('initializes the Google Drive API client', async () => {
       const client = createClient();
+      await client.requestAuthorization();
       await client.enablePublicViewing('doc1');
 
       assert.calledWith(fakeGoogleLibs.client.init, {
         apiKey: 'john.developer',
-        clientId: '12345',
         discoveryDocs: [
           'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
         ],
-        scope: GOOGLE_DRIVE_SCOPE,
       });
+    });
+
+    it('throws error if access token has not been acquired', async () => {
+      const client = createClient();
+
+      let err;
+      try {
+        await client.enablePublicViewing('doc1');
+      } catch (e) {
+        err = e;
+      }
+
+      assert.instanceOf(err, Error);
+      assert.equal(
+        err.message,
+        'Google Drive API access has not been authorized'
+      );
     });
 
     it('updates the sharing settings of the file', async () => {
       const client = createClient();
+      await client.requestAuthorization();
       await client.enablePublicViewing('doc1');
 
       assert.calledWith(createPermission, {
@@ -353,6 +371,7 @@ describe('GooglePickerClient', () => {
 
     it('rejects if changing the sharing settings fails', async () => {
       const client = createClient();
+      await client.requestAuthorization();
       createPermission.returns({
         execute: (_, reject) =>
           reject(new Error('Changing permissions failed')),
