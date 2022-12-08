@@ -6,8 +6,7 @@ production environment then you'll need to set up the Google Drive integration
 manually.
 
 The outcome of this process will be a configured Google project and valid
-values for the `GOOGLE_APP_ID`, `GOOGLE_DEVELOPER_KEY` and `GOOGLE_CLIENT_ID`
-environment variables.
+values for the `GOOGLE_DEVELOPER_KEY` and `GOOGLE_CLIENT_ID` environment variables.
 
 ## For Google Drive
 
