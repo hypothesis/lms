@@ -1,92 +1,12 @@
 import pytest
 from sqlalchemy.exc import StatementError
 
-from lms.models.lti_role import LTIRole, RoleType, _RoleParser, RoleScope
-
-
-class TestRoleType:
-    # At the time of writing, this is every role string we've seen from an
-    # LTI 1.1 LMS
-    @pytest.mark.parametrize(
-        "value,role_type",
-        (
-            ("Administrator", RoleType.ADMIN),
-            ("Alumni", RoleType.LEARNER),
-            ("ContentDeveloper", RoleType.INSTRUCTOR),
-            ("Faculty", RoleType.INSTRUCTOR),
-            ("Guest", RoleType.LEARNER),
-            ("Instructor", RoleType.INSTRUCTOR),
-            ("Learner", RoleType.LEARNER),
-            ("Member", RoleType.LEARNER),
-            ("Mentor", RoleType.INSTRUCTOR),
-            ("None", RoleType.LEARNER),
-            ("Observer", RoleType.LEARNER),
-            ("Other", RoleType.LEARNER),
-            ("ProspectiveStudent", RoleType.LEARNER),
-            ("Staff", RoleType.INSTRUCTOR),
-            ("Student", RoleType.LEARNER),
-            ("urn:lti:instrole:ims/lis/Administrator", RoleType.ADMIN),
-            ("urn:lti:instrole:ims/lis/Alumni", RoleType.LEARNER),
-            ("urn:lti:instrole:ims/lis/Faculty", RoleType.INSTRUCTOR),
-            ("urn:lti:instrole:ims/lis/Guest", RoleType.LEARNER),
-            ("urn:lti:instrole:ims/lis/Instructor", RoleType.INSTRUCTOR),
-            ("urn:lti:instrole:ims/lis/Learner", RoleType.LEARNER),
-            ("urn:lti:instrole:ims/lis/Member", RoleType.LEARNER),
-            ("urn:lti:instrole:ims/lis/Mentor", RoleType.INSTRUCTOR),
-            ("urn:lti:instrole:ims/lis/None", RoleType.LEARNER),
-            ("urn:lti:instrole:ims/lis/Observer", RoleType.LEARNER),
-            ("urn:lti:instrole:ims/lis/Other", RoleType.LEARNER),
-            ("urn:lti:instrole:ims/lis/ProspectiveStudent", RoleType.LEARNER),
-            ("urn:lti:instrole:ims/lis/Staff", RoleType.INSTRUCTOR),
-            ("urn:lti:instrole:ims/lis/Student", RoleType.LEARNER),
-            ("urn:lti:role:ims/lis/ContentDeveloper", RoleType.INSTRUCTOR),
-            ("urn:lti:role:ims/lis/Instructor", RoleType.INSTRUCTOR),
-            ("urn:lti:role:ims/lis/Learner", RoleType.LEARNER),
-            ("urn:lti:role:ims/lis/Mentor", RoleType.INSTRUCTOR),
-            ("urn:lti:role:ims/lis/TeachingAssistant", RoleType.INSTRUCTOR),
-            ("urn:lti:role:ims/lis/TeachingAssistant/Grader", RoleType.INSTRUCTOR),
-            ("urn:lti:sysrole:ims/lis/Administrator", RoleType.ADMIN),
-            ("urn:lti:sysrole:ims/lis/None", RoleType.LEARNER),
-            ("urn:lti:sysrole:ims/lis/SysAdmin", RoleType.ADMIN),
-        ),
-    )
-    def test_parse_lti_role_type_v11(self, value, role_type):
-        assert RoleType.parse(value) == role_type
-
-    _V13_PREFIX = "http://purl.imsglobal.org/vocab/lis/v2/"
-
-    # pylint: disable=protected-access
-    @pytest.mark.parametrize(
-        "value,role_type", tuple(_RoleParser._V13_ROLE_MAPPINGS.items())
-    )
-    def test_parse_lti_role_v13_exact_matches(self, value, role_type):
-        assert RoleType.parse(value) == role_type
-
-    @pytest.mark.parametrize(
-        "value,role_type",
-        (
-            (
-                f"{_V13_PREFIX}membership/Learner#GuestLearner",
-                RoleType.LEARNER,
-            ),
-            (
-                f"{_V13_PREFIX}membership/Learner#Instructor",
-                RoleType.INSTRUCTOR,
-            ),
-            (
-                f"{_V13_PREFIX}membership/Instructor#Lecturer",
-                RoleType.INSTRUCTOR,
-            ),
-            (f"{_V13_PREFIX}membership/WRONG", RoleType.LEARNER),
-        ),
-    )
-    def test_parse_lti_role_v13_prefix_matches(self, value, role_type):
-        # "Context roles" can have sub-roles appended to the end. Check we can
-        # match these correctly
-        assert RoleType.parse(value) == role_type
+from lms.models.lti_role import LTIRole, RoleScope, RoleType
 
 
 class TestLTIRole:
+    _V13_PREFIX = "http://purl.imsglobal.org/vocab/lis/v2/"
+
     @pytest.mark.parametrize(
         "value,role_type,role_scope",
         # At the time of writing, this is every role string we've seen
@@ -195,85 +115,69 @@ class TestLTIRole:
             ("Staff", RoleType.INSTRUCTOR, RoleScope.COURSE),
             ("Student", RoleType.LEARNER, RoleScope.COURSE),
             (
-                "http://purl.imsglobal.org/vocab/lis/v2/institution/person#Administrator",
+                f"{_V13_PREFIX}institution/person#Administrator",
                 RoleType.ADMIN,
                 RoleScope.INSTITUTION,
             ),
             (
-                "http://purl.imsglobal.org/vocab/lis/v2/institution/person#Alumni",
+                f"{_V13_PREFIX}institution/person#Alumni",
                 RoleType.LEARNER,
                 RoleScope.INSTITUTION,
             ),
             (
-                "http://purl.imsglobal.org/vocab/lis/v2/institution/person#Faculty",
+                f"{_V13_PREFIX}institution/person#Faculty",
                 RoleType.INSTRUCTOR,
                 RoleScope.INSTITUTION,
             ),
             (
-                "http://purl.imsglobal.org/vocab/lis/v2/institution/person#Instructor",
+                f"{_V13_PREFIX}institution/person#Instructor",
                 RoleType.INSTRUCTOR,
                 RoleScope.INSTITUTION,
             ),
             (
-                "http://purl.imsglobal.org/vocab/lis/v2/institution/person#Learner",
+                f"{_V13_PREFIX}institution/person#Learner",
                 RoleType.LEARNER,
                 RoleScope.INSTITUTION,
             ),
             (
-                "http://purl.imsglobal.org/vocab/lis/v2/institution/person#Staff",
+                f"{_V13_PREFIX}institution/person#Staff",
                 RoleType.INSTRUCTOR,
                 RoleScope.INSTITUTION,
             ),
             (
-                "http://purl.imsglobal.org/vocab/lis/v2/institution/person#Student",
+                f"{_V13_PREFIX}institution/person#Student",
                 RoleType.LEARNER,
                 RoleScope.INSTITUTION,
             ),
             (
-                "http://purl.imsglobal.org/vocab/lis/v2/membership#Administrator",
+                f"{_V13_PREFIX}membership#Administrator",
                 RoleType.ADMIN,
                 RoleScope.COURSE,
             ),
             (
-                "http://purl.imsglobal.org/vocab/lis/v2/membership#ContentDeveloper",
+                f"{_V13_PREFIX}membership#ContentDeveloper",
                 RoleType.INSTRUCTOR,
                 RoleScope.COURSE,
             ),
             (
-                "http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor",
+                f"{_V13_PREFIX}membership#Instructor",
+                RoleType.INSTRUCTOR,
+                RoleScope.COURSE,
+            ),
+            (f"{_V13_PREFIX}membership#Learner", RoleType.LEARNER, RoleScope.COURSE),
+            (f"{_V13_PREFIX}membership#Member", RoleType.LEARNER, RoleScope.COURSE),
+            (f"{_V13_PREFIX}membership#Mentor", RoleType.INSTRUCTOR, RoleScope.COURSE),
+            (
+                f"{_V13_PREFIX}membership/Instructor#TeachingAssistant",
                 RoleType.INSTRUCTOR,
                 RoleScope.COURSE,
             ),
             (
-                "http://purl.imsglobal.org/vocab/lis/v2/membership#Learner",
-                RoleType.LEARNER,
-                RoleScope.COURSE,
-            ),
-            (
-                "http://purl.imsglobal.org/vocab/lis/v2/membership#Member",
-                RoleType.LEARNER,
-                RoleScope.COURSE,
-            ),
-            (
-                "http://purl.imsglobal.org/vocab/lis/v2/membership#Mentor",
-                RoleType.INSTRUCTOR,
-                RoleScope.COURSE,
-            ),
-            (
-                "http://purl.imsglobal.org/vocab/lis/v2/membership/Instructor#TeachingAssistant",
-                RoleType.INSTRUCTOR,
-                RoleScope.COURSE,
-            ),
-            (
-                "http://purl.imsglobal.org/vocab/lis/v2/system/person#Administrator",
+                f"{_V13_PREFIX}system/person#Administrator",
                 RoleType.ADMIN,
                 RoleScope.SYSTEM,
             ),
-            (
-                "http://purl.imsglobal.org/vocab/lis/v2/system/person#User",
-                RoleType.LEARNER,
-                RoleScope.SYSTEM,
-            ),
+            (f"{_V13_PREFIX}system/person#User", RoleType.LEARNER, RoleScope.SYSTEM),
             (
                 "http://purl.imsglobal.org/vocab/lti/system/person#TestUser",
                 RoleType.LEARNER,
@@ -286,6 +190,23 @@ class TestLTIRole:
 
         assert lti_role.type == role_type
         assert lti_role.scope == role_scope
+
+    @pytest.mark.parametrize(
+        "value,role_type",
+        (
+            (f"{_V13_PREFIX}membership/Learner#GuestLearner", RoleType.LEARNER),
+            (f"{_V13_PREFIX}membership/Learner#Instructor", RoleType.LEARNER),
+            (f"{_V13_PREFIX}membership/Instructor#Lecturer", RoleType.INSTRUCTOR),
+            (f"{_V13_PREFIX}membership/WRONG", RoleType.LEARNER),
+        ),
+    )
+    def test_parse_lti_role_v13_prefix_matches(self, value, role_type):
+        # We are ignoring the subtype, the spec says:
+
+        # LTI does not classify any of the sub-roles as a core role. Whenever a
+        # platform specifies a sub-role, by best practice it should also
+        # include the associated principal role.
+        assert LTIRole(value=value).type == role_type
 
     def test_it_converts_type_to_an_enum(self):
         lti_role = LTIRole(type="admin")

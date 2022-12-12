@@ -1,5 +1,7 @@
 import logging
+import re
 from enum import Enum, unique
+from typing import Tuple
 
 import sqlalchemy as sa
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -17,14 +19,6 @@ class RoleType(str, Enum):
     LEARNER = "learner"
     ADMIN = "admin"
 
-    @classmethod
-    def parse(cls, role):
-        """Parse an LTI role string into one of our role types."""
-
-        # We have to do this work around because Enums can't have private
-        # attributes. They are just interpreted as extra values for the enum.
-        return _RoleParser.parse_role(role)
-
 
 @unique
 class RoleScope(str, Enum):
@@ -35,36 +29,6 @@ class RoleScope(str, Enum):
 
     INSTITUTION = "institution"
     SYSTEM = "system"
-
-    @classmethod
-    def parse(cls, role):
-        """Parse an LTI role string into one of our role scopes."""
-
-        scopes_prefixes = {
-            # LTI 1.1 https://www.imsglobal.org/specs/ltiv1p0/implementation-guide
-            "urn:lti:sysrole:ims": cls.SYSTEM,
-            "urn:lti:instrole:ims": cls.INSTITUTION,
-            "urn:lti:role:ims": cls.COURSE,
-            # LTI 1.3 https://www.imsglobal.org/spec/lti/v1p3/#role-vocabularies
-            "http://purl.imsglobal.org/vocab/lti/system": cls.SYSTEM,
-            "http://purl.imsglobal.org/vocab/lis/v2/system": cls.SYSTEM,
-            "http://purl.imsglobal.org/vocab/lis/v2/institution": cls.INSTITUTION,
-            "http://purl.imsglobal.org/vocab/lis/v2/membership": cls.COURSE,
-        }
-        for prefix, scope in scopes_prefixes.items():
-            if role.startswith(prefix):
-                return scope
-
-        # Non scoped roles are deprecated but allowed in LTI 1.3
-        # Conforming implementations MAY recognize the simple names for context roles;
-        # thus, for example, vendors can use the following roles interchangeably:
-        #   http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor
-        #   Instructor
-        # However, support for simple names in this manner for context roles is deprecated;
-        # by best practice, vendors should use the full URIs for all roles (context roles included).
-        #
-        # If we can't match any, pick the most restrictive
-        return cls.COURSE
 
 
 class LTIRole(BASE):
@@ -90,70 +54,93 @@ class LTIRole(BASE):
     @value.setter
     def value(self, value):
         self._value = value
-        self.type = RoleType.parse(value)
-        self.scope = RoleScope.parse(value)
+        # pylint: disable=protected-access
+        self.scope, self.type = _RoleParser._parse_role(value)
 
 
 class _RoleParser:
     """Close collaborator class for parsing roles."""
 
-    @classmethod
-    def parse_role(cls, role) -> RoleType:
-        if role := cls._parse_v13_role(role):
-            return role
+    _ROLE_REGEXP = [
+        # LTI 1.1 scoped role
+        re.compile(r"urn:lti:(?P<scope>instrole|role|sysrole):ims/lis/(?P<type>\w+)"),
+        # LTI 1.3 scoped role
+        re.compile(
+            r"http://purl.imsglobal.org/vocab/lis/v2/(?P<scope>membership|system|institution)#(?P<type>\w+)",
+        ),
+        # LTI 1.3 scoped with sub type
+        re.compile(
+            r"http://purl\.imsglobal\.org/vocab/lis/v2/(?P<scope>membership|system|institution)/(?P<type>\w+)#(?P<sub_type>\w+)"
+        ),
+        # https://www.imsglobal.org/spec/lti/v1p3/#lti-vocabulary-for-system-roles
+        re.compile(
+            r"http://purl\.imsglobal\.org/vocab/lti/(?P<scope>system)/(?P<type>\w+)#(?P<sub_type>\w+)",
+        ),
+        # Non scoped roles are deprecated but allowed in LTI 1.3
+        # Conforming implementations MAY recognize the simple names for context
+        # roles; thus, for example, vendors can use the following roles
+        # interchangeably:
+        #   http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor
+        #   Instructor
+        # However, support for simple names in this manner for context roles is
+        # deprecated; by best practice, vendors should use the full URIs for
+        # all roles (context roles included).
+        re.compile(r"^(?!http|urn)(?P<type>\w+)"),
+    ]
 
-        # If we can't match any, pick the most restrictive
-        LOG.debug("Can't find role type for %s", role)
-        return RoleType.LEARNER
-
-    _V13_ROLE_MAPPINGS = {
+    _SCOPE_MAP = {
+        # LTI 1.1 https://www.imsglobal.org/specs/ltiv1p0/implementation-guide
+        "instrole": RoleScope.INSTITUTION,
+        "role": RoleScope.COURSE,
+        "sysrole": RoleScope.SYSTEM,
+        # LTI 1.3 https://www.imsglobal.org/spec/lti/v1p3/#role-vocabularies
+        "system": RoleScope.SYSTEM,
+        "institution": RoleScope.INSTITUTION,
+        "membership": RoleScope.COURSE,
+    }
+    _TYPE_MAP = {
+        "AccountAdmin": RoleType.ADMIN,
         "Administrator": RoleType.ADMIN,
+        "Alumni": RoleType.LEARNER,
         "ContentDeveloper": RoleType.INSTRUCTOR,
+        "Creator": RoleType.INSTRUCTOR,
+        "Faculty": RoleType.INSTRUCTOR,
+        "Grader": RoleType.INSTRUCTOR,
+        "Guest": RoleType.LEARNER,
         "Instructor": RoleType.INSTRUCTOR,
         "Learner": RoleType.LEARNER,
-        # Look out for this weirdo!
-        "Learner#Instructor": RoleType.INSTRUCTOR,
         "Manager": RoleType.INSTRUCTOR,
         "Member": RoleType.LEARNER,
         "Mentor": RoleType.INSTRUCTOR,
+        "None": RoleType.LEARNER,
+        "Observer": RoleType.LEARNER,
         "Office": RoleType.INSTRUCTOR,
-        "Grader": RoleType.INSTRUCTOR,
+        "Other": RoleType.LEARNER,
+        "ProspectiveStudent": RoleType.LEARNER,
         "Staff": RoleType.INSTRUCTOR,
-        "Faculty": RoleType.INSTRUCTOR,
+        "Student": RoleType.LEARNER,
         "SysAdmin": RoleType.ADMIN,
+        "SysSupport": RoleType.ADMIN,
         "TeachingAssistant": RoleType.INSTRUCTOR,
-        "person#AccountAdmin": RoleType.ADMIN,
-        "person#Administrator": RoleType.ADMIN,
-        "person#Alumni": RoleType.LEARNER,
-        "person#Creator": RoleType.INSTRUCTOR,
-        "person#Faculty": RoleType.INSTRUCTOR,
-        "person#Guest": RoleType.LEARNER,
-        "person#Instructor": RoleType.INSTRUCTOR,
-        "person#Learner": RoleType.LEARNER,
-        "person#Member": RoleType.LEARNER,
-        "person#Mentor": RoleType.INSTRUCTOR,
-        "person#None": RoleType.LEARNER,
-        "person#Observer": RoleType.LEARNER,
-        "person#Other": RoleType.LEARNER,
-        "person#ProspectiveStudent": RoleType.LEARNER,
-        "person#Staff": RoleType.INSTRUCTOR,
-        "person#Student": RoleType.LEARNER,
-        "person#SysAdmin": RoleType.ADMIN,
-        "person#SysSupport": RoleType.ADMIN,
-        "person#User": RoleType.LEARNER,
+        "User": RoleType.LEARNER,
     }
 
     @classmethod
-    def _parse_v13_role(cls, role):
-        role = role.strip()
-        role_mapping = dict(
-            sorted(
-                cls._V13_ROLE_MAPPINGS.items(), key=lambda x: len(x[0]), reverse=True
-            )
-        )
+    def _parse_role(cls, role) -> Tuple[RoleScope, RoleType]:
+        """Parse roles according to the expected values from the specs."""
+        role_parts = {}
+        for regex in cls._ROLE_REGEXP:
+            if match := regex.match(role):
+                role_parts = match.groupdict()
+                break
 
-        for suffix, type_ in role_mapping.items():
-            if role.endswith(suffix):
-                return type_
+        # No scope, default to the narrowest, COURSE
+        scope = cls._SCOPE_MAP.get(role_parts.get("scope"), RoleScope.COURSE)
 
-        return None
+        # In system and institution roles the main type is "person"
+        if role_parts.get("type") == "person":
+            role_parts["type"] = role_parts["sub_type"]
+
+        type_ = cls._TYPE_MAP.get(role_parts.get("type"), RoleType.LEARNER)
+
+        return scope, type_
