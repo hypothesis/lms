@@ -79,7 +79,7 @@ class OAuthCallbackSchema(PyramidRequestSchema):
 
         csrf = secrets.token_hex()
 
-        data = {"user": request.lti_user._asdict(), "csrf": csrf}
+        data = {"user": request.lti_user.serialize(), "csrf": csrf}
 
         jwt_str = self._jwt_service.encode_with_secret(
             data, self._secret, lifetime=timedelta(hours=1)
