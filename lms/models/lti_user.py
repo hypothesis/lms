@@ -1,9 +1,10 @@
-from typing import NamedTuple
+from dataclasses import dataclass
 
 from lms.models.h_user import HUser
 
 
-class LTIUser(NamedTuple):
+@dataclass
+class LTIUser:
     """An LTI user."""
 
     user_id: str
@@ -57,6 +58,21 @@ class LTIUser(NamedTuple):
             ),
             email=lti_core_schema["lis_person_contact_email_primary"],
         )
+
+    def _asdict(self) -> dict:
+        """
+        Return a dict representing the LTIUser.
+
+        LTIUser is often serialized. We can pick here the exact representation.
+        """
+        return {
+            "user_id": self.user_id,
+            "roles": self.roles,
+            "tool_consumer_instance_guid": self.tool_consumer_instance_guid,
+            "display_name": self.display_name,
+            "application_instance_id": self.application_instance_id,
+            "email": self.email,
+        }
 
 
 def display_name(given_name, family_name, full_name):

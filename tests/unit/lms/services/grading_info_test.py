@@ -111,9 +111,7 @@ class TestUpsertFromRequest:
             context_id=pyramid_request.params["context_id"],
             resource_link_id=pyramid_request.params["resource_link_id"],
         )
-        pyramid_request.lti_user = pyramid_request.lti_user._replace(
-            display_name="updated_display_name"
-        )
+        pyramid_request.lti_user.display_name = "updated_display_name"
 
         svc.upsert_from_request(pyramid_request)
 
