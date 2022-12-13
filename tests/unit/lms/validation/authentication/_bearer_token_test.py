@@ -4,12 +4,7 @@ import pytest
 
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 from lms.validation import ValidationError
-from lms.validation.authentication import (
-    BearerTokenSchema,
-    ExpiredSessionTokenError,
-    InvalidSessionTokenError,
-    MissingSessionTokenError,
-)
+from lms.validation.authentication import BearerTokenSchema
 
 
 class TestBearerTokenSchema:
@@ -49,45 +44,28 @@ class TestBearerTokenSchema:
     def test_it_raises_if_theres_no_authorization_param(self, schema, pyramid_request):
         del pyramid_request.headers["authorization"]
 
-        with pytest.raises(MissingSessionTokenError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             schema.lti_user(location="headers")
 
         assert exc_info.value.messages == {
-            "headers": {"authorization": ["Missing data for required field."]},
+            "authorization": ["Missing data for required field."]
         }
 
     def test_it_raises_if_the_jwt_has_expired(self, schema, jwt_service):
         jwt_service.decode_with_secret.side_effect = ExpiredJWTError()
 
-        with pytest.raises(ExpiredSessionTokenError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             schema.lti_user("headers")
 
-        assert exc_info.value.messages == {
-            "headers": {"authorization": ["Expired session token"]}
-        }
+        assert exc_info.value.messages == {"authorization": ["Expired session token"]}
 
     def test_it_raises_if_the_jwt_is_invalid(self, schema, jwt_service):
         jwt_service.decode_with_secret.side_effect = InvalidJWTError()
 
-        with pytest.raises(InvalidSessionTokenError) as exc_info:
-            schema.lti_user("headers")
-
-        assert exc_info.value.messages == {
-            "headers": {"authorization": ["Invalid session token"]}
-        }
-
-    @pytest.mark.parametrize("param", ["user_id", "application_instance_id", "roles"])
-    def test_it_raises_if_the_user_id_param_is_missing(
-        self, schema, jwt_service, param
-    ):
-        del jwt_service.decode_with_secret.return_value[param]
-
         with pytest.raises(ValidationError) as exc_info:
             schema.lti_user("headers")
 
-        assert exc_info.value.messages == {
-            "headers": {param: ["Missing data for required field."]},
-        }
+        assert exc_info.value.messages == {"authorization": ["Invalid session token"]}
 
     @pytest.fixture
     def schema(self, pyramid_request):
