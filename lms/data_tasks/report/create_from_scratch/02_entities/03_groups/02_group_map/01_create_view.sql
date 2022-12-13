@@ -7,6 +7,7 @@ CREATE MATERIALIZED VIEW report.group_map AS (
         all_groups AS (
             SELECT
                 grouping.id AS lms_grouping_id,
+                grouping.parent_id AS lms_grouping_parent_id,
                 -- Coalesce the ids in case the left or right side is missing
                 COALESCE(
                     grouping.authority_provided_id,
@@ -26,11 +27,12 @@ CREATE MATERIALIZED VIEW report.group_map AS (
 
     SELECT
         lms_grouping_id,
-        groups.id AS group_id,
+        lms_grouping_parent_id,
+        raw_groups.id AS group_id,
         application_instances.organization_id
     FROM all_groups
-    JOIN report.groups ON
-        all_groups.authority_provided_id = groups.authority_provided_id
+    JOIN report.raw_groups ON
+        all_groups.authority_provided_id = raw_groups.authority_provided_id
     JOIN application_instances ON
         all_groups.application_instance_id = application_instances.id
     ORDER BY lms_grouping_id, group_id

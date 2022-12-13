@@ -1,9 +1,20 @@
-DROP MATERIALIZED VIEW IF EXISTS report.groups CASCADE;
+DROP MATERIALIZED VIEW IF EXISTS report.raw_groups CASCADE;
 
 -- A view with our concept of a unique group in reporting, which happens to
--- mostly conform to an H group with extra metadata.
+-- mostly conform to an H group with extra metadata. This view is not to be
+-- used directly, but is consumed by `report.groups`.
 
-CREATE MATERIALIZED VIEW report.groups AS (
+-- About `authority_provided_ids`
+-- ==============================
+-- The authority provided id is based on a number of things:
+--
+--   * The GUID
+--   * The unique id provided by the LMS for the grouping
+--   * Our type (course, section etc.)
+--
+-- It is *not* based on the application instance id at all.
+
+CREATE VIEW report.raw_groups AS (
     WITH
         group_types AS (
             SELECT
@@ -49,4 +60,4 @@ CREATE MATERIALIZED VIEW report.groups AS (
         groups.authority = '{{ region.authority }}'
         -- groups.authority = 'lms.hypothes.is'
     ORDER BY groups.created
-) WITH NO DATA;
+);
