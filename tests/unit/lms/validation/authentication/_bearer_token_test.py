@@ -19,7 +19,7 @@ class TestBearerTokenSchema:
         authorization_param_value = schema.authorization_param(lti_user)
 
         jwt_service.encode_with_secret.assert_called_once_with(
-            lti_user._asdict(), "test_secret", lifetime=datetime.timedelta(hours=24)
+            lti_user.serialize(), "test_secret", lifetime=datetime.timedelta(hours=24)
         )
         assert (
             authorization_param_value
@@ -101,7 +101,7 @@ class TestBearerTokenSchema:
 
     @pytest.fixture(autouse=True)
     def jwt_service(self, jwt_service, lti_user):
-        jwt_service.decode_with_secret.return_value = lti_user._asdict()
+        jwt_service.decode_with_secret.return_value = lti_user.serialize()
         jwt_service.encode_with_secret.return_value = "ENCODED_JWT"
 
         return jwt_service

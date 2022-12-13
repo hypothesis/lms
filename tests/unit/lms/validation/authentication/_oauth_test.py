@@ -25,7 +25,7 @@ class TestOauthCallbackSchema:
 
         secrets.token_hex.assert_called_once_with()
         jwt_service.encode_with_secret.assert_called_once_with(
-            {"user": lti_user._asdict(), "csrf": secrets.token_hex.return_value},
+            {"user": lti_user.serialize(), "csrf": secrets.token_hex.return_value},
             "test_oauth2_state_secret",
             lifetime=datetime.timedelta(hours=1),
         )
@@ -256,6 +256,6 @@ def secrets(patch):
 def jwt_service(jwt_service, lti_user):
     jwt_service.decode_with_secret.return_value = {
         "csrf": "test_csrf",
-        "user": lti_user._asdict(),
+        "user": lti_user.serialize(),
     }
     return jwt_service

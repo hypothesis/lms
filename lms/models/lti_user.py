@@ -59,7 +59,7 @@ class LTIUser:
             email=lti_core_schema["lis_person_contact_email_primary"],
         )
 
-    def _asdict(self) -> dict:
+    def serialize(self) -> dict:
         """
         Return a dict representing the LTIUser.
 
