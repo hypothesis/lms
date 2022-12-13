@@ -33,7 +33,7 @@ class TestUserService:
     def test_upsert_user_doesnt_save_personal_details_for_students(
         self, service, lti_user, db_session
     ):
-        lti_user = lti_user._replace(roles="Student")
+        lti_user.roles = "Student"
 
         service.upsert_user(lti_user)
 
@@ -55,7 +55,7 @@ class TestUserService:
     def test_upsert_user_doesnt_save_personal_details_for_existing_students(
         self, service, lti_user, db_session
     ):
-        lti_user = lti_user._replace(roles="Student")
+        lti_user.roles = "Student"
 
         service.upsert_user(lti_user)
 

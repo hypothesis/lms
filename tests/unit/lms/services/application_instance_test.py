@@ -32,9 +32,7 @@ class TestApplicationInstanceService:
             service.get_current()
 
     def test_get_current_raises_for_non_existing_id(self, service, pyramid_request):
-        pyramid_request.lti_user = pyramid_request.lti_user._replace(
-            application_instance_id=1000
-        )
+        pyramid_request.lti_user.application_instance_id = 1000
 
         with pytest.raises(ApplicationInstanceNotFound):
             service.get_current()

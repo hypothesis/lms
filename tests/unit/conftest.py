@@ -138,12 +138,12 @@ def pyramid_request(db_session, application_instance, lti_v11_params):
 
 @pytest.fixture
 def user_is_learner(pyramid_request):
-    pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Learner")
+    pyramid_request.lti_user.roles = "Learner"
 
 
 @pytest.fixture
 def user_is_instructor(pyramid_request):
-    pyramid_request.lti_user = pyramid_request.lti_user._replace(roles="Instructor")
+    pyramid_request.lti_user.roles = "Instructor"
 
 
 def configure_jinja2_assets(config):

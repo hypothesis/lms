@@ -114,11 +114,10 @@ class TestLTIUserSecurityPolicy:
     def test_identity_when_theres_an_lti_user(
         self, pyramid_request, roles, extra_permissions
     ):
+
+        pyramid_request.lti_user.roles = roles
         policy = LTIUserSecurityPolicy(
-            create_autospec(
-                get_lti_user,
-                return_value=pyramid_request.lti_user._replace(roles=roles),
-            )
+            create_autospec(get_lti_user, return_value=pyramid_request.lti_user)
         )
 
         identity = policy.identity(pyramid_request)

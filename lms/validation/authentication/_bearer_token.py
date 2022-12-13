@@ -70,7 +70,7 @@ class BearerTokenSchema(PyramidRequestSchema):
         self._jwt_service = request.find_service(iface=JWTService)
         self._secret = request.registry.settings["jwt_secret"]
 
-    def authorization_param(self, lti_user):
+    def authorization_param(self, lti_user: LTIUser):
         """
         Return ``lti_user`` serialized into an authorization param.
 
@@ -84,7 +84,7 @@ class BearerTokenSchema(PyramidRequestSchema):
         """
         return self.dump(lti_user)["authorization"]
 
-    def lti_user(self, location):
+    def lti_user(self, location) -> LTIUser:
         """
         Return an models.LTIUser from the request's authorization param.
 
@@ -109,8 +109,6 @@ class BearerTokenSchema(PyramidRequestSchema):
           ``"Bearer <ENCODED_JWT>"`` format.
         :raise ValidationError: if the JWT's payload is invalid, for example if
           it's missing a required parameter
-
-        :rtype: LTIUser
         """
         try:
             return self.parse(location=location)
@@ -172,6 +170,6 @@ class BearerTokenSchema(PyramidRequestSchema):
             ) from err
 
     @marshmallow.post_load
-    def _make_user(self, data, **_kwargs):
+    def _make_user(self, data, **_kwargs) -> LTIUser:
         # See https://marshmallow.readthedocs.io/en/2.x-line/quickstart.html#deserializing-to-objects
         return LTIUser(**data)
