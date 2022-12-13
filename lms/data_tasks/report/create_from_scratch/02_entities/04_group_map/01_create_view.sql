@@ -39,6 +39,11 @@ CREATE MATERIALIZED VIEW report.group_map AS (
             ORDER BY lms_grouping_id, group_id
         )
 
+    -- Use a self join on `group_map` to map the parent grouping ids to parent
+    -- group ids. It's not a given that this is a 1:1, as it seems like a
+    -- group could map to more than one grouping (that was the point of this
+    -- table), but it turns out they don't. So these probably could be columns
+    -- on the groups table :(
     SELECT
         group_map.lms_grouping_id,
         group_map.lms_grouping_parent_id,
