@@ -39,51 +39,6 @@ class Permissions(Enum):
     ADMIN = "admin"
 
 
-@lru_cache(maxsize=1)
-def get_policy(request):
-    """Pick the right policy based the request's path."""
-    # pylint:disable=too-many-return-statements
-    path = request.path
-
-    if path.startswith("/admin") or path.startswith("/googleauth"):
-        return LMSGoogleSecurityPolicy()
-
-    if path in {"/lti_launches", "/content_item_selection", "/api/gateway/h/lti"}:
-        # Actual LTI backed authentication
-        return LTIUserSecurityPolicy(get_lti_user_from_launch_params)
-
-    if path in {
-        "/canvas_oauth_callback",
-        "/api/blackboard/oauth/callback",
-        "/api/d2l/oauth/callback",
-    }:
-        # LTIUser serialized in the state param for the oauth flow
-        return LTIUserSecurityPolicy(get_lti_user_from_oauth_callback)
-
-    if path.startswith("/api") and path.endswith("authorize"):
-        # LTUser serialized as query param for authorization failures
-        return LTIUserSecurityPolicy(
-            partial(get_lti_user_from_bearer_token, location="querystring")
-        )
-
-    if path.startswith("/api") or path in {
-        "/lti/1.3/deep_linking/form_fields",
-        "/lti/1.1/deep_linking/form_fields",
-    }:
-        # LTUser serialized in the headers for API calls from the frontend
-        return LTIUserSecurityPolicy(
-            partial(get_lti_user_from_bearer_token, location="headers")
-        )
-
-    if path in {"/assignment"}:
-        # LTUser serialized in a from for non deep-linked assignment configuration
-        return LTIUserSecurityPolicy(
-            partial(get_lti_user_from_bearer_token, location="form")
-        )
-
-    return UnAutheticatedSecurityPolicy()
-
-
 class UnautheticatedSecurityPolicy:  # pragma: no cover
     """Security policy that always returns an unauthenticated user."""
 
@@ -107,19 +62,62 @@ class SecurityPolicy:
     """Top-level authentication policy that delegates to sub-policies."""
 
     def authenticated_userid(self, request):
-        return get_policy(request).authenticated_userid(request)
+        return self.get_policy(request.path).authenticated_userid(request)
 
     def identity(self, request):
-        return get_policy(request).identity(request)
+        return self.get_policy(request.path).identity(request)
 
     def permits(self, request, context, permission):
-        return get_policy(request).permits(request, context, permission)
+        return self.get_policy(request.path).permits(request, context, permission)
 
     def remember(self, request, userid, **kw):
-        return get_policy(request).remember(request, userid, **kw)
+        return self.get_policy(request.path).remember(request, userid, **kw)
 
     def forget(self, request):
-        return get_policy(request).forget(request)
+        return self.get_policy(request.path).forget(request)
+
+    @staticmethod
+    @lru_cache(maxsize=1)
+    def get_policy(path: str):
+        """Pick the right policy based the request's path."""
+        # pylint:disable=too-many-return-statements
+        if path.startswith("/admin") or path.startswith("/googleauth"):
+            return LMSGoogleSecurityPolicy()
+
+        if path in {"/lti_launches", "/content_item_selection", "/api/gateway/h/lti"}:
+            # Actual LTI backed authentication
+            return LTIUserSecurityPolicy(get_lti_user_from_launch_params)
+
+        if path in {
+            "/canvas_oauth_callback",
+            "/api/blackboard/oauth/callback",
+            "/api/d2l/oauth/callback",
+        }:
+            # LTIUser serialized in the state param for the oauth flow
+            return LTIUserSecurityPolicy(get_lti_user_from_oauth_callback)
+
+        if path.startswith("/api") and path.endswith("authorize"):
+            # LTUser serialized as query param for authorization failures
+            return LTIUserSecurityPolicy(
+                partial(get_lti_user_from_bearer_token, location="querystring")
+            )
+
+        if path.startswith("/api") or path in {
+            "/lti/1.3/deep_linking/form_fields",
+            "/lti/1.1/deep_linking/form_fields",
+        }:
+            # LTUser serialized in the headers for API calls from the frontend
+            return LTIUserSecurityPolicy(
+                partial(get_lti_user_from_bearer_token, location="headers")
+            )
+
+        if path in {"/assignment"}:
+            # LTUser serialized in a from for non deep-linked assignment configuration
+            return LTIUserSecurityPolicy(
+                partial(get_lti_user_from_bearer_token, location="form")
+            )
+
+        return UnautheticatedSecurityPolicy()
 
 
 class LTIUserSecurityPolicy:

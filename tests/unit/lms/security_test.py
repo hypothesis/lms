@@ -1,4 +1,4 @@
-from unittest.mock import create_autospec, sentinel
+from unittest.mock import create_autospec, patch, sentinel
 
 import pytest
 from pyramid.interfaces import ISecurityPolicy
@@ -16,7 +16,6 @@ from lms.security import (
     get_lti_user_from_bearer_token,
     get_lti_user_from_launch_params,
     get_lti_user_from_oauth_callback,
-    get_policy,
     includeme,
 )
 from lms.validation import ValidationError
@@ -187,50 +186,76 @@ class TestLTIUserSecurityPolicy:
         assert policy.authenticated_userid(pyramid_request) == expected_userid
 
 
-class TestGetPolicy:
+class TestSecurityPolicy:
+    def test_authenticated_userid(self, policy, get_policy, pyramid_request):
+        user_id = policy.authenticated_userid(pyramid_request)
+
+        get_policy.assert_called_once_with(pyramid_request.path)
+        get_policy.return_value.authenticated_userid.assert_called_once_with(
+            pyramid_request
+        )
+        assert user_id == get_policy.return_value.authenticated_userid.return_value
+
+    def test_identity(self, policy, get_policy, pyramid_request):
+        user_id = policy.identity(pyramid_request)
+
+        get_policy.assert_called_once_with(pyramid_request.path)
+        get_policy.return_value.identity.assert_called_once_with(pyramid_request)
+        assert user_id == get_policy.return_value.identity.return_value
+
+    def test_permits(self, policy, get_policy, pyramid_request):
+        user_id = policy.permits(pyramid_request, sentinel.context, sentinel.permission)
+
+        get_policy.assert_called_once_with(pyramid_request.path)
+        get_policy.return_value.permits.assert_called_once_with(
+            pyramid_request, sentinel.context, sentinel.permission
+        )
+        assert user_id == get_policy.return_value.permits.return_value
+
+    def test_remember(self, policy, get_policy, pyramid_request):
+        user_id = policy.remember(
+            pyramid_request, sentinel.userid, kwarg=sentinel.kwargs
+        )
+
+        get_policy.assert_called_once_with(pyramid_request.path)
+        get_policy.return_value.remember.assert_called_once_with(
+            pyramid_request, sentinel.userid, kwarg=sentinel.kwargs
+        )
+        assert user_id == get_policy.return_value.remember.return_value
+
+    def test_forgets(self, policy, pyramid_request, get_policy):
+        user_id = policy.forget(pyramid_request)
+
+        get_policy.assert_called_once_with(pyramid_request.path)
+        get_policy.return_value.forget.assert_called_once_with(pyramid_request)
+        assert user_id == get_policy.return_value.forget.return_value
+
     @pytest.mark.parametrize(
-        "route",
+        "path",
         ["/admin", "/admin/instance", "/googleauth"],
     )
-    def test_picks_google_security_policy(
-        self, route, pyramid_request, LMSGoogleSecurityPolicy
-    ):
-        pyramid_request.path = route
-
-        policy = get_policy(pyramid_request)
+    def test_get_policy_google(self, path, LMSGoogleSecurityPolicy):
+        policy = SecurityPolicy.get_policy(path)
 
         assert policy == LMSGoogleSecurityPolicy.return_value
 
     @pytest.mark.parametrize(
-        "path",
-        ["/lti_launches", "/content_item_selection", "/api/gateway/h/lti"],
-    )
-    def test_picks_lti_launches_security_policy(
-        self, path, pyramid_request, LTIUserSecurityPolicy
-    ):
-        pyramid_request.path = path
-
-        policy = get_policy(pyramid_request)
-
-        LTIUserSecurityPolicy.assert_called_once_with(get_lti_user_from_launch_params)
-        assert policy == LTIUserSecurityPolicy.return_value
-
-    @pytest.mark.parametrize(
-        "path",
+        "path,lti_user_getter,",
         [
-            "/canvas_oauth_callback",
-            "/api/blackboard/oauth/callback",
-            "/api/d2l/oauth/callback",
+            ("/lti_launches", get_lti_user_from_launch_params),
+            ("/content_item_selection", get_lti_user_from_launch_params),
+            ("/api/gateway/h/lti", get_lti_user_from_launch_params),
+            ("/canvas_oauth_callback", get_lti_user_from_oauth_callback),
+            ("/api/blackboard/oauth/callback", get_lti_user_from_oauth_callback),
+            ("/api/d2l/oauth/callback", get_lti_user_from_oauth_callback),
         ],
     )
-    def test_picks_lti_launches_with_oauth_callback(
-        self, path, pyramid_request, LTIUserSecurityPolicy
+    def test_get_policy_lti_user(
+        self, path, lti_user_getter, policy, LTIUserSecurityPolicy
     ):
-        pyramid_request.path = path
+        policy = policy.get_policy(path)
 
-        policy = get_policy(pyramid_request)
-
-        LTIUserSecurityPolicy.assert_called_once_with(get_lti_user_from_oauth_callback)
+        LTIUserSecurityPolicy.assert_called_once_with(lti_user_getter)
         assert policy == LTIUserSecurityPolicy.return_value
 
     @pytest.mark.parametrize(
@@ -244,11 +269,9 @@ class TestGetPolicy:
         ],
     )
     def test_picks_lti_launches_with_bearer_token(
-        self, path, location, pyramid_request, LTIUserSecurityPolicy
+        self, path, location, LTIUserSecurityPolicy, policy
     ):
-        pyramid_request.path = path
-
-        policy = get_policy(pyramid_request)
+        policy = policy.get_policy(path)
 
         LTIUserSecurityPolicy.assert_called_once()
         # Can't compare functions directly, discussion: https://bugs.python.org/issue3564
@@ -257,76 +280,28 @@ class TestGetPolicy:
         assert call_args[0].func.__name__ == "get_lti_user_from_bearer_token"
         assert policy == LTIUserSecurityPolicy.return_value
 
-    def test_unauthorized_policy(self, pyramid_request, UnAutheticatedSecurityPolicy):
-        pyramid_request.path = "/unknown"
+    def test_unauthorized_policy(self, UnautheticatedSecurityPolicy, policy):
+        policy = policy.get_policy("/unknown")
 
-        policy = get_policy(pyramid_request)
-
-        UnAutheticatedSecurityPolicy.assert_called_once()
-        assert policy == UnAutheticatedSecurityPolicy.return_value
-
-    @pytest.fixture(autouse=True)
-    def LMSGoogleSecurityPolicy(self, patch):
-        return patch("lms.security.LMSGoogleSecurityPolicy")
+        UnautheticatedSecurityPolicy.assert_called_once()
+        assert policy == UnautheticatedSecurityPolicy.return_value
 
     @pytest.fixture(autouse=True)
     def LTIUserSecurityPolicy(self, patch):
         return patch("lms.security.LTIUserSecurityPolicy")
 
     @pytest.fixture(autouse=True)
-    def UnAutheticatedSecurityPolicy(self, patch):
-        return patch("lms.security.UnAutheticatedSecurityPolicy")
+    def LMSGoogleSecurityPolicy(self, patch):
+        return patch("lms.security.LMSGoogleSecurityPolicy")
 
-
-class TestSecurityPolicy:
-    def test_authenticated_userid(self, policy, get_policy):
-        user_id = policy.authenticated_userid(sentinel.request)
-
-        get_policy.assert_called_once_with(sentinel.request)
-        get_policy.return_value.authenticated_userid.assert_called_once_with(
-            sentinel.request
-        )
-        assert user_id == get_policy.return_value.authenticated_userid.return_value
-
-    def test_identity(self, policy, get_policy):
-        user_id = policy.identity(sentinel.request)
-
-        get_policy.assert_called_once_with(sentinel.request)
-        get_policy.return_value.identity.assert_called_once_with(sentinel.request)
-        assert user_id == get_policy.return_value.identity.return_value
-
-    def test_permits(self, policy, get_policy):
-        user_id = policy.permits(
-            sentinel.request, sentinel.context, sentinel.permission
-        )
-
-        get_policy.assert_called_once_with(sentinel.request)
-        get_policy.return_value.permits.assert_called_once_with(
-            sentinel.request, sentinel.context, sentinel.permission
-        )
-        assert user_id == get_policy.return_value.permits.return_value
-
-    def test_remember(self, policy, get_policy):
-        user_id = policy.remember(
-            sentinel.request, sentinel.userid, kwarg=sentinel.kwargs
-        )
-
-        get_policy.assert_called_once_with(sentinel.request)
-        get_policy.return_value.remember.assert_called_once_with(
-            sentinel.request, sentinel.userid, kwarg=sentinel.kwargs
-        )
-        assert user_id == get_policy.return_value.remember.return_value
-
-    def test_forgets(self, policy, pyramid_request, get_policy):
-        user_id = policy.forget(pyramid_request)
-
-        get_policy.assert_called_once_with(pyramid_request)
-        get_policy.return_value.forget.assert_called_once_with(pyramid_request)
-        assert user_id == get_policy.return_value.forget.return_value
+    @pytest.fixture(autouse=True)
+    def UnautheticatedSecurityPolicy(self, patch):
+        return patch("lms.security.UnautheticatedSecurityPolicy")
 
     @pytest.fixture
-    def get_policy(self, patch):
-        return patch("lms.security.get_policy")
+    def get_policy(self, policy):
+        with patch.object(policy, "get_policy") as get_policy:
+            yield get_policy
 
     @pytest.fixture
     def policy(self):
