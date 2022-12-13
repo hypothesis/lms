@@ -42,15 +42,65 @@ class Permissions(Enum):
 @lru_cache(maxsize=1)
 def get_policy(request):
     """Pick the right policy based the request's path."""
+    # pylint:disable=too-many-return-statements
     path = request.path
 
     if path.startswith("/admin") or path.startswith("/googleauth"):
         return LMSGoogleSecurityPolicy()
 
     if path in {"/lti_launches", "/content_item_selection", "/api/gateway/h/lti"}:
+        # Actual LTI backed authentication
         return LTIUserSecurityPolicy(get_lti_user_from_launch_params)
 
-    return LTIUserSecurityPolicy(get_lti_user)
+    if path in {
+        "/canvas_oauth_callback",
+        "/api/blackboard/oauth/callback",
+        "/api/d2l/oauth/callback",
+    }:
+        # LTIUser serialized in the state param for the oauth flow
+        return LTIUserSecurityPolicy(get_lti_user_from_oauth_callback)
+
+    if path.startswith("/api") and path.endswith("authorize"):
+        # LTUser serialized as query param for authorization failures
+        return LTIUserSecurityPolicy(
+            partial(get_lti_user_from_bearer_token, location="querystring")
+        )
+
+    if path.startswith("/api") or path in {
+        "/lti/1.3/deep_linking/form_fields",
+        "/lti/1.1/deep_linking/form_fields",
+    }:
+        # LTUser serialized in the headers for API calls from the frontend
+        return LTIUserSecurityPolicy(
+            partial(get_lti_user_from_bearer_token, location="headers")
+        )
+
+    if path in {"/assignment"}:
+        # LTUser serialized in a from for non deep-linked assignment configuration
+        return LTIUserSecurityPolicy(
+            partial(get_lti_user_from_bearer_token, location="form")
+        )
+
+    return UnAutheticatedSecurityPolicy()
+
+
+class UnAutheticatedSecurityPolicy:  # pragma: no cover
+    """Security policy that always returns an unauthenticated user."""
+
+    def authenticated_userid(self, _request):
+        return None
+
+    def identity(self, _request):
+        return None
+
+    def permits(self, _request, _context, _permission):
+        return Denied("")
+
+    def remember(self, _request, _userid, **_kw):
+        return []
+
+    def forget(self, _request):
+        return []
 
 
 class SecurityPolicy:
@@ -163,39 +213,27 @@ def get_lti_user_from_launch_params(request) -> LTIUser:
 
 
 @lru_cache(maxsize=1)
-def get_lti_user(request, from_identity=False) -> Optional[LTIUser]:
+def get_lti_user_from_bearer_token(request, location) -> LTIUser:
+    return BearerTokenSchema(request).lti_user(location=location)
+
+
+@lru_cache(maxsize=1)
+def get_lti_user_from_oauth_callback(request) -> LTIUser:
+    return OAuthCallbackSchema(request).lti_user()
+
+
+@lru_cache(maxsize=1)
+def get_lti_user(request) -> Optional[LTIUser]:
     """
     Return a models.LTIUser for the authenticated LTI user.
-
-    Get the authenticated user from one of our LTI bearer tokens.
 
     If the request doesn't contain a valid bearer token then return None.
 
     :param request: Current request.
-    :param from_identity: Use the lti_user from request.identity.
-        Defaults to False to avoid a circular dependency and allow
-        security policies to use this function.
-
-    :rtype: models.LTIUser
     """
     lti_user = None
-    if from_identity and request.identity and request.identity.lti_user:
+    if request.identity and request.identity.lti_user:
         lti_user = request.identity.lti_user
-    else:
-
-        bearer_token_schema = BearerTokenSchema(request)
-        schemas = [
-            partial(bearer_token_schema.lti_user, location="headers"),
-            partial(bearer_token_schema.lti_user, location="querystring"),
-            partial(bearer_token_schema.lti_user, location="form"),
-            OAuthCallbackSchema(request).lti_user,
-        ]
-        for schema in schemas:
-            try:
-                lti_user = schema()
-                break
-            except ValidationError:
-                continue
 
     if lti_user:
         # Make a record of the user for analytics so we can map from the
@@ -214,10 +252,5 @@ def _get_user(request):
 
 def includeme(config):
     config.set_security_policy(SecurityPolicy())
-    config.add_request_method(
-        partial(get_lti_user, from_identity=True),
-        name="lti_user",
-        property=True,
-        reify=True,
-    )
+    config.add_request_method(get_lti_user, name="lti_user", property=True, reify=True)
     config.add_request_method(_get_user, name="user", property=True, reify=True)
