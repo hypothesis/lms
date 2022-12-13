@@ -6,7 +6,9 @@ CREATE MATERIALIZED VIEW report.group_activity AS (
     SELECT
         created_week,
         group_id,
-        count AS annotation_count
+        count AS annotation_count,
+        shared AS annotation_shared_count,
+        replies AS annotation_replies_count
     FROM h.annotation_group_counts
     JOIN h.authorities ON
         annotation_group_counts.authority_id = authorities.id
