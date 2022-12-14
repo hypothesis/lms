@@ -30,6 +30,26 @@ class TestFilePickerConfig:
 
         assert config == expected_config
 
+    @pytest.mark.parametrize("files_enabled", [False, True])
+    def test_d2l_config(self, pyramid_request, files_enabled):
+
+        pyramid_request.lti_params["context_id"] = "COURSE_ID"
+        pyramid_request.product.settings.files_enabled = files_enabled
+
+        config = FilePickerConfig.d2l_config(
+            pyramid_request, sentinel.application_instance
+        )
+
+        expected_config = {"enabled": files_enabled}
+
+        if files_enabled:
+            expected_config["listFiles"] = {
+                "authUrl": "http://example.com/api/d2l/oauth/authorize",
+                "path": "/api/d2l/courses/COURSE_ID/files",
+            }
+
+        assert config == expected_config
+
     @pytest.mark.usefixtures("with_is_canvas")
     def test_canvas_config(self, pyramid_request, application_instance):
         pyramid_request.lti_params["custom_canvas_course_id"] = "COURSE_ID"
