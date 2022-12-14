@@ -302,6 +302,7 @@ class AdminApplicationInstanceViews:
             ("desire2learn", "client_id", str),
             ("desire2learn", "client_secret", aes_secret),
             ("desire2learn", "groups_enabled", bool),
+            ("desire2learn", "files_enabled", bool),
             ("desire2learn", "create_line_item", bool),
             ("microsoft_onedrive", "files_enabled", bool),
             ("vitalsource", "enabled", bool),

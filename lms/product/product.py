@@ -47,11 +47,15 @@ class Settings:
     groups_enabled: bool = False
     """Is the course groups feature enabled"""
 
+    files_enabled: bool = False
+    """Is this product files feature enabled"""
+
     custom: Optional[dict] = None
     """Other non-standard settings."""
 
     def __post_init__(self, product_settings):
         self.groups_enabled = product_settings.get("groups_enabled", False)
+        self.files_enabled = product_settings.get("files_enabled", False)
         self.custom = product_settings
 
 
