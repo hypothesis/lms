@@ -1,11 +1,29 @@
 from lms.product import Product
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
+from lms.product.d2l import D2L
 from lms.services import JSTORService, VitalSourceService
 
 
 class FilePickerConfig:
     """Config generation for specific file pickers."""
+
+    @classmethod
+    def d2l_config(cls, request, _application_instance):
+        """Get D2L files config."""
+        files_enabled = request.product.settings.files_enabled
+
+        config = {"enabled": files_enabled}
+        if files_enabled:
+            config["listFiles"] = {
+                "authUrl": request.route_url(D2L.route.oauth2_authorize),
+                "path": request.route_path(
+                    "d2l_api.courses.files.list",
+                    course_id=request.lti_params.get("context_id"),
+                ),
+            }
+
+        return config
 
     @classmethod
     def blackboard_config(cls, request, application_instance):
