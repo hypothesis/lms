@@ -3,7 +3,73 @@ from unittest.mock import create_autospec, sentinel
 import pytest
 
 from lms.services.d2l_api._basic import BasicClient
-from lms.services.d2l_api.client import D2LAPIClient
+from lms.services.d2l_api.client import D2LAPIClient, D2LTableOfContentsSchema
+from tests import factories
+
+
+class TestD2LTableOfContentsSchema:
+    def test_valid(self, table_of_contents_response):
+        schema = D2LTableOfContentsSchema(
+            factories.requests.Response(json_data=table_of_contents_response)
+        )
+
+        result = schema.parse()
+
+        assert result == {
+            "modules": [
+                {
+                    "topics": [
+                        {
+                            "id": "ID 1",
+                            "name": "Title 1",
+                            "updated_at": "Date 1",
+                            "type": "File",
+                        }
+                    ],
+                    "modules": [
+                        {
+                            "topics": [
+                                {
+                                    "id": "ID 2",
+                                    "name": "Title 2",
+                                    "updated_at": "Date 2",
+                                    "type": "File",
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ]
+        }
+
+    @pytest.fixture
+    def table_of_contents_response(self):
+        return {
+            "Modules": [
+                {
+                    "Topics": [
+                        {
+                            "Identifier": "ID 1",
+                            "Title": "Title 1",
+                            "LastModifiedDate": "Date 1",
+                            "TypeIdentifier": "File",
+                        }
+                    ],
+                    "Modules": [
+                        {
+                            "Topics": [
+                                {
+                                    "Identifier": "ID 2",
+                                    "Title": "Title 2",
+                                    "LastModifiedDate": "Date 2",
+                                    "TypeIdentifier": "File",
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ]
+        }
 
 
 class TestD2LAPIClient:
@@ -52,6 +118,24 @@ class TestD2LAPIClient:
             if 100 in values["enrollments"]
         ]
 
+    def test_course_table_of_contents(
+        self,
+        svc,
+        D2LTableOfContentsSchema,
+        basic_client,
+    ):
+        svc.course_table_of_contents("COURSE_ID")
+
+        basic_client.api_url.assert_called_once_with(
+            "/COURSE_ID/content/toc", product="le"
+        )
+        basic_client.request.assert_called_once_with(
+            "GET", basic_client.api_url.return_value
+        )
+        D2LTableOfContentsSchema.assert_called_once_with(
+            basic_client.request.return_value
+        )
+
     @pytest.mark.parametrize(
         "user_id,api_user_id",
         [
@@ -77,6 +161,10 @@ class TestD2LAPIClient:
     @pytest.fixture
     def d2l_group_sets_schema(self, D2LGroupSetsSchema):
         return D2LGroupSetsSchema.return_value
+
+    @pytest.fixture(autouse=True)
+    def D2LTableOfContentsSchema(self, patch):
+        return patch("lms.services.d2l_api.client.D2LTableOfContentsSchema")
 
     @pytest.fixture(autouse=True)
     def D2LGroupsSchema(self, patch):
