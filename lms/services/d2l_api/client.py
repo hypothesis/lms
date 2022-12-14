@@ -1,4 +1,6 @@
-from marshmallow import EXCLUDE, fields
+from typing import List
+
+from marshmallow import EXCLUDE, Schema, fields
 
 from lms.validation._base import RequestsResponseSchema
 
@@ -23,6 +25,32 @@ class D2LGroupsSchema(RequestsResponseSchema):
     name = fields.Str(required=True, data_key="Name")
     group_set_id = fields.Int(required=False)
     enrollments = fields.List(fields.Int(), required=True, data_key="Enrollments")
+
+
+class _D2LTopic(Schema):
+    class Meta:
+        unknown = EXCLUDE
+
+    id = fields.Str(required=True, data_key="Identifier")
+    name = fields.Str(required=True, data_key="Title")
+    updated_at = fields.Str(required=True, data_key="LastModifiedDate")
+    type = fields.Str(required=True, data_key="TypeIdentifier")
+
+
+class _D2LModuleSchema(Schema):
+    class Meta:
+        unknown = EXCLUDE
+
+    modules = fields.List(
+        fields.Nested(lambda: _D2LModuleSchema), required=False, data_key="Modules"
+    )
+    topics = fields.List(fields.Nested(_D2LTopic), required=False, data_key="Topics")
+
+
+class D2LTableOfContentsSchema(RequestsResponseSchema):
+    modules = fields.List(
+        fields.Nested(_D2LModuleSchema), required=True, data_key="Modules"
+    )
 
 
 class D2LAPIClient:
@@ -77,6 +105,17 @@ class D2LAPIClient:
             groups = [group for group in groups if int(user_id) in group["enrollments"]]
 
         return groups
+
+    def course_table_of_contents(self, org_unit) -> List[dict]:
+        """
+        Get a list of modules in the given course.
+
+        https://docs.valence.desire2learn.com/res/content.html#get--d2l-api-le-(version)-(orgUnitId)-content-toc
+        """
+        response = self._api.request(
+            "GET", self._api.api_url(f"/{org_unit}/content/toc", product="le")
+        )
+        return D2LTableOfContentsSchema(response).parse().get("modules", [])
 
     @staticmethod
     def get_api_user_id(user_id: str):
