@@ -8,7 +8,7 @@ aiohttp==3.8.3
     # via
     #   -r requirements/requirements.txt
     #   aioresponses
-aioresponses==0.7.3
+aioresponses==0.7.4
     # via -r requirements/tests.in
 aiosignal==1.2.0
     # via
