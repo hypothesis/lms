@@ -16,17 +16,31 @@ from tests.matchers import temporary_redirect_to
 
 @pytest.mark.usefixtures("application_instance_service")
 class TestAuthorize:
+    @pytest.mark.parametrize(
+        "groups,files,scopes",
+        [
+            (False, False, "core:*:*"),
+            (False, True, "core:*:* content:toc:read"),
+            (True, False, "core:*:* groups:*:*"),
+            (True, True, "core:*:* content:toc:read groups:*:*"),
+        ],
+    )
     def test_it(
         self,
         application_instance_service,
         OAuthCallbackSchema,
         oauth_callback_schema,
         pyramid_request,
+        groups,
+        files,
+        scopes,
     ):
         ai = create_autospec(ApplicationInstance)
         application_instance_service.get_current.return_value = ai
         ai.settings.get.return_value = "CLIENT_ID"
         oauth_callback_schema.state_param.return_value = "STATE"
+        pyramid_request.product.settings.groups_enabled = groups
+        pyramid_request.product.settings.files_enabled = files
 
         response = authorize(pyramid_request)
 
@@ -42,7 +56,7 @@ class TestAuthorize:
                     "response_type": "code",
                     "redirect_uri": pyramid_request.route_url("d2l_api.oauth.callback"),
                     "state": "STATE",
-                    "scope": "core:*:* groups:*:*",
+                    "scope": scopes,
                 },
             )
         )
