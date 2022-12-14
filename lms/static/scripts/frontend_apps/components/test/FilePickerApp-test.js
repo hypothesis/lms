@@ -248,6 +248,14 @@ describe('FilePickerApp', () => {
         summary: 'PDF file in Blackboard',
       },
       {
+        content: {
+          type: 'url',
+          url: 'd2l://content-resource/1/',
+        },
+        summary: 'PDF file in D2L',
+      },
+
+      {
         content: { type: 'file', id: 'abcd' },
         summary: 'PDF file in Canvas',
       },

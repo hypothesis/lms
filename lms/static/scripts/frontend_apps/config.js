@@ -62,6 +62,9 @@ import { createContext } from 'preact';
  * @prop {object} blackboard
  *   @prop {boolean} blackboard.enabled
  *   @prop {APICallInfo} blackboard.listFiles
+ * @prop {object} d2l
+ *   @prop {boolean} d2l.enabled
+ *   @prop {APICallInfo} d2l.listFiles
  * @prop {object} canvas
  *   @prop {boolean} canvas.enabled
  *   @prop {APICallInfo} canvas.listFiles

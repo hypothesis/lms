@@ -56,6 +56,9 @@ function formatContentURL(content) {
   if (content.url.startsWith('blackboard://')) {
     return 'PDF file in Blackboard';
   }
+  if (content.url.startsWith('d2l://')) {
+    return 'PDF file in D2L';
+  }
   if (content.url.startsWith('vitalsource://')) {
     return 'Book from VitalSource';
   }
