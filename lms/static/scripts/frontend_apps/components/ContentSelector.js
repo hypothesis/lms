@@ -18,7 +18,7 @@ import URLPicker from './URLPicker';
  *
  * @typedef {import('./FilePickerApp').ErrorInfo} ErrorInfo
  *
- * @typedef {'blackboardFile'|'canvasFile'|'jstor'|'url'|'vitalSourceBook'|null} DialogType
+ * @typedef {'blackboardFile'|'canvasFile'|'d2lFile'|'jstor'|'url'|'vitalSourceBook'|null} DialogType
  *
  * @typedef {import('../utils/content-item').Content} Content
  */
@@ -47,6 +47,7 @@ export default function ContentSelector({
         enabled: blackboardFilesEnabled,
         listFiles: blackboardListFilesApi,
       },
+      d2l: { enabled: d2lFilesEnabled, listFiles: d2lListFilesApi },
       canvas: { enabled: canvasFilesEnabled, listFiles: listFilesApi },
       google: {
         clientId: googleClientId,
@@ -130,6 +131,13 @@ export default function ContentSelector({
     onSelectContent({ type: 'url', url: file.id });
   };
 
+  /** @param {File} file */
+  const selectD2LFile = file => {
+    cancelDialog();
+    // file.id shall be a url of the form d2l://content-resource/{file_id}
+    onSelectContent({ type: 'url', url: file.id });
+  };
+
   /**
    * @param {Book} book
    * @param {Chapter} chapter
@@ -172,6 +180,19 @@ export default function ContentSelector({
         />
       );
       break;
+    case 'd2lFile':
+      dialog = (
+        <LMSFilePicker
+          authToken={authToken}
+          listFilesApi={d2lListFilesApi}
+          onCancel={cancelDialog}
+          onSelectFile={selectD2LFile}
+          missingFilesHelpLink={'https://web.hypothes.is/help-categories/d2l/'}
+          withBreadcrumbs
+        />
+      );
+      break;
+
     case 'jstor':
       dialog = <JSTORPicker onCancel={cancelDialog} onSelectURL={selectURL} />;
       break;
@@ -255,6 +276,15 @@ export default function ContentSelector({
               data-testid="blackboard-file-button"
             >
               Select PDF from Blackboard
+            </LabeledButton>
+          )}
+          {d2lFilesEnabled && (
+            <LabeledButton
+              onClick={() => selectDialog('d2lFile')}
+              variant="primary"
+              data-testid="d2l-file-button"
+            >
+              Select PDF from D2L
             </LabeledButton>
           )}
           {googlePicker && (

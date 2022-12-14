@@ -47,6 +47,13 @@ describe('ContentSelector', () => {
             path: 'https://lms.anno.co/api/canvas/files',
           },
         },
+        d2l: {
+          enabled: true,
+          listFiles: {
+            authUrl: 'https://lms.anno.co/d2l/authorize',
+            path: 'https://lms.anno.co/api/d2l/files',
+          },
+        },
         google: {},
         jstor: {
           enabled: false,
@@ -115,6 +122,7 @@ describe('ContentSelector', () => {
         'url-button',
         'canvas-file-button',
         'blackboard-file-button',
+        'd2l-file-button',
         'onedrive-button',
       ]
     );
@@ -169,6 +177,11 @@ describe('ContentSelector', () => {
         buttonTestId: 'blackboard-file-button',
         files: () => fakeConfig.filePicker.blackboard.listFiles,
       },
+      {
+        name: 'D2L',
+        buttonTestId: 'd2l-file-button',
+        files: () => fakeConfig.filePicker.d2l.listFiles,
+      },
     ].forEach(test => {
       it(`shows LMS file dialog when "Select PDF from ${test.name}" is clicked`, () => {
         const wrapper = renderContentSelector();
@@ -213,6 +226,16 @@ describe('ContentSelector', () => {
           url: 'blackboard://content-resource/123',
         },
         missingFilesHelpLink: 'https://web.hypothes.is/help/bb-files',
+      },
+      {
+        name: 'd2l',
+        dialogName: 'd2lFile',
+        file: { id: 'd2l://content-resource/123' },
+        result: {
+          type: 'url',
+          url: 'd2l://content-resource/123',
+        },
+        missingFilesHelpLink: 'https://web.hypothes.is/help-categories/d2l/',
       },
     ].forEach(test => {
       it(`supports selecting a file from the ${test.name} file dialog`, () => {
