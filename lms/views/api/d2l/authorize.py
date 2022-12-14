@@ -7,6 +7,9 @@ from lms.security import Permissions
 from lms.services.d2l_api import D2LAPIClient
 from lms.validation.authentication import OAuthCallbackSchema
 
+GROUPS_SCOPES = ("groups:*:*",)
+FILES_SCOPES = ("content:toc:read",)
+
 
 @view_config(
     request_method="GET",
@@ -18,6 +21,14 @@ def authorize(request):
         name="application_instance"
     ).get_current()
     state = OAuthCallbackSchema(request).state_param()
+
+    scopes = ["core:*:*"]
+
+    if request.product.settings.files_enabled:
+        scopes += FILES_SCOPES
+
+    if request.product.settings.groups_enabled:
+        scopes += GROUPS_SCOPES
 
     return HTTPFound(
         location=urlunparse(
@@ -34,12 +45,7 @@ def authorize(request):
                         "response_type": "code",
                         "redirect_uri": request.route_url("d2l_api.oauth.callback"),
                         "state": state,
-                        "scope": " ".join(
-                            [
-                                "core:*:*",
-                                "groups:*:*",
-                            ]
-                        ),
+                        "scope": " ".join(scopes),
                     }
                 ),
                 "",
