@@ -49,11 +49,13 @@ class TestAdminOrganizationViews:
         organization_service.get_by_id.assert_called_once_with(sentinel.id_)
 
     @pytest.mark.parametrize("name", ["  ", " name"])
+    @pytest.mark.parametrize("notes", ["  ", " name"])
     def test_update_organization_name(
-        self, pyramid_request, organization_service, views, name
+        self, pyramid_request, organization_service, views, name, notes
     ):
         pyramid_request.matchdict["id_"] = sentinel.id_
         pyramid_request.params["name"] = name
+        pyramid_request.params["hypothesis.notes"] = notes
         organization_service.get_by_id.return_value = factories.Organization()
 
         response = views.update_organization()
@@ -61,6 +63,7 @@ class TestAdminOrganizationViews:
         organization_service.update_organization.assert_called_once_with(
             organization_service.get_by_id.return_value,
             name=name.strip() if name else "",
+            notes=notes.strip() if notes else "",
         )
         org = response["org"]
         assert org == organization_service.get_by_id.return_value
