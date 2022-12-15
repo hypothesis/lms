@@ -6,3 +6,6 @@ ANALYSE report.group_roles;
 
 REFRESH MATERIALIZED VIEW CONCURRENTLY report.organization_roles;
 ANALYSE report.organization_roles;
+
+REFRESH MATERIALIZED VIEW CONCURRENTLY report.group_to_group;
+ANALYSE report.group_to_group;
