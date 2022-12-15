@@ -7,7 +7,6 @@ CREATE MATERIALIZED VIEW report.group_map AS (
         all_groups AS (
             SELECT
                 grouping.id AS lms_grouping_id,
-                grouping.parent_id AS lms_grouping_parent_id,
                 -- Coalesce the ids in case the left or right side is missing
                 COALESCE(
                     grouping.authority_provided_id,
@@ -27,7 +26,6 @@ CREATE MATERIALIZED VIEW report.group_map AS (
 
     SELECT
         lms_grouping_id,
-        lms_grouping_parent_id,
         raw_groups.id AS group_id,
         application_instances.organization_id
     FROM all_groups
