@@ -23,6 +23,13 @@ class LTIRoleService:
         # Pylint is confused about the `in_` for some reason
         roles = self._db.query(LTIRole).filter(LTIRole.value.in_(role_strings)).all()
 
+        for role in roles:
+            # Update scope and type.
+            # This is useful when the logic for those fields change, updating
+            # the values in the DB and also exposing the right values in the
+            # rest to the application.
+            role.update_from_value()
+
         if missing := (set(role_strings) - set(role.value for role in roles)):
             new_roles = [LTIRole(value=value) for value in missing]
             self._db.add_all(new_roles)
