@@ -18,7 +18,14 @@
 
     GRANT USAGE ON SCHEMA report TO "{{fdw_user}}";
 
+    GRANT SELECT ON report.users TO "{{fdw_user}}";
+    GRANT SELECT ON report.user_map TO "{{fdw_user}}";
+    GRANT SELECT ON report.user_contact_details TO "{{fdw_user}}";
+    GRANT SELECT ON report.user_groups TO "{{fdw_user}}";
+    GRANT SELECT ON report.group_roles TO "{{fdw_user}}";
+
     GRANT SELECT ON report.organization_activity TO "{{fdw_user}}";
+
     GRANT SELECT ON report.groups TO "{{fdw_user}}";
     GRANT SELECT ON report.group_map TO "{{fdw_user}}";
     GRANT SELECT ON report.group_bubbled_activity TO "{{fdw_user}}";

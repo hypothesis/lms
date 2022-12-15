@@ -4,7 +4,7 @@ DROP MATERIALIZED VIEW IF EXISTS user_contact_details CASCADE;
 -- it was created. A view is ok, a materialized view is not.
 
 -- Contact details for users. At the moment this is limited to teachers only.
-CREATE MATERIALIZED VIEW user_contact_details AS (
+CREATE MATERIALIZED VIEW report.user_contact_details AS (
     WITH
         teachers_from_group_info AS (
             SELECT DISTINCT
