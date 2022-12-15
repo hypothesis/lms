@@ -92,6 +92,7 @@ class AdminOrganizationViews:
             name=self.request.params.get("name", "").strip(),
             notes=self.request.params.get("hypothesis.notes", "").strip(),
         )
+        self.request.session.flash("Updated organization", "messages")
 
         return {"org": org}
 
