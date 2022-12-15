@@ -3,7 +3,7 @@ from unittest.mock import sentinel
 import pytest
 from h_matchers import Any
 
-from lms.models import LTIRole
+from lms.models.lti_role import LTIRole, RoleScope, RoleType
 from lms.services.lti_role_service import LTIRoleService, service_factory
 from tests import factories
 
@@ -34,6 +34,18 @@ class TestLTIRoleService:
         roles = svc.get_roles(", ".join([role.value for role in existing_roles]))
 
         assert roles == existing_roles
+
+    def test_get_roles_updates_value(self, svc):
+        # Create a role where the type and scope don't match the value
+        factories.LTIRole(
+            _value="Instructor", type=RoleType.ADMIN, scope=RoleScope.SYSTEM
+        )
+
+        roles = svc.get_roles("Instructor")
+
+        assert len(roles) == 1
+        assert roles[0].type == RoleType.INSTRUCTOR
+        assert roles[0].scope == RoleScope.COURSE
 
     @pytest.fixture
     def svc(self, db_session):

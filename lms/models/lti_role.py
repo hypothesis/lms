@@ -54,8 +54,11 @@ class LTIRole(BASE):
     @value.setter
     def value(self, value):
         self._value = value
-        # pylint: disable=protected-access
-        self.scope, self.type = _RoleParser._parse_role(value)
+        self.update_from_value()
+
+    def update_from_value(self):
+        """Set scope and type based on `_value`."""
+        self.scope, self.type = _RoleParser.parse_role(self._value)
 
 
 class _RoleParser:
@@ -126,7 +129,7 @@ class _RoleParser:
     }
 
     @classmethod
-    def _parse_role(cls, role) -> Tuple[RoleScope, RoleType]:
+    def parse_role(cls, role) -> Tuple[RoleScope, RoleType]:
         """Parse roles according to the expected values from the specs."""
         role_parts = {}
         for regex in cls._ROLE_REGEXP:
