@@ -34,7 +34,7 @@
 {% macro settings_secret_field(label, setting, sub_setting, field_name, default='') %}
     {% call macros.field_body(label) %}
         <input
-            value="{{ "*" * 25 if instance.settings.get(setting, sub_setting, default) else '' }}"
+            placeholder="{{ "*" * 25 if instance.settings.get(setting, sub_setting, default) else '' }}"
             class="input"
             type="text"
             name="{{ setting }}.{{ sub_setting }}">
