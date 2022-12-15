@@ -1,4 +1,4 @@
-DROP MATERIALIZED VIEW IF EXISTS report.raw_groups CASCADE;
+DROP VIEW IF EXISTS report.raw_groups CASCADE;
 
 -- A view with our concept of a unique group in reporting, which happens to
 -- mostly conform to an H group with extra metadata. This view is not to be
