@@ -84,7 +84,7 @@ def get_policy(request):
     return UnAutheticatedSecurityPolicy()
 
 
-class UnAutheticatedSecurityPolicy:  # pragma: no cover
+class UnautheticatedSecurityPolicy:  # pragma: no cover
     """Security policy that always returns an unauthenticated user."""
 
     def authenticated_userid(self, _request):
