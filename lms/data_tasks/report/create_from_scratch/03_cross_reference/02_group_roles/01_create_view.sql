@@ -18,7 +18,7 @@ CREATE MATERIALIZED VIEW report.group_roles AS (
                 SELECT
                     application_instance_id,
                     authority_provided_id,
-                    jsonb_array_elements(info->'instructors') as instructor_info
+                    jsonb_array_elements(info->'instructors') AS instructor_info
                 FROM group_info
             ) AS old_teachers_json
             JOIN report.groups ON
