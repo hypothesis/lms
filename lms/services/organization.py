@@ -135,13 +135,16 @@ class OrganizationService:
 
         return org
 
-    def update_organization(self, organization, name=None, enabled=None):
+    def update_organization(self, organization, name=None, enabled=None, notes=None):
         """Update an existing organization."""
         if name:
             organization.name = name
 
         if enabled is not None:
             organization.enabled = enabled
+
+        if notes is not None:
+            organization.settings.set("hypothesis", "notes", notes)
 
         return organization
 

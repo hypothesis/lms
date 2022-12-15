@@ -141,13 +141,17 @@ class TestOrganizationService:
 
     @pytest.mark.parametrize("name", (None, "NAME"))
     @pytest.mark.parametrize("enabled", (None, True, False))
-    def test_update_organization(self, svc, name, enabled):
+    @pytest.mark.parametrize("notes", (None, "Some notes"))
+    def test_update_organization(self, svc, name, enabled, notes):
         org = svc.update_organization(
-            factories.Organization(), name=name, enabled=enabled
+            factories.Organization(), name=name, enabled=enabled, notes=notes
         )
 
         if name:
             assert org.name == name
+
+        if notes:
+            assert org.settings.get("hypothesis", "notes") == notes
 
         if enabled is not None:
             assert org.enabled == enabled

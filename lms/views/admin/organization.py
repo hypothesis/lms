@@ -88,7 +88,9 @@ class AdminOrganizationViews:
         org = self._get_org_or_404(self.request.matchdict["id_"])
 
         self.organization_service.update_organization(
-            org, name=self.request.params.get("name", "").strip()
+            org,
+            name=self.request.params.get("name", "").strip(),
+            notes=self.request.params.get("hypothesis.notes", "").strip(),
         )
 
         return {"org": org}
