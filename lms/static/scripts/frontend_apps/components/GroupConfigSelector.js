@@ -81,8 +81,7 @@ function GroupSelect({
 }
 
 /**
- *
- *  @typedef GroupSelectHeaderProps
+ * @typedef GroupSelectHeaderProps
  * @prop {string} htmlFor
  * @prop {string} productFamily
  *
@@ -97,8 +96,7 @@ function GroupSelectHeader({ htmlFor, productFamily }) {
 }
 
 /**
- *
- *  @typedef GroupSelectLoadingOptionProps
+ * @typedef GroupSelectLoadingOptionProps
  * @prop {string} productFamily
  *
  * @param {GroupSelectLoadingOptionProps} props
@@ -113,8 +111,7 @@ function GroupSelectLoadingOption({ productFamily }) {
 }
 
 /**
- *
- *  @typedef GroupSelectPromptOptionProps
+ * @typedef GroupSelectPromptOptionProps
  * @prop {string} productFamily
  * @prop {boolean} groupSelected
  *
