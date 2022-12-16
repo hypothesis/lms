@@ -142,7 +142,6 @@ export default function LaunchErrorDialog({
 
     case 'blackboard_group_set_not_found':
     case 'canvas_group_set_not_found':
-    case 'd2l_group_set_not_found':
       return (
         <ErrorModal
           busy={busy}
@@ -161,10 +160,28 @@ export default function LaunchErrorDialog({
           </p>
         </ErrorModal>
       );
+    case 'd2l_group_set_not_found':
+      return (
+        <ErrorModal
+          busy={busy}
+          error={error}
+          title="Assignment's group category no longer exists"
+        >
+          <p>
+            Hypothesis couldn&apos;t load this assignment because the
+            assignment&apos;s group category no longer exists.
+          </p>
+          <p>
+            <b>
+              To fix this problem, an instructor needs to edit the assignment
+              settings and select a new group category.
+            </b>
+          </p>
+        </ErrorModal>
+      );
 
     case 'blackboard_group_set_empty':
     case 'canvas_group_set_empty':
-    case 'd2l_group_set_empty':
       return (
         <ErrorModal
           busy={busy}
@@ -176,6 +193,22 @@ export default function LaunchErrorDialog({
             <b>
               To fix this problem, add groups to the group set or use a
               different group set for this assignment.
+            </b>
+          </p>
+        </ErrorModal>
+      );
+    case 'd2l_group_set_empty':
+      return (
+        <ErrorModal
+          busy={busy}
+          error={error}
+          title="Assignment's group category is empty"
+        >
+          <p>The group category for this Hypothesis assignment is empty. </p>
+          <p>
+            <b>
+              To fix this problem, add groups to the group category or use a
+              different group category for this assignment.
             </b>
           </p>
         </ErrorModal>
@@ -230,7 +263,8 @@ export default function LaunchErrorDialog({
         >
           <p>
             Hypothesis couldn&apos;t launch this assignment because you
-            aren&apos;t in any of the groups in the assignment&apos;s group set.
+            aren&apos;t in any of the groups in the assignment&apos;s group
+            category.
           </p>
           <p>
             <b>
