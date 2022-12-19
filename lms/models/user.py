@@ -39,3 +39,6 @@ class User(CreatedUpdatedMixin, BASE):
 
     h_userid = sa.Column(sa.Unicode, nullable=False)
     """The H userid which is created from LTI provided values."""
+
+    email = sa.Column(sa.Unicode, nullable=True)
+    """Email address of the user"""
