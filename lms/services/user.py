@@ -29,6 +29,7 @@ class UserService:
             # Update the existing user from the fields which can change on a
             # new one
             existing_user.roles = new_user.roles
+            self._set_email(existing_user, lti_user)
             return existing_user
 
         self._db.add(new_user)
@@ -67,13 +68,19 @@ class UserService:
             .one_or_none()
         )
 
+    def _set_email(self, user, lti_user):
+        if lti_user.is_instructor:
+            user.email = lti_user.email
+
     def _from_lti_user(self, lti_user: LTIUser) -> User:
-        return User(
+        user = User(
             application_instance_id=lti_user.application_instance_id,
             user_id=lti_user.user_id,
             roles=lti_user.roles,
             h_userid=lti_user.h_user.userid(self._h_authority),
         )
+        self._set_email(user, lti_user)
+        return user
 
 
 def factory(_context, request):
