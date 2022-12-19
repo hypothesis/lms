@@ -76,7 +76,7 @@ click-repl==0.2.0
     # via
     #   -r requirements/requirements.txt
     #   celery
-coverage==6.5.0
+coverage==7.0.0
     # via -r requirements/tests.in
 cryptography==36.0.2
     # via
