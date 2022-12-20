@@ -11,17 +11,6 @@ DOCUMENT_URL_REGEX = re.compile(
 )
 
 
-def _find_files(modules):
-    """Recursively find files in modules."""
-    for module in modules:
-        for topic in module.get("topics", []):
-            if topic.get("type") == "File":
-                yield topic
-
-        # Find submodules
-        yield from _find_files(module.get("modules", []))
-
-
 @view_config(
     request_method="GET",
     route_name="d2l_api.courses.files.list",
@@ -30,13 +19,7 @@ def _find_files(modules):
 )
 def list_files(_context, request):
     """Return the list of files in the given course."""
-    course_id = request.matchdict["course_id"]
-    results = request.find_service(D2LAPIClient).list_files(course_id)
-
-    for result in results:
-        result["id"] = f"d2l://file/course/{course_id}/file_id/{result['id']}/"
-
-    return results
+    return request.find_service(D2LAPIClient).list_files(request.matchdict["course_id"])
 
 
 @view_config(

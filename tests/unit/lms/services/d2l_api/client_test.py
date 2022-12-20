@@ -104,7 +104,7 @@ class TestD2LAPIClient:
                         "children": [
                             {
                                 "display_name": "TITLE 1",
-                                "id": "FILE 1",
+                                "id": "d2l://file/course/COURSE_ID/file_id/FILE 1/",
                                 "type": "File",
                                 "updated_at": "DATE 1",
                             },
@@ -116,7 +116,7 @@ class TestD2LAPIClient:
                                 "children": [
                                     {
                                         "display_name": "TITLE 2",
-                                        "id": "FILE 2",
+                                        "id": "d2l://file/course/COURSE_ID/file_id/FILE 2/",
                                         "type": "File",
                                         "updated_at": "DATE 2",
                                     },
@@ -147,6 +147,22 @@ class TestD2LAPIClient:
         )
 
         assert files == returned_files
+
+    def test_public_url(self, svc, basic_client):
+        public_url = svc.public_url("COURSE_ID", "FILE_ID")
+
+        basic_client.api_url.assert_any_call(
+            "/COURSE_ID/content/topics/FILE_ID", product="le"
+        )
+        basic_client.request.assert_called_once_with(
+            "GET", basic_client.api_url.return_value
+        )
+
+        basic_client.api_url.assert_called_with(
+            "/COURSE_ID/content/topics/FILE_ID/file?stream=1", product="le"
+        )
+
+        assert public_url == basic_client.api_url.return_value
 
     @pytest.mark.parametrize(
         "user_id,api_user_id",
