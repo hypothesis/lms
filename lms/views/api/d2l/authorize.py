@@ -8,7 +8,7 @@ from lms.services.d2l_api import D2LAPIClient
 from lms.validation.authentication import OAuthCallbackSchema
 
 GROUPS_SCOPES = ("groups:*:*",)
-FILES_SCOPES = ("content:toc:read",)
+FILES_SCOPES = ("content:toc:read", "content:topics:read")
 
 
 @view_config(
