@@ -4,7 +4,7 @@ from h_vialib import ViaClient
 __all__ = ["via_url"]
 
 
-def via_url(request, document_url, content_type=None, options=None):
+def via_url(request, document_url, content_type=None, options=None, headers=None):
     """
     Return the Via URL for annotating the given ``document_url``.
 
@@ -17,6 +17,7 @@ def via_url(request, document_url, content_type=None, options=None):
     :param document_url: Document URL to present in Via
     :param content_type: Either "pdf" or "html" if known, None if not
     :param options: Any extra options for the url
+    :param headers: Headers for the request to `document_url`
     :return: A URL string
     """
     if not options:
@@ -37,4 +38,5 @@ def via_url(request, document_url, content_type=None, options=None):
         content_type,
         blocked_for="lms",
         options=options,
+        headers=headers,
     )

@@ -1,10 +1,10 @@
 import re
+
 from pyramid.view import view_config
-from lms.views import helpers
 
 from lms.security import Permissions
 from lms.services.d2l_api import D2LAPIClient
-
+from lms.views import helpers
 
 DOCUMENT_URL_REGEX = re.compile(
     r"d2l:\/\/file\/course\/(?P<course_id>[^\/]*)\/file_id\/(?P<file_id>[^\/]*)\/"
@@ -38,5 +38,8 @@ def via_url(_context, request):
     access_token = request.find_service(name="oauth2_token").get().access_token
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    via_url = helpers.via_url(request, public_url, content_type="pdf", headers=headers)
-    return {"via_url": via_url}
+    return {
+        "via_url": helpers.via_url(
+            request, public_url, content_type="pdf", headers=headers
+        )
+    }

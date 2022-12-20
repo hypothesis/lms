@@ -20,9 +20,9 @@ class TestAuthorize:
         "groups,files,scopes",
         [
             (False, False, "core:*:*"),
-            (False, True, "core:*:* content:toc:read"),
+            (False, True, "core:*:* content:toc:read content:topics:read"),
             (True, False, "core:*:* groups:*:*"),
-            (True, True, "core:*:* content:toc:read groups:*:*"),
+            (True, True, "core:*:* content:toc:read content:topics:read groups:*:*"),
         ],
     )
     def test_it(
