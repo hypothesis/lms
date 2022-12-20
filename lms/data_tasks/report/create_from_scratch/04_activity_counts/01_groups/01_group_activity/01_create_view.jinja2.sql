@@ -24,18 +24,20 @@ CREATE MATERIALIZED VIEW report.group_activity AS (
         )
 
     SELECT
-        annotation_group_counts.created_week,
-        annotation_group_counts.group_id,
-        annotation_group_counts.count AS annotation_count,
-        annotation_group_counts.shared AS annotation_shared_count,
-        annotation_group_counts.replies AS annotation_replies_count,
+        COALESCE(annotation_group_counts.created_week, launch_counts.timestamp_week) AS created_week,
+        COALESCE(annotation_group_counts.group_id, launch_counts.group_id) AS group_id,
+        COALESCE(annotation_group_counts.count, 0) AS annotation_count,
+        COALESCE(annotation_group_counts.shared, 0) AS annotation_shared_count,
+        COALESCE(annotation_group_counts.replies, 0) AS annotation_replies_count,
         COALESCE(launch_counts.launch_count, 0) AS launch_count
     FROM h.annotation_group_counts
     JOIN h.authorities ON
         annotation_group_counts.authority_id = authorities.id
         AND authorities.authority = '{{ region.authority }}'
         -- AND authorities.authority = 'lms.hypothes.is'
-    LEFT OUTER JOIN launch_counts ON
+    -- Do a full outer join to ensure we get counts for launches, even if there
+    -- are no activity reports. Which is quite common for courses.
+    FULL OUTER JOIN launch_counts ON
         launch_counts.group_id = annotation_group_counts.group_id
         AND launch_counts.timestamp_week = annotation_group_counts.created_week
 ) WITH NO DATA;
