@@ -7,6 +7,7 @@ from pyramid.httpexceptions import HTTPClientError
 from lms.models import Assignment, GroupInfo, Grouping, HUser
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
+from lms.product.d2l import D2L
 from lms.resources._js_config.file_picker_config import FilePickerConfig
 from lms.services import HAPIError, JSTORService, VitalSourceService
 from lms.validation.authentication import BearerTokenSchema
@@ -68,6 +69,16 @@ class JSConfig:
                     resource_link_id=self._request.lti_params["resource_link_id"],
                 ),
             }
+        elif document_url.startswith("d2l://"):
+            self._config["api"]["viaUrl"] = {
+                "authUrl": self._request.route_url(D2L.route.oauth2_authorize),
+                "path": self._request.route_path(
+                    "d2l_api.courses.files.via_url",
+                    course_id=self._request.lti_params["context_id"],
+                    _query={"document_url": document_url},
+                ),
+            }
+
         elif document_url.startswith("vitalsource://"):
             svc: VitalSourceService = self._request.find_service(VitalSourceService)
 
