@@ -23,16 +23,27 @@ class UserService:
 
     def upsert_user(self, lti_user: LTIUser) -> User:
         """Store a record of having seen a particular user."""
-        new_user = self._from_lti_user(lti_user)
+        user = User(
+            application_instance_id=lti_user.application_instance_id,
+            user_id=lti_user.user_id,
+            roles=lti_user.roles,
+            h_userid=lti_user.h_user.userid(self._h_authority),
+        )
 
-        if existing_user := self._find_existing_user(model_user=new_user):
+        if existing_user := self._find_existing_user(model_user=user):
             # Update the existing user from the fields which can change on a
             # new one
-            existing_user.roles = new_user.roles
-            return existing_user
+            existing_user.roles = user.roles
+            user = existing_user
+        else:
+            self._db.add(user)
 
-        self._db.add(new_user)
-        return new_user
+        if lti_user.is_instructor:
+            # We are only storing these personal details for teachers now.
+            user.email = lti_user.email
+            user.display_name = lti_user.display_name
+
+        return user
 
     @lru_cache(maxsize=128)
     def get(self, application_instance, user_id: str) -> User:
@@ -65,14 +76,6 @@ class UserService:
                 user_id=model_user.user_id,
             )
             .one_or_none()
-        )
-
-    def _from_lti_user(self, lti_user: LTIUser) -> User:
-        return User(
-            application_instance_id=lti_user.application_instance_id,
-            user_id=lti_user.user_id,
-            roles=lti_user.roles,
-            h_userid=lti_user.h_user.userid(self._h_authority),
         )
 
 
