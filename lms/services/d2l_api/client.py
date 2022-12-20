@@ -117,7 +117,33 @@ class D2LAPIClient:
         """Get a nested list of files and folders for the given `org_unit`."""
 
         modules = self._get_course_modules(org_unit)
-        return list(self._find_files(modules))
+        return list(self._find_files(org_unit, modules))
+
+    def public_url(self, org_unit, file_id) -> str:
+        """
+        Return the URL to download the given file.
+
+        As opposed to other LMS's that return a one time signed URL that we can then pass along to Via
+        D2L requires us to send the API authentication header to get the file contents.
+
+        To make sure the API authentication header is not expired we'll make a API
+        request here so if it needs to be refreshed we follow the standard token refresh procedure.
+
+        https://docs.valence.desire2learn.com/res/content.html#get--d2l-api-le-(version)-(orgUnitId)-content-topics-(topicId)
+        https://docs.valence.desire2learn.com/res/content.html#get--d2l-api-le-(version)-(orgUnitId)-content-topics-(topicId)-file
+        """
+
+        # We don't need the data from this call.
+        # We are only interested on the potential side effect of needing
+        # a new access token and/or refreshing an existing one.
+        _ = self._api.request(
+            "GET",
+            self._api.api_url(f"/{org_unit}/content/topics/{file_id}", product="le"),
+        )
+
+        return self._api.api_url(
+            f"/{org_unit}/content/topics/{file_id}/file?stream=1", product="le"
+        )
 
     @staticmethod
     def get_api_user_id(user_id: str):
@@ -145,21 +171,21 @@ class D2LAPIClient:
         )
         return D2LTableOfContentsSchema(response).parse().get("modules", [])
 
-    def _find_files(self, modules):
+    def _find_files(self, course_id, modules):
         """Recursively find files in modules."""
         for module in modules:
             module_files = [
                 {
                     "type": "File",
                     "display_name": topic["display_name"],
-                    "id": topic["id"],
+                    "id": f"d2l://file/course/{course_id}/file_id/{topic['id']}/",
                     "updated_at": topic["updated_at"],
                 }
                 for topic in module.get("topics", [])
                 if topic.get("type") == "File"
             ]
 
-            module_children = self._find_files(module.get("modules", []))
+            module_children = self._find_files(course_id, module.get("modules", []))
             yield {
                 "type": "Folder",
                 "display_name": module["display_name"],
