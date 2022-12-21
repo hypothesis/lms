@@ -17,69 +17,38 @@ down_revision = "e32d2cf33591"
 def upgrade():
     conn = op.get_bind()
 
-    # Flatten group_info.info.instructors
     conn.execute(
-        """CREATE TEMPORARY VIEW group_info_instructors AS (
+        """
+        WITH user_details AS (
             SELECT
-                group_info.application_instance_id,
-                instructors.email,
-                instructors.display_name,
-                instructors.provider_unique_id,
-                -- Rank emails by latest group_info.id
-                row_number() over (partition by (instructors.provider_unique_id,  group_info.application_instance_id) order by group_info.id desc) as rank
+                "user".id,
+                -- Pick the last non-empty value by group info id
+                (
+                    ARRAY_AGG(instructors.email ORDER BY group_info.id DESC)
+                    FILTER (WHERE instructors.email IS NOT NULL AND instructors.email <> '')
+                )[1] AS email,
+                (
+                    ARRAY_AGG(instructors.display_name ORDER BY group_info.id DESC)
+                    FILTER (WHERE instructors.display_name IS NOT NULL AND instructors.display_name <> '')
+                )[1] AS display_name
             FROM
-                group_info,
-                jsonb_to_recordset(group_info.info->'instructors') as instructors(email text, username text, display_name text,provider_unique_id text )
-        );"""
-    )
-
-    # Migrate emails
-    result_emails = conn.execute(
-        """
-        UPDATE "user"
-            SET email=group_info_emails.email
-            FROM (
-                SELECT "user".id, group_info_instructors.email
-                FROM group_info_instructors
-                LEFT OUTER JOIN "user" ON group_info_instructors.application_instance_id = "user".application_instance_id AND provider_unique_id = user_id
-                WHERE
-                    -- Only take the latest info from group_info for duplicates
-                    rank = 1
-                    -- Only take instructors that have an email in group_info
-                    AND group_info_instructors.email IS NOT NULL AND group_info_instructors.email <> ''
-                    --  And that we can match to a user in "user"
-                    AND "user".id IS NOT NULL
-                    -- Don't override any email we already had
-                    AND "user".display_name IS NULL
-            ) as group_info_emails
-        WHERE "user".id = group_info_emails.id
+                group_info
+            CROSS JOIN LATERAL
+                jsonb_to_recordset(group_info.info->'instructors') AS instructors(email text, display_name text, provider_unique_id text)
+            JOIN "user" ON
+                "user".application_instance_id = group_info.application_instance_id
+                AND "user".user_id = instructors.provider_unique_id
+            GROUP BY "user".id
+        )
+    UPDATE "user"
+    SET
+        -- Only overwrite nulls
+        email=COALESCE("user".email, user_details.email),
+        display_name=COALESCE("user".display_name, user_details.display_name)
+    FROM user_details
+    WHERE "user".id = user_details.id
     """
     )
-
-    #  Migrate display_name
-    result_names = conn.execute(
-        """
-        UPDATE "user"
-            SET display_name=group_info_names.display_name
-            FROM (
-                SELECT "user".id, group_info_instructors.display_name
-                FROM group_info_instructors
-                LEFT OUTER JOIN "user" ON group_info_instructors.application_instance_id = "user".application_instance_id AND provider_unique_id = user_id
-                WHERE
-                    -- Only take the latest info from group_info for duplicates
-                    rank = 1
-                    -- Only take instructors that have a name in group_info
-                    AND group_info_instructors.display_name IS NOT NULL AND group_info_instructors.display_name <> ''
-                    --  And that we can match to a user in "user"
-                    AND "user".id IS NOT NULL
-                    -- Don't override any names we already had
-                    AND "user".display_name IS NULL
-            ) as group_info_names
-        WHERE "user".id = group_info_names.id
-    """
-    )
-    print("\tUpdated user rows with email from group_info:", result_emails.rowcount)
-    print("\tUpdated user rows with names from group_info:", result_names.rowcount)
 
 
 def downgrade():
