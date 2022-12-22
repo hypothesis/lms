@@ -146,8 +146,13 @@ export default function LMSFilePicker({
    * @param {File} folder
    */
   const onChangePath = folder => {
-    setSelectedFile(null);
+    console.log("CHANGE PATH");
+    console.log("FILES", folder);
     const currentIndex = folderPath.findIndex(file => file.id === folder.id);
+    if ('children' in folder) {
+      const files = folder.children;
+      setDialogState({ state: 'fetched', files });
+    }
     if (currentIndex >= 0) {
       // If the selected folder is already in the path, remove any entries
       // below (after) it to make it the last entry
@@ -199,7 +204,9 @@ export default function LMSFilePicker({
 
   // Update the file list any time the path changes
   useEffect(() => {
-    fetchFiles();
+    if (selectedFile == null || !('children' in selectedFile)) {
+      fetchFiles();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [folderPath]);
 
