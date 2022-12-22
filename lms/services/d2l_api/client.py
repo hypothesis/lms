@@ -32,7 +32,7 @@ class _D2LTopic(Schema):
         unknown = EXCLUDE
 
     id = fields.Str(required=True, data_key="Identifier")
-    name = fields.Str(required=True, data_key="Title")
+    display_name = fields.Str(required=True, data_key="Title")
     updated_at = fields.Str(required=True, data_key="LastModifiedDate")
     type = fields.Str(required=True, data_key="TypeIdentifier")
 
@@ -41,6 +41,9 @@ class _D2LModuleSchema(Schema):
     class Meta:
         unknown = EXCLUDE
 
+    id = fields.Int(required=True, data_key="ModuleId")
+    display_name = fields.Str(required=True, data_key="Title")
+    updated_at = fields.Str(required=True, data_key="LastModifiedDate")
     modules = fields.List(
         fields.Nested(lambda: _D2LModuleSchema), required=False, data_key="Modules"
     )
