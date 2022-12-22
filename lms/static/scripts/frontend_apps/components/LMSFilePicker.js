@@ -58,6 +58,8 @@ function NoFilesMessage({ href, inSubfolder }) {
  *   when the API call to returns available files returns an empty list.
  * @prop {boolean} [withBreadcrumbs=false] - Render path breadcrumbs and allow
  *   sub-folder navigation?
+ * @prop {boolean} [apiSendsChildren=false] - Does the backend send all files contained in folders?
+ *   When `false` a new backend request is made per folder when navigating.
  */
 
 /**
@@ -113,6 +115,7 @@ export default function LMSFilePicker({
   onSelectFile,
   missingFilesHelpLink,
   withBreadcrumbs = false,
+  apiSendsChildren = false,
 }) {
   const [dialogState, setDialogState] = useState(
     /** @type {LMSFilePickerState} */ ({ state: 'fetching', isReload: false })
@@ -146,12 +149,10 @@ export default function LMSFilePicker({
    * @param {File} folder
    */
   const onChangePath = folder => {
-    console.log("CHANGE PATH");
-    console.log("FILES", folder);
     const currentIndex = folderPath.findIndex(file => file.id === folder.id);
-    if ('children' in folder) {
-      const files = folder.children;
-      setDialogState({ state: 'fetched', files });
+    if (apiSendsChildren) {
+      // If we already have the children in the client, set them on folder changes
+      setDialogState({ state: 'fetched', files: folder.children });
     }
     if (currentIndex >= 0) {
       // If the selected folder is already in the path, remove any entries
@@ -189,6 +190,11 @@ export default function LMSFilePicker({
         if (pathChanged) {
           return;
         }
+        if (apiSendsChildren) {
+          // If the backend is sending all the tree structure
+          // append these to the top level `__root___` folder.
+          folderPath[0].children = files;
+        }
         setDialogState({ state: 'fetched', files });
       } catch (error) {
         if (isAuthorizationError(error)) {
@@ -199,12 +205,13 @@ export default function LMSFilePicker({
       }
       setInitialFetch(false);
     },
-    [authToken, folderPath, listFilesApi]
+    [authToken, folderPath, listFilesApi, apiSendsChildren]
   );
 
   // Update the file list any time the path changes
   useEffect(() => {
-    if (selectedFile == null || !('children' in selectedFile)) {
+    if (selectedFile === null || !apiSendsChildren) {
+      // Only fetch files again from the server if all were not send in the first request
       fetchFiles();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
