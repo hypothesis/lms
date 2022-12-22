@@ -195,7 +195,21 @@ export default function LMSFilePicker({
           // append these to the top level `__root___` folder.
           folderPath[0].children = files;
         }
-        setDialogState({ state: 'fetched', files });
+
+        if (apiSendsChildren && isReload) {
+          let reloaded_files = files;
+          // Iterate over the paths skipping the first `__root__` elmement
+          for (let i = 1; i < folderPath.length; i++) {
+            const path = folderPath[i];
+            // Find this level's path in the files returned
+            const foundPath = reloaded_files.find(file => file.id === path.id);
+            reloaded_files = foundPath ? foundPath.children : [];
+          }
+          // Set the files at the correct path
+          setDialogState({ state: 'fetched', files: reloaded_files });
+        } else {
+          setDialogState({ state: 'fetched', files });
+        }
       } catch (error) {
         if (isAuthorizationError(error)) {
           setDialogState({ state: 'authorizing', isRetry: isReload });
