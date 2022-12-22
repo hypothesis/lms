@@ -28,6 +28,8 @@ class D2LGroupsSchema(RequestsResponseSchema):
 
 
 class _D2LTopic(Schema):
+    """Files and assigmetns are topics within a module."""
+
     class Meta:
         unknown = EXCLUDE
 
@@ -38,6 +40,8 @@ class _D2LTopic(Schema):
 
 
 class _D2LModuleSchema(Schema):
+    """D2L course sections are called "modules". They can contain nested sub-modules."""
+
     class Meta:
         unknown = EXCLUDE
 
@@ -109,16 +113,11 @@ class D2LAPIClient:
 
         return groups
 
-    def course_table_of_contents(self, org_unit) -> List[dict]:
-        """
-        Get a list of modules in the given course.
+    def list_files(self, org_unit) -> List[dict]:
+        """Get a nested list of files and folders for the given `org_unit`."""
 
-        https://docs.valence.desire2learn.com/res/content.html#get--d2l-api-le-(version)-(orgUnitId)-content-toc
-        """
-        response = self._api.request(
-            "GET", self._api.api_url(f"/{org_unit}/content/toc", product="le")
-        )
-        return D2LTableOfContentsSchema(response).parse().get("modules", [])
+        modules = self._get_course_modules(org_unit)
+        return list(self._find_files(modules))
 
     @staticmethod
     def get_api_user_id(user_id: str):
@@ -134,3 +133,37 @@ class D2LAPIClient:
         so we don't take the second part of the string but the last.
         """
         return user_id.split("_")[-1]
+
+    def _get_course_modules(self, org_unit) -> List[dict]:
+        """
+        Get a list of modules in the given course.
+
+        https://docs.valence.desire2learn.com/res/content.html#get--d2l-api-le-(version)-(orgUnitId)-content-toc
+        """
+        response = self._api.request(
+            "GET", self._api.api_url(f"/{org_unit}/content/toc", product="le")
+        )
+        return D2LTableOfContentsSchema(response).parse().get("modules", [])
+
+    def _find_files(self, modules):
+        """Recursively find files in modules."""
+        for module in modules:
+            module_files = [
+                {
+                    "type": "File",
+                    "display_name": topic["display_name"],
+                    "id": topic["id"],
+                    "updated_at": topic["updated_at"],
+                }
+                for topic in module.get("topics", [])
+                if topic.get("type") == "File"
+            ]
+
+            module_children = self._find_files(module.get("modules", []))
+            yield {
+                "type": "Folder",
+                "display_name": module["display_name"],
+                "id": module["id"],
+                "updated_at": module["updated_at"],
+                "children": module_files + list(module_children),
+            }
