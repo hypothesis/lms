@@ -311,6 +311,10 @@ multidict==5.2.0
     #   -r requirements/tests.txt
     #   aiohttp
     #   yarl
+mypy==0.991
+    # via -r requirements/lint.in
+mypy-extensions==0.4.3
+    # via mypy
 newrelic==8.5.0
     # via
     #   -r requirements/bddtests.txt
@@ -564,6 +568,8 @@ sqlalchemy==1.4.45
     #   alembic
     #   data-tasks
     #   zope-sqlalchemy
+sqlalchemy2-stubs==0.0.2a31
+    # via -r requirements/lint.in
 sqlparse==0.4.3
     # via
     #   -r requirements/bddtests.txt
@@ -588,6 +594,7 @@ tomli==2.0.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   build
+    #   mypy
     #   pep517
     #   pylint
     #   pytest
@@ -606,6 +613,16 @@ translationstring==1.4
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid
+types-oauthlib==3.2.0.1
+    # via -r requirements/lint.in
+types-python-jose==3.3.4
+    # via -r requirements/lint.in
+types-requests==2.28.11.7
+    # via -r requirements/lint.in
+types-urllib3==1.26.25.4
+    # via types-requests
+types-xmltodict==0.13.0.1
+    # via -r requirements/lint.in
 typing-extensions==4.0.0
     # via
     #   -r requirements/bddtests.txt
@@ -613,7 +630,9 @@ typing-extensions==4.0.0
     #   -r requirements/tests.txt
     #   astroid
     #   async-timeout
+    #   mypy
     #   pylint
+    #   sqlalchemy2-stubs
 urllib3==1.26.5
     # via
     #   -r requirements/bddtests.txt

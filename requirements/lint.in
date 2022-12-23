@@ -1,3 +1,10 @@
+mypy
+types-requests
+types-xmltodict
+types-python-jose
+types-oauthlib
+sqlalchemy2-stubs
+
 pip-tools
 pip-sync-faster
 pylint
