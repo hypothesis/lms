@@ -58,7 +58,7 @@
   "devDependencies": {
     "@types/gapi": "^0.0.43",
     "@types/google.accounts": "^0.0.4",
-    "@typescript-eslint/eslint-plugin": "^5.46.1",
+    "@typescript-eslint/eslint-plugin": "^5.47.0",
     "@typescript-eslint/parser": "^5.46.1",
     "axe-core": "^4.6.1",
     "babel-plugin-istanbul": "^6.1.1",
