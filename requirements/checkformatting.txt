@@ -5,80 +5,80 @@
 #    pip-compile --allow-unsafe requirements/checkformatting.in
 #
 black==22.12.0
-    # via -r requirements/format.txt
+    # via -r format.txt
 build==0.8.0
     # via
-    #   -r requirements/format.txt
+    #   -r format.txt
     #   pip-tools
 click==8.0.3
     # via
-    #   -r requirements/format.txt
+    #   -r format.txt
     #   black
     #   pip-tools
 importlib-metadata==4.12.0
     # via
-    #   -r requirements/format.txt
+    #   -r format.txt
     #   pip-sync-faster
 isort==5.11.4
-    # via -r requirements/format.txt
+    # via -r format.txt
 mypy-extensions==0.4.3
     # via
-    #   -r requirements/format.txt
+    #   -r format.txt
     #   black
 packaging==21.3
     # via
-    #   -r requirements/format.txt
+    #   -r format.txt
     #   build
 pathspec==0.9.0
     # via
-    #   -r requirements/format.txt
+    #   -r format.txt
     #   black
 pep517==0.12.0
     # via
-    #   -r requirements/format.txt
+    #   -r format.txt
     #   build
 pip-sync-faster==0.0.3
     # via
-    #   -r requirements/checkformatting.in
-    #   -r requirements/format.txt
+    #   -r checkformatting.in
+    #   -r format.txt
 pip-tools==6.10.0
     # via
-    #   -r requirements/checkformatting.in
-    #   -r requirements/format.txt
+    #   -r checkformatting.in
+    #   -r format.txt
     #   pip-sync-faster
 platformdirs==2.4.0
     # via
-    #   -r requirements/format.txt
+    #   -r format.txt
     #   black
 pyparsing==3.0.9
     # via
-    #   -r requirements/format.txt
+    #   -r format.txt
     #   packaging
 tomli==1.2.2
     # via
-    #   -r requirements/format.txt
+    #   -r format.txt
     #   black
     #   build
     #   pep517
 typing-extensions==4.0.0
     # via
-    #   -r requirements/format.txt
+    #   -r format.txt
     #   black
 wheel==0.37.1
     # via
-    #   -r requirements/format.txt
+    #   -r format.txt
     #   pip-tools
 zipp==3.8.1
     # via
-    #   -r requirements/format.txt
+    #   -r format.txt
     #   importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 pip==22.1.2
     # via
-    #   -r requirements/format.txt
+    #   -r format.txt
     #   pip-tools
-setuptools==62.6.0
+setuptools==65.5.1
     # via
-    #   -r requirements/format.txt
+    #   -r format.txt
     #   pip-tools
