@@ -4,7 +4,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
 
-from lms.db import BASE
+from lms.db import BASE, varchar_enum
 from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.application_settings import ApplicationSettings
 
@@ -114,7 +114,7 @@ class Grouping(CreatedUpdatedMixin, BASE):
     #: Full name given on the LMS (e.g. "A course name 101")
     lms_name = sa.Column(sa.UnicodeText(), nullable=False)
 
-    type = sa.Column(sa.Unicode(), nullable=False)
+    type = varchar_enum(Type, nullable=False)
 
     settings = sa.Column(
         "settings",
