@@ -9,6 +9,42 @@ import { useUniqueId } from '../utils/hooks';
 import AuthorizationModal from './AuthorizationModal';
 import ErrorModal from './ErrorModal';
 
+const messages = {
+  groupSetLabel: 'Group set: ',
+  groupSetLabel_desire2learn: 'Group category: ',
+  noGroupSets: 'No group sets found',
+  noGroupSets_desire2learn: 'No group categories found',
+  needPermissionToShowGroupSets:
+    'Hypothesis needs your permission to show group sets.',
+  needPermissionToShowGroupSets_desire2learn:
+    'Hypothesis needs your permission to show group categories.',
+  problemFetchingGroupSets: 'There was a problem fetching group sets',
+  problemFetchingGroupSets_desire2learn:
+    'There was a problem fetching group categories',
+  pleaseAddGroupSets:
+    'Please add one or more group sets to your course and try again.',
+  pleaseAddGroupSets_desire2learn:
+    'Please add one or more group categories to your course and try again.',
+  reliesGroupSetsCantFind:
+    'Hypothesis relies on group sets to place students into groups, but we could not find any available group sets in this course.',
+  reliesGroupSetsCantFind_desire2learn:
+    'Hypothesis relies on group categories to place students into groups, but we could not find any available group categories in this course.',
+  fetchingGroupSets: 'Fetching group sets…',
+  fetchingGroupSets_desire2learn: 'Fetching group categories…',
+  selectGroupSet: 'Select group set',
+  selectGroupSet_desire2learn: 'Select group category',
+};
+
+/**
+ * Poor man's gettext. Not used for i18n but to account for nomenclature differences across LMS
+ *
+ * @param {string} id
+ * @param {string|null} productFamily
+ * @returns {string}
+ */
+const message = (id, productFamily) =>
+  messages[id + '_' + productFamily] ?? messages[id];
+
 /**
  * @typedef {import('../api-types').GroupSet} GroupSet
  */
@@ -38,10 +74,15 @@ import ErrorModal from './ErrorModal';
  */
 function GroupSelect({ busy, groupSets, onInput, selectedGroupSetId }) {
   const selectId = useUniqueId('GroupSetSelector__select');
+  const {
+    product: { family: productFamily },
+  } = useContext(Config);
 
   return (
     <>
-      <label htmlFor={selectId}>Group set: </label>
+      <label htmlFor={selectId}>
+        {message('groupSetLabel', productFamily)}
+      </label>
       <select
         disabled={busy}
         id={selectId}
@@ -49,11 +90,11 @@ function GroupSelect({ busy, groupSets, onInput, selectedGroupSetId }) {
           onInput(/** @type {HTMLInputElement} */ (e.target).value || null)
         }
       >
-        {busy && <option>Fetching group sets…</option>}
+        {busy && <option>{message('fetchingGroupSets', productFamily)}</option>}
         {groupSets && (
           <>
             <option disabled selected={selectedGroupSetId === null}>
-              Select group set
+              {message('selectGroupSet', productFamily)}
             </option>
             <hr />
             {groupSets.map(gs => (
@@ -80,16 +121,20 @@ function GroupSelect({ busy, groupSets, onInput, selectedGroupSetId }) {
  *   @param {() => void} props.onCancel
  */
 function NoGroupsError({ onCancel }) {
+  const {
+    product: { family: productFamily },
+  } = useContext(Config);
+
   return (
-    <ErrorModal onCancel={onCancel} title="No group sets found">
+    <ErrorModal
+      onCancel={onCancel}
+      title={message('noGroupSets', productFamily)}
+    >
       <>
+        <p>{message('reliesGroupSetsCantFind', productFamily)}</p>
         <p>
-          Hypothesis relies on group sets to place students into groups, but we
-          could not find any available group sets in this course.
-        </p>
-        <p>
-          Please add one or more group sets to your course and try again. We
-          also have some{' '}
+          {message('pleaseAddGroupSets', productFamily)}
+          We also have some{' '}
           <Link
             href="https://web.hypothes.is/?s=group&ht-kb-search=1&lang=%0D%0A%09%09"
             target="_blank"
@@ -143,6 +188,7 @@ export default function GroupConfigSelector({
   const {
     api: { authToken },
     product: {
+      family: productFamily,
       api: { listGroupSets: listGroupSetsAPI },
     },
   } = useContext(Config);
@@ -220,14 +266,14 @@ export default function GroupConfigSelector({
           onAuthComplete={fetchGroupSets}
           onCancel={onErrorCancel}
         >
-          <p>Hypothesis needs your permission to show group sets.</p>
+          <p>{message('needPermissionToShowGroupSets', productFamily)}</p>
         </AuthorizationModal>
       );
     } else {
       return (
         <ErrorModal
           cancelLabel="Cancel"
-          description="There was a problem fetching group sets"
+          description={message('problemFetchingGroupSets', productFamily)}
           error={fetchError}
           onCancel={onErrorCancel}
           onRetry={fetchGroupSets}
