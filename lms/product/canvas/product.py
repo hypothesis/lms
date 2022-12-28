@@ -14,6 +14,7 @@ class Canvas(Product):
         oauth2_authorize="canvas_api.oauth.authorize",
         oauth2_refresh="canvas_api.oauth.refresh",
         list_group_sets="canvas_api.courses.group_sets.list",
+        list_course_files="canvas_api.courses.files.list",
     )
 
     plugin_config: PluginConfig = PluginConfig(grouping=CanvasGroupingPlugin)

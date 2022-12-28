@@ -19,6 +19,7 @@ class D2L(Product):
         oauth2_authorize="d2l_api.oauth.authorize",
         oauth2_refresh="d2l_api.oauth.refresh",
         list_group_sets="d2l_api.courses.group_sets.list",
+        list_course_files="d2l_api.courses.files.list",
     )
 
     settings_key = "desire2learn"

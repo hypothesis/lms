@@ -37,6 +37,9 @@ class Routes:
     list_group_sets: Optional[str] = None
     """List available group sets. Takes a course_id parameter"""
 
+    list_course_files: Optional[str] = None
+    """List files in a course. Takes a course_id parameter"""
+
 
 @dataclass
 class Settings:

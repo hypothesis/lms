@@ -14,6 +14,7 @@ class Blackboard(Product):
         oauth2_authorize="blackboard_api.oauth.authorize",
         oauth2_refresh="blackboard_api.oauth.refresh",
         list_group_sets="blackboard_api.courses.group_sets.list",
+        list_course_files="blackboard_api.courses.files.list",
     )
 
     plugin_config: PluginConfig = PluginConfig(grouping=BlackboardGroupingPlugin)
