@@ -299,6 +299,7 @@ class AdminApplicationInstanceViews:
             ("blackboard", "groups_enabled", bool),
             ("canvas", "sections_enabled", bool),
             ("canvas", "groups_enabled", bool),
+            ("canvas", "files_enabled", bool),
             ("desire2learn", "client_id", str),
             ("desire2learn", "client_secret", aes_secret),
             ("desire2learn", "groups_enabled", bool),
