@@ -24,6 +24,7 @@ def create_application_instance(request):
             "canvas": {
                 "sections_enabled": False,
                 "groups_enabled": bool(developer_key),
+                "files_enabled": bool(developer_key),
             }
         },
     )
