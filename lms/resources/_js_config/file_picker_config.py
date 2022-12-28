@@ -36,7 +36,6 @@ class FilePickerConfig:
         course_id = request.lti_params.get("context_id")
 
         config = {"enabled": files_enabled}
-
         if files_enabled:
             config["listFiles"] = {
                 "authUrl": auth_url,
@@ -51,23 +50,21 @@ class FilePickerConfig:
     def canvas_config(cls, request, application_instance):
         """Get Canvas files config."""
 
-        enabled = (request.product.family == Product.Family.CANVAS) and (
-            "custom_canvas_course_id" in request.lti_params
-            and application_instance.developer_key is not None
-        )
+        files_enabled = request.product.settings.files_enabled
 
         auth_url = request.route_url(Canvas.route.oauth2_authorize)
         course_id = request.lti_params.get("custom_canvas_course_id")
 
-        config = {
-            "enabled": enabled,
-            "listFiles": {
-                "authUrl": auth_url,
-                "path": request.route_path(
-                    "canvas_api.courses.files.list", course_id=course_id
-                ),
-            },
-        }
+        config = {"enabled": files_enabled}
+        if files_enabled:
+            config["listFiles"] = {
+                "listFiles": {
+                    "authUrl": auth_url,
+                    "path": request.route_path(
+                        "canvas_api.courses.files.list", course_id=course_id
+                    ),
+                },
+            }
 
         return config
 
