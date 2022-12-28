@@ -9,8 +9,8 @@ from lms.views.application_instances import (
 
 class TestCreateApplicationInstance:
     @pytest.mark.parametrize(
-        "developer_key,canvas_sections_enabled, canvas_groups_enabled",
-        [("test_developer_key", False, True), ("", False, False)],
+        "developer_key,canvas_sections_enabled, canvas_groups_enabled, canvas_files_enabled",
+        [("test_developer_key", False, True, True), ("", False, False, False)],
     )
     def test_it(
         self,
@@ -19,6 +19,7 @@ class TestCreateApplicationInstance:
         developer_key,
         canvas_sections_enabled,
         canvas_groups_enabled,
+        canvas_files_enabled,
     ):
         pyramid_request.params["developer_key"] = developer_key
         pyramid_request.params["developer_secret"] = "test_developer_secret"
@@ -35,6 +36,7 @@ class TestCreateApplicationInstance:
                     "canvas": {
                         "sections_enabled": canvas_sections_enabled,
                         "groups_enabled": canvas_groups_enabled,
+                        "files_enabled": canvas_files_enabled,
                     }
                 }
             ),
