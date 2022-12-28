@@ -19,6 +19,7 @@ class ApplicationSettings(JSONSettings):
         JSONSetting("blackboard", "groups_enabled", asbool),
         JSONSetting("canvas", "sections_enabled", asbool),
         JSONSetting("canvas", "groups_enabled", asbool),
+        JSONSetting("canvas", "files_enabled", asbool),
         JSONSetting("desire2learn", "client_id"),
         JSONSetting("desire2learn", "client_secret", JSONSetting.AES_SECRET),
         JSONSetting("desire2learn", "groups_enabled", asbool),
