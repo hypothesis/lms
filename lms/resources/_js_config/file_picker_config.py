@@ -1,4 +1,3 @@
-from lms.product import Product
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
 from lms.product.d2l import D2L
@@ -9,61 +8,49 @@ class FilePickerConfig:
     """Config generation for specific file pickers."""
 
     @classmethod
-    def d2l_config(cls, request, _application_instance):
+    def d2l_config(cls, request, application_instance):
         """Get D2L files config."""
-        files_enabled = (
-            request.product.family == D2L.family
-            and request.product.settings.files_enabled
+        return cls._lms_files_config(
+            request, D2L, application_instance, request.lti_params.get("context_id")
         )
-        config = {"enabled": files_enabled}
-        if files_enabled:
-            config["listFiles"] = {
-                "authUrl": request.route_url(D2L.route.oauth2_authorize),
-                "path": request.route_path(
-                    "d2l_api.courses.files.list",
-                    course_id=request.lti_params.get("context_id"),
-                ),
-            }
-
-        return config
 
     @classmethod
     def blackboard_config(cls, request, application_instance):
         """Get Blackboard files config."""
-        files_enabled = application_instance.settings.get("blackboard", "files_enabled")
-
-        auth_url = request.route_url(Blackboard.route.oauth2_authorize)
-        course_id = request.lti_params.get("context_id")
-
-        config = {"enabled": files_enabled}
-        if files_enabled:
-            config["listFiles"] = {
-                "authUrl": auth_url,
-                "path": request.route_path(
-                    "blackboard_api.courses.files.list", course_id=course_id
-                ),
-            }
-
-        return config
+        return cls._lms_files_config(
+            request,
+            Blackboard,
+            application_instance,
+            request.lti_params.get("context_id"),
+        )
 
     @classmethod
     def canvas_config(cls, request, application_instance):
         """Get Canvas files config."""
 
-        files_enabled = request.product.settings.files_enabled
+        return cls._lms_files_config(
+            request,
+            Canvas,
+            application_instance,
+            request.lti_params.get("custom_canvas_course_id"),
+        )
 
-        auth_url = request.route_url(Canvas.route.oauth2_authorize)
-        course_id = request.lti_params.get("custom_canvas_course_id")
+    @classmethod
+    def _lms_files_config(cls, request, product, application_instance, course_id):
+        """Get the config for the current LMS file storage."""
+        product = product.from_request(request, dict(application_instance.settings))
+
+        files_enabled = (
+            request.product.family == product.family and product.settings.files_enabled
+        )
 
         config = {"enabled": files_enabled}
         if files_enabled:
             config["listFiles"] = {
-                "listFiles": {
-                    "authUrl": auth_url,
-                    "path": request.route_path(
-                        "canvas_api.courses.files.list", course_id=course_id
-                    ),
-                },
+                "authUrl": request.route_url(product.route.oauth2_authorize),
+                "path": request.route_path(
+                    product.route.list_course_files, course_id=course_id
+                ),
             }
 
         return config

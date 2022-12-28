@@ -1,7 +1,6 @@
 from unittest.mock import sentinel
 
 import pytest
-from h_matchers import Any
 
 from lms.product import Product
 from lms.product.d2l import D2L
@@ -34,19 +33,19 @@ class TestFilePickerConfig:
     @pytest.mark.parametrize(
         "family,files_enabled",
         [
-            ("desire2learn", False),
-            ("Blackboard", False),
+            # ("desire2learn", False),
+            # ("Blackboard", False),
             ("desire2learn", True),
         ],
     )
-    def test_d2l_config(self, pyramid_request, family, files_enabled):
+    def test_d2l_config(
+        self, pyramid_request, family, files_enabled, application_instance
+    ):
         pyramid_request.lti_params["context_id"] = "COURSE_ID"
         pyramid_request.product.family = family
         pyramid_request.product.settings.files_enabled = files_enabled
 
-        config = FilePickerConfig.d2l_config(
-            pyramid_request, sentinel.application_instance
-        )
+        config = FilePickerConfig.d2l_config(pyramid_request, application_instance)
 
         expected_config = {"enabled": files_enabled}
 
@@ -58,38 +57,23 @@ class TestFilePickerConfig:
 
         assert config == expected_config
 
-    @pytest.mark.usefixtures("with_is_canvas")
-    def test_canvas_config(self, pyramid_request, application_instance):
+    @pytest.mark.parametrize("files_enabled", [False, True])
+    def test_canvas_config(self, pyramid_request, application_instance, files_enabled):
+
         pyramid_request.lti_params["custom_canvas_course_id"] = "COURSE_ID"
+        application_instance.settings.set("canvas", "files_enabled", files_enabled)
 
         config = FilePickerConfig.canvas_config(pyramid_request, application_instance)
 
-        expected_config = {
-            "enabled": Any(),
-            "listFiles": {
+        expected_config = {"enabled": files_enabled}
+
+        if files_enabled:
+            expected_config["listFiles"] = {
                 "authUrl": "http://example.com/api/canvas/oauth/authorize",
                 "path": "/api/canvas/courses/COURSE_ID/files",
-            },
-        }
+            }
 
         assert config == expected_config
-
-    @pytest.mark.parametrize(
-        "missing_value",
-        (None, "course_id", "developer_key"),
-    )
-    @pytest.mark.usefixtures("canvas_files_enabled")
-    def test_canvas_config_enabled(
-        self, pyramid_request, application_instance, missing_value
-    ):
-        if missing_value == "course_id":
-            pyramid_request.params.pop("custom_canvas_course_id")
-        elif missing_value == "developer_key":
-            application_instance.developer_key = None
-
-        config = FilePickerConfig.canvas_config(pyramid_request, application_instance)
-
-        assert config["enabled"] != missing_value
 
     @pytest.mark.parametrize(
         "origin_from", (None, "custom_canvas_api_domain", "lms_url")
@@ -148,16 +132,6 @@ class TestFilePickerConfig:
         )
 
         assert config == {"enabled": enabled}
-
-    @pytest.fixture
-    @pytest.mark.usefixtures("with_is_canvas")
-    def canvas_files_enabled(self, pyramid_request, application_instance):
-        pyramid_request.params["custom_canvas_course_id"] = sentinel.course_id
-        application_instance.developer_key = sentinel.developer_key
-
-    @pytest.fixture
-    def with_is_canvas(self, pyramid_request):
-        pyramid_request.product.family = Product.Family.CANVAS
 
     @pytest.fixture
     def application_instance(self, application_instance):
