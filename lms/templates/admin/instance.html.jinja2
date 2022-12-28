@@ -106,8 +106,9 @@
             "developer_secret",
             placeholder="*" * 25 if instance.developer_secret else "")
         }}
-        {{ settings_checkbox("Sections enabled", "canvas", "sections_enabled") }}
+        {{ settings_checkbox("Files enabled", "canvas", "files_enabled") }}
         {{ settings_checkbox("Groups enabled", "canvas", "groups_enabled") }}
+        {{ settings_checkbox("Sections enabled", "canvas", "sections_enabled") }}
     </fieldset>
 
     <fieldset class="box">
