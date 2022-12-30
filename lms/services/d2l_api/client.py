@@ -61,9 +61,10 @@ class D2LTableOfContentsSchema(RequestsResponseSchema):
 
 
 class D2LAPIClient:
-    def __init__(self, basic_client, request):
+    def __init__(self, basic_client, request, file_service):
         self._api = basic_client
         self._request = request
+        self._file_service = file_service
 
     def get_token(self, authorization_code):
         """
@@ -115,9 +116,11 @@ class D2LAPIClient:
 
     def list_files(self, org_unit) -> List[dict]:
         """Get a nested list of files and folders for the given `org_unit`."""
-
         modules = self._get_course_modules(org_unit)
-        return list(self._find_files(org_unit, modules))
+        files = list(self._find_files(org_unit, modules))
+        self._file_service.upsert(list(self._files_for_storage(org_unit, files)))
+
+        return files
 
     def public_url(self, org_unit, file_id) -> str:
         """
@@ -193,3 +196,17 @@ class D2LAPIClient:
                 "updated_at": module["updated_at"],
                 "children": module_files + list(module_children),
             }
+
+    def _files_for_storage(self, course_id, files, parent_id=None):
+        for file in files:
+            yield {
+                "type": "d2l_file" if file["type"] == "File" else "d2l_folder",
+                "course_id": course_id,
+                "lms_id": file["id"],
+                "name": file["display_name"],
+                "parent_lms_id": parent_id,
+            }
+
+            yield from self._files_for_storage(
+                course_id, file.get("children", []), file["id"]
+            )
