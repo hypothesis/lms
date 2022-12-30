@@ -14,6 +14,7 @@ def test_d2l_api_client_factory(
     pyramid_request,
     BasicClient,
     D2LAPIClient,
+    file_service,
 ):
     ai = create_autospec(ApplicationInstance)
     application_instance_service.get_current.return_value = ai
@@ -33,7 +34,7 @@ def test_d2l_api_client_factory(
         oauth_http_service=oauth_http_service,
     )
     D2LAPIClient.assert_called_once_with(
-        BasicClient.return_value, request=pyramid_request
+        BasicClient.return_value, request=pyramid_request, file_service=file_service
     )
     assert service == D2LAPIClient.return_value
 

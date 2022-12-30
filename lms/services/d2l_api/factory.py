@@ -20,4 +20,5 @@ def d2l_api_client_factory(_context, request):
             oauth_http_service=request.find_service(name="oauth_http"),
         ),
         request=request,
+        file_service=request.find_service(name="file"),
     )

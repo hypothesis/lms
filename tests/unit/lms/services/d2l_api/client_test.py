@@ -53,7 +53,7 @@ class TestD2LAPIClient:
         ]
 
     @pytest.mark.parametrize(
-        "modules,files",
+        "modules,files,db_files",
         [
             (
                 {
@@ -125,15 +125,41 @@ class TestD2LAPIClient:
                         ],
                     },
                 ],
+                [
+                    {
+                        "type": "d2l_folder",
+                        "course_id": "COURSE_ID",
+                        "lms_id": 1,
+                        "name": "MODULE 1",
+                        "parent_lms_id": None,
+                    },
+                    {
+                        "type": "d2l_file",
+                        "course_id": "COURSE_ID",
+                        "lms_id": "d2l://file/course/COURSE_ID/file_id/FILE 1/",
+                        "name": "TITLE 1",
+                        "parent_lms_id": 1,
+                    },
+                    {
+                        "type": "d2l_folder",
+                        "course_id": "COURSE_ID",
+                        "lms_id": 2,
+                        "name": "MODULE 2",
+                        "parent_lms_id": 1,
+                    },
+                    {
+                        "type": "d2l_file",
+                        "course_id": "COURSE_ID",
+                        "lms_id": "d2l://file/course/COURSE_ID/file_id/FILE 2/",
+                        "name": "TITLE 2",
+                        "parent_lms_id": 2,
+                    },
+                ],
             ),
         ],
     )
     def test_list_files(
-        self,
-        svc,
-        basic_client,
-        modules,
-        files,
+        self, svc, basic_client, modules, files, db_files, file_service
     ):
         basic_client.request.return_value.json.return_value = modules
 
@@ -145,6 +171,8 @@ class TestD2LAPIClient:
         basic_client.request.assert_called_once_with(
             "GET", basic_client.api_url.return_value
         )
+
+        file_service.upsert.assert_called_with(db_files)
 
         assert files == returned_files
 
@@ -203,5 +231,5 @@ class TestD2LAPIClient:
         return create_autospec(BasicClient, instance=True, spec_set=True)
 
     @pytest.fixture
-    def svc(self, basic_client, pyramid_request):
-        return D2LAPIClient(basic_client, pyramid_request)
+    def svc(self, basic_client, pyramid_request, file_service):
+        return D2LAPIClient(basic_client, pyramid_request, file_service)
