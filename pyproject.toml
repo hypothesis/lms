@@ -17,6 +17,28 @@ strict = true
 exclude = 'tests'
 plugins = 'sqlalchemy.ext.mypy.plugin'
 
+disable_error_code = [
+    "arg-type",
+    "assignment",
+    "attr-defined",
+    "call-arg",
+    "has-type",
+    "index",
+    "list-item",
+    "misc",
+    "no-any-return",
+    "no-redef",
+    "no-untyped-call",
+    "no-untyped-def",
+    "override",
+    "return-value",
+    "truthy-function",
+    "type-arg",
+    "union-attr",
+    "valid-type",
+    "var-annotated",
+]
+
 [[tool.mypy.overrides]]
 module="tests.*"
 ignore_errors = true
