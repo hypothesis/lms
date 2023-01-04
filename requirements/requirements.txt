@@ -213,7 +213,7 @@ six==1.15.0
     #   click-repl
     #   ecdsa
     #   google-auth
-sqlalchemy==1.4.45
+sqlalchemy==1.4.46
     # via
     #   -r requirements/requirements.in
     #   alembic
