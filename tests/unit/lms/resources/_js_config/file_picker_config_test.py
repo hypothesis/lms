@@ -4,6 +4,7 @@ import pytest
 from h_matchers import Any
 
 from lms.product import Product
+from lms.product.d2l import D2L
 from lms.resources._js_config import FilePickerConfig
 
 
@@ -30,10 +31,17 @@ class TestFilePickerConfig:
 
         assert config == expected_config
 
-    @pytest.mark.parametrize("files_enabled", [False, True])
-    def test_d2l_config(self, pyramid_request, files_enabled):
-
+    @pytest.mark.parametrize(
+        "family,files_enabled",
+        [
+            ("desire2learn", False),
+            ("Blackboard", False),
+            ("desire2learn", True),
+        ],
+    )
+    def test_d2l_config(self, pyramid_request, family, files_enabled):
         pyramid_request.lti_params["context_id"] = "COURSE_ID"
+        pyramid_request.product.family = family
         pyramid_request.product.settings.files_enabled = files_enabled
 
         config = FilePickerConfig.d2l_config(
