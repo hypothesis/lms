@@ -11,8 +11,10 @@ class FilePickerConfig:
     @classmethod
     def d2l_config(cls, request, _application_instance):
         """Get D2L files config."""
-        files_enabled = request.product.settings.files_enabled
-
+        files_enabled = (
+            request.product.family == D2L.family
+            and request.product.settings.files_enabled
+        )
         config = {"enabled": files_enabled}
         if files_enabled:
             config["listFiles"] = {
