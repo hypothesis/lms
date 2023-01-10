@@ -60,7 +60,9 @@ class LTI11AuthSchema(LTIV11CoreSchema):
                 {"consumer_key": ["Invalid OAuth 1 signature. Unknown consumer key."]}
             ) from err
 
-        return LTIUser.from_auth_params(application_instance, kwargs)
+        return LTIUser.from_auth_params(
+            self.context["request"], application_instance, kwargs
+        )
 
     @marshmallow.validates_schema
     def _verify_oauth_1(self, _data, **_kwargs):
@@ -124,4 +126,6 @@ class LTI13AuthSchema(LTIV11CoreSchema):
                 {"JWT": ["Invalid LTI1.3 params. Unknown application_instance."]}
             ) from err
 
-        return LTIUser.from_auth_params(application_instance, kwargs)
+        return LTIUser.from_auth_params(
+            self.context["request"], application_instance, kwargs
+        )
