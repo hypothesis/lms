@@ -1,6 +1,8 @@
 from dataclasses import dataclass
+from typing import List
 
 from lms.models.h_user import HUser
+from lms.models.lti_role import LTIRole
 
 
 @dataclass
@@ -11,6 +13,9 @@ class LTIUser:
     """The user_id LTI launch parameter."""
 
     roles: str
+    """The user's raw LTI roles string."""
+
+    lti_roles: List[LTIRole]
     """The user's LTI roles."""
 
     tool_consumer_instance_guid: str
@@ -44,9 +49,11 @@ class LTIUser:
         return "learner" in self.roles.lower()
 
     @staticmethod
-    def from_auth_params(application_instance, lti_core_schema):
+    def from_auth_params(request, application_instance, lti_core_schema):
         """Create an LTIUser from a LTIV11CoreSchema like dict."""
-        return LTIUser(
+
+        return LTIUser.unserialize(
+            request,
             user_id=lti_core_schema["user_id"],
             application_instance_id=application_instance.id,
             roles=lti_core_schema["roles"],
@@ -58,6 +65,15 @@ class LTIUser:
             ),
             email=lti_core_schema["lis_person_contact_email_primary"],
         )
+
+    @staticmethod
+    def unserialize(request, **kwargs: dict):
+        # pylint: disable= import-outside-toplevel
+        from lms.services.lti_role_service import LTIRoleService
+
+        lti_roles = request.find_service(LTIRoleService).get_roles(kwargs["roles"])
+
+        return LTIUser(lti_roles=lti_roles, **kwargs)
 
     def serialize(self) -> dict:
         """

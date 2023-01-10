@@ -101,7 +101,7 @@ class BearerTokenSchema(PyramidRequestSchema):
                 messages={"authorization": ["Invalid session token"]}
             ) from err
 
-        return LTIUser(**jwt_data)
+        return LTIUser.unserialize(self.context["request"], **jwt_data)
 
     @marshmallow.pre_load
     def _decode_authorization(self, data, **_kwargs):

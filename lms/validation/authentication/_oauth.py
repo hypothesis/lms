@@ -112,7 +112,7 @@ class OAuthCallbackSchema(PyramidRequestSchema):
             raise MissingStateParamError() from err
 
         decoded_user = self._decode_state(state)["user"]
-        return LTIUser(**decoded_user)
+        return LTIUser.unserialize(self.context["request"], **decoded_user)
 
     @marshmallow.validates("state")
     def validate_state(self, state):

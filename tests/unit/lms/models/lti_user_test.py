@@ -41,8 +41,10 @@ class TestLTIUser:
 
         assert lti_user.is_learner == is_learner
 
-    def test_from_auth_params(self, application_instance, auth_params):
-        lti_user = LTIUser.from_auth_params(application_instance, auth_params)
+    def test_from_auth_params(self, pyramid_request, application_instance, auth_params):
+        lti_user = LTIUser.from_auth_params(
+            pyramid_request, application_instance, auth_params
+        )
 
         assert lti_user.user_id == auth_params["user_id"]
         assert lti_user.roles == auth_params["roles"]
