@@ -8,6 +8,7 @@ LTIUser = make_factory(
     user_id=USER_ID,
     application_instance_id=fuzzy.FuzzyInteger(1, 9999999999),
     roles=Faker("random_element", elements=["Learner", "Instructor"]),
+    lti_roles=[],
     tool_consumer_instance_guid=TOOL_CONSUMER_INSTANCE_GUID,
     display_name=Faker("name"),
 )
