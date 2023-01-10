@@ -132,12 +132,9 @@ class JSConfig:
         :param canvas_scopes: List of scopes that were requested
         """
         if self._lti_user:
-            bearer_token = BearerTokenSchema(self._request).authorization_param(
-                self._lti_user
-            )
             auth_url = self._request.route_url(
                 auth_route,
-                _query=[("authorization", bearer_token)],
+                _query=[("authorization", self._auth_token())],
             )
         else:
             auth_url = None
