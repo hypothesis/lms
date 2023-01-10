@@ -7,7 +7,7 @@ from lms.security import Permissions
 from lms.services.d2l_api import D2LAPIClient
 from lms.validation.authentication import OAuthCallbackSchema
 
-GROUPS_SCOPES = ("groups:*:*",)
+GROUPS_SCOPES = ("groups:group:read",)
 FILES_SCOPES = ("content:toc:read", "content:topics:read")
 
 
