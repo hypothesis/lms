@@ -21,8 +21,12 @@ class TestAuthorize:
         [
             (False, False, "core:*:*"),
             (False, True, "core:*:* content:toc:read content:topics:read"),
-            (True, False, "core:*:* groups:*:*"),
-            (True, True, "core:*:* content:toc:read content:topics:read groups:*:*"),
+            (True, False, "core:*:* groups:group:read"),
+            (
+                True,
+                True,
+                "core:*:* content:toc:read content:topics:read groups:group:read",
+            ),
         ],
     )
     def test_it(
