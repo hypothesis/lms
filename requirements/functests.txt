@@ -78,6 +78,7 @@ cryptography==36.0.2
     # via
     #   -r requirements/requirements.txt
     #   pyjwt
+    #   python-jose
 data-tasks==0.0.2
     # via -r requirements/requirements.txt
 ecdsa==0.17.0
@@ -117,7 +118,7 @@ h-matchers==1.2.15
     # via -r requirements/functests.in
 h-pyramid-sentry==1.2.4
     # via -r requirements/requirements.txt
-h-vialib==1.0.20
+h-vialib==1.1.0
     # via -r requirements/requirements.txt
 httpretty==1.1.4
     # via -r requirements/functests.in
@@ -135,6 +136,7 @@ importlib-metadata==4.8.1
     #   -r requirements/requirements.txt
     #   alembic
     #   data-tasks
+    #   h-vialib
     #   pip-sync-faster
 importlib-resources==5.10.2
     # via
@@ -196,6 +198,8 @@ pastedeploy==2.1.0
     #   plaster-pastedeploy
 pep517==0.12.0
     # via build
+pip==22.1.2
+    # via pip-tools
 pip-sync-faster==0.0.3
     # via -r requirements/functests.in
 pip-tools==6.10.0
@@ -238,7 +242,6 @@ pycryptodomex==3.16.0
 pyjwt[crypto]==2.4.0
     # via
     #   -r requirements/requirements.txt
-    #   h-vialib
     #   pyramid-googleauth
 pyparsing==3.0.6
     # via
@@ -275,8 +278,10 @@ pytest==7.2.0
     # via -r requirements/functests.in
 python-dateutil==2.8.1
     # via faker
-python-jose[crypto]==3.3.0
-    # via -r requirements/requirements.txt
+python-jose[crypto,cryptography]==3.3.0
+    # via
+    #   -r requirements/requirements.txt
+    #   h-vialib
 pytz==2022.1
     # via
     #   -r requirements/requirements.txt
@@ -298,6 +303,17 @@ sentry-sdk==0.17.6
     # via
     #   -r requirements/requirements.txt
     #   h-pyramid-sentry
+setuptools==65.5.1
+    # via
+    #   -r requirements/requirements.txt
+    #   google-auth
+    #   gunicorn
+    #   pip-tools
+    #   plaster
+    #   pyramid
+    #   zope-deprecation
+    #   zope-interface
+    #   zope-sqlalchemy
 six==1.15.0
     # via
     #   -r requirements/requirements.txt
@@ -405,18 +421,3 @@ zope-interface==5.1.0
     #   zope-sqlalchemy
 zope-sqlalchemy==1.6
     # via -r requirements/requirements.txt
-
-# The following packages are considered to be unsafe in a requirements file:
-pip==22.1.2
-    # via pip-tools
-setuptools==65.5.1
-    # via
-    #   -r requirements/requirements.txt
-    #   google-auth
-    #   gunicorn
-    #   pip-tools
-    #   plaster
-    #   pyramid
-    #   zope-deprecation
-    #   zope-interface
-    #   zope-sqlalchemy
