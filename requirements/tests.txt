@@ -82,6 +82,7 @@ cryptography==36.0.2
     # via
     #   -r requirements/requirements.txt
     #   pyjwt
+    #   python-jose
 data-tasks==0.0.2
     # via -r requirements/requirements.txt
 ecdsa==0.17.0
@@ -123,7 +124,7 @@ h-matchers==1.2.15
     # via -r requirements/tests.in
 h-pyramid-sentry==1.2.4
     # via -r requirements/requirements.txt
-h-vialib==1.0.20
+h-vialib==1.1.0
     # via -r requirements/requirements.txt
 httpretty==1.1.4
     # via -r requirements/tests.in
@@ -141,6 +142,7 @@ importlib-metadata==4.8.1
     #   -r requirements/requirements.txt
     #   alembic
     #   data-tasks
+    #   h-vialib
     #   pip-sync-faster
 importlib-resources==5.10.2
     # via
@@ -246,7 +248,6 @@ pycryptodomex==3.16.0
 pyjwt[crypto]==2.4.0
     # via
     #   -r requirements/requirements.txt
-    #   h-vialib
     #   pyramid-googleauth
 pyparsing==3.0.6
     # via
@@ -285,8 +286,10 @@ python-dateutil==2.8.1
     # via
     #   faker
     #   freezegun
-python-jose[crypto]==3.3.0
-    # via -r requirements/requirements.txt
+python-jose[crypto,cryptography]==3.3.0
+    # via
+    #   -r requirements/requirements.txt
+    #   h-vialib
 pytz==2022.1
     # via
     #   -r requirements/requirements.txt

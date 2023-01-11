@@ -47,7 +47,9 @@ click-plugins==1.1.1
 click-repl==0.2.0
     # via celery
 cryptography==36.0.2
-    # via pyjwt
+    # via
+    #   pyjwt
+    #   python-jose
 data-tasks==0.0.2
     # via -r requirements/requirements.in
 ecdsa==0.17.0
@@ -70,7 +72,7 @@ h-assets==1.0.5
     # via -r requirements/requirements.in
 h-pyramid-sentry==1.2.4
     # via -r requirements/requirements.in
-h-vialib==1.0.20
+h-vialib==1.1.0
     # via -r requirements/requirements.in
 hupper==1.10.2
     # via pyramid
@@ -82,6 +84,7 @@ importlib-metadata==4.8.1
     # via
     #   alembic
     #   data-tasks
+    #   h-vialib
 importlib-resources==5.10.2
     # via
     #   -r requirements/requirements.in
@@ -148,7 +151,6 @@ pycryptodomex==3.16.0
 pyjwt[crypto]==2.4.0
     # via
     #   -r requirements/requirements.in
-    #   h-vialib
     #   pyramid-googleauth
 pyparsing==3.0.6
     # via packaging
@@ -177,8 +179,10 @@ pyramid-tm==2.5
     # via -r requirements/requirements.in
 pyrsistent==0.17.3
     # via jsonschema
-python-jose[crypto]==3.3.0
-    # via -r requirements/requirements.in
+python-jose[crypto,cryptography]==3.3.0
+    # via
+    #   -r requirements/requirements.in
+    #   h-vialib
 pytz==2022.1
     # via celery
 requests==2.28.1
@@ -195,6 +199,15 @@ rsa==4.7.2
     #   python-jose
 sentry-sdk==0.17.6
     # via h-pyramid-sentry
+setuptools==65.5.1
+    # via
+    #   google-auth
+    #   gunicorn
+    #   plaster
+    #   pyramid
+    #   zope-deprecation
+    #   zope-interface
+    #   zope-sqlalchemy
 six==1.15.0
     # via
     #   click-repl
@@ -265,14 +278,3 @@ zope-interface==5.1.0
     #   zope-sqlalchemy
 zope-sqlalchemy==1.6
     # via -r requirements/requirements.in
-
-# The following packages are considered to be unsafe in a requirements file:
-setuptools==65.5.1
-    # via
-    #   google-auth
-    #   gunicorn
-    #   plaster
-    #   pyramid
-    #   zope-deprecation
-    #   zope-interface
-    #   zope-sqlalchemy
