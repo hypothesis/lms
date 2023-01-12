@@ -93,17 +93,18 @@ class DocumentURLService:
         for param in (
             "resource_link_id",  # A normal LTI (non-deep linked) launch
             "resource_link_id_history",  # A Blackboard course we can copy
-            "ext_d2l_resource_link_id_history",  # Ditto for Brightspace
+            "ext_d2l_resource_link_id_history",  # Ditto for D2L
+            "custom_ResourceLink.id.history",  # LTI 1.3 location for D2L and blackboard
         ):
             if (resource_link_id := request.lti_params.get(param)) and (
-                assigment := self._assignment_service.get_assignment(
+                assignment := self._assignment_service.get_assignment(
                     tool_consumer_instance_guid=request.lti_params.get(
                         "tool_consumer_instance_guid"
                     ),
                     resource_link_id=resource_link_id,
                 )
             ):
-                return assigment.document_url
+                return assignment.document_url
 
         return None
 
