@@ -108,6 +108,7 @@ class TestDocumentURLService:
             "resource_link_id",
             "ext_d2l_resource_link_id_history",
             "resource_link_id_history",
+            "custom_ResourceLink.id.history",
         ),
     )
     def test_get_document_url_with_assignment_in_db(
