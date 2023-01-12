@@ -132,7 +132,7 @@ cryptography==36.0.2
     #   -r requirements/tests.txt
     #   pyjwt
     #   python-jose
-data-tasks==0.0.2
+data-tasks==0.0.3
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -405,6 +405,7 @@ psycopg2==2.9.5
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
+    #   data-tasks
 pyasn1==0.4.8
     # via
     #   -r requirements/bddtests.txt

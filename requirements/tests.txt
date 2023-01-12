@@ -83,7 +83,7 @@ cryptography==36.0.2
     #   -r requirements/requirements.txt
     #   pyjwt
     #   python-jose
-data-tasks==0.0.2
+data-tasks==0.0.3
     # via -r requirements/requirements.txt
 ecdsa==0.17.0
     # via
@@ -228,7 +228,9 @@ prompt-toolkit==3.0.29
     #   -r requirements/requirements.txt
     #   click-repl
 psycopg2==2.9.5
-    # via -r requirements/requirements.txt
+    # via
+    #   -r requirements/requirements.txt
+    #   data-tasks
 pyasn1==0.4.8
     # via
     #   -r requirements/requirements.txt

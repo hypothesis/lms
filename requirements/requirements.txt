@@ -50,7 +50,7 @@ cryptography==36.0.2
     # via
     #   pyjwt
     #   python-jose
-data-tasks==0.0.2
+data-tasks==0.0.3
     # via -r requirements/requirements.in
 ecdsa==0.17.0
     # via python-jose
@@ -136,7 +136,9 @@ plaster-pastedeploy==0.7
 prompt-toolkit==3.0.29
     # via click-repl
 psycopg2==2.9.5
-    # via -r requirements/requirements.in
+    # via
+    #   -r requirements/requirements.in
+    #   data-tasks
 pyasn1==0.4.8
     # via
     #   pyasn1-modules
