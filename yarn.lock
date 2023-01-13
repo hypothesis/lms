@@ -1362,10 +1362,10 @@
   resolved "https://registry.yarnpkg.com/@types/gapi/-/gapi-0.0.43.tgz#5291ae831006240e3484bdef3fff8dd69baf5947"
   integrity sha512-GbnoTC1psXR1XlBE76LW0eanE/a56iGUzbUOImEI8/xXHuppdbhhIKX9Z71mTut2XoFADh58PgfRg1cyD7TnTw==
 
-"@types/google.accounts@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@types/google.accounts/-/google.accounts-0.0.4.tgz#e72e7922bb658057e391b1c460fa88dfb292f625"
-  integrity sha512-X42obEgMx+Ptt3RZShgfRNLxGfm9PTLB/zdQkVBYtjnQnbQvTdbU02kZuS6pahp7LA9a5tUxB5vGBnD81SUhjg==
+"@types/google.accounts@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@types/google.accounts/-/google.accounts-0.0.5.tgz#847dc76fda529b0563cb4b01bdde511b394c0ced"
+  integrity sha512-5cH9OHlJSTNMwHS7d5FyxdoaotUzrruTmf/cFvDiH1g5DIlcmhgG1OCs2yWrph6dgxNUKhZDha1FYySwzQZPkA==
 
 "@types/json-schema@^7.0.9":
   version "7.0.11"
