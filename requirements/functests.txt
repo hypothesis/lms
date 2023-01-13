@@ -286,7 +286,7 @@ pytz==2022.1
     # via
     #   -r requirements/requirements.txt
     #   celery
-requests==2.28.1
+requests==2.28.2
     # via
     #   -r requirements/requirements.txt
     #   requests-oauthlib
