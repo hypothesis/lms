@@ -59,7 +59,7 @@
     "@types/gapi": "^0.0.43",
     "@types/google.accounts": "^0.0.5",
     "@typescript-eslint/eslint-plugin": "^5.48.1",
-    "@typescript-eslint/parser": "^5.48.0",
+    "@typescript-eslint/parser": "^5.48.1",
     "axe-core": "^4.6.2",
     "babel-plugin-istanbul": "^6.1.1",
     "babel-plugin-mockable-imports": "^2.0.1",
