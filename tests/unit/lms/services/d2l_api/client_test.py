@@ -68,6 +68,7 @@ class TestD2LAPIClient:
                                     "TypeIdentifier": "File",
                                     "Title": "TITLE 1",
                                     "LastModifiedDate": "DATE 1",
+                                    "Url": "TITLE 1.pdf",
                                 },
                                 # Check we don't include non-files
                                 {
@@ -75,6 +76,15 @@ class TestD2LAPIClient:
                                     "TypeIdentifier": "NOT A FILE",
                                     "Title": "NAME 2",
                                     "LastModifiedDate": "DATE 2",
+                                    "Url": "NAME 2.pdf",
+                                },
+                                # Check we don't include non-pdfs
+                                {
+                                    "Identifier": "ID 2",
+                                    "TypeIdentifier": "NOT A PDF",
+                                    "Title": "NOT PDF",
+                                    "LastModifiedDate": "DATE 2",
+                                    "Url": "NOT PDF.png",
                                 },
                             ],
                             "Modules": [
@@ -88,6 +98,7 @@ class TestD2LAPIClient:
                                             "TypeIdentifier": "File",
                                             "Title": "TITLE 2",
                                             "LastModifiedDate": "DATE 2",
+                                            "Url": "FILE 2.pdf",
                                         }
                                     ],
                                 }

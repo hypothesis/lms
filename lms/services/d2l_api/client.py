@@ -37,6 +37,8 @@ class _D2LTopic(Schema):
     display_name = fields.Str(required=True, data_key="Title")
     updated_at = fields.Str(required=True, data_key="LastModifiedDate")
     type = fields.Str(required=True, data_key="TypeIdentifier")
+    url = fields.Str(required=True, data_key="Url")
+    """Url contains the full filename, useful to get the extension of the file"""
 
 
 class _D2LModuleSchema(Schema):
@@ -186,6 +188,10 @@ class D2LAPIClient:
                 }
                 for topic in module.get("topics", [])
                 if topic.get("type") == "File"
+                # Filter out non-pdfs using the file's name.
+                # Other LMS offer the content type of the file at this level
+                # but will have to rely on the extension for D2L.
+                and topic["url"].lower().endswith(".pdf")
             ]
 
             module_children = self._find_files(course_id, module.get("modules", []))
