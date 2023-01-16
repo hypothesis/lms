@@ -192,10 +192,16 @@ export default function LMSFilePicker({
       };
       try {
         setDialogState({ state: 'fetching', isReload });
-        const files: File[] = await apiCall({
-          authToken,
-          path: getNextAPICallInfo().path,
-        });
+
+        // If the last element in current folderPath contains children, we use them without calling the API
+        // Otherwise, we fetch files from the API
+        const files: File[] =
+          folderPath[folderPath.length - 1]?.children ??
+          (await apiCall({
+            authToken,
+            path: getNextAPICallInfo().path,
+          }));
+
         // Handle the case in which a subsequent fetch request for a
         // different path's files was dispatched before this request resolved.
         // Give preference to the later request: If the path has changed

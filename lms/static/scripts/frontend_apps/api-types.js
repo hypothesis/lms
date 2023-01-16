@@ -19,6 +19,7 @@
  *   content. Only present if `type` is 'Folder'.
  * @prop {string|null} [parent_id] - Only present if `type` is 'Folder'. A
  *   folder may have a parent folder.
+ * @prop {File[]} [children] - List of children of the current Folder
  */
 
 /**
