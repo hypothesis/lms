@@ -139,6 +139,23 @@ describe('LMSFilePicker', () => {
     });
   });
 
+  it('does not fetch files in indicated sub-folder if already available from first load', async () => {
+    const folderWithChildren = {
+      type: 'Folder',
+      display_name: 'A folder with children',
+      children: fakeFiles,
+    };
+
+    const wrapper = renderFilePicker({ withBreadcrumbs: true });
+    const breadcrumbs = await waitForElement(wrapper, 'Breadcrumbs');
+    fakeApiCall.resetHistory();
+
+    // Simulate changing the folder path, as if a user clicked on a "crumb"
+    act(() => breadcrumbs.props().onSelectItem(folderWithChildren));
+
+    assert.notCalled(fakeApiCall);
+  });
+
   it('updates Breadcrumbs when folder path changes', async () => {
     const wrapper = renderFilePicker({ withBreadcrumbs: true });
     await waitForElement(wrapper, 'Breadcrumbs');
