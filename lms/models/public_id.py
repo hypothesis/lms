@@ -73,11 +73,13 @@ class PublicId:
         region_code, app_code, model_code, instance_id = parts
 
         if expect_app_code and app_code != expect_app_code:
-            raise InvalidPublicId(f"Expected app '{expect_app_code}', found {app_code}")
+            raise InvalidPublicId(
+                f"Expected app '{expect_app_code}', found '{app_code}'"
+            )
 
         if expect_model_code and model_code != expect_model_code:
             raise InvalidPublicId(
-                f"Expected model '{expect_model_code}', found {model_code}"
+                f"Expected model '{expect_model_code}', found '{model_code}'"
             )
 
         try:
@@ -86,7 +88,9 @@ class PublicId:
             raise InvalidPublicId(exc.args[0]) from exc
 
         if expect_region and region != expect_region:
-            raise InvalidPublicId(f"Expected region '{expect_region}', found {region}")
+            raise InvalidPublicId(
+                f"Expected region '{expect_region}', found '{region}'"
+            )
 
         return cls(
             region=region,
