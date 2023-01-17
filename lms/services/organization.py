@@ -9,6 +9,10 @@ from lms.models import ApplicationInstance, GroupInfo, Organization
 LOG = getLogger(__name__)
 
 
+class InvalidOrganizationParent(Exception):
+    """The requested Organization wasn't found or isn't an eligible parent."""
+
+
 class OrganizationService:
     """A service for dealing with organization actions."""
 
@@ -135,8 +139,27 @@ class OrganizationService:
 
         return org
 
-    def update_organization(self, organization, name=None, enabled=None, notes=None):
-        """Update an existing organization."""
+    def update_organization(
+        self,
+        organization: Organization,
+        name=None,
+        enabled=None,
+        notes=None,
+        parent_public_id=...,
+    ) -> Organization:
+        """
+        Update an existing organization.
+
+        :param organization: Organization to update
+        :param name: Set the name (if not `None`)
+        :param enabled: Enable or disable (if not `None`)
+        :param notes: Set notes (if not `None`)
+        :param parent_public_id: Set or remove the parent (if set at all)
+
+        :raises InvalidOrganizationParent: If the parent cannot be found or
+            isn't a valid organization for one reason or another.
+        """
+
         if name:
             organization.name = name
 
@@ -146,7 +169,68 @@ class OrganizationService:
         if notes is not None:
             organization.settings.set("hypothesis", "notes", notes)
 
+        # Use the fact the default is ... to allow us to blank or set based on
+        # the param being present
+        if parent_public_id is None:
+            organization.parent = None
+            organization.parent_id = None
+        elif parent_public_id is not ...:
+            self._move_organization_parent(organization, parent_public_id)
+
         return organization
+
+    def _move_organization_parent(self, organization: Organization, parent_public_id):
+        """Change an organizations parent, without creating loops."""
+
+        # This would be caught by the next check, but doing it here means we
+        # can give a more sensible error message
+        if parent_public_id == organization.public_id:
+            raise InvalidOrganizationParent(
+                "Cannot set an organization to be it's own parent"
+            )
+
+        parent = self._organization_search_query(
+            public_id=parent_public_id
+        ).one_or_none()
+        if not parent:
+            raise InvalidOrganizationParent(
+                f"Could not find parent organization: '{parent_public_id}'"
+            )
+
+        # Get a list including our self and all are children etc.
+        if parent.id in self._get_hierarchy_ids(organization.id):
+            raise InvalidOrganizationParent(
+                f"Cannot use '{parent_public_id}' as a parent as it a "
+                "child of this organization"
+            )
+
+        organization.parent = parent
+        organization.parent_id = parent.id
+
+    def _get_hierarchy_ids(self, id_) -> List[int]:
+        """
+        Get an organization and it's children's ids order not guaranteed.
+
+        :param id_: Organization id to look for
+        """
+
+        # Find the relevant orgs in the hierarchy by id using a recursive CTE:
+        # https://www.postgresql.org/docs/current/queries-with.html#QUERIES-WITH-RECURSIVE
+        cols = [Organization.id, Organization.parent_id]
+        base_case = (
+            self._db_session.query(*cols).filter(Organization.id == id_)
+            # The name of the CTE is arbitrary, but must be present
+            .cte("organizations", recursive=True)
+        )
+
+        # We are going to self join onto the above with anything that is a
+        # child of the objects we've seen so far
+        join_condition = Organization.parent_id == base_case.c.id
+        recursive_case = self._db_session.query(*cols).join(base_case, join_condition)
+
+        # This will recurse until no new rows are added
+        rows = self._db_session.query(base_case.union(recursive_case)).all()
+        return [row[0] for row in rows]
 
 
 def service_factory(_context, request) -> OrganizationService:

@@ -4,7 +4,11 @@ import pytest
 from h_matchers import Any
 
 from lms.models import Organization
-from lms.services.organization import OrganizationService, service_factory
+from lms.services.organization import (
+    InvalidOrganizationParent,
+    OrganizationService,
+    service_factory,
+)
 from tests import factories
 
 
@@ -155,6 +159,56 @@ class TestOrganizationService:
 
         if enabled is not None:
             assert org.enabled == enabled
+
+    def test_update_organization_set_organization(self, svc, db_session):
+        parent_org = factories.Organization.create()
+        org = factories.Organization.create()
+        db_session.flush()
+
+        svc.update_organization(org, parent_public_id=parent_org.public_id)
+
+        assert org.parent_id == parent_org.id
+        assert org.parent == parent_org
+
+    def test_update_organization_blank_organization(self, svc, org_with_parent):
+        svc.update_organization(org_with_parent, parent_public_id=None)
+
+        assert org_with_parent.parent_id is None
+        assert org_with_parent.parent is None
+
+    def test_update_organization_cannot_set_self(self, svc, org_with_parent):
+        with pytest.raises(InvalidOrganizationParent):
+            svc.update_organization(
+                org_with_parent, parent_public_id=org_with_parent.public_id
+            )
+
+    def test_update_organization_cannot_set_child(self, svc, org_with_parent):
+        with pytest.raises(InvalidOrganizationParent):
+            svc.update_organization(
+                org_with_parent.parent, parent_public_id=org_with_parent.public_id
+            )
+
+    def test_update_organization_with_missing_parent(self, svc, org_with_parent):
+        with pytest.raises(InvalidOrganizationParent):
+            svc.update_organization(
+                org_with_parent.parent, parent_public_id="us.lms.org.MISSING"
+            )
+
+    def test_update_organization_parent_id_missing_has_no_effect(
+        self, svc, org_with_parent
+    ):
+        svc.update_organization(org_with_parent)
+
+        assert org_with_parent.parent
+
+    @pytest.fixture
+    def org_with_parent(self, db_session):
+        org_with_parent = factories.Organization.create(
+            parent=factories.Organization.create()
+        )
+        # Flush to ensure public ids are generated
+        db_session.flush()
+        return org_with_parent
 
     @pytest.fixture
     def with_matching_noise(self):
