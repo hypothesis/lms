@@ -2,25 +2,29 @@
 
 {% extends "lms:templates/admin/base.html.jinja2" %}
 
-
 {% block header %}
 New application instance
 {% endblock %}
 
 {% block content %}
 
-<form method="POST" action="{{ request.route_url("admin.registration.new.instance", id_=lti_registration.id) }}">
-    <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
+{% if lti_registration %}
     <fieldset class="box mt-6">
         <legend class="label has-text-centered">Registration</legend>
 
         {{ macros.registration_preview(request, lti_registration) }}
     </fieldset>
+{% endif %}
 
+<form method="POST" action="{{ request.route_url("admin.instance.new") }}">
+    <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+    <input type="hidden" name="lti_registration_id" value="{{ lti_registration.id }}">
 
     <fieldset class="box mt-6">
         <legend class="label has-text-centered">Create new Application instance</legend>
-        {{ macros.form_text_field(request, "Deployment ID", "deployment_id") }}
+        {% if lti_registration %}
+            {{ macros.form_text_field(request, "Deployment ID", "deployment_id") }}
+        {% endif %}
         {{ macros.form_text_field(request, "LMS URL", "lms_url") }}
         {{ macros.form_text_field(request, "Email", "email") }}
         {{ macros.form_text_field(request, "Canvas developer key", "developer_key") }}
@@ -30,17 +34,19 @@ New application instance
     <input type="submit" class="button is-info" value="New"/>
 </form>
 
-<form method="POST" action="{{ request.route_url("admin.registration.upgrade.instance", id_=lti_registration.id) }}">
-    <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
+{% if lti_registration %}
+    <form method="POST" action="{{ request.route_url("admin.registration.upgrade.instance", id_=lti_registration.id) }}">
+        <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
 
-    <fieldset class="box mt-6">
-        <legend class="label has-text-centered">Upgrade exsiting Application instance</legend>
-        {{ macros.form_text_field(request, "Consumer key", "consumer_key",
-            placeholder="Existing application instance's consumer key. It will be upgraded to LTI 1.3 using this registration") }}
-        {{ macros.form_text_field(request, "Deployment ID", "deployment_id") }}
-    </fieldset>
+        <fieldset class="box mt-6">
+            <legend class="label has-text-centered">Upgrade existing Application instance</legend>
+            {{ macros.form_text_field(request, "Consumer key", "consumer_key",
+                placeholder="Existing application instance's consumer key. It will be upgraded to LTI 1.3 using this registration") }}
+            {{ macros.form_text_field(request, "Deployment ID", "deployment_id") }}
+        </fieldset>
 
-    <input type="submit" class="button is-info" value="Upgrade"/>
-</form>
+        <input type="submit" class="button is-info" value="Upgrade"/>
+    </form>
+{% endif %}
 
 {% endblock %}

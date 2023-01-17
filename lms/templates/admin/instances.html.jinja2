@@ -7,6 +7,12 @@ Application instances
 
 {% block content %}
 
+<div class="block has-text-right">
+    <a class="button is-primary" href="{{request.route_url("admin.instance.new")}}">
+        New LTI 1.1 application instance
+    </a>
+</div>
+
 <fieldset class="box mt-6">
     <legend class="label has-text-centered">Find application instances</legend>
     <form method="POST" action="{{ request.route_url("admin.instances.search") }}">
@@ -25,7 +31,7 @@ Application instances
 </fieldset>
 
 
-{% if instances is defined %} 
+{% if instances is defined %}
 <fieldset class="box mt-6">
 <legend class="label has-text-centered">Results</legend>
 {{ macros.instances_table(request, instances) }}

@@ -1,6 +1,4 @@
-from marshmallow import fields
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
-from pyramid.renderers import render_to_response
 from pyramid.view import forbidden_view_config, notfound_view_config, view_config
 
 from lms.validation._exceptions import ValidationError
@@ -32,12 +30,3 @@ def flash_validation(request, schema):
         request.session.flash(err.messages["form"], "validation")
         return True
     return False
-
-
-def error_render_to_response(
-    request, error_message, template, template_args, flash_type="errors"
-):
-    request.session.flash(error_message, flash_type)
-    response = render_to_response(template, template_args, request=request)
-    response.status = 400
-    return response

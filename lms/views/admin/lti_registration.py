@@ -204,18 +204,6 @@ class AdminLTIRegistrationViews:
         self.request.session.flash("Updated registration", "messages")
         return {"registration": lti_registration}
 
-    @view_config(
-        route_name="admin.registration.new.instance",
-        request_method="GET",
-        renderer="lms:templates/admin/instance.new.html.jinja2",
-    )
-    def registration_new_instance(self):
-        return {
-            "lti_registration": self._get_registration_or_404(
-                self.request.matchdict["id_"]
-            )
-        }
-
     @staticmethod
     def _get_url_suggestions(issuer, client_id):
         """

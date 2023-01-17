@@ -1,7 +1,7 @@
 from unittest.mock import create_autospec, sentinel
 
 import pytest
-from pyramid.httpexceptions import HTTPNotFound
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from sqlalchemy.exc import IntegrityError
 
 from lms.models import ApplicationInstance
@@ -10,6 +10,10 @@ from lms.validation import ValidationError
 from lms.views.admin.application_instance import AdminApplicationInstanceViews
 from tests import factories
 from tests.matchers import Any, temporary_redirect_to
+
+REDIRECT_TO_NEW_AI = Any.instance_of(HTTPFound).with_attrs(
+    {"location": Any.string.containing("/admin/instance/new")}
+)
 
 
 @pytest.mark.usefixtures(
@@ -23,51 +27,94 @@ class TestAdminApplicationInstanceViews:
     def test_instances(self, views):
         assert views.instances() == {}
 
-    @pytest.mark.usefixtures("with_form_submission")
-    def test_new_instance(self, application_instance_service, views, pyramid_request):
-        response = views.new_instance()
+    @pytest.mark.parametrize("lti_registration_id", ("123", "  123   "))
+    def test_new_instance_start_v13(
+        self, views, pyramid_request, lti_registration_service, lti_registration_id
+    ):
+        pyramid_request.params = {
+            "lti_registration_id": lti_registration_id,
+            "key_1": "value_1",
+            "key_2": "value_2",
+        }
+
+        response = views.new_instance_start()
+
+        lti_registration_service.get_by_id.assert_called_once_with("123")
+        assert response == dict(
+            pyramid_request.params,
+            lti_registration=lti_registration_service.get_by_id.return_value,
+        )
+
+    def test_new_instance_start_v11(self, views, pyramid_request):
+        pyramid_request.params["lti_registration_id"] = None
+
+        response = views.new_instance_start()
+
+        assert not response["lti_registration"]
+
+    @pytest.mark.usefixtures("ai_new_params_v13")
+    def test_new_instance_callback_v13(self, views, application_instance_service):
+        application_instance_service.create_application_instance.return_value.id = 12345
+
+        response = views.new_instance_callback()
 
         application_instance_service.create_application_instance.assert_called_once_with(
-            lms_url="http://lms-url.com",
-            email="test@email.com",
-            deployment_id="DEPLOYMENT_ID",
-            developer_key="",
-            developer_secret="",
-            lti_registration_id=sentinel.lti_registration_id,
+            lms_url="http://example.com",
+            email="test@example.com",
+            deployment_id="22222",
+            developer_key="DEVELOPER_KEY",
+            developer_secret="DEVELOPER_SECRET",
+            lti_registration_id=54321,
+        )
+        assert response == Any.instance_of(HTTPFound).with_attrs(
+            {"location": Any.string.containing("/admin/instance/id/12345")}
         )
 
-        assert response == temporary_redirect_to(
-            pyramid_request.route_url(
-                "admin.instance.id",
-                id_=application_instance_service.create_application_instance.return_value.id,
-            )
+    @pytest.mark.usefixtures("ai_new_params_v11")
+    def test_new_instance_callback_v11(self, views):
+        response = views.new_instance_callback()
+
+        assert response == Any.instance_of(HTTPFound).with_attrs(
+            {"location": Any.string.containing("/admin/instance/id/")}
         )
 
-    @pytest.mark.usefixtures("with_form_submission")
-    @pytest.mark.parametrize("missing", ["lms_url", "email", "deployment_id"])
-    def test_instance_new_missing_params(self, views, missing, pyramid_request):
-        del pyramid_request.POST[missing]
-
-        response = views.new_instance()
-
-        assert response.status_code == 400
-
-    @pytest.mark.usefixtures("with_form_submission")
-    def test_instance_with_duplicate(self, views, application_instance_service):
+    @pytest.mark.usefixtures("ai_new_params_v13")
+    def test_new_instance_callback(self, views, application_instance_service):
         application_instance_service.create_application_instance.side_effect = (
             IntegrityError(Any(), Any(), Any())
         )
 
-        response = views.new_instance()
+        response = views.new_instance_callback()
 
-        assert response.status_code == 400
+        assert response == REDIRECT_TO_NEW_AI
+
+    @pytest.mark.parametrize(
+        "param,bad_value",
+        (("deployment_id", None), ("lms_url", "not a url"), ("email", "not an email")),
+    )
+    def test_new_instance_callback_v13_required_fields(
+        self, views, ai_new_params_v13, param, bad_value
+    ):
+        ai_new_params_v13[param] = bad_value
+
+        response = views.new_instance_callback()
+
+        assert response == REDIRECT_TO_NEW_AI
+
+    @pytest.mark.parametrize(
+        "param,bad_value", (("lms_url", "not a url"), ("email", "not an email"))
+    )
+    def test_new_instance_callback_v11_required_fields(
+        self, views, ai_new_params_v11, param, bad_value
+    ):
+        ai_new_params_v11[param] = bad_value
+
+        response = views.new_instance_callback()
+
+        assert response == REDIRECT_TO_NEW_AI
 
     def test_move_application_instance_org(
-        self,
-        views,
-        pyramid_request,
-        application_instance,
-        application_instance_service,
+        self, views, pyramid_request, application_instance, application_instance_service
     ):
         application_instance_service.get_by_id.return_value = application_instance
         pyramid_request.params["org_public_id"] = "PUBLIC_ID"
@@ -84,7 +131,6 @@ class TestAdminApplicationInstanceViews:
     def test_move_application_instance_org_invalid_organization_id(
         self, pyramid_request, application_instance_service, views
     ):
-
         pyramid_request.params["org_public_id"] = "PUBLIC_ID"
         application_instance_service.update_application_instance.side_effect = (
             ValidationError(messages=sentinel.messages)
@@ -122,11 +168,7 @@ class TestAdminApplicationInstanceViews:
         )
 
     def test_downgrade_instance_no_lti13(
-        self,
-        views,
-        pyramid_request,
-        application_instance,
-        application_instance_service,
+        self, views, pyramid_request, application_instance, application_instance_service
     ):
         application_instance_service.get_by_id.return_value = application_instance
 
@@ -185,18 +227,14 @@ class TestAdminApplicationInstanceViews:
     def test_upgrade_no_deployment_id(self, views, pyramid_request):
         del pyramid_request.POST["deployment_id"]
 
-        response = views.upgrade_instance()
-
-        assert response.status_code == 400
+        assert views.upgrade_instance() == REDIRECT_TO_NEW_AI
 
     @pytest.mark.usefixtures("with_upgrade_form")
     def test_upgrade_already_upgraded(self, views, application_instance):
         application_instance.lti_registration_id = 100
         application_instance.deployment_id = "ID"
 
-        response = views.upgrade_instance()
-
-        assert response.status_code == 400
+        assert views.upgrade_instance() == REDIRECT_TO_NEW_AI
 
     @pytest.mark.usefixtures("with_upgrade_form")
     def test_upgrade_duplicate(self, views, db_session, lti_registration_service):
@@ -208,7 +246,7 @@ class TestAdminApplicationInstanceViews:
 
         response = views.upgrade_instance()
 
-        assert response.status_code == 400
+        assert response == REDIRECT_TO_NEW_AI
 
         # Show that the DB connection has not been permanently broken. This
         # would cause us to fail completely when trying to present the error.
@@ -221,9 +259,7 @@ class TestAdminApplicationInstanceViews:
             ApplicationInstanceNotFound
         )
 
-        response = views.upgrade_instance()
-
-        assert response.status_code == 400
+        assert views.upgrade_instance() == REDIRECT_TO_NEW_AI
 
     def test_search(self, pyramid_request, application_instance_service, views):
         pyramid_request.params = pyramid_request.POST = dict(
@@ -417,14 +453,26 @@ class TestAdminApplicationInstanceViews:
             AdminApplicationInstanceViews(pyramid_request).update_instance()
 
     @pytest.fixture
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.params = {}
-        return pyramid_request
+    def ai_new_params_v13(self, ai_new_params_v11):
+        ai_new_params_v11["deployment_id"] = "  22222  "
+        ai_new_params_v11["lti_registration_id"] = "  54321 "
+        return ai_new_params_v11
+
+    @pytest.fixture
+    def ai_new_params_v11(self, pyramid_request):
+        params = {
+            "lms_url": "http://example.com",
+            "email": "test@example.com",
+            "developer_key": "DEVELOPER_KEY",
+            "developer_secret": "DEVELOPER_SECRET",
+        }
+        pyramid_request.POST = pyramid_request.params = params
+        return params
 
     @pytest.fixture
     def application_instance_lti_13(self, application_instance, db_session):
         lti_registration = factories.LTIRegistration()
-        # Get an valid ID for the registration
+        # Get a valid ID for the registration
         db_session.flush()
         application_instance.lti_registration_id = lti_registration.id
         application_instance.deployment_id = "ID"
@@ -432,26 +480,21 @@ class TestAdminApplicationInstanceViews:
         return application_instance
 
     @pytest.fixture
-    def with_form_submission(self, pyramid_request):
+    def with_upgrade_form(self, pyramid_request, application_instance):
         application_instance_data = {
             "lms_url": "http://lms-url.com",
             "email": "test@email.com",
             "deployment_id": "DEPLOYMENT_ID",
         }
-        pyramid_request.matchdict["id_"] = sentinel.lti_registration_id
         # Real pyramid request have the same params available
         # via POST and params
         pyramid_request.POST.update(application_instance_data)
         pyramid_request.params.update(application_instance_data)
 
-        return pyramid_request
-
-    @pytest.fixture
-    def with_upgrade_form(self, with_form_submission, application_instance):
-        with_form_submission.params["consumer_key"] = with_form_submission.POST[
+        pyramid_request.params["consumer_key"] = pyramid_request.POST[
             "consumer_key"
         ] = application_instance.consumer_key
-        return with_form_submission
+        return pyramid_request
 
     @pytest.fixture
     def views(self, pyramid_request):
