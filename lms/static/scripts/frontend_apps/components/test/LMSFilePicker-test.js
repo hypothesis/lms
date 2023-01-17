@@ -139,7 +139,7 @@ describe('LMSFilePicker', () => {
     });
   });
 
-  it('does not fetch files in indicated sub-folder if already available from first load', async () => {
+  it('does not fetch files for a folder if files were previously loaded', async () => {
     const folderWithChildren = {
       type: 'Folder',
       display_name: 'A folder with children',
@@ -314,8 +314,6 @@ describe('LMSFilePicker', () => {
 
     // After first render, the component will kick off the first file API fetch
     const wrapper = renderFilePicker();
-
-    // The file list is empty. The continue button should have a "Reload" label.
     const reloadButton = await waitForElement(
       wrapper,
       'LabeledButton[data-testid="reload"]'
@@ -363,6 +361,41 @@ describe('LMSFilePicker', () => {
     );
     assert.equal(finalReloadButton.text(), 'Reload');
     assert.isNotOk(finalReloadButton.prop('disabled'));
+  });
+
+  it('loads the set of files for the active directory when user clicks "Reload"', async () => {
+    fakeApiCall.resolves([]);
+
+    const wrapper = renderFilePicker({ withBreadcrumbs: true });
+
+    // Set the active directory to a sub-directory in folderPath
+    await waitForElement(wrapper, 'Breadcrumbs');
+    changePath(wrapper, fakeFolders[0]);
+
+    // Make next call resolve to a full tree of files and folders.
+    const expectedFiles = [fakeFiles[0]];
+    fakeApiCall.resolves([
+      {
+        ...fakeFolders[0],
+        children: expectedFiles,
+      },
+      fakeFolders[1],
+    ]);
+
+    // The file list is empty. The continue button should have a "Reload" label.
+    const reloadButton = await waitForElement(
+      wrapper,
+      'LabeledButton[data-testid="reload"]'
+    );
+    assert.equal(reloadButton.text(), 'Reload');
+
+    await act(() => reloadButton.prop('onClick')());
+
+    const fileList = await waitForElement(wrapper, 'FileList');
+
+    // It should set the file list to the files for the active directory,
+    // not the root directory
+    assert.equal(fileList.props().files, expectedFiles);
   });
 
   it('shows a "Select" button when the request return a list with one or more files', async () => {
