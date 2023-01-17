@@ -1,6 +1,5 @@
 from marshmallow import validate
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
-from pyramid.renderers import render_to_response
 from pyramid.view import view_config, view_defaults
 from sqlalchemy.exc import IntegrityError
 from webargs import fields
@@ -10,20 +9,27 @@ from lms.security import Permissions
 from lms.services import ApplicationInstanceNotFound, LTIRegistrationService
 from lms.services.aes import AESService
 from lms.validation._base import PyramidRequestSchema, ValidationError
-from lms.views.admin import error_render_to_response, flash_validation
+from lms.views.admin import flash_validation
 from lms.views.admin._schemas import EmptyStringInt
 
 
-class NewApplicationInstanceSchema(PyramidRequestSchema):
-    location = "form"
+class NewAppInstanceSchema(PyramidRequestSchema):
+    """Schema for creating a new application instance."""
 
-    deployment_id = fields.Str(required=True, validate=validate.Length(min=1))
+    location = "form"
 
     developer_key = fields.Str(required=False, allow_none=True)
     developer_secret = fields.Str(required=False, allow_none=True)
 
     lms_url = fields.URL(required=True)
     email = fields.Email(required=True)
+
+
+class NewAppInstanceSchemaV13(NewAppInstanceSchema):
+    """Schema for creating a new LTI 1.3 application instance."""
+
+    deployment_id = fields.Str(required=True, validate=validate.Length(min=1))
+    lti_registration_id = fields.Str(required=True)
 
 
 class UpgradeApplicationInstanceSchema(PyramidRequestSchema):
@@ -59,71 +65,68 @@ class AdminApplicationInstanceViews:
 
     @view_config(
         route_name="admin.instances",
-        request_method="GET",
         renderer="lms:templates/admin/instances.html.jinja2",
     )
     def instances(self):
         return {}
 
     @view_config(
-        route_name="admin.registration.new.instance",
-        request_method="POST",
+        route_name="admin.instance.new",
         renderer="lms:templates/admin/instance.new.html.jinja2",
     )
-    def new_instance(self):
-        lti_registration = self.lti_registration_service.get_by_id(
-            self.request.matchdict["id_"]
-        )
+    def new_instance_start(self):
+        """Show the page to kick off creating a new application instance."""
 
-        if flash_validation(self.request, NewApplicationInstanceSchema):
-            response = render_to_response(
-                "lms:templates/admin/instance.new.html.jinja2",
-                {"lti_registration": lti_registration},
-                request=self.request,
+        lti_registration = None
+        if lti_registration_id := self.request.params.get("lti_registration_id"):
+            lti_registration = self.lti_registration_service.get_by_id(
+                lti_registration_id.strip()
             )
-            response.status = 400
-            return response
+
+        return dict(self.request.params, lti_registration=lti_registration)
+
+    @view_config(route_name="admin.instance.new", request_method="POST")
+    def new_instance_callback(self):
+        """Create an application instance (callback from the new AI page)."""
+
+        lti_registration_id = self.request.params.get("lti_registration_id", "").strip()
+        lti_registration_id = int(lti_registration_id) if lti_registration_id else None
+
+        if flash_validation(
+            self.request,
+            NewAppInstanceSchemaV13 if lti_registration_id else NewAppInstanceSchema,
+        ):
+            # Looks like something went wrong!
+            return self._redirect("admin.instance.new", _query=self.request.params)
 
         try:
             ai = self.application_instance_service.create_application_instance(
                 lms_url=self.request.params["lms_url"].strip(),
                 email=self.request.params["email"].strip(),
-                deployment_id=self.request.params["deployment_id"].strip(),
+                deployment_id=self.request.params.get("deployment_id", "").strip(),
                 developer_key=self.request.params.get("developer_key", "").strip(),
                 developer_secret=self.request.params.get(
                     "developer_secret", ""
                 ).strip(),
-                lti_registration_id=self.request.matchdict["id_"],
+                lti_registration_id=lti_registration_id,
             )
 
         except IntegrityError:
-            return error_render_to_response(
-                self.request,
+            self.request.session.flash(
                 f"Application instance with deployment_id: {self.request.params['deployment_id']} already exists",
-                "lms:templates/admin/instance.new.html.jinja2",
-                {"lti_registration": lti_registration.id},
+                "errors",
             )
+
+            return self._redirect("admin.instance.new", _query=self.request.params)
 
         return self._redirect("admin.instance.id", id_=ai.id)
 
     @view_config(
-        route_name="admin.registration.upgrade.instance",
-        request_method="POST",
-        renderer="lms:templates/admin/instance.new.html.jinja2",
+        route_name="admin.registration.upgrade.instance", request_method="POST"
     )
     def upgrade_instance(self):
-        lti_registration = self.lti_registration_service.get_by_id(
-            self.request.matchdict["id_"]
-        )
-
         if flash_validation(self.request, UpgradeApplicationInstanceSchema):
-            response = render_to_response(
-                "lms:templates/admin/instance.new.html.jinja2",
-                {"lti_registration": lti_registration},
-                request=self.request,
-            )
-            response.status = 400
-            return response
+            return self._redirect("admin.instance.new", _query=self.request.params)
 
         consumer_key = self.request.params["consumer_key"].strip()
         deployment_id = self.request.params["deployment_id"].strip()
@@ -134,24 +137,25 @@ class AdminApplicationInstanceViews:
                 self.application_instance_service.get_by_consumer_key(consumer_key)
             )
         except ApplicationInstanceNotFound:
-            return error_render_to_response(
-                self.request,
+            self.request.session.flash(
                 f"Can't find application instance: '{consumer_key}' for upgrade.",
-                "lms:templates/admin/instance.new.html.jinja2",
-                {"lti_registration": lti_registration},
+                "errors",
             )
+
+            return self._redirect("admin.instance.new", _query=self.request.params)
 
         # Don't allow to change instances that already on 1.3
         if application_instance.lti_version == "1.3.0":
-            return error_render_to_response(
-                self.request,
+            self.request.session.flash(
                 f"Application instance: '{consumer_key}' is already on LTI 1.3.",
-                "lms:templates/admin/instance.new.html.jinja2",
-                {"lti_registration": lti_registration},
+                "errors",
             )
 
+            return self._redirect("admin.instance.new", _query=self.request.params)
         # Set the LTI1.3 values
-        application_instance.lti_registration = lti_registration
+        application_instance.lti_registration = self.lti_registration_service.get_by_id(
+            self.request.params.get("lti_registration_id", "").strip()
+        )
         application_instance.deployment_id = deployment_id
         try:
             # Flush here to find if we are making a duplicate in the process of
@@ -163,12 +167,12 @@ class AdminApplicationInstanceViews:
             #   rolled back due to a previous exception during flush."
             self.request.db.rollback()
 
-            return error_render_to_response(
-                self.request,
+            self.request.session.flash(
                 f"Application instance with deployment_id: {self.request.params['deployment_id']} already exists",
-                "lms:templates/admin/instance.new.html.jinja2",
-                {"lti_registration": lti_registration.id},
+                "errors",
             )
+
+            return self._redirect("admin.instance.new", _query=self.request.params)
 
         return self._redirect("admin.instance.id", id_=application_instance.id)
 
@@ -252,9 +256,7 @@ class AdminApplicationInstanceViews:
         return self._redirect("admin.instance.id", id_=ai.id)
 
     @view_config(
-        route_name="admin.instance.id",
-        request_method="POST",
-        require_csrf=True,
+        route_name="admin.instance.id", request_method="POST", require_csrf=True
     )
     @view_config(
         route_name="admin.instance.consumer_key",

@@ -200,19 +200,6 @@ class TestAdminApplicationInstanceViews:
         )
         assert pyramid_request.session.peek_flash("validation")
 
-    def test_registration_new_instance(
-        self, pyramid_request, lti_registration_service, views
-    ):
-        pyramid_request.matchdict["id_"] = sentinel.id_
-
-        response = views.registration_new_instance()
-
-        lti_registration_service.get_by_id.assert_called_once_with(sentinel.id_)
-        assert (
-            response["lti_registration"]
-            == lti_registration_service.get_by_id.return_value
-        )
-
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.params = {}

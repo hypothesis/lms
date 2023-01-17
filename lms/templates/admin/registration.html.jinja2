@@ -21,7 +21,7 @@
     <fieldset class="box">
     <legend class="label has-text-centered">Registration application instances</legend>
         <div class="block has-text-right">
-            <a class="button is-primary" href="{{ request.route_url("admin.registration.new.instance", id_=registration.id) }}">Add instance</a>
+            <a class="button is-primary" href="{{ request.route_url("admin.instance.new", _query={"lti_registration_id": registration.id}) }}">Add instance</a>
         </div>
 
         {% if registration.application_instances %}
