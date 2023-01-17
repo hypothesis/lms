@@ -7,6 +7,8 @@ import classnames from 'classnames';
 
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
+import type { File } from '../api-types';
+import type { APICallInfo } from '../config';
 import { isAuthorizationError } from '../errors';
 import { apiCall } from '../utils/api';
 
@@ -15,24 +17,23 @@ import Breadcrumbs from './Breadcrumbs';
 import ErrorDisplay from './ErrorDisplay';
 import FileList from './FileList';
 
-/**
- * @typedef {import("./FileList").File} File
- * @typedef {import("../config").APICallInfo} APICallInfo
- */
+type NoFilesMessageProps = {
+  /**
+   * Helpful documentation URL to link to
+   */
+  href: string;
 
-/**
- * @typedef NoFilesMessageProps
- * @prop {string} href - Helpful documentation URL to link to
- * @prop {boolean} inSubfolder - has the user navigated to a sub-folder?
- */
+  /**
+   * has the user navigated to a sub-folder?
+   */
+  inSubfolder: boolean;
+};
 
 /**
  * Renders a helpful message with a link to documentation when there are no
  * uploaded files.
- *
- * @param {NoFilesMessageProps} props
  */
-function NoFilesMessage({ href, inSubfolder }) {
+function NoFilesMessage({ href, inSubfolder }: NoFilesMessageProps) {
   const documentContext = inSubfolder ? 'folder' : 'course';
   return (
     <div>
@@ -45,57 +46,89 @@ function NoFilesMessage({ href, inSubfolder }) {
   );
 }
 
-/**
- * @typedef LMSFilePickerProps
- * @prop {string} authToken - Auth token for use in calls to the backend
- * @prop {APICallInfo} listFilesApi -
- *   Config for the API call to list available files
- * @prop {() => any} onCancel - Callback invoked if the user cancels file selection
- * @prop {(f: File) => void} onSelectFile -
- *   Callback invoked with the metadata of the selected file if the user makes a selection
- * @prop {string} missingFilesHelpLink - A helpful URL to documentation that explains
- *   how to upload files to an LMS such as Canvas or Blackboard. This link is only shown
- *   when the API call to returns available files returns an empty list.
- * @prop {boolean} [withBreadcrumbs=false] - Render path breadcrumbs and allow
- *   sub-folder navigation?
- */
+type LMSFilePickerProps = {
+  /**
+   * Auth token for use in calls to the backend
+   */
+  authToken: string;
 
-/**
- * @typedef FetchingState
- * @prop {'fetching'} state
- * @prop {boolean} isReload - Flag indicating that files are being re-fetched after clicking "Reload"
- *
- * @typedef FetchedState
- * @prop {'fetched'} state
- * @prop {File[]} files
- *
- * @typedef AuthorizingState
- * @prop {'authorizing'} state
- * @prop {boolean} isRetry - Flag indicating that authorization has previously
- *  been attempted
- *
- * @typedef ErrorState
- * @prop {'error'} state
- * @prop {Error} error
- *
- * @typedef {FetchingState|FetchedState|AuthorizingState|ErrorState} LMSFilePickerState
- */
+  /**
+   * Config for the API call to list available files
+   */
+  listFilesApi: APICallInfo;
 
-/**
- * @typedef AuthorizeAction
- * @prop {'authorize'} type
- * @prop {string} label
- *
- * @typedef ReloadAction
- * @prop {'reload'} type
- *
- * @typedef SelectAction
- * @prop {'select'} type
- * @prop {string} label
- * @prop {boolean} disabled
- *
- * @typedef {AuthorizeAction|ReloadAction|SelectAction} ContinueAction
- */
+  /**
+   * Callback invoked if the user cancels file selection
+   */
+  onCancel: () => any;
+
+  /**
+   * Callback invoked with the metadata of the selected file if the user makes a selection
+   */
+  onSelectFile: (f: File) => void;
+
+  /**
+   * A helpful URL to documentation that explains how to upload files to an LMS such as Canvas or Blackboard.
+   * This link is only shown when the API call to return available files returns an empty list.
+   */
+  missingFilesHelpLink: string;
+
+  /**
+   * Render path breadcrumbs and allow sub-folder navigation?
+   */
+  withBreadcrumbs?: boolean;
+};
+
+type FetchingState = {
+  state: 'fetching';
+
+  /**
+   * Flag indicating that files are being re-fetched after clicking "Reload"
+   */
+  isReload: boolean;
+};
+
+type FetchedState = {
+  state: 'fetched';
+  files: File[];
+};
+
+type AuthorizingState = {
+  state: 'authorizing';
+
+  /**
+   * Flag indicating that authorization has previously been attempted
+   */
+  isRetry: boolean;
+};
+
+type ErrorState = {
+  state: 'error';
+  error: Error;
+};
+
+type LMSFilePickerState =
+  | FetchingState
+  | FetchedState
+  | AuthorizingState
+  | ErrorState;
+
+type AuthorizeAction = {
+  type: 'authorize';
+  label: string;
+};
+
+type ReloadAction = {
+  type: 'reload';
+};
+
+type SelectAction = {
+  type: 'select';
+  label: string;
+  disabled: boolean;
+};
+
+type ContinueAction = AuthorizeAction | ReloadAction | SelectAction;
 
 /**
  * A file picker dialog that allows the user to choose files from their
@@ -103,8 +136,6 @@ function NoFilesMessage({ href, inSubfolder }) {
  *
  * The picker will attempt to list files when mounted, and will show an
  * authorization popup if necessary.
- *
- * @param {LMSFilePickerProps} props
  */
 export default function LMSFilePicker({
   authToken,
@@ -113,39 +144,34 @@ export default function LMSFilePicker({
   onSelectFile,
   missingFilesHelpLink,
   withBreadcrumbs = false,
-}) {
-  const [dialogState, setDialogState] = useState(
-    /** @type {LMSFilePickerState} */ ({ state: 'fetching', isReload: false })
-  );
+}: LMSFilePickerProps) {
+  const [dialogState, setDialogState] = useState<LMSFilePickerState>({
+    state: 'fetching',
+    isReload: false,
+  });
 
   // Has the first attempt to fetch the list of files in the LMS completed?
   const [initialFetch, setInitialFetch] = useState(true);
 
-  const [selectedFile, setSelectedFile] = useState(
-    /** @type {File|null} */ (null)
-  );
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // An array of File objects representing the "path" to the current
   // list of files being displayed. This always starts at the root. The last
   // element represents the current directory path.
-  const [folderPath, setFolderPath] = useState(
-    /** @type {File[]} */ ([
-      {
-        display_name: 'Files',
-        type: 'Folder',
-        contents: listFilesApi,
-        id: '__root__',
-      },
-    ])
-  );
+  const [folderPath, setFolderPath] = useState<File[]>([
+    {
+      display_name: 'Files',
+      type: 'Folder',
+      contents: listFilesApi,
+      id: '__root__',
+    },
+  ]);
 
   /**
    * Change to a new folder path. This will update the breadcrumb path history
    * and cause a new fetch to be initiated to retrieve files in that folder path.
-   *
-   * @param {File} folder
    */
-  const onChangePath = folder => {
+  const onChangePath = (folder: File) => {
     setSelectedFile(null);
     const currentIndex = folderPath.findIndex(file => file.id === folder.id);
     if (currentIndex >= 0) {
@@ -166,12 +192,10 @@ export default function LMSFilePicker({
       };
       try {
         setDialogState({ state: 'fetching', isReload });
-        const files = /** @type {File[]} */ (
-          await apiCall({
-            authToken,
-            path: getNextAPICallInfo().path,
-          })
-        );
+        const files: File[] = await apiCall({
+          authToken,
+          path: getNextAPICallInfo().path,
+        });
         // Handle the case in which a subsequent fetch request for a
         // different path's files was dispatched before this request resolved.
         // Give preference to the later request: If the path has changed
@@ -203,8 +227,7 @@ export default function LMSFilePicker({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [folderPath]);
 
-  /** @param {File|null} file */
-  const confirmSelectedItem = (file = selectedFile) => {
+  const confirmSelectedItem = (file: File | null = selectedFile) => {
     if (!file) {
       return;
     }
@@ -215,8 +238,7 @@ export default function LMSFilePicker({
     }
   };
 
-  /** @type {ContinueAction} */
-  let continueAction;
+  let continueAction: ContinueAction;
 
   switch (dialogState.state) {
     case 'fetching':
@@ -259,7 +281,7 @@ export default function LMSFilePicker({
     case 'authorize':
       continueButton = (
         <AuthButton
-          authURL={/** @type {string} */ (listFilesApi.authUrl)}
+          authURL={listFilesApi.authUrl!}
           authToken={authToken}
           label={continueAction.label}
           onAuthComplete={() => fetchFiles(true /* reload */)}
@@ -322,7 +344,7 @@ export default function LMSFilePicker({
       {dialogState.state === 'error' && (
         <ErrorDisplay
           description="There was a problem fetching files"
-          error={/** @type {Error} */ (dialogState.error)}
+          error={dialogState.error}
         />
       )}
 

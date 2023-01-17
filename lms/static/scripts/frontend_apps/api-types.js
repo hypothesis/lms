@@ -13,7 +13,7 @@
  * @typedef File
  * @prop {string} id - Identifier for the resource within the LMS's file storage
  * @prop {string} display_name - Name of the resource to present in the file picker
- * @prop {string} updated_at - An ISO 8601 date string
+ * @prop {string} [updated_at] - An ISO 8601 date string
  * @prop {'File'|'Folder'} [type]
  * @prop {APICallInfo} [contents] - APICallInfo for fetching a folders's
  *   content. Only present if `type` is 'Folder'.
