@@ -3,7 +3,8 @@ from unittest.mock import sentinel
 import pytest
 
 from lms.services.d2l_api._basic import API_VERSION, TOKEN_URL, BasicClient
-from lms.services.exceptions import ExternalRequestError
+from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
+from tests import factories
 
 
 class TestBasicClient:
@@ -47,6 +48,20 @@ class TestBasicClient:
         oauth_http_service.request.side_effect = ExternalRequestError
 
         with pytest.raises(ExternalRequestError) as exc_info:
+            basic_client.request("GET", "/foo")
+
+        assert not exc_info.value.refreshable
+
+    def test_request_raises_OAuth2TokenError_if_the_request_fails_with_an_access_token_error(
+        self, basic_client, oauth_http_service
+    ):
+        oauth_http_service.request.side_effect = ExternalRequestError(
+            response=factories.requests.Response(
+                status_code=403, json_data={"Error": "Insufficient scope to call"}
+            )
+        )
+
+        with pytest.raises(OAuth2TokenError) as exc_info:
             basic_client.request("GET", "/foo")
 
         assert not exc_info.value.refreshable
