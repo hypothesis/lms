@@ -1,4 +1,4 @@
-from lms.services.exceptions import ExternalRequestError
+from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 
 TOKEN_URL = "https://auth.brightspace.com/core/connect/token"
 """This is constant for all D2L instances"""
@@ -63,7 +63,21 @@ class BasicClient:
         try:
             return self._oauth_http_service.request(method, path, **kwargs)
         except ExternalRequestError as err:
-            err.refreshable = getattr(err.response, "status_code", None) == 401
+            status_code = getattr(err.response, "status_code", None)
+            response_text = getattr(err.response, "text", "")
+            err.refreshable = status_code == 401
+
+            if status_code == 403 and "Insufficient scope to call" in response_text:
+                # This handles the case were the token was originally issued
+                # for a set of scopes, a feature that needs extra scopes is
+                # enabled, and a request for that feature fails.
+                # Raising OAuth2TokenError re-starts the oauth2 flow, getting
+                # a new token with the correct scopes. This won't handle the
+                # case were the schools install doesn't have the required
+                # scopes. In that case the request doesn't make its way our
+                # server.
+                raise OAuth2TokenError(refreshable=False) from err
+
             raise
 
     def api_url(self, path, product="lp"):
