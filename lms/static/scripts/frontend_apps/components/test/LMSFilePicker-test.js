@@ -386,6 +386,42 @@ describe('LMSFilePicker', () => {
     assert.isNotOk(finalReloadButton.prop('disabled'));
   });
 
+  it('looks for inner children when reloading on a system supporting full tree files loading', async () => {
+    fakeApiCall.resolves([]);
+
+    const wrapper = renderFilePicker({ withBreadcrumbs: true });
+
+    // Populate current folderPath, so that when we reload, the "active"
+    // directory is not the root one
+    await waitForElement(wrapper, 'Breadcrumbs');
+    changePath(wrapper, fakeFolders[0]);
+
+    // Make next call resolve a tree of files and folders, where the first one
+    // is the "active" folder
+    const expectedFiles = [fakeFiles[0]];
+    fakeApiCall.resolves([
+      {
+        ...fakeFolders[0],
+        children: expectedFiles,
+      },
+      fakeFolders[1],
+    ]);
+
+    // The file list is empty. The continue button should have a "Reload" label.
+    const reloadButton = await waitForElement(
+      wrapper,
+      'LabeledButton[data-testid="reload"]'
+    );
+    assert.equal(reloadButton.text(), 'Reload');
+
+    // Click the button to kick off the next request. It should load the files tree,
+    // and then resolve the children of the active directory
+    await act(() => reloadButton.prop('onClick')());
+
+    const fileList = await waitForElement(wrapper, 'FileList');
+    assert.equal(fileList.props().files, expectedFiles);
+  });
+
   it('shows a "Select" button when the request return a list with one or more files', async () => {
     fakeApiCall.resolves([0]);
     // When the dialog is initially displayed, it should try to fetch files.

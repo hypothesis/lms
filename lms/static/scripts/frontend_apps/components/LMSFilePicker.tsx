@@ -184,23 +184,52 @@ export default function LMSFilePicker({
     }
   };
 
+  // Does the actual file fetching for the active directory, either by loading
+  // it from its children, or by going to the API to get them
+  const loadFilesToDisplay = useCallback(
+    (isReload = false): Promise<File[]> => {
+      const getNextAPICallInfo = () =>
+        folderPath[folderPath.length - 1]?.contents || listFilesApi;
+      const loadFilesFromApi = (): Promise<File[]> =>
+        apiCall({
+          authToken,
+          path: getNextAPICallInfo().path,
+        });
+
+      if (!isReload) {
+        // If the last element in current folderPath contains children, we use
+        // them without calling the API. Otherwise, we fetch files from the API
+        const children = folderPath[folderPath.length - 1]?.children;
+        return children ? Promise.resolve(children) : loadFilesFromApi();
+      }
+
+      return loadFilesFromApi().then(loadedFiles => {
+        const [, ...activePathWithoutRoot] = folderPath;
+
+        // Try to load the corresponding children from loaded files, if present,
+        // in case we are not in root folder but the whole file tree was loaded.
+        return activePathWithoutRoot.reduce((loadedFiles, folder) => {
+          // If we find a folder with children matching the currently
+          // evaluated folder in the active path, we return its children.
+          // Otherwise, we just return the loaded files, as that means we
+          // could not "navigate" to the active folder path inside loaded
+          // files
+          const folderFound = loadedFiles.find(
+            fileOrFolder => fileOrFolder.id === folder.id
+          );
+          return folderFound?.children ?? loadedFiles;
+        }, loadedFiles);
+      });
+    },
+    [authToken, folderPath, listFilesApi]
+  );
+
   // Fetches files or shows a prompt to authorize access.
   const fetchFiles = useCallback(
     async (isReload = false) => {
-      const getNextAPICallInfo = () => {
-        return folderPath[folderPath.length - 1]?.contents || listFilesApi;
-      };
       try {
         setDialogState({ state: 'fetching', isReload });
-
-        // If the last element in current folderPath contains children, we use them without calling the API
-        // Otherwise, we fetch files from the API
-        const files: File[] =
-          folderPath[folderPath.length - 1]?.children ??
-          (await apiCall({
-            authToken,
-            path: getNextAPICallInfo().path,
-          }));
+        const files: File[] = await loadFilesToDisplay(isReload);
 
         // Handle the case in which a subsequent fetch request for a
         // different path's files was dispatched before this request resolved.
@@ -224,7 +253,7 @@ export default function LMSFilePicker({
       }
       setInitialFetch(false);
     },
-    [authToken, folderPath, listFilesApi]
+    [folderPath, loadFilesToDisplay]
   );
 
   // Update the file list any time the path changes
