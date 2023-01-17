@@ -20,6 +20,20 @@
     </form>
     </fieldset>
 
+    <fieldset class="box">
+    <legend class="label has-text-centered">Application instances</legend>
+        {% if org.application_instances %}
+            {{ macros.object_list_table(
+                    request, 'admin.instance.id', org.application_instances,
+                    ['Consumer key', 'Deployment ID', 'Tool name', 'URL', "Email"],
+                    ['consumer_key', 'deployment_id', 'tool_consumer_instance_name', 'lms_url', 'requesters_email']
+               )
+            }}
+        {% else %}
+            <div class="is-size-5 has-text-centered">No application instances</div>
+        {% endif %}
+    </fieldset>
+
     <fieldset class="box has-background-danger-light">
         <legend class="label has-text-centered has-text-danger">Danger zone</legend>
 
@@ -43,18 +57,4 @@
         <p>Moving this organization might have destructive effects.</p>
     {% endcall %}
     </fieldset>
-
-    <fieldset class="box">
-    <legend class="label has-text-centered">Application instances</legend>
-        {% if org.application_instances %}
-            {{ macros.object_list_table(
-                    request, 'admin.instance.id', org.application_instances,
-                    ['Consumer key', 'Deployment ID', 'Tool name', 'URL', "Email"],
-                    ['consumer_key', 'deployment_id', 'tool_consumer_instance_name', 'lms_url', 'requesters_email']
-               )
-            }}
-        {% else %}
-            <div class="is-size-5 has-text-centered">No application instances</div>
-        {% endif %}
-    </fieldset/>
 {% endblock %}
