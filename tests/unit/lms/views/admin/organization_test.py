@@ -67,8 +67,8 @@ class TestAdminOrganizationViews:
             name=name.strip() if name else "",
             notes=notes.strip() if notes else "",
         )
-        org = response["org"]
-        assert org == organization_service.get_by_id.return_value
+
+        assert response == Any.instance_of(HTTPFound)
 
     @pytest.mark.parametrize(
         "parent_public_id_param,expected",
@@ -94,12 +94,11 @@ class TestAdminOrganizationViews:
         response = views.move_organization()
 
         organization_service.get_by_id.assert_called_once_with(sentinel.id_)
-        org = organization_service.get_by_id.return_value
         organization_service.update_organization.assert_called_once_with(
-            org, parent_public_id=expected
+            organization_service.get_by_id.return_value, parent_public_id=expected
         )
 
-        assert response == {"org": org}
+        assert response == Any.instance_of(HTTPFound)
 
     @pytest.mark.parametrize("exception", (InvalidPublicId, InvalidOrganizationParent))
     def test_move_organization_errors(
