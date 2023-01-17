@@ -1,9 +1,11 @@
 from unittest.mock import sentinel
 
 import pytest
-from pyramid.httpexceptions import HTTPNotFound
+from h_matchers import Any
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 
 from lms.models.public_id import InvalidPublicId
+from lms.services.organization import InvalidOrganizationParent
 from lms.views.admin.organization import AdminOrganizationViews
 from tests import factories
 from tests.matchers import temporary_redirect_to
@@ -50,7 +52,7 @@ class TestAdminOrganizationViews:
 
     @pytest.mark.parametrize("name", ["  ", " name"])
     @pytest.mark.parametrize("notes", ["  ", " name"])
-    def test_update_organization_name(
+    def test_update_organization(
         self, pyramid_request, organization_service, views, name, notes
     ):
         pyramid_request.matchdict["id_"] = sentinel.id_
@@ -67,6 +69,48 @@ class TestAdminOrganizationViews:
         )
         org = response["org"]
         assert org == organization_service.get_by_id.return_value
+
+    @pytest.mark.parametrize(
+        "parent_public_id_param,expected",
+        (
+            ("  string  ", "string"),
+            ("  ", None),
+            ("", None),
+            (None, None),
+        ),
+    )
+    def test_move_organization(
+        self,
+        views,
+        pyramid_request,
+        organization_service,
+        parent_public_id_param,
+        expected,
+    ):
+        pyramid_request.matchdict["id_"] = sentinel.id_
+        if parent_public_id_param is not None:
+            pyramid_request.params["parent_public_id"] = parent_public_id_param
+
+        response = views.move_organization()
+
+        organization_service.get_by_id.assert_called_once_with(sentinel.id_)
+        org = organization_service.get_by_id.return_value
+        organization_service.update_organization.assert_called_once_with(
+            org, parent_public_id=expected
+        )
+
+        assert response == {"org": org}
+
+    @pytest.mark.parametrize("exception", (InvalidPublicId, InvalidOrganizationParent))
+    def test_move_organization_errors(
+        self, views, pyramid_request, organization_service, exception
+    ):
+        pyramid_request.matchdict["id_"] = sentinel.id_
+        organization_service.update_organization.side_effect = exception
+
+        response = views.move_organization()
+
+        assert response == Any.instance_of(HTTPFound)
 
     @pytest.mark.parametrize("value,expected", [("", False), ("on", True)])
     def test_toggle_organization_enabled(

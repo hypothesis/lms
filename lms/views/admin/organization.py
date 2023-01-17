@@ -8,6 +8,7 @@ from lms.models import Organization
 from lms.models.public_id import InvalidPublicId
 from lms.security import Permissions
 from lms.services import OrganizationService
+from lms.services.organization import InvalidOrganizationParent
 from lms.validation._base import PyramidRequestSchema
 from lms.views.admin import flash_validation
 from lms.views.admin._schemas import EmptyStringInt
@@ -93,6 +94,31 @@ class AdminOrganizationViews:
             notes=self.request.params.get("hypothesis.notes", "").strip(),
         )
         self.request.session.flash("Updated organization", "messages")
+
+        return {"org": org}
+
+    @view_config(
+        route_name="admin.organization.move_org",
+        request_method="POST",
+        renderer="lms:templates/admin/organization.html.jinja2",
+    )
+    def move_organization(self):
+        org = self._get_org_or_404(self.request.matchdict["id_"])
+
+        try:
+            self.organization_service.update_organization(
+                org,
+                parent_public_id=self.request.params.get("parent_public_id", "").strip()
+                or None,
+            )
+            self.request.session.flash("Moved organization", "messages")
+        except (InvalidPublicId, InvalidOrganizationParent) as err:
+            self.request.session.flash(
+                f"Could not move organization id: {err}", "errors"
+            )
+            return HTTPFound(
+                location=self.request.route_url("admin.organization", id_=org.id)
+            )
 
         return {"org": org}
 
