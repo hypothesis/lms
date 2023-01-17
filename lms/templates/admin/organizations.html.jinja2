@@ -35,27 +35,35 @@ Organizations
         <div class="container">
             <div class="table-container">
                 <table class="table is-fullwidth">
-                  <thead>
-                    <tr>
-                      <th></th>
-                      <th>Public ID</th>
-                      <th>ID</th>
-                      <th>Name</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {% for org in organizations %}
+                    <thead>
                         <tr>
-                          <td>
-                            <a class="button" href="{{ request.route_url('admin.organization', id_=org.id) }}">View</a>
-                          </td>
-                          <td>{{org.public_id}}</td>
-                          <td>{{org.id}}</td>
-                          <td>{{org.name}}</td>
-                       </tr>
-                    {% endfor %}
-                  </tbody>
+                          <th></th>
+                          <th>Public ID</th>
+                          <th>ID</th>
+                          <th>Name</th>
+                          <th>Root</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for org in organizations %}
+                            <tr>
+                                <td>
+                                    <a class="button" href="{{ request.route_url('admin.organization', id_=org.id) }}">View</a>
+                                </td>
+                                <td>{{org.public_id}}</td>
+                                <td>{{org.id}}</td>
+                                <td>{{org.name}}</td>
+                                <td>
+                                    {% if org.parent %}
+                                        <span title="This organization has a parent">☐</span>
+                                    {% else %}
+                                        <b title="This organization has no parents">☑</b>
+                                    {% endif %}
+                                </td>
+                           </tr>
+                        {% endfor %}
+                    </tbody>
                 </table>
             </div>
         </div>
