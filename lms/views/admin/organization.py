@@ -80,11 +80,7 @@ class AdminOrganizationViews:
         org = self._get_org_or_404(self.request.matchdict["id_"])
         return {"org": org}
 
-    @view_config(
-        route_name="admin.organization",
-        request_method="POST",
-        renderer="lms:templates/admin/organization.html.jinja2",
-    )
+    @view_config(route_name="admin.organization", request_method="POST")
     def update_organization(self):
         org = self._get_org_or_404(self.request.matchdict["id_"])
 
@@ -95,13 +91,11 @@ class AdminOrganizationViews:
         )
         self.request.session.flash("Updated organization", "messages")
 
-        return {"org": org}
+        return HTTPFound(
+            location=self.request.route_url("admin.organization", id_=org.id)
+        )
 
-    @view_config(
-        route_name="admin.organization.move_org",
-        request_method="POST",
-        renderer="lms:templates/admin/organization.html.jinja2",
-    )
+    @view_config(route_name="admin.organization.move_org", request_method="POST")
     def move_organization(self):
         org = self._get_org_or_404(self.request.matchdict["id_"])
 
@@ -116,17 +110,12 @@ class AdminOrganizationViews:
             self.request.session.flash(
                 f"Could not move organization id: {err}", "errors"
             )
-            return HTTPFound(
-                location=self.request.route_url("admin.organization", id_=org.id)
-            )
 
-        return {"org": org}
+        return HTTPFound(
+            location=self.request.route_url("admin.organization", id_=org.id)
+        )
 
-    @view_config(
-        route_name="admin.organization.toggle",
-        request_method="POST",
-        renderer="lms:templates/admin/organization.html.jinja2",
-    )
+    @view_config(route_name="admin.organization.toggle", request_method="POST")
     def toggle_organization_enabled(self):
         org = self._get_org_or_404(self.request.matchdict["id_"])
 
@@ -137,7 +126,9 @@ class AdminOrganizationViews:
         AuditTrailEvent.notify(self.request, org)
         self.request.session.flash("Updated organization", "messages")
 
-        return {"org": org}
+        return HTTPFound(
+            location=self.request.route_url("admin.organization", id_=org.id)
+        )
 
     @view_config(
         route_name="admin.organizations",
