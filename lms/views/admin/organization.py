@@ -77,8 +77,12 @@ class AdminOrganizationViews:
         renderer="lms:templates/admin/organization.html.jinja2",
     )
     def show_organization(self):
-        org = self._get_org_or_404(self.request.matchdict["id_"])
-        return {"org": org}
+        org_id = self.request.matchdict["id_"]
+
+        return {
+            "org": self._get_org_or_404(org_id),
+            "hierarchy_root": self.organization_service.get_hierarchy_root(org_id),
+        }
 
     @view_config(route_name="admin.organization", request_method="POST")
     def update_organization(self):

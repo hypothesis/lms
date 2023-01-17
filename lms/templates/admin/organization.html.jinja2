@@ -1,5 +1,24 @@
 {% import "macros.html.jinja2" as macros %}
 
+{% macro org_hierarchy(node, focus_org) %}
+    <li>
+        {% if node.id == focus_org.id %}
+            <b>(You are here)</b> {{ node.name }} - <code>{{ node.public_id }}</code>
+        {% else %}
+            <a href="{{ request.route_url('admin.organization', id_=node.id) }}">{{ node.name }}</a>
+            - <code>{{ node.public_id }}</code>
+        {% endif %}
+
+        {% if node.children %}
+            <ul>
+            {% for child in node.children | sort(attribute='name') %}
+                {{ org_hierarchy(child, focus_org) }}
+            {% endfor %}
+            </ul>
+        {% endif %}
+    </li>
+{% endmacro %}
+
 {% extends "lms:templates/admin/base.html.jinja2" %}
 {% block header %}
     Organization {{org.id}}
@@ -34,6 +53,12 @@
         {% endif %}
     </fieldset>
 
+    <div class="box">
+        <legend class="label has-text-centered">Hierarchy</legend>
+        <div class="content">
+            <ul>{{ org_hierarchy(hierarchy_root, org) }}</ul>
+        </div>
+    </div>
     <fieldset class="box has-background-danger-light">
         <legend class="label has-text-centered has-text-danger">Danger zone</legend>
 

@@ -37,7 +37,12 @@ class TestAdminOrganizationViews:
         response = views.show_organization()
 
         organization_service.get_by_id.assert_called_once_with(sentinel.id_)
-        assert response["org"] == organization_service.get_by_id.return_value
+        organization_service.get_hierarchy_root.assert_called_once_with(sentinel.id_)
+
+        assert response == {
+            "org": organization_service.get_by_id.return_value,
+            "hierarchy_root": organization_service.get_hierarchy_root.return_value,
+        }
 
     def test_show_organization_not_found(
         self, pyramid_request, organization_service, views
