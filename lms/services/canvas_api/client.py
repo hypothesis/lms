@@ -6,7 +6,7 @@ from functools import lru_cache
 import marshmallow
 from marshmallow import EXCLUDE, Schema, fields, post_load, validate, validates_schema
 
-from lms.services import CanvasAPIError
+from lms.services.exceptions import CanvasAPIError
 from lms.validation import RequestsResponseSchema
 
 log = logging.getLogger(__name__)
@@ -299,13 +299,33 @@ class CanvasAPIClient:
         id = fields.Integer(required=True)
         name = fields.Str(required=True)
 
-    def group_category_groups(self, group_category_id):
-        """List groups that belong to the group category/group set `group_category_id`."""
-        return self._client.send(
+    def group_category_groups(self, course_id, group_category_id):
+        """
+        List groups that belong to the group category/group set `group_category_id`.
+
+        :param course_id: the ID of the course that the group set should belong to
+        :param group_category_id: the ID of the group set
+        :raise CanvasAPIError: if the group set `group_category_id` is not found
+        or is not in the course `course_id`
+        (for example the group set might belong to a different course,
+        or it might have been deleted)
+        """
+        groups = self._client.send(
             "GET",
             f"group_categories/{group_category_id}/groups",
             schema=self._ListGroups,
         )
+        # The response might include groups from a course other than the current one.
+        # This is most likely due to course copy, the groups are from the original course.
+        if any((group["course_id"]) != int(course_id) for group in groups):
+            # The group set is not in the given course.
+            # For example this could be because the course was copied (assignments in copied
+            # courses still have the group set IDs from the original course)
+            raise CanvasAPIError(
+                f"Group set {group_category_id} doesn't belong to course {course_id}"
+            )
+
+        return groups
 
     def course_groups(self, course_id, only_own_groups=True, include_users=False):
         """
@@ -395,6 +415,7 @@ class CanvasAPIClient:
         name = fields.Str(required=True)
         description = fields.String(load_default=None, allow_none=True)
         group_category_id = fields.Integer(required=True)
+        course_id = fields.Integer(required=True)
 
     @classmethod
     def _ensure_sections_unique(cls, sections):

@@ -85,7 +85,7 @@ class TestCanvasGroupingPlugin:
         )
 
         canvas_api_client.group_category_groups.assert_called_once_with(
-            sentinel.group_set_id
+            sentinel.canvas_course_id, sentinel.group_set_id
         )
         assert canvas_api_client.group_category_groups.return_value == api_groups
 
@@ -142,7 +142,7 @@ class TestCanvasGroupingPlugin:
             sentinel.group_set_id,
         )
         canvas_api_client.group_category_groups.assert_called_once_with(
-            sentinel.group_set_id
+            sentinel.canvas_course_id, sentinel.group_set_id
         )
         assert canvas_api_client.group_category_groups.return_value == all_groups
 
