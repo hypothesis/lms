@@ -140,8 +140,32 @@ export default function LaunchErrorDialog({
         </ErrorModal>
       );
 
-    case 'blackboard_group_set_not_found':
     case 'canvas_group_set_not_found':
+      return (
+        <ErrorModal busy={busy} error={error} title="Group set not found">
+          <p>
+            Hypothesis couldn&apos;t find this assignment&apos;s group set. This
+            could be because:
+          </p>
+
+          <ul className="u-list">
+            <li>The group set has been deleted from Canvas.</li>
+            <li>
+              This course was created by copying another course (Canvas
+              doesn&apos;t copy the group sets over when you copy a course).
+            </li>
+          </ul>
+
+          <p>
+            <b>
+              To fix this problem, an instructor needs to edit the assignment
+              settings and select a new group set.
+            </b>
+          </p>
+        </ErrorModal>
+      );
+
+    case 'blackboard_group_set_not_found':
       return (
         <ErrorModal
           busy={busy}
