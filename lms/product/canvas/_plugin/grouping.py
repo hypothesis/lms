@@ -56,10 +56,12 @@ class CanvasGroupingPlugin(GroupingPlugin):
 
         raise GroupError(ErrorCodes.STUDENT_NOT_IN_GROUP, group_set=group_set_id)
 
-    def get_groups_for_instructor(self, _svc, _course, group_set_id):
+    def get_groups_for_instructor(self, _svc, course, group_set_id):
         try:
             # If not grading return all the groups in the course so the teacher can toggle between them.
-            all_course_groups = self._canvas_api.group_category_groups(group_set_id)
+            all_course_groups = self._canvas_api.group_category_groups(
+                self._custom_course_id(course), group_set_id
+            )
         except CanvasAPIError as canvas_api_error:
             raise GroupError(
                 ErrorCodes.GROUP_SET_NOT_FOUND, group_set=group_set_id

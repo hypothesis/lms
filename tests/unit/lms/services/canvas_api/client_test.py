@@ -176,12 +176,14 @@ class TestCanvasAPIClientIntegrated:
                 "name": "Group 1",
                 "description": "Group 1",
                 "group_category_id": 1,
+                "course_id": 1,
             },
             {
                 "id": 2,
                 "name": "Group 2",
                 "description": "Group 2",
                 "group_category_id": 1,
+                "course_id": 1,
             },
         ]
         http_session.send.return_value = factories.requests.Response(
@@ -295,8 +297,9 @@ class TestCanvasAPIClientIntegrated:
         assert response[0]["group_category_id"] == int(group_category_id)
 
     @pytest.mark.usefixtures("list_groups_response")
-    def test_group_category_groups(self, canvas_api_client, http_session):
-        response = canvas_api_client.group_category_groups("GROUP_CATEGORY")
+    @pytest.mark.parametrize("course_id", (1, "1"))
+    def test_group_category_groups(self, canvas_api_client, http_session, course_id):
+        response = canvas_api_client.group_category_groups(course_id, "GROUP_CATEGORY")
 
         assert len(response) == 2
         http_session.send.assert_called_once_with(
@@ -307,6 +310,17 @@ class TestCanvasAPIClientIntegrated:
                 ).with_query({"per_page": Any.string()}),
             ),
             timeout=Any(),
+        )
+
+    @pytest.mark.usefixtures("list_groups_response")
+    def test_group_category_groups_from_another_course(self, canvas_api_client):
+
+        with pytest.raises(CanvasAPIError) as exc_info:
+            canvas_api_client.group_category_groups(2, "GROUP_CATEGORY")
+
+        assert (
+            exc_info.value.message
+            == "Group set GROUP_CATEGORY doesn't belong to course 2"
         )
 
     def test_users_sections(self, canvas_api_client, http_session):
@@ -505,12 +519,14 @@ class TestCanvasAPIClientIntegrated:
                     "name": "Group 1",
                     "description": "Group 1",
                     "group_category_id": 1,
+                    "course_id": 1,
                 },
                 {
                     "id": 2,
                     "name": "Group 2",
                     "description": "Group 2",
                     "group_category_id": 2,
+                    "course_id": 1,
                 },
             ],
             status_code=200,
@@ -526,6 +542,7 @@ class TestCanvasAPIClientIntegrated:
                     "description": "Group 1",
                     "group_category_id": 1,
                     "users": [],
+                    "course_id": 1,
                 },
                 {
                     "id": 2,
@@ -533,6 +550,7 @@ class TestCanvasAPIClientIntegrated:
                     "description": "Group 2",
                     "group_category_id": 2,
                     "users": [{"id": 1}],
+                    "course_id": 1,
                 },
             ],
             status_code=200,
