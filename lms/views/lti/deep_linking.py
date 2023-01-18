@@ -179,6 +179,7 @@ class DeepLinkingFieldsViews:
                             "@type": "LtiLinkItem",
                             "mediaType": "application/vnd.ims.lti.v1.ltilink",
                             "url": url,
+                            "title": "Hypothesis",
                         },
                     ],
                 }
