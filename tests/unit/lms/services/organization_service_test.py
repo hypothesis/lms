@@ -29,6 +29,11 @@ class TestOrganizationService:
 
         assert result == orgs[1]
 
+    def test_get_hierarchy_root(self, svc, org_with_parent):
+        root = svc.get_hierarchy_root(org_with_parent.id)
+
+        assert root == org_with_parent.parent
+
     @pytest.mark.usefixtures("with_matching_noise")
     @pytest.mark.parametrize(
         "param,field", (("name", "name"), ("public_id", "public_id"), ("id_", "id"))
