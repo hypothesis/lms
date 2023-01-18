@@ -19,15 +19,45 @@ class OrganizationService:
     def __init__(self, db_session: Session):
         self._db_session = db_session
 
-    def get_by_id(self, id_) -> Optional[Organization]:
-        """Get an organization by its private primary key."""
+    def get_by_id(self, id_: int) -> Optional[Organization]:
+        """
+        Get an organization by its private primary key.
+
+        :param id_: Primary key of the organization
+        """
 
         return self._organization_search_query(id_=id_).one_or_none()
 
     def get_by_public_id(self, public_id: str) -> Optional[List]:
-        """Get an organization by its public_id."""
+        """
+        Get an organization by its public_id.
+
+        :param public_id: Fully qualified public id
+        """
 
         return self._organization_search_query(public_id=public_id).one_or_none()
+
+    def get_hierarchy_root(self, id_: int) -> Organization:
+        """
+        Get the root of the hierarchy from the given organization.
+
+        :param id_: Primary key of the organization
+        """
+
+        # Get all the objects in the hierarchy, to ensure they are cached by
+        # SQLAlchemy, and should be fast to access.
+        hierarchy = (
+            self._db_session.query(Organization).filter(
+                Organization.id.in_(self._get_hierarchy_ids(id_, include_parents=True))
+            )
+            # Order by parent id, this will cause the root (if any) to be last.
+            # The default ascending order puts NULL's last
+            .order_by(Organization.parent_id)
+        ).all()
+
+        assert not hierarchy[-1].parent_id, "The root item should have no parent"
+
+        return hierarchy[-1]
 
     # pylint:disable=too-many-arguments
     def search(
@@ -198,7 +228,7 @@ class OrganizationService:
             )
 
         # Get a list including our self and all are children etc.
-        if parent.id in self._get_hierarchy_ids(organization.id):
+        if parent.id in self._get_hierarchy_ids(organization.id, include_parents=False):
             raise InvalidOrganizationParent(
                 f"Cannot use '{parent_public_id}' as a parent as it a "
                 "child of this organization"
@@ -207,11 +237,12 @@ class OrganizationService:
         organization.parent = parent
         organization.parent_id = parent.id
 
-    def _get_hierarchy_ids(self, id_) -> List[int]:
+    def _get_hierarchy_ids(self, id_, include_parents=False) -> List[int]:
         """
         Get an organization and it's children's ids order not guaranteed.
 
         :param id_: Organization id to look for
+        :param include_parents: Include parents as well as children
         """
 
         # Find the relevant orgs in the hierarchy by id using a recursive CTE:
@@ -226,6 +257,12 @@ class OrganizationService:
         # We are going to self join onto the above with anything that is a
         # child of the objects we've seen so far
         join_condition = Organization.parent_id == base_case.c.id
+        if include_parents:
+            # Match anything that is a parent of what we've seen
+            join_condition = sa.or_(
+                join_condition, Organization.id == base_case.c.parent_id
+            )
+
         recursive_case = self._db_session.query(*cols).join(base_case, join_condition)
 
         # This will recurse until no new rows are added
