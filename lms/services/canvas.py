@@ -1,14 +1,16 @@
 from lms.services.exceptions import CanvasAPIPermissionError, CanvasFileNotFoundInCourse
 
+from lms.models import File
+
 
 class CanvasService:
     """A high level Canvas service."""
 
     api = None
 
-    def __init__(self, canvas_api, file_service):
+    def __init__(self, db, canvas_api, file_service):
         self.api = canvas_api
-        self._finder = CanvasFileFinder(canvas_api, file_service)
+        self._finder = CanvasFileFinder(db, canvas_api, file_service)
 
     def public_url_for_file(
         self, assignment, file_id, course_id, check_in_course=False
@@ -67,7 +69,8 @@ class CanvasService:
 class CanvasFileFinder:
     """A helper for finding file IDs in the Canvas API."""
 
-    def __init__(self, canvas_api, file_service):
+    def __init__(self, db, canvas_api, file_service):
+        self._db = db
         self._api = canvas_api
         self._file_service = file_service
 
@@ -92,25 +95,60 @@ class CanvasFileFinder:
 
         Return None if no matching file is found.
         """
-        for file_id in file_ids:
-            file = self._file_service.get(file_id, type_="canvas_file")
 
+        try:
+            # Get the current (copied) courses files, that will have the side effect of storing files in the DB
+            _ = self._api.list_files(course_id)
+        except:
+            # We might not have access to use the API for that endpoint.
+            # That will depend on our role and the course's file navigation settings
+            # We will continue anyway, maybe the files of the new course are already in the DB
+            # after an instructor launched
+            pass
+
+        # Go over the potential file_ids for the current course file
+        for file_id in file_ids:
+            # This is odd, we are querying by just "file_id", should't original_course_id be part of the query
+            # (note that original_course_id) is not around but we could get it from LTIParams
+            # Anyway, we get the original file record from the DB
+            file = self._file_service.get(file_id, type_="canvas_file")
             if not file:
                 continue
 
-            for file_dict in self._api.list_files(course_id):
-                if (
-                    file_dict["display_name"] == file.name
-                    and file_dict["size"] == file.size
-                    and str(file_dict["id"]) != file.lms_id
-                ):
-                    return str(file_dict["id"])
+            # Now we'll try to find a matching file in the DB in the new course
+            # We might have a record of this because we jsut called `list_files` as teh current user
+            # or another user might have done it before for us.
+            new_file = (
+                self._db.query(File)
+                .filter(
+                    # Same application instance, not enterly correct but fine (it should be same tool_guid, or ideally same org)
+                    File.application_instance == file.application_instance,
+                    # Same type, `canvas_file` here
+                    File.type_ == file.type_,
+                    # We don't want to find the same file we are looking for
+                    File.lms_id == file.lms_id,
+                    # And as a heuristic, we reckon same name, same size, probably the sme file
+                    File.name == file.name,
+                    File.size == file.size,
+                )
+                .first()
+            )
 
+            if new_file:
+                return new_file.lms_id
+
+        # No match for the file.
+        # This will always be the case if:
+        #    - Course file's navigation is disabled
+        #     - The first launch on the course is by a student
+        # Other edge cases might also be possible if for example a file
+        # is deleted after course copy or similar.
         return None
 
 
 def factory(_context, request):
     return CanvasService(
+        db=request.db,
         canvas_api=request.find_service(name="canvas_api_client"),
         file_service=request.find_service(name="file"),
     )
