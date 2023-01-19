@@ -19,14 +19,9 @@ class TestAuthorize:
     @pytest.mark.parametrize(
         "groups,files,scopes",
         [
-            (False, False, "core:*:*"),
-            (False, True, "core:*:* content:toc:read content:topics:read"),
-            (True, False, "core:*:* groups:group:read"),
-            (
-                True,
-                True,
-                "core:*:* content:toc:read content:topics:read groups:group:read",
-            ),
+            (False, True, "content:toc:read content:topics:read"),
+            (True, False, "groups:group:read"),
+            (True, True, "content:toc:read content:topics:read groups:group:read"),
         ],
     )
     def test_it(
@@ -64,6 +59,13 @@ class TestAuthorize:
                 },
             )
         )
+
+    def test_raises_with_no_scopes(self, pyramid_request):
+        pyramid_request.product.settings.groups_enabled = False
+        pyramid_request.product.settings.files_enabled = False
+
+        with pytest.raises(NotImplementedError):
+            authorize(pyramid_request)
 
 
 class TestOAuth2Redirect:
