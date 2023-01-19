@@ -104,9 +104,7 @@ class AdminApplicationInstanceViews:
                 {"lti_registration": lti_registration.id},
             )
 
-        return HTTPFound(
-            location=self.request.route_url("admin.instance.id", id_=ai.id)
-        )
+        return self._redirect("admin.instance.id", id_=ai.id)
 
     @view_config(
         route_name="admin.registration.upgrade.instance",
@@ -172,11 +170,7 @@ class AdminApplicationInstanceViews:
                 {"lti_registration": lti_registration.id},
             )
 
-        return HTTPFound(
-            location=self.request.route_url(
-                "admin.instance.id", id_=application_instance.id
-            )
-        )
+        return self._redirect("admin.instance.id", id_=application_instance.id)
 
     @view_config(route_name="admin.instance.downgrade", request_method="POST")
     def downgrade_instance(self):
@@ -186,26 +180,20 @@ class AdminApplicationInstanceViews:
             self.request.session.flash(
                 f"Application instance: '{ai.id}' is not on LTI 1.3.", "errors"
             )
-            return HTTPFound(
-                location=self.request.route_url("admin.instance.id", id_=ai.id)
-            )
+            return self._redirect("admin.instance.id", id_=ai.id)
 
         if not ai.consumer_key:
             self.request.session.flash(
                 f"Application instance: '{ai.id}' doesn't have a consumer key to fallback to.",
                 "errors",
             )
-            return HTTPFound(
-                location=self.request.route_url("admin.instance.id", id_=ai.id)
-            )
+            return self._redirect("admin.instance.id", id_=ai.id)
 
         ai.lti_registration_id = None
         ai.deployment_id = None
 
         self.request.session.flash("Downgraded LTI 1.1 successful", "messages")
-        return HTTPFound(
-            location=self.request.route_url("admin.instance.id", id_=ai.id)
-        )
+        return self._redirect("admin.instance.id", id_=ai.id)
 
     @view_config(
         route_name="admin.instances.search",
@@ -262,13 +250,8 @@ class AdminApplicationInstanceViews:
             )
         except ValidationError as err:
             self.request.session.flash(err.messages, "validation")
-            return HTTPFound(
-                location=self.request.route_url("admin.instance.id", id_=ai.id)
-            )
 
-        return HTTPFound(
-            location=self.request.route_url("admin.instance.id", id_=ai.id)
-        )
+        return self._redirect("admin.instance.id", id_=ai.id)
 
     @view_config(
         route_name="admin.instance.id",
@@ -332,9 +315,10 @@ class AdminApplicationInstanceViews:
 
         self.request.session.flash(f"Updated application instance {ai.id}", "messages")
 
-        return HTTPFound(
-            location=self.request.route_url("admin.instance.id", id_=ai.id)
-        )
+        return self._redirect("admin.instance.id", id_=ai.id)
+
+    def _redirect(self, route_name, **kwargs):
+        return HTTPFound(location=self.request.route_url(route_name, **kwargs))
 
     def _get_ai_or_404(self, consumer_key=None, id_=None) -> ApplicationInstance:
         try:
