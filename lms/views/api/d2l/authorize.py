@@ -17,18 +17,21 @@ FILES_SCOPES = ("content:toc:read", "content:topics:read")
     permission=Permissions.API,
 )
 def authorize(request):
-    application_instance = request.find_service(
-        name="application_instance"
-    ).get_current()
-    state = OAuthCallbackSchema(request).state_param()
-
-    scopes = ["core:*:*"]
+    scopes = []
 
     if request.product.settings.files_enabled:
         scopes += FILES_SCOPES
 
     if request.product.settings.groups_enabled:
         scopes += GROUPS_SCOPES
+
+    if not scopes:
+        raise NotImplementedError("Trying to get a D2L without any scopes")
+
+    application_instance = request.find_service(
+        name="application_instance"
+    ).get_current()
+    state = OAuthCallbackSchema(request).state_param()
 
     return HTTPFound(
         location=urlunparse(
