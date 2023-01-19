@@ -42,7 +42,21 @@ class TestAdminOrganizationViews:
         assert response == {
             "org": organization_service.get_by_id.return_value,
             "hierarchy_root": organization_service.get_hierarchy_root.return_value,
+            "sort_by_name": Any.callable(),
         }
+
+    def test_show_organization_sort_by_name(self, views, pyramid_request):
+        pyramid_request.matchdict["id_"] = sentinel.id_
+        response = views.show_organization()
+        sort_by_name = response["sort_by_name"]
+
+        org_a = factories.Organization(name="a")
+        org_b = factories.Organization(name="b")
+        org_none = factories.Organization(name=None)
+
+        results = sort_by_name([org_a, org_none, org_b])
+
+        assert list(results) == [org_none, org_a, org_b]
 
     def test_show_organization_not_found(
         self, pyramid_request, organization_service, views

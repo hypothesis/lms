@@ -82,6 +82,9 @@ class AdminOrganizationViews:
         return {
             "org": self._get_org_or_404(org_id),
             "hierarchy_root": self.organization_service.get_hierarchy_root(org_id),
+            "sort_by_name": lambda items: sorted(
+                items, key=lambda value: value.name or ""
+            ),
         }
 
     @view_config(route_name="admin.organization", request_method="POST")

@@ -11,7 +11,7 @@
 
         {% if node.children %}
             <ul>
-            {% for child in node.children | sort(attribute='name') %}
+            {% for child in sort_by_name(node.children) %}
                 {{ org_hierarchy(child, focus_org) }}
             {% endfor %}
             </ul>
