@@ -3,6 +3,7 @@ from lms.product.canvas import Canvas
 from lms.product.d2l import D2L
 from lms.product.product import Product
 from lms.services.application_instance import ApplicationInstanceNotFound
+from lms.models import LTIParams
 
 _PRODUCT_MAP = {product.family: product for product in (Blackboard, Canvas, D2L)}
 
@@ -15,19 +16,23 @@ def get_product_from_request(request) -> Product:
     except ApplicationInstanceNotFound:
         ai = None
 
-    family = _get_family(request, ai)
+    # We can't take lti_params from request as tha will create a circular dependency
+    lti_params = LTIParams.from_request(request)
+    family = _get_family(request, lti_params, ai)
+
     product = _PRODUCT_MAP.get(family, Product).from_request(
-        request, dict(ai.settings) if ai else {}
+        request, lti_params, dict(ai.settings) if ai else {}
     )
     product.family = family
     return product
 
 
 def _get_family(
-    request, application_instance
+    request, lti_params, application_instance
 ):  # pylint:disable=too-many-return-statements
     # First, if we are in an LMS specific route, return that
     # These are generally GET routes where we don't pass the `product` parameter back to us
+
     if request.matched_route.name.startswith("canvas_api."):
         return Product.Family.CANVAS
 
@@ -39,11 +44,11 @@ def _get_family(
         return Product.Family(request.json["lms"]["product"])
 
     # In an LTI launch we'll use the parameters available to guess
-    if product_name := request.lti_params.get("tool_consumer_info_product_family_code"):
+    if product_name := lti_params.get("tool_consumer_info_product_family_code"):
         return Product.Family(product_name)
 
     # If we don't get a hint from LTI check a canvas specific parameter
-    if "custom_canvas_course_id" in request.lti_params:
+    if "custom_canvas_course_id" in lti_params:
         return Product.Family.CANVAS
 
     # Finally try to match using the stored family_code in the application instance

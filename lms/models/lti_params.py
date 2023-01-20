@@ -37,41 +37,7 @@ class LTIParams(dict):
 
         lti_params = cls(v11=v11, v13=v13)
 
-        # This would be good if we could extract this as a product plugin (or
-        # something similar), but unfortunately there's currently a circular
-        # dependency where LTI params are required to get the product
-        lti_params = _apply_canvas_quirks(lti_params, request)
-
         return lti_params
-
-
-def _apply_canvas_quirks(lti_params, request):
-    # Canvas SpeedGrader launches LTI apps with the wrong resource_link_id,
-    # see:
-    # * https://github.com/instructure/canvas-lms/issues/1952
-    # * https://github.com/hypothesis/lms/issues/3228
-    #
-    # We add the correct resource_link_id as a query param on the launch
-    # URL that we submit to Canvas and use that instead of the incorrect
-    # resource_link_id that Canvas puts in the request's body.
-    is_speedgrader = request.GET.get("learner_canvas_user_id")
-
-    if is_speedgrader and (resource_link_id := request.GET.get("resource_link_id")):
-        lti_params["resource_link_id"] = resource_link_id
-
-    for canvas_param_name in ["custom_canvas_course_id", "custom_canvas_user_id"]:
-        # In LTI1.3 some custom canvas parameters were sent as integers
-        # and as strings in LTI1.1.
-        # With this update:
-        #   https://community.canvaslms.com/t5/Canvas-Change-Log/Canvas-Platform-Breaking-Changes/ta-p/262015
-        # They should also be strings in LTI1.3 but not all
-        # canvas instances run the last version so we are keeping this for some time
-        canvas_param_value = lti_params.get(canvas_param_name)
-        if isinstance(canvas_param_value, int):
-            LOG.debug("Canvas: integer value for %s", canvas_param_name)
-            lti_params[canvas_param_name] = str(canvas_param_value)
-
-    return lti_params
 
 
 _V11_TO_V13 = (
@@ -214,5 +180,8 @@ def _get_key(data: dict, data_path: List[str]):
 
 def includeme(config):
     config.add_request_method(
-        LTIParams.from_request, name="lti_params", property=True, reify=True
+        lambda request: request.product.lti_params,
+        name="lti_params",
+        property=True,
+        reify=True,
     )

@@ -5,6 +5,7 @@ from enum import Enum
 from typing import Dict, Optional
 
 from lms.product.plugin import PluginConfig, Plugins
+from lms.models import LTIParams
 
 
 class Family(str, Enum):
@@ -65,6 +66,7 @@ class Product:
 
     plugin: Plugins
     settings: Settings
+    lti_params: LTIParams
     plugin_config: PluginConfig = PluginConfig()
     route: Routes = Routes()
     family: Family = Family.UNKNOWN
@@ -75,11 +77,17 @@ class Product:
     Family = Family
 
     @classmethod
-    def from_request(cls, request, ai_settings: Dict):
+    def from_request(cls, request, lti_params, ai_settings: Dict):
         """Create a populated product object from the provided request."""
         product_settings = ai_settings.get(cls.settings_key, {})
 
         return cls(
+            lti_params=cls.productize_lti_params(request, lti_params),
             plugin=Plugins(request, cls.plugin_config),
             settings=Settings(product_settings=product_settings),
         )
+
+    @staticmethod
+    def productize_lti_params(request, lti_params: LTIParams) -> LTIParams:
+        print("GENERIC")
+        return lti_params
