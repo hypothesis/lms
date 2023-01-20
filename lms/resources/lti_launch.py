@@ -29,6 +29,10 @@ class LTILaunchResource:
     @cached_property
     def course(self):
         """Get the course this LTI launch based on the request's params."""
+        if existing_course := self._request.find_service(
+            name="course"
+        ).get_by_context_id(self._request.parsed_params["context_id"]):
+            return existing_course
 
         return self._request.find_service(name="course").upsert_course(
             context_id=self._request.parsed_params["context_id"],
