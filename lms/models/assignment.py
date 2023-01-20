@@ -10,16 +10,19 @@ class Assignment(CreatedUpdatedMixin, BASE):
     """
     An assignment configuration.
 
-    When an LMS doesn't support LTI content-item selection/deep linking (so it
-    doesn't support storing an assignment's document URL in the LMS and passing
-    it back to us in launch requests) then we store the document URL in the
-    database instead.
-
     Each persisted Assignment object represents a DB-stored
     assignment configuration, with the
     ``(tool_consumer_instance_guid, resource_link_id)`` launch params
     identifying the LTI resource (module item or assignment) and the
     ``document_url`` being the URL of the document to be annotated.
+
+    For LMS's that don't support LTI content-item selection/deep linking (so it
+    doesn't support storing an assignment's document URL in the LMS and passing
+    it back to us in launch requests) this model is the source of truth
+    for the assignment configuration.
+
+    When deep linking is used this is just a record of the state of the assignment on the last launch.
+    We might have stale information here in between the deep linking request and a launch.
     """
 
     __tablename__ = "assignment"
