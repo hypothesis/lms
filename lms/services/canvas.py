@@ -1,6 +1,5 @@
-from lms.services.exceptions import CanvasAPIPermissionError, CanvasFileNotFoundInCourse
-
 from lms.models import File
+from lms.services.exceptions import CanvasAPIPermissionError, CanvasFileNotFoundInCourse
 
 
 class CanvasService:
