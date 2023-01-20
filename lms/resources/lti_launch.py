@@ -29,11 +29,20 @@ class LTILaunchResource:
     @cached_property
     def course(self):
         """Get the course this LTI launch based on the request's params."""
+        course_service = self._request.find_service(name="course")
 
-        return self._request.find_service(name="course").upsert_course(
+        if existing_course := course_service.get_by_context_id(
+            self._request.parsed_params["context_id"]
+        ):
+            # Keep existing `extra` instead of replacing it with the default
+            extra = existing_course.extra
+        else:
+            extra = self._new_course_extra()
+
+        return course_service.upsert_course(
             context_id=self._request.parsed_params["context_id"],
             name=self._request.parsed_params["context_title"],
-            extra=self._course_extra(),
+            extra=extra,
         )
 
     @property
@@ -60,8 +69,8 @@ class LTILaunchResource:
             self._request, self.course, assignment
         )
 
-    def _course_extra(self):
-        """Extra information to store for courses."""
+    def _new_course_extra(self):
+        """Extra information to store for new courses."""
         extra = {}
 
         if self.is_canvas:
