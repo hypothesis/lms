@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from lms.product.blackboard._plugin.course_copy import BlackboardCourseCopyPlugin
 from lms.product.blackboard._plugin.grouping import BlackboardGroupingPlugin
 from lms.product.product import PluginConfig, Product, Routes
 
@@ -16,5 +17,7 @@ class Blackboard(Product):
         list_group_sets="blackboard_api.courses.group_sets.list",
     )
 
-    plugin_config: PluginConfig = PluginConfig(grouping=BlackboardGroupingPlugin)
+    plugin_config: PluginConfig = PluginConfig(
+        grouping=BlackboardGroupingPlugin, course_copy=BlackboardCourseCopyPlugin
+    )
     settings_key = "blackboard"
