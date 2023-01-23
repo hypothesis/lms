@@ -133,28 +133,38 @@ class OrganizationService:
 
         if application_instance.organization:
             org = application_instance.organization
-
-        elif (
-            orgs := self._organization_search_query(guid=guid)
-            .order_by(Organization.updated.desc())
-            .all()
-        ):
-            if len(orgs) > 1:
-                LOG.warning(
-                    "Multiple organization matches found for application instance %s",
-                    application_instance.id,
-                )
-
-            org = orgs[0]
-
         else:
-            org = self.create_organization()
+            # Add a note to indicate the application instance was automatically
+            # allocated to an organization
+            application_instance.settings.set(
+                "hypothesis", "auto_assigned_to_org", True
+            )
+
+            if (
+                orgs := self._organization_search_query(guid=guid)
+                .order_by(Organization.updated.desc())
+                .all()
+            ):
+                if len(orgs) > 1:
+                    LOG.warning(
+                        "Multiple organization matches found for application instance %s",
+                        application_instance.id,
+                    )
+
+                org = orgs[0]
+
+            else:
+                org = self.create_organization()
+                # Add a note to indicate the organization was automatically
+                # created instead of going through our normal process
+                org.settings.set("hypothesis", "auto_created", True)
 
         # Fill out missing names
         if not org.name and (name := application_instance.tool_consumer_instance_name):
             org.name = name
 
         application_instance.organization = org
+
         return org
 
     def create_organization(self, name=None) -> Organization:

@@ -119,9 +119,17 @@ class TestOrganizationService:
         assert application_instance.organization == result
         if org:
             assert result == org
+            assert not result.settings.get("hypothesis", "auto_created")
+            assert not application_instance.settings.get(
+                "hypothesis", "auto_assigned_to_org"
+            )
         else:
             # For the newly created org case, make sure we have an ID
             assert result.id
+            assert result.settings.get("hypothesis", "auto_created")
+            assert application_instance.settings.get(
+                "hypothesis", "auto_assigned_to_org"
+            )
 
         assert result == Any.instance_of(Organization).with_attrs({"name": name})
 
