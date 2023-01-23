@@ -1,7 +1,7 @@
 def includeme(config):  # pylint:disable=too-many-statements
     config.add_route("index", "/")
+    config.add_route("welcome", "/welcome")  # Legacy view, points to "/" now
     config.add_route("feature_flags_test", "/flags/test")
-    config.add_route("welcome", "/welcome")
     config.add_route("assets", "/assets/*subpath")
     config.add_route("status", "/_status")
     config.add_route("favicon", "/favicon.ico")

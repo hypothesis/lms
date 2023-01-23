@@ -1,8 +1,11 @@
+from h_matchers import Any
+from pyramid.httpexceptions import HTTPFound
+
 from lms.views.index import index
 
 
 class TestIndexView:
-    def test_it_does_nowt(self, pyramid_request):
-        template_params = index(pyramid_request)
+    def test_it(self, pyramid_request):
+        response = index(pyramid_request)
 
-        assert not template_params
+        assert response == Any.instance_of(HTTPFound)
