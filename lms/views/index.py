@@ -1,8 +1,12 @@
+from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 
 
-@view_config(route_name="welcome", renderer="lms:templates/base.html.jinja2")
-@view_config(route_name="index", renderer="lms:templates/base.html.jinja2")
-def index(request):  # pylint: disable=unused-argument
-    """Render an empty page that contains a needed Google verification meta tag."""
-    return {}
+@view_config(route_name="welcome")
+@view_config(route_name="index")
+def index(_):
+    """Redirect curious users to some help."""
+
+    return HTTPFound(
+        location="https://web.hypothes.is/help/installing-the-hypothesis-lms-app/"
+    )
