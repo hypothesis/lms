@@ -10,22 +10,14 @@ from pyramid.view import view_config
 )
 def create_application_instance(request):
     """Create application instance in the database and respond with key and secret."""
-    developer_key = request.params["developer_key"].strip()
-    developer_secret = request.params["developer_secret"].strip()
 
     instance = request.find_service(
         name="application_instance"
     ).create_application_instance(
         lms_url=request.params["lms_url"],
         email=request.params["email"],
-        developer_key=developer_key,
-        developer_secret=developer_secret,
-        settings={
-            "canvas": {
-                "sections_enabled": False,
-                "groups_enabled": bool(developer_key),
-            }
-        },
+        developer_key=request.params["developer_key"].strip(),
+        developer_secret=request.params["developer_secret"].strip(),
     )
 
     return {

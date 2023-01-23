@@ -230,7 +230,6 @@ class ApplicationInstanceService:
         developer_key,
         developer_secret,
         organization_public_id=None,  # We want to make this mandatory
-        settings=None,
         deployment_id=None,
         lti_registration_id=None,
     ):
@@ -245,7 +244,13 @@ class ApplicationInstanceService:
             lms_url=lms_url,
             requesters_email=email,
             created=datetime.utcnow(),
-            settings=settings or {},
+            # Some helpful defaults for settings
+            settings={
+                "canvas": {
+                    "sections_enabled": False,
+                    "groups_enabled": bool(developer_key),
+                }
+            },
             deployment_id=deployment_id,
             lti_registration_id=lti_registration_id,
         )
