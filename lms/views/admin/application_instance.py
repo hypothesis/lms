@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from webargs import fields
 
 from lms.models import ApplicationInstance
+from lms.models.public_id import InvalidPublicId
 from lms.security import Permissions
 from lms.services import ApplicationInstanceNotFound, LTIRegistrationService
 from lms.services.aes import AESService
@@ -23,6 +24,7 @@ class NewAppInstanceSchema(PyramidRequestSchema):
 
     lms_url = fields.URL(required=True)
     email = fields.Email(required=True)
+    organization_public_id = fields.Str(required=True, validate=validate.Length(min=1))
 
 
 class NewAppInstanceSchemaV13(NewAppInstanceSchema):
@@ -108,9 +110,17 @@ class AdminApplicationInstanceViews:
                 developer_secret=self.request.params.get(
                     "developer_secret", ""
                 ).strip(),
+                organization_public_id=self.request.params.get(
+                    "organization_public_id", ""
+                ).strip(),
                 lti_registration_id=lti_registration_id,
             )
+        except InvalidPublicId as err:
+            self.request.session.flash(
+                {"organization_public_id": [str(err)]}, "validation"
+            )
 
+            return self._redirect("admin.instance.new", _query=self.request.params)
         except IntegrityError:
             self.request.session.flash(
                 f"Application instance with deployment_id: {self.request.params['deployment_id']} already exists",
