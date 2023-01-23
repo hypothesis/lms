@@ -17,15 +17,18 @@ class ApplicationInstance(BASE):
 
     __tablename__ = "application_instances"
     __table_args__ = (
-        # For LTI1.3 instances we allow consumer_key to be null as long as we have a registration and deployment_id.
-        # Note that when consumer_key is present we don't require lti_registration_id and deployment_id to be null
-        # it could be an instance that has been upgraded from LTI1.1 to LTI1.3 having values for all three fields.
+        # For LTI1.3 instances we allow consumer_key to be null as long as we
+        # have a registration and deployment_id. Note that when consumer_key is
+        # present we don't require lti_registration_id and deployment_id to be
+        # null it could be an instance that has been upgraded from LTI1.1 to
+        # LTI1.3 having values for all three fields.
         sa.CheckConstraint(
             """(consumer_key IS NULL AND lti_registration_id IS NOT NULL and deployment_id IS NOT NULL)
             OR (consumer_key IS NOT NULL)""",
             name="consumer_key_required_for_lti_11",
         ),
-        # For LTI 1.3, registration and deployment_id uniquely identify the instance.
+        # For LTI 1.3, registration and deployment_id uniquely identify the
+        # instance.
         sa.UniqueConstraint("lti_registration_id", "deployment_id"),
     )
 
@@ -64,58 +67,58 @@ class ApplicationInstance(BASE):
         nullable=False,
     )
 
-    #: A unique identifier for the LMS instance.
+    # A unique identifier for the LMS instance
     tool_consumer_instance_guid = sa.Column(sa.UnicodeText, nullable=True)
 
-    #: The LMS product name, e.g. "canvas" or "moodle".
+    # The LMS product name, e.g. "canvas" or "moodle"
     tool_consumer_info_product_family_code = sa.Column(sa.UnicodeText, nullable=True)
 
-    #: A plain text description of the LMS instance, e.g. "University of Hypothesis"
+    # A plain text description of the LMS instance, e.g. "Uni of Hypothesis"
     tool_consumer_instance_description = sa.Column(sa.UnicodeText, nullable=True)
 
-    #: The URL of the LMS instance, e.g. "https://hypothesis.instructure.com".
+    # The URL of the LMS instance, e.g. "https://hypothesis.instructure.com"
     tool_consumer_instance_url = sa.Column(sa.UnicodeText, nullable=True)
 
-    #: The name of the LMS instance, e.g. "HypothesisU".
+    # The name of the LMS instance, e.g. "HypothesisU"
     tool_consumer_instance_name = sa.Column(sa.UnicodeText, nullable=True)
 
-    #: An contact email, e.g. "System.Admin@school.edu"
+    # An contact email, e.g. "System.Admin@school.edu"
     tool_consumer_instance_contact_email = sa.Column(sa.UnicodeText, nullable=True)
 
-    #: Version of the LMS, e.g. "9.1.7081"
+    # Version of the LMS, e.g. "9.1.7081"
     tool_consumer_info_version = sa.Column(sa.UnicodeText, nullable=True)
 
-    #: This Canvas custom variable substitution $Canvas.api.domain.
-    #: We request this in our config.xml file and name it "custom_canvas_api_domain":
-    #:
-    #: https://github.com/hypothesis/lms/blob/5394cf2bfb92cb219e177f3c0a7991add024f242/lms/templates/config.xml.jinja2#L20
-    #:
-    #: See https://canvas.instructure.com/doc/api/file.tools_variable_substitutions.html
+    # This Canvas custom variable substitution $Canvas.api.domain. We request
+    # this in our config.xml file and name it "custom_canvas_api_domain":
+    #
+    # https://github.com/hypothesis/lms/blob/5394cf2bfb92cb219e177f3c0a7991add024f242/lms/templates/config.xml.jinja2#L20
+    #
+    # See https://canvas.instructure.com/doc/api/file.tools_variable_substitutions.html
     custom_canvas_api_domain = sa.Column(sa.UnicodeText, nullable=True)
 
-    #: A list of all the OAuth2Tokens for this application instance
-    #: (each token belongs to a different user of this application
-    #: instance's LMS).
+    # A list of all the OAuth2Tokens for this application instance
+    # (each token belongs to a different user of this application
+    # instance's LMS).
     access_tokens = sa.orm.relationship(
         "OAuth2Token",
         back_populates="application_instance",
         foreign_keys="OAuth2Token.application_instance_id",
     )
 
-    #: A list of all the courses for this application instance.
+    # A list of all the courses for this application instance
     courses = sa.orm.relationship("LegacyCourse", back_populates="application_instance")
 
-    #: A list of all the GroupInfo's for this application instance.
+    # A list of all the GroupInfo's for this application instance
     group_infos = sa.orm.relationship(
         "GroupInfo",
         back_populates="application_instance",
         foreign_keys="GroupInfo.application_instance_id",
     )
 
-    #: A list of all the files for this application instance.
+    # A list of all the files for this application instance
     files = sa.orm.relationship("File", back_populates="application_instance")
 
-    #: LTIRegistration this instance belong to.
+    # LTIRegistration this instance belong to
     lti_registration_id = sa.Column(
         sa.Integer(),
         sa.ForeignKey("lti_registration.id", ondelete="cascade"),
@@ -126,7 +129,7 @@ class ApplicationInstance(BASE):
         "LTIRegistration", back_populates="application_instances"
     )
 
-    #: Unique identifier of this instance per LTIRegistration
+    # Unique identifier of this instance per LTIRegistration
     deployment_id = sa.Column(sa.UnicodeText, nullable=True)
 
     def decrypted_developer_secret(self, aes_service):
@@ -178,7 +181,7 @@ class ApplicationInstance(BASE):
     @property
     def lti_version(self) -> str:
         """
-        LTI version of this installation based on the presence of a registration.
+        LTI version of this instance based on the presence of a registration.
 
         The return values (LTI-1p0, "1.3.0) are the same the spec defines
         and will match the version parameter on lti launches.
