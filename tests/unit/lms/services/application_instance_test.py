@@ -177,7 +177,6 @@ class TestApplicationInstanceService:
             developer_key=developer_key,
             developer_secret=developer_secret,
             organization_public_id=organization_public_id,
-            settings={},
         )
 
         # Things we set ourselves
@@ -187,7 +186,12 @@ class TestApplicationInstanceService:
         )
         assert application_instance.lms_url == "https://example.com/"
         assert application_instance.requesters_email == "example@example.com"
-        assert application_instance.settings == {}
+        assert application_instance.settings == {
+            "canvas": {
+                "sections_enabled": False,
+                "groups_enabled": bool(developer_key),
+            }
+        }
 
         # Things we delegate to `update_application_instance`
         if not all([developer_secret, developer_key]):
