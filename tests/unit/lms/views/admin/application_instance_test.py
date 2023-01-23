@@ -5,6 +5,7 @@ from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from sqlalchemy.exc import IntegrityError
 
 from lms.models import ApplicationInstance
+from lms.models.public_id import InvalidPublicId
 from lms.services import ApplicationInstanceNotFound
 from lms.validation import ValidationError
 from lms.views.admin.application_instance import AdminApplicationInstanceViews
@@ -64,6 +65,7 @@ class TestAdminApplicationInstanceViews:
             deployment_id="22222",
             developer_key="DEVELOPER_KEY",
             developer_secret="DEVELOPER_SECRET",
+            organization_public_id="us.lms.org.ID",
             lti_registration_id=54321,
         )
         assert response == Any.instance_of(HTTPFound).with_attrs(
@@ -79,18 +81,26 @@ class TestAdminApplicationInstanceViews:
         )
 
     @pytest.mark.usefixtures("ai_new_params_v13")
-    def test_new_instance_callback(self, views, application_instance_service):
-        application_instance_service.create_application_instance.side_effect = (
-            IntegrityError(Any(), Any(), Any())
-        )
+    @pytest.mark.parametrize(
+        "exception", (IntegrityError(Any(), Any(), Any()), InvalidPublicId)
+    )
+    def test_new_instance_callback_with_errors(
+        self, views, application_instance_service, exception
+    ):
+        application_instance_service.create_application_instance.side_effect = exception
 
         response = views.new_instance_callback()
 
         assert response == REDIRECT_TO_NEW_AI
 
+    _V11_NEW_AI_BAD_FIELDS = [
+        ("lms_url", "not a url"),
+        ("email", "not an email"),
+        ("organization_public_id", None),
+    ]
+
     @pytest.mark.parametrize(
-        "param,bad_value",
-        (("deployment_id", None), ("lms_url", "not a url"), ("email", "not an email")),
+        "param,bad_value", _V11_NEW_AI_BAD_FIELDS + [("deployment_id", None)]
     )
     def test_new_instance_callback_v13_required_fields(
         self, views, ai_new_params_v13, param, bad_value
@@ -101,9 +111,7 @@ class TestAdminApplicationInstanceViews:
 
         assert response == REDIRECT_TO_NEW_AI
 
-    @pytest.mark.parametrize(
-        "param,bad_value", (("lms_url", "not a url"), ("email", "not an email"))
-    )
+    @pytest.mark.parametrize("param,bad_value", _V11_NEW_AI_BAD_FIELDS)
     def test_new_instance_callback_v11_required_fields(
         self, views, ai_new_params_v11, param, bad_value
     ):
@@ -465,6 +473,7 @@ class TestAdminApplicationInstanceViews:
             "email": "test@example.com",
             "developer_key": "DEVELOPER_KEY",
             "developer_secret": "DEVELOPER_SECRET",
+            "organization_public_id": "   us.lms.org.ID   ",
         }
         pyramid_request.POST = pyramid_request.params = params
         return params
