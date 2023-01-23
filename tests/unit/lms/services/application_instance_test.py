@@ -162,14 +162,21 @@ class TestApplicationInstanceService:
 
     @pytest.mark.parametrize("developer_key", ("key", None))
     @pytest.mark.parametrize("developer_secret", ("secret", None))
+    @pytest.mark.parametrize("organization_public_id", ("us.lms.org.ID", None))
     def test_create_application_instance(
-        self, service, update_application_instance, developer_key, developer_secret
+        self,
+        service,
+        update_application_instance,
+        developer_key,
+        developer_secret,
+        organization_public_id,
     ):
         application_instance = service.create_application_instance(
             lms_url="https://example.com/",
             email="example@example.com",
             developer_key=developer_key,
             developer_secret=developer_secret,
+            organization_public_id=organization_public_id,
             settings={},
         )
 
@@ -190,6 +197,7 @@ class TestApplicationInstanceService:
             application_instance,
             developer_key=developer_key,
             developer_secret=developer_secret,
+            organization_public_id=organization_public_id,
         )
 
     @pytest.mark.parametrize("field", ["issuer", "client_id"])
