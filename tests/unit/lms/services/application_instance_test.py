@@ -106,7 +106,6 @@ class TestApplicationInstanceService:
         developer_secret,
         aes_service,
     ):
-
         service.update_application_instance(
             application_instance,
             lms_url=lms_url,
@@ -177,11 +176,11 @@ class TestApplicationInstanceService:
             developer_key = developer_secret = None
 
         application_instance = service.create_application_instance(
-            "https://example.com/",
-            "example@example.com",
-            developer_key,
-            developer_secret,
-            {},
+            lms_url="https://example.com/",
+            email="example@example.com",
+            developer_key=developer_key,
+            developer_secret=developer_secret,
+            settings={},
         )
 
         assert application_instance.consumer_key

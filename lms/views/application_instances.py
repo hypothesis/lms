@@ -16,10 +16,10 @@ def create_application_instance(request):
     instance = request.find_service(
         name="application_instance"
     ).create_application_instance(
-        request.params["lms_url"],
-        request.params["email"],
-        developer_key,
-        developer_secret,
+        lms_url=request.params["lms_url"],
+        email=request.params["email"],
+        developer_key=developer_key,
+        developer_secret=developer_secret,
         settings={
             "canvas": {
                 "sections_enabled": False,
