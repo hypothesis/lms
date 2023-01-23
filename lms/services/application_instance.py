@@ -229,6 +229,7 @@ class ApplicationInstanceService:
         email,
         developer_key,
         developer_secret,
+        organization_public_id=None,  # We want to make this mandatory
         settings=None,
         deployment_id=None,
         lti_registration_id=None,
@@ -257,6 +258,7 @@ class ApplicationInstanceService:
             application_instance,
             developer_key=developer_key,
             developer_secret=developer_secret,
+            organization_public_id=organization_public_id,
         )
         self._db.add(application_instance)
         self._db.flush()  # Force the returned AI to have an ID
