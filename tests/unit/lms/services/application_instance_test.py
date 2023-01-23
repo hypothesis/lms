@@ -163,18 +163,8 @@ class TestApplicationInstanceService:
     @pytest.mark.parametrize("developer_key", ("key", None))
     @pytest.mark.parametrize("developer_secret", ("secret", None))
     def test_create_application_instance(
-        self,
-        service,
-        aes_service,
-        update_application_instance,
-        developer_key,
-        developer_secret,
+        self, service, update_application_instance, developer_key, developer_secret
     ):
-        aes_service.build_iv.return_value = b"iv"
-        aes_service.encrypt.return_value = b"secret"
-        if not all([developer_secret, developer_key]):
-            developer_key = developer_secret = None
-
         application_instance = service.create_application_instance(
             lms_url="https://example.com/",
             email="example@example.com",
@@ -183,11 +173,19 @@ class TestApplicationInstanceService:
             settings={},
         )
 
-        assert application_instance.consumer_key
-        assert application_instance.shared_secret
+        # Things we set ourselves
+        assert application_instance.shared_secret == Any.string.matching("[0-9a-f]{32}")
+        assert application_instance.consumer_key == Any.string.matching(
+            "Hypothesis[0-9a-f]{16}"
+        )
         assert application_instance.lms_url == "https://example.com/"
         assert application_instance.requesters_email == "example@example.com"
         assert application_instance.settings == {}
+
+        # Things we delegate to `update_application_instance`
+        if not all([developer_secret, developer_key]):
+            developer_key = developer_secret = None
+
         update_application_instance.assert_called_once_with(
             application_instance,
             developer_key=developer_key,
