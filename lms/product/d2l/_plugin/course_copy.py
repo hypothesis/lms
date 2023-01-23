@@ -1,5 +1,6 @@
 from lms.product.plugin.course_copy import CourseCopyPlugin
 from lms.services.d2l_api import D2LAPIClient
+from lms.services.exceptions import CanvasFileNotFoundInCourse
 
 
 class D2LCourseCopyPlugin(CourseCopyPlugin):
@@ -18,7 +19,8 @@ class D2LCourseCopyPlugin(CourseCopyPlugin):
 
     def assert_file_in_course(self, course_id, file_id):
         """Raise if the current user can't see file_id in course_id."""
-        if self._file_service.get(file_id, type_=self.file_type).course_id != course_id:
+        original_file = self._file_service.get(file_id, type_=self.file_type)
+        if not original_file or original_file.course_id != course_id:
             raise CanvasFileNotFoundInCourse(file_id)
 
     def _store_new_course_files(self, course_id):
