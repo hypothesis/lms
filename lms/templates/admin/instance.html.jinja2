@@ -47,6 +47,7 @@
     <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
 
     <fieldset class="box">
+        {{ macros.form_text_field(request, "Name", "name", field_value=instance.name) }}
         {{ macros.settings_textarea(instance, "Notes", "hypothesis", "notes") }}
         {{ macros.disabled_text_field("Consumer key", instance.consumer_key) }}
         {{ macros.disabled_text_field("Shared secret", instance.shared_secret) }}
