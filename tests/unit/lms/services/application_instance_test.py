@@ -203,7 +203,8 @@ class TestApplicationInstanceService:
             }
 
     @pytest.mark.parametrize(
-        "field", ["consumer_key", "deployment_id", "tool_consumer_instance_guid"]
+        "field",
+        ["name", "consumer_key", "deployment_id", "tool_consumer_instance_guid"],
     )
     def test_search_by_instance_fields(
         self, field, service, with_application_instances_for_search

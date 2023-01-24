@@ -6,6 +6,7 @@ from typing import List
 
 from sqlalchemy.exc import NoResultFound
 
+from lms.db import full_text_match
 from lms.models import ApplicationInstance, LTIParams, LTIRegistration
 from lms.services.aes import AESService
 from lms.services.exceptions import SerializableError
@@ -131,6 +132,7 @@ class ApplicationInstanceService:
         self,
         *,
         id_=None,
+        name=None,
         consumer_key=None,
         issuer=None,
         client_id=None,
@@ -142,6 +144,7 @@ class ApplicationInstanceService:
         return (
             self._ai_search_query(
                 id_=id_,
+                name=name,
                 consumer_key=consumer_key,
                 issuer=issuer,
                 client_id=client_id,
@@ -156,6 +159,7 @@ class ApplicationInstanceService:
         self,
         *,
         id_=None,
+        name=None,
         consumer_key=None,
         issuer=None,
         client_id=None,
@@ -163,9 +167,14 @@ class ApplicationInstanceService:
         tool_consumer_instance_guid=None,
     ):
         """Return a query with the passed parameters applied as filters."""
+
         query = self._db.query(ApplicationInstance).outerjoin(LTIRegistration)
         if id_:
             query = query.filter(ApplicationInstance.id == id_)
+
+        if name:
+            query = query.filter(full_text_match(ApplicationInstance.name, name))
+
         if consumer_key:
             query = query.filter(ApplicationInstance.consumer_key == consumer_key)
 
