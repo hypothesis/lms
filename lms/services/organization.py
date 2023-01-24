@@ -4,6 +4,7 @@ from typing import List, Optional
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
+from lms.db import full_text_match
 from lms.models import ApplicationInstance, GroupInfo, Organization
 
 LOG = getLogger(__name__)
@@ -96,11 +97,7 @@ class OrganizationService:
             clauses.append(Organization.public_id == public_id)
 
         if name:
-            clauses.append(
-                sa.func.to_tsvector("english", Organization.name).op("@@")(
-                    sa.func.websearch_to_tsquery("english", name)
-                )
-            )
+            clauses.append(full_text_match(Organization.name, name))
 
         if guid:
             query = query.outerjoin(ApplicationInstance).outerjoin(GroupInfo)

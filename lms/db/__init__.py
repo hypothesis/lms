@@ -10,6 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.properties import ColumnProperty
 
 from lms.db._columns import varchar_enum
+from lms.db._text_search import full_text_match
 
 __all__ = ("BASE", "init", "varchar_enum")
 
