@@ -120,7 +120,13 @@ class TestApplicationInstanceService:
                 aes_service.build_iv.return_value, developer_secret
             )
 
-            assert application_instance.developer_secret
+            assert (
+                application_instance.aes_cipher_iv == aes_service.build_iv.return_value
+            )
+            assert (
+                application_instance.developer_secret
+                == aes_service.encrypt.return_value
+            )
 
         if developer_key:
             assert application_instance.developer_key == developer_key
