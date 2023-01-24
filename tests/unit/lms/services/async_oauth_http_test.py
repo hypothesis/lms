@@ -17,6 +17,8 @@ class TestAsyncOAuthHTTPService:
         for url, response in zip(urls, responses):
             assert response.status == 200
             assert response.headers["url"] == url
+            assert response.sync_text == '["ASYNC RESPONSE"]'
+            assert response.json() == ["ASYNC RESPONSE"]
 
         for request in with_successful_responses.requests.values():
             request_kwargs = request[0].kwargs
@@ -36,7 +38,7 @@ class TestAsyncOAuthHTTPService:
     def with_successful_responses(self, urls):
         with aioresponses() as m:
             for url in urls:
-                m.get(url, headers=dict(url=url))
+                m.get(url, headers=dict(url=url), body='["ASYNC RESPONSE"]')
 
             yield m
 

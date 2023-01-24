@@ -1,4 +1,5 @@
 import asyncio
+import json
 from typing import List
 
 import aiohttp
@@ -44,6 +45,8 @@ async def _async_request(aio_session, method, url, **kwargs):
         # We assign it to another response attribute for it to be
         # available in a sync context without needing to start coroutine.
         response.sync_text = await response.text()
+        # For json we want to emulate the behavour of the sync version, calling json might raise if text is not valid json
+        response.json = lambda: json.loads(response.sync_text)
         return response
 
 
