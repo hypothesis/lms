@@ -92,50 +92,31 @@ class TestApplicationInstanceService:
         with pytest.raises(ApplicationInstanceNotFound):
             service.get_by_deployment_id(issuer, client_id, deployment_id)
 
-    @pytest.mark.parametrize("lms_url", (None, "http://lms-url.com"))
-    @pytest.mark.parametrize("deployment_id", (None, "DEPLOYMENT_ID"))
-    @pytest.mark.parametrize("developer_key", (None, "KEY"))
-    @pytest.mark.parametrize("developer_secret", (None, "SECRET"))
     def test_update_application_instance(
-        self,
-        service,
-        application_instance,
-        lms_url,
-        deployment_id,
-        developer_key,
-        developer_secret,
-        aes_service,
+        self, service, application_instance, aes_service
     ):
         service.update_application_instance(
             application_instance,
-            lms_url=lms_url,
-            deployment_id=deployment_id,
-            developer_key=developer_key,
-            developer_secret=developer_secret,
+            lms_url="http://example.com",
+            deployment_id="DEPLOYMENT_ID",
+            developer_key="DEVELOPER_KEY",
+            developer_secret="DEVELOPER_SECRET",
         )
 
-        if developer_secret:
-            aes_service.build_iv.assert_called_once()
-            aes_service.encrypt.assert_called_once_with(
-                aes_service.build_iv.return_value, developer_secret
-            )
+        assert application_instance.lms_url == "http://example.com"
+        assert application_instance.deployment_id == "DEPLOYMENT_ID"
+        assert application_instance.developer_key == "DEVELOPER_KEY"
+        aes_service.build_iv.assert_called_once()
+        aes_service.encrypt.assert_called_once_with(
+            aes_service.build_iv.return_value, "DEVELOPER_SECRET"
+        )
+        assert application_instance.aes_cipher_iv == aes_service.build_iv.return_value
+        assert application_instance.developer_secret == aes_service.encrypt.return_value
 
-            assert (
-                application_instance.aes_cipher_iv == aes_service.build_iv.return_value
-            )
-            assert (
-                application_instance.developer_secret
-                == aes_service.encrypt.return_value
-            )
-
-        if developer_key:
-            assert application_instance.developer_key == developer_key
-
-        if lms_url:
-            assert application_instance.lms_url == lms_url
-
-        if deployment_id:
-            assert application_instance.deployment_id == deployment_id
+    def test_update_application_instance_with_no_arguments(
+        self, service, application_instance
+    ):
+        service.update_application_instance(application_instance)
 
     def test_update_application_instance_with_invalid_org_id(
         self, organization_service, application_instance, service
