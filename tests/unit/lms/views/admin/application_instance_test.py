@@ -273,6 +273,7 @@ class TestAdminApplicationInstanceViews:
     def test_search(self, pyramid_request, application_instance_service, views):
         pyramid_request.params = pyramid_request.POST = dict(
             id="1",
+            name="NAME",
             consumer_key="CONSUMER_KEY",
             issuer="ISSUER",
             client_id="CLIENT_ID",
@@ -284,6 +285,7 @@ class TestAdminApplicationInstanceViews:
 
         application_instance_service.search.assert_called_once_with(
             id_="1",
+            name="NAME",
             consumer_key="CONSUMER_KEY",
             issuer="ISSUER",
             client_id="CLIENT_ID",

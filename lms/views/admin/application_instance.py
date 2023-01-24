@@ -47,6 +47,7 @@ class SearchApplicationInstanceSchema(PyramidRequestSchema):
 
     # Max value for postgres `integer` type
     id = EmptyStringInt(required=False, validate=validate.Range(max=2147483647))
+    name = fields.Str(required=False)
     consumer_key = fields.Str(required=False)
     issuer = fields.Str(required=False)
     client_id = fields.Str(required=False)
@@ -221,6 +222,7 @@ class AdminApplicationInstanceViews:
 
         instances = self.application_instance_service.search(
             id_=self.request.params.get("id"),
+            name=self.request.params.get("name"),
             consumer_key=self.request.params.get("consumer_key"),
             issuer=self.request.params.get("issuer"),
             client_id=self.request.params.get("client_id"),
