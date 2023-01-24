@@ -349,35 +349,37 @@ class TestAdminApplicationInstanceViews:
             pyramid_request.route_url("admin.instance.id", id_=application_instance.id)
         )
 
-    @pytest.mark.parametrize("key,", (" ", " key "))
-    @pytest.mark.parametrize("secret", (" ", " secret "))
-    @pytest.mark.parametrize("lms_url", (" ", "http://some-url.com    "))
-    @pytest.mark.parametrize("deployment_id", (" ", " DEPLOYMENT_ID"))
     def test_update_application_instance(
-        self,
-        pyramid_request,
-        application_instance_service,
-        views,
-        key,
-        secret,
-        lms_url,
-        deployment_id,
+        self, pyramid_request, application_instance_service, views
     ):
         pyramid_request.params = {
-            "developer_key": key,
-            "developer_secret": secret,
-            "lms_url": lms_url,
-            "deployment_id": deployment_id,
+            "lms_url": "   http://example.com    ",
+            "deployment_id": " DEPLOYMENT_ID  ",
+            "developer_key": "  DEVELOPER KEY  ",
+            "developer_secret": " DEVELOPER SECRET  ",
         }
 
         views.update_instance()
 
         application_instance_service.update_application_instance.assert_called_once_with(
             application_instance_service.get_by_id.return_value,
-            lms_url=lms_url.strip() if lms_url else "",
-            deployment_id=deployment_id.strip() if deployment_id else "",
-            developer_key=key.strip() if key else "",
-            developer_secret=secret.strip() if secret else "",
+            lms_url="http://example.com",
+            deployment_id="DEPLOYMENT_ID",
+            developer_key="DEVELOPER KEY",
+            developer_secret="DEVELOPER SECRET",
+        )
+
+    def test_update_application_instance_with_no_arguments(
+        self, views, application_instance_service
+    ):
+        views.update_instance()
+
+        application_instance_service.update_application_instance.assert_called_once_with(
+            application_instance_service.get_by_id.return_value,
+            lms_url="",
+            deployment_id="",
+            developer_key="",
+            developer_secret="",
         )
 
     @pytest.mark.parametrize(
