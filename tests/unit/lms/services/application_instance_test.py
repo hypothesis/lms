@@ -93,14 +93,18 @@ class TestApplicationInstanceService:
             service.get_by_deployment_id(issuer, client_id, deployment_id)
 
     def test_update_application_instance(
-        self, service, application_instance, aes_service
+        self, service, application_instance, aes_service, organization_service
     ):
+        org = factories.Organization()
+        organization_service.get_by_public_id.return_value = org
+
         service.update_application_instance(
             application_instance,
             lms_url="http://example.com",
             deployment_id="DEPLOYMENT_ID",
             developer_key="DEVELOPER_KEY",
             developer_secret="DEVELOPER_SECRET",
+            organization_public_id=mock.sentinel.org_id,
         )
 
         assert application_instance.lms_url == "http://example.com"
@@ -112,6 +116,10 @@ class TestApplicationInstanceService:
         )
         assert application_instance.aes_cipher_iv == aes_service.build_iv.return_value
         assert application_instance.developer_secret == aes_service.encrypt.return_value
+        organization_service.get_by_public_id.assert_called_once_with(
+            mock.sentinel.org_id
+        )
+        assert application_instance.organization == org
 
     def test_update_application_instance_with_no_arguments(
         self, service, application_instance
@@ -131,21 +139,6 @@ class TestApplicationInstanceService:
         organization_service.get_by_public_id.assert_called_once_with(
             mock.sentinel.org_id
         )
-
-    def test_update_application_instance_with_org_id(
-        self, organization_service, application_instance, service
-    ):
-        org = factories.Organization()
-        organization_service.get_by_public_id.return_value = org
-
-        service.update_application_instance(
-            application_instance, organization_public_id=mock.sentinel.org_id
-        )
-
-        organization_service.get_by_public_id.assert_called_once_with(
-            mock.sentinel.org_id
-        )
-        assert application_instance.organization == org
 
     @pytest.mark.parametrize("developer_key", ("key", None))
     @pytest.mark.parametrize("developer_secret", ("secret", None))
