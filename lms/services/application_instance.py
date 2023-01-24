@@ -189,12 +189,16 @@ class ApplicationInstanceService:
     def update_application_instance(  # pylint:disable=too-many-arguments
         self,
         application_instance,
+        name=None,
         lms_url=None,
         deployment_id=None,
         developer_key=None,
         developer_secret=None,
         organization_public_id=None,
     ):
+        if name:
+            application_instance.name = name
+
         if lms_url:
             application_instance.lms_url = lms_url
 
@@ -229,6 +233,7 @@ class ApplicationInstanceService:
         email,
         developer_key,
         developer_secret,
+        name=None,
         organization_public_id=None,  # We want to make this mandatory
         deployment_id=None,
         lti_registration_id=None,
@@ -239,6 +244,7 @@ class ApplicationInstanceService:
         )
 
         application_instance = ApplicationInstance(
+            name=name,
             consumer_key=consumer_key,
             shared_secret=secrets.token_hex(32),
             lms_url=lms_url,

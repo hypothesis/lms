@@ -100,6 +100,7 @@ class TestApplicationInstanceService:
 
         service.update_application_instance(
             application_instance,
+            name="NAME",
             lms_url="http://example.com",
             deployment_id="DEPLOYMENT_ID",
             developer_key="DEVELOPER_KEY",
@@ -107,6 +108,7 @@ class TestApplicationInstanceService:
             organization_public_id=mock.sentinel.org_id,
         )
 
+        assert application_instance.name == "NAME"
         assert application_instance.lms_url == "http://example.com"
         assert application_instance.deployment_id == "DEPLOYMENT_ID"
         assert application_instance.developer_key == "DEVELOPER_KEY"
@@ -152,6 +154,7 @@ class TestApplicationInstanceService:
         organization_public_id,
     ):
         application_instance = service.create_application_instance(
+            name="NAME",
             lms_url="https://example.com/",
             email="example@example.com",
             developer_key=developer_key,
@@ -160,6 +163,7 @@ class TestApplicationInstanceService:
         )
 
         # Things we set ourselves
+        assert application_instance.name == "NAME"
         assert application_instance.shared_secret == Any.string.matching("[0-9a-f]{32}")
         assert application_instance.consumer_key == Any.string.matching(
             "Hypothesis[0-9a-f]{16}"
