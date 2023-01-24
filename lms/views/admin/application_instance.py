@@ -40,6 +40,7 @@ class UpdateApplicationInstanceSchema(PyramidRequestSchema):
 
     location = "form"
 
+    name = fields.Str(required=True, validate=validate.Length(min=1))
     lms_url = fields.URL(required=False)
     deployment_id = fields.Str(required=False)
     developer_key = fields.Str(required=False)
