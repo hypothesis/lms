@@ -22,6 +22,7 @@ New application instance
 
     <fieldset class="box mt-6">
         <legend class="label has-text-centered">Create new Application instance</legend>
+        {{ macros.form_text_field(request, "Name", "name") }}
         {{ macros.form_text_field(request, "Organization Public Id", "organization_public_id") }}
         {% if lti_registration %}
             {{ macros.form_text_field(request, "Deployment ID", "deployment_id") }}

@@ -60,6 +60,7 @@ class TestAdminApplicationInstanceViews:
         response = views.new_instance_callback()
 
         application_instance_service.create_application_instance.assert_called_once_with(
+            name="NAME",
             lms_url="http://example.com",
             email="test@example.com",
             deployment_id="22222",
@@ -353,6 +354,7 @@ class TestAdminApplicationInstanceViews:
         self, pyramid_request, application_instance_service, views
     ):
         pyramid_request.params = {
+            "name": "  NAME  ",
             "lms_url": "   http://example.com    ",
             "deployment_id": " DEPLOYMENT_ID  ",
             "developer_key": "  DEVELOPER KEY  ",
@@ -363,6 +365,7 @@ class TestAdminApplicationInstanceViews:
 
         application_instance_service.update_application_instance.assert_called_once_with(
             application_instance_service.get_by_id.return_value,
+            name="NAME",
             lms_url="http://example.com",
             deployment_id="DEPLOYMENT_ID",
             developer_key="DEVELOPER KEY",
@@ -376,6 +379,7 @@ class TestAdminApplicationInstanceViews:
 
         application_instance_service.update_application_instance.assert_called_once_with(
             application_instance_service.get_by_id.return_value,
+            name="",
             lms_url="",
             deployment_id="",
             developer_key="",
@@ -471,6 +475,7 @@ class TestAdminApplicationInstanceViews:
     @pytest.fixture
     def ai_new_params_v11(self, pyramid_request):
         params = {
+            "name": "  NAME  ",
             "lms_url": "http://example.com",
             "email": "test@example.com",
             "developer_key": "DEVELOPER_KEY",
@@ -493,6 +498,7 @@ class TestAdminApplicationInstanceViews:
     @pytest.fixture
     def with_upgrade_form(self, pyramid_request, application_instance):
         pyramid_request.POST = pyramid_request.params = {
+            "name": "NAME",
             "lms_url": "http://lms-url.com",
             "email": "test@email.com",
             "deployment_id": "DEPLOYMENT_ID",

@@ -22,6 +22,7 @@ class NewAppInstanceSchema(PyramidRequestSchema):
     developer_key = fields.Str(required=False, allow_none=True)
     developer_secret = fields.Str(required=False, allow_none=True)
 
+    name = fields.Str(required=False)
     lms_url = fields.URL(required=True)
     email = fields.Email(required=True)
     organization_public_id = fields.Str(required=True, validate=validate.Length(min=1))
@@ -103,6 +104,7 @@ class AdminApplicationInstanceViews:
 
         try:
             ai = self.application_instance_service.create_application_instance(
+                name=self.request.params["name"].strip(),
                 lms_url=self.request.params["lms_url"].strip(),
                 email=self.request.params["email"].strip(),
                 deployment_id=self.request.params.get("deployment_id", "").strip(),
@@ -278,6 +280,7 @@ class AdminApplicationInstanceViews:
 
         self.application_instance_service.update_application_instance(
             ai,
+            name=self.request.params.get("name", "").strip(),
             lms_url=self.request.params.get("lms_url", "").strip(),
             deployment_id=self.request.params.get("deployment_id", "").strip(),
             developer_key=self.request.params.get("developer_key", "").strip(),
