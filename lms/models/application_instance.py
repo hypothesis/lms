@@ -37,6 +37,9 @@ class ApplicationInstance(BASE):
     organization = sa.orm.relationship("Organization")
     """The organization this application instance belongs to."""
 
+    name = sa.Column(sa.UnicodeText(), nullable=True)
+    """Human readable name for the application instance."""
+
     consumer_key = sa.Column(sa.Unicode, unique=True, nullable=True)
     shared_secret = sa.Column(sa.Unicode, nullable=False)
     lms_url = sa.Column(sa.Unicode(2048), nullable=False)
