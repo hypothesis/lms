@@ -323,6 +323,7 @@ class TestAdminApplicationInstanceViews:
         with pytest.raises(HTTPNotFound):
             views.show_instance()
 
+    @pytest.mark.usefixtures("with_minimal_fields_for_update")
     def test_update_instance(self, views, pyramid_request, ai_from_matchdict):
         response = views.update_instance()
 
@@ -353,6 +354,7 @@ class TestAdminApplicationInstanceViews:
             developer_secret="DEVELOPER SECRET",
         )
 
+    @pytest.mark.usefixtures("with_minimal_fields_for_update")
     def test_update_application_instance_with_minimal_arguments(
         self, views, ai_from_matchdict, application_instance_service
     ):
@@ -360,26 +362,27 @@ class TestAdminApplicationInstanceViews:
 
         application_instance_service.update_application_instance.assert_called_once_with(
             ai_from_matchdict,
-            name="",
+            name="NAME",
             lms_url="",
             deployment_id="",
             developer_key="",
             developer_secret="",
         )
 
-    @pytest.mark.usefixtures("ai_from_matchdict")
-    @pytest.mark.parametrize("param,bad_value", (("lms_url", "not_a_url"),))
+    @pytest.mark.usefixtures("with_minimal_fields_for_update", "ai_from_matchdict")
+    @pytest.mark.parametrize(
+        "param,bad_value", (("lms_url", "not_a_url"), ("name", None))
+    )
     def test_update_application_instance_with_invalid_arguments(
         self, views, pyramid_request, application_instance_service, param, bad_value
     ):
-        params = {}
-        params[param] = bad_value
-        pyramid_request.params = pyramid_request.POST = params
+        pyramid_request.params[param] = pyramid_request.POST[param] = bad_value
 
         views.update_instance()
 
         application_instance_service.update_application_instance.assert_not_called()
 
+    @pytest.mark.usefixtures("with_minimal_fields_for_update")
     @pytest.mark.parametrize(
         "setting,sub_setting,value,expected",
         (
@@ -421,6 +424,7 @@ class TestAdminApplicationInstanceViews:
 
         assert ai_from_matchdict.settings.get(setting, sub_setting) == expected
 
+    @pytest.mark.usefixtures("with_minimal_fields_for_update")
     @pytest.mark.parametrize(
         "setting,sub_setting", (("desire2learn", "client_secret"),)
     )
@@ -496,6 +500,10 @@ class TestAdminApplicationInstanceViews:
         }
 
         return pyramid_request
+
+    @pytest.fixture
+    def with_minimal_fields_for_update(self, pyramid_request):
+        pyramid_request.params = pyramid_request.POST = {"name": "NAME"}
 
     @pytest.fixture
     def views(self, pyramid_request):
