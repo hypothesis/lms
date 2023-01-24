@@ -76,6 +76,24 @@ class TestGet:
             assert file.size == i * 100
             assert file.name == f"insert_file_{i}"
 
+    @pytest.mark.parametrize(
+        "param,field",
+        (
+            ("application_instance", "application_instance"),
+            ("lms_id", "lms_id"),
+            ("type_", "type"),
+        ),
+    )
+    def test__search_query(self, svc, param, field):
+        file = factories.File(type="testing_file")
+
+        # pylint:disable=protected-access
+        assert svc._search_query(**{param: getattr(file, field)}).all() == [file]
+
+    def test__search_query_with_no_clause_returns_all(self, svc):
+        # pylint:disable=protected-access
+        assert svc._search_query().all()
+
 
 @pytest.mark.usefixtures("application_instance_service")
 class TestFactory:
