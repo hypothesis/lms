@@ -492,19 +492,13 @@ class TestAdminApplicationInstanceViews:
 
     @pytest.fixture
     def with_upgrade_form(self, pyramid_request, application_instance):
-        application_instance_data = {
+        pyramid_request.POST = pyramid_request.params = {
             "lms_url": "http://lms-url.com",
             "email": "test@email.com",
             "deployment_id": "DEPLOYMENT_ID",
+            "consumer_key": application_instance.consumer_key,
         }
-        # Real pyramid request have the same params available
-        # via POST and params
-        pyramid_request.POST.update(application_instance_data)
-        pyramid_request.params.update(application_instance_data)
 
-        pyramid_request.params["consumer_key"] = pyramid_request.POST[
-            "consumer_key"
-        ] = application_instance.consumer_key
         return pyramid_request
 
     @pytest.fixture
