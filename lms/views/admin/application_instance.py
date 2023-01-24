@@ -1,5 +1,5 @@
 from marshmallow import validate
-from pyramid.httpexceptions import HTTPFound, HTTPNotFound
+from pyramid.httpexceptions import HTTPClientError, HTTPFound, HTTPNotFound
 from pyramid.view import view_config, view_defaults
 from sqlalchemy.exc import IntegrityError
 from webargs import fields
@@ -38,7 +38,7 @@ class NewAppInstanceSchemaV13(NewAppInstanceSchema):
 class UpgradeApplicationInstanceSchema(PyramidRequestSchema):
     location = "form"
 
-    consumer_key = fields.Str(required=True)
+    consumer_key = fields.Str(required=True, validate=validate.Length(min=1))
     deployment_id = fields.Str(required=True, validate=validate.Length(min=1))
 
 
@@ -135,11 +135,24 @@ class AdminApplicationInstanceViews:
         return self._redirect("admin.instance.id", id_=ai.id)
 
     @view_config(
-        route_name="admin.registration.upgrade.instance", request_method="POST"
+        route_name="admin.instance.upgrade",
+        renderer="lms:templates/admin/instance.upgrade.html.jinja2",
     )
-    def upgrade_instance(self):
+    def upgrade_instance_start(self):
+        if lti_registration_id := self.request.params.get("lti_registration_id"):
+            lti_registration = self.lti_registration_service.get_by_id(
+                lti_registration_id.strip()
+            )
+        else:
+            # This shouldn't really happen, but belt and braces
+            raise HTTPClientError("`lti_registration_id` is required for an upgrade")
+
+        return dict(self.request.params, lti_registration=lti_registration)
+
+    @view_config(route_name="admin.instance.upgrade", request_method="POST")
+    def upgrade_instance_callback(self):
         if flash_validation(self.request, UpgradeApplicationInstanceSchema):
-            return self._redirect("admin.instance.new", _query=self.request.params)
+            return self._redirect("admin.instance.upgrade", _query=self.request.params)
 
         consumer_key = self.request.params["consumer_key"].strip()
         deployment_id = self.request.params["deployment_id"].strip()
@@ -155,7 +168,7 @@ class AdminApplicationInstanceViews:
                 "errors",
             )
 
-            return self._redirect("admin.instance.new", _query=self.request.params)
+            return self._redirect("admin.instance.upgrade", _query=self.request.params)
 
         # Don't allow to change instances that already on 1.3
         if application_instance.lti_version == "1.3.0":
@@ -164,7 +177,7 @@ class AdminApplicationInstanceViews:
                 "errors",
             )
 
-            return self._redirect("admin.instance.new", _query=self.request.params)
+            return self._redirect("admin.instance.upgrade", _query=self.request.params)
         # Set the LTI1.3 values
         application_instance.lti_registration = self.lti_registration_service.get_by_id(
             self.request.params.get("lti_registration_id", "").strip()
@@ -185,7 +198,7 @@ class AdminApplicationInstanceViews:
                 "errors",
             )
 
-            return self._redirect("admin.instance.new", _query=self.request.params)
+            return self._redirect("admin.instance.upgrade", _query=self.request.params)
 
         return self._redirect("admin.instance.id", id_=application_instance.id)
 

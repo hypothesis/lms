@@ -146,6 +146,7 @@ def includeme(config):  # pylint:disable=too-many-statements
     config.add_route("admin.instance.consumer_key", "/admin/instance/{consumer_key}/")
     config.add_route("admin.instance.id", "/admin/instance/id/{id_}/")
     config.add_route("admin.instance.new", "/admin/instance/new")
+    config.add_route("admin.instance.upgrade", "/admin/instance/upgrade")
 
     config.add_route("admin.organization", "/admin/org/{id_}")
     config.add_route("admin.organization.toggle", "/admin/org/{id_}/toggle")
@@ -158,10 +159,6 @@ def includeme(config):  # pylint:disable=too-many-statements
     config.add_route("admin.registration.id", "/admin/registration/id/{id_}/")
     config.add_route(
         "admin.registration.new.instance", "/admin/registration/id/{id_}/new/instance"
-    )
-    config.add_route(
-        "admin.registration.upgrade.instance",
-        "/admin/registration/id/{id_}/upgrade/instance",
     )
     config.add_route("admin.registration.new", "/admin/registration")
     config.add_route("admin.registration.suggest_urls", "/admin/registration/urls")

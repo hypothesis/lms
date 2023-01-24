@@ -1,7 +1,7 @@
 from unittest.mock import create_autospec, sentinel
 
 import pytest
-from pyramid.httpexceptions import HTTPFound, HTTPNotFound
+from pyramid.httpexceptions import HTTPClientError, HTTPFound, HTTPNotFound
 from sqlalchemy.exc import IntegrityError
 
 from lms.models import ApplicationInstance
@@ -14,6 +14,10 @@ from tests.matchers import Any, temporary_redirect_to
 
 REDIRECT_TO_NEW_AI = Any.instance_of(HTTPFound).with_attrs(
     {"location": Any.string.containing("/admin/instance/new")}
+)
+
+REDIRECT_TO_UPGRADE_AI = Any.instance_of(HTTPFound).with_attrs(
+    {"location": Any.string.containing("/admin/instance/upgrade")}
 )
 
 
@@ -205,8 +209,34 @@ class TestAdminApplicationInstanceViews:
 
         assert pyramid_request.session.peek_flash("errors")
 
+    @pytest.mark.parametrize("lti_registration_id", ("123", "  123   "))
+    def test_upgrade_instance_start(
+        self, views, pyramid_request, lti_registration_service, lti_registration_id
+    ):
+        pyramid_request.params = {
+            "lti_registration_id": lti_registration_id,
+            "key_1": "value_1",
+            "key_2": "value_2",
+        }
+
+        response = views.upgrade_instance_start()
+
+        lti_registration_service.get_by_id.assert_called_once_with("123")
+        assert response == dict(
+            pyramid_request.params,
+            lti_registration=lti_registration_service.get_by_id.return_value,
+        )
+
+    def test_upgrade_instance_start_with_no_registration_id(
+        self, views, pyramid_request
+    ):
+        pyramid_request.params.pop("lti_registration_id", None)
+
+        with pytest.raises(HTTPClientError):
+            views.upgrade_instance_start()
+
     @pytest.mark.usefixtures("with_upgrade_form")
-    def test_upgrade_instance(
+    def test_upgrade_instance_callback(
         self,
         application_instance_service,
         views,
@@ -218,7 +248,7 @@ class TestAdminApplicationInstanceViews:
         lti_registration_service.get_by_id.return_value = lti_registration
         assert not application_instance.lti_registration
 
-        response = views.upgrade_instance()
+        response = views.upgrade_instance_callback()
 
         application_instance_service.get_by_consumer_key.assert_called_once_with(
             application_instance.consumer_key
@@ -233,29 +263,35 @@ class TestAdminApplicationInstanceViews:
         )
 
     @pytest.mark.usefixtures("with_upgrade_form")
-    def test_upgrade_no_deployment_id(self, views, pyramid_request):
+    def test_upgrade_instance_callback_with_no_deployment_id(
+        self, views, pyramid_request
+    ):
         del pyramid_request.POST["deployment_id"]
 
-        assert views.upgrade_instance() == REDIRECT_TO_NEW_AI
+        assert views.upgrade_instance_callback() == REDIRECT_TO_UPGRADE_AI
 
     @pytest.mark.usefixtures("with_upgrade_form")
-    def test_upgrade_already_upgraded(self, views, application_instance):
+    def test_upgrade_instance_callback_already_upgraded(
+        self, views, application_instance
+    ):
         application_instance.lti_registration_id = 100
         application_instance.deployment_id = "ID"
 
-        assert views.upgrade_instance() == REDIRECT_TO_NEW_AI
+        assert views.upgrade_instance_callback() == REDIRECT_TO_UPGRADE_AI
 
     @pytest.mark.usefixtures("with_upgrade_form")
-    def test_upgrade_duplicate(self, views, db_session, lti_registration_service):
+    def test_upgrade_instance_callback_with_duplicate(
+        self, views, db_session, lti_registration_service
+    ):
         lti_registration = factories.LTIRegistration()
         lti_registration_service.get_by_id.return_value = lti_registration
         factories.ApplicationInstance(
             lti_registration=lti_registration, deployment_id="DEPLOYMENT_ID"
         )
 
-        response = views.upgrade_instance()
+        response = views.upgrade_instance_callback()
 
-        assert response == REDIRECT_TO_NEW_AI
+        assert response == REDIRECT_TO_UPGRADE_AI
 
         # Show that the DB connection has not been permanently broken. This
         # would cause us to fail completely when trying to present the error.
@@ -263,12 +299,14 @@ class TestAdminApplicationInstanceViews:
         db_session.query(ApplicationInstance).all()
 
     @pytest.mark.usefixtures("with_upgrade_form")
-    def test_upgrade_non_existing_instance(self, views, application_instance_service):
+    def test_upgrade_instance_callback_with_non_existent_instance(
+        self, views, application_instance_service
+    ):
         application_instance_service.get_by_consumer_key.side_effect = (
             ApplicationInstanceNotFound
         )
 
-        assert views.upgrade_instance() == REDIRECT_TO_NEW_AI
+        assert views.upgrade_instance_callback() == REDIRECT_TO_UPGRADE_AI
 
     def test_search(self, pyramid_request, application_instance_service, views):
         pyramid_request.params = pyramid_request.POST = dict(
