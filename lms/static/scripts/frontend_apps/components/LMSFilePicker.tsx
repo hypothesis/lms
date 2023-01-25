@@ -158,6 +158,8 @@ export default function LMSFilePicker({
   // An array of File objects representing the "path" to the current
   // list of files being displayed. This always starts at the root. The last
   // element represents the current directory path.
+  // Every item can potentially have `children`. In that case we'll retrieve
+  // those without querying the API when the folder becomes active.
   const [folderPath, setFolderPath] = useState<File[]>([
     {
       display_name: 'Files',
@@ -169,7 +171,7 @@ export default function LMSFilePicker({
 
   /**
    * Change to a new folder path. This will update the breadcrumb path history
-   * and cause a new fetch to be initiated to retrieve files in that folder path.
+   * and cause displayed files to be re-computed for that folder path.
    */
   const onChangePath = (folder: File) => {
     setSelectedFile(null);
@@ -184,18 +186,70 @@ export default function LMSFilePicker({
     }
   };
 
-  // Fetches files or shows a prompt to authorize access.
-  const fetchFiles = useCallback(
+  const loadFilesToDisplay = useCallback(
+    /**
+     * Retrieve the files for the active directory, either by returning an
+     * appropriate subset of previously-loaded files, or by fetching a file
+     * listing from the API.
+     *
+     * @param isReload - When true, force a fetch of file listings from the API,
+     *   even if files were previously loaded.
+     */
     async (isReload = false) => {
-      const getNextAPICallInfo = () => {
-        return folderPath[folderPath.length - 1]?.contents || listFilesApi;
-      };
-      try {
-        setDialogState({ state: 'fetching', isReload });
-        const files: File[] = await apiCall({
+      const getNextAPICallInfo = () =>
+        folderPath[folderPath.length - 1]?.contents || listFilesApi;
+      const loadFilesFromAPI = (): Promise<File[]> =>
+        apiCall({
           authToken,
           path: getNextAPICallInfo().path,
         });
+
+      const children = folderPath[folderPath.length - 1]?.children;
+      if (!isReload && children) {
+        // The files in this directory were loaded by an earlier fetch
+        return children;
+      }
+
+      const loadedFiles = await loadFilesFromAPI();
+      const [, ...activePathWithoutRoot] = folderPath;
+      let filesForFolder = loadedFiles;
+
+      // Ensure we only return the files for the active directory.
+      //
+      // Depending on the LMS API being used, the loaded files could be either:
+      // 1. A flat list of files and folders for the active directory only, or
+      // 2. A full tree of all files and folders
+      //
+      // In the first case (flat list), we can return the `loadedFiles`
+      // directly. To handle the second case (tree), we need to search the tree
+      // for just those files and folders that are within the currently-active
+      // directory.
+      for (const folder of activePathWithoutRoot) {
+        const folderFound = filesForFolder.find(
+          fileOrFolder => fileOrFolder.id === folder.id
+        );
+        if (folderFound?.children) {
+          filesForFolder = folderFound.children;
+        }
+      }
+
+      return filesForFolder;
+    },
+    [authToken, folderPath, listFilesApi]
+  );
+
+  const computeFilesToDisplay = useCallback(
+    /**
+     * Compute the correct list of files to display in the picker. Handle error
+     * states if they arise.
+     *
+     * @param isReload - When true, request a fresh fetch of files from the API
+     */
+    async (isReload = false) => {
+      try {
+        setDialogState({ state: 'fetching', isReload });
+        const files = await loadFilesToDisplay(isReload);
+
         // Handle the case in which a subsequent fetch request for a
         // different path's files was dispatched before this request resolved.
         // Give preference to the later request: If the path has changed
@@ -218,12 +272,12 @@ export default function LMSFilePicker({
       }
       setInitialFetch(false);
     },
-    [authToken, folderPath, listFilesApi]
+    [folderPath, loadFilesToDisplay]
   );
 
-  // Update the file list any time the path changes
+  // Re-compute the file list any time the path changes
   useEffect(() => {
-    fetchFiles();
+    computeFilesToDisplay();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [folderPath]);
 
@@ -284,7 +338,7 @@ export default function LMSFilePicker({
           authURL={listFilesApi.authUrl!}
           authToken={authToken}
           label={continueAction.label}
-          onAuthComplete={() => fetchFiles(true /* reload */)}
+          onAuthComplete={() => computeFilesToDisplay(true /* reload */)}
         />
       );
       break;
@@ -292,7 +346,7 @@ export default function LMSFilePicker({
       continueButton = (
         <LabeledButton
           variant="primary"
-          onClick={() => fetchFiles(true /* reload */)}
+          onClick={() => computeFilesToDisplay(true /* reload */)}
           data-testid="reload"
         >
           Reload
