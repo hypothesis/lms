@@ -127,6 +127,25 @@ class TestCanvasGroupingPlugin:
         )
         assert canvas_api_client.user_groups.return_value == api_groups
 
+    def test_get_groups_for_grading_fallback_not_found(
+        self, canvas_api_client, grouping_service, plugin, course
+    ):
+        canvas_api_client.user_groups.return_value = []
+
+        all_groups = plugin.get_groups_for_grading(
+            grouping_service, course, sentinel.group_set_id, sentinel.grading_student_id
+        )
+
+        canvas_api_client.user_groups.assert_called_once_with(
+            sentinel.canvas_course_id,
+            sentinel.grading_student_id,
+            sentinel.group_set_id,
+        )
+        canvas_api_client.group_category_groups.assert_called_once_with(
+            sentinel.group_set_id
+        )
+        assert canvas_api_client.group_category_groups.return_value == all_groups
+
     def test_sections_enabled_speedgrader(self, plugin, pyramid_request):
         pyramid_request.params.update({"focused_user": sentinel.focused_user})
 
