@@ -273,6 +273,15 @@ class TestCanvasAPIClientIntegrated:
         assert len(response) == 1
         assert user_id in [u["id"] for u in response[0]["users"]]
 
+    @pytest.mark.usefixtures("list_groups_response")
+    def test_user_groups_no_users_in_response(self, canvas_api_client):
+        user_id = course_id = 1
+        group_category_id = 2
+
+        response = canvas_api_client.user_groups(course_id, user_id, group_category_id)
+
+        assert not response
+
     @pytest.mark.parametrize("group_category_id", (2, "2"))
     @pytest.mark.parametrize("user_id", (1, "1"))
     @pytest.mark.usefixtures("list_groups_with_users_response")

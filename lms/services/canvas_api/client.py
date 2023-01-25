@@ -370,7 +370,7 @@ class CanvasAPIClient:
             ):
                 continue
 
-            for user in group["users"]:
+            for user in group.get("users", []):
                 if user["id"] == int(user_id):
                     groups.append(group)
 
