@@ -71,12 +71,16 @@ class CanvasGroupingPlugin(GroupingPlugin):
         return all_course_groups
 
     def get_groups_for_grading(
-        self, _svc, course, group_set_id, grading_student_id=None
+        self, svc, course, group_set_id, grading_student_id=None
     ):
-        # SpeedGrader requests are made by the teacher, get the student we are grading
-        return self._canvas_api.user_groups(
+        # SpeedGrader requests are made by the teacher, get the groups for the student we are grading.
+        if grading_groups := self._canvas_api.user_groups(
             self._custom_course_id(course), grading_student_id, group_set_id
-        )
+        ):
+            return grading_groups
+
+        # If we can't find the groups for this particular student, get all of them.
+        return self.get_groups_for_instructor(svc, course, group_set_id)
 
     def sections_enabled(self, request, application_instance, course):
         params = request.params
