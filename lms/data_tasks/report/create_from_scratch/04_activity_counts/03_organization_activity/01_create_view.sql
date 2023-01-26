@@ -110,6 +110,8 @@ CREATE MATERIALIZED VIEW report.organization_activity AS (
                 facets.period, facets.timescale, facets.role, events.organization_id
         ),
 
+        -- A billable user is defined as any user who is in a group which has
+        -- at least one annotation in the period in question.
         billable AS (
             SELECT
                 facets.period,
@@ -120,6 +122,7 @@ CREATE MATERIALIZED VIEW report.organization_activity AS (
             FROM facets
             JOIN report.group_activity ON
                 group_activity.created_week = facets.timestamp_week
+                AND group_activity.annotation_count > 0
             JOIN report.group_map ON
                 group_activity.group_id = group_map.group_id
             JOIN report.user_groups ON
