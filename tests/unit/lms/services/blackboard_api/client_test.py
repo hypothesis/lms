@@ -59,6 +59,7 @@ class TestListFiles:
         )
         assert files == blackboard_list_files_schema.parse.return_value
 
+    @pytest.mark.usefixtures("BlackboardListFilesSchema")
     def test_if_given_a_folder_id_it_returns_the_folders_contents(
         self,
         svc,
@@ -178,6 +179,126 @@ class TestListFiles:
             "size": id_ * 2,
             "parentId": id_ * 4,
         }
+
+
+class TestListAllFiles:
+    def test_it(
+        self,
+        svc,
+        basic_client,
+        async_oauth_http_service,
+        file_service,
+        root_level_files,
+        nested_files,
+    ):
+        # pylint: disable=protected-access
+
+        basic_client.request.side_effect = [
+            # Root level first page
+            factories.requests.Response(
+                json_data={
+                    "results": root_level_files,
+                    "paging": {"nextPage": "PAGE_2_PATH"},
+                }
+            ),
+            # Root level second page is empty
+            factories.requests.Response(json_data={"results": []}),
+            # Subfolder second page is empty
+            factories.requests.Response(json_data={"results": []}),
+        ]
+        async_oauth_http_service.request.side_effect = [
+            [
+                # First subfolder `FIRST PAGE FOLDER ID`
+                factories.requests.Response(
+                    json_data={
+                        "results": nested_files,
+                        "paging": {"nextPage": "SUBFOLDER_PAGE_2_PATH"},
+                    }
+                ),
+            ],
+            # Next level is empty
+            [],
+        ]
+
+        files = svc.list_all_files("COURSE_ID")
+
+        # Get we each page of the root level "folder"
+        basic_client.request.assert_has_calls(
+            [
+                call(
+                    # First call, gete root level elements
+                    "GET",
+                    Any.url.with_path("courses/uuid:COURSE_ID/resources").with_query(
+                        {
+                            "limit": "200",
+                            "fields": "id,name,type,modified,mimeType,size,parentId",
+                        }
+                    ),
+                ),
+                # Get second page of the top level listing
+                call("GET", "PAGE_2_PATH"),
+            ]
+        )
+        basic_client._api_url.assert_any_call(
+            "courses/uuid:COURSE_ID/resources/FIRST PAGE FOLDER ID/children?limit=200&fields=id%2Cname%2Ctype%2Cmodified%2CmimeType%2Csize%2CparentId"
+        )
+
+        async_oauth_http_service.request.assert_called_with(
+            "GET", [basic_client._api_url.return_value]
+        )
+        # Get the pages of the subfolder
+        basic_client.request.assert_called_with("GET", "SUBFOLDER_PAGE_2_PATH")
+        basic_client._api_url.assert_called_with(
+            "courses/uuid:COURSE_ID/resources/FIRST SUBFOLDER FOLDER ID/children?limit=200&fields=id%2Cname%2Ctype%2Cmodified%2CmimeType%2Csize%2CparentId"
+        )
+
+        assert files == root_level_files + nested_files
+        # Files are stored in the DB
+        file_service.upsert.assert_called_once()
+
+    @pytest.fixture
+    def root_level_files(self):
+        return [
+            # It contains one file
+            {
+                "id": "FIRST PAGE FILE ID",
+                "name": "FIRST PAGE FILE NAME",
+                "type": "File",
+                "modified": "MODIFIED",
+                "size": 100,
+                "parentId": "PARENT",
+            },
+            # And one folder
+            {
+                "id": "FIRST PAGE FOLDER ID",
+                "name": "FIRST PAGE FOLDER NAME",
+                "type": "Folder",
+                "modified": "MODIFIED",
+                "size": 100,
+                "parentId": "PARENT",
+            },
+        ]
+
+    @pytest.fixture
+    def nested_files(self):
+        return [
+            {
+                "id": "FIRST SUBFOLDER FILE ID",
+                "name": "FIRST SUBFOLDER FILE NAME",
+                "type": "File",
+                "modified": "MODIFIED",
+                "size": 100,
+                "parentId": "PARENT",
+            },
+            {
+                "id": "FIRST SUBFOLDER FOLDER ID",
+                "name": "FIRST SUBFOLDER FOLDER NAME",
+                "type": "Folder",
+                "modified": "MODIFIED",
+                "size": 100,
+                "parentId": "PARENT",
+            },
+        ]
 
 
 class TestPublicURL:
@@ -366,7 +487,7 @@ def svc(basic_client, pyramid_request, file_service):
     return BlackboardAPIClient(basic_client, pyramid_request, file_service)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def BlackboardListFilesSchema(patch):
     return patch("lms.services.blackboard_api.client.BlackboardListFilesSchema")
 

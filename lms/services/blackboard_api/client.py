@@ -1,3 +1,4 @@
+from typing import List
 from urllib.parse import urlencode
 
 from lms.services.blackboard_api._schemas import (
@@ -49,49 +50,22 @@ class BlackboardAPIClient:
     def list_files(self, course_id, folder_id=None):
         """Return the list of files in the given course or folder."""
 
-        path = f"courses/uuid:{course_id}/resources"
+        response = self._api.request("GET", self._list_files_url(course_id, folder_id))
+        files = self._get_all_following_pages(response, BlackboardListFilesSchema)
 
-        if folder_id:
-            # Get the files and folders in the given folder instead of the
-            # course's top-level files and folders.
-            path += f"/{folder_id}/children"
+        self._store_files(course_id, files)
+        return files
 
-        path = (
-            path
-            + "?"
-            + urlencode(
-                {
-                    "limit": PAGINATION_LIMIT,
-                    "fields": "id,name,type,modified,mimeType,size,parentId",
-                }
-            )
-        )
+    def list_all_files(self, course_id):
+        """Return all files and folders in a course."""
+        # Get this level all pages
+        response = self._api.request("GET", self._list_files_url(course_id))
+        files = self._get_all_following_pages(response, BlackboardListFilesSchema)
 
-        results = []
+        # Get all the subfolder files, recursively
+        results = self._get_all_folders_files(course_id, files)
 
-        for _ in range(PAGINATION_MAX_REQUESTS):
-            response = self._api.request("GET", path)
-            results.extend(BlackboardListFilesSchema(response).parse())
-            path = response.json().get("paging", {}).get("nextPage")
-            if not path:
-                break
-
-        self._file_service.upsert(
-            [
-                {
-                    "type": "blackboard_file"
-                    if file["type"] == "File"
-                    else "blackboard_folder",
-                    "course_id": course_id,
-                    "lms_id": file["id"],
-                    "name": file["name"],
-                    "size": file["size"],
-                    "parent_lms_id": file["parentId"],
-                }
-                for file in results
-            ]
-        )
-
+        self._store_files(course_id, results)
         return results
 
     def public_url(self, course_id, file_id):
@@ -186,3 +160,84 @@ class BlackboardAPIClient:
                 raise ExternalAsyncRequestError(response=response)
 
         return self_enrollment_groups + instructor_only_groups
+
+    def _list_files_url(self, course_id, folder_id=None) -> str:
+        """Return the url for the list files API endpoint."""
+        path = f"courses/uuid:{course_id}/resources"
+
+        if folder_id:
+            # Get the files and folders in the given folder instead of the
+            # course's top-level files and folders.
+            path += f"/{folder_id}/children"
+
+        return (
+            path
+            + "?"
+            + urlencode(
+                {
+                    "limit": PAGINATION_LIMIT,
+                    "fields": "id,name,type,modified,mimeType,size,parentId",
+                }
+            )
+        )
+
+    def _store_files(self, course_id, files: List[dict]):
+        """Store the given files in the DB."""
+        self._file_service.upsert(
+            [
+                {
+                    "type": "blackboard_file"
+                    if file["type"] == "File"
+                    else "blackboard_folder",
+                    "course_id": course_id,
+                    "lms_id": file["id"],
+                    "name": file["name"],
+                    "size": file["size"],
+                    "parent_lms_id": file["parentId"],
+                }
+                for file in files
+            ]
+        )
+
+    def _get_all_following_pages(self, response, schema) -> List:
+        """
+        Get all the paginated responses to `path`.
+
+        Return the results of all of them in one list after parsing them with `schema`.
+        """
+        results = schema(response).parse()
+        for _ in range(PAGINATION_MAX_REQUESTS - 1):
+            path = response.json().get("paging", {}).get("nextPage")
+            if not path:
+                break
+
+            response = self._api.request("GET", path)
+            results.extend(schema(response).parse())
+
+        return results
+
+    def _get_all_folders_files(self, course_id, results: List[dict]) -> List[dict]:
+        """Get all the files in the folders included in `results` recursively."""
+        # Get all the folder URLs from `results`
+        folder_urls = [
+            self._api._api_url(  # pylint: disable=protected-access
+                self._list_files_url(course_id, result["id"])
+            )
+            for result in results
+            if result["type"] == "Folder"
+        ]
+
+        # Query all folders at once
+        responses = self._request.find_service(name="async_oauth_http").request(
+            "GET", folder_urls
+        )
+
+        for response in responses:
+            # Get all the pages for this folder
+            folder_files = self._get_all_following_pages(
+                response, BlackboardListFilesSchema
+            )
+            # For each folder, get it children too
+            results.extend(self._get_all_folders_files(course_id, folder_files))
+
+        return results
