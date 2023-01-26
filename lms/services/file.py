@@ -21,6 +21,26 @@ class FileService:
             .one_or_none()
         )
 
+    def find_copied_file(self, new_course_id, original_file: File):
+        """Find an equivalent file to `original_file` in our DB."""
+        return (
+            self._db.query(File).filter(
+                # Both files should be in the same application instance
+                File.application_instance == original_file.application_instance,
+                # Looking for files in the new course only
+                File.course_id == new_course_id,
+                # Files of the same type
+                File.type == original_file.type,
+                # We don't want to find the same file we are looking for
+                File.lms_id != original_file.lms_id,
+                # And as a heuristic, we reckon same name, same size, probably the same file
+                File.name == original_file.name,
+                File.size == original_file.size,
+            )
+            # We might find more than one matching file, take any of them
+            .first()
+        )
+
     def upsert(self, file_dicts):
         """Insert or update a batch of files."""
         for value in file_dicts:
