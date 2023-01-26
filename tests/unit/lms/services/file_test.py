@@ -25,6 +25,21 @@ class TestFileService:
 
         assert not svc.get(file_.lms_id, file_.type)
 
+    def test_find_copied_file(self, svc, file):
+        copied_file = factories.File(
+            application_instance=file.application_instance,
+            course_id="NEW_COURSE_ID",
+            type=file.type,
+            lms_id="OTHER_LMS_ID",
+            name=file.name,
+            size=file.size,
+        )
+
+        assert svc.find_copied_file("NEW_COURSE_ID", file) == copied_file
+
+    def test_find_copied_file_returns_None_if_theres_no_matching_file(self, svc, file):
+        assert not svc.find_copied_file("NEW_COURSE_ID", file)
+
     def test_upsert(self, db_session, svc, application_instance):
         existing_files_count = db_session.query(File).count()
 
@@ -76,6 +91,25 @@ class TestFileService:
             assert file.size == i * 100
             assert file.name == f"insert_file_{i}"
 
+    @pytest.fixture(autouse=True)
+    def noise(self, application_instance):
+        factories.File(application_instance=application_instance)
+
+    @pytest.fixture
+    def svc(self, application_instance, db_session):
+        return FileService(application_instance, db_session)
+
+    @pytest.fixture()
+    def file(self, application_instance):
+        return factories.File(
+            application_instance=application_instance,
+            course_id="COURSE_ID",
+            type="file",
+            lms_id="LMS_ID",
+            name="NAME",
+            size=100,
+        )
+
 
 @pytest.mark.usefixtures("application_instance_service")
 class TestFactory:
@@ -83,18 +117,3 @@ class TestFactory:
         file_service = factory(sentinel.context, pyramid_request)
 
         assert isinstance(file_service, FileService)
-
-
-@pytest.fixture
-def application_instance():
-    return factories.ApplicationInstance()
-
-
-@pytest.fixture(autouse=True)
-def noise(application_instance):
-    factories.File(application_instance=application_instance)
-
-
-@pytest.fixture
-def svc(application_instance, db_session):
-    return FileService(application_instance, db_session)
