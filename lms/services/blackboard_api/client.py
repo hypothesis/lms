@@ -1,3 +1,4 @@
+from typing import List
 from urllib.parse import urlencode
 
 from lms.services.blackboard_api._schemas import (
@@ -48,51 +49,12 @@ class BlackboardAPIClient:
 
     def list_files(self, course_id, folder_id=None):
         """Return the list of files in the given course or folder."""
-
-        path = f"courses/uuid:{course_id}/resources"
-
-        if folder_id:
-            # Get the files and folders in the given folder instead of the
-            # course's top-level files and folders.
-            path += f"/{folder_id}/children"
-
-        path = (
-            path
-            + "?"
-            + urlencode(
-                {
-                    "limit": PAGINATION_LIMIT,
-                    "fields": "id,name,type,modified,mimeType,size,parentId",
-                }
-            )
+        files = self._get_all_pages(
+            self._list_files_url(course_id, folder_id), BlackboardListFilesSchema
         )
+        self._store_files(course_id, files)
 
-        results = []
-
-        for _ in range(PAGINATION_MAX_REQUESTS):
-            response = self._api.request("GET", path)
-            results.extend(BlackboardListFilesSchema(response).parse())
-            path = response.json().get("paging", {}).get("nextPage")
-            if not path:
-                break
-
-        self._file_service.upsert(
-            [
-                {
-                    "type": "blackboard_file"
-                    if file["type"] == "File"
-                    else "blackboard_folder",
-                    "course_id": course_id,
-                    "lms_id": file["id"],
-                    "name": file["name"],
-                    "size": file["size"],
-                    "parent_lms_id": file["parentId"],
-                }
-                for file in results
-            ]
-        )
-
-        return results
+        return files
 
     def public_url(self, course_id, file_id):
         """Return a public URL for the given file."""
@@ -186,3 +148,57 @@ class BlackboardAPIClient:
                 raise ExternalAsyncRequestError(response=response)
 
         return self_enrollment_groups + instructor_only_groups
+
+    def _list_files_url(self, course_id, folder_id=None) -> str:
+        """Return the url for the list files API endpoint."""
+        path = f"courses/uuid:{course_id}/resources"
+
+        if folder_id:
+            # Get the files and folders in the given folder instead of the
+            # course's top-level files and folders.
+            path += f"/{folder_id}/children"
+
+        return (
+            path
+            + "?"
+            + urlencode(
+                {
+                    "limit": PAGINATION_LIMIT,
+                    "fields": "id,name,type,modified,mimeType,size,parentId",
+                }
+            )
+        )
+
+    def _store_files(self, course_id, files: List[dict]):
+        """Store the given files in the DB."""
+        self._file_service.upsert(
+            [
+                {
+                    "type": "blackboard_file"
+                    if file["type"] == "File"
+                    else "blackboard_folder",
+                    "course_id": course_id,
+                    "lms_id": file["id"],
+                    "name": file["name"],
+                    "size": file["size"],
+                    "parent_lms_id": file["parentId"],
+                }
+                for file in files
+            ]
+        )
+
+    def _get_all_pages(self, path, schema) -> List:
+        """
+        Get all the paginated responses to `path`.
+
+        Return the results of all of them in one list after parsing them with `schema`.
+        """
+        results = []
+        for _ in range(PAGINATION_MAX_REQUESTS):
+            response = self._api.request("GET", path)
+            results.extend(schema(response).parse())
+            path = response.json().get("paging", {}).get("nextPage")
+            if not path:
+                break
+
+        return results
