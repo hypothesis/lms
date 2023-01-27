@@ -5,80 +5,78 @@
 #    pip-compile --allow-unsafe requirements/checkformatting.in
 #
 black==22.12.0
-    # via -r format.txt
+    # via -r requirements/format.txt
 build==0.8.0
     # via
-    #   -r format.txt
+    #   -r requirements/format.txt
     #   pip-tools
 click==8.0.3
     # via
-    #   -r format.txt
+    #   -r requirements/format.txt
     #   black
     #   pip-tools
 importlib-metadata==4.12.0
     # via
-    #   -r format.txt
+    #   -r requirements/format.txt
     #   pip-sync-faster
 isort==5.11.4
-    # via -r format.txt
+    # via -r requirements/format.txt
 mypy-extensions==0.4.3
     # via
-    #   -r format.txt
+    #   -r requirements/format.txt
     #   black
 packaging==21.3
     # via
-    #   -r format.txt
+    #   -r requirements/format.txt
     #   build
 pathspec==0.9.0
     # via
-    #   -r format.txt
+    #   -r requirements/format.txt
     #   black
 pep517==0.12.0
     # via
-    #   -r format.txt
+    #   -r requirements/format.txt
     #   build
+pip==22.3.1
+    # via
+    #   -r requirements/format.txt
+    #   pip-tools
 pip-sync-faster==0.0.3
     # via
-    #   -r checkformatting.in
-    #   -r format.txt
-pip-tools==6.10.0
+    #   -r requirements/checkformatting.in
+    #   -r requirements/format.txt
+pip-tools==6.12.1
     # via
-    #   -r checkformatting.in
-    #   -r format.txt
+    #   -r requirements/checkformatting.in
+    #   -r requirements/format.txt
     #   pip-sync-faster
 platformdirs==2.4.0
     # via
-    #   -r format.txt
+    #   -r requirements/format.txt
     #   black
 pyparsing==3.0.9
     # via
-    #   -r format.txt
+    #   -r requirements/format.txt
     #   packaging
+setuptools==65.5.1
+    # via
+    #   -r requirements/format.txt
+    #   pip-tools
 tomli==1.2.2
     # via
-    #   -r format.txt
+    #   -r requirements/format.txt
     #   black
     #   build
     #   pep517
 typing-extensions==4.0.0
     # via
-    #   -r format.txt
+    #   -r requirements/format.txt
     #   black
 wheel==0.37.1
     # via
-    #   -r format.txt
+    #   -r requirements/format.txt
     #   pip-tools
 zipp==3.8.1
     # via
-    #   -r format.txt
+    #   -r requirements/format.txt
     #   importlib-metadata
-
-# The following packages are considered to be unsafe in a requirements file:
-pip==22.1.2
-    # via
-    #   -r format.txt
-    #   pip-tools
-setuptools==65.5.1
-    # via
-    #   -r format.txt
-    #   pip-tools
