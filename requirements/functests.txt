@@ -325,7 +325,7 @@ six==1.15.0
     #   python-dateutil
 soupsieve==2.2.1
     # via beautifulsoup4
-sqlalchemy==1.4.46
+sqlalchemy==2.0.0
     # via
     #   -r requirements/requirements.txt
     #   alembic
@@ -355,10 +355,11 @@ translationstring==1.4
     # via
     #   -r requirements/requirements.txt
     #   pyramid
-typing-extensions==4.0.0
+typing-extensions==4.4.0
     # via
     #   -r requirements/requirements.txt
     #   async-timeout
+    #   sqlalchemy
 urllib3==1.26.5
     # via
     #   -r requirements/requirements.txt
