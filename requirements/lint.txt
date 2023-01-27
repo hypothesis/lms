@@ -433,7 +433,7 @@ pycryptodomex==3.16.0
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-pydocstyle==6.1.1
+pydocstyle==6.3.0
     # via -r requirements/lint.in
 pyjwt[crypto]==2.4.0
     # via
@@ -572,7 +572,7 @@ six==1.15.0
     #   google-auth
     #   parse-type
     #   python-dateutil
-snowballstemmer==2.1.0
+snowballstemmer==2.2.0
     # via pydocstyle
 soupsieve==2.2.1
     # via
