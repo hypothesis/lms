@@ -206,11 +206,11 @@ pexpect==4.8.0
     # via ipython
 pickleshare==0.7.5
     # via ipython
-pip==22.1.2
+pip==22.3.1
     # via pip-tools
 pip-sync-faster==0.0.3
     # via -r requirements/dev.in
-pip-tools==6.10.0
+pip-tools==6.12.1
     # via
     #   -r requirements/dev.in
     #   pip-sync-faster

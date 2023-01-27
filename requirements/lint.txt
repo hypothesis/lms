@@ -354,7 +354,7 @@ pep517==0.12.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   build
-pip==22.1.2
+pip==22.3.1
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -366,7 +366,7 @@ pip-sync-faster==0.0.3
     #   -r requirements/functests.txt
     #   -r requirements/lint.in
     #   -r requirements/tests.txt
-pip-tools==6.10.0
+pip-tools==6.12.1
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt

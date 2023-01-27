@@ -206,11 +206,11 @@ pastedeploy==2.1.0
     #   plaster-pastedeploy
 pep517==0.12.0
     # via build
-pip==22.1.2
+pip==22.3.1
     # via pip-tools
 pip-sync-faster==0.0.3
     # via -r requirements/bddtests.in
-pip-tools==6.10.0
+pip-tools==6.12.1
     # via
     #   -r requirements/bddtests.in
     #   pip-sync-faster
