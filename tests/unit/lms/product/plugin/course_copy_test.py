@@ -28,9 +28,7 @@ class TestCourseCopyFilesHelper:
 
     @pytest.mark.parametrize("raising", [True, False])
     def test_find_matching_file_in_course(self, helper, file_service, raising):
-        store_new_course_files = create_autospec(
-            lambda new_course_id: None  # pragma: nocover
-        )
+        store_new_course_files = create_autospec(lambda _: None)  # pragma: nocover
         if raising:
             store_new_course_files.side_effect = ExternalRequestError
 
