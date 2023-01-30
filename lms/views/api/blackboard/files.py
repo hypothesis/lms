@@ -5,6 +5,7 @@ from pyramid.view import view_config, view_defaults
 
 from lms.product.blackboard import Blackboard
 from lms.security import Permissions
+from lms.services.exceptions import BlackboardFileNotFoundInCourse
 from lms.views import helpers
 
 #: A regex for parsing just the file_id part out of one of our custom
@@ -19,6 +20,7 @@ class BlackboardFilesAPIViews:
     def __init__(self, request):
         self.request = request
         self.blackboard_api_client = request.find_service(name="blackboard_api_client")
+        self.course_copy_plugin = request.product.plugin.course_copy
 
     @view_config(request_method="GET", route_name="blackboard_api.courses.files.list")
     @view_config(
@@ -66,11 +68,35 @@ class BlackboardFilesAPIViews:
         """Return the Via URL for annotating the given Blackboard file."""
 
         course_id = self.request.matchdict["course_id"]
-        document_url = self.request.params["document_url"]
-        file_id = DOCUMENT_URL_REGEX.search(document_url)["file_id"]
+        course = self.request.find_service(name="course").get_by_context_id(course_id)
 
-        public_url = self.blackboard_api_client.public_url(course_id, file_id)
+        document_url = self.request.params["document_url"]
+        file_id = self.course_copy_plugin.get_mapped_file_id(
+            course, DOCUMENT_URL_REGEX.search(document_url)["file_id"]
+        )
+        try:
+            if self.request.lti_user.is_instructor:
+                if not self.course_copy_plugin.is_file_in_course(course_id, file_id):
+                    raise BlackboardFileNotFoundInCourse(file_id)
+
+            public_url = self.blackboard_api_client.public_url(course_id, file_id)
+
+        except BlackboardFileNotFoundInCourse:
+            found_file = self.course_copy_plugin.find_matching_file_in_course(
+                file_id, course_id
+            )
+            if not found_file:
+                raise
+
+            # Try again to return a public URL, this time using found_file_id.
+            public_url = self.blackboard_api_client.public_url(
+                course_id, found_file.lms_id
+            )
+
+            # Store a mapping so we don't have to re-search next time.
+            self.course_copy_plugin.set_mapped_file_id(
+                course, file_id, found_file.lms_id
+            )
 
         via_url = helpers.via_url(self.request, public_url, content_type="pdf")
-
         return {"via_url": via_url}
