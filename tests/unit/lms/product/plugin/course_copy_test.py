@@ -94,12 +94,12 @@ class TestCourseCopyFilesHelper:
     def test_get_mapped_file_empty_extra(self, helper):
         course = factories.Course(extra={})
 
-        assert not helper.get_mapped_file_id(course, "ID")
+        assert helper.get_mapped_file_id(course, "ID") == "ID"
 
     def test_get_mapped_file_empty_mapping(self, helper):
         course = factories.Course(extra={"course_copy_file_mappings": {}})
 
-        assert not helper.get_mapped_file_id(course, "ID")
+        assert helper.get_mapped_file_id(course, "ID") == "ID"
 
     def test_get_mapped_file(self, helper):
         course = factories.Course(
