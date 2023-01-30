@@ -1,8 +1,13 @@
 import pytest
 
-from lms.views.api.blackboard.files import BlackboardFilesAPIViews
+from lms.views.api.blackboard.files import (
+    BlackboardFileNotFoundInCourse,
+    BlackboardFilesAPIViews,
+)
 
-pytestmark = pytest.mark.usefixtures("oauth2_token_service", "blackboard_api_client")
+pytestmark = pytest.mark.usefixtures(
+    "oauth2_token_service", "blackboard_api_client", "course_copy_plugin"
+)
 
 
 class TestListFiles:
@@ -89,16 +94,105 @@ class TestListFiles:
 
 
 class TestViaURL:
-    def test_it(self, view, blackboard_api_client, helpers, pyramid_request):
+    @pytest.mark.parametrize("is_instructor", [True, False])
+    def test_it(
+        self,
+        view,
+        blackboard_api_client,
+        helpers,
+        pyramid_request,
+        course_service,
+        course_copy_plugin,
+        is_instructor,
+    ):
+        pyramid_request.lti_user.roles = "instructor" if is_instructor else "student"
+        course_copy_plugin.is_file_in_course.return_value = True
+
         response = view()
 
-        blackboard_api_client.public_url.assert_called_once_with("COURSE_ID", "FILE_ID")
+        course_service.get_by_context_id.assert_called_once_with("COURSE_ID")
+        course = course_service.get_by_context_id.return_value
+        course_copy_plugin.get_mapped_file_id.assert_called_once_with(course, "FILE_ID")
+        file_id = course_copy_plugin.get_mapped_file_id.return_value
+
+        if is_instructor:
+            course_copy_plugin.is_file_in_course.assert_called_once_with(
+                "COURSE_ID", file_id
+            )
+
+        blackboard_api_client.public_url.assert_called_once_with(
+            "COURSE_ID", course_copy_plugin.get_mapped_file_id.return_value
+        )
         helpers.via_url.assert_called_once_with(
             pyramid_request,
             blackboard_api_client.public_url.return_value,
             content_type="pdf",
         )
         assert response == {"via_url": helpers.via_url.return_value}
+
+    @pytest.mark.usefixtures("user_is_instructor")
+    def test_it_when_file_not_in_course_fixed_by_course_copy(
+        self,
+        view,
+        blackboard_api_client,
+        helpers,
+        pyramid_request,
+        course_service,
+        course_copy_plugin,
+    ):
+        course_copy_plugin.is_file_in_course.return_value = False
+
+        response = view()
+
+        course_service.get_by_context_id.assert_called_once_with("COURSE_ID")
+        course = course_service.get_by_context_id.return_value
+        course_copy_plugin.get_mapped_file_id.assert_called_once_with(course, "FILE_ID")
+        file_id = course_copy_plugin.get_mapped_file_id.return_value
+
+        course_copy_plugin.is_file_in_course.assert_called_once_with(
+            "COURSE_ID", file_id
+        )
+        course_copy_plugin.find_matching_file_in_course.assert_called_once_with(
+            file_id, "COURSE_ID"
+        )
+        found_file = course_copy_plugin.find_matching_file_in_course.return_value
+        blackboard_api_client.public_url.assert_called_once_with(
+            "COURSE_ID", found_file.lms_id
+        )
+        course_copy_plugin.set_mapped_file_id.assert_called_once_with(
+            course, file_id, found_file.lms_id
+        )
+
+        helpers.via_url.assert_called_once_with(
+            pyramid_request,
+            blackboard_api_client.public_url.return_value,
+            content_type="pdf",
+        )
+        assert response == {"via_url": helpers.via_url.return_value}
+
+    def test_it_when_file_not_in_course(
+        self, view, blackboard_api_client, course_service, course_copy_plugin
+    ):
+        course_copy_plugin.is_file_in_course.return_value = False
+        blackboard_api_client.public_url.side_effect = BlackboardFileNotFoundInCourse(
+            file_id="FILE_ID"
+        )
+        course_copy_plugin.find_matching_file_in_course.return_value = None
+
+        with pytest.raises(BlackboardFileNotFoundInCourse):
+            view()
+
+        course_service.get_by_context_id.assert_called_once_with("COURSE_ID")
+        course = course_service.get_by_context_id.return_value
+        course_copy_plugin.get_mapped_file_id.assert_called_once_with(course, "FILE_ID")
+        file_id = course_copy_plugin.get_mapped_file_id.return_value
+
+        course_copy_plugin.is_file_in_course.assert_called_once_with(
+            "COURSE_ID", file_id
+        )
+        course_copy_plugin.find_matching_file_in_course.assert_called_once_with(
+            file_id, "COURSE_ID"
+        )
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
