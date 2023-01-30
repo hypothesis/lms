@@ -23,6 +23,12 @@ class UserService:
 
     def upsert_user(self, lti_user: LTIUser) -> User:
         """Store a record of having seen a particular user."""
+
+        # Note! - Storing a user in our DB currently has an implication for
+        # reporting and so billing and will as long as our billing metric is
+        # tied to users in groups. Should we start to store users who have not
+        # launched us, we could inflate our numbers or change their meaning.
+
         user = User(
             application_instance_id=lti_user.application_instance_id,
             user_id=lti_user.user_id,

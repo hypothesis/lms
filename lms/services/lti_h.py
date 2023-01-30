@@ -55,6 +55,11 @@ class LTIHService:
             )
 
     def _yield_commands(self, groupings):
+        # Note! - Syncing a user to `h` currently has an implication for
+        # reporting and so billing and will as long as our billing metric is
+        # tied to users in groups. Should we start to sync users who have not
+        # launched us, we could inflate our numbers or change their meaning.
+
         yield self._user_upsert(self._h_user)
 
         for i, grouping in enumerate(groupings):
