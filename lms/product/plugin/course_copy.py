@@ -58,8 +58,12 @@ class CourseCopyFilesHelper:
 
     @staticmethod
     def get_mapped_file_id(course, file_id):
-        """Get a previously mapped file id in course."""
-        return course.extra.get("course_copy_file_mappings", {}).get(file_id, None)
+        """
+        Get a previously mapped file id in course.
+
+        Returns the original `file_id` if no mapped one can be found.
+        """
+        return course.extra.get("course_copy_file_mappings", {}).get(file_id, file_id)
 
     @staticmethod
     def set_mapped_file_id(course, old_file_id, new_file_id):
