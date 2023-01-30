@@ -323,6 +323,8 @@ class TestCanvasAPIError:
         httpretty.register_uri(
             httpretty.GET, "https://example.com", status=200, body="Invalid"
         )
-        canvas_api_invalid_response = requests.get("https://example.com")
+        canvas_api_invalid_response = requests.get(
+            "https://example.com", timeout=(10, 10)
+        )
         canvas_api_invalid_response.body = "x" * 1000
         return canvas_api_invalid_response

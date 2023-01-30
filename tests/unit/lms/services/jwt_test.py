@@ -179,7 +179,7 @@ class Test_RequestsPyJWKClient:
         keys = _RequestsPyJWKClient(sentinel.url).fetch_data()
 
         requests.get.assert_called_once_with(
-            sentinel.url, headers={"User-Agent": "requests"}
+            sentinel.url, headers={"User-Agent": "requests"}, timeout=(10, 10)
         )
         assert (
             keys == requests.get.return_value.__enter__.return_value.json.return_value
