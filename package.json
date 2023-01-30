@@ -56,7 +56,7 @@
     "tiny-emitter": "^2.1.0"
   },
   "devDependencies": {
-    "@types/gapi": "^0.0.43",
+    "@types/gapi": "^0.0.44",
     "@types/google.accounts": "^0.0.5",
     "@typescript-eslint/eslint-plugin": "^5.48.2",
     "@typescript-eslint/parser": "^5.49.0",
