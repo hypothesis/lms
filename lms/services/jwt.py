@@ -138,7 +138,9 @@ class _RequestsPyJWKClient(jwt.PyJWKClient):
     def fetch_data(self):
         # We found that some Moodle instances return 403s
         # on request without an User-Agent.
-        with requests.get(self.uri, headers={"User-Agent": "requests"}) as response:
+        with requests.get(
+            self.uri, headers={"User-Agent": "requests"}, timeout=(10, 10)
+        ) as response:
             return response.json()
 
 
