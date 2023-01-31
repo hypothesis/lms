@@ -63,6 +63,14 @@ describe('LaunchErrorDialog', () => {
       withError: true,
     },
     {
+      errorState: 'd2l_file_not_found_in_course',
+      expectedText:
+        'An instructor needs to re-create the assignment with a new file.',
+      expectedTitle: "Hypothesis couldn't find the file in the course",
+      hasRetry: true,
+      withError: true,
+    },
+    {
       errorState: 'canvas_group_set_not_found',
       expectedText:
         "Hypothesis couldn't find this assignment's group set. This could be because:The group set has been deleted from Canvas.This course was created by copying another course (Canvas doesn't copy the group sets over when you copy a course).",
