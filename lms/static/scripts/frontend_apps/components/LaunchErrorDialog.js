@@ -85,6 +85,22 @@ export default function LaunchErrorDialog({
           </ul>
         </ErrorModal>
       );
+
+    case 'd2l_file_not_found_in_course':
+      return (
+        <ErrorModal
+          busy={busy}
+          error={error}
+          onRetry={onRetry}
+          title="Hypothesis couldn't find the file in the course"
+        >
+          <p>
+            This might have happened because the file has been deleted from D2L.
+            An instructor needs to re-create the assignment with a new file
+          </p>
+        </ErrorModal>
+      );
+
     case 'canvas_api_permission_error':
       return (
         <ErrorModal
