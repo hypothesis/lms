@@ -238,24 +238,28 @@ class CanvasAPIServerError(CanvasAPIError):
     """
 
 
-class CanvasFileNotFoundInCourse(Exception):
+class FileNotFoundInCourse(Exception):
+    def __init__(self, file_id):
+        self.details = {"file_id": file_id}
+        super().__init__(self.details)
+
+
+class CanvasFileNotFoundInCourse(FileNotFoundInCourse):
     """A Canvas file ID wasn't found in the current course."""
 
     error_code = "canvas_file_not_found_in_course"
 
-    def __init__(self, file_id):
-        self.details = {"file_id": file_id}
-        super().__init__(self.details)
 
-
-class BlackboardFileNotFoundInCourse(Exception):
+class BlackboardFileNotFoundInCourse(FileNotFoundInCourse):
     """A Blackboard file ID wasn't found in the current course."""
 
     error_code = "blackboard_file_not_found_in_course"
 
-    def __init__(self, file_id):
-        self.details = {"file_id": file_id}
-        super().__init__(self.details)
+
+class D2LFileNotFoundInCourse(FileNotFoundInCourse):
+    """A D2L file ID wasn't found in the current course."""
+
+    error_code = "d2l_file_not_found_in_course"
 
 
 class SerializableError(Exception):

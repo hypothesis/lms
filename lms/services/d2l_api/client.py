@@ -2,6 +2,7 @@ from typing import List
 
 from marshmallow import EXCLUDE, Schema, fields
 
+from lms.services.exceptions import D2LFileNotFoundInCourse, ExternalRequestError
 from lms.validation._base import RequestsResponseSchema
 
 
@@ -137,14 +138,21 @@ class D2LAPIClient:
         https://docs.valence.desire2learn.com/res/content.html#get--d2l-api-le-(version)-(orgUnitId)-content-topics-(topicId)
         https://docs.valence.desire2learn.com/res/content.html#get--d2l-api-le-(version)-(orgUnitId)-content-topics-(topicId)-file
         """
-
-        # We don't need the data from this call.
-        # We are only interested on the potential side effect of needing
-        # a new access token and/or refreshing an existing one.
-        _ = self._api.request(
-            "GET",
-            self._api.api_url(f"/{org_unit}/content/topics/{file_id}", product="le"),
-        )
+        try:
+            # We don't need the data from this call.
+            # We are only interested on the potential side effect of needing
+            # a new access token and/or refreshing an existing one
+            # or finding out that the file is not present anymore.
+            self._api.request(
+                "GET",
+                self._api.api_url(
+                    f"/{org_unit}/content/topics/{file_id}", product="le"
+                ),
+            )
+        except ExternalRequestError as err:
+            if err.status_code == 404:
+                raise D2LFileNotFoundInCourse(file_id) from err
+            raise
 
         return self._api.api_url(
             f"/{org_unit}/content/topics/{file_id}/file?stream=1", product="le"
