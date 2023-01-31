@@ -96,7 +96,7 @@ export default function LaunchErrorDialog({
         >
           <p>
             This might have happened because the file has been deleted from D2L.
-            An instructor needs to re-create the assignment with a new file
+            An instructor needs to re-create the assignment with a new file.
           </p>
         </ErrorModal>
       );

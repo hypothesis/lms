@@ -4,6 +4,8 @@ import pytest
 
 from lms.services.d2l_api._basic import BasicClient
 from lms.services.d2l_api.client import D2LAPIClient
+from lms.services.exceptions import D2LFileNotFoundInCourse, ExternalRequestError
+from tests import factories
 
 
 class TestD2LAPIClient:
@@ -202,6 +204,26 @@ class TestD2LAPIClient:
         )
 
         assert public_url == basic_client.api_url.return_value
+
+    def test_public_url_raises_D2LFileNotFoundInCourse_if_the_api_404s(
+        self, svc, basic_client
+    ):
+        basic_client.request.side_effect = ExternalRequestError(
+            response=factories.requests.Response(status_code=404)
+        )
+
+        with pytest.raises(D2LFileNotFoundInCourse):
+            svc.public_url("COURSE_ID", "FILE_ID")
+
+    def test_public_url_raises_ExternalRequestError_if_the_api_fails_in_any_other_way(
+        self, svc, basic_client
+    ):
+        basic_client.request.side_effect = ExternalRequestError(
+            response=factories.requests.Response(status_code=400)
+        )
+
+        with pytest.raises(ExternalRequestError):
+            svc.public_url("COURSE_ID", "FILE_ID")
 
     @pytest.mark.parametrize(
         "user_id,api_user_id",
