@@ -112,24 +112,28 @@ class TestD2LAPIClient:
                     {
                         "display_name": "MODULE 1",
                         "id": 1,
+                        "lms_id": 1,
                         "updated_at": "DATE 1",
                         "type": "Folder",
                         "children": [
                             {
                                 "display_name": "TITLE 1",
                                 "id": "d2l://file/course/COURSE_ID/file_id/FILE 1/",
+                                "lms_id": "FILE 1",
                                 "type": "File",
                                 "updated_at": "DATE 1",
                             },
                             {
                                 "display_name": "MODULE 2",
                                 "id": 2,
+                                "lms_id": 2,
                                 "type": "Folder",
                                 "updated_at": "DATE 2",
                                 "children": [
                                     {
                                         "display_name": "TITLE 2",
                                         "id": "d2l://file/course/COURSE_ID/file_id/FILE 2/",
+                                        "lms_id": "FILE 2",
                                         "type": "File",
                                         "updated_at": "DATE 2",
                                     },
@@ -149,7 +153,7 @@ class TestD2LAPIClient:
                     {
                         "type": "d2l_file",
                         "course_id": "COURSE_ID",
-                        "lms_id": "d2l://file/course/COURSE_ID/file_id/FILE 1/",
+                        "lms_id": "FILE 1",
                         "name": "TITLE 1",
                         "parent_lms_id": 1,
                     },
@@ -163,7 +167,7 @@ class TestD2LAPIClient:
                     {
                         "type": "d2l_file",
                         "course_id": "COURSE_ID",
-                        "lms_id": "d2l://file/course/COURSE_ID/file_id/FILE 2/",
+                        "lms_id": "FILE 2",
                         "name": "TITLE 2",
                         "parent_lms_id": 2,
                     },
