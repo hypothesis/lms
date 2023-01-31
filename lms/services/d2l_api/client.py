@@ -193,6 +193,7 @@ class D2LAPIClient:
                 {
                     "type": "File",
                     "display_name": topic["display_name"],
+                    "lms_id": topic["id"],
                     "id": f"d2l://file/course/{course_id}/file_id/{topic['id']}/",
                     "updated_at": topic["updated_at"],
                 }
@@ -209,6 +210,7 @@ class D2LAPIClient:
                 "type": "Folder",
                 "display_name": module["display_name"],
                 "id": module["id"],
+                "lms_id": module["id"],
                 "updated_at": module["updated_at"],
                 "children": module_files + list(module_children),
             }
@@ -218,7 +220,7 @@ class D2LAPIClient:
             yield {
                 "type": "d2l_file" if file["type"] == "File" else "d2l_folder",
                 "course_id": course_id,
-                "lms_id": file["id"],
+                "lms_id": file["lms_id"],
                 "name": file["display_name"],
                 "parent_lms_id": parent_id,
             }
