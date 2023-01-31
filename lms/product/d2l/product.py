@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from lms.product.d2l._plugin.course_copy import D2LCourseCopyPlugin
 from lms.product.d2l._plugin.grouping import D2LGroupingPlugin
 from lms.product.d2l._plugin.misc import D2LMiscPlugin
 from lms.product.product import PluginConfig, Product, Routes
@@ -12,7 +13,7 @@ class D2L(Product):
     family: Product.Family = Product.Family.D2L
 
     plugin_config: PluginConfig = PluginConfig(
-        grouping=D2LGroupingPlugin, misc=D2LMiscPlugin
+        grouping=D2LGroupingPlugin, misc=D2LMiscPlugin, course_copy=D2LCourseCopyPlugin
     )
 
     route: Routes = Routes(
