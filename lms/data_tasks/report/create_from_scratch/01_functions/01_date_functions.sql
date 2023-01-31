@@ -2,6 +2,7 @@
 -- DATE_TRUNC(), but also accepts:
 --
 -- * all_time - Returning an arbitrary date in the past
+-- * trailing_year - Truncating to the year starting from 12 months ago
 -- * academic_year - Truncating to the start of the academic year
 -- * semester - Truncating to the nearest 6 months
 
@@ -11,7 +12,24 @@ IMMUTABLE
 AS $$
     SELECT CASE
         WHEN resolution = 'all_time' THEN '1901-01-01'::DATE
-        WHEN resolution = 'academic_year' THEN (DATE_TRUNC('year', date - INTERVAL '6 month') + INTERVAL '6 month')::DATE
+        WHEN resolution = 'academic_year' THEN (
+            DATE_TRUNC('year', date - INTERVAL '6 month') + INTERVAL '6 month'
+        )::DATE
+        -- Trailing year is a time period based on "today" as the end-period
+        -- quantized by year.
+        WHEN resolution = 'trailing_year' THEN (
+            DATE_TRUNC(
+                'year',
+                date
+                -- Offset the time since the start of the year
+                - (CURRENT_DATE - DATE_TRUNC('year', CURRENT_DATE))
+                -- Bump back by one addition day to ensure values from
+                -- today don't start their own year
+                - INTERVAL '1 day'
+             )
+            -- Add back the offset from the start of the year
+            + (CURRENT_DATE - DATE_TRUNC('year', CURRENT_DATE))
+        )::DATE
         WHEN resolution = 'semester' THEN (DATE_TRUNC('year', date) + (
             CASE
                 WHEN EXTRACT('quarter' FROM date) < 3 THEN INTERVAL '0 months'
@@ -36,6 +54,7 @@ AS $$
         WHEN resolution = 'all_time' THEN INTERVAL '200 years'
         WHEN resolution = 'year' THEN INTERVAL '1 year'
         WHEN resolution = 'academic_year' THEN INTERVAL '1 year'
+        WHEN resolution = 'trailing_year' THEN INTERVAL '1 year'
         WHEN resolution = 'semester' THEN INTERVAL '6 months'
         WHEN resolution = 'quarter' THEN INTERVAL '3 months'
         WHEN resolution = 'month' THEN INTERVAL '1 month'
@@ -50,6 +69,7 @@ LANGUAGE SQL;
 --
 -- * all_time - The string "All time"
 -- * academic_year - YYYY
+-- * trailing_year - YYYY-MM-DD
 -- * year - YYYY
 -- * semester - YYYY-S
 -- * month - YYYY-MM-DD

@@ -1,7 +1,7 @@
 DROP TYPE IF EXISTS report.academic_timescale CASCADE;
 
 CREATE TYPE report.academic_timescale AS ENUM (
-    'week', 'month', 'semester', 'academic_year', 'all_time'
+    'week', 'month', 'semester', 'academic_year', 'trailing_year', 'all_time'
 );
 
 DROP MATERIALIZED VIEW IF EXISTS report.organization_activity CASCADE;
@@ -24,7 +24,13 @@ CREATE MATERIALIZED VIEW report.organization_activity AS (
 
         timescales AS (
             SELECT column1 AS timescale FROM (
-                VALUES ('week'), ('month'), ('semester'), ('academic_year'), ('all_time')
+                VALUES
+                    ('week'),
+                    ('month'),
+                    ('semester'),
+                    ('academic_year'),
+                    ('trailing_year'),
+                    ('all_time')
             ) AS data
         ),
 
