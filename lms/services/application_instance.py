@@ -242,12 +242,12 @@ class ApplicationInstanceService:
         email,
         developer_key,
         developer_secret,
+        organization_public_id,
         name=None,
-        organization_public_id=None,  # We want to make this mandatory
         deployment_id=None,
         lti_registration_id=None,
-    ):
-        """Create an ApplicationInstance."""
+    ) -> ApplicationInstance:
+        """Create an application instance."""
         consumer_key = (
             "Hypothesis" + secrets.token_hex(16) if not deployment_id else None
         )
