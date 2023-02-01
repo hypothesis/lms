@@ -3,7 +3,7 @@ from unittest.mock import Mock, create_autospec, sentinel
 import pytest
 
 from lms.product.plugin.course_copy import CourseCopyFilesHelper
-from lms.services.exceptions import ExternalRequestError
+from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 from tests import factories
 
 
@@ -27,8 +27,9 @@ class TestCourseCopyFilesHelper:
         assert is_in_course == expected
 
     @pytest.mark.parametrize("raising", [True, False])
-    def test_find_matching_file_in_course(self, helper, file_service, raising):
-        store_new_course_files = create_autospec(lambda _: None)  # pragma: nocover
+    def test_find_matching_file_in_course(
+        self, helper, file_service, raising, store_new_course_files
+    ):
         if raising:
             store_new_course_files.side_effect = ExternalRequestError
 
@@ -52,6 +53,20 @@ class TestCourseCopyFilesHelper:
         )
 
         assert new_file
+
+    def test_find_matching_file_raises_OAuth2TokenError(
+        self, helper, file_service, store_new_course_files
+    ):
+        store_new_course_files.side_effect = OAuth2TokenError
+
+        with pytest.raises(OAuth2TokenError):
+            helper.find_matching_file_in_course(
+                store_new_course_files,
+                file_service,
+                sentinel.file_type,
+                sentinel.original_file_id,
+                sentinel.new_course_id,
+            )
 
     def test_find_matching_file_in_course_no_existing_file(self, helper, file_service):
         store_new_course_files = Mock()
@@ -118,3 +133,7 @@ class TestCourseCopyFilesHelper:
     @pytest.fixture
     def helper(self):
         return CourseCopyFilesHelper()
+
+    @pytest.fixture
+    def store_new_course_files(self):
+        return create_autospec(lambda _: None)  # pragma: nocover
