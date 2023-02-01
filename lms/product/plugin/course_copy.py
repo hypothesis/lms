@@ -1,7 +1,7 @@
 from typing import Callable, Optional
 
 from lms.models import File
-from lms.services.exceptions import ExternalRequestError
+from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 from lms.services.file import FileService
 
 
@@ -29,6 +29,10 @@ class CourseCopyFilesHelper:
         try:
             # Get the current (copied) courses files, that will have the side effect of storing files in the DB
             _ = store_new_course_files(new_course_id)
+        except OAuth2TokenError:
+            # If the issue while trying to talk to the API is OAuth related
+            # let that bubble up and be dealt with.
+            raise
         except ExternalRequestError:
             # We might not have access to use the API for that endpoint.
             # That will depend on our role and the course's permissions settings.
