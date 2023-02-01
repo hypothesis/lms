@@ -45,11 +45,9 @@ paramiko==2.10.1
     # via docker
 pep517==0.12.0
     # via build
-pip==22.3.1
-    # via pip-tools
 pip-sync-faster==0.0.3
     # via -r requirements/dockercompose.in
-pip-tools==6.12.1
+pip-tools==6.12.2
     # via
     #   -r requirements/dockercompose.in
     #   pip-sync-faster
@@ -69,10 +67,6 @@ requests==2.28.2
     # via
     #   docker
     #   docker-compose
-setuptools==65.5.1
-    # via
-    #   jsonschema
-    #   pip-tools
 six==1.15.0
     # via
     #   bcrypt
