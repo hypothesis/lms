@@ -3,12 +3,12 @@ import { act } from 'preact/test-utils';
 import { mount } from 'enzyme';
 
 import { Config } from '../../config';
-import LMSGrader, { $imports } from '../LMSGrader';
+import GradingToolbar, { $imports } from '../GradingToolbar';
 import { checkAccessibility } from '../../../test-util/accessibility';
 import { waitFor } from '../../../test-util/wait';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 
-describe('LMSGrader', () => {
+describe('GradingToolbar', () => {
   let fakeApiCall;
   let fakeConfig;
   let fakeStudents;
@@ -73,7 +73,7 @@ describe('LMSGrader', () => {
   const renderGrader = (props = {}) => {
     return mount(
       <Config.Provider value={fakeConfig}>
-        <LMSGrader
+        <GradingToolbar
           onChangeSelectedUser={fakeOnChange}
           students={fakeStudents}
           courseName={'course name'}
@@ -82,7 +82,7 @@ describe('LMSGrader', () => {
           {...props}
         >
           <div title="The assignment content iframe" />
-        </LMSGrader>
+        </GradingToolbar>
       </Config.Provider>
     );
   };
