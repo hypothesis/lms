@@ -45,6 +45,9 @@ class GroupingPlugin:
 
         return None
 
+    def get_group_sets(self, course_id):  # prama: nocover
+        """Get the group sets available for this course. Used while configuring the assignments."""
+
     def get_groups_for_learner(
         self, svc, course: Course, group_set_id
     ) -> Optional[List]:  # pragma: nocover
