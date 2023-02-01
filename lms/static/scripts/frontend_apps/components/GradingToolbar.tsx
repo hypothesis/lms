@@ -1,3 +1,5 @@
+import classnames from 'classnames';
+import type { ComponentChildren } from 'preact';
 import {
   useCallback,
   useContext,
@@ -8,38 +10,35 @@ import {
 
 import { apiCall } from '../utils/api';
 import { Config } from '../config';
-
+import type { StudentInfo } from '../config';
+import type { ClientRPC } from '../services/client-rpc';
 import StudentSelector from './StudentSelector';
 import SubmitGradeForm from './SubmitGradeForm';
-import classnames from 'classnames';
+
+export type GradingToolbarProps = {
+  /** Iframe element displaying assignment content. */
+  children: ComponentChildren;
+
+  /** Service for communicating with Hypothesis client. */
+  clientRPC: ClientRPC;
+  courseName: string;
+  assignmentName: string;
+
+  /** List of students to grade. */
+  students: StudentInfo[];
+};
 
 /**
- * @typedef {import('../config').StudentInfo} StudentInfo
- * @typedef {import('../services/client-rpc').ClientRPC} ClientRPC
+ * Toolbar which provides instructors with controls to list students who have
+ * annotated this document and view/submit grades.
  */
-
-/**
- * @typedef LMSGraderProps
- * @prop {object} children - The <iframe> element displaying the assignment
- * @prop {ClientRPC} clientRPC - Service for communicating with Hypothesis client
- * @prop {string} courseName
- * @prop {string} assignmentName
- * @prop {StudentInfo[]} students - List of students to grade
- */
-
-/**
- * The LMSGrader component is fixed at the top of the page. This toolbar shows which assignment is currently
- * active as well as a list of students to both view and submit grades for.
- *
- * @param {LMSGraderProps} props
- */
-export default function LMSGrader({
+export default function GradingToolbar({
   children,
   clientRPC,
   assignmentName,
   courseName,
   students: unorderedStudents,
-}) {
+}: GradingToolbarProps) {
   const {
     api: { authToken, sync: syncAPICallInfo },
   } = useContext(Config);
@@ -71,8 +70,7 @@ export default function LMSGrader({
    * Makes an RPC call to the sidebar to change to the focused user.
    */
   const changeFocusedUser = useCallback(
-    /** @param {StudentInfo|null} user - The user to focus on in the sidebar */
-    async user => {
+    async (user: StudentInfo | null) => {
       let groups = null;
       if (syncAPICallInfo && user?.lmsId) {
         // Request and set a list of groups specific to the student being graded
@@ -110,18 +108,10 @@ export default function LMSGrader({
     }
   }, [students, changeFocusedUser, currentStudentIndex]);
 
-  /**
-   * Callback to set the current selected student.
-   *
-   * @param {number} studentIndex
-   */
-  const onSelectStudent = studentIndex => {
+  const onSelectStudent = (studentIndex: number) => {
     setCurrentStudentIndex(studentIndex);
   };
 
-  /**
-   * Return the current student, or an empty object if there is none
-   */
   const getCurrentStudent = () => {
     return currentStudentIndex >= 0 ? students[currentStudentIndex] : null;
   };

@@ -16,7 +16,7 @@ import { apiCall } from '../utils/api';
 import AuthWindow from '../utils/AuthWindow';
 
 import ContentFrame from './ContentFrame';
-import LMSGrader from './LMSGrader';
+import GradingToolbar from './GradingToolbar';
 import LaunchErrorDialog from './LaunchErrorDialog';
 
 /**
@@ -330,14 +330,14 @@ export default function BasicLTILaunchApp() {
 
   if (grading && grading.enabled) {
     contentFrameWrapper = (
-      <LMSGrader
+      <GradingToolbar
         clientRPC={clientRPC}
         students={grading.students}
         courseName={grading.courseName}
         assignmentName={grading.assignmentName}
       >
         {contentFrame}
-      </LMSGrader>
+      </GradingToolbar>
     );
   } else {
     contentFrameWrapper = contentFrame;
