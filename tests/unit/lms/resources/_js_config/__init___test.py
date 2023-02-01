@@ -77,7 +77,6 @@ class TestFilePickerMode:
         }
 
     def test_product_with_list_group_sets(self, js_config, pyramid_request):
-        pyramid_request.product.route.list_group_sets = "welcome"
         pyramid_request.product.route.oauth2_authorize = "welcome"
         pyramid_request.product.settings.groups_enabled = True
 
@@ -88,7 +87,7 @@ class TestFilePickerMode:
             "api": {
                 "listGroupSets": {
                     "authUrl": "http://example.com/welcome",
-                    "path": "/welcome",
+                    "path": "/api/courses/test_course_id/group_sets",
                 }
             },
             "settings": {"groupsEnabled": True},

@@ -13,7 +13,6 @@ class Canvas(Product):
     route: Routes = Routes(
         oauth2_authorize="canvas_api.oauth.authorize",
         oauth2_refresh="canvas_api.oauth.refresh",
-        list_group_sets="canvas_api.courses.group_sets.list",
     )
 
     plugin_config: PluginConfig = PluginConfig(grouping=CanvasGroupingPlugin)

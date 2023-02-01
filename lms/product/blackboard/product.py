@@ -14,7 +14,6 @@ class Blackboard(Product):
     route: Routes = Routes(
         oauth2_authorize="blackboard_api.oauth.authorize",
         oauth2_refresh="blackboard_api.oauth.refresh",
-        list_group_sets="blackboard_api.courses.group_sets.list",
     )
 
     plugin_config: PluginConfig = PluginConfig(
