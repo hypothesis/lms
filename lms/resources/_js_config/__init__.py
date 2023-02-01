@@ -455,6 +455,11 @@ class JSConfig:
                 "path": self._request.route_path(
                     "api.courses.group_sets.list", course_id=api_course_id
                 ),
+                "data": {
+                    "lms": {
+                        "product": self._request.product.family,
+                    }
+                },
             }
 
         return product_info

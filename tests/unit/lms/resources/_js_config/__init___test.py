@@ -88,6 +88,7 @@ class TestFilePickerMode:
                 "listGroupSets": {
                     "authUrl": "http://example.com/welcome",
                     "path": "/api/courses/test_course_id/group_sets",
+                    "data": {"lms": {"product": Product.Family.UNKNOWN}},
                 }
             },
             "settings": {"groupsEnabled": True},

@@ -166,6 +166,7 @@ export default function GroupConfigSelector({
         await apiCall({
           authToken,
           path: listGroupSetsAPI.path,
+          data: listGroupSetsAPI.data,
         })
       );
       if (groupSets && groupSets.length === 0) {

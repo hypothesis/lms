@@ -11,6 +11,7 @@ describe('GroupConfigSelector', () => {
   const groupSetsAPIRequest = {
     authToken: 'valid-token',
     path: '/api/group-sets',
+    data: { some: 'data' },
   };
 
   let fakeAPICall;
@@ -39,6 +40,7 @@ describe('GroupConfigSelector', () => {
           listGroupSets: {
             authUrl: authURL,
             path: groupSetsAPIRequest.path,
+            data: groupSetsAPIRequest.data,
           },
         },
       },
