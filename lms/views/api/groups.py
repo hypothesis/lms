@@ -4,7 +4,7 @@ from lms.security import Permissions
 
 
 @view_config(
-    request_method="GET",
+    request_method="POST",
     permission=Permissions.API,
     renderer="json",
     route_name="api.courses.group_sets.list",
