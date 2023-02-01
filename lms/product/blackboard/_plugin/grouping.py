@@ -22,6 +22,9 @@ class BlackboardGroupingPlugin(GroupingPlugin):
     def __init__(self, blackboard_api):
         self._blackboard_api = blackboard_api
 
+    def get_group_sets(self, course_id):
+        return self._blackboard_api.course_group_sets(course_id)
+
     def get_groups_for_learner(self, _svc, course, group_set_id):
         if learner_groups := self._blackboard_api.course_groups(
             course.lms_id, group_set_id, current_student_own_groups_only=True

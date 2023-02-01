@@ -10,6 +10,14 @@ from tests import factories
 
 
 class TestBlackboardGroupingPlugin:
+    def test_get_group_sets(self, plugin, blackboard_api_client):
+        api_group_sets = plugin.get_group_sets(sentinel.course_id)
+
+        blackboard_api_client.course_group_sets.assert_called_once_with(
+            sentinel.course_id
+        )
+        assert api_group_sets == blackboard_api_client.course_group_sets.return_value
+
     def test_get_groups_for_learner(
         self, blackboard_api_client, plugin, grouping_service, course
     ):
