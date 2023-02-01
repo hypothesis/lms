@@ -34,9 +34,6 @@ class Routes:
     oauth2_refresh: Optional[str] = None
     """Refreshing OAuth 2 tokens."""
 
-    list_group_sets: Optional[str] = None
-    """List available group sets. Takes a course_id parameter"""
-
 
 @dataclass
 class Settings:

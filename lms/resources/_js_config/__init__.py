@@ -443,7 +443,7 @@ class JSConfig:
             "api": {},
         }
 
-        if product.route.list_group_sets:
+        if self._request.product.settings.groups_enabled:
             # This should be abstracted as "lms_course_id" or similar in either
             # LTIParams or as part of product.
             api_course_id = self._request.lti_params.get(
@@ -453,8 +453,7 @@ class JSConfig:
             product_info["api"]["listGroupSets"] = {
                 "authUrl": self._request.route_url(product.route.oauth2_authorize),
                 "path": self._request.route_path(
-                    product.route.list_group_sets,
-                    course_id=api_course_id,
+                    "api.courses.group_sets.list", course_id=api_course_id
                 ),
             }
 
