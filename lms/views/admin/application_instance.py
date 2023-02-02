@@ -204,7 +204,7 @@ class AdminApplicationInstanceViews:
 
     @view_config(route_name="admin.instance.downgrade", request_method="POST")
     def downgrade_instance(self):
-        ai = self._get_ai_or_404(**self.request.matchdict)
+        ai = self._get_ai_or_404(self.request.matchdict["id_"])
 
         if ai.lti_version != "1.3.0":
             self.request.session.flash(
@@ -252,7 +252,7 @@ class AdminApplicationInstanceViews:
         renderer="lms:templates/admin/instance.html.jinja2",
     )
     def show_instance(self):
-        ai = self._get_ai_or_404(**self.request.matchdict)
+        ai = self._get_ai_or_404(self.request.matchdict["id_"])
         return {"instance": ai}
 
     @view_config(
@@ -261,7 +261,7 @@ class AdminApplicationInstanceViews:
         require_csrf=True,
     )
     def move_application_instance_org(self):
-        ai = self._get_ai_or_404(**self.request.matchdict)
+        ai = self._get_ai_or_404(self.request.matchdict["id_"])
 
         try:
             self.application_instance_service.update_application_instance(
@@ -280,7 +280,7 @@ class AdminApplicationInstanceViews:
 
     @view_config(route_name="admin.instance", request_method="POST", require_csrf=True)
     def update_instance(self):
-        ai = self._get_ai_or_404(**self.request.matchdict)
+        ai = self._get_ai_or_404(self.request.matchdict["id_"])
 
         self.application_instance_service.update_application_instance(
             ai,
