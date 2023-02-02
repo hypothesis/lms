@@ -74,7 +74,7 @@ class TestAdminApplicationInstanceViews:
             lti_registration_id=54321,
         )
         assert response == Any.instance_of(HTTPFound).with_attrs(
-            {"location": Any.string.containing("/admin/instance/id/12345")}
+            {"location": Any.string.containing("/admin/instance/12345")}
         )
 
     @pytest.mark.usefixtures("ai_new_params_v11")
@@ -82,7 +82,7 @@ class TestAdminApplicationInstanceViews:
         response = views.new_instance_callback()
 
         assert response == Any.instance_of(HTTPFound).with_attrs(
-            {"location": Any.string.containing("/admin/instance/id/")}
+            {"location": Any.string.containing("/admin/instance/")}
         )
 
     @pytest.mark.usefixtures("ai_new_params_v13")
@@ -138,7 +138,7 @@ class TestAdminApplicationInstanceViews:
             application_instance, organization_public_id="PUBLIC_ID"
         )
         assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.instance.id", id_=application_instance.id)
+            pyramid_request.route_url("admin.instance", id_=application_instance.id)
         )
 
     def test_move_application_instance_org_invalid_organization_id(
@@ -154,7 +154,7 @@ class TestAdminApplicationInstanceViews:
         assert pyramid_request.session.peek_flash("validation")
         assert response == temporary_redirect_to(
             pyramid_request.route_url(
-                "admin.instance.id",
+                "admin.instance",
                 id_=application_instance_service.get_by_id.return_value.id,
             )
         )
@@ -176,7 +176,7 @@ class TestAdminApplicationInstanceViews:
         assert not application_instance_lti_13.deployment_id
         assert response == temporary_redirect_to(
             pyramid_request.route_url(
-                "admin.instance.id", id_=application_instance_lti_13.id
+                "admin.instance", id_=application_instance_lti_13.id
             )
         )
 
@@ -259,7 +259,7 @@ class TestAdminApplicationInstanceViews:
             == pyramid_request.params["deployment_id"]
         )
         assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.instance.id", id_=application_instance.id)
+            pyramid_request.route_url("admin.instance", id_=application_instance.id)
         )
 
     @pytest.mark.usefixtures("with_upgrade_form")
@@ -387,7 +387,7 @@ class TestAdminApplicationInstanceViews:
 
         assert pyramid_request.session.peek_flash("messages")
         assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.instance.id", id_=application_instance.id)
+            pyramid_request.route_url("admin.instance", id_=application_instance.id)
         )
 
     def test_update_application_instance(

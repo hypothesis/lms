@@ -132,7 +132,7 @@ class AdminApplicationInstanceViews:
 
             return self._redirect("admin.instance.new", _query=self.request.params)
 
-        return self._redirect("admin.instance.id", id_=ai.id)
+        return self._redirect("admin.instance", id_=ai.id)
 
     @view_config(
         route_name="admin.instance.upgrade",
@@ -200,7 +200,7 @@ class AdminApplicationInstanceViews:
 
             return self._redirect("admin.instance.upgrade", _query=self.request.params)
 
-        return self._redirect("admin.instance.id", id_=application_instance.id)
+        return self._redirect("admin.instance", id_=application_instance.id)
 
     @view_config(route_name="admin.instance.downgrade", request_method="POST")
     def downgrade_instance(self):
@@ -221,7 +221,7 @@ class AdminApplicationInstanceViews:
 
             self.request.session.flash("Downgraded LTI 1.1 successful", "messages")
 
-        return self._redirect("admin.instance.id", id_=ai.id)
+        return self._redirect("admin.instance", id_=ai.id)
 
     @view_config(
         route_name="admin.instances.search",
@@ -248,7 +248,7 @@ class AdminApplicationInstanceViews:
         return {"instances": instances}
 
     @view_config(
-        route_name="admin.instance.id",
+        route_name="admin.instance",
         renderer="lms:templates/admin/instance.html.jinja2",
     )
     @view_config(
@@ -280,11 +280,9 @@ class AdminApplicationInstanceViews:
         except ValidationError as err:
             self.request.session.flash(err.messages, "validation")
 
-        return self._redirect("admin.instance.id", id_=ai.id)
+        return self._redirect("admin.instance", id_=ai.id)
 
-    @view_config(
-        route_name="admin.instance.id", request_method="POST", require_csrf=True
-    )
+    @view_config(route_name="admin.instance", request_method="POST", require_csrf=True)
     @view_config(
         route_name="admin.instance.consumer_key",
         request_method="POST",
@@ -343,7 +341,7 @@ class AdminApplicationInstanceViews:
 
         self.request.session.flash(f"Updated application instance {ai.id}", "messages")
 
-        return self._redirect("admin.instance.id", id_=ai.id)
+        return self._redirect("admin.instance", id_=ai.id)
 
     def _redirect(self, route_name, **kwargs):
         return HTTPFound(location=self.request.route_url(route_name, **kwargs))
