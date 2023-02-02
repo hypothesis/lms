@@ -1,7 +1,9 @@
+from datetime import datetime
 from unittest import mock
 
 import pytest
 from factory import Faker
+from freezegun import freeze_time
 from h_matchers import Any
 
 from lms.models import LTIParams, ReusedConsumerKey
@@ -226,10 +228,14 @@ class TestApplicationInstanceService:
             "custom_canvas_api_domain",
         ),
     )
+    @freeze_time("2022-04-04")
     def test_update_from_lti_params(
         self, service, organization_service, application_instance, field
     ):
-        lms_data = {field: field + "_value", "tool_consumer_instance_guid": "GUID"}
+        lms_data = {
+            field: field + "_value",
+            "tool_consumer_instance_guid": "GUID",
+        }
 
         service.update_from_lti_params(application_instance, LTIParams(lms_data))
 
@@ -237,6 +243,7 @@ class TestApplicationInstanceService:
             application_instance
         )
         assert application_instance == Any.object.with_attrs(lms_data)
+        assert application_instance.last_launched == datetime(year=2022, month=4, day=4)
 
     def test_update_from_lti_params_no_guid_doesnt_change_values(
         self, service, organization_service, application_instance
