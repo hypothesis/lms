@@ -1,4 +1,4 @@
-from unittest.mock import create_autospec, patch, sentinel
+from unittest.mock import patch, sentinel
 
 import pytest
 from pyramid.httpexceptions import HTTPClientError, HTTPFound, HTTPNotFound
@@ -246,9 +246,7 @@ class TestAdminApplicationInstanceViews:
         assert views.upgrade_instance_callback() == REDIRECT_TO_UPGRADE_AI
 
     @pytest.mark.usefixtures("with_upgrade_form", "with_lti_13_ai")
-    def test_upgrade_instance_callback_already_upgraded(
-        self, views, application_instance
-    ):
+    def test_upgrade_instance_callback_already_upgraded(self, views):
         assert views.upgrade_instance_callback() == REDIRECT_TO_UPGRADE_AI
 
     @pytest.mark.usefixtures("with_upgrade_form")
@@ -324,9 +322,7 @@ class TestAdminApplicationInstanceViews:
         with pytest.raises(HTTPNotFound):
             views.show_instance()
 
-    def test_update_instance(
-        self, views, pyramid_request, ai_from_matchdict, application_instance_service
-    ):
+    def test_update_instance(self, views, pyramid_request, ai_from_matchdict):
         response = views.update_instance()
 
         assert pyramid_request.session.peek_flash("messages")
