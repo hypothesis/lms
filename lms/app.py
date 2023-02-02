@@ -25,7 +25,12 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config.add_tween(
         "pyramid_exclog.exclog_tween_factory", under="pyramid_tm.tm_tween_factory"
     )
-    config.add_settings({"exclog.extra_info": True})
+    config.add_settings(
+        {
+            "exclog.extra_info": True,
+            "exclog.ignore": ["lms.services.exceptions.OAuth2TokenError"],
+        }
+    )
     config.include("pyramid_exclog")
 
     config.include("pyramid_jinja2")
