@@ -340,22 +340,12 @@ class TestAdminApplicationInstanceViews:
         assert not views.search()
         assert pyramid_request.session.peek_flash
 
-    def test_show_instance_consumer_key(
-        self, pyramid_request, application_instance_service
+    def test_show_instance_id(
+        self, views, pyramid_request, application_instance_service
     ):
-        pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
-
-        response = AdminApplicationInstanceViews(pyramid_request).show_instance()
-
-        assert (
-            response["instance"].consumer_key
-            == application_instance_service.get_by_consumer_key.return_value.consumer_key
-        )
-
-    def test_show_instance_id(self, pyramid_request, application_instance_service):
         pyramid_request.matchdict["id_"] = sentinel.id
 
-        response = AdminApplicationInstanceViews(pyramid_request).show_instance()
+        response = views.show_instance()
 
         assert (
             response["instance"].id
@@ -363,10 +353,8 @@ class TestAdminApplicationInstanceViews:
         )
 
     def test_show_not_found(self, pyramid_request, application_instance_service, views):
-        application_instance_service.get_by_consumer_key.side_effect = (
-            ApplicationInstanceNotFound
-        )
-        pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
+        pyramid_request.matchdict["id_"] = sentinel.id_
+        application_instance_service.get_by_id.side_effect = ApplicationInstanceNotFound
 
         with pytest.raises(HTTPNotFound):
             views.show_instance()
@@ -374,16 +362,12 @@ class TestAdminApplicationInstanceViews:
     def test_update_instance(
         self, pyramid_request, application_instance_service, views
     ):
-        pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
+        pyramid_request.matchdict["id_"] = sentinel.id_
 
         response = views.update_instance()
 
-        application_instance_service.get_by_consumer_key.assert_called_once_with(
-            sentinel.consumer_key
-        )
-        application_instance = (
-            application_instance_service.get_by_consumer_key.return_value
-        )
+        application_instance_service.get_by_id.assert_called_once_with(id_=sentinel.id_)
+        application_instance = application_instance_service.get_by_id.return_value
 
         assert pyramid_request.session.peek_flash("messages")
         assert response == temporary_redirect_to(
@@ -453,6 +437,7 @@ class TestAdminApplicationInstanceViews:
     )
     def test_update_instance_saves_ai_settings(
         self,
+        views,
         pyramid_request,
         application_instance_service,
         setting,
@@ -460,14 +445,15 @@ class TestAdminApplicationInstanceViews:
         value,
         expected,
     ):
-        pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
+        pyramid_request.matchdict["id_"] = sentinel.id_
         pyramid_request.params[f"{setting}.{sub_setting}"] = value
-
-        AdminApplicationInstanceViews(pyramid_request).update_instance()
-
-        application_instance = (
-            application_instance_service.get_by_consumer_key.return_value
+        application_instance_service.get_by_id.return_value = (
+            factories.ApplicationInstance()
         )
+
+        views.update_instance()
+
+        application_instance = application_instance_service.get_by_id.return_value
         assert application_instance.settings.get(setting, sub_setting) == expected
 
     @pytest.mark.parametrize(
@@ -475,36 +461,35 @@ class TestAdminApplicationInstanceViews:
     )
     def test_update_instance_saves_secret_settings(
         self,
+        views,
         application_instance_service,
         aes_service,
         pyramid_request,
         setting,
         sub_setting,
     ):
-        pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
+        pyramid_request.matchdict["id_"] = sentinel.id_
         pyramid_request.params[f"{setting}.{sub_setting}"] = "SECRET"
         # This fixture returns a real AI, let's use a mock for this test
-        application_instance_service.get_by_consumer_key.return_value = create_autospec(
+        application_instance_service.get_by_id.return_value = create_autospec(
             ApplicationInstance
         )
 
-        AdminApplicationInstanceViews(pyramid_request).update_instance()
+        views.update_instance()
 
-        ai = application_instance_service.get_by_consumer_key.return_value
+        ai = application_instance_service.get_by_id.return_value
         ai.settings.set_secret.assert_called_once_with(
             aes_service, setting, sub_setting, "SECRET"
         )
 
     def test_update_instance_not_found(
-        self, pyramid_request, application_instance_service
+        self, views, pyramid_request, application_instance_service
     ):
-        application_instance_service.get_by_consumer_key.side_effect = (
-            ApplicationInstanceNotFound
-        )
-        pyramid_request.matchdict["consumer_key"] = sentinel.consumer_key
+        pyramid_request.matchdict["id_"] = sentinel.id_
+        application_instance_service.get_by_id.side_effect = ApplicationInstanceNotFound
 
         with pytest.raises(HTTPNotFound):
-            AdminApplicationInstanceViews(pyramid_request).update_instance()
+            views.update_instance()
 
     @pytest.fixture
     def ai_new_params_v13(self, ai_new_params_v11):

@@ -251,10 +251,6 @@ class AdminApplicationInstanceViews:
         route_name="admin.instance",
         renderer="lms:templates/admin/instance.html.jinja2",
     )
-    @view_config(
-        route_name="admin.instance.consumer_key",
-        renderer="lms:templates/admin/instance.html.jinja2",
-    )
     def show_instance(self):
         ai = self._get_ai_or_404(**self.request.matchdict)
         return {"instance": ai}
@@ -283,11 +279,6 @@ class AdminApplicationInstanceViews:
         return self._redirect("admin.instance", id_=ai.id)
 
     @view_config(route_name="admin.instance", request_method="POST", require_csrf=True)
-    @view_config(
-        route_name="admin.instance.consumer_key",
-        request_method="POST",
-        require_csrf=True,
-    )
     def update_instance(self):
         ai = self._get_ai_or_404(**self.request.matchdict)
 
@@ -346,13 +337,8 @@ class AdminApplicationInstanceViews:
     def _redirect(self, route_name, **kwargs):
         return HTTPFound(location=self.request.route_url(route_name, **kwargs))
 
-    def _get_ai_or_404(self, consumer_key=None, id_=None) -> ApplicationInstance:
+    def _get_ai_or_404(self, id_=None) -> ApplicationInstance:
         try:
-            if consumer_key:
-                return self.application_instance_service.get_by_consumer_key(
-                    consumer_key
-                )
-
             return self.application_instance_service.get_by_id(id_=id_)
 
         except ApplicationInstanceNotFound as err:

@@ -146,7 +146,6 @@ def includeme(config):  # pylint:disable=too-many-statements
     config.add_route("admin.instance", "/admin/instance/{id_}/")
     config.add_route("admin.instance.downgrade", "/admin/instance/{id_}/downgrade")
     config.add_route("admin.instance.move_org", "/admin/instance/{id_}/move_org")
-    config.add_route("admin.instance.consumer_key", "/admin/instance/{consumer_key}/")
 
     config.add_route("admin.organization", "/admin/org/{id_}")
     config.add_route("admin.organization.toggle", "/admin/org/{id_}/toggle")
