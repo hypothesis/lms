@@ -337,7 +337,7 @@ class AdminApplicationInstanceViews:
     def _redirect(self, route_name, **kwargs):
         return HTTPFound(location=self.request.route_url(route_name, **kwargs))
 
-    def _get_ai_or_404(self, id_=None) -> ApplicationInstance:
+    def _get_ai_or_404(self, id_) -> ApplicationInstance:
         try:
             return self.application_instance_service.get_by_id(id_=id_)
 
