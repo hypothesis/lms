@@ -29,7 +29,7 @@ amqp==5.1.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   kombu
-astroid==2.13.3
+astroid==2.14.1
     # via pylint
 async-timeout==4.0.1
     # via
@@ -354,12 +354,6 @@ pep517==0.12.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   build
-pip==22.3.1
-    # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
-    #   pip-tools
 pip-sync-faster==0.0.3
     # via
     #   -r requirements/bddtests.txt
@@ -441,7 +435,7 @@ pyjwt[crypto]==2.4.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid-googleauth
-pylint==2.15.10
+pylint==2.16.0
     # via -r requirements/lint.in
 pyparsing==3.0.6
     # via
@@ -547,19 +541,6 @@ sentry-sdk==0.17.6
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   h-pyramid-sentry
-setuptools==65.5.1
-    # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
-    #   google-auth
-    #   gunicorn
-    #   pip-tools
-    #   plaster
-    #   pyramid
-    #   zope-deprecation
-    #   zope-interface
-    #   zope-sqlalchemy
 six==1.15.0
     # via
     #   -r requirements/bddtests.txt
