@@ -1,4 +1,5 @@
 """Error views for the API."""
+import logging
 from dataclasses import asdict, dataclass
 from urllib.parse import urlparse, urlunparse
 
@@ -23,6 +24,9 @@ from lms.services.exceptions import SerializableError
 from lms.validation import ValidationError
 
 _ = i18n.TranslationStringFactory(__package__)
+
+
+LOG = logging.getLogger(__name__)
 
 
 @view_defaults(path_info="^/api/.*", renderer="json")
@@ -157,6 +161,7 @@ class APIExceptionViews:
 
     @exception_view_config(context=OAuth2TokenError)
     def oauth2_token_error(self):
+        LOG.debug("Exception view for: OAuth2TokenError")
         return ErrorBody()
 
     @exception_view_config(context=HTTPBadRequest)
