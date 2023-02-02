@@ -201,21 +201,12 @@ rsa==4.7.2
     #   python-jose
 sentry-sdk==0.17.6
     # via h-pyramid-sentry
-setuptools==65.5.1
-    # via
-    #   google-auth
-    #   gunicorn
-    #   plaster
-    #   pyramid
-    #   zope-deprecation
-    #   zope-interface
-    #   zope-sqlalchemy
 six==1.15.0
     # via
     #   click-repl
     #   ecdsa
     #   google-auth
-sqlalchemy==1.4.46
+sqlalchemy==2.0.1
     # via
     #   -r requirements/requirements.in
     #   alembic
@@ -235,8 +226,10 @@ transaction==2.4.0
     #   zope-sqlalchemy
 translationstring==1.4
     # via pyramid
-typing-extensions==4.0.0
-    # via async-timeout
+typing-extensions==4.4.0
+    # via
+    #   async-timeout
+    #   sqlalchemy
 urllib3==1.26.5
     # via
     #   requests
