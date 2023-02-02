@@ -3,12 +3,9 @@ from unittest.mock import call, sentinel
 
 import pytest
 
-from lms.services import (
-    CanvasAPIPermissionError,
-    CanvasFileNotFoundInCourse,
-    CanvasService,
-)
+from lms.services import CanvasAPIPermissionError, CanvasService
 from lms.services.canvas import CanvasFileFinder, factory
+from lms.services.exceptions import FileNotFoundInCourse
 from tests import factories
 
 
@@ -55,8 +52,8 @@ class TestPublicURLForFile:
         assignment,
         public_url_for_file,
     ):
-        canvas_file_finder.assert_file_in_course.side_effect = (
-            CanvasFileNotFoundInCourse(sentinel.file_id)
+        canvas_file_finder.assert_file_in_course.side_effect = FileNotFoundInCourse(
+            "canvas_file_not_found_in_course", sentinel.file_id
         )
         canvas_file_finder.find_matching_file_in_course.return_value = (
             sentinel.found_file_id
@@ -78,12 +75,12 @@ class TestPublicURLForFile:
     def test_if_the_file_isnt_in_the_course_and_theres_no_matching_file_it_raises(
         self, canvas_file_finder, public_url_for_file
     ):
-        canvas_file_finder.assert_file_in_course.side_effect = (
-            CanvasFileNotFoundInCourse(sentinel.file_id)
+        canvas_file_finder.assert_file_in_course.side_effect = FileNotFoundInCourse(
+            "canvas_file_not_found_in_course", sentinel.file_id
         )
         canvas_file_finder.find_matching_file_in_course.return_value = None
 
-        with pytest.raises(CanvasFileNotFoundInCourse):
+        with pytest.raises(FileNotFoundInCourse):
             public_url_for_file(sentinel.file_id, check_in_course=True)
 
     @pytest.mark.usefixtures("with_mapped_file_id")
@@ -189,8 +186,10 @@ class TestCanvasFileFinder:
     ):
         canvas_api_client.list_files.return_value = [{"id": sentinel.other_file_id}]
 
-        with pytest.raises(CanvasFileNotFoundInCourse):
+        with pytest.raises(FileNotFoundInCourse) as excinfo:
             finder.assert_file_in_course(sentinel.course_id, sentinel.file_id)
+
+        assert excinfo.value.error_code == "canvas_file_not_found_in_course"
 
     def test_find_matching_file_in_course_returns_the_matching_file_id(
         self, finder, canvas_api_client, file_service

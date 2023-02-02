@@ -5,11 +5,9 @@ from lms.services.d2l_api.client import D2LAPIClient
 from lms.services.document_url import DocumentURLService
 from lms.services.event import EventService
 from lms.services.exceptions import (
-    BlackboardFileNotFoundInCourse,
     CanvasAPIError,
     CanvasAPIPermissionError,
     CanvasAPIServerError,
-    CanvasFileNotFoundInCourse,
     ExternalAsyncRequestError,
     ExternalRequestError,
     OAuth2TokenError,

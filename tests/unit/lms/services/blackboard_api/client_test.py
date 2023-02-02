@@ -9,9 +9,9 @@ from lms.services.blackboard_api.client import (
     BlackboardAPIClient,
 )
 from lms.services.exceptions import (
-    BlackboardFileNotFoundInCourse,
     ExternalAsyncRequestError,
     ExternalRequestError,
+    FileNotFoundInCourse,
 )
 from tests import factories
 
@@ -319,15 +319,17 @@ class TestPublicURL:
         )
         assert public_url == blackboard_public_url_schema.parse.return_value
 
-    def test_it_raises_BlackboardFileNotFoundInCourse_if_the_Blackboard_API_404s(
+    def test_it_raises_FileNotFoundInCourse_if_the_Blackboard_API_404s(
         self, svc, basic_client
     ):
         basic_client.request.side_effect = ExternalRequestError(
             response=factories.requests.Response(status_code=404)
         )
 
-        with pytest.raises(BlackboardFileNotFoundInCourse):
+        with pytest.raises(FileNotFoundInCourse) as excinfo:
             svc.public_url("COURSE_ID", "FILE_ID")
+
+        assert excinfo.value.error_code == "blackboard_file_not_found_in_course"
 
     def test_it_raises_ExternalRequestError_if_the_Blackboard_API_fails_in_any_other_way(
         self, svc, basic_client
