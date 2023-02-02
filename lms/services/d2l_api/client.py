@@ -2,7 +2,7 @@ from typing import List
 
 from marshmallow import EXCLUDE, Schema, fields
 
-from lms.services.exceptions import D2LFileNotFoundInCourse, ExternalRequestError
+from lms.services.exceptions import ExternalRequestError, FileNotFoundInCourse
 from lms.validation._base import RequestsResponseSchema
 
 
@@ -151,7 +151,9 @@ class D2LAPIClient:
             )
         except ExternalRequestError as err:
             if err.status_code == 404:
-                raise D2LFileNotFoundInCourse(file_id) from err
+                raise FileNotFoundInCourse(
+                    "d2l_file_not_found_in_course", file_id
+                ) from err
             raise
 
         return self._api.api_url(

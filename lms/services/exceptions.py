@@ -238,30 +238,6 @@ class CanvasAPIServerError(CanvasAPIError):
     """
 
 
-class FileNotFoundInCourse(Exception):
-    def __init__(self, file_id):
-        self.details = {"file_id": file_id}
-        super().__init__(self.details)
-
-
-class CanvasFileNotFoundInCourse(FileNotFoundInCourse):
-    """A Canvas file ID wasn't found in the current course."""
-
-    error_code = "canvas_file_not_found_in_course"
-
-
-class BlackboardFileNotFoundInCourse(FileNotFoundInCourse):
-    """A Blackboard file ID wasn't found in the current course."""
-
-    error_code = "blackboard_file_not_found_in_course"
-
-
-class D2LFileNotFoundInCourse(FileNotFoundInCourse):
-    """A D2L file ID wasn't found in the current course."""
-
-    error_code = "d2l_file_not_found_in_course"
-
-
 class SerializableError(Exception):
     """An exception compatible with our default error handling for APIs."""
 
@@ -283,6 +259,13 @@ class SerializableError(Exception):
         self.error_code = error_code
         self.message = message
         self.details = details
+
+
+class FileNotFoundInCourse(SerializableError):
+    """A file wasn't found in the current course."""
+
+    def __init__(self, error_code: str, file_id):
+        super().__init__(error_code=error_code, details={"file_id": file_id})
 
 
 def _repr_external_request_exception(exception):

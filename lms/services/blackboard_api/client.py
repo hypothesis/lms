@@ -8,9 +8,9 @@ from lms.services.blackboard_api._schemas import (
     BlackboardPublicURLSchema,
 )
 from lms.services.exceptions import (
-    BlackboardFileNotFoundInCourse,
     ExternalAsyncRequestError,
     ExternalRequestError,
+    FileNotFoundInCourse,
 )
 
 # The maximum number of paginated requests we'll make before returning.
@@ -78,7 +78,9 @@ class BlackboardAPIClient:
             )
         except ExternalRequestError as err:
             if err.status_code == 404:
-                raise BlackboardFileNotFoundInCourse(file_id) from err
+                raise FileNotFoundInCourse(
+                    "blackboard_file_not_found_in_course", file_id
+                ) from err
             raise
 
         return BlackboardPublicURLSchema(response).parse()

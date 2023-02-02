@@ -1,9 +1,6 @@
 import pytest
 
-from lms.views.api.blackboard.files import (
-    BlackboardFileNotFoundInCourse,
-    BlackboardFilesAPIViews,
-)
+from lms.views.api.blackboard.files import BlackboardFilesAPIViews, FileNotFoundInCourse
 
 pytestmark = pytest.mark.usefixtures(
     "oauth2_token_service", "blackboard_api_client", "course_copy_plugin"
@@ -170,17 +167,15 @@ class TestViaURL:
         )
         assert response == {"via_url": helpers.via_url.return_value}
 
-    def test_it_when_file_not_in_course(
-        self, view, blackboard_api_client, course_service, course_copy_plugin
-    ):
+    @pytest.mark.usefixtures("user_is_instructor")
+    def test_it_when_file_not_in_course(self, view, course_service, course_copy_plugin):
         course_copy_plugin.is_file_in_course.return_value = False
-        blackboard_api_client.public_url.side_effect = BlackboardFileNotFoundInCourse(
-            file_id="FILE_ID"
-        )
         course_copy_plugin.find_matching_file_in_course.return_value = None
 
-        with pytest.raises(BlackboardFileNotFoundInCourse):
+        with pytest.raises(FileNotFoundInCourse) as exc_info:
             view()
+
+        assert exc_info.value.error_code == "blackboard_file_not_found_in_course"
 
         course_service.get_by_context_id.assert_called_once_with("COURSE_ID")
         course = course_service.get_by_context_id.return_value

@@ -1,4 +1,4 @@
-from lms.services.exceptions import CanvasAPIPermissionError, CanvasFileNotFoundInCourse
+from lms.services.exceptions import CanvasAPIPermissionError, FileNotFoundInCourse
 
 
 class CanvasService:
@@ -21,7 +21,7 @@ class CanvasService:
         :param course_id: the Canvas API ID of the course that the file is in
         :param check_in_course: whether to check that file_id is in course_id
 
-        :raise CanvasFileNotFoundInCourse: if check_in_course was True and the
+        :raise FileNotFoundInCourse: if check_in_course was True and the
             current user can't see file_id in course_id's list of files
 
         :raise CanvasAPIPermissionError: if the user gets a permissions error
@@ -34,7 +34,7 @@ class CanvasService:
             if check_in_course:
                 self._finder.assert_file_in_course(course_id, effective_file_id)
             return self.api.public_url(effective_file_id)
-        except (CanvasFileNotFoundInCourse, CanvasAPIPermissionError):
+        except (FileNotFoundInCourse, CanvasAPIPermissionError):
             # The user can't see the file in the course. This could be because:
             #
             # * The course has been copied so the assignment's file_id is from
@@ -80,7 +80,7 @@ class CanvasFileFinder:
             if str(file["id"]) == file_id:
                 return
 
-        raise CanvasFileNotFoundInCourse(file_id)
+        raise FileNotFoundInCourse("canvas_file_not_found_in_course", file_id)
 
     def find_matching_file_in_course(self, course_id, file_ids):
         """

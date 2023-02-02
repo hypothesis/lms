@@ -5,7 +5,7 @@ from pyramid.view import view_config, view_defaults
 
 from lms.product.blackboard import Blackboard
 from lms.security import Permissions
-from lms.services.exceptions import BlackboardFileNotFoundInCourse
+from lms.services.exceptions import FileNotFoundInCourse
 from lms.views import helpers
 
 #: A regex for parsing just the file_id part out of one of our custom
@@ -77,11 +77,12 @@ class BlackboardFilesAPIViews:
         try:
             if self.request.lti_user.is_instructor:
                 if not self.course_copy_plugin.is_file_in_course(course_id, file_id):
-                    raise BlackboardFileNotFoundInCourse(file_id)
-
+                    raise FileNotFoundInCourse(
+                        "blackboard_file_not_found_in_course", file_id
+                    )
             public_url = self.blackboard_api_client.public_url(course_id, file_id)
 
-        except BlackboardFileNotFoundInCourse:
+        except FileNotFoundInCourse:
             found_file = self.course_copy_plugin.find_matching_file_in_course(
                 file_id, course_id
             )
