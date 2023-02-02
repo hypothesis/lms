@@ -1,4 +1,4 @@
-from unittest.mock import create_autospec, sentinel
+from unittest.mock import create_autospec, patch, sentinel
 
 import pytest
 from pyramid.httpexceptions import HTTPClientError, HTTPFound, HTTPNotFound
@@ -22,7 +22,6 @@ REDIRECT_TO_UPGRADE_AI = Any.instance_of(HTTPFound).with_attrs(
 
 
 @pytest.mark.usefixtures(
-    "pyramid_config",
     "application_instance_service",
     "lti_registration_service",
     "organization_service",
@@ -127,22 +126,22 @@ class TestAdminApplicationInstanceViews:
         assert response == REDIRECT_TO_NEW_AI
 
     def test_move_application_instance_org(
-        self, views, pyramid_request, application_instance, application_instance_service
+        self, views, pyramid_request, ai_from_matchdict, application_instance_service
     ):
-        application_instance_service.get_by_id.return_value = application_instance
         pyramid_request.params["org_public_id"] = "PUBLIC_ID"
 
         response = views.move_application_instance_org()
 
         application_instance_service.update_application_instance.assert_called_once_with(
-            application_instance, organization_public_id="PUBLIC_ID"
+            ai_from_matchdict, organization_public_id="PUBLIC_ID"
         )
         assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.instance", id_=application_instance.id)
+            pyramid_request.route_url("admin.instance", id_=ai_from_matchdict.id)
         )
 
+    @pytest.mark.usefixtures("ai_from_matchdict")
     def test_move_application_instance_org_invalid_organization_id(
-        self, pyramid_request, application_instance_service, views
+        self, views, pyramid_request, application_instance_service
     ):
         pyramid_request.params["org_public_id"] = "PUBLIC_ID"
         application_instance_service.update_application_instance.side_effect = (
@@ -159,51 +158,27 @@ class TestAdminApplicationInstanceViews:
             )
         )
 
-    def test_downgrade_instance(
-        self,
-        views,
-        pyramid_request,
-        application_instance_lti_13,
-        application_instance_service,
-    ):
-        application_instance_service.get_by_id.return_value = (
-            application_instance_lti_13
-        )
-
+    @pytest.mark.usefixtures("with_lti_13_ai")
+    def test_downgrade_instance(self, views, pyramid_request, ai_from_matchdict):
         response = views.downgrade_instance()
 
-        assert not application_instance_lti_13.lti_registration_id
-        assert not application_instance_lti_13.deployment_id
+        assert not ai_from_matchdict.lti_registration_id
+        assert not ai_from_matchdict.deployment_id
         assert response == temporary_redirect_to(
-            pyramid_request.route_url(
-                "admin.instance", id_=application_instance_lti_13.id
-            )
+            pyramid_request.route_url("admin.instance", id_=ai_from_matchdict.id)
         )
 
-    def test_downgrade_instance_no_lti13(
-        self, views, pyramid_request, application_instance, application_instance_service
-    ):
-        application_instance_service.get_by_id.return_value = application_instance
-
+    @pytest.mark.usefixtures("ai_from_matchdict")
+    def test_downgrade_instance_no_lti13(self, views, pyramid_request):
         views.downgrade_instance()
 
         assert pyramid_request.session.peek_flash("errors")
 
+    @pytest.mark.usefixtures("with_lti_13_ai")
     def test_downgrade_instance_no_consumer_key(
-        self,
-        views,
-        pyramid_request,
-        application_instance_service,
-        application_instance_lti_13,
+        self, views, pyramid_request, ai_from_matchdict
     ):
-        application_instance_lti_13.consumer_key = None
-        application_instance_service.get_by_id.return_value = (
-            application_instance_lti_13
-        )
-
-        application_instance_service.get_by_id.return_value = (
-            application_instance_lti_13
-        )
+        ai_from_matchdict.consumer_key = None
 
         views.downgrade_instance()
 
@@ -238,10 +213,10 @@ class TestAdminApplicationInstanceViews:
     @pytest.mark.usefixtures("with_upgrade_form")
     def test_upgrade_instance_callback(
         self,
-        application_instance_service,
         views,
         pyramid_request,
         application_instance,
+        application_instance_service,
         lti_registration_service,
     ):
         lti_registration = factories.LTIRegistration()
@@ -308,7 +283,7 @@ class TestAdminApplicationInstanceViews:
 
         assert views.upgrade_instance_callback() == REDIRECT_TO_UPGRADE_AI
 
-    def test_search(self, pyramid_request, application_instance_service, views):
+    def test_search(self, views, pyramid_request, application_instance_service):
         pyramid_request.params = pyramid_request.POST = dict(
             id="1",
             name="NAME",
@@ -334,48 +309,36 @@ class TestAdminApplicationInstanceViews:
             "instances": application_instance_service.search.return_value
         }
 
-    def test_search_invalid(self, pyramid_request, views):
+    def test_search_invalid(self, views, pyramid_request):
         pyramid_request.POST = {"id": "not a number"}
 
         assert not views.search()
         assert pyramid_request.session.peek_flash
 
-    def test_show_instance_id(
-        self, views, pyramid_request, application_instance_service
-    ):
-        pyramid_request.matchdict["id_"] = sentinel.id
-
+    def test_show_instance_id(self, views, ai_from_matchdict):
         response = views.show_instance()
 
-        assert (
-            response["instance"].id
-            == application_instance_service.get_by_id.return_value.id
-        )
+        assert response["instance"].id == ai_from_matchdict.id
 
-    def test_show_not_found(self, pyramid_request, application_instance_service, views):
-        pyramid_request.matchdict["id_"] = sentinel.id_
+    @pytest.mark.usefixtures("ai_from_matchdict")
+    def test_show_not_found(self, views, application_instance_service):
         application_instance_service.get_by_id.side_effect = ApplicationInstanceNotFound
 
         with pytest.raises(HTTPNotFound):
             views.show_instance()
 
     def test_update_instance(
-        self, pyramid_request, application_instance_service, views
+        self, views, pyramid_request, ai_from_matchdict, application_instance_service
     ):
-        pyramid_request.matchdict["id_"] = sentinel.id_
-
         response = views.update_instance()
-
-        application_instance_service.get_by_id.assert_called_once_with(id_=sentinel.id_)
-        application_instance = application_instance_service.get_by_id.return_value
 
         assert pyramid_request.session.peek_flash("messages")
         assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.instance", id_=application_instance.id)
+            pyramid_request.route_url("admin.instance", id_=ai_from_matchdict.id)
         )
 
     def test_update_application_instance(
-        self, pyramid_request, application_instance_service, views
+        self, views, pyramid_request, ai_from_matchdict, application_instance_service
     ):
         pyramid_request.params = {
             "name": "  NAME  ",
@@ -388,7 +351,7 @@ class TestAdminApplicationInstanceViews:
         views.update_instance()
 
         application_instance_service.update_application_instance.assert_called_once_with(
-            application_instance_service.get_by_id.return_value,
+            ai_from_matchdict,
             name="NAME",
             lms_url="http://example.com",
             deployment_id="DEPLOYMENT_ID",
@@ -397,12 +360,12 @@ class TestAdminApplicationInstanceViews:
         )
 
     def test_update_application_instance_with_no_arguments(
-        self, views, application_instance_service
+        self, views, ai_from_matchdict, application_instance_service
     ):
         views.update_instance()
 
         application_instance_service.update_application_instance.assert_called_once_with(
-            application_instance_service.get_by_id.return_value,
+            ai_from_matchdict,
             name="",
             lms_url="",
             deployment_id="",
@@ -439,22 +402,17 @@ class TestAdminApplicationInstanceViews:
         self,
         views,
         pyramid_request,
-        application_instance_service,
+        ai_from_matchdict,
         setting,
         sub_setting,
         value,
         expected,
     ):
-        pyramid_request.matchdict["id_"] = sentinel.id_
         pyramid_request.params[f"{setting}.{sub_setting}"] = value
-        application_instance_service.get_by_id.return_value = (
-            factories.ApplicationInstance()
-        )
 
         views.update_instance()
 
-        application_instance = application_instance_service.get_by_id.return_value
-        assert application_instance.settings.get(setting, sub_setting) == expected
+        assert ai_from_matchdict.settings.get(setting, sub_setting) == expected
 
     @pytest.mark.parametrize(
         "setting,sub_setting", (("desire2learn", "client_secret"),)
@@ -462,34 +420,36 @@ class TestAdminApplicationInstanceViews:
     def test_update_instance_saves_secret_settings(
         self,
         views,
-        application_instance_service,
-        aes_service,
         pyramid_request,
+        ai_from_matchdict,
+        aes_service,
         setting,
         sub_setting,
     ):
-        pyramid_request.matchdict["id_"] = sentinel.id_
         pyramid_request.params[f"{setting}.{sub_setting}"] = "SECRET"
-        # This fixture returns a real AI, let's use a mock for this test
-        application_instance_service.get_by_id.return_value = create_autospec(
-            ApplicationInstance
-        )
 
-        views.update_instance()
+        with patch.object(ai_from_matchdict.settings, "set_secret"):
+            views.update_instance()
 
-        ai = application_instance_service.get_by_id.return_value
-        ai.settings.set_secret.assert_called_once_with(
-            aes_service, setting, sub_setting, "SECRET"
-        )
+            ai_from_matchdict.settings.set_secret.assert_called_once_with(
+                aes_service, setting, sub_setting, "SECRET"
+            )
 
-    def test_update_instance_not_found(
-        self, views, pyramid_request, application_instance_service
-    ):
-        pyramid_request.matchdict["id_"] = sentinel.id_
+    @pytest.mark.usefixtures("ai_from_matchdict")
+    def test_update_instance_not_found(self, views, application_instance_service):
         application_instance_service.get_by_id.side_effect = ApplicationInstanceNotFound
 
         with pytest.raises(HTTPNotFound):
             views.update_instance()
+
+    @pytest.fixture
+    def ai_from_matchdict(
+        self, pyramid_request, application_instance_service, application_instance
+    ):
+        pyramid_request.matchdict["id_"] = sentinel.id_
+        application_instance_service.get_by_id.return_value = application_instance
+
+        return application_instance
 
     @pytest.fixture
     def ai_new_params_v13(self, ai_new_params_v11):
@@ -511,14 +471,12 @@ class TestAdminApplicationInstanceViews:
         return params
 
     @pytest.fixture
-    def application_instance_lti_13(self, application_instance, db_session):
+    def with_lti_13_ai(self, application_instance, db_session):
         lti_registration = factories.LTIRegistration()
         # Get a valid ID for the registration
         db_session.flush()
         application_instance.lti_registration_id = lti_registration.id
         application_instance.deployment_id = "ID"
-
-        return application_instance
 
     @pytest.fixture
     def with_upgrade_form(self, pyramid_request, application_instance):
