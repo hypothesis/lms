@@ -53,6 +53,7 @@
         {{ macros.disabled_text_field("Shared secret", instance.shared_secret) }}
         {{ macros.form_text_field(request, "Deployment ID", "deployment_id", field_value=instance.deployment_id) }}
         {{ macros.form_text_field(request, "LMS URL", "lms_url", field_value=instance.lms_url) }}
+        {{ macros.disabled_text_field("Last Launched", instance.last_launched) }}
     </fieldset>
 
     <fieldset class="box mt-6">
