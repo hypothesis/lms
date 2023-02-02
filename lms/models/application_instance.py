@@ -1,18 +1,18 @@
 import logging
-from datetime import datetime
 from urllib.parse import urlparse
 
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 
 from lms.db import BASE
+from lms.models import CreatedUpdatedMixin
 from lms.models.application_settings import ApplicationSettings
 from lms.models.exceptions import ReusedConsumerKey
 
 LOG = logging.getLogger(__name__)
 
 
-class ApplicationInstance(BASE):
+class ApplicationInstance(CreatedUpdatedMixin, BASE):
     """Class to represent a single lms install."""
 
     __tablename__ = "application_instances"
@@ -48,7 +48,8 @@ class ApplicationInstance(BASE):
     lms_url = sa.Column(sa.Unicode(2048), nullable=False)
     requesters_email = sa.Column(sa.Unicode(2048), nullable=False)
 
-    created = sa.Column(sa.TIMESTAMP, default=datetime.utcnow(), nullable=False)
+    last_launched = sa.Column(sa.DateTime(), nullable=True)
+    """The last time this application instance was launched."""
 
     developer_key = sa.Column(sa.Unicode)
     developer_secret = sa.Column(sa.LargeBinary)
