@@ -93,7 +93,11 @@
                 {{ macros.disabled_text_field("Version", instance.tool_consumer_info_version) }}
             </div>
         </div>
+    </fieldset>
 
+    <fieldset class="box">
+        <legend class="label has-text-centered">General settings</legend>
+        {{ settings_checkbox("Enable editing assignments", "hypothesis", "edit_assignments_enabled") }}
     </fieldset>
 
     <fieldset class="box">
