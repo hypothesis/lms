@@ -245,13 +245,10 @@ class TestAdminApplicationInstanceViews:
 
         assert views.upgrade_instance_callback() == REDIRECT_TO_UPGRADE_AI
 
-    @pytest.mark.usefixtures("with_upgrade_form")
+    @pytest.mark.usefixtures("with_upgrade_form", "with_lti_13_ai")
     def test_upgrade_instance_callback_already_upgraded(
         self, views, application_instance
     ):
-        application_instance.lti_registration_id = 100
-        application_instance.deployment_id = "ID"
-
         assert views.upgrade_instance_callback() == REDIRECT_TO_UPGRADE_AI
 
     @pytest.mark.usefixtures("with_upgrade_form")
@@ -321,7 +318,7 @@ class TestAdminApplicationInstanceViews:
         assert response["instance"].id == ai_from_matchdict.id
 
     @pytest.mark.usefixtures("ai_from_matchdict")
-    def test_show_not_found(self, views, application_instance_service):
+    def test_show_instance_not_found(self, views, application_instance_service):
         application_instance_service.get_by_id.side_effect = ApplicationInstanceNotFound
 
         with pytest.raises(HTTPNotFound):
