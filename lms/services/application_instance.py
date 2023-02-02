@@ -316,6 +316,10 @@ class ApplicationInstanceService:
         ]:
             setattr(application_instance, attr, params.get(attr))
 
+        # This is a potentially misleading, as we can get here from deep-linked
+        # "launches". Depending on whether you count that as a launch or not.
+        application_instance.last_launched = datetime.now()
+
 
 def factory(_context, request):
     return ApplicationInstanceService(
