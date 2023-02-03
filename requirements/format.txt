@@ -4,7 +4,7 @@
 #
 #    pip-compile --allow-unsafe requirements/format.in
 #
-black==22.12.0
+black==23.1.0
     # via -r requirements/format.in
 build==0.8.0
     # via pip-tools
@@ -18,8 +18,10 @@ isort==5.12.0
     # via -r requirements/format.in
 mypy-extensions==0.4.3
     # via black
-packaging==21.3
-    # via build
+packaging==23.0
+    # via
+    #   black
+    #   build
 pathspec==0.9.0
     # via black
 pep517==0.12.0
@@ -32,13 +34,10 @@ pip-tools==6.12.2
     #   pip-sync-faster
 platformdirs==2.4.0
     # via black
-pyparsing==3.0.9
-    # via packaging
 tomli==1.2.2
     # via
     #   black
     #   build
-    #   pep517
 typing-extensions==4.0.0
     # via black
 wheel==0.37.1

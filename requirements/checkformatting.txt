@@ -4,7 +4,7 @@
 #
 #    pip-compile --allow-unsafe requirements/checkformatting.in
 #
-black==22.12.0
+black==23.1.0
     # via -r requirements/format.txt
 build==0.8.0
     # via
@@ -25,9 +25,10 @@ mypy-extensions==0.4.3
     # via
     #   -r requirements/format.txt
     #   black
-packaging==21.3
+packaging==23.0
     # via
     #   -r requirements/format.txt
+    #   black
     #   build
 pathspec==0.9.0
     # via
@@ -50,10 +51,6 @@ platformdirs==2.4.0
     # via
     #   -r requirements/format.txt
     #   black
-pyparsing==3.0.9
-    # via
-    #   -r requirements/format.txt
-    #   packaging
 tomli==1.2.2
     # via
     #   -r requirements/format.txt
