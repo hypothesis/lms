@@ -44,7 +44,6 @@ class LTIRegistrationService:
     def _registration_search_query(
         self, *, id_=None, issuer=None, client_id=None
     ) -> LTIRegistration:
-
         query = self._db.query(LTIRegistration)
         if id_:
             query = query.filter_by(id=id_)

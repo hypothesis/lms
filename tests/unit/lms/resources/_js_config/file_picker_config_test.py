@@ -12,7 +12,6 @@ class TestFilePickerConfig:
     def test_blackboard_config(
         self, pyramid_request, application_instance, files_enabled
     ):
-
         pyramid_request.lti_params["context_id"] = "COURSE_ID"
         application_instance.settings.set("blackboard", "files_enabled", files_enabled)
 

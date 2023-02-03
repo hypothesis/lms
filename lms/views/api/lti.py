@@ -113,7 +113,6 @@ class CanvasPreRecordHook:
         )
 
         if "resultRecord" in request_body:
-
             return self._rewrite_v11(request_body, speedgrader_url, submitted_at)
 
         return self._rewrite_v13(request_body, speedgrader_url, submitted_at)
