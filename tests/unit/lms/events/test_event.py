@@ -16,7 +16,6 @@ class TestLTIEvent:
         course_service,
         assignment_service,
     ):
-
         lti_role_service.get_roles.return_value = [sentinel]
         event = LTIEvent(request=pyramid_request, type=sentinel.type)
 

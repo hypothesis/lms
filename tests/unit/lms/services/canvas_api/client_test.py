@@ -314,7 +314,6 @@ class TestCanvasAPIClientIntegrated:
 
     @pytest.mark.usefixtures("list_groups_response")
     def test_group_category_groups_from_another_course(self, canvas_api_client):
-
         with pytest.raises(CanvasAPIError) as exc_info:
             canvas_api_client.group_category_groups(2, "GROUP_CATEGORY")
 

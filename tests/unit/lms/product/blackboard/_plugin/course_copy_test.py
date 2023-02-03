@@ -8,7 +8,6 @@ from lms.product.plugin.course_copy import CourseCopyFilesHelper
 
 class TestBlackboardCourseCopyPlugin:
     def test_is_file_in_course(self, plugin, helper, file_service):
-
         result = plugin.is_file_in_course(sentinel.course_id, sentinel.file_id)
 
         helper.is_file_in_course.assert_called_once_with(

@@ -7,7 +7,6 @@ from lms.services.lti_names_roles import LTINamesRolesService, factory
 
 class TestLTINameRolesServices:
     def test_get_context_memberships(self, svc, ltia_http_service):
-
         memberships = svc.get_context_memberships()
 
         ltia_http_service.request.assert_called_once_with(
