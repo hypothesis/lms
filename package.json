@@ -1,12 +1,7 @@
 {
   "name": "lms",
   "version": "1.0.0",
-  "description": "[![Build Status](https://travis-ci.org/hypothesis/lms.svg?branch=master)](https://travis-ci.org/hypothesis/lms) [![Updates](https://pyup.io/repos/github/hypothesis/lms/shield.svg)](https://pyup.io/repos/github/hypothesis/lms/) [![Python 3](https://pyup.io/repos/github/hypothesis/lms/python-3-shield.svg)](https://pyup.io/repos/github/hypothesis/lms/)",
-  "main": "index.js",
-  "directories": {
-    "lib": "lib",
-    "test": "tests"
-  },
+  "private": true,
   "scripts": {
     "build": "gulp build",
     "checkformatting": "prettier --cache --check lms/**/*.{js,scss,ts,tsx}",
@@ -19,8 +14,7 @@
     "type": "git",
     "url": "git+https://github.com/hypothesis/lms.git"
   },
-  "author": "",
-  "license": "ISC",
+  "license": "BSD-2-Clause",
   "bugs": {
     "url": "https://github.com/hypothesis/lms/issues"
   },
