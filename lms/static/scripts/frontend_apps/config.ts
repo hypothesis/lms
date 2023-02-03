@@ -149,7 +149,7 @@ export type ClientConfig = {
    * grading submissions should only be submitted for a student after qualifying
    * annotation activity occurs (not immediately at launch).
    */
-  reportActivity: object;
+  reportActivity?: object;
 };
 
 /**
@@ -205,28 +205,40 @@ export type Product = {
  * the backend code.
  */
 export type ConfigObject = {
+  // Configuration present in all modes.
   mode: AppMode;
   api: {
     authToken: string;
-    sync: APICallInfo;
-    viaUrl: APICallInfo;
+
+    // Only present in "basic-lti-launch" mode.
+    sync?: APICallInfo;
+    viaUrl?: APICallInfo;
   };
+  dev: boolean;
+  debug?: DebugInfo;
+  product: Product;
+
+  // Only present in "basic-lti-launch" mode.
   canvas: {
-    speedGrader: SpeedGraderConfig;
+    // Only present in Canvas.
+    speedGrader?: SpeedGraderConfig;
   };
   contentBanner?: ContentBannerConfig;
-  dev: boolean;
-  filePicker: FilePickerConfig;
-  grading: GradingConfig;
+  grading?: GradingConfig; // Only present for instructors
   hypothesisClient: ClientConfig;
   rpcServer: {
     allowedOrigins: string[];
   };
   viaUrl: string;
-  OAuth2RedirectError: OAuthErrorConfig;
-  errorDialog: ErrorDialogConfig;
-  debug?: DebugInfo;
-  product: Product;
+
+  // Only present in "error-dialog" mode.
+  errorDialog?: ErrorDialogConfig;
+
+  // Only present in "content-item-selection" mode.
+  filePicker: FilePickerConfig;
+
+  // Only present in "oauth2-redirect-error" mode.
+  OAuth2RedirectError?: OAuthErrorConfig;
 };
 
 /**

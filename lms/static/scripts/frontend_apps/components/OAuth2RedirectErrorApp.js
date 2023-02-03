@@ -29,7 +29,7 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
     errorCode,
     errorDetails = '',
     canvasScopes = /** @type {string[]} */ ([]),
-  } = OAuth2RedirectError ?? {};
+  } = OAuth2RedirectError;
 
   const error = { errorCode, details: errorDetails };
 

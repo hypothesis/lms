@@ -41,6 +41,8 @@ export class ContentInfoFetcher {
    * @param {ContentBannerConfig} contentId
    */
   async fetch(contentId) {
+    // This condition exists for when new content sources are added.
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (contentId.source !== 'jstor') {
       throw new Error('Unknown content source');
     }

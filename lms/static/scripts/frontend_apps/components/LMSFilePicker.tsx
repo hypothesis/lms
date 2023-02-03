@@ -259,6 +259,8 @@ export default function LMSFilePicker({
           pathChanged = path !== folderPath;
           return path;
         });
+        // ESLint doesn't know that `setFolderPath` runs its callback synchronously.
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (pathChanged) {
           return;
         }
@@ -287,7 +289,7 @@ export default function LMSFilePicker({
     }
     if (!file.type || file.type === 'File') {
       onSelectFile(file);
-    } else if (file.type === 'Folder') {
+    } else {
       onChangePath(file);
     }
   };

@@ -6,6 +6,10 @@
  * @return {Promise<typeof window.google.accounts>}
  */
 export async function loadIdentityServicesLibrary() {
+  // The third-party types assume `window.google` always exists, but it is only
+  // set once the library is loaded.
+  //
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (window.google?.accounts) {
     return window.google.accounts;
   }
@@ -27,6 +31,10 @@ export async function loadIdentityServicesLibrary() {
  * Load the Google API loader script (`window.gapi`), if not already loaded.
  */
 async function loadGAPI() {
+  // The third-party types assume `window.gapi` always exists, but it is only
+  // set once the library is loaded.
+  //
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (window.gapi) {
     return window.gapi;
   }

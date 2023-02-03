@@ -228,7 +228,7 @@ export default function BasicLTILaunchApp() {
       // If a teacher launches an assignment or the LMS does not support reporting
       // outcomes or grading is not enabled for the assignment, then no submission
       // URL will be available.
-      if (!canvas.speedGrader || !canvas.speedGrader.submissionParams) {
+      if (!canvas.speedGrader) {
         return;
       }
 
