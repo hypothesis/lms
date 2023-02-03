@@ -12,7 +12,7 @@ if (!isBrowserSupported()) {
   <button class="Button">Dismiss</button>
 `;
 
-  const dismissButton = browserWarning.querySelector('button');
+  const dismissButton = browserWarning.querySelector('button')!;
   dismissButton.onclick = () => {
     browserWarning.style.display = 'none';
   };
