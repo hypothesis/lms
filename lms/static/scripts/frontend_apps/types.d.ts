@@ -2,7 +2,8 @@ export {};
 
 declare global {
   interface Window {
-    OneDrive: {
+    /** Global property set once OneDrive JS client is loaded. */
+    OneDrive?: {
       open: (options: Record<string, any>) => void;
     };
   }

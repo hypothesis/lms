@@ -75,7 +75,7 @@ export class JWT {
    * @param {string} type
    */
   _getField(field, type) {
-    if (!this._payload || typeof this._payload[field] !== type) {
+    if (typeof this._payload[field] !== type) {
       throw new Error(`Missing or invalid "${field}" field in JWT payload`);
     }
     return this._payload[field];

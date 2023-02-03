@@ -168,7 +168,7 @@ export default function GroupConfigSelector({
           path: listGroupSetsAPI.path,
         })
       );
-      if (groupSets && groupSets.length === 0) {
+      if (groupSets.length === 0) {
         setFetchError(new GroupListEmptyError());
       } else {
         setGroupSets(groupSets);

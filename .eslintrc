@@ -31,9 +31,23 @@
     //   exports is not enabled yet because that requires setting up type-aware
     //   linting.
     "@typescript-eslint/consistent-type-assertions": "error",
-    "@typescript-eslint/consistent-type-imports": "error"
+    "@typescript-eslint/consistent-type-imports": "error",
   },
   "overrides": [
+    // Additional rules that require type information, and thus can only
+    // run on a subset of the linted code.
+    {
+      "files": "lms/static/scripts/frontend_apps/**/*.{js,ts,tsx}",
+      "excludedFiles": ["**/test/*.js"],
+      "rules": {
+        "@typescript-eslint/no-unnecessary-condition": "error"
+      },
+      "parserOptions": {
+        "project": "lms/static/scripts/tsconfig.json"
+      }
+    },
+
+    // Code that runs in Node
     {
       "files": "*.mjs",
       "env": { "node": true },

@@ -461,18 +461,9 @@ describe('BasicLTILaunchApp', () => {
       assert.equal(errorDialog.prop('error'), error);
     });
 
-    it('does not report a submission if a teacher launches an assignment', async () => {
-      // When a teacher launches the assignment, there will typically be no
-      // `submissionParams` config provided by the backend.
-      fakeConfig.canvas.speedGrader.submissionParams = undefined;
-
-      renderLTILaunchApp();
-      await new Promise(resolve => setTimeout(resolve, 0));
-
-      assert.notCalled(fakeApiCall);
-    });
-
-    it('does not report a submission if `speedGrader` object is omitted', async () => {
+    it('does not report a submission if grading is not enabled for the current user', async () => {
+      // If the assignment is not gradable or the user is an instructor, the
+      // `speedGrader` config is omitted.
       fakeConfig.canvas.speedGrader = undefined;
 
       renderLTILaunchApp();

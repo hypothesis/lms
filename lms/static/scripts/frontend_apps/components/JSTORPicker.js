@@ -88,7 +88,7 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
    * @param {boolean} [confirmSelectedUrl=false]
    */
   const onURLChange = (confirmSelectedUrl = false) => {
-    const url = inputRef?.current?.value;
+    const url = inputRef.current.value;
     if (url && url === previousURL.current) {
       if (confirmSelectedUrl) {
         confirmSelection();

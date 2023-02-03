@@ -174,7 +174,7 @@ export default function FilePickerApp({ onSubmit }) {
     if (
       shouldSubmit &&
       // We either are not using the deepLinkingAPI, or if we are, wait for deepLinkingFields to be available
-      (!deepLinkingAPI || (deepLinkingAPI && deepLinkingFields))
+      (!deepLinkingAPI || deepLinkingFields)
     ) {
       // Submit form using a hidden button rather than calling `form.submit()`
       // to facilitate observing the submission in tests and suppressing the
