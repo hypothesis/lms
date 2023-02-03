@@ -61,10 +61,6 @@ function bundleConfig(name, entryFile) {
 
 export default [
   bundleConfig('frontend_apps', 'lms/static/scripts/frontend_apps/index.js'),
-  bundleConfig(
-    'new_application_instance',
-    'lms/static/scripts/new-application-instance.js'
-  ),
   bundleConfig('browser_check', 'lms/static/scripts/browser_check/index.ts'),
   bundleConfig('ui-playground', 'lms/static/scripts/ui-playground/index.js'),
 ];
