@@ -377,11 +377,14 @@ class TestGetLTIUserFromOauthCallback:
 @pytest.mark.usefixtures("user_service")
 class TestGetLTIUser:
     @pytest.mark.usefixtures("pyramid_request_with_identity")
-    def test_it(self, pyramid_request, user_service):
-        lti_user = get_lti_user(pyramid_request)
+    def test_it(self, pyramid_request, user_service, lti_user, sentry_sdk):
+        result = get_lti_user(pyramid_request)
 
-        assert lti_user == sentinel.lti_user
-        user_service.upsert_user.assert_called_once_with(sentinel.lti_user)
+        assert result == lti_user
+        user_service.upsert_user.assert_called_once_with(result)
+        sentry_sdk.set_tag.assert_called_once_with(
+            "application_instance_id", lti_user.application_instance_id
+        )
 
     def test_it_when_no_lti_user(self, pyramid_request):
         lti_user = get_lti_user(pyramid_request)
@@ -389,12 +392,16 @@ class TestGetLTIUser:
         assert not lti_user
 
     @pytest.fixture
-    def pyramid_request_with_identity(self, pyramid_config, pyramid_request):
+    def pyramid_request_with_identity(self, pyramid_config, pyramid_request, lti_user):
         pyramid_config.testing_securitypolicy(
             userid=sentinel.userid,
-            identity=Identity(sentinel.userid, sentinel.permissions, sentinel.lti_user),
+            identity=Identity(sentinel.userid, sentinel.permissions, lti_user),
         )
         return pyramid_request
+
+    @pytest.fixture
+    def sentry_sdk(self, patch):
+        return patch("lms.security.sentry_sdk")
 
 
 class TestGetUser:

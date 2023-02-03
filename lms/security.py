@@ -3,6 +3,7 @@ from enum import Enum
 from functools import lru_cache, partial
 from typing import Callable, List, NamedTuple, Optional
 
+import sentry_sdk
 from pyramid.request import Request
 from pyramid.security import Allowed, Denied
 from pyramid_googleauth import GoogleSecurityPolicy
@@ -237,6 +238,9 @@ def get_lti_user(request) -> Optional[LTIUser]:
         # Make a record of the user for analytics so we can map from the
         # LTI users and the corresponding user in H
         request.find_service(UserService).upsert_user(lti_user)
+
+        # Attach useful information to sentry in case we get an exception further down the line
+        sentry_sdk.set_tag("application_instance_id", lti_user.application_instance_id)
 
     return lti_user
 
