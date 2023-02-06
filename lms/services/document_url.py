@@ -90,23 +90,20 @@ class DocumentURLService:
     def _from_assignment_in_db(self, request):
         """Get a document URL from an assignment in the DB matching a param."""
 
-        for param in (
-            "resource_link_id",  # A normal LTI (non-deep linked) launch
-            "resource_link_id_history",  # A Blackboard course we can copy
-            "ext_d2l_resource_link_id_history",  # Ditto for D2L
-            "custom_ResourceLink.id.history",  # LTI 1.3 location for D2L and blackboard
-        ):
-            if (resource_link_id := request.lti_params.get(param)) and (
-                assignment := self._assignment_service.get_assignment(
-                    tool_consumer_instance_guid=request.lti_params.get(
-                        "tool_consumer_instance_guid"
-                    ),
-                    resource_link_id=resource_link_id,
-                )
-            ):
-                return assignment.document_url
+        assignment = self._assignment_service.get_assignment(
+            tool_consumer_instance_guid=request.lti_params.get(
+                "tool_consumer_instance_guid"
+            ),
+            resource_link_id=request.lti_params.get("resource_link_id"),
+        )
+        if not assignment:
+            # If the current assignment is not yet in the DB maybe we
+            # are launching for the first time a copied assignment.
+            assignment = self._assignment_service.get_copied_from_assignment(
+                request.lti_params
+            )
 
-        return None
+        return assignment.document_url if assignment else None
 
 
 def factory(_context, request):

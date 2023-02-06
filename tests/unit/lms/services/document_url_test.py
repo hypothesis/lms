@@ -102,22 +102,13 @@ class TestDocumentURLService:
         VSBookLocation.assert_called_once_with(book_id=sentinel.book_id, cfi=cfi)
         assert result == VSBookLocation.return_value.document_url
 
-    @pytest.mark.parametrize(
-        "param",
-        (
-            "resource_link_id",
-            "ext_d2l_resource_link_id_history",
-            "resource_link_id_history",
-            "custom_ResourceLink.id.history",
-        ),
-    )
-    def test_get_document_url_with_assignment_in_db(
-        self, svc, pyramid_request, assignment_service, param
+    def test_get_document_url_with_assignment_in_db_existing_assignment(
+        self, svc, pyramid_request, assignment_service
     ):
         assignment_service.get_assignment.return_value = factories.Assignment(
             document_url=sentinel.document_url
         )
-        pyramid_request.lti_params[param] = sentinel.link_id
+        pyramid_request.lti_params["resource_link_id"] = sentinel.link_id
 
         result = svc.get_document_url(pyramid_request)
 
@@ -129,6 +120,29 @@ class TestDocumentURLService:
         )
         assert result == sentinel.document_url
 
+    def test_get_document_url_with_assignment_in_db_copied_assignment(
+        self, svc, pyramid_request, assignment_service
+    ):
+        assignment_service.get_assignment.return_value = None
+        assignment_service.get_copied_from_assignment.return_value = (
+            factories.Assignment(document_url=sentinel.document_url)
+        )
+        pyramid_request.lti_params["resource_link_id"] = sentinel.link_id
+
+        result = svc.get_document_url(pyramid_request)
+
+        assignment_service.get_assignment.assert_called_once_with(
+            tool_consumer_instance_guid=pyramid_request.lti_params[
+                "tool_consumer_instance_guid"
+            ],
+            resource_link_id=sentinel.link_id,
+        )
+        assignment_service.get_copied_from_assignment.assert_called_once_with(
+            pyramid_request.lti_params
+        )
+
+        assert result == sentinel.document_url
+
     @pytest.fixture
     def svc(self, assignment_service):
         return DocumentURLService(assignment_service)
@@ -136,6 +150,7 @@ class TestDocumentURLService:
     @pytest.fixture
     def assignment_service(self, assignment_service):
         assignment_service.get_assignment.return_value = None
+        assignment_service.get_copied_from_assignment.return_value = None
         return assignment_service
 
     @pytest.fixture

@@ -16,6 +16,41 @@ class TestAssignmentService:
     def test_get_assignment_without_match(self, svc, non_matching_params):
         assert svc.get_assignment(**non_matching_params) is None
 
+    @pytest.mark.parametrize(
+        "param",
+        (
+            "resource_link_id_history",
+            "ext_d2l_resource_link_id_history",
+            "custom_ResourceLink.id.history",
+        ),
+    )
+    def test_get_copied_from_assignment(self, svc, param, assignment):
+        assert (
+            svc.get_copied_from_assignment(
+                {
+                    param: assignment.resource_link_id,
+                    "tool_consumer_instance_guid": assignment.tool_consumer_instance_guid,
+                }
+            )
+            == assignment
+        )
+
+    def test_get_copied_from_assignment_not_found_bad_parameter(self, svc, assignment):
+        assert not svc.get_copied_from_assignment(
+            {
+                "unknown_param": assignment.resource_link_id,
+                "tool_consumer_instance_guid": assignment.tool_consumer_instance_guid,
+            }
+        )
+
+    def test_get_copied_from_assignment_not_found(self, svc, assignment):
+        assert not svc.get_copied_from_assignment(
+            {
+                "resource_link_id_history": "Unknown_RESOURCE_LINK_ID",
+                "tool_consumer_instance_guid": assignment.tool_consumer_instance_guid,
+            }
+        )
+
     upsert_kwargs = {
         "document_url": "new_document_url",
         "extra": {"new": "values"},

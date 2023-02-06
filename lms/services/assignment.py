@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy.orm import Session
 
@@ -31,6 +31,27 @@ class AssignmentService:
             )
             .one_or_none()
         )
+
+    def get_copied_from_assignment(self, lti_params) -> Optional[Assignment]:
+        """Return the assignment that the current assignment was copied from."""
+
+        resource_link_history_params = [
+            "resource_link_id_history",  # Blackboard, LTI 1.1
+            "ext_d2l_resource_link_id_history",  # D2L, LTI 1.1
+            "custom_ResourceLink.id.history",  # Blackboard and D2L, LTI 1.3
+        ]
+
+        for param in resource_link_history_params:
+            if historical_resource_link_id := lti_params.get(param):
+                if historical_assignment := self.get_assignment(
+                    tool_consumer_instance_guid=lti_params.get(
+                        "tool_consumer_instance_guid"
+                    ),
+                    resource_link_id=historical_resource_link_id,
+                ):
+                    return historical_assignment
+
+        return None
 
     # pylint: disable=too-many-arguments
     def upsert_assignment(
