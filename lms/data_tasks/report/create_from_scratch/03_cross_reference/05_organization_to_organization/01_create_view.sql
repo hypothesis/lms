@@ -1,7 +1,7 @@
-DROP MATERIALIZED VIEW IF EXISTS report.group_to_group CASCADE;
+DROP MATERIALIZED VIEW IF EXISTS report.organization_to_organization CASCADE;
 
 -- A view to simplify looking up all children, or all parents of a given group
-CREATE MATERIALIZED VIEW report.group_to_group AS (
+CREATE MATERIALIZED VIEW report.organization_to_organization AS (
     SELECT
         parent_id,
         relation::report.tree_relation,
@@ -11,7 +11,7 @@ CREATE MATERIALIZED VIEW report.group_to_group AS (
             id AS parent_id,
             'self'::report.tree_relation AS relation,
             id AS child_id
-        FROM report.groups
+        FROM organization
 
         UNION ALL
 
@@ -19,7 +19,7 @@ CREATE MATERIALIZED VIEW report.group_to_group AS (
             parent_id AS parent_id,
             'parent'::report.tree_relation AS relation,
             id AS child_id
-        FROM report.groups
+        FROM organization
         WHERE parent_id IS NOT NULL
 
         -- We aren't doing any recursive stuff here to add on the 'ancestor'
