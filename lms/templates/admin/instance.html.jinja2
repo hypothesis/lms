@@ -43,7 +43,7 @@
 
 
 {% block content %}
-<form method="POST" action="{{ request.route_url("admin.instance.id", id_=instance.id) }}">
+<form method="POST" action="{{ request.route_url("admin.instance", id_=instance.id) }}">
     <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
 
     <fieldset class="box">
