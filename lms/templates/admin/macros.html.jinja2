@@ -117,7 +117,7 @@
 
 {% macro instances_table(request,  instances) %}
 {{ object_list_table(
-    request, 'admin.instance.id', instances,
+    request, 'admin.instance', instances,
     ['Name', 'Consumer key', 'GUID', 'Deployment ID'],
     ['name', 'consumer_key', 'tool_consumer_instance_guid', 'deployment_id']
 ) }}

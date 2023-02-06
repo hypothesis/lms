@@ -49,7 +49,7 @@
 
         {% if org.application_instances %}
             {{ macros.object_list_table(
-                    request, 'admin.instance.id', org.application_instances,
+                    request, 'admin.instance', org.application_instances,
                     ['Consumer key', 'Deployment ID', 'Tool name', 'URL', "Email"],
                     ['consumer_key', 'deployment_id', 'tool_consumer_instance_name', 'lms_url', 'requesters_email']
                )
