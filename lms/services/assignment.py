@@ -62,7 +62,7 @@ class AssignmentService:
         lti_params: LTIParams,
         is_gradable=False,
         extra=None,
-    ):
+    ) -> Assignment:
         """
         Update or create an assignment with the given document_url.
 
@@ -71,7 +71,13 @@ class AssignmentService:
         or create a new one if none exist on the DB.
 
         Any existing document_url for this assignment will be overwritten.
+
+
+        If we detect that the new assignment in the LMS has been copied from a
+        historical assignment (perhaps by using the LMS's "course copy" feature)
+        then some of the new assignment's extra values might be taken from the historical assignment.
         """
+        extra = extra or {}
 
         assignment = self.get_assignment(tool_consumer_instance_guid, resource_link_id)
         if not assignment:
@@ -82,11 +88,22 @@ class AssignmentService:
             )
             self._db.add(assignment)
 
+            # For new assignments check if we are copying
+            # from an existing one on the current launch
+            historical_assignment = self.get_copied_from_assignment(lti_params)
+            if (
+                historical_assignment
+                and historical_assignment.extra.get("group_set_id")
+                and not extra.get("group_set_id")
+            ):
+                extra["group_set_id"] = historical_assignment.extra.get("group_set_id")
+
         assignment.document_url = document_url
         assignment.title = lti_params.get("resource_link_title")
         assignment.description = lti_params.get("resource_link_description")
         assignment.is_gradable = is_gradable
-        assignment.extra = extra if extra else assignment.extra or {}
+        if extra:
+            assignment.extra = extra
 
         return assignment
 
