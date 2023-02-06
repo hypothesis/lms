@@ -84,6 +84,15 @@ class TestAssignmentService:
         assert assignment.created < datetime.now() - timedelta(days=1)
         assert assignment.updated >= datetime.now() - timedelta(days=1)
 
+    def test_upsert_assignment_with_existing_no_extra(
+        self, svc, assignment, matching_params
+    ):
+        upsert_kwargs = dict(self.upsert_kwargs, extra={})
+        result = svc.upsert_assignment(**matching_params, **upsert_kwargs)
+
+        assert result == assignment
+        assert not result.extra
+
     def test_upsert_assignment_with_new(
         self, svc, db_session, assignment, non_matching_params
     ):
@@ -98,6 +107,42 @@ class TestAssignmentService:
 
         assert result.created >= datetime.now() - timedelta(days=1)
         assert result.updated >= datetime.now() - timedelta(days=1)
+
+    @pytest.mark.parametrize(
+        "copied_from_param",
+        (
+            "resource_link_id_history",
+            "ext_d2l_resource_link_id_history",
+            "custom_ResourceLink.id.history",
+        ),
+    )
+    def test_upsert_assignment_with_copied_from(
+        self, svc, copied_from_param, db_session
+    ):
+        upsert_params = dict(
+            self.upsert_kwargs,
+            resource_link_id="NEW_ID",
+            tool_consumer_instance_guid="MATCHING_GUID",
+        )
+        upsert_params["lti_params"][copied_from_param] = "ORIGINAL_ID"
+        upsert_params["lti_params"]["tool_consumer_instance_guid"] = "MATCHING_GUID"
+        original_assignment = factories.Assignment(
+            resource_link_id="ORIGINAL_ID",
+            tool_consumer_instance_guid="MATCHING_GUID",
+            extra={
+                "group_set_id": "ORIGINAL_GROUP_SET_ID",
+                "non_copied_value": "VALUE",
+            },
+        )
+        db_session.flush()
+
+        new_assignment = svc.upsert_assignment(**upsert_params)
+
+        assert new_assignment != original_assignment
+        assert new_assignment.extra == dict(
+            upsert_params["extra"],
+            group_set_id="ORIGINAL_GROUP_SET_ID",
+        )
 
     def test_upsert_assignment_membership(self, svc, assignment):
         user = factories.User()
