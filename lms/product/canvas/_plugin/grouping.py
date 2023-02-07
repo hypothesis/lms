@@ -73,6 +73,8 @@ class CanvasGroupingPlugin(GroupingPlugin):
         if not all_course_groups:
             raise GroupError(ErrorCodes.GROUP_SET_EMPTY, group_set=group_set_id)
 
+        # Store the groups for bookkeeping and course copy
+        course.set_group_sets(all_course_groups)
         return all_course_groups
 
     def get_groups_for_grading(
