@@ -160,6 +160,37 @@ class D2LGroup(Grouping):
 class Course(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.COURSE}
 
+    def set_group_sets(self, group_sets: List[dict]):
+        self.extra["group_sets"] = group_sets
+
+    def get_group_sets(self) -> List[dict]:
+        return self.extra.get("group_sets", [])
+
+    def get_mapped_group_set_id(self, group_set_id):
+        return self.extra.get("course_copy_group_set_mappings", {}).get(
+            group_set_id, group_set_id
+        )
+
+    def set_mapped_group_set_id(self, old_group_set_id, group_set_id):
+        """Store the mapping between old_file_id and new_file_id for future launches."""
+        self.extra.setdefault("course_copy_group_set_mappings", {})[
+            old_group_set_id
+        ] = group_set_id
+
+    def get_mapped_file_id(self, file_id):
+        """
+        Get a previously mapped file id in course.
+
+        Returns the original `file_id` if no mapped one can be found.
+        """
+        return self.extra.get("course_copy_file_mappings", {}).get(file_id, file_id)
+
+    def set_mapped_file_id(self, old_file_id, new_file_id):
+        """Store the mapping between old_file_id and new_file_id for future launches."""
+        self.extra.setdefault("course_copy_file_mappings", {})[
+            old_file_id
+        ] = new_file_id
+
 
 class GroupingMembership(CreatedUpdatedMixin, BASE):
     __tablename__ = "grouping_membership"
