@@ -109,6 +109,8 @@ class BasicLaunchViews:
             form_fields=form_fields,
         )
 
+        self._record_course()
+
         return {}
 
     @view_config(
