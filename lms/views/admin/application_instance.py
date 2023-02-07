@@ -35,6 +35,17 @@ class NewAppInstanceSchemaV13(NewAppInstanceSchema):
     lti_registration_id = fields.Str(required=True)
 
 
+class UpdateApplicationInstanceSchema(PyramidRequestSchema):
+    """Schema for updating an application instance."""
+
+    location = "form"
+
+    lms_url = fields.URL(required=False)
+    deployment_id = fields.Str(required=False)
+    developer_key = fields.Str(required=False)
+    developer_secret = fields.Str(required=False)
+
+
 class UpgradeApplicationInstanceSchema(PyramidRequestSchema):
     location = "form"
 
@@ -281,6 +292,10 @@ class AdminApplicationInstanceViews:
     @view_config(route_name="admin.instance", request_method="POST", require_csrf=True)
     def update_instance(self):
         ai = self._get_ai_or_404(self.request.matchdict["id_"])
+
+        if flash_validation(self.request, UpdateApplicationInstanceSchema):
+            # Looks like something went wrong!
+            return self._redirect("admin.instance", id_=ai.id)
 
         self.application_instance_service.update_application_instance(
             ai,

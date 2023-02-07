@@ -334,9 +334,9 @@ class TestAdminApplicationInstanceViews:
     def test_update_application_instance(
         self, views, pyramid_request, ai_from_matchdict, application_instance_service
     ):
-        pyramid_request.params = {
+        pyramid_request.params = pyramid_request.POST = {
             "name": "  NAME  ",
-            "lms_url": "   http://example.com    ",
+            "lms_url": "http://example.com",
             "deployment_id": " DEPLOYMENT_ID  ",
             "developer_key": "  DEVELOPER KEY  ",
             "developer_secret": " DEVELOPER SECRET  ",
@@ -353,7 +353,7 @@ class TestAdminApplicationInstanceViews:
             developer_secret="DEVELOPER SECRET",
         )
 
-    def test_update_application_instance_with_no_arguments(
+    def test_update_application_instance_with_minimal_arguments(
         self, views, ai_from_matchdict, application_instance_service
     ):
         views.update_instance()
@@ -366,6 +366,19 @@ class TestAdminApplicationInstanceViews:
             developer_key="",
             developer_secret="",
         )
+
+    @pytest.mark.usefixtures("ai_from_matchdict")
+    @pytest.mark.parametrize("param,bad_value", (("lms_url", "not_a_url"),))
+    def test_update_application_instance_with_invalid_arguments(
+        self, views, pyramid_request, application_instance_service, param, bad_value
+    ):
+        params = {}
+        params[param] = bad_value
+        pyramid_request.params = pyramid_request.POST = params
+
+        views.update_instance()
+
+        application_instance_service.update_application_instance.assert_not_called()
 
     @pytest.mark.parametrize(
         "setting,sub_setting,value,expected",
