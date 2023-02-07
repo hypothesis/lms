@@ -50,7 +50,7 @@ class BasicLaunchViews:
         self.context.application_instance.check_guid_aligns(
             self.request.lti_params.get("tool_consumer_instance_guid")
         )
-
+        self._record_course()
         self._record_launch()
 
     @view_config(
@@ -108,7 +108,6 @@ class BasicLaunchViews:
             form_action=self.request.route_url("configure_assignment"),
             form_fields=form_fields,
         )
-
         return {}
 
     @view_config(
@@ -159,7 +158,6 @@ class BasicLaunchViews:
         )
 
         # Store lots of info
-        self._record_course()
         assignment = self._record_assignment(
             document_url, extra=assignment_extra, is_gradable=assignment_gradable
         )
