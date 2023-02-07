@@ -243,7 +243,7 @@ class ApplicationInstanceService:
         developer_key,
         developer_secret,
         organization_public_id,
-        name=None,
+        name,
         deployment_id=None,
         lti_registration_id=None,
     ) -> ApplicationInstance:

@@ -101,6 +101,7 @@ class TestAdminApplicationInstanceViews:
         ("lms_url", "not a url"),
         ("email", "not an email"),
         ("organization_public_id", None),
+        ("name", None),
     ]
 
     @pytest.mark.parametrize(

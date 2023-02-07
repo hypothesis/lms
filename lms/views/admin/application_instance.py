@@ -22,7 +22,7 @@ class NewAppInstanceSchema(PyramidRequestSchema):
     developer_key = fields.Str(required=False, allow_none=True)
     developer_secret = fields.Str(required=False, allow_none=True)
 
-    name = fields.Str(required=False)
+    name = fields.Str(required=True, validate=validate.Length(min=1))
     lms_url = fields.URL(required=True)
     email = fields.Email(required=True)
     organization_public_id = fields.Str(required=True, validate=validate.Length(min=1))
