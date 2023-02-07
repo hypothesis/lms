@@ -15,7 +15,7 @@ Application instances
 
 <fieldset class="box mt-6">
     <legend class="label has-text-centered">Find application instances</legend>
-    <form method="POST" action="{{ request.route_url("admin.instances.search") }}">
+    <form method="POST" action="{{ request.route_url("admin.instance.search") }}">
         <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
         {{ macros.form_text_field(request, "ID", "id") }}
         {{ macros.form_text_field(request, "Name", "name") }}

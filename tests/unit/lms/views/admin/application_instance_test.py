@@ -28,9 +28,6 @@ REDIRECT_TO_UPGRADE_AI = Any.instance_of(HTTPFound).with_attrs(
     "aes_service",
 )
 class TestAdminApplicationInstanceViews:
-    def test_instances(self, views):
-        assert views.instances() == {}
-
     @pytest.mark.parametrize("lti_registration_id", ("123", "  123   "))
     def test_new_instance_start_v13(
         self, views, pyramid_request, lti_registration_service, lti_registration_id
@@ -279,6 +276,9 @@ class TestAdminApplicationInstanceViews:
 
         assert views.upgrade_instance_callback() == REDIRECT_TO_UPGRADE_AI
 
+    def test_search_start(self, views):
+        assert not views.search_start()
+
     def test_search(self, pyramid_request, application_instance_service, views):
         pyramid_request.params = pyramid_request.POST = {
             "id": "1",
@@ -290,7 +290,7 @@ class TestAdminApplicationInstanceViews:
             "tool_consumer_instance_guid": "TOOL_CONSUMER_INSTANCE_GUID",
         }
 
-        response = views.search()
+        response = views.search_callback()
 
         application_instance_service.search.assert_called_once_with(
             id_="1",
@@ -305,10 +305,10 @@ class TestAdminApplicationInstanceViews:
             "instances": application_instance_service.search.return_value
         }
 
-    def test_search_invalid(self, views, pyramid_request):
+    def test_search_callback_invalid(self, views, pyramid_request):
         pyramid_request.POST = {"id": "not a number"}
 
-        assert not views.search()
+        assert not views.search_callback()
         assert pyramid_request.session.peek_flash
 
     def test_show_instance_id(self, views, ai_from_matchdict):
