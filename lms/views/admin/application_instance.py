@@ -80,13 +80,6 @@ class AdminApplicationInstanceViews:
         self._aes_service = request.find_service(AESService)
 
     @view_config(
-        route_name="admin.instances",
-        renderer="lms:templates/admin/instances.html.jinja2",
-    )
-    def instances(self):
-        return {}
-
-    @view_config(
         route_name="admin.instance.new",
         renderer="lms:templates/admin/instance.new.html.jinja2",
     )
@@ -236,12 +229,19 @@ class AdminApplicationInstanceViews:
         return self._redirect("admin.instance", id_=ai.id)
 
     @view_config(
-        route_name="admin.instances.search",
+        route_name="admin.instance.search",
+        renderer="lms:templates/admin/instance.search.html.jinja2",
+    )
+    def search_start(self):
+        return {}
+
+    @view_config(
+        route_name="admin.instance.search",
         request_method="POST",
         require_csrf=True,
-        renderer="lms:templates/admin/instances.html.jinja2",
+        renderer="lms:templates/admin/instance.search.html.jinja2",
     )
-    def search(self):
+    def search_callback(self):
         if flash_validation(self.request, SearchApplicationInstanceSchema):
             return {}
 

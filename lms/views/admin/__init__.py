@@ -20,7 +20,7 @@ def notfound(_request):
 
 @view_config(route_name="admin.index")
 def index(request):
-    return HTTPFound(location=request.route_url("admin.instances"))
+    return HTTPFound(location=request.route_url("admin.instance.search"))
 
 
 def flash_validation(request, schema):

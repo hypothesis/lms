@@ -24,5 +24,5 @@ def test_index(pyramid_request):
     response = index(pyramid_request)
 
     assert response == temporary_redirect_to(
-        pyramid_request.route_url("admin.instances")
+        pyramid_request.route_url("admin.instance.search")
     )
