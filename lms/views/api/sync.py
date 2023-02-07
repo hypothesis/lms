@@ -27,12 +27,17 @@ class APISyncSchema(PyramidRequestSchema):
 )
 def sync(request):
     grouping_service = request.find_service(name="grouping")
+    course_copy_plugin = request.product.plugin.course_copy
     course = request.find_service(name="course").get_by_context_id(
         context_id=request.parsed_params["context_id"]
     )
     grading_student_id = request.parsed_params.get("gradingStudentId")
 
     if group_set_id := request.parsed_params.get("group_set_id"):
+        group_set_id = course_copy_plugin.find_matching_group_set_in_course(
+            course, group_set_id
+        )
+
         groupings = grouping_service.get_groups(
             user=request.user,
             lti_user=request.lti_user,

@@ -1,9 +1,9 @@
 from enum import Enum
+from typing import List
 
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
-
 from lms.db import BASE, varchar_enum
 from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.application_settings import ApplicationSettings

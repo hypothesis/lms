@@ -5,6 +5,56 @@ from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 from lms.services.file import FileService
 
 
+class CourseCopyGroupsHelper:
+    def __init__(self, course_service, grouping_plugin):
+        self._course_service = course_service
+        self._grouping_plugin = grouping_plugin
+
+    def find_matching_group_set_in_course(self, course, group_set_id):
+        mapped_group_set_id = course.get_mapped_group_set_id(group_set_id)
+
+        if mapped_group_set_id != group_set_id:
+            return mapped_group_set_id
+
+        try:
+            # Get the current (copied) courses files, that will have the side effect of storing files in the DB
+            _ = self._grouping_plugin.get_group_sets(course, course.lms_id)
+        except Exception as error:
+            # We might not have access to use the API for that endpoint.
+            # That will depend on our role and the course's permissions settings.
+            # We will continue anyway, maybe the files of the new course are already in the DB
+            # after an instructor launched corrected the issue.
+            raise error
+            pass
+
+        # We get the original file record from the DB
+        group_set = self._course_service.find_group_set(group_set_id=group_set_id)
+        if not group_set:
+            # That file must have been recorded when the original assignment was configured.
+            # If we can't find that one something odd is going on, stop here.
+            return group_set_id
+
+        # Now we'll try to find a matching file in the DB in the new course
+        # We might have a record of this because we just called `_store_new_course_files` as the current user
+        # or another user might have done it before for us.
+
+        if new_group_set := self._course_service.find_group_set(
+            name=group_set["name"], context_id=course.lms_id
+        ):
+            # We found the equivalent file in the new course
+            course.set_mapped_group_set_id(group_set_id, new_group_set["id"])
+            return new_group_set["id"]
+
+        # No match for the file.
+        # This could be an issue with our heuristic to find the new file
+        # or other edge case, for example a file was deleted after course copy or similar.
+        return group_set_id
+
+    @classmethod
+    def factory(cls, _context, request):
+        return cls(request.find_service(name="course"), request.product.plugin.grouping)
+
+
 class CourseCopyFilesHelper:
     """Helper class to abstract common behaviour around LMS file / course copy."""
 
@@ -90,8 +140,5 @@ class CourseCopyPlugin:  # pragma: nocover
     def find_matching_file_in_course(self, *args, **kwargs):
         raise NotImplementedError()
 
-    def get_mapped_file_id(self, *args, **kwargs):
-        raise NotImplementedError()
-
-    def set_mapped_file_id(self, course, old_file_id, new_file_id):
+    def find_mapped_group_set_id(self, course, group_set_id):
         raise NotImplementedError()

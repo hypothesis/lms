@@ -70,6 +70,30 @@ class CourseService:
             type_=Grouping.Type.COURSE,
         )[0]
 
+    def find_group_set(self, group_set_id=None, name=None, context_id=None):
+        from sqlalchemy import func, column, Text
+
+        group_set = (
+            func.jsonb_to_recordset(Course.extra["group_sets"])
+            .table_valued(column("id", Text), column("name", Text))
+            .render_derived(with_types=True)
+        )
+
+        query = self._db.query(Grouping.id, group_set.c.id, group_set.c.name).filter(
+            Grouping.application_instance == self._application_instance
+        )
+
+        if context_id:
+            query = query.filter(Grouping.lms_id == context_id)
+
+        if group_set_id:
+            query = query.filter(group_set.c.id == group_set_id)
+
+        if name:
+            query = query.filter(group_set.c.name == name)
+
+        return query.one_or_none()
+
     def _get_authority_provided_id(self, context_id):
         return self._grouping_service.get_authority_provided_id(
             lms_id=context_id, type_=Grouping.Type.COURSE
