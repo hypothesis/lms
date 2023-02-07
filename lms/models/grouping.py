@@ -161,6 +161,7 @@ class Course(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.COURSE}
 
     def set_group_sets(self, group_sets: List[dict]):
+        group_sets = [{"id": g["id"], "name": g["name"]} for g in group_sets]
         self.extra["group_sets"] = group_sets
 
     def get_group_sets(self) -> List[dict]:

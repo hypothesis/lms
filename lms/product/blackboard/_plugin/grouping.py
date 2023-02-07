@@ -22,8 +22,11 @@ class BlackboardGroupingPlugin(GroupingPlugin):
     def __init__(self, blackboard_api):
         self._blackboard_api = blackboard_api
 
-    def get_group_sets(self, course_id):
-        return self._blackboard_api.course_group_sets(course_id)
+    def get_group_sets(self, course, course_id):
+        group_sets = self._blackboard_api.course_group_sets(course_id)
+        # Store the groups for bookkeeping and course copy
+        course.set_group_sets(group_sets)
+        return group_sets
 
     def get_groups_for_learner(self, _svc, course, group_set_id):
         if learner_groups := self._blackboard_api.course_groups(
@@ -54,8 +57,6 @@ class BlackboardGroupingPlugin(GroupingPlugin):
         if not groups:
             raise GroupError(ErrorCodes.GROUP_SET_EMPTY, group_set=group_set_id)
 
-        # Store the groups for bookkeeping and course copy
-        course.set_group_sets(groups)
         return groups
 
     @classmethod

@@ -458,7 +458,8 @@ class JSConfig:
                 "data": {
                     "lms": {
                         "product": self._request.product.family,
-                    }
+                    },
+                    "context_id": self._request.lti_params["context_id"],
                 },
             }
 
