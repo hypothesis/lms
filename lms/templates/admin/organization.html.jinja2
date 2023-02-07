@@ -48,12 +48,7 @@
         </div>
 
         {% if org.application_instances %}
-            {{ macros.object_list_table(
-                    request, 'admin.instance', org.application_instances,
-                    ['Consumer key', 'Deployment ID', 'Tool name', 'URL', "Email"],
-                    ['consumer_key', 'deployment_id', 'tool_consumer_instance_name', 'lms_url', 'requesters_email']
-               )
-            }}
+            {{ macros.instances_table(request, org.application_instances) }}
         {% else %}
             <div class="is-size-5 has-text-centered">No application instances</div>
         {% endif %}

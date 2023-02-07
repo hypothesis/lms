@@ -79,15 +79,15 @@
     {% endif %}
 {% endmacro %}
 
-{% macro object_list_table(request, route, objects, headers, fields) %}
+{% macro object_list_table(request, route, objects, fields) %}
 <div class="container">
     <div class="table-container">
         <table class="table is-fullwidth">
           <thead>
             <tr>
               <th></th>
-              {% for heading in headers %}
-              <th>{{heading}}</th>
+              {% for field in fields %}
+              <th>{{field.label}}</th>
               {% endfor %}
             </tr>
           </thead>
@@ -99,10 +99,10 @@
                   </td>
                   {% for field in fields %}
                   <td>
-                    {% if object[field] is none %}
+                    {% if object[field.name] is none %}
                         <span style="color:#aaa">-</span>
                     {% else %}
-                        {{ object[field] }}
+                        {{ object[field.name] }}
                     {% endif %}
                   </td>
                   {% endfor %}
@@ -115,17 +115,28 @@
 {% endmacro %}
 
 
-{% macro instances_table(request,  instances) %}
+{% macro instances_table(request, instances) %}
 {{ object_list_table(
     request, 'admin.instance', instances,
-    ['Name', 'Consumer key', 'GUID', 'Deployment ID', 'Last Launched'],
-    ['name', 'consumer_key', 'tool_consumer_instance_guid', 'deployment_id', 'last_launched']
+    fields=[
+        {"label": "Name", "name": "name"},
+        {"label": "Consumer key", "name": "consumer_key"},
+        {"label": "GUID", "name": "tool_consumer_instance_guid"},
+        {"label": "Deployment ID", "name": "deployment_id"},
+        {"label": "Last Launched", "name": "last_launched"},
+    ]
 ) }}
 {% endmacro %}
 
 
-{% macro registrations_table(request,  registrations) %}
-{{ object_list_table(request, 'admin.registration.id', registrations, ['Issuer', 'Client ID'], ['issuer', 'client_id']) }}
+{% macro registrations_table(request, registrations) %}
+{{ object_list_table(
+    request, 'admin.registration.id', registrations,
+    fields=[
+        {"label": "Client ID", "name": "client_id"},
+        {"label": "Issuer ID", "name": "issuer"},
+    ]
+) }}
 {% endmacro %}
 
 
