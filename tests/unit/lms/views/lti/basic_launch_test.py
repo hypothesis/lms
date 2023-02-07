@@ -32,9 +32,15 @@ class TestHasDocumentURL:
     "misc_plugin",
 )
 class TestBasicLaunchViews:
-    def test___init___(self, context, pyramid_request):
+    def test___init___(self, context, pyramid_request, grouping_service):
         BasicLaunchViews(context, pyramid_request)
 
+        # `_record_course()`
+        grouping_service.upsert_grouping_memberships.assert_called_once_with(
+            user=pyramid_request.user, groups=[context.course]
+        )
+
+        # `_record_launch()`
         context.application_instance.check_guid_aligns.assert_called_once_with(
             pyramid_request.lti_params["tool_consumer_instance_guid"]
         )
@@ -179,7 +185,6 @@ class TestBasicLaunchViews:
         lti_h_service,
         assignment_service,
         lti_role_service,
-        grouping_service,
         misc_plugin,
     ):
         # pylint: disable=protected-access
@@ -189,11 +194,6 @@ class TestBasicLaunchViews:
 
         lti_h_service.sync.assert_called_once_with(
             [context.course], pyramid_request.lti_params
-        )
-
-        # `_record_course()`
-        grouping_service.upsert_grouping_memberships.assert_called_once_with(
-            user=pyramid_request.user, groups=[context.course]
         )
 
         # `_record_assignment()`
