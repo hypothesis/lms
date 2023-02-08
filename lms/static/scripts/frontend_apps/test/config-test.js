@@ -1,4 +1,6 @@
-import { readConfig } from '../config';
+import { render } from 'preact';
+
+import { Config, readConfig, useConfig } from '../config';
 
 describe('readConfig', () => {
   let expectedConfig;
@@ -36,5 +38,42 @@ describe('readConfig', () => {
   it('should return the parsed configuration', () => {
     const config = readConfig();
     assert.deepEqual(config, expectedConfig);
+  });
+});
+
+describe('useConfig', () => {
+  const config = {
+    someApp: { setting: true },
+  };
+
+  it('should return current config', () => {
+    let result;
+    function Widget() {
+      result = useConfig();
+    }
+
+    render(
+      <Config.Provider value={config}>
+        <Widget />
+      </Config.Provider>,
+      document.createElement('div')
+    );
+
+    assert.deepEqual(result, config);
+  });
+
+  it('should throw if required keys are not set', () => {
+    function Widget() {
+      useConfig(['otherApp']);
+    }
+
+    assert.throws(() => {
+      render(
+        <Config.Provider value={config}>
+          <Widget />
+        </Config.Provider>,
+        document.createElement('div')
+      );
+    }, 'Required configuration key "otherApp" not set');
   });
 });
