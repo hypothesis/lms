@@ -1,13 +1,7 @@
 import { FullScreenSpinner, LabeledButton } from '@hypothesis/frontend-shared';
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'preact/hooks';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
-import { Config } from '../config';
+import { useConfig } from '../config';
 import { apiCall } from '../utils/api';
 import { truncateURL } from '../utils/format';
 
@@ -97,7 +91,7 @@ export default function FilePickerApp({ onSubmit }) {
       settings: { groupsEnabled: enableGroupConfig },
     },
     filePicker: { deepLinkingAPI, formAction, formFields },
-  } = useContext(Config);
+  } = useConfig(['filePicker']);
 
   const [content, setContent] = useState(/** @type {Content|null} */ (null));
 
