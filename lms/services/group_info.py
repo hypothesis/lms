@@ -52,5 +52,5 @@ class GroupInfoService:
 
         if self._lti_user.is_instructor:
             group_info.upsert_instructor(
-                dict(email=self._lti_user.email, **self._lti_user.h_user._asdict())
+                {"email": self._lti_user.email, **self._lti_user.h_user._asdict()}
             )

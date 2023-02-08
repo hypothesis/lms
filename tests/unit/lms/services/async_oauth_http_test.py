@@ -38,7 +38,7 @@ class TestAsyncOAuthHTTPService:
     def with_successful_responses(self, urls):
         with aioresponses() as m:
             for url in urls:
-                m.get(url, headers=dict(url=url), body='["ASYNC RESPONSE"]')
+                m.get(url, headers={"url": url}, body='["ASYNC RESPONSE"]')
 
             yield m
 

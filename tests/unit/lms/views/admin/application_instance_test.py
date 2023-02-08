@@ -279,16 +279,16 @@ class TestAdminApplicationInstanceViews:
 
         assert views.upgrade_instance_callback() == REDIRECT_TO_UPGRADE_AI
 
-    def test_search(self, views, pyramid_request, application_instance_service):
-        pyramid_request.params = pyramid_request.POST = dict(
-            id="1",
-            name="NAME",
-            consumer_key="CONSUMER_KEY",
-            issuer="ISSUER",
-            client_id="CLIENT_ID",
-            deployment_id="DEPLOYMENT_ID",
-            tool_consumer_instance_guid="TOOL_CONSUMER_INSTANCE_GUID",
-        )
+    def test_search(self, pyramid_request, application_instance_service, views):
+        pyramid_request.params = pyramid_request.POST = {
+            "id": "1",
+            "name": "NAME",
+            "consumer_key": "CONSUMER_KEY",
+            "issuer": "ISSUER",
+            "client_id": "CLIENT_ID",
+            "deployment_id": "DEPLOYMENT_ID",
+            "tool_consumer_instance_guid": "TOOL_CONSUMER_INSTANCE_GUID",
+        }
 
         response = views.search()
 

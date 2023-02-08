@@ -43,7 +43,7 @@ class TestLTIToolRedirect:
     )
     def test_it_requires_well_formatted_messages(self, messages):
         with pytest.raises(ValueError):
-            LTIToolRedirect("http://example.com", messages)
+            _ = LTIToolRedirect("http://example.com", messages)
 
     @pytest.fixture
     def redirect(self):

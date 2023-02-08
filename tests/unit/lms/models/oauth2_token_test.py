@@ -92,8 +92,8 @@ class TestOAuth2Token:
 
         No optional kwargs or kwargs with default values are included here.
         """
-        return dict(
-            user_id="test_user_id",
-            access_token="test_access_token",
-            application_instance_id=application_instance.id,
-        )
+        return {
+            "user_id": "test_user_id",
+            "access_token": "test_access_token",
+            "application_instance_id": application_instance.id,
+        }
