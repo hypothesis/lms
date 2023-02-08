@@ -1,8 +1,6 @@
 import { Link } from '@hypothesis/frontend-shared';
-import { useContext } from 'preact/hooks';
 
-import { Config } from '../config';
-
+import { useConfig } from '../config';
 import ErrorModal from './ErrorModal';
 
 /** @typedef {import('../config').OAuthErrorConfig} OAuthErrorConfig */
@@ -21,15 +19,14 @@ import ErrorModal from './ErrorModal';
  * @param {OAuth2RedirectErrorAppProps} props
  */
 export default function OAuth2RedirectErrorApp({ location = window.location }) {
-  const { OAuth2RedirectError = /** @type {OAuthErrorConfig} */ ({}) } =
-    useContext(Config);
-
   const {
-    authUrl = null,
-    errorCode,
-    errorDetails = '',
-    canvasScopes = /** @type {string[]} */ ([]),
-  } = OAuth2RedirectError;
+    OAuth2RedirectError: {
+      authUrl = null,
+      errorCode,
+      errorDetails = '',
+      canvasScopes = /** @type {string[]} */ ([]),
+    },
+  } = useConfig(['OAuth2RedirectError']);
 
   const error = { errorCode, details: errorDetails };
 
