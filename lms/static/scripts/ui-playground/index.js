@@ -11,12 +11,12 @@ const extraRoutes = [
     route: '/errors',
     title: 'Errors',
     component: ErrorComponents,
-    group: 'components',
   },
 ];
 
 startApp({
   baseURL: '/ui-playground',
   extraRoutes,
+  extraRoutesTitle: 'LMS UI',
   icons: lmsIcons,
 });
