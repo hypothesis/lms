@@ -20,7 +20,7 @@ class TestCourseCopyFilesHelper:
         file_service.get.return_value = file
 
         is_in_course = helper.is_file_in_course(
-            file_service, sentinel.course_id, sentinel.file_id, sentinel.type
+            sentinel.course_id, sentinel.file_id, sentinel.type
         )
 
         file_service.get.assert_called_once_with(sentinel.file_id, sentinel.type)
@@ -38,7 +38,6 @@ class TestCourseCopyFilesHelper:
 
         new_file = helper.find_matching_file_in_course(
             store_new_course_files,
-            file_service,
             sentinel.file_type,
             sentinel.original_file_id,
             sentinel.new_course_id,
@@ -55,14 +54,13 @@ class TestCourseCopyFilesHelper:
         assert new_file
 
     def test_find_matching_file_raises_OAuth2TokenError(
-        self, helper, file_service, store_new_course_files
+        self, helper, store_new_course_files
     ):
         store_new_course_files.side_effect = OAuth2TokenError
 
         with pytest.raises(OAuth2TokenError):
             helper.find_matching_file_in_course(
                 store_new_course_files,
-                file_service,
                 sentinel.file_type,
                 sentinel.original_file_id,
                 sentinel.new_course_id,
@@ -75,7 +73,6 @@ class TestCourseCopyFilesHelper:
 
         assert not helper.find_matching_file_in_course(
             store_new_course_files,
-            file_service,
             sentinel.file_type,
             sentinel.original_file_id,
             sentinel.new_course_id,
@@ -95,7 +92,6 @@ class TestCourseCopyFilesHelper:
 
         assert not helper.find_matching_file_in_course(
             store_new_course_files,
-            file_service,
             sentinel.file_type,
             sentinel.original_file_id,
             sentinel.new_course_id,
@@ -130,9 +126,15 @@ class TestCourseCopyFilesHelper:
 
         assert course.extra["course_copy_file_mappings"]["OLD"] == "NEW"
 
+    @pytest.mark.usefixtures("file_service")
+    def test_factory(self, pyramid_request):
+        plugin = CourseCopyFilesHelper.factory(sentinel.context, pyramid_request)
+
+        assert isinstance(plugin, CourseCopyFilesHelper)
+
     @pytest.fixture
-    def helper(self):
-        return CourseCopyFilesHelper()
+    def helper(self, file_service):
+        return CourseCopyFilesHelper(file_service=file_service)
 
     @pytest.fixture
     def store_new_course_files(self):
