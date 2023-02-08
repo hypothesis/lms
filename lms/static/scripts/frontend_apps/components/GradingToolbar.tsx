@@ -124,11 +124,17 @@ export default function GradingToolbar({
           'lg:grid-cols-3 lg:gap-x-4 lg:px-3'
         )}
       >
-        <div>
-          <h1 className="text-lg font-bold" data-testid="assignment-name">
+        <div className="space-y-1">
+          <h1
+            className="text-lg font-semibold leading-none"
+            data-testid="assignment-name"
+          >
             {assignmentName}
           </h1>
-          <h2 className="text-base font-medium" data-testid="course-name">
+          <h2
+            className="text-sm font-normal text-color-text-light leading-none"
+            data-testid="course-name"
+          >
             {courseName}
           </h2>
         </div>
