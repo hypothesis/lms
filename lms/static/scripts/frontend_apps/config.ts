@@ -1,4 +1,5 @@
 import { createContext } from 'preact';
+import { useContext } from 'preact/hooks';
 
 import type { AppLaunchServerErrorCode, OAuthServerErrorCode } from './errors';
 
@@ -248,6 +249,30 @@ export type ConfigObject = {
 const defaultConfig = { api: {} } as unknown;
 
 export const Config = createContext(defaultConfig as ConfigObject);
+
+/**
+ * Utility that modifies a type by making properties matching `K` non-nullable.
+ */
+export type Ensure<T, K extends keyof T> = T & Required<Pick<T, K>>;
+
+/**
+ * Return the backend-provided configuration, requiring that the optional
+ * fields specified by `requiredKeys` are set.
+ *
+ * nb. The `= never` makes the return type just `ConfigObject` if `requiredKeys`
+ * is omitted, otherwise it would change all optional keys to required.
+ */
+export function useConfig<R extends keyof ConfigObject = never>(
+  requiredKeys: R[] = []
+): Ensure<ConfigObject, R> {
+  const config = useContext(Config);
+  for (const key of requiredKeys) {
+    if (!(key in config)) {
+      throw new Error(`Required configuration key "${key}" not set`);
+    }
+  }
+  return config as Ensure<ConfigObject, R>;
+}
 
 /**
  * Read frontend app configuration from a JSON `<script>` tag in the page
