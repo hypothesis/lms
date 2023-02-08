@@ -1,6 +1,4 @@
-import { useContext } from 'preact/hooks';
-
-import { Config } from '../config';
+import { useConfig } from '../config';
 import { APIError } from '../errors';
 import { useFetch } from './fetch';
 
@@ -167,7 +165,7 @@ export function urlPath(strings, ...params) {
 export function useAPIFetch(path, params) {
   const {
     api: { authToken },
-  } = useContext(Config);
+  } = useConfig();
 
   /** @type {import('./fetch').Fetcher<T>|undefined} */
   const fetcher = path

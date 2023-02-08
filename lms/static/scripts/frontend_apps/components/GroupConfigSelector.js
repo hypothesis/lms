@@ -1,7 +1,7 @@
 import { LabeledCheckbox, Link } from '@hypothesis/frontend-shared';
-import { useCallback, useContext, useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useState } from 'preact/hooks';
 
-import { Config } from '../config';
+import { useConfig } from '../config';
 import { isAuthorizationError, GroupListEmptyError } from '../errors';
 import { apiCall } from '../utils/api';
 import { useUniqueId } from '../utils/hooks';
@@ -145,7 +145,7 @@ export default function GroupConfigSelector({
     product: {
       api: { listGroupSets: listGroupSetsAPI },
     },
-  } = useContext(Config);
+  } = useConfig();
 
   const useGroupSet = groupConfig.useGroupSet;
   const groupSet = useGroupSet ? groupConfig.groupSet : null;
