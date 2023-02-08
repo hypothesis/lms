@@ -1,8 +1,6 @@
 import { Link } from '@hypothesis/frontend-shared';
-import { useContext } from 'preact/hooks';
 
-import { Config } from '../config';
-
+import { useConfig } from '../config';
 import ErrorModal from './ErrorModal';
 
 /**
@@ -14,12 +12,12 @@ import ErrorModal from './ErrorModal';
  * (e.g. OAuth2RedirectErrorApp, LaunchErrorDialog).
  */
 export default function ErrorDialogApp() {
-  const { errorDialog } = useContext(Config);
+  const { errorDialog } = useConfig(['errorDialog']);
 
   const error = {
-    errorCode: errorDialog?.errorCode,
-    details: errorDialog?.errorDetails ?? '',
-    message: errorDialog?.errorMessage ?? '',
+    errorCode: errorDialog.errorCode,
+    details: errorDialog.errorDetails ?? '',
+    message: errorDialog.errorMessage ?? '',
   };
 
   let description;
