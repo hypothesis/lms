@@ -206,7 +206,7 @@ six==1.15.0
     #   click-repl
     #   ecdsa
     #   google-auth
-sqlalchemy==1.4.46
+sqlalchemy==2.0.2
     # via
     #   -r requirements/requirements.in
     #   alembic
@@ -226,8 +226,10 @@ transaction==2.4.0
     #   zope-sqlalchemy
 translationstring==1.4
     # via pyramid
-typing-extensions==4.0.0
-    # via async-timeout
+typing-extensions==4.4.0
+    # via
+    #   async-timeout
+    #   sqlalchemy
 urllib3==1.26.5
     # via
     #   requests
