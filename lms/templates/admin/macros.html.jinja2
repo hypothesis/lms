@@ -79,6 +79,7 @@
     {% endif %}
 {% endmacro %}
 
+
 {% macro object_list_table(request, route, objects, fields) %}
 <div class="container">
     <div class="table-container">
@@ -120,10 +121,11 @@
     request, 'admin.instance', instances,
     fields=[
         {"label": "Name", "name": "name"},
-        {"label": "Consumer key", "name": "consumer_key"},
-        {"label": "GUID", "name": "tool_consumer_instance_guid"},
-        {"label": "Deployment ID", "name": "deployment_id"},
+        {"label": "Created", "name": "created"},
         {"label": "Last Launched", "name": "last_launched"},
+        {"label": "Product Family", "name": "tool_consumer_info_product_family_code"},
+        {"label": "Email", "name": "requesters_email"},
+        {"label": "LMS URL", "name": "lms_url"},
     ]
 ) }}
 {% endmacro %}
