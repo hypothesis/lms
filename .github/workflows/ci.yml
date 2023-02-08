@@ -13,30 +13,8 @@ on:
   workflow_call:
 
 jobs:
-  metadata:
-    name: Metadata
-    runs-on: ubuntu-latest
-    outputs:
-      python_headline_version: ${{ steps.list-python-versions.outputs.python_headline_version }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-
-      - name: List Python versions
-        id: list-python-versions
-        run: |
-          pip install hdev
-          echo "::set-output name=python_headline_version::`hdev python_version --style plain --first`"
-
   backend:
     name: Backend
-    needs: metadata
     runs-on: ubuntu-latest
 
     services:
@@ -48,19 +26,19 @@ jobs:
       TOX_PARALLEL_NO_SPINNER: 1
 
     steps:
+    - name: Checkout git repo
+      uses: actions/checkout@v3
+
     - name: Setup python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: ${{ needs.metadata.outputs.python_headline_version }}
+        python-version-file: '.python-version'
 
     - name: Update pip
       run: python -m pip install --upgrade pip
 
     - name: Install tox
       run: python -m pip install 'tox<4'
-
-    - name: Checkout git repo
-      uses: actions/checkout@v2
 
     - name: Create test databases
       run: |
@@ -69,7 +47,7 @@ jobs:
         psql -U postgres -h localhost -p 5433 -c 'CREATE DATABASE lms_bddtests'
 
     - name: Cache the .tox dir
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: .tox
         key: ${{ runner.os }}-tox-${{ hashFiles('tox.ini') }}-${{ hashFiles('requirements/*') }}-${{ hashFiles('setup.py') }}-${{ hashFiles('setup.cfg') }}
@@ -77,7 +55,7 @@ jobs:
           ${{ runner.os }}-tox-
 
     - name: Cache the node_modules dir
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: node_modules
         key: ${{ runner.os }}-node_modules-${{ hashFiles('yarn.lock') }}
@@ -96,10 +74,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Cache the node_modules dir
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: node_modules
         key: ${{ runner.os }}-node_modules-${{ hashFiles('yarn.lock') }}
