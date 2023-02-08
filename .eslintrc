@@ -34,8 +34,8 @@
     "@typescript-eslint/consistent-type-imports": "error",
   },
   "overrides": [
-    // Additional rules that require type information, and thus can only
-    // run on a subset of the linted code.
+    // Additional rules that require type information. These can only be run
+    // on files included in the TS project by tsconfig.json.
     {
       "files": "lms/static/scripts/frontend_apps/**/*.{js,ts,tsx}",
       "excludedFiles": ["**/test/*.js"],
