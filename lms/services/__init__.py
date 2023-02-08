@@ -115,3 +115,14 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.d2l_api.d2l_api_client_factory", iface=D2LAPIClient
     )
+
+    # Plugins are not the same as top level services but we want to register them as pyramid services too
+    # Importing them here to:
+    # - Don't pollute the lms.services namespace
+    # - Ease some circular-dependency problems
+    # pylint:disable=import-outside-toplevel
+    from lms.product.plugin.course_copy import CourseCopyFilesHelper
+
+    config.register_service_factory(
+        CourseCopyFilesHelper.factory, iface=CourseCopyFilesHelper
+    )

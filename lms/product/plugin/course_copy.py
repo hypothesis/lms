@@ -8,20 +8,21 @@ from lms.services.file import FileService
 class CourseCopyFilesHelper:
     """Helper class to abstract common behaviour around LMS file / course copy."""
 
-    @staticmethod
-    def is_file_in_course(file_service: FileService, course_id, file_id, type_) -> bool:
+    def __init__(self, file_service: FileService):
+        self._file_service = file_service
+
+    def is_file_in_course(self, course_id, file_id, type_) -> bool:
         """Check if `file_id` belongs to `course_id`."""
 
-        file = file_service.get(lms_id=file_id, type_=type_)
+        file = self._file_service.get(lms_id=file_id, type_=type_)
         if not file or file.course_id != course_id:
             return False
 
         return True
 
-    @staticmethod
     def find_matching_file_in_course(
+        self,
         store_new_course_files: Callable[[str], None],
-        file_service: FileService,
         file_type: str,
         original_file_id,
         new_course_id,
@@ -41,7 +42,7 @@ class CourseCopyFilesHelper:
             pass
 
         # We get the original file record from the DB
-        file = file_service.get(original_file_id, type_=file_type)
+        file = self._file_service.get(original_file_id, type_=file_type)
         if not file:
             # That file must have been recorded when the original assignment was configured.
             # If we can't find that one something odd is going on, stop here.
@@ -51,7 +52,7 @@ class CourseCopyFilesHelper:
         # We might have a record of this because we just called `_store_new_course_files` as the current user
         # or another user might have done it before for us.
 
-        if new_file := file_service.find_copied_file(new_course_id, file):
+        if new_file := self._file_service.find_copied_file(new_course_id, file):
             # We found the equivalent file in the new course
             return new_file
 
@@ -75,6 +76,10 @@ class CourseCopyFilesHelper:
         course.extra.setdefault("course_copy_file_mappings", {})[
             old_file_id
         ] = new_file_id
+
+    @classmethod
+    def factory(cls, _context, request):
+        return cls(request.find_service(name="file"))
 
 
 class CourseCopyPlugin:  # pragma: nocover
