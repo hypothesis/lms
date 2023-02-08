@@ -1,7 +1,13 @@
-import { Icon, IconButton } from '@hypothesis/frontend-shared';
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  IconButton,
+  InputGroup,
+  Select,
+} from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 
-type Student = {
+export type Student = {
   displayName: string;
 };
 
@@ -15,7 +21,7 @@ export type StudentSelectorProps = {
 };
 
 /**
- * A student navigation tool which shows a student selection list and a previous and next button.
+ * A drop-down control that allows selecting a student from a list of students.
  */
 export default function StudentSelector({
   onSelectStudent,
@@ -29,72 +35,12 @@ export default function StudentSelector({
   // indicating the "All Students" choice is selected.
   const hasPrevView = selectedStudentIndex >= 0;
 
-  /**
-   * Select the next student index in the list.
-   */
   const onNextView = () => {
     onSelectStudent(selectedStudentIndex + 1);
   };
-  /**
-   * Select the previous student index in the list. The 0 index
-   * represents "All Students."
-   */
+
   const onPrevView = () => {
     onSelectStudent(selectedStudentIndex - 1);
-  };
-
-  /**
-   * Build the <select> list from the current array of students.
-   */
-  const buildStudentList = () => {
-    const options = students.map((student, i) => (
-      <option
-        key={`student-${i}`}
-        selected={selectedStudentIndex === i}
-        value={i}
-      >
-        {student.displayName}
-      </option>
-    ));
-    options.unshift(
-      <option
-        key={'all-students'}
-        selected={selectedStudentIndex === -1}
-        value={-1}
-      >
-        All Students
-      </option>
-    );
-
-    return (
-      <span className="relative">
-        {/*
-        This lint issue may have arisen from browser inconsistency issues with
-        `onChange` which have since been fixed. See browser compatibility note here:
-        https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/change_event#annotations:xeC6ClQsEequhUdih2lXzw
-        */}
-        {/* eslint-disable-next-line jsx-a11y/no-onchange*/}
-        <select
-          aria-label="Select student"
-          className={classnames(
-            'appearance-none w-full h-touch-minimum',
-            'pl-4 pr-8', // Make room on right for custom down-caret Icon
-            'xl:w-80', // Fix the width at wider viewports
-            'focus-visible-ring ring-inset',
-            'border border-r-0 border-l-0' // left and right borders off
-          )}
-          onChange={e => {
-            onSelectStudent(parseInt((e.target as HTMLInputElement).value));
-          }}
-        >
-          {options}
-        </select>
-        <Icon
-          classes="absolute top-0.5 right-3 pointer-events-none text-grey-4"
-          name="caretDown"
-        />{' '}
-      </span>
-    );
   };
 
   return (
@@ -121,35 +67,52 @@ export default function StudentSelector({
           <span>{`${students.length} Students`}</span>
         )}
       </label>
-      <div className="flex flex-row">
-        <IconButton
-          classes={classnames(
-            'px-3',
-            // IconButton styling sets a border radius. Turn it off on the
-            // right for better alignment with the select element
-            'rounded-r-none',
-            'focus-visible-ring ring-inset'
-          )}
-          icon="arrowLeft"
-          title="previous student"
-          disabled={!hasPrevView}
-          onClick={onPrevView}
-          variant="dark"
-        />
-        <div className="w-full">{buildStudentList()}</div>
-        <IconButton
-          classes={classnames(
-            'px-3',
-            // Turn off border radius on left for better alignment with select
-            'rounded-l-none',
-            'focus-visible-ring ring-inset'
-          )}
-          icon="arrowRight"
-          title="next student"
-          disabled={!hasNextView}
-          onClick={onNextView}
-          variant="dark"
-        />
+      {/**
+       * This <div> is needed as a container because InputGroup establishes a
+       * new flex layout. This ensures that this <div>'s contents amount to a
+       * single flex-child of the outermost <div> here.
+       */}
+      <div>
+        <InputGroup>
+          <IconButton
+            icon={ArrowLeftIcon}
+            title="Previous student"
+            disabled={!hasPrevView}
+            onClick={onPrevView}
+            variant="dark"
+          />
+          <Select
+            aria-label="Select student"
+            classes="xl:w-80"
+            onChange={e => {
+              onSelectStudent(parseInt((e.target as HTMLInputElement).value));
+            }}
+          >
+            <option
+              key={'all-students'}
+              selected={selectedStudentIndex === -1}
+              value={-1}
+            >
+              All Students
+            </option>
+            {students.map((student, i) => (
+              <option
+                key={`student-${i}`}
+                selected={selectedStudentIndex === i}
+                value={i}
+              >
+                {student.displayName}
+              </option>
+            ))}
+          </Select>
+          <IconButton
+            icon={ArrowRightIcon}
+            title="Next student"
+            disabled={!hasNextView}
+            onClick={onNextView}
+            variant="dark"
+          />
+        </InputGroup>
       </div>
     </div>
   );
