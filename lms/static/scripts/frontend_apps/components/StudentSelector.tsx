@@ -1,30 +1,27 @@
 import { Icon, IconButton } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 
-/**
- * @typedef Student
- * @prop {string} displayName
- */
+type Student = {
+  displayName: string;
+};
 
-/**
- * @typedef StudentSelectorProps
- * @prop {(index: number) => void} onSelectStudent -
- *   Callback invoked when the selected student changes
- * @prop {number} selectedStudentIndex -
- *   Index of selected student in `students` or -1 if no student is selected
- * @prop {Student[]} students - Ordered list of students to display in the drop-down
- */
+export type StudentSelectorProps = {
+  /** Callback invoked when the selected student changes */
+  onSelectStudent: (index: number) => void;
+  /** Index of selected student in `students` or -1 if no student is selected */
+  selectedStudentIndex: number;
+  /** Ordered list of students to display in the drop-down */
+  students: Student[];
+};
 
 /**
  * A student navigation tool which shows a student selection list and a previous and next button.
- *
- * @param {StudentSelectorProps} props
  */
 export default function StudentSelector({
   onSelectStudent,
   selectedStudentIndex,
   students,
-}) {
+}: StudentSelectorProps) {
   // Disable the next button if at the end of the list. The length is equal to
   // the student list plus the default "All Students" option.
   const hasNextView = selectedStudentIndex + 1 < students.length;
@@ -87,9 +84,7 @@ export default function StudentSelector({
             'border border-r-0 border-l-0' // left and right borders off
           )}
           onChange={e => {
-            onSelectStudent(
-              parseInt(/** @type {HTMLInputElement} */ (e.target).value)
-            );
+            onSelectStudent(parseInt((e.target as HTMLInputElement).value));
           }}
         >
           {options}
