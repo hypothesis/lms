@@ -1,15 +1,9 @@
 import classnames from 'classnames';
 import type { ComponentChildren } from 'preact';
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'preact/hooks';
+import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
 import { apiCall } from '../utils/api';
-import { Config } from '../config';
+import { useConfig } from '../config';
 import type { StudentInfo } from '../config';
 import type { ClientRPC } from '../services/client-rpc';
 import StudentSelector from './StudentSelector';
@@ -41,7 +35,7 @@ export default function GradingToolbar({
 }: GradingToolbarProps) {
   const {
     api: { authToken, sync: syncAPICallInfo },
-  } = useContext(Config);
+  } = useConfig();
 
   // No initial current student selected
   const [currentStudentIndex, setCurrentStudentIndex] = useState(-1);

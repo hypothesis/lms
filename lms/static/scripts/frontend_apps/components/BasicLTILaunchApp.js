@@ -1,15 +1,9 @@
 import { FullScreenSpinner } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'preact/hooks';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
-import { Config } from '../config';
+import { useConfig } from '../config';
 import { isAuthorizationError, isLTILaunchServerError } from '../errors';
 import { ClientRPC, useService } from '../services';
 import { apiCall } from '../utils/api';
@@ -59,7 +53,7 @@ export default function BasicLTILaunchApp() {
     // Content URL to show in the iframe.
     viaUrl: viaURL,
     canvas,
-  } = useContext(Config);
+  } = useConfig();
 
   const clientRPC = useService(ClientRPC);
 

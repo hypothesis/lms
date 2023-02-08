@@ -358,11 +358,11 @@ describe('useAPIFetch', () => {
     fakeFetchResult = { data: {}, error: null, isLoading: false };
     fakeUseFetch = sinon.stub().returns(fakeFetchResult);
 
-    const fakeUseContext = sinon.stub();
-    fakeUseContext.withArgs(Config).returns(fakeConfig);
+    const fakeUseConfig = sinon.stub();
+    fakeUseConfig.returns(fakeConfig);
 
     $imports.$mock({
-      'preact/hooks': { useContext: fakeUseContext },
+      '../config': { useConfig: fakeUseConfig },
       './fetch': { useFetch: fakeUseFetch },
     });
 
