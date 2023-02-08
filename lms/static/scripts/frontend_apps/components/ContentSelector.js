@@ -1,7 +1,7 @@
 import { FullScreenSpinner, LabeledButton } from '@hypothesis/frontend-shared';
-import { useContext, useMemo, useState } from 'preact/hooks';
+import { useMemo, useState } from 'preact/hooks';
 
-import { Config } from '../config';
+import { useConfig } from '../config';
 import { PickerCanceledError } from '../errors';
 import { GooglePickerClient } from '../utils/google-picker-client';
 import { OneDrivePickerClient } from '../utils/onedrive-picker-client';
@@ -62,7 +62,7 @@ export default function ContentSelector({
       },
       vitalSource: { enabled: vitalSourceEnabled },
     },
-  } = useContext(Config);
+  } = useConfig(['filePicker']);
 
   const [isLoadingIndicatorVisible, setLoadingIndicatorVisible] =
     useState(false);

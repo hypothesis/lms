@@ -236,7 +236,7 @@ export type ConfigObject = {
   errorDialog?: ErrorDialogConfig;
 
   // Only present in "content-item-selection" mode.
-  filePicker: FilePickerConfig;
+  filePicker?: FilePickerConfig;
 
   // Only present in "oauth2-redirect-error" mode.
   OAuth2RedirectError?: OAuthErrorConfig;
