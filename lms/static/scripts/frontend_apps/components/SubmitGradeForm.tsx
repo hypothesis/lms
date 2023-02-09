@@ -7,6 +7,8 @@ import {
 import classnames from 'classnames';
 import { useEffect, useLayoutEffect, useState, useRef } from 'preact/hooks';
 
+import type { StudentInfo } from '../config';
+import type { ErrorLike } from '../errors';
 import { useService, GradingService } from '../services';
 import { useFetch } from '../utils/fetch';
 import { useUniqueId } from '../utils/hooks';
@@ -20,29 +22,21 @@ import ValidationMessage from './ValidationMessage';
 // back to [0-1] when saving it to the api service.
 const GRADE_MULTIPLIER = 10;
 
-/**
- * @typedef {import('../config').StudentInfo} StudentInfo
- * @typedef {import('../errors').ErrorLike} ErrorLike
- */
-
-/**
- * @typedef SubmitGradeFormProps
- * @prop {StudentInfo|null} student - The student to fetch and submit grades for
- */
+export type SubmitGradeFormProps = {
+  student: StudentInfo | null;
+};
 
 /**
  * A form with a single input field and submit button for an instructor to
  * save a students grade.
- *
- * @param {SubmitGradeFormProps} props
  */
-export default function SubmitGradeForm({ student }) {
+export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
   const [fetchGradeErrorDismissed, setFetchGradeErrorDismissed] =
     useState(false);
   const gradingService = useService(GradingService);
 
   /** @param {StudentInfo} student */
-  const fetchGrade = async student => {
+  const fetchGrade = async (student: StudentInfo) => {
     setFetchGradeErrorDismissed(false);
     const { currentScore = null } = await gradingService.fetchGrade({
       student,
@@ -60,8 +54,8 @@ export default function SubmitGradeForm({ student }) {
   // The following is state for saving the grade
   //
   // If there is an error when submitting a grade?
-  const [submitGradeError, setSubmitGradeError] = useState(
-    /** @type {ErrorLike|null} */ (null)
+  const [submitGradeError, setSubmitGradeError] = useState<ErrorLike | null>(
+    null
   );
   // Is set to true when the grade is being currently posted to the service
   const [gradeSaving, setGradeSaving] = useState(false);
@@ -78,7 +72,7 @@ export default function SubmitGradeForm({ student }) {
   const gradeId = useUniqueId('SubmitGradeForm__grade:');
 
   // Used to handle keyboard input changes for the grade input field.
-  const inputRef = /** @type {{ current: HTMLInputElement }} */ (useRef());
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   // Clear the previous grade saved status when the user changes.
   useEffect(() => {
@@ -86,18 +80,16 @@ export default function SubmitGradeForm({ student }) {
   }, [student]);
 
   useLayoutEffect(() => {
-    inputRef.current.focus();
-    inputRef.current.select();
+    inputRef.current!.focus();
+    inputRef.current!.select();
   }, [grade]);
 
   /**
    * Validate the grade and if it passes, then submit the grade to to `onSubmitGrade`
-   *
-   * @param {Event} event
    */
-  const onSubmitGrade = async event => {
+  const onSubmitGrade = async (event: Event) => {
     event.preventDefault();
-    const value = formatToNumber(inputRef.current.value);
+    const value = formatToNumber(inputRef.current!.value);
     const validationError = validateGrade(value);
 
     if (validationError) {
@@ -107,9 +99,9 @@ export default function SubmitGradeForm({ student }) {
       setGradeSaving(true);
       try {
         await gradingService.submitGrade({
-          student: /** @type {StudentInfo} */ (student),
+          student: student as StudentInfo,
           // nb. `value` will be a number if there was no validation error.
-          grade: /** @type {number} */ (value) / GRADE_MULTIPLIER,
+          grade: (value as number) / GRADE_MULTIPLIER,
         });
         setGradeSaved(true);
       } catch (e) {
