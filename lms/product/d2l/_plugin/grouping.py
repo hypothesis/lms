@@ -24,8 +24,8 @@ class D2LGroupingPlugin(GroupingPlugin):
         self._d2l_api = d2l_api
         self._api_user_id = api_user_id
 
-    def get_group_sets(self, course_id):
-        return self._d2l_api.course_group_sets(course_id)
+    def get_group_sets(self, course):
+        return self._d2l_api.course_group_sets(course.lms_id)
 
     def get_groups_for_learner(self, _svc, course, group_set_id):
         if learner_groups := self._d2l_api.group_set_groups(

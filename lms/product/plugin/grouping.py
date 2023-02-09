@@ -45,7 +45,7 @@ class GroupingPlugin:
 
         return None
 
-    def get_group_sets(self, course_id) -> List[dict]:  # pragma: nocover
+    def get_group_sets(self, course) -> List[dict]:  # pragma: nocover
         """Return the list of group sets for the given course."""
         return []
 

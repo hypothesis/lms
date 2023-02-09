@@ -49,11 +49,11 @@ class TestCanvasGroupingPlugin:
 
         assert api_groups == [{"id": 1}]
 
-    def test_get_group_sets(self, plugin, canvas_api_client):
-        api_group_sets = plugin.get_group_sets(sentinel.course_id)
+    def test_get_group_sets(self, plugin, canvas_api_client, course):
+        api_group_sets = plugin.get_group_sets(course)
 
         canvas_api_client.course_group_categories.assert_called_once_with(
-            sentinel.course_id
+            sentinel.canvas_course_id
         )
         assert api_group_sets == canvas_api_client.course_group_categories.return_value
 
