@@ -14,6 +14,9 @@ def _grouping_factory(model_class, lms_name, parent=None):
         lms_id=factory.Faker("hexify", text="^" * 40),
         lms_name=lms_name,
         parent=parent,
+        # The SQLA model provides these as server_default
+        settings={},
+        extra={},
     )
 
 

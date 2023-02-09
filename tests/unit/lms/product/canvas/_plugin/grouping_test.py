@@ -1,4 +1,4 @@
-from unittest.mock import sentinel
+from unittest.mock import patch, sentinel
 
 import pytest
 
@@ -54,6 +54,9 @@ class TestCanvasGroupingPlugin:
 
         canvas_api_client.course_group_categories.assert_called_once_with(
             sentinel.canvas_course_id
+        )
+        course.set_group_sets.assert_called_once_with(
+            canvas_api_client.course_group_categories.return_value
         )
         assert api_group_sets == canvas_api_client.course_group_categories.return_value
 
@@ -192,9 +195,12 @@ class TestCanvasGroupingPlugin:
 
     @pytest.fixture
     def course(self):
-        return factories.Course(
+        course = factories.Course(
             extra={"canvas": {"custom_canvas_course_id": sentinel.canvas_course_id}}
         )
+
+        with patch.object(course, "set_group_sets"):
+            yield course
 
     @pytest.fixture
     def plugin(self, canvas_api_client):

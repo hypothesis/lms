@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import List
 
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
@@ -159,6 +160,22 @@ class D2LGroup(Grouping):
 
 class Course(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.COURSE}
+
+    def set_group_sets(self, group_sets: List[dict]):
+        """
+        Store this course's available group sets.
+
+        We keep record of these for bookkeeping and as the basics to
+        dealt with groups while doing course copy.
+        """
+        # Different LMS might return additional fields but we only interested in the ID and the name.
+        # We explicitly cast ID to string to homogenise the data in all LMS's.
+        group_sets = [{"id": str(g["id"]), "name": g["name"]} for g in group_sets]
+        self.extra["group_sets"] = group_sets
+
+    def get_group_sets(self) -> List[dict]:
+        """Get this course's available group sets."""
+        return self.extra.get("group_sets", [])
 
     def get_mapped_file_id(self, file_id):
         """
