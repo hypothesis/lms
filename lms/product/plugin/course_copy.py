@@ -76,5 +76,5 @@ class CourseCopyPlugin:  # pragma: nocover
     def is_file_in_course(self, course_id, file_id):
         raise NotImplementedError()
 
-    def find_matching_file_in_course(self, *args, **kwargs):
+    def find_matching_file_in_course(self, original_file_id, new_course_id):
         raise NotImplementedError()
