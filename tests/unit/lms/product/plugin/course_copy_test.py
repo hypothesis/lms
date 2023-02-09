@@ -102,30 +102,6 @@ class TestCourseCopyFilesHelper:
             sentinel.original_file_id, type_=sentinel.file_type
         )
 
-    def test_get_mapped_file_empty_extra(self, helper):
-        course = factories.Course(extra={})
-
-        assert helper.get_mapped_file_id(course, "ID") == "ID"
-
-    def test_get_mapped_file_empty_mapping(self, helper):
-        course = factories.Course(extra={"course_copy_file_mappings": {}})
-
-        assert helper.get_mapped_file_id(course, "ID") == "ID"
-
-    def test_get_mapped_file(self, helper):
-        course = factories.Course(
-            extra={"course_copy_file_mappings": {"ID": "OTHER_ID"}}
-        )
-
-        assert helper.get_mapped_file_id(course, "ID") == "OTHER_ID"
-
-    def test_set_mapped_file_id(self, helper):
-        course = factories.Course(extra={})
-
-        helper.set_mapped_file_id(course, "OLD", "NEW")
-
-        assert course.extra["course_copy_file_mappings"]["OLD"] == "NEW"
-
     @pytest.mark.usefixtures("file_service")
     def test_factory(self, pyramid_request):
         plugin = CourseCopyFilesHelper.factory(sentinel.context, pyramid_request)

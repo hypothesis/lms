@@ -38,8 +38,8 @@ def via_url(_context, request):
 
     course = request.find_service(name="course").get_by_context_id(course_id)
 
-    file_id = course_copy_plugin.get_mapped_file_id(
-        course, DOCUMENT_URL_REGEX.search(document_url)["file_id"]
+    file_id = course.get_mapped_file_id(
+        DOCUMENT_URL_REGEX.search(document_url)["file_id"]
     )
     try:
         if request.lti_user.is_instructor:
@@ -57,7 +57,7 @@ def via_url(_context, request):
         public_url = api_client.public_url(course_id, found_file.lms_id)
 
         # Store a mapping so we don't have to re-search next time.
-        course_copy_plugin.set_mapped_file_id(course, file_id, found_file.lms_id)
+        course.set_mapped_file_id(file_id, found_file.lms_id)
 
     access_token = request.find_service(name="oauth2_token").get().access_token
     headers = {"Authorization": f"Bearer {access_token}"}

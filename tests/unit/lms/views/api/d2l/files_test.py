@@ -32,8 +32,8 @@ def test_via_url(
 
     course_service.get_by_context_id.assert_called_once_with("COURSE_ID")
     course = course_service.get_by_context_id.return_value
-    course_copy_plugin.get_mapped_file_id.assert_called_once_with(course, "FILE_ID")
-    file_id = course_copy_plugin.get_mapped_file_id.return_value
+    course.get_mapped_file_id.assert_called_once_with("FILE_ID")
+    file_id = course.get_mapped_file_id.return_value
 
     if is_instructor:
         course_copy_plugin.is_file_in_course.assert_called_once_with(
@@ -41,7 +41,7 @@ def test_via_url(
         )
 
     d2l_api_client.public_url.assert_called_once_with(
-        "COURSE_ID", course_copy_plugin.get_mapped_file_id.return_value
+        "COURSE_ID", course.get_mapped_file_id.return_value
     )
     helpers.via_url.assert_called_once_with(
         pyramid_request,
@@ -67,8 +67,8 @@ def test_it_when_file_not_in_course_fixed_by_course_copy(
 
     course_service.get_by_context_id.assert_called_once_with("COURSE_ID")
     course = course_service.get_by_context_id.return_value
-    course_copy_plugin.get_mapped_file_id.assert_called_once_with(course, "FILE_ID")
-    file_id = course_copy_plugin.get_mapped_file_id.return_value
+    course.get_mapped_file_id.assert_called_once_with("FILE_ID")
+    file_id = course.get_mapped_file_id.return_value
 
     course_copy_plugin.is_file_in_course.assert_called_once_with("COURSE_ID", file_id)
     course_copy_plugin.find_matching_file_in_course.assert_called_once_with(
@@ -76,9 +76,7 @@ def test_it_when_file_not_in_course_fixed_by_course_copy(
     )
     found_file = course_copy_plugin.find_matching_file_in_course.return_value
     d2l_api_client.public_url.assert_called_once_with("COURSE_ID", found_file.lms_id)
-    course_copy_plugin.set_mapped_file_id.assert_called_once_with(
-        course, file_id, found_file.lms_id
-    )
+    course.set_mapped_file_id.assert_called_once_with(file_id, found_file.lms_id)
 
     helpers.via_url.assert_called_once_with(
         pyramid_request,
@@ -103,8 +101,8 @@ def test_it_when_file_not_in_course(
 
     course_service.get_by_context_id.assert_called_once_with("COURSE_ID")
     course = course_service.get_by_context_id.return_value
-    course_copy_plugin.get_mapped_file_id.assert_called_once_with(course, "FILE_ID")
-    file_id = course_copy_plugin.get_mapped_file_id.return_value
+    course.get_mapped_file_id.assert_called_once_with("FILE_ID")
+    file_id = course.get_mapped_file_id.return_value
 
     course_copy_plugin.is_file_in_course.assert_called_once_with("COURSE_ID", file_id)
     course_copy_plugin.find_matching_file_in_course.assert_called_once_with(

@@ -61,22 +61,6 @@ class CourseCopyFilesHelper:
         # or other edge case, for example a file was deleted after course copy or similar.
         return None
 
-    @staticmethod
-    def get_mapped_file_id(course, file_id):
-        """
-        Get a previously mapped file id in course.
-
-        Returns the original `file_id` if no mapped one can be found.
-        """
-        return course.extra.get("course_copy_file_mappings", {}).get(file_id, file_id)
-
-    @staticmethod
-    def set_mapped_file_id(course, old_file_id, new_file_id):
-        """Store the mapping between old_file_id and new_file_id for future launches."""
-        course.extra.setdefault("course_copy_file_mappings", {})[
-            old_file_id
-        ] = new_file_id
-
     @classmethod
     def factory(cls, _context, request):
         return cls(request.find_service(name="file"))
@@ -93,10 +77,4 @@ class CourseCopyPlugin:  # pragma: nocover
         raise NotImplementedError()
 
     def find_matching_file_in_course(self, *args, **kwargs):
-        raise NotImplementedError()
-
-    def get_mapped_file_id(self, *args, **kwargs):
-        raise NotImplementedError()
-
-    def set_mapped_file_id(self, course, old_file_id, new_file_id):
         raise NotImplementedError()

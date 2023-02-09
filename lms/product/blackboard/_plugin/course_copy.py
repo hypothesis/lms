@@ -18,12 +18,6 @@ class BlackboardCourseCopyPlugin:
             self._api.list_all_files, self.file_type, original_file_id, new_course_id
         )
 
-    def get_mapped_file_id(self, course, file_id):
-        return self._files_helper.get_mapped_file_id(course, file_id)
-
-    def set_mapped_file_id(self, course, old_file_id, new_file_id):
-        self._files_helper.set_mapped_file_id(course, old_file_id, new_file_id)
-
     @classmethod
     def factory(cls, _context, request):
         return cls(

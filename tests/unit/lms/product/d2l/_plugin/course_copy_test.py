@@ -33,24 +33,6 @@ class TestD2LCourseCopyPlugin:
             result == course_copy_files_helper.find_matching_file_in_course.return_value
         )
 
-    def test_get_mapped_file_id(self, plugin, course_copy_files_helper):
-        result = plugin.get_mapped_file_id(sentinel.course, sentinel.file_id)
-
-        course_copy_files_helper.get_mapped_file_id.assert_called_once_with(
-            sentinel.course, sentinel.file_id
-        )
-
-        assert result == course_copy_files_helper.get_mapped_file_id.return_value
-
-    def test_set_mapped_file_id(self, plugin, course_copy_files_helper):
-        plugin.set_mapped_file_id(
-            sentinel.course, sentinel.old_file_id, sentinel.new_file_id
-        )
-
-        course_copy_files_helper.set_mapped_file_id.assert_called_once_with(
-            sentinel.course, sentinel.old_file_id, sentinel.new_file_id
-        )
-
     @pytest.mark.usefixtures("d2l_api_client", "course_copy_files_helper")
     def test_factory(self, pyramid_request):
         plugin = D2LCourseCopyPlugin.factory(sentinel.context, pyramid_request)
