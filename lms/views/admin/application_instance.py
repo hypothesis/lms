@@ -255,6 +255,7 @@ class AdminApplicationInstanceViews:
             tool_consumer_instance_guid=self.request.params.get(
                 "tool_consumer_instance_guid"
             ),
+            email=self.request.params.get("email"),
         )
 
         return {"instances": instances}

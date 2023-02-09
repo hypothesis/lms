@@ -288,6 +288,7 @@ class TestAdminApplicationInstanceViews:
             "client_id": "CLIENT_ID",
             "deployment_id": "DEPLOYMENT_ID",
             "tool_consumer_instance_guid": "TOOL_CONSUMER_INSTANCE_GUID",
+            "email": "EMAIL",
         }
 
         response = views.search_callback()
@@ -300,6 +301,7 @@ class TestAdminApplicationInstanceViews:
             client_id="CLIENT_ID",
             deployment_id="DEPLOYMENT_ID",
             tool_consumer_instance_guid="TOOL_CONSUMER_INSTANCE_GUID",
+            email="EMAIL",
         )
         assert response == {
             "instances": application_instance_service.search.return_value
