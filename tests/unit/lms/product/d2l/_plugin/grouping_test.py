@@ -1,4 +1,4 @@
-from unittest.mock import Mock, sentinel
+from unittest.mock import Mock, patch, sentinel
 
 import pytest
 
@@ -14,6 +14,9 @@ class TestD2LGroupingPlugin:
         api_group_sets = plugin.get_group_sets(course)
 
         d2l_api_client.course_group_sets.assert_called_once_with(course.lms_id)
+        course.set_group_sets.assert_called_once_with(
+            d2l_api_client.course_group_sets.return_value
+        )
         assert api_group_sets == d2l_api_client.course_group_sets.return_value
 
     def test_get_groups_for_learner(
@@ -113,4 +116,6 @@ class TestD2LGroupingPlugin:
 
     @pytest.fixture
     def course(self):
-        return factories.Course()
+        course = factories.Course()
+        with patch.object(course, "set_group_sets"):
+            yield course

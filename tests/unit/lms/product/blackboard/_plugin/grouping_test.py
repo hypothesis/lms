@@ -1,4 +1,4 @@
-from unittest.mock import Mock, sentinel
+from unittest.mock import Mock, patch, sentinel
 
 import pytest
 
@@ -14,6 +14,9 @@ class TestBlackboardGroupingPlugin:
         api_group_sets = plugin.get_group_sets(course)
 
         blackboard_api_client.course_group_sets.assert_called_once_with(course.lms_id)
+        course.set_group_sets.assert_called_once_with(
+            blackboard_api_client.course_group_sets.return_value
+        )
         assert api_group_sets == blackboard_api_client.course_group_sets.return_value
 
     def test_get_groups_for_learner(
@@ -112,4 +115,6 @@ class TestBlackboardGroupingPlugin:
 
     @pytest.fixture
     def course(self):
-        return factories.Course()
+        course = factories.Course()
+        with patch.object(course, "set_group_sets"):
+            yield course

@@ -1,6 +1,6 @@
 from enum import Enum
 
-from lms.models import Grouping
+from lms.models import Course, Grouping
 from lms.product.plugin.grouping import GroupError, GroupingPlugin
 from lms.services.exceptions import CanvasAPIError
 
@@ -47,8 +47,12 @@ class CanvasGroupingPlugin(GroupingPlugin):
 
         return [sec for sec in course_sections if sec["id"] in learner_section_ids]
 
-    def get_group_sets(self, course):
-        return self._canvas_api.course_group_categories(self._custom_course_id(course))
+    def get_group_sets(self, course: Course):
+        group_sets = self._canvas_api.course_group_categories(
+            self._custom_course_id(course)
+        )
+        course.set_group_sets(group_sets)
+        return group_sets
 
     def get_groups_for_learner(self, _svc, course, group_set_id):
         # For learners, the groups they belong within the course

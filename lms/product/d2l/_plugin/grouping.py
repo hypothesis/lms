@@ -1,6 +1,6 @@
 from enum import Enum
 
-from lms.models import Grouping
+from lms.models import Course, Grouping
 from lms.product.plugin.grouping import GroupError, GroupingPlugin
 from lms.services import D2LAPIClient
 from lms.services.exceptions import ExternalRequestError
@@ -24,8 +24,10 @@ class D2LGroupingPlugin(GroupingPlugin):
         self._d2l_api = d2l_api
         self._api_user_id = api_user_id
 
-    def get_group_sets(self, course):
-        return self._d2l_api.course_group_sets(course.lms_id)
+    def get_group_sets(self, course: Course):
+        group_sets = self._d2l_api.course_group_sets(course.lms_id)
+        course.set_group_sets(group_sets)
+        return group_sets
 
     def get_groups_for_learner(self, _svc, course, group_set_id):
         if learner_groups := self._d2l_api.group_set_groups(
