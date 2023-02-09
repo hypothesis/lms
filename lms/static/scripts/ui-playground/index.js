@@ -2,6 +2,7 @@
 import { startApp } from '@hypothesis/frontend-shared/lib/pattern-library';
 
 import ErrorComponents from './components/ErrorComponents';
+import ToolbarPage from './components/ToolbarPage';
 
 import lmsIcons from '../frontend_apps/icons.js';
 
@@ -11,6 +12,11 @@ const extraRoutes = [
     route: '/errors',
     title: 'Errors',
     component: ErrorComponents,
+  },
+  {
+    route: '/toolbar',
+    title: 'Toolbar',
+    component: ToolbarPage,
   },
 ];
 
