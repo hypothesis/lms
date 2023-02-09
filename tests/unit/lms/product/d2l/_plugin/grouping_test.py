@@ -10,10 +10,10 @@ from tests import factories
 
 
 class TestD2LGroupingPlugin:
-    def test_get_group_sets(self, plugin, d2l_api_client):
-        api_group_sets = plugin.get_group_sets(sentinel.course_id)
+    def test_get_group_sets(self, plugin, d2l_api_client, course):
+        api_group_sets = plugin.get_group_sets(course)
 
-        d2l_api_client.course_group_sets.assert_called_once_with(sentinel.course_id)
+        d2l_api_client.course_group_sets.assert_called_once_with(course.lms_id)
         assert api_group_sets == d2l_api_client.course_group_sets.return_value
 
     def test_get_groups_for_learner(

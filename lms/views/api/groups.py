@@ -10,6 +10,7 @@ from lms.security import Permissions
     route_name="api.courses.group_sets.list",
 )
 def course_group_sets(_context, request):
-    return request.product.plugin.grouping.get_group_sets(
+    course = request.find_service(name="course").get_by_context_id(
         request.matchdict["course_id"]
     )
+    return request.product.plugin.grouping.get_group_sets(course)
