@@ -1,9 +1,10 @@
 import {
-  FullScreenSpinner,
-  LabeledButton,
+  Button,
+  CheckIcon,
+  Input,
   Spinner,
-} from '@hypothesis/frontend-shared';
-
+  SpinnerOverlay,
+} from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 import { useEffect, useLayoutEffect, useState, useRef } from 'preact/hooks';
 
@@ -28,14 +29,13 @@ export type SubmitGradeFormProps = {
 
 /**
  * A form with a single input field and submit button for an instructor to
- * save a students grade.
+ * save a student's grade.
  */
 export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
   const [fetchGradeErrorDismissed, setFetchGradeErrorDismissed] =
     useState(false);
   const gradingService = useService(GradingService);
 
-  /** @param {StudentInfo} student */
   const fetchGrade = async (student: StudentInfo) => {
     setFetchGradeErrorDismissed(false);
     const { currentScore = null } = await gradingService.fetchGrade({
@@ -150,12 +150,11 @@ export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
                 }}
               />
             )}
-            <input
-              className={classnames(
+            <Input
+              classes={classnames(
                 'w-14 h-touch-minimum text-center',
                 'disabled:opacity-50',
-                'focus-visible-ring ring-inset',
-                'border border-r-0',
+                'border border-r-0 rounded-r-none',
                 {
                   'animate-gradeSubmitSuccess': gradeSaved,
                 }
@@ -163,30 +162,33 @@ export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
               data-testid="grade-input"
               disabled={disabled}
               id={gradeId}
-              ref={inputRef}
+              elementRef={inputRef}
               onInput={handleKeyDown}
-              type="input"
+              type="text"
               defaultValue={grade.data ?? ''}
               key={student ? student.LISResultSourcedId : null}
             />
-            {grade.isLoading && <Spinner classes="u-absolute-centered" />}
+            {grade.isLoading && (
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                <Spinner size="md" />
+              </div>
+            )}
           </span>
 
-          <LabeledButton
-            icon="check"
+          <Button
+            icon={CheckIcon}
             type="submit"
             classes={classnames(
-              'h-touch-minimum border',
-              'disabled:opacity-50 disabled:cursor-default',
-              'focus-visible-ring ring-inset'
+              'h-touch-minimum border rounded-l-none',
+              'disabled:opacity-50'
             )}
             disabled={disabled}
             onClick={onSubmitGrade}
           >
             Submit Grade
-          </LabeledButton>
+          </Button>
         </div>
-        {gradeSaving && <FullScreenSpinner />}
+        {gradeSaving && <SpinnerOverlay />}
       </form>
       {!!submitGradeError && (
         <ErrorModal
