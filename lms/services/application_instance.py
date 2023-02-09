@@ -4,6 +4,7 @@ from functools import lru_cache
 from logging import getLogger
 from typing import List
 
+import sqlalchemy as sa
 from sqlalchemy.exc import NoResultFound
 
 from lms.db import full_text_match
@@ -139,6 +140,7 @@ class ApplicationInstanceService:
         deployment_id=None,
         tool_consumer_instance_guid=None,
         limit=100,
+        email=None,
     ) -> List[ApplicationInstance]:
         """Return the instances that match all of the passed parameters."""
         return (
@@ -150,6 +152,7 @@ class ApplicationInstanceService:
                 client_id=client_id,
                 deployment_id=deployment_id,
                 tool_consumer_instance_guid=tool_consumer_instance_guid,
+                email=email,
             )
             .limit(limit)
             .all()
@@ -165,6 +168,7 @@ class ApplicationInstanceService:
         client_id=None,
         deployment_id=None,
         tool_consumer_instance_guid=None,
+        email=None,
     ):
         """Return a query with the passed parameters applied as filters."""
 
@@ -191,6 +195,19 @@ class ApplicationInstanceService:
             query = query.filter(
                 ApplicationInstance.tool_consumer_instance_guid
                 == tool_consumer_instance_guid
+            )
+
+        if email:
+            query = query.filter(
+                sa.or_(
+                    sa.func.lower(field) == email.lower()
+                    if "@" in email
+                    else field.ilike(f"%@{email}")
+                    for field in (
+                        ApplicationInstance.requesters_email,
+                        ApplicationInstance.tool_consumer_instance_contact_email,
+                    )
+                )
             )
 
         return query

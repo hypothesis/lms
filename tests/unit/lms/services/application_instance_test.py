@@ -217,6 +217,29 @@ class TestApplicationInstanceService:
             assert getattr(instance, field) == getattr(found_instances[0], field)
 
     @pytest.mark.parametrize(
+        "query,expected_names",
+        (
+            ("A@example.com", ["a"]),
+            ("other.example.com", ["b"]),
+            ("example.com", ["a", "c"]),
+        ),
+    )
+    def test_search_by_email(self, service, query, expected_names):
+        factories.ApplicationInstance.create(name="a", requesters_email="A@example.com")
+        factories.ApplicationInstance.create(
+            name="b", requesters_email="B@other.example.com"
+        )
+        factories.ApplicationInstance.create(
+            name="c", tool_consumer_instance_contact_email="C@example.com"
+        )
+
+        instances = service.search(email=query)
+
+        assert [instance.name for instance in instances] == Any.list.containing(
+            expected_names
+        ).only()
+
+    @pytest.mark.parametrize(
         "field",
         (
             "tool_consumer_info_product_family_code",
