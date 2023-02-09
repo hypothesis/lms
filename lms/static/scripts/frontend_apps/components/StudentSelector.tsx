@@ -83,7 +83,7 @@ export default function StudentSelector({
           />
           <Select
             aria-label="Select student"
-            classes="xl:w-80"
+            classes="xl:w-80 h-touch-minimum"
             onChange={e => {
               onSelectStudent(parseInt((e.target as HTMLInputElement).value));
             }}
