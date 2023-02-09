@@ -26,3 +26,27 @@ class TestCourse:
         course = Course(lms_name=name)
 
         assert course.name == expected_result
+
+    def test_get_mapped_file_empty_extra(self):
+        course = factories.Course(extra={})
+
+        assert course.get_mapped_file_id("ID") == "ID"
+
+    def test_get_mapped_file_empty_mapping(self):
+        course = factories.Course(extra={"course_copy_file_mappings": {}})
+
+        assert course.get_mapped_file_id("ID") == "ID"
+
+    def test_get_mapped_file(self):
+        course = factories.Course(
+            extra={"course_copy_file_mappings": {"ID": "OTHER_ID"}}
+        )
+
+        assert course.get_mapped_file_id("ID") == "OTHER_ID"
+
+    def test_set_mapped_file_id(self):
+        course = factories.Course(extra={})
+
+        course.set_mapped_file_id("OLD", "NEW")
+
+        assert course.extra["course_copy_file_mappings"]["OLD"] == "NEW"

@@ -71,8 +71,8 @@ class BlackboardFilesAPIViews:
         course = self.request.find_service(name="course").get_by_context_id(course_id)
 
         document_url = self.request.params["document_url"]
-        file_id = self.course_copy_plugin.get_mapped_file_id(
-            course, DOCUMENT_URL_REGEX.search(document_url)["file_id"]
+        file_id = course.get_mapped_file_id(
+            DOCUMENT_URL_REGEX.search(document_url)["file_id"]
         )
         try:
             if self.request.lti_user.is_instructor:
@@ -95,9 +95,7 @@ class BlackboardFilesAPIViews:
             )
 
             # Store a mapping so we don't have to re-search next time.
-            self.course_copy_plugin.set_mapped_file_id(
-                course, file_id, found_file.lms_id
-            )
+            course.set_mapped_file_id(file_id, found_file.lms_id)
 
         via_url = helpers.via_url(self.request, public_url, content_type="pdf")
         return {"via_url": via_url}
