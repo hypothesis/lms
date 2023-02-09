@@ -39,7 +39,7 @@ describe('SubmitGradeForm', () => {
 
   const fakeValidateGrade = sinon.stub();
   const fakeFormatToNumber = sinon.stub();
-  const inputSelector = '[data-testid="grade-input"]';
+  const inputSelector = 'input[data-testid="grade-input"]';
 
   async function waitForGradeFetch(wrapper) {
     await waitFor(() => {
@@ -85,10 +85,7 @@ describe('SubmitGradeForm', () => {
 
   it("sets the input key to the student's LISResultSourcedId", () => {
     const wrapper = renderForm();
-    assert.equal(
-      wrapper.find(inputSelector).key(),
-      fakeStudent.LISResultSourcedId
-    );
+    assert.equal(wrapper.find('Input').key(), fakeStudent.LISResultSourcedId);
   });
 
   it('clears out the previous grade when changing students', async () => {
@@ -195,7 +192,7 @@ describe('SubmitGradeForm', () => {
     it('shows a loading spinner when submitting a grade', () => {
       const wrapper = renderForm();
       wrapper.find('button[type="submit"]').simulate('click');
-      assert.isTrue(wrapper.find('FullScreenSpinner').exists());
+      assert.isTrue(wrapper.find('SpinnerOverlay').exists());
     });
 
     it('shows the error dialog when the grade request throws an error', async () => {
