@@ -24,10 +24,10 @@ Application instances
         {{ macros.form_text_field(request, "Client ID", "client_id") }}
         {{ macros.form_text_field(request, "Deployment ID", "deployment_id") }}
         {{ macros.form_text_field(request, "GUID", "tool_consumer_instance_guid") }}
+        {{ macros.form_text_field(request, "Email / Domain", "email") }}
         {% call macros.field_body(label="") %}
             <input type="submit" class="button is-info" value="Search" />
         {% endcall %}
-      </div>
     </form>
 </fieldset>
 
