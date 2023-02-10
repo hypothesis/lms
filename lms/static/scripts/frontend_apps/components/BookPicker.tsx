@@ -1,5 +1,5 @@
+import { Button, Modal } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
-import { LabeledButton, Modal } from '@hypothesis/frontend-shared';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
 import type { Book, Chapter } from '../api-types';
@@ -69,43 +69,43 @@ export default function BookPicker({
   const canSubmit =
     (step === 'select-book' && book) || (step === 'select-chapter' && chapter);
 
-  // Provide a spacious modal UI when listing chapters (taller modal)
-  const showChapters = step === 'select-chapter' && !error;
-
   return (
     <Modal
       // Opt out of Modal's automatic focus handling; route focus manually in
       // sub-components
-      initialFocus={null}
-      onCancel={onCancel}
-      contentClass={classnames('LMS-Dialog LMS-Dialog--wide', {
-        'LMS-Dialog--tall': showChapters,
-      })}
+      initialFocus={'manual'}
+      onClose={onCancel}
       title={
         step === 'select-book'
           ? 'Paste link to VitalSource book'
           : 'Pick where to start reading' // "Select a chapter"
       }
-      buttons={[
-        <LabeledButton
-          key="submit"
-          data-testid="select-button"
-          disabled={!canSubmit}
-          onClick={() => {
-            // nb. The `book` and `chapter` checks should be redundant, as the button
-            // should not be clickable if no book/chapter is selected, but they
-            // keep TS happy.
-            if (step === 'select-book' && book) {
-              confirmBook(book);
-            } else if (step === 'select-chapter' && chapter) {
-              confirmChapter(chapter);
-            }
-          }}
-          variant="primary"
-        >
-          {step === 'select-book' ? 'Select book' : 'Select'}
-        </LabeledButton>,
-      ]}
+      width="lg"
+      buttons={
+        <>
+          <Button data-testid="cancel-button" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button
+            key="submit"
+            data-testid="select-button"
+            disabled={!canSubmit}
+            onClick={() => {
+              // nb. The `book` and `chapter` checks should be redundant, as the button
+              // should not be clickable if no book/chapter is selected, but they
+              // keep TS happy.
+              if (step === 'select-book' && book) {
+                confirmBook(book);
+              } else if (step === 'select-chapter' && chapter) {
+                confirmChapter(chapter);
+              }
+            }}
+            variant="primary"
+          >
+            {step === 'select-book' ? 'Select book' : 'Select'}
+          </Button>
+        </>
+      }
     >
       {step === 'select-book' && !error && (
         <BookSelector
@@ -115,13 +115,23 @@ export default function BookPicker({
         />
       )}
       {step === 'select-chapter' && !error && (
-        <ChapterList
-          chapters={chapterList || []}
-          isLoading={!chapterList}
-          selectedChapter={chapter}
-          onSelectChapter={setChapter}
-          onUseChapter={confirmChapter}
-        />
+        <div
+          className={classnames(
+            // Set a preferred height for this content to give it more vertical
+            // room. Max-height rules on the containing Modal will prevent the
+            // Modal from exceeding available viewport space. Overflowing
+            // content will scroll.
+            'min-h-[25rem]'
+          )}
+        >
+          <ChapterList
+            chapters={chapterList || []}
+            isLoading={!chapterList}
+            selectedChapter={chapter}
+            onSelectChapter={setChapter}
+            onUseChapter={confirmChapter}
+          />
+        </div>
       )}
       {error && (
         <ErrorDisplay
