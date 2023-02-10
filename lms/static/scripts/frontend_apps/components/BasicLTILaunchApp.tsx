@@ -1,4 +1,4 @@
-import { FullScreenSpinner } from '@hypothesis/frontend-shared';
+import { SpinnerOverlay } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
@@ -353,7 +353,7 @@ export default function BasicLTILaunchApp() {
 
   return (
     <div className="h-full">
-      {showSpinner && <FullScreenSpinner />}
+      {showSpinner && <SpinnerOverlay />}
       {errorState && (
         <LaunchErrorDialog
           busy={fetchCount > 0}
