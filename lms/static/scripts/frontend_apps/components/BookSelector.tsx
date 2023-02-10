@@ -8,21 +8,27 @@ import {
 
 import { useEffect, useRef, useState } from 'preact/hooks';
 
+import type { Book } from '../api-types';
 import { formatErrorMessage } from '../errors';
 import { useService, VitalSourceService } from '../services';
 import { extractBookID } from '../utils/vitalsource';
 
-/**
- * @typedef {import('../api-types').Book} Book
- *
- * @typedef BookSelectorProps
- * @prop {Book|null} selectedBook - The currently-selected book, if any
- * @prop {(b: Book) => void} onConfirmBook - Callback to confirm a fetched book
- *   and move on to the chapter-selection step. This is subsequent to selecting
- *   a book.
- * @prop {(b: Book|null) => void} onSelectBook - Callback invoked when a book
- *   corresponding to a user-entered VitalSource URL is successfully fetched.
- */
+export type BookSelectorProps = {
+  /** The currently-selected book, if any */
+  selectedBook: Book | null;
+
+  /**
+   * Callback to confirm a fetched book and move on to the chapter-selection
+   * step. This is subsequent to selecting a book.
+   */
+  onConfirmBook: (b: Book) => void;
+
+  /**
+   * Callback invoked when a book corresponding to a user-entered VitalSource
+   * URL is successfully fetched.
+   */
+  onSelectBook: (b: Book | null) => void;
+};
 
 /**
  * Prompt a user to paste a URL to a VitalSource book. The pasted URL is parsed
@@ -37,27 +43,25 @@ export default function BookSelector({
   selectedBook,
   onConfirmBook,
   onSelectBook,
-}) {
+}: BookSelectorProps) {
   const vsService = useService(VitalSourceService);
 
-  const inputRef = /** @type {{ current: HTMLInputElement }} */ (useRef());
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   // is a request in-flight via the vitalsource service?
   const [isLoadingBook, setIsLoadingBook] = useState(false);
 
   // Holds an error message corresponding to client-side validation of the
   // input field or a caught API error
-  const [error, setError] = useState(/** @type {string|null} */ (null));
+  const [error, setError] = useState<string | null>(null);
 
   // The last value of the URL-entry text input
-  const previousURL = useRef(/** @type {string|null} */ (null));
+  const previousURL = useRef<string | null>(null);
 
   /**
    * Fetch a book using a VBID
-   *
-   * @param {string} bookID
    */
-  const fetchBook = async bookID => {
+  const fetchBook = async (bookID: string) => {
     if (isLoadingBook) {
       return;
     }
@@ -86,11 +90,9 @@ export default function BookSelector({
    *
    * This is used to allow subsequent "Enter" to submit a book that has been
    * selected/fetched already.
-   *
-   * @param {boolean} [confirmSelectedBook=false]
    */
   const onUpdateURL = (confirmSelectedBook = false) => {
-    const url = inputRef.current.value;
+    const url = inputRef.current!.value;
     if (url && url === previousURL.current) {
       if (selectedBook && confirmSelectedBook) {
         onConfirmBook(selectedBook);
@@ -124,7 +126,7 @@ export default function BookSelector({
 
   useEffect(() => {
     // Focus the input field when the component is first rendered
-    inputRef.current.focus();
+    inputRef.current!.focus();
     // We only want to run this effect once.
     //
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -135,9 +137,8 @@ export default function BookSelector({
    * If "Enter" is pressed and there is already a valid, fetched book, and no
    * changes to the URL entered in the text input, "confirm" the book selection
    * and move to the select-chapter step.
-   *
-   * @param {KeyboardEvent} event */
-  const onKeyDown = event => {
+   */
+  const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'Enter') {
       onUpdateURL(true /* confirmSelectedBook */);
       event.preventDefault();
