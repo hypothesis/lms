@@ -27,7 +27,7 @@ describe('ChapterList', () => {
 
   it('renders chapter titles', () => {
     const chapterList = renderChapterList();
-    const rows = chapterList.find('tbody > tr');
+    const rows = chapterList.find('tbody tr');
     assert.equal(rows.length, chapterData.length);
     assert.equal(rows.at(0).find('td').at(0).text(), chapterData[0].title);
     assert.equal(rows.at(0).find('td').at(1).text(), chapterData[0].page);
@@ -36,7 +36,7 @@ describe('ChapterList', () => {
   [true, false].forEach(isLoading => {
     it('shows loading indicator in table if chapters are being fetched', () => {
       const chapterList = renderChapterList({ isLoading });
-      assert.equal(chapterList.find('Table').prop('isLoading'), isLoading);
+      assert.equal(chapterList.find('DataTable').prop('loading'), isLoading);
     });
   });
 
@@ -44,7 +44,7 @@ describe('ChapterList', () => {
     const onSelectChapter = sinon.stub();
     const chapterList = renderChapterList({ onSelectChapter });
 
-    chapterList.find('Table').prop('onSelectItem')(chapterData[0]);
+    chapterList.find('DataTable').prop('onSelectRow')(chapterData[0]);
 
     assert.calledWith(onSelectChapter, chapterData[0]);
   });
@@ -53,7 +53,7 @@ describe('ChapterList', () => {
     const onUseChapter = sinon.stub();
     const chapterList = renderChapterList({ onUseChapter });
 
-    chapterList.find('Table').prop('onUseItem')(chapterData[0]);
+    chapterList.find('DataTable').prop('onConfirmRow')(chapterData[0]);
 
     assert.calledWith(onUseChapter, chapterData[0]);
   });

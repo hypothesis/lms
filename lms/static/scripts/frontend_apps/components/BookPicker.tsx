@@ -70,10 +70,16 @@ export default function BookPicker({
 
   return (
     <Modal
+      classes={classnames(
+        // Set a fix height when selecting a chapter so the modal content
+        // doesn't resize after loading.
+        { 'h-[25rem]': step === 'select-chapter' }
+      )}
       // Opt out of Modal's automatic focus handling; route focus manually in
       // sub-components
       initialFocus={'manual'}
       onClose={onCancel}
+      scrollable={false}
       title={
         step === 'select-book'
           ? 'Paste link to VitalSource book'
@@ -114,23 +120,13 @@ export default function BookPicker({
         />
       )}
       {step === 'select-chapter' && !error && (
-        <div
-          className={classnames(
-            // Set a preferred height for this content to give it more vertical
-            // room. Max-height rules on the containing Modal will prevent the
-            // Modal from exceeding available viewport space. Overflowing
-            // content will scroll.
-            'min-h-[25rem]'
-          )}
-        >
-          <ChapterList
-            chapters={chapterList || []}
-            isLoading={!chapterList}
-            selectedChapter={chapter}
-            onSelectChapter={setChapter}
-            onUseChapter={confirmChapter}
-          />
-        </div>
+        <ChapterList
+          chapters={chapterList || []}
+          isLoading={!chapterList}
+          selectedChapter={chapter}
+          onSelectChapter={setChapter}
+          onUseChapter={confirmChapter}
+        />
       )}
       {error && (
         <ErrorDisplay
