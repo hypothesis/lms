@@ -56,7 +56,8 @@ describe('BookSelector', () => {
     $imports.$restore();
   });
 
-  const getInput = wrapper => wrapper.find('TextInput').find('input');
+  const getInput = wrapper =>
+    wrapper.find('input[data-testid="vitalsource-input"]');
 
   // Set the value of the input field but do not fire any events
   const setURL = (wrapper, url) => {
@@ -199,7 +200,7 @@ describe('BookSelector', () => {
         errorMessage.text(),
         "That doesn't look like a VitalSource book link"
       );
-      assert.isTrue(errorMessage.find('Icon[name="cancel"]').exists());
+      assert.isTrue(errorMessage.find('CancelIcon').exists());
     });
   });
 
@@ -258,9 +259,9 @@ describe('BookSelector', () => {
 
       updateURL(wrapper, 'a valid URL');
 
-      assert.isTrue(wrapper.find('Thumbnail').props().isLoading);
+      assert.isTrue(wrapper.find('Thumbnail').props().loading);
 
-      await waitForElement(wrapper, 'Thumbnail[isLoading=false]');
+      await waitForElement(wrapper, 'Thumbnail[loading=false]');
     });
 
     context('a book has been loaded and selected', () => {
@@ -273,7 +274,7 @@ describe('BookSelector', () => {
 
         assert.isTrue(wrapper.find('Thumbnail img').exists());
         assert.include(selectedBook.text(), 'Book One');
-        assert.isTrue(selectedBook.find('Icon[name="check"]').exists());
+        assert.isTrue(selectedBook.find('CheckIcon').exists());
       });
     });
 
