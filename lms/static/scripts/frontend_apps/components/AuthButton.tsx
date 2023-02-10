@@ -1,4 +1,4 @@
-import { LabeledButton } from '@hypothesis/frontend-shared';
+import { Button } from '@hypothesis/frontend-shared/lib/next';
 import { useCallback, useEffect, useRef } from 'preact/hooks';
 
 import AuthWindow from '../utils/AuthWindow';
@@ -61,8 +61,8 @@ export default function AuthButton({
   }, []);
 
   return (
-    <LabeledButton onClick={authorize} variant="primary">
+    <Button data-testid="auth-button" onClick={authorize} variant="primary">
       {label}
-    </LabeledButton>
+    </Button>
   );
 }
