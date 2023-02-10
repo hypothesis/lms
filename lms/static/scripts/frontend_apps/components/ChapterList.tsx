@@ -1,4 +1,4 @@
-import { Table } from '@hypothesis/frontend-shared';
+import { DataTable, Scroll } from '@hypothesis/frontend-shared/lib/next';
 
 import type { Chapter } from '../api-types';
 
@@ -31,29 +31,26 @@ export default function ChapterList({
   const columns = [
     {
       label: 'Title',
+      field: 'title',
     },
     {
       label: 'Location',
+      field: 'page',
       classes: 'w-32',
     },
   ];
 
   return (
-    <Table
-      accessibleLabel="Table of Contents"
-      classes="ChapterList"
-      tableHeaders={columns}
-      isLoading={isLoading}
-      items={chapters}
-      onSelectItem={onSelectChapter}
-      onUseItem={onUseChapter}
-      selectedItem={selectedChapter}
-      renderItem={chapter => (
-        <>
-          <td aria-label={chapter.title}>{chapter.title}</td>
-          <td>{chapter.page}</td>
-        </>
-      )}
-    />
+    <Scroll>
+      <DataTable
+        title="Table of Contents"
+        columns={columns}
+        loading={isLoading}
+        rows={chapters}
+        onSelectRow={onSelectChapter}
+        onConfirmRow={onUseChapter}
+        selectedRow={selectedChapter}
+      />
+    </Scroll>
   );
 }
