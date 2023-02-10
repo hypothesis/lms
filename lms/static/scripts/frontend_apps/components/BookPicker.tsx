@@ -1,24 +1,19 @@
 import classnames from 'classnames';
-
 import { LabeledButton, Modal } from '@hypothesis/frontend-shared';
-
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
+import type { Book, Chapter } from '../api-types';
 import { useService, VitalSourceService } from '../services';
 
 import BookSelector from './BookSelector';
 import ChapterList from './ChapterList';
 import ErrorDisplay from './ErrorDisplay';
 
-/**
- * @typedef {import('../api-types').Chapter} Chapter
- * @typedef {import('../api-types').Book} Book
- *
- * @typedef BookPickerProps
- * @prop {() => void} onCancel
- * @prop {(b: Book, c: Chapter) => void} onSelectBook - Callback invoked when
- *   a book and chapter have been selected
- */
+export type BookPickerProps = {
+  onCancel: () => void;
+  /** Callback invoked when both a book and chapter have been selected */
+  onSelectBook: (b: Book, c: Chapter) => void;
+};
 
 /**
  * A dialog that allows the user to select a book and chapter to use in an assignment.
@@ -33,40 +28,37 @@ import ErrorDisplay from './ErrorDisplay';
  * Note: The component logic is consistent about using the terminology of
  * "chapter" for content segments in a VitalSource eBook, but presents this
  * to the user as "location" and other slightly less precise language.
- *
- * @param {BookPickerProps} props
  */
-export default function BookPicker({ onCancel, onSelectBook }) {
+export default function BookPicker({
+  onCancel,
+  onSelectBook,
+}: BookPickerProps) {
   const vsService = useService(VitalSourceService);
 
-  const [chapterList, setChapterList] = useState(
-    /** @type {Chapter[]|null} */ (null)
+  const [chapterList, setChapterList] = useState<Chapter[] | null>(null);
+  const [book, setBook] = useState<Book | null>(null);
+  const [chapter, setChapter] = useState<Chapter | null>(null);
+  const [step, setStep] = useState<'select-book' | 'select-chapter'>(
+    'select-book'
   );
-  const [book, setBook] = useState(/** @type {Book|null} */ (null));
-  const [chapter, setChapter] = useState(/** @type {Chapter|null} */ (null));
-  const [step, setStep] = useState(
-    /** @type {'select-book'|'select-chapter'} */ ('select-book')
-  );
-  const [error, setError] = useState(/** @type {Error|null} */ (null));
+  const [error, setError] = useState<Error | null>(null);
 
-  /** @type {(b: Book) => void} */
-  const confirmBook = useCallback(book => {
+  const confirmBook = useCallback((book: Book) => {
     setBook(book);
     setChapterList(null);
     setStep('select-chapter');
   }, []);
 
-  /** @type {(c: Chapter) => void} */
   const confirmChapter = useCallback(
-    chapter => {
-      onSelectBook(/** @type {Book} */ (book), chapter);
+    (chapter: Chapter) => {
+      onSelectBook(book!, chapter);
     },
     [book, onSelectBook]
   );
 
   useEffect(() => {
     if (step === 'select-chapter' && !chapterList) {
-      const currentBook = /** @type {Book} */ (book);
+      const currentBook = book!;
       vsService
         .fetchChapters(currentBook.id)
         .then(setChapterList)
