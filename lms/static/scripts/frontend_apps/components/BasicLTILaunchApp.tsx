@@ -5,7 +5,12 @@ import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
 import { useConfig } from '../config';
 import { isAuthorizationError, isLTILaunchServerError } from '../errors';
+import type { LTILaunchServerErrorCode } from '../errors';
 import { ClientRPC, useService } from '../services';
+import type {
+  AnnotationEventData,
+  AnnotationEventType,
+} from '../services/client-rpc';
 import { apiCall } from '../utils/api';
 import AuthWindow from '../utils/AuthWindow';
 
@@ -20,12 +25,12 @@ import LaunchErrorDialog from './LaunchErrorDialog';
  *
  * Valid error states include several known server-provided error codes as well
  * as some states applicable only to this component and its children.
- *
- * @typedef {'error-authorizing'|
- *           'error-fetching'|
- *           'error-reporting-submission'|
- *           import('../errors').LTILaunchServerErrorCode} ErrorState
  */
+export type ErrorState =
+  | 'error-authorizing'
+  | 'error-fetching'
+  | 'error-reporting-submission'
+  | LTILaunchServerErrorCode;
 
 /**
  * Application displayed when an assignment is launched if the LMS backend
@@ -65,27 +70,25 @@ export default function BasicLTILaunchApp() {
 
   // Indicates what the application was doing when the error indicated by
   // `error` occurred.
-  const [errorState, setErrorState] = useState(
-    /** @type {ErrorState|null} */ (null)
-  );
+  const [errorState, setErrorState] = useState<ErrorState | null>(null);
 
   // The most recent error that occurred when launching the assignment.
-  const [error, setError] = useState(/** @type {Error|null} */ (null));
+  const [error, setError] = useState<Error | null>(null);
 
   // URL to display in the content iframe. This is either available immediately,
   // or otherwise we'll have to make an API call to fetch it.
-  const [contentURL, setContentURL] = useState(viaURL || null);
+  const [contentURL, setContentURL] = useState<string | null>(viaURL || null);
 
   // Count of pending API requests which must complete before the assignment
   // content can be shown.
   const [fetchCount, setFetchCount] = useState(0);
 
   // The authorization URL associated with the most recent failed API call.
-  const [authURL, setAuthURL] = useState(/** @type {string|null} */ (null));
+  const [authURL, setAuthURL] = useState<string | null>(null);
 
   // `AuthWindow` instance, set only when waiting for the user to approve
   // the app's access to the user's files in the LMS.
-  const authWindow = useRef(/** @type {AuthWindow|null} */ (null));
+  const authWindow = useRef<AuthWindow | null>(null);
 
   const contentReady = !!contentURL;
   const showContent = contentReady && !errorState;
@@ -102,13 +105,14 @@ export default function BasicLTILaunchApp() {
   /**
    * Helper to handle thrown errors from from API requests.
    *
-   * @param {Error} error - Error object from request.
-   * @param {ErrorState} state
-   * @param {boolean} [retry=true] - Can the request be retried?
-   * @param {string} [authURL] -
-   *   Authorization URL association with the API request
+   * @param [authURL] - Authorization URL association with the API request
    */
-  const handleError = (error, state, retry = true, authURL) => {
+  const handleError = (
+    error: Error,
+    state: ErrorState,
+    retry = true,
+    authURL?: string
+  ) => {
     // Here we always set the authorization URL, but we could improve UX by
     // not setting it if the problem is not related to authorization (eg.
     // a network fetch error).
@@ -116,7 +120,7 @@ export default function BasicLTILaunchApp() {
 
     if (isLTILaunchServerError(error)) {
       setError(error);
-      setErrorState(/** @type {ErrorState} */ (error.errorCode));
+      setErrorState(error.errorCode as ErrorState);
     } else if (isAuthorizationError(error) && retry) {
       setErrorState('error-authorizing');
     } else {
@@ -217,8 +221,8 @@ export default function BasicLTILaunchApp() {
    * later grading of the assignment.
    */
   const reportSubmission = useCallback(
-    /** @param {string} [submittedAt] - ISO8601 date for the submission */
-    async submittedAt => {
+    /** @param [submittedAt] - ISO8601 date for the submission */
+    async (submittedAt?: string) => {
       // If a teacher launches an assignment or the LMS does not support reporting
       // outcomes or grading is not enabled for the assignment, then no submission
       // URL will be available.
@@ -270,11 +274,10 @@ export default function BasicLTILaunchApp() {
     const unsubscribe = () =>
       clientRPC.off('annotationActivity', onAnnotationActivity);
 
-    /**
-     * @param {import('../services/client-rpc').AnnotationEventType} eventType
-     * @param {import('../services/client-rpc').AnnotationEventData} data
-     */
-    function onAnnotationActivity(eventType, data) {
+    function onAnnotationActivity(
+      eventType: AnnotationEventType,
+      data: AnnotationEventData
+    ) {
       if (
         ['create', 'update'].includes(eventType) &&
         data.annotation.isShared
@@ -314,7 +317,6 @@ export default function BasicLTILaunchApp() {
         setErrorState(null);
       }
     } finally {
-      // @ts-ignore - The `current` field is incorrectly marked as not-nullable.
       authWindow.current = null;
     }
   }, [authToken, authURL, fetchContentURL, fetchGroups]);
