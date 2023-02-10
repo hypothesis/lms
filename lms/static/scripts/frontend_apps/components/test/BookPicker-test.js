@@ -101,9 +101,7 @@ describe('BookPicker', () => {
 
   const clickSelectButton = wrapper => {
     act(() => {
-      wrapper
-        .find('LabeledButton[data-testid="select-button"]')
-        .prop('onClick')();
+      wrapper.find('button[data-testid="select-button"]').prop('onClick')();
     });
     wrapper.update();
   };
@@ -118,13 +116,25 @@ describe('BookPicker', () => {
 
   it('enables submit button when a book is selected', () => {
     const picker = renderBookPicker();
-    const buttonSelector = 'LabeledButton[data-testid="select-button"]';
+    const buttonSelector = 'button[data-testid="select-button"]';
 
     assert.isTrue(picker.find(buttonSelector).props().disabled);
     selectBook(picker);
 
     assert.isFalse(picker.find(buttonSelector).props().disabled);
     assert.equal(picker.find(buttonSelector).text(), 'Select book');
+  });
+
+  it('cancels the dialog when Cancel button clicked', () => {
+    const fakeCancel = sinon.stub();
+    const wrapper = renderBookPicker({ onCancel: fakeCancel });
+
+    act(() => {
+      wrapper.find('button[data-testid="cancel-button"]').simulate('click');
+    });
+    wrapper.update();
+
+    assert.calledOnce(fakeCancel);
   });
 
   it('fetches chapters and renders chapter list when a book is selected', async () => {
@@ -175,12 +185,5 @@ describe('BookPicker', () => {
     );
     assert.equal(errorDisplay.prop('error'), error);
     assert.isFalse(picker.exists('ChapterList'));
-
-    // The modal content should not have the class applied for showing the
-    // list of chapters. That class makes the modal too tall for comfort when
-    // displaying an error
-    const modalContent = picker.find('div[role="dialog"]');
-    assert.isTrue(modalContent.hasClass('LMS-Dialog--wide'));
-    assert.isFalse(modalContent.hasClass('LMS-Dialog--tall'));
   });
 });
