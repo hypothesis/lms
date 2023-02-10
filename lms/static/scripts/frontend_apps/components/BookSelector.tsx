@@ -1,10 +1,13 @@
 import {
-  Icon,
+  ArrowRightIcon,
+  CancelIcon,
+  CheckIcon,
   IconButton,
-  TextInput,
-  TextInputWithButton,
+  InputGroup,
+  Input,
   Thumbnail,
-} from '@hypothesis/frontend-shared';
+} from '@hypothesis/frontend-shared/lib/next';
+import classNames from 'classnames';
 
 import { useEffect, useRef, useState } from 'preact/hooks';
 
@@ -148,45 +151,57 @@ export default function BookSelector({
 
   return (
     <div className="flex flex-row space-x-3">
-      <Thumbnail isLoading={isLoadingBook} classes="w-32 h-40">
-        {selectedBook && (
-          <img
-            alt={`Book cover for ${selectedBook.title}`}
-            src={selectedBook.cover_image}
-            data-testid="cover-image"
-          />
-        )}
-      </Thumbnail>
+      <div className="w-[132px]">
+        <Thumbnail loading={isLoadingBook} ratio="4/5">
+          {selectedBook && (
+            <img
+              alt={`Book cover for ${selectedBook.title}`}
+              className={classNames(
+                // Use `object-fit: contain` instead of default `cover`
+                // This ensures none of the image is cropped
+                // TODO: Remove !-rule when
+                // https://github.com/hypothesis/frontend-shared/issues/842 is
+                // resolved
+                '!object-contain'
+              )}
+              src={selectedBook.cover_image}
+              data-testid="cover-image"
+            />
+          )}
+        </Thumbnail>
+      </div>
       <div className="grow space-y-2">
         <p>
           Paste a link or ISBN for the VitalSource book you&apos;d like to use:
         </p>
 
-        <TextInputWithButton>
-          <TextInput
-            readOnly={isLoadingBook}
+        <InputGroup>
+          <Input
+            aria-label="VitalSource URL or ISBN"
+            data-testid="vitalsource-input"
             hasError={!!error}
-            inputRef={inputRef}
+            elementRef={inputRef}
             name="vitalSourceURL"
             onChange={() => onUpdateURL(false /* confirmSelectedBook */)}
             onKeyDown={onKeyDown}
             placeholder="e.g. https://bookshelf.vitalsource.com/#/books/012345678..."
+            readOnly={isLoadingBook}
             spellcheck={false}
           />
           <IconButton
-            icon="arrowRight"
-            variant="dark"
+            icon={ArrowRightIcon}
             onClick={() => onUpdateURL(false /* confirmSelectedBook */)}
             title="Find book"
+            variant="dark"
           />
-        </TextInputWithButton>
+        </InputGroup>
 
         {selectedBook && (
           <div
             className="flex flex-row items-center space-x-2"
             data-testid="selected-book"
           >
-            <Icon name="check" classes="text-green-success" />
+            <CheckIcon className="text-green-success" />
             <div className="grow font-bold italic">{selectedBook.title}</div>
           </div>
         )}
@@ -196,7 +211,7 @@ export default function BookSelector({
             className="flex flex-row items-center space-x-2 text-red-error"
             data-testid="error-message"
           >
-            <Icon name="cancel" />
+            <CancelIcon />
             <div className="grow">{error}</div>
           </div>
         )}
