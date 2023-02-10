@@ -1,25 +1,25 @@
 import { Table } from '@hypothesis/frontend-shared';
 
-/**
- * @typedef {import('../api-types').Chapter} Chapter
- */
+import type { Chapter } from '../api-types';
 
-/**
- * @typedef ChapterListProps
- * @prop {Chapter[]} chapters - List of available chapters
- * @prop {boolean} [isLoading] - Whether to show a loading indicator
- * @prop {Chapter|null} selectedChapter - The chapter within `chapters` which is currently selected
- * @prop {(c: Chapter) => void} onSelectChapter - Callback invoked when the user selects a chapter
- * @prop {(c: Chapter) => void} onUseChapter -
- *   Callback invoked when user confirms they want to use the selected chapter for
- *   an assignment.
- */
+export type ChapterListProps = {
+  /** List of available chapters */
+  chapters: Chapter[];
+  isLoading?: boolean;
+  /** The Chapter within chapters which is currently selected */
+  selectedChapter: Chapter | null;
+  /** Callback invoked when a user selects a chapter */
+  onSelectChapter: (c: Chapter) => void;
+
+  /**
+   * Callback invoked when user confirms the selected chapter for an assignment
+   */
+  onUseChapter: (c: Chapter) => void;
+};
 
 /**
  * Component that presents a list of chapters from a book and allows the user
  * to choose one for an assignment.
- *
- * @param {ChapterListProps} props
  */
 export default function ChapterList({
   chapters,
@@ -27,7 +27,7 @@ export default function ChapterList({
   selectedChapter,
   onSelectChapter,
   onUseChapter,
-}) {
+}: ChapterListProps) {
   const columns = [
     {
       label: 'Title',
