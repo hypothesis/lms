@@ -21,10 +21,9 @@ describe('AuthorizationModal', () => {
 
   it('provides an authorization button', () => {
     const wrapper = createComponent();
-    const authorizeButton = wrapper.find('LabeledButton');
+    const authorizeButton = wrapper.find('AuthButton');
 
     assert.equal(authorizeButton.length, 1);
-    assert.equal(authorizeButton.text(), 'Authorize');
   });
 
   it('displays a cancel button if onCancel provided', () => {

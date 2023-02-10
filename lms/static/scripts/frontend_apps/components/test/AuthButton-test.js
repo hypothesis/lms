@@ -41,11 +41,15 @@ describe('AuthButton', () => {
     );
   }
 
+  function getButton(wrapper) {
+    return wrapper.find('button[data-testid="auth-button"]');
+  }
+
   it('shows authorization popup when button is clicked', () => {
-    const authButton = createComponent();
+    const wrapper = createComponent();
 
     act(() => {
-      authButton.find('LabeledButton').props().onClick();
+      getButton(wrapper).props().onClick();
     });
 
     assert.calledWith(FakeAuthWindow, { authToken, authUrl: authURL });
@@ -53,15 +57,15 @@ describe('AuthButton', () => {
   });
 
   it('focuses the existing popup if open when button is clicked', () => {
-    const authButton = createComponent();
+    const wrapper = createComponent();
 
     act(() => {
-      authButton.find('LabeledButton').props().onClick();
+      getButton(wrapper).props().onClick();
     });
     assert.notCalled(fakeAuthWindow.focus);
 
     act(() => {
-      authButton.find('LabeledButton').props().onClick();
+      getButton(wrapper).props().onClick();
     });
     assert.called(fakeAuthWindow.focus);
 
@@ -75,27 +79,27 @@ describe('AuthButton', () => {
     const authCompleteCalled = new Promise(
       resolve => (onAuthComplete = resolve)
     );
-    const authButton = createComponent({ onAuthComplete });
+    const wrapper = createComponent({ onAuthComplete });
 
     act(() => {
-      authButton.find('LabeledButton').props().onClick();
+      getButton(wrapper).props().onClick();
     });
 
     return authCompleteCalled;
   });
 
   it('shows custom label', () => {
-    const authButton = createComponent({ label: 'Try again' });
-    assert.equal(authButton.find('LabeledButton').text(), 'Try again');
+    const wrapper = createComponent({ label: 'Try again' });
+    assert.equal(getButton(wrapper).text(), 'Try again');
   });
 
   it('closes the authorization popup when unmounted', () => {
-    const authButton = createComponent();
+    const wrapper = createComponent();
 
     act(() => {
-      authButton.find('LabeledButton').props().onClick();
+      getButton(wrapper).props().onClick();
     });
-    authButton.unmount();
+    wrapper.unmount();
 
     assert.calledOnce(fakeAuthWindow.close);
   });
