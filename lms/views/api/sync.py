@@ -28,7 +28,7 @@ class APISyncSchema(PyramidRequestSchema):
 def sync(request):
     grouping_service = request.find_service(name="grouping")
     course = request.find_service(name="course").get_by_context_id(
-        context_id=request.parsed_params["context_id"]
+        context_id=request.parsed_params["context_id"], raise_on_missing=True
     )
     grading_student_id = request.parsed_params.get("gradingStudentId")
 

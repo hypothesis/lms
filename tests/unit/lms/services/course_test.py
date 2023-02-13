@@ -3,6 +3,7 @@ from unittest.mock import sentinel
 
 import pytest
 from h_matchers import Any
+from sqlalchemy.exc import NoResultFound
 
 from lms.models import CourseGroupsExportedFromH, Grouping
 from lms.services.course import CourseService, course_service_factory
@@ -44,6 +45,10 @@ class TestCourseService:
 
     def test_get_by_context_id_with_no_match(self, svc):
         assert svc.get_by_context_id("NO MATCH") is None
+
+    def test_get_by_context_id_with_no_match_and_raise_on_missing(self, svc):
+        with pytest.raises(NoResultFound):
+            svc.get_by_context_id("NO MATCH", raise_on_missing=True)
 
     def test_upsert_course(self, svc, grouping_service):
         course = svc.upsert_course(

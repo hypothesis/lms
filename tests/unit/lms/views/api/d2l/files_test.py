@@ -30,7 +30,9 @@ def test_via_url(
 
     response = via_url(sentinel.context, pyramid_request)
 
-    course_service.get_by_context_id.assert_called_once_with("COURSE_ID")
+    course_service.get_by_context_id.assert_called_once_with(
+        "COURSE_ID", raise_on_missing=True
+    )
     course = course_service.get_by_context_id.return_value
     course.get_mapped_file_id.assert_called_once_with("FILE_ID")
     file_id = course.get_mapped_file_id.return_value
@@ -65,7 +67,9 @@ def test_it_when_file_not_in_course_fixed_by_course_copy(
 
     response = via_url(sentinel.context, pyramid_request)
 
-    course_service.get_by_context_id.assert_called_once_with("COURSE_ID")
+    course_service.get_by_context_id.assert_called_once_with(
+        "COURSE_ID", raise_on_missing=True
+    )
     course = course_service.get_by_context_id.return_value
     course.get_mapped_file_id.assert_called_once_with("FILE_ID")
     file_id = course.get_mapped_file_id.return_value
@@ -99,7 +103,9 @@ def test_it_when_file_not_in_course(
     with pytest.raises(FileNotFoundInCourse):
         via_url(sentinel.context, pyramid_request)
 
-    course_service.get_by_context_id.assert_called_once_with("COURSE_ID")
+    course_service.get_by_context_id.assert_called_once_with(
+        "COURSE_ID", raise_on_missing=True
+    )
     course = course_service.get_by_context_id.return_value
     course.get_mapped_file_id.assert_called_once_with("FILE_ID")
     file_id = course.get_mapped_file_id.return_value

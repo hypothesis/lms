@@ -68,7 +68,9 @@ class BlackboardFilesAPIViews:
         """Return the Via URL for annotating the given Blackboard file."""
 
         course_id = self.request.matchdict["course_id"]
-        course = self.request.find_service(name="course").get_by_context_id(course_id)
+        course = self.request.find_service(name="course").get_by_context_id(
+            course_id, raise_on_missing=True
+        )
 
         document_url = self.request.params["document_url"]
         file_id = course.get_mapped_file_id(

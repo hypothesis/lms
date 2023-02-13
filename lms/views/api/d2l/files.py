@@ -36,7 +36,9 @@ def via_url(_context, request):
     course_id = request.matchdict["course_id"]
     document_url = request.params["document_url"]
 
-    course = request.find_service(name="course").get_by_context_id(course_id)
+    course = request.find_service(name="course").get_by_context_id(
+        course_id, raise_on_missing=True
+    )
 
     file_id = course.get_mapped_file_id(
         DOCUMENT_URL_REGEX.search(document_url)["file_id"]
