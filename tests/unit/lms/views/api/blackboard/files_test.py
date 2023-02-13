@@ -107,7 +107,9 @@ class TestViaURL:
 
         response = view()
 
-        course_service.get_by_context_id.assert_called_once_with("COURSE_ID")
+        course_service.get_by_context_id.assert_called_once_with(
+            "COURSE_ID", raise_on_missing=True
+        )
         course = course_service.get_by_context_id.return_value
         course.get_mapped_file_id.assert_called_once_with("FILE_ID")
         file_id = course.get_mapped_file_id.return_value
@@ -141,7 +143,9 @@ class TestViaURL:
 
         response = view()
 
-        course_service.get_by_context_id.assert_called_once_with("COURSE_ID")
+        course_service.get_by_context_id.assert_called_once_with(
+            "COURSE_ID", raise_on_missing=True
+        )
         course = course_service.get_by_context_id.return_value
         course.get_mapped_file_id.assert_called_once_with("FILE_ID")
         file_id = course.get_mapped_file_id.return_value
@@ -175,7 +179,9 @@ class TestViaURL:
 
         assert exc_info.value.error_code == "blackboard_file_not_found_in_course"
 
-        course_service.get_by_context_id.assert_called_once_with("COURSE_ID")
+        course_service.get_by_context_id.assert_called_once_with(
+            "COURSE_ID", raise_on_missing=True
+        )
         course = course_service.get_by_context_id.return_value
         course.get_mapped_file_id.assert_called_once_with("FILE_ID")
         file_id = course.get_mapped_file_id.return_value

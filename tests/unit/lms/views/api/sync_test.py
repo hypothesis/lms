@@ -28,7 +28,9 @@ class TestSync:
 
         returned_ids = sync(pyramid_request)
 
-        course_service.get_by_context_id.assert_called_once_with(sentinel.context_id)
+        course_service.get_by_context_id.assert_called_once_with(
+            sentinel.context_id, raise_on_missing=True
+        )
         grouping_method.assert_called_once_with(
             user=pyramid_request.user,
             lti_user=pyramid_request.lti_user,

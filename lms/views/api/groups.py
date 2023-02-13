@@ -11,6 +11,6 @@ from lms.security import Permissions
 )
 def course_group_sets(_context, request):
     course = request.find_service(name="course").get_by_context_id(
-        request.matchdict["course_id"]
+        request.matchdict["course_id"], raise_on_missing=True
     )
     return request.product.plugin.grouping.get_group_sets(course)

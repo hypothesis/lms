@@ -8,7 +8,9 @@ def test_course_group_sets(pyramid_request, grouping_plugin, course_service):
 
     result = course_group_sets(sentinel.context, pyramid_request)
 
-    course_service.get_by_context_id.assert_called_once_with(sentinel.course_id)
+    course_service.get_by_context_id.assert_called_once_with(
+        sentinel.course_id, raise_on_missing=True
+    )
     grouping_plugin.get_group_sets.assert_called_once_with(
         course_service.get_by_context_id.return_value
     )

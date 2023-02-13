@@ -32,21 +32,24 @@ class CourseService:
             .count()
         )
 
-    def get_by_context_id(self, context_id) -> Optional[Course]:
+    def get_by_context_id(self, context_id, raise_on_missing=False) -> Optional[Course]:
         """
         Get a course (if one exists) by the GUID and context id.
 
         :param context_id: The course id from LTI params
-        """
+        :param raise_on_missing: Raise instead of returning None when no match can be found.
 
-        return (
-            self._db.query(Course)
-            .filter_by(
-                application_instance=self._application_instance,
-                authority_provided_id=self._get_authority_provided_id(context_id),
-            )
-            .one_or_none()
+        :raises: sqlalchemy.exc.NoResultFound when `raise_on_missing`=True and no matching course can be found.
+        """
+        query = self._db.query(Course).filter_by(
+            application_instance=self._application_instance,
+            authority_provided_id=self._get_authority_provided_id(context_id),
         )
+
+        if raise_on_missing:
+            return query.one()
+
+        return query.one_or_none()
 
     def upsert_course(self, context_id, name, extra, settings=None) -> Course:
         """
