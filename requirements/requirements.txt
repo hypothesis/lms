@@ -4,7 +4,7 @@
 #
 #    pip-compile --allow-unsafe requirements/requirements.in
 #
-aiohttp==3.8.3
+aiohttp==3.8.4
     # via -r requirements/requirements.in
 aiosignal==1.2.0
     # via aiohttp
