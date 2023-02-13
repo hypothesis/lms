@@ -92,23 +92,18 @@ describe('ContentSelector', () => {
     );
   };
 
-  const isLoadingIndicatorVisible = wrapper =>
-    wrapper.exists('FullScreenSpinner');
+  const isLoadingIndicatorVisible = wrapper => wrapper.exists('SpinnerOverlay');
 
   it('renders Canvas file picker button if Canvas file picker enabled', () => {
     fakeConfig.filePicker.canvas.enabled = true;
     const wrapper = renderContentSelector();
-    assert.isTrue(
-      wrapper.exists('LabeledButton[data-testid="canvas-file-button"]')
-    );
+    assert.isTrue(wrapper.exists('Button[data-testid="canvas-file-button"]'));
   });
 
   it('does not render Canvas file picker button if Canvas file picker not enabled', () => {
     fakeConfig.filePicker.canvas.enabled = false;
     const wrapper = renderContentSelector();
-    assert.isFalse(
-      wrapper.exists('LabeledButton[data-testid="canvas-file-button"]')
-    );
+    assert.isFalse(wrapper.exists('Button[data-testid="canvas-file-button"]'));
   });
 
   it('renders initial form with no dialog visible', () => {
@@ -117,7 +112,7 @@ describe('ContentSelector', () => {
     assert.isFalse(wrapper.exists('LMSFilePicker'));
     assert.isFalse(wrapper.exists('URLPicker'));
     assert.deepEqual(
-      wrapper.find('LabeledButton').map(button => button.prop('data-testid')),
+      wrapper.find('Button').map(button => button.prop('data-testid')),
       [
         'url-button',
         'canvas-file-button',
@@ -133,7 +128,7 @@ describe('ContentSelector', () => {
 
     assert.isFalse(isLoadingIndicatorVisible(wrapper));
 
-    const btn = wrapper.find('LabeledButton[data-testid="url-button"]');
+    const btn = wrapper.find('Button[data-testid="url-button"]');
     interact(wrapper, () => {
       btn.props().onClick();
     });
@@ -186,9 +181,7 @@ describe('ContentSelector', () => {
       it(`shows LMS file dialog when "Select PDF from ${test.name}" is clicked`, () => {
         const wrapper = renderContentSelector();
 
-        const btn = wrapper.find(
-          `LabeledButton[data-testid="${test.buttonTestId}"]`
-        );
+        const btn = wrapper.find(`Button[data-testid="${test.buttonTestId}"]`);
         interact(wrapper, () => {
           btn.props().onClick();
         });
@@ -290,9 +283,7 @@ describe('ContentSelector', () => {
     });
 
     function clickGoogleDriveButton(wrapper) {
-      const btn = wrapper.find(
-        'LabeledButton[data-testid="google-drive-button"]'
-      );
+      const btn = wrapper.find('Button[data-testid="google-drive-button"]');
       interact(wrapper, () => {
         btn.props().onClick();
       });
@@ -306,7 +297,7 @@ describe('ContentSelector', () => {
     it('shows "Select PDF from Google Drive" button if developer key is provided', () => {
       const wrapper = renderContentSelector();
       assert.isTrue(
-        wrapper.exists('LabeledButton[data-testid="google-drive-button"]')
+        wrapper.exists('Button[data-testid="google-drive-button"]')
       );
     });
 
@@ -384,7 +375,7 @@ describe('ContentSelector', () => {
     let picker;
 
     function clickOneDriveButton(wrapper) {
-      const btn = wrapper.find('LabeledButton[data-testid="onedrive-button"]');
+      const btn = wrapper.find('Button[data-testid="onedrive-button"]');
       interact(wrapper, () => {
         btn.props().onClick();
       });
@@ -414,9 +405,7 @@ describe('ContentSelector', () => {
       fakeConfig.filePicker.microsoftOneDrive.enabled = false; // clientId and redirectURI are defined
       const wrapper = renderContentSelector();
 
-      assert.isFalse(
-        wrapper.exists('LabeledButton[data-testid="onedrive-button"]')
-      );
+      assert.isFalse(wrapper.exists('Button[data-testid="onedrive-button"]'));
     });
 
     it('initializes OneDrive Picker client if parameters are provided', () => {
@@ -429,9 +418,7 @@ describe('ContentSelector', () => {
     it('shows the OneDrive button if option is enabled', () => {
       const wrapper = renderContentSelector();
 
-      assert.isTrue(
-        wrapper.exists('LabeledButton[data-testid="onedrive-button"]')
-      );
+      assert.isTrue(wrapper.exists('Button[data-testid="onedrive-button"]'));
     });
 
     it('shows OneDrive Picker when button is clicked', async () => {
@@ -509,9 +496,7 @@ describe('ContentSelector', () => {
     it('renders VitalSource picker button if enabled', () => {
       fakeConfig.filePicker.vitalSource.enabled = true;
       const wrapper = renderContentSelector();
-      assert.isTrue(
-        wrapper.exists('LabeledButton[data-testid="vitalsource-button"]')
-      );
+      assert.isTrue(wrapper.exists('Button[data-testid="vitalsource-button"]'));
     });
 
     it('shows VitalSource book picker when VitalSource button is clicked', () => {
@@ -519,9 +504,7 @@ describe('ContentSelector', () => {
       const onSelectContent = sinon.stub();
       const wrapper = renderContentSelector({ onSelectContent });
 
-      const button = wrapper.find(
-        'LabeledButton[data-testid="vitalsource-button"]'
-      );
+      const button = wrapper.find('Button[data-testid="vitalsource-button"]');
       interact(wrapper, () => {
         button.props().onClick();
       });
@@ -557,9 +540,7 @@ describe('ContentSelector', () => {
     it('renders JSTOR picker button if enabled', () => {
       fakeConfig.filePicker.jstor.enabled = true;
       const wrapper = renderContentSelector();
-      assert.isTrue(
-        wrapper.exists('LabeledButton[data-testid="jstor-button"]')
-      );
+      assert.isTrue(wrapper.exists('Button[data-testid="jstor-button"]'));
     });
 
     it('shows JSTOR picker when JSTOR button is clicked', () => {
@@ -567,7 +548,7 @@ describe('ContentSelector', () => {
       const onSelectContent = sinon.stub();
       const wrapper = renderContentSelector({ onSelectContent });
 
-      const button = wrapper.find('LabeledButton[data-testid="jstor-button"]');
+      const button = wrapper.find('Button[data-testid="jstor-button"]');
       interact(wrapper, () => {
         button.props().onClick();
       });
