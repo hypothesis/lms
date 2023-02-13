@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest import mock
 
 import pytest
@@ -238,6 +238,23 @@ class TestApplicationInstanceService:
         assert [instance.name for instance in instances] == Any.list.containing(
             expected_names
         ).only()
+
+    def test_search_order(self, service):
+        now, before = datetime.now(), datetime.now() - timedelta(hours=1)
+
+        # These are not in the right order on purpose
+        factories.ApplicationInstance.create(name="b", last_launched=before)
+        factories.ApplicationInstance.create(
+            name="d", last_launched=None, updated=before
+        )
+        factories.ApplicationInstance.create(name="c", last_launched=None, updated=now)
+        factories.ApplicationInstance.create(name="a", last_launched=now)
+
+        instances = service.search()
+
+        assert [instance.name for instance in instances] == Any.list.containing(
+            ["a", "b", "c", "d"]
+        )
 
     @pytest.mark.parametrize(
         "field",
