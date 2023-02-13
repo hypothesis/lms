@@ -81,7 +81,7 @@ class AdminApplicationInstanceViews:
 
     @view_config(
         route_name="admin.instance.new",
-        renderer="lms:templates/admin/instance.new.html.jinja2",
+        renderer="lms:templates/admin/application_instance/new.html.jinja2",
     )
     def new_instance_start(self):
         """Show the page to kick off creating a new application instance."""
@@ -141,7 +141,7 @@ class AdminApplicationInstanceViews:
 
     @view_config(
         route_name="admin.instance.upgrade",
-        renderer="lms:templates/admin/instance.upgrade.html.jinja2",
+        renderer="lms:templates/admin/application_instance/upgrade.html.jinja2",
     )
     def upgrade_instance_start(self):
         if lti_registration_id := self.request.params.get("lti_registration_id"):
@@ -230,7 +230,7 @@ class AdminApplicationInstanceViews:
 
     @view_config(
         route_name="admin.instance.search",
-        renderer="lms:templates/admin/instance.search.html.jinja2",
+        renderer="lms:templates/admin/application_instance/search.html.jinja2",
     )
     def search_start(self):
         return {}
@@ -239,7 +239,7 @@ class AdminApplicationInstanceViews:
         route_name="admin.instance.search",
         request_method="POST",
         require_csrf=True,
-        renderer="lms:templates/admin/instance.search.html.jinja2",
+        renderer="lms:templates/admin/application_instance/search.html.jinja2",
     )
     def search_callback(self):
         if flash_validation(self.request, SearchApplicationInstanceSchema):
@@ -262,7 +262,7 @@ class AdminApplicationInstanceViews:
 
     @view_config(
         route_name="admin.instance",
-        renderer="lms:templates/admin/instance.html.jinja2",
+        renderer="lms:templates/admin/application_instance/show.html.jinja2",
     )
     def show_instance(self):
         ai = self._get_ai_or_404(self.request.matchdict["id_"])
