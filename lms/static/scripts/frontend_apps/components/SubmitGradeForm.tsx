@@ -139,7 +139,7 @@ export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
           Grade (Out of 10)
         </label>
         <div className="flex flex-row">
-          <span className="relative">
+          <span className="relative w-14">
             {validationMessage && (
               <ValidationMessage
                 message={validationMessage}
@@ -152,7 +152,7 @@ export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
             )}
             <Input
               classes={classnames(
-                'w-14 h-touch-minimum text-center',
+                'h-touch-minimum text-center',
                 'disabled:opacity-50',
                 'border border-r-0 rounded-r-none',
                 {
