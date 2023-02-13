@@ -15,7 +15,7 @@
 
 {% macro disabled_text_field(label, value) %}
     {% call field_body(label) %}
-        <input class="input" disabled type="text" value="{{value}}">
+        <input class="input" disabled type="text" value="{{ auto_format(value, html=False) }}">
     {% endcall %}
 {% endmacro %}
 
@@ -80,6 +80,24 @@
 {% endmacro %}
 
 
+{#
+    Attempt to guess the correct way to format something by inspecting it.
+    This supports an `html` mode which is good for displaying content inline,
+    and a non-html mode for displaying values in form fields.
+#}
+{%- macro auto_format(value, html=True) -%}
+    {%- if value is none -%}
+        {% if html %}<span style="color:#aaa">-</span>{% else %}{% endif %}
+    {%- elif value.strftime -%}
+        {{ value.strftime('%Y/%m/%d %H:%M') }}
+    {%- elif value.startswith('http') and html -%}
+        <a href="{{ value }}">{{ value }}</a>
+    {%- else -%}
+        {{ value }}
+    {%- endif -%}
+{%- endmacro -%}
+
+
 {% macro object_list_table(request, route, objects, fields) %}
 <div class="container">
     <div class="table-container">
@@ -99,13 +117,7 @@
                     <a class="button" href="{{ request.route_url(route, id_=object.id) }}">View</a>
                   </td>
                   {% for field in fields %}
-                  <td>
-                    {% if object[field.name] is none %}
-                        <span style="color:#aaa">-</span>
-                    {% else %}
-                        {{ object[field.name] }}
-                    {% endif %}
-                  </td>
+                  <td>{{ auto_format(object[field.name]) }}</td>
                   {% endfor %}
                </tr>
             {% endfor %}
