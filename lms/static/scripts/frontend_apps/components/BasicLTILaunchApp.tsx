@@ -327,8 +327,6 @@ export default function BasicLTILaunchApp() {
   if (grading && grading.enabled) {
     contentFrameWrapper = (
       <GradingToolbar
-        clientRPC={clientRPC}
-        students={grading.students}
         courseName={grading.courseName}
         assignmentName={grading.assignmentName}
       >
