@@ -1,6 +1,7 @@
 import { LabeledCheckbox, Link } from '@hypothesis/frontend-shared';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
+import type { GroupSet } from '../api-types';
 import { useConfig } from '../config';
 import { isAuthorizationError, GroupListEmptyError } from '../errors';
 import { apiCall } from '../utils/api';
@@ -10,33 +11,40 @@ import AuthorizationModal from './AuthorizationModal';
 import ErrorModal from './ErrorModal';
 
 /**
- * @typedef {import('../api-types').GroupSet} GroupSet
- */
-
-/**
  * Configuration relating to how students are divided into groups for an
  * assignment.
- *
- * @typedef GroupConfig
- * @prop {boolean} useGroupSet - Whether students are divided into groups based
- *   on a grouping/group set defined in the LMS (the terminology varies depending
- *   on the LMS).
- * @prop {string|null} groupSet - The ID of the grouping to use. This should
- *   be the `id` of a `GroupSet` returned by the LMS backend.
  */
+export type GroupConfig = {
+  /**
+   * Whether students are divided into groups based on a grouping/group set
+   * defined in the LMS (the terminology varies depending on the LMS).
+   */
+  useGroupSet: boolean;
+
+  /**
+   * The ID of the grouping to use. This should be the `id` of a `GroupSet`
+   * returned by the LMS backend.
+   */
+  groupSet: string | null;
+};
+
+type GroupSelectProps = {
+  /** A request for groups is currently in flight */
+  busy: boolean;
+  groupSets: GroupSet[] | null;
+  onInput: (id: string | null) => void;
+  selectedGroupSetId: string | null;
+};
 
 /**
  * Labeled <select> for selecting a group set for an assignment
- *
- * @typedef GroupSelectProps
- * @prop {boolean} busy - A request for groups is currently in flight
- * @prop {GroupSet[]|null} groupSets
- * @prop {(id: string|null) => void} onInput
- * @prop {string|null} selectedGroupSetId
- *
- * @param {GroupSelectProps} props
  */
-function GroupSelect({ busy, groupSets, onInput, selectedGroupSetId }) {
+function GroupSelect({
+  busy,
+  groupSets,
+  onInput,
+  selectedGroupSetId,
+}: GroupSelectProps) {
   const selectId = useUniqueId('GroupSetSelector__select');
 
   return (
@@ -45,8 +53,8 @@ function GroupSelect({ busy, groupSets, onInput, selectedGroupSetId }) {
       <select
         disabled={busy}
         id={selectId}
-        onInput={e =>
-          onInput(/** @type {HTMLInputElement} */ (e.target).value || null)
+        onInput={(e: Event) =>
+          onInput((e.target as HTMLSelectElement | null)?.value || null)
         }
       >
         {busy && <option>Fetching group sets…</option>}
@@ -75,11 +83,8 @@ function GroupSelect({ busy, groupSets, onInput, selectedGroupSetId }) {
 
 /**
  * ErrorModal shown when the fetched list of course group sets is empty
- *
- * @param {object} props
- *   @param {() => void} props.onCancel
  */
-function NoGroupsError({ onCancel }) {
+function NoGroupsError({ onCancel }: { onCancel: () => void }) {
   return (
     <ErrorModal onCancel={onCancel} title="No group sets found">
       <>
@@ -103,11 +108,10 @@ function NoGroupsError({ onCancel }) {
   );
 }
 
-/**
- * @typedef GroupConfigSelectorProps
- * @prop {GroupConfig} groupConfig
- * @prop {(g: GroupConfig) => void} onChangeGroupConfig
- */
+type GroupConfigSelectorProps = {
+  groupConfig: GroupConfig;
+  onChangeGroupConfig: (g: GroupConfig) => void;
+};
 
 /**
  * Component that allows instructors to configure how students are divided into
@@ -125,20 +129,13 @@ function NoGroupsError({ onCancel }) {
  *
  * Other LMSes have similar concepts to a Group Set, although the terminology
  * varies (eg. Moodle has "Groupings").
- *
- * @param {GroupConfigSelectorProps} props
  */
 export default function GroupConfigSelector({
   groupConfig,
   onChangeGroupConfig,
-}) {
-  const [fetchError, setFetchError] = useState(
-    /** @type {Error|null} */ (null)
-  );
-
-  const [groupSets, setGroupSets] = useState(
-    /** @type {GroupSet[]|null} */ (null)
-  );
+}: GroupConfigSelectorProps) {
+  const [fetchError, setFetchError] = useState<Error | null>(null);
+  const [groupSets, setGroupSets] = useState<GroupSet[] | null>(null);
 
   const {
     api: { authToken },
@@ -162,13 +159,11 @@ export default function GroupConfigSelector({
     setFetchError(null);
 
     try {
-      const groupSets = /** @type {GroupSet[]} */ (
-        await apiCall({
-          authToken,
-          path: listGroupSetsAPI.path,
-          data: listGroupSetsAPI.data,
-        })
-      );
+      const groupSets: GroupSet[] = await apiCall({
+        authToken,
+        path: listGroupSetsAPI.path,
+        data: listGroupSetsAPI.data,
+      });
       if (groupSets.length === 0) {
         setFetchError(new GroupListEmptyError());
       } else {
@@ -194,8 +189,7 @@ export default function GroupConfigSelector({
   }, [onChangeGroupConfig]);
 
   const onGroupSelectChange = useCallback(
-    /** @param {string|null} groupSetId */
-    groupSetId => {
+    (groupSetId: string | null) => {
       onChangeGroupConfig({
         useGroupSet,
         groupSet: groupSetId,
@@ -216,7 +210,7 @@ export default function GroupConfigSelector({
     } else if (isAuthorizationError(fetchError)) {
       return (
         <AuthorizationModal
-          authURL={/** @type {string} */ (listGroupSetsAPI.authUrl)}
+          authURL={listGroupSetsAPI.authUrl!}
           authToken={authToken}
           onAuthComplete={fetchGroupSets}
           onCancel={onErrorCancel}
@@ -245,9 +239,9 @@ export default function GroupConfigSelector({
         // The `name` prop is required by LabeledCheckbox but is unimportant
         // as this field is not actually part of the submitted form.
         name="use_group_set"
-        onInput={e =>
+        onInput={(e: Event) =>
           onChangeGroupConfig({
-            useGroupSet: /** @type {HTMLInputElement} */ (e.target).checked,
+            useGroupSet: (e.target as HTMLInputElement).checked,
             groupSet: groupSet ?? null,
           })
         }
