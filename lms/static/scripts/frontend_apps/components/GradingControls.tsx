@@ -1,3 +1,4 @@
+import classnames from 'classnames';
 import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
 import { apiCall } from '../utils/api';
@@ -95,7 +96,7 @@ export default function GradingControls() {
   };
 
   return (
-    <>
+    <div className={classnames('flex flex-col gap-2', 'sm:flex-row')}>
       <div className="flex-grow-0 sm:flex-grow">
         <StudentSelector
           onSelectStudent={onSelectStudent}
@@ -106,6 +107,6 @@ export default function GradingControls() {
       <div className="flex-grow sm:flex-grow-0">
         <SubmitGradeForm student={getCurrentStudent()} />
       </div>
-    </>
+    </div>
   );
 }

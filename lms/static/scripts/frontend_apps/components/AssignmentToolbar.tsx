@@ -43,11 +43,7 @@ export default function AssignmentToolbar({
         </div>
 
         <div
-          className={classnames(
-            'flex flex-col gap-2',
-            'sm:flex-row',
-            'lg:col-span-2 lg:gap-4 ' /* cols 2-3 of 3 */
-          )}
+          className={classnames('lg:col-span-2 lg:gap-4 ' /* cols 2-3 of 3 */)}
         >
           <GradingControls />
         </div>

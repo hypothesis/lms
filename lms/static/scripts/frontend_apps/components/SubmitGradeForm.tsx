@@ -179,7 +179,7 @@ export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
             icon={CheckIcon}
             type="submit"
             classes={classnames(
-              'h-touch-minimum border rounded-l-none',
+              'h-touch-minimum border rounded-l-none ring-inset',
               'disabled:opacity-50'
             )}
             disabled={disabled}
