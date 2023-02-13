@@ -3,7 +3,7 @@ import type { ComponentChildren } from 'preact';
 
 import GradingControls from './GradingControls';
 
-export type GradingToolbarProps = {
+export type AssignmentToolbarProps = {
   /** Iframe element displaying assignment content. */
   children: ComponentChildren;
   courseName: string;
@@ -14,11 +14,11 @@ export type GradingToolbarProps = {
  * Assignment toolbar for instructors. Shows assignment information and grading
  * controls (for gradeable assignments).
  */
-export default function GradingToolbar({
+export default function AssignmentToolbar({
   children,
   assignmentName,
   courseName,
-}: GradingToolbarProps) {
+}: AssignmentToolbarProps) {
   return (
     <>
       <header

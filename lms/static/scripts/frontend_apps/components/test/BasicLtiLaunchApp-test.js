@@ -659,10 +659,10 @@ describe('BasicLTILaunchApp', () => {
       fakeConfig.viaUrl = 'https://via.hypothes.is/123';
     });
 
-    it('renders the GradingToolbar component', () => {
+    it('renders the AssignmentToolbar component', () => {
       const wrapper = renderLTILaunchApp();
-      const GradingToolbar = wrapper.find('GradingToolbar');
-      assert.isTrue(GradingToolbar.exists());
+      const AssignmentToolbar = wrapper.find('AssignmentToolbar');
+      assert.isTrue(AssignmentToolbar.exists());
     });
   });
 

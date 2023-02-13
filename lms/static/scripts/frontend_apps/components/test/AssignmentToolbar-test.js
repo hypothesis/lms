@@ -3,9 +3,9 @@ import { mount } from 'enzyme';
 import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 import { Config } from '../../config';
-import GradingToolbar, { $imports } from '../GradingToolbar';
+import AssignmentToolbar, { $imports } from '../AssignmentToolbar';
 
-describe('GradingToolbar', () => {
+describe('AssignmentToolbar', () => {
   let fakeConfig;
   let fakeStudents;
   let fakeClientRPC;
@@ -43,10 +43,10 @@ describe('GradingToolbar', () => {
     $imports.$restore();
   });
 
-  const renderGrader = (props = {}) => {
+  const renderToolbar = (props = {}) => {
     return mount(
       <Config.Provider value={fakeConfig}>
-        <GradingToolbar
+        <AssignmentToolbar
           students={fakeStudents}
           courseName={'course name'}
           assignmentName={'course assignment'}
@@ -54,13 +54,13 @@ describe('GradingToolbar', () => {
           {...props}
         >
           <div title="The assignment content iframe" />
-        </GradingToolbar>
+        </AssignmentToolbar>
       </Config.Provider>
     );
   };
 
   it('sets the assignment and course names', () => {
-    const wrapper = renderGrader();
+    const wrapper = renderToolbar();
     assert.equal(
       wrapper.find('[data-testid="assignment-name"]').text(),
       'course assignment'
@@ -74,7 +74,7 @@ describe('GradingToolbar', () => {
   it(
     'should pass a11y checks',
     checkAccessibility({
-      content: () => renderGrader(),
+      content: () => renderToolbar(),
     })
   );
 });
