@@ -143,6 +143,7 @@ class ApplicationInstanceService:
         email=None,
     ) -> List[ApplicationInstance]:
         """Return the instances that match all of the passed parameters."""
+
         return (
             self._ai_search_query(
                 id_=id_,
@@ -153,6 +154,10 @@ class ApplicationInstanceService:
                 deployment_id=deployment_id,
                 tool_consumer_instance_guid=tool_consumer_instance_guid,
                 email=email,
+            )
+            .order_by(
+                ApplicationInstance.last_launched.desc().nulls_last(),
+                ApplicationInstance.updated.desc(),
             )
             .limit(limit)
             .all()
