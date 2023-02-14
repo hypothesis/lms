@@ -2,7 +2,11 @@ from unittest import mock
 
 import pytest
 
-from lms.product.plugin.course_copy import CourseCopyFilesHelper, CourseCopyPlugin
+from lms.product.plugin.course_copy import (
+    CourseCopyFilesHelper,
+    CourseCopyGroupsHelper,
+    CourseCopyPlugin,
+)
 from lms.product.plugin.grouping import GroupingPlugin
 from lms.product.plugin.misc import MiscPlugin
 from lms.services import (
@@ -83,6 +87,7 @@ __all__ = (
     "grouping_plugin",
     "course_copy_plugin",
     "course_copy_files_helper",
+    "course_copy_groups_helper",
     "misc_plugin",
 )
 
@@ -308,6 +313,11 @@ def vitalsource_service(mock_service):
 @pytest.fixture
 def course_copy_files_helper(mock_service):
     return mock_service(CourseCopyFilesHelper)
+
+
+@pytest.fixture
+def course_copy_groups_helper(mock_service):
+    return mock_service(CourseCopyGroupsHelper)
 
 
 @pytest.fixture
