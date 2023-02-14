@@ -1,4 +1,4 @@
-import { LabeledCheckbox, Link } from '@hypothesis/frontend-shared';
+import { Checkbox, Link } from '@hypothesis/frontend-shared/lib/next';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
 import type { GroupSet } from '../api-types';
@@ -153,8 +153,6 @@ export default function GroupConfigSelector({
   // non-null response
   const haveFetchedGroups = groupSets !== null;
 
-  const checkboxId = useUniqueId('GroupSetSelector__enabled');
-
   const fetchGroupSets = useCallback(async () => {
     setFetchError(null);
 
@@ -233,12 +231,8 @@ export default function GroupConfigSelector({
 
   return (
     <>
-      <LabeledCheckbox
+      <Checkbox
         checked={useGroupSet}
-        id={checkboxId}
-        // The `name` prop is required by LabeledCheckbox but is unimportant
-        // as this field is not actually part of the submitted form.
-        name="use_group_set"
         onInput={(e: Event) =>
           onChangeGroupConfig({
             useGroupSet: (e.target as HTMLInputElement).checked,
@@ -247,7 +241,7 @@ export default function GroupConfigSelector({
         }
       >
         This is a group assignment
-      </LabeledCheckbox>
+      </Checkbox>
 
       {useGroupSet && (
         <GroupSelect
