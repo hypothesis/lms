@@ -2,7 +2,8 @@ from unittest.mock import Mock, create_autospec, sentinel
 
 import pytest
 
-from lms.product.plugin.course_copy import CourseCopyFilesHelper
+from lms.models import Course
+from lms.product.plugin.course_copy import CourseCopyFilesHelper, CourseCopyGroupsHelper
 from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 from tests import factories
 
@@ -115,3 +116,90 @@ class TestCourseCopyFilesHelper:
     @pytest.fixture
     def store_new_course_files(self):
         return create_autospec(lambda _: None)  # pragma: nocover
+
+
+class TestCourseCopyGroupsHelper:
+    @pytest.mark.parametrize("raising", [True, False])
+    def test_find_matching_file_in_course(
+        self, helper, grouping_plugin, raising, course_service, course
+    ):
+        if raising:
+            grouping_plugin.get_group_sets.side_effect = ExternalRequestError
+
+        new_group_set_id = helper.find_matching_group_set_in_course(
+            course, sentinel.group_set_id
+        )
+
+        grouping_plugin.get_group_sets.assert_called_once_with(course)
+        course_service.find_group_set.assert_any_call(
+            group_set_id=sentinel.group_set_id
+        )
+        course_service.find_group_set.assert_called_with(
+            name=course_service.find_group_set.return_value["name"],
+            context_id=course.lms_id,
+        )
+        course.set_mapped_group_set_id(
+            sentinel.group_set_id, course_service.find_group_set.return_value["id"]
+        )
+        assert new_group_set_id == course_service.find_group_set.return_value["id"]
+
+    def test_find_matching_file_raises_OAuth2TokenError(self, helper, grouping_plugin):
+        grouping_plugin.get_group_sets.side_effect = OAuth2TokenError
+
+        with pytest.raises(OAuth2TokenError):
+            helper.find_matching_group_set_in_course(
+                sentinel.course, sentinel.group_set_id
+            )
+
+    def test_find_matching_file_in_course_no_stored_group_from_original_course(
+        self, helper, grouping_plugin, course_service, course
+    ):
+        course_service.find_group_set.return_value = None
+
+        new_group_set_id = helper.find_matching_group_set_in_course(
+            course, sentinel.group_set_id
+        )
+
+        grouping_plugin.get_group_sets.assert_called_once_with(course)
+        course_service.find_group_set.assert_any_call(
+            group_set_id=sentinel.group_set_id
+        )
+        assert not new_group_set_id
+
+    def test_find_matching_file_in_course_no_stored_group_from_new_course(
+        self, helper, grouping_plugin, course_service, course
+    ):
+        course_service.find_group_set.side_effect = [
+            course_service.find_group_set.return_value,
+            None,
+        ]
+
+        new_group_set_id = helper.find_matching_group_set_in_course(
+            course, sentinel.group_set_id
+        )
+
+        grouping_plugin.get_group_sets.assert_called_once_with(course)
+        course_service.find_group_set.assert_any_call(
+            group_set_id=sentinel.group_set_id
+        )
+        course_service.find_group_set.assert_called_with(
+            name=course_service.find_group_set.return_value["name"],
+            context_id=course.lms_id,
+        )
+        assert not new_group_set_id
+
+    @pytest.mark.usefixtures("course_service", "grouping_plugin")
+    def test_factory(self, pyramid_request):
+        plugin = CourseCopyGroupsHelper.factory(sentinel.context, pyramid_request)
+
+        assert isinstance(plugin, CourseCopyGroupsHelper)
+
+    @pytest.fixture
+    def course(self):
+        # Using a mock instead of a factory here, we don't care about the
+        # date course holds, just its methods.
+        return create_autospec(Course, spec_set=True, instance=True)
+
+    @pytest.fixture
+    def helper(self, course_service, grouping_plugin):
+        return CourseCopyGroupsHelper(course_service, grouping_plugin)

@@ -121,8 +121,14 @@ def includeme(config):
     # - Don't pollute the lms.services namespace
     # - Ease some circular-dependency problems
     # pylint:disable=import-outside-toplevel
-    from lms.product.plugin.course_copy import CourseCopyFilesHelper
+    from lms.product.plugin.course_copy import (
+        CourseCopyFilesHelper,
+        CourseCopyGroupsHelper,
+    )
 
     config.register_service_factory(
         CourseCopyFilesHelper.factory, iface=CourseCopyFilesHelper
+    )
+    config.register_service_factory(
+        CourseCopyGroupsHelper.factory, iface=CourseCopyGroupsHelper
     )
