@@ -30,27 +30,6 @@ class AdminApplicationInstanceViews(BaseApplicationInstanceView):
 
         self._aes_service = request.find_service(AESService)
 
-    @view_config(route_name="admin.instance.downgrade", request_method="POST")
-    def downgrade_instance(self):
-        ai = self._get_ai_or_404(self.request.matchdict["id_"])
-
-        if ai.lti_version != "1.3.0":
-            self.request.session.flash(
-                f"Application instance: '{ai.id}' is not on LTI 1.3.", "errors"
-            )
-        elif not ai.consumer_key:
-            self.request.session.flash(
-                f"Application instance: '{ai.id}' doesn't have a consumer key to fallback to.",
-                "errors",
-            )
-        else:
-            ai.lti_registration_id = None
-            ai.deployment_id = None
-
-            self.request.session.flash("Downgraded LTI 1.1 successful", "messages")
-
-        return self._redirect("admin.instance", id_=ai.id)
-
     @view_config(
         route_name="admin.instance",
         renderer="lms:templates/admin/application_instance/show.html.jinja2",
