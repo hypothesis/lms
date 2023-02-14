@@ -11,7 +11,7 @@ class DowngradeApplicationInstanceView(BaseApplicationInstanceView):
         permission=Permissions.ADMIN,
     )
     def downgrade_instance(self):
-        ai = self._get_ai_or_404(self.request.matchdict["id_"])
+        ai = self.application_instance
 
         if ai.lti_version != "1.3.0":
             self.request.session.flash(

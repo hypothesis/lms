@@ -12,5 +12,4 @@ class ShowApplicationInstanceView(BaseApplicationInstanceView):
         request_method="GET",
     )
     def show_instance(self):
-        ai = self._get_ai_or_404(self.request.matchdict["id_"])
-        return {"instance": ai}
+        return {"instance": self.application_instance}
