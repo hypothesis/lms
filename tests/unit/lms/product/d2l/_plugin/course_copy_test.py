@@ -33,6 +33,11 @@ class TestD2LCourseCopyPlugin:
             result == course_copy_files_helper.find_matching_file_in_course.return_value
         )
 
+    def test_find_matching_group_set_in_course(self, plugin):
+        assert not plugin.find_matching_group_set_in_course(
+            sentinel.course, sentinel.group_set_id
+        )
+
     @pytest.mark.usefixtures("d2l_api_client", "course_copy_files_helper")
     def test_factory(self, pyramid_request):
         plugin = D2LCourseCopyPlugin.factory(sentinel.context, pyramid_request)
