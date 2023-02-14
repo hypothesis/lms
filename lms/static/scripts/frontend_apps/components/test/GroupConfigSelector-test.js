@@ -95,10 +95,7 @@ describe('GroupConfigSelector', () => {
   ].forEach(([groupConfig, shouldBeChecked], index) => {
     it(`sets checkbox state to reflect \`useGroupSet\` state (${index})`, () => {
       const wrapper = createComponent({ groupConfig });
-      assert.equal(
-        wrapper.find('LabeledCheckbox').prop('checked'),
-        shouldBeChecked
-      );
+      assert.equal(wrapper.find('Checkbox').prop('checked'), shouldBeChecked);
     });
   });
 
