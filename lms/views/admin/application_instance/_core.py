@@ -35,12 +35,20 @@ class BaseApplicationInstanceView:
             name="application_instance"
         )
 
-    def _redirect(self, route_name, **kwargs):
-        return HTTPFound(location=self.request.route_url(route_name, **kwargs))
+    @property
+    def application_instance(self) -> ApplicationInstance:
+        """
+        Get the current application instance from the route by id.
 
-    def _get_ai_or_404(self, id_) -> ApplicationInstance:
+        :raises HTTPNotFound: If the application instance cannot be found.
+        """
         try:
-            return self.application_instance_service.get_by_id(id_=id_)
+            return self.application_instance_service.get_by_id(
+                id_=self.request.matchdict["id_"]
+            )
 
         except ApplicationInstanceNotFound as err:
             raise HTTPNotFound() from err
+
+    def _redirect(self, route_name, **kwargs):
+        return HTTPFound(location=self.request.route_url(route_name, **kwargs))

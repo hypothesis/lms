@@ -13,7 +13,7 @@ class MoveOrgApplicationInstanceView(BaseApplicationInstanceView):
         permission=Permissions.ADMIN,
     )
     def move_application_instance_org(self):
-        ai = self._get_ai_or_404(self.request.matchdict["id_"])
+        ai = self.application_instance
 
         try:
             self.application_instance_service.update_application_instance(

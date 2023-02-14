@@ -38,7 +38,7 @@ class UpdateApplicationInstanceView(BaseApplicationInstanceView):
         permission=Permissions.ADMIN,
     )
     def update_instance(self):
-        ai = self._get_ai_or_404(self.request.matchdict["id_"])
+        ai = self.application_instance
 
         if flash_validation(self.request, UpdateApplicationInstanceSchema):
             # Looks like something went wrong!

@@ -1,9 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-from pyramid.httpexceptions import HTTPNotFound
 
-from lms.services import ApplicationInstanceNotFound
 from lms.views.admin.application_instance.update import UpdateApplicationInstanceView
 from tests.matchers import temporary_redirect_to
 
@@ -132,13 +130,6 @@ class TestUpdateApplicationInstanceView:
             ai_from_matchdict.settings.set_secret.assert_called_once_with(
                 aes_service, setting, sub_setting, "SECRET"
             )
-
-    @pytest.mark.usefixtures("ai_from_matchdict")
-    def test_update_instance_not_found(self, views, application_instance_service):
-        application_instance_service.get_by_id.side_effect = ApplicationInstanceNotFound
-
-        with pytest.raises(HTTPNotFound):
-            views.update_instance()
 
     @pytest.fixture
     def with_minimal_fields_for_update(self, pyramid_request):
