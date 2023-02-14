@@ -33,14 +33,34 @@ class TestBlackboardCourseCopyPlugin:
             result == course_copy_files_helper.find_matching_file_in_course.return_value
         )
 
-    @pytest.mark.usefixtures("blackboard_api_client", "course_copy_files_helper")
+    def test_find_matching_group_set_in_course(self, plugin, course_copy_groups_helper):
+        result = plugin.find_matching_group_set_in_course(
+            sentinel.course, sentinel.group_set_id
+        )
+
+        course_copy_groups_helper.find_matching_group_set_in_course.assert_called_once_with(
+            sentinel.course, sentinel.group_set_id
+        )
+
+        assert (
+            result
+            == course_copy_groups_helper.find_matching_group_set_in_course.return_value
+        )
+
+    @pytest.mark.usefixtures(
+        "blackboard_api_client", "course_copy_files_helper", "course_copy_groups_helper"
+    )
     def test_factory(self, pyramid_request):
         plugin = BlackboardCourseCopyPlugin.factory(sentinel.context, pyramid_request)
 
         assert isinstance(plugin, BlackboardCourseCopyPlugin)
 
     @pytest.fixture
-    def plugin(self, blackboard_api_client, course_copy_files_helper):
+    def plugin(
+        self, blackboard_api_client, course_copy_files_helper, course_copy_groups_helper
+    ):
         return BlackboardCourseCopyPlugin(
-            api=blackboard_api_client, files_helper=course_copy_files_helper
+            api=blackboard_api_client,
+            files_helper=course_copy_files_helper,
+            groups_helper=course_copy_groups_helper,
         )
