@@ -1,4 +1,8 @@
-import { Button, SpinnerOverlay } from '@hypothesis/frontend-shared/lib/next';
+import {
+  Button,
+  CardActions,
+  SpinnerOverlay,
+} from '@hypothesis/frontend-shared/lib/next';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
 import { useConfig } from '../config';
@@ -169,16 +173,16 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   return (
     <main>
       <form
-        className="FilePickerApp__form"
+        className="grid grid-cols-[auto_1fr] gap-4 w-[500px] max-w-[80vw] mx-auto mt-4"
         action={formAction}
         method="POST"
         onSubmit={onSubmit}
       >
-        <h1 className="FilePickerApp__heading text-2xl font-bold">
-          Assignment details
-        </h1>
-        <div className="FilePickerApp__left-col">Assignment content</div>
-        <div className="FilePickerApp__right-col">
+        <h1 className="col-span-2 text-2xl font-bold">Assignment details</h1>
+        <div className="text-end">
+          <span className="font-bold">Assignment content</span>
+        </div>
+        <div className="space-y-3">
           {content ? (
             <i data-testid="content-summary" style="break-all">
               {contentDescription(content)}
@@ -198,21 +202,25 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
         </div>
         {content && enableGroupConfig && (
           <>
-            <div className="FilePickerApp__left-col">Group assignment</div>
-            <div className="FilePickerApp__right-col">
+            <div className="text-end">
+              <span className="font-bold">Group assignment</span>
+            </div>
+            <div>
               <GroupConfigSelector
                 groupConfig={groupConfig}
                 onChangeGroupConfig={setGroupConfig}
               />
             </div>
-            <div className="FilePickerApp__footer">
-              <Button
-                disabled={groupConfig.useGroupSet && !groupConfig.groupSet}
-                variant="primary"
-                onClick={() => submit(content)}
-              >
-                Continue
-              </Button>
+            <div className="col-span-2">
+              <CardActions>
+                <Button
+                  disabled={groupConfig.useGroupSet && !groupConfig.groupSet}
+                  variant="primary"
+                  onClick={() => submit(content)}
+                >
+                  Continue
+                </Button>
+              </CardActions>
             </div>
           </>
         )}
