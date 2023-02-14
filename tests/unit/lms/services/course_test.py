@@ -3,7 +3,7 @@ from unittest.mock import sentinel
 
 import pytest
 from h_matchers import Any
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 
 from lms.models import CourseGroupsExportedFromH, Grouping
 from lms.services.course import CourseService, course_service_factory
@@ -102,6 +102,38 @@ class TestCourseService:
             type_=Any(),
         )
 
+    @pytest.mark.usefixtures("course_with_group_sets")
+    @pytest.mark.parametrize(
+        "params",
+        (
+            {"context_id": "context_id", "group_set_id": "ID", "name": "NAME"},
+            {"context_id": "context_id", "name": "NAME"},
+            {"context_id": "context_id", "group_set_id": "ID"},
+        ),
+    )
+    def test_find_group_set(self, svc, params):
+        group_set = svc.find_group_set(**params)
+
+        assert group_set["id"] == "ID"
+        assert group_set["name"] == "NAME"
+
+    @pytest.mark.usefixtures("course_with_group_sets")
+    @pytest.mark.parametrize(
+        "params",
+        (
+            {"context_id": "context_id", "group_set_id": "NOID", "name": "NAME"},
+            {"context_id": "context_id", "group_set_id": "ID", "name": "NONAME"},
+            {"context_id": "no_context_id", "group_set_id": "ID", "name": "NAME"},
+        ),
+    )
+    def test_find_group_set_no_matches(self, svc, params):
+        assert not svc.find_group_set(**params)
+
+    @pytest.mark.usefixtures("course_with_group_sets")
+    def test_find_group_set_raises_with_more_than_one_result(self, svc):
+        with pytest.raises(MultipleResultsFound):
+            svc.find_group_set()
+
     @pytest.fixture
     def course(self, application_instance, grouping_service):
         return factories.Course(
@@ -109,6 +141,22 @@ class TestCourseService:
             authority_provided_id=grouping_service.get_authority_provided_id.return_value,
             lms_id="context_id",
         )
+
+    @pytest.fixture
+    def course_with_group_sets(self, course):
+        course.extra = {
+            "group_sets": [
+                {
+                    "id": "ID",
+                    "name": "NAME",
+                },
+                {
+                    "id": "NOT MATCHING ID NOISE",
+                    "name": "NOT MATCHING NAME NOISE",
+                },
+            ]
+        }
+        return course
 
     @pytest.fixture
     def application_instance(self, application_instance):
