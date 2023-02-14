@@ -3,43 +3,31 @@ import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
 import { useConfig } from '../config';
 import { apiCall } from '../utils/api';
+import type { Content, URLContent } from '../utils/content-item';
 import { truncateURL } from '../utils/format';
 
 import ContentSelector from './ContentSelector';
 import ErrorModal from './ErrorModal';
 import FilePickerFormFields from './FilePickerFormFields';
 import GroupConfigSelector from './GroupConfigSelector';
+import type { GroupConfig } from './GroupConfigSelector';
 
-/**
- * @typedef {import('../api-types').File} File
- * @typedef {import('../utils/content-item').Content} Content
- * @typedef {import('../utils/content-item').URLContent} URLContent
- * @typedef {'lms'|'url'|null} DialogType
- *
- * @typedef {import('./GroupConfigSelector').GroupConfig} GroupConfig
- *
- * @typedef FilePickerAppProps
- * @prop {DialogType} [defaultActiveDialog] -
- *   The dialog that should be shown when the app is first opened.
- * @prop {() => void} [onSubmit] - Callback invoked when the form is submitted.
- */
+export type ErrorInfo = {
+  message: string;
+  error: Error;
+};
 
-/**
- * @typedef ErrorInfo
- * @prop {string} message
- * @prop {Error} error
- */
-
+export type FilePickerAppProps = {
+  /** Callback invoked when the form is submitted */
+  onSubmit?: () => void;
+};
 /**
  * For URL content, show the most meaningful explanation of the content we can
  * to the user. In cases where we have a filename (name), show that. For
  * Blackboard files, show a static string instead of the meaningless URL. Fall
  * back to showing a (truncated) URL.
- *
- * @param {URLContent} content
- * @returns {string}
  */
-function formatContentURL(content) {
+function formatContentURL(content: URLContent) {
   if (content.name) {
     return content.name;
   }
@@ -61,11 +49,8 @@ function formatContentURL(content) {
 }
 /**
  * Return a human-readable description of assignment content.
- *
- * @param {Content} content - Type and details of assignment content
- * @return {string}
  */
-function contentDescription(content) {
+function contentDescription(content: Content) {
   switch (content.type) {
     case 'url':
       return formatContentURL(content);
@@ -80,11 +65,9 @@ function contentDescription(content) {
 /**
  * An application that allows the user to choose the web page or PDF for an
  * assignment.
- *
- * @param {FilePickerAppProps} props
  */
-export default function FilePickerApp({ onSubmit }) {
-  const submitButton = /** @type {{ current: HTMLInputElement }} */ (useRef());
+export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
+  const submitButton = useRef<HTMLInputElement | null>(null);
   const {
     api: { authToken },
     product: {
@@ -93,18 +76,14 @@ export default function FilePickerApp({ onSubmit }) {
     filePicker: { deepLinkingAPI, formAction, formFields },
   } = useConfig(['filePicker']);
 
-  const [content, setContent] = useState(/** @type {Content|null} */ (null));
+  const [content, setContent] = useState<Content | null>(null);
 
-  const [groupConfig, setGroupConfig] = useState(
-    /** @type {GroupConfig} */ ({
-      useGroupSet: false,
-      groupSet: null,
-    })
-  );
+  const [groupConfig, setGroupConfig] = useState<GroupConfig>({
+    useGroupSet: false,
+    groupSet: null,
+  });
 
-  const [errorInfo, setErrorInfo] = useState(
-    /** @type {ErrorInfo|null} */ (null)
-  );
+  const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null);
 
   /**
    * Flag indicating whether the form should be auto-submitted on the next
@@ -112,13 +91,13 @@ export default function FilePickerApp({ onSubmit }) {
    */
   const [shouldSubmit, setShouldSubmit] = useState(false);
 
-  const [deepLinkingFields, setDeepLinkingFields] = useState(
-    /** @type {Record<string,string>|null} */ (null)
-  );
+  const [deepLinkingFields, setDeepLinkingFields] = useState<Record<
+    string,
+    string
+  > | null>(null);
 
   const submit = useCallback(
-    /** @param {Content} content */
-    async content => {
+    async (content: Content) => {
       // Set shouldSubmit to true early to show the spinner while fetching form fields
       setShouldSubmit(true);
 
@@ -173,13 +152,12 @@ export default function FilePickerApp({ onSubmit }) {
       // Submit form using a hidden button rather than calling `form.submit()`
       // to facilitate observing the submission in tests and suppressing the
       // actual submit.
-      submitButton.current.click();
+      submitButton.current!.click();
     }
   }, [shouldSubmit, deepLinkingAPI, deepLinkingFields]);
 
-  /** @type {(c: Content) => void} */
   const selectContent = useCallback(
-    content => {
+    (content: Content) => {
       setContent(content);
       if (!enableGroupConfig) {
         submit(content);
