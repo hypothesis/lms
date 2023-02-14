@@ -1,45 +1,43 @@
 import { FullScreenSpinner, LabeledButton } from '@hypothesis/frontend-shared';
 import { useMemo, useState } from 'preact/hooks';
 
+import type { Book, File, Chapter } from '../api-types';
 import { useConfig } from '../config';
 import { PickerCanceledError } from '../errors';
+import type { Content } from '../utils/content-item';
 import { GooglePickerClient } from '../utils/google-picker-client';
 import { OneDrivePickerClient } from '../utils/onedrive-picker-client';
 
 import BookPicker from './BookPicker';
+import type { ErrorInfo } from './FilePickerApp';
 import JSTORPicker from './JSTORPicker';
 import LMSFilePicker from './LMSFilePicker';
 import URLPicker from './URLPicker';
 
-/**
- * @typedef {import('../api-types').Book} Book
- * @typedef {import('../api-types').File} File
- * @typedef {import('../api-types').Chapter} Chapter
- *
- * @typedef {import('./FilePickerApp').ErrorInfo} ErrorInfo
- *
- * @typedef {'blackboardFile'|'canvasFile'|'d2lFile'|'jstor'|'url'|'vitalSourceBook'|null} DialogType
- *
- * @typedef {import('../utils/content-item').Content} Content
- */
+type DialogType =
+  | 'blackboardFile'
+  | 'canvasFile'
+  | 'd2lFile'
+  | 'jstor'
+  | 'url'
+  | 'vitalSourceBook'
+  | null;
 
-/**
- * @typedef ContentSelectorProps
- * @prop {DialogType} [defaultActiveDialog] - Used for testing
- * @prop {(ei: ErrorInfo) => void} onError
- * @prop {(c: Content) => void} onSelectContent
- */
+export type ContentSelectorProps = {
+  onError: (ei: ErrorInfo) => void;
+  onSelectContent: (c: Content) => void;
+  /** Used for testing */
+  defaultActiveDialog?: DialogType;
+};
 
 /**
  * Component that allows the user to choose the content for an assignment.
- *
- * @param {ContentSelectorProps} props
  */
 export default function ContentSelector({
   defaultActiveDialog = null,
   onError,
   onSelectContent,
-}) {
+}: ContentSelectorProps) {
   const {
     api: { authToken },
     filePicker: {
@@ -66,17 +64,15 @@ export default function ContentSelector({
 
   const [isLoadingIndicatorVisible, setLoadingIndicatorVisible] =
     useState(false);
-  const [activeDialog, setActiveDialog] = useState(
-    /** @type {DialogType} */ (defaultActiveDialog)
-  );
+  const [activeDialog, setActiveDialog] =
+    useState<DialogType>(defaultActiveDialog);
 
   const cancelDialog = () => {
     setLoadingIndicatorVisible(false);
     setActiveDialog(null);
   };
 
-  /** @param {DialogType} type */
-  const selectDialog = type => {
+  const selectDialog = (type: DialogType) => {
     setActiveDialog(type);
   };
   // Initialize the Google Picker client if credentials have been provided.
@@ -91,8 +87,8 @@ export default function ContentSelector({
       clientId: googleClientId,
 
       // If the form is being displayed inside an iframe, then the backend
-      // must provide the URL of the top-level frame to us so we can pass it
-      // to the Google Picker API. Otherwise we can use the URL of the current
+      // must provide the URL of the top-level frame to us, so we can pass it
+      // to the Google Picker API. Otherwise, we can use the URL of the current
       // tab.
       origin: window === window.top ? window.location.href : googleOrigin,
     });
@@ -112,37 +108,29 @@ export default function ContentSelector({
     });
   }, [oneDriveClientId, oneDriveRedirectURI]);
 
-  /** @param {string} url */
-  const selectURL = url => {
+  const selectURL = (url: string) => {
     cancelDialog();
     onSelectContent({ type: 'url', url });
   };
 
-  /** @param {File} file */
-  const selectCanvasFile = file => {
+  const selectCanvasFile = (file: File) => {
     cancelDialog();
     onSelectContent({ type: 'file', file });
   };
 
-  /** @param {File} file */
-  const selectBlackboardFile = file => {
+  const selectBlackboardFile = (file: File) => {
     cancelDialog();
     // file.id shall be a url of the form blackboard://content-resource/{file_id}
     onSelectContent({ type: 'url', url: file.id });
   };
 
-  /** @param {File} file */
-  const selectD2LFile = file => {
+  const selectD2LFile = (file: File) => {
     cancelDialog();
     // file.id shall be a url of the form d2l://content-resource/{file_id}
     onSelectContent({ type: 'url', url: file.id });
   };
 
-  /**
-   * @param {Book} book
-   * @param {Chapter} chapter
-   */
-  const selectVitalSourceBook = (book, chapter) => {
+  const selectVitalSourceBook = (book: Book, chapter: Chapter) => {
     cancelDialog();
     onSelectContent({
       type: 'url',
@@ -211,7 +199,7 @@ export default function ContentSelector({
   const showGooglePicker = async () => {
     setLoadingIndicatorVisible(true);
     try {
-      const picker = /** @type {GooglePickerClient} */ (googlePicker);
+      const picker: GooglePickerClient = googlePicker!;
       const { id, name, url } = await picker.showPicker();
       await picker.enablePublicViewing(id);
       onSelectContent({ name, type: 'url', url });
@@ -231,7 +219,7 @@ export default function ContentSelector({
   const showOneDrivePicker = async () => {
     setLoadingIndicatorVisible(true);
     try {
-      const picker = /** @type {OneDrivePickerClient} */ (oneDrivePicker);
+      const picker: OneDrivePickerClient = oneDrivePicker!;
       const { name, url } = await picker.showPicker();
       onSelectContent({ name, type: 'url', url });
     } catch (error) {
