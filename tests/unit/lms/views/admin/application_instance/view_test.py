@@ -1,10 +1,9 @@
-from unittest.mock import patch, sentinel
+from unittest.mock import patch
 
 import pytest
 from pyramid.httpexceptions import HTTPNotFound
 
 from lms.services import ApplicationInstanceNotFound
-from lms.validation import ValidationError
 from lms.views.admin.application_instance.view import AdminApplicationInstanceViews
 from tests.matchers import temporary_redirect_to
 
@@ -13,39 +12,6 @@ from tests.matchers import temporary_redirect_to
     "application_instance_service", "organization_service", "aes_service"
 )
 class TestAdminApplicationInstanceViews:
-    def test_move_application_instance_org(
-        self, views, pyramid_request, ai_from_matchdict, application_instance_service
-    ):
-        pyramid_request.params["org_public_id"] = "PUBLIC_ID"
-
-        response = views.move_application_instance_org()
-
-        application_instance_service.update_application_instance.assert_called_once_with(
-            ai_from_matchdict, organization_public_id="PUBLIC_ID"
-        )
-        assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.instance", id_=ai_from_matchdict.id)
-        )
-
-    @pytest.mark.usefixtures("ai_from_matchdict")
-    def test_move_application_instance_org_invalid_organization_id(
-        self, views, pyramid_request, application_instance_service
-    ):
-        pyramid_request.params["org_public_id"] = "PUBLIC_ID"
-        application_instance_service.update_application_instance.side_effect = (
-            ValidationError(messages=sentinel.messages)
-        )
-
-        response = views.move_application_instance_org()
-
-        assert pyramid_request.session.peek_flash("validation")
-        assert response == temporary_redirect_to(
-            pyramid_request.route_url(
-                "admin.instance",
-                id_=application_instance_service.get_by_id.return_value.id,
-            )
-        )
-
     def test_show_instance_id(self, views, ai_from_matchdict):
         response = views.show_instance()
 
