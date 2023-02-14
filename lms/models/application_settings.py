@@ -1,7 +1,9 @@
 import base64
 from typing import Optional
 
+import sqlalchemy as sa
 from sqlalchemy.ext.mutable import MutableDict
+from sqlalchemy.orm import InstrumentedAttribute
 
 
 class ApplicationSettings(MutableDict):
@@ -99,6 +101,42 @@ class ApplicationSettings(MutableDict):
         aes_iv = base64.b64decode(super().get(group, {}).get(f"{key}_aes_iv"))
 
         return aes_service.decrypt(aes_iv, aes_value).decode("utf-8")
+
+    @classmethod
+    def matching(cls, column: InstrumentedAttribute, spec: dict):
+        """
+        Return a clause to filter an SQLAlchemy query.
+
+        This method accepts a match dict which should have keys like this:
+
+            {
+                # Specify an exact key should have an exact value
+                "group.key": "exact_value_to_match"
+                # Specify an exact key should exist
+                "group.key": ...
+                # Specify a group should exist
+                "group": ...
+            }
+
+        :param column: The column to apply this to
+        :param spec: The filter specification as described above
+        """
+        clauses = []
+
+        for joined_key, value in spec.items():
+            group, key = (
+                joined_key.split(".") if "." in joined_key else (joined_key, None)
+            )
+
+            if key is None:
+                clauses.append(column.has_key(group))
+
+            elif value is not ...:
+                clauses.append(column.contains({group: {key: value}}))
+            else:
+                clauses.append(column[group].has_key(key))
+
+        return sa.and_(*clauses)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({super().__repr__()})"

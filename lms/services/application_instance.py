@@ -8,7 +8,12 @@ import sqlalchemy as sa
 from sqlalchemy.exc import NoResultFound
 
 from lms.db import full_text_match
-from lms.models import ApplicationInstance, LTIParams, LTIRegistration
+from lms.models import (
+    ApplicationInstance,
+    ApplicationSettings,
+    LTIParams,
+    LTIRegistration,
+)
 from lms.services.aes import AESService
 from lms.services.exceptions import SerializableError
 from lms.services.organization import OrganizationService
@@ -141,6 +146,7 @@ class ApplicationInstanceService:
         tool_consumer_instance_guid=None,
         limit=100,
         email=None,
+        settings=None,
     ) -> List[ApplicationInstance]:
         """Return the instances that match all of the passed parameters."""
 
@@ -154,6 +160,7 @@ class ApplicationInstanceService:
                 deployment_id=deployment_id,
                 tool_consumer_instance_guid=tool_consumer_instance_guid,
                 email=email,
+                settings=settings,
             )
             .order_by(
                 ApplicationInstance.last_launched.desc().nulls_last(),
@@ -174,6 +181,7 @@ class ApplicationInstanceService:
         deployment_id=None,
         tool_consumer_instance_guid=None,
         email=None,
+        settings=None,
     ):
         """Return a query with the passed parameters applied as filters."""
 
@@ -213,6 +221,11 @@ class ApplicationInstanceService:
                         ApplicationInstance.tool_consumer_instance_contact_email,
                     )
                 )
+            )
+
+        if settings:
+            query = query.filter(
+                ApplicationSettings.matching(ApplicationInstance.settings, settings)
             )
 
         return query

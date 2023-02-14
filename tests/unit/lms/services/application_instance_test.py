@@ -239,6 +239,13 @@ class TestApplicationInstanceService:
             expected_names
         ).only()
 
+    def test_search_by_settings(self, service):
+        ai = factories.ApplicationInstance.create(settings={"group": {"key": "value"}})
+
+        found = service.search(settings={"group.key": "value"})
+
+        assert found == [ai]
+
     def test_search_order(self, service):
         now, before = datetime.now(), datetime.now() - timedelta(hours=1)
 
