@@ -29,7 +29,7 @@ amqp==5.1.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   kombu
-astroid==2.14.1
+astroid==2.14.2
     # via pylint
 async-timeout==4.0.1
     # via
@@ -435,7 +435,7 @@ pyjwt[crypto]==2.4.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid-googleauth
-pylint==2.16.1
+pylint==2.16.2
     # via -r requirements/lint.in
 pyparsing==3.0.6
     # via
