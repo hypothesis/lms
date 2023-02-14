@@ -42,7 +42,7 @@
     <fieldset class="box">
     <legend class="label has-text-centered">Application instances</legend>
         <div class="block has-text-right">
-            <a class="button is-primary" href="{{ request.route_url("admin.instance.new", _query={"organization_public_id": org.public_id}) }}">
+            <a class="button is-primary" href="{{ request.route_url("admin.instance.create", _query={"organization_public_id": org.public_id}) }}">
                 Add New LTI 1.1 instance
             </a>
         </div>
