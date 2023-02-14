@@ -131,11 +131,11 @@ describe('FilePickerApp', () => {
 
     it('shows activity indicator when form is submitted', () => {
       const wrapper = renderFilePicker();
-      assert.isFalse(wrapper.exists('FullScreenSpinner'));
+      assert.isFalse(wrapper.exists('SpinnerOverlay'));
 
       selectContent(wrapper, 'https://example.com');
 
-      assert.isTrue(wrapper.exists('FullScreenSpinner'));
+      assert.isTrue(wrapper.exists('SpinnerOverlay'));
     });
   });
 
@@ -301,7 +301,7 @@ describe('FilePickerApp', () => {
       selectGroupConfig(wrapper, { useGroupSet: true, groupSet: null });
 
       assert.isTrue(
-        wrapper.find('LabeledButton[children="Continue"]').prop('disabled')
+        wrapper.find('Button[children="Continue"]').prop('disabled')
       );
     });
 
@@ -315,7 +315,7 @@ describe('FilePickerApp', () => {
 
         assert.notCalled(onSubmit);
         interact(wrapper, () => {
-          wrapper.find('LabeledButton[children="Continue"]').props().onClick();
+          wrapper.find('Button[children="Continue"]').props().onClick();
         });
 
         assert.called(onSubmit);
@@ -340,10 +340,10 @@ describe('FilePickerApp', () => {
         groupSet: 'groupSet1',
       });
       interact(wrapper, () => {
-        wrapper.find('LabeledButton[children="Continue"]').props().onClick();
+        wrapper.find('Button[children="Continue"]').props().onClick();
       });
 
-      assert.isTrue(wrapper.exists('FullScreenSpinner'));
+      assert.isTrue(wrapper.exists('SpinnerOverlay'));
     });
   });
 
