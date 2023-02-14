@@ -52,9 +52,7 @@ describe('AssignmentToolbar', () => {
           assignmentName={'course assignment'}
           clientRPC={fakeClientRPC}
           {...props}
-        >
-          <div title="The assignment content iframe" />
-        </AssignmentToolbar>
+        />
       </Config.Provider>
     );
   };

@@ -321,22 +321,6 @@ export default function BasicLTILaunchApp() {
     }
   }, [authToken, authURL, fetchContentURL, fetchGroups]);
 
-  const contentFrame = <ContentFrame url={contentURL ?? ''} />;
-  let contentFrameWrapper;
-
-  if (grading && grading.enabled) {
-    contentFrameWrapper = (
-      <AssignmentToolbar
-        courseName={grading.courseName}
-        assignmentName={grading.assignmentName}
-      >
-        {contentFrame}
-      </AssignmentToolbar>
-    );
-  } else {
-    contentFrameWrapper = contentFrame;
-  }
-
   const content = (
     <div
       className={classnames('flex flex-col h-full', {
@@ -345,7 +329,13 @@ export default function BasicLTILaunchApp() {
       })}
       data-testid="content-wrapper"
     >
-      {contentFrameWrapper}
+      {grading && grading.enabled && (
+        <AssignmentToolbar
+          courseName={grading.courseName}
+          assignmentName={grading.assignmentName}
+        />
+      )}
+      <ContentFrame url={contentURL ?? ''} />
     </div>
   );
 
