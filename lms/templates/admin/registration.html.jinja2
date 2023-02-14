@@ -23,7 +23,7 @@
          <div class="block has-text-right">
             <a class="button is-primary" href="{{ request.route_url("admin.instance.upgrade", _query={"lti_registration_id": registration.id}) }}">Upgrade LTI 1.1 instance</a>
 
-            <a class="button is-primary" href="{{ request.route_url("admin.instance.new", _query={"lti_registration_id": registration.id}) }}">Add LTI 1.3 instance</a>
+            <a class="button is-primary" href="{{ request.route_url("admin.instance.create", _query={"lti_registration_id": registration.id}) }}">Add LTI 1.3 instance</a>
         </div>
 
         {% if registration.application_instances %}

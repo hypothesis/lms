@@ -11,7 +11,7 @@ from lms.views.admin import flash_validation
 from lms.views.admin.application_instance._core import BaseApplicationInstanceView
 
 
-class NewAppInstanceSchema(PyramidRequestSchema):
+class CreateAppInstanceSchema(PyramidRequestSchema):
     """Schema for creating a new application instance."""
 
     location = "form"
@@ -25,14 +25,14 @@ class NewAppInstanceSchema(PyramidRequestSchema):
     organization_public_id = fields.Str(required=True, validate=validate.Length(min=1))
 
 
-class NewAppInstanceSchemaV13(NewAppInstanceSchema):
+class CreateAppInstanceSchemaV13(CreateAppInstanceSchema):
     """Schema for creating a new LTI 1.3 application instance."""
 
     deployment_id = fields.Str(required=True, validate=validate.Length(min=1))
     lti_registration_id = fields.Str(required=True)
 
 
-@view_defaults(route_name="admin.instance.new", permission=Permissions.ADMIN)
+@view_defaults(route_name="admin.instance.create", permission=Permissions.ADMIN)
 class CreateApplicationInstanceViews(BaseApplicationInstanceView):
     def __init__(self, request):
         super().__init__(request)
@@ -43,9 +43,9 @@ class CreateApplicationInstanceViews(BaseApplicationInstanceView):
 
     @view_config(
         request_method="GET",
-        renderer="lms:templates/admin/application_instance/new.html.jinja2",
+        renderer="lms:templates/admin/application_instance/create.html.jinja2",
     )
-    def new_instance_start(self):
+    def create_start(self):
         """Show the page to kick off creating a new application instance."""
 
         lti_registration = None
@@ -57,7 +57,7 @@ class CreateApplicationInstanceViews(BaseApplicationInstanceView):
         return dict(self.request.params, lti_registration=lti_registration)
 
     @view_config(request_method="POST")
-    def new_instance_callback(self):
+    def create_callback(self):
         """Create an application instance (callback from the new AI page)."""
 
         lti_registration_id = self.request.params.get("lti_registration_id", "").strip()
@@ -65,10 +65,12 @@ class CreateApplicationInstanceViews(BaseApplicationInstanceView):
 
         if flash_validation(
             self.request,
-            NewAppInstanceSchemaV13 if lti_registration_id else NewAppInstanceSchema,
+            CreateAppInstanceSchemaV13
+            if lti_registration_id
+            else CreateAppInstanceSchema,
         ):
             # Looks like something went wrong!
-            return self._redirect("admin.instance.new", _query=self.request.params)
+            return self._redirect("admin.instance.create", _query=self.request.params)
 
         try:
             ai = self.application_instance_service.create_application_instance(
@@ -85,18 +87,20 @@ class CreateApplicationInstanceViews(BaseApplicationInstanceView):
                 ).strip(),
                 lti_registration_id=lti_registration_id,
             )
+
         except InvalidPublicId as err:
             self.request.session.flash(
                 {"organization_public_id": [str(err)]}, "validation"
             )
 
-            return self._redirect("admin.instance.new", _query=self.request.params)
+            return self._redirect("admin.instance.create", _query=self.request.params)
+
         except IntegrityError:
             self.request.session.flash(
                 f"Application instance with deployment_id: {self.request.params['deployment_id']} already exists",
                 "errors",
             )
 
-            return self._redirect("admin.instance.new", _query=self.request.params)
+            return self._redirect("admin.instance.create", _query=self.request.params)
 
         return self._redirect("admin.instance", id_=ai.id)

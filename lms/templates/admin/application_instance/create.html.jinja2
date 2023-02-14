@@ -16,7 +16,7 @@ New application instance
     </fieldset>
 {% endif %}
 
-<form method="POST" action="{{ request.route_url("admin.instance.new") }}">
+<form method="POST" action="{{ request.route_url("admin.instance.create") }}">
     <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
     <input type="hidden" name="lti_registration_id" value="{{ lti_registration.id }}">
 
