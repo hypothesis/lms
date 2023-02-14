@@ -46,32 +46,6 @@ class TestAdminApplicationInstanceViews:
             )
         )
 
-    @pytest.mark.usefixtures("with_lti_13_ai")
-    def test_downgrade_instance(self, views, pyramid_request, ai_from_matchdict):
-        response = views.downgrade_instance()
-
-        assert not ai_from_matchdict.lti_registration_id
-        assert not ai_from_matchdict.deployment_id
-        assert response == temporary_redirect_to(
-            pyramid_request.route_url("admin.instance", id_=ai_from_matchdict.id)
-        )
-
-    @pytest.mark.usefixtures("ai_from_matchdict")
-    def test_downgrade_instance_no_lti13(self, views, pyramid_request):
-        views.downgrade_instance()
-
-        assert pyramid_request.session.peek_flash("errors")
-
-    @pytest.mark.usefixtures("with_lti_13_ai")
-    def test_downgrade_instance_no_consumer_key(
-        self, views, pyramid_request, ai_from_matchdict
-    ):
-        ai_from_matchdict.consumer_key = None
-
-        views.downgrade_instance()
-
-        assert pyramid_request.session.peek_flash("errors")
-
     def test_show_instance_id(self, views, ai_from_matchdict):
         response = views.show_instance()
 
@@ -213,15 +187,6 @@ class TestAdminApplicationInstanceViews:
 
         with pytest.raises(HTTPNotFound):
             views.update_instance()
-
-    @pytest.fixture
-    def ai_from_matchdict(
-        self, pyramid_request, application_instance_service, application_instance
-    ):
-        pyramid_request.matchdict["id_"] = sentinel.id_
-        application_instance_service.get_by_id.return_value = application_instance
-
-        return application_instance
 
     @pytest.fixture
     def with_minimal_fields_for_update(self, pyramid_request):
