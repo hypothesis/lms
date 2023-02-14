@@ -179,7 +179,7 @@ class Course(Grouping):
 
     def get_mapped_file_id(self, file_id):
         """
-        Get a previously mapped file id in course.
+        Get a previously mapped file id in a course.
 
         Returns the original `file_id` if no mapped one can be found.
         """
@@ -190,6 +190,22 @@ class Course(Grouping):
         self.extra.setdefault("course_copy_file_mappings", {})[
             old_file_id
         ] = new_file_id
+
+    def get_mapped_group_set_id(self, group_set_id):
+        """
+        Get a previously mapped group set id in a course.
+
+        Returns the given `group_set_id` if no mapped one can be found.
+        """
+        return self.extra.get("course_copy_group_set_mappings", {}).get(
+            group_set_id, group_set_id
+        )
+
+    def set_mapped_group_set_id(self, old_group_set_id, group_set_id):
+        """Store a mapping between old_group set id and group_set_id for future launches."""
+        self.extra.setdefault("course_copy_group_set_mappings", {})[
+            old_group_set_id
+        ] = group_set_id
 
 
 class GroupingMembership(CreatedUpdatedMixin, BASE):

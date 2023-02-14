@@ -81,3 +81,27 @@ class TestCourse:
         course = factories.Course(extra={})
 
         assert not course.get_group_sets()
+
+    def test_get_mapped_group_set_empty_extra(self):
+        course = factories.Course(extra={})
+
+        assert course.get_mapped_group_set_id("ID") == "ID"
+
+    def test_get_mapped_group_set_id_empty_mapping(self):
+        course = factories.Course(extra={"course_copy_group_set_mappings": {}})
+
+        assert course.get_mapped_group_set_id("ID") == "ID"
+
+    def test_get_mapped_group_set_id(self):
+        course = factories.Course(
+            extra={"course_copy_group_set_mappings": {"ID": "OTHER_ID"}}
+        )
+
+        assert course.get_mapped_group_set_id("ID") == "OTHER_ID"
+
+    def test_set_mapped_group_set_id(self):
+        course = factories.Course(extra={})
+
+        course.set_mapped_group_set_id("OLD", "NEW")
+
+        assert course.extra["course_copy_group_set_mappings"]["OLD"] == "NEW"
