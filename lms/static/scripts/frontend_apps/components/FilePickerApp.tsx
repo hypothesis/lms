@@ -1,8 +1,12 @@
 import {
   Button,
+  Card,
   CardActions,
+  CardContent,
+  Scroll,
   SpinnerOverlay,
 } from '@hypothesis/frontend-shared/lib/next';
+import classnames from 'classnames';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
 import { useConfig } from '../config';
@@ -171,47 +175,96 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   );
 
   return (
-    <main>
+    <main
+      className={classnames(
+        // Full-width and -height light-grey background
+        'bg-grey-1 w-full h-full p-2'
+      )}
+    >
+      {/*
+       * The <form> is styled as a constraining container that determines
+       * the Card's dimensions
+       */}
       <form
-        className="grid grid-cols-[auto_1fr] gap-4 w-[500px] max-w-[80vw] mx-auto mt-4"
         action={formAction}
+        className={classnames(
+          // Preferred width of 640px, not to exceed 80vw
+          'w-[640px] max-w-[80vw]',
+          // Constrain Card height to the height of this container
+          'flex flex-col min-h-0 h-full',
+          // Center the Card horizontally
+          'mx-auto'
+        )}
         method="POST"
         onSubmit={onSubmit}
       >
-        <h1 className="col-span-2 text-2xl font-bold">Assignment details</h1>
-        <div className="text-end">
-          <span className="font-bold">Assignment content</span>
-        </div>
-        <div className="space-y-3">
-          {content ? (
-            <i data-testid="content-summary" style="break-all">
-              {contentDescription(content)}
-            </i>
-          ) : (
-            <>
-              <p>
-                You can select content for your assignment from one of the
-                following sources:
-              </p>
-              <ContentSelector
-                onSelectContent={selectContent}
-                onError={setErrorInfo}
-              />
-            </>
+        <Card
+          classes={classnames(
+            // Ensure children that have overflow-scroll do not exceed the
+            // height constraints
+            'flex flex-col min-h-0'
           )}
-        </div>
-        {content && enableGroupConfig && (
-          <>
-            <div className="text-end">
-              <span className="font-bold">Group assignment</span>
-            </div>
-            <div>
-              <GroupConfigSelector
-                groupConfig={groupConfig}
-                onChangeGroupConfig={setGroupConfig}
-              />
-            </div>
-            <div className="col-span-2">
+        >
+          <div className="bg-slate-0 px-3 py-2 border-b border-slate-5">
+            <h1 className="text-xl text-slate-7 font-normal">
+              Assignment details
+            </h1>
+          </div>
+          <Scroll>
+            <CardContent size="lg">
+              <div className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3">
+                <div className="text-end">
+                  <span className="font-medium text-sm leading-none text-slate-7">
+                    Assignment content
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {content ? (
+                    <i data-testid="content-summary" style="break-all">
+                      {contentDescription(content)}
+                    </i>
+                  ) : (
+                    <>
+                      <p>
+                        You can select content for your assignment from one of
+                        the following sources:
+                      </p>
+
+                      <ContentSelector
+                        onSelectContent={selectContent}
+                        onError={setErrorInfo}
+                      />
+                    </>
+                  )}
+                </div>
+                {content && enableGroupConfig && (
+                  <>
+                    <div className="col-span-2 border-b" />
+                    <div className="text-end">
+                      <span className="font-medium text-sm leading-none text-slate-7">
+                        Group assignment
+                      </span>
+                    </div>
+                    <div
+                      className={classnames(
+                        // Set a height on this container to give the group
+                        // <select> element room when it renders (avoid
+                        // changing the height of the Card later)
+                        'h-28'
+                      )}
+                    >
+                      <GroupConfigSelector
+                        groupConfig={groupConfig}
+                        onChangeGroupConfig={setGroupConfig}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Scroll>
+          {content && enableGroupConfig && (
+            <CardContent>
               <CardActions>
                 <Button
                   disabled={groupConfig.useGroupSet && !groupConfig.groupSet}
@@ -221,26 +274,26 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                   Continue
                 </Button>
               </CardActions>
-            </div>
-          </>
-        )}
-        {content && (
-          <FilePickerFormFields
-            content={content}
-            formFields={{ ...formFields, ...deepLinkingFields }}
-            groupSet={groupConfig.useGroupSet ? groupConfig.groupSet : null}
+            </CardContent>
+          )}
+          {content && (
+            <FilePickerFormFields
+              content={content}
+              formFields={{ ...formFields, ...deepLinkingFields }}
+              groupSet={groupConfig.useGroupSet ? groupConfig.groupSet : null}
+            />
+          )}
+          <input style={{ display: 'none' }} ref={submitButton} type="submit" />
+        </Card>
+        {shouldSubmit && <SpinnerOverlay />}
+        {errorInfo && (
+          <ErrorModal
+            description={errorInfo.message}
+            error={errorInfo.error}
+            onCancel={() => setErrorInfo(null)}
           />
         )}
-        <input style={{ display: 'none' }} ref={submitButton} type="submit" />
       </form>
-      {shouldSubmit && <SpinnerOverlay />}
-      {errorInfo && (
-        <ErrorModal
-          description={errorInfo.message}
-          error={errorInfo.error}
-          onCancel={() => setErrorInfo(null)}
-        />
-      )}
     </main>
   );
 }

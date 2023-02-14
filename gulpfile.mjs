@@ -28,6 +28,8 @@ gulp.task('watch-css', () => {
     [
       './lms/static/styles/**/*.{css,scss}',
       './lms/static/scripts/frontend_apps/**/*.js',
+      './lms/static/scripts/frontend_apps/**/*.ts',
+      './lms/static/scripts/frontend_apps/**/*.tsx',
       './lms/static/scripts/ui-playground/**/*.js',
     ],
     { ignoreInitial: false },

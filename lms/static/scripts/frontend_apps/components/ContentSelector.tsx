@@ -239,7 +239,7 @@ export default function ContentSelector({
     <>
       {isLoadingIndicatorVisible && <SpinnerOverlay />}
       <div className="flex flex-row p-y-2">
-        <div className="flex flex-col space-y-1.5">
+        <div className="flex flex-col space-y-1">
           <Button
             onClick={() => selectDialog('url')}
             variant="primary"

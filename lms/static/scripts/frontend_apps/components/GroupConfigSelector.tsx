@@ -1,4 +1,5 @@
-import { Checkbox, Link } from '@hypothesis/frontend-shared/lib/next';
+import { Checkbox, Link, Select } from '@hypothesis/frontend-shared/lib/next';
+import classnames from 'classnames';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
 import type { GroupSet } from '../api-types';
@@ -48,9 +49,19 @@ function GroupSelect({
   const selectId = useUniqueId('GroupSetSelector__select');
 
   return (
-    <>
-      <label htmlFor={selectId}>Group set: </label>
-      <select
+    <div
+      className={classnames(
+        // Style a slightly-recessed "well" for these controls
+        'bg-slate-0 p-4 rounded shadow-inner border'
+      )}
+    >
+      <label
+        htmlFor={selectId}
+        className="text-xs uppercase text-slate-7 font-medium"
+      >
+        Group set
+      </label>
+      <Select
         disabled={loading}
         id={selectId}
         onInput={(e: Event) =>
@@ -76,8 +87,8 @@ function GroupSelect({
             ))}
           </>
         )}
-      </select>
-    </>
+      </Select>
+    </div>
   );
 }
 
@@ -230,7 +241,7 @@ export default function GroupConfigSelector({
   }
 
   return (
-    <>
+    <div className="space-y-3">
       <Checkbox
         checked={useGroupSet}
         onInput={(e: Event) =>
@@ -242,7 +253,6 @@ export default function GroupConfigSelector({
       >
         This is a group assignment
       </Checkbox>
-
       {useGroupSet && (
         <GroupSelect
           loading={fetchingGroupSets}
@@ -251,6 +261,6 @@ export default function GroupConfigSelector({
           onInput={onGroupSelectChange}
         />
       )}
-    </>
+    </div>
   );
 }
