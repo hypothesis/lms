@@ -1,23 +1,22 @@
-import { Link } from '@hypothesis/frontend-shared';
+import { Link } from '@hypothesis/frontend-shared/lib/next';
 
+import type { ErrorLike } from '../errors';
+import type { ErrorState } from './BasicLTILaunchApp';
 import ErrorModal from './ErrorModal';
 
-/**
- * @typedef {import("preact").ComponentChildren} Children
- * @typedef {import('./BasicLTILaunchApp').ErrorState} ErrorState
- * @typedef {import('../errors').ErrorLike} ErrorLike
- */
-
-/**
- * @typedef LaunchErrorDialogProps
- * @prop {boolean} busy -
- *   Flag indicating that the app is busy and should not allow the user to
- *   click the "Try again" button
- * @prop {ErrorState} errorState - What kind of error occurred?
- * @prop {ErrorLike|null} error - Detailed information about the error
- * @prop {() => void} onRetry -
- *   Callback invoked when user clicks the "Try again" button
- */
+export type LaunchErrorDialogProps = {
+  /**
+   * Flag indicating that the app is busy and should not allow the user to
+   * click the "Try again" button
+   */
+  busy: boolean;
+  /** What kind of error occurred? */
+  errorState: ErrorState;
+  /** Detailed information about the error */
+  error: ErrorLike | null;
+  /** Callback invoked when user clicks the "Try again" button */
+  onRetry: () => void;
+};
 
 /**
  * URL that opens the VitalSource bookshelf reader in the current LMS.
@@ -32,15 +31,13 @@ const vitalsourceBookshelfURL = 'https://bookshelf.vitalsource.com';
  * Render an error that prevents an LTI launch from completing successfully.
  *
  * This is rendered in a non-cancelable modal.
- *
- * @param {LaunchErrorDialogProps} props
  */
 export default function LaunchErrorDialog({
   busy,
   error,
   errorState,
   onRetry,
-}) {
+}: LaunchErrorDialogProps) {
   switch (errorState) {
     case 'error-authorizing':
       // nb. There are no error details shown here, since failing to authorize
