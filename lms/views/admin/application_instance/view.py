@@ -3,7 +3,7 @@ from pyramid.settings import asbool
 from pyramid.view import view_config
 
 from lms.services.aes import AESService
-from lms.validation._base import PyramidRequestSchema, ValidationError
+from lms.validation._base import PyramidRequestSchema
 from lms.views.admin import flash_validation
 from lms.views.admin.application_instance._core import (
     AES_SECRET,
@@ -37,29 +37,6 @@ class AdminApplicationInstanceViews(BaseApplicationInstanceView):
     def show_instance(self):
         ai = self._get_ai_or_404(self.request.matchdict["id_"])
         return {"instance": ai}
-
-    @view_config(
-        route_name="admin.instance.move_org",
-        request_method="POST",
-        require_csrf=True,
-    )
-    def move_application_instance_org(self):
-        ai = self._get_ai_or_404(self.request.matchdict["id_"])
-
-        try:
-            self.application_instance_service.update_application_instance(
-                ai,
-                organization_public_id=self.request.params.get(
-                    "org_public_id", ""
-                ).strip(),
-            )
-            self.request.session.flash(
-                f"Updated application instance {ai.id}", "messages"
-            )
-        except ValidationError as err:
-            self.request.session.flash(err.messages, "validation")
-
-        return self._redirect("admin.instance", id_=ai.id)
 
     @view_config(route_name="admin.instance", request_method="POST", require_csrf=True)
     def update_instance(self):
