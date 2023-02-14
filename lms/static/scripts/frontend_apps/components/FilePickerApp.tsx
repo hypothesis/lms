@@ -1,4 +1,4 @@
-import { FullScreenSpinner, LabeledButton } from '@hypothesis/frontend-shared';
+import { Button, SpinnerOverlay } from '@hypothesis/frontend-shared/lib/next';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
 import { useConfig } from '../config';
@@ -206,13 +206,13 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
               />
             </div>
             <div className="FilePickerApp__footer">
-              <LabeledButton
+              <Button
                 disabled={groupConfig.useGroupSet && !groupConfig.groupSet}
                 variant="primary"
                 onClick={() => submit(content)}
               >
                 Continue
-              </LabeledButton>
+              </Button>
             </div>
           </>
         )}
@@ -225,7 +225,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
         )}
         <input style={{ display: 'none' }} ref={submitButton} type="submit" />
       </form>
-      {shouldSubmit && <FullScreenSpinner />}
+      {shouldSubmit && <SpinnerOverlay />}
       {errorInfo && (
         <ErrorModal
           description={errorInfo.message}
