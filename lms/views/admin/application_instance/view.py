@@ -1,12 +1,7 @@
-from marshmallow import validate
-from pyramid.httpexceptions import HTTPClientError
+from marshmallow import fields, validate
 from pyramid.settings import asbool
 from pyramid.view import view_config
-from sqlalchemy.exc import IntegrityError
-from webargs import fields
 
-from lms.models.public_id import InvalidPublicId
-from lms.services import ApplicationInstanceNotFound, LTIRegistrationService
 from lms.services.aes import AESService
 from lms.validation._base import PyramidRequestSchema, ValidationError
 from lms.views.admin import flash_validation
@@ -29,89 +24,11 @@ class UpdateApplicationInstanceSchema(PyramidRequestSchema):
     developer_secret = fields.Str(required=False)
 
 
-class UpgradeApplicationInstanceSchema(PyramidRequestSchema):
-    location = "form"
-
-    consumer_key = fields.Str(required=True, validate=validate.Length(min=1))
-    deployment_id = fields.Str(required=True, validate=validate.Length(min=1))
-
-
 class AdminApplicationInstanceViews(BaseApplicationInstanceView):
     def __init__(self, request):
         super().__init__(request)
 
-        self.lti_registration_service: LTIRegistrationService = request.find_service(
-            LTIRegistrationService
-        )
         self._aes_service = request.find_service(AESService)
-
-    @view_config(
-        route_name="admin.instance.upgrade",
-        renderer="lms:templates/admin/application_instance/upgrade.html.jinja2",
-    )
-    def upgrade_instance_start(self):
-        if lti_registration_id := self.request.params.get("lti_registration_id"):
-            lti_registration = self.lti_registration_service.get_by_id(
-                lti_registration_id.strip()
-            )
-        else:
-            # This shouldn't really happen, but belt and braces
-            raise HTTPClientError("`lti_registration_id` is required for an upgrade")
-
-        return dict(self.request.params, lti_registration=lti_registration)
-
-    @view_config(route_name="admin.instance.upgrade", request_method="POST")
-    def upgrade_instance_callback(self):
-        if flash_validation(self.request, UpgradeApplicationInstanceSchema):
-            return self._redirect("admin.instance.upgrade", _query=self.request.params)
-
-        consumer_key = self.request.params["consumer_key"].strip()
-        deployment_id = self.request.params["deployment_id"].strip()
-
-        # Find the Application instance we are upgrading
-        try:
-            application_instance = (
-                self.application_instance_service.get_by_consumer_key(consumer_key)
-            )
-        except ApplicationInstanceNotFound:
-            self.request.session.flash(
-                f"Can't find application instance: '{consumer_key}' for upgrade.",
-                "errors",
-            )
-
-            return self._redirect("admin.instance.upgrade", _query=self.request.params)
-
-        # Don't allow to change instances that already on 1.3
-        if application_instance.lti_version == "1.3.0":
-            self.request.session.flash(
-                f"Application instance: '{consumer_key}' is already on LTI 1.3.",
-                "errors",
-            )
-
-            return self._redirect("admin.instance.upgrade", _query=self.request.params)
-        # Set the LTI1.3 values
-        application_instance.lti_registration = self.lti_registration_service.get_by_id(
-            self.request.params.get("lti_registration_id", "").strip()
-        )
-        application_instance.deployment_id = deployment_id
-        try:
-            # Flush here to find if we are making a duplicate in the process of
-            # upgrading
-            self.request.db.flush()
-        except IntegrityError:
-            # Leave a clean transaction, otherwise  we get a:
-            #   "PendingRollbackError: This Session's transaction has been
-            #   rolled back due to a previous exception during flush."
-            self.request.db.rollback()
-
-            self.request.session.flash(
-                f"Application instance with deployment_id: {self.request.params['deployment_id']} already exists",
-                "errors",
-            )
-
-            return self._redirect("admin.instance.upgrade", _query=self.request.params)
-
-        return self._redirect("admin.instance", id_=application_instance.id)
 
     @view_config(route_name="admin.instance.downgrade", request_method="POST")
     def downgrade_instance(self):
