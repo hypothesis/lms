@@ -30,7 +30,7 @@ export type GroupConfig = {
 
 type GroupSelectProps = {
   /** A request for groups is currently in flight */
-  busy: boolean;
+  loading: boolean;
   groupSets: GroupSet[] | null;
   onInput: (id: string | null) => void;
   selectedGroupSetId: string | null;
@@ -40,7 +40,7 @@ type GroupSelectProps = {
  * Labeled <select> for selecting a group set for an assignment
  */
 function GroupSelect({
-  busy,
+  loading,
   groupSets,
   onInput,
   selectedGroupSetId,
@@ -51,13 +51,13 @@ function GroupSelect({
     <>
       <label htmlFor={selectId}>Group set: </label>
       <select
-        disabled={busy}
+        disabled={loading}
         id={selectId}
         onInput={(e: Event) =>
           onInput((e.target as HTMLSelectElement | null)?.value || null)
         }
       >
-        {busy && <option>Fetching group sets…</option>}
+        {loading && <option>Fetching group sets…</option>}
         {groupSets && (
           <>
             <option disabled selected={selectedGroupSetId === null}>
@@ -108,7 +108,7 @@ function NoGroupsError({ onCancel }: { onCancel: () => void }) {
   );
 }
 
-type GroupConfigSelectorProps = {
+export type GroupConfigSelectorProps = {
   groupConfig: GroupConfig;
   onChangeGroupConfig: (g: GroupConfig) => void;
 };
@@ -251,7 +251,7 @@ export default function GroupConfigSelector({
 
       {useGroupSet && (
         <GroupSelect
-          busy={fetchingGroupSets}
+          loading={fetchingGroupSets}
           groupSets={groupSets}
           selectedGroupSetId={groupSet}
           onInput={onGroupSelectChange}
