@@ -2,8 +2,9 @@ import base64
 
 import pytest
 
-from lms.models import ApplicationSettings
+from lms.models import ApplicationInstance, ApplicationSettings
 from lms.services.aes import AESService
+from tests import factories
 
 
 class TestApplicationSettings:
@@ -73,6 +74,29 @@ class TestApplicationSettings:
 
     def test_get_secret_empty(self, application_settings, aes_service):
         assert not application_settings.get_secret(aes_service, "GROUP", "KEY")
+
+    @pytest.mark.parametrize(
+        "spec,matches",
+        (
+            ({"group.key": "value"}, True),
+            ({"group.key": ...}, True),
+            ({"group": ...}, True),
+            ({"group.key": "WRONG_VALUE"}, False),
+            ({"group.WRONG_KEY": ...}, False),
+            ({"WRONG_GROUP": ...}, False),
+        ),
+    )
+    def test_matching(self, db_session, spec, matches):
+        # We'll use an application instance as a host
+        ai = factories.ApplicationInstance(settings={"group": {"key": "value"}})
+
+        found = (
+            db_session.query(ApplicationInstance)
+            .filter(ApplicationSettings.matching(ApplicationInstance.settings, spec))
+            .one_or_none()
+        )
+
+        assert found == ai if matches else not found
 
     def test__repr__(self, application_settings):
         assert (

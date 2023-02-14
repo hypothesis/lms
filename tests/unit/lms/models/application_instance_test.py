@@ -3,7 +3,7 @@ from unittest.mock import sentinel
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from lms.models import ApplicationInstance, ApplicationSettings
+from lms.models import ApplicationInstance
 from tests import factories
 
 
@@ -123,30 +123,3 @@ class TestApplicationInstance:
     def application_instance(self):
         """Return an ApplicationInstance with minimal required attributes."""
         return factories.ApplicationInstance()
-
-
-class TestApplicationSettings:
-    @pytest.mark.parametrize(
-        "group,key,expected_value",
-        (
-            ("group", "key", "old_value"),
-            ("NEW", "key", None),
-            ("group", "NEW", None),
-            ("NEW", "NEW", None),
-        ),
-    )
-    def test_settings_can_be_retrieved(self, settings, group, key, expected_value):
-        assert settings.get(group, key) == expected_value
-
-    @pytest.mark.parametrize(
-        "group,key",
-        (("group", "key"), ("NEW", "key"), ("group", "NEW"), ("NEW", "NEW")),
-    )
-    def test_can_update_settings(self, settings, group, key):
-        settings.set(group, key, "new_value")
-
-        assert settings.get(group, key) == "new_value"
-
-    @pytest.fixture
-    def settings(self):
-        return ApplicationSettings({"group": {"key": "old_value"}})
