@@ -2,6 +2,7 @@ from marshmallow import fields, validate
 from pyramid.settings import asbool
 from pyramid.view import view_config
 
+from lms.security import Permissions
 from lms.services.aes import AESService
 from lms.validation._base import PyramidRequestSchema
 from lms.views.admin import flash_validation
@@ -24,7 +25,7 @@ class UpdateApplicationInstanceSchema(PyramidRequestSchema):
     developer_secret = fields.Str(required=False)
 
 
-class AdminApplicationInstanceViews(BaseApplicationInstanceView):
+class UpdateApplicationInstanceView(BaseApplicationInstanceView):
     def __init__(self, request):
         super().__init__(request)
 
@@ -32,13 +33,10 @@ class AdminApplicationInstanceViews(BaseApplicationInstanceView):
 
     @view_config(
         route_name="admin.instance",
-        renderer="lms:templates/admin/application_instance/show.html.jinja2",
+        request_method="POST",
+        require_csrf=True,
+        permission=Permissions.ADMIN,
     )
-    def show_instance(self):
-        ai = self._get_ai_or_404(self.request.matchdict["id_"])
-        return {"instance": ai}
-
-    @view_config(route_name="admin.instance", request_method="POST", require_csrf=True)
     def update_instance(self):
         ai = self._get_ai_or_404(self.request.matchdict["id_"])
 

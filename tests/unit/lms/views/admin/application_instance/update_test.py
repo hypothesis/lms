@@ -4,26 +4,12 @@ import pytest
 from pyramid.httpexceptions import HTTPNotFound
 
 from lms.services import ApplicationInstanceNotFound
-from lms.views.admin.application_instance.view import AdminApplicationInstanceViews
+from lms.views.admin.application_instance.update import UpdateApplicationInstanceView
 from tests.matchers import temporary_redirect_to
 
 
-@pytest.mark.usefixtures(
-    "application_instance_service", "organization_service", "aes_service"
-)
-class TestAdminApplicationInstanceViews:
-    def test_show_instance_id(self, views, ai_from_matchdict):
-        response = views.show_instance()
-
-        assert response["instance"].id == ai_from_matchdict.id
-
-    @pytest.mark.usefixtures("ai_from_matchdict")
-    def test_show_instance_not_found(self, views, application_instance_service):
-        application_instance_service.get_by_id.side_effect = ApplicationInstanceNotFound
-
-        with pytest.raises(HTTPNotFound):
-            views.show_instance()
-
+@pytest.mark.usefixtures("application_instance_service", "aes_service")
+class TestUpdateApplicationInstanceView:
     @pytest.mark.usefixtures("with_minimal_fields_for_update")
     def test_update_instance(self, views, pyramid_request, ai_from_matchdict):
         response = views.update_instance()
@@ -160,4 +146,4 @@ class TestAdminApplicationInstanceViews:
 
     @pytest.fixture
     def views(self, pyramid_request):
-        return AdminApplicationInstanceViews(pyramid_request)
+        return UpdateApplicationInstanceView(pyramid_request)
