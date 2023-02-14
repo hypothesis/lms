@@ -1,4 +1,4 @@
-import { FullScreenSpinner, LabeledButton } from '@hypothesis/frontend-shared';
+import { Button, SpinnerOverlay } from '@hypothesis/frontend-shared/lib/next';
 import { useMemo, useState } from 'preact/hooks';
 
 import type { Book, File, Chapter } from '../api-types';
@@ -237,79 +237,78 @@ export default function ContentSelector({
 
   return (
     <>
-      {isLoadingIndicatorVisible && <FullScreenSpinner />}
+      {isLoadingIndicatorVisible && <SpinnerOverlay />}
       <div className="flex flex-row p-y-2">
         <div className="flex flex-col space-y-1.5">
-          <LabeledButton
+          <Button
             onClick={() => selectDialog('url')}
-            type="button"
             variant="primary"
             data-testid="url-button"
           >
             Enter URL of web page or PDF
-          </LabeledButton>
+          </Button>
           {canvasFilesEnabled && (
-            <LabeledButton
+            <Button
               onClick={() => selectDialog('canvasFile')}
               variant="primary"
               data-testid="canvas-file-button"
             >
               Select PDF from Canvas
-            </LabeledButton>
+            </Button>
           )}
           {blackboardFilesEnabled && (
-            <LabeledButton
+            <Button
               onClick={() => selectDialog('blackboardFile')}
               variant="primary"
               data-testid="blackboard-file-button"
             >
               Select PDF from Blackboard
-            </LabeledButton>
+            </Button>
           )}
           {d2lFilesEnabled && (
-            <LabeledButton
+            <Button
               onClick={() => selectDialog('d2lFile')}
               variant="primary"
               data-testid="d2l-file-button"
             >
               Select PDF from D2L
-            </LabeledButton>
+            </Button>
           )}
           {googlePicker && (
-            <LabeledButton
+            <Button
               onClick={showGooglePicker}
               variant="primary"
               data-testid="google-drive-button"
             >
               Select PDF from Google Drive
-            </LabeledButton>
+            </Button>
           )}
           {jstorEnabled && (
-            <LabeledButton
+            <Button
               onClick={() => selectDialog('jstor')}
               variant="primary"
               data-testid="jstor-button"
             >
               Select JSTOR article
-            </LabeledButton>
+            </Button>
           )}
           {oneDriveFilesEnabled && (
-            <LabeledButton
+            <Button
               onClick={showOneDrivePicker}
               variant="primary"
               data-testid="onedrive-button"
             >
               Select PDF from OneDrive
-            </LabeledButton>
+            </Button>
           )}
           {vitalSourceEnabled && (
-            <LabeledButton
+            <Button
               onClick={() => selectDialog('vitalSourceBook')}
               variant="primary"
               data-testid="vitalsource-button"
             >
               Select book from VitalSource
-            </LabeledButton>
+            </Button>
           )}
         </div>
         {/** This flex-grow element takes up remaining horizontal space so that
