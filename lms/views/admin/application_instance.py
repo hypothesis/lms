@@ -37,6 +37,12 @@ APPLICATION_INSTANCE_SETTINGS = {
     ("hypothesis", "notes"): str,
 }
 
+APPLICATION_INSTANCE_SETTINGS_COLUMNS = tuple(
+    f"{group}.{key}"
+    for (group, key), type_ in sorted(APPLICATION_INSTANCE_SETTINGS.items())
+    if type_ != AES_SECRET
+)
+
 
 class NewAppInstanceSchema(PyramidRequestSchema):
     """Schema for creating a new application instance."""
@@ -257,7 +263,7 @@ class AdminApplicationInstanceViews:
         renderer="lms:templates/admin/application_instance/search.html.jinja2",
     )
     def search_start(self):
-        return {}
+        return {"settings": APPLICATION_INSTANCE_SETTINGS_COLUMNS}
 
     @view_config(
         route_name="admin.instance.search",
@@ -268,6 +274,17 @@ class AdminApplicationInstanceViews:
     def search_callback(self):
         if flash_validation(self.request, SearchApplicationInstanceSchema):
             return {}
+
+        settings = None
+        if settings_key := self.request.params.get("settings_key"):
+            if settings_value := self.request.params.get("settings_value"):
+                settings_value = APPLICATION_INSTANCE_SETTINGS.get(
+                    tuple(settings_key.split("."))
+                )(settings_value)
+            else:
+                settings_value = ...
+
+            settings = {settings_key: settings_value}
 
         instances = self.application_instance_service.search(
             id_=self.request.params.get("id"),
@@ -280,9 +297,13 @@ class AdminApplicationInstanceViews:
                 "tool_consumer_instance_guid"
             ),
             email=self.request.params.get("email"),
+            settings=settings,
         )
 
-        return {"instances": instances}
+        return {
+            "instances": instances,
+            "settings": APPLICATION_INSTANCE_SETTINGS_COLUMNS,
+        }
 
     @view_config(
         route_name="admin.instance",
