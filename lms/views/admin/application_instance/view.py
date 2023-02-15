@@ -1,45 +1,19 @@
 from marshmallow import validate
-from pyramid.httpexceptions import HTTPClientError, HTTPFound, HTTPNotFound
+from pyramid.httpexceptions import HTTPClientError
 from pyramid.settings import asbool
-from pyramid.view import view_config, view_defaults
+from pyramid.view import view_config
 from sqlalchemy.exc import IntegrityError
 from webargs import fields
 
-from lms.models import ApplicationInstance
 from lms.models.public_id import InvalidPublicId
-from lms.security import Permissions
 from lms.services import ApplicationInstanceNotFound, LTIRegistrationService
 from lms.services.aes import AESService
 from lms.validation._base import PyramidRequestSchema, ValidationError
 from lms.views.admin import flash_validation
-
-# Helper to declare settings as secret
-AES_SECRET = object()
-APPLICATION_INSTANCE_SETTINGS = {
-    ("blackboard", "files_enabled"): asbool,
-    ("blackboard", "groups_enabled"): asbool,
-    ("canvas", "sections_enabled"): asbool,
-    ("canvas", "groups_enabled"): asbool,
-    ("desire2learn", "client_id"): str,
-    ("desire2learn", "client_secret"): AES_SECRET,
-    ("desire2learn", "groups_enabled"): asbool,
-    ("desire2learn", "files_enabled"): asbool,
-    ("desire2learn", "create_line_item"): asbool,
-    ("microsoft_onedrive", "files_enabled"): asbool,
-    ("vitalsource", "enabled"): asbool,
-    ("vitalsource", "user_lti_param"): str,
-    ("vitalsource", "user_lti_pattern"): str,
-    ("vitalsource", "api_key"): str,
-    ("vitalsource", "disable_licence_check"): asbool,
-    ("jstor", "enabled"): asbool,
-    ("jstor", "site_code"): str,
-    ("hypothesis", "notes"): str,
-}
-
-APPLICATION_INSTANCE_SETTINGS_COLUMNS = tuple(
-    f"{group}.{key}"
-    for (group, key), type_ in sorted(APPLICATION_INSTANCE_SETTINGS.items())
-    if type_ != AES_SECRET
+from lms.views.admin.application_instance._core import (
+    AES_SECRET,
+    APPLICATION_INSTANCE_SETTINGS,
+    BaseApplicationInstanceView,
 )
 
 
@@ -83,13 +57,10 @@ class UpgradeApplicationInstanceSchema(PyramidRequestSchema):
     deployment_id = fields.Str(required=True, validate=validate.Length(min=1))
 
 
-@view_defaults(request_method="GET", permission=Permissions.ADMIN)
-class AdminApplicationInstanceViews:
+class AdminApplicationInstanceViews(BaseApplicationInstanceView):
     def __init__(self, request):
-        self.request = request
-        self.application_instance_service = request.find_service(
-            name="application_instance"
-        )
+        super().__init__(request)
+
         self.lti_registration_service: LTIRegistrationService = request.find_service(
             LTIRegistrationService
         )
@@ -316,13 +287,3 @@ class AdminApplicationInstanceViews:
         self.request.session.flash(f"Updated application instance {ai.id}", "messages")
 
         return self._redirect("admin.instance", id_=ai.id)
-
-    def _redirect(self, route_name, **kwargs):
-        return HTTPFound(location=self.request.route_url(route_name, **kwargs))
-
-    def _get_ai_or_404(self, id_) -> ApplicationInstance:
-        try:
-            return self.application_instance_service.get_by_id(id_=id_)
-
-        except ApplicationInstanceNotFound as err:
-            raise HTTPNotFound() from err

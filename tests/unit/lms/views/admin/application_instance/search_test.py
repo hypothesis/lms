@@ -1,8 +1,8 @@
 import pytest
 
-from lms.views.admin.application_instance.search import SearchApplicationInstanceViews
-from lms.views.admin.application_instance.view import (
+from lms.views.admin.application_instance.search import (
     APPLICATION_INSTANCE_SETTINGS_COLUMNS,
+    SearchApplicationInstanceViews,
 )
 
 
