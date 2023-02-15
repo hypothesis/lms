@@ -2,6 +2,7 @@ import pytest
 from h_matchers import Any
 
 from lms.models.json_settings import JSONSetting
+from lms.models.public_id import InvalidPublicId
 from lms.views.admin.application_instance.search import (
     SETTINGS_BY_FIELD,
     SearchApplicationInstanceViews,
@@ -26,6 +27,7 @@ class TestSearchApplicationInstanceViews:
             "deployment_id": "DEPLOYMENT_ID",
             "tool_consumer_instance_guid": "TOOL_CONSUMER_INSTANCE_GUID",
             "email": "EMAIL",
+            "organization_public_id": "ORGANIZATION_PUBLIC_ID",
         }
 
         response = views.search_callback()
@@ -39,6 +41,7 @@ class TestSearchApplicationInstanceViews:
             deployment_id="DEPLOYMENT_ID",
             tool_consumer_instance_guid="TOOL_CONSUMER_INSTANCE_GUID",
             email="EMAIL",
+            organization_public_id="ORGANIZATION_PUBLIC_ID",
             settings=None,
         )
         assert response == {
@@ -92,6 +95,16 @@ class TestSearchApplicationInstanceViews:
 
         assert not views.search_callback()
         assert pyramid_request.session.peek_flash
+
+    def test_search_with_invalid_organization_public_id(
+        self, views, pyramid_request, application_instance_service
+    ):
+        application_instance_service.search.side_effect = InvalidPublicId
+
+        response = views.search_callback()
+
+        assert pyramid_request.session.peek_flash
+        assert response == {"settings": SETTINGS_BY_FIELD}
 
     @pytest.fixture
     def views(self, pyramid_request):
