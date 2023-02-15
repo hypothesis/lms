@@ -2,7 +2,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 
 from lms.db import BASE
-from lms.models.application_settings import ApplicationSettings
+from lms.models.json_settings import JSONSettings
 
 
 class LegacyCourse(BASE):
@@ -29,7 +29,7 @@ class LegacyCourse(BASE):
 
     settings = sa.Column(
         "settings",
-        ApplicationSettings.as_mutable(JSONB),
+        JSONSettings.as_mutable(JSONB),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
     )

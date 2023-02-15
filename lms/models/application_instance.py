@@ -6,10 +6,14 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 from lms.db import BASE
 from lms.models import CreatedUpdatedMixin
-from lms.models.application_settings import ApplicationSettings
 from lms.models.exceptions import ReusedConsumerKey
+from lms.models.json_settings import JSONSettings
 
 LOG = logging.getLogger(__name__)
+
+
+class ApplicationSettings(JSONSettings):
+    ...
 
 
 class ApplicationInstance(CreatedUpdatedMixin, BASE):

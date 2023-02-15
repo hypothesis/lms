@@ -1,6 +1,5 @@
 from lms.models._mixins import CreatedUpdatedMixin
-from lms.models.application_instance import ApplicationInstance
-from lms.models.application_settings import ApplicationSettings
+from lms.models.application_instance import ApplicationInstance, ApplicationSettings
 from lms.models.assignment import Assignment
 from lms.models.assignment_grouping import AssignmentGrouping
 from lms.models.assignment_membership import AssignmentMembership
@@ -20,6 +19,7 @@ from lms.models.grouping import (
     GroupingMembership,
 )
 from lms.models.h_user import HUser
+from lms.models.json_settings import JSONSettings
 from lms.models.lti_params import CLAIM_PREFIX, LTIParams
 from lms.models.lti_registration import LTIRegistration
 from lms.models.lti_role import LTIRole
