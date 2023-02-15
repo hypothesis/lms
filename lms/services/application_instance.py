@@ -38,19 +38,19 @@ class AccountDisabled(SerializableError):
 
 @dataclass
 class SearchBuilder:
-    base_model: BASE
-    clause_builders: dict
+    model: BASE
+    filters: dict = field(default_factory=dict)
     key_map: dict = field(default_factory=lambda: {"id_": "id", "type_": "type"})
     query_start: Optional[callable] = None
 
-    def get_query(self, db_session, kwargs, combination=sa.and_):
-        query = self.query_start(db_session) or db_session.query(self.base_model)
+    def get_query(self, db_session, kwargs, combine=sa.and_):
+        query = self.query_start(db_session) or db_session.query(self.model)
 
-        return self.filter_query(query, kwargs, combination=combination)
+        return self.filter_query(query, kwargs, combine=combine)
 
-    def filter_query(self, query, kwargs, combination=sa.and_):
+    def filter_query(self, query, kwargs, combine=sa.and_):
         if clauses := list(self.get_clauses(kwargs)):
-            query = query.filter(combination(*clauses))
+            query = query.filter(combine(*clauses))
 
         return query
 
@@ -67,20 +67,20 @@ class SearchBuilder:
 
         key = self.key_map.get(key, key)
 
-        if mapper := self.clause_builders.get(key):
-            return mapper(value)
+        if filter_function := self.filters.get(key):
+            return filter_function(value)
 
-        if hasattr(self.base_model, key):
-            return getattr(self.base_model, key) == value
+        if hasattr(self.model, key):
+            return getattr(self.model, key) == value
 
         raise ValueError(f"Can't map '{key}'")
 
-    def builds(self, key=None):
-        def builds(function):
-            self.clause_builders[key or function.__name__] = function
+    def filter_function(self, key=None):
+        def filter_function(function):
+            self.filters[key or function.__name__] = function
             return function
 
-        return builds
+        return filter_function
 
 
 _SEARCH_BUILDER = SearchBuilder(
@@ -88,7 +88,7 @@ _SEARCH_BUILDER = SearchBuilder(
     query_start=lambda db_session: db_session.query(ApplicationInstance).outerjoin(
         LTIRegistration
     ),
-    clause_builders={
+    filters={
         "issuer": lambda value: LTIRegistration.issuer == value,
         "client_id": lambda value: LTIRegistration.client_id == value,
         "name": lambda value: full_text_match(ApplicationInstance.name, value),
@@ -102,7 +102,7 @@ _SEARCH_BUILDER = SearchBuilder(
 )
 
 
-@_SEARCH_BUILDER.builds("email")
+@_SEARCH_BUILDER.filter_function("email")
 def _filter_by_email(value):
     return sa.or_(
         sa.func.lower(field) == value.lower()
