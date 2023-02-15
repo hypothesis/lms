@@ -6,9 +6,16 @@ from lms.security import Permissions
 from lms.validation import PyramidRequestSchema
 from lms.views.admin import flash_validation
 from lms.views.admin._schemas import EmptyStringInt
-from lms.views.admin.application_instance.view import (
+from lms.views.admin.application_instance._core import (
+    AES_SECRET,
     APPLICATION_INSTANCE_SETTINGS,
-    APPLICATION_INSTANCE_SETTINGS_COLUMNS,
+    BaseApplicationInstanceView,
+)
+
+APPLICATION_INSTANCE_SETTINGS_COLUMNS = tuple(
+    f"{group}.{key}"
+    for (group, key), type_ in sorted(APPLICATION_INSTANCE_SETTINGS.items())
+    if type_ != AES_SECRET
 )
 
 
@@ -26,19 +33,12 @@ class SearchApplicationInstanceSchema(PyramidRequestSchema):
 
 
 @view_defaults(
-    request_method="GET",
-    permission=Permissions.ADMIN,
     route_name="admin.instance.search",
     renderer="lms:templates/admin/application_instance/search.html.jinja2",
+    permission=Permissions.ADMIN,
 )
-class SearchApplicationInstanceViews:
-    def __init__(self, request):
-        self.request = request
-        self.application_instance_service = request.find_service(
-            name="application_instance"
-        )
-
-    @view_config()
+class SearchApplicationInstanceViews(BaseApplicationInstanceView):
+    @view_config(request_method="GET")
     def search_start(self):
         return {"settings": APPLICATION_INSTANCE_SETTINGS_COLUMNS}
 
