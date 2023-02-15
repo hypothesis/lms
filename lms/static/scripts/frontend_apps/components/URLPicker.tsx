@@ -1,9 +1,9 @@
 import {
-  LabeledButton,
+  Button,
+  CancelIcon,
   Modal,
-  Icon,
-  TextInput,
-} from '@hypothesis/frontend-shared';
+  Input,
+} from '@hypothesis/frontend-shared/lib/next';
 
 import { useRef, useState } from 'preact/hooks';
 
@@ -47,13 +47,20 @@ export default function URLPicker({ onCancel, onSelectURL }: URLPickerProps) {
 
   return (
     <Modal
-      contentClass="LMS-Dialog LMS-Dialog--medium"
       title="Enter URL"
-      onCancel={onCancel}
+      onClose={onCancel}
       buttons={[
-        <LabeledButton key="submit" onClick={submit} variant="primary">
+        <Button data-testid="cancel-button" key="cancel" onClick={onCancel}>
+          Cancel
+        </Button>,
+        <Button
+          data-testid="submit-button"
+          key="submit"
+          onClick={submit}
+          variant="primary"
+        >
           Submit
-        </LabeledButton>,
+        </Button>,
       ]}
       initialFocus={input}
     >
@@ -66,10 +73,11 @@ export default function URLPicker({ onCancel, onSelectURL }: URLPickerProps) {
         >
           <label htmlFor="url">URL: </label>
 
-          <TextInput
+          <Input
+            aria-label="Enter URL to web page or PDF"
             classes="grow"
             hasError={!!error}
-            inputRef={input}
+            elementRef={input}
             name="url"
             placeholder="e.g. https://example.com/article.pdf"
             required
@@ -83,7 +91,7 @@ export default function URLPicker({ onCancel, onSelectURL }: URLPickerProps) {
         >
           {!!error && (
             <>
-              <Icon name="cancel" />
+              <CancelIcon />
               <div className="grow">{error}</div>
             </>
           )}

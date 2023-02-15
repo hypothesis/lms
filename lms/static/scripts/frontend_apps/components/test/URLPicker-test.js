@@ -12,7 +12,10 @@ describe('URLPicker', () => {
     const wrapper = renderUrlPicker({ onSelectURL });
     wrapper.find('input').getDOMNode().value = 'https://example.com/foo';
 
-    wrapper.find('LabeledButton').props().onClick(new Event('click'));
+    wrapper
+      .find('button[data-testid="submit-button"]')
+      .props()
+      .onClick(new Event('click'));
 
     assert.calledWith(onSelectURL, 'https://example.com/foo');
   });
@@ -23,7 +26,10 @@ describe('URLPicker', () => {
     const wrapper = renderUrlPicker({ onSelectURL });
     wrapper.find('input').getDOMNode().value = 'not-a-url';
 
-    wrapper.find('LabeledButton').props().onClick(new Event('click'));
+    wrapper
+      .find('button[data-testid="submit-button"]')
+      .props()
+      .onClick(new Event('click'));
     wrapper.update();
 
     assert.notCalled(onSelectURL);
@@ -38,7 +44,10 @@ describe('URLPicker', () => {
     const wrapper = renderUrlPicker({ onSelectURL });
     wrapper.find('input').getDOMNode().value = 'ftp:///warez.fun';
 
-    wrapper.find('LabeledButton').props().onClick(new Event('click'));
+    wrapper
+      .find('button[data-testid="submit-button"]')
+      .props()
+      .onClick(new Event('click'));
     wrapper.update();
 
     assert.notCalled(onSelectURL);
@@ -56,7 +65,10 @@ describe('URLPicker', () => {
     const wrapper = renderUrlPicker({ onSelectURL });
     wrapper.find('input').getDOMNode().value = 'file:///my/local.pdf';
 
-    wrapper.find('LabeledButton').props().onClick(new Event('click'));
+    wrapper
+      .find('button[data-testid="submit-button"]')
+      .props()
+      .onClick(new Event('click'));
     wrapper.update();
 
     assert.notCalled(onSelectURL);
