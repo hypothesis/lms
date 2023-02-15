@@ -142,6 +142,7 @@ class ApplicationInstanceService:
         limit=100,
         email=None,
         settings=None,
+        organization_public_id=None,
     ) -> List[ApplicationInstance]:
         """Return the instances that match all of the passed parameters."""
 
@@ -156,6 +157,7 @@ class ApplicationInstanceService:
                 tool_consumer_instance_guid=tool_consumer_instance_guid,
                 email=email,
                 settings=settings,
+                organization_public_id=organization_public_id,
             )
             .order_by(
                 ApplicationInstance.last_launched.desc().nulls_last(),
@@ -165,6 +167,7 @@ class ApplicationInstanceService:
             .all()
         )
 
+    # pylint: disable=too-complex
     def _ai_search_query(
         self,
         *,
@@ -177,6 +180,7 @@ class ApplicationInstanceService:
         tool_consumer_instance_guid=None,
         email=None,
         settings=None,
+        organization_public_id=None,
     ):
         """Return a query with the passed parameters applied as filters."""
 
@@ -221,6 +225,11 @@ class ApplicationInstanceService:
         if settings:
             query = query.filter(
                 JSONSettings.matching(ApplicationInstance.settings, settings)
+            )
+
+        if organization_public_id:
+            query = query.filter(
+                ApplicationInstance.organization.has(public_id=organization_public_id)
             )
 
         return query
