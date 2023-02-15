@@ -1,3 +1,4 @@
+import { Button } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 
 import GradingControls from './GradingControls';
@@ -8,11 +9,19 @@ import { useConfig } from '../config';
  * Shows assignment information and grading controls (for gradeable assignments).
  */
 export default function InstructorToolbar() {
-  const { grading } = useConfig();
-
-  if (!grading?.enabled) {
+  const { instructorToolbar } = useConfig();
+  if (!instructorToolbar) {
+    // User is not an instructor or toolbar is disabled in the current environment.
     return null;
   }
+
+  const {
+    students,
+    courseName,
+    assignmentName,
+    editingEnabled,
+    gradingEnabled,
+  } = instructorToolbar;
 
   return (
     <header
@@ -26,20 +35,22 @@ export default function InstructorToolbar() {
           className="text-lg font-semibold leading-none"
           data-testid="assignment-name"
         >
-          {grading.assignmentName}
+          {assignmentName}
         </h1>
         <h2
           className="text-sm font-normal text-color-text-light leading-none"
           data-testid="course-name"
         >
-          {grading.courseName}
+          {courseName}
         </h2>
       </div>
+
+      {editingEnabled && <Button data-testid="edit">Edit</Button>}
 
       <div
         className={classnames('lg:col-span-2 lg:gap-4 ' /* cols 2-3 of 3 */)}
       >
-        <GradingControls grading={grading} />
+        {gradingEnabled && students && <GradingControls students={students} />}
       </div>
     </header>
   );

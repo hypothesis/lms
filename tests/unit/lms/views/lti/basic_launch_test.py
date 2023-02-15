@@ -249,32 +249,52 @@ class TestBasicLaunchViews:
         context.js_config.set_focused_user.assert_not_called()
 
     @pytest.mark.usefixtures("with_gradable_assignment", "user_is_instructor")
-    def test__show_document_enables_grading(self, svc, context):
+    def test__show_document_enables_instructor_toolbar_if_gradable(self, svc, context):
         svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
 
-        context.js_config.enable_grading_bar.assert_called()
-
-    @pytest.mark.usefixtures("with_gradable_assignment", "user_is_learner")
-    def test__show_document_does_not_enable_grading_for_students(self, svc, context):
-        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
-
-        context.js_config.enable_grading_bar.assert_not_called()
+        context.js_config.enable_instructor_toolbar.assert_called_with(
+            enable_editing=False, enable_grading=True
+        )
 
     @pytest.mark.usefixtures("user_is_instructor", "with_non_gradable_assignment")
-    def test__show_document_does_not_enable_without_a_gradable_assignment(
+    def test__show_document_enables_instructor_toolbar_if_editable(self, svc, context):
+        context.application_instance.settings.set(
+            "hypothesis", "edit_assignments_enabled", True
+        )
+
+        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+
+        context.js_config.enable_instructor_toolbar.assert_called_with(
+            enable_editing=True, enable_grading=False
+        )
+
+    @pytest.mark.usefixtures("with_gradable_assignment", "user_is_learner")
+    def test__show_document_does_not_enable_instructor_toolbar_for_students(
         self, svc, context
     ):
         svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
 
-        context.js_config.enable_grading_bar.assert_not_called()
+        context.js_config.enable_instructor_toolbar.assert_not_called()
+
+    @pytest.mark.usefixtures("user_is_instructor", "with_non_gradable_assignment")
+    def test__show_document_does_not_enable_instructor_toolbar(self, svc, context):
+        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+
+        context.js_config.enable_instructor_toolbar.assert_not_called()
 
     @pytest.mark.usefixtures(
         "with_gradable_assignment", "user_is_instructor", "is_canvas"
     )
-    def test__show_document_does_not_enable_grading_for_canvas(self, svc, context):
+    def test__show_document_does_not_enable_instructor_toolbar_in_canvas(
+        self, svc, context
+    ):
+        context.application_instance.settings.set(
+            "hypothesis", "edit_assignments_enabled", True
+        )
+
         svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
 
-        context.js_config.enable_grading_bar.assert_not_called()
+        context.js_config.enable_instructor_toolbar.assert_not_called()
 
     @pytest.mark.usefixtures(
         "with_gradable_assignment",
@@ -360,10 +380,14 @@ class TestBasicLaunchViews:
         return pyramid_request
 
     @pytest.fixture
-    def context(self):
+    def context(self, application_instance):
         context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
         context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
         context.is_canvas = False
+
+        application_instance.check_guid_aligns = mock.Mock()
+        context.application_instance = application_instance
+
         return context
 
     @pytest.fixture(autouse=True)

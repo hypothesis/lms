@@ -7,11 +7,12 @@ import InstructorToolbar, { $imports } from '../InstructorToolbar';
 
 describe('InstructorToolbar', () => {
   let fakeConfig;
-  let fakeGrading;
+  let fakeInstructorToolbar;
 
   beforeEach(() => {
-    fakeGrading = {
-      enabled: true,
+    fakeInstructorToolbar = {
+      editingEnabled: false,
+      gradingEnabled: false,
       courseName: 'course name',
       assignmentName: 'course assignment',
     };
@@ -19,7 +20,7 @@ describe('InstructorToolbar', () => {
       api: {
         authToken: 'dummyAuthToken',
       },
-      grading: fakeGrading,
+      instructorToolbar: fakeInstructorToolbar,
     };
 
     $imports.$mock(mockImportedComponents());
@@ -37,18 +38,35 @@ describe('InstructorToolbar', () => {
     );
   };
 
-  it('does not render assignment info when grading config is not set', () => {
-    delete fakeConfig.grading;
+  it('does not render assignment info when config is not set', () => {
+    delete fakeConfig.instructorToolbar;
 
     const wrapper = renderToolbar();
     assert.equal(wrapper.find('[data-testid="assignment-name"]').length, 0);
   });
 
-  it('does not render assignment info when grading is not enabled', () => {
-    fakeGrading.enabled = false;
-
+  it('does not render edit button if editing assignments is disabled', () => {
+    fakeInstructorToolbar.editingEnabled = false;
     const wrapper = renderToolbar();
-    assert.equal(wrapper.find('[data-testid="assignment-name"]').length, 0);
+    assert.isFalse(wrapper.exists('[data-testid="edit"]'));
+  });
+
+  it('renders edit button if editing assignments is enabled', () => {
+    fakeInstructorToolbar.editingEnabled = true;
+    const wrapper = renderToolbar();
+    assert.isTrue(wrapper.exists('[data-testid="edit"]'));
+  });
+
+  it('renders grading controls when grading is enabled', () => {
+    fakeInstructorToolbar.gradingEnabled = true;
+    fakeInstructorToolbar.students = [];
+    const wrapper = renderToolbar();
+    assert.isTrue(wrapper.exists('GradingControls'));
+  });
+
+  it('does not render grading controls when grading is not enabled', () => {
+    const wrapper = renderToolbar();
+    assert.isFalse(wrapper.exists('GradingControls'));
   });
 
   it('sets the assignment and course names', () => {
