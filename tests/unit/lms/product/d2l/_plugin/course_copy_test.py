@@ -33,19 +33,34 @@ class TestD2LCourseCopyPlugin:
             result == course_copy_files_helper.find_matching_file_in_course.return_value
         )
 
-    def test_find_matching_group_set_in_course(self, plugin):
-        assert not plugin.find_matching_group_set_in_course(
+    def test_find_matching_group_set_in_course(self, plugin, course_copy_groups_helper):
+        result = plugin.find_matching_group_set_in_course(
             sentinel.course, sentinel.group_set_id
         )
 
-    @pytest.mark.usefixtures("d2l_api_client", "course_copy_files_helper")
+        course_copy_groups_helper.find_matching_group_set_in_course.assert_called_once_with(
+            sentinel.course, sentinel.group_set_id
+        )
+
+        assert (
+            result
+            == course_copy_groups_helper.find_matching_group_set_in_course.return_value
+        )
+
+    @pytest.mark.usefixtures(
+        "d2l_api_client", "course_copy_files_helper", "course_copy_groups_helper"
+    )
     def test_factory(self, pyramid_request):
         plugin = D2LCourseCopyPlugin.factory(sentinel.context, pyramid_request)
 
         assert isinstance(plugin, D2LCourseCopyPlugin)
 
     @pytest.fixture
-    def plugin(self, d2l_api_client, course_copy_files_helper):
+    def plugin(
+        self, d2l_api_client, course_copy_files_helper, course_copy_groups_helper
+    ):
         return D2LCourseCopyPlugin(
-            api=d2l_api_client, files_helper=course_copy_files_helper
+            api=d2l_api_client,
+            files_helper=course_copy_files_helper,
+            groups_helper=course_copy_groups_helper,
         )
