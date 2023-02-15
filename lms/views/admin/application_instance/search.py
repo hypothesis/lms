@@ -4,6 +4,7 @@ from webargs import fields
 
 from lms.models import ApplicationSettings
 from lms.models.json_settings import JSONSetting
+from lms.models.public_id import InvalidPublicId
 from lms.security import Permissions
 from lms.validation import PyramidRequestSchema
 from lms.views.admin import flash_validation
@@ -28,6 +29,7 @@ class SearchApplicationInstanceSchema(PyramidRequestSchema):
     client_id = fields.Str(required=False)
     deployment_id = fields.Str(required=False)
     tool_consumer_instance_guid = fields.Str(required=False)
+    organization_public_id = fields.Str(required=False)
     settings_key = fields.Str(required=False)
     settings_value = fields.Str(required=False)
 
@@ -58,19 +60,29 @@ class SearchApplicationInstanceViews(BaseApplicationInstanceView):
 
             settings = {settings_key: settings_value}
 
-        instances = self.application_instance_service.search(
-            id_=self.request.params.get("id"),
-            name=self.request.params.get("name"),
-            consumer_key=self.request.params.get("consumer_key"),
-            issuer=self.request.params.get("issuer"),
-            client_id=self.request.params.get("client_id"),
-            deployment_id=self.request.params.get("deployment_id"),
-            tool_consumer_instance_guid=self.request.params.get(
-                "tool_consumer_instance_guid"
-            ),
-            email=self.request.params.get("email"),
-            settings=settings,
-        )
+        try:
+            instances = self.application_instance_service.search(
+                id_=self.request.params.get("id"),
+                name=self.request.params.get("name"),
+                consumer_key=self.request.params.get("consumer_key"),
+                issuer=self.request.params.get("issuer"),
+                client_id=self.request.params.get("client_id"),
+                deployment_id=self.request.params.get("deployment_id"),
+                tool_consumer_instance_guid=self.request.params.get(
+                    "tool_consumer_instance_guid"
+                ),
+                email=self.request.params.get("email"),
+                organization_public_id=self.request.params.get(
+                    "organization_public_id"
+                ),
+                settings=settings,
+            )
+
+        except InvalidPublicId as err:
+            self.request.session.flash(
+                {"organization_public_id": [str(err)]}, "validation"
+            )
+            return {"settings": SETTINGS_BY_FIELD}
 
         # Get out the settings key to focus on if it's been searched for
         settings_focus = None

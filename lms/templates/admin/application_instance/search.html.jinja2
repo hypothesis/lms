@@ -20,7 +20,7 @@ Application instances
             <div class="column">
                 {{ macros.form_text_field(request, "Email / Domain", "email") }}
                 {{ macros.form_text_field(request, "Name", "name") }}
-                {{ macros.form_text_field(request, "ID", "id") }}
+                {{ macros.form_text_field(request, "Organization Public Id", "organization_public_id") }}
 
                 {% call macros.field_body("Setting") %}
                     <div class="select">
@@ -47,6 +47,7 @@ Application instances
             </div>
 
             <div class="column">
+                {{ macros.form_text_field(request, "ID", "id") }}
                 {{ macros.form_text_field(request, "GUID", "tool_consumer_instance_guid") }}
                 {{ macros.form_text_field(request, "Client ID", "client_id") }}
                 {{ macros.form_text_field(request, "Consumer key", "consumer_key") }}

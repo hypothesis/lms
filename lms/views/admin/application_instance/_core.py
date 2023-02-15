@@ -2,13 +2,14 @@ from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 
 from lms.models import ApplicationInstance
 from lms.services import ApplicationInstanceNotFound
+from lms.services.application_instance import ApplicationInstanceService
 
 
 class BaseApplicationInstanceView:
     def __init__(self, request):
         self.request = request
-        self.application_instance_service = request.find_service(
-            name="application_instance"
+        self.application_instance_service: ApplicationInstanceService = (
+            request.find_service(name="application_instance")
         )
 
     @property
