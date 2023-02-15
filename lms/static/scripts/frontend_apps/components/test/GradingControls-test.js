@@ -12,7 +12,6 @@ describe('GradingControls', () => {
   let fakeApiCall;
   let fakeConfig;
   let fakeStudents;
-  let fakeGrading;
   let fakeClientRPC;
 
   /**
@@ -53,10 +52,6 @@ describe('GradingControls', () => {
         lmsId: '456',
       },
     ];
-    fakeGrading = {
-      enabled: true,
-      students: fakeStudents,
-    };
 
     fakeClientRPC = {
       setFocusedUser: sinon.stub(),
@@ -80,7 +75,7 @@ describe('GradingControls', () => {
       <Config.Provider value={fakeConfig}>
         <Services.Provider value={services}>
           <GradingControls
-            grading={fakeGrading}
+            students={fakeStudents}
             clientRPC={fakeClientRPC}
             {...props}
           />
@@ -91,7 +86,7 @@ describe('GradingControls', () => {
 
   it('orders the students by displayName', () => {
     // Un-order students
-    fakeGrading.students = [
+    fakeStudents = [
       {
         displayName: 'Student Beta',
       },
@@ -134,7 +129,7 @@ describe('GradingControls', () => {
 
   it('puts students with empty displayNames at the beginning of sorted students', () => {
     // Un-order students
-    fakeGrading.students = [
+    fakeStudents = [
       {
         displayName: 'Student Beta',
       },

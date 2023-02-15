@@ -3,27 +3,32 @@ import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
 import { apiCall } from '../utils/api';
 import { useConfig } from '../config';
-import type { GradingConfig, StudentInfo } from '../config';
+import type { StudentInfo } from '../config';
 import { ClientRPC, useService } from '../services';
 import StudentSelector from './StudentSelector';
 import SubmitGradeForm from './SubmitGradeForm';
 
 export type GradingControlsProps = {
-  grading: GradingConfig;
+  /**
+   * List of students to grade.
+   *
+   * These will be sorted by display name before being presented.
+   */
+  students: StudentInfo[];
 };
 
 /**
  * Controls for grading students: a list of students to grade, and an input to
  * set a grade for the selected student.
  */
-export default function GradingControls({ grading }: GradingControlsProps) {
+export default function GradingControls({
+  students: unorderedStudents,
+}: GradingControlsProps) {
   const {
     api: { authToken, sync: syncAPICallInfo },
   } = useConfig();
 
   const clientRPC = useService(ClientRPC);
-
-  const unorderedStudents = grading.students;
 
   // No initial current student selected
   const [currentStudentIndex, setCurrentStudentIndex] = useState(-1);

@@ -47,11 +47,12 @@ export type StudentInfo = {
 /**
  * Data needed to render the grading bar shown when an instructor views an assignment.
  */
-export type GradingConfig = {
+export type InstructorConfig = {
   assignmentName: string;
   courseName: string;
-  enabled: boolean;
-  students: StudentInfo[];
+  editingEnabled: boolean;
+  gradingEnabled: boolean;
+  students: StudentInfo[] | null;
 };
 
 /**
@@ -225,7 +226,7 @@ export type ConfigObject = {
     speedGrader?: SpeedGraderConfig;
   };
   contentBanner?: ContentBannerConfig;
-  grading?: GradingConfig; // Only present for instructors
+  instructorToolbar?: InstructorConfig;
   hypothesisClient: ClientConfig;
   rpcServer: {
     allowedOrigins: string[];

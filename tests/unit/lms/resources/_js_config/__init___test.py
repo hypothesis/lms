@@ -282,21 +282,25 @@ class TestAddCanvasSpeedgraderSettings:
         }
 
 
-class TestEnableGradingBar:
-    def test_it(self, js_config, context, pyramid_request, grading_info_service):
-        js_config.enable_grading_bar()
-
-        grading_info_service.get_by_assignment.assert_called_once_with(
-            context_id="test_course_id",
-            application_instance=context.application_instance,
-            resource_link_id="TEST_RESOURCE_LINK_ID",
+class TestEnableInstructorToolbar:
+    @pytest.mark.parametrize(
+        "enable_editing, enable_grading", [(True, False), (False, True)]
+    )
+    def test_it(
+        self,
+        js_config,
+        context,
+        pyramid_request,
+        grading_info_service,
+        enable_editing,
+        enable_grading,
+    ):
+        js_config.enable_instructor_toolbar(
+            enable_editing=enable_editing, enable_grading=enable_grading
         )
 
-        assert js_config.asdict()["grading"] == {
-            "enabled": True,
-            "courseName": pyramid_request.lti_params["context_title"],
-            "assignmentName": pyramid_request.lti_params["resource_link_title"],
-            "students": [
+        if enable_grading:
+            expected_students = [
                 {
                     "userid": f"acct:{grading_info.h_username}@lms.hypothes.is",
                     "displayName": grading_info.h_display_name,
@@ -307,7 +311,22 @@ class TestEnableGradingBar:
                     ],
                 }
                 for grading_info in grading_info_service.get_by_assignment.return_value
-            ],
+            ]
+            grading_info_service.get_by_assignment.assert_called_once_with(
+                context_id="test_course_id",
+                application_instance=context.application_instance,
+                resource_link_id="TEST_RESOURCE_LINK_ID",
+            )
+        else:
+            expected_students = None
+            grading_info_service.get_by_assignment.assert_not_called()
+
+        assert js_config.asdict()["instructorToolbar"] == {
+            "editingEnabled": enable_editing,
+            "gradingEnabled": enable_grading,
+            "courseName": pyramid_request.lti_params["context_title"],
+            "assignmentName": pyramid_request.lti_params["resource_link_title"],
+            "students": expected_students,
         }
 
     @pytest.fixture

@@ -222,11 +222,19 @@ class BasicLaunchViews:
             if focused_user := self.request.params.get("focused_user"):
                 self.context.js_config.set_focused_user(focused_user)
 
-        elif assignment.is_gradable and self.request.lti_user.is_instructor:
-            # Only show the grading interface to teachers who aren't in Canvas,
-            # as Canvas uses its own built in Speedgrader
+        elif self.request.lti_user.is_instructor:
+            # nb. Canvas does not currently use/support any functionality from the
+            # instructor toolbar. For grading it uses SpeedGrader and we don't
+            # support editing assignments.
 
-            self.context.js_config.enable_grading_bar()
+            enable_editing = self.context.application_instance.settings.get(
+                "hypothesis", "edit_assignments_enabled", default=False
+            )
+
+            if enable_editing or assignment.is_gradable:
+                self.context.js_config.enable_instructor_toolbar(
+                    enable_editing=enable_editing, enable_grading=assignment.is_gradable
+                )
 
         self.context.js_config.add_document_url(document_url)
         self.context.js_config.enable_lti_launch_mode(assignment)

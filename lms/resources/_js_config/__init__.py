@@ -271,45 +271,54 @@ class JSConfig:
         self._config.setdefault("filePicker", {})
         self._config["filePicker"]["deepLinkingAPI"] = config
 
-    def enable_grading_bar(self):
-        """Enable our LMS app's built-in assignment grading UI."""
+    def enable_instructor_toolbar(self, enable_editing=False, enable_grading=False):
+        """
+        Enable the toolbar with controls for instructors in LMS assignments.
 
-        # Get one student dict for each student who has launched the assignment
-        # and had grading info recorded for them.
-        students = []
+        :param enable_editing: Whether to enable controls for editing assignment configuration
+        :param enable_grading: Whether to enable grading controls
+        """
 
-        grading_infos = self._grading_info_service.get_by_assignment(
-            application_instance=self._context.application_instance,
-            context_id=self._request.lti_params.get("context_id"),
-            resource_link_id=self._request.lti_params.get("resource_link_id"),
-        )
+        if enable_grading:
+            # Get one student dict for each student who has launched the assignment
+            # and had grading info recorded for them.
+            students = []
 
-        for grading_info in grading_infos:
-            h_user = HUser(
-                username=grading_info.h_username,
-                display_name=grading_info.h_display_name,
-            )
-            students.append(
-                {
-                    "userid": h_user.userid(self._authority),
-                    "displayName": h_user.display_name,
-                    "lmsId": grading_info.user_id,
-                    "LISResultSourcedId": grading_info.lis_result_sourcedid,
-                    # We are using the value from the request instead of the one stored in GradingInfo.
-                    # This allows us to still read and submit grades when something in the LMS changes.
-                    # For example in LTI version upgrades, the endpoint is likely to change as we move from
-                    # LTI 1.1 basic outcomes API to LTI1.3's Assignment and Grade Services.
-                    # Also when the install's domain is updated all the records in the DB will be outdated.
-                    "LISOutcomeServiceUrl": self._request.lti_params[
-                        "lis_outcome_service_url"
-                    ],
-                }
+            grading_infos = self._grading_info_service.get_by_assignment(
+                application_instance=self._context.application_instance,
+                context_id=self._request.lti_params.get("context_id"),
+                resource_link_id=self._request.lti_params.get("resource_link_id"),
             )
 
-        self._config["grading"] = {
-            "enabled": True,
+            for grading_info in grading_infos:
+                h_user = HUser(
+                    username=grading_info.h_username,
+                    display_name=grading_info.h_display_name,
+                )
+                students.append(
+                    {
+                        "userid": h_user.userid(self._authority),
+                        "displayName": h_user.display_name,
+                        "lmsId": grading_info.user_id,
+                        "LISResultSourcedId": grading_info.lis_result_sourcedid,
+                        # We are using the value from the request instead of the one stored in GradingInfo.
+                        # This allows us to still read and submit grades when something in the LMS changes.
+                        # For example in LTI version upgrades, the endpoint is likely to change as we move from
+                        # LTI 1.1 basic outcomes API to LTI1.3's Assignment and Grade Services.
+                        # Also when the install's domain is updated all the records in the DB will be outdated.
+                        "LISOutcomeServiceUrl": self._request.lti_params[
+                            "lis_outcome_service_url"
+                        ],
+                    }
+                )
+        else:
+            students = None
+
+        self._config["instructorToolbar"] = {
             "courseName": self._request.lti_params.get("context_title"),
             "assignmentName": self._request.lti_params.get("resource_link_title"),
+            "editingEnabled": enable_editing,
+            "gradingEnabled": enable_grading,
             "students": students,
         }
 
