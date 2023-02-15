@@ -53,7 +53,6 @@ export default function BasicLTILaunchApp() {
       // to relay to the sidebar via RPC.
       sync: syncAPICallInfo,
     },
-    grading,
     hypothesisClient: clientConfig,
     // Content URL to show in the iframe.
     viaUrl: viaURL,
@@ -329,12 +328,7 @@ export default function BasicLTILaunchApp() {
       })}
       data-testid="content-wrapper"
     >
-      {grading && grading.enabled && (
-        <InstructorToolbar
-          courseName={grading.courseName}
-          assignmentName={grading.assignmentName}
-        />
-      )}
+      <InstructorToolbar />
       <ContentFrame url={contentURL ?? ''} />
     </div>
   );

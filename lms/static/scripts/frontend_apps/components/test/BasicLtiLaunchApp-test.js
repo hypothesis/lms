@@ -55,7 +55,6 @@ describe('BasicLTILaunchApp', () => {
       canvas: {},
       hypothesisClient: {},
       urls: {},
-      grading: {},
     };
     fakeApiCall = sinon.stub();
     FakeAuthWindow = sinon.stub().returns({

@@ -1,20 +1,19 @@
 import classnames from 'classnames';
 
 import GradingControls from './GradingControls';
-
-export type InstructorToolbarProps = {
-  courseName: string;
-  assignmentName: string;
-};
+import { useConfig } from '../config';
 
 /**
- * Assignment toolbar for instructors. Shows assignment information and grading
- * controls (for gradeable assignments).
+ * Toolbar for instructors.
+ * Shows assignment information and grading controls (for gradeable assignments).
  */
-export default function InstructorToolbar({
-  assignmentName,
-  courseName,
-}: InstructorToolbarProps) {
+export default function InstructorToolbar() {
+  const { grading } = useConfig();
+
+  if (!grading?.enabled) {
+    return null;
+  }
+
   return (
     <header
       className={classnames(
@@ -27,20 +26,20 @@ export default function InstructorToolbar({
           className="text-lg font-semibold leading-none"
           data-testid="assignment-name"
         >
-          {assignmentName}
+          {grading.assignmentName}
         </h1>
         <h2
           className="text-sm font-normal text-color-text-light leading-none"
           data-testid="course-name"
         >
-          {courseName}
+          {grading.courseName}
         </h2>
       </div>
 
       <div
         className={classnames('lg:col-span-2 lg:gap-4 ' /* cols 2-3 of 3 */)}
       >
-        <GradingControls />
+        <GradingControls grading={grading} />
       </div>
     </header>
   );

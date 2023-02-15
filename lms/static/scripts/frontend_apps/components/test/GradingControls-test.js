@@ -12,6 +12,7 @@ describe('GradingControls', () => {
   let fakeApiCall;
   let fakeConfig;
   let fakeStudents;
+  let fakeGrading;
   let fakeClientRPC;
 
   /**
@@ -52,8 +53,7 @@ describe('GradingControls', () => {
         lmsId: '456',
       },
     ];
-
-    fakeConfig.grading = {
+    fakeGrading = {
       enabled: true,
       students: fakeStudents,
     };
@@ -80,7 +80,7 @@ describe('GradingControls', () => {
       <Config.Provider value={fakeConfig}>
         <Services.Provider value={services}>
           <GradingControls
-            students={fakeStudents}
+            grading={fakeGrading}
             clientRPC={fakeClientRPC}
             {...props}
           />
@@ -91,7 +91,7 @@ describe('GradingControls', () => {
 
   it('orders the students by displayName', () => {
     // Un-order students
-    fakeConfig.grading.students = [
+    fakeGrading.students = [
       {
         displayName: 'Student Beta',
       },
@@ -134,7 +134,7 @@ describe('GradingControls', () => {
 
   it('puts students with empty displayNames at the beginning of sorted students', () => {
     // Un-order students
-    fakeConfig.grading.students = [
+    fakeGrading.students = [
       {
         displayName: 'Student Beta',
       },
