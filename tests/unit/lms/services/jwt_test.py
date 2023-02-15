@@ -103,6 +103,7 @@ class TestJWTService:
             key=_RequestsPyJWKClient.return_value.get_signing_key_from_jwt.return_value.key,
             audience="AUD",
             algorithms=["RS256"],
+            leeway=JWTService.LEEWAY,
         )
         assert payload == {"aud": "AUD", "iss": "ISS"}
 
