@@ -2,18 +2,38 @@ import logging
 from urllib.parse import urlparse
 
 import sqlalchemy as sa
+from pyramid.settings import asbool
 from sqlalchemy.dialects.postgresql import JSONB
 
 from lms.db import BASE
 from lms.models import CreatedUpdatedMixin
 from lms.models.exceptions import ReusedConsumerKey
-from lms.models.json_settings import JSONSettings
+from lms.models.json_settings import JSONSetting, JSONSettings
 
 LOG = logging.getLogger(__name__)
 
 
 class ApplicationSettings(JSONSettings):
-    ...
+    fields = (
+        JSONSetting("blackboard", "files_enabled", asbool),
+        JSONSetting("blackboard", "groups_enabled", asbool),
+        JSONSetting("canvas", "sections_enabled", asbool),
+        JSONSetting("canvas", "groups_enabled", asbool),
+        JSONSetting("desire2learn", "client_id"),
+        JSONSetting("desire2learn", "client_secret", JSONSetting.AES_SECRET),
+        JSONSetting("desire2learn", "groups_enabled", asbool),
+        JSONSetting("desire2learn", "files_enabled", asbool),
+        JSONSetting("desire2learn", "create_line_item", asbool),
+        JSONSetting("microsoft_onedrive", "files_enabled", asbool),
+        JSONSetting("vitalsource", "enabled", asbool),
+        JSONSetting("vitalsource", "user_lti_param"),
+        JSONSetting("vitalsource", "user_lti_pattern"),
+        JSONSetting("vitalsource", "api_key"),
+        JSONSetting("vitalsource", "disable_licence_check", asbool),
+        JSONSetting("jstor", "enabled", asbool),
+        JSONSetting("jstor", "site_code"),
+        JSONSetting("hypothesis", "notes"),
+    )
 
 
 class ApplicationInstance(CreatedUpdatedMixin, BASE):
