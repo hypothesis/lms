@@ -37,7 +37,7 @@ Application instances
                         </select>
                     </div>
                 {% endcall %}
-                {{ macros.form_text_field(request, "Settings Value", "settings_value") }}
+                {{ macros.form_text_field(request, "Setting Value", "settings_value") }}
 
                 {# This lines up in a less goofy way here than outside the column #}
                 {% call macros.field_body(label="") %}
@@ -62,9 +62,15 @@ Application instances
 
 
 {% if instances is defined %}
+    {% if request.params.get('settings_key') %}
+        {% set extra_fields = [
+             {"label": request.params.get('settings_key'), "name": "settings_focus_value"}
+        ] %}
+    {% endif %}
+
 <fieldset class="box mt-6">
     <legend class="label has-text-centered">Results</legend>
-    {{ macros.instances_table(request, instances) }}
+    {{ macros.instances_table(request, instances, extra_fields) }}
 </fieldset>
 {% endif %}
 
