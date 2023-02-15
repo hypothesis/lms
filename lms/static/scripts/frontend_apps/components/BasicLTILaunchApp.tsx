@@ -320,19 +320,6 @@ export default function BasicLTILaunchApp() {
     }
   }, [authToken, authURL, fetchContentURL, fetchGroups]);
 
-  const content = (
-    <div
-      className={classnames('flex flex-col h-full', {
-        invisible: !showContent,
-        visible: showContent,
-      })}
-      data-testid="content-wrapper"
-    >
-      <InstructorToolbar />
-      <ContentFrame url={contentURL ?? ''} />
-    </div>
-  );
-
   return (
     <div className="h-full">
       {showSpinner && <SpinnerOverlay />}
@@ -344,7 +331,16 @@ export default function BasicLTILaunchApp() {
           onRetry={authorizeAndFetchURL}
         />
       )}
-      {content}
+      <div
+        className={classnames('flex flex-col h-full', {
+          invisible: !showContent,
+          visible: showContent,
+        })}
+        data-testid="content-wrapper"
+      >
+        <InstructorToolbar />
+        <ContentFrame url={contentURL ?? ''} />
+      </div>
     </div>
   );
 }
