@@ -2,7 +2,7 @@ import classnames from 'classnames';
 
 import GradingControls from './GradingControls';
 
-export type AssignmentToolbarProps = {
+export type InstructorToolbarProps = {
   courseName: string;
   assignmentName: string;
 };
@@ -11,10 +11,10 @@ export type AssignmentToolbarProps = {
  * Assignment toolbar for instructors. Shows assignment information and grading
  * controls (for gradeable assignments).
  */
-export default function AssignmentToolbar({
+export default function InstructorToolbar({
   assignmentName,
   courseName,
-}: AssignmentToolbarProps) {
+}: InstructorToolbarProps) {
   return (
     <header
       className={classnames(

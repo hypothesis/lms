@@ -15,7 +15,7 @@ import { apiCall } from '../utils/api';
 import AuthWindow from '../utils/AuthWindow';
 
 import ContentFrame from './ContentFrame';
-import AssignmentToolbar from './AssignmentToolbar';
+import InstructorToolbar from './InstructorToolbar';
 import LaunchErrorDialog from './LaunchErrorDialog';
 
 /**
@@ -330,7 +330,7 @@ export default function BasicLTILaunchApp() {
       data-testid="content-wrapper"
     >
       {grading && grading.enabled && (
-        <AssignmentToolbar
+        <InstructorToolbar
           courseName={grading.courseName}
           assignmentName={grading.assignmentName}
         />
