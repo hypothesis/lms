@@ -112,9 +112,9 @@ class ApplicationSettings(MutableDict):
             {
                 # Specify an exact key should have an exact value
                 "group.key": "exact_value_to_match"
-                # Specify an exact key should exist
+                # Specify an exact key should exist (use ellipsis literal)
                 "group.key": ...
-                # Specify a group should exist
+                # Specify a group should exist (use ellipsis literal)
                 "group": ...
             }
 
@@ -129,12 +129,16 @@ class ApplicationSettings(MutableDict):
             )
 
             if key is None:
+                # Search for the group to exist, but nothing more
                 clauses.append(column.has_key(group))
 
-            elif value is not ...:
-                clauses.append(column.contains({group: {key: value}}))
-            else:
+            elif value is ...:
+                # Look for the group and key, with any value
                 clauses.append(column[group].has_key(key))
+
+            else:
+                # Look for the group and key, with a specific value
+                clauses.append(column.contains({group: {key: value}}))
 
         return sa.and_(*clauses)
 
