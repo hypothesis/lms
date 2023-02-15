@@ -7,32 +7,28 @@ import {
 
 import { useRef, useState } from 'preact/hooks';
 
-/**
- * @typedef URLPickerProps
- * @prop {() => void} onCancel
- * @prop {(url: string) => void} onSelectURL -
- *   Callback invoked with the entered URL when the user accepts the dialog
- */
+export type URLPickerProps = {
+  onCancel: () => void;
+  /** Callback invoked with the entered URL when the user accepts the dialog */
+  onSelectURL: (url: string) => void;
+};
 
 /**
  * A dialog that allows the user to enter or paste the URL of a web page or
  * PDF file to use for an assignment.
- *
- * @param {URLPickerProps} props
  */
-export default function URLPicker({ onCancel, onSelectURL }) {
-  const input = /** @type {{ current: HTMLInputElement }} */ (useRef());
-  const form = /** @type {{ current: HTMLFormElement }} */ (useRef());
+export default function URLPicker({ onCancel, onSelectURL }: URLPickerProps) {
+  const input = useRef<HTMLInputElement | null>(null);
+  const form = useRef<HTMLFormElement | null>(null);
 
   // Holds an error message corresponding to client-side validation of the
   // input field
-  const [error, setError] = useState(/** @type {string|null} */ (null));
+  const [error, setError] = useState<string | null>(null);
 
-  /** @param {Event} event */
-  const submit = event => {
+  const submit = (event: Event) => {
     event.preventDefault();
     try {
-      const url = new URL(input.current.value);
+      const url = new URL(input.current!.value);
       if (!url.protocol.startsWith('http')) {
         if (url.protocol.startsWith('file')) {
           setError(
@@ -42,7 +38,7 @@ export default function URLPicker({ onCancel, onSelectURL }) {
           setError('Please use a URL that starts with "http" or "https"');
         }
       } else {
-        onSelectURL(input.current.value);
+        onSelectURL(input.current!.value);
       }
     } catch (e) {
       setError('Please enter a URL, e.g. "https://www.example.com"');
