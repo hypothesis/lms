@@ -26,13 +26,14 @@ Application instances
                     <div class="select">
                         <select name="settings_key">
                             <option value="">-</option>
-                            {% for option in settings %}
+
+                            {% for setting in settings.values() %}
                                 <option
-                                    value="{{ option }}"
-                                    {% if request.params.get("settings_key") == option %}
+                                    value="{{ setting.compound_key }}"
+                                    {% if request.params.get("settings_key") == setting.compound_key %}
                                         selected
                                     {% endif %}
-                                >{{ option }}</option>
+                                >{{ setting.label }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -62,9 +63,9 @@ Application instances
 
 
 {% if instances is defined %}
-    {% if request.params.get('settings_key') %}
+    {% if settings_focus %}
         {% set extra_fields = [
-             {"label": request.params.get('settings_key'), "name": "settings_focus_value"}
+             {"label": settings_focus.label, "name": "settings_focus_value"}
         ] %}
     {% endif %}
 
