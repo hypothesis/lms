@@ -1,7 +1,9 @@
 import pytest
+from h_matchers import Any
 
+from lms.models.json_settings import JSONSetting
 from lms.views.admin.application_instance.search import (
-    SETTING_NAMES,
+    SETTINGS_BY_FIELD,
     SearchApplicationInstanceViews,
 )
 from tests import factories
@@ -10,7 +12,7 @@ from tests import factories
 @pytest.mark.usefixtures("application_instance_service")
 class TestSearchApplicationInstanceViews:
     def test_search_start(self, views):
-        assert views.search_start() == {"settings": SETTING_NAMES}
+        assert views.search_start() == {"settings": SETTINGS_BY_FIELD}
 
     def test_search_callback(
         self, pyramid_request, application_instance_service, views
@@ -41,7 +43,8 @@ class TestSearchApplicationInstanceViews:
         )
         assert response == {
             "instances": application_instance_service.search.return_value,
-            "settings": SETTING_NAMES,
+            "settings": SETTINGS_BY_FIELD,
+            "settings_focus": None,
         }
 
     @pytest.mark.parametrize(
@@ -79,6 +82,9 @@ class TestSearchApplicationInstanceViews:
             application_instance_service.search.call_args.kwargs["settings"] == expected
         )
 
+        assert response["settings_focus"] == Any.instance_of(JSONSetting).with_attrs(
+            {"compound_key": settings_key}
+        )
         assert response["instances"][0].settings_focus_value == "SETTING"
 
     def test_search_callback_invalid(self, views, pyramid_request):
