@@ -7,7 +7,7 @@ from sqlalchemy.ext.mutable import MutableDict
 
 from lms.db import BASE, varchar_enum
 from lms.models._mixins import CreatedUpdatedMixin
-from lms.models.application_settings import ApplicationSettings
+from lms.models.json_settings import JSONSettings
 
 MAX_GROUP_NAME_LENGTH = 25
 
@@ -114,7 +114,7 @@ class Grouping(CreatedUpdatedMixin, BASE):
 
     settings = sa.Column(
         "settings",
-        ApplicationSettings.as_mutable(JSONB),
+        JSONSettings.as_mutable(JSONB),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
     )

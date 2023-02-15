@@ -2,14 +2,14 @@ import base64
 
 import pytest
 
-from lms.models import ApplicationInstance, ApplicationSettings
+from lms.models import ApplicationInstance, JSONSettings
 from lms.services.aes import AESService
 from tests import factories
 
 
-class TestApplicationSettings:
-    def test_data(self, application_settings):
-        assert application_settings == {"test_group": {"test_key": "test_value"}}
+class TestJSONSettings:
+    def test_data(self, settings):
+        assert settings == {"test_group": {"test_key": "test_value"}}
 
     @pytest.mark.parametrize(
         "group,key,default,expected_value",
@@ -28,8 +28,8 @@ class TestApplicationSettings:
             ("unknown_group", "test_key", "DEFAULT", "DEFAULT"),
         ],
     )
-    def test_get(self, application_settings, group, key, default, expected_value):
-        assert application_settings.get(group, key, default) == expected_value
+    def test_get(self, settings, group, key, default, expected_value):
+        assert settings.get(group, key, default) == expected_value
 
     @pytest.mark.parametrize(
         "group,key,value,expected_value",
@@ -42,38 +42,38 @@ class TestApplicationSettings:
             ("missing_group", "new_key", "new_value", "new_value"),
         ],
     )
-    def test_set(self, application_settings, group, key, value, expected_value):
-        application_settings.set(group, key, value)
+    def test_set(self, settings, group, key, value, expected_value):
+        settings.set(group, key, value)
 
-        assert application_settings[group][key] == expected_value
+        assert settings[group][key] == expected_value
 
-    def test_secrets_round_trip(self, application_settings, aes):
-        application_settings.set_secret(aes, "GROUP", "KEY", "VERY SECRET")
+    def test_secrets_round_trip(self, settings, aes):
+        settings.set_secret(aes, "GROUP", "KEY", "VERY SECRET")
 
         # Value not stored as plain text
-        assert application_settings["GROUP"]["KEY"] != "VERY_SECRET"
+        assert settings["GROUP"]["KEY"] != "VERY_SECRET"
         # IV stored
-        assert application_settings["GROUP"]["KEY_aes_iv"]
+        assert settings["GROUP"]["KEY_aes_iv"]
 
-        assert application_settings.get_secret(aes, "GROUP", "KEY") == "VERY SECRET"
+        assert settings.get_secret(aes, "GROUP", "KEY") == "VERY SECRET"
 
-    def test_set_secret(self, aes_service, application_settings):
-        application_settings.set_secret(aes_service, "GROUP", "KEY", "VERY SECRET")
+    def test_set_secret(self, aes_service, settings):
+        settings.set_secret(aes_service, "GROUP", "KEY", "VERY SECRET")
 
         aes_service.build_iv.assert_called_once()
         aes_service.encrypt.assert_called_once_with(
             aes_service.build_iv.return_value, "VERY SECRET"
         )
 
-        assert application_settings["GROUP"]["KEY"] == base64.b64encode(
+        assert settings["GROUP"]["KEY"] == base64.b64encode(
             aes_service.encrypt.return_value
         ).decode("utf-8")
-        assert application_settings["GROUP"]["KEY_aes_iv"] == base64.b64encode(
+        assert settings["GROUP"]["KEY_aes_iv"] == base64.b64encode(
             aes_service.build_iv.return_value
         ).decode("utf-8")
 
-    def test_get_secret_empty(self, application_settings, aes_service):
-        assert not application_settings.get_secret(aes_service, "GROUP", "KEY")
+    def test_get_secret_empty(self, settings, aes_service):
+        assert not settings.get_secret(aes_service, "GROUP", "KEY")
 
     @pytest.mark.parametrize(
         "spec,matches",
@@ -92,27 +92,25 @@ class TestApplicationSettings:
 
         found = (
             db_session.query(ApplicationInstance)
-            .filter(ApplicationSettings.matching(ApplicationInstance.settings, spec))
+            .filter(JSONSettings.matching(ApplicationInstance.settings, spec))
             .one_or_none()
         )
 
         assert found == ai if matches else not found
 
-    def test__repr__(self, application_settings):
+    def test__repr__(self, settings):
         assert (
-            repr(application_settings)
-            == "ApplicationSettings({'test_group': {'test_key': 'test_value'}})"
+            repr(settings) == "JSONSettings({'test_group': {'test_key': 'test_value'}})"
         )
 
-    def test__str__(self, application_settings):
+    def test__str__(self, settings):
         assert (
-            str(application_settings)
-            == "ApplicationSettings({'test_group': {'test_key': 'test_value'}})"
+            str(settings) == "JSONSettings({'test_group': {'test_key': 'test_value'}})"
         )
 
     @pytest.fixture
-    def application_settings(self):
-        return ApplicationSettings({"test_group": {"test_key": "test_value"}})
+    def settings(self):
+        return JSONSettings({"test_group": {"test_key": "test_value"}})
 
     @pytest.fixture
     def aes(self):

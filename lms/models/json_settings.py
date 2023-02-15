@@ -6,9 +6,9 @@ from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import InstrumentedAttribute
 
 
-class ApplicationSettings(MutableDict):
+class JSONSettings(MutableDict):
     """
-    Model for accessing and updating application settings.
+    Model for accessing and updating settings stored as JSON.
 
     This is a dict subclass, but you should use the custom get() and set()
     methods below to get and set values because they're safer and more
@@ -20,8 +20,7 @@ class ApplicationSettings(MutableDict):
     For example in the code below the change to "sections_enabled" will not be
     saved when the transaction is committed:
 
-    >>> ai = db.query(models.ApplicationInstance).filter_by(...).one()
-    >>> ai.settings["canvas"]["sections_enabled"] = False
+    >>> model.settings["canvas"]["sections_enabled"] = False
 
     The safe thing to do is to use the custom set() method because it makes
     sure that your changes are saved.
@@ -30,11 +29,10 @@ class ApplicationSettings(MutableDict):
     they will be saved. In this example the changes to both "sections_enabled"
     and "bar" will be saved:
 
-    >>> ai = db.query(models.ApplicationInstance).filter_by(...).one()
-    >>> ai.settings["canvas"]["sections_enabled"] = False
-    >>> ai.settings["foo"]["bar"] = "gar"
-    >>> # Notify SQLAlchemy that ai.settings has changed so it knows to save it.
-    >>> ai.settings.changed()
+    >>> model.settings["canvas"]["sections_enabled"] = False
+    >>> model.settings["foo"]["bar"] = "gar"
+    >>> # Notify SQLAlchemy that settings have changed, so it knows to save it.
+    >>> model.settings.changed()
     """
 
     def get(self, group, key, default=None):
@@ -45,7 +43,7 @@ class ApplicationSettings(MutableDict):
 
         :param group: The name of the group of settings
         :param key: The key in that group
-        :param default: Default value if the group/key combiantion is missing
+        :param default: Default value if the group/key combination is missing
         :return: The value or None
         """
         return super().get(group, {}).get(key, default)
