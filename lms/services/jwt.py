@@ -16,6 +16,14 @@ LOG = logging.getLogger(__name__)
 
 
 class JWTService:
+    LEEWAY = datetime.timedelta(seconds=10)
+    """
+    Leeway to allow for timestamp fields when decoding JWTs.
+
+    This accounts for small clock differences between the server generating the
+    JWT and us.
+    """
+
     def __init__(self, registration_service, rsa_key_service):
         self._registration_service = registration_service
         self._rsa_key_service = rsa_key_service
@@ -37,7 +45,11 @@ class JWTService:
         """
         try:
             payload = jwt.decode(
-                jwt_str, secret, algorithms=["HS256"], options={"require": ["exp"]}
+                jwt_str,
+                secret,
+                algorithms=["HS256"],
+                options={"require": ["exp"]},
+                leeway=cls.LEEWAY,
             )
         except ExpiredSignatureError as err:
             raise ExpiredJWTError() from err
@@ -99,7 +111,11 @@ class JWTService:
             ).get_signing_key_from_jwt(id_token)
 
             return jwt.decode(
-                id_token, key=signing_key.key, audience=aud, algorithms=["RS256"]
+                id_token,
+                key=signing_key.key,
+                audience=aud,
+                algorithms=["RS256"],
+                leeway=self.LEEWAY,
             )
         except PyJWTError as err:
             LOG.debug("Invalid JWT for: %s, %s. %s", iss, aud, str(err))
