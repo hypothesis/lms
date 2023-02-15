@@ -1,13 +1,14 @@
 import secrets
+from dataclasses import dataclass, field
 from datetime import datetime
 from functools import lru_cache
 from logging import getLogger
-from typing import List
+from typing import List, Optional
 
 import sqlalchemy as sa
 from sqlalchemy.exc import NoResultFound
 
-from lms.db import full_text_match
+from lms.db import BASE, full_text_match
 from lms.models import ApplicationInstance, JSONSettings, LTIParams, LTIRegistration
 from lms.services.aes import AESService
 from lms.services.exceptions import SerializableError
@@ -35,6 +36,85 @@ class AccountDisabled(SerializableError):
         )
 
 
+@dataclass
+class SearchBuilder:
+    base_model: BASE
+    clause_builders: dict
+    key_map: dict = field(default_factory=lambda: {"id_": "id", "type_": "type"})
+    query_start: Optional[callable] = None
+
+    def get_query(self, db_session, kwargs, combination=sa.and_):
+        query = self.query_start(db_session) or db_session.query(self.base_model)
+
+        return self.filter_query(query, kwargs, combination=combination)
+
+    def filter_query(self, query, kwargs, combination=sa.and_):
+        if clauses := list(self.get_clauses(kwargs)):
+            query = query.filter(combination(*clauses))
+
+        return query
+
+    def get_clauses(self, kwargs):
+        for key, value in kwargs.items():
+            clause = self.get_clause(key, value)
+            # Watch out as real clauses can be falsy when evaluated
+            if clause is not None:
+                yield clause
+
+    def get_clause(self, key, value):
+        if value is None:
+            return
+
+        key = self.key_map.get(key, key)
+
+        if mapper := self.clause_builders.get(key):
+            return mapper(value)
+
+        if hasattr(self.base_model, key):
+            return getattr(self.base_model, key) == value
+
+        raise ValueError(f"Can't map '{key}'")
+
+    def builds(self, key=None):
+        def builds(function):
+            self.clause_builders[key or function.__name__] = function
+            return function
+
+        return builds
+
+
+_SEARCH_BUILDER = SearchBuilder(
+    ApplicationInstance,
+    query_start=lambda db_session: db_session.query(ApplicationInstance).outerjoin(
+        LTIRegistration
+    ),
+    clause_builders={
+        "issuer": lambda value: LTIRegistration.issuer == value,
+        "client_id": lambda value: LTIRegistration.client_id == value,
+        "name": lambda value: full_text_match(ApplicationInstance.name, value),
+        "settings": lambda value: JSONSettings.matching(
+            ApplicationInstance.settings, value
+        ),
+        "organization_public_id": lambda value: ApplicationInstance.organization.has(
+            public_id=value
+        ),
+    },
+)
+
+
+@_SEARCH_BUILDER.builds("email")
+def _filter_by_email(value):
+    return sa.or_(
+        sa.func.lower(field) == value.lower()
+        if "@" in value
+        else field.ilike(f"%@{value}")
+        for field in (
+            ApplicationInstance.requesters_email,
+            ApplicationInstance.tool_consumer_instance_contact_email,
+        )
+    )
+
+
 class ApplicationInstanceService:
     def __init__(
         self,
@@ -47,6 +127,7 @@ class ApplicationInstanceService:
         self._request = request
         self._aes_service = aes_service
         self._organization_service = organization_service
+        self._search_builder = _SEARCH_BUILDER
 
     @lru_cache(maxsize=1)
     def get_current(self) -> ApplicationInstance:
@@ -167,71 +248,8 @@ class ApplicationInstanceService:
             .all()
         )
 
-    def _ai_search_query(
-        self,
-        *,
-        id_=None,
-        name=None,
-        consumer_key=None,
-        issuer=None,
-        client_id=None,
-        deployment_id=None,
-        tool_consumer_instance_guid=None,
-        email=None,
-        settings=None,
-        organization_public_id=None,
-    ):
-        """Return a query with the passed parameters applied as filters."""
-
-        query = self._db.query(ApplicationInstance).outerjoin(LTIRegistration)
-        if id_:
-            query = query.filter(ApplicationInstance.id == id_)
-
-        if name:
-            query = query.filter(full_text_match(ApplicationInstance.name, name))
-
-        if consumer_key:
-            query = query.filter(ApplicationInstance.consumer_key == consumer_key)
-
-        if issuer:
-            query = query.filter_by(issuer=issuer)
-
-        if client_id:
-            query = query.filter_by(client_id=client_id)
-
-        if deployment_id:
-            query = query.filter(ApplicationInstance.deployment_id == deployment_id)
-
-        if tool_consumer_instance_guid:
-            query = query.filter(
-                ApplicationInstance.tool_consumer_instance_guid
-                == tool_consumer_instance_guid
-            )
-
-        if email:
-            query = query.filter(
-                sa.or_(
-                    sa.func.lower(field) == email.lower()
-                    if "@" in email
-                    else field.ilike(f"%@{email}")
-                    for field in (
-                        ApplicationInstance.requesters_email,
-                        ApplicationInstance.tool_consumer_instance_contact_email,
-                    )
-                )
-            )
-
-        if settings:
-            query = query.filter(
-                JSONSettings.matching(ApplicationInstance.settings, settings)
-            )
-
-        if organization_public_id:
-            query = query.filter(
-                ApplicationInstance.organization.has(public_id=organization_public_id)
-            )
-
-        return query
+    def _ai_search_query(self, **kwargs):
+        return self._search_builder.get_query(self._db, kwargs)
 
     def update_application_instance(  # pylint:disable=too-many-arguments
         self,
