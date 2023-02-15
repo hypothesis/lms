@@ -15,7 +15,7 @@ import { apiCall } from '../utils/api';
 import AuthWindow from '../utils/AuthWindow';
 
 import ContentFrame from './ContentFrame';
-import GradingToolbar from './GradingToolbar';
+import InstructorToolbar from './InstructorToolbar';
 import LaunchErrorDialog from './LaunchErrorDialog';
 
 /**
@@ -53,7 +53,6 @@ export default function BasicLTILaunchApp() {
       // to relay to the sidebar via RPC.
       sync: syncAPICallInfo,
     },
-    grading,
     hypothesisClient: clientConfig,
     // Content URL to show in the iframe.
     viaUrl: viaURL,
@@ -321,24 +320,6 @@ export default function BasicLTILaunchApp() {
     }
   }, [authToken, authURL, fetchContentURL, fetchGroups]);
 
-  const contentFrame = <ContentFrame url={contentURL ?? ''} />;
-  let contentFrameWrapper;
-
-  if (grading && grading.enabled) {
-    contentFrameWrapper = (
-      <GradingToolbar
-        clientRPC={clientRPC}
-        students={grading.students}
-        courseName={grading.courseName}
-        assignmentName={grading.assignmentName}
-      >
-        {contentFrame}
-      </GradingToolbar>
-    );
-  } else {
-    contentFrameWrapper = contentFrame;
-  }
-
   const content = (
     <div
       className={classnames('flex flex-col h-full', {
@@ -347,7 +328,8 @@ export default function BasicLTILaunchApp() {
       })}
       data-testid="content-wrapper"
     >
-      {contentFrameWrapper}
+      <InstructorToolbar />
+      <ContentFrame url={contentURL ?? ''} />
     </div>
   );
 

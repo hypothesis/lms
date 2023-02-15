@@ -1,41 +1,29 @@
 import classnames from 'classnames';
-import type { ComponentChildren } from 'preact';
 import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
 import { apiCall } from '../utils/api';
 import { useConfig } from '../config';
-import type { StudentInfo } from '../config';
-import type { ClientRPC } from '../services/client-rpc';
+import type { GradingConfig, StudentInfo } from '../config';
+import { ClientRPC, useService } from '../services';
 import StudentSelector from './StudentSelector';
 import SubmitGradeForm from './SubmitGradeForm';
 
-export type GradingToolbarProps = {
-  /** Iframe element displaying assignment content. */
-  children: ComponentChildren;
-
-  /** Service for communicating with Hypothesis client. */
-  clientRPC: ClientRPC;
-  courseName: string;
-  assignmentName: string;
-
-  /** List of students to grade. */
-  students: StudentInfo[];
+export type GradingControlsProps = {
+  grading: GradingConfig;
 };
 
 /**
- * Toolbar which provides instructors with controls to list students who have
- * annotated this document and view/submit grades.
+ * Controls for grading students: a list of students to grade, and an input to
+ * set a grade for the selected student.
  */
-export default function GradingToolbar({
-  children,
-  clientRPC,
-  assignmentName,
-  courseName,
-  students: unorderedStudents,
-}: GradingToolbarProps) {
+export default function GradingControls({ grading }: GradingControlsProps) {
   const {
     api: { authToken, sync: syncAPICallInfo },
   } = useConfig();
+
+  const clientRPC = useService(ClientRPC);
+
+  const unorderedStudents = grading.students;
 
   // No initial current student selected
   const [currentStudentIndex, setCurrentStudentIndex] = useState(-1);
@@ -111,48 +99,17 @@ export default function GradingToolbar({
   };
 
   return (
-    <>
-      <header
-        className={classnames(
-          'grid grid-cols-1 items-center gap-y-2 p-2',
-          'lg:grid-cols-3 lg:gap-x-4 lg:px-3'
-        )}
-      >
-        <div className="space-y-1">
-          <h1
-            className="text-lg font-semibold leading-none"
-            data-testid="assignment-name"
-          >
-            {assignmentName}
-          </h1>
-          <h2
-            className="text-sm font-normal text-color-text-light leading-none"
-            data-testid="course-name"
-          >
-            {courseName}
-          </h2>
-        </div>
-
-        <div
-          className={classnames(
-            'flex flex-col gap-2',
-            'sm:flex-row',
-            'lg:col-span-2 lg:gap-4 ' /* cols 2-3 of 3 */
-          )}
-        >
-          <div className="flex-grow-0 sm:flex-grow">
-            <StudentSelector
-              onSelectStudent={onSelectStudent}
-              students={students}
-              selectedStudentIndex={currentStudentIndex}
-            />
-          </div>
-          <div className="flex-grow sm:flex-grow-0">
-            <SubmitGradeForm student={getCurrentStudent()} />
-          </div>
-        </div>
-      </header>
-      {children}
-    </>
+    <div className={classnames('flex flex-col gap-2', 'sm:flex-row')}>
+      <div className="flex-grow-0 sm:flex-grow">
+        <StudentSelector
+          onSelectStudent={onSelectStudent}
+          students={students}
+          selectedStudentIndex={currentStudentIndex}
+        />
+      </div>
+      <div className="flex-grow sm:flex-grow-0">
+        <SubmitGradeForm student={getCurrentStudent()} />
+      </div>
+    </div>
   );
 }

@@ -1,18 +1,18 @@
 import { act } from 'preact/test-utils';
-
 import { mount } from 'enzyme';
 
-import { Config } from '../../config';
-import GradingToolbar, { $imports } from '../GradingToolbar';
+import mockImportedComponents from '../../../test-util/mock-imported-components';
 import { checkAccessibility } from '../../../test-util/accessibility';
 import { waitFor } from '../../../test-util/wait';
-import mockImportedComponents from '../../../test-util/mock-imported-components';
+import { Config } from '../../config';
+import { ClientRPC, Services } from '../../services';
+import GradingControls, { $imports } from '../GradingControls';
 
-describe('GradingToolbar', () => {
+describe('GradingControls', () => {
   let fakeApiCall;
   let fakeConfig;
   let fakeStudents;
-  let fakeOnChange;
+  let fakeGrading;
   let fakeClientRPC;
 
   /**
@@ -53,7 +53,11 @@ describe('GradingToolbar', () => {
         lmsId: '456',
       },
     ];
-    fakeOnChange = sinon.spy();
+    fakeGrading = {
+      enabled: true,
+      students: fakeStudents,
+    };
+
     fakeClientRPC = {
       setFocusedUser: sinon.stub(),
     };
@@ -71,37 +75,23 @@ describe('GradingToolbar', () => {
   });
 
   const renderGrader = (props = {}) => {
+    const services = new Map([[ClientRPC, fakeClientRPC]]);
     return mount(
       <Config.Provider value={fakeConfig}>
-        <GradingToolbar
-          onChangeSelectedUser={fakeOnChange}
-          students={fakeStudents}
-          courseName={'course name'}
-          assignmentName={'course assignment'}
-          clientRPC={fakeClientRPC}
-          {...props}
-        >
-          <div title="The assignment content iframe" />
-        </GradingToolbar>
+        <Services.Provider value={services}>
+          <GradingControls
+            grading={fakeGrading}
+            clientRPC={fakeClientRPC}
+            {...props}
+          />
+        </Services.Provider>
       </Config.Provider>
     );
   };
 
-  it('sets the assignment and course names', () => {
-    const wrapper = renderGrader();
-    assert.equal(
-      wrapper.find('[data-testid="assignment-name"]').text(),
-      'course assignment'
-    );
-    assert.equal(
-      wrapper.find('[data-testid="course-name"]').text(),
-      'course name'
-    );
-  });
-
   it('orders the students by displayName', () => {
     // Un-order students
-    fakeStudents = [
+    fakeGrading.students = [
       {
         displayName: 'Student Beta',
       },
@@ -144,7 +134,7 @@ describe('GradingToolbar', () => {
 
   it('puts students with empty displayNames at the beginning of sorted students', () => {
     // Un-order students
-    fakeStudents = [
+    fakeGrading.students = [
       {
         displayName: 'Student Beta',
       },
