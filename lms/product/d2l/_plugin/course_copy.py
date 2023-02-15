@@ -1,4 +1,4 @@
-from lms.product.plugin.course_copy import CourseCopyFilesHelper
+from lms.product.plugin.course_copy import CourseCopyFilesHelper, CourseCopyGroupsHelper
 from lms.services.d2l_api import D2LAPIClient
 
 
@@ -11,9 +11,11 @@ class D2LCourseCopyPlugin:
         self,
         api: D2LAPIClient,
         files_helper: CourseCopyFilesHelper,
+        groups_helper: CourseCopyGroupsHelper,
     ):
         self._api = api
         self._files_helper = files_helper
+        self._groups_helper = groups_helper
 
     def is_file_in_course(self, course_id, file_id):
         return self._files_helper.is_file_in_course(course_id, file_id, self.file_type)
@@ -24,13 +26,14 @@ class D2LCourseCopyPlugin:
         )
 
     def find_matching_group_set_in_course(self, course, group_set_id):
-        # We are not yet handling course copy for groups in D2L.
-        # We implement this method so we can call `find_mapped_group_set_id` in all LMS's
-        return None
+        return self._groups_helper.find_matching_group_set_in_course(
+            course, group_set_id
+        )
 
     @classmethod
     def factory(cls, _context, request):
         return cls(
             request.find_service(D2LAPIClient),
             files_helper=request.find_service(CourseCopyFilesHelper),
+            groups_helper=request.find_service(CourseCopyGroupsHelper),
         )
