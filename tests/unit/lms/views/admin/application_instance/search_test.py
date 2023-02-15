@@ -4,6 +4,7 @@ from lms.views.admin.application_instance.search import (
     APPLICATION_INSTANCE_SETTINGS_COLUMNS,
     SearchApplicationInstanceViews,
 )
+from tests import factories
 
 
 @pytest.mark.usefixtures("application_instance_service")
@@ -64,16 +65,23 @@ class TestSearchApplicationInstanceViews:
         settings_value,
         expected,
     ):
+        group, key = settings_key.split(".")
+        ai = factories.ApplicationInstance()
+        ai.settings.set(group, key, "SETTING")
+        application_instance_service.search.return_value = [ai]
+
         pyramid_request.params = pyramid_request.POST = {
             "settings_key": settings_key,
             "settings_value": settings_value,
         }
 
-        views.search_callback()
+        response = views.search_callback()
 
         assert (
             application_instance_service.search.call_args.kwargs["settings"] == expected
         )
+
+        assert response["instances"][0].settings_focus_value == "SETTING"
 
     def test_search_callback_invalid(self, views, pyramid_request):
         pyramid_request.POST = {"id": "not a number"}

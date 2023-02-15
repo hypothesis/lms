@@ -30,6 +30,8 @@ class SearchApplicationInstanceSchema(PyramidRequestSchema):
     client_id = fields.Str(required=False)
     deployment_id = fields.Str(required=False)
     tool_consumer_instance_guid = fields.Str(required=False)
+    settings_key = fields.Str(required=False)
+    settings_value = fields.Str(required=False)
 
 
 @view_defaults(
@@ -49,9 +51,10 @@ class SearchApplicationInstanceViews(BaseApplicationInstanceView):
 
         settings = None
         if settings_key := self.request.params.get("settings_key"):
+            settings_group, settings_subkey = settings_key.split(".")
             if settings_value := self.request.params.get("settings_value"):
                 settings_value = APPLICATION_INSTANCE_SETTINGS.get(
-                    tuple(settings_key.split("."))
+                    (settings_group, settings_subkey)
                 )(settings_value)
             else:
                 settings_value = ...
@@ -71,6 +74,14 @@ class SearchApplicationInstanceViews(BaseApplicationInstanceView):
             email=self.request.params.get("email"),
             settings=settings,
         )
+
+        # Get out the settings key to focus on if it's been searched for
+        if settings_key:
+            instances = list(instances)  # Ensure we don't consume the generator
+            for instance in instances:
+                instance.settings_focus_value = instance.settings.get(
+                    settings_group, settings_subkey
+                )
 
         return {
             "instances": instances,

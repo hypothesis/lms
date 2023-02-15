@@ -88,6 +88,8 @@
 {%- macro auto_format(value, html=True) -%}
     {%- if value is none -%}
         {% if html %}<span style="color:#aaa">-</span>{% else %}{% endif %}
+    {%- elif value is boolean -%}
+        {% if value %}✔️{% else %}❌{% endif %}
     {%- elif value.strftime -%}
         {{ value.strftime('%Y/%m/%d %H:%M') }}
     {%- elif value.startswith('http') and html -%}
@@ -128,18 +130,22 @@
 {% endmacro %}
 
 
-{% macro instances_table(request, instances) %}
-{{ object_list_table(
-    request, 'admin.instance', instances,
-    fields=[
-        {"label": "Name", "name": "name"},
-        {"label": "Created", "name": "created"},
-        {"label": "Last Launched", "name": "last_launched"},
-        {"label": "Product Family", "name": "tool_consumer_info_product_family_code"},
-        {"label": "Email", "name": "requesters_email"},
-        {"label": "LMS URL", "name": "lms_url"},
-    ]
-) }}
+{% macro instances_table(request, instances, extra_fields=None) %}
+    {% if not extra_fields %}
+        {% set extra_fields = [] %}
+    {% endif %}
+
+    {{ object_list_table(
+        request, 'admin.instance', instances,
+        fields=[
+            {"label": "Name", "name": "name"},
+            {"label": "Created", "name": "created"},
+            {"label": "Last Launched", "name": "last_launched"},
+            {"label": "Product Family", "name": "tool_consumer_info_product_family_code"},
+            {"label": "Email", "name": "requesters_email"},
+            {"label": "LMS URL", "name": "lms_url"},
+        ] + extra_fields
+    ) }}
 {% endmacro %}
 
 
