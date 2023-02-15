@@ -1,9 +1,41 @@
 import base64
-from typing import Optional
+from dataclasses import dataclass
+from typing import Any, Optional, Tuple
 
 import sqlalchemy as sa
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import InstrumentedAttribute
+
+
+@dataclass
+class JSONSetting:
+    """Describe a permitted field in a JSONSettings object."""
+
+    # Helper to declare settings as secret. This can be used with format
+    AES_SECRET = object()
+
+    group: str
+    """The group name that this setting is a part of."""
+
+    key: str
+    """The key within the grouo that this setting is a part of."""
+
+    format: Any = str
+    """An identifier to say what type of field this is."""
+
+    name: Optional[str] = None
+    """An optional name for the field."""
+
+    @property
+    def compound_key(self) -> str:
+        """Get the group and key as a single value."""
+        return f"{self.group}.{self.key}"
+
+    @property
+    def label(self) -> str:
+        """Get a label for this field."""
+
+        return self.name or self.compound_key
 
 
 class JSONSettings(MutableDict):
@@ -33,6 +65,11 @@ class JSONSettings(MutableDict):
     >>> model.settings["foo"]["bar"] = "gar"
     >>> # Notify SQLAlchemy that settings have changed, so it knows to save it.
     >>> model.settings.changed()
+    """
+
+    fields: Optional[Tuple[JSONSetting]] = None
+    """
+    An optional spec for the acceptable fields and types.
     """
 
     def get(self, group, key, default=None):

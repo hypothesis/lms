@@ -3,8 +3,26 @@ import base64
 import pytest
 
 from lms.models import ApplicationInstance, JSONSettings
+from lms.models.json_settings import JSONSetting
 from lms.services.aes import AESService
 from tests import factories
+
+
+class TestJSONSetting:
+    def test_compound_key(self):
+        setting = JSONSetting("group", "key")
+
+        assert setting.compound_key == "group.key"
+
+    @pytest.mark.parametrize(
+        "setting,expected",
+        (
+            (JSONSetting("group", "key"), "group.key"),
+            (JSONSetting("group", "key", name="name"), "name"),
+        ),
+    )
+    def test_label(self, setting, expected):
+        assert setting.label == expected
 
 
 class TestJSONSettings:
