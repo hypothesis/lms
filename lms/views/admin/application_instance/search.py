@@ -2,21 +2,21 @@ from marshmallow import validate
 from pyramid.view import view_config, view_defaults
 from webargs import fields
 
+from lms.models import ApplicationSettings
+from lms.models.json_settings import JSONSetting
 from lms.security import Permissions
 from lms.validation import PyramidRequestSchema
 from lms.views.admin import flash_validation
 from lms.views.admin._schemas import EmptyStringInt
-from lms.views.admin.application_instance._core import (
-    AES_SECRET,
-    APPLICATION_INSTANCE_SETTINGS,
-    BaseApplicationInstanceView,
+from lms.views.admin.application_instance._core import BaseApplicationInstanceView
+
+SETTING_NAMES = tuple(
+    field.compound_key
+    for field in ApplicationSettings.fields
+    if field.format != JSONSetting.AES_SECRET
 )
 
-APPLICATION_INSTANCE_SETTINGS_COLUMNS = tuple(
-    f"{group}.{key}"
-    for (group, key), type_ in sorted(APPLICATION_INSTANCE_SETTINGS.items())
-    if type_ != AES_SECRET
-)
+SETTINGS_BY_FIELD = {field.compound_key: field for field in ApplicationSettings.fields}
 
 
 class SearchApplicationInstanceSchema(PyramidRequestSchema):
@@ -42,7 +42,7 @@ class SearchApplicationInstanceSchema(PyramidRequestSchema):
 class SearchApplicationInstanceViews(BaseApplicationInstanceView):
     @view_config(request_method="GET")
     def search_start(self):
-        return {"settings": APPLICATION_INSTANCE_SETTINGS_COLUMNS}
+        return {"settings": SETTING_NAMES}
 
     @view_config(request_method="POST", require_csrf=True)
     def search_callback(self):
@@ -51,11 +51,10 @@ class SearchApplicationInstanceViews(BaseApplicationInstanceView):
 
         settings = None
         if settings_key := self.request.params.get("settings_key"):
-            settings_group, settings_subkey = settings_key.split(".")
             if settings_value := self.request.params.get("settings_value"):
-                settings_value = APPLICATION_INSTANCE_SETTINGS.get(
-                    (settings_group, settings_subkey)
-                )(settings_value)
+                settings_value = SETTINGS_BY_FIELD.get(settings_key).format(
+                    settings_value
+                )
             else:
                 settings_value = ...
 
@@ -77,13 +76,12 @@ class SearchApplicationInstanceViews(BaseApplicationInstanceView):
 
         # Get out the settings key to focus on if it's been searched for
         if settings_key:
+            settings_group, settings_subkey = settings_key.split(".")
+
             instances = list(instances)  # Ensure we don't consume the generator
             for instance in instances:
                 instance.settings_focus_value = instance.settings.get(
                     settings_group, settings_subkey
                 )
 
-        return {
-            "instances": instances,
-            "settings": APPLICATION_INSTANCE_SETTINGS_COLUMNS,
-        }
+        return {"instances": instances, "settings": SETTING_NAMES}

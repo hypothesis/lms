@@ -2,15 +2,13 @@ from marshmallow import fields, validate
 from pyramid.settings import asbool
 from pyramid.view import view_config
 
+from lms.models import ApplicationSettings
+from lms.models.json_settings import JSONSetting
 from lms.security import Permissions
 from lms.services.aes import AESService
 from lms.validation._base import PyramidRequestSchema
 from lms.views.admin import flash_validation
-from lms.views.admin.application_instance._core import (
-    AES_SECRET,
-    APPLICATION_INSTANCE_SETTINGS,
-    BaseApplicationInstanceView,
-)
+from lms.views.admin.application_instance._core import BaseApplicationInstanceView
 
 
 class UpdateApplicationInstanceSchema(PyramidRequestSchema):
@@ -53,26 +51,23 @@ class UpdateApplicationInstanceView(BaseApplicationInstanceView):
             developer_secret=self.request.params.get("developer_secret", "").strip(),
         )
 
-        for (
-            setting,
-            sub_setting,
-        ), setting_type in APPLICATION_INSTANCE_SETTINGS.items():
-            value = self.request.params.get(f"{setting}.{sub_setting}")
+        for field in ApplicationSettings.fields:
+            value = self.request.params.get(field.compound_key)
             value = value.strip() if value else None
 
-            if setting_type is asbool:
+            if field.format is asbool:
                 value = value == "on"
-                ai.settings.set(setting, sub_setting, value)
+                ai.settings.set(field.group, field.key, value)
 
-            elif setting_type == AES_SECRET:
+            elif field.format == JSONSetting.AES_SECRET:
                 if not value:
                     continue
 
-                ai.settings.set_secret(self._aes_service, setting, sub_setting, value)
+                ai.settings.set_secret(self._aes_service, field.group, field.key, value)
 
             else:
-                assert setting_type == str
-                ai.settings.set(setting, sub_setting, value)
+                assert field.format == str
+                ai.settings.set(field.group, field.key, value)
 
         self.request.session.flash(f"Updated application instance {ai.id}", "messages")
 
