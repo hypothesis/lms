@@ -32,7 +32,13 @@ class ApplicationSettings(JSONSettings):
         JSONSetting("vitalsource", "disable_licence_check", asbool),
         JSONSetting("jstor", "enabled", asbool),
         JSONSetting("jstor", "site_code"),
-        JSONSetting("hypothesis", "notes"),
+        JSONSetting("hypothesis", "notes", name="Notes"),
+        JSONSetting(
+            "hypothesis",
+            "auto_assigned_to_org",
+            asbool,
+            name="Auto Assigned To Organisation",
+        ),
     )
 
 

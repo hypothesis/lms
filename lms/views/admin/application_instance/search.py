@@ -10,13 +10,11 @@ from lms.views.admin import flash_validation
 from lms.views.admin._schemas import EmptyStringInt
 from lms.views.admin.application_instance._core import BaseApplicationInstanceView
 
-SETTING_NAMES = tuple(
-    field.compound_key
+SETTINGS_BY_FIELD = {
+    field.compound_key: field
     for field in ApplicationSettings.fields
     if field.format != JSONSetting.AES_SECRET
-)
-
-SETTINGS_BY_FIELD = {field.compound_key: field for field in ApplicationSettings.fields}
+}
 
 
 class SearchApplicationInstanceSchema(PyramidRequestSchema):
@@ -42,7 +40,7 @@ class SearchApplicationInstanceSchema(PyramidRequestSchema):
 class SearchApplicationInstanceViews(BaseApplicationInstanceView):
     @view_config(request_method="GET")
     def search_start(self):
-        return {"settings": SETTING_NAMES}
+        return {"settings": SETTINGS_BY_FIELD}
 
     @view_config(request_method="POST", require_csrf=True)
     def search_callback(self):
@@ -75,8 +73,10 @@ class SearchApplicationInstanceViews(BaseApplicationInstanceView):
         )
 
         # Get out the settings key to focus on if it's been searched for
+        settings_focus = None
         if settings_key:
             settings_group, settings_subkey = settings_key.split(".")
+            settings_focus = SETTINGS_BY_FIELD[settings_key]
 
             instances = list(instances)  # Ensure we don't consume the generator
             for instance in instances:
@@ -84,4 +84,8 @@ class SearchApplicationInstanceViews(BaseApplicationInstanceView):
                     settings_group, settings_subkey
                 )
 
-        return {"instances": instances, "settings": SETTING_NAMES}
+        return {
+            "instances": instances,
+            "settings": SETTINGS_BY_FIELD,
+            "settings_focus": settings_focus,
+        }
