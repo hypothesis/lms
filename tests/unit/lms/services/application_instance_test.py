@@ -242,9 +242,21 @@ class TestApplicationInstanceService:
     def test_search_by_settings(self, service):
         ai = factories.ApplicationInstance.create(settings={"group": {"key": "value"}})
 
-        found = service.search(settings={"group.key": "value"})
+        instances = service.search(settings={"group.key": "value"})
 
-        assert found == [ai]
+        assert instances == [ai]
+
+    def test_search_by_organization_id(self, service, db_session):
+        organization = factories.Organization()
+        ai = factories.ApplicationInstance.create(
+            settings={"group": {"key": "value"}}, organization=organization
+        )
+        # Flush to ensure the organization has a public_id
+        db_session.flush()
+
+        instances = service.search(organization_public_id=organization.public_id)
+
+        assert instances == [ai]
 
     def test_search_order(self, service):
         now, before = datetime.now(), datetime.now() - timedelta(hours=1)
