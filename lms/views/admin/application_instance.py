@@ -1,5 +1,6 @@
 from marshmallow import validate
 from pyramid.httpexceptions import HTTPClientError, HTTPFound, HTTPNotFound
+from pyramid.settings import asbool
 from pyramid.view import view_config, view_defaults
 from sqlalchemy.exc import IntegrityError
 from webargs import fields
@@ -12,6 +13,29 @@ from lms.services.aes import AESService
 from lms.validation._base import PyramidRequestSchema, ValidationError
 from lms.views.admin import flash_validation
 from lms.views.admin._schemas import EmptyStringInt
+
+# Helper to declare settings as secret
+AES_SECRET = object()
+APPLICATION_INSTANCE_SETTINGS = {
+    ("blackboard", "files_enabled"): asbool,
+    ("blackboard", "groups_enabled"): asbool,
+    ("canvas", "sections_enabled"): asbool,
+    ("canvas", "groups_enabled"): asbool,
+    ("desire2learn", "client_id"): str,
+    ("desire2learn", "client_secret"): AES_SECRET,
+    ("desire2learn", "groups_enabled"): asbool,
+    ("desire2learn", "files_enabled"): asbool,
+    ("desire2learn", "create_line_item"): asbool,
+    ("microsoft_onedrive", "files_enabled"): asbool,
+    ("vitalsource", "enabled"): asbool,
+    ("vitalsource", "user_lti_param"): str,
+    ("vitalsource", "user_lti_pattern"): str,
+    ("vitalsource", "api_key"): str,
+    ("vitalsource", "disable_licence_check"): asbool,
+    ("jstor", "enabled"): asbool,
+    ("jstor", "site_code"): str,
+    ("hypothesis", "notes"): str,
+}
 
 
 class NewAppInstanceSchema(PyramidRequestSchema):
@@ -308,35 +332,18 @@ class AdminApplicationInstanceViews:
             developer_secret=self.request.params.get("developer_secret", "").strip(),
         )
 
-        # Helper to declare settings as secret
-        aes_secret = object()
-
-        for setting, sub_setting, setting_type in (
-            ("blackboard", "files_enabled", bool),
-            ("blackboard", "groups_enabled", bool),
-            ("canvas", "sections_enabled", bool),
-            ("canvas", "groups_enabled", bool),
-            ("desire2learn", "client_id", str),
-            ("desire2learn", "client_secret", aes_secret),
-            ("desire2learn", "groups_enabled", bool),
-            ("desire2learn", "files_enabled", bool),
-            ("desire2learn", "create_line_item", bool),
-            ("microsoft_onedrive", "files_enabled", bool),
-            ("vitalsource", "enabled", bool),
-            ("vitalsource", "user_lti_param", str),
-            ("vitalsource", "user_lti_pattern", str),
-            ("vitalsource", "api_key", str),
-            ("vitalsource", "disable_licence_check", bool),
-            ("jstor", "enabled", bool),
-            ("jstor", "site_code", str),
-            ("hypothesis", "notes", str),
-        ):
+        for (
+            setting,
+            sub_setting,
+        ), setting_type in APPLICATION_INSTANCE_SETTINGS.items():
             value = self.request.params.get(f"{setting}.{sub_setting}")
-            if setting_type == bool:
+            value = value.strip() if value else None
+
+            if setting_type is asbool:
                 value = value == "on"
                 ai.settings.set(setting, sub_setting, value)
-            elif setting_type == aes_secret:
-                value = value.strip() if value else None
+
+            elif setting_type == AES_SECRET:
                 if not value:
                     continue
 
@@ -344,7 +351,6 @@ class AdminApplicationInstanceViews:
 
             else:
                 assert setting_type == str
-                value = value.strip() if value else None
                 ai.settings.set(setting, sub_setting, value)
 
         self.request.session.flash(f"Updated application instance {ai.id}", "messages")
