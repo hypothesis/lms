@@ -45,6 +45,11 @@
             <a class="button is-primary" href="{{ request.route_url("admin.instance.create", _query={"organization_public_id": org.public_id}) }}">
                 Add New LTI 1.1 instance
             </a>
+            {% if org.application_instances %}
+                <a class="button" href="{{ request.route_url("admin.instance.search", _query={"organization_public_id": org.public_id}) }}">
+                    Start search
+                </a>
+            {% endif %}
         </div>
 
         {% if org.application_instances %}
