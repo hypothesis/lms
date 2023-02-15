@@ -21,14 +21,32 @@ Application instances
                 {{ macros.form_text_field(request, "Email / Domain", "email") }}
                 {{ macros.form_text_field(request, "Name", "name") }}
                 {{ macros.form_text_field(request, "ID", "id") }}
-                {{ macros.form_text_field(request, "GUID", "tool_consumer_instance_guid") }}
+
+                {% call macros.field_body("Setting") %}
+                    <div class="select">
+                        <select name="settings_key">
+                            <option value="">-</option>
+                            {% for option in settings %}
+                                <option
+                                    value="{{ option }}"
+                                    {% if request.params.get("settings_key") == option %}
+                                        selected
+                                    {% endif %}
+                                >{{ option }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endcall %}
+                {{ macros.form_text_field(request, "Settings Value", "settings_value") }}
 
                 {# This lines up in a less goofy way here than outside the column #}
                 {% call macros.field_body(label="") %}
                     <input type="submit" class="button is-info" value="Search" />
                 {% endcall %}
             </div>
+
             <div class="column">
+                {{ macros.form_text_field(request, "GUID", "tool_consumer_instance_guid") }}
                 {{ macros.form_text_field(request, "Client ID", "client_id") }}
                 {{ macros.form_text_field(request, "Consumer key", "consumer_key") }}
                 {{ macros.form_text_field(request, "Issuer", "issuer") }}
