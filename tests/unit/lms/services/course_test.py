@@ -3,7 +3,7 @@ from unittest.mock import sentinel
 
 import pytest
 from h_matchers import Any
-from sqlalchemy.exc import MultipleResultsFound, NoResultFound
+from sqlalchemy.exc import NoResultFound
 
 from lms.models import CourseGroupsExportedFromH, Grouping
 from lms.services.course import CourseService, course_service_factory
@@ -130,9 +130,8 @@ class TestCourseService:
         assert not svc.find_group_set(**params)
 
     @pytest.mark.usefixtures("course_with_group_sets")
-    def test_find_group_set_raises_with_more_than_one_result(self, svc):
-        with pytest.raises(MultipleResultsFound):
-            svc.find_group_set()
+    def test_find_group_set_returns_first_result(self, svc):
+        assert svc.find_group_set()
 
     @pytest.fixture
     def course(self, application_instance, grouping_service):

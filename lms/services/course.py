@@ -77,7 +77,7 @@ class CourseService:
 
     def find_group_set(self, group_set_id=None, name=None, context_id=None):
         """
-        Find group sets stored in Courses of this applications instance.
+        Find the first matching group set in this course.
 
         Group sets are stored as part of Course.extra, this method allows to query and filter them.
 
@@ -106,7 +106,7 @@ class CourseService:
         if name:
             query = query.filter(group_set.c.name == name)
 
-        return query.one_or_none()
+        return query.first()
 
     def _get_authority_provided_id(self, context_id):
         return self._grouping_service.get_authority_provided_id(
