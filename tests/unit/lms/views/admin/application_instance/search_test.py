@@ -1,7 +1,7 @@
 import pytest
 
 from lms.views.admin.application_instance.search import (
-    APPLICATION_INSTANCE_SETTINGS_COLUMNS,
+    SETTING_NAMES,
     SearchApplicationInstanceViews,
 )
 from tests import factories
@@ -10,9 +10,7 @@ from tests import factories
 @pytest.mark.usefixtures("application_instance_service")
 class TestSearchApplicationInstanceViews:
     def test_search_start(self, views):
-        assert views.search_start() == {
-            "settings": APPLICATION_INSTANCE_SETTINGS_COLUMNS
-        }
+        assert views.search_start() == {"settings": SETTING_NAMES}
 
     def test_search_callback(
         self, pyramid_request, application_instance_service, views
@@ -43,7 +41,7 @@ class TestSearchApplicationInstanceViews:
         )
         assert response == {
             "instances": application_instance_service.search.return_value,
-            "settings": APPLICATION_INSTANCE_SETTINGS_COLUMNS,
+            "settings": SETTING_NAMES,
         }
 
     @pytest.mark.parametrize(
