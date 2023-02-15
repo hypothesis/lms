@@ -2,7 +2,7 @@ from unittest.mock import patch, sentinel
 
 import pytest
 
-from lms.models import ApplicationSettings
+from lms.models import JSONSettings
 from lms.product.canvas._plugin.grouping import CanvasGroupingPlugin, ErrorCodes
 from lms.product.plugin.grouping import GroupError
 from lms.services import CanvasAPIError
@@ -174,7 +174,7 @@ class TestCanvasGroupingPlugin:
     def test_sections_enabled_course_settings(self, plugin, enabled, pyramid_request):
         application_instance = factories.ApplicationInstance(developer_key=True)
         course = factories.Course(
-            settings=ApplicationSettings({"canvas": {"sections_enabled": enabled}})
+            settings=JSONSettings({"canvas": {"sections_enabled": enabled}})
         )
 
         assert (

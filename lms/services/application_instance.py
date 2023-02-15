@@ -8,12 +8,7 @@ import sqlalchemy as sa
 from sqlalchemy.exc import NoResultFound
 
 from lms.db import full_text_match
-from lms.models import (
-    ApplicationInstance,
-    ApplicationSettings,
-    LTIParams,
-    LTIRegistration,
-)
+from lms.models import ApplicationInstance, JSONSettings, LTIParams, LTIRegistration
 from lms.services.aes import AESService
 from lms.services.exceptions import SerializableError
 from lms.services.organization import OrganizationService
@@ -225,7 +220,7 @@ class ApplicationInstanceService:
 
         if settings:
             query = query.filter(
-                ApplicationSettings.matching(ApplicationInstance.settings, settings)
+                JSONSettings.matching(ApplicationInstance.settings, settings)
             )
 
         return query
