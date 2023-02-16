@@ -29,27 +29,18 @@ describe('FileList', () => {
 
   it('renders a table with "Name" and "Last modified" columns', () => {
     const wrapper = renderFileList();
-    const columns = wrapper
-      .find('Table')
-      .prop('tableHeaders')
-      .map(col => col.label);
-    assert.deepEqual(columns, ['Name', 'Last modified']);
+    const columns = wrapper.find('thead');
+    assert.include(columns.text(), 'Name');
+    assert.include(columns.text(), 'Last modified');
   });
 
   it('renders files with an icon, file name and date', () => {
     const wrapper = renderFileList();
-    const renderItem = wrapper.find('Table').prop('renderItem');
-    const itemWrapper = mount(
-      <table>
-        <tr>{renderItem(testFiles[0])}</tr>
-      </table>
-    );
     const formattedDate = new Date(testFiles[0]).toLocaleDateString();
-    assert.equal(
-      itemWrapper.find('td').at(0).text(),
-      testFiles[0].display_name
-    );
-    assert.equal(itemWrapper.find('td').at(1).text(), formattedDate);
+    const dataRow = wrapper.find('tbody tr').at(0);
+    assert.isTrue(dataRow.find('FilePdfFilledIcon').exists());
+    assert.equal(dataRow.find('td').at(0).text(), testFiles[0].display_name);
+    assert.equal(dataRow.find('td').at(1).text(), formattedDate);
   });
 
   it('renders a explanatory message when there are no files', () => {
