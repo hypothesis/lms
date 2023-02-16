@@ -93,10 +93,10 @@ describe('LMSFilePicker', () => {
 
   it('shows a full-screen spinner when the component is fetching', async () => {
     const wrapper = renderFilePicker();
-    assert.isTrue(wrapper.find('FullScreenSpinner').exists());
+    assert.isTrue(wrapper.find('SpinnerOverlay').exists());
 
     await waitForElement(wrapper, 'FileList');
-    assert.isFalse(wrapper.find('FullScreenSpinner').exists());
+    assert.isFalse(wrapper.find('SpinnerOverlay').exists());
   });
 
   it('shows breadcrumbs if `withBreadcrumbs` enabled', async () => {
@@ -316,7 +316,7 @@ describe('LMSFilePicker', () => {
     const wrapper = renderFilePicker();
     const reloadButton = await waitForElement(
       wrapper,
-      'LabeledButton[data-testid="reload"]'
+      'button[data-testid="reload"]'
     );
     assert.equal(reloadButton.text(), 'Reload');
     assert.isNotOk(reloadButton.prop('disabled'));
@@ -342,10 +342,8 @@ describe('LMSFilePicker', () => {
     //
     // [1]: Because it's `fetching` and not `fetched`, the button's testid
     // is "select" instead of "reload"
-    await waitForElement(wrapper, 'LabeledButton[data-testid="select"]');
-    const waitingReloadButton = wrapper.find(
-      'LabeledButton[data-testid="select"]'
-    );
+    await waitForElement(wrapper, 'button[data-testid="select"]');
+    const waitingReloadButton = wrapper.find('button[data-testid="select"]');
     assert.isTrue(waitingReloadButton.prop('disabled'));
     assert.equal(waitingReloadButton.text(), 'Reload');
 
@@ -355,10 +353,8 @@ describe('LMSFilePicker', () => {
 
     // The component will move into a `fetched` state, and will once again
     // provide an enabled continue button to attempt a reload
-    await waitForElement(wrapper, 'LabeledButton[data-testid="reload"]');
-    const finalReloadButton = wrapper.find(
-      'LabeledButton[data-testid="reload"]'
-    );
+    await waitForElement(wrapper, 'button[data-testid="reload"]');
+    const finalReloadButton = wrapper.find('button[data-testid="reload"]');
     assert.equal(finalReloadButton.text(), 'Reload');
     assert.isNotOk(finalReloadButton.prop('disabled'));
   });
@@ -385,7 +381,7 @@ describe('LMSFilePicker', () => {
     // The file list is empty. The continue button should have a "Reload" label.
     const reloadButton = await waitForElement(
       wrapper,
-      'LabeledButton[data-testid="reload"]'
+      'button[data-testid="reload"]'
     );
     assert.equal(reloadButton.text(), 'Reload');
 
@@ -406,7 +402,7 @@ describe('LMSFilePicker', () => {
 
     const continueButton = await waitForElement(
       wrapper,
-      'LabeledButton[data-testid="select"]'
+      'button[data-testid="select"]'
     );
     assert.equal(continueButton.text(), 'Select');
     // No file is selected, so the button is disabled
@@ -477,7 +473,7 @@ describe('LMSFilePicker', () => {
 
     const button = await waitForElement(
       wrapper,
-      'LabeledButton[data-testid="select"]'
+      'button[data-testid="select"]'
     );
     assert.isTrue(button.prop('disabled'));
   });
@@ -490,7 +486,7 @@ describe('LMSFilePicker', () => {
     wrapper.update();
 
     assert.equal(
-      wrapper.find('LabeledButton[data-testid="select"]').prop('disabled'),
+      wrapper.find('button[data-testid="select"]').prop('disabled'),
       false
     );
   });
@@ -505,7 +501,7 @@ describe('LMSFilePicker', () => {
     fileList.prop('onSelectFile')(file);
     wrapper.update();
 
-    wrapper.find('LabeledButton[data-testid="select"]').prop('onClick')();
+    wrapper.find('button[data-testid="select"]').prop('onClick')();
 
     assert.calledWith(onSelectFile, file);
   });
@@ -516,7 +512,7 @@ describe('LMSFilePicker', () => {
     // test accomplishes what it's trying to accomplish: we're not rendering
     // the Modal
     assert.isTrue(wrapper.isEmptyRender());
-    assert.isTrue(wrapper.find('FullScreenSpinner').exists());
+    assert.isTrue(wrapper.find('SpinnerOverlay').exists());
 
     await waitForElement(wrapper, 'FileList');
     assert.isFalse(wrapper.isEmptyRender());

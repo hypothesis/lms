@@ -1,8 +1,8 @@
 import {
-  FullScreenSpinner,
-  LabeledButton,
+  Button,
   Modal,
-} from '@hypothesis/frontend-shared';
+  SpinnerOverlay,
+} from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 
 import { useCallback, useEffect, useState } from 'preact/hooks';
@@ -346,25 +346,25 @@ export default function LMSFilePicker({
       break;
     case 'reload':
       continueButton = (
-        <LabeledButton
+        <Button
           variant="primary"
           onClick={() => computeFilesToDisplay(true /* reload */)}
           data-testid="reload"
         >
           Reload
-        </LabeledButton>
+        </Button>
       );
       break;
     case 'select':
       continueButton = (
-        <LabeledButton
+        <Button
           variant="primary"
           disabled={continueAction.disabled}
           onClick={() => confirmSelectedItem()}
           data-testid="select"
         >
           {continueAction.label}
-        </LabeledButton>
+        </Button>
       );
       break;
   }
@@ -372,17 +372,27 @@ export default function LMSFilePicker({
   const withFileUI = ['fetching', 'fetched'].includes(dialogState.state);
 
   if (dialogState.state === 'fetching' && initialFetch) {
-    return <FullScreenSpinner />;
+    return <SpinnerOverlay />;
   }
 
   return (
     <Modal
-      contentClass={classnames('LMS-Dialog', {
-        'LMS-Dialog--wide LMS-Dialog--tall': withFileUI,
+      classes={classnames({
+        // Set a fixed height on the modal when displaying a list of files.
+        // This prevents the height of the modal changing as items are loaded.
+        'h-[25rem]': withFileUI,
       })}
       title="Select file"
-      onCancel={onCancel}
-      buttons={continueButton}
+      onClose={onCancel}
+      width="lg"
+      buttons={[
+        <Button data-testid="cancel-button" key="cancel" onClick={onCancel}>
+          Cancel
+        </Button>,
+        continueButton,
+      ]}
+      // The FileList UI handles its own (partial-content) scrolling
+      scrollable={!withFileUI}
     >
       {dialogState.state === 'authorizing' && (
         <p data-testid="authorization warning">
