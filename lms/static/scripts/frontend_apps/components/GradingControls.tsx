@@ -28,24 +28,14 @@ export default function GradingControls({ grading }: GradingControlsProps) {
   // No initial current student selected
   const [currentStudentIndex, setCurrentStudentIndex] = useState(-1);
 
-  // Students sorted by displayName
+  // Students sorted by display name
   const students = useMemo(() => {
-    function compareNames(name1 = '', name2 = '') {
-      if (name1.toLowerCase() < name2.toLowerCase()) {
-        return -1;
-      } else if (name1.toLowerCase() > name2.toLowerCase()) {
-        return 1;
-      } else {
-        return 0;
-      }
-    }
-    // Make a copy
-    const students_ = [...unorderedStudents];
-
-    students_.sort((student1, student2) => {
-      return compareNames(student1.displayName, student2.displayName);
+    const collator = new Intl.Collator(undefined, {
+      sensitivity: 'accent',
     });
-    return students_;
+    return [...unorderedStudents].sort((a, b) =>
+      collator.compare(a.displayName, b.displayName)
+    );
   }, [unorderedStudents]);
 
   /**

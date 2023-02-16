@@ -139,7 +139,7 @@ describe('GradingControls', () => {
         displayName: 'Student Beta',
       },
       {
-        displayName: undefined,
+        displayName: '',
       },
     ];
     const wrapper = renderGrader();
@@ -149,7 +149,7 @@ describe('GradingControls', () => {
       .map(s => {
         return s.displayName;
       });
-    assert.match([undefined, 'Student Beta'], orderedStudentNames);
+    assert.match(['', 'Student Beta'], orderedStudentNames);
   });
 
   it('does not set a focus user by default', () => {
