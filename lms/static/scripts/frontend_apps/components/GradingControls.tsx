@@ -56,7 +56,7 @@ export default function GradingControls({
           gradingStudentId: user.lmsId,
         };
         try {
-          groups = await apiCall({
+          groups = await apiCall<string[]>({
             authToken,
             path: syncAPICallInfo.path,
             data: studentGroupsCallData,
