@@ -32,6 +32,9 @@ class AssignmentService:
             .one_or_none()
         )
 
+    def get_by_id(self, id_) -> Optional[Assignment]:
+        return self._db.query(Assignment).get(id_)
+
     def get_copied_from_assignment(self, lti_params) -> Optional[Assignment]:
         """Return the assignment that the current assignment was copied from."""
 
