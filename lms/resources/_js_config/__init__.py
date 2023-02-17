@@ -199,7 +199,21 @@ class JSConfig:
         self._config["debug"]["values"] = self._get_lti_launch_debug_values()
 
         self._config["editing"] = {
+            # Endpoint to get any data needed to get into "editing mode"
+            "getConfig": {
+                "path": self._request.route_path(
+                    "api.assignment.config", assignment_id=assignment.id
+                ),
+                "data": {
+                    "lms": {
+                        "product": self._request.product.family,
+                    },
+                },
+            },
+            # TODO These two probably make more sense in another nested key
+            # Where to submit the eventual re-configure
             "form_action": self._request.route_url("configure_assignment"),
+            # What to send for that reconfiguration
             "formFields": self.forward_lti_parameters(),
         }
 

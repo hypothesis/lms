@@ -24,6 +24,12 @@ def includeme(config):  # pylint:disable=too-many-statements
         factory="lms.resources.LTILaunchResource",
     )
 
+    config.add_route(
+        "api.assignment.config",
+        "/api/assignment/{assignment_id}/config",
+        request_method="POST",
+    )
+
     config.add_route("api.sync", "/api/sync", request_method="POST")
     config.add_route(
         "api.courses.group_sets.list", "/api/courses/{course_id}/group_sets"
