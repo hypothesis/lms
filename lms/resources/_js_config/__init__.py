@@ -512,6 +512,21 @@ class JSConfig:
             ]
         }
 
+    def forward_lti_parameters(self):
+        form_fields = {
+            param: value
+            for param, value in self._request.lti_params.items()
+            # Don't send over auth related params. We'll use our own
+            # authorization header
+            if param
+            not in ["oauth_nonce", "oauth_timestamp", "oauth_signature", "id_token"]
+        }
+        form_fields["authorization"] = BearerTokenSchema(
+            self._request
+        ).authorization_param(self._request.lti_user)
+
+        return form_fields
+
     def _groups(self):
         if self._context.grouping_type == Grouping.Type.COURSE:
             return [self._context.course.groupid(self._authority)]

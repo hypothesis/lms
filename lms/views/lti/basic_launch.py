@@ -91,22 +91,9 @@ class BasicLaunchViews:
             self.request.override_renderer = "lms:templates/lti/basic_launch/unconfigured_launch_not_authorized.html.jinja2"
             return {}
 
-        form_fields = {
-            param: value
-            for param, value in self.request.lti_params.items()
-            # Don't send over auth related params. We'll use our own
-            # authorization header
-            if param
-            not in ["oauth_nonce", "oauth_timestamp", "oauth_signature", "id_token"]
-        }
-
-        form_fields["authorization"] = BearerTokenSchema(
-            self.request
-        ).authorization_param(self.request.lti_user)
-
         self.context.js_config.enable_file_picker_mode(
             form_action=self.request.route_url("configure_assignment"),
-            form_fields=form_fields,
+            from_fields=self.context.js_config.forward_lti_parameters(),
         )
         return {}
 
