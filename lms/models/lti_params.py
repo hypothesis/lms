@@ -32,6 +32,8 @@ class LTIParams(dict):
 
         if v13_params := request.lti_jwt:
             v11, v13 = _to_lti_v11(v13_params), v13_params
+        elif request.content_type == "application/json":
+            v11, v13 = request.json_body, None
         else:
             v11, v13 = request.params, None
 
@@ -43,6 +45,26 @@ class LTIParams(dict):
         lti_params = _apply_canvas_quirks(lti_params, request)
 
         return lti_params
+
+    def serialize(self, **kwargs) -> dict:
+        """
+        Serialize LTIParams to be sent over the wire.
+
+        The serialized version will look like the 1.1 version of the
+        LTI parameters excluding any authorization related fields.
+
+        :param kwargs: Additional fields to add to the output.
+        """
+        form_fields = {
+            param: value
+            for param, value in self.items()
+            # Don't send over auth related params. We'll use our own
+            # authorization
+            if param
+            not in ["oauth_nonce", "oauth_timestamp", "oauth_signature", "id_token"]
+        }
+        form_fields.update(**kwargs)
+        return form_fields
 
 
 def _apply_canvas_quirks(lti_params, request):

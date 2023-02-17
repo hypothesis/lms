@@ -44,12 +44,20 @@ class TestLTIParams:
 
         assert LTIParams.from_request(pyramid_request)["custom_name"] == "value"
 
-    def test_v11(self, pyramid_request):
+    def test_from_request_v11(self, pyramid_request):
         pyramid_request.params = {"test": "key"}
 
         params = LTIParams.from_request(pyramid_request)
 
         assert params == params.v11 == pyramid_request.params
+
+    def test_from_request_json(self, pyramid_request):
+        pyramid_request.json_body = {"test": "key"}
+        pyramid_request.content_type = "application/json"
+
+        params = LTIParams.from_request(pyramid_request)
+
+        assert params == params.v11 == pyramid_request.json_body
 
     def test_it_doesnt_set_partial_keys(self, pyramid_request):
         pyramid_request.lti_jwt = {
@@ -101,6 +109,22 @@ class TestLTIParams:
             params["roles"]
             == "http://purl.imsglobal.org/vocab/lis/v2/membership#Learner,Mentor,http://purl.imsglobal.org/vocab/lis/v2/institution/person#Administrator"
         )
+
+    def test_serialize(self):
+        lti_params = LTIParams(
+            {
+                "oauth_nonce": "STRIPPED",
+                "oauth_timestamp": "STRIPPED",
+                "oauth_signature": "STRIPPED",
+                "id_token": "STRIPPED",
+                "other_values": "REMAIN",
+            }
+        )
+
+        assert lti_params.serialize(extra="value") == {
+            "other_values": "REMAIN",
+            "extra": "value",
+        }
 
 
 class TestCanvasQuirks:

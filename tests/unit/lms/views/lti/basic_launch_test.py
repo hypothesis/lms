@@ -134,28 +134,19 @@ class TestBasicLaunchViews:
         )
         pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
 
-    def test_unconfigured_launch(
-        self, svc, BearerTokenSchema, context, pyramid_request
-    ):
-        pyramid_request.lti_params = {
-            "oauth_nonce": "STRIPPED",
-            "oauth_timestamp": "STRIPPED",
-            "oauth_signature": "STRIPPED",
-            "id_token": "STRIPPED",
-            "other_values": "REMAIN",
-        }
+    def test_unconfigured_launch(self, svc, context, pyramid_request):
+        pyramid_request.lti_params = mock.create_autospec(
+            LTIParams, spec_set=True, instance=True
+        )
 
         svc.unconfigured_launch()
 
-        BearerTokenSchema.assert_called_once_with(pyramid_request)
-        BearerTokenSchema.return_value.authorization_param.assert_called_once_with(
-            pyramid_request.lti_user
+        pyramid_request.lti_params.serialize.assert_called_once_with(
+            authorization=context.js_config.auth_token
         )
-        authorization = BearerTokenSchema.return_value.authorization_param.return_value
-
         context.js_config.enable_file_picker_mode.assert_called_once_with(
             form_action="http://example.com/assignment",
-            form_fields={"other_values": "REMAIN", "authorization": authorization},
+            form_fields=pyramid_request.lti_params.serialize.return_value,
         )
 
     def test_unconfigured_launch_not_authorized(
@@ -171,6 +162,33 @@ class TestBasicLaunchViews:
             == "lms:templates/lti/basic_launch/unconfigured_launch_not_authorized.html.jinja2"
         )
         assert not response
+
+    def test_reconfigure_assignment_config(
+        self, svc, context, pyramid_request, assignment_service
+    ):
+        pyramid_request.lti_params = mock.create_autospec(
+            LTIParams, spec_set=True, instance=True
+        )
+
+        response = svc.reconfigure_assignment_config()
+
+        assignment = assignment_service.get_assignment.return_value
+        pyramid_request.lti_params.serialize.assert_called_once_with(
+            authorization=context.js_config.auth_token
+        )
+        context.js_config.enable_file_picker_mode.assert_called_once_with(
+            form_action="http://example.com/assignment",
+            form_fields=pyramid_request.lti_params.serialize.return_value,
+        )
+        assert response == {
+            "assignment": {
+                "group_set_id": assignment.extra.get.return_value,
+                "document": {"url": assignment.document_url},
+            },
+            "filePicker": context.js_config.enable_file_picker_mode.return_value[
+                "filePicker"
+            ],
+        }
 
     @pytest.fixture
     def has_permission(self, pyramid_request):
@@ -389,10 +407,6 @@ class TestBasicLaunchViews:
         context.application_instance = application_instance
 
         return context
-
-    @pytest.fixture(autouse=True)
-    def BearerTokenSchema(self, patch):
-        return patch("lms.views.lti.basic_launch.BearerTokenSchema")
 
     @pytest.fixture
     def LTIEvent(self, patch):

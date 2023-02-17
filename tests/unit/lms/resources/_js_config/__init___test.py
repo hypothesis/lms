@@ -131,6 +131,14 @@ class TestEnableLTILaunchMode:
                 },
             },
             "dev": False,
+            "editing": {
+                "getConfig": {
+                    "path": "/lti/reconfigure",
+                    "data": Any.dict.containing(
+                        {"authorization": "Bearer: token_value"}
+                    ),
+                },
+            },
             "hypothesisClient": {
                 "services": [
                     {

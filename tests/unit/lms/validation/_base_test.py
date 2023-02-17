@@ -38,6 +38,29 @@ class TestQueryAndFormLocation:
             assert self.ExampleSchema(request).parse()
 
 
+class TestJSONandFormLocation:
+    class ExampleSchema(PyramidRequestSchema):
+        location = "json_and_form"
+
+        key = fields.Str(required=True)
+
+    def test_it_from_json(self):
+        data = {"key": "value"}
+
+        request = DummyRequest(json_body=data)
+        request.content_type = request.headers["content-type"] = "application/json"
+
+        assert self.ExampleSchema(request).parse() == data
+
+    def test_it_from_form(self):
+        data = {"key": "value"}
+
+        request = DummyRequest(params=data)
+        request.content_type = request.headers["content-type"] = "multipart/form-data"
+
+        assert self.ExampleSchema(request).parse() == data
+
+
 class TestJSONPyramidRequestSchema:
     class ExampleSchema(JSONPyramidRequestSchema):
         key = fields.Str()
