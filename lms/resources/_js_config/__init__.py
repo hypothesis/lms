@@ -198,6 +198,11 @@ class JSConfig:
         }
         self._config["debug"]["values"] = self._get_lti_launch_debug_values()
 
+        self._config["editing"] = {
+            "form_action": self._request.route_url("configure_assignment"),
+            "formFields": self.forward_lti_parameters(),
+        }
+
     def enable_file_picker_mode(self, form_action, form_fields):
         """
         Put the JavaScript code into "file picker" mode.

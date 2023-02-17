@@ -93,7 +93,7 @@ class BasicLaunchViews:
 
         self.context.js_config.enable_file_picker_mode(
             form_action=self.request.route_url("configure_assignment"),
-            from_fields=self.context.js_config.forward_lti_parameters(),
+            form_fields=self.context.js_config.forward_lti_parameters(),
         )
         return {}
 
