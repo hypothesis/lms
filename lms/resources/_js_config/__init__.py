@@ -521,10 +521,7 @@ class JSConfig:
             if param
             not in ["oauth_nonce", "oauth_timestamp", "oauth_signature", "id_token"]
         }
-        form_fields["authorization"] = BearerTokenSchema(
-            self._request
-        ).authorization_param(self._request.lti_user)
-
+        form_fields["authorization"] = self._auth_token()
         return form_fields
 
     def _groups(self):
