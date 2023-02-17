@@ -20,7 +20,6 @@ from lms.services import DocumentURLService
 from lms.services.assignment import AssignmentService
 from lms.services.grouping import GroupingService
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
-from lms.validation.authentication import BearerTokenSchema
 
 
 def has_document_url(_context, request):
@@ -82,33 +81,30 @@ class BasicLaunchViews:
 
         This happens if we cannot resolve a document URL for any reason.
         """
-
-        if not self.request.has_permission(Permissions.LTI_CONFIGURE_ASSIGNMENT):
-            # Looks like the user is not an instructor, so show an error page
-
-            # https://docs.pylonsproject.org/projects/pyramid/en/latest/narr
-            # /renderers.html?highlight=override_renderer#overriding-a-renderer-at-runtime
-            self.request.override_renderer = "lms:templates/lti/basic_launch/unconfigured_launch_not_authorized.html.jinja2"
-            return {}
-
-        form_fields = {
-            param: value
-            for param, value in self.request.lti_params.items()
-            # Don't send over auth related params. We'll use our own
-            # authorization header
-            if param
-            not in ["oauth_nonce", "oauth_timestamp", "oauth_signature", "id_token"]
-        }
-
-        form_fields["authorization"] = BearerTokenSchema(
-            self.request
-        ).authorization_param(self.request.lti_user)
-
-        self.context.js_config.enable_file_picker_mode(
-            form_action=self.request.route_url("configure_assignment"),
-            form_fields=form_fields,
-        )
+        self._configure_js_for_file_picker()
         return {}
+
+    @view_config(route_name="lti.reconfigure", renderer="json")
+    def reconfigure_assignment_config(self):
+        """Return the data needed to re-configure an assignment."""
+        assignment = self.assignment_service.get_assignment(
+            tool_consumer_instance_guid=self.request.lti_params[
+                "tool_consumer_instance_guid"
+            ],
+            resource_link_id=self.request.lti_params.get("resource_link_id"),
+        )
+        config = self._configure_js_for_file_picker()
+        return {
+            # Info about the assignment's current configuration
+            "assignment": {
+                "group_set_id": assignment.extra.get("group_set_id"),
+                "document": {
+                    "url": assignment.document_url,
+                },
+            },
+            # Data needed to re-configure it
+            "filePicker": config["filePicker"],
+        }
 
     @view_config(
         route_name="configure_assignment",
@@ -198,6 +194,28 @@ class BasicLaunchViews:
         # is an upsert. So this stores the course as well
         self.grouping_service.upsert_grouping_memberships(
             user=self.request.user, groups=[self.context.course]
+        )
+
+    def _configure_js_for_file_picker(self) -> dict:
+        """
+        Show the file-picker for the user to choose a document.
+
+        We'll use this mode to configure new assignments and to reconfigure existing ones.
+        """
+
+        if not self.request.has_permission(Permissions.LTI_CONFIGURE_ASSIGNMENT):
+            # Looks like the user is not an instructor, so show an error page
+
+            # https://docs.pylonsproject.org/projects/pyramid/en/latest/narr
+            # /renderers.html?highlight=override_renderer#overriding-a-renderer-at-runtime
+            self.request.override_renderer = "lms:templates/lti/basic_launch/unconfigured_launch_not_authorized.html.jinja2"
+            return {}
+
+        return self.context.js_config.enable_file_picker_mode(
+            form_action=self.request.route_url("configure_assignment"),
+            form_fields=self.request.lti_params.serialize(
+                authorization=self.context.js_config.auth_token
+            ),
         )
 
     def _configure_js_to_show_document(self, document_url, assignment):

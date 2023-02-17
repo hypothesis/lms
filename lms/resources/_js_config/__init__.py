@@ -145,7 +145,7 @@ class JSConfig:
         if self._lti_user:
             auth_url = self._request.route_url(
                 auth_route,
-                _query=[("authorization", self._auth_token())],
+                _query=[("authorization", self.auth_token)],
             )
         else:
             auth_url = None
@@ -198,6 +198,16 @@ class JSConfig:
         }
         self._config["debug"]["values"] = self._get_lti_launch_debug_values()
 
+        self._config["editing"] = {
+            # Endpoint to get any data needed to get into "editing mode"
+            "getConfig": {
+                "path": self._request.route_path("lti.reconfigure"),
+                "data": self._request.lti_params.serialize(
+                    authorization=self.auth_token
+                ),
+            },
+        }
+
     def enable_file_picker_mode(self, form_action, form_fields):
         """
         Put the JavaScript code into "file picker" mode.
@@ -239,6 +249,7 @@ class JSConfig:
             }
         )
         self._config["debug"]["values"] = self._get_lti_launch_debug_values()
+        return self._config
 
     def add_deep_linking_api(self):
         """
@@ -375,7 +386,8 @@ class JSConfig:
             "events": ["create", "update"],
         }
 
-    def _auth_token(self):
+    @property
+    def auth_token(self):
         """Return the authToken setting."""
         return BearerTokenSchema(self._request).authorization_param(self._lti_user)
 
@@ -410,7 +422,7 @@ class JSConfig:
             "api": {
                 # The auth token that the JavaScript code will use to
                 # authenticate itself to the API.
-                "authToken": self._auth_token()
+                "authToken": self.auth_token
             },
             "canvas": {},
             "debug": {

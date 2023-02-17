@@ -73,7 +73,7 @@ class TestBasicLTILaunchSchema:
             schema.parse()
 
         assert exc_info.value.messages == {
-            "form": {
+            schema.location: {
                 "launch_presentation_return_url": ["Not a valid URL."],
                 "resource_link_id": ["Missing data for required field."],
             },
@@ -173,7 +173,7 @@ class TestDeepLinkingLTILaunchSchema:
             schema.parse()
 
         assert exc_info.value.messages == {
-            "form": {missing_param: ["Missing data for required field."]},
+            schema.location: {missing_param: ["Missing data for required field."]},
         }
 
     @pytest.mark.parametrize(
@@ -201,7 +201,7 @@ class TestDeepLinkingLTILaunchSchema:
         with pytest.raises(ValidationError) as exc_info:
             schema.parse()
 
-        assert exc_info.value.messages == {"form": expected_error_messages}
+        assert exc_info.value.messages == {schema.location: expected_error_messages}
 
     @pytest.fixture
     def valid_params(self, lti_v11_params):

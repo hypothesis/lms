@@ -106,6 +106,7 @@ class SecurityPolicy:
         if path.startswith("/api") or path in {
             "/lti/1.3/deep_linking/form_fields",
             "/lti/1.1/deep_linking/form_fields",
+            "/lti/reconfigure",
         }:
             # LTUser serialized in the headers for API calls from the frontend
             return LTIUserSecurityPolicy(
