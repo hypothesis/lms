@@ -149,7 +149,7 @@ export default function BasicLTILaunchApp() {
       }
 
       try {
-        const groups = await apiCall({
+        const groups = await apiCall<string[]>({
           authToken,
           path: syncAPICallInfo.path,
           data: syncAPICallInfo.data,
@@ -188,7 +188,7 @@ export default function BasicLTILaunchApp() {
     let success;
     incFetchCount();
     try {
-      const { via_url: contentURL } = await apiCall({
+      const { via_url: contentURL } = await apiCall<{ via_url: string }>({
         authToken: authToken,
         path: viaAPICallInfo.path,
       });

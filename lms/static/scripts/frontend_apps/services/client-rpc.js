@@ -104,10 +104,12 @@ export class ClientRPC extends TinyEmitter {
       if (grantToken.hasExpired()) {
         const issuedAt = Date.now();
         try {
-          const response = await apiCall({
-            authToken,
-            path: '/api/grant_token',
-          });
+          const response = /** @type {{ grant_token: string }} */ (
+            await apiCall({
+              authToken,
+              path: '/api/grant_token',
+            })
+          );
           grantToken = new JWT(response.grant_token, issuedAt);
         } catch (err) {
           throw new Error(

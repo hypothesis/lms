@@ -1,30 +1,25 @@
 import { useConfig } from '../config';
 import { APIError } from '../errors';
 import { useFetch } from './fetch';
+import type { FetchResult, Fetcher } from './fetch';
+
+/**
+ * Parameters for an API call that will refresh an expired access token.
+ */
+export type RefreshCall = { method: string; path: string };
 
 /**
  * Error response when a call fails due to expiry of an access token for an
  * external API.
- *
- * @typedef RefreshError
- * @prop {RefreshCall} refresh
  */
-
-/**
- * Parameters for an API call that will refresh an expired access token.
- *
- * @typedef RefreshCall
- * @prop {string} method
- * @prop {string} path
- */
+export type RefreshError = { refresh: RefreshCall };
 
 /**
  * Check if an API error response indicates that a token refresh is needed.
  *
- * @param {any} data - Parsed body of an API error response
- * @return {data is RefreshError}
+ * @param data - Parsed body of an API error response
  */
-function isRefreshError(data) {
+function isRefreshError(data: any): data is RefreshError {
   return data && data.refresh && typeof data.refresh === 'object';
 }
 
@@ -34,29 +29,45 @@ function isRefreshError(data) {
  *
  * This is used to avoid triggering concurrent refresh requests for the same
  * external API.
- *
- * @type {Map<string, Promise<void>>}
  */
-const activeRefreshCalls = new Map();
+const activeRefreshCalls = new Map<string, Promise<void>>();
+
+export type APICallOptions = {
+  /** Session authorization token. */
+  authToken: string;
+
+  /**
+   * The `/api/...` path of the endpoint to call.
+   *
+   * If the path contains parameters, use {@link urlPath} to generate this.
+   */
+  path: string;
+
+  /** Query parameters. */
+  params?: Record<string, string>;
+
+  /** JSON-serializable body of request. */
+  data?: object;
+
+  /** HTTP method to use. Defaults to POST if `data` is defined or GET otherwise. */
+  method?: string;
+
+  /**
+   * Whether to attempt to refresh the token if it fails due to an expired
+   * access token for an external API.
+   */
+  allowRefresh?: boolean;
+
+  /** Signal that can be used to cancel the request. */
+  signal?: AbortSignal;
+};
 
 /**
  * Make an API call to the LMS app backend.
- *
- * @param {object} options
- *   @param {string} options.authToken - Session authorization token
- *   @param {string} options.path - The `/api/...` path of the endpoint to call.
- *     If this path contains parameters, use {@link urlPath} to generate this.
- *   @param {boolean} [options.allowRefresh] - If the request fails due to
- *     an expired access token for an external API, this flag specifies whether
- *     to attempt to refresh the token.
- *   @param {object} [options.data] - JSON-serializable body of the request
- *   @param {string} [options.method] - Custom HTTP method for call. Defaults
- *     to GET, or POST if `data` is set.
- *   @param {AbortSignal} [options.signal]
- *   @param {Record<string, string>} [options.params] - Query parameters
- * @return {Promise<any>} - Parsed JSON response. TODO: Convert this to `Promise<unknown>`
  */
-export async function apiCall(options) {
+export async function apiCall<Result = unknown>(
+  options: APICallOptions
+): Promise<Result> {
   const {
     authToken,
     path,
@@ -71,8 +82,7 @@ export async function apiCall(options) {
 
   let body;
 
-  /** @type {Record<string,string>} */
-  const headers = {
+  const headers: Record<string, string> = {
     Authorization: authToken,
   };
 
@@ -109,7 +119,7 @@ export async function apiCall(options) {
       if (activeRefreshCalls.has(path)) {
         await activeRefreshCalls.get(path);
       } else {
-        const refreshDone = apiCall({
+        const refreshDone = apiCall<void>({
           authToken,
           method,
           path,
@@ -141,11 +151,8 @@ export async function apiCall(options) {
  * @example
  *   // Assume `widgetId` is "foo/bar"
  *   urlPath`/api/widgets/${widgetId}` => `/api/widgets/foo%2Fbar`
- *
- * @param {TemplateStringsArray} strings
- * @param {string[]} params
  */
-export function urlPath(strings, ...params) {
+export function urlPath(strings: TemplateStringsArray, ...params: string[]) {
   let result = '';
   for (const [i, param] of params.entries()) {
     result += strings[i];
@@ -157,18 +164,18 @@ export function urlPath(strings, ...params) {
 /**
  * Hook that fetches data using authenticated API requests.
  *
- * @template [T=unknown]
- * @param {string|null} path - Path for API call, or null if there is nothing to fetch
- * @param {Record<string, string>} [params] - Query params for API call
- * @return {import('./fetch').FetchResult<T>}
+ * @param path - Path for API call, or null if there is nothing to fetch
+ * @param [params] - Query params for API call
  */
-export function useAPIFetch(path, params) {
+export function useAPIFetch<T = unknown>(
+  path: string | null,
+  params?: Record<string, string>
+): FetchResult<T> {
   const {
     api: { authToken },
   } = useConfig();
 
-  /** @type {import('./fetch').Fetcher<T>|undefined} */
-  const fetcher = path
+  const fetcher: Fetcher<T> | undefined = path
     ? signal =>
         apiCall({
           authToken,
