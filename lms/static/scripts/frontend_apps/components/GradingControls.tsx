@@ -30,7 +30,7 @@ export default function GradingControls({ grading }: GradingControlsProps) {
 
   // Students sorted by display name
   const students = useMemo(() => {
-    const collator = new Intl.Collator(undefined, {
+    const collator = new Intl.Collator(undefined /* use default locale */, {
       sensitivity: 'accent',
     });
     return [...unorderedStudents].sort((a, b) =>
