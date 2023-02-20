@@ -1,4 +1,4 @@
-import { Button } from '@hypothesis/frontend-shared/lib/next';
+import { LinkButton } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 
 import GradingControls from './GradingControls';
@@ -31,12 +31,24 @@ export default function InstructorToolbar() {
       )}
     >
       <div className="space-y-1">
-        <h1
-          className="text-lg font-semibold leading-none"
-          data-testid="assignment-name"
-        >
-          {assignmentName}
-        </h1>
+        <div className="flex gap-x-2 items-center">
+          <h1
+            className="text-lg font-semibold leading-none"
+            data-testid="assignment-name"
+          >
+            {assignmentName}
+          </h1>
+          {editingEnabled && (
+            <LinkButton
+              classes="text-xs"
+              data-testid="edit"
+              title="Edit assignment settings"
+              underline="always"
+            >
+              Edit
+            </LinkButton>
+          )}
+        </div>
         <h2
           className="text-sm font-normal text-color-text-light leading-none"
           data-testid="course-name"
@@ -44,8 +56,6 @@ export default function InstructorToolbar() {
           {courseName}
         </h2>
       </div>
-
-      {editingEnabled && <Button data-testid="edit">Edit</Button>}
 
       <div
         className={classnames('lg:col-span-2 lg:gap-4 ' /* cols 2-3 of 3 */)}
