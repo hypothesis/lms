@@ -33,18 +33,4 @@
   & h2 {
     margin: 0;
   }
-
-  & > .LMS-Scrollbox {
-    // Dialogs apply vertical spacing such that their immediate children are
-    // evenly spaced. This is a good thing, however, there is a certain edge case
-    // when we have a Scrollbox and we want it to scroll up flush against the
-    // bottom border of the Dialog header. In this case we want to explicitly
-    // disable the top margin so that it can be up against the header.
-    margin-top: 0;
-  }
-}
-
-.LMS-Scrollbox {
-  // The Scrollbox border in this case is distracting.
-  border: none;
 }
