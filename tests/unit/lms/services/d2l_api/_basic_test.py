@@ -2,7 +2,7 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.services.d2l_api._basic import API_VERSION, TOKEN_URL, BasicClient
+from lms.services.d2l_api._basic import API_VERSIONS, TOKEN_URL, BasicClient
 from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 from tests import factories
 
@@ -30,7 +30,10 @@ class TestBasicClient:
     @pytest.mark.parametrize(
         "path,expected_url",
         [
-            ("/foo/bar", f"https://d2l.example.com/d2l/api/lp/{API_VERSION}/foo/bar"),
+            (
+                "/foo/bar",
+                f"https://d2l.example.com/d2l/api/lp/{API_VERSIONS['lp']}/foo/bar",
+            ),
             ("https://full.d2l.url.com/foo", "https://full.d2l.url.com/foo"),
         ],
     )
@@ -65,6 +68,16 @@ class TestBasicClient:
             basic_client.request("GET", "/foo")
 
         assert not exc_info.value.refreshable
+
+    @pytest.mark.parametrize(
+        "path,product,expected",
+        [
+            ("/api/groups", "lp", "https://d2l.example.com/d2l/api/lp/1.31/api/groups"),
+            ("/api/files", "le", "https://d2l.example.com/d2l/api/le/1.51/api/files"),
+        ],
+    )
+    def test_api_url(self, basic_client, path, product, expected):
+        assert basic_client.api_url(path, product) == expected
 
     @pytest.fixture
     def basic_client(self, http_service, oauth_http_service):

@@ -3,9 +3,17 @@ from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 TOKEN_URL = "https://auth.brightspace.com/core/connect/token"
 """This is constant for all D2L instances"""
 
+API_VERSIONS = {
+    "le": "1.51",
+    "lp": "1.31",
+}
+"""
+Minimum, non legacy version we can use for all needed endpoints in each D2l product.
 
-API_VERSION = "1.31"
-"""Minimum, non deprecated version we can use for all needed endpoints"""
+The mapping is non-exhaustive, we only list here the products we use.
+
+https://docs.valence.desire2learn.com/about.html#principal-version-table
+"""
 
 
 class BasicClient:
@@ -89,4 +97,7 @@ class BasicClient:
 
             https://docs.valence.desire2learn.com/basic/conventions.html#term-D2LPRODUCT
         """
-        return f"https://{self.lms_host}/d2l/api/{product}/{API_VERSION}{path}"
+        # Not using a default value here.
+        # If we use a new product we must include the version requirements explicitly  in `API_VERSIONS'
+        api_version = API_VERSIONS[product]
+        return f"https://{self.lms_host}/d2l/api/{product}/{api_version}{path}"
