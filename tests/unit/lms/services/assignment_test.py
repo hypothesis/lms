@@ -116,7 +116,35 @@ class TestAssignmentService:
             "custom_ResourceLink.id.history",
         ),
     )
-    def test_upsert_assignment_with_copied_from(
+    def test_upsert_assignment_with_copied_fromr(
+        self, svc, copied_from_param, db_session
+    ):
+        upsert_params = dict(
+            self.upsert_kwargs,
+            resource_link_id="NEW_ID",
+            tool_consumer_instance_guid="MATCHING_GUID",
+        )
+        upsert_params["lti_params"][copied_from_param] = "ORIGINAL_ID"
+        upsert_params["lti_params"]["tool_consumer_instance_guid"] = "MATCHING_GUID"
+        original_assignment = factories.Assignment(
+            resource_link_id="ORIGINAL_ID", tool_consumer_instance_guid="MATCHING_GUID"
+        )
+        db_session.flush()
+
+        new_assignment = svc.upsert_assignment(**upsert_params)
+
+        assert new_assignment != original_assignment
+        assert new_assignment.copied_from == original_assignment
+
+    @pytest.mark.parametrize(
+        "copied_from_param",
+        (
+            "resource_link_id_history",
+            "ext_d2l_resource_link_id_history",
+            "custom_ResourceLink.id.history",
+        ),
+    )
+    def test_upsert_assignment_with_copied_from_extra_parameter(
         self, svc, copied_from_param, db_session
     ):
         upsert_params = dict(

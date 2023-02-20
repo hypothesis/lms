@@ -90,13 +90,15 @@ class AssignmentService:
 
             # For new assignments check if we are copying
             # from an existing one on the current launch
-            historical_assignment = self.get_copied_from_assignment(lti_params)
-            if (
-                historical_assignment
-                and historical_assignment.extra.get("group_set_id")
-                and not extra.get("group_set_id")
-            ):
-                extra["group_set_id"] = historical_assignment.extra.get("group_set_id")
+            if historical_assignment := self.get_copied_from_assignment(lti_params):
+                assignment.copied_from = historical_assignment
+
+                if historical_assignment.extra.get("group_set_id") and not extra.get(
+                    "group_set_id"
+                ):
+                    extra["group_set_id"] = historical_assignment.extra.get(
+                        "group_set_id"
+                    )
 
         assignment.document_url = document_url
         assignment.title = lti_params.get("resource_link_title")
