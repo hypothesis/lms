@@ -189,8 +189,8 @@ export default function ErrorComponents() {
           <p>
             The <code>ErrorDisplay</code> component is used to show information
             about errors to users. It is intended to be used within a Modal
-            context, and provides a <code>Scrollbox</code> to scroll content if
-            it is too tall for the containing element.
+            context, and provides a <code>Scroll</code> to scroll content if it
+            is too tall for the containing element.
           </p>
           <p>
             When information about an error is displayed to a user via{' '}
