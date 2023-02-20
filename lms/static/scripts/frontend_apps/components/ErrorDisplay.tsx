@@ -1,37 +1,28 @@
 import classnames from 'classnames';
+import type { ComponentChildren } from 'preact';
 
 import { Link, Scrollbox } from '@hypothesis/frontend-shared';
 
 import { formatErrorDetails, formatErrorMessage } from '../errors';
-
-/**
- * @typedef {import('../errors').ErrorLike} ErrorLike
- */
+import type { ErrorLike } from '../errors';
 
 /**
  * Adds punctuation to a string if missing.
- *
- * @param {string} str
  */
-function toSentence(str) {
+function toSentence(str: string): string {
   return str.match(/[.!?]$/) ? str : str + '.';
 }
 
-/**
- * @typedef ErrorDetailsProps
- * @prop {ErrorLike} error
- */
+type ErrorDetailsProps = {
+  error: ErrorLike;
+};
 
 /**
- *
  * Render pre-formatted JSON details of an error
- *
- * @param {ErrorDetailsProps} props
  */
-function ErrorDetails({ error }) {
-  /** @param {Event} event */
-  const onDetailsToggle = event => {
-    const detailsEl = /** @type {HTMLDetailsElement} */ (event.target);
+function ErrorDetails({ error }: ErrorDetailsProps) {
+  const onDetailsToggle = (event: Event) => {
+    const detailsEl = event.target as HTMLDetailsElement;
     if (!detailsEl.open) {
       return;
     }
@@ -66,12 +57,8 @@ function ErrorDetails({ error }) {
 /**
  * Prepare a URL that will pre-fill a support form with certain details
  * about the current error.
- *
- * @param {string} errorMessage
- * @param {ErrorLike} error
- * @returns {string}
  */
-function supportURL(errorMessage, error) {
+function supportURL(errorMessage: string, error: ErrorLike): string {
   const supportURL = new URL('https://web.hypothes.is/get-help/');
 
   supportURL.searchParams.append('product', 'LMS_app');
@@ -97,25 +84,31 @@ Details: ${formatErrorDetails(error) || 'N/A'}
   return supportURL.toString();
 }
 
-/**
- * @typedef {import("preact").ComponentChildren} Children
- *
- * @typedef ErrorDisplayProps
- * @prop {Children} [children]
- * @prop {string} [description] -
- *   A short message explaining the error and its human-facing relevance, provided
- *   by this (front-end) app for context.
- * @prop {ErrorLike} error - Error-like object containing further `details`
- *   or `message` about this error state. The value of `details` and `message`
- *   may come from a server response.
- */
+export type ErrorDisplayProps = {
+  children?: ComponentChildren;
+
+  /**
+   * A short message explaining the error and its human-facing relevance,
+   * provided by this (front-end) app for context.
+   */
+  description?: string;
+
+  /**
+   * Error-like object containing further `details` or `message` about this
+   * error state. The value of `details` and `message` may come from a server
+   * response.
+   */
+  error: ErrorLike;
+};
 
 /**
  * Displays human-facing details of an error
- *
- * @param {ErrorDisplayProps} props
  */
-export default function ErrorDisplay({ children, description = '', error }) {
+export default function ErrorDisplay({
+  children,
+  description = '',
+  error,
+}: ErrorDisplayProps) {
   const message = formatErrorMessage(error, /* prefix */ description);
 
   return (
