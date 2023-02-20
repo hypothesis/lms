@@ -85,7 +85,7 @@ importlib-metadata==4.8.1
     #   alembic
     #   data-tasks
     #   h-vialib
-importlib-resources==5.10.2
+importlib-resources==5.12.0
     # via
     #   -r requirements/requirements.in
     #   alembic
