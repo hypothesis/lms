@@ -40,6 +40,16 @@ class Assignment(CreatedUpdatedMixin, BASE):
     across different LMS's.
     """
 
+    copied_from_id = sa.Column(
+        sa.Integer(), sa.ForeignKey("assignment.id"), nullable=True
+    )
+    """ID of the assignment this one was copied from using the course copy feature in the LMS."""
+
+    copies = sa.orm.relationship(
+        "Assignment", backref=sa.orm.backref("copied_from", remote_side=[id])
+    )
+    """Assignment this one was copied from."""
+
     document_url = sa.Column(sa.Unicode, nullable=False)
     """The URL of the document to be annotated for this assignment."""
 
