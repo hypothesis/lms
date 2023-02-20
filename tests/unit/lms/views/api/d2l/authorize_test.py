@@ -19,9 +19,13 @@ class TestAuthorize:
     @pytest.mark.parametrize(
         "groups,files,scopes",
         [
-            (False, True, "content:toc:read content:topics:read"),
+            (False, True, "content:toc:read content:topics:read content:file:read"),
             (True, False, "groups:group:read"),
-            (True, True, "content:toc:read content:topics:read groups:group:read"),
+            (
+                True,
+                True,
+                "content:toc:read content:topics:read content:file:read groups:group:read",
+            ),
         ],
     )
     def test_it(
