@@ -152,11 +152,11 @@ describe('GradingControls', () => {
     assert.calledWith(fakeClientRPC.setFocusedUser, null);
   });
 
-  it('sets the focused user when a valid index is passed', () => {
+  it('sets the focused user when a valid student is selected', () => {
     const wrapper = renderGrader();
 
     act(() => {
-      wrapper.find('StudentSelector').props().onSelectStudent(0); // note: initial index is -1
+      wrapper.find('StudentSelector').props().onSelectStudent(fakeStudents[0]); // note: initial index is -1
     });
 
     assert.calledWith(
@@ -191,7 +191,10 @@ describe('GradingControls', () => {
       assert.calledOnce(fakeClientRPC.setFocusedUser);
 
       act(() => {
-        wrapper.find('StudentSelector').props().onSelectStudent(0);
+        wrapper
+          .find('StudentSelector')
+          .props()
+          .onSelectStudent(fakeStudents[0]);
       });
 
       await waitFor(() => fakeApiCall.called);
@@ -211,7 +214,10 @@ describe('GradingControls', () => {
       const wrapper = renderGrader();
 
       act(() => {
-        wrapper.find('StudentSelector').props().onSelectStudent(0);
+        wrapper
+          .find('StudentSelector')
+          .props()
+          .onSelectStudent(fakeStudents[0]);
       });
 
       await waitFor(() => fakeApiCall.called);
@@ -230,7 +236,10 @@ describe('GradingControls', () => {
       const wrapper = renderGrader();
 
       act(() => {
-        wrapper.find('StudentSelector').props().onSelectStudent(0);
+        wrapper
+          .find('StudentSelector')
+          .props()
+          .onSelectStudent(fakeStudents[0]);
       });
 
       await waitFor(() => fakeApiCall.called);
@@ -249,10 +258,10 @@ describe('GradingControls', () => {
     });
   });
 
-  it('does not set a focus user when the user index is invalid', () => {
+  it('clears the focused user if no student is selected', () => {
     const wrapper = renderGrader();
     act(() => {
-      wrapper.find('StudentSelector').props().onSelectStudent(-1); // invalid choice
+      wrapper.find('StudentSelector').props().onSelectStudent(null);
     });
 
     assert.calledWith(

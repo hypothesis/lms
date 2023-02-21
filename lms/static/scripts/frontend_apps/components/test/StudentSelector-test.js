@@ -5,19 +5,11 @@ import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 
 describe('StudentSelector', () => {
+  let fakeStudents;
+
   const renderSelector = (props = {}) => {
     const fakeOnSelectStudent = sinon.stub();
     const fakeSelectedStudentIndex = 0;
-    const fakeStudents = [
-      {
-        username: 'student1',
-        displayName: 'Student 1',
-      },
-      {
-        username: 'student2',
-        displayName: 'Student 2',
-      },
-    ];
 
     return mount(
       <StudentSelector
@@ -31,6 +23,14 @@ describe('StudentSelector', () => {
 
   beforeEach(() => {
     $imports.$mock(mockImportedComponents());
+    fakeStudents = [
+      {
+        displayName: 'Student 1',
+      },
+      {
+        displayName: 'Student 2',
+      },
+    ];
   });
 
   afterEach(() => {
@@ -38,7 +38,7 @@ describe('StudentSelector', () => {
   });
 
   it('shall have "All Students" as the default option', () => {
-    const wrapper = renderSelector({ selectedStudentIndex: -1 });
+    const wrapper = renderSelector({ selectedStudent: null });
     assert.equal(wrapper.find('select [selected=true]').text(), 'All Students');
     assert.equal(
       wrapper.find('[data-testid="student-selector-label"]').text(),
@@ -46,8 +46,8 @@ describe('StudentSelector', () => {
     );
   });
 
-  it('sets the selected option to the second student when the student index is 1', () => {
-    const wrapper = renderSelector({ selectedStudentIndex: 1 });
+  it('sets the selected option to the reflect the selected student', () => {
+    const wrapper = renderSelector({ selectedStudent: fakeStudents[1] });
     assert.equal(wrapper.find('select [selected=true]').text(), 'Student 2');
     assert.equal(
       wrapper.find('[data-testid="student-selector-label"]').text(),
@@ -57,35 +57,66 @@ describe('StudentSelector', () => {
 
   it('calls the onSelectStudent callback when the select list is changed', () => {
     const onChange = sinon.spy();
-    const wrapper = renderSelector({ onSelectStudent: onChange });
+    const wrapper = renderSelector({
+      onSelectStudent: onChange,
+      selectedStudent: fakeStudents[0],
+    });
     wrapper.find('select').simulate('change');
     assert.isTrue(onChange.called);
   });
 
-  it('calls onChange (with the next student index) when the next button is clicked', () => {
+  it('unsets the selected user when the "All Students" option is selected', () => {
+    const onChange = sinon.spy();
+    const wrapper = renderSelector({
+      // No student is selected
+      onSelectStudent: onChange,
+    });
+    wrapper.find('select').simulate('change');
+    assert.calledWith(onChange, null);
+  });
+
+  it('calls onChange (with the next student) when the next button is clicked', () => {
     const onChange = sinon.spy();
     const wrapper = renderSelector({ onSelectStudent: onChange });
     wrapper.find('button').last().simulate('click');
-    assert.isTrue(onChange.calledWith(1));
+    assert.isTrue(onChange.calledWith(fakeStudents[0]));
   });
 
-  it('calls onChange (with the previous student index) when the previous button is clicked', () => {
+  it('calls onChange (with the previous student) when the previous button is clicked', () => {
     const onChange = sinon.spy();
     const wrapper = renderSelector({
       onSelectStudent: onChange,
-      selectedStudentIndex: 1,
+      selectedStudent: fakeStudents[1],
     });
-    wrapper.find('button').first().simulate('click');
-    assert.isTrue(onChange.calledWith(0));
+    wrapper
+      .find('button[data-testid="previous-student-button"]')
+      .simulate('click');
+    assert.isTrue(onChange.calledWith(fakeStudents[0]));
+  });
+
+  it('sets selected student to `null` when the previous button clicked and no previous students', () => {
+    const onChange = sinon.spy();
+    const wrapper = renderSelector({
+      onSelectStudent: onChange,
+      selectedStudent: fakeStudents[0],
+    });
+    wrapper
+      .find('button[data-testid="previous-student-button"]')
+      .simulate('click');
+    assert.isTrue(onChange.calledWith(null));
   });
 
   it('should disable the previous button when there are no previous options in the list', () => {
-    const wrapper = renderSelector({ selectedStudentIndex: -1 });
-    assert.isTrue(wrapper.find('button').first().prop('disabled'));
+    const wrapper = renderSelector({ selectedStudent: null });
+    assert.isTrue(
+      wrapper
+        .find('button[data-testid="previous-student-button"]')
+        .prop('disabled')
+    );
   });
 
   it('should disable the next button when there are no next options in the list', () => {
-    const wrapper = renderSelector({ selectedStudentIndex: 1 });
+    const wrapper = renderSelector({ selectedStudent: fakeStudents[1] });
     assert.isTrue(wrapper.find('button').last().prop('disabled'));
   });
 
