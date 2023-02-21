@@ -1,3 +1,4 @@
+import sqlalchemy as sa
 from sqlalchemy import func
 
 from lms.models import File
@@ -40,6 +41,37 @@ class FileService:
             # We might find more than one matching file, take any of them
             .first()
         )
+
+    def get_breadcrumbs(self, file: File):
+        cols = [
+            File.id,
+            File.lms_id,
+            File.parent_lms_id,
+            File.application_instance_id,
+            File.name,
+        ]
+
+        # Get the current file, with depth 0
+        current_file = (
+            self._db.query(
+                sa.sql.expression.literal_column("0").label("depth"), *cols
+            ).filter(File.id == file.id)
+            # The name of the CTE is arbitrary, but must be present
+            .cte("files", recursive=True)
+        )
+
+        # The file's parents will have increasing depth
+        file_parents = self._db.query(current_file.c.depth + 1, *cols).join(
+            current_file,
+            sa.and_(
+                File.lms_id == current_file.c.parent_lms_id,
+                File.application_instance_id == current_file.c.application_instance_id,
+            ),
+        )
+        both = current_file.union(file_parents)
+
+        # Get the initial file and its parents
+        return self._db.query(sa.func.array_agg(both.c.name)).scalar()
 
     def upsert(self, file_dicts):
         """Insert or update a batch of files."""
