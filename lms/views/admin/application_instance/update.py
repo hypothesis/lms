@@ -23,6 +23,13 @@ class UpdateApplicationInstanceSchema(PyramidRequestSchema):
     developer_secret = fields.Str(required=False)
 
 
+def str_or_none(value):
+    if value := value.strip() if value else None:
+        return str(value)
+
+    return None
+
+
 class UpdateApplicationInstanceView(BaseApplicationInstanceView):
     def __init__(self, request):
         super().__init__(request)
@@ -53,21 +60,17 @@ class UpdateApplicationInstanceView(BaseApplicationInstanceView):
 
         for field in ApplicationSettings.fields:
             value = self.request.params.get(field.compound_key)
-            value = value.strip() if value else None
+            #value = value.strip() if value else None
 
-            if field.format is asbool:
-                value = value == "on"
-                ai.settings.set(field.group, field.key, value)
-
-            elif field.format == JSONSetting.AES_SECRET:
+            if field.format == JSONSetting.AES_SECRET:
                 if not value:
                     continue
 
                 ai.settings.set_secret(self._aes_service, field.group, field.key, value)
 
             else:
-                assert field.format == str
-                ai.settings.set(field.group, field.key, value)
+                ai.settings.set(field.group, field.key, field.format(value))
+
 
         self.request.session.flash(f"Updated application instance {ai.id}", "messages")
 

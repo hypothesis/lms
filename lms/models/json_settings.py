@@ -3,16 +3,44 @@ from dataclasses import dataclass
 from typing import Any, Optional, Tuple
 
 import sqlalchemy as sa
+from pyramid.settings import asbool
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import InstrumentedAttribute
+
+
+
+class _JSONSettingType:
+    def format_for_storage(self, value):
+        raise NotImplementedError("You cannot store this type directly")
+
+
+class _StringOrNone(_JSONSettingType):
+    def format_for_storage(self, value):
+        if value:
+            value = value.strip()
+
+        if not value:
+            return None
+
+        return value
+
+
+class _Boolean(_JSONSettingType):
+    format_for_storage = asbool
+
+
+class _AESSecret(_JSONSettingType):
+    ...
 
 
 @dataclass
 class JSONSetting:
     """Describe a permitted field in a JSONSettings object."""
 
-    # Helper to declare settings as secret. This can be used with format
-    AES_SECRET = object()
+    class Types:
+        STRING = _StringOrNone
+        BOOLEAN = _Boolean
+        AES_SECRET = _AESSecret
 
     group: str
     """The group name that this setting is a part of."""
@@ -20,7 +48,7 @@ class JSONSetting:
     key: str
     """The key within the grouo that this setting is a part of."""
 
-    format: Any = str
+    format: _JSONSettingType = Types.STRING
     """An identifier to say what type of field this is."""
 
     name: Optional[str] = None
