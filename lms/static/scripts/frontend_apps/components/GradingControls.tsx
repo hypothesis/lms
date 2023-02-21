@@ -9,13 +9,21 @@ import StudentSelector from './StudentSelector';
 import SubmitGradeForm from './SubmitGradeForm';
 
 export type GradingControlsProps = {
-  /**
-   * List of students to grade.
-   *
-   * These will be sorted by display name before being presented.
-   */
   students: StudentInfo[];
 };
+
+/**
+ * Sort an array of objects using a locale-aware string comparison. Return a
+ * copy of `items`, sorted by the `key` property.
+ */
+function localeSort<Item>(items: Item[], key: keyof Item): Item[] {
+  const collator = new Intl.Collator(undefined /* use default locale */, {
+    sensitivity: 'accent',
+  });
+  return [...items].sort((a, b) =>
+    collator.compare(a[key] as string, b[key] as string)
+  );
+}
 
 /**
  * Controls for grading students: a list of students to grade, and an input to
@@ -29,23 +37,15 @@ export default function GradingControls({
   } = useConfig();
 
   const clientRPC = useService(ClientRPC);
+  const [selectedStudent, setSelectedStudent] = useState<StudentInfo | null>(
+    null
+  );
 
-  // No initial current student selected
-  const [currentStudentIndex, setCurrentStudentIndex] = useState(-1);
+  const students = useMemo(
+    () => localeSort(unorderedStudents, 'displayName'),
+    [unorderedStudents]
+  );
 
-  // Students sorted by display name
-  const students = useMemo(() => {
-    const collator = new Intl.Collator(undefined /* use default locale */, {
-      sensitivity: 'accent',
-    });
-    return [...unorderedStudents].sort((a, b) =>
-      collator.compare(a.displayName, b.displayName)
-    );
-  }, [unorderedStudents]);
-
-  /**
-   * Makes an RPC call to the sidebar to change to the focused user.
-   */
   const changeFocusedUser = useCallback(
     async (user: StudentInfo | null) => {
       let groups = null;
@@ -78,32 +78,24 @@ export default function GradingControls({
   );
 
   useEffect(() => {
-    if (currentStudentIndex >= 0) {
-      changeFocusedUser(students[currentStudentIndex]);
+    if (selectedStudent) {
+      changeFocusedUser(selectedStudent);
     } else {
       changeFocusedUser(null);
     }
-  }, [students, changeFocusedUser, currentStudentIndex]);
-
-  const onSelectStudent = (studentIndex: number) => {
-    setCurrentStudentIndex(studentIndex);
-  };
-
-  const getCurrentStudent = () => {
-    return currentStudentIndex >= 0 ? students[currentStudentIndex] : null;
-  };
+  }, [students, changeFocusedUser, selectedStudent]);
 
   return (
     <div className={classnames('flex flex-col gap-2', 'sm:flex-row')}>
       <div className="flex-grow-0 sm:flex-grow">
         <StudentSelector
-          onSelectStudent={onSelectStudent}
+          onSelectStudent={setSelectedStudent}
           students={students}
-          selectedStudentIndex={currentStudentIndex}
+          selectedStudent={selectedStudent}
         />
       </div>
       <div className="flex-grow sm:flex-grow-0">
-        <SubmitGradeForm student={getCurrentStudent()} />
+        <SubmitGradeForm student={selectedStudent} />
       </div>
     </div>
   );

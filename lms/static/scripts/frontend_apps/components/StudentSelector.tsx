@@ -7,40 +7,54 @@ import {
 } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 
-export type Student = {
-  displayName: string;
-};
+import type { StudentInfo } from '../config';
+import { useUniqueId } from '../utils/hooks';
 
-export type StudentSelectorProps = {
-  /** Callback invoked when the selected student changes */
-  onSelectStudent: (index: number) => void;
-  /** Index of selected student in `students` or -1 if no student is selected */
-  selectedStudentIndex: number;
-  /** Ordered list of students to display in the drop-down */
+export type StudentOption = Pick<StudentInfo, 'displayName'>;
+
+export type StudentSelectorProps<Student> = {
+  /**
+   * Callback invoked when the selected student changes. Invoked with `null`
+   * when the "All students" option is selected.
+   */
+  onSelectStudent: (student: Student | null) => void;
+  selectedStudent: Student | null;
   students: Student[];
 };
 
 /**
- * A drop-down control that allows selecting a student from a list of students.
+ * A drop-down control that allows selecting a student from a list of students,
+ * with previous and next buttons to select students sequentially from the list.
+ *
+ * An "All students" option is prepended to the list, representing no selected
+ * student.
  */
-export default function StudentSelector({
+export default function StudentSelector<Student extends StudentOption>({
   onSelectStudent,
-  selectedStudentIndex,
+  selectedStudent,
   students,
-}: StudentSelectorProps) {
-  // Disable the next button if at the end of the list. The length is equal to
-  // the student list plus the default "All Students" option.
-  const hasNextView = selectedStudentIndex + 1 < students.length;
-  // Disable the previous button only if the selectedStudentIndex is less than 0
-  // indicating the "All Students" choice is selected.
-  const hasPrevView = selectedStudentIndex >= 0;
+}: StudentSelectorProps<Student>) {
+  const selectedIndex = selectedStudent
+    ? students.findIndex(student => student === selectedStudent)
+    : -1;
+  const hasSelectedStudent = selectedIndex >= 0;
+  const selectId = useUniqueId('student-select');
 
-  const onNextView = () => {
-    onSelectStudent(selectedStudentIndex + 1);
+  const onNext = () => {
+    onSelectStudent(students[selectedIndex + 1]);
   };
 
-  const onPrevView = () => {
-    onSelectStudent(selectedStudentIndex - 1);
+  const onPrevious = () => {
+    onSelectStudent(selectedIndex === 0 ? null : students[selectedIndex - 1]);
+  };
+
+  const handleSelectStudent = (e: Event) => {
+    const studentIndex = parseInt((e.target as HTMLInputElement).value);
+    if (studentIndex === -1) {
+      onSelectStudent(null);
+    } else {
+      onSelectStudent(students[studentIndex]);
+    }
   };
 
   return (
@@ -53,18 +67,16 @@ export default function StudentSelector({
       )}
     >
       <label
-        className={classnames(
-          'flex-grow font-medium text-sm leading-none',
-          'xl:text-right'
-        )}
+        className="flex-grow font-medium text-sm leading-none xl:text-right"
         data-testid="student-selector-label"
+        htmlFor={selectId}
       >
-        {selectedStudentIndex >= 0 ? (
-          <span>
-            Student {`${selectedStudentIndex + 1} of ${students.length}`}
-          </span>
+        {hasSelectedStudent ? (
+          <>
+            Student {selectedIndex + 1} of {students.length}
+          </>
         ) : (
-          <span>{`${students.length} Students`}</span>
+          <>{students.length} Students</>
         )}
       </label>
       {/**
@@ -75,41 +87,42 @@ export default function StudentSelector({
       <div>
         <InputGroup>
           <IconButton
+            data-testid="previous-student-button"
+            disabled={!hasSelectedStudent}
             icon={ArrowLeftIcon}
+            onClick={onPrevious}
             title="Previous student"
-            disabled={!hasPrevView}
-            onClick={onPrevView}
             variant="dark"
           />
           <Select
             aria-label="Select student"
             classes="xl:w-80 h-touch-minimum"
-            onChange={e => {
-              onSelectStudent(parseInt((e.target as HTMLInputElement).value));
-            }}
+            id={selectId}
+            onChange={handleSelectStudent}
           >
             <option
-              key={'all-students'}
-              selected={selectedStudentIndex === -1}
+              key={'student-all'}
+              selected={!hasSelectedStudent}
               value={-1}
             >
               All Students
             </option>
-            {students.map((student, i) => (
+            {students.map((studentOption, idx) => (
               <option
-                key={`student-${i}`}
-                selected={selectedStudentIndex === i}
-                value={i}
+                key={`student-${idx}`}
+                selected={selectedIndex === idx}
+                value={idx}
               >
-                {student.displayName}
+                {studentOption.displayName}
               </option>
             ))}
           </Select>
           <IconButton
+            data-testid="next-student-button"
+            disabled={selectedIndex >= students.length - 1}
             icon={ArrowRightIcon}
+            onClick={onNext}
             title="Next student"
-            disabled={!hasNextView}
-            onClick={onNextView}
             variant="dark"
           />
         </InputGroup>
