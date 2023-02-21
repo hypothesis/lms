@@ -1,4 +1,5 @@
 from lms.services.grouping.service import GroupingService
+from lms.services.lti_role_service import LTIRoleService
 
 
 def service_factory(_context, request):
@@ -8,4 +9,5 @@ def service_factory(_context, request):
             name="application_instance"
         ).get_current(),
         plugin=request.product.plugin.grouping,
+        role_svc=request.find_service(LTIRoleService),
     )

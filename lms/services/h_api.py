@@ -65,7 +65,7 @@ class HAPI:
 
         return HUser(username=username, display_name=user_info["display_name"])
 
-    def _api_request(self, method, path, body=None, headers=None):
+    def _api_request(self, method, path, body=None, headers=None, params=None):
         """
         Send any kind of HTTP request to the h API and return the response.
 
@@ -92,6 +92,7 @@ class HAPI:
                 url=self._base_url + path.lstrip("/"),
                 auth=self._http_auth,
                 headers=headers,
+                params=params,
                 **request_args,
             )
         except ExternalRequestError as err:

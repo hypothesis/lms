@@ -19,6 +19,7 @@ from lms.services.blackboard_api.client import BlackboardAPIClient
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.course import CourseService
 from lms.services.d2l_api import D2LAPIClient
+from lms.services.email_digests import EmailDigestsService
 from lms.services.event import EventService
 from lms.services.file import FileService
 from lms.services.grading_info import GradingInfoService
@@ -56,6 +57,7 @@ __all__ = (
     "course_service",
     "d2l_api_client",
     "document_url_service",
+    "email_digests_service",
     "event_service",
     "file_service",
     "grading_info_service",
@@ -169,6 +171,10 @@ def d2l_api_client(mock_service):
 @pytest.fixture
 def document_url_service(mock_service):
     return mock_service(DocumentURLService)
+
+@pytest.fixture
+def email_digests_service(mock_service):
+    return mock_service(EmailDigestsService)
 
 
 @pytest.fixture

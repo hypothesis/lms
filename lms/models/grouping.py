@@ -204,3 +204,8 @@ class GroupingMembership(CreatedUpdatedMixin, BASE):
     )
 
     user = sa.orm.relationship("User")
+
+    lti_role_id = sa.Column(
+        sa.Integer(), sa.ForeignKey("lti_role.id", ondelete="cascade")
+    )
+    lti_role = sa.orm.relationship("LTIRole", foreign_keys=[lti_role_id])

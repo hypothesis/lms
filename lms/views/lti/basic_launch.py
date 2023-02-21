@@ -15,6 +15,7 @@ doesn't actually require basic launch requests to have this parameter.
 from pyramid.view import view_config, view_defaults
 
 from lms.events import LTIEvent
+from lms.models import UserSettings
 from lms.security import Permissions
 from lms.services import DocumentURLService, LTIRoleService
 from lms.services.assignment import AssignmentService
@@ -243,3 +244,20 @@ class BasicLaunchViews:
             self.request.find_service(name="grading_info").upsert_from_request(
                 self.request
             )
+
+        ai = self.context.application_instance
+        if ai.settings.get("instructor_email_digests", "enabled"):
+            if self.request.lti_user.is_instructor:
+                db = self.request.db
+                authority = self.request.registry.settings["h_authority"]
+                h_userid = self.request.lti_user.h_user.userid(authority=authority)
+                user_settings = (
+                    db.query(UserSettings).filter_by(h_userid=h_userid).one_or_none()
+                )
+
+                if user_settings is None:
+                    user_settings = UserSettings(h_userid=h_userid)
+                    db.add(user_settings)
+
+                if user_settings.instructor_email_digests is None:
+                    user_settings.instructor_email_digests = True

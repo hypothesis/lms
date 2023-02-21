@@ -10,10 +10,11 @@ from lms.services.upsert import bulk_upsert
 
 
 class GroupingService:
-    def __init__(self, db, application_instance, plugin: GroupingPlugin):
+    def __init__(self, db, application_instance, plugin: GroupingPlugin, role_svc):
         self._db = db
         self.application_instance = application_instance
         self.plugin = plugin
+        self.role_svc = role_svc
 
     def get_authority_provided_id(
         self, lms_id, type_: Grouping.Type, parent: Optional[Grouping] = None
@@ -90,7 +91,9 @@ class GroupingService:
         :param user:  User the that belongs to the groups
         :param groups: List of groups the `user` belongs to
         """
-        if not user.id or any((group.id is None for group in groups)):
+        role = self.role_svc.get_roles(user.roles)[0]
+
+        if not user.id or not role.id or any((group.id is None for group in groups)):
             # Ensure all ORM objects have their PK populated
             self._db.flush()
 
@@ -102,11 +105,12 @@ class GroupingService:
                     "grouping_id": group.id,
                     "user_id": user.id,
                     "updated": func.now(),
+                    "lti_role_id": role.id,
                 }
                 for group in groups
             ],
             index_elements=["grouping_id", "user_id"],
-            update_columns=["updated"],
+            update_columns=["updated", "lti_role_id"],
         )
 
     def get_course_groupings_for_user(

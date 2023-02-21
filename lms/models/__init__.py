@@ -29,6 +29,7 @@ from lms.models.organization import Organization
 from lms.models.region import Region, Regions
 from lms.models.rsa_key import RSAKey
 from lms.models.user import User
+from lms.models.user_settings import UserSettings
 
 
 def includeme(_config):
