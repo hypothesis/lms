@@ -13,8 +13,8 @@ from lms.validation import (
 
 
 @view_defaults(request_method="POST", renderer="json", permission=Permissions.API)
-class LTIOutcomesViews:
-    """Views for proxy APIs interacting with LTI Outcome Management APIs."""
+class GradingViews:
+    """Views for proxy APIs interacting with LTI grading APIs."""
 
     def __init__(self, request):
         self.request = request
@@ -25,7 +25,7 @@ class LTIOutcomesViews:
 
     @view_config(route_name="lti_api.result.record", schema=APIRecordResultSchema)
     def record_result(self):
-        """Proxy result (grade/score) to LTI Outcomes Result API."""
+        """Proxy result (grade/score) to LTI Result API."""
 
         self.lti_grading_service.record_result(
             self.parsed_params["lis_result_sourcedid"],
@@ -40,7 +40,7 @@ class LTIOutcomesViews:
         schema=APIReadResultSchema,
     )
     def read_result(self):
-        """Proxy request for current result (grade/score) to LTI Outcomes Result API."""
+        """Proxy request for current result (grade/score) to LTI Result API."""
 
         current_score = self.lti_grading_service.read_result(
             self.parsed_params["lis_result_sourcedid"]
@@ -56,8 +56,9 @@ class LTIOutcomesViews:
         Record info to allow later grading of an assignment via Canvas Speedgrader.
 
         When a learner launches an assignment the LMS provides metadata that can
-        be later used to submit a score to the LMS using LTI Outcome Management
-        APIs. In Canvas, extensions to that API allow a custom LTI launch URL to be
+        be later used to submit a score to the LMS using LTI APIs.
+
+        In Canvas, extensions to that API allow a custom LTI launch URL to be
         submitted for use by the SpeedGrader [1].
 
         This view only supports SpeedGrader-based grading in Canvas by
@@ -90,7 +91,7 @@ class LTIOutcomesViews:
 
 
 class CanvasPreRecordHook:
-    # For details of Canvas extensions to the standard LTI Outcomes request see:
+    # For details of Canvas extensions to the standard LTI request see:
     # https://erau.instructure.com/doc/api/file.assignment_tools.html
 
     # We use a set date in the past when no other date is available to avoid creating new submissions.
