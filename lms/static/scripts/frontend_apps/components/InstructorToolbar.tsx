@@ -23,6 +23,16 @@ export default function InstructorToolbar() {
     gradingEnabled,
   } = instructorToolbar;
 
+  const onEditAssignment = () => {
+    // TODO:
+    //
+    // 1. Make call to `editing.getConfig` API to get assignment info.
+    // 2. Display editing UI above assignment content or transition to
+    //    assignment editing UI.
+    //      - How to do this? Use a Portal-type thing?
+    // 3.
+  };
+
   return (
     <header
       className={classnames(
@@ -42,6 +52,7 @@ export default function InstructorToolbar() {
             <LinkButton
               classes="text-xs"
               data-testid="edit"
+              onClick={onEditAssignment}
               title="Edit assignment settings"
               underline="always"
             >

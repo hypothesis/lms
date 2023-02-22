@@ -44,6 +44,12 @@ export type StudentInfo = {
   lmsId: string;
 };
 
+export type EditConfig = {
+  getConfig: APICallInfo;
+  form_action: string;
+  formFields: Record<string, string>;
+};
+
 /**
  * Data needed to render the grading bar shown when an instructor views an assignment.
  */
