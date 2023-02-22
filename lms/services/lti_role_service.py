@@ -1,8 +1,8 @@
-from typing import List
+from typing import Iterable, List
 
 from sqlalchemy.orm import Session
 
-from lms.models import LTIRole
+from lms.models import AssignmentMembership, LTIRole, User
 
 
 class LTIRoleService:
@@ -37,6 +37,39 @@ class LTIRoleService:
             roles.extend(new_roles)
 
         return roles
+
+    def get_users(self, role_type, application_instances=None) -> Iterable[User]:
+        """
+        Return all users who have the given role type in any context.
+
+        For example get_users(role_type="instructor") will return all users
+        who're an instructor for one or more assignments.
+
+        If an `application_instances` argument is given (a list of
+        ApplicationInstance's) then only users belonging to those application
+        instances will be returned.
+
+        This may return multiple users with the same `user_id` and `h_userid`
+        but belonging to different ApplicationInstance's. This happens when a
+        single LMS instance has multiple ApplicationInstance's.
+        """
+        query = self._db.query(User)
+
+        if application_instances:
+            query = query.filter(
+                User.application_instance_id.in_(
+                    [instance.id for instance in application_instances]
+                )
+            )
+
+        query = (
+            query.join(AssignmentMembership)
+            .join(LTIRole)
+            .filter(LTIRole.type == role_type)
+            .order_by(User.updated.desc())
+        )
+
+        return query
 
 
 def service_factory(_context, request) -> LTIRoleService:
