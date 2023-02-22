@@ -1,4 +1,5 @@
 """The H API service."""
+from dataclasses import dataclass
 
 from h_api.bulk_api import BulkAPI, CommandBuilder
 
@@ -13,6 +14,22 @@ class HAPIError(ExternalRequestError):
     Raised whenever an h API request times out or when an unsuccessful, invalid
     or unexpected response is received from the h API.
     """
+
+
+@dataclass(frozen=True)
+class User:
+    username: str
+
+
+@dataclass(frozen=True)
+class Group:
+    authority_provided_id: str
+
+
+@dataclass(frozen=True)
+class Annotation:
+    user: User
+    group: Group
 
 
 class HAPI:
@@ -53,6 +70,47 @@ class HAPI:
             body=BulkAPI.to_string(commands),
             headers={"Content-Type": "application/vnd.hypothesis.v1+x-ndjson"},
         )
+
+    def get_annotations(self, users, since, until):  # pylint:disable=unused-argument
+        """
+        Return the list of annotations for the given users and time range.
+
+        Returns all annotations whose updated time is within the given time
+        range and that are in groups of which any of the given users is a
+        member.
+        """
+        return [
+            Annotation(
+                user=User(username="user_1"),
+                group=Group(
+                    authority_provided_id="d2871e5e1c36b58f207d9ef5b22dcb7829f52e61"
+                ),
+            ),
+            Annotation(
+                user=User(username="user_1"),
+                group=Group(
+                    authority_provided_id="f453c6124e4ead4471896f26e896c3e5bbf0bb36"
+                ),
+            ),
+            Annotation(
+                user=User(username="user_2"),
+                group=Group(
+                    authority_provided_id="83e64baad215f63057387910a1b41debc716a150"
+                ),
+            ),
+            Annotation(
+                user=User(username="user_1"),
+                group=Group(
+                    authority_provided_id="83e64baad215f63057387910a1b41debc716a150"
+                ),
+            ),
+            Annotation(
+                user=User(username="user_2"),
+                group=Group(
+                    authority_provided_id="83e64baad215f63057387910a1b41debc716a150"
+                ),
+            ),
+        ]
 
     def get_user(self, username):
         """

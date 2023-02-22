@@ -210,6 +210,7 @@ def grouping_service(mock_service):
 def h_api(mock_service):
     h_api = mock_service(HAPI, service_name="h_api")
     h_api.get_user.return_value = factories.HUser()
+    h_api.get_annotations.return_value = []
 
     return h_api
 

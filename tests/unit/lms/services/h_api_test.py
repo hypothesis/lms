@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest.mock import call, patch, sentinel
 
 import pytest
@@ -6,8 +7,9 @@ from h_matchers import Any
 
 from lms.models import HUser
 from lms.services import HAPIError
-from lms.services.h_api import HAPI
+from lms.services.h_api import HAPI, Annotation, Group, User
 from lms.services.http import ExternalRequestError
+from tests import factories
 from tests.conftest import TEST_SETTINGS
 
 pytestmark = pytest.mark.usefixtures("http_service")
@@ -49,6 +51,48 @@ class TestHAPI:
                 {"Content-Type": "application/vnd.hypothesis.v1+x-ndjson"}
             ),
         )
+
+    def test_get_annotations(self, h_api):
+        users = factories.User.create_batch(size=2)
+
+        annotations = h_api.get_annotations(
+            users,
+            since=datetime(year=2023, month=2, day=20),
+            until=datetime(year=2023, month=2, day=21),
+        )
+
+        assert annotations == [
+            Annotation(
+                user=User(username="user_1"),
+                group=Group(
+                    authority_provided_id="d2871e5e1c36b58f207d9ef5b22dcb7829f52e61"
+                ),
+            ),
+            Annotation(
+                user=User(username="user_1"),
+                group=Group(
+                    authority_provided_id="f453c6124e4ead4471896f26e896c3e5bbf0bb36"
+                ),
+            ),
+            Annotation(
+                user=User(username="user_2"),
+                group=Group(
+                    authority_provided_id="83e64baad215f63057387910a1b41debc716a150"
+                ),
+            ),
+            Annotation(
+                user=User(username="user_1"),
+                group=Group(
+                    authority_provided_id="83e64baad215f63057387910a1b41debc716a150"
+                ),
+            ),
+            Annotation(
+                user=User(username="user_2"),
+                group=Group(
+                    authority_provided_id="83e64baad215f63057387910a1b41debc716a150"
+                ),
+            ),
+        ]
 
     def test_get_user_works(self, h_api, _api_request):
         _api_request.return_value.json.return_value = {

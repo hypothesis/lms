@@ -2,6 +2,7 @@ from lms.services.aes import AESService
 from lms.services.application_instance import ApplicationInstanceNotFound
 from lms.services.canvas import CanvasService
 from lms.services.d2l_api.client import D2LAPIClient
+from lms.services.digest import DigestService
 from lms.services.document_url import DocumentURLService
 from lms.services.event import EventService
 from lms.services.exceptions import (
@@ -26,6 +27,7 @@ from lms.services.lti_names_roles import LTINamesRolesService
 from lms.services.lti_registration import LTIRegistrationService
 from lms.services.lti_role_service import LTIRoleService
 from lms.services.ltia_http import LTIAHTTPService
+from lms.services.mailchimp import MailchimpService
 from lms.services.organization import OrganizationService
 from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
@@ -106,6 +108,9 @@ def includeme(config):
         "lms.services.ltia_http.factory", iface=LTIAHTTPService
     )
     config.register_service_factory(
+        "lms.services.mailchimp.factory", iface=MailchimpService
+    )
+    config.register_service_factory(
         "lms.services.document_url.factory", iface=DocumentURLService
     )
     config.register_service_factory("lms.services.event.factory", iface=EventService)
@@ -115,6 +120,7 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.d2l_api.d2l_api_client_factory", iface=D2LAPIClient
     )
+    config.register_service_factory("lms.services.digest.factory", iface=DigestService)
 
     # Plugins are not the same as top level services but we want to register them as pyramid services too
     # Importing them here to:
