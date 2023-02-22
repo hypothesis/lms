@@ -84,9 +84,9 @@ these instructions to create the necessary data and settings manually:
 The first time you run `make dev` it might take a while to start because it'll
 need to install the application dependencies and build the client assets.
 
-This will start the server on port 8001 (http://localhost:8001), reload the
-application whenever changes are made to the source code, and restart it should
-it crash for some reason.
+This will start the server on <http://localhost:8001> and <https://localhost:48001>, 
+reload the application whenever changes are made to the source code, 
+and restart it should it crash for some reason.
 
 **That's it!** You’ve finished setting up your lms development environment. Run
 `make help` to see all the commands that're available for running the tests,
@@ -99,6 +99,21 @@ You should now be able to run the tests successfully by typing:
     make test
 
 See [`HACKING.md`](HACKING.md) for documentation of common development tasks.
+
+
+### Using self signed certificates with HTTPS
+
+By default `make dev` runs the web application on two ports: 8001 for HTTP and 48001 for HTTPS with a self-signed certificate.
+
+Using HTTPS is required in most LMS's for LTI 1.3 and for example in D2L it's required for any usage of their API in all LTI versions.
+
+To use HTTPS you'll need to instruct your browser to trust the self-signed certificate.
+
+In Chrome you can do do this with the following flag:
+
+
+<chrome://flags/#allow-insecure-localhost>
+
 
 ### Bypassing the browser's "unsafe scripts" (mixed content) blocking
 
