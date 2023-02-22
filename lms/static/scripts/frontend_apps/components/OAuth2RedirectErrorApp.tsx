@@ -1,4 +1,4 @@
-import { Link } from '@hypothesis/frontend-shared';
+import { Link } from '@hypothesis/frontend-shared/lib/next';
 
 import { useConfig } from '../config';
 import ErrorModal from './ErrorModal';
@@ -77,6 +77,7 @@ export default function OAuth2RedirectErrorApp({
             <Link
               target="_blank"
               href="https://github.com/hypothesis/lms/wiki/Canvas-API-Endpoints-Used-by-the-Hypothesis-LMS-App"
+              underline="always"
             >
               Canvas API Endpoints Used by the Hypothesis LMS App
             </Link>
@@ -97,6 +98,7 @@ export default function OAuth2RedirectErrorApp({
               classes="inline"
               target="_blank"
               href="https://web.hypothes.is/help/enable-the-hypothesis-integration-with-blackboard-files/"
+              underline="always"
             >
               Enable the Hypothesis Integration With Blackboard Files
             </Link>
