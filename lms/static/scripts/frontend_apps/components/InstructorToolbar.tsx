@@ -1,15 +1,36 @@
 import { LinkButton } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 
-import GradingControls from './GradingControls';
 import { useConfig } from '../config';
+import GradingControls from './GradingControls';
+
+/** Create and submit a hidden form. */
+function submitForm(
+  method: 'GET' | 'POST',
+  action: string,
+  fields: Record<string, string>
+) {
+  const form = document.createElement('form');
+  form.method = method;
+  form.action = action;
+  for (const [name, value] of Object.entries(fields)) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = value;
+    form.append(input);
+  }
+  document.body.append(form);
+  form.submit();
+}
 
 /**
  * Toolbar for instructors.
  * Shows assignment information and grading controls (for gradeable assignments).
  */
 export default function InstructorToolbar() {
-  const { instructorToolbar } = useConfig();
+  const { editing, instructorToolbar } = useConfig();
+
   if (!instructorToolbar) {
     // User is not an instructor or toolbar is disabled in the current environment.
     return null;
@@ -22,6 +43,16 @@ export default function InstructorToolbar() {
     editingEnabled,
     gradingEnabled,
   } = instructorToolbar;
+
+  const onEdit = async () => {
+    if (!editing) {
+      return;
+    }
+    submitForm('POST', editing.form_action, {
+      ...editing.formFields,
+      edit: 'true',
+    });
+  };
 
   return (
     <header
@@ -42,6 +73,7 @@ export default function InstructorToolbar() {
             <LinkButton
               classes="text-xs"
               data-testid="edit"
+              onClick={onEdit}
               title="Edit assignment settings"
               underline="always"
             >

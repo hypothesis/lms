@@ -164,3 +164,13 @@ class ConfigureAssignmentSchema(_CommonLTILaunchSchema):
     user_id = fields.Str(required=True)
     context_title = fields.Str(required=True)
     group_set = fields.Str(required=False, allow_none=True)
+
+
+class EditAssignmentSchema(_CommonLTILaunchSchema):
+    """Schema for validating requests to the configure_assignment() view."""
+
+    location = "form"
+
+    resource_link_id = fields.Str(required=True)
+    user_id = fields.Str(required=True)
+    context_title = fields.Str(required=True)

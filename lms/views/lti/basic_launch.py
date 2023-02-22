@@ -19,7 +19,11 @@ from lms.security import Permissions
 from lms.services import DocumentURLService, LTIRoleService
 from lms.services.assignment import AssignmentService
 from lms.services.grouping import GroupingService
-from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
+from lms.validation import (
+    BasicLTILaunchSchema,
+    ConfigureAssignmentSchema,
+    EditAssignmentSchema,
+)
 from lms.validation.authentication import BearerTokenSchema
 
 
@@ -91,6 +95,19 @@ class BasicLaunchViews:
             self.request.override_renderer = "lms:templates/lti/basic_launch/unconfigured_launch_not_authorized.html.jinja2"
             return {}
 
+        self.context.js_config.enable_file_picker_mode(
+            form_action=self.request.route_url("configure_assignment"),
+            form_fields=self.context.js_config.forward_lti_parameters(),
+        )
+        return {}
+
+    @view_config(
+        route_name="edit_assignment",
+        permission=Permissions.LTI_CONFIGURE_ASSIGNMENT,
+        schema=EditAssignmentSchema,
+        renderer="lms:templates/file_picker.html.jinja2",
+    )
+    def edit_assignment(self):
         self.context.js_config.enable_file_picker_mode(
             form_action=self.request.route_url("configure_assignment"),
             form_fields=self.context.js_config.forward_lti_parameters(),

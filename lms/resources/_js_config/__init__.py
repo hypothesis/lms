@@ -212,7 +212,7 @@ class JSConfig:
             },
             # TODO These two probably make more sense in another nested key
             # Where to submit the eventual re-configure
-            "form_action": self._request.route_url("configure_assignment"),
+            "form_action": self._request.route_url("edit_assignment"),
             # What to send for that reconfiguration
             "formFields": self.forward_lti_parameters(),
         }
