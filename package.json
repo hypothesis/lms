@@ -24,7 +24,7 @@
     "@babel/preset-env": "^7.20.2",
     "@babel/preset-react": "^7.18.6",
     "@babel/preset-typescript": "^7.18.6",
-    "@hypothesis/frontend-build": "1.2.0",
+    "@hypothesis/frontend-build": "^1.2.0",
     "@hypothesis/frontend-shared": "^5.7.0",
     "@rollup/plugin-babel": "^6.0.3",
     "@rollup/plugin-commonjs": "^24.0.1",
@@ -46,7 +46,7 @@
     "rollup-plugin-string": "^3.0.0",
     "rollup-plugin-terser": "^7.0.2",
     "sass": "^1.58.3",
-    "tailwindcss": "3.2.7",
+    "tailwindcss": "^3.2.7",
     "tiny-emitter": "^2.1.0"
   },
   "devDependencies": {
