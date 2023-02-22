@@ -116,16 +116,10 @@ class ApplicationInstanceService:
             raise ApplicationInstanceNotFound()
 
         try:
-            return (
-                self._db.query(ApplicationInstance)
-                .join(LTIRegistration)
-                .filter(
-                    LTIRegistration.issuer == issuer,
-                    LTIRegistration.client_id == client_id,
-                    ApplicationInstance.deployment_id == deployment_id,
-                )
-                .one()
-            )
+            return self._ai_search_query(
+                issuer=issuer, client_id=client_id, deployment_id=deployment_id
+            ).one()
+
         except NoResultFound as err:
             raise ApplicationInstanceNotFound() from err
 
