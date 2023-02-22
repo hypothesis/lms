@@ -1,7 +1,8 @@
 from functools import lru_cache
 
+from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import Query
+from sqlalchemy.sql import Select
 
 from lms.models import LTIUser, User
 
@@ -36,9 +37,12 @@ class UserService:
             h_userid=lti_user.h_user.userid(self._h_authority),
         )
 
-        if existing_user := self._user_search_query(
-            application_instance_id=user.application_instance_id, user_id=user.user_id
-        ).one_or_none():
+        if existing_user := self._db.execute(
+            self._user_search_query(
+                application_instance_id=user.application_instance_id,
+                user_id=user.user_id,
+            )
+        ).scalar_one_or_none():
             # Update the existing user from the fields which can change on a
             # new one
             existing_user.roles = user.roles
@@ -62,28 +66,31 @@ class UserService:
         :param user_id: Unique identifier of the user
         :raises UserNotFound: if the User is not present in the DB
         """
+
         try:
-            existing_user = self._user_search_query(
-                application_instance_id=application_instance.id, user_id=user_id
-            ).one()
+            existing_user = self._db.execute(
+                self._user_search_query(
+                    application_instance_id=application_instance.id, user_id=user_id
+                )
+            ).scalar_one()
 
         except NoResultFound as err:
             raise UserNotFound() from err
 
         return existing_user
 
-    def _user_search_query(self, application_instance_id, user_id) -> Query:
+    def _user_search_query(self, application_instance_id, user_id) -> Select:
         """Generate a query for searching for users."""
 
-        query = self._db.query(User)
+        query = select(User)
 
         # Normally we'd have an `if application_instance_id` here, for a proper
         # search query builder, but at the moment all arguments are mandatory,
         # and doing that would give us a coverage gap.
-        query = query.filter(User.application_instance_id == application_instance_id)
+        query = query.where(User.application_instance_id == application_instance_id)
 
         # Ditto `if user_id`
-        query = query.filter(User.user_id == user_id)
+        query = query.where(User.user_id == user_id)
 
         return query
 
