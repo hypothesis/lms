@@ -1,30 +1,28 @@
-import { Link } from '@hypothesis/frontend-shared';
+import { Link } from '@hypothesis/frontend-shared/lib/next';
 
 import { useConfig } from '../config';
 import ErrorModal from './ErrorModal';
 
-/** @typedef {import('../config').OAuthErrorConfig} OAuthErrorConfig */
-
-/**
- * @typedef OAuth2RedirectErrorAppProps
- * @prop {Location} [location] - Test seam
- */
+export type OAuth2RedirectErrorAppProps = {
+  /** Test seam */
+  location?: Location;
+};
 
 /**
  * Error Modal displayed when authorization with a third-party API via OAuth
  * fails.
  *
  * Dismissing the Modal will close the window.
- *
- * @param {OAuth2RedirectErrorAppProps} props
  */
-export default function OAuth2RedirectErrorApp({ location = window.location }) {
+export default function OAuth2RedirectErrorApp({
+  location = window.location,
+}: OAuth2RedirectErrorAppProps) {
   const {
     OAuth2RedirectError: {
       authUrl = null,
       errorCode,
       errorDetails = '',
-      canvasScopes = /** @type {string[]} */ ([]),
+      canvasScopes = [],
     },
   } = useConfig(['OAuth2RedirectError']);
 
@@ -46,7 +44,7 @@ export default function OAuth2RedirectErrorApp({ location = window.location }) {
   }
 
   const retry = () => {
-    location.href = /** @type {string} */ (authUrl);
+    location.href = authUrl!;
   };
   const onRetry = authUrl ? retry : undefined;
 
