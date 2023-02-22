@@ -5,7 +5,7 @@ from unittest.mock import patch
 import pytest
 from h_matchers import Any
 
-from lms.views.api.lti import CanvasPreRecordHook, LTIOutcomesViews
+from lms.views.api.grading import CanvasPreRecordHook, GradingViews
 
 pytestmark = pytest.mark.usefixtures("lti_grading_service")
 
@@ -16,7 +16,7 @@ class TestRecordCanvasSpeedgraderSubmission:
     def test_it_passes_correct_params_to_read_current_score(
         self, pyramid_request, lti_grading_service
     ):
-        LTIOutcomesViews(pyramid_request).record_canvas_speedgrader_submission()
+        GradingViews(pyramid_request).record_canvas_speedgrader_submission()
 
         lti_grading_service.read_result.assert_called_once_with(self.GRADING_ID)
 
@@ -25,7 +25,7 @@ class TestRecordCanvasSpeedgraderSubmission:
     ):
         lti_grading_service.read_result.return_value = 0.5
 
-        LTIOutcomesViews(pyramid_request).record_canvas_speedgrader_submission()
+        GradingViews(pyramid_request).record_canvas_speedgrader_submission()
 
         lti_grading_service.record_result.assert_not_called()
 
@@ -34,7 +34,7 @@ class TestRecordCanvasSpeedgraderSubmission:
     ):
         lti_grading_service.read_result.return_value = None
 
-        LTIOutcomesViews(pyramid_request).record_canvas_speedgrader_submission()
+        GradingViews(pyramid_request).record_canvas_speedgrader_submission()
 
         lti_grading_service.record_result.assert_called_once_with(
             self.GRADING_ID,
@@ -150,7 +150,7 @@ class TestCanvasPreRecordHook:
 
 class TestReadResult:
     def test_it_proxies_to_read_result(self, pyramid_request, lti_grading_service):
-        LTIOutcomesViews(pyramid_request).read_result()
+        GradingViews(pyramid_request).read_result()
 
         lti_grading_service.read_result.assert_called_once_with(
             "modelstudent-assignment1"
@@ -159,7 +159,7 @@ class TestReadResult:
     def test_it_returns_current_score(self, pyramid_request, lti_grading_service):
         lti_grading_service.read_result.return_value = 0.5
 
-        current_score = LTIOutcomesViews(pyramid_request).read_result()
+        current_score = GradingViews(pyramid_request).read_result()
 
         assert current_score == {"currentScore": 0.5}
 
@@ -176,7 +176,7 @@ class TestReadResult:
 
 class TestRecordResult:
     def test_it_records_result(self, pyramid_request, lti_grading_service):
-        LTIOutcomesViews(pyramid_request).record_result()
+        GradingViews(pyramid_request).record_result()
 
         lti_grading_service.record_result.assert_called_once_with(
             "modelstudent-assignment1", score=pyramid_request.parsed_params["score"]
