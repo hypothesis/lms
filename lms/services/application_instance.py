@@ -35,6 +35,21 @@ class AccountDisabled(SerializableError):
         )
 
 
+def _email_or_domain_match(columns, email):
+    """
+    Get an SQL comparator for matching emails.
+
+    This will match the full email if it contains '@' or interpret the text
+    as a domain if not. This will search over all the provided fields.
+    """
+    return sa.or_(
+        sa.func.lower(column) == email.lower()
+        if "@" in email
+        else column.ilike(f"%@{email}")
+        for column in columns
+    )
+
+
 class ApplicationInstanceService:
     def __init__(
         self,
@@ -205,14 +220,12 @@ class ApplicationInstanceService:
 
         if email:
             query = query.filter(
-                sa.or_(
-                    sa.func.lower(field) == email.lower()
-                    if "@" in email
-                    else field.ilike(f"%@{email}")
-                    for field in (
+                _email_or_domain_match(
+                    (
                         ApplicationInstance.requesters_email,
                         ApplicationInstance.tool_consumer_instance_contact_email,
-                    )
+                    ),
+                    email,
                 )
             )
 
