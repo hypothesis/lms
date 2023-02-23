@@ -99,9 +99,7 @@ describe('OAuth2RedirectErrorApp', () => {
     fakeConfig.authUrl = 'https://lms.hypothes.is/auth/url';
 
     const wrapper = renderApp();
-    const tryAgainButton = wrapper.find(
-      'LabeledButton[data-testid="retry-button"]'
-    );
+    const tryAgainButton = wrapper.find('button[data-testid="retry-button"]');
     assert.isTrue(tryAgainButton.exists());
     assert.equal(fakeLocation.href, initialLocation);
 

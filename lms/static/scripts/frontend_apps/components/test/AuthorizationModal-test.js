@@ -30,9 +30,7 @@ describe('AuthorizationModal', () => {
     const onCancel = sinon.stub();
     const wrapper = createComponent({ onCancel });
 
-    const cancelButton = wrapper.find(
-      'LabeledButton[data-testid="cancel-button"]'
-    );
+    const cancelButton = wrapper.find('button[data-testid="cancel-button"]');
 
     assert.equal(cancelButton.text(), 'Cancel');
     assert.equal(cancelButton.props().onClick, onCancel);

@@ -1,3 +1,5 @@
+import { Button } from '@hypothesis/frontend-shared/lib/next';
+
 import AuthButton from './AuthButton';
 import ErrorModal from './ErrorModal';
 
@@ -22,7 +24,7 @@ import ErrorModal from './ErrorModal';
  */
 
 /**
- * @typedef {Omit<ErrorModalProps, "cancelLabel"|"children"|"title"> & AuthorizationModalBaseProps} AuthorizationModalProps
+ * @typedef {ErrorModalProps & AuthorizationModalBaseProps} AuthorizationModalProps
  * */
 
 /**
@@ -33,20 +35,28 @@ import ErrorModal from './ErrorModal';
 export default function AuthorizationModal({
   authToken,
   authURL,
-  cancelLabel = 'Cancel',
   children,
   onAuthComplete,
-  title = 'Authorize Hypothesis',
 
+  cancelLabel = 'Cancel',
+  onCancel,
+  title = 'Authorize Hypothesis',
   // Other props to forward on to ErrorModal
   ...restProps
 }) {
   const buttons = (
-    <AuthButton
-      authURL={authURL}
-      authToken={authToken}
-      onAuthComplete={onAuthComplete}
-    />
+    <>
+      {onCancel && (
+        <Button data-testid="cancel-button" onClick={onCancel}>
+          {cancelLabel}
+        </Button>
+      )}
+      <AuthButton
+        authURL={authURL}
+        authToken={authToken}
+        onAuthComplete={onAuthComplete}
+      />
+    </>
   );
 
   return (

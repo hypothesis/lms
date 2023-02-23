@@ -33,21 +33,26 @@ describe('ErrorModal', () => {
     const onCancel = sinon.stub();
     const wrapper = createComponent({ onCancel });
 
-    const cancelButton = wrapper.find('LabeledButton');
+    const cancelButton = wrapper.find('button[data-testid="cancel-button"]');
     assert.equal(cancelButton.text(), 'Close');
     cancelButton.props().onClick();
     assert.calledOnce(onCancel);
   });
 
-  it('Passes title and cancelLabel on to Modal', () => {
+  it('renders a custom label on close button if provided', () => {
+    const onCancel = sinon.stub();
+    const wrapper = createComponent({ onCancel, cancelLabel: 'Oh no!' });
+
+    const cancelButton = wrapper.find('button[data-testid="cancel-button"]');
+    assert.equal(cancelButton.text(), 'Oh no!');
+  });
+
+  it('Passes title on to Modal', () => {
     const wrapper = createComponent({
       title: 'My custom title',
-      onCancel: sinon.stub(),
-      cancelLabel: 'Abort!',
     });
 
     const modalProps = wrapper.find('Modal').props();
-    assert.equal(modalProps.cancelLabel, 'Abort!');
     assert.equal(modalProps.title, 'My custom title');
   });
 
@@ -61,9 +66,7 @@ describe('ErrorModal', () => {
       const onRetry = sinon.stub();
       const wrapper = createComponent({ onRetry });
 
-      const retryButton = wrapper.find(
-        'LabeledButton[data-testid="retry-button"]'
-      );
+      const retryButton = wrapper.find('button[data-testid="retry-button"]');
       assert.equal(retryButton.text(), 'Try again');
       assert.equal(retryButton.props().onClick, onRetry);
     });
@@ -72,9 +75,7 @@ describe('ErrorModal', () => {
       const onRetry = sinon.stub();
       const wrapper = createComponent({ onRetry, retryLabel: 'Do-over' });
 
-      const retryButton = wrapper.find(
-        'LabeledButton[data-testid="retry-button"]'
-      );
+      const retryButton = wrapper.find('button[data-testid="retry-button"]');
       assert.equal(retryButton.text(), 'Do-over');
     });
 
@@ -82,7 +83,7 @@ describe('ErrorModal', () => {
       const onRetry = sinon.stub();
       const wrapper = createComponent({ busy: true, onRetry });
 
-      const retryButton = wrapper.find('LabeledButton[variant="primary"]');
+      const retryButton = wrapper.find('button[data-testid="retry-button"]');
       assert.isTrue(retryButton.props().disabled);
     });
   });
