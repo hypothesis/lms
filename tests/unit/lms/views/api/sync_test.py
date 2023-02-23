@@ -23,6 +23,7 @@ class TestSync:
         course_service.get_by_context_id.assert_called_once_with(
             sentinel.context_id, raise_on_missing=True
         )
+        course = course_service.get_by_context_id.return_value
         grouping_service.get_sections.assert_called_once_with(
             user=pyramid_request.user,
             lti_user=pyramid_request.lti_user,
@@ -32,9 +33,13 @@ class TestSync:
         lti_h_service.sync.assert_called_once_with(
             grouping_service.get_sections.return_value, sentinel.group_info
         )
+        assignment_service.get_assignment.assert_called_once_with(
+            course.application_instance.tool_consumer_instance_guid,
+            sentinel.resource_link_id,
+        )
         assignment_service.upsert_assignment_groupings(
-            assignment_id=sentinel.assignment_id,
-            groupings=grouping_service.get_sections.return_value,
+            assignment_service.get_assignment.return_value,
+            groupings=grouping_service.get_groups.return_value,
         )
 
         assert returned_ids == [
@@ -70,8 +75,12 @@ class TestSync:
         lti_h_service.sync.assert_called_once_with(
             grouping_service.get_groups.return_value, sentinel.group_info
         )
+        assignment_service.get_assignment.assert_called_once_with(
+            course.application_instance.tool_consumer_instance_guid,
+            sentinel.resource_link_id,
+        )
         assignment_service.upsert_assignment_groupings(
-            assignment_id=sentinel.assignment_id,
+            assignment_service.get_assignment.return_value,
             groupings=grouping_service.get_groups.return_value,
         )
 
@@ -130,8 +139,12 @@ class TestSync:
         lti_h_service.sync.assert_called_once_with(
             grouping_service.get_groups.return_value, sentinel.group_info
         )
+        assignment_service.get_assignment.assert_called_once_with(
+            course.application_instance.tool_consumer_instance_guid,
+            sentinel.resource_link_id,
+        )
         assignment_service.upsert_assignment_groupings(
-            assignment_id=sentinel.assignment_id,
+            assignment_service.get_assignment.return_value,
             groupings=grouping_service.get_groups.return_value,
         )
 
@@ -140,7 +153,7 @@ class TestSync:
             for group in grouping_service.get_groups.return_value
         ]
 
-    @pytest.mark.usefixtures("course_copy_plugin")
+    @pytest.mark.usefixtures("course_copy_plugin", "assignment_service")
     def test_it_with_groups_course_copy_doesnt_fix_it(
         self, pyramid_request, grouping_service, course_service, course_copy_plugin
     ):
@@ -180,7 +193,7 @@ class TestSync:
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.parsed_params = {
-            "assignment_id": sentinel.assignment_id,
+            "resource_link_id": sentinel.resource_link_id,
             "lms": {"tool_consumer_instance_guid": sentinel.guid},
             "context_id": sentinel.context_id,
             "gradingStudentId": sentinel.grading_student_id,
