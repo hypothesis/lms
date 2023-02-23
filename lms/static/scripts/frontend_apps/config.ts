@@ -232,6 +232,7 @@ export type ConfigObject = {
     speedGrader?: SpeedGraderConfig;
   };
   contentBanner?: ContentBannerConfig;
+  editing?: EditConfig;
   instructorToolbar?: InstructorConfig;
   hypothesisClient: ClientConfig;
   rpcServer: {

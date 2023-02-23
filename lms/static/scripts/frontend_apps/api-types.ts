@@ -3,7 +3,7 @@
  * JSON HTTP requests.
  */
 
-import type { APICallInfo } from './config';
+import type { APICallInfo, FilePickerConfig } from './config';
 
 /**
  * Object representing a file or folder resource in the LMS's file storage.
@@ -82,4 +82,29 @@ export type JSTORMetadata = {
  */
 export type JSTORThumbnail = {
   image: string;
+};
+
+/**
+ * Configuration for an assignment.
+ */
+export type Assignment = {
+  id: string;
+  group_set_id: string;
+  document: {
+    url: string;
+  };
+};
+
+/**
+ * Response for an `/api/assignment/{id}/config` call.
+ *
+ * This includes the current assignment configuration and, currently,
+ * the metadata needed to launch the file picker app to reconfigure the
+ * assignment.
+ *
+ * TODO: Split file picker config into separate API call?
+ */
+export type AssignmentConfig = {
+  assignment: Assignment;
+  filePicker: Omit<FilePickerConfig, 'formAction' | 'formFields'>;
 };
