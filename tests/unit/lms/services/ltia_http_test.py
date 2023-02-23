@@ -36,6 +36,7 @@ class TestLTIAHTTPService:
                 "client_assertion": jwt_service.encode_with_private_key.return_value,
                 "scope": "SCOPE_1 SCOPE_2",
             },
+            timeout=(20, 20),
         )
         http_service.request.assert_called_once_with(
             "POST",
