@@ -23,7 +23,7 @@ describe('Breadcrumbs', () => {
   it('renders each item as a button', () => {
     const wrapper = renderBreadcrumbs();
 
-    assert.equal(wrapper.find('LinkButton').length, 4);
+    assert.equal(wrapper.find('button').length, 4);
   });
 
   it('renders empty if no items are provided', () => {
@@ -42,7 +42,7 @@ describe('Breadcrumbs', () => {
   it('invokes the onSelectItem callback when one of the items is clicked', () => {
     const wrapper = renderBreadcrumbs();
 
-    wrapper.find('LinkButton').first().props().onClick();
+    wrapper.find('button').first().props().onClick();
     assert.calledOnce(fakeOnSelectItem);
     assert.calledWith(fakeOnSelectItem, itemFixtures[0]);
   });
@@ -52,9 +52,6 @@ describe('Breadcrumbs', () => {
       renderItem: item => `whee ${item} whee`,
     });
 
-    assert.equal(
-      wrapper.find('LinkButton').first().text(),
-      'whee Thing 1 whee'
-    );
+    assert.equal(wrapper.find('button').first().text(), 'whee Thing 1 whee');
   });
 });

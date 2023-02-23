@@ -1,4 +1,4 @@
-import { LinkButton } from '@hypothesis/frontend-shared';
+import { LinkButton } from '@hypothesis/frontend-shared/lib/next';
 import type { ComponentChildren } from 'preact';
 
 export type BreadcrumbsProps<Item> = {
