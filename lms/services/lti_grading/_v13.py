@@ -1,9 +1,12 @@
+import logging
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
 from lms.services.exceptions import ExternalRequestError
 from lms.services.lti_grading.interface import LTIGradingService
 from lms.services.ltia_http import LTIAHTTPService
+
+LOG = logging.getLogger(__name__)
 
 
 class LTI13GradingService(LTIGradingService):
@@ -56,13 +59,26 @@ class LTI13GradingService(LTIGradingService):
         if pre_record_hook:
             payload = pre_record_hook(score=score, request_body=payload)
 
-        return self._ltia_service.request(
-            "POST",
-            self._service_url(self.line_item_url, "/scores"),
-            scopes=self.LTIA_SCOPES,
-            json=payload,
-            headers={"Content-Type": "application/vnd.ims.lis.v1.score+json"},
-        )
+        try:
+            return self._ltia_service.request(
+                "POST",
+                self._service_url(self.line_item_url, "/scores"),
+                scopes=self.LTIA_SCOPES,
+                json=payload,
+                headers={"Content-Type": "application/vnd.ims.lis.v1.score+json"},
+            ).json()
+
+        except ExternalRequestError as err:
+            if (
+                err.status_code == 422
+                and "maximum number of allowed attempts has been reached"
+                in err.response.text
+            ):
+                LOG.error("record_result: maximum number of allowed attempts")
+                # We silently shallow this type of error
+                return {}
+
+            raise
 
     def create_line_item(self, resource_link_id, label, score_maximum=100):
         """
