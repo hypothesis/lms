@@ -12,7 +12,7 @@ class APISyncSchema(PyramidRequestSchema):
         product = fields.Str(required=True)
 
     lms = fields.Nested(LMS, required=True)
-    assignment_id = fields.Int(required=True)
+    resource_link_id = fields.Str(required=True)
     context_id = fields.Str(required=True)
     group_set_id = fields.Str(required=False, allow_none=True)
     group_info = fields.Dict(required=True)
@@ -28,6 +28,7 @@ class APISyncSchema(PyramidRequestSchema):
 )
 def sync(request):
     grouping_service = request.find_service(name="grouping")
+    assignment_service = request.find_service(name="assignment")
     course = request.find_service(name="course").get_by_context_id(
         context_id=request.parsed_params["context_id"], raise_on_missing=True
     )
@@ -77,9 +78,11 @@ def sync(request):
     )
 
     # Store the relationship between the assignment and the groupings
-    request.find_service(name="assignment").upsert_assignment_groupings(
-        assignment_id=request.parsed_params["assignment_id"], groupings=groupings
+    assignment = assignment_service.get_assignment(
+        course.application_instance.tool_consumer_instance_guid,
+        request.parsed_params["resource_link_id"],
     )
+    assignment_service.upsert_assignment_groupings(assignment, groupings=groupings)
 
     authority = request.registry.settings["h_authority"]
     return [group.groupid(authority) for group in groupings]

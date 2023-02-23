@@ -203,7 +203,7 @@ class TestAssignmentService:
         )
         db_session.flush()
 
-        refs = svc.upsert_assignment_groupings(assignment.id, groupings)
+        refs = svc.upsert_assignment_groupings(assignment, groupings)
 
         assert refs == Any.list.containing(
             [

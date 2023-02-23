@@ -137,7 +137,7 @@ class AssignmentService:
         )
 
     def upsert_assignment_groupings(
-        self, assignment_id, groupings: List[Grouping]
+        self, assignment: Assignment, groupings: List[Grouping]
     ) -> List[AssignmentGrouping]:
         """Store details of any groups and courses an assignment is in."""
 
@@ -145,7 +145,7 @@ class AssignmentService:
         self._db.flush()
 
         values = [
-            {"assignment_id": assignment_id, "grouping_id": grouping.id}
+            {"assignment_id": assignment.id, "grouping_id": grouping.id}
             for grouping in groupings
         ]
 
