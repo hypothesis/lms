@@ -526,24 +526,10 @@ class JSConfig:
         if self._context.grouping_type == Grouping.Type.COURSE:
             return None
 
-        req = self._request
-
-        return {
-            "authUrl": req.route_url(req.product.route.oauth2_authorize),
-            "path": req.route_path("api.sync"),
-            # This data is consumed by the view in `lms.views.api.sync` which
-            # defines the arguments it expects. We need to match that
-            # description. Anything we add here should be echoed back by the
-            # frontend.
-            "data": {
-                "resource_link_id": assignment.resource_link_id,
-                "lms": {
-                    "product": self._request.product.family,
-                },
-                "context_id": self._request.lti_params["context_id"],
-                "group_set_id": self._request.product.plugin.grouping.get_group_set_id(
-                    self._request, assignment
-                ),
+        return self._base_api_fields(
+            self._request.product.route.oauth2_authorize,
+            assignment,
+            extra_data={
                 "group_info": {
                     key: value
                     for key, value in self._request.lti_params.items()
@@ -553,7 +539,27 @@ class JSConfig:
                 # this will be present in the SpeedGrader launch URL and
                 # available at launch time. When using our own grading bar this
                 # will be passed by the frontend
-                "gradingStudentId": req.params.get("learner_canvas_user_id"),
+                "gradingStudentId": self._request.params.get("learner_canvas_user_id"),
+            },
+        )
+
+    def _base_api_fields(self, route, assignment, extra_data: Optional[dict] = None):
+        if not extra_data:
+            extra_data = {}
+
+        return {
+            "authUrl": self._request.route_url(route),
+            "path": self._request.route_path("api.sync"),
+            "data": {
+                "resource_link_id": assignment.resource_link_id,
+                "lms": {
+                    "product": self._request.product.family,
+                },
+                "context_id": self._request.lti_params["context_id"],
+                "group_set_id": self._request.product.plugin.grouping.get_group_set_id(
+                    self._request, assignment
+                ),
+                **extra_data,
             },
         }
 
