@@ -58,6 +58,7 @@ class LTIAHTTPService:
                 "client_assertion": signed_jwt,
                 "scope": " ".join(scopes),
             },
+            timeout=(20, 20),
         )
 
         return response.json()["access_token"]
