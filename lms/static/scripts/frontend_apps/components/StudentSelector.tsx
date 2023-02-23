@@ -5,7 +5,6 @@ import {
   InputGroup,
   Select,
 } from '@hypothesis/frontend-shared/lib/next';
-import classnames from 'classnames';
 
 import type { StudentInfo } from '../config';
 import { useUniqueId } from '../utils/hooks';
@@ -58,16 +57,9 @@ export default function StudentSelector<Student extends StudentOption>({
   };
 
   return (
-    <div
-      className={classnames(
-        // Narrower widths: label above field
-        'flex flex-col gap-1',
-        // Wider widths: label to left of field
-        'xl:flex-row xl:gap-3 xl:items-center'
-      )}
-    >
+    <>
       <label
-        className="flex-grow font-medium text-sm leading-none xl:text-right"
+        className="font-semibold text-xs"
         data-testid="student-selector-label"
         htmlFor={selectId}
       >
@@ -95,8 +87,8 @@ export default function StudentSelector<Student extends StudentOption>({
             variant="dark"
           />
           <Select
+            classes="min-w-[12rem] xl:w-[20rem]"
             aria-label="Select student"
-            classes="xl:w-80 h-touch-minimum"
             id={selectId}
             onChange={handleSelectStudent}
           >
@@ -127,6 +119,6 @@ export default function StudentSelector<Student extends StudentOption>({
           />
         </InputGroup>
       </div>
-    </div>
+    </>
   );
 }

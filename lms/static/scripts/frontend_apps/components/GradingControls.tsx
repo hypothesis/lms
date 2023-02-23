@@ -86,15 +86,22 @@ export default function GradingControls({
   }, [students, changeFocusedUser, selectedStudent]);
 
   return (
-    <div className={classnames('flex flex-col gap-2', 'sm:flex-row')}>
-      <div className="flex-grow-0 sm:flex-grow">
+    <div
+      className={classnames(
+        // Default and narrower screens: controls are stacked vertically
+        'flex gap-x-4 gap-y-2 flex-col',
+        // Wider screens: controls are in a single row
+        'md:flex-row'
+      )}
+    >
+      <div>
         <StudentSelector
           onSelectStudent={setSelectedStudent}
           students={students}
           selectedStudent={selectedStudent}
         />
       </div>
-      <div className="flex-grow sm:flex-grow-0">
+      <div>
         <SubmitGradeForm student={selectedStudent} />
       </div>
     </div>

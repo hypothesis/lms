@@ -122,22 +122,11 @@ export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
 
   return (
     <>
-      <form
-        className={classnames(
-          // At narrower width, label above input (columnar)
-          'flex flex-col gap-1',
-          // At wider width, label left of input (row)
-          'xl:flex-row xl:gap-3 xl:items-center'
-        )}
-        autoComplete="off"
-      >
-        <label
-          htmlFor={gradeId}
-          className="flex-grow font-medium text-sm leading-none"
-        >
+      <form autoComplete="off">
+        <label htmlFor={gradeId} className="font-semibold text-xs">
           Grade (Out of 10)
         </label>
-        <div className="flex flex-row">
+        <div className="flex">
           <span className="relative w-14">
             {validationMessage && (
               <ValidationMessage
@@ -151,7 +140,7 @@ export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
             )}
             <Input
               classes={classnames(
-                'h-touch-minimum text-center',
+                'text-center',
                 'disabled:opacity-50',
                 'border border-r-0 rounded-r-none',
                 {
@@ -178,7 +167,7 @@ export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
             icon={CheckIcon}
             type="submit"
             classes={classnames(
-              'h-touch-minimum border rounded-l-none ring-inset',
+              'border rounded-l-none ring-inset',
               'disabled:opacity-50'
             )}
             disabled={disabled}

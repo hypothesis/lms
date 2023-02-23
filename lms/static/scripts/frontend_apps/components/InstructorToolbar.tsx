@@ -23,15 +23,25 @@ export default function InstructorToolbar() {
     gradingEnabled,
   } = instructorToolbar;
 
+  const withGradingControls = gradingEnabled && !!students;
+
   return (
     <header
       className={classnames(
-        'grid grid-cols-1 items-center gap-y-2 p-2',
-        'lg:grid-cols-3 lg:gap-x-4 lg:px-3'
+        'p-2',
+        // Default and narrower screens: content is stacked vertically
+        'grid grid-cols-1 items-center gap-x-4 gap-y-2',
+        // Wider screens: assignment metadata and grading controls side by side
+        'md:grid-cols-[1fr_auto] md:py-1'
       )}
     >
       <div className="space-y-1">
-        <div className="flex gap-x-2 items-center">
+        <div
+          className={classnames(
+            // lays out assignment name and edit button
+            'flex gap-x-2 items-center'
+          )}
+        >
           <h1
             className="text-lg font-semibold leading-none"
             data-testid="assignment-name"
@@ -57,11 +67,7 @@ export default function InstructorToolbar() {
         </h2>
       </div>
 
-      <div
-        className={classnames('lg:col-span-2 lg:gap-4 ' /* cols 2-3 of 3 */)}
-      >
-        {gradingEnabled && students && <GradingControls students={students} />}
-      </div>
+      {withGradingControls ? <GradingControls students={students} /> : <div />}
     </header>
   );
 }
