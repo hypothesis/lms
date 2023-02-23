@@ -11,46 +11,36 @@ import {
 import classnames from 'classnames';
 import { useRef, useState } from 'preact/hooks';
 
+import type { JSTORMetadata, JSTORThumbnail } from '../api-types';
 import { formatErrorMessage } from '../errors';
 import { urlPath, useAPIFetch } from '../utils/api';
+import type { FetchResult } from '../utils/fetch';
 import { articleIdFromUserInput, jstorURLFromArticleId } from '../utils/jstor';
 
-/**
- * @typedef {import('../api-types').JSTORMetadata} JSTORMetadata
- * @typedef {import('../api-types').JSTORThumbnail} JSTORThumbnail
- */
-
-/**
- * @template T
- * @typedef {import('../utils/fetch').FetchResult<T>} FetchResult
- */
-
-/**
- * @typedef JSTORPickerProps
- * @prop {() => void} onCancel
- * @prop {(url: string) => void} onSelectURL - Callback to set the assignment's
- *   content to a JSTOR article URL
- */
+export type JSTORPickerProps = {
+  onCancel: () => void;
+  /** Callback to set the assignment's content to a JSTOR article URL */
+  onSelectURL: (url: string) => void;
+};
 
 /**
  * A picker that allows a user to enter a URL corresponding to a JSTOR article.
- *
- * @param {JSTORPickerProps} props
  */
-export default function JSTORPicker({ onCancel, onSelectURL }) {
-  const [error, setError] = useState(/** @type {string|null} */ (null));
+export default function JSTORPicker({
+  onCancel,
+  onSelectURL,
+}: JSTORPickerProps) {
+  const [error, setError] = useState<string | null>(null);
 
   // Selected JSTOR article ID or DOI, updated when the user confirms what
   // they have pasted/typed into the input field.
-  const [articleId, setArticleId] = useState(/** @type {string|null} */ (null));
+  const [articleId, setArticleId] = useState<string | null>(null);
 
-  /** @type {FetchResult<JSTORMetadata>} */
-  const metadata = useAPIFetch(
+  const metadata: FetchResult<JSTORMetadata> = useAPIFetch(
     articleId ? urlPath`/api/jstor/articles/${articleId}` : null
   );
 
-  /** @type {FetchResult<JSTORThumbnail>} */
-  const thumbnail = useAPIFetch(
+  const thumbnail: FetchResult<JSTORThumbnail> = useAPIFetch(
     articleId ? urlPath`/api/jstor/articles/${articleId}/thumbnail` : null
   );
 
@@ -69,9 +59,9 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
     renderedError = 'Your institution does not have access to this item.';
   }
 
-  const inputRef = /** @type {{ current: HTMLInputElement }} */ (useRef());
+  const inputRef = useRef<HTMLInputElement | null>(null);
   // The last confirmed value of the URL-entry text input
-  const previousURL = useRef(/** @type {string|null} */ (null));
+  const previousURL = useRef<string | null>(null);
 
   const canConfirmSelection =
     articleId &&
@@ -84,11 +74,8 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
     }
   };
 
-  /**
-   * @param {boolean} [confirmSelectedUrl=false]
-   */
   const onURLChange = (confirmSelectedUrl = false) => {
-    const url = inputRef.current.value;
+    const url = inputRef.current!.value;
     if (url && url === previousURL.current) {
       if (confirmSelectedUrl) {
         confirmSelection();
@@ -116,10 +103,8 @@ export default function JSTORPicker({ onCancel, onSelectURL }) {
 
   /**
    * Capture "Enter" keystrokes, and avoid submitting the entire parent `<form>`
-   *
-   * @param {KeyboardEvent} event
    */
-  const onKeyDown = event => {
+  const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'Enter') {
       event.preventDefault();
       event.stopPropagation();
