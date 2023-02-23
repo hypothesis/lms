@@ -45,6 +45,14 @@ export function init() {
     /* eslint-enable no-console */
   }
 
+  // Construct services used by the file picker app. We need this both for
+  // direct launches into this app, and for transitions from viewing to
+  // editing assignments.
+  services.set(
+    VitalSourceService,
+    new VitalSourceService({ authToken: config.api.authToken })
+  );
+
   // Render main component for current route.
   let app;
   switch (config.mode) {
@@ -75,10 +83,6 @@ export function init() {
       }
       break;
     case 'content-item-selection':
-      services.set(
-        VitalSourceService,
-        new VitalSourceService({ authToken: config.api.authToken })
-      );
       app = <FilePickerApp />;
       break;
     case 'error-dialog':
