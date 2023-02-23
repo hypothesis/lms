@@ -11,6 +11,7 @@ describe('Breadcrumbs', () => {
       <Breadcrumbs
         items={itemFixtures}
         onSelectItem={fakeOnSelectItem}
+        renderItem={item => item}
         {...props}
       />
     );
