@@ -32,16 +32,16 @@ export default function Breadcrumbs({
   const breadcrumbs = items.slice(0, -1);
   const currentItem = items[items.length - 1];
   return (
-    <ul className="Breadcrumbs">
+    <ul className="flex flex-wrap leading-none">
       {breadcrumbs.map((item, idx) => (
-        <li className="Breadcrumbs__item Breadcrumbs__item--path" key={idx}>
+        <li className="flex" key={idx}>
           <LinkButton onClick={() => onSelectItem(item)}>
             {renderItem(item)}
           </LinkButton>
-          <span className="Breadcrumbs__divider">›</span>
+          <span className="mx-2">›</span>
         </li>
       ))}
-      <li className="Breadcrumbs__item Breadcrumbs__item--current">
+      <li>
         <LinkButton disabled>{renderItem(currentItem)}</LinkButton>
       </li>
     </ul>

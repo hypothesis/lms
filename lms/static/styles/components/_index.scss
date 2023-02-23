@@ -7,9 +7,6 @@
 // Local customizations and overrides to shared component styles
 @use 'shared';
 
-// App Preact components
-@use 'Breadcrumbs';
-
 @layer components {
   // A warning banner shown at the top of the view in unsupported browsers.
   // This is styled to match warning toasts and banners in the Hypothesis client.
