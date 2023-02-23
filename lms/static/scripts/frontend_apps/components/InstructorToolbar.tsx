@@ -1,15 +1,32 @@
 import { LinkButton } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 
-import GradingControls from './GradingControls';
+import type { AssignmentConfig, Assignment } from '../api-types';
+import type { FilePickerConfig } from '../config';
 import { useConfig } from '../config';
+import { apiCall } from '../utils/api';
+import GradingControls from './GradingControls';
+
+export type InstructorToolbarProps = {
+  onEditAssignment: (
+    assignment: Assignment,
+    filePicker: FilePickerConfig
+  ) => void;
+};
 
 /**
  * Toolbar for instructors.
  * Shows assignment information and grading controls (for gradeable assignments).
  */
-export default function InstructorToolbar() {
-  const { instructorToolbar } = useConfig();
+export default function InstructorToolbar({
+  onEditAssignment,
+}: InstructorToolbarProps) {
+  const {
+    api: { authToken },
+    editing,
+    instructorToolbar,
+  } = useConfig();
+
   if (!instructorToolbar) {
     // User is not an instructor or toolbar is disabled in the current environment.
     return null;
@@ -23,10 +40,30 @@ export default function InstructorToolbar() {
     gradingEnabled,
   } = instructorToolbar;
 
-  const onEditAssignment = () => {
+  const onEdit = async () => {
+    if (!editing) {
+      return;
+    }
+
+    // TODO - Enter loading state
+
+    // 1. Make call to `editing.getConfig` API to get assignment info.
+    const assignmentConfig = await apiCall<AssignmentConfig>({
+      authToken,
+      path: editing.getConfig.path,
+      data: editing.getConfig.data,
+    });
+
+    const filePickerConfig: FilePickerConfig = {
+      ...assignmentConfig.filePicker,
+      formFields: editing.formFields,
+      formAction: editing.form_action,
+    };
+
+    onEditAssignment(assignmentConfig.assignment, filePickerConfig);
+
     // TODO:
     //
-    // 1. Make call to `editing.getConfig` API to get assignment info.
     // 2. Display editing UI above assignment content or transition to
     //    assignment editing UI.
     //      - How to do this? Use a Portal-type thing?
@@ -52,7 +89,7 @@ export default function InstructorToolbar() {
             <LinkButton
               classes="text-xs"
               data-testid="edit"
-              onClick={onEditAssignment}
+              onClick={onEdit}
               title="Edit assignment settings"
               underline="always"
             >
