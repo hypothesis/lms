@@ -1,13 +1,15 @@
 import {
-  Icon,
+  ArrowRightIcon,
+  Button,
+  CancelIcon,
+  CheckIcon,
   IconButton,
-  LabeledButton,
+  Input,
+  InputGroup,
   Link,
   Modal,
   Thumbnail,
-  TextInputWithButton,
-  TextInput,
-} from '@hypothesis/frontend-shared';
+} from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 import { useRef, useState } from 'preact/hooks';
 
@@ -15,6 +17,7 @@ import type { JSTORMetadata, JSTORThumbnail } from '../api-types';
 import { formatErrorMessage } from '../errors';
 import { urlPath, useAPIFetch } from '../utils/api';
 import type { FetchResult } from '../utils/fetch';
+import { useUniqueId } from '../utils/hooks';
 import { articleIdFromUserInput, jstorURLFromArticleId } from '../utils/jstor';
 
 export type JSTORPickerProps = {
@@ -62,6 +65,7 @@ export default function JSTORPicker({
   const inputRef = useRef<HTMLInputElement | null>(null);
   // The last confirmed value of the URL-entry text input
   const previousURL = useRef<string | null>(null);
+  const inputId = useUniqueId('jstor-article-id');
 
   const canConfirmSelection =
     articleId &&
@@ -117,11 +121,15 @@ export default function JSTORPicker({
   return (
     <Modal
       initialFocus={inputRef}
-      onCancel={onCancel}
-      contentClass={classnames('LMS-Dialog LMS-Dialog--wide')}
+      onClose={onCancel}
+      scrollable={false}
       title="Select JSTOR article"
+      width="lg"
       buttons={[
-        <LabeledButton
+        <Button data-testid="cancel-button" key="cancel" onClick={onCancel}>
+          Cancel
+        </Button>,
+        <Button
           data-testid="select-button"
           disabled={!canConfirmSelection}
           key="submit"
@@ -129,50 +137,42 @@ export default function JSTORPicker({
           variant="primary"
         >
           Accept and continue
-        </LabeledButton>,
+        </Button>,
       ]}
     >
       <div className="flex flex-row space-x-2">
-        <Thumbnail
-          classes={classnames(
-            // Customize Thumbnail to:
-            //  - Make more use of available vertical space within the Modal
-            //  - "Crop" thumbnail image vertically to allow it to be wider
-            //
-            // TODO: Remove this customization after shared `Thumbnail`/related
-            // shared component refactors.
-            //
+        <div
+          className={classnames(
             // Negative vertical margins allow thumbnail to use up more vertical
             // space in the containing Modal
-            '-mb-12 -mt-2',
-            // Narrower grey border/background
-            '!p-2',
-            // Set up object containment such that the child is always a
-            // specific width, with a suggested but variable height
-            'w-[200px] min-w-[200px] h-52'
+            '-mb-12 -mt-2 w-[200px] min-w-[200px] h-[200px]'
           )}
-          isLoading={isLoading}
         >
-          {thumbnail.data && (
-            <img
-              className={classnames(
-                // Set up object positioning to "top". Bottom of thumbnail
-                // image is "cropped" as necesary to fit container.
-                // Need `!` to override `Thumbnail` styling's object-position
-                // rules
-                '!object-cover object-top'
-              )}
-              alt="article thumbnail"
-              src={thumbnail.data.image}
-            />
-          )}
-        </Thumbnail>
+          <Thumbnail size="sm" loading={isLoading} ratio="1/1">
+            {thumbnail.data && (
+              <img
+                className={classnames(
+                  // Set up object positioning to "top". Bottom of thumbnail
+                  // image is "cropped" as necesary to fit container.
+                  'object-top'
+                )}
+                alt="article thumbnail"
+                src={thumbnail.data.image}
+              />
+            )}
+          </Thumbnail>
+        </div>
         <div className="space-y-2 grow flex flex-col">
-          <p>Paste a link to the JSTOR article you&apos;d like to use:</p>
+          <p>
+            <label htmlFor={inputId}>
+              Paste a link to the JSTOR article you&apos;d like to use:
+            </label>
+          </p>
 
-          <TextInputWithButton>
-            <TextInput
-              inputRef={inputRef}
+          <InputGroup>
+            <Input
+              elementRef={inputRef}
+              id={inputId}
               name="jstorURL"
               onChange={() => onURLChange()}
               onInput={() => setArticleId(null)}
@@ -181,12 +181,12 @@ export default function JSTORPicker({
               spellcheck={false}
             />
             <IconButton
-              icon="arrowRight"
+              icon={ArrowRightIcon}
               onClick={() => onURLChange()}
               variant="dark"
               title="Find article"
             />
-          </TextInputWithButton>
+          </InputGroup>
 
           {metadata.data && (
             <div
@@ -194,7 +194,7 @@ export default function JSTORPicker({
               data-testid="selected-book"
             >
               {canConfirmSelection && (
-                <Icon name="check" classes="text-green-success" />
+                <CheckIcon className="text-green-success" />
               )}
               <div className="grow font-bold italic">
                 {metadata.data.item.title}
@@ -212,9 +212,10 @@ export default function JSTORPicker({
                 <label htmlFor="accept-jstor-terms" className="grow text-right">
                   Your use of JSTOR indicates your acceptance of JSTOR&apos;s{' '}
                   <Link
+                    classes="whitespace-nowrap"
                     href="https://about.jstor.org/terms/"
-                    classes="underline hover:underline"
                     target="_blank"
+                    underline="always"
                   >
                     Terms and Conditions of Use.
                   </Link>
@@ -228,7 +229,7 @@ export default function JSTORPicker({
               className="flex flex-row items-center space-x-2 text-red-error"
               data-testid="error-message"
             >
-              <Icon name="cancel" />
+              <CancelIcon />
               <div className="grow">{renderedError}</div>
             </div>
           )}

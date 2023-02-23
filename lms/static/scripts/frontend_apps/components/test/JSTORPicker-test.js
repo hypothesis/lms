@@ -80,7 +80,7 @@ describe('JSTORPicker', () => {
     $imports.$restore();
   });
 
-  const getInput = wrapper => wrapper.find('TextInput').find('input');
+  const getInput = wrapper => wrapper.find('Input').find('input');
 
   // Set the value of the input field but do not fire any events
   const setURL = (wrapper, url) => {
@@ -224,7 +224,7 @@ describe('JSTORPicker', () => {
         errorMessage.text(),
         "That doesn't look like a JSTOR article link or ID"
       );
-      assert.isTrue(errorMessage.find('Icon[name="cancel"]').exists());
+      assert.isTrue(errorMessage.find('CancelIcon').exists());
     });
   });
 
@@ -269,7 +269,7 @@ describe('JSTORPicker', () => {
     assert.isTrue(wrapper.exists('img'));
     assert.isTrue(wrapper.exists('[data-testid="selected-book"]'));
 
-    const input = wrapper.find('TextInput');
+    const input = wrapper.find('Input');
     interact(wrapper, () => {
       input.prop('onInput')();
     });
@@ -280,7 +280,7 @@ describe('JSTORPicker', () => {
 
   it('enables submit button when valid JSTOR metadata has been fetched', () => {
     const wrapper = renderJSTORPicker();
-    const buttonSelector = 'LabeledButton[data-testid="select-button"]';
+    const buttonSelector = 'Button[data-testid="select-button"]';
 
     assert.isTrue(wrapper.find(buttonSelector).props().disabled);
 
@@ -308,7 +308,7 @@ describe('JSTORPicker', () => {
   ].forEach(({ contentStatus, expectedError }) => {
     it('disables submit button and shows error if content is not available', () => {
       const wrapper = renderJSTORPicker();
-      const buttonSelector = 'LabeledButton[data-testid="select-button"]';
+      const buttonSelector = 'Button[data-testid="select-button"]';
 
       assert.isTrue(wrapper.find(buttonSelector).props().disabled);
       updateURL(wrapper);
