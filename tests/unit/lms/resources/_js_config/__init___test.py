@@ -263,16 +263,6 @@ class TestAddCanvasSpeedgraderSettings:
                 "custom_canvas_user_id"
             ],
         }
-        assert not config.get("hypothesisClient")
-
-    def test_it_adds_report_activity_if_submit_on_annotation_enabled(
-        self, js_config, pyramid_request
-    ):
-        pyramid_request.feature.return_value = True
-
-        js_config.add_canvas_speedgrader_settings(sentinel.document_url)
-
-        pyramid_request.feature.assert_called_once_with("submit_on_annotation")
         # This doesn't get flushed out to the config until we call
         # `enable_lti_launch_mode` so we have to inspect it directly
         # pylint: disable=protected-access
