@@ -547,7 +547,7 @@ class JSConfig:
             # description. Anything we add here should be echoed back by the
             # frontend.
             "data": {
-                "assignment_id": assignment.id,
+                "resource_link_id": assignment.resource_link_id,
                 "lms": {
                     "product": self._request.product.family,
                 },

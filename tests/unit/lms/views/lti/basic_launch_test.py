@@ -282,7 +282,7 @@ class TestBasicLaunchViews:
             lti_roles=lti_user.lti_roles,
         )
         assignment_service.upsert_assignment_groupings.assert_called_once_with(
-            assignment_id=assignment.id, groupings=[context.course]
+            assignment, groupings=[context.course]
         )
 
         context.js_config.enable_lti_launch_mode.assert_called_once_with(assignment)
