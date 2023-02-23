@@ -1,31 +1,21 @@
 import { LinkButton } from '@hypothesis/frontend-shared';
+import type { ComponentChildren } from 'preact';
 
-/**
- * @template Item
- * @typedef BreadcrumbProps
- * @prop {Item[]} items
- * @prop {(i: Item) => void} onSelectItem
- * @prop {(i: Item) => any} [renderItem]
- */
-
-/**
- * @template Item
- * @param {Item} item
- */
-const defaultRenderItem = item => item;
+export type BreadcrumbsProps<Item> = {
+  items: Item[];
+  onSelectItem: (i: Item) => void;
+  renderItem: (i: Item) => ComponentChildren;
+};
 
 /**
  * Render a collection of breadcrumbs. All but the last breadcrumb is clickable,
  * and will invoke the `onSelectItem` when clicked.
- *
- * @template Item
- * @param {BreadcrumbProps<Item>} props
  */
-export default function Breadcrumbs({
+export default function Breadcrumbs<Item>({
   items,
   onSelectItem,
-  renderItem = defaultRenderItem,
-}) {
+  renderItem,
+}: BreadcrumbsProps<Item>) {
   if (!items.length) {
     return null;
   }
