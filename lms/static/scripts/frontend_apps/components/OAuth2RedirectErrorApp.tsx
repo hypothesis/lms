@@ -52,12 +52,12 @@ export default function OAuth2RedirectErrorApp({
   return (
     <ErrorModal
       cancelLabel="Close"
-      contentClass="LMS-Dialog LMS-Dialog--wide"
       description={description}
       error={error}
       onCancel={() => window.close()}
       onRetry={onRetry}
       title={title}
+      width="lg"
     >
       {errorCode === 'canvas_invalid_scope' && (
         <>

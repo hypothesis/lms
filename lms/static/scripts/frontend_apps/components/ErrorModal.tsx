@@ -1,5 +1,5 @@
-import { LabeledButton, Modal } from '@hypothesis/frontend-shared';
-import type { ModalProps } from '@hypothesis/frontend-shared/lib/components/Modal';
+import { Button, Modal } from '@hypothesis/frontend-shared/lib/next';
+import type { ModalProps } from '@hypothesis/frontend-shared/lib/components/feedback/Modal';
 import type { ComponentChildren } from 'preact';
 import { useRef } from 'preact/hooks';
 
@@ -13,7 +13,10 @@ type ErrorModalBaseProps = {
    */
   busy?: boolean;
   children?: ComponentChildren;
-  /** Text displayed on the Modal's cancel button */
+  /**
+   * Text displayed on the Modal's cancel button. Only relevant when `onCancel`
+   * is provided.
+   */
   cancelLabel?: string;
 
   /**
@@ -44,11 +47,8 @@ type ErrorModalBaseProps = {
   title?: string;
 };
 
-export type ErrorModalProps = Omit<
-  ModalProps,
-  'cancelLabel' | 'children' | 'onCancel' | 'title'
-> &
-  ErrorModalBaseProps;
+/** `title` is optional for this component but required by `Modal` */
+export type ErrorModalProps = Omit<ModalProps, 'title'> & ErrorModalBaseProps;
 
 /**
  * Render information about an error inside of a modal dialog, with optional
@@ -56,43 +56,48 @@ export type ErrorModalProps = Omit<
  */
 export default function ErrorModal({
   busy,
+  cancelLabel = 'Close',
   children,
   description,
   error,
+  onCancel,
   onRetry,
   retryLabel = 'Try again',
 
   // Modal props
-  cancelLabel = 'Close',
-  onCancel,
   title = 'Something went wrong',
 
   // Other props to forward on to Modal
   ...restProps
 }: ErrorModalProps) {
   const focusedDialogButton = useRef<HTMLButtonElement | null>(null);
-  const buttons = onRetry && (
-    <LabeledButton
-      buttonRef={focusedDialogButton}
-      data-testid="retry-button"
-      disabled={busy}
-      onClick={onRetry}
-      variant="primary"
-    >
-      {retryLabel}
-    </LabeledButton>
+  const buttons = (
+    <>
+      {onCancel && (
+        <Button data-testid="cancel-button" onClick={onCancel}>
+          {cancelLabel}
+        </Button>
+      )}
+      {onRetry && (
+        <Button
+          elementRef={focusedDialogButton}
+          data-testid="retry-button"
+          disabled={busy}
+          onClick={onRetry}
+          variant="primary"
+        >
+          {retryLabel}
+        </Button>
+      )}
+    </>
   );
   return (
     <Modal
       buttons={buttons}
-      cancelLabel={cancelLabel}
-      contentClass="LMS-Dialog LMS-Dialog--medium"
       initialFocus={focusedDialogButton}
-      onCancel={onCancel ?? (() => null)}
+      onClose={onCancel}
       role="alertdialog"
       title={title}
-      withCancelButton={!!onCancel}
-      withCloseButton={!!onCancel}
       {...restProps}
     >
       {error && (
