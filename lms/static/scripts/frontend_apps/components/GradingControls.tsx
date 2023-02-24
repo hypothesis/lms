@@ -1,10 +1,10 @@
 import classnames from 'classnames';
 import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
-import { apiCall } from '../utils/api';
 import { useConfig } from '../config';
 import type { StudentInfo } from '../config';
 import { ClientRPC, useService } from '../services';
+import { apiCall } from '../utils/api';
 import StudentSelector from './StudentSelector';
 import SubmitGradeForm from './SubmitGradeForm';
 

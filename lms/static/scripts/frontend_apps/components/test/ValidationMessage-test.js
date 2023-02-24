@@ -1,8 +1,8 @@
 import { mount } from 'enzyme';
 
-import ValidationMessage, { $imports } from '../ValidationMessage';
 import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
+import ValidationMessage, { $imports } from '../ValidationMessage';
 
 describe('ValidationMessage', () => {
   const renderMessage = (props = {}) => {

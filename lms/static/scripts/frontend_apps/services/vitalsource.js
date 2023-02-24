@@ -2,7 +2,6 @@
  * @typedef {import('../api-types').Book} Book
  * @typedef {import('../api-types').Chapter} Chapter
  */
-
 import { apiCall, urlPath } from '../utils/api';
 
 /**

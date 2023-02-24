@@ -7,7 +7,6 @@ import { PickerCanceledError } from '../errors';
 import type { Content } from '../utils/content-item';
 import { GooglePickerClient } from '../utils/google-picker-client';
 import { OneDrivePickerClient } from '../utils/onedrive-picker-client';
-
 import BookPicker from './BookPicker';
 import type { ErrorInfo } from './FilePickerApp';
 import JSTORPicker from './JSTORPicker';

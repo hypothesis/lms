@@ -1,16 +1,16 @@
+// Register the same set of icons that is available in the app.
+import { registerIcons } from '@hypothesis/frontend-shared';
+import { configure } from 'enzyme';
+import { Adapter } from 'enzyme-adapter-preact-pure';
+import 'preact/debug';
+
+import iconSet from './frontend_apps/icons';
+
 // Expose sinon assertions.
 sinon.assert.expose(assert, { prefix: null });
 
 // Configure Enzyme for UI tests.
-import 'preact/debug';
-
-import { configure } from 'enzyme';
-import { Adapter } from 'enzyme-adapter-preact-pure';
 configure({ adapter: new Adapter() });
-
-// Register the same set of icons that is available in the app.
-import { registerIcons } from '@hypothesis/frontend-shared';
-import iconSet from './frontend_apps/icons';
 
 registerIcons(iconSet);
 

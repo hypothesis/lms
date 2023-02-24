@@ -1,8 +1,8 @@
 import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
-import { useFetch } from '../fetch';
 import { delay } from '../../../test-util/wait';
+import { useFetch } from '../fetch';
 
 describe('useFetch', () => {
   let wrappers;

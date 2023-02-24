@@ -1,7 +1,6 @@
 import { mount } from 'enzyme';
 
 import { Config } from '../../config';
-
 import OAuth2RedirectErrorApp from '../OAuth2RedirectErrorApp';
 
 describe('OAuth2RedirectErrorApp', () => {

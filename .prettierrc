@@ -1,4 +1,8 @@
 {
   "arrowParens": "avoid",
-  "singleQuote": true
+  "singleQuote": true,
+  "importOrder": [
+    "^[./]"
+  ],
+  "importOrderSeparation": true
 }

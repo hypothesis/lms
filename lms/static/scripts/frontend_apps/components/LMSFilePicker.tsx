@@ -4,14 +4,12 @@ import {
   SpinnerOverlay,
 } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
-
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
 import type { File } from '../api-types';
 import type { APICallInfo } from '../config';
 import { isAuthorizationError } from '../errors';
 import { apiCall } from '../utils/api';
-
 import AuthButton from './AuthButton';
 import Breadcrumbs from './Breadcrumbs';
 import ErrorDisplay from './ErrorDisplay';

@@ -13,7 +13,6 @@ import { useConfig } from '../config';
 import { apiCall } from '../utils/api';
 import type { Content, URLContent } from '../utils/content-item';
 import { truncateURL } from '../utils/format';
-
 import ContentSelector from './ContentSelector';
 import ErrorModal from './ErrorModal';
 import FilePickerFormFields from './FilePickerFormFields';

@@ -1,8 +1,8 @@
 import { LinkButton } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 
-import GradingControls from './GradingControls';
 import { useConfig } from '../config';
+import GradingControls from './GradingControls';
 
 /**
  * Toolbar for instructors.

@@ -1,8 +1,8 @@
 import { mount } from 'enzyme';
 
-import FileList, { $imports } from '../FileList';
 import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
+import FileList, { $imports } from '../FileList';
 
 describe('FileList', () => {
   const testFiles = [

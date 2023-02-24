@@ -7,7 +7,6 @@ import { useConfig } from '../config';
 import { isAuthorizationError, GroupListEmptyError } from '../errors';
 import { apiCall } from '../utils/api';
 import { useUniqueId } from '../utils/hooks';
-
 import AuthorizationModal from './AuthorizationModal';
 import ErrorModal from './ErrorModal';
 

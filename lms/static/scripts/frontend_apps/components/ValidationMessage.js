@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'preact/hooks';
 import classnames from 'classnames';
+import { useEffect, useState } from 'preact/hooks';
 
 /**
  * @typedef ValidationMessageProps

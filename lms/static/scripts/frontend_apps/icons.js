@@ -1,5 +1,4 @@
 // @ts-nocheck - TS doesn't understand SVG imports.
-
 import {
   arrowLeft,
   arrowRight,

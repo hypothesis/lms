@@ -1,7 +1,7 @@
 import { mount } from 'enzyme';
 
-import ErrorModal, { $imports } from '../ErrorModal';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
+import ErrorModal, { $imports } from '../ErrorModal';
 
 describe('ErrorModal', () => {
   let fakeError;

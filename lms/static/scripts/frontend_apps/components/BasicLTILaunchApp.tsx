@@ -1,6 +1,5 @@
 import { SpinnerOverlay } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
-
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
 import { useConfig } from '../config';
@@ -11,9 +10,8 @@ import type {
   AnnotationEventData,
   AnnotationEventType,
 } from '../services/client-rpc';
-import { apiCall } from '../utils/api';
 import AuthWindow from '../utils/AuthWindow';
-
+import { apiCall } from '../utils/api';
 import ContentFrame from './ContentFrame';
 import InstructorToolbar from './InstructorToolbar';
 import LaunchErrorDialog from './LaunchErrorDialog';

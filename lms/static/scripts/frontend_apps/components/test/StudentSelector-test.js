@@ -1,8 +1,8 @@
 import { mount } from 'enzyme';
 
-import StudentSelector, { $imports } from '../StudentSelector';
 import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
+import StudentSelector, { $imports } from '../StudentSelector';
 
 describe('StudentSelector', () => {
   let fakeStudents;

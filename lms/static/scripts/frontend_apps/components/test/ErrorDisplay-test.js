@@ -1,8 +1,8 @@
 import { mount } from 'enzyme';
 
-import ErrorDisplay, { $imports } from '../ErrorDisplay';
 import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
+import ErrorDisplay, { $imports } from '../ErrorDisplay';
 
 describe('ErrorDisplay', () => {
   let fakeFormatErrorDetails;
