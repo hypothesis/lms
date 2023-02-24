@@ -248,28 +248,28 @@ class JSConfig:
         for the deep linking submission while on FILE_PICKER mode to store the
         selected content on the LMS.
         """
-        config = {
-            "path": self._request.route_path("lti.v11.deep_linking.form_fields"),
-            "data": {
+        api_config = self._get_api_details(
+            "lti.v11.deep_linking.form_fields",
+            extra_data={
                 "content_item_return_url": self._request.lti_params[
                     "content_item_return_url"
                 ],
-                "lms": {
-                    "product": self._request.product.family,
-                },
-                "context_id": self._request.lti_params["context_id"],
             },
-        }
+        )
         if self._context.application_instance.lti_version == "1.3.0":
-            config["path"] = self._request.route_path(
-                "lti.v13.deep_linking.form_fields"
+            api_config = self._get_api_details(
+                "lti.v13.deep_linking.form_fields",
+                extra_data={
+                    "content_item_return_url": self._request.lti_params[
+                        "content_item_return_url"
+                    ],
+                    "deep_linking_settings": self._request.lti_params.get(
+                        "deep_linking_settings"
+                    ),
+                },
             )
-            config["data"]["deep_linking_settings"] = self._request.lti_params.get(
-                "deep_linking_settings"
-            )
-
         self._config.setdefault("filePicker", {})
-        self._config["filePicker"]["deepLinkingAPI"] = config
+        self._config["filePicker"]["deepLinkingAPI"] = api_config
 
     def enable_instructor_toolbar(self, enable_editing=False, enable_grading=False):
         """
@@ -526,9 +526,10 @@ class JSConfig:
         if self._context.grouping_type == Grouping.Type.COURSE:
             return None
 
-        return self._base_api_fields(
-            self._request.product.route.oauth2_authorize,
-            assignment,
+        return self._get_api_details(
+            "api.sync",
+            auth_route=self._request.product.route.oauth2_authorize,
+            assignment=assignment,
             extra_data={
                 "group_info": {
                     key: value
@@ -543,25 +544,42 @@ class JSConfig:
             },
         )
 
-    def _base_api_fields(self, route, assignment, extra_data: Optional[dict] = None):
+    def _get_api_details(
+        self,
+        api_route: str,
+        auth_route: Optional[str] = None,
+        assignment: Optional[Assignment] = None,
+        extra_data: Optional[dict] = None,
+    ):
+        """Build the payload needed to point the frontend to our of our endpoints."""
         if not extra_data:
             extra_data = {}
 
-        return {
-            "authUrl": self._request.route_url(route),
-            "path": self._request.route_path("api.sync"),
+        api_fields = {
+            "path": self._request.route_path(api_route),
             "data": {
-                "resource_link_id": assignment.resource_link_id,
                 "lms": {
                     "product": self._request.product.family,
                 },
                 "context_id": self._request.lti_params["context_id"],
-                "group_set_id": self._request.product.plugin.grouping.get_group_set_id(
-                    self._request, assignment
-                ),
                 **extra_data,
             },
         }
+
+        if auth_route:
+            api_fields["authUrl"] = self._request.route_url(
+                self._request.product.route.oauth2_authorize
+            )
+
+        if assignment:
+            api_fields["data"]["resource_link_id"] = assignment.resource_link_id
+            api_fields["data"][
+                "group_set_id"
+            ] = self._request.product.plugin.grouping.get_group_set_id(
+                self._request, assignment
+            )
+
+        return api_fields
 
     def _get_lti_launch_debug_values(self):
         """Debug values common to different types of LTI launches."""
