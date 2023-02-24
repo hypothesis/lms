@@ -249,7 +249,7 @@ class JSConfig:
         selected content on the LMS.
         """
         api_config = self._get_api_details(
-            "lti.v11.deep_linking.form_fields",
+            self._request.route_path("lti.v11.deep_linking.form_fields"),
             extra_data={
                 "content_item_return_url": self._request.lti_params[
                     "content_item_return_url"
@@ -258,7 +258,7 @@ class JSConfig:
         )
         if self._context.application_instance.lti_version == "1.3.0":
             api_config = self._get_api_details(
-                "lti.v13.deep_linking.form_fields",
+                self._request.route_path("lti.v13.deep_linking.form_fields"),
                 extra_data={
                     "content_item_return_url": self._request.lti_params[
                         "content_item_return_url"
@@ -453,18 +453,13 @@ class JSConfig:
         }
 
         if self._request.product.settings.groups_enabled:
-            product_info["api"]["listGroupSets"] = {
-                "authUrl": self._request.route_url(product.route.oauth2_authorize),
-                "path": self._request.route_path(
+            product_info["api"]["listGroupSets"] = self._get_api_details(
+                self._request.route_path(
                     "api.courses.group_sets.list",
                     course_id=self._request.lti_params["context_id"],
                 ),
-                "data": {
-                    "lms": {
-                        "product": self._request.product.family,
-                    }
-                },
-            }
+                auth_route=self._request.product.route.oauth2_authorize,
+            )
 
         return product_info
 
@@ -527,7 +522,7 @@ class JSConfig:
             return None
 
         return self._get_api_details(
-            "api.sync",
+            self._request.route_path("api.sync"),
             auth_route=self._request.product.route.oauth2_authorize,
             assignment=assignment,
             extra_data={
@@ -546,7 +541,7 @@ class JSConfig:
 
     def _get_api_details(
         self,
-        api_route: str,
+        path: str,
         auth_route: Optional[str] = None,
         assignment: Optional[Assignment] = None,
         extra_data: Optional[dict] = None,
@@ -556,7 +551,7 @@ class JSConfig:
             extra_data = {}
 
         api_fields = {
-            "path": self._request.route_path(api_route),
+            "path": path,
             "data": {
                 "lms": {
                     "product": self._request.product.family,
