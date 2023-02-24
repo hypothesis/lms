@@ -36,7 +36,7 @@ def config(_context, request):
         # Info about the assignments current configuration
         "assignment": {
             "id": assignment.id,
-            "group_set_id": assignment.extra["group_set_id"],
+            "group_set_id": assignment.extra.get("group_set_id"),
             "document": {
                 "url": assignment.document_url,
             },
