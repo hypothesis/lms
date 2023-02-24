@@ -248,6 +248,13 @@ export type ConfigObject = {
 
   // Only present in "oauth2-redirect-error" mode.
   OAuth2RedirectError?: OAuthErrorConfig;
+
+  /**
+   * Change the current configuration after the application has initialized.
+   *
+   * Note that this property is installed by the frontend entry point.
+   */
+  update: (newConfig: Partial<ConfigObject>) => void;
 };
 
 /**
