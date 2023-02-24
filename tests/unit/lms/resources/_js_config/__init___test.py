@@ -130,6 +130,11 @@ class TestEnableLTILaunchMode:
                     "LTI version": "LTI-1p0",
                 },
             },
+            "product": {
+                "api": {},
+                "family": "unknown",
+                "settings": {"groupsEnabled": False},
+            },
             "dev": False,
             "editing": {
                 "getConfig": {
