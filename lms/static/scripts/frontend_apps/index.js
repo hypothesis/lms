@@ -1,16 +1,12 @@
 import 'focus-visible';
 import { render } from 'preact';
 
-import { readConfig, Config } from './config';
-import BasicLTILaunchApp from './components/BasicLTILaunchApp';
-import OAuth2RedirectErrorApp from './components/OAuth2RedirectErrorApp';
-import ErrorDialogApp from './components/ErrorDialogApp';
-import FilePickerApp from './components/FilePickerApp';
+import { readConfig } from './config';
+import AppRoot from './components/AppRoot';
 import {
   ClientRPC,
   ContentInfoFetcher,
   GradingService,
-  Services,
   VitalSourceService,
 } from './services';
 
@@ -53,44 +49,27 @@ export function init() {
     new VitalSourceService({ authToken: config.api.authToken })
   );
 
-  // Render main component for current route.
-  let app;
-  switch (config.mode) {
-    case 'basic-lti-launch':
-      {
-        const { authToken } = config.api;
-        const clientRPC = new ClientRPC({
-          authToken,
-          allowedOrigins: config.rpcServer.allowedOrigins,
-          clientConfig: /** @type {ClientConfig} */ (config.hypothesisClient),
-        });
-        const contentInfoFetcher = new ContentInfoFetcher(authToken, clientRPC);
-        const gradingService = new GradingService({
-          authToken: config.api.authToken,
-        });
-        services.set(ClientRPC, clientRPC);
-        services.set(ContentInfoFetcher, contentInfoFetcher);
-        services.set(GradingService, gradingService);
+  if (config.rpcServer && config.hypothesisClient) {
+    const { authToken } = config.api;
+    const clientRPC = new ClientRPC({
+      authToken,
+      allowedOrigins: config.rpcServer.allowedOrigins,
+      clientConfig: /** @type {ClientConfig} */ (config.hypothesisClient),
+    });
+    const contentInfoFetcher = new ContentInfoFetcher(authToken, clientRPC);
+    const gradingService = new GradingService({
+      authToken: config.api.authToken,
+    });
+    services.set(ClientRPC, clientRPC);
+    services.set(ContentInfoFetcher, contentInfoFetcher);
+    services.set(GradingService, gradingService);
 
-        if (config.contentBanner) {
-          // Fetch data for content info banner displayed by the client. If this
-          // fails, the banner won't be shown but everything else should
-          // continue to work.
-          contentInfoFetcher.fetch(config.contentBanner);
-        }
-
-        app = <BasicLTILaunchApp />;
-      }
-      break;
-    case 'content-item-selection':
-      app = <FilePickerApp />;
-      break;
-    case 'error-dialog':
-      app = <ErrorDialogApp />;
-      break;
-    case 'oauth2-redirect-error':
-      app = <OAuth2RedirectErrorApp />;
-      break;
+    if (config.contentBanner) {
+      // Fetch data for content info banner displayed by the client. If this
+      // fails, the banner won't be shown but everything else should
+      // continue to work.
+      contentInfoFetcher.fetch(config.contentBanner);
+    }
   }
 
   // Render frontend application.
@@ -100,12 +79,7 @@ export function init() {
     throw new Error('#app container for LMS frontend is missing');
   }
 
-  render(
-    <Config.Provider value={config}>
-      <Services.Provider value={services}>{app}</Services.Provider>
-    </Config.Provider>,
-    rootEl
-  );
+  render(<AppRoot initialConfig={config} services={services} />, rootEl);
 }
 
 /* istanbul ignore next */
