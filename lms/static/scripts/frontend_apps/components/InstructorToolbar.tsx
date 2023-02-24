@@ -1,30 +1,22 @@
 import { LinkButton } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 
-import type { AssignmentConfig, Assignment } from '../api-types';
+import type { AssignmentConfig } from '../api-types';
 import type { FilePickerConfig } from '../config';
 import { useConfig } from '../config';
 import { apiCall } from '../utils/api';
 import GradingControls from './GradingControls';
 
-export type InstructorToolbarProps = {
-  onEditAssignment: (
-    assignment: Assignment,
-    filePicker: FilePickerConfig
-  ) => void;
-};
-
 /**
  * Toolbar for instructors.
  * Shows assignment information and grading controls (for gradeable assignments).
  */
-export default function InstructorToolbar({
-  onEditAssignment,
-}: InstructorToolbarProps) {
+export default function InstructorToolbar() {
   const {
     api: { authToken },
     editing,
     instructorToolbar,
+    update: updateConfig,
   } = useConfig();
 
   if (!instructorToolbar) {
@@ -45,7 +37,8 @@ export default function InstructorToolbar({
       return;
     }
 
-    // TODO - Enter loading state
+    // TODO - Display loading state while fetching existing assignment
+    // configuration.
 
     // 1. Make call to `editing.getConfig` API to get assignment info.
     const assignmentConfig = await apiCall<AssignmentConfig>({
@@ -60,14 +53,10 @@ export default function InstructorToolbar({
       formAction: editing.form_action,
     };
 
-    onEditAssignment(assignmentConfig.assignment, filePickerConfig);
-
-    // TODO:
-    //
-    // 2. Display editing UI above assignment content or transition to
-    //    assignment editing UI.
-    //      - How to do this? Use a Portal-type thing?
-    // 3.
+    updateConfig({
+      mode: 'content-item-selection',
+      filePicker: filePickerConfig,
+    });
   };
 
   return (
