@@ -441,6 +441,9 @@ class JSConfig:
             # launches its BasicLtiLaunchApp, whereas in
             # "content-item-selection" mode it launches its FilePickerApp.
             "mode": None,
+
+            # Add common fields with info about the LMS we are running in.
+            "product": self._get_product_info(),
         }
 
         if self._lti_user:
