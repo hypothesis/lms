@@ -234,8 +234,8 @@ export type ConfigObject = {
   contentBanner?: ContentBannerConfig;
   editing?: EditConfig;
   instructorToolbar?: InstructorConfig;
-  hypothesisClient: ClientConfig;
-  rpcServer: {
+  hypothesisClient?: ClientConfig;
+  rpcServer?: {
     allowedOrigins: string[];
   };
   viaUrl: string;
