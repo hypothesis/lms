@@ -1,7 +1,11 @@
 import marshmallow
 
 from lms.models import CLAIM_PREFIX, LTIUser
-from lms.services import ApplicationInstanceNotFound, LTILaunchVerificationError
+from lms.services import (
+    ApplicationInstanceNotFound,
+    LTILaunchVerificationError,
+    LTIUserService,
+)
 from lms.validation._exceptions import ValidationError
 from lms.validation._lti_launch_params import LTIV11CoreSchema
 
@@ -38,8 +42,9 @@ class LTI11AuthSchema(LTIV11CoreSchema):
         self._application_instance_service = request.find_service(
             name="application_instance"
         )
+        self._lti_user_service = request.find_service(LTIUserService)
 
-    def lti_user(self):
+    def lti_user(self) -> LTIUser:
         """
         Return a models.LTIUser from the request's launch params.
 
@@ -60,9 +65,7 @@ class LTI11AuthSchema(LTIV11CoreSchema):
                 {"consumer_key": ["Invalid OAuth 1 signature. Unknown consumer key."]}
             ) from err
 
-        return LTIUser.from_auth_params(
-            self.context["request"], application_instance, kwargs
-        )
+        return self._lti_user_service.from_auth_params(application_instance, kwargs)
 
     @marshmallow.validates_schema
     def _verify_oauth_1(self, _data, **_kwargs):
@@ -107,6 +110,7 @@ class LTI13AuthSchema(LTIV11CoreSchema):
         self._application_instance_service = request.find_service(
             name="application_instance"
         )
+        self._lti_user_service = request.find_service(LTIUserService)
 
     def lti_user(self):
         """
@@ -126,6 +130,4 @@ class LTI13AuthSchema(LTIV11CoreSchema):
                 {"JWT": ["Invalid LTI1.3 params. Unknown application_instance."]}
             ) from err
 
-        return LTIUser.from_auth_params(
-            self.context["request"], application_instance, kwargs
-        )
+        return self._lti_user_service.from_auth_params(application_instance, kwargs)

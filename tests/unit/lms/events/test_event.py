@@ -11,12 +11,12 @@ class TestLTIEvent:
     def test_lti_event(
         self,
         pyramid_request,
-        lti_role_service,
         application_instance_service,
         course_service,
         assignment_service,
+        lti_user,
     ):
-        lti_role_service.get_roles.return_value = [sentinel]
+        lti_user.lti_roles = [sentinel]
         event = LTIEvent(request=pyramid_request, type=sentinel.type)
 
         assert event.user_id == pyramid_request.user.id

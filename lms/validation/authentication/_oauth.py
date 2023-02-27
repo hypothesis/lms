@@ -5,7 +5,7 @@ import marshmallow
 from webargs import fields
 
 from lms.models import LTIUser
-from lms.services import JWTService
+from lms.services import JWTService, LTIUserService
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 from lms.validation._base import PyramidRequestSchema, RequestsResponseSchema
 from lms.validation.authentication._exceptions import (
@@ -68,6 +68,7 @@ class OAuthCallbackSchema(PyramidRequestSchema):
         super().__init__(request)
         self._secret = request.registry.settings["oauth2_state_secret"]
         self._jwt_service = request.find_service(iface=JWTService)
+        self._lti_user_service = request.find_service(iface=LTIUserService)
 
     def state_param(self):
         """
@@ -79,7 +80,10 @@ class OAuthCallbackSchema(PyramidRequestSchema):
 
         csrf = secrets.token_hex()
 
-        data = {"user": request.lti_user.serialize(), "csrf": csrf}
+        data = {
+            "user": self._lti_user_service.serialize(request.lti_user),
+            "csrf": csrf,
+        }
 
         jwt_str = self._jwt_service.encode_with_secret(
             data, self._secret, lifetime=timedelta(hours=1)
@@ -89,7 +93,7 @@ class OAuthCallbackSchema(PyramidRequestSchema):
 
         return jwt_str
 
-    def lti_user(self):
+    def lti_user(self) -> LTIUser:
         """
         Return the LTIUser authenticated by the request's state param.
 
@@ -112,7 +116,7 @@ class OAuthCallbackSchema(PyramidRequestSchema):
             raise MissingStateParamError() from err
 
         decoded_user = self._decode_state(state)["user"]
-        return LTIUser.unserialize(self.context["request"], **decoded_user)
+        return self._lti_user_service.deserialize(**decoded_user)
 
     @marshmallow.validates("state")
     def validate_state(self, state):

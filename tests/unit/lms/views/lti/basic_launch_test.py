@@ -184,8 +184,8 @@ class TestBasicLaunchViews:
         context,
         lti_h_service,
         assignment_service,
-        lti_role_service,
         misc_plugin,
+        lti_user,
     ):
         # pylint: disable=protected-access
         result = svc._show_document(
@@ -209,13 +209,10 @@ class TestBasicLaunchViews:
         )
         assignment = assignment_service.upsert_assignment.return_value
 
-        lti_role_service.get_roles.assert_called_once_with(
-            pyramid_request.lti_params["roles"]
-        )
         assignment_service.upsert_assignment_membership.assert_called_once_with(
             assignment=assignment,
             user=pyramid_request.user,
-            lti_roles=lti_role_service.get_roles.return_value,
+            lti_roles=lti_user.lti_roles,
         )
         assignment_service.upsert_assignment_groupings.assert_called_once_with(
             assignment_id=assignment.id, groupings=[context.course]

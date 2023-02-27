@@ -9,12 +9,15 @@ from lms.validation.authentication import BearerTokenSchema
 
 class TestBearerTokenSchema:
     def test_it_serializes_lti_users_into_bearer_tokens(
-        self, lti_user, schema, jwt_service
+        self, lti_user, schema, jwt_service, lti_user_service
     ):
         authorization_param_value = schema.authorization_param(lti_user)
 
+        lti_user_service.serialize.assert_called_once_with(lti_user)
         jwt_service.encode_with_secret.assert_called_once_with(
-            lti_user.serialize(), "test_secret", lifetime=datetime.timedelta(hours=24)
+            lti_user_service.serialize.return_value,
+            "test_secret",
+            lifetime=datetime.timedelta(hours=24),
         )
         assert (
             authorization_param_value
@@ -22,15 +25,18 @@ class TestBearerTokenSchema:
         )
 
     def test_it_deserializes_lti_users_from_authorization_headers(
-        self, lti_user, schema, jwt_service
+        self, schema, jwt_service, lti_user_service
     ):
-        assert schema.lti_user(location="headers") == lti_user
+        assert (
+            schema.lti_user(location="headers")
+            == lti_user_service.deserialize.return_value
+        )
         jwt_service.decode_with_secret.assert_called_once_with(
             jwt_service.encode_with_secret.return_value, "test_secret"
         )
 
     def test_it_deserializes_lti_users_from_authorization_query_params(
-        self, lti_user, pyramid_request, schema
+        self, pyramid_request, schema, lti_user_service
     ):
         # You can also put the authorization param in the query string, instead
         # of in the headers.
@@ -39,7 +45,10 @@ class TestBearerTokenSchema:
         ]
         del pyramid_request.headers["authorization"]
 
-        assert schema.lti_user(location="query") == lti_user
+        assert (
+            schema.lti_user(location="query")
+            == lti_user_service.deserialize.return_value
+        )
 
     def test_it_raises_if_theres_no_authorization_param(self, schema, pyramid_request):
         del pyramid_request.headers["authorization"]
@@ -78,8 +87,10 @@ class TestBearerTokenSchema:
         return pyramid_request
 
     @pytest.fixture(autouse=True)
-    def jwt_service(self, jwt_service, lti_user):
-        jwt_service.decode_with_secret.return_value = lti_user.serialize()
+    def jwt_service(self, jwt_service, lti_user_service):
+        jwt_service.decode_with_secret.return_value = (
+            lti_user_service.serialize.return_value
+        )
         jwt_service.encode_with_secret.return_value = "ENCODED_JWT"
 
         return jwt_service
