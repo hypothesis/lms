@@ -55,7 +55,7 @@ export default function BasicLTILaunchApp() {
     // Content URL to show in the iframe.
     viaUrl: viaURL,
     canvas,
-  } = useConfig();
+  } = useConfig(['hypothesisClient']);
 
   const clientRPC = useService(ClientRPC);
 
