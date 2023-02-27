@@ -1,12 +1,11 @@
-import { Config } from '../config';
 import { init, $imports } from '../index';
-import { Services } from '../services';
 
 // Minimal version of the configuration that the backend renders into the page.
 const minimalConfig = {
   api: {
     authToken: '1234',
   },
+  hypothesisClient: {},
   rpcServer: {
     allowedOrigins: ['https://example.com'],
   },
@@ -14,6 +13,7 @@ const minimalConfig = {
 };
 
 describe('LMS frontend entry', () => {
+  let AppRoot;
   let container;
   let fakeContentInfoFetcher;
   let fakeReadConfig;
@@ -28,30 +28,18 @@ describe('LMS frontend entry', () => {
     };
     fakeReadConfig = sinon.stub().returns(minimalConfig);
 
+    // eslint-disable-next-line prefer-arrow-callback
+    AppRoot = sinon.spy(function AppRoot() {
+      return <div data-testid="app-root" />;
+    });
+
     $imports.$mock({
-      './config': { readConfig: fakeReadConfig, Config },
-
-      // Since `init` calls `render` directly, mock these components in a way
-      // that allows us to tell what was rendered by inspecting the DOM,
-      // as opposed to querying an Enzyme wrapper.
-      './components/BasicLTILaunchApp': () => (
-        <div data-component="BasicLTILaunchApp" />
-      ),
-      './components/OAuth2RedirectErrorApp': () => (
-        <div data-component="OAuth2RedirectErrorApp" />
-      ),
-      './components/ErrorDialogApp': () => (
-        <div data-component="ErrorDialogApp" />
-      ),
-      './components/FilePickerApp': () => (
-        <div data-component="FilePickerApp" />
-      ),
-
+      './components/AppRoot': AppRoot,
+      './config': { readConfig: fakeReadConfig },
       './services': {
         ClientRPC: sinon.stub(),
         ContentInfoFetcher: sinon.stub().returns(fakeContentInfoFetcher),
         GradingService: sinon.stub(),
-        Services,
         VitalSourceService: sinon.stub(),
       },
     });
@@ -62,31 +50,16 @@ describe('LMS frontend entry', () => {
     $imports.$restore();
   });
 
-  [
-    {
-      config: { mode: 'basic-lti-launch' },
-      appComponent: 'BasicLTILaunchApp',
-    },
-    {
-      config: { mode: 'content-item-selection' },
-      appComponent: 'FilePickerApp',
-    },
-    {
-      config: { mode: 'error-dialog' },
-      appComponent: 'ErrorDialogApp',
-    },
-    {
-      config: { mode: 'oauth2-redirect-error' },
-      appComponent: 'OAuth2RedirectErrorApp',
-    },
-  ].forEach(({ config, appComponent }) => {
-    it('launches correct app for "mode" config', () => {
-      fakeReadConfig.returns({ ...minimalConfig, ...config });
+  it('renders root component', () => {
+    init();
 
-      init();
+    const container = document.querySelector('#app');
+    assert.ok(container.querySelector('[data-testid=app-root]'));
 
-      assert.ok(container.querySelector(`[data-component=${appComponent}`));
-    });
+    assert.called(AppRoot);
+    const props = AppRoot.args[0][0];
+    assert.equal(props.initialConfig, fakeReadConfig());
+    assert.instanceOf(props.services, Map);
   });
 
   it('console logs debug values', () => {
