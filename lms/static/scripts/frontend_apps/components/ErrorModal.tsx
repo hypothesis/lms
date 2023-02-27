@@ -1,5 +1,5 @@
-import { Button, Modal } from '@hypothesis/frontend-shared/lib/next';
 import type { ModalProps } from '@hypothesis/frontend-shared/lib/components/feedback/Modal';
+import { Button, Modal } from '@hypothesis/frontend-shared/lib/next';
 import type { ComponentChildren } from 'preact';
 import { useRef } from 'preact/hooks';
 
