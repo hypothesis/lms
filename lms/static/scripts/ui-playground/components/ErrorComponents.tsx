@@ -1,4 +1,4 @@
-import { LabeledButton } from '@hypothesis/frontend-shared';
+import { Button } from '@hypothesis/frontend-shared/lib/next';
 import Library from '@hypothesis/frontend-shared/lib/pattern-library/components/Library';
 import { useState } from 'preact/hooks';
 
@@ -25,12 +25,9 @@ function ErrorModalExample() {
 
   if (!dialogOpen) {
     return (
-      <LabeledButton
-        onClick={() => setDialogOpen(!dialogOpen)}
-        variant="primary"
-      >
+      <Button onClick={() => setDialogOpen(!dialogOpen)} variant="primary">
         Show ErrorModal Example
-      </LabeledButton>
+      </Button>
     );
   } else {
     return (
@@ -58,12 +55,9 @@ function ErrorDialogAppExample({
 
   if (!dialogOpen) {
     return (
-      <LabeledButton
-        onClick={() => setDialogOpen(!dialogOpen)}
-        variant="primary"
-      >
+      <Button onClick={() => setDialogOpen(!dialogOpen)} variant="primary">
         Show ErrorDialogApp Example
-      </LabeledButton>
+      </Button>
     );
   } else {
     return (
@@ -96,12 +90,9 @@ function OAuth2RedirectErrorAppExample({
 
   if (!dialogOpen) {
     return (
-      <LabeledButton
-        onClick={() => setDialogOpen(!dialogOpen)}
-        variant="primary"
-      >
+      <Button onClick={() => setDialogOpen(!dialogOpen)} variant="primary">
         Show OAuth2RedirectErrorApp Example
-      </LabeledButton>
+      </Button>
     );
   } else {
     return (
@@ -117,12 +108,9 @@ function LaunchErrorDialogExample({ errorState = '' }) {
 
   if (!dialogOpen) {
     return (
-      <LabeledButton
-        onClick={() => setDialogOpen(!dialogOpen)}
-        variant="primary"
-      >
+      <Button onClick={() => setDialogOpen(!dialogOpen)} variant="primary">
         {errorState}
-      </LabeledButton>
+      </Button>
     );
   } else {
     return (
