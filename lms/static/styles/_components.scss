@@ -1,12 +1,6 @@
 // Enable Tailwind components layer
 @use 'tailwindcss/components';
 
-// Shared component styles from the frontend-shared package
-@use '@hypothesis/frontend-shared/styles';
-
-// Local customizations and overrides to shared component styles
-@use 'shared';
-
 @layer components {
   // A warning banner shown at the top of the view in unsupported browsers.
   // This is styled to match warning toasts and banners in the Hypothesis client.
