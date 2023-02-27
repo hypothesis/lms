@@ -8,6 +8,7 @@ import ErrorModal from '../../frontend_apps/components/ErrorModal';
 import LaunchErrorDialog from '../../frontend_apps/components/LaunchErrorDialog';
 import OAuth2RedirectErrorApp from '../../frontend_apps/components/OAuth2RedirectErrorApp';
 import { Config } from '../../frontend_apps/config';
+import type { ConfigObject } from '../../frontend_apps/config';
 
 const fakeDetails = {
   foo: { bar: 'These fake details...' },
@@ -43,8 +44,16 @@ function ErrorModalExample() {
   }
 }
 
-function ErrorDialogAppExample({ errorCode = 'reused_consumer_key' }) {
-  const config = { api: {}, errorDialog: { errorCode } };
+function ErrorDialogAppExample({
+  errorCode = 'reused_consumer_key',
+}: {
+  errorCode?: 'reused_consumer_key' | undefined;
+}) {
+  // @ts-ignore-next TODO Cooking up a valid full `ConfigObject` is a beast
+  const config: ConfigObject = {
+    api: { authToken: '12345' },
+    errorDialog: { errorCode: errorCode },
+  };
   const [dialogOpen, setDialogOpen] = useState(false);
 
   if (!dialogOpen) {
@@ -65,9 +74,13 @@ function ErrorDialogAppExample({ errorCode = 'reused_consumer_key' }) {
   }
 }
 
-function OAuth2RedirectErrorAppExample({ errorCode = '' }) {
-  const config = {
-    api: {},
+function OAuth2RedirectErrorAppExample({
+  errorCode,
+}: {
+  errorCode?: 'blackboard_missing_integration' | 'canvas_invalid_scope';
+}) {
+  // @ts-ignore-next TODO Cooking up a valid full `ConfigObject` is a beast
+  const config: ConfigObject = {
     OAuth2RedirectError: {
       errorCode,
       canvasScopes: [
@@ -115,6 +128,8 @@ function LaunchErrorDialogExample({ errorState = '' }) {
     return (
       <LaunchErrorDialog
         error={fakeError}
+        // @ts-ignore-next TODO: Examples are setting fake messages not
+        // recognized as `errorState` values
         errorState={errorState}
         onRetry={() => setDialogOpen(false)}
       />
@@ -326,7 +341,7 @@ export default function ErrorComponents() {
             unrecognized, or if it is missing.
           </p>
           <Library.Demo title="Generic error">
-            <ErrorDialogAppExample errorCode={'some-other'} />
+            <ErrorDialogAppExample errorCode={undefined} />
           </Library.Demo>
         </Library.Example>
       </Library.Pattern>
@@ -349,7 +364,7 @@ export default function ErrorComponents() {
           </p>
         </div>
 
-        <Library.Example title="Recognized error codes" variant="wide">
+        <Library.Example title="Recognized error codes">
           <Library.Demo title="blackboard_missing_integration">
             <OAuth2RedirectErrorAppExample errorCode="blackboard_missing_integration" />
           </Library.Demo>
@@ -365,7 +380,7 @@ export default function ErrorComponents() {
             unrecognized, or if it is missing.
           </p>
           <Library.Demo title="Any other error code (generic error)">
-            <OAuth2RedirectErrorAppExample errorCode={'some-other'} />
+            <OAuth2RedirectErrorAppExample errorCode={undefined} />
           </Library.Demo>
         </Library.Example>
       </Library.Pattern>
@@ -382,7 +397,7 @@ export default function ErrorComponents() {
           </p>
         </div>
 
-        <Library.Example title="Recognized error codes" variant="wide">
+        <Library.Example title="Recognized error codes">
           <Library.Demo title="blackboard_file_not_found_in_course">
             <LaunchErrorDialogExample errorState="blackboard_file_not_found_in_course" />
           </Library.Demo>
