@@ -2,7 +2,6 @@
  * Types for objects exchanged between the LMS frontend and backend via
  * JSON HTTP requests.
  */
-
 import type { APICallInfo } from './config';
 
 /**

@@ -1,16 +1,13 @@
-import { useState } from 'preact/hooks';
-
 import { LabeledButton } from '@hypothesis/frontend-shared';
-
-import { Config } from '../../frontend_apps/config';
+import Library from '@hypothesis/frontend-shared/lib/pattern-library/components/Library';
+import { useState } from 'preact/hooks';
 
 import ErrorDialogApp from '../../frontend_apps/components/ErrorDialogApp';
 import ErrorDisplay from '../../frontend_apps/components/ErrorDisplay';
 import ErrorModal from '../../frontend_apps/components/ErrorModal';
 import LaunchErrorDialog from '../../frontend_apps/components/LaunchErrorDialog';
 import OAuth2RedirectErrorApp from '../../frontend_apps/components/OAuth2RedirectErrorApp';
-
-import Library from '@hypothesis/frontend-shared/lib/pattern-library/components/Library';
+import { Config } from '../../frontend_apps/config';
 
 const fakeDetails = {
   foo: { bar: 'These fake details...' },

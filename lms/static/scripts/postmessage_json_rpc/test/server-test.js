@@ -1,5 +1,4 @@
 import { delay } from '../../test-util/wait';
-
 import { Server } from '../server';
 
 describe('Server', () => {

@@ -1,7 +1,7 @@
 import { mount } from 'enzyme';
 
-import URLPicker from '../URLPicker';
 import { checkAccessibility } from '../../../test-util/accessibility';
+import URLPicker from '../URLPicker';
 
 describe('URLPicker', () => {
   const renderUrlPicker = (props = {}) => mount(<URLPicker {...props} />);

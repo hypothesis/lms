@@ -1,13 +1,12 @@
 /* eslint-disable new-cap */
-
-import { act } from 'preact/test-utils';
 import { mount } from 'enzyme';
-import { waitFor, waitForElement } from '../../../test-util/wait';
+import { act } from 'preact/test-utils';
 
-import { Config } from '../../config';
-import FilePickerApp, { $imports } from '../FilePickerApp';
 import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
+import { waitFor, waitForElement } from '../../../test-util/wait';
+import { Config } from '../../config';
+import FilePickerApp, { $imports } from '../FilePickerApp';
 
 function interact(wrapper, callback) {
   act(callback);

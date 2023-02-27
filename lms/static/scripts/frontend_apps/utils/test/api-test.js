@@ -1,8 +1,8 @@
 import { mount } from 'enzyme';
 
+import { waitFor } from '../../../test-util/wait';
 import { Config } from '../../config';
 import { APIError } from '../../errors';
-import { waitFor } from '../../../test-util/wait';
 import { apiCall, urlPath, useAPIFetch, $imports } from '../api';
 
 function createResponse(status, body) {

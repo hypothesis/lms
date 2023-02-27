@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from 'preact/hooks';
 
 import type { Book, Chapter } from '../api-types';
 import { useService, VitalSourceService } from '../services';
-
 import BookSelector from './BookSelector';
 import ChapterList from './ChapterList';
 import ErrorDisplay from './ErrorDisplay';

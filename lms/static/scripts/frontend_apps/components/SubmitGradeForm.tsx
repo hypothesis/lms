@@ -14,7 +14,6 @@ import { useService, GradingService } from '../services';
 import { useFetch } from '../utils/fetch';
 import { useUniqueId } from '../utils/hooks';
 import { formatToNumber, scaleGrade, validateGrade } from '../utils/validation';
-
 import ErrorModal from './ErrorModal';
 import ValidationMessage from './ValidationMessage';
 

@@ -1,3 +1,4 @@
+import type { ModalProps } from '@hypothesis/frontend-shared/lib/components/feedback/Modal';
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -12,7 +13,6 @@ import {
   Select,
 } from '@hypothesis/frontend-shared/lib/next';
 import Library from '@hypothesis/frontend-shared/lib/pattern-library/components/Library';
-import type { ModalProps } from '@hypothesis/frontend-shared/lib/components/feedback/Modal';
 import classnames from 'classnames';
 import { useState } from 'preact/hooks';
 

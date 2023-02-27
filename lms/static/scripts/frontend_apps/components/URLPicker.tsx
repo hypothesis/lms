@@ -4,7 +4,6 @@ import {
   Modal,
   Input,
 } from '@hypothesis/frontend-shared/lib/next';
-
 import { useRef, useState } from 'preact/hooks';
 
 export type URLPickerProps = {

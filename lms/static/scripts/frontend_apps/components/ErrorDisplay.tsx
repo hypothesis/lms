@@ -1,7 +1,6 @@
+import { Link, Scroll } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 import type { ComponentChildren } from 'preact';
-
-import { Link, Scroll } from '@hypothesis/frontend-shared/lib/next';
 
 import { formatErrorDetails, formatErrorMessage } from '../errors';
 import type { ErrorLike } from '../errors';

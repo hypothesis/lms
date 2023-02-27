@@ -1,7 +1,6 @@
 import { mount } from 'enzyme';
 
 import { Config } from '../../config';
-
 import ErrorDialogApp from '../ErrorDialogApp';
 
 describe('ErrorDialogApp', () => {

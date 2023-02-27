@@ -1,15 +1,13 @@
 import { mount } from 'enzyme';
-
 import { act } from 'preact/test-utils';
 
-import { Config } from '../../config';
-import { ClientRPC, Services } from '../../services';
-import { APIError } from '../../errors';
-
-import BasicLTILaunchApp, { $imports } from '../BasicLTILaunchApp';
 import { checkAccessibility } from '../../../test-util/accessibility';
-import { delay, waitFor, waitForElement } from '../../../test-util/wait';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
+import { delay, waitFor, waitForElement } from '../../../test-util/wait';
+import { Config } from '../../config';
+import { APIError } from '../../errors';
+import { ClientRPC, Services } from '../../services';
+import BasicLTILaunchApp, { $imports } from '../BasicLTILaunchApp';
 
 describe('BasicLTILaunchApp', () => {
   let fakeApiCall;

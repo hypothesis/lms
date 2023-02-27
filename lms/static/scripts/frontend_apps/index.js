@@ -1,11 +1,13 @@
+import { registerIcons } from '@hypothesis/frontend-shared';
 import 'focus-visible';
 import { render } from 'preact';
 
-import { readConfig, Config } from './config';
 import BasicLTILaunchApp from './components/BasicLTILaunchApp';
-import OAuth2RedirectErrorApp from './components/OAuth2RedirectErrorApp';
 import ErrorDialogApp from './components/ErrorDialogApp';
 import FilePickerApp from './components/FilePickerApp';
+import OAuth2RedirectErrorApp from './components/OAuth2RedirectErrorApp';
+import { readConfig, Config } from './config';
+import iconSet from './icons';
 import {
   ClientRPC,
   ContentInfoFetcher,
@@ -16,8 +18,6 @@ import {
 
 /** @typedef {import('./services/client-rpc').ClientConfig} ClientConfig */
 
-import { registerIcons } from '@hypothesis/frontend-shared';
-import iconSet from './icons';
 registerIcons(iconSet);
 
 export function init() {
