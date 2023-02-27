@@ -4,7 +4,7 @@ from datetime import timedelta
 import marshmallow
 
 from lms.models import LTIUser
-from lms.services import JWTService
+from lms.services import JWTService, LTIUserService
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 from lms.validation import ValidationError
 from lms.validation._base import PyramidRequestSchema
@@ -40,6 +40,7 @@ class BearerTokenSchema(PyramidRequestSchema):
     def __init__(self, request):
         super().__init__(request)
         self._jwt_service = request.find_service(iface=JWTService)
+        self._lti_user_service = request.find_service(iface=LTIUserService)
         self._secret = request.registry.settings["jwt_secret"]
 
     def authorization_param(self, lti_user: LTIUser) -> str:
@@ -52,7 +53,7 @@ class BearerTokenSchema(PyramidRequestSchema):
         :arg lti_user: the LTI user to return an auth param for
         """
         token = self._jwt_service.encode_with_secret(
-            lti_user.serialize() if lti_user else {},
+            self._lti_user_service.serialize(lti_user) if lti_user else {},
             self._secret,
             lifetime=timedelta(hours=24),
         )
@@ -101,7 +102,7 @@ class BearerTokenSchema(PyramidRequestSchema):
                 messages={"authorization": ["Invalid session token"]}
             ) from err
 
-        return LTIUser.unserialize(self.context["request"], **jwt_data)
+        return self._lti_user_service.deserialize(**jwt_data)
 
     @marshmallow.pre_load
     def _decode_authorization(self, data, **_kwargs):

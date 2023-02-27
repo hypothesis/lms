@@ -19,13 +19,17 @@ from tests import factories
 
 class TestOauthCallbackSchema:
     def test_state_param_encodes_lti_user_and_csrf_token_into_state_jwt(
-        self, schema, secrets, jwt_service, lti_user
+        self, schema, secrets, jwt_service, lti_user, lti_user_service
     ):
         state = schema.state_param()
 
         secrets.token_hex.assert_called_once_with()
+        lti_user_service.serialize.assert_called_once_with(lti_user)
         jwt_service.encode_with_secret.assert_called_once_with(
-            {"user": lti_user.serialize(), "csrf": secrets.token_hex.return_value},
+            {
+                "user": lti_user_service.serialize.return_value,
+                "csrf": secrets.token_hex.return_value,
+            },
             "test_oauth2_state_secret",
             lifetime=datetime.timedelta(hours=1),
         )
@@ -40,13 +44,15 @@ class TestOauthCallbackSchema:
 
         assert pyramid_request.session["oauth2_csrf"] == secrets.token_hex.return_value
 
-    def test_lti_user_returns_the_lti_user_value(self, schema, jwt_service, lti_user):
+    def test_lti_user_returns_the_lti_user_value(
+        self, schema, jwt_service, lti_user_service
+    ):
         returned = schema.lti_user()
 
         jwt_service.decode_with_secret.assert_called_once_with(
             "test_state", "test_oauth2_state_secret"
         )
-        assert returned == lti_user
+        assert returned == lti_user_service.deserialize.return_value
 
     def test_lti_user_raises_if_theres_no_state_param(self, schema, pyramid_request):
         del pyramid_request.params["state"]
@@ -253,9 +259,9 @@ def secrets(patch):
 
 
 @pytest.fixture(autouse=True)
-def jwt_service(jwt_service, lti_user):
+def jwt_service(jwt_service, lti_user_service):
     jwt_service.decode_with_secret.return_value = {
         "csrf": "test_csrf",
-        "user": lti_user.serialize(),
+        "user": lti_user_service.serialize.return_value,
     }
     return jwt_service

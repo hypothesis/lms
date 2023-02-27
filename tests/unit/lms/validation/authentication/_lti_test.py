@@ -8,16 +8,18 @@ from lms.services import ApplicationInstanceNotFound, LTILaunchVerificationError
 from lms.validation._exceptions import ValidationError
 from lms.validation.authentication import LTI11AuthSchema, LTI13AuthSchema
 
-pytestmark = pytest.mark.usefixtures("launch_verifier", "application_instance_service")
+pytestmark = pytest.mark.usefixtures(
+    "launch_verifier", "application_instance_service", "lti_user_service"
+)
 
 
 class TestLTI11AuthSchema:
     def test_it_returns_the_lti_user_info(
-        self, schema, application_instance_service, LTIUser
+        self, schema, application_instance_service, lti_user_service
     ):
         lti_user = schema.lti_user()
 
-        LTIUser.from_auth_params.assert_called_once_with(
+        lti_user_service.from_auth_params.assert_called_once_with(
             application_instance_service.get_by_consumer_key.return_value,
             {
                 "oauth_signature_method": "SHA256",
@@ -35,7 +37,7 @@ class TestLTI11AuthSchema:
                 "oauth_timestamp": "TEST_TIMESTAMP",
             },
         )
-        assert lti_user == LTIUser.from_auth_params.return_value
+        assert lti_user == lti_user_service.from_auth_params.return_value
 
     def test_it_raises_missing_application_instance(
         self, schema, application_instance_service
@@ -100,15 +102,15 @@ class TestLTI11AuthSchema:
 
 class TestLTI13AuthSchema:
     def test_lti_user(
-        self, schema, schema_params, LTIUser, application_instance_service
+        self, schema, schema_params, application_instance_service, lti_user_service
     ):
         lti_user = schema.lti_user()
 
-        LTIUser.from_auth_params.assert_called_once_with(
+        lti_user_service.from_auth_params.assert_called_once_with(
             application_instance_service.get_by_deployment_id.return_value,
             schema_params,
         )
-        assert lti_user == LTIUser.from_auth_params.return_value
+        assert lti_user == lti_user_service.from_auth_params.return_value
 
     def test_it_raises_missing_application_instance(
         self, schema, application_instance_service
@@ -145,8 +147,3 @@ class TestLTI13AuthSchema:
         pyramid_request.lti_params = LTIParams.from_request(pyramid_request)
 
         return pyramid_request
-
-
-@pytest.fixture
-def LTIUser(patch):
-    return patch("lms.validation.authentication._lti.LTIUser")

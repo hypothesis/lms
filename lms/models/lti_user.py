@@ -48,48 +48,6 @@ class LTIUser:
         """Whether this user is a learner."""
         return "learner" in self.roles.lower()
 
-    @staticmethod
-    def from_auth_params(request, application_instance, lti_core_schema):
-        """Create an LTIUser from a LTIV11CoreSchema like dict."""
-
-        return LTIUser.unserialize(
-            request,
-            user_id=lti_core_schema["user_id"],
-            application_instance_id=application_instance.id,
-            roles=lti_core_schema["roles"],
-            tool_consumer_instance_guid=lti_core_schema["tool_consumer_instance_guid"],
-            display_name=display_name(
-                lti_core_schema["lis_person_name_given"],
-                lti_core_schema["lis_person_name_family"],
-                lti_core_schema["lis_person_name_full"],
-            ),
-            email=lti_core_schema["lis_person_contact_email_primary"],
-        )
-
-    @staticmethod
-    def unserialize(request, **kwargs: dict):
-        # pylint: disable= import-outside-toplevel
-        from lms.services.lti_role_service import LTIRoleService
-
-        lti_roles = request.find_service(LTIRoleService).get_roles(kwargs["roles"])
-
-        return LTIUser(lti_roles=lti_roles, **kwargs)
-
-    def serialize(self) -> dict:
-        """
-        Return a dict representing the LTIUser.
-
-        LTIUser is often serialized. We can pick here the exact representation.
-        """
-        return {
-            "user_id": self.user_id,
-            "roles": self.roles,
-            "tool_consumer_instance_guid": self.tool_consumer_instance_guid,
-            "display_name": self.display_name,
-            "application_instance_id": self.application_instance_id,
-            "email": self.email,
-        }
-
 
 def display_name(given_name, family_name, full_name):
     """

@@ -37,6 +37,7 @@ from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_grading import LTIGradingService
 from lms.services.lti_h import LTIHService
 from lms.services.lti_registration import LTIRegistrationService
+from lms.services.lti_user import LTIUserService
 from lms.services.ltia_http import LTIAHTTPService
 from lms.services.oauth1 import OAuth1Service
 from lms.services.oauth2_token import OAuth2TokenService
@@ -75,6 +76,7 @@ __all__ = (
     "lti_h_service",
     "lti_registration_service",
     "lti_role_service",
+    "lti_user_service",
     "ltia_http_service",
     "oauth1_service",
     "oauth2_token_service",
@@ -303,6 +305,11 @@ def rsa_key_service(mock_service):
 @pytest.fixture
 def user_service(mock_service):
     return mock_service(UserService)
+
+
+@pytest.fixture
+def lti_user_service(mock_service):
+    return mock_service(LTIUserService)
 
 
 @pytest.fixture
