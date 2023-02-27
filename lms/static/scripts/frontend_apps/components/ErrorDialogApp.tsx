@@ -41,7 +41,7 @@ export default function ErrorDialogApp() {
             This Hypothesis {"installation's"} consumer key appears to have
             already been used on another site. This could be because:
           </p>
-          <ul className="u-list">
+          <ul className="px-4 list-disc">
             <li>
               This consumer key has already been used on another site. A site
               admin must{' '}
