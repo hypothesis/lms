@@ -1,4 +1,3 @@
-// Register the same set of icons that is available in the app.
 import { registerIcons } from '@hypothesis/frontend-shared';
 import { configure } from 'enzyme';
 import { Adapter } from 'enzyme-adapter-preact-pure';
@@ -12,6 +11,7 @@ sinon.assert.expose(assert, { prefix: null });
 // Configure Enzyme for UI tests.
 configure({ adapter: new Adapter() });
 
+// Register the same set of icons that is available in the app.
 registerIcons(iconSet);
 
 // Ensure that uncaught exceptions between tests result in the tests failing.
