@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import List
 
 from lms.models.h_user import HUser
-from lms.models.lti_role import LTIRole
+from lms.models.lti_role import LTIRole, RoleScope, RoleType
 
 
 @dataclass
@@ -38,15 +38,25 @@ class LTIUser:
     @property
     def is_instructor(self):
         """Whether this user is an instructor."""
-        return any(
-            role in self.roles.lower()
-            for role in ("administrator", "instructor", "teachingassistant")
+        # We consider admins to be instructors for authorization purposes
+        return self.is_admin or any(
+            # And any instructor in the course
+            role.type == RoleType.INSTRUCTOR and role.scope == RoleScope.COURSE
+            for role in self.lti_roles
         )
 
     @property
     def is_learner(self):
         """Whether this user is a learner."""
-        return "learner" in self.roles.lower()
+        return any(
+            role.type == RoleType.LEARNER and role.scope == RoleScope.COURSE
+            for role in self.lti_roles
+        )
+
+    @property
+    def is_admin(self):
+        """Whether this user is an admin."""
+        return any(role.type == RoleType.ADMIN for role in self.lti_roles)
 
 
 def display_name(given_name, family_name, full_name):

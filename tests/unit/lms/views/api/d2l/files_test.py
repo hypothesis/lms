@@ -24,8 +24,10 @@ def test_via_url(
     course_copy_plugin,
     is_instructor,
     oauth2_token_service,
+    request,
 ):
-    pyramid_request.lti_user.roles = "instructor" if is_instructor else "student"
+    if is_instructor:
+        request.getfixturevalue("user_is_instructor")
     course_copy_plugin.is_file_in_course.return_value = True
 
     response = via_url(sentinel.context, pyramid_request)
@@ -91,6 +93,7 @@ def test_it_when_file_not_in_course_fixed_by_course_copy(
     assert response == {"via_url": helpers.via_url.return_value}
 
 
+@pytest.mark.usefixtures("user_is_instructor")
 def test_it_when_file_not_in_course(
     d2l_api_client, course_service, course_copy_plugin, pyramid_request
 ):

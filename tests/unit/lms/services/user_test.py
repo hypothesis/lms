@@ -11,6 +11,7 @@ from tests import factories
 
 
 class TestUserService:
+    @pytest.mark.usefixtures("user_is_instructor")
     def test_upsert_user(self, service, lti_user, db_session):
         user = service.upsert_user(lti_user)
 
@@ -30,11 +31,10 @@ class TestUserService:
         )
         assert saved_user == user
 
+    @pytest.mark.usefixtures("user_is_learner")
     def test_upsert_user_doesnt_save_personal_details_for_students(
         self, service, lti_user, db_session
     ):
-        lti_user.roles = "Student"
-
         service.upsert_user(lti_user)
 
         saved_user = db_session.query(User).order_by(User.id.desc()).first()

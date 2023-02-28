@@ -101,8 +101,10 @@ class TestViaURL:
         course_service,
         course_copy_plugin,
         is_instructor,
+        request,
     ):
-        pyramid_request.lti_user.roles = "instructor" if is_instructor else "student"
+        if is_instructor:
+            request.getfixturevalue("user_is_instructor")
         course_copy_plugin.is_file_in_course.return_value = True
 
         response = view()
