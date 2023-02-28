@@ -193,34 +193,8 @@ def _to_lti_v11(v13_params):
         v11_params.update({f"custom_{key}": value for key, value in custom.items()})
 
     if "roles" in v11_params:
-        context_roles = []
-        for role in v11_params["roles"]:
-            # Consider administrator regardless of their scope
-            if role.endswith("Administrator"):
-                context_roles.append(role)
-                continue
-
-            # From: https://www.imsglobal.org/spec/lti/v1p3#role-vocabularies
-            #
-            # Conforming implementations MAY recognize the simple
-            # names for context roles; thus, for example, vendors can use
-            # the following roles interchangeably:
-            #   http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor
-            #   Instructor
-            if "http://purl.imsglobal.org/vocab/lis/v2" not in role:
-                # If using the simple name, we'll take it
-                context_roles.append(role)
-
-            if role.startswith("http://purl.imsglobal.org/vocab/lis/v2/membership"):
-                # For roles that have the whole LIS 2.0 name, take only the one
-                # relevant for the current context. We'd need to expose the
-                # rest of the roles somewhere else if they become necessary /
-                # interesting, but for LTI 1.1 compatibility we only expose the
-                # roles of the current context (course) here.
-                context_roles.append(role)
-
         # We need to squish together the roles for v1.1 compatibility
-        v11_params["roles"] = ",".join(context_roles)
+        v11_params["roles"] = ",".join(v11_params["roles"])
 
     return v11_params
 

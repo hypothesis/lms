@@ -10,6 +10,7 @@ from pyramid.request import apply_request_extensions
 from lms import models
 from lms.db import SESSION
 from lms.models import ApplicationSettings
+from lms.models.lti_role import RoleScope, RoleType
 from lms.product import Product
 from lms.security import Identity
 from tests import factories
@@ -137,13 +138,17 @@ def pyramid_request(db_session, application_instance, lti_v11_params):
 
 
 @pytest.fixture
-def user_is_learner(pyramid_request):
-    pyramid_request.lti_user.roles = "Learner"
+def user_is_learner(lti_user):
+    lti_user.lti_roles = [
+        factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER)
+    ]
 
 
 @pytest.fixture
-def user_is_instructor(pyramid_request):
-    pyramid_request.lti_user.roles = "Instructor"
+def user_is_instructor(lti_user):
+    lti_user.lti_roles = [
+        factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR)
+    ]
 
 
 def configure_jinja2_assets(config):

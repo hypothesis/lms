@@ -88,28 +88,6 @@ class TestLTIParams:
         assert params["user_id"] == "user_id-v11"
         assert params["resource_link_id"] == "resource_link_id-v11"
 
-    def test_ignores_non_context_roles(self, pyramid_request):
-        pyramid_request.lti_jwt = {
-            f"{CLAIM_PREFIX}/roles": [
-                # These roles do not relate to the current context (course) and
-                # should be ignored
-                "http://purl.imsglobal.org/vocab/lis/v2/system/person#User",
-                "http://purl.imsglobal.org/vocab/lis/v2/institution/person#Instructor",
-                # We should accept either of these formats
-                "http://purl.imsglobal.org/vocab/lis/v2/membership#Learner",
-                "Mentor",
-                # But we make an exception for admins, we consider them regarless of the scope
-                "http://purl.imsglobal.org/vocab/lis/v2/institution/person#Administrator",
-            ],
-        }
-
-        params = LTIParams.from_request(pyramid_request)
-
-        assert (
-            params["roles"]
-            == "http://purl.imsglobal.org/vocab/lis/v2/membership#Learner,Mentor,http://purl.imsglobal.org/vocab/lis/v2/institution/person#Administrator"
-        )
-
     def test_serialize(self):
         lti_params = LTIParams(
             {
