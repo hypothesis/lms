@@ -1,10 +1,8 @@
-import { registerIcons } from '@hypothesis/frontend-shared';
 import 'focus-visible';
 import { render } from 'preact';
 
 import AppRoot from './components/AppRoot';
 import { readConfig } from './config';
-import iconSet from './icons';
 import {
   ClientRPC,
   ContentInfoFetcher,
@@ -12,8 +10,6 @@ import {
   VitalSourceService,
 } from './services';
 import type { ServiceMap } from './services';
-
-registerIcons(iconSet);
 
 export function init() {
   // Read configuration embedded into page by backend.
