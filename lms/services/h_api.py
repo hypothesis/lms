@@ -1,4 +1,7 @@
 """The H API service."""
+import json
+from datetime import datetime, timezone
+from typing import Iterator, List
 
 from h_api.bulk_api import BulkAPI, CommandBuilder
 
@@ -13,6 +16,18 @@ class HAPIError(ExternalRequestError):
     Raised whenever an h API request times out or when an unsuccessful, invalid
     or unexpected response is received from the h API.
     """
+
+
+def _rfc3339_format(date: datetime) -> str:
+    """
+    Convert a datetime object to an RFC3339 datetime format string.
+
+    Which looks like: 2018-11-13T20:20:39+00:00
+    """
+    if not date.tzinfo:
+        date = date.replace(tzinfo=timezone.utc)
+
+    return date.isoformat()
 
 
 class HAPI:
@@ -65,7 +80,49 @@ class HAPI:
 
         return HUser(username=username, display_name=user_info["display_name"])
 
-    def _api_request(self, method, path, body=None, headers=None):
+    def get_annotations(
+        self,
+        audience_usernames: List[str],
+        updated_after: datetime,
+        updated_before: datetime,
+    ) -> Iterator[dict]:
+        """
+        Get an iterator of annotation objects for the specified audience.
+
+        This is an iterator of annotations viewable by _any_ of the provided
+        usernames. It is your responsibility to work out who can see what, by
+        knowing which groups users are in.
+
+        :param audience_usernames: List of usernames (without `acct:...`)
+        :param updated_after: Datetime to search after
+        :param updated_before: Datetime to search before
+        """
+        payload = {
+            "filter": {
+                "limit": 100000,
+                "audience": {"username": audience_usernames},
+                "updated": {
+                    "gt": _rfc3339_format(updated_after),
+                    "lte": _rfc3339_format(updated_before),
+                },
+            },
+            "fields": ["author.username", "group.authority_provided_id"],
+        }
+
+        with self._api_request(
+            "POST",
+            path="bulk/annotation",
+            body=json.dumps(payload),
+            headers={
+                "Content-Type": "application/vnd.hypothesis.v1+json",
+                "Accept": "application/vnd.hypothesis.v1+x-ndjson",
+            },
+            stream=True,
+        ) as response:
+            for line in response.iter_lines():
+                yield json.loads(line)
+
+    def _api_request(self, method, path, body=None, headers=None, stream=False):
         """
         Send any kind of HTTP request to the h API and return the response.
 
@@ -92,6 +149,7 @@ class HAPI:
                 url=self._base_url + path.lstrip("/"),
                 auth=self._http_auth,
                 headers=headers,
+                stream=stream,
                 **request_args,
             )
         except ExternalRequestError as err:
