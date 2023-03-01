@@ -82,7 +82,7 @@ class TestLTI13GradingService:
             },
             headers={"Content-Type": "application/vnd.ims.lis.v1.score+json"},
         )
-        assert response == ltia_http_service.request.return_value.json.return_value
+        assert response == ltia_http_service.request.return_value
 
     def test_record_result_raises_ExternalRequestError(self, svc, ltia_http_service):
         ltia_http_service.request.side_effect = ExternalRequestError(
@@ -102,7 +102,7 @@ class TestLTI13GradingService:
 
         response = svc.record_result(sentinel.user_id, sentinel.score)
 
-        assert response == {}
+        assert not response
 
     def test_create_line_item(self, svc, ltia_http_service):
         response = svc.create_line_item(
