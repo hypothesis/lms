@@ -13,7 +13,7 @@ from lms.services.exceptions import (
     OAuth2TokenError,
     SerializableError,
 )
-from lms.services.h_api import HAPIError
+from lms.services.h_api import HAPI, HAPIError
 from lms.services.jstor import JSTORService
 from lms.services.jwt import JWTService
 from lms.services.launch_verifier import (
@@ -50,7 +50,7 @@ def includeme(config):
     config.register_service_factory("lms.services.canvas.factory", iface=CanvasService)
     config.register_service_factory("lms.services.user.factory", iface=UserService)
 
-    config.register_service_factory("lms.services.h_api.HAPI", name="h_api")
+    config.register_service_factory("lms.services.h_api.service_factory", iface=HAPI)
     config.register_service_factory(
         "lms.services.launch_verifier.LaunchVerifier", name="launch_verifier"
     )

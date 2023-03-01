@@ -9,7 +9,7 @@ from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
 from lms.product.d2l import D2L
 from lms.resources._js_config.file_picker_config import FilePickerConfig
-from lms.services import HAPIError, JSTORService, VitalSourceService
+from lms.services import HAPI, HAPIError, JSTORService, VitalSourceService
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
 
@@ -331,9 +331,7 @@ class JSConfig:
         # retrieve that display name.
         try:
             display_name = (
-                self._request.find_service(name="h_api")
-                .get_user(focused_user)
-                .display_name
+                self._request.find_service(HAPI).get_user(focused_user).display_name
             )
         except HAPIError:
             display_name = "(Couldn't fetch student name)"
