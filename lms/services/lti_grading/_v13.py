@@ -66,7 +66,7 @@ class LTI13GradingService(LTIGradingService):
                 scopes=self.LTIA_SCOPES,
                 json=payload,
                 headers={"Content-Type": "application/vnd.ims.lis.v1.score+json"},
-            ).json()
+            )
 
         except ExternalRequestError as err:
             if (
@@ -76,7 +76,7 @@ class LTI13GradingService(LTIGradingService):
             ):
                 LOG.error("record_result: maximum number of allowed attempts")
                 # We silently shallow this type of error
-                return {}
+                return None
 
             raise
 
