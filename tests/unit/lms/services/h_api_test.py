@@ -8,13 +8,11 @@ from h_matchers import Any
 
 from lms.models import HUser
 from lms.services import HAPIError
-from lms.services.h_api import HAPI
+from lms.services.h_api import HAPI, service_factory
 from lms.services.http import ExternalRequestError
 from tests import factories
-from tests.conftest import TEST_SETTINGS
 
 
-@pytest.mark.usefixtures("http_service")
 class TestHAPI:
     # We're accessing h_api._api_request a lot in this test class, so disable
     # protected-access messages.
@@ -84,7 +82,7 @@ class TestHAPI:
 
         http_service.request.assert_called_once_with(
             method="POST",
-            url="https://h.example.com/private/api/bulk",
+            url="https://h.example.com/private/api/bulk/annotation",
             auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
             headers={
                 "Hypothesis-Application": "lms",
@@ -115,7 +113,7 @@ class TestHAPI:
         assert http_service.request.call_args_list == [
             call(
                 method=sentinel.method,
-                url=TEST_SETTINGS["h_api_url_private"] + "dummy-path",
+                url="https://h.example.com/private/api/dummy-path",
                 # It adds the authentication headers.
                 auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
                 headers={"Hypothesis-Application": "lms"},
@@ -156,10 +154,41 @@ class TestHAPI:
         return patch("lms.services.h_api.BulkAPI")
 
     @pytest.fixture
-    def h_api(self, pyramid_request):
-        return HAPI(sentinel.context, pyramid_request)
+    def h_api(self, http_service):
+        return HAPI(
+            authority="lms.hypothes.is",
+            client_id="TEST_CLIENT_ID",
+            client_secret="TEST_CLIENT_SECRET",
+            h_private_url="https://h.example.com/private/api/",
+            http_service=http_service,
+        )
 
     @pytest.fixture
     def _api_request(self, h_api):
         with patch.object(h_api, "_api_request", autospec=True):
             yield h_api._api_request
+
+
+class TestServiceFactory:
+    def test_it(self, HAPI, pyramid_request, http_service):
+        pyramid_request.registry.settings = {
+            "h_authority": sentinel.h_authority,
+            "h_client_id": sentinel.h_client_id,
+            "h_client_secret": sentinel.h_client_secret,
+            "h_api_url_private": sentinel.h_api_url_private,
+        }
+
+        svc = service_factory(sentinel.context, pyramid_request)
+
+        HAPI.assert_called_once_with(
+            authority=sentinel.h_authority,
+            client_id=sentinel.h_client_id,
+            client_secret=sentinel.h_client_secret,
+            h_private_url=sentinel.h_api_url_private,
+            http_service=http_service,
+        )
+        assert svc == HAPI.return_value
+
+    @pytest.fixture
+    def HAPI(self, patch):
+        return patch("lms.services.h_api.HAPI")

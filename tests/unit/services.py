@@ -210,7 +210,7 @@ def grouping_service(mock_service):
 
 @pytest.fixture
 def h_api(mock_service):
-    h_api = mock_service(HAPI, service_name="h_api")
+    h_api = mock_service(HAPI)
     h_api.get_user.return_value = factories.HUser()
 
     return h_api

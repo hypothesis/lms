@@ -1,4 +1,5 @@
 import pytest
+from h_matchers import Any
 
 from lms.services import includeme
 from lms.services.canvas_api import canvas_api_client_factory
@@ -15,7 +16,6 @@ class TestIncludeme:
         "name,service_class",
         (
             ("canvas_api_client", canvas_api_client_factory),
-            ("h_api", HAPI),
             ("launch_verifier", LaunchVerifier),
             ("grading_info", GradingInfoService),
             ("group_info", GroupInfoService),
@@ -23,7 +23,17 @@ class TestIncludeme:
             ("oauth1", OAuth1Service),
         ),
     )
-    def test_it_has_the_expected_service(self, name, service_class, pyramid_config):
-        includeme(pyramid_config)
-
+    def test_it_has_the_expected_service_by_name(
+        self, name, service_class, pyramid_config
+    ):
         assert pyramid_config.find_service_factory(name=name) == service_class
+
+    @pytest.mark.parametrize("service_class", (HAPI,))
+    def test_it_has_the_expected_service(self, service_class, pyramid_request):
+        assert pyramid_request.find_service(service_class) == Any.instance_of(
+            service_class
+        )
+
+    @pytest.fixture(autouse=True)
+    def with_services_loaded(self, pyramid_config):
+        includeme(pyramid_config)

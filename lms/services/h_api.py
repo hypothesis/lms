@@ -7,6 +7,7 @@ from h_api.bulk_api import BulkAPI, CommandBuilder
 
 from lms.models import HUser
 from lms.services.exceptions import ExternalRequestError
+from lms.services.http import HTTPService
 
 
 class HAPIError(ExternalRequestError):
@@ -37,15 +38,19 @@ class HAPI:
     :raise HAPIError: if a call to the "h" API raises an unhandled exception
     """
 
-    def __init__(self, _context, request):
-        self._request = request
-
-        settings = request.registry.settings
-
-        self._authority = settings["h_authority"]
-        self._http_auth = (settings["h_client_id"], settings["h_client_secret"])
-        self._base_url = settings["h_api_url_private"]
-        self._http_service = request.find_service(name="http")
+    def __init__(
+        # pylint: disable=too-many-arguments
+        self,
+        authority,
+        client_id,
+        client_secret,
+        h_private_url,
+        http_service: HTTPService,
+    ):
+        self._authority = authority
+        self._http_auth = (client_id, client_secret)
+        self._base_url = h_private_url
+        self._http_service = http_service
 
     def execute_bulk(self, commands):
         """
@@ -122,6 +127,7 @@ class HAPI:
             for line in response.iter_lines():
                 yield json.loads(line)
 
+    # pylint: disable=too-many-arguments
     def _api_request(self, method, path, body=None, headers=None, stream=False):
         """
         Send any kind of HTTP request to the h API and return the response.
@@ -156,3 +162,17 @@ class HAPI:
             raise HAPIError("Connecting to Hypothesis failed", err.response) from err
 
         return response
+
+
+def service_factory(_context, request) -> HAPI:
+    """Get a new instance of HAPI service."""
+
+    settings = request.registry.settings
+
+    return HAPI(
+        authority=settings["h_authority"],
+        client_id=settings["h_client_id"],
+        client_secret=settings["h_client_secret"],
+        h_private_url=settings["h_api_url_private"],
+        http_service=request.find_service(name="http"),
+    )
