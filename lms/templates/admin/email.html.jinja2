@@ -1,0 +1,40 @@
+{% extends "lms:templates/admin/base.html.jinja2" %}
+
+{% import "macros.html.jinja2" as macros %}
+
+{% block header %}
+    Email
+{% endblock header %}
+
+{% block content %}
+  {% if request.session.peek_flash()  %}
+    <section class="section">
+      <div class="container">
+        <article class="message">
+          <div class="message-body">
+            <ul>
+            {% for message in request.session.pop_flash() %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          </div>
+        </article>
+      </div>
+    </section>
+  {% endif %}
+
+  <form method="POST" action="{{ request.route_url("admin.email") }}">
+      <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+
+      <fieldset class="box mt-6">
+          <legend class="label has-text-centered">Send Test Instructor Digest Emails</legend>
+
+          {{ macros.form_text_field(request, "To email", "to_email", placeholder="YOU@hypothes.is") }}
+          {{ macros.form_text_field(request, "User IDs", "h_userids", "acct:3a022b6c146dfd9df4ea8662178eac@lms.hypothes.is") }}
+          {{ macros.form_text_field(request, "Since", "since", "2023-02-27T00:00:00") }}
+          {{ macros.form_text_field(request, "Until", "until", "2023-02-28T00:00:00") }}
+      </fieldset>
+
+      <input type="submit" class="button is-info" value="Send"/>
+  </form>
+{% endblock content %}
