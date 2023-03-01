@@ -1,3 +1,5 @@
+import json
+from datetime import datetime, timezone
 from unittest.mock import call, patch, sentinel
 
 import pytest
@@ -8,11 +10,11 @@ from lms.models import HUser
 from lms.services import HAPIError
 from lms.services.h_api import HAPI
 from lms.services.http import ExternalRequestError
+from tests import factories
 from tests.conftest import TEST_SETTINGS
 
-pytestmark = pytest.mark.usefixtures("http_service")
 
-
+@pytest.mark.usefixtures("http_service")
 class TestHAPI:
     # We're accessing h_api._api_request a lot in this test class, so disable
     # protected-access messages.
@@ -63,6 +65,50 @@ class TestHAPI:
 
         assert user == HUser(username="username", display_name=sentinel.display_name)
 
+    @pytest.mark.parametrize(
+        "status_code,rows", ((200, [{"any": "value"}, {"another": "value"}]), (204, []))
+    )
+    def test_get_annotations(self, h_api, http_service, status_code, rows):
+        http_service.request.return_value = factories.requests.Response(
+            status_code=status_code,
+            raw="\n".join(json.dumps(item) for item in rows),
+        )
+
+        result = h_api.get_annotations(
+            audience_usernames=["name_1", "name_2"],
+            updated_after=datetime(2001, 2, 3, 4, 5, 6),
+            updated_before=datetime(2002, 2, 3, 4, 5, 6, tzinfo=timezone.utc),
+        )
+
+        result = list(result)
+
+        http_service.request.assert_called_once_with(
+            method="POST",
+            url="https://h.example.com/private/api/bulk",
+            auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
+            headers={
+                "Hypothesis-Application": "lms",
+                "Content-Type": "application/vnd.hypothesis.v1+json",
+                "Accept": "application/vnd.hypothesis.v1+x-ndjson",
+            },
+            data=json.dumps(
+                {
+                    "filter": {
+                        "limit": 100000,
+                        "audience": {"username": ["name_1", "name_2"]},
+                        "updated": {
+                            "gt": "2001-02-03T04:05:06+00:00",
+                            "lte": "2002-02-03T04:05:06+00:00",
+                        },
+                    },
+                    "fields": ["author.username", "group.authority_provided_id"],
+                }
+            ),
+            stream=True,
+        )
+
+        assert result == rows
+
     def test__api_request(self, h_api, http_service):
         h_api._api_request(sentinel.method, "dummy-path", body=sentinel.raw_body)
 
@@ -73,6 +119,7 @@ class TestHAPI:
                 # It adds the authentication headers.
                 auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
                 headers={"Hypothesis-Application": "lms"},
+                stream=False,
                 data=sentinel.raw_body,
             )
         ]
