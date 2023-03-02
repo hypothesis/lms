@@ -8,6 +8,7 @@ h-assets
 h-pyramid-sentry
 h-vialib
 importlib_resources
+mailchimp-transactional
 marshmallow
 newrelic
 oauthlib
