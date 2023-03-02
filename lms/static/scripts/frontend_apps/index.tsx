@@ -65,6 +65,12 @@ export function init() {
     }
   }
 
+  // Set route based on app mode.
+  const routePath = `/app/${config.mode}`;
+  if (location.pathname !== routePath) {
+    history.replaceState({}, 'unused', routePath);
+  }
+
   // Render frontend application.
   const rootEl = document.querySelector('#app');
   /* istanbul ignore next */

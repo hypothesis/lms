@@ -1,5 +1,6 @@
-import { LinkButton } from '@hypothesis/frontend-shared/lib/next';
+import { Link } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
+import { Link as RouterLink } from 'wouter-preact';
 
 import { useConfig } from '../config';
 import GradingControls from './GradingControls';
@@ -49,14 +50,16 @@ export default function InstructorToolbar() {
             {assignmentName}
           </h1>
           {editingEnabled && (
-            <LinkButton
-              classes="text-xs"
-              data-testid="edit"
-              title="Edit assignment settings"
-              underline="always"
-            >
-              Edit
-            </LinkButton>
+            <RouterLink href="/app/content-item-selection">
+              <Link
+                classes="text-xs"
+                data-testid="edit"
+                title="Edit assignment settings"
+                underline="always"
+              >
+                Edit
+              </Link>
+            </RouterLink>
           )}
         </div>
         <h2
