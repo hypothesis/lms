@@ -6,16 +6,27 @@ import { useService } from '../../services';
 import AppRoot, { $imports } from '../AppRoot';
 
 describe('AppRoot', () => {
+  let originalURL;
+
+  function navigateTo(url) {
+    if (location.href !== url) {
+      history.replaceState({}, 'unused', url);
+    }
+  }
+
   beforeEach(() => {
     $imports.$mock(mockImportedComponents());
 
     // Suppress warning when exceptions are thrown when rendering.
     sinon.stub(console, 'warn');
+
+    originalURL = location.href;
   });
 
   afterEach(() => {
-    console.warn.restore();
+    navigateTo(originalURL);
 
+    console.warn.restore();
     $imports.$restore();
   });
 
@@ -38,6 +49,7 @@ describe('AppRoot', () => {
     },
   ].forEach(({ config, appComponent }) => {
     it('launches correct app for "mode" config', () => {
+      navigateTo(`/app/${config.mode}`);
       const services = new Map();
       const wrapper = mount(
         <AppRoot initialConfig={config} services={services} />
@@ -61,7 +73,8 @@ describe('AppRoot', () => {
     $imports.$mock({
       './FilePickerApp': DummyFilePickerApp,
     });
-    const config = { mode: 'content-item-selection' };
+    const config = { mode: 'content-item-selection', filePicker: {} };
+    navigateTo(`/app/${config.mode}`);
 
     mount(<AppRoot initialConfig={config} services={services} />);
 
@@ -69,10 +82,11 @@ describe('AppRoot', () => {
     assert.equal(actualService, services.get(TestService));
   });
 
-  it('throws if route is invalid', () => {
-    assert.throws(() => {
-      const config = { mode: 'invalid' };
-      mount(<AppRoot initialConfig={config} services={new Map()} />);
-    }, /Unknown frontend app/);
+  it('renders "Page not found" message for unknown route', () => {
+    const config = { mode: 'invalid' };
+    const wrapper = mount(
+      <AppRoot initialConfig={config} services={new Map()} />
+    );
+    assert.isTrue(wrapper.exists('[data-testid="notfound-message"]'));
   });
 });
