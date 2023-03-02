@@ -27,6 +27,7 @@ from lms.services.lti_registration import LTIRegistrationService
 from lms.services.lti_role_service import LTIRoleService
 from lms.services.lti_user import LTIUserService
 from lms.services.ltia_http import LTIAHTTPService
+from lms.services.mailchimp import MailchimpService
 from lms.services.organization import OrganizationService
 from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
@@ -105,6 +106,9 @@ def includeme(config):
     config.register_service_factory("lms.services.rsa_key.factory", iface=RSAKeyService)
     config.register_service_factory(
         "lms.services.ltia_http.factory", iface=LTIAHTTPService
+    )
+    config.register_service_factory(
+        "lms.services.mailchimp.factory", iface=MailchimpService
     )
     config.register_service_factory(
         "lms.services.document_url.factory", iface=DocumentURLService
