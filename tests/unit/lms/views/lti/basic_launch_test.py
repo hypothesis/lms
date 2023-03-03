@@ -86,7 +86,7 @@ class TestBasicLaunchViews:
             ({"group_set": 42}, {"group_set_id": 42}),
         ],
     )
-    def test_configure_assignment(
+    def test_configure_assignment_callback(
         self,
         svc,
         pyramid_request,
@@ -105,7 +105,55 @@ class TestBasicLaunchViews:
         }
         pyramid_request.parsed_params.update(parsed_params)
 
-        svc.configure_assignment()
+        svc.configure_assignment_callback()
+
+        misc_plugin.post_configure_assignment.assert_called_once_with(pyramid_request)
+        _show_document.assert_called_once_with(
+            document_url=pyramid_request.parsed_params["document_url"],
+            assignment_extra=expected_extras,
+        )
+
+    @pytest.mark.parametrize(
+        "parsed_params,expected_extras",
+        [
+            ({}, {}),
+            ({"group_set": 42}, {"group_set_id": 42}),
+        ],
+    )
+    def test_edit_assignment_callback(
+        self,
+        svc,
+        pyramid_request,
+        parsed_params,
+        expected_extras,
+        _show_document,
+        misc_plugin,
+        assignment_service,
+        LTIEvent,
+    ):
+        pyramid_request.parsed_params = {
+            "document_url": "TEST_DOCUMENT_URL",
+            "resource_link_id": "TEST_RESOURCE_LINK_ID",
+            "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
+        }
+        pyramid_request.parsed_params.update(parsed_params)
+
+        svc.edit_assignment_callback()
+
+        assignment_service.get_assignment.assert_called_once_with(
+            tool_consumer_instance_guid="TEST_TOOL_CONSUMER_INSTANCE_GUID",
+            resource_link_id="TEST_RESOURCE_LINK_ID",
+        )
+        assignment = assignment_service.get_assignment.return_value
+        LTIEvent.assert_called_once_with(
+            request=pyramid_request,
+            type=LTIEvent.Type.EDITED_ASSIGNMENT,
+            data={
+                "old_url": assignment.document_url,
+                "old_group_set_id": assignment.extra.get.return_value,
+            },
+        )
+        pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
 
         misc_plugin.post_configure_assignment.assert_called_once_with(pyramid_request)
         _show_document.assert_called_once_with(
@@ -177,7 +225,7 @@ class TestBasicLaunchViews:
             authorization=context.js_config.auth_token
         )
         context.js_config.enable_file_picker_mode.assert_called_once_with(
-            form_action="http://example.com/assignment",
+            form_action="http://example.com/assignment/edit",
             form_fields=pyramid_request.lti_params.serialize.return_value,
         )
         assert response == {

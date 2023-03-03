@@ -93,7 +93,7 @@ class BasicLaunchViews:
             ],
             resource_link_id=self.request.lti_params.get("resource_link_id"),
         )
-        config = self._configure_js_for_file_picker()
+        config = self._configure_js_for_file_picker(route="edit_assignment")
         return {
             # Info about the assignment's current configuration
             "assignment": {
@@ -112,24 +112,40 @@ class BasicLaunchViews:
         schema=ConfigureAssignmentSchema,
         renderer="lms:templates/lti/basic_launch/basic_launch.html.jinja2",
     )
-    def configure_assignment(self):
+    def configure_assignment_callback(self):
         """
         Save the configuration from the file-picker for future launches.
 
         We then continue as if we were already configured with this document
         and display it to the user.
         """
-        extra = {}
-        if group_set := self.request.parsed_params.get("group_set"):
-            extra["group_set_id"] = group_set
+        return self._configure_and_show_document()
 
-        # Make any product-specific actions after configuring the assignment
-        self.request.product.plugin.misc.post_configure_assignment(self.request)
-
-        return self._show_document(
-            document_url=self.request.parsed_params["document_url"],
-            assignment_extra=extra,
+    @view_config(
+        route_name="edit_assignment",
+        permission=Permissions.LTI_CONFIGURE_ASSIGNMENT,
+        schema=ConfigureAssignmentSchema,
+        renderer="lms:templates/lti/basic_launch/basic_launch.html.jinja2",
+    )
+    def edit_assignment_callback(self):
+        """Edit the configuration of an existing assignment."""
+        assignment = self.assignment_service.get_assignment(
+            tool_consumer_instance_guid=self.request.lti_params[
+                "tool_consumer_instance_guid"
+            ],
+            resource_link_id=self.request.lti_params.get("resource_link_id"),
         )
+        self.request.registry.notify(
+            LTIEvent(
+                request=self.request,
+                type=LTIEvent.Type.EDITED_ASSIGNMENT,
+                data={
+                    "old_url": assignment.document_url,
+                    "old_group_set_id": assignment.extra.get("group_set_id"),
+                },
+            )
+        )
+        return self._configure_and_show_document()
 
     def _show_document(self, document_url, assignment_extra=None):
         """
@@ -198,7 +214,28 @@ class BasicLaunchViews:
             user=self.request.user, groups=[self.context.course]
         )
 
-    def _configure_js_for_file_picker(self) -> dict:
+    def _configure_and_show_document(self):
+        """
+        Prepare an assignment with new configuration and show it.
+
+        The configuration  could be because we are creating this assignment
+        for the first time or from an edit.
+        """
+        extra = {}
+        if group_set := self.request.parsed_params.get("group_set"):
+            extra["group_set_id"] = group_set
+
+        # Make any product-specific actions after configuring the assignment
+        self.request.product.plugin.misc.post_configure_assignment(self.request)
+
+        return self._show_document(
+            document_url=self.request.parsed_params["document_url"],
+            assignment_extra=extra,
+        )
+
+    def _configure_js_for_file_picker(
+        self, route: str = "configure_assignment"
+    ) -> dict:
         """
         Show the file-picker for the user to choose a document.
 
@@ -214,7 +251,7 @@ class BasicLaunchViews:
             return {}
 
         return self.context.js_config.enable_file_picker_mode(
-            form_action=self.request.route_url("configure_assignment"),
+            form_action=self.request.route_url(route),
             form_fields=self.request.lti_params.serialize(
                 authorization=self.context.js_config.auth_token
             ),

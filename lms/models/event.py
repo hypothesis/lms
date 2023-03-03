@@ -14,6 +14,7 @@ class EventType(BASE):
         CONFIGURED_LAUNCH = "configured_launch"
         DEEP_LINKING = "deep_linking"
         AUDIT_TRAIL = "audit"
+        EDITED_ASSIGNMENT = "edited_assignment"
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
     type = varchar_enum(Type)
