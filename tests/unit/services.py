@@ -23,6 +23,7 @@ from lms.services.blackboard_api.client import BlackboardAPIClient
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.course import CourseService
 from lms.services.d2l_api import D2LAPIClient
+from lms.services.digest import DigestService
 from lms.services.event import EventService
 from lms.services.file import FileService
 from lms.services.grading_info import GradingInfoService
@@ -39,6 +40,7 @@ from lms.services.lti_h import LTIHService
 from lms.services.lti_registration import LTIRegistrationService
 from lms.services.lti_user import LTIUserService
 from lms.services.ltia_http import LTIAHTTPService
+from lms.services.mailchimp import MailchimpService
 from lms.services.oauth1 import OAuth1Service
 from lms.services.oauth2_token import OAuth2TokenService
 from lms.services.oauth_http import OAuthHTTPService
@@ -60,6 +62,7 @@ __all__ = (
     "canvas_service",
     "course_service",
     "d2l_api_client",
+    "digest_service",
     "document_url_service",
     "event_service",
     "file_service",
@@ -78,6 +81,7 @@ __all__ = (
     "lti_role_service",
     "lti_user_service",
     "ltia_http_service",
+    "mailchimp_service",
     "oauth1_service",
     "oauth2_token_service",
     "oauth_http_service",
@@ -171,6 +175,11 @@ def course_service(mock_service):
 @pytest.fixture
 def d2l_api_client(mock_service):
     return mock_service(D2LAPIClient)
+
+
+@pytest.fixture
+def digest_service(mock_service):
+    return mock_service(DigestService)
 
 
 @pytest.fixture
@@ -282,6 +291,11 @@ def lti_role_service(mock_service):
 @pytest.fixture
 def ltia_http_service(mock_service):
     return mock_service(LTIAHTTPService)
+
+
+@pytest.fixture
+def mailchimp_service(mock_service):
+    return mock_service(MailchimpService)
 
 
 @pytest.fixture
