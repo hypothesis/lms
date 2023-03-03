@@ -1,4 +1,3 @@
-import logging
 from contextlib import contextmanager
 from datetime import datetime
 from unittest.mock import sentinel
@@ -8,38 +7,41 @@ import pytest
 from lms.tasks.email_digests import send_instructor_email_digests
 
 
+@pytest.mark.usefixtures("digest_service")
 class TestSendInstructorEmailDigests:
-    def test_it(self, caplog):
-        caplog.set_level(logging.INFO)
-        since = datetime(year=2023, month=3, day=1)
-        until = datetime(year=2023, month=3, day=2)
+    def test_it(self, digest_service):
+        updated_after = datetime(year=2023, month=3, day=1)
+        updated_before = datetime(year=2023, month=3, day=2)
 
         send_instructor_email_digests(
             sentinel.h_userids,
-            since.isoformat(),
-            until.isoformat(),
+            updated_after.isoformat(),
+            updated_before.isoformat(),
             sentinel.override_to_email,
         )
 
-        assert caplog.record_tuples == [
-            (
-                "lms.tasks.email_digests",
-                logging.INFO,
-                "send_instructor_email_digests(sentinel.h_userids, datetime.datetime(2023, 3, 1, 0, 0), datetime.datetime(2023, 3, 2, 0, 0), override_to_email=sentinel.override_to_email)",
-            )
-        ]
+        digest_service.send_instructor_email_digests.assert_called_once_with(
+            sentinel.h_userids,
+            updated_after,
+            updated_before,
+            override_to_email=sentinel.override_to_email,
+        )
 
     @pytest.mark.parametrize(
-        "since,until",
+        "updated_after,updated_before",
         [
             ("invalid", "2023-02-28T00:00:00"),
             ("2023-02-28T00:00:00", "invalid"),
             ("invalid", "invalid"),
         ],
     )
-    def test_it_crashes_if_since_or_until_is_invalid(self, since, until):
+    def test_it_crashes_if_updated_after_or_updated_before_is_invalid(
+        self, updated_after, updated_before
+    ):
         with pytest.raises(ValueError, match="^Invalid isoformat string"):
-            send_instructor_email_digests(sentinel.h_userids, since, until)
+            send_instructor_email_digests(
+                sentinel.h_userids, updated_after, updated_before
+            )
 
 
 @pytest.fixture(autouse=True)
