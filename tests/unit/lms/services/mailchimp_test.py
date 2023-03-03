@@ -13,7 +13,8 @@ from lms.services.mailchimp import (
 
 
 class TestSendTemplate:
-    def test_it(self, mailchimp_transactional):
+    def test_it(self, mailchimp_transactional, caplog):
+        caplog.set_level(logging.INFO)
         svc = MailchimpService(sentinel.api_key)
 
         svc.send_template(
@@ -30,10 +31,20 @@ class TestSendTemplate:
             template_vars={"foo": "FOO", "bar": "BAR"},
         )
 
+        assert caplog.record_tuples == [
+            (
+                "lms.services.mailchimp",
+                logging.INFO,
+                Any.string.matching(
+                    r"^mailchimp_client\.send_template\({'template_name': sentinel.template_name,"
+                ),
+            )
+        ]
         mailchimp_transactional.Client.assert_called_once_with(sentinel.api_key)
         mailchimp_transactional.Client.return_value.messages.send_template.assert_called_once_with(
             {
                 "template_name": sentinel.template_name,
+                "template_content": [{}],
                 "message": {
                     "subaccount": sentinel.subaccount_id,
                     "from_email": sentinel.from_email,
@@ -50,9 +61,8 @@ class TestSendTemplate:
             }
         )
 
-    def test_if_theres_no_api_key_it_prints_the_email(self, mailchimp_client, caplog):
+    def test_if_theres_no_api_key_doesnt_call_mailchimp(self, mailchimp_client):
         svc = MailchimpService(None)
-        caplog.set_level(logging.INFO)
 
         svc.send_template(
             sentinel.template_name,
@@ -69,13 +79,6 @@ class TestSendTemplate:
         )
 
         mailchimp_client.messages.send_template.assert_not_called()
-        assert caplog.record_tuples == [
-            (
-                "lms.services.mailchimp",
-                logging.INFO,
-                Any.string.matching("^{'template_name': sentinel.template_name,"),
-            )
-        ]
 
     @pytest.fixture
     def mailchimp_client(self, mailchimp_transactional):

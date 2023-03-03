@@ -46,6 +46,9 @@ class MailchimpService:
         """
         params = {
             "template_name": template_name,
+            # We're not using template_content but we still need to pass an
+            # empty value or the Mailchimp API call fails.
+            "template_content": [{}],
             "message": {
                 "subaccount": sender.subaccount,
                 "from_email": sender.email,
@@ -61,10 +64,10 @@ class MailchimpService:
             "async": True,
         }
 
+        LOG.info("mailchimp_client.send_template(%r)", params)
+
         if hasattr(self, "mailchimp_client"):
             self.mailchimp_client.messages.send_template(params)
-        else:
-            LOG.info(params)
 
 
 def factory(_context, request):
