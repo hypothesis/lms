@@ -16,6 +16,13 @@ def includeme(config):  # pylint:disable=too-many-statements
         factory="lms.resources.LTILaunchResource",
     )
     config.add_route(
+        "edit_assignment",
+        "/assignment/edit",
+        request_method="POST",
+        factory="lms.resources.LTILaunchResource",
+    )
+
+    config.add_route(
         "lti_launches", "/lti_launches", factory="lms.resources.LTILaunchResource"
     )
     config.add_route(
