@@ -64,16 +64,44 @@ class TestHAPI:
         assert user == HUser(username="username", display_name=sentinel.display_name)
 
     @pytest.mark.parametrize(
-        "status_code,rows", ((200, [{"any": "value"}, {"another": "value"}]), (204, []))
+        "status_code,rows,expected_result",
+        (
+            (
+                200,
+                [{"author": {"username": "user1"}}, {"author": {"username": "user2"}}],
+                [
+                    {
+                        "author": {
+                            "username": "user1",
+                            "userid": "acct:user1@lms.hypothes.is",
+                        }
+                    },
+                    {
+                        "author": {
+                            "username": "user2",
+                            "userid": "acct:user2@lms.hypothes.is",
+                        }
+                    },
+                ],
+            ),
+            (200, [{"author": {"any": "dict"}}], [{"author": {"any": "dict"}}]),
+            (200, [{"any": "dict"}], [{"any": "dict"}]),
+            (204, [], []),
+        ),
     )
-    def test_get_annotations(self, h_api, http_service, status_code, rows):
+    def test_get_annotations(
+        self, h_api, http_service, status_code, rows, expected_result
+    ):
         http_service.request.return_value = factories.requests.Response(
             status_code=status_code,
             raw="\n".join(json.dumps(item) for item in rows),
         )
 
         result = h_api.get_annotations(
-            audience_usernames=["name_1", "name_2"],
+            audience_userids=[
+                "acct:name_1@lms.hypothes.is",
+                "acct:name_2@lms.hypothes.is",
+            ],
             updated_after=datetime(2001, 2, 3, 4, 5, 6),
             updated_before=datetime(2002, 2, 3, 4, 5, 6, tzinfo=timezone.utc),
         )
@@ -105,7 +133,7 @@ class TestHAPI:
             stream=True,
         )
 
-        assert result == rows
+        assert result == expected_result
 
     def test__api_request(self, h_api, http_service):
         h_api._api_request(sentinel.method, "dummy-path", body=sentinel.raw_body)
@@ -148,6 +176,16 @@ class TestHAPI:
 
         with pytest.raises(OSError):
             h_api._api_request(sentinel.method, "dummy-path")
+
+    def test_get_userid(self, h_api):
+        assert h_api.get_userid("username") == "acct:username@lms.hypothes.is"
+
+    def test_get_username(self, h_api):
+        assert h_api.get_username("acct:username@lms.hypothes.is") == "username"
+
+    def test_get_username_raises_if_username_is_invalid(self, h_api):
+        with pytest.raises(ValueError):
+            h_api.get_username("invalid_userid")
 
     @pytest.fixture
     def BulkAPI(self, patch):

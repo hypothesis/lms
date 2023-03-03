@@ -1,5 +1,6 @@
 """The H API service."""
 import json
+import re
 from datetime import datetime, timezone
 from typing import Iterator, List
 
@@ -87,7 +88,7 @@ class HAPI:
 
     def get_annotations(
         self,
-        audience_usernames: List[str],
+        audience_userids: List[str],
         updated_after: datetime,
         updated_before: datetime,
     ) -> Iterator[dict]:
@@ -95,13 +96,15 @@ class HAPI:
         Get an iterator of annotation objects for the specified audience.
 
         This is an iterator of annotations viewable by _any_ of the provided
-        usernames. It is your responsibility to work out who can see what, by
+        userids. It is your responsibility to work out who can see what, by
         knowing which groups users are in.
 
-        :param audience_usernames: List of usernames (without `acct:...`)
+        :param audience_userids: List of h userids
         :param updated_after: Datetime to search after
         :param updated_before: Datetime to search before
         """
+        audience_usernames = [self.get_username(userid) for userid in audience_userids]
+
         payload = {
             "filter": {
                 "limit": 100000,
@@ -125,7 +128,12 @@ class HAPI:
             stream=True,
         ) as response:
             for line in response.iter_lines():
-                yield json.loads(line)
+                annotation = json.loads(line)
+                author = annotation.get("author")
+                if author:
+                    if "username" in author and "userid" not in author:
+                        author["userid"] = self.get_userid(author["username"])
+                yield annotation
 
     # pylint: disable=too-many-arguments
     def _api_request(self, method, path, body=None, headers=None, stream=False):
@@ -162,6 +170,24 @@ class HAPI:
             raise HAPIError("Connecting to Hypothesis failed", err.response) from err
 
         return response
+
+    def get_userid(self, username):
+        """Return the h userid for the given username and authority."""
+        return HUser(username).userid(self._authority)
+
+    def get_username(self, userid):
+        """
+        Return the h username for the given userid.
+
+        For example if userid is 'acct:seanh@hypothes.is' then return 'seanh'.
+
+        :raises ValueError: if the given userid isn't valid
+        """
+        match = re.match(r"^acct:([^@]+)@(.*)$", userid)
+        if match:
+            return match.groups()[0]
+
+        raise ValueError(userid)
 
 
 def service_factory(_context, request) -> HAPI:
