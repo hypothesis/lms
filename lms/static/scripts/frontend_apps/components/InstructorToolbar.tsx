@@ -46,11 +46,11 @@ export default function InstructorToolbar() {
       path: editing.getConfig.path,
       data: editing.getConfig.data,
     });
+    console.log("editing", editing);
+    console.log("editing config", assignmentConfig);
 
     const filePickerConfig: FilePickerConfig = {
       ...assignmentConfig.filePicker,
-      formFields: editing.formFields,
-      formAction: editing.form_action,
     };
 
     updateConfig({

@@ -106,5 +106,5 @@ export type Assignment = {
  */
 export type AssignmentConfig = {
   assignment: Assignment;
-  filePicker: Omit<FilePickerConfig, 'formAction' | 'formFields'>;
+  filePicker: FilePickerConfig;
 };
