@@ -248,7 +248,7 @@ pycparser==2.21
     #   cffi
 pycryptodomex==3.17
     # via -r requirements/requirements.txt
-pyjwt[crypto]==2.4.0
+pyjwt[crypto]==2.6.0
     # via
     #   -r requirements/requirements.txt
     #   pyramid-googleauth
@@ -283,7 +283,7 @@ pyrsistent==0.17.3
     # via
     #   -r requirements/requirements.txt
     #   jsonschema
-pytest==7.2.1
+pytest==7.2.2
     # via -r requirements/tests.in
 python-dateutil==2.8.2
     # via
