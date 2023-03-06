@@ -42,6 +42,31 @@ class TestD2LGroupingPlugin:
             )
         assert err.value.error_code == ErrorCodes.STUDENT_NOT_IN_GROUP
 
+    def test_get_groups_for_learner_group_set_not_found(
+        self, d2l_api_client, plugin, grouping_service, course
+    ):
+        d2l_api_client.group_set_groups.side_effect = ExternalRequestError(
+            response=Mock(status_code=404)
+        )
+
+        with pytest.raises(GroupError) as err:
+            plugin.get_groups_for_learner(
+                grouping_service, course, sentinel.group_set_id
+            )
+        assert err.value.error_code == ErrorCodes.GROUP_SET_NOT_FOUND
+
+    def test_get_groups_for_learner_raises(
+        self, d2l_api_client, plugin, grouping_service, course
+    ):
+        d2l_api_client.group_set_groups.side_effect = ExternalRequestError(
+            response=Mock(status_code=500)
+        )
+
+        with pytest.raises(ExternalRequestError):
+            plugin.get_groups_for_learner(
+                grouping_service, course, sentinel.group_set_id
+            )
+
     def test_get_groups_for_grading(self, plugin, grouping_service, course):
         group_set_id = 100
         api_groups = plugin.get_groups_for_grading(
