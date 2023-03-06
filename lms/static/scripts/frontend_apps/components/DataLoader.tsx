@@ -13,19 +13,19 @@ export type DataLoaderProps<Data> = {
    */
   children: ComponentChildren;
 
-  /** Function that fetches data if {@link isLoaded} is false. */
+  /** Function that fetches data if {@link loaded} is false. */
   load: () => Promise<Data>;
 
   /**
    * Callback to invoke with the results of {@link load}.
    *
    * The parent component should persist the data and re-render the
-   * {@link DataLoader} and content with `isLoaded` set to `true`.
+   * {@link DataLoader} and content with `loaded` set to `true`.
    */
   onLoad: (data: Data) => void;
 
   /** Boolean indicating whether the required data is available. */
-  isLoaded: boolean;
+  loaded: boolean;
 };
 
 /**
@@ -38,14 +38,14 @@ export type DataLoaderProps<Data> = {
  */
 export default function DataLoader<Data>({
   children,
-  isLoaded,
+  loaded,
   load,
   onLoad,
 }: DataLoaderProps<Data>) {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (isLoaded) {
+    if (loaded) {
       return;
     }
     load()
@@ -53,7 +53,7 @@ export default function DataLoader<Data>({
       .catch(err => {
         setError(err);
       });
-  }, [isLoaded, load, onLoad]);
+  }, [loaded, load, onLoad]);
 
   if (error) {
     return (
@@ -62,7 +62,7 @@ export default function DataLoader<Data>({
         error={error}
       />
     );
-  } else if (!isLoaded) {
+  } else if (!loaded) {
     return <SpinnerOverlay />;
   } else {
     return <>{children}</>;
