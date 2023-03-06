@@ -1,17 +1,15 @@
 import classnames from 'classnames';
+import type { Ref } from 'preact';
 
-/**
- * @typedef ContentFrameProps
- * @prop {string} url
- * @prop {import('preact').Ref<HTMLIFrameElement>} [iframeRef]
- */
+export type ContentFrameProps = {
+  url: string;
+  iframeRef?: Ref<HTMLIFrameElement>;
+};
 
 /**
  * An iframe that displays the content of an assignment.
- *
- * @param {ContentFrameProps} props
  */
-export default function ContentFrame({ url, iframeRef }) {
+export default function ContentFrame({ url, iframeRef }: ContentFrameProps) {
   return (
     <iframe
       ref={iframeRef}

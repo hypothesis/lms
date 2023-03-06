@@ -1,15 +1,17 @@
-/**
- * @typedef {import('../utils/content-item').Content} Content
- * @typedef {import('./GroupConfigSelector').GroupConfig} GroupConfig
- */
+import type { Content } from '../utils/content-item';
 
-/**
- * @typedef FilePickerFormFieldsProps
- * @prop {Content} content - Content for the assignment
- * @prop {Record<string,string>} formFields - Form fields provided by the backend
- *   that should be included in the response without any changes
- * @prop {string|null} groupSet
- */
+export type FilePickerFormFieldsProps = {
+  /** Content for the assignment. */
+  content: Content;
+
+  /**
+   * Form field values provided by the backend that should be rendered as
+   * hidden input fields.
+   */
+  formFields: Record<string, string>;
+
+  groupSet: string | null;
+};
 
 /**
  * Render the hidden form fields in the file picker form containing information
@@ -22,14 +24,12 @@
  *    https://www.imsglobal.org/specs/lticiv1p0/specification
  *  - When an assignment without any content configuration is launched.
  *    See the `configure_assignment` view.
- *
- * @param {FilePickerFormFieldsProps} props
  */
 export default function FilePickerFormFields({
   content,
   formFields,
   groupSet,
-}) {
+}: FilePickerFormFieldsProps) {
   return (
     <>
       {Object.entries(formFields).map(([field, value]) => (

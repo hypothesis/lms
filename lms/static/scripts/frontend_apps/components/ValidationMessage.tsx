@@ -1,36 +1,33 @@
 import classnames from 'classnames';
 import { useEffect, useState } from 'preact/hooks';
 
-/**
- * @typedef ValidationMessageProps
- * @prop {string} message - Error message text
- * @prop {boolean} [open] - Should this be open or closed
- * @prop {() => void} [onClose] - Optional callback when the error message is closed
- */
+export type ValidationMessageProps = {
+  /** Error message text. */
+  message: string;
+
+  /** Sets whether the message is visible. */
+  open?: boolean;
+
+  /** Callback invoked when message is closed. */
+  onClose?: () => void;
+};
 
 /**
- * Shows a single validation error message that can be open or closed.
- * A user can also close the message by clicking on it.
- *
- * @param {ValidationMessageProps} props
+ * Shows a single validation error message. The user can dismiss the message
+ * by clicking on it.
  */
 export default function ValidationMessage({
   message,
   open = false,
   onClose = () => {},
-}) {
+}: ValidationMessageProps) {
   const [showError, setShowError] = useState(open);
 
   useEffect(() => {
     setShowError(open);
   }, [open]);
 
-  /**
-   * Closes the validation error message and notifies parent
-   *
-   * @param {Event} event
-   */
-  const closeValidationError = event => {
+  const closeValidationError = (event: Event) => {
     event.preventDefault();
     setShowError(false);
     onClose();
