@@ -8,7 +8,7 @@ import { Services } from '../services';
 import BasicLTILaunchApp from './BasicLTILaunchApp';
 import DataLoader from './DataLoader';
 import ErrorDialogApp from './ErrorDialogApp';
-import FilePickerApp from './FilePickerApp';
+import FilePickerApp, { loadFilePickerConfig } from './FilePickerApp';
 import OAuth2RedirectErrorApp from './OAuth2RedirectErrorApp';
 
 export type AppRootProps = {
@@ -16,69 +16,6 @@ export type AppRootProps = {
   initialConfig: ConfigObject;
   services: ServiceMap;
 };
-
-/**
- * Return dummy configuration for the file picker app. This will be replaced
- * with a call to the endpoint created in https://github.com/hypothesis/lms/pull/5120.
- */
-/* istanbul ignore next */
-async function loadDummyFilePickerConfig(
-  config: ConfigObject
-): Promise<ConfigObject> {
-  // Add a fake delay so we can see the loading state initially.
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  // Allow `simulateError` global to be set to trigger an error here.
-  if ((window as any).simulateError) {
-    throw new Error('Failed to load file picker config');
-  }
-
-  const apiCallInfo = { path: '/api/dummy' };
-
-  return {
-    ...config,
-    product: {
-      family: 'dummy',
-      api: {
-        listGroupSets: apiCallInfo,
-      },
-      settings: { groupsEnabled: false },
-    },
-    filePicker: {
-      formAction: 'dummy',
-      formFields: {},
-      ltiLaunchUrl: 'dummy',
-      blackboard: {
-        enabled: false,
-        listFiles: apiCallInfo,
-      },
-      d2l: {
-        enabled: false,
-        listFiles: apiCallInfo,
-      },
-      canvas: {
-        enabled: false,
-        listFiles: apiCallInfo,
-      },
-      google: {
-        clientId: 'dummy',
-        developerKey: 'dummy',
-        origin: 'dummy',
-      },
-      jstor: {
-        enabled: false,
-      },
-      microsoftOneDrive: {
-        enabled: false,
-        clientId: 'dummy',
-        redirectURI: 'dummy',
-      },
-      vitalSource: {
-        enabled: false,
-      },
-    },
-  };
-}
 
 /**
  * The root component for the LMS frontend.
@@ -95,10 +32,7 @@ export default function AppRoot({ initialConfig, services }: AppRootProps) {
           </Route>
           <Route path="/app/content-item-selection">
             <DataLoader
-              load={
-                /* istanbul ignore next */
-                () => loadDummyFilePickerConfig(config)
-              }
+              load={() => loadFilePickerConfig(config)}
               onLoad={setConfig}
               loaded={'filePicker' in config}
             >

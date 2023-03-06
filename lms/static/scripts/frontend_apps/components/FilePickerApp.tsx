@@ -10,6 +10,7 @@ import classnames from 'classnames';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
 import { useConfig } from '../config';
+import type { ConfigObject } from '../config';
 import { apiCall } from '../utils/api';
 import type { Content, URLContent } from '../utils/content-item';
 import { truncateURL } from '../utils/format';
@@ -67,6 +68,35 @@ function contentDescription(content: Content) {
       /* istanbul ignore next */
       throw new Error('Unknown content type');
   }
+}
+
+/**
+ * Fetch additional configuration needed by the file picker app.
+ *
+ * This is needed when transitioning to the file picker from another route.
+ *
+ * Returns the result of merging {@link config} with the configuration for
+ * the file picker app.
+ */
+export async function loadFilePickerConfig(
+  config: ConfigObject
+): Promise<ConfigObject> {
+  if (!config.editing) {
+    throw new Error('Assignment editing config missing');
+  }
+
+  const authToken = config.api.authToken;
+  const { path, data } = config.editing.getConfig;
+  const { filePicker } = await apiCall<Partial<ConfigObject>>({
+    authToken,
+    path,
+    data,
+  });
+
+  return {
+    ...config,
+    filePicker,
+  };
 }
 
 /**
