@@ -28,6 +28,19 @@ export type LaunchErrorDialogProps = {
 const vitalsourceBookshelfURL = 'https://bookshelf.vitalsource.com';
 
 /**
+ * A link to a support page or other external resource within an error message.
+ */
+function ExternalLink({ children, href }: { children: string; href: string }) {
+  // nb. Link is always underlined on the assumption it is appearing in the
+  // middle of a paragraph.
+  return (
+    <Link target="_blank" href={href} underline="always">
+      {children}
+    </Link>
+  );
+}
+
+/**
  * Render an error that prevents an LTI launch from completing successfully.
  *
  * This is rendered in a non-cancelable modal.
@@ -72,12 +85,9 @@ export default function LaunchErrorDialog({
             <li>
               You don{"'"}t have permission to read the file: an instructor
               needs to{' '}
-              <Link
-                rel="noreferrer"
-                href="https://web.hypothes.is/help/creating-hypothesis-enabled-readings-in-blackboard/"
-              >
+              <ExternalLink href="https://web.hypothes.is/help/creating-hypothesis-enabled-readings-in-blackboard/">
                 give students read permission for the file
-              </Link>
+              </ExternalLink>
             </li>
           </ul>
         </ErrorModal>
@@ -142,12 +152,9 @@ export default function LaunchErrorDialog({
 
           <p>
             To fix the issue,{' '}
-            <Link
-              target="_blank"
-              href="https://web.hypothes.is/help/fixing-a-broken-canvas-file-link/"
-            >
+            <ExternalLink href="https://web.hypothes.is/help/fixing-a-broken-canvas-file-link/">
               edit the assignment and re-select the file
-            </Link>
+            </ExternalLink>
             .
           </p>
         </ErrorModal>
@@ -325,9 +332,9 @@ export default function LaunchErrorDialog({
             book reader.{' '}
             <b>
               To fix the problem, please open the{' '}
-              <Link target="_blank" href={vitalsourceBookshelfURL}>
+              <ExternalLink href={vitalsourceBookshelfURL}>
                 VitalSource book reader
-              </Link>
+              </ExternalLink>
               .
             </b>
           </p>
@@ -342,9 +349,9 @@ export default function LaunchErrorDialog({
           <p>
             <b>
               To fix the problem, open the{' '}
-              <Link target="_blank" href={vitalsourceBookshelfURL}>
+              <ExternalLink href={vitalsourceBookshelfURL}>
                 VitalSource book reader
-              </Link>{' '}
+              </ExternalLink>{' '}
               and add the book to your library.
             </b>
           </p>
