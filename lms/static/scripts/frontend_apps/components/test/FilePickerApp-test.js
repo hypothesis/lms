@@ -6,7 +6,10 @@ import { checkAccessibility } from '../../../test-util/accessibility';
 import mockImportedComponents from '../../../test-util/mock-imported-components';
 import { waitFor, waitForElement } from '../../../test-util/wait';
 import { Config } from '../../config';
-import FilePickerApp, { $imports } from '../FilePickerApp';
+import FilePickerApp, {
+  loadFilePickerConfig,
+  $imports,
+} from '../FilePickerApp';
 
 function interact(wrapper, callback) {
   act(callback);
@@ -386,4 +389,56 @@ describe('FilePickerApp', () => {
       content: () => renderFilePicker(),
     })
   );
+});
+
+describe('loadFilePickerConfig', () => {
+  let fakeAPICall;
+  beforeEach(() => {
+    fakeAPICall = sinon.stub().resolves({});
+
+    $imports.$mock({
+      '../utils/api': {
+        apiCall: fakeAPICall,
+      },
+    });
+  });
+
+  it('rejects if `editing` config is missing', async () => {
+    let error;
+    try {
+      await loadFilePickerConfig({});
+    } catch (e) {
+      error = e;
+    }
+    assert.instanceOf(error, Error);
+    assert.equal(error.message, 'Assignment editing config missing');
+  });
+
+  it('fetches `filePicker` config from API', async () => {
+    const config = {
+      api: {
+        authToken: 'token',
+      },
+      editing: {
+        getConfig: { path: '/assignments/edit', data: { foo: 'bar' } },
+      },
+    };
+    const filePicker = {};
+    fakeAPICall.resolves({ filePicker });
+
+    const updatedConfig = await loadFilePickerConfig(config);
+
+    assert.calledWith(
+      fakeAPICall,
+      sinon.match({
+        authToken: config.api.authToken,
+        path: '/assignments/edit',
+        data: config.editing.getConfig.data,
+      })
+    );
+    assert.deepEqual(updatedConfig, {
+      ...config,
+      filePicker,
+    });
+  });
 });

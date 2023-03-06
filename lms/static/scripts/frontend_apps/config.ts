@@ -226,6 +226,9 @@ export type ConfigObject = {
     speedGrader?: SpeedGraderConfig;
   };
   contentBanner?: ContentBannerConfig;
+  editing?: {
+    getConfig: APICallInfo;
+  };
   instructorToolbar?: InstructorConfig;
   hypothesisClient?: ClientConfig;
   rpcServer?: {
