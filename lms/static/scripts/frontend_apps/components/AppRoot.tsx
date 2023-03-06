@@ -100,7 +100,7 @@ export default function AppRoot({ initialConfig, services }: AppRootProps) {
                 () => loadDummyFilePickerConfig(config)
               }
               onLoad={setConfig}
-              isLoaded={'filePicker' in config}
+              loaded={'filePicker' in config}
             >
               <FilePickerApp />
             </DataLoader>

@@ -17,7 +17,7 @@ function TestContainer({ initialMessage = null, load = fetchMessage }) {
 
   return (
     <div>
-      <DataLoader isLoaded={message !== null} load={load} onLoad={setMessage}>
+      <DataLoader loaded={message !== null} load={load} onLoad={setMessage}>
         <TestContent message={message} />
       </DataLoader>
     </div>
