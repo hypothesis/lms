@@ -30,10 +30,18 @@ class D2LGroupingPlugin(GroupingPlugin):
         return group_sets
 
     def get_groups_for_learner(self, _svc, course, group_set_id):
-        if learner_groups := self._d2l_api.group_set_groups(
-            course.lms_id, group_set_id, self._api_user_id
-        ):
-            return learner_groups
+        try:
+            if learner_groups := self._d2l_api.group_set_groups(
+                course.lms_id, group_set_id, self._api_user_id
+            ):
+                return learner_groups
+        except ExternalRequestError as exc:
+            if exc.status_code == 404:
+                raise GroupError(
+                    ErrorCodes.GROUP_SET_NOT_FOUND, group_set=group_set_id
+                ) from exc
+
+            raise
 
         raise GroupError(ErrorCodes.STUDENT_NOT_IN_GROUP, group_set=group_set_id)
 
