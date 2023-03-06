@@ -18,7 +18,7 @@ aiosignal==1.2.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   aiohttp
-alembic==1.9.4
+alembic==1.10.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -435,7 +435,7 @@ pycryptodomex==3.17
     #   -r requirements/tests.txt
 pydocstyle==6.3.0
     # via -r requirements/lint.in
-pyjwt[crypto]==2.4.0
+pyjwt[crypto]==2.6.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -623,6 +623,7 @@ typing-extensions==4.0.0
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
+    #   alembic
     #   astroid
     #   async-timeout
     #   pylint

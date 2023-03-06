@@ -14,7 +14,7 @@ aiosignal==1.2.0
     # via
     #   -r requirements/requirements.txt
     #   aiohttp
-alembic==1.9.4
+alembic==1.10.0
     # via -r requirements/requirements.txt
 amqp==5.1.1
     # via
@@ -248,7 +248,7 @@ pycparser==2.21
     #   cffi
 pycryptodomex==3.17
     # via -r requirements/requirements.txt
-pyjwt[crypto]==2.4.0
+pyjwt[crypto]==2.6.0
     # via
     #   -r requirements/requirements.txt
     #   pyramid-googleauth
@@ -358,6 +358,7 @@ translationstring==1.4
 typing-extensions==4.0.0
     # via
     #   -r requirements/requirements.txt
+    #   alembic
     #   async-timeout
 urllib3==1.26.5
     # via
