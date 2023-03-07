@@ -6,11 +6,8 @@
  *
  * If `url` is not a valid URL, it is just shortened to the first `maxLength - 1`
  * characters.
- *
- * @param {string} url
- * @param {number} maxLength
  */
-export function truncateURL(url, maxLength) {
+export function truncateURL(url: string, maxLength: number): string {
   // The URL is progressively shortened in stages until its length becomes <=
   // `maxLength` and then returned:
   //

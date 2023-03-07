@@ -1,17 +1,23 @@
+export type Options = {
+  /** Authorization token used for API requests between frontend and backend. */
+  authToken: string;
+
+  /** The initial URL to open in the authorization popup. */
+  authUrl: string;
+};
+
 /**
  * Manages an LMS authentication popup window.
  */
 export default class AuthWindow {
-  /**
-   * @param {object} options
-   * @param {string} options.authToken -
-   *   Authorization token used for API requests between frontend and backend
-   * @param {string} options.authUrl -
-   *   The initial URL to open in the authorization popup
-   */
-  constructor({ authToken, authUrl }) {
+  private _authToken: string;
+  private _authURL: string;
+  private _authWin: Window | null;
+
+  constructor({ authToken, authUrl }: Options) {
     this._authToken = authToken;
     this._authURL = authUrl;
+    this._authWin = null;
   }
 
   close() {
@@ -34,9 +40,8 @@ export default class AuthWindow {
    *
    * In order to check the authorization status after the window closes, make
    * an API call and check for a successful response.
-   * @returns {Promise<void>}
    */
-  async authorize() {
+  async authorize(): Promise<void> {
     const width = 775;
     const height = 560;
     const left = Math.round(window.screen.width / 2 - width / 2);

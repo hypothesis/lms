@@ -1,24 +1,24 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 
-/**
- * @template T
- * @typedef FetchResult
- * @prop {T|null} data
- * @prop {Error|null} error
- * @prop {boolean} isLoading
- * @prop {() => void} retry - Callback which retries the fetch. This does
- *   nothing if there is nothing to fetch or the fetch has not yet finished.
- */
+export type FetchResult<T> = {
+  data: T | null;
+  error: Error | null;
+  isLoading: boolean;
+
+  /**
+   * Callback which retries the fetch. This does nothing if there is nothing
+   * to fetch or the fetch has not yet finished.
+   */
+  retry: () => void;
+};
 
 /**
  * Function that fetches the data.
  *
  * `signal` should be passed to the underlying data fetcher (eg. {@link fetch})
  * to support cancelation if possible.
- *
- * @template T
- * @typedef {(signal: AbortSignal) => Promise<T>} Fetcher
  */
+export type Fetcher<T> = (signal: AbortSignal) => Promise<T>;
 
 /**
  * Hook that fetches data from the backend API or some other async data source.
@@ -33,20 +33,20 @@ import { useEffect, useRef, useState } from 'preact/hooks';
  *  - Canceling in-flight requests when the query changes or the component is
  *    unmounted
  *
- * @template [T=unknown]
- * @param {string|null} key - Key identifying the data to be fetched. The data
+ * @param key - Key identifying the data to be fetched. The data
  *   will be re-fetched whenever this changes. If `null`, nothing will be fetched.
- * @param {Fetcher<T>} [fetcher] - Callback that fetches the data.
- * @return {FetchResult<T>}
+ * @param [fetcher] - Callback that fetches the data.
  */
-export function useFetch(key, fetcher) {
-  const [result, setResult] = useState(
-    /** @type {FetchResult<T>} */ ({
-      data: null,
-      error: null,
-      isLoading: key !== null,
-    })
-  );
+export function useFetch<T = unknown>(
+  key: string | null,
+  fetcher?: Fetcher<T>
+): FetchResult<T> {
+  const [result, setResult] = useState<FetchResult<T>>({
+    data: null,
+    error: null,
+    isLoading: key !== null,
+    retry: /* istanbul ignore next */ () => null,
+  });
 
   const lastFetcher = useRef(fetcher);
   lastFetcher.current = fetcher;

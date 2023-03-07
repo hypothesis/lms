@@ -2,11 +2,14 @@
  * Standard JWT payload fields referenced by `JWT`.
  *
  * See https://tools.ietf.org/html/rfc7519#page-9
- *
- * @typedef JWTPayload
- * @prop {number} exp - Expiration time
- * @prop {number} iat - Issued at
  */
+export type JWTPayload = {
+  /** Expiration time. */
+  exp: number;
+
+  /** Issued at */
+  iat: number;
+};
 
 /**
  * Value class for working with JSON Web Tokens [1] issued by the server.
@@ -14,23 +17,25 @@
  * [1] https://tools.ietf.org/html/rfc7519
  */
 export class JWT {
+  private _payload: JWTPayload;
+  private _token: string;
+  private _validUntil: number;
+
   /**
    * Construct a JWT to wrap a recently issued JWT token.
    *
-   * @param {string} token - Serialized JWT
-   * @param {number} issuedAt -
+   * @param token - Serialized JWT
+   * @param issuedAt -
    *   A _client_ timestamp in milliseconds estimating when the JWT was issued.
    *   The estimate should bias towards being earlier than the true time, in
    *   which case the JWT will "expire" earlier than the true expiry.
    */
-  constructor(token, issuedAt) {
+  constructor(token: string, issuedAt: number) {
     this._token = token;
 
     try {
       const [, payloadBase64] = token.split('.');
-      this._payload = /** @type {JWTPayload} */ (
-        JSON.parse(atob(payloadBase64))
-      );
+      this._payload = JSON.parse(atob(payloadBase64)) as JWTPayload;
     } catch (err) {
       throw new Error('Failed to parse payload from JWT');
     }
@@ -53,7 +58,7 @@ export class JWT {
    * checks of the expiry time are useful to check if a token is expired before
    * it has been used, or if a JWT rejection may have been caused by an expired token.
    *
-   * @param {number} [now] - Current timestamp in milliseconds
+   * @param [now] - Current timestamp in milliseconds
    */
   hasExpired(now = Date.now()) {
     return now > this._validUntil;
@@ -70,11 +75,7 @@ export class JWT {
     return this._payload;
   }
 
-  /**
-   * @param {keyof JWTPayload} field
-   * @param {string} type
-   */
-  _getField(field, type) {
+  _getField(field: keyof JWTPayload, type: string) {
     if (typeof this._payload[field] !== type) {
       throw new Error(`Missing or invalid "${field}" field in JWT payload`);
     }

@@ -18,11 +18,10 @@
  * - books/BANANAS-47/other-parts-ignored -> 'BANANAS-47'
  * - 12345678X -> '12345678X'
  *
- * @param {string} input
- * @returns {string|null} bookID, or `null` if nothing looks like a bookID in
+ * @returns bookID, or `null` if nothing looks like a bookID in
  *  `input`
  */
-export function extractBookID(input) {
+export function extractBookID(input: string): string | null {
   const urlMatches = input.match(/books\/([0-9A-Z-]+)(\/|$)/);
   if (urlMatches) {
     return urlMatches[1];
