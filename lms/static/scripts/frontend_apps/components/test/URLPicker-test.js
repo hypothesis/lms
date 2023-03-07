@@ -6,6 +6,16 @@ import URLPicker from '../URLPicker';
 describe('URLPicker', () => {
   const renderUrlPicker = (props = {}) => mount(<URLPicker {...props} />);
 
+  it('pre-fills input with `defaultURL` prop value', () => {
+    const wrapper = renderUrlPicker({
+      defaultURL: 'https://arxiv.org/pdf/1234.pdf',
+    });
+    assert.equal(
+      wrapper.find('input').getDOMNode().value,
+      'https://arxiv.org/pdf/1234.pdf'
+    );
+  });
+
   it('invokes `onSelectURL` when user submits a URL', () => {
     const onSelectURL = sinon.stub();
 
