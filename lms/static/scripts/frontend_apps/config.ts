@@ -61,6 +61,17 @@ export type InstructorConfig = {
 export type SpeedGraderConfig = { submissionParams: object };
 
 /**
+ * Information about the current configuration of an assignment, for use when
+ * re-configuring an assignment.
+ */
+export type AssignmentConfig = {
+  group_set_id: string | null;
+  document: {
+    url: string;
+  };
+};
+
+/**
  * Configuration for the content/file picker app shown while configuring an
  * assignment.
  */
@@ -242,6 +253,9 @@ export type ConfigObject = {
 
   // Only present in "content-item-selection" mode.
   filePicker?: FilePickerConfig;
+
+  // Only present if re-configuring an existing assignment.
+  assignment?: AssignmentConfig;
 
   // Only present in "oauth2-redirect-error" mode.
   OAuth2RedirectError?: OAuthErrorConfig;

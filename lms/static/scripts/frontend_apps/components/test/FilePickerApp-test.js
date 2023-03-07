@@ -303,7 +303,7 @@ describe('FilePickerApp', () => {
       selectGroupConfig(wrapper, { useGroupSet: true, groupSet: null });
 
       assert.isTrue(
-        wrapper.find('Button[children="Continue"]').prop('disabled')
+        wrapper.find('Button[data-testid="save-button"]').prop('disabled')
       );
     });
 
@@ -317,7 +317,7 @@ describe('FilePickerApp', () => {
 
         assert.notCalled(onSubmit);
         interact(wrapper, () => {
-          wrapper.find('Button[children="Continue"]').props().onClick();
+          wrapper.find('Button[data-testid="save-button"]').props().onClick();
         });
 
         assert.called(onSubmit);
@@ -383,6 +383,97 @@ describe('FilePickerApp', () => {
     assert.isFalse(wrapper.exists('ErrorModal'));
   });
 
+  context('when editing an existing assignment', () => {
+    beforeEach(() => {
+      fakeConfig.assignment = {
+        document: {
+          url: 'https://test.com/example.pdf',
+        },
+      };
+
+      // FIXME - The existing assignment configuration and "Save" buttons
+      // should be visible even if groups are not enabled.
+      fakeConfig.product.settings.groupsEnabled = true;
+    });
+
+    /** Click the button to edit the existing content selection. */
+    function clickEditButton(wrapper) {
+      const editButton = wrapper.find('Button[data-testid="edit-content"]');
+      assert.isTrue(editButton.exists());
+      act(() => {
+        editButton.prop('onClick')();
+      });
+      wrapper.update();
+    }
+
+    /** Click the button to cancel editing the content selection. */
+    function clickCancelEditButton(wrapper) {
+      const cancelButton = wrapper.find(
+        'Button[data-testid="cancel-edit-content"]'
+      );
+      assert.isTrue(cancelButton.exists());
+      act(() => {
+        cancelButton.prop('onClick')();
+      });
+      wrapper.update();
+    }
+
+    it('shows "Back to assignment" link', () => {
+      const wrapper = renderFilePicker();
+      assert.isTrue(wrapper.exists('[data-testid="back-link"]'));
+    });
+
+    it('shows description of existing content and "Change" button', () => {
+      const wrapper = renderFilePicker();
+      const description = wrapper.find('[data-testid="content-summary"]');
+      assert.equal(description.text(), 'https://test.com/example.pdf');
+      assert.isTrue(wrapper.exists('Button[data-testid="edit-content"]'));
+    });
+
+    it('shows "Save" button instead of "Continue" button', () => {
+      const wrapper = renderFilePicker();
+      const saveButton = wrapper.find('Button[data-testid="save-button"]');
+      assert.equal(saveButton.text(), 'Save');
+    });
+
+    it('allows editing content selection', () => {
+      const wrapper = renderFilePicker();
+
+      // Initially the content selector form is not visible.
+      assert.isFalse(wrapper.exists('ContentSelector'));
+
+      // Clicking on the change/edit button next to the content description
+      // should show the content selector.
+      clickEditButton(wrapper);
+      const contentSelector = wrapper.find('ContentSelector');
+      assert.isTrue(contentSelector.exists());
+      assert.deepEqual(contentSelector.prop('initialContent'), {
+        type: 'url',
+        url: 'https://test.com/example.pdf',
+      });
+
+      // Selecting new content should revert back to showing the content
+      // description.
+      act(() => {
+        contentSelector.prop('onSelectContent')({
+          type: 'url',
+          url: 'https://othersite.com/test.pdf',
+        });
+      });
+      wrapper.update();
+      assert.isFalse(wrapper.exists('ContentSelector'));
+      const description = wrapper.find('[data-testid="content-summary"]');
+      assert.equal(description.text(), 'https://othersite.com/test.pdf');
+    });
+
+    it('cancels editing content when clicking "Cancel" button', () => {
+      const wrapper = renderFilePicker();
+      clickEditButton(wrapper);
+      clickCancelEditButton(wrapper);
+      assert.isFalse(wrapper.exists('ContentSelector'));
+    });
+  });
+
   it(
     'should pass a11y checks',
     checkAccessibility({
@@ -423,8 +514,9 @@ describe('loadFilePickerConfig', () => {
         getConfig: { path: '/assignments/edit', data: { foo: 'bar' } },
       },
     };
+    const assignment = {};
     const filePicker = {};
-    fakeAPICall.resolves({ filePicker });
+    fakeAPICall.resolves({ assignment, filePicker });
 
     const updatedConfig = await loadFilePickerConfig(config);
 
@@ -438,6 +530,7 @@ describe('loadFilePickerConfig', () => {
     );
     assert.deepEqual(updatedConfig, {
       ...config,
+      assignment,
       filePicker,
     });
   });

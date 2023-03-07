@@ -1,13 +1,16 @@
 import {
+  ArrowLeftIcon,
   Button,
   Card,
   CardActions,
   CardContent,
+  Link,
   Scroll,
   SpinnerOverlay,
 } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import { Link as RouterLink } from 'wouter-preact';
 
 import { useConfig } from '../config';
 import type { ConfigObject } from '../config';
@@ -70,6 +73,10 @@ function contentDescription(content: Content) {
   }
 }
 
+function contentFromURL(url: string): Content {
+  return { type: 'url', url };
+}
+
 /**
  * Fetch additional configuration needed by the file picker app.
  *
@@ -87,7 +94,7 @@ export async function loadFilePickerConfig(
 
   const authToken = config.api.authToken;
   const { path, data } = config.editing.getConfig;
-  const { filePicker } = await apiCall<Partial<ConfigObject>>({
+  const { assignment, filePicker } = await apiCall<Partial<ConfigObject>>({
     authToken,
     path,
     data,
@@ -95,6 +102,7 @@ export async function loadFilePickerConfig(
 
   return {
     ...config,
+    assignment,
     filePicker,
   };
 }
@@ -110,14 +118,24 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     product: {
       settings: { groupsEnabled: enableGroupConfig },
     },
+    assignment,
     filePicker: { deepLinkingAPI, formAction, formFields },
   } = useConfig(['filePicker']);
 
-  const [content, setContent] = useState<Content | null>(null);
+  // Currently selected content for assignment.
+  const [content, setContent] = useState<Content | null>(
+    assignment ? contentFromURL(assignment.document.url) : null
+  );
+
+  // Flag indicating if we are editing content that was previously selected.
+  const [editingContent, setEditingContent] = useState(false);
+
+  // True if we are editing an existing assignment configuration.
+  const isEditing = !!assignment;
 
   const [groupConfig, setGroupConfig] = useState<GroupConfig>({
-    useGroupSet: false,
-    groupSet: null,
+    useGroupSet: !!assignment?.group_set_id,
+    groupSet: assignment?.group_set_id ?? null,
   });
 
   const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null);
@@ -196,6 +214,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   const selectContent = useCallback(
     (content: Content) => {
       setContent(content);
+      setEditingContent(false);
       if (!enableGroupConfig) {
         submit(content);
       }
@@ -227,6 +246,16 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
         method="POST"
         onSubmit={onSubmit}
       >
+        {isEditing && (
+          <div className="my-2">
+            <RouterLink href="/app/basic-lti-launch" data-testid="back-link">
+              <Link classes="flex gap-x-1" underline="always">
+                <ArrowLeftIcon className="w-[0.875em] h-[0.875em]" />
+                Back to assignment
+              </Link>
+            </RouterLink>
+          </div>
+        )}
         <Card
           classes={classnames(
             // Ensure children that have overflow-scroll do not exceed the
@@ -248,10 +277,18 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                   </span>
                 </div>
                 <div className="space-y-3">
-                  {content ? (
-                    <i data-testid="content-summary" style="break-all">
-                      {contentDescription(content)}
-                    </i>
+                  {content && !editingContent ? (
+                    <div className="flex gap-x-2 items-center">
+                      <i data-testid="content-summary" style="break-all">
+                        {contentDescription(content)}
+                      </i>
+                      <Button
+                        onClick={() => setEditingContent(true)}
+                        data-testid="edit-content"
+                      >
+                        Change
+                      </Button>
+                    </div>
                   ) : (
                     <>
                       <p>
@@ -260,13 +297,14 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                       </p>
 
                       <ContentSelector
+                        initialContent={content ?? undefined}
                         onSelectContent={selectContent}
                         onError={setErrorInfo}
                       />
                     </>
                   )}
                 </div>
-                {content && enableGroupConfig && (
+                {content && !editingContent && enableGroupConfig && (
                   <>
                     <div className="col-span-2 border-b" />
                     <div className="text-end">
@@ -295,13 +333,24 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
           {content && enableGroupConfig && (
             <CardContent>
               <CardActions>
-                <Button
-                  disabled={groupConfig.useGroupSet && !groupConfig.groupSet}
-                  variant="primary"
-                  onClick={() => submit(content)}
-                >
-                  Continue
-                </Button>
+                {editingContent && (
+                  <Button
+                    onClick={() => setEditingContent(false)}
+                    data-testid="cancel-edit-content"
+                  >
+                    Back
+                  </Button>
+                )}
+                {!editingContent && (
+                  <Button
+                    data-testid="save-button"
+                    disabled={groupConfig.useGroupSet && !groupConfig.groupSet}
+                    variant="primary"
+                    onClick={() => submit(content)}
+                  >
+                    {isEditing ? 'Save' : 'Continue'}
+                  </Button>
+                )}
               </CardActions>
             </CardContent>
           )}
