@@ -7,6 +7,9 @@ import {
 import { useRef, useState } from 'preact/hooks';
 
 export type URLPickerProps = {
+  /** The initial value of the URL input field. */
+  defaultURL?: string;
+
   onCancel: () => void;
   /** Callback invoked with the entered URL when the user accepts the dialog */
   onSelectURL: (url: string) => void;
@@ -16,7 +19,11 @@ export type URLPickerProps = {
  * A dialog that allows the user to enter or paste the URL of a web page or
  * PDF file to use for an assignment.
  */
-export default function URLPicker({ onCancel, onSelectURL }: URLPickerProps) {
+export default function URLPicker({
+  defaultURL = '',
+  onCancel,
+  onSelectURL,
+}: URLPickerProps) {
   const input = useRef<HTMLInputElement | null>(null);
   const form = useRef<HTMLFormElement | null>(null);
 
@@ -75,6 +82,7 @@ export default function URLPicker({ onCancel, onSelectURL }: URLPickerProps) {
           <Input
             aria-label="Enter URL to web page or PDF"
             classes="grow"
+            defaultValue={defaultURL}
             hasError={!!error}
             elementRef={input}
             name="url"
