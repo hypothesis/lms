@@ -1,11 +1,68 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
+from sqlalchemy import select
+
+from lms.models import ApplicationInstance, AssignmentMembership, LTIRole, User
 from lms.services import DigestService
 from lms.tasks.celery import app
 
 LOG = logging.getLogger(__name__)
+
+
+@app.task
+def send_instructor_email_digest_tasks(batch_size):
+    """
+    Generate and send instructor email digests.
+
+    The email digests will cover activity that occurred in the time period from
+    5AM UTC yesterday morning to 5AM UTC this morning.
+
+    Emails will be sent to all instructors who're participating in the feature
+    and who have digest activity in the time period.
+
+    5AM UTC is chosen because it equates to midnight EST. Most of our target
+    users for this feature are in the EST timezone and we want each email
+    digests to cover "yesterday" (midnight to midnight) EST.
+
+    EST is 5 hours behind UTC (ignoring daylight savings for simplicity: we
+    don't need complete accuracy in the timing).
+    """
+    now = datetime.now(timezone.utc)
+    updated_before = datetime(year=now.year, month=now.month, day=now.day, hour=5)
+    updated_after = updated_before - timedelta(days=1)
+    updated_before = updated_before.isoformat()
+    updated_after = updated_after.isoformat()
+
+    with app.request_context() as request:  # pylint:disable=no-member
+        with request.tm:
+            h_userids = request.db.scalars(
+                select(User.h_userid)
+                .select_from(User)
+                .distinct()
+                .join(ApplicationInstance)
+                .join(AssignmentMembership)
+                .join(LTIRole)
+                .where(
+                    ApplicationInstance.settings["hypothesis"][
+                        "instructor_email_digests_enabled"
+                    ].astext
+                    == "true",
+                    LTIRole.type == "instructor",
+                )
+            ).all()
+
+            batches = [
+                h_userids[i : i + batch_size]
+                for i in range(0, len(h_userids), batch_size)
+            ]
+
+            for batch in batches:
+                send_instructor_email_digests.apply_async(
+                    [batch],
+                    {"updated_after": updated_after, "updated_before": updated_before},
+                )
 
 
 @app.task
