@@ -2,10 +2,8 @@
  * Test whether a value looks like a DOI.
  *
  * See https://en.wikipedia.org/wiki/Digital_object_identifier#Nomenclature_and_syntax.
- *
- * @param {string} value
  */
-function isDOI(value) {
+function isDOI(value: string) {
   return /^10\.([0-9]+\.?)+\/.*/.test(value);
 }
 
@@ -22,11 +20,8 @@ function isDOI(value) {
  *   EZProxy or similar service (eg. https://www-jstor-org.myuni.edu/stable/1234).
  *
  * Return `null` if the input does not match any of the recognized formats.
- *
- * @param {string} value
- * @returns {string|null}
  */
-export function articleIdFromUserInput(value) {
+export function articleIdFromUserInput(value: string): string | null {
   value = value.trim();
 
   // Plain JSTOR article ID
@@ -84,9 +79,6 @@ export function articleIdFromUserInput(value) {
   return null;
 }
 
-/**
- * @param {string} articleId
- */
-export function jstorURLFromArticleId(articleId) {
+export function jstorURLFromArticleId(articleId: string) {
   return `jstor://${articleId}`;
 }

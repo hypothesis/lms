@@ -2,10 +2,10 @@
  * Load the Google Identity Services client library, if not already loaded.
  *
  * See https://developers.google.com/identity/oauth2/web/guides/load-3p-authorization-library.
- *
- * @return {Promise<typeof window.google.accounts>}
  */
-export async function loadIdentityServicesLibrary() {
+export async function loadIdentityServicesLibrary(): Promise<
+  typeof window.google.accounts
+> {
   // The third-party types assume `window.google` always exists, but it is only
   // set once the library is loaded.
   //
@@ -30,7 +30,7 @@ export async function loadIdentityServicesLibrary() {
 /**
  * Load the Google API loader script (`window.gapi`), if not already loaded.
  */
-async function loadGAPI() {
+async function loadGAPI(): Promise<typeof window.gapi> {
   // The third-party types assume `window.gapi` always exists, but it is only
   // set once the library is loaded.
   //
@@ -57,12 +57,13 @@ async function loadGAPI() {
  *
  * See https://developers.google.com/api-client-library/javascript/reference/referencedocs
  *
- * @param {string[]} names
- * @return {Promise<Record<string, any>>}
+ * @return
  *   The `gapi` object with properties corresponding to each of the named
  *   libraries' entry points.
  */
-export async function loadLibraries(names) {
+export async function loadLibraries(
+  names: string[]
+): Promise<Record<string, any>> {
   const gapi = await loadGAPI();
 
   return new Promise((resolve, reject) => {
@@ -71,8 +72,7 @@ export async function loadLibraries(names) {
         resolve(gapi);
       },
 
-      /** @param {any} err */
-      onerror: err => {
+      onerror: (err: any) => {
         reject(err);
       },
     });

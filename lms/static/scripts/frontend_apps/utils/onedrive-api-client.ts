@@ -1,4 +1,6 @@
-export async function loadOneDriveAPI() {
+export async function loadOneDriveAPI(): Promise<
+  NonNullable<typeof window.OneDrive>
+> {
   if (window.OneDrive) {
     return window.OneDrive;
   }
@@ -7,7 +9,7 @@ export async function loadOneDriveAPI() {
     const oneDriveScript = document.createElement('script');
     oneDriveScript.src = 'https://js.live.net/v7.2/OneDrive.js';
     oneDriveScript.onload = () => {
-      resolve(window.OneDrive);
+      resolve(window.OneDrive!);
     };
     oneDriveScript.onerror = () => {
       reject(new Error('Failed to load OneDrive API'));
