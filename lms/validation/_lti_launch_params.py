@@ -50,7 +50,7 @@ class LTIV11CoreSchema(PyramidRequestSchema):
 class _CommonLTILaunchSchema(LTIV11CoreSchema):
     """Fields common to different types of LTI launches."""
 
-    location = "json_and_form"
+    location = "json_or_form"
 
     context_id = fields.Str(required=True)
     context_title = fields.Str(required=True)

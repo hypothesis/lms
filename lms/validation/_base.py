@@ -161,12 +161,3 @@ class RequestsResponseSchema(PlainSchema):
 def _query_and_form(request, _schema):
     """Location for PyramidParser that allows access to both querystring and form data."""
     return request.params
-
-
-@pyramidparser.parser.location_loader("json_and_form")
-def _json_and_form(request, _schema):
-    """Location for PyramidParser that allows access to both querystring and form data."""
-    if request.content_type == "application/json":
-        return request.json_body
-
-    return request.params
