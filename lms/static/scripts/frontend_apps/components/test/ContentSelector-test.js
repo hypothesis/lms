@@ -158,6 +158,39 @@ describe('ContentSelector', () => {
     });
   });
 
+  describe('`initialContent` prop', () => {
+    [
+      'http://example.com/1234',
+      'https://arxiv.org/pdf/1234.pdf',
+      'https://foobar.com/a%3Cb',
+    ].forEach(url => {
+      it('pre-fills URL input if `initialContent` is an HTTP URL', () => {
+        const wrapper = renderContentSelector({
+          defaultActiveDialog: 'url',
+          initialContent: { type: 'url', url },
+        });
+        assert.equal(wrapper.find('URLPicker').prop('defaultURL'), url);
+      });
+    });
+
+    it('does not open a dialog when `initialContent` is specified', () => {
+      const wrapper = renderContentSelector({
+        initialContent: { type: 'url', url: 'https://example.com' },
+      });
+      assert.isFalse(wrapper.exists('URLPicker'));
+    });
+
+    ['jstor://1234', 'unknown:foobar'].forEach(url => {
+      it('does not pre-fill URL input if `initialContent` is a non-HTTP URL', () => {
+        const wrapper = renderContentSelector({
+          defaultActiveDialog: 'url',
+          initialContent: { type: 'url', url },
+        });
+        assert.isUndefined(wrapper.find('URLPicker').prop('defaultURL'));
+      });
+    });
+  });
+
   describe('LMS file dialog', () => {
     [
       {
@@ -567,6 +600,17 @@ describe('ContentSelector', () => {
       });
 
       assert.isTrue(wrapper.exists('JSTORPicker'));
+    });
+
+    it('pre-fills article selection if `initialContent` specifies JSTOR content', () => {
+      const wrapper = renderContentSelector({
+        initialContent: { type: 'url', url: 'jstor://10.1234/5678' },
+        defaultActiveDialog: 'jstor',
+      });
+      assert.equal(
+        wrapper.find('JSTORPicker').prop('defaultArticle'),
+        '10.1234/5678'
+      );
     });
 
     it('submits JSTOR URL', () => {

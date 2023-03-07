@@ -23,16 +23,33 @@ type DialogType =
   | null;
 
 export type ContentSelectorProps = {
+  initialContent?: Content;
+
   onError: (ei: ErrorInfo) => void;
   onSelectContent: (c: Content) => void;
+
   /** Used for testing */
   defaultActiveDialog?: DialogType;
 };
+
+function extractContentTypeAndValue(content: Content): [DialogType, string] {
+  if (content.type === 'url' && content.url.match(/^https?:/)) {
+    return ['url', content.url];
+  } else if (content.type === 'url' && content.url.startsWith('jstor:')) {
+    return ['jstor', content.url.slice('jstor://'.length)];
+  } else {
+    // Other content types are not currently handled, which means that the user
+    // will need to select content starting from a blank state, as opposed to
+    // being able to adjust the selection.
+    return [null, ''];
+  }
+}
 
 /**
  * Component that allows the user to choose the content for an assignment.
  */
 export default function ContentSelector({
+  initialContent,
   defaultActiveDialog = null,
   onError,
   onSelectContent,
@@ -61,6 +78,15 @@ export default function ContentSelector({
       vitalSource: { enabled: vitalSourceEnabled },
     },
   } = useConfig(['filePicker']);
+
+  // Map the existing content selection to a dialog type and value. We don't
+  // open the corresponding dialog immediately, but do pre-fill the dialog
+  // in some cases if the user does open it.
+  const [initialType, initialValue] = useMemo(
+    () =>
+      initialContent ? extractContentTypeAndValue(initialContent) : [null, ''],
+    [initialContent]
+  );
 
   const [isLoadingIndicatorVisible, setLoadingIndicatorVisible] =
     useState(false);
@@ -143,10 +169,19 @@ export default function ContentSelector({
     });
   };
 
+  const getDefaultValue = (type: DialogType) =>
+    type === initialType ? initialValue : undefined;
+
   let dialog;
   switch (activeDialog) {
     case 'url':
-      dialog = <URLPicker onCancel={cancelDialog} onSelectURL={selectURL} />;
+      dialog = (
+        <URLPicker
+          defaultURL={getDefaultValue('url')}
+          onCancel={cancelDialog}
+          onSelectURL={selectURL}
+        />
+      );
       break;
     case 'canvasFile':
       dialog = (
@@ -189,7 +224,13 @@ export default function ContentSelector({
       break;
 
     case 'jstor':
-      dialog = <JSTORPicker onCancel={cancelDialog} onSelectURL={selectURL} />;
+      dialog = (
+        <JSTORPicker
+          defaultArticle={getDefaultValue('jstor')}
+          onCancel={cancelDialog}
+          onSelectURL={selectURL}
+        />
+      );
       break;
     case 'vitalSourceBook':
       dialog = (
