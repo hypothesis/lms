@@ -1,37 +1,43 @@
-/**
- * @typedef {'reused_consumer_key'} AppLaunchServerErrorCode
- *
- * @typedef {'blackboard_missing_integration'|'canvas_invalid_scope'} OAuthServerErrorCode
- *
- * @typedef {'blackboard_file_not_found_in_course'|
- *           'blackboard_group_set_empty' |
- *           'blackboard_group_set_not_found' |
- *           'blackboard_student_not_in_group' |
- *           'd2l_file_not_found_in_course'|
- *           'd2l_group_set_not_found' |
- *           'd2l_group_set_empty' |
- *           'd2l_student_not_in_group' |
- *           'canvas_api_permission_error'|
- *           'canvas_file_not_found_in_course'|
- *           'canvas_group_set_not_found'|
- *           'canvas_group_set_empty'|
- *           'canvas_student_not_in_group'|
- *           'vitalsource_user_not_found'|
- *           'vitalsource_no_book_license'} LTILaunchServerErrorCode
- */
+export type AppLaunchServerErrorCode = 'reused_consumer_key';
+
+export type OAuthServerErrorCode =
+  | 'blackboard_missing_integration'
+  | 'canvas_invalid_scope';
+
+export type LTILaunchServerErrorCode =
+  | 'blackboard_file_not_found_in_course'
+  | 'blackboard_group_set_empty'
+  | 'blackboard_group_set_not_found'
+  | 'blackboard_student_not_in_group'
+  | 'd2l_file_not_found_in_course'
+  | 'd2l_group_set_not_found'
+  | 'd2l_group_set_empty'
+  | 'd2l_student_not_in_group'
+  | 'canvas_api_permission_error'
+  | 'canvas_file_not_found_in_course'
+  | 'canvas_group_set_not_found'
+  | 'canvas_group_set_empty'
+  | 'canvas_student_not_in_group'
+  | 'vitalsource_user_not_found'
+  | 'vitalsource_no_book_license';
 
 /**
  * An `Error` or error-like object. This allows components in the application
  * to work with plain-old JavaScript objects representing an error without
  * requiring `Error` instances.
- *
- * @typedef ErrorLike
- * @prop {string} [message]
- * @prop {object|string} [details] - Optional JSON-serializable details of the error
- * @prop {string} [errorCode] - Provided by back-end to identify error state
- * @prop {string} [serverMessage] - Explanatory message provided by backend that
- *   will be preferred over `message` if it is present.
  */
+export type ErrorLike = {
+  message?: string;
+
+  /** Optional JSON-serializable details of the error. */
+  details?: object | string;
+
+  /** Provided by back-end to identify error state. */
+  errorCode?: string;
+
+  /** Explanatory message provided by backend that will be preferred over `message` if it is present. */
+  serverMessage?: string;
+};
 
 /**
  * Error raised when a course's list of groups is empty (as returned from the
@@ -58,42 +64,47 @@ export class PickerCanceledError extends Error {
  */
 export class APIError extends Error {
   /**
-   * @param {number} status - HTTP status code
-   * @param {object} data - Parsed JSON body from the API response
-   *   @param {string} [data.message]
-   *   @param {string} [data.error_code]
-   *   @param {unknown} [data.details]
+   * HTTP response status.
    */
-  constructor(status, data) {
+  public status: number;
+
+  /**
+   * Identifier for the specific error that happened.
+   *
+   * This can be used to show custom error dialogs for specific issues.
+   */
+  public errorCode: string | undefined;
+
+  /**
+   * Server-provided error message.
+   *
+   * May be empty if the server did not provide any details about what the
+   * problem was.
+   */
+  public serverMessage: string;
+
+  /**
+   * Server-provided details of the error.
+   *
+   * If provided, this will contain technical information about what the
+   * problem was on the backend. This may be useful when handling eg.
+   * support requests.
+   */
+  public details: object | string | undefined;
+
+  /**
+   * @param status - HTTP status code
+   * @param data - Parsed JSON body from the API response
+   */
+  constructor(
+    status: number,
+    data: { message?: string; error_code?: string; details?: object | string }
+  ) {
     super('API call failed');
 
-    /**
-     * HTTP response status.
-     */
     this.status = status;
-
-    /**
-     * Identifier for the specific error that happened.
-     *
-     * This can be used to show custom error dialogs for specific issues.
-     */
     this.errorCode = data.error_code;
-
-    /**
-     * Server-provided error message.
-     *
-     * May be empty if the server did not provide any details about what the
-     * problem was.
-     */
     this.serverMessage = data.message ?? '';
-
-    /**
-     * Server-provided details of the error.
-     *
-     * If provided, this will contain technical information about what the
-     * problem was on the backend. This may be useful when handling eg.
-     * support requests.
-     */
     this.details = data.details;
   }
 }
@@ -107,11 +118,8 @@ export class APIError extends Error {
  *
  * Put another way, if an APIError has neither an errorCode nor a serverMessage,
  * it is considered an "authorization error".
- *
- * @param {ErrorLike} error
- * @returns {boolean}
  */
-export function isAuthorizationError(error) {
+export function isAuthorizationError(error: ErrorLike): boolean {
   return error instanceof APIError && !error.serverMessage && !error.errorCode;
 }
 
@@ -119,11 +127,8 @@ export function isAuthorizationError(error) {
  * Does the error represent an API Error with a recognized
  * backend-provided `errorCode` related to a failed attempt to launch an
  * assignment?
- *
- * @param {ErrorLike} error
- * @returns {error is APIError}
  */
-export function isLTILaunchServerError(error) {
+export function isLTILaunchServerError(error: ErrorLike): error is APIError {
   return (
     error instanceof APIError &&
     !!error.errorCode &&
@@ -150,12 +155,8 @@ export function isLTILaunchServerError(error) {
 /**
  * Format a user-facing message based on this error and optional contextual
  * prefix, using the appropriate message information.
- *
- * @param {ErrorLike} error
- * @param {string} [prefix]
- * @returns {string}
  */
-export function formatErrorMessage(error, prefix = '') {
+export function formatErrorMessage(error: ErrorLike, prefix = ''): string {
   // If any message is provided by the backend as `error.serverMessage`,
   // prefer this for display to users even if it is empty.
   const message = error.serverMessage ?? error.message ?? '';
@@ -170,11 +171,8 @@ export function formatErrorMessage(error, prefix = '') {
  * Return a string representing error details. If `error.details` is an
  * object, attempt to JSON-stringify it. If details is already a string, return
  * it as-is. Return the empty string otherwise.
- *
- * @param {ErrorLike} error
- * @returns {string}
  */
-export function formatErrorDetails(error) {
+export function formatErrorDetails(error: ErrorLike): string {
   let details = '';
   if (error.details && typeof error.details === 'object') {
     try {
