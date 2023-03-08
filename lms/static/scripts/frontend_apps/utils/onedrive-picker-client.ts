@@ -5,38 +5,45 @@ import { loadOneDriveAPI } from './onedrive-api-client';
  * Partial type for OneDrive share links.
  *
  * See https://docs.microsoft.com/en-us/graph/api/resources/sharinglink?view=graph-rest-1.0
- *
- * @typedef SharingLink
- * @prop {string} webUrl
  */
+export type SharingLink = {
+  webUrl: string;
+};
 
 /**
  * Partial type for OneDrive item permissions.
  *
  * See https://docs.microsoft.com/en-us/graph/api/resources/permission?view=graph-rest-1.0
- *
- * @typedef Permission
- * @prop {SharingLink} link
  */
+export type Permission = {
+  link: SharingLink;
+};
 
 /**
  * Partial type for OneDrive items.
  *
  * See https://docs.microsoft.com/en-us/graph/api/resources/driveitem?view=graph-rest-1.0.
- *
- * @typedef DriveItem
- * @prop {string} name
- * @prop {Permission[]} permissions
  */
+export type DriveItem = {
+  name: string;
+  permissions: Permission[];
+};
 
 /**
  * Result of successful file picker response.
  *
  * See https://docs.microsoft.com/en-us/onedrive/developer/controls/file-pickers/js-v72/open-file?view=odsp-graph-online#4-handling-the-picker-response-object.
- *
- * @typedef PickerResponse
- * @prop {DriveItem[]} value
  */
+export type PickerResponse = {
+  value: DriveItem[];
+};
+
+export type OneDriveOptions = {
+  clientId: string;
+
+  /** The URL that is used to launch the picker. */
+  redirectURI: string;
+};
 
 /**
  * A wrapper around the Microsoft OneDrive file picker.
@@ -46,12 +53,11 @@ import { loadOneDriveAPI } from './onedrive-api-client';
  * Microsoft Graph API and responses etc. use types associated with that API.
  */
 export class OneDrivePickerClient {
-  /**
-   * @param {object} options
-   * @param {string} options.clientId
-   * @param {string} options.redirectURI - the URL that is used to launch the picker
-   */
-  constructor({ clientId, redirectURI }) {
+  private _oneDriveAPI: Promise<NonNullable<typeof window.OneDrive>>;
+  private _clientId: string;
+  private _redirectURI: string;
+
+  constructor({ clientId, redirectURI }: OneDriveOptions) {
     this._oneDriveAPI = loadOneDriveAPI();
     this._clientId = clientId;
     this._redirectURI = redirectURI;
@@ -60,17 +66,16 @@ export class OneDrivePickerClient {
   /**
    * Opens the OneDrive picker
    *
-   * @return {Promise<{ name: string, url: string }>} The (file) name and URL
+   * @return The (file) name and URL
    * @throws {Error} - there are two types of errors:
    *   - PickerCancelledError: raised when the user cancels the OneDrive dialog picker
    *   - Error: raised when (1) the OneDrive client fails to load, or when (2)
    *       the picker fails with internal or backend problem.
    */
-  async showPicker() {
+  async showPicker(): Promise<{ name: string; url: string }> {
     const oneDrive = await this._oneDriveAPI;
     return new Promise((resolve, reject) => {
-      /** @param {PickerResponse} result */
-      const success = result => {
+      const success = (result: PickerResponse) => {
         // TODO - Clarify nullability of properties and lengths of arrays.
         // We think there are some situations where these properties won't exist
         // or the arrays may be empty.
@@ -83,7 +88,7 @@ export class OneDrivePickerClient {
         resolve({ name, url });
       };
       const cancel = () => reject(new PickerCanceledError());
-      const error = (/** @type {Error} */ error) => reject(error);
+      const error = (error: Error) => reject(error);
 
       const filePickerOptions = {
         clientId: this._clientId,
@@ -116,10 +121,8 @@ export class OneDrivePickerClient {
    *   removing '=' characters from the end of the value, replacing '/'
    *   with '_' and '+' with '-'
    * 3. Append u! to be beginning of the string.
-   *
-   * @param {string} sharingURL
    */
-  static downloadURL(sharingURL) {
+  static downloadURL(sharingURL: string) {
     const url = new URL(sharingURL);
     if (url.hostname.endsWith('.sharepoint.com')) {
       url.search = 'download=1';
