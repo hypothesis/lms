@@ -1,15 +1,10 @@
+import type { JSTORMetadata } from '../api-types';
+import type { ContentBannerConfig } from '../config';
 import { apiCall, urlPath } from '../utils/api';
+import type { ContentInfoConfig, ContentInfoLinks } from './client-rpc';
+import type { ClientRPC } from './index';
 
-/**
- * @typedef {import('../config').ContentBannerConfig} ContentBannerConfig
- * @typedef {import('./client-rpc').ContentInfoConfig} ContentInfoConfig
- * @typedef {import('./client-rpc').ContentInfoLinks} ContentInfoLinks
- */
-
-/**
- * @param {string} itemId
- */
-function itemURL(itemId) {
+function itemURL(itemId: string) {
   return `https://www.jstor.org/stable/${itemId}`;
 }
 
@@ -24,12 +19,13 @@ function itemURL(itemId) {
  * assignment if it fails. Instead the user just won't see the banner.
  */
 export class ContentInfoFetcher {
+  private _authToken: string;
+  private _clientRPC: ClientRPC;
+
   /**
-   * @param {string} authToken
-   * @param {import('./index').ClientRPC} clientRPC - Service for communicating
-   *   with Hypothesis client
+   * @param clientRPC - Service for communicating with Hypothesis client
    */
-  constructor(authToken, clientRPC) {
+  constructor(authToken: string, clientRPC: ClientRPC) {
     this._authToken = authToken;
     this._clientRPC = clientRPC;
   }
@@ -37,25 +33,22 @@ export class ContentInfoFetcher {
   /**
    * Fetch metadata for content and send it to the client for display in the
    * content info banner.
-   *
-   * @param {ContentBannerConfig} contentId
    */
-  async fetch(contentId) {
+  async fetch(contentId: ContentBannerConfig) {
     // This condition exists for when new content sources are added.
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (contentId.source !== 'jstor') {
       throw new Error('Unknown content source');
     }
 
-    /** @type {import('../api-types').JSTORMetadata} */
-    const metadata = await apiCall({
+    const metadata = await apiCall<JSTORMetadata>({
       authToken: this._authToken,
       path: urlPath`/api/jstor/articles/${contentId.itemId}`,
     });
 
-    const links = /** @type ContentInfoLinks */ ({
+    const links: ContentInfoLinks = {
       currentItem: itemURL(contentId.itemId),
-    });
+    };
 
     if (metadata.related_items.next_id) {
       links.nextItem = itemURL(metadata.related_items.next_id);
@@ -65,8 +58,7 @@ export class ContentInfoFetcher {
       links.previousItem = itemURL(metadata.related_items.previous_id);
     }
 
-    /** @type {ContentInfoConfig} */
-    const contentInfo = {
+    const contentInfo: ContentInfoConfig = {
       logo: {
         logo: new URL(
           '/static/images/jstor-logo.svg',

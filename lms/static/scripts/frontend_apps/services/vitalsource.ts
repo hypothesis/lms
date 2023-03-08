@@ -1,7 +1,4 @@
-/**
- * @typedef {import('../api-types').Book} Book
- * @typedef {import('../api-types').Chapter} Chapter
- */
+import type { Book, Chapter } from '../api-types';
 import { apiCall, urlPath } from '../utils/api';
 
 /**
@@ -9,25 +6,22 @@ import { apiCall, urlPath } from '../utils/api';
  * list of chapters in a book.
  */
 export class VitalSourceService {
-  /**
-   * @param {object} options
-   *   @param {string} options.authToken
-   */
-  constructor({ authToken }) {
+  private _authToken: string;
+
+  constructor({ authToken }: { authToken: string }) {
     this._authToken = authToken;
   }
 
   /**
    * Fetch metadata about a VitalSource book.
    *
-   * @param {string} bookID - VitalSource book ID (aka "vbid")
-   * @return {Promise<Book>}
+   * @param bookId - VitalSource book ID (aka "vbid")
    */
-  async fetchBook(bookID) {
+  async fetchBook(bookId: string): Promise<Book> {
     // Path parameter encoding is currently handled by the `apiCall` caller,
     // but this should be done by `apiCall` in future.
-    return apiCall({
-      path: urlPath`/api/vitalsource/books/${bookID}`,
+    return apiCall<Book>({
+      path: urlPath`/api/vitalsource/books/${bookId}`,
       authToken: this._authToken,
     });
   }
@@ -36,12 +30,11 @@ export class VitalSourceService {
    * Fetch a list of chapters that can be used as the target location for an
    * ebook assignment.
    *
-   * @param {string} bookID - VitalSource book ID ("vbid")
-   * @return {Promise<Chapter[]>}
+   * @param bookId - VitalSource book ID ("vbid")
    */
-  async fetchChapters(bookID) {
-    return apiCall({
-      path: urlPath`/api/vitalsource/books/${bookID}/toc`,
+  async fetchChapters(bookId: string): Promise<Chapter[]> {
+    return apiCall<Chapter[]>({
+      path: urlPath`/api/vitalsource/books/${bookId}/toc`,
       authToken: this._authToken,
     });
   }
