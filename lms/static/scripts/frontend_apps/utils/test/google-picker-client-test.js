@@ -40,7 +40,7 @@ function createGoogleLibFakes() {
     PickerBuilder: function () {
       return pickerBuilder;
     },
-    View: function () {
+    DocsView: function () {
       return pickerView;
     },
     ViewId: {
