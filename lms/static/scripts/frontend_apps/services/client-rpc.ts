@@ -1,66 +1,85 @@
 import { TinyEmitter } from 'tiny-emitter';
 
 import { Server, call as rpcCall } from '../../postmessage_json_rpc';
+import type { ClientConfig } from '../config';
 import { apiCall } from '../utils/api';
 import { JWT } from '../utils/jwt';
 
-/**
- * @typedef User
- * @prop {string} displayName
- * @prop {string} userid
- */
+export type User = {
+  displayName: string;
+  userid: string;
+};
 
-/**
- * @typedef {'create'|'update'|'flag'|'delete'} AnnotationEventType
- *
- * @typedef AnnotationEventData
- * @prop {string} date
- * @prop {object} annotation
- *  @prop {string} annotation.id
- *  @prop {boolean} annotation.isShared
- */
+export type AnnotationEventType = 'create' | 'update' | 'flag' | 'delete';
 
-/**
- * @typedef {import('../config').ClientConfig} ClientConfig
- */
+export type AnnotationEventData = {
+  date: string;
+  annotation: {
+    id: string;
+    isShared: boolean;
+  };
+};
 
 /**
  * Content provider logo details.
- *
- * @typedef ContentInfoLogo
- * @prop {string} logo
- * @prop {string} title
- * @prop {string} link
  */
+export type ContentInfoLogo = {
+  logo: string;
+  title: string;
+  link: string;
+};
 
 /**
  * Metadata for the current document, for display in the content info banner.
- *
- * @typedef ContentInfoItem
- * @prop {string} title - Title of the current article, chapter etc.
- * @prop {string} [subtitle]
  */
+export type ContentInfoItem = {
+  /** Title of the current article, chapter etc. */
+  title: string;
+  subtitle?: string;
+};
 
 /**
  * Links related to the current document, for display in the content info banner.
- *
- * @typedef ContentInfoLinks
- * @prop {string} [previousItem] - Previous item in the book, journal etc.
- * @prop {string} [nextItem] - Next item in the book, journal etc.
- * @prop {string} currentItem
  */
+export type ContentInfoLinks = {
+  /** Previous item in the book, journal etc. */
+  previousItem?: string;
+  /** Next item in the book, journal etc. */
+  nextItem?: string;
+  currentItem: string;
+};
 
 /**
  * Configuration for content information banner in client.
  *
  * This and other `ContentInfo*` types are copied from the hypothesis/client repo.
- *
- * @typedef {object} ContentInfoConfig
- * @prop {ContentInfoLogo} logo - Logo of the content provider
- * @prop {ContentInfoItem} item
- * @prop {ContentInfoItem} container
- * @prop {ContentInfoLinks} links
  */
+export type ContentInfoConfig = {
+  /** Logo of the content provider. */
+  logo: ContentInfoLogo;
+  item: ContentInfoItem;
+  container: ContentInfoItem;
+  links: ContentInfoLinks;
+};
+
+export type ClientRPCOptions = {
+  /** Origins that are allowed to request client configuration. */
+  allowedOrigins: string[];
+
+  /**
+   * Auth token used in LMS backend API calls to refresh the grant token
+   * in the `clientConfig` if it has expired
+   */
+  authToken: string;
+
+  /**
+   * Configuration for the Hypothesis client. Whatever is provided here is
+   * passed directly to the client via `window.postMessage` when it requests
+   * configuration. It should be a subset of the config options specified at
+   * https://h.readthedocs.io/projects/client/en/latest/publishers/config/.
+   */
+  clientConfig: ClientConfig;
+};
 
 /**
  * Service for communicating with the Hypothesis client.
@@ -74,22 +93,13 @@ import { JWT } from '../utils/jwt';
  *    in the LMS frontend, such as changing the focused user in grading mode.
  */
 export class ClientRPC extends TinyEmitter {
+  private _resolveGroups: (groups: string[]) => void;
+  private _server: Server;
+
   /**
    * Setup the RPC server used to communicate with the Hypothesis client.
-   *
-   * @param {object} options
-   *   @param {string[]} options.allowedOrigins -
-   *     Origins that are allowed to request client configuration
-   *   @param {string} options.authToken -
-   *     Auth token used in LMS backend API calls to refresh the grant token
-   *     in the `clientConfig` if it has expired
-   *   @param {ClientConfig} options.clientConfig -
-   *     Configuration for the Hypothesis client. Whatever is provided here is
-   *     passed directly to the client via `window.postMessage` when it requests
-   *     configuration. It should be a subset of the config options specified at
-   *     https://h.readthedocs.io/projects/client/en/latest/publishers/config/.
    */
-  constructor({ allowedOrigins, authToken, clientConfig }) {
+  constructor({ allowedOrigins, authToken, clientConfig }: ClientRPCOptions) {
     super();
     this._server = new Server(allowedOrigins);
 
@@ -104,12 +114,10 @@ export class ClientRPC extends TinyEmitter {
       if (grantToken.hasExpired()) {
         const issuedAt = Date.now();
         try {
-          const response = /** @type {{ grant_token: string }} */ (
-            await apiCall({
-              authToken,
-              path: '/api/grant_token',
-            })
-          );
+          const response = await apiCall<{ grant_token: string }>({
+            authToken,
+            path: '/api/grant_token',
+          });
           grantToken = new JWT(response.grant_token, issuedAt);
         } catch (err) {
           throw new Error(
@@ -124,15 +132,12 @@ export class ClientRPC extends TinyEmitter {
 
     this._server.register(
       'reportActivity',
-      /**
-       * @param {AnnotationEventType} eventType
-       * @param {AnnotationEventData} data
-       */
-      (eventType, data) => {
+      (eventType: AnnotationEventType, data: AnnotationEventData) => {
         this.emit('annotationActivity', eventType, data);
       }
     );
 
+    this._resolveGroups = () => {};
     const groups = new Promise(resolve => {
       this._resolveGroups = resolve;
     });
@@ -154,10 +159,8 @@ export class ClientRPC extends TinyEmitter {
    *
    * This method should be called exactly once during the LTI launch and calling
    * it a second time will have no effect.
-   *
-   * @param {string[]} groups
    */
-  setGroups(groups) {
+  setGroups(groups: string[]) {
     this._resolveGroups(groups);
   }
 
@@ -166,11 +169,9 @@ export class ClientRPC extends TinyEmitter {
    *
    * This may be called any number of times.
    *
-   * @param {User|null} user
-   * @param {string[]|null} groups - Array of `groupid`s representing the
-   *  focused user's groups
+   * @param groups - Array of `groupid`s representing the focused user's groups
    */
-  async setFocusedUser(user, groups) {
+  async setFocusedUser(user: User | null, groups: string[] | null) {
     await this._callClient('changeFocusModeUser', {
       // Passing `undefined` as the `username` disables focus mode in the client.
       //
@@ -185,19 +186,16 @@ export class ClientRPC extends TinyEmitter {
   /**
    * Instruct the client to show a content information banner.
    *
-   * @param {ContentInfoConfig} info - Data to show in the banner
+   * @param info - Data to show in the banner
    */
-  async showContentInfo(info) {
+  async showContentInfo(info: ContentInfoConfig) {
     await this._callClient('showContentInfo', info);
   }
 
   /**
    * Make an RPC request to the client.
-   *
-   * @param {string} method
-   * @param {unknown[]} args
    */
-  async _callClient(method, ...args) {
+  async _callClient(method: string, ...args: unknown[]) {
     const sidebar = await this._server.sidebarWindow;
     return rpcCall(sidebar.frame, sidebar.origin, method, args);
   }

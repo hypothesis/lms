@@ -1,4 +1,5 @@
 import { createContext } from 'preact';
+import type { Context, FunctionComponent } from 'preact';
 import { useContext, useMemo } from 'preact/hooks';
 
 export { ClientRPC } from './client-rpc';
@@ -6,14 +7,16 @@ export { ContentInfoFetcher } from './content-info-fetcher';
 export { GradingService } from './grading';
 export { VitalSourceService } from './vitalsource';
 
+/** Type that any class can be assigned to. */
+export type Constructor = new (...args: any[]) => unknown;
+
 /**
  * Directory of available services.
  *
  * The directory is a map of service class to instance. The instances don't
  * have to be instances of the exact class, but they must have the same interface.
- *
- * @typedef {Map<Function, unknown>} ServiceMap
  */
+export type ServiceMap = Map<Constructor, unknown>;
 
 /**
  * Context object used to make services available to components.
@@ -34,10 +37,8 @@ export { VitalSourceService } from './vitalsource';
  *   <Services.Provider value={services}>
  *     <MyApp />
  *   </Services.Provider>
- *
- * @type {import('preact').Context<ServiceMap>}
  */
-export const Services = createContext(new Map());
+export const Services: Context<ServiceMap> = createContext(new Map());
 
 /**
  * Hook that looks up a service.
@@ -45,17 +46,18 @@ export const Services = createContext(new Map());
  * There must be a `Services.Provider` component higher up the component tree
  * which provides the service. This hook throws if the service is not available.
  *
- * @template {new (...args: any) => any} Class
- * @param {Class} class_ - The service class. This is used as a key to look up the instance.
- * @return {InstanceType<Class>} - Registered instance which implements `class_`'s interface
+ * @param class_ - The service class. This is used as a key to look up the instance.
+ * @return - Registered instance which implements `class_`'s interface
  */
-export function useService(class_) {
+export function useService<Class extends Constructor>(
+  class_: Class
+): InstanceType<Class> {
   const serviceMap = useContext(Services);
   const service = serviceMap.get(class_);
   if (!service) {
     throw new Error(`Service "${class_.name}" is not registered`);
   }
-  return /** @type {InstanceType<Class>} */ (service);
+  return service as InstanceType<Class>;
 }
 
 /**
@@ -70,14 +72,15 @@ export function useService(class_) {
  *   const WidgetWrapper = withServices(Widget, () => [[APIService, apiService]]);
  *   render(<WidgetWrapper someProp={aValue}/>, container)
  *
- * @param {import('preact').FunctionComponent} Component
- * @param {() => [class_: Function, instance: any][]} getServices -
+ * @param getServices -
  *   Callback that returns an array of `[ServiceClass, instance]` tuples, called
  *   when the component is first rendered.
  */
-export function withServices(Component, getServices) {
-  /** @param {object} props */
-  const ComponentWrapper = props => {
+export function withServices(
+  Component: FunctionComponent,
+  getServices: () => [class_: Constructor, instance: any][]
+) {
+  const ComponentWrapper = (props: object) => {
     const services = useMemo(() => new Map(getServices()), []);
     return (
       <Services.Provider value={services}>
