@@ -51,6 +51,17 @@ export default function LaunchErrorDialog({
   errorState,
   onRetry,
 }: LaunchErrorDialogProps) {
+  // Common properties for error dialog.
+  const defaultProps = {
+    busy,
+    error,
+
+    // FIXME: Retrying the launch is enabled by default, but many error cases
+    // disable it. This feels a bit haphazard. Perhaps we can improve consistency
+    // in future by always providing this option?
+    onRetry,
+  };
+
   switch (errorState) {
     case 'error-authorizing':
       // nb. There are no error details shown here, since failing to authorize
@@ -59,8 +70,8 @@ export default function LaunchErrorDialog({
       // specially here by not passing the `error` on to `BaseDialog`
       return (
         <ErrorModal
-          busy={busy}
-          onRetry={onRetry}
+          {...defaultProps}
+          error={undefined}
           retryLabel="Authorize"
           title="Authorize Hypothesis"
         >
@@ -70,9 +81,7 @@ export default function LaunchErrorDialog({
     case 'blackboard_file_not_found_in_course':
       return (
         <ErrorModal
-          busy={busy}
-          error={error}
-          onRetry={onRetry}
+          {...defaultProps}
           title="Hypothesis couldn't find the file in the course"
         >
           <p>This might have happened because:</p>
@@ -96,9 +105,7 @@ export default function LaunchErrorDialog({
     case 'd2l_file_not_found_in_course':
       return (
         <ErrorModal
-          busy={busy}
-          error={error}
-          onRetry={onRetry}
+          {...defaultProps}
           title="Hypothesis couldn't find the file in the course"
         >
           <p>
@@ -110,12 +117,7 @@ export default function LaunchErrorDialog({
 
     case 'canvas_api_permission_error':
       return (
-        <ErrorModal
-          busy={busy}
-          error={error}
-          onRetry={onRetry}
-          title="Couldn't get the file from Canvas"
-        >
+        <ErrorModal {...defaultProps} title="Couldn't get the file from Canvas">
           <p>
             Hypothesis couldn&apos;t get the assignment&apos;s file from Canvas.
           </p>
@@ -138,9 +140,7 @@ export default function LaunchErrorDialog({
     case 'canvas_file_not_found_in_course':
       return (
         <ErrorModal
-          busy={busy}
-          error={error}
-          onRetry={onRetry}
+          {...defaultProps}
           title="Hypothesis couldn't find the file in the course"
         >
           <p>This might have happened because:</p>
@@ -162,7 +162,11 @@ export default function LaunchErrorDialog({
 
     case 'canvas_group_set_not_found':
       return (
-        <ErrorModal busy={busy} error={error} title="Group set not found">
+        <ErrorModal
+          {...defaultProps}
+          onRetry={undefined}
+          title="Group set not found"
+        >
           <p>
             Hypothesis couldn&apos;t find this assignment&apos;s group set. This
             could be because:
@@ -188,8 +192,8 @@ export default function LaunchErrorDialog({
     case 'blackboard_group_set_not_found':
       return (
         <ErrorModal
-          busy={busy}
-          error={error}
+          {...defaultProps}
+          onRetry={undefined}
           title="Assignment's group set no longer exists"
         >
           <p>
@@ -207,8 +211,8 @@ export default function LaunchErrorDialog({
     case 'd2l_group_set_not_found':
       return (
         <ErrorModal
-          busy={busy}
-          error={error}
+          {...defaultProps}
+          onRetry={undefined}
           title="Assignment's group category no longer exists"
         >
           <p>
@@ -228,8 +232,8 @@ export default function LaunchErrorDialog({
     case 'canvas_group_set_empty':
       return (
         <ErrorModal
-          busy={busy}
-          error={error}
+          {...defaultProps}
+          onRetry={undefined}
           title="Assignment's group set is empty"
         >
           <p>The group set for this Hypothesis assignment is empty. </p>
@@ -244,8 +248,8 @@ export default function LaunchErrorDialog({
     case 'd2l_group_set_empty':
       return (
         <ErrorModal
-          busy={busy}
-          error={error}
+          {...defaultProps}
+          onRetry={undefined}
           title="Assignment's group category is empty"
         >
           <p>The group category for this Hypothesis assignment is empty. </p>
@@ -261,8 +265,8 @@ export default function LaunchErrorDialog({
     case 'blackboard_student_not_in_group':
       return (
         <ErrorModal
-          busy={busy}
-          error={error}
+          {...defaultProps}
+          onRetry={undefined}
           title="You're not in any of this assignment's groups"
         >
           <p>
@@ -281,8 +285,8 @@ export default function LaunchErrorDialog({
     case 'canvas_student_not_in_group':
       return (
         <ErrorModal
-          busy={busy}
-          error={error}
+          {...defaultProps}
+          onRetry={undefined}
           title="You're not in any of this assignment's groups"
         >
           <p>
@@ -301,8 +305,8 @@ export default function LaunchErrorDialog({
     case 'd2l_student_not_in_group':
       return (
         <ErrorModal
-          busy={busy}
-          error={error}
+          {...defaultProps}
+          onRetry={undefined}
           title="You're not in any of this assignment's groups"
         >
           <p>
@@ -322,8 +326,8 @@ export default function LaunchErrorDialog({
     case 'vitalsource_user_not_found':
       return (
         <ErrorModal
-          busy={busy}
-          error={error}
+          {...defaultProps}
+          onRetry={undefined}
           title="VitalSource account not found"
         >
           <p>Hypothesis could not find your VitalSource user account.</p>
@@ -344,7 +348,11 @@ export default function LaunchErrorDialog({
     case 'vitalsource_no_book_license':
       return (
         // TODO: Add some details of _which_ book is not available.
-        <ErrorModal busy={busy} error={error} title="Book not available">
+        <ErrorModal
+          {...defaultProps}
+          onRetry={undefined}
+          title="Book not available"
+        >
           <p>Your VitalSource library does not have this book in it.</p>
           <p>
             <b>
@@ -362,12 +370,7 @@ export default function LaunchErrorDialog({
       // Do not display canned text if there is a back-end-provided message
       // to show here, as it's redundant and not useful
       return (
-        <ErrorModal
-          busy={busy}
-          error={error}
-          onRetry={onRetry}
-          title="Something went wrong"
-        >
+        <ErrorModal {...defaultProps} title="Something went wrong">
           {!error?.serverMessage && (
             <p>There was a problem fetching this Hypothesis assignment.</p>
           )}
@@ -378,7 +381,11 @@ export default function LaunchErrorDialog({
       // nb. There is no retry action here as we just suggest reloading the entire
       // page.
       return (
-        <ErrorModal busy={busy} error={error} title="Something went wrong">
+        <ErrorModal
+          {...defaultProps}
+          onRetry={undefined}
+          title="Something went wrong"
+        >
           <p>
             There was a problem submitting this Hypothesis assignment.{' '}
             <b>To fix this problem, try reloading the page.</b>
