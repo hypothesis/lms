@@ -38,18 +38,25 @@ type ErrorModalBaseProps = {
   error?: ErrorLike | null;
 
   /**
-   * A callback for retrying the failed action. When present, a retry button
-   * will be rendered.
+   * Additional actions that will be displayed in the footer of the dialog.
    */
-  onRetry?: () => void;
-  /** Text for retry button, if present. */
-  retryLabel?: string;
+  extraActions?: ComponentChildren;
 
   /**
    * A callback for closing/canceling the modal. If not provided, the modal
    * will not be closeable.
    */
   onCancel?: () => void;
+
+  /**
+   * A callback for retrying the failed action. When present, a retry button
+   * will be rendered.
+   */
+  onRetry?: () => void;
+
+  /** Text for retry button, if present. */
+  retryLabel?: string;
+
   title?: string;
 };
 
@@ -66,6 +73,7 @@ export default function ErrorModal({
   children,
   description,
   error,
+  extraActions,
   onCancel,
   onRetry,
   retryLabel = 'Try again',
@@ -84,6 +92,7 @@ export default function ErrorModal({
           {cancelLabel}
         </Button>
       )}
+      {extraActions}
       {onRetry && (
         <Button
           elementRef={focusedDialogButton}
