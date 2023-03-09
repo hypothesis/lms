@@ -52,8 +52,8 @@ class TestDigestService:
             create_autospec(UnifiedUser, spec_set=True, instance=True),
         ]
         digests = helper.instructor_digest.side_effect = [
-            {"num_annotations": 1},
-            {"num_annotations": 2},
+            {"total_annotations": 1},
+            {"total_annotations": 2},
         ]
 
         svc.send_instructor_email_digests(
@@ -86,7 +86,7 @@ class TestDigestService:
     def test_send_instructor_email_digests_doesnt_send_empty_digests(
         self, svc, helper, mailchimp_service
     ):
-        helper.instructor_digest.return_value = {"num_annotations": 0}
+        helper.instructor_digest.return_value = {"total_annotations": 0}
 
         svc.send_instructor_email_digests(
             [sentinel.h_userid], sentinel.updated_after, sentinel.updated_before
@@ -97,7 +97,7 @@ class TestDigestService:
     def test_send_instructor_email_digests_uses_override_to_email(
         self, svc, helper, mailchimp_service
     ):
-        helper.instructor_digest.return_value = {"num_annotations": 1}
+        helper.instructor_digest.return_value = {"total_annotations": 1}
 
         svc.send_instructor_email_digests(
             [sentinel.h_userid],

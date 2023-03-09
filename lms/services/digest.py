@@ -41,7 +41,7 @@ class DigestService:
             unified_user = UnifiedUser.make(self.db, h_userid)
             digest = self.helper.instructor_digest(unified_user, unified_courses)
 
-            if not digest["num_annotations"]:
+            if not digest["total_annotations"]:
                 continue
 
             if override_to_email is None:
