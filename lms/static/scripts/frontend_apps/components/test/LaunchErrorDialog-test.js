@@ -1,30 +1,42 @@
 import { mount } from 'enzyme';
 
 import mockImportedComponents from '../../../test-util/mock-imported-components';
+import { Config } from '../../config';
 import LaunchErrorDialog, { $imports } from '../LaunchErrorDialog';
 
 describe('LaunchErrorDialog', () => {
   let retryStub;
 
-  function renderDialog(props) {
+  function renderDialog(props = {}, config = {}) {
     return mount(
-      <LaunchErrorDialog
-        errorState="error-authorizing"
-        busy={false}
-        onRetry={retryStub}
-        {...props}
-      />
+      <Config.Provider value={config}>
+        <LaunchErrorDialog
+          errorState="error-authorizing"
+          busy={false}
+          onRetry={retryStub}
+          {...props}
+        />
+      </Config.Provider>
     );
   }
+
+  // Custom mock for ErrorModal which includes `extraActions` in the output.
+  function MockErrorModal({ children, extraActions }) {
+    return (
+      <>
+        {children}
+        {extraActions}
+      </>
+    );
+  }
+  MockErrorModal.displayName = 'ErrorModal';
 
   beforeEach(() => {
     retryStub = sinon.stub();
 
     $imports.$mock(mockImportedComponents());
-
-    // Un-mock `Dialog` so we can get a reference to the "Try again" button.
-    $imports.$restore({
-      './Dialog': true,
+    $imports.$mock({
+      './ErrorModal': MockErrorModal,
     });
   });
 
@@ -221,5 +233,22 @@ describe('LaunchErrorDialog', () => {
   it('forwards `busy` to `ErrorModal`', () => {
     const wrapper = renderDialog({ busy: true });
     assert.isTrue(wrapper.find('ErrorModal').prop('busy'));
+  });
+
+  it('does not show "Edit assignment" link if user is a student', () => {
+    const wrapper = renderDialog();
+    assert.isFalse(wrapper.exists('[data-testid="edit-link"]'));
+  });
+
+  it('shows "Edit assignment" link if user is an instructor', () => {
+    const config = {
+      instructorToolbar: {
+        editingEnabled: true,
+      },
+    };
+    const wrapper = renderDialog({}, config);
+    const editLink = wrapper.find('Link[data-testid="edit-link"]');
+    assert.isTrue(editLink.exists());
+    assert.equal(editLink.prop('href'), '/app/content-item-selection');
   });
 });

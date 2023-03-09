@@ -1,5 +1,7 @@
 import { Link } from '@hypothesis/frontend-shared/lib/next';
+import { Link as RouterLink } from 'wouter-preact';
 
+import { useConfig } from '../config';
 import type { ErrorLike } from '../errors';
 import type { ErrorState } from './BasicLTILaunchApp';
 import ErrorModal from './ErrorModal';
@@ -51,9 +53,22 @@ export default function LaunchErrorDialog({
   errorState,
   onRetry,
 }: LaunchErrorDialogProps) {
+  const { instructorToolbar } = useConfig();
+  let extraActions;
+  if (instructorToolbar?.editingEnabled) {
+    extraActions = (
+      <RouterLink href="/app/content-item-selection">
+        <Link underline="always" data-testid="edit-link">
+          Edit assignment
+        </Link>
+      </RouterLink>
+    );
+  }
+
   // Common properties for error dialog.
   const defaultProps = {
     busy,
+    extraActions,
     error,
 
     // FIXME: Retrying the launch is enabled by default, but many error cases
