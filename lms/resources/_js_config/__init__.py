@@ -185,6 +185,8 @@ class JSConfig:
         This mode launches an assignment.
         """
         self._config["mode"] = JSConfig.Mode.BASIC_LTI_LAUNCH
+        # Info about the product we are currently running in
+        self._config["product"] = self._get_product_info()
 
         self._config["api"]["sync"] = self._sync_api(assignment)
 
@@ -438,8 +440,6 @@ class JSConfig:
             # launches its BasicLtiLaunchApp, whereas in
             # "content-item-selection" mode it launches its FilePickerApp.
             "mode": None,
-            # Add common fields with info about the LMS we are running in.
-            "product": self._get_product_info(),
         }
 
         if self._lti_user:
