@@ -47,6 +47,20 @@ describe('ErrorModal', () => {
     assert.equal(cancelButton.text(), 'Oh no!');
   });
 
+  it('renders extra actions if provided', () => {
+    const extraActions = (
+      <>
+        <button data-testid="button-a">Click me</button>
+        <button data-testid="button-b">No, pick me!</button>
+      </>
+    );
+
+    const wrapper = createComponent({ extraActions });
+
+    assert.isTrue(wrapper.exists('[data-testid="button-a"]'));
+    assert.isTrue(wrapper.exists('[data-testid="button-b"]'));
+  });
+
   it('Passes title on to Modal', () => {
     const wrapper = createComponent({
       title: 'My custom title',
