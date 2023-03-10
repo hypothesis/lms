@@ -226,7 +226,8 @@ describe('ContentSelector', () => {
           type: 'url',
           url: 'd2l://content-resource/123',
         },
-        missingFilesHelpLink: 'https://web.hypothes.is/help-categories/d2l/',
+        missingFilesHelpLink:
+          'https://web.hypothes.is/help/using-hypothesis-with-d2l-course-content-files/',
       },
     ].forEach(test => {
       it(`supports selecting a file from the ${test.name} file dialog`, () => {
