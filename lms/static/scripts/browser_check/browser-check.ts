@@ -3,10 +3,8 @@
  *
  * We use feature tests to try to avoid false negatives. These are only representative,
  * not exhaustive, checks of required APIs.
- *
- * @return {boolean}
  */
-export function isBrowserSupported() {
+export function isBrowserSupported(): boolean {
   const checks = [
     // ES APIs.
     () => Promise.resolve(),
