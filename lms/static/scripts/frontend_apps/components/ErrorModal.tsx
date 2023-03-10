@@ -12,7 +12,13 @@ type ErrorModalBaseProps = {
    * provided.
    */
   busy?: boolean;
+
+  /**
+   * Content of the dialog. This should be a human-readable explanation of the
+   * problem that occurred and may include hints on how to fix it.
+   */
   children?: ComponentChildren;
+
   /**
    * Text displayed on the Modal's cancel button. Only relevant when `onCancel`
    * is provided.
