@@ -92,18 +92,21 @@ describe('AppRoot', () => {
       './FilePickerApp': DummyFilePickerApp,
     });
 
-    // Render app initially in assignment view route.
+    // Simulate a launch that is initially viewing an assignment.
     const config = { mode: 'basic-lti-launch' };
     navigateTo('/app/basic-lti-launch');
     const wrapper = renderAppRoot({ config, services: new Map() });
     assert.isTrue(wrapper.exists('BasicLTILaunchApp'));
 
-    // Navigate to assignment edit route.
+    // Navigate to assignment edit route. This should cause the additional
+    // configuration needed by that route to be fetched.
     const updatedConfig = { ...config, filePicker: {} };
     fakeLoadFilePickerConfig.resolves(updatedConfig);
     navigateTo('/app/content-item-selection');
-    await waitForElement(wrapper, 'FilePickerApp');
 
+    // Once the additional configuration is fetched, the mocked FilePickerApp
+    // should be rendered.
+    await waitForElement(wrapper, 'FilePickerApp');
     assert.calledOnce(fakeLoadFilePickerConfig);
     assert.equal(actualConfig, updatedConfig);
   });
