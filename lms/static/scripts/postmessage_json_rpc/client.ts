@@ -2,11 +2,8 @@ import { generateHexString } from './random';
 
 /**
  * Return a Promise that rejects with an error after `delay` ms.
- *
- * @param {number} delay
- * @param {string} message
  */
-function createTimeout(delay, message) {
+function createTimeout(delay: number, message: string) {
   return new Promise((_, reject) => {
     setTimeout(() => reject(new Error(message)), delay);
   });
@@ -15,24 +12,24 @@ function createTimeout(delay, message) {
 /**
  * Make a JSON-RPC call to a server in another frame using `postMessage`.
  *
- * @param {Window} frame - Frame to send call to
- * @param {string} origin - Origin filter for `window.postMessage` call
- * @param {string} method - Name of the JSON-RPC method
- * @param {unknown[]} params - Parameters of the JSON-RPC method
- * @param {number} [timeout] - Maximum time to wait in ms
- * @param {Window} [window_] - Test seam.
- * @param {string} [id] - Test seam.
- * @return {Promise<any>} - A Promise for the response to the call
+ * @param frame - Frame to send call to
+ * @param origin - Origin filter for `window.postMessage` call
+ * @param method - Name of the JSON-RPC method
+ * @param params - Parameters of the JSON-RPC method
+ * @param [timeout] - Maximum time to wait in ms
+ * @param [window_] - Test seam.
+ * @param [id] - Test seam.
+ * @return - A Promise for the response to the call
  */
-async function call(
-  frame,
-  origin,
-  method,
-  params = [],
+export async function call(
+  frame: Window,
+  origin: string,
+  method: string,
+  params: unknown[] = [],
   timeout = 2000,
   window_ = window,
   id = generateHexString(10)
-) {
+): Promise<unknown> {
   // Send RPC request.
   const request = {
     jsonrpc: '2.0',
@@ -44,9 +41,8 @@ async function call(
 
   // Await response or timeout.
   let listener;
-  const response = new Promise((resolve, reject) => {
-    /** @param {MessageEvent} event */
-    listener = event => {
+  const response = new Promise<unknown>((resolve, reject) => {
+    listener = (event: MessageEvent) => {
       if (event.origin !== origin) {
         // Not from the frame that we sent the request to.
         return;
@@ -91,12 +87,17 @@ async function call(
  * Send a JSON-RPC 2.0 notification request to another frame via `postMessage`.
  * No response is expected.
  *
- * @param {Window} frame - Frame to send call to
- * @param {string} origin - Origin filter for `window.postMessage` call
- * @param {string} method - Name of the JSON-RPC method
- * @param {unknown[]} params - Parameters of the JSON-RPC method
+ * @param frame - Frame to send call to
+ * @param origin - Origin filter for `window.postMessage` call
+ * @param method - Name of the JSON-RPC method
+ * @param params - Parameters of the JSON-RPC method
  */
-function notify(frame, origin, method, params = []) {
+export function notify(
+  frame: Window,
+  origin: string,
+  method: string,
+  params: unknown[]
+) {
   const request = {
     jsonrpc: '2.0',
     method,
@@ -104,5 +105,3 @@ function notify(frame, origin, method, params = []) {
   };
   frame.postMessage(request, origin);
 }
-
-export { call, notify };
