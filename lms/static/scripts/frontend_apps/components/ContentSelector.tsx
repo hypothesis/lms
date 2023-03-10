@@ -174,7 +174,9 @@ export default function ContentSelector({
           listFilesApi={d2lListFilesApi}
           onCancel={cancelDialog}
           onSelectFile={selectD2LFile}
-          missingFilesHelpLink={'https://web.hypothes.is/help-categories/d2l/'}
+          missingFilesHelpLink={
+            'https://web.hypothes.is/help/using-hypothesis-with-d2l-course-content-files/'
+          }
           withBreadcrumbs
         />
       );
