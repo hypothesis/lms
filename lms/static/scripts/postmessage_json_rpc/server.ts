@@ -103,7 +103,7 @@ export class Server {
    * Receive a postMessage event and, if it's a JSON-RPC request from an
    * allowed origin, post back either a result or an error response.
    */
-  async _receiveMessage(event: MessageEvent) {
+  private async _receiveMessage(event: MessageEvent) {
     if (!this._allowedOrigins.includes(event.origin)) {
       return;
     }
@@ -134,7 +134,7 @@ export class Server {
    * Invoke the method indicated in the JSON-RPC 2.0 notification request
    * object.
    */
-  async _jsonRPCNotification(request: JSONRPCNotification) {
+  private async _jsonRPCNotification(request: JSONRPCNotification) {
     const method = this._registeredMethods[request.method];
 
     if (!method) {
@@ -154,7 +154,7 @@ export class Server {
   /**
    * Return true if the provided object is a JSON-RPC request.
    */
-  _isJSONRPCRequest(request: any) {
+  private _isJSONRPCRequest(request: any) {
     if (!(request instanceof Object) || request.jsonrpc !== '2.0') {
       // Event is neither a JSON-RPC request or response.
       return false;
@@ -171,7 +171,9 @@ export class Server {
   /**
    * Return a JSON-RPC response object for the given JSON-RPC request object.
    */
-  async _jsonRPCResponse(request: JSONRPCRequest): Promise<JSONRPCResponse> {
+  private async _jsonRPCResponse(
+    request: JSONRPCRequest
+  ): Promise<JSONRPCResponse> {
     // Return an error response if the request id is invalid.
     // id must be a string, number or null.
     const id = request.id;
