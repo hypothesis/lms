@@ -104,8 +104,7 @@ class AssignmentService:
         assignment.title = lti_params.get("resource_link_title")
         assignment.description = lti_params.get("resource_link_description")
         assignment.is_gradable = is_gradable
-        if extra:
-            assignment.extra = extra
+        assignment.extra = extra
 
         return assignment
 
