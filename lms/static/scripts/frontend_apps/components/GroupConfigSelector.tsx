@@ -246,7 +246,7 @@ export default function GroupConfigSelector({
         onInput={(e: Event) =>
           onChangeGroupConfig({
             useGroupSet: (e.target as HTMLInputElement).checked,
-            groupSet: groupSet ?? null,
+            groupSet: (e.target as HTMLInputElement).checked ? groupSet : null,
           })
         }
       >
