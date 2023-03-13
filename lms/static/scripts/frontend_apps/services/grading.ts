@@ -28,14 +28,7 @@ export class GradingService {
   /**
    * Submits a student's grade to the LTI endpoint.
    */
-  submitGrade({
-    student,
-    grade,
-  }: {
-    student: Student;
-    /** Value between 0 and 1. */
-    grade: number;
-  }) {
+  submitGrade({ student, grade }: { student: Student; grade: number }) {
     return apiCall<void>({
       authToken: this._authToken,
       path: '/api/lti/result',
