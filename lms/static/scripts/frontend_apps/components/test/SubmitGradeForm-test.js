@@ -37,8 +37,7 @@ describe('SubmitGradeForm', () => {
     });
   };
 
-  const fakeValidateGrade = sinon.stub();
-  const fakeFormatToNumber = sinon.stub();
+  const fakeValidateGrade = sinon.stub().returns({ ok: true, grade: 1.0 });
   const inputSelector = 'input[data-testid="grade-input"]';
 
   async function waitForGradeFetch(wrapper) {
@@ -62,8 +61,7 @@ describe('SubmitGradeForm', () => {
 
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
-      '../utils/validation': {
-        formatToNumber: fakeFormatToNumber,
+      '../utils/grade-validation': {
         validateGrade: fakeValidateGrade,
       },
     });
@@ -153,8 +151,8 @@ describe('SubmitGradeForm', () => {
   context('validation messages', () => {
     beforeEach(() => {
       $imports.$mock({
-        '../utils/validation': {
-          validateGrade: sinon.stub().returns('err'),
+        '../utils/grade-validation': {
+          validateGrade: sinon.stub().returns({ ok: false, error: 'err' }),
         },
       });
     });
@@ -176,11 +174,6 @@ describe('SubmitGradeForm', () => {
     });
 
     it('hides the validation message after it was opened when input is detected', () => {
-      $imports.$mock({
-        '../utils/validation': {
-          validateGrade: sinon.stub().returns('err'),
-        },
-      });
       const wrapper = renderForm();
       wrapper.find('button[type="submit"]').simulate('click');
       wrapper.find(inputSelector).simulate('input');

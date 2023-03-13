@@ -12,19 +12,26 @@ import type { StudentInfo } from '../config';
 import type { ErrorLike } from '../errors';
 import { useService, GradingService } from '../services';
 import { useFetch } from '../utils/fetch';
+import { formatGrade, validateGrade } from '../utils/grade-validation';
 import { useUniqueId } from '../utils/hooks';
-import { formatToNumber, scaleGrade, validateGrade } from '../utils/validation';
 import ErrorModal from './ErrorModal';
 import ValidationMessage from './ValidationMessage';
-
-// Grades are always stored as a value between [0-1] on the service layer.
-// Scale the grade to [0-10] when loading it into the UI and scale it
-// back to [0-1] when saving it to the api service.
-const GRADE_MULTIPLIER = 10;
 
 export type SubmitGradeFormProps = {
   student: StudentInfo | null;
 };
+
+/**
+ * Scaling factor applied to grade values from the LMS to get the values
+ * entered by the user.
+ *
+ * LTI 1.1 only supports grade values between 0 and 1, which we then rescale
+ * to 0-10 in the UI. LTI 1.3+ offer more flexibility (see [1]) so this will
+ * likely become dynamic in future.
+ *
+ * [1] https://www.imsglobal.org/spec/lti-ags/v2p0
+ */
+const MAX_SCORE = 10;
 
 /**
  * A form with a single input field and submit button for an instructor to
@@ -40,11 +47,11 @@ export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
     const { currentScore = null } = await gradingService.fetchGrade({
       student,
     });
-    return currentScore === null
-      ? ''
-      : `${scaleGrade(currentScore, GRADE_MULTIPLIER)}`;
+    return formatGrade(currentScore, MAX_SCORE);
   };
 
+  // The stored grade value fetched from the LMS and converted to the range
+  // displayed in the UI.
   const grade = useFetch(
     student ? `grade:${student.userid}` : null,
     student ? () => fetchGrade(student) : undefined
@@ -83,24 +90,19 @@ export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
     inputRef.current!.select();
   }, [grade]);
 
-  /**
-   * Validate the grade and if it passes, then submit the grade to to `onSubmitGrade`
-   */
   const onSubmitGrade = async (event: Event) => {
     event.preventDefault();
-    const value = formatToNumber(inputRef.current!.value);
-    const validationError = validateGrade(value);
+    const result = validateGrade(inputRef.current!.value, MAX_SCORE);
 
-    if (validationError) {
-      setValidationMessageMessage(validationError);
+    if (!result.ok) {
+      setValidationMessageMessage(result.error);
       setValidationError(true);
     } else {
       setGradeSaving(true);
       try {
         await gradingService.submitGrade({
           student: student as StudentInfo,
-          // nb. `value` will be a number if there was no validation error.
-          grade: (value as number) / GRADE_MULTIPLIER,
+          grade: result.grade,
         });
         setGradeSaved(true);
       } catch (e) {
