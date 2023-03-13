@@ -32,7 +32,7 @@
     "@rollup/plugin-replace": "^5.0.2",
     "@rollup/plugin-virtual": "^3.0.1",
     "@trivago/prettier-plugin-sort-imports": "^4.1.1",
-    "autoprefixer": "^10.4.13",
+    "autoprefixer": "^10.4.14",
     "classnames": "^2.3.2",
     "eslint-plugin-mocha": "^10.1.0",
     "eslint-plugin-react": "^7.32.2",
