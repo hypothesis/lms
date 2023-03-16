@@ -14,7 +14,6 @@ class TestCourseCopyFilesHelper:
         [
             (factories.File.build(course_id=sentinel.course_id), True),
             (None, False),
-            (factories.File.build(course_id=sentinel.other_course), False),
         ],
     )
     def test_is_file_in_course(self, file_service, helper, file, expected):
@@ -24,7 +23,9 @@ class TestCourseCopyFilesHelper:
             sentinel.course_id, sentinel.file_id, sentinel.type
         )
 
-        file_service.get.assert_called_once_with(sentinel.file_id, sentinel.type)
+        file_service.get.assert_called_once_with(
+            sentinel.file_id, sentinel.type, sentinel.course_id
+        )
         assert is_in_course == expected
 
     @pytest.mark.parametrize("raising", [True, False])

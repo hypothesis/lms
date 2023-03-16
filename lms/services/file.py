@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy import func
 
 from lms.models import File
@@ -9,10 +11,13 @@ class FileService:
         self._application_instance = application_instance
         self._db = db
 
-    def get(self, lms_id, type_):
-        """Return the file with the given lms_id and type_ or None."""
+    def get(self, lms_id, type_, course_id=None) -> Optional[File]:
+        """Return the file with the given parameters or None."""
         return self._file_search_query(
-            application_instance=self._application_instance, lms_id=lms_id, type_=type_
+            application_instance=self._application_instance,
+            lms_id=lms_id,
+            type_=type_,
+            course_id=course_id,
         ).one_or_none()
 
     def find_copied_file(self, new_course_id, original_file: File):
@@ -51,18 +56,16 @@ class FileService:
         )
 
     def _file_search_query(
-        self, *, application_instance=None, lms_id=None, type_=None, course_id=None
+        self, application_instance, type_, *, lms_id=None, course_id=None
     ):
         """Return a `File` query with the passed parameters applied as filters."""
-        query = self._db.query(File)
-        if application_instance:
-            query = query.filter_by(application_instance_id=application_instance.id)
+        query = self._db.query(File).filter_by(
+            application_instance_id=application_instance.id,
+            type=type_,
+        )
 
         if lms_id:
             query = query.filter_by(lms_id=lms_id)
-
-        if type_:
-            query = query.filter_by(type=type_)
 
         if course_id:
             query = query.filter_by(course_id=course_id)
