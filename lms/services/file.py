@@ -32,7 +32,7 @@ class FileService:
                 course_id=new_course_id,
             ).filter(
                 # We don't want to find the same file we are looking for
-                File.lms_id != original_file.lms_id,
+                File.id != original_file.id,
                 # And as a heuristic, we reckon same name, same size, probably the same file
                 File.name == original_file.name,
                 File.size == original_file.size,
