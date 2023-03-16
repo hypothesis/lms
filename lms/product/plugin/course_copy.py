@@ -14,11 +14,9 @@ class CourseCopyFilesHelper:
     def is_file_in_course(self, course_id, file_id, type_) -> bool:
         """Check if `file_id` belongs to `course_id`."""
 
-        file = self._file_service.get(lms_id=file_id, type_=type_)
-        if not file or file.course_id != course_id:
-            return False
-
-        return True
+        return bool(
+            self._file_service.get(lms_id=file_id, type_=type_, course_id=course_id)
+        )
 
     def find_matching_file_in_course(
         self,
