@@ -2,10 +2,12 @@ import { Button } from '@hypothesis/frontend-shared/lib/next';
 import Library from '@hypothesis/frontend-shared/lib/pattern-library/components/Library';
 import { useState } from 'preact/hooks';
 
+import type { ErrorState } from '../../frontend_apps/components/BasicLTILaunchApp';
 import ErrorDialogApp from '../../frontend_apps/components/ErrorDialogApp';
 import ErrorDisplay from '../../frontend_apps/components/ErrorDisplay';
 import ErrorModal from '../../frontend_apps/components/ErrorModal';
 import LaunchErrorDialog from '../../frontend_apps/components/LaunchErrorDialog';
+import type { LaunchErrorDialogProps } from '../../frontend_apps/components/LaunchErrorDialog';
 import OAuth2RedirectErrorApp from '../../frontend_apps/components/OAuth2RedirectErrorApp';
 import { Config } from '../../frontend_apps/config';
 import type { ConfigObject } from '../../frontend_apps/config';
@@ -103,24 +105,54 @@ function OAuth2RedirectErrorAppExample({
   }
 }
 
-function LaunchErrorDialogExample({ errorState = '' }) {
+type LaunchErrorDialogProps_ = Partial<LaunchErrorDialogProps> & {
+  _withEditingEnabled?: boolean;
+};
+
+function LaunchErrorDialog_({
+  busy = false,
+  errorState,
+  error = fakeError,
+  onRetry = () => {},
+  _withEditingEnabled = false,
+  ...restProps
+}: LaunchErrorDialogProps_) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const retryHandler = () => {
+    onRetry();
+    setDialogOpen(false);
+  };
+
+  // @ts-ignore-next TODO Cooking up a valid full `ConfigObject` is a beast
+  const config: ConfigObject = {};
+
+  if (_withEditingEnabled) {
+    // @ts-ignore-next TODO Cooking up a valid full `ConfigObject` is a beast
+    config.instructorToolbar = {
+      editingEnabled: true,
+    };
+  }
 
   if (!dialogOpen) {
     return (
-      <Button onClick={() => setDialogOpen(!dialogOpen)} variant="primary">
+      <Button onClick={() => setDialogOpen(!dialogOpen)}>
         {errorState}
+        {_withEditingEnabled && <em>(editable)</em>}
       </Button>
     );
   } else {
     return (
-      <LaunchErrorDialog
-        error={fakeError}
-        // @ts-ignore-next TODO: Examples are setting fake messages not
-        // recognized as `errorState` values
-        errorState={errorState}
-        onRetry={() => setDialogOpen(false)}
-      />
+      <Config.Provider value={config}>
+        <LaunchErrorDialog
+          busy={busy}
+          error={error}
+          // @ts-ignore-next TODO: Examples are setting fake messages not
+          // recognized as `errorState` values
+          errorState={errorState}
+          {...restProps}
+          onRetry={() => retryHandler()}
+        />
+      </Config.Provider>
     );
   }
 }
@@ -380,20 +412,94 @@ export default function ErrorComponents() {
             encountered that prevents the launch from completing successfully.
           </p>
           <p>
-            <b>Note</b>: You can close these example dialogs by clicking the{' '}
-            {"'Try Again'"} button.
+            <b>Note</b>: Some of these errors present a {'"Try Again"'} button
+            that can be clicked to close them. Unfortunatey, at this time, some
+            dialogs require a page reload to clear.
           </p>
         </div>
 
-        <Library.Example title="Recognized error codes">
-          <Library.Demo title="blackboard_file_not_found_in_course">
-            <LaunchErrorDialogExample errorState="blackboard_file_not_found_in_course" />
+        <Library.Example title="LMS-specific error codes">
+          <Library.Demo title="Blackboard launch errors">
+            <div className="grid grid-cols-2 gap-2">
+              {(
+                [
+                  'blackboard_file_not_found_in_course',
+                  'blackboard_group_set_not_found',
+                  'blackboard_group_set_empty',
+                  'blackboard_student_not_in_group',
+                ] as ErrorState[]
+              ).map(errorCode => (
+                <>
+                  <LaunchErrorDialog_ errorState={errorCode} />
+                  <LaunchErrorDialog_
+                    errorState={errorCode}
+                    _withEditingEnabled
+                  />
+                </>
+              ))}
+            </div>
           </Library.Demo>
-          <Library.Demo title="canvas_api_permission_error">
-            <LaunchErrorDialogExample errorState="canvas_api_permission_error" />
+
+          <Library.Demo title="Canvas launch errors">
+            <div className="grid grid-cols-2 gap-2">
+              {(
+                [
+                  'canvas_api_permission_error',
+                  'canvas_file_not_found_in_course',
+                  'canvas_group_set_not_found',
+                  'canvas_group_set_empty',
+                  'canvas_student_not_in_group',
+                ] as ErrorState[]
+              ).map(errorCode => (
+                <>
+                  <LaunchErrorDialog_ errorState={errorCode} />
+                  <LaunchErrorDialog_
+                    errorState={errorCode}
+                    _withEditingEnabled
+                  />
+                </>
+              ))}
+            </div>
           </Library.Demo>
-          <Library.Demo title="canvas_file_not_found_in_course">
-            <LaunchErrorDialogExample errorState="canvas_file_not_found_in_course" />
+
+          <Library.Demo title="D2L launch errors">
+            <div className="grid grid-cols-2 gap-2">
+              {(
+                [
+                  'd2l_file_not_found_in_course',
+                  'd2l_group_set_not_found',
+                  'd2l_group_set_empty',
+                  'd2l_student_not_in_group',
+                ] as ErrorState[]
+              ).map(errorCode => (
+                <>
+                  <LaunchErrorDialog_ errorState={errorCode} />
+                  <LaunchErrorDialog_
+                    errorState={errorCode}
+                    _withEditingEnabled
+                  />
+                </>
+              ))}
+            </div>
+          </Library.Demo>
+
+          <Library.Demo title="VitalSource launch errors">
+            <div className="grid grid-cols-2 gap-2">
+              {(
+                [
+                  'vitalsource_user_not_found',
+                  'vitalsource_no_book_license',
+                ] as ErrorState[]
+              ).map(errorCode => (
+                <>
+                  <LaunchErrorDialog_ errorState={errorCode} />
+                  <LaunchErrorDialog_
+                    errorState={errorCode}
+                    _withEditingEnabled
+                  />
+                </>
+              ))}
+            </div>
           </Library.Demo>
         </Library.Example>
 
@@ -403,12 +509,18 @@ export default function ErrorComponents() {
             error HTTP status but no content in the body to indicate the type of
             error or a message.
           </p>
-          <p>
-            <b>Note:</b> You can close this dialog by clicking the{' '}
-            {"'Authorize'"} button.
-          </p>
           <Library.Demo title="Authorization error">
-            <LaunchErrorDialogExample errorState="error-authorizing" />
+            <LaunchErrorDialog_ errorState="error-authorizing" />
+          </Library.Demo>
+        </Library.Example>
+
+        <Library.Example title="Fetch error">
+          <p>
+            This error is shown if the proxy API returns an error indicating a
+            problem fetching assignment content.
+          </p>
+          <Library.Demo title="Fetch error">
+            <LaunchErrorDialog_ errorState="error-fetching" />
           </Library.Demo>
         </Library.Example>
       </Library.Pattern>
