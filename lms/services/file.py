@@ -23,9 +23,9 @@ class FileService:
                 application_instance=original_file.application_instance,
                 # Files of the same type
                 type_=original_file.type,
-            ).filter(
                 # Looking for files in the new course only
-                File.course_id == new_course_id,
+                course_id=new_course_id,
+            ).filter(
                 # We don't want to find the same file we are looking for
                 File.lms_id != original_file.lms_id,
                 # And as a heuristic, we reckon same name, same size, probably the same file
@@ -50,7 +50,9 @@ class FileService:
             update_columns=["name", "size", "updated"],
         )
 
-    def _file_search_query(self, *, application_instance=None, lms_id=None, type_=None):
+    def _file_search_query(
+        self, *, application_instance=None, lms_id=None, type_=None, course_id=None
+    ):
         """Return a `File` query with the passed parameters applied as filters."""
         query = self._db.query(File)
         if application_instance:
@@ -61,6 +63,9 @@ class FileService:
 
         if type_:
             query = query.filter_by(type=type_)
+
+        if course_id:
+            query = query.filter_by(course_id=course_id)
 
         return query
 
