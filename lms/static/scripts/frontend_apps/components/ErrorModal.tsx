@@ -87,12 +87,12 @@ export default function ErrorModal({
   const focusedDialogButton = useRef<HTMLButtonElement | null>(null);
   const buttons = (
     <>
+      {extraActions}
       {onCancel && (
         <Button data-testid="cancel-button" onClick={onCancel}>
           {cancelLabel}
         </Button>
       )}
-      {extraActions}
       {onRetry && (
         <Button
           elementRef={focusedDialogButton}
