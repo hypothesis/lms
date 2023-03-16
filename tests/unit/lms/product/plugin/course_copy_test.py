@@ -12,7 +12,7 @@ class TestCourseCopyFilesHelper:
     @pytest.mark.parametrize(
         "file,expected",
         [
-            (factories.File.build(course_id=sentinel.course_id), True),
+            (factories.File.build(), True),
             (None, False),
         ],
     )

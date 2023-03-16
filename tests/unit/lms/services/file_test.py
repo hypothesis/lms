@@ -37,6 +37,18 @@ class TestFileService:
 
         assert svc.find_copied_file("NEW_COURSE_ID", file) == copied_file
 
+    def test_find_copied_file_with_same_lms_id(self, svc, file):
+        copied_file = factories.File(
+            application_instance=file.application_instance,
+            course_id="NEW_COURSE_ID",
+            type=file.type,
+            lms_id=file.lms_id,
+            name=file.name,
+            size=file.size,
+        )
+
+        assert svc.find_copied_file("NEW_COURSE_ID", file) == copied_file
+
     def test_find_copied_file_returns_None_if_theres_no_matching_file(self, svc, file):
         assert not svc.find_copied_file("NEW_COURSE_ID", file)
 
