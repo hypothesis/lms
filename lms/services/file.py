@@ -11,26 +11,21 @@ class FileService:
 
     def get(self, lms_id, type_):
         """Return the file with the given lms_id and type_ or None."""
-        return (
-            self._db.query(File)
-            .filter_by(
-                application_instance=self._application_instance,
-                lms_id=lms_id,
-                type=type_,
-            )
-            .one_or_none()
-        )
+        return self._file_search_query(
+            application_instance=self._application_instance, lms_id=lms_id, type_=type_
+        ).one_or_none()
 
     def find_copied_file(self, new_course_id, original_file: File):
         """Find an equivalent file to `original_file` in our DB."""
         return (
-            self._db.query(File).filter(
+            self._file_search_query(
                 # Both files should be in the same application instance
-                File.application_instance == original_file.application_instance,
+                application_instance=original_file.application_instance,
+                # Files of the same type
+                type_=original_file.type,
+            ).filter(
                 # Looking for files in the new course only
                 File.course_id == new_course_id,
-                # Files of the same type
-                File.type == original_file.type,
                 # We don't want to find the same file we are looking for
                 File.lms_id != original_file.lms_id,
                 # And as a heuristic, we reckon same name, same size, probably the same file
@@ -54,6 +49,20 @@ class FileService:
             index_elements=["application_instance_id", "lms_id", "type", "course_id"],
             update_columns=["name", "size", "updated"],
         )
+
+    def _file_search_query(self, *, application_instance=None, lms_id=None, type_=None):
+        """Return a `File` query with the passed parameters applied as filters."""
+        query = self._db.query(File)
+        if application_instance:
+            query = query.filter_by(application_instance_id=application_instance.id)
+
+        if lms_id:
+            query = query.filter_by(lms_id=lms_id)
+
+        if type_:
+            query = query.filter_by(type=type_)
+
+        return query
 
 
 def factory(_context, request):
