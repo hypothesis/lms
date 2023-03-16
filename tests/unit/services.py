@@ -40,7 +40,6 @@ from lms.services.lti_h import LTIHService
 from lms.services.lti_registration import LTIRegistrationService
 from lms.services.lti_user import LTIUserService
 from lms.services.ltia_http import LTIAHTTPService
-from lms.services.mailchimp import MailchimpService
 from lms.services.oauth1 import OAuth1Service
 from lms.services.oauth2_token import OAuth2TokenService
 from lms.services.oauth_http import OAuthHTTPService
@@ -81,7 +80,6 @@ __all__ = (
     "lti_role_service",
     "lti_user_service",
     "ltia_http_service",
-    "mailchimp_service",
     "oauth1_service",
     "oauth2_token_service",
     "oauth_http_service",
@@ -291,11 +289,6 @@ def lti_role_service(mock_service):
 @pytest.fixture
 def ltia_http_service(mock_service):
     return mock_service(LTIAHTTPService)
-
-
-@pytest.fixture
-def mailchimp_service(mock_service):
-    return mock_service(MailchimpService)
 
 
 @pytest.fixture
