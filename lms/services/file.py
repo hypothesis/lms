@@ -30,12 +30,13 @@ class FileService:
                 type_=original_file.type,
                 # Looking for files in the new course only
                 course_id=new_course_id,
+                # And as a heuristic, we reckon same name, same size, probably the same file
+                name=original_file.name,
+                size=original_file.size,
             ).filter(
                 # We don't want to find the same file we are looking for
-                File.id != original_file.id,
-                # And as a heuristic, we reckon same name, same size, probably the same file
-                File.name == original_file.name,
-                File.size == original_file.size,
+                File.id
+                != original_file.id,
             )
             # We might find more than one matching file, take any of them
             .first()
@@ -56,7 +57,14 @@ class FileService:
         )
 
     def _file_search_query(
-        self, application_instance, type_, *, lms_id=None, course_id=None
+        self,
+        application_instance,
+        type_,
+        *,
+        lms_id=None,
+        course_id=None,
+        name=None,
+        size=None
     ):
         """Return a `File` query with the passed parameters applied as filters."""
         query = self._db.query(File).filter_by(
@@ -69,6 +77,12 @@ class FileService:
 
         if course_id:
             query = query.filter_by(course_id=course_id)
+
+        if name:
+            query = query.filter_by(name=name)
+
+        if size:
+            query = query.filter_by(size=size)
 
         return query
 
