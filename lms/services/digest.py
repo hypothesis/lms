@@ -191,29 +191,6 @@ class DigestContext:
 
         self._unified_courses = {}
 
-        def is_instructor(unified_user: UnifiedUser, courses: Iterable[Course]) -> bool:
-            """Return True if `user` is an instructor in any of `courses`."""
-            return bool(
-                self._db.scalar(
-                    select(func.count())
-                    .select_from(AssignmentMembership)
-                    .join(Assignment)
-                    .join(AssignmentGrouping)
-                    .join(LTIRole)
-                    .filter(
-                        AssignmentGrouping.grouping_id.in_(
-                            (course.id for course in courses)
-                        )
-                    )
-                    .filter(
-                        AssignmentMembership.user_id.in_(
-                            user.id for user in unified_user.users
-                        )
-                    )
-                    .filter(LTIRole.type == "instructor", LTIRole.scope == "course")
-                )
-            )
-
         authority_provided_ids = set(
             annotation["group"]["authority_provided_id"]
             for annotation in self._annotations
@@ -223,43 +200,16 @@ class DigestContext:
             if authority_provided_id in self._unified_courses:
                 continue
 
-            first_grouping = self._db.scalars(
-                select(Grouping)
-                .filter_by(authority_provided_id=authority_provided_id)
-                .order_by(Grouping.updated.desc())
-            ).first()
+            course_authority_provided_id = self._course_authority_provided_id(
+                authority_provided_id
+            )
 
-            if not first_grouping:
+            if not course_authority_provided_id:
                 continue
 
-            if first_grouping.type == Grouping.Type.COURSE:
-                course_authority_provided_id = first_grouping.authority_provided_id
-            else:
-                assert first_grouping.parent.type == Grouping.Type.COURSE
-                course_authority_provided_id = (
-                    first_grouping.parent.authority_provided_id
-                )
-
-            # Find all the course groupings for course_authority_provided_id (across all application instances).
-            courses = self._db.scalars(
-                select(Course)
-                .filter_by(authority_provided_id=course_authority_provided_id)
-                .order_by(Course.updated.desc())
-            ).all()
-
-            # Find all the sub-groupings of all the courses, across application instances.
-            sub_groups = self._db.scalars(
-                select(Grouping).filter(
-                    Grouping.parent_id.in_([course.id for course in courses])
-                )
-            ).all()
-
-            # Find all known instructors in the course.
-            instructors = [
-                unified_user
-                for unified_user in self.unified_users.values()
-                if is_instructor(unified_user, courses)
-            ]
+            courses = self._course_groupings(course_authority_provided_id)
+            sub_groups = self._sub_groupings(courses)
+            instructors = self._instructors(courses)
 
             # The authority_provided_ids of all the course groupings and sub-groupings for this course.
             course_authority_provided_ids = set(
@@ -288,6 +238,85 @@ class DigestContext:
                 self._unified_courses[authority_provided_id] = unified_course
 
         return self._unified_courses
+
+    def _course_authority_provided_id(self, authority_provided_id):
+        """
+        Return the authority_provided_id of the given authority_provided_id's course.
+
+        In the case of a course group this will return the given
+        authority_provided_id itself.
+
+        In the case of a sub-group this will return the authority_provided_id
+        of the course group that the sub-group belongs to.
+        """
+        first_grouping = self._db.scalars(
+            select(Grouping).filter_by(authority_provided_id=authority_provided_id)
+        ).first()
+
+        if not first_grouping:
+            return None
+
+        if first_grouping.type == Grouping.Type.COURSE:
+            return first_grouping.authority_provided_id
+
+        assert first_grouping.parent.type == Grouping.Type.COURSE
+        return first_grouping.parent.authority_provided_id
+
+    def _course_groupings(self, authority_provided_id):
+        """
+        Return all course groupings with the given authority_provided_id.
+
+        When an LMS has multiple application instances this may return multiple
+        course groupings with the same authority_provided_id but different
+        application instances.
+        """
+        return self._db.scalars(
+            select(Course).filter_by(authority_provided_id=authority_provided_id)
+            # Sort by updated so that we use the most recently updated courses
+            # first when picking a course title etc.
+            .order_by(Course.updated.desc())
+        ).all()
+
+    def _sub_groupings(self, course_groupings):
+        """Return all sub-groupings of the given course groupings."""
+        return self._db.scalars(
+            select(Grouping).filter(
+                Grouping.parent_id.in_([course.id for course in course_groupings])
+            )
+        ).all()
+
+    def _instructors(self, courses):
+        """Return all instructors in the given courses."""
+        return [
+            unified_user
+            for unified_user in self.unified_users.values()
+            if self._is_instructor(unified_user, courses)
+        ]
+
+    def _is_instructor(
+        self, unified_user: UnifiedUser, courses: Iterable[Course]
+    ) -> bool:
+        """Return True if `user` is an instructor in any of `courses`."""
+        return bool(
+            self._db.scalar(
+                select(func.count())
+                .select_from(AssignmentMembership)
+                .join(Assignment)
+                .join(AssignmentGrouping)
+                .join(LTIRole)
+                .filter(
+                    AssignmentGrouping.grouping_id.in_(
+                        (course.id for course in courses)
+                    )
+                )
+                .filter(
+                    AssignmentMembership.user_id.in_(
+                        user.id for user in unified_user.users
+                    )
+                )
+                .filter(LTIRole.type == "instructor", LTIRole.scope == "course")
+            )
+        )
 
 
 def service_factory(_context, request):
