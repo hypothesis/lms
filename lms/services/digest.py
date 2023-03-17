@@ -70,7 +70,7 @@ class UnifiedUser:
     """All User's for a given h_userid, unified across all ApplicationInstance's."""
 
     h_userid: str
-    users: Tuple[User]
+    user_ids: Tuple[int]
     email: Optional[str]
     display_name: Optional[str]
 
@@ -169,7 +169,7 @@ class DigestContext:
 
             self._unified_users[h_userid] = UnifiedUser(
                 h_userid=h_userid,
-                users=tuple(users),
+                user_ids=tuple(user.id for user in users),
                 email=email,
                 display_name=display_name,
             )
@@ -309,11 +309,7 @@ class DigestContext:
                         (course.id for course in courses)
                     )
                 )
-                .filter(
-                    AssignmentMembership.user_id.in_(
-                        user.id for user in unified_user.users
-                    )
-                )
+                .filter(AssignmentMembership.user_id.in_(unified_user.user_ids))
                 .filter(LTIRole.type == "instructor", LTIRole.scope == "course")
             )
         )
