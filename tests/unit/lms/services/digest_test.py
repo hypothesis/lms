@@ -228,7 +228,10 @@ class TestDigestContext:
 
         assert unified_users == {
             user.h_userid: UnifiedUser(
-                h_userid=user.h_userid, users=(user,), email=Any(), display_name=Any()
+                h_userid=user.h_userid,
+                user_ids=(user.id,),
+                email=Any(),
+                display_name=Any(),
             )
             for user in audience + annotators
         }
@@ -251,7 +254,10 @@ class TestDigestContext:
 
         assert unified_users == {
             user.h_userid: UnifiedUser(
-                h_userid=user.h_userid, users=(user,), email=Any(), display_name=Any()
+                h_userid=user.h_userid,
+                user_ids=(user.id,),
+                email=Any(),
+                display_name=Any(),
             )
         }
 
@@ -355,12 +361,10 @@ class TestDigestContext:
 
     def test_unified_courses(self, db_session, make_instructor, make_learner):
         course = factories.Course()
-        instructors = [
-            make_unified_user(user) for user in factories.User.create_batch(2)
-        ]
+        instructors = factories.User.create_batch(2)
         for instructor in instructors:
             make_instructor(instructor, course)
-        learner = make_unified_user(factories.User())
+        learner = factories.User()
         make_learner(learner, course)
         section = factories.CanvasSection(parent=course)
         annotations = [
@@ -380,7 +384,9 @@ class TestDigestContext:
             grouping.authority_provided_id: Any.instance_of(UnifiedCourse).with_attrs(
                 {
                     "authority_provided_id": course.authority_provided_id,
-                    "instructors": Any.tuple.containing(instructors).only(),
+                    "instructors": Any.tuple.containing(
+                        [make_unified_user(instructor) for instructor in instructors]
+                    ).only(),
                     "learner_annotations": Any.tuple.containing(annotations).only(),
                 }
             )
@@ -601,8 +607,10 @@ class UnifiedUserFactory(factory.Factory):
         model = UnifiedUser
 
     h_userid = factory.Sequence(lambda n: f"acct:user_{n}@lms.hypothes.is")
-    users = factory.LazyAttribute(
-        lambda o: factories.User.create_batch(2, h_userid=o.h_userid)
+    user_ids = factory.LazyAttribute(
+        lambda o: [
+            user.id for user in factories.User.create_batch(2, h_userid=o.h_userid)
+        ]
     )
     email = factory.Sequence(lambda n: f"user_{n}@example.com")
     display_name = factory.Sequence(lambda n: f"User {n}")
@@ -624,8 +632,6 @@ def make_instructor(db_session, instructor_role):
         """Make each user in `users` an instructor in `course`."""
         assignment = factories.Assignment()
         factories.AssignmentGrouping(assignment=assignment, grouping=course)
-        if isinstance(user, UnifiedUser):
-            user = user.users[0]
         factories.AssignmentMembership(
             assignment=assignment, user=user, lti_role=instructor_role
         )
@@ -638,9 +644,6 @@ def make_instructor(db_session, instructor_role):
 def make_learner(db_session, learner_role):
     def make_learner(user, course):
         """Make `user` a learner in `course`."""
-        if isinstance(user, UnifiedUser):
-            user = user.users[0]
-
         assignment = factories.Assignment()
         factories.AssignmentGrouping(assignment=assignment, grouping=course)
         factories.AssignmentMembership(
@@ -654,7 +657,7 @@ def make_learner(db_session, learner_role):
 def make_unified_user(user):
     return UnifiedUser(
         h_userid=user.h_userid,
-        users=(user,),
+        user_ids=(user.id,),
         email=user.email,
         display_name=user.display_name,
     )
