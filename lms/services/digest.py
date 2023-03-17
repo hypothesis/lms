@@ -65,7 +65,7 @@ class DigestService:
             )
 
 
-@dataclass
+@dataclass(frozen=True)
 class UnifiedUser:
     """All User's for a given h_userid, unified across all ApplicationInstance's."""
 
@@ -75,7 +75,7 @@ class UnifiedUser:
     display_name: Optional[str]
 
 
-@dataclass
+@dataclass(frozen=True)
 class UnifiedCourse:
     """All Course's for a given authority_provided_id, unified across all ApplicationInstance's."""
 
