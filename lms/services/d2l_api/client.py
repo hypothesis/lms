@@ -64,9 +64,8 @@ class D2LTableOfContentsSchema(RequestsResponseSchema):
 
 
 class D2LAPIClient:
-    def __init__(self, basic_client, request, file_service):
+    def __init__(self, basic_client, file_service):
         self._api = basic_client
-        self._request = request
         self._file_service = file_service
 
     def get_token(self, authorization_code):

@@ -268,5 +268,5 @@ class TestD2LAPIClient:
         return create_autospec(BasicClient, instance=True, spec_set=True)
 
     @pytest.fixture
-    def svc(self, basic_client, pyramid_request, file_service):
-        return D2LAPIClient(basic_client, pyramid_request, file_service)
+    def svc(self, basic_client, file_service):
+        return D2LAPIClient(basic_client, file_service)
