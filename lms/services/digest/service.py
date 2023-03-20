@@ -27,25 +27,15 @@ class DigestService:
 
         for h_userid in audience:
             digest = context.instructor_digest(h_userid)
-
-            if not digest["total_annotations"]:
-                # This user has no activity.
-                continue
-
             unified_user = context.unified_users[h_userid]
 
-            if override_to_email is None:
-                to_email = unified_user.email
-            else:
-                to_email = override_to_email
-
-            if not to_email:
-                # We don't have an email address for this user.
-                continue
-
-            self._mailchimp_service.send_template(
-                "instructor-email-digest",
-                self._sender,
-                recipient=EmailRecipient(to_email, unified_user.display_name),
-                template_vars=digest,
-            )
+            if digest["total_annotations"] and (
+                to_email := override_to_email or unified_user.email
+            ):
+                # We have something worth sending, and someone to send it to
+                self._mailchimp_service.send_template(
+                    "instructor-email-digest",
+                    self._sender,
+                    recipient=EmailRecipient(to_email, unified_user.display_name),
+                    template_vars=digest,
+                )
