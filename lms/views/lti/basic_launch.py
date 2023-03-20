@@ -219,9 +219,7 @@ class BasicLaunchViews:
         The configuration  could be because we are creating this assignment
         for the first time or from an edit.
         """
-        extra = {}
-        if group_set := self.request.parsed_params.get("group_set"):
-            extra["group_set_id"] = group_set
+        extra = {"group_set_id": self.request.parsed_params.get("group_set")}
 
         # Make any product-specific actions after configuring the assignment
         self.request.product.plugin.misc.post_configure_assignment(self.request)

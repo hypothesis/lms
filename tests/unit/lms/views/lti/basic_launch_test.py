@@ -82,7 +82,7 @@ class TestBasicLaunchViews:
     @pytest.mark.parametrize(
         "parsed_params,expected_extras",
         [
-            ({}, {}),
+            ({}, {"group_set_id": None}),
             ({"group_set": 42}, {"group_set_id": 42}),
         ],
     )
@@ -116,7 +116,8 @@ class TestBasicLaunchViews:
     @pytest.mark.parametrize(
         "parsed_params,expected_extras",
         [
-            ({}, {}),
+            ({}, {"group_set_id": None}),
+            ({"group_set": None}, {"group_set_id": None}),
             ({"group_set": 42}, {"group_set_id": 42}),
         ],
     )
