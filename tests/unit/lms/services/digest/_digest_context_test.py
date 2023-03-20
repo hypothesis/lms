@@ -243,6 +243,14 @@ class TestDigestContext:
         assert context.unified_users["id"].display_name == expected_display_name
 
     def test_unified_courses(self, db_session, make_instructor, make_learner):
+        def make_unified_user(user):
+            return UnifiedUser(
+                h_userid=user.h_userid,
+                users=(user,),
+                email=user.email,
+                display_name=user.display_name,
+            )
+
         course = factories.Course()
         instructors = [
             make_unified_user(user) for user in factories.User.create_batch(2)
@@ -500,12 +508,3 @@ def make_learner(db_session, learner_role):
         db_session.flush()
 
     return make_learner
-
-
-def make_unified_user(user):
-    return UnifiedUser(
-        h_userid=user.h_userid,
-        users=(user,),
-        email=user.email,
-        display_name=user.display_name,
-    )
