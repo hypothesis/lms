@@ -214,7 +214,7 @@ six==1.15.0
     #   google-auth
     #   mailchimp-transactional
     #   python-dateutil
-sqlalchemy==1.4.46
+sqlalchemy==1.4.47
     # via
     #   -r requirements/requirements.in
     #   alembic
