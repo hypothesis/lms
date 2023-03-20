@@ -466,7 +466,8 @@ export default function ErrorComponents() {
             <div className="grid grid-cols-2 gap-2">
               {(
                 [
-                  'd2l_file_not_found_in_course',
+                  'd2l_file_not_found_in_course_student',
+                  'd2l_file_not_found_in_course_instructor',
                   'd2l_group_set_not_found',
                   'd2l_group_set_empty',
                   'd2l_student_not_in_group',

@@ -99,7 +99,7 @@ def test_it_when_file_not_in_course(
 ):
     course_copy_plugin.is_file_in_course.return_value = False
     d2l_api_client.public_url.side_effect = FileNotFoundInCourse(
-        "d2l_file_not_found_in_course", file_id="FILE_ID"
+        "d2l_file_not_found_in_course_instructor", file_id="FILE_ID"
     )
     course_copy_plugin.find_matching_file_in_course.return_value = None
 

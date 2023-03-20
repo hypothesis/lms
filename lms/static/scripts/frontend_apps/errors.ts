@@ -9,7 +9,8 @@ export type LTILaunchServerErrorCode =
   | 'blackboard_group_set_empty'
   | 'blackboard_group_set_not_found'
   | 'blackboard_student_not_in_group'
-  | 'd2l_file_not_found_in_course'
+  | 'd2l_file_not_found_in_course_student'
+  | 'd2l_file_not_found_in_course_instructor'
   | 'd2l_group_set_not_found'
   | 'd2l_group_set_empty'
   | 'd2l_student_not_in_group'
@@ -137,7 +138,8 @@ export function isLTILaunchServerError(error: ErrorLike): error is APIError {
       'blackboard_group_set_empty',
       'blackboard_group_set_not_found',
       'blackboard_student_not_in_group',
-      'd2l_file_not_found_in_course',
+      'd2l_file_not_found_in_course_instructor',
+      'd2l_file_not_found_in_course_student',
       'd2l_group_set_not_found',
       'd2l_group_set_empty',
       'd2l_student_not_in_group',

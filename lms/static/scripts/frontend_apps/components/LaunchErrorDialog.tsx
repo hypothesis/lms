@@ -117,15 +117,48 @@ export default function LaunchErrorDialog({
         </ErrorModal>
       );
 
-    case 'd2l_file_not_found_in_course':
+    case 'd2l_file_not_found_in_course_instructor':
       return (
         <ErrorModal
           {...defaultProps}
           title="Hypothesis couldn't find the file in the course"
         >
+          <p>This might have happened because:</p>
+          <ul className="px-4 list-disc">
+            <li>The file has been deleted from D2L</li>
+            <li>
+              The course was copied and the selected file is not available in
+              the new course.
+            </li>
+          </ul>
           <p>
-            This might have happened because the file has been deleted from D2L.
-            An instructor needs to re-create the assignment with a new file.
+            To fix the issue, recreate the assignment with a different file.
+            More information can be found in our document about{' '}
+            <ExternalLink href="https://web.hypothes.is/help/using-hypothesis-with-d2l-course-content-files/">
+              Using Hypothesis With D2L Course Content Files
+            </ExternalLink>
+            .
+          </p>
+        </ErrorModal>
+      );
+
+    case 'd2l_file_not_found_in_course_student':
+      return (
+        <ErrorModal
+          {...defaultProps}
+          title="Hypothesis couldn't find the file in the course"
+        >
+          <p>This might have happened because:</p>
+          <ul className="px-4 list-disc">
+            <li>The file has been deleted from D2L</li>
+            <li>
+              The course was copied and the selected file is not available in
+              the new course.
+            </li>
+          </ul>
+          <p>
+            Please ask the course instructor to review the settings of this
+            assignment.
           </p>
         </ErrorModal>
       );

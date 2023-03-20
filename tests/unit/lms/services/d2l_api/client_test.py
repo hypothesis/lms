@@ -210,15 +210,34 @@ class TestD2LAPIClient:
         assert public_url == basic_client.api_url.return_value
 
     @pytest.mark.parametrize(
-        "status_code,exception,error_code",
+        "status_code,user_fixture_name,exception,error_code",
         [
-            (404, FileNotFoundInCourse, "d2l_file_not_found_in_course"),
-            (400, ExternalRequestError, None),
+            (
+                404,
+                "user_is_learner",
+                FileNotFoundInCourse,
+                "d2l_file_not_found_in_course_student",
+            ),
+            (
+                404,
+                "user_is_instructor",
+                FileNotFoundInCourse,
+                "d2l_file_not_found_in_course_instructor",
+            ),
+            (400, "user_is_learner", ExternalRequestError, None),
         ],
     )
     def test_public_url_raises(
-        self, svc, basic_client, status_code, exception, error_code
+        self,
+        svc,
+        basic_client,
+        status_code,
+        user_fixture_name,
+        exception,
+        error_code,
+        request,
     ):
+        _ = request.getfixturevalue(user_fixture_name)
         basic_client.request.side_effect = ExternalRequestError(
             response=factories.requests.Response(status_code=status_code)
         )
@@ -268,5 +287,5 @@ class TestD2LAPIClient:
         return create_autospec(BasicClient, instance=True, spec_set=True)
 
     @pytest.fixture
-    def svc(self, basic_client, file_service):
-        return D2LAPIClient(basic_client, file_service)
+    def svc(self, basic_client, file_service, lti_user):
+        return D2LAPIClient(basic_client, file_service, lti_user)

@@ -15,6 +15,7 @@ def test_d2l_api_client_factory(
     BasicClient,
     D2LAPIClient,
     file_service,
+    lti_user,
 ):
     ai = create_autospec(ApplicationInstance)
     application_instance_service.get_current.return_value = ai
@@ -34,7 +35,7 @@ def test_d2l_api_client_factory(
         oauth_http_service=oauth_http_service,
     )
     D2LAPIClient.assert_called_once_with(
-        BasicClient.return_value, file_service=file_service
+        BasicClient.return_value, file_service=file_service, lti_user=lti_user
     )
     assert service == D2LAPIClient.return_value
 
