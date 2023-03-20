@@ -13,11 +13,11 @@ from tests import factories
 
 
 class TestDigestContext:
-    def test_instructor_digest(self, db_session, make_instructor):
+    def test_instructor_digest(self, db_session, add_to_grouping):
         courses = factories.Course.create_batch(2)
         instructor, learner = factories.User.create_batch(2)
         for course in courses:
-            make_instructor(instructor, course)
+            add_to_grouping(instructor, course, instructor=True)
         annotations = [
             *Annotation.create_batch(
                 2,
@@ -44,12 +44,12 @@ class TestDigestContext:
         }
 
     def test_instructor_digest_removes_duplicate_courses(
-        self, db_session, make_instructor
+        self, db_session, add_to_grouping
     ):
         course = factories.Course()
         sub_groupings = factories.CanvasSection.create_batch(2, parent=course)
         instructor, learner = factories.User.create_batch(2)
-        make_instructor(instructor, course)
+        add_to_grouping(instructor, course, instructor=True)
         annotations = [
             Annotation(
                 authority_provided_id=sub_grouping.authority_provided_id,
@@ -67,11 +67,11 @@ class TestDigestContext:
         }
 
     def test_instructor_digest_removes_courses_with_no_learner_annotations(
-        self, db_session, make_instructor
+        self, db_session, add_to_grouping
     ):
         course = factories.Course()
         instructor = factories.User()
-        make_instructor(instructor, course)
+        add_to_grouping(instructor, course, instructor=True)
         annotations = [
             Annotation(
                 authority_provided_id=course.authority_provided_id,
@@ -85,11 +85,11 @@ class TestDigestContext:
         assert digest == {"total_annotations": 0, "courses": []}
 
     def test_instructor_digest_omits_courses_where_the_user_isnt_an_instructor(
-        self, db_session, make_instructor
+        self, db_session, add_to_grouping
     ):
         course, other_course = factories.Course.create_batch(2)
         instructor, learner = factories.User.create_batch(2)
-        make_instructor(instructor, other_course)
+        add_to_grouping(instructor, other_course, instructor=True)
         annotations = [
             Annotation(
                 authority_provided_id=course.authority_provided_id,
@@ -242,7 +242,7 @@ class TestDigestContext:
 
         assert context.unified_users["id"].display_name == expected_display_name
 
-    def test_unified_courses(self, db_session, make_instructor, make_learner):
+    def test_unified_courses(self, db_session, add_to_grouping):
         def make_unified_user(user):
             return UnifiedUser(
                 h_userid=user.h_userid,
@@ -256,9 +256,9 @@ class TestDigestContext:
             make_unified_user(user) for user in factories.User.create_batch(2)
         ]
         for instructor in instructors:
-            make_instructor(instructor, course)
+            add_to_grouping(instructor, course, instructor=True)
         learner = make_unified_user(factories.User())
-        make_learner(learner, course)
+        add_to_grouping(learner, course)
         section = factories.CanvasSection(parent=course)
         annotations = [
             Annotation(
@@ -362,10 +362,10 @@ class TestDigestContext:
 
         assert context.unified_courses["id"].title == "most_recent"
 
-    def test_unified_courses_doesnt_count_learners(self, db_session, make_learner):
+    def test_unified_courses_doesnt_count_learners(self, db_session, add_to_grouping):
         course = factories.Course()
         learner = factories.User()
-        make_learner(learner, course)
+        add_to_grouping(learner, course)
         annotation = Annotation(
             authority_provided_id=course.authority_provided_id, userid=learner.h_userid
         )
@@ -378,11 +378,11 @@ class TestDigestContext:
         }
 
     def test_unified_courses_doesnt_count_instructor_annotations(
-        self, db_session, make_instructor
+        self, db_session, add_to_grouping
     ):
         course = factories.Course()
         instructor = factories.User()
-        make_instructor(instructor, course)
+        add_to_grouping(instructor, course, instructor=True)
         annotation = Annotation(
             authority_provided_id=course.authority_provided_id,
             userid=instructor.h_userid,
@@ -396,12 +396,12 @@ class TestDigestContext:
         }
 
     def test_unified_courses_doesnt_count_instructors_from_other_courses(
-        self, db_session, make_instructor
+        self, db_session, add_to_grouping
     ):
         course, other_course = factories.Course.create_batch(2)
         user = factories.User()
         # `user` is an instructor in `other_course`.
-        make_instructor(user, other_course)
+        add_to_grouping(user, other_course, instructor=True)
         # `user` is a learner in `course` and has created an annotation.
         annotation = Annotation(
             authority_provided_id=course.authority_provided_id,
@@ -440,6 +440,28 @@ class TestDigestContext:
 
         assert context.unified_courses == {}
 
+    @pytest.fixture
+    def add_to_grouping(self, db_session):
+        instructor_role = factories.LTIRole(value="Instructor")
+        learner_role = factories.LTIRole(value="Learner")
+
+        def add_to_grouping(user, grouping, instructor=False):
+            """Add a user membership to a given grouping."""
+
+            if isinstance(user, UnifiedUser):
+                user = user.users[0]
+
+            assignment = factories.Assignment()
+            factories.AssignmentGrouping(assignment=assignment, grouping=grouping)
+            factories.AssignmentMembership(
+                assignment=assignment,
+                user=user,
+                lti_role=instructor_role if instructor else learner_role,
+            )
+            db_session.flush()
+
+        return add_to_grouping
+
 
 class Annotation(factory.Factory):
     """
@@ -465,46 +487,3 @@ class Annotation(factory.Factory):
         obj["author"] = {"userid": obj.pop("userid")}
         obj["group"] = {"authority_provided_id": obj.pop("authority_provided_id")}
         return obj
-
-
-@pytest.fixture
-def instructor_role():
-    return factories.LTIRole(value="Instructor")
-
-
-@pytest.fixture
-def learner_role():
-    return factories.LTIRole(value="Learner")
-
-
-@pytest.fixture
-def make_instructor(db_session, instructor_role):
-    def make_instructor(user, course):
-        """Make each user in `users` an instructor in `course`."""
-        assignment = factories.Assignment()
-        factories.AssignmentGrouping(assignment=assignment, grouping=course)
-        if isinstance(user, UnifiedUser):
-            user = user.users[0]
-        factories.AssignmentMembership(
-            assignment=assignment, user=user, lti_role=instructor_role
-        )
-        db_session.flush()
-
-    return make_instructor
-
-
-@pytest.fixture
-def make_learner(db_session, learner_role):
-    def make_learner(user, course):
-        """Make `user` a learner in `course`."""
-        if isinstance(user, UnifiedUser):
-            user = user.users[0]
-
-        assignment = factories.Assignment()
-        factories.AssignmentGrouping(assignment=assignment, grouping=course)
-        factories.AssignmentMembership(
-            assignment=assignment, user=user, lti_role=learner_role
-        )
-        db_session.flush()
-
-    return make_learner
