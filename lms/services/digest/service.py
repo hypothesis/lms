@@ -18,11 +18,6 @@ class DigestService:
         annotations = self._h_api.get_annotations(
             audience, updated_after, updated_before
         )
-
-        # HAPI.get_annotations() returns an iterable.
-        # Turn it into a tuple because we need to iterate over it multiple times.
-        annotations = tuple(annotations)
-
         context = DigestContext(self._db, audience, annotations)
 
         for h_userid in audience:

@@ -31,7 +31,7 @@ class TestDigestService:
             audience, sentinel.updated_after, sentinel.updated_before
         )
         DigestContext.assert_called_once_with(
-            db_session, audience, tuple(h_api.get_annotations.return_value)
+            db_session, audience, h_api.get_annotations.return_value
         )
         assert context.instructor_digest.call_args_list == [
             call(h_userid) for h_userid in audience
@@ -97,14 +97,6 @@ class TestDigestService:
     @pytest.fixture
     def sender(self):
         return EmailSender(sentinel.subaccount, sentinel.from_email, sentinel.from_name)
-
-    @pytest.fixture
-    def h_api(self, h_api):
-        h_api.get_annotations.return_value = [
-            sentinel.annotation1,
-            sentinel.annotation2,
-        ]
-        return h_api
 
     @pytest.fixture
     def svc(self, db_session, h_api, mailchimp_service, sender):

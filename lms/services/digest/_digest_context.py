@@ -40,7 +40,7 @@ class DigestContext:
     def __init__(self, db, audience, annotations):
         self._db = db
         self._audience = audience
-        self._annotations = annotations
+        self._annotations = tuple(annotations)  # Ensure this isn't a generator
         self._unified_users = None
         self._unified_courses = None
 

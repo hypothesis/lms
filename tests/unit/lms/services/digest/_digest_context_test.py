@@ -467,12 +467,10 @@ class Annotation(factory.Factory):
     """
     A factory for annotation dicts.
 
-    >>> Annotation()
-    {'author': {'userid': 'acct:user_0@lms.hypothes.is'}, 'group': {'authority_provided_id': 'group_0'}}
-    >>> Annotation(userid='acct:custom_username@lms.hypothes.is')
-    {'author': {'userid': 'acct:custom_username@lms.hypothes.is'}, 'group': {'authority_provided_id': 'group_1'}}
-    >>> Annotation(authority_provided_id='custom_id')
-    {'author': {'userid': 'acct:user_2@lms.hypothes.is'}, 'group': {'authority_provided_id': 'custom_id'}}
+    Sensible defaults are provided, or you can pick your own values:
+
+        Annotation(userid='acct:...', authority_provided_id='aid')
+        {'author': {'userid': 'acct:...'}, 'group': {'authority_provided_id': 'aid'}}
     """
 
     class Meta:
