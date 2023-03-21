@@ -173,10 +173,10 @@ class TestSendInstructorEmailDigests:
             sentinel.override_to_email,
         )
 
-        digest_service.send_instructor_email_digests.assert_called_once_with(
-            sentinel.h_userids,
-            updated_after,
-            updated_before,
+        digest_service.send_emails.assert_called_once_with(
+            audience=sentinel.h_userids,
+            updated_after=updated_after,
+            updated_before=updated_before,
             override_to_email=sentinel.override_to_email,
         )
 
