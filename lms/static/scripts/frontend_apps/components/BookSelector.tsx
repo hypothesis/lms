@@ -38,8 +38,6 @@ export type BookSelectorProps = {
  * fetch book metadata corresponding to that ID using the vitalsource service.
  * Renders a thumbnail of the book cover and the book title when a book is
  * loaded/found.
- *
- * @param {BookSelectorProps} props
  */
 export default function BookSelector({
   selectedBook,
