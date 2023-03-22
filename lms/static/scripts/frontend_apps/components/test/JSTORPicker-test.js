@@ -122,6 +122,21 @@ describe('JSTORPicker', () => {
     });
   });
 
+  it('pre-fills input field with `defaultArticle` value and fetches article metadata/thumbnail', () => {
+    const wrapper = mount(<JSTORPicker defaultArticle="1234" />);
+
+    // Input field should use existing article ID.
+    const input = wrapper.find('input[name="jstorURL"]').getDOMNode();
+    assert.equal(input.value, '1234');
+
+    // The metadata and thumbnail for the existing article should be fetched.
+    assert.calledWith(fakeArticleIdFromUserInput, '1234');
+    simulateMetadataFetch(wrapper, 'Test article');
+    simulateThumbnailFetch(wrapper);
+    assert.include(wrapper.text(), 'Test article');
+    assert.equal(wrapper.find('img').prop('src'), 'data:thumbnail-image-data');
+  });
+
   context('entering, changing and submitting article URL', () => {
     it('validates entered URL when the value of the text input changes', () => {
       const wrapper = renderJSTORPicker();
