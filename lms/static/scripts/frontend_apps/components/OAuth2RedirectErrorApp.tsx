@@ -7,13 +7,12 @@ export type OAuth2RedirectErrorAppProps = {
   /* Test seam */
   location?: Location;
 };
+
 /**
  * Error Modal displayed when authorization with a third-party API via OAuth
  * fails.
  *
  * Dismissing the Modal will close the window.
- *
- * @param {OAuth2RedirectErrorAppProps} props
  */
 export default function OAuth2RedirectErrorApp({
   location = window.location,
