@@ -188,25 +188,20 @@ export default function EditAssignmentPage() {
         }
       >
         <Library.Pattern title="Edit assignment: initial view">
-          <p>
-            When transitioning from a launched assignment into the
-            edit-assignment flow, we want to take into account that the
-            assignment has already been configured.
-          </p>
-          <p>We want to make sure we:</p>
+          <p>Actions available to the user in this view:</p>
           <ul>
             <li>
-              {"Don't"} make instructors re-select content if they {"don't"}{' '}
-              want to;
+              Commit (save) assignment settings including any updated group
+              settings.
             </li>
+            <li>Exit (cancel) the edit flow.</li>
             <li>
-              Provide an obvious mechanism to exit the edit flow and get back to
-              the launched assignment
+              Elect to change the content for the assignment. This takes the
+              user to the {'"Edit assignment: re-select content view"'}.
             </li>
           </ul>
-          <Library.Example title="Sketches of initial edit-view elements">
-            <p>Elements of these sketches can be combined as desired.</p>
-            <Library.Demo title="Sketch 1">
+          <Library.Example title="Edit-assignment, initial view: sketches">
+            <Library.Demo>
               <PickerCard>
                 <PickerCardHeader>Assignment details</PickerCardHeader>
                 <PickerCardContent>
@@ -229,13 +224,13 @@ export default function EditAssignmentPage() {
                 <CardContent>
                   <CardActions>
                     <Button>Cancel</Button>
-                    <Button variant="primary">Continue</Button>
+                    <Button variant="primary">Save settings</Button>
                   </CardActions>
                 </CardContent>
               </PickerCard>
             </Library.Demo>
 
-            <Library.Demo title="Sketch 2">
+            <Library.Demo>
               <PickerCard
                 headerContent={
                   <div className="flex gap-x-1 mx-4 my-2">
@@ -267,13 +262,13 @@ export default function EditAssignmentPage() {
                 <CardContent>
                   <CardActions>
                     <Button>Cancel</Button>
-                    <Button variant="primary">Continue</Button>
+                    <Button variant="primary">Save</Button>
                   </CardActions>
                 </CardContent>
               </PickerCard>
             </Library.Demo>
 
-            <Library.Demo title="Sketch 3">
+            <Library.Demo>
               <PickerCard
                 headerContent={
                   <div className="flex gap-x-1 mx-4 my-2">
@@ -301,13 +296,13 @@ export default function EditAssignmentPage() {
                 </PickerCardContent>
                 <CardContent>
                   <CardActions>
-                    <Button variant="primary">Continue</Button>
+                    <Button variant="primary">Save</Button>
                   </CardActions>
                 </CardContent>
               </PickerCard>
             </Library.Demo>
 
-            <Library.Demo title="Sketch 4">
+            <Library.Demo>
               <PickerCard
                 headerContent={
                   <div className="flex gap-x-1 mx-4 my-2">
@@ -331,15 +326,30 @@ export default function EditAssignmentPage() {
                       </LinkButton>
                     </div>
                   </PickerCardRow>
+                  <div className="col-span-2 border-b" />
                 </PickerCardContent>
                 <CardContent>
                   <CardActions>
-                    <Button>Cancel</Button>
-                    <Button variant="primary">Continue</Button>
+                    <Button variant="primary">Save settings</Button>
                   </CardActions>
                 </CardContent>
               </PickerCard>
             </Library.Demo>
+          </Library.Example>
+        </Library.Pattern>
+
+        <Library.Pattern title="Edit assignment: re-select content view">
+          <p>Actions available to the user in this view:</p>
+          <ul>
+            <li>
+              Re-select content from one of the available content-type options.
+            </li>
+            <li>
+              Go back to the previous screen (without re-selecting content)
+            </li>
+          </ul>
+          <Library.Example title="Edit-assignment, re-select content view: sketches">
+            <p>TODO</p>
           </Library.Example>
         </Library.Pattern>
       </Library.Section>
