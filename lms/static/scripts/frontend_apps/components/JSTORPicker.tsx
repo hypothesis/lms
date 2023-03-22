@@ -21,6 +21,13 @@ import { useUniqueId } from '../utils/hooks';
 import { articleIdFromUserInput, jstorURLFromArticleId } from '../utils/jstor';
 
 export type JSTORPickerProps = {
+  /**
+   * Article to select when the picker is initially rendered.
+   *
+   * This can be a JSTOR article ID, DOI or stable URL.
+   */
+  defaultArticle?: string;
+
   onCancel: () => void;
   /** Callback to set the assignment's content to a JSTOR article URL */
   onSelectURL: (url: string) => void;
@@ -30,6 +37,7 @@ export type JSTORPickerProps = {
  * A picker that allows a user to enter a URL corresponding to a JSTOR article.
  */
 export default function JSTORPicker({
+  defaultArticle,
   onCancel,
   onSelectURL,
 }: JSTORPickerProps) {
@@ -37,7 +45,9 @@ export default function JSTORPicker({
 
   // Selected JSTOR article ID or DOI, updated when the user confirms what
   // they have pasted/typed into the input field.
-  const [articleId, setArticleId] = useState<string | null>(null);
+  const [articleId, setArticleId] = useState<string | null>(
+    defaultArticle ? articleIdFromUserInput(defaultArticle) : null
+  );
 
   const metadata: FetchResult<JSTORMetadata> = useAPIFetch(
     articleId ? urlPath`/api/jstor/articles/${articleId}` : null
@@ -171,6 +181,7 @@ export default function JSTORPicker({
 
           <InputGroup>
             <Input
+              defaultValue={defaultArticle}
               elementRef={inputRef}
               id={inputId}
               name="jstorURL"
