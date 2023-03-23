@@ -32,14 +32,27 @@ describe('FilePickerFormFields', () => {
     });
   });
 
-  it('adds a `group_set` hidden form field', () => {
-    const content = { type: 'url', url: 'https://example.com/' };
-    const formFields = createComponent({
-      content,
-      groupSet: 'groupSet1',
-    });
+  [
+    {
+      groupSet: null,
+      fieldValue: '',
+    },
+    {
+      groupSet: 'abcdef',
+      fieldValue: 'abcdef',
+    },
+  ].forEach(({ groupSet, fieldValue }) => {
+    it('adds a `group_set` hidden form field', () => {
+      const content = { type: 'url', url: 'https://example.com/' };
+      const formFields = createComponent({
+        content,
+        groupSet,
+      });
 
-    assert.isTrue(formFields.find('input[name="group_set"]').exists());
+      const groupSetField = formFields.find('input[name="group_set"]');
+      assert.isTrue(groupSetField.exists());
+      assert.equal(groupSetField.prop('value'), fieldValue);
+    });
   });
 
   it('renders `document_url` field for URL content', () => {

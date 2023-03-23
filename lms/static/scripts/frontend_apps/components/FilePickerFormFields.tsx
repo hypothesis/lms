@@ -10,6 +10,10 @@ export type FilePickerFormFieldsProps = {
    */
   formFields: Record<string, string>;
 
+  /**
+   * ID of the group set or category selected for this assignment, or `null`
+   * if group sets have been disabled.
+   */
   groupSet: string | null;
 };
 
@@ -35,7 +39,7 @@ export default function FilePickerFormFields({
       {Object.entries(formFields).map(([field, value]) => (
         <input key={field} type="hidden" name={field} value={value} />
       ))}
-      {groupSet && <input type="hidden" name="group_set" value={groupSet} />}
+      <input type="hidden" name="group_set" value={groupSet ?? ''} />
       {content.type === 'url' && (
         // Set the `document_url` form field which is used by the `configure_assignment`
         // view. Used in LMSes where assignments are configured on first launch.
