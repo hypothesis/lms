@@ -22,12 +22,13 @@ CREATE VIEW report.raw_groups AS (
                 -- Every authority provided id should be unique to a type. But
                 -- we sometimes get blank values (in _very_ few cases), but to
                 -- be sure we should do a MAX here.
-                MAX("type") AS type
+                MAX("type") AS type,
+                MAX(lms_name) AS name
             FROM (
-                SELECT authority_provided_id, "type" FROM grouping
+                SELECT authority_provided_id, "type", lms_name FROM grouping
                 UNION
 
-                SELECT authority_provided_id, 'course' FROM course_groups_exported_from_h
+                SELECT authority_provided_id, 'course', NULL FROM course_groups_exported_from_h
                 UNION
 
                 SELECT
@@ -40,17 +41,20 @@ CREATE VIEW report.raw_groups AS (
                         WHEN 'canvas_group_group' THEN 'canvas_group'
                         WHEN 'd2l_group_group' THEN 'canvas_group'
                         WHEN 'section_group' THEN 'canvas_section'
-                    END
+                    END,
+                    context_title
                 FROM group_info
             ) AS groups
-            GROUP BY
-                authority_provided_id
+            GROUP BY authority_provided_id
         )
 
     SELECT
         groups.id,
         groups.authority_provided_id,
-        groups.name,
+        CASE
+            WHEN group_types.name IS NOT NULL THEN group_types.name
+            ELSE groups.name
+        END as name,
         group_types.type AS group_type,
         groups.created::date
     FROM h.group AS groups
