@@ -10,6 +10,7 @@ import {
 import Library from '@hypothesis/frontend-shared/lib/pattern-library/components/Library';
 import classnames from 'classnames';
 import type { ComponentChildren } from 'preact';
+import { useState } from 'preact/hooks';
 
 function PickerCard({
   children,
@@ -74,6 +75,89 @@ function PickerCardRow({
       </div>
       <div className="space-y-3">{children}</div>
     </>
+  );
+}
+
+function ReselectContentExample() {
+  const [reselectActive, setReselectActive] = useState(false);
+  return (
+    <PickerCard
+      headerContent={
+        <div className="flex gap-x-1 mx-4 my-2">
+          <LinkButton classes="gap-x-1" underline="always">
+            <ArrowLeftIcon className="w-[0.875em] h-[0.875em]" />
+            Back to Assignment
+          </LinkButton>
+        </div>
+      }
+    >
+      <PickerCardHeader>Assignment details</PickerCardHeader>
+      <PickerCardContent>
+        <PickerCardRow label="Assignment content">
+          <div className="flex gap-x-2 items-center">
+            <div>
+              <i>https://www.example.com</i>
+            </div>
+            <div className="border-r">&nbsp;</div>
+            {reselectActive ? (
+              <LinkButton
+                classes="text-xs"
+                underline="always"
+                onClick={() => setReselectActive(!reselectActive)}
+              >
+                Cancel changes
+              </LinkButton>
+            ) : (
+              <LinkButton
+                classes="text-xs"
+                underline="always"
+                onClick={() => setReselectActive(!reselectActive)}
+              >
+                Change
+              </LinkButton>
+            )}
+          </div>
+        </PickerCardRow>
+        {reselectActive && (
+          <PickerCardRow>
+            <div
+              className={classnames(
+                // Style a slightly-recessed "well" for these controls
+                'bg-slate-0 p-4 rounded shadow-inner border space-y-2'
+              )}
+            >
+              <p>
+                Select updated content for your assignment from one of the
+                following sources:
+              </p>
+              <div className="flex">
+                <div className="flex flex-col space-y-1">
+                  <Button variant="primary">
+                    Enter URL of web page or PDF
+                  </Button>
+                  <Button variant="primary">Select PDF from Canvas</Button>
+                  <Button variant="primary">
+                    Select PDF from Google Drive
+                  </Button>
+                  <Button variant="primary">Select JSTOR article</Button>
+                  <Button variant="primary">Select PDF from OneDrive</Button>
+                </div>
+                <div className="grow" />
+              </div>
+            </div>
+          </PickerCardRow>
+        )}
+        <div className="col-span-2 border-b" />
+        <PickerCardRow label="Group assignment">
+          <Checkbox>This is a group assignment</Checkbox>
+        </PickerCardRow>
+      </PickerCardContent>
+      <CardContent>
+        <CardActions>
+          <Button variant="primary">Save</Button>
+        </CardActions>
+      </CardContent>
+    </PickerCard>
   );
 }
 
@@ -188,7 +272,7 @@ export default function EditAssignmentPage() {
         }
       >
         <Library.Pattern title="Edit assignment: initial view">
-          <p>Actions available to the user in this view:</p>
+          <p>Actions available in this view:</p>
           <ul>
             <li>
               Commit (save) assignment settings including any updated group
@@ -338,18 +422,19 @@ export default function EditAssignmentPage() {
           </Library.Example>
         </Library.Pattern>
 
-        <Library.Pattern title="Edit assignment: re-select content view">
-          <p>Actions available to the user in this view:</p>
-          <ul>
-            <li>
-              Re-select content from one of the available content-type options.
-            </li>
-            <li>
-              Go back to the previous screen (without re-selecting content)
-            </li>
-          </ul>
-          <Library.Example title="Edit-assignment, re-select content view: sketches">
-            <p>TODO</p>
+        <Library.Pattern title="Edit assignment: interactive view sketch">
+          <Library.Example title="Edit-assignment with re-selection of content">
+            <p>
+              This example demonstrates possible UI behavior when user clicks{' '}
+              {'"Change"'} button.
+            </p>
+            <p>
+              This variant keeps the user in the same screen for the entire edit
+              flow.
+            </p>
+            <Library.Demo>
+              <ReselectContentExample />
+            </Library.Demo>
           </Library.Example>
         </Library.Pattern>
       </Library.Section>
