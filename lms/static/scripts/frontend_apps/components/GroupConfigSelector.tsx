@@ -175,6 +175,13 @@ export default function GroupConfigSelector({
       if (groupSets.length === 0) {
         setFetchError(new GroupListEmptyError());
       } else {
+        // FIXME - Workaround a backend issue where group set IDs are returned
+        // as numbers instead of strings in D2L. The backend should be fixed
+        // to always return strings.
+        groupSets.forEach(gs => {
+          gs.id = String(gs.id);
+        });
+
         setGroupSets(groupSets);
       }
     } catch (error) {
