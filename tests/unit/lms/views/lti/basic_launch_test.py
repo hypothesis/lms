@@ -24,6 +24,7 @@ class TestHasDocumentURL:
 
 @pytest.mark.usefixtures(
     "assignment_service",
+    "course_service",
     "application_instance_service",
     "grading_info_service",
     "lti_h_service",

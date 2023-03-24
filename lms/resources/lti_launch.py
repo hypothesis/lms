@@ -3,7 +3,6 @@
 import logging
 from functools import cached_property
 
-from lms.models import Grouping
 from lms.product import Product
 from lms.resources._js_config import JSConfig
 
