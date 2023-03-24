@@ -509,7 +509,7 @@ class JSConfig:
 
         return {
             # For documentation of these Hypothesis client settings see:
-            # https://h.readthedocs.io/projects/client/en/latest/publishers/config/#configuring-the-client-using-json
+            # https://h.readthedocs.io/projects/client/en/latest/publishers/config.html#configuring-the-client-using-json
             "services": [
                 {
                     "allowFlagging": False,
