@@ -18,6 +18,7 @@ from lms.events import LTIEvent
 from lms.security import Permissions
 from lms.services import DocumentURLService
 from lms.services.assignment import AssignmentService
+from lms.services.course import CourseService
 from lms.services.grouping import GroupingService
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
 
@@ -45,11 +46,12 @@ class BasicLaunchViews:
             name="assignment"
         )
         self.grouping_service: GroupingService = request.find_service(name="grouping")
+        self.course_service: CourseService = request.find_service(name="course")
 
         self.context.application_instance.check_guid_aligns(
             self.request.lti_params.get("tool_consumer_instance_guid")
         )
-        self._record_course()
+        self.course = self._record_course()
         self._record_launch()
 
     @view_config(
@@ -159,7 +161,7 @@ class BasicLaunchViews:
         # Before any LTI assignments launch, create or update the Hypothesis
         # user and group corresponding to the LTI user and course.
         self.request.find_service(name="lti_h").sync(
-            [self.context.course], self.request.lti_params
+            [self.course], self.request.lti_params
         )
 
         # An assignment has been configured in the LMS as "gradable" if it has
@@ -200,17 +202,19 @@ class BasicLaunchViews:
         )
         # Store the relationship between the assignment and the course
         self.assignment_service.upsert_assignment_groupings(
-            assignment, groupings=[self.context.course]
+            assignment, groupings=[self.course]
         )
 
         return assignment
 
     def _record_course(self):
-        # It's not completely clear but accessing a course in this way actually
-        # is an upsert. So this stores the course as well
-        self.grouping_service.upsert_grouping_memberships(
-            user=self.request.user, groups=[self.context.course]
+        course = self.course_service.get_from_launch(
+            self.request.product, self.request.lti_params
         )
+        self.grouping_service.upsert_grouping_memberships(
+            user=self.request.user, groups=[course]
+        )
+        return course
 
     def _configure_and_show_document(self):
         """
@@ -288,7 +292,7 @@ class BasicLaunchViews:
                 )
 
         self.context.js_config.add_document_url(document_url)
-        self.context.js_config.enable_lti_launch_mode(assignment)
+        self.context.js_config.enable_lti_launch_mode(self.course, assignment)
 
     def _record_launch(self):
         """Persist launch type independent info to the DB."""

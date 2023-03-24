@@ -5,6 +5,7 @@ from typing import Optional
 from sqlalchemy import Text, column, func
 
 from lms.models import Course, CourseGroupsExportedFromH, Grouping
+from lms.product import Product
 from lms.services.grouping import GroupingService
 
 
@@ -32,6 +33,28 @@ class CourseService:
             .filter(Course.settings[group][key] == json.dumps(value))
             .limit(1)
             .count()
+        )
+
+    def get_from_launch(self, product, lti_params):
+        """Get the course this LTI launch based on the request's params."""
+        if existing_course := self.get_by_context_id(lti_params["context_id"]):
+            # Keep existing `extra` instead of replacing it with the default
+            extra = existing_course.extra
+        else:
+            extra = {}
+            if product.family == Product.Family.CANVAS:
+                extra = {
+                    "canvas": {
+                        "custom_canvas_course_id": lti_params.get(
+                            "custom_canvas_course_id"
+                        )
+                    }
+                }
+
+        return self.upsert_course(
+            context_id=lti_params["context_id"],
+            name=lti_params["context_title"],
+            extra=extra,
         )
 
     def get_by_context_id(self, context_id, raise_on_missing=False) -> Optional[Course]:

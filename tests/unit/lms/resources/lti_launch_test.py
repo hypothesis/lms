@@ -41,69 +41,6 @@ class TestLTILaunchResource:
         JSConfig.assert_called_once_with(lti_launch, pyramid_request)
         assert js_config == JSConfig.return_value
 
-    def test_course_when_existing(self, course_service, lti_launch):
-        course_service.get_by_context_id.return_value = factories.Course(
-            extra={"existing": "extra"}
-        )
-
-        course = lti_launch.course
-
-        course_service.get_by_context_id.assert_called_once_with(
-            sentinel.context_id,
-        )
-        course_service.upsert_course.assert_called_once_with(
-            context_id=sentinel.context_id,
-            name=sentinel.context_title,
-            extra={"existing": "extra"},
-        )
-        assert course == course_service.upsert_course.return_value
-
-    def test_course_when_new(self, course_service, lti_launch):
-        course_service.get_by_context_id.return_value = None
-
-        course = lti_launch.course
-
-        course_service.get_by_context_id.assert_called_once_with(sentinel.context_id)
-        course_service.upsert_course.assert_called_once_with(
-            context_id=sentinel.context_id, name=sentinel.context_title, extra={}
-        )
-        assert course == course_service.upsert_course.return_value
-
-    @pytest.mark.usefixtures("with_canvas")
-    def test_course_when_new_and_canvas(self, course_service, lti_launch):
-        course_service.get_by_context_id.return_value = None
-
-        course = lti_launch.course
-
-        course_service.get_by_context_id.assert_called_once_with(sentinel.context_id)
-        course_service.upsert_course.assert_called_once_with(
-            context_id=sentinel.context_id,
-            name=sentinel.context_title,
-            extra={"canvas": {"custom_canvas_course_id": "ID"}},
-        )
-        assert course == course_service.upsert_course.return_value
-
-    def test_grouping_type(
-        self, grouping_service, lti_launch, assignment_service, pyramid_request
-    ):
-        assert (
-            lti_launch.grouping_type
-            == grouping_service.get_launch_grouping_type.return_value
-        )
-        assignment_service.get_assignment.assert_called_once_with(
-            sentinel.tool_guid, sentinel.resource_link_id
-        )
-        grouping_service.get_launch_grouping_type.assert_called_once_with(
-            pyramid_request,
-            lti_launch.course,
-            assignment_service.get_assignment.return_value,
-        )
-
-    @pytest.fixture
-    def with_canvas(self, pyramid_request):
-        pyramid_request.parsed_params["custom_canvas_course_id"] = "ID"
-        pyramid_request.product.family = Product.Family.CANVAS
-
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.parsed_params = pyramid_request.lti_params = {

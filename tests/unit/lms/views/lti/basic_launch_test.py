@@ -32,12 +32,18 @@ class TestHasDocumentURL:
     "misc_plugin",
 )
 class TestBasicLaunchViews:
-    def test___init___(self, context, pyramid_request, grouping_service):
+    def test___init___(
+        self, context, pyramid_request, grouping_service, course_service
+    ):
         BasicLaunchViews(context, pyramid_request)
 
         # `_record_course()`
+        course_service.get_from_launch.assert_called_once_with(
+            pyramid_request.product, pyramid_request.lti_params
+        )
         grouping_service.upsert_grouping_memberships.assert_called_once_with(
-            user=pyramid_request.user, groups=[context.course]
+            user=pyramid_request.user,
+            groups=[course_service.get_from_launch.return_value],
         )
 
         # `_record_launch()`
@@ -253,6 +259,7 @@ class TestBasicLaunchViews:
         assignment_service,
         misc_plugin,
         lti_user,
+        course_service,
     ):
         # pylint: disable=protected-access
         result = svc._show_document(
@@ -260,7 +267,7 @@ class TestBasicLaunchViews:
         )
 
         lti_h_service.sync.assert_called_once_with(
-            [context.course], pyramid_request.lti_params
+            [course_service.get_from_launch.return_value], pyramid_request.lti_params
         )
 
         # `_record_assignment()`
@@ -282,10 +289,12 @@ class TestBasicLaunchViews:
             lti_roles=lti_user.lti_roles,
         )
         assignment_service.upsert_assignment_groupings.assert_called_once_with(
-            assignment, groupings=[context.course]
+            assignment, groupings=[course_service.get_from_launch.return_value]
         )
 
-        context.js_config.enable_lti_launch_mode.assert_called_once_with(assignment)
+        context.js_config.enable_lti_launch_mode.assert_called_once_with(
+            course_service.get_from_launch.return_value, assignment
+        )
         context.js_config.set_focused_user.assert_not_called()
         context.js_config.add_document_url.assert_called_once_with(
             sentinel.document_url
