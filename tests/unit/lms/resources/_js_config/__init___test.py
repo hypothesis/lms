@@ -227,6 +227,19 @@ class TestEnableLTILaunchMode:
         # Confirm we pass the schema for the sync end-point
         APISyncSchema(pyramid_request).load(sync_config["data"])
 
+    @pytest.mark.usefixtures("with_provisioning_disabled")
+    def test_client_config_is_empty_if_provisioning_feature_is_disabled(
+        self, js_config
+    ):
+        js_config.enable_lti_launch_mode(course, assignment)
+        config = js_config.asdict()["hypothesisClient"]
+
+        assert config == {}
+
+    @pytest.fixture
+    def with_provisioning_disabled(self, context):
+        context.application_instance.provisioning = False
+
 
 class TestAddDocumentURL:
     """Unit tests for JSConfig.add_document_url()."""
@@ -471,48 +484,6 @@ class TestJSConfigDebug:
     @pytest.fixture
     def config(self, config):
         return config["debug"]
-
-
-class TestJSConfigHypothesisClient:
-    """Unit tests for the "hypothesisClient" sub-dict of JSConfig."""
-
-    def test_it(self, config, grant_token_service, context, pyramid_request):
-        grant_token_service.generate_token.assert_called_with(
-            pyramid_request.lti_user.h_user
-        )
-
-        assert config["services"] == [
-            {
-                "allowFlagging": False,
-                "allowLeavingGroups": False,
-                "apiUrl": TEST_SETTINGS["h_api_url_public"],
-                "authority": TEST_SETTINGS["h_authority"],
-                "enableShareLinks": False,
-                "grantToken": grant_token_service.generate_token.return_value,
-                "groups": "$rpc:requestGroups",
-            }
-        ]
-
-    @pytest.mark.usefixtures("with_provisioning_disabled")
-    def test_it_is_empty_if_provisioning_feature_is_disabled(self, config):
-        assert config == {}
-
-    def test_it_is_mutable(self, config):
-        config.update({"a_key": "a_value"})
-
-        assert config["a_key"] == "a_value"
-
-    @pytest.fixture
-    def config(self, config, js_config, assignment):
-        # Call enable_lti_launch_mode() so that the "hypothesisClient" section
-        # gets inserted into the config.
-        js_config.enable_lti_launch_mode(sentinel.course, assignment)
-
-        return config["hypothesisClient"]
-
-    @pytest.fixture
-    def with_provisioning_disabled(self, context):
-        context.application_instance.provisioning = False
 
 
 class TestEnableOAuth2RedirectErrorMode:
