@@ -523,21 +523,6 @@ class TestJSConfigHypothesisClient:
         context.application_instance.provisioning = False
 
 
-class TestJSConfigRPCServer:
-    """Unit tests for the "rpcServer" sub-dict of JSConfig."""
-
-    def test_it(self, config):
-        assert config == {"allowedOrigins": ["http://localhost:5000"]}
-
-    @pytest.fixture
-    def config(self, config, js_config, assignment):
-        # Call enable_lti_launch_mode() so that the "rpcServer" section gets
-        # inserted into the config.
-        js_config.enable_lti_launch_mode(assignment)
-
-        return config["rpcServer"]
-
-
 class TestEnableOAuth2RedirectErrorMode:
     def test_it(self, js_config):
         js_config.enable_oauth2_redirect_error_mode(
