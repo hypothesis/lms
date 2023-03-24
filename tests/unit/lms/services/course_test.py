@@ -1,11 +1,12 @@
 import datetime
-from unittest.mock import sentinel
+from unittest.mock import patch, sentinel
 
 import pytest
 from h_matchers import Any
 from sqlalchemy.exc import NoResultFound
 
 from lms.models import CourseGroupsExportedFromH, Grouping
+from lms.product.product import Product
 from lms.services.course import CourseService, course_service_factory
 from tests import factories
 
@@ -49,6 +50,73 @@ class TestCourseService:
     def test_get_by_context_id_with_no_match_and_raise_on_missing(self, svc):
         with pytest.raises(NoResultFound):
             svc.get_by_context_id("NO MATCH", raise_on_missing=True)
+
+    def test_get_from_launch_when_existing(
+        self, svc, get_by_context_id, upsert_course, product
+    ):
+        course = get_by_context_id.return_value = factories.Course(
+            extra={"existing": "extra"}
+        )
+
+        course = svc.get_from_launch(
+            product,
+            lti_params={
+                "context_id": sentinel.context_id,
+                "context_title": sentinel.context_title,
+            },
+        )
+
+        get_by_context_id.assert_called_once_with(
+            sentinel.context_id,
+        )
+        upsert_course.assert_called_once_with(
+            context_id=sentinel.context_id,
+            name=sentinel.context_title,
+            extra={"existing": "extra"},
+        )
+        assert course == upsert_course.return_value
+
+    def test_get_from_launch_when_new(
+        self, svc, get_by_context_id, upsert_course, product
+    ):
+        get_by_context_id.return_value = None
+
+        course = svc.get_from_launch(
+            product,
+            lti_params={
+                "context_id": sentinel.context_id,
+                "context_title": sentinel.context_title,
+            },
+        )
+
+        get_by_context_id.assert_called_once_with(sentinel.context_id)
+        upsert_course.assert_called_once_with(
+            context_id=sentinel.context_id, name=sentinel.context_title, extra={}
+        )
+        assert course == upsert_course.return_value
+
+    def test_get_from_launch_when_new_and_canvas(
+        self, svc, upsert_course, get_by_context_id, product
+    ):
+        get_by_context_id.return_value = None
+        product.family = Product.Family.CANVAS
+
+        course = svc.get_from_launch(
+            product,
+            lti_params={
+                "context_id": sentinel.context_id,
+                "context_title": sentinel.context_title,
+                "custom_canvas_course_id": sentinel.canvas_id,
+            },
+        )
+
+        get_by_context_id.assert_called_once_with(sentinel.context_id)
+        upsert_course.assert_called_once_with(
+            context_id=sentinel.context_id,
+            name=sentinel.context_title,
+            extra={"canvas": {"custom_canvas_course_id": sentinel.canvas_id}},
+        )
+        assert course == upsert_course.return_value
 
     def test_upsert_course(self, svc, grouping_service):
         course = svc.upsert_course(
@@ -177,6 +245,16 @@ class TestCourseService:
             application_instance=application_instance,
             grouping_service=grouping_service,
         )
+
+    @pytest.fixture
+    def get_by_context_id(self, svc):
+        with patch.object(svc, "get_by_context_id") as get_by_context_id:
+            yield get_by_context_id
+
+    @pytest.fixture
+    def upsert_course(self, svc):
+        with patch.object(svc, "upsert_course") as upsert_course:
+            yield upsert_course
 
 
 class TestCourseServiceFactory:

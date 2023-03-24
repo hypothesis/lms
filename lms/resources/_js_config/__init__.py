@@ -178,7 +178,7 @@ class JSConfig:
         if message:
             self._config["errorDialog"]["errorMessage"] = message
 
-    def enable_lti_launch_mode(self, assignment: Assignment):
+    def enable_lti_launch_mode(self, course, assignment: Assignment):
         """
         Put the JavaScript code into "LTI launch" mode.
 
