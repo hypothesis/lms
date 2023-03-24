@@ -66,7 +66,10 @@ def deep_linking_launch(context, request):
     request.find_service(name="application_instance").update_from_lti_params(
         context.application_instance, request.lti_params
     )
-    request.find_service(name="lti_h").sync([context.course], request.params)
+    course = request.find_service(name="course").get_from_launch(
+        request.product, request.lti_params
+    )
+    request.find_service(name="lti_h").sync([course], request.params)
 
     context.js_config.enable_file_picker_mode(
         form_action=request.parsed_params["content_item_return_url"],
