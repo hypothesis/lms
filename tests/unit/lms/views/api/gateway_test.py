@@ -15,14 +15,14 @@ from tests import factories
 
 @pytest.mark.usefixtures("lti_h_service")
 class TestHLTI:
-    def test_it(self, context, pyramid_request, _GatewayService):
+    def test_it(self, course_service, context, pyramid_request, _GatewayService):
         response = h_lti(context, pyramid_request)
 
         _GatewayService.render_h_connection_info.assert_called_once_with(
             pyramid_request
         )
         _GatewayService.render_lti_context.assert_called_once_with(
-            pyramid_request, context.course
+            pyramid_request, course_service.get_from_launch.return_value
         )
         assert response == {
             "api": {"h": _GatewayService.render_h_connection_info.return_value},
@@ -37,11 +37,13 @@ class TestHLTI:
         with pytest.raises(HTTPForbidden):
             h_lti(context, pyramid_request)
 
-    def test_syncs_the_user_to_h(self, context, pyramid_request, lti_h_service):
+    def test_syncs_the_user_to_h(
+        self, course_service, context, pyramid_request, lti_h_service
+    ):
         h_lti(context, pyramid_request)
 
         lti_h_service.sync.assert_called_once_with(
-            [context.course], pyramid_request.lti_params
+            [course_service.get_from_launch.return_value], pyramid_request.lti_params
         )
 
     @pytest.fixture(autouse=True)
@@ -132,7 +134,9 @@ class Test_GatewayService:
         )
 
 
-@pytest.mark.usefixtures("grant_token_service", "lti_h_service", "grouping_service")
+@pytest.mark.usefixtures(
+    "grant_token_service", "lti_h_service", "grouping_service", "course_service"
+)
 class TestHLTIConsumer:
     # These tests are "consumer tests" and ensure we meet the spec we have
     # provided to our users in our documentation
