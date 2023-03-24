@@ -174,6 +174,7 @@ class TestApplicationInstanceService:
             "canvas": {
                 "sections_enabled": False,
                 "groups_enabled": bool(developer_key),
+                "files_enabled": bool(developer_key),
             }
         }
 
