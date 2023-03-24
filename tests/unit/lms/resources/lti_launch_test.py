@@ -4,7 +4,6 @@ import pytest
 
 from lms.product import Product
 from lms.resources import LTILaunchResource
-from tests import factories
 
 pytestmark = pytest.mark.usefixtures(
     "application_instance_service",

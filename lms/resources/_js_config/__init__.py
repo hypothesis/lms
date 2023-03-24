@@ -188,12 +188,13 @@ class JSConfig:
         # Info about the product we are currently running in
         self._config["product"] = self._get_product_info()
 
-        self._config["api"]["sync"] = self._sync_api(assignment)
-
         # The config object for the Hypothesis client.
         # Our JSON-RPC server passes this to the Hypothesis client over
         # postMessage.
         self._config["hypothesisClient"] = self._hypothesis_client
+
+        # Configure group related settings
+        self._configure_groups(course, assignment)
 
         self._config["rpcServer"] = {
             "allowedOrigins": self._request.registry.settings["rpc_allowed_origins"]
@@ -518,55 +519,61 @@ class JSConfig:
                     "authority": self._authority,
                     "enableShareLinks": False,
                     "grantToken": grant_token,
-                    "groups": self._groups(),
                 }
             ]
         }
 
-    def _groups(self):
-        if self._context.grouping_type == Grouping.Type.COURSE:
-            return [self._context.course.groupid(self._authority)]
+    def _configure_groups(self, course, assignment):
+        """Configure how the client will fetch groups when in LAUNCH mode."""
+        if not self._context.application_instance.provisioning:
+            return
 
-        # If not using the default COURSE grouping point the FE
-        # to the sync API to dynamically get the relevant groupings.
-        return "$rpc:requestGroups"
+        grouping_type = self._request.find_service(
+            name="grouping"
+        ).get_launch_grouping_type(self._request, course, assignment)
 
-    def _sync_api(self, assignment):
-        """Add configuration the front-end will use to get groupings."""
+        if grouping_type == Grouping.Type.COURSE:
+            self._config["hypothesisClient"]["services"][0]["groups"] = [
+                course.groupid(self._authority)
+            ]
+            self._config["api"]["sync"] = None
 
-        if self._context.grouping_type == Grouping.Type.COURSE:
-            return None
+        else:
+            # If not using the default COURSE grouping point the FE
+            # to the sync API to dynamically get the relevant groupings.
+            self._config["hypothesisClient"]["services"][0][
+                "groups"
+            ] = "$rpc:requestGroups"
 
-        req = self._request
-
-        return {
-            "authUrl": req.route_url(req.product.route.oauth2_authorize),
-            "path": req.route_path("api.sync"),
-            # This data is consumed by the view in `lms.views.api.sync` which
-            # defines the arguments it expects. We need to match that
-            # description. Anything we add here should be echoed back by the
-            # frontend.
-            "data": {
-                "resource_link_id": assignment.resource_link_id,
-                "lms": {
-                    "product": self._request.product.family,
+            req = self._request
+            self._config["api"]["sync"] = {
+                "authUrl": req.route_url(req.product.route.oauth2_authorize),
+                "path": req.route_path("api.sync"),
+                # This data is consumed by the view in `lms.views.api.sync` which
+                # defines the arguments it expects. We need to match that
+                # description. Anything we add here should be echoed back by the
+                # frontend.
+                "data": {
+                    "resource_link_id": assignment.resource_link_id,
+                    "lms": {
+                        "product": self._request.product.family,
+                    },
+                    "context_id": self._request.lti_params["context_id"],
+                    "group_set_id": self._request.product.plugin.grouping.get_group_set_id(
+                        self._request, assignment
+                    ),
+                    "group_info": {
+                        key: value
+                        for key, value in self._request.lti_params.items()
+                        if key in GroupInfo.columns()
+                    },
+                    # The student we are currently grading. In the case of Canvas
+                    # this will be present in the SpeedGrader launch URL and
+                    # available at launch time. When using our own grading bar this
+                    # will be passed by the frontend
+                    "gradingStudentId": req.params.get("learner_canvas_user_id"),
                 },
-                "context_id": self._request.lti_params["context_id"],
-                "group_set_id": self._request.product.plugin.grouping.get_group_set_id(
-                    self._request, assignment
-                ),
-                "group_info": {
-                    key: value
-                    for key, value in self._request.lti_params.items()
-                    if key in GroupInfo.columns()
-                },
-                # The student we are currently grading. In the case of Canvas
-                # this will be present in the SpeedGrader launch URL and
-                # available at launch time. When using our own grading bar this
-                # will be passed by the frontend
-                "gradingStudentId": req.params.get("learner_canvas_user_id"),
-            },
-        }
+            }
 
     def _get_lti_launch_debug_values(self):
         """Debug values common to different types of LTI launches."""

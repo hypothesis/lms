@@ -14,6 +14,8 @@ from tests.conftest import TEST_SETTINGS
 
 pytestmark = pytest.mark.usefixtures(
     "grading_info_service",
+    "grouping_service",
+    "grouping_plugin",
     "grant_token_service",
     "h_api",
     "vitalsource_service",
@@ -106,20 +108,22 @@ class TestEnableLTILaunchMode:
         context,
         grant_token_service,
         js_config,
-        assignment,
         db_session,
+        course,
+        assignment,
     ):
         context.application_instance.organization = factories.Organization(
             _public_id="PUBLIC_ID"
         )
         db_session.flush()
 
-        js_config.enable_lti_launch_mode(assignment)
+        js_config.enable_lti_launch_mode(course, assignment)
+        config = js_config.asdict()
 
-        assert js_config.asdict() == {
+        assert config == {
             "api": {
                 "authToken": bearer_token_schema.authorization_param.return_value,
-                "sync": None,
+                "sync": Any(),
             },
             "canvas": {},
             "debug": {
@@ -153,13 +157,75 @@ class TestEnableLTILaunchMode:
                         "authority": TEST_SETTINGS["h_authority"],
                         "enableShareLinks": False,
                         "grantToken": grant_token_service.generate_token.return_value,
-                        "groups": [context.course.groupid.return_value],
+                        "groups": Any(),
                     }
                 ]
             },
             "mode": "basic-lti-launch",
             "rpcServer": {"allowedOrigins": ["http://localhost:5000"]},
         }
+
+    @pytest.mark.usefixtures("grouping_plugin")
+    def test_configures_the_client_with_course_group(
+        self, js_config, grouping_service, course, assignment
+    ):
+        grouping_service.get_launch_grouping_type.return_value = Grouping.Type.COURSE
+
+        js_config.enable_lti_launch_mode(course, assignment)
+        config = js_config.asdict()
+
+        assert config["hypothesisClient"]["services"][0]["groups"] == [
+            Any.string.matching("^group:.*@lms.hypothes.is")
+        ]
+        assert not config["api"]["sync"]
+
+    @pytest.mark.usefixtures("grouping_plugin")
+    @pytest.mark.parametrize(
+        "grouping_type", [Grouping.Type.SECTION, Grouping.Type.GROUP]
+    )
+    def test_configures_the_client_to_fetch_the_groups_over_RPC(
+        self,
+        js_config,
+        grouping_service,
+        grouping_type,
+        course,
+        assignment,
+        grouping_plugin,
+        pyramid_request,
+    ):
+        grouping_service.get_launch_grouping_type.return_value = grouping_type
+        pyramid_request.lti_params["context_id"] = "CONTEXT_ID"
+        pyramid_request.params["learner_canvas_user_id"] = "CANVAS_USER_ID"
+        grouping_service.get_launch_grouping_type.return_value = grouping_type
+        grouping_plugin.get_group_set_id.return_value = "GROUP_SET_ID"
+
+        js_config.enable_lti_launch_mode(course, assignment)
+        config = js_config.asdict()
+
+        assert (
+            config["hypothesisClient"]["services"][0]["groups"] == "$rpc:requestGroups"
+        )
+        sync_config = config["api"]["sync"]
+        assert sync_config == {
+            "authUrl": "http://example.com/welcome",
+            "path": "/api/sync",
+            "data": {
+                "resource_link_id": assignment.resource_link_id,
+                "lms": {"product": pyramid_request.product.family},
+                "context_id": "CONTEXT_ID",
+                "group_set_id": "GROUP_SET_ID",
+                "group_info": {
+                    "context_id": "CONTEXT_ID",
+                    "custom_canvas_course_id": "test_course_id",
+                },
+                # This is only actually true for Canvas, but we do it for all
+                # LMS products at the moment
+                "gradingStudentId": "CANVAS_USER_ID",
+            },
+        }
+
+        # Confirm we pass the schema for the sync end-point
+        APISyncSchema(pyramid_request).load(sync_config["data"])
 
 
 class TestAddDocumentURL:
@@ -373,7 +439,7 @@ class TestSetFocusedUser:
     @pytest.fixture
     def js_config(self, js_config, assignment):
         # `set_focused_user` needs the `hypothesisClient` section to exist
-        js_config.enable_lti_launch_mode(assignment)
+        js_config.enable_lti_launch_mode(sentinel.course, assignment)
 
         return js_config
 
@@ -393,59 +459,6 @@ class TestJSConfigAuthToken:
     @pytest.fixture
     def authToken(self, config):
         return config["api"]["authToken"]
-
-
-class TestJSConfigAPISync:
-    """Unit tests for the api.sync sub-dict of JSConfig."""
-
-    @pytest.mark.parametrize(
-        "grouping_type", (Grouping.Type.GROUP, Grouping.Type.SECTION)
-    )
-    def test_it(
-        self,
-        js_config,
-        context,
-        pyramid_request,
-        grouping_type,
-        grouping_plugin,
-        assignment,
-    ):
-        pyramid_request.lti_params["context_id"] = "CONTEXT_ID"
-        pyramid_request.params["learner_canvas_user_id"] = "CANVAS_USER_ID"
-        pyramid_request.product.route.oauth2_authorize = "welcome"
-        context.grouping_type = grouping_type
-        grouping_plugin.get_group_set_id.return_value = "GROUP_SET_ID"
-
-        js_config.enable_lti_launch_mode(assignment)
-
-        sync_config = js_config.asdict()["api"]["sync"]
-        assert sync_config == {
-            "authUrl": "http://example.com/welcome",
-            "path": "/api/sync",
-            "data": {
-                "resource_link_id": assignment.resource_link_id,
-                "lms": {"product": pyramid_request.product.family},
-                "context_id": "CONTEXT_ID",
-                "group_set_id": "GROUP_SET_ID",
-                "group_info": {
-                    "context_id": "CONTEXT_ID",
-                    "custom_canvas_course_id": "test_course_id",
-                },
-                # This is only actually true for Canvas, but we do it for all
-                # LMS products at the moment
-                "gradingStudentId": "CANVAS_USER_ID",
-            },
-        }
-
-        # Confirm we pass the schema for the sync end-point
-        APISyncSchema(pyramid_request).load(sync_config["data"])
-
-    def test_it_when_the_grouping_type_is_course(self, js_config, pyramid_request):
-        pyramid_request.product.family = Grouping.Type.COURSE
-
-        js_config.enable_lti_launch_mode(sentinel.assignment)
-
-        assert not js_config.asdict()["api"]["sync"]
 
 
 class TestJSConfigDebug:
@@ -476,21 +489,9 @@ class TestJSConfigHypothesisClient:
                 "authority": TEST_SETTINGS["h_authority"],
                 "enableShareLinks": False,
                 "grantToken": grant_token_service.generate_token.return_value,
-                "groups": [context.course.groupid.return_value],
+                "groups": "$rpc:requestGroups",
             }
         ]
-
-    @pytest.mark.usefixtures("with_sections_on", "grouping_plugin")
-    def test_configures_the_client_to_fetch_the_groups_over_RPC_with_sections(
-        self, config
-    ):
-        assert config["services"][0]["groups"] == "$rpc:requestGroups"
-
-    @pytest.mark.usefixtures("with_groups_on", "grouping_plugin")
-    def test_it_configures_the_client_to_fetch_the_groups_over_RPC_with_groups(
-        self, config
-    ):
-        assert config["services"][0]["groups"] == "$rpc:requestGroups"
 
     @pytest.mark.usefixtures("with_provisioning_disabled")
     def test_it_is_empty_if_provisioning_feature_is_disabled(self, config):
@@ -505,18 +506,9 @@ class TestJSConfigHypothesisClient:
     def config(self, config, js_config, assignment):
         # Call enable_lti_launch_mode() so that the "hypothesisClient" section
         # gets inserted into the config.
-        js_config.enable_lti_launch_mode(assignment)
+        js_config.enable_lti_launch_mode(sentinel.course, assignment)
 
         return config["hypothesisClient"]
-
-    @pytest.fixture
-    def with_sections_on(self, context, pyramid_request):
-        context.grouping_type = Grouping.Type.SECTION
-        pyramid_request.product.family = Product.Family.CANVAS
-
-    @pytest.fixture
-    def with_groups_on(self, context):
-        context.grouping_type = Grouping.Type.GROUP
 
     @pytest.fixture
     def with_provisioning_disabled(self, context):
@@ -684,8 +676,6 @@ def context(application_instance):
         spec_set=True,
         instance=True,
         is_canvas=True,
-        grouping_type=Grouping.Type.COURSE,
-        course=create_autospec(Grouping, instance=True, spec_set=True),
         application_instance=application_instance,
     )
 
@@ -702,12 +692,18 @@ def pyramid_request(pyramid_request):
         }
     )
     pyramid_request.lti_params = LTIParams.from_request(pyramid_request)
+    pyramid_request.product.route.oauth2_authorize = "welcome"
     return pyramid_request
 
 
 @pytest.fixture
 def assignment():
     return factories.Assignment()
+
+
+@pytest.fixture
+def course():
+    return factories.Course()
 
 
 @pytest.fixture(autouse=True)
