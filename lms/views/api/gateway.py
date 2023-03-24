@@ -56,11 +56,14 @@ def h_lti(context, request):
     # course group. This means they will see annotations at the course level
     # right away. If the course uses groups or sections, they won't see
     # anything until they launch an assignment and get put in a group.
-    request.find_service(name="lti_h").sync([context.course], request.lti_params)
+    course = request.find_service(name="course").get_from_launch(
+        request.product, request.lti_params
+    )
+    request.find_service(name="lti_h").sync([course], request.lti_params)
 
     return {
         "api": {"h": _GatewayService.render_h_connection_info(request)},
-        "data": _GatewayService.render_lti_context(request, context.course),
+        "data": _GatewayService.render_lti_context(request, course),
     }
 
 
