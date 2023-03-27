@@ -4,6 +4,12 @@ from lms.models import Assignment
 
 
 class TestAssignment:
+    @pytest.mark.parametrize("value,expected", [(None, None), (1, "1"), ("ID", "ID")])
+    def test_group_set_id(self, assignment, value, expected):
+        assignment.extra["group_set_id"] = value
+
+        assert assignment.group_set_id == expected
+
     def test_set_canvas_mapped_file_id_creates_a_new_mapping_if_none_exists(
         self, assignment
     ):

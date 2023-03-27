@@ -86,7 +86,7 @@ class GroupingPlugin:
         if not self.group_type or not assignment:
             return None
 
-        return assignment.extra.get("group_set_id") if assignment else None
+        return assignment.group_set_id if assignment else None
 
 
 class GroupError(Exception):

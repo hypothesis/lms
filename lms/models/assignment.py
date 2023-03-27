@@ -1,3 +1,5 @@
+from typing import Optional
+
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
@@ -73,6 +75,19 @@ class Assignment(CreatedUpdatedMixin, BASE):
 
     description = sa.Column(sa.Unicode, nullable=True)
     """The resource link description from LTI params."""
+
+    @property
+    def group_set_id(self) -> Optional[str]:
+        """Get the ID of the group set this assignment is configured with."""
+
+        if group_set_id := self.extra.get("group_set_id"):
+            # Different LMS's use integers/strings/uuids.
+            # Always return a string here an let the specific
+            # API services deal with the differences.
+            return str(group_set_id)
+
+        # The assignment is not configured as a groups one.
+        return None
 
     def get_canvas_mapped_file_id(self, file_id):
         return self.extra.get("canvas_file_mappings", {}).get(file_id, file_id)

@@ -97,7 +97,7 @@ class BasicLaunchViews:
         return {
             # Info about the assignment's current configuration
             "assignment": {
-                "group_set_id": assignment.extra.get("group_set_id"),
+                "group_set_id": assignment.group_set_id,
                 "document": {
                     "url": assignment.document_url,
                 },
@@ -141,7 +141,7 @@ class BasicLaunchViews:
                 type=LTIEvent.Type.EDITED_ASSIGNMENT,
                 data={
                     "old_url": assignment.document_url,
-                    "old_group_set_id": assignment.extra.get("group_set_id"),
+                    "old_group_set_id": assignment.group_set_id,
                 },
             )
         )

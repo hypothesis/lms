@@ -151,7 +151,7 @@ class TestBasicLaunchViews:
             type=LTIEvent.Type.EDITED_ASSIGNMENT,
             data={
                 "old_url": assignment.document_url,
-                "old_group_set_id": assignment.extra.get.return_value,
+                "old_group_set_id": assignment.group_set_id,
             },
         )
         pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
@@ -231,7 +231,7 @@ class TestBasicLaunchViews:
         )
         assert response == {
             "assignment": {
-                "group_set_id": assignment.extra.get.return_value,
+                "group_set_id": assignment.group_set_id,
                 "document": {"url": assignment.document_url},
             },
             "filePicker": context.js_config.enable_file_picker_mode.return_value[

@@ -35,12 +35,9 @@ class TestGroupingPlugin:
         assert not plugin.get_group_set_id(sentinel.request, assignment)
 
     def test_get_group_set_id(self, plugin_with_groups):
-        assignment = factories.Assignment(extra={"group_set_id": sentinel.id})
+        assignment = factories.Assignment(extra={"group_set_id": "ID"})
 
-        assert (
-            plugin_with_groups.get_group_set_id(sentinel.request, assignment)
-            == sentinel.id
-        )
+        assert plugin_with_groups.get_group_set_id(sentinel.request, assignment) == "ID"
 
     @pytest.fixture
     def plugin(self):

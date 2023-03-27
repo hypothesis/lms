@@ -93,9 +93,7 @@ class AssignmentService:
             if historical_assignment := self.get_copied_from_assignment(lti_params):
                 assignment.copied_from = historical_assignment
 
-                if historical_assignment.extra.get("group_set_id") and not extra.get(
-                    "group_set_id"
-                ):
+                if historical_assignment.group_set_id and not extra.get("group_set_id"):
                     extra["group_set_id"] = historical_assignment.extra.get(
                         "group_set_id"
                     )
