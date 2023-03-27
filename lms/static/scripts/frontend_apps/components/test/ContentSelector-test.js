@@ -163,6 +163,7 @@ describe('ContentSelector', () => {
       'http://example.com/1234',
       'https://arxiv.org/pdf/1234.pdf',
       'https://foobar.com/a%3Cb',
+      'HTTPS://EXAMPLE.COM/4567',
     ].forEach(url => {
       it('pre-fills URL input if `initialContent` is an HTTP URL', () => {
         const wrapper = renderContentSelector({
