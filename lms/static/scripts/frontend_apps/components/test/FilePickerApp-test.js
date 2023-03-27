@@ -390,10 +390,6 @@ describe('FilePickerApp', () => {
           url: 'https://test.com/example.pdf',
         },
       };
-
-      // FIXME - The existing assignment configuration and "Save" buttons
-      // should be visible even if groups are not enabled.
-      fakeConfig.product.settings.groupsEnabled = true;
     });
 
     /** Click the button to edit the existing content selection. */

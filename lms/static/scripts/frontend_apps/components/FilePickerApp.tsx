@@ -215,11 +215,14 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     (content: Content) => {
       setContent(content);
       setEditingContent(false);
-      if (!enableGroupConfig) {
+
+      // If this is a new assignment and the only choice the user has to make
+      // is the content, we submit as soon as they select the content.
+      if (!isEditing && !enableGroupConfig) {
         submit(content);
       }
     },
-    [enableGroupConfig, submit]
+    [enableGroupConfig, isEditing, submit]
   );
 
   return (
@@ -330,30 +333,36 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
               </div>
             </CardContent>
           </Scroll>
-          {content && enableGroupConfig && (
-            <CardContent>
-              <CardActions>
-                {editingContent && (
-                  <Button
-                    onClick={() => setEditingContent(false)}
-                    data-testid="cancel-edit-content"
-                  >
-                    Back
-                  </Button>
-                )}
-                {!editingContent && (
-                  <Button
-                    data-testid="save-button"
-                    disabled={groupConfig.useGroupSet && !groupConfig.groupSet}
-                    variant="primary"
-                    onClick={() => submit(content)}
-                  >
-                    {isEditing ? 'Save' : 'Continue'}
-                  </Button>
-                )}
-              </CardActions>
-            </CardContent>
-          )}
+          {
+            // See comments in `selectContent` about auto-submitting form if
+            // this is a new assignment and groups are not available.
+            content && (isEditing || enableGroupConfig) && (
+              <CardContent>
+                <CardActions>
+                  {editingContent && (
+                    <Button
+                      onClick={() => setEditingContent(false)}
+                      data-testid="cancel-edit-content"
+                    >
+                      Back
+                    </Button>
+                  )}
+                  {!editingContent && (
+                    <Button
+                      data-testid="save-button"
+                      disabled={
+                        groupConfig.useGroupSet && !groupConfig.groupSet
+                      }
+                      variant="primary"
+                      onClick={() => submit(content)}
+                    >
+                      {isEditing ? 'Save' : 'Continue'}
+                    </Button>
+                  )}
+                </CardActions>
+              </CardContent>
+            )
+          }
           {content && (
             <FilePickerFormFields
               content={content}
