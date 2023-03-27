@@ -138,6 +138,11 @@ def pyramid_request(db_session, application_instance, lti_v11_params):
 
 
 @pytest.fixture
+def product(pyramid_request):
+    return pyramid_request.product
+
+
+@pytest.fixture
 def user_is_learner(lti_user):
     lti_user.lti_roles = [
         factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER)
