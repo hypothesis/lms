@@ -33,7 +33,7 @@ export type ContentSelectorProps = {
 };
 
 function extractContentTypeAndValue(content: Content): [DialogType, string] {
-  if (content.type === 'url' && content.url.match(/^https?:/)) {
+  if (content.type === 'url' && content.url.match(/^https?:/i)) {
     return ['url', content.url];
   } else if (content.type === 'url' && content.url.startsWith('jstor:')) {
     return ['jstor', content.url.slice('jstor://'.length)];
