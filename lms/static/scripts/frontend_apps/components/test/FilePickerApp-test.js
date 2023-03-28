@@ -16,6 +16,13 @@ function interact(wrapper, callback) {
   wrapper.update();
 }
 
+/**
+ * Click the button in `wrapper` with a given `data-testid` attribute.
+ */
+function clickButton(wrapper, testId) {
+  wrapper.find(`button[data-testid="${testId}"]`).simulate('click');
+}
+
 describe('FilePickerApp', () => {
   let container;
   let fakeConfig;
@@ -392,28 +399,6 @@ describe('FilePickerApp', () => {
       };
     });
 
-    /** Click the button to edit the existing content selection. */
-    function clickEditButton(wrapper) {
-      const editButton = wrapper.find('Button[data-testid="edit-content"]');
-      assert.isTrue(editButton.exists());
-      act(() => {
-        editButton.prop('onClick')();
-      });
-      wrapper.update();
-    }
-
-    /** Click the button to cancel editing the content selection. */
-    function clickCancelEditButton(wrapper) {
-      const cancelButton = wrapper.find(
-        'Button[data-testid="cancel-edit-content"]'
-      );
-      assert.isTrue(cancelButton.exists());
-      act(() => {
-        cancelButton.prop('onClick')();
-      });
-      wrapper.update();
-    }
-
     it('shows "Back to assignment" link', () => {
       const wrapper = renderFilePicker();
       assert.isTrue(wrapper.exists('[data-testid="back-link"]'));
@@ -440,7 +425,7 @@ describe('FilePickerApp', () => {
 
       // Clicking on the change/edit button next to the content description
       // should show the content selector.
-      clickEditButton(wrapper);
+      clickButton(wrapper, 'edit-content');
       const contentSelector = wrapper.find('ContentSelector');
       assert.isTrue(contentSelector.exists());
       assert.deepEqual(contentSelector.prop('initialContent'), {
@@ -464,8 +449,8 @@ describe('FilePickerApp', () => {
 
     it('cancels editing content when clicking "Cancel" button', () => {
       const wrapper = renderFilePicker();
-      clickEditButton(wrapper);
-      clickCancelEditButton(wrapper);
+      clickButton(wrapper, 'edit-content');
+      clickButton(wrapper, 'cancel-edit-content');
       assert.isFalse(wrapper.exists('ContentSelector'));
     });
   });
