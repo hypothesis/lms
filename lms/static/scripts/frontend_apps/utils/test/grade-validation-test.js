@@ -16,7 +16,7 @@ describe('validateGrade', () => {
   ].forEach(([input, expected]) => {
     it('returns parsed grade if valid', () => {
       const result = validateGrade(input, MAX_POINTS);
-      assert.isTrue(result.ok);
+      assert.isTrue(result.valid);
       assert.approximately(result.grade, expected, 1e-8 /* tolerance */);
     });
   });
@@ -29,7 +29,10 @@ describe('validateGrade', () => {
     ['20', 'Grade must be between 0 and 10'],
   ].forEach(([input, error]) => {
     it('returns error if validation fails', () => {
-      assert.deepEqual(validateGrade(input, MAX_POINTS), { ok: false, error });
+      assert.deepEqual(validateGrade(input, MAX_POINTS), {
+        valid: false,
+        error,
+      });
     });
   });
 });

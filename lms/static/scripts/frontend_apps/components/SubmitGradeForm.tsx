@@ -94,7 +94,7 @@ export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
     event.preventDefault();
     const result = validateGrade(inputRef.current!.value, MAX_SCORE);
 
-    if (!result.ok) {
+    if (!result.valid) {
       setValidationMessageMessage(result.error);
       setValidationError(true);
     } else {

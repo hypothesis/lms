@@ -4,8 +4,8 @@
  * This is either a grade value or a validation error message.
  */
 export type ValidateGradeResult =
-  | { ok: false; error: string }
-  | { ok: true; grade: number };
+  | { valid: false; error: string }
+  | { valid: true; grade: number };
 
 /**
  * Validate a grade value entered by the user and convert it to a value which
@@ -30,19 +30,19 @@ export function validateGrade(
   const doubleVal = Number(trimmed);
   if (trimmed.length === 0 || isNaN(doubleVal)) {
     return {
-      ok: false,
+      valid: false,
       error: `Grade must be a number between 0 and ${maxScore}`,
     };
   }
 
   if (doubleVal < 0 || doubleVal > maxScore) {
     return {
-      ok: false,
+      valid: false,
       error: `Grade must be between 0 and ${maxScore}`,
     };
   }
 
-  return { ok: true, grade: doubleVal * scaleFactor };
+  return { valid: true, grade: doubleVal * scaleFactor };
 }
 
 /**
