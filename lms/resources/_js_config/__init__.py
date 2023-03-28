@@ -284,7 +284,7 @@ class JSConfig:
         self._config.setdefault("filePicker", {})
         self._config["filePicker"]["deepLinkingAPI"] = config
 
-    def enable_instructor_toolbar(self, enable_editing=False, enable_grading=False):
+    def enable_instructor_toolbar(self, enable_editing=True, enable_grading=False):
         """
         Enable the toolbar with controls for instructors in LMS assignments.
 
