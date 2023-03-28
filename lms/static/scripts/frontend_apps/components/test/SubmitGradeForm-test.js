@@ -37,7 +37,7 @@ describe('SubmitGradeForm', () => {
     });
   };
 
-  const fakeValidateGrade = sinon.stub().returns({ ok: true, grade: 1.0 });
+  const fakeValidateGrade = sinon.stub().returns({ valid: true, grade: 1.0 });
   const inputSelector = 'input[data-testid="grade-input"]';
 
   async function waitForGradeFetch(wrapper) {
@@ -152,7 +152,7 @@ describe('SubmitGradeForm', () => {
     beforeEach(() => {
       $imports.$mock({
         '../utils/grade-validation': {
-          validateGrade: sinon.stub().returns({ ok: false, error: 'err' }),
+          validateGrade: sinon.stub().returns({ valid: false, error: 'err' }),
         },
       });
     });
