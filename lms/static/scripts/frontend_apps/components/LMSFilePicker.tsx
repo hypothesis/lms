@@ -13,6 +13,8 @@ import { apiCall } from '../utils/api';
 import AuthButton from './AuthButton';
 import Breadcrumbs from './Breadcrumbs';
 import ErrorDisplay from './ErrorDisplay';
+import { Link } from '@hypothesis/frontend-shared/lib/next';
+import ErrorModal from './ErrorModal';
 import FileList from './FileList';
 
 type NoFilesMessageProps = {
@@ -406,10 +408,35 @@ export default function LMSFilePicker({
       )}
 
       {dialogState.state === 'error' && (
-        <ErrorDisplay
-          description="There was a problem fetching files"
-          error={dialogState.error}
-        />
+        <ErrorModal  title="Developer key scopes missing">
+          <p>
+            A Canvas admin needs to edit {"Hypothesis's"} developer key and add
+            these scopes:
+          </p>
+          <ol className="px-4 list-decimal">
+            {dialogState.error.details.canvas_scopes.map(scope => (
+              <li key={scope}>
+                <code>{scope}</code>
+              </li>
+            ))}
+          </ol>
+          <p>
+            For more information see:{' '}
+            <Link
+              target="_blank"
+              href="https://github.com/hypothesis/lms/wiki/Canvas-API-Endpoints-Used-by-the-Hypothesis-LMS-App"
+              underline="always"
+            >
+              Canvas API Endpoints Used by the Hypothesis LMS App
+            </Link>
+            .
+          </p>
+        </ErrorModal>
+
+        //<ErrorDisplay
+         // description="There was a problem fetching files"
+         // error={dialogState.error}
+       // />
       )}
 
       {withFileUI && (
