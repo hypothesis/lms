@@ -228,10 +228,7 @@ class TestDigestContext:
 
         assert unified_users == {
             user.h_userid: UnifiedUser(
-                h_userid=user.h_userid,
-                user_ids=(user.id,),
-                email=Any(),
-                display_name=Any(),
+                h_userid=user.h_userid, email=Any(), display_name=Any()
             )
             for user in audience + annotators
         }
@@ -254,10 +251,7 @@ class TestDigestContext:
 
         assert unified_users == {
             user.h_userid: UnifiedUser(
-                h_userid=user.h_userid,
-                user_ids=(user.id,),
-                email=Any(),
-                display_name=Any(),
+                h_userid=user.h_userid, email=Any(), display_name=Any()
             )
         }
 
@@ -607,11 +601,6 @@ class UnifiedUserFactory(factory.Factory):
         model = UnifiedUser
 
     h_userid = factory.Sequence(lambda n: f"acct:user_{n}@lms.hypothes.is")
-    user_ids = factory.LazyAttribute(
-        lambda o: [
-            user.id for user in factories.User.create_batch(2, h_userid=o.h_userid)
-        ]
-    )
     email = factory.Sequence(lambda n: f"user_{n}@example.com")
     display_name = factory.Sequence(lambda n: f"User {n}")
 

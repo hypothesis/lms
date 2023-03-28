@@ -1,10 +1,11 @@
 from dataclasses import dataclass
-from typing import Iterable, Optional, Tuple
+from typing import Optional, Tuple
 
-from sqlalchemy import func, select
+from sqlalchemy import distinct, func, or_, select
+from sqlalchemy.dialects.postgresql import aggregate_order_by
+from sqlalchemy.orm import aliased
 
 from lms.models import (
-    Assignment,
     AssignmentGrouping,
     AssignmentMembership,
     Course,
@@ -70,7 +71,6 @@ class UnifiedUser:
     """All User's for a given h_userid, unified across all ApplicationInstance's."""
 
     h_userid: str
-    user_ids: Tuple[int]
     email: Optional[str]
     display_name: Optional[str]
 
@@ -140,39 +140,28 @@ class DigestContext:
         if self._unified_users is not None:
             return self._unified_users
 
-        self._unified_users = {}
-
-        h_userids = set(
-            self._audience
-            + [annotation["author"]["userid"] for annotation in self._annotations]
+        query = (
+            select(
+                User.h_userid,
+                # The most recent email address for each h_userid.
+                func.array_agg(aggregate_order_by(User.email, User.updated.desc()))
+                .filter(User.email.isnot(None))[1]
+                .label("email"),
+                # The most recent display_name address for each h_userid.
+                func.array_agg(
+                    aggregate_order_by(User.display_name, User.updated.desc())
+                )
+                .filter(User.display_name.isnot(None))[1]
+                .label("display_name"),
+            )
+            .where(User.h_userid.in_(self._h_userids))
+            .group_by(User.h_userid)
         )
 
-        for h_userid in h_userids:
-            users = self._db.scalars(
-                select(User).filter_by(h_userid=h_userid)
-                # Order most-recently-updated first so that the code below will
-                # use the most recent values for email, display name, etc.
-                .order_by(User.updated.desc())
-            ).all()
-
-            email = None
-            for user in users:
-                if user.email:
-                    email = user.email
-                    break
-
-            display_name = None
-            for user in users:
-                if user.display_name:
-                    display_name = user.display_name
-                    break
-
-            self._unified_users[h_userid] = UnifiedUser(
-                h_userid=h_userid,
-                user_ids=tuple(user.id for user in users),
-                email=email,
-                display_name=display_name,
-            )
+        self._unified_users = {
+            row.h_userid: UnifiedUser(row.h_userid, row.email, row.display_name)
+            for row in self._db.execute(query)
+        }
 
         return self._unified_users
 
@@ -189,128 +178,90 @@ class DigestContext:
         if self._unified_courses is not None:
             return self._unified_courses
 
-        self._unified_courses = {}
-
         authority_provided_ids = set(
             annotation["group"]["authority_provided_id"]
             for annotation in self._annotations
         )
 
-        for authority_provided_id in authority_provided_ids:
-            if authority_provided_id in self._unified_courses:
-                continue
+        # We're going to be joining the grouping table to itself and this requires
+        # us to create an alias for one side of the join, see:
+        # https://docs.sqlalchemy.org/en/20/orm/self_referential.html#self-referential-query-strategies
+        grouping_aliased = aliased(Grouping)
 
-            course_authority_provided_id = self._course_authority_provided_id(
-                authority_provided_id
+        query = (
+            select(
+                Course.authority_provided_id,
+                # All authority_provided_id's associated with each authority_provided_id.
+                # This includes the authority_provided_id of the course group
+                # and the authority_provided_id's of any sub-groupings.
+                func.array_agg(distinct(grouping_aliased.authority_provided_id))
+                .filter(grouping_aliased.id.is_not(None))
+                .label("authority_provided_ids"),
+                # The most recent name for each course.
+                func.array_agg(
+                    aggregate_order_by(Course.lms_name, Course.updated.desc())
+                )
+                .filter(Course.lms_name.isnot(None))[1]
+                .label("lms_name"),
+                # The h_userids of all known instructors in each course.
+                func.array_agg(distinct(User.h_userid))
+                .filter(LTIRole.type == "instructor", LTIRole.scope == "course")
+                .label("instructor_h_userids"),
+            )
+            # Join to models.Grouping in order to find both course- and
+            # sub-groupings for each authority_provided_id.
+            .join(
+                grouping_aliased,
+                or_(
+                    grouping_aliased.id == Course.id,
+                    grouping_aliased.parent_id == Course.id,
+                ),
+            )
+            .where(grouping_aliased.authority_provided_id.in_(authority_provided_ids))
+            # Join to a few tables to find the instructors for each course.
+            .outerjoin(AssignmentGrouping, AssignmentGrouping.grouping_id == Course.id)
+            .outerjoin(
+                AssignmentMembership,
+                AssignmentMembership.assignment_id == AssignmentGrouping.assignment_id,
+            )
+            .outerjoin(LTIRole, LTIRole.id == AssignmentMembership.lti_role_id)
+            .outerjoin(User, User.id == AssignmentMembership.user_id)
+            .group_by(Course.authority_provided_id)
+        )
+
+        self._unified_courses = {}
+
+        for row in self._db.execute(query):
+            # SQLAlchemy returns None instead of [].
+            authority_provided_ids = row.authority_provided_ids or []
+            instructor_h_userids = row.instructor_h_userids or []
+
+            unified_course = self._unified_courses.setdefault(
+                row.authority_provided_id,
+                UnifiedCourse(
+                    authority_provided_id=row.authority_provided_id,
+                    title=row.lms_name,
+                    instructor_h_userids=tuple(instructor_h_userids),
+                    learner_annotations=tuple(
+                        annotation
+                        for annotation in self._annotations
+                        if annotation["group"]["authority_provided_id"]
+                        in authority_provided_ids
+                        and annotation["author"]["userid"] not in instructor_h_userids
+                    ),
+                ),
             )
 
-            if not course_authority_provided_id:
-                continue
-
-            courses = self._course_groupings(course_authority_provided_id)
-            sub_groups = self._sub_groupings(courses)
-            instructor_h_userids = self._instructor_h_userids(courses)
-
-            # The authority_provided_ids of all the course groupings and sub-groupings for this course.
-            course_authority_provided_ids = set(
-                grouping.authority_provided_id for grouping in courses + sub_groups
-            )
-
-            # All the learner annotations in this course.
-            learner_annotations = [
-                annotation
-                for annotation in self._annotations
-                if annotation["group"]["authority_provided_id"]
-                in course_authority_provided_ids
-                and annotation["author"]["userid"] not in instructor_h_userids
-            ]
-
-            unified_course = UnifiedCourse(
-                authority_provided_id=course_authority_provided_id,
-                title=courses[0].lms_name,
-                instructor_h_userids=instructor_h_userids,
-                learner_annotations=tuple(learner_annotations),
-            )
-
-            # Map the authority_provided_id's of the course and all its sub-groupings to unified_course.
-            for authority_provided_id in course_authority_provided_ids:
+            for authority_provided_id in authority_provided_ids:
                 self._unified_courses[authority_provided_id] = unified_course
 
         return self._unified_courses
 
-    def _course_authority_provided_id(self, authority_provided_id):
-        """
-        Return the authority_provided_id of the given authority_provided_id's course.
-
-        In the case of a course group this will return the given
-        authority_provided_id itself.
-
-        In the case of a sub-group this will return the authority_provided_id
-        of the course group that the sub-group belongs to.
-        """
-        first_grouping = self._db.scalars(
-            select(Grouping).filter_by(authority_provided_id=authority_provided_id)
-        ).first()
-
-        if not first_grouping:
-            return None
-
-        if first_grouping.type == Grouping.Type.COURSE:
-            return first_grouping.authority_provided_id
-
-        assert first_grouping.parent.type == Grouping.Type.COURSE
-        return first_grouping.parent.authority_provided_id
-
-    def _course_groupings(self, authority_provided_id):
-        """
-        Return all course groupings with the given authority_provided_id.
-
-        When an LMS has multiple application instances this may return multiple
-        course groupings with the same authority_provided_id but different
-        application instances.
-        """
-        return self._db.scalars(
-            select(Course).filter_by(authority_provided_id=authority_provided_id)
-            # Sort by updated so that we use the most recently updated courses
-            # first when picking a course title etc.
-            .order_by(Course.updated.desc())
-        ).all()
-
-    def _sub_groupings(self, course_groupings):
-        """Return all sub-groupings of the given course groupings."""
-        return self._db.scalars(
-            select(Grouping).filter(
-                Grouping.parent_id.in_([course.id for course in course_groupings])
-            )
-        ).all()
-
-    def _instructor_h_userids(self, courses):
-        """Return the h_userids of all instructors in the given courses."""
-        return tuple(
-            unified_user.h_userid
-            for unified_user in self.unified_users.values()
-            if self._is_instructor(unified_user, courses)
-        )
-
-    def _is_instructor(
-        self, unified_user: UnifiedUser, courses: Iterable[Course]
-    ) -> bool:
-        """Return True if `user` is an instructor in any of `courses`."""
-        return bool(
-            self._db.scalar(
-                select(func.count())
-                .select_from(AssignmentMembership)
-                .join(Assignment)
-                .join(AssignmentGrouping)
-                .join(LTIRole)
-                .filter(
-                    AssignmentGrouping.grouping_id.in_(
-                        (course.id for course in courses)
-                    )
-                )
-                .filter(AssignmentMembership.user_id.in_(unified_user.user_ids))
-                .filter(LTIRole.type == "instructor", LTIRole.scope == "course")
-            )
+    @property
+    def _h_userids(self):
+        return set(
+            self._audience
+            + [annotation["author"]["userid"] for annotation in self._annotations]
         )
 
 
