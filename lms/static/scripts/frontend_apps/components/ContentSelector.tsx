@@ -119,13 +119,13 @@ export default function ContentSelector({
 
   const selectBlackboardFile = (file: File) => {
     cancelDialog();
-    // file.id shall be a url of the form blackboard://content-resource/{file_id}
+    // file.id is a URL with a `blackboard://` prefix.
     onSelectContent({ type: 'url', url: file.id });
   };
 
   const selectD2LFile = (file: File) => {
     cancelDialog();
-    // file.id shall be a url of the form d2l://content-resource/{file_id}
+    // file.id is a URL with a `d2l://` prefix.
     onSelectContent({ type: 'url', url: file.id });
   };
 
