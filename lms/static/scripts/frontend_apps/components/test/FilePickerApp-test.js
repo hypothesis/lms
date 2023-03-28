@@ -252,7 +252,7 @@ describe('FilePickerApp', () => {
       {
         content: {
           type: 'url',
-          url: 'd2l://content-resource/1/',
+          url: 'd2l://file/course/123/file_id/456',
         },
         summary: 'PDF file in D2L',
       },

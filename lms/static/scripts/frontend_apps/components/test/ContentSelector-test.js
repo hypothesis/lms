@@ -221,10 +221,10 @@ describe('ContentSelector', () => {
       {
         name: 'd2l',
         dialogName: 'd2lFile',
-        file: { id: 'd2l://content-resource/123' },
+        file: { id: 'd2l://file/course/123/file_id/456' },
         result: {
           type: 'url',
-          url: 'd2l://content-resource/123',
+          url: 'd2l://file/course/123/file_id/456',
         },
         missingFilesHelpLink:
           'https://web.hypothes.is/help/using-hypothesis-with-d2l-course-content-files/',
