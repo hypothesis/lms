@@ -4,6 +4,7 @@ from unittest.mock import patch, sentinel
 import pytest
 
 from lms.models import LTIParams
+from lms.product import Product
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.security import Permissions
@@ -78,7 +79,7 @@ class TestBasicLaunchViews:
 
         grading_info_service.upsert_from_request.assert_not_called()
 
-    @pytest.mark.usefixtures("user_is_learner", "is_canvas")
+    @pytest.mark.usefixtures("user_is_learner", "with_canvas")
     def test__init___doesnt_update_grading_info_for_canvas(
         self, context, pyramid_request, grading_info_service
     ):
@@ -303,7 +304,7 @@ class TestBasicLaunchViews:
 
         assert result == {}
 
-    @pytest.mark.usefixtures("is_canvas")
+    @pytest.mark.usefixtures("with_canvas")
     def test__show_document_focuses_on_users(self, svc, pyramid_request, context):
         pyramid_request.params["focused_user"] = sentinel.focused_user
 
@@ -357,7 +358,7 @@ class TestBasicLaunchViews:
         context.js_config.enable_instructor_toolbar.assert_not_called()
 
     @pytest.mark.usefixtures(
-        "with_gradable_assignment", "user_is_instructor", "is_canvas"
+        "with_gradable_assignment", "user_is_instructor", "with_canvas"
     )
     def test__show_document_does_not_enable_instructor_toolbar_in_canvas(
         self, svc, context
@@ -372,7 +373,7 @@ class TestBasicLaunchViews:
 
     @pytest.mark.usefixtures(
         "with_gradable_assignment",
-        "is_canvas",
+        "with_canvas",
         "with_student_grading_id",
         "user_is_learner",
     )
@@ -390,7 +391,7 @@ class TestBasicLaunchViews:
         context.js_config.add_canvas_speedgrader_settings.assert_not_called()
 
     @pytest.mark.usefixtures(
-        "is_canvas",
+        "with_canvas",
         "with_gradable_assignment",
         "with_student_grading_id",
         "user_is_instructor",
@@ -400,7 +401,7 @@ class TestBasicLaunchViews:
 
         context.js_config.add_canvas_speedgrader_settings.assert_not_called()
 
-    @pytest.mark.usefixtures("is_canvas", "with_student_grading_id")
+    @pytest.mark.usefixtures("with_canvas", "with_student_grading_id")
     def test__show_document_no_speedgrader_without_gradable_assignment(
         self, svc, context
     ):
@@ -408,7 +409,7 @@ class TestBasicLaunchViews:
 
         context.js_config.add_canvas_speedgrader_settings.assert_not_called()
 
-    @pytest.mark.usefixtures("with_gradable_assignment", "is_canvas")
+    @pytest.mark.usefixtures("with_gradable_assignment", "with_canvas")
     def test__show_document_no_speedgrader_without_grading_id(self, svc, context):
         svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
 
@@ -442,9 +443,8 @@ class TestBasicLaunchViews:
             yield _show_document
 
     @pytest.fixture
-    def is_canvas(self, context):
-        """Set the LMS that launched us to Canvas."""
-        context.is_canvas = True
+    def with_canvas(self, pyramid_request):
+        pyramid_request.product.family = Product.Family.CANVAS
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
@@ -457,7 +457,6 @@ class TestBasicLaunchViews:
     def context(self, application_instance):
         context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
         context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
-        context.is_canvas = False
 
         application_instance.check_guid_aligns = mock.Mock()
         context.application_instance = application_instance
