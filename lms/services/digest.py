@@ -81,7 +81,7 @@ class UnifiedCourse:
 
     authority_provided_id: str
     title: Optional[str]
-    instructors: Tuple[UnifiedUser]
+    instructor_h_userids: Tuple[str]
     learner_annotations: Tuple[dict]
 
 
@@ -119,7 +119,7 @@ class DigestContext:
                 # There was no activity in this course.
                 continue
 
-            if h_userid not in [user.h_userid for user in unified_course.instructors]:
+            if h_userid not in unified_course.instructor_h_userids:
                 # The user isn't an instructor in this course.
                 continue
 
@@ -209,7 +209,7 @@ class DigestContext:
 
             courses = self._course_groupings(course_authority_provided_id)
             sub_groups = self._sub_groupings(courses)
-            instructors = self._instructors(courses)
+            instructor_h_userids = self._instructor_h_userids(courses)
 
             # The authority_provided_ids of all the course groupings and sub-groupings for this course.
             course_authority_provided_ids = set(
@@ -222,14 +222,13 @@ class DigestContext:
                 for annotation in self._annotations
                 if annotation["group"]["authority_provided_id"]
                 in course_authority_provided_ids
-                and self.unified_users[annotation["author"]["userid"]]
-                not in instructors
+                and annotation["author"]["userid"] not in instructor_h_userids
             ]
 
             unified_course = UnifiedCourse(
                 authority_provided_id=course_authority_provided_id,
                 title=courses[0].lms_name,
-                instructors=tuple(instructors),
+                instructor_h_userids=instructor_h_userids,
                 learner_annotations=tuple(learner_annotations),
             )
 
@@ -285,13 +284,13 @@ class DigestContext:
             )
         ).all()
 
-    def _instructors(self, courses):
-        """Return all instructors in the given courses."""
-        return [
-            unified_user
+    def _instructor_h_userids(self, courses):
+        """Return the h_userids of all instructors in the given courses."""
+        return tuple(
+            unified_user.h_userid
             for unified_user in self.unified_users.values()
             if self._is_instructor(unified_user, courses)
-        ]
+        )
 
     def _is_instructor(
         self, unified_user: UnifiedUser, courses: Iterable[Course]

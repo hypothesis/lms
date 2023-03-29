@@ -384,8 +384,8 @@ class TestDigestContext:
             grouping.authority_provided_id: Any.instance_of(UnifiedCourse).with_attrs(
                 {
                     "authority_provided_id": course.authority_provided_id,
-                    "instructors": Any.tuple.containing(
-                        [make_unified_user(instructor) for instructor in instructors]
+                    "instructor_h_userids": Any.tuple.containing(
+                        [instructor.h_userid for instructor in instructors]
                     ).only(),
                     "learner_annotations": Any.tuple.containing(annotations).only(),
                 }
@@ -482,7 +482,7 @@ class TestDigestContext:
 
         assert context.unified_courses == {
             course.authority_provided_id: Any.instance_of(UnifiedCourse).with_attrs(
-                {"instructors": ()}
+                {"instructor_h_userids": ()}
             )
         }
 
@@ -520,7 +520,7 @@ class TestDigestContext:
 
         assert context.unified_courses == {
             course.authority_provided_id: Any.instance_of(UnifiedCourse).with_attrs(
-                {"instructors": (), "learner_annotations": (annotation,)}
+                {"instructor_h_userids": (), "learner_annotations": (annotation,)}
             )
         }
 
@@ -652,12 +652,3 @@ def make_learner(db_session, learner_role):
         db_session.flush()
 
     return make_learner
-
-
-def make_unified_user(user):
-    return UnifiedUser(
-        h_userid=user.h_userid,
-        user_ids=(user.id,),
-        email=user.email,
-        display_name=user.display_name,
-    )
