@@ -85,7 +85,7 @@ class SecurityPolicy:
         if path.startswith("/admin") or path.startswith("/googleauth"):
             return LMSGoogleSecurityPolicy()
 
-        if path in {"/lti_launches", "/content_item_selection", "/api/gateway/h/lti"}:
+        if path in {"/lti_launches", "/content_item_selection"}:
             # Actual LTI backed authentication
             return LTIUserSecurityPolicy(get_lti_user_from_launch_params)
 
