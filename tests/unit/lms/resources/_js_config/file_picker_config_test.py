@@ -56,7 +56,7 @@ class TestFilePickerConfig:
 
         assert config == expected_config
 
-    @pytest.mark.usefixtures("with_is_canvas")
+    @pytest.mark.usefixtures("with_canvas")
     @pytest.mark.parametrize("files_enabled", [False, True])
     def test_canvas_config(self, pyramid_request, application_instance, files_enabled):
         application_instance.settings.set("canvas", "files_enabled", files_enabled)
@@ -137,7 +137,7 @@ class TestFilePickerConfig:
         assert config == {"enabled": enabled}
 
     @pytest.fixture
-    def with_is_canvas(self, pyramid_request):
+    def with_canvas(self, pyramid_request):
         pyramid_request.product.family = Product.Family.CANVAS
 
     @pytest.fixture

@@ -15,6 +15,7 @@ doesn't actually require basic launch requests to have this parameter.
 from pyramid.view import view_config, view_defaults
 
 from lms.events import LTIEvent
+from lms.product import Product
 from lms.security import Permissions
 from lms.services import DocumentURLService
 from lms.services.assignment import AssignmentService
@@ -258,7 +259,7 @@ class BasicLaunchViews:
         )
 
     def _configure_js_to_show_document(self, document_url, assignment):
-        if self.context.is_canvas:
+        if self.request.product.family == Product.Family.CANVAS:
             # For students in Canvas with grades to submit we need to enable
             # Speedgrader settings for gradable assignments
             # `lis_result_sourcedid` associates a specific user with an
@@ -301,7 +302,10 @@ class BasicLaunchViews:
             self.context.application_instance, self.request.lti_params
         )
 
-        if not self.request.lti_user.is_instructor and not self.context.is_canvas:
+        if (
+            not self.request.lti_user.is_instructor
+            and self.request.product.family != Product.Family.CANVAS
+        ):
             # Create or update a record of LIS result data for a student launch
             self.request.find_service(name="grading_info").upsert_from_request(
                 self.request

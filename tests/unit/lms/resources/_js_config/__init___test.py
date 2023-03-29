@@ -646,7 +646,6 @@ def context(application_instance):
         LTILaunchResource,
         spec_set=True,
         instance=True,
-        is_canvas=True,
         application_instance=application_instance,
     )
 
