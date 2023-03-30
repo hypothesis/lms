@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from lms.content_source import DEFAULT_CONTENT_SOURCES
+from lms.product.blackboard._blackboard_files.content_source import BlackboardFiles
 from lms.product.blackboard._plugin.course_copy import BlackboardCourseCopyPlugin
 from lms.product.blackboard._plugin.grouping import BlackboardGroupingPlugin
 from lms.product.product import PluginConfig, Product, Routes
@@ -17,6 +19,8 @@ class Blackboard(Product):
     )
 
     plugin_config: PluginConfig = PluginConfig(
-        grouping=BlackboardGroupingPlugin, course_copy=BlackboardCourseCopyPlugin
+        grouping=BlackboardGroupingPlugin,
+        course_copy=BlackboardCourseCopyPlugin,
+        content_sources=tuple(list(DEFAULT_CONTENT_SOURCES) + [BlackboardFiles]),
     )
     settings_key = "blackboard"

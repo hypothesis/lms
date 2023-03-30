@@ -1,13 +1,11 @@
 from lms.content_source.content_source import ContentSource
 from lms.content_source.models import FileDisplayConfig
-from lms.product import Product
-from lms.product.blackboard import Blackboard
+from lms.product.blackboard.product import Blackboard
 
 
 class BlackboardFiles(ContentSource):
     url_scheme = "blackboard"
     config_key = "blackboard"
-    family = Product.Family.BLACKBOARD
 
     def __init__(self, request):
         self._request = request

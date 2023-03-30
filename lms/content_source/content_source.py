@@ -1,13 +1,9 @@
-from typing import Optional
-
 from lms.content_source.models import FileDisplayConfig
-from lms.product.product import Family
 
 
 class ContentSource:
     config_key: str = None
     url_scheme: str = None
-    family: Optional[Family] = None
 
     # pylint: disable=unused-argument
     def is_enabled(self, application_instance) -> bool:

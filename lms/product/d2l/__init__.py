@@ -1,3 +1,4 @@
+from lms.product.d2l._d2l_files.content_source import D2LFiles
 from lms.product.d2l._plugin.course_copy import D2LCourseCopyPlugin
 from lms.product.d2l._plugin.grouping import D2LGroupingPlugin
 from lms.product.d2l._plugin.misc import D2LMiscPlugin
@@ -11,3 +12,4 @@ def includeme(config):  # pragma: nocover
     config.register_service_factory(
         D2LCourseCopyPlugin.factory, iface=D2LCourseCopyPlugin
     )
+    config.register_service_factory(D2LFiles.factory, iface=D2LFiles)

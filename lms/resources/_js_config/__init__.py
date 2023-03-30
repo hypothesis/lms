@@ -2,7 +2,7 @@ import functools
 from enum import Enum
 from typing import List, Optional
 
-from lms.content_source import ContentSources, FileDisplayConfig
+from lms.content_source import FileDisplayConfig
 from lms.models import Assignment, GroupInfo, Grouping, HUser
 from lms.services import HAPI, HAPIError
 from lms.validation.authentication import BearerTokenSchema
@@ -48,9 +48,7 @@ class JSConfig:
 
         display_config = None
 
-        for content_source in ContentSources.for_family(
-            self._request, self._request.product.family
-        ):
+        for content_source in self._request.product.plugin.content_sources:
             if (url_scheme := content_source.url_scheme) and document_url.startswith(
                 f"{url_scheme}://"
             ):
@@ -199,22 +197,11 @@ class JSConfig:
             "ltiLaunchUrl": self._request.route_url("lti_launches"),
         }
 
-        # Add specific config for pickers. Ideally we'd only need the relevant
-        # ones, but the front-end expects each key. A list here might be good?
-        for content_source in ContentSources.get_all(self._request):
+        for content_source in self._request.product.plugin.content_sources:
             if not content_source.config_key:
                 continue
 
-            # We have to include things regardless of family, sadly we can't
-            # separate the two things until it's cool to not pass them through
-            # to the front end
-            if (
-                content_source.family
-                and content_source.family != self._request.product.family
-            ):
-                enabled = False
-            else:
-                enabled = content_source.is_enabled(self._context.application_instance)
+            enabled = content_source.is_enabled(self._context.application_instance)
 
             source_config = {"enabled": enabled}
             if enabled:

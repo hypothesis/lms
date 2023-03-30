@@ -1,13 +1,11 @@
 from lms.content_source.content_source import ContentSource
 from lms.content_source.models import FileDisplayConfig
-from lms.product import Product
-from lms.product.canvas import Canvas
+from lms.product.canvas.product import Canvas
 
 
 class CanvasFiles(ContentSource):
     url_scheme = "canvas"
     config_key = "canvas"
-    family = Product.Family.CANVAS
 
     def __init__(self, request):
         self._request = request

@@ -1,5 +1,7 @@
 from dataclasses import dataclass
+from typing import Tuple
 
+from lms.content_source import DEFAULT_CONTENT_SOURCES
 from lms.product.plugin.course_copy import CourseCopyPlugin
 from lms.product.plugin.grouping import GroupingPlugin
 from lms.product.plugin.misc import MiscPlugin
@@ -13,6 +15,7 @@ class PluginConfig:
     grouping: type = GroupingPlugin
     course_copy: type = CourseCopyPlugin
     misc: type = MiscPlugin
+    content_sources: Tuple[type] = DEFAULT_CONTENT_SOURCES
 
 
 class Plugins:
@@ -38,3 +41,10 @@ class Plugins:
     def __init__(self, request, plugin_config: PluginConfig):
         self._request = request
         self._plugin_config = plugin_config
+
+    @property
+    def content_sources(self):
+        return [
+            self._request.find_service(iface=content_source_class)
+            for content_source_class in self._plugin_config.content_sources
+        ]
