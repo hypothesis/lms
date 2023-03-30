@@ -2,14 +2,9 @@ import functools
 from enum import Enum
 from typing import List, Optional
 
-from pyramid.httpexceptions import HTTPClientError
-
+from lms.content_source import ContentSources, FileDisplayConfig
 from lms.models import Assignment, GroupInfo, Grouping, HUser
-from lms.product.blackboard import Blackboard
-from lms.product.canvas import Canvas
-from lms.product.d2l import D2L
-from lms.resources._js_config.file_picker_config import FilePickerConfig
-from lms.services import HAPI, HAPIError, JSTORService, VitalSourceService
+from lms.services import HAPI, HAPIError
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
 
@@ -50,67 +45,36 @@ class JSConfig:
         :raise HTTPBadRequest: if a request param needed to generate the config
             is missing
         """
-        jstor_service = self._request.find_service(iface=JSTORService)
 
-        if document_url.startswith("blackboard://"):
-            self._config["api"]["viaUrl"] = {
-                "authUrl": self._request.route_url(Blackboard.route.oauth2_authorize),
-                "path": self._request.route_path(
-                    "blackboard_api.files.via_url",
-                    course_id=self._request.lti_params["context_id"],
-                    _query={"document_url": document_url},
-                ),
-            }
-        elif document_url.startswith("canvas://"):
-            self._config["api"]["viaUrl"] = {
-                "authUrl": self._request.route_url(Canvas.route.oauth2_authorize),
-                "path": self._request.route_path(
-                    "canvas_api.files.via_url",
-                    resource_link_id=self._request.lti_params["resource_link_id"],
-                ),
-            }
-        elif document_url.startswith("d2l://"):
-            self._config["api"]["viaUrl"] = {
-                "authUrl": self._request.route_url(D2L.route.oauth2_authorize),
-                "path": self._request.route_path(
-                    "d2l_api.courses.files.via_url",
-                    course_id=self._request.lti_params["context_id"],
-                    _query={"document_url": document_url},
-                ),
-            }
+        display_config = None
 
-        elif document_url.startswith("vitalsource://"):
-            svc: VitalSourceService = self._request.find_service(VitalSourceService)
+        for content_source in ContentSources.for_family(
+            self._request, self._request.product.family
+        ):
+            if (url_scheme := content_source.url_scheme) and document_url.startswith(
+                f"{url_scheme}://"
+            ):
+                display_config = content_source.get_file_display_config(document_url)
+                break
 
-            if svc.sso_enabled:
-                # nb. VitalSource doesn't use Via, but is otherwise handled
-                # exactly the same way by the frontend.
-                self._config["api"]["viaUrl"] = {
-                    "path": self._request.route_url(
-                        "vitalsource_api.launch_url",
-                        _query={
-                            "user_reference": svc.get_user_reference(
-                                self._request.lti_params
-                            ),
-                            "document_url": document_url,
-                        },
-                    )
-                }
-            else:
-                # This looks a bit silly, but pretty soon the above will
-                # be setting `api.viaURL` not `viaURL`
-                self._config["viaUrl"] = svc.get_book_reader_url(
-                    document_url=document_url
-                )
+        if not display_config:
+            display_config = FileDisplayConfig(
+                direct_url=via_url(self._request, document_url)
+            )
 
-        elif jstor_service.enabled and document_url.startswith("jstor://"):
-            self._config["viaUrl"] = jstor_service.via_url(self._request, document_url)
-            self._config["contentBanner"] = {
-                "source": "jstor",
-                "itemId": document_url.replace("jstor://", ""),
-            }
+        # Apply the file display config data to the main data
+        if direct_url := display_config.direct_url:
+            self._config["viaUrl"] = direct_url
+        elif callback := display_config.callback:
+            self._config["api"]["viaUrl"] = callback
         else:
-            self._config["viaUrl"] = via_url(self._request, document_url)
+            assert False, "This shouldn't happen!"
+
+        if banner := display_config.banner:
+            self._config["contentBanner"] = {
+                "source": banner.source,
+                "itemId": banner.item_id,
+            }
 
     def asdict(self):
         """
@@ -224,31 +188,48 @@ class JSConfig:
             HTML form that we submit
         """
 
-        args = self._request, self._context.application_instance
+        file_picker_config = {
+            "formAction": form_action,
+            "formFields": form_fields,
+            # The "content item selection" that we submit to Canvas's
+            # content_item_return_url is actually an LTI launch URL with
+            # the selected document URL or file_id as a query parameter. To
+            # construct these launch URLs our JavaScript code needs the
+            # base URL of our LTI launch endpoint.
+            "ltiLaunchUrl": self._request.route_url("lti_launches"),
+        }
+
+        # Add specific config for pickers. Ideally we'd only need the relevant
+        # ones, but the front-end expects each key. A list here might be good?
+        for content_source in ContentSources.get_all(self._request):
+            if not content_source.config_key:
+                continue
+
+            # We have to include things regardless of family, sadly we can't
+            # separate the two things until it's cool to not pass them through
+            # to the front end
+            if (
+                content_source.family
+                and content_source.family != self._request.product.family
+            ):
+                enabled = False
+            else:
+                enabled = content_source.is_enabled(self._context.application_instance)
+
+            source_config = {"enabled": enabled}
+            if enabled:
+                source_config.update(
+                    content_source.get_picker_config(self._context.application_instance)
+                )
+
+            file_picker_config[content_source.config_key] = source_config
 
         self._config.update(
             {
                 "mode": JSConfig.Mode.FILE_PICKER,
                 # Info about the product we are currently running in
                 "product": self._get_product_info(),
-                "filePicker": {
-                    "formAction": form_action,
-                    "formFields": form_fields,
-                    # The "content item selection" that we submit to Canvas's
-                    # content_item_return_url is actually an LTI launch URL with
-                    # the selected document URL or file_id as a query parameter. To
-                    # construct these launch URLs our JavaScript code needs the
-                    # base URL of our LTI launch endpoint.
-                    "ltiLaunchUrl": self._request.route_url("lti_launches"),
-                    # Specific config for pickers
-                    "blackboard": FilePickerConfig.blackboard_config(*args),
-                    "d2l": FilePickerConfig.d2l_config(*args),
-                    "canvas": FilePickerConfig.canvas_config(*args),
-                    "google": FilePickerConfig.google_files_config(*args),
-                    "microsoftOneDrive": FilePickerConfig.microsoft_onedrive(*args),
-                    "vitalSource": FilePickerConfig.vitalsource_config(*args),
-                    "jstor": FilePickerConfig.jstor_config(*args),
-                },
+                "filePicker": file_picker_config,
             }
         )
         self._config["debug"]["values"] = self._get_lti_launch_debug_values()
