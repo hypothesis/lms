@@ -136,6 +136,7 @@
 
     <fieldset class="box">
         <legend class="label has-text-centered">Content integrations</legend>
+        {{ settings_checkbox("Google Drive enabled", "google_drive", "files_enabled", default=True) }}
         {{ settings_checkbox("Microsoft OneDrive enabled", "microsoft_onedrive", "files_enabled", default=True) }}
 
         {{ settings_checkbox("VitalSource enabled", "vitalsource", "enabled") }}
