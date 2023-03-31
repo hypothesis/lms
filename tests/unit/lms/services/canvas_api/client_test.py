@@ -49,14 +49,8 @@ class TestCanvasAPIClientIntegrated:
         response = canvas_api_client.authenticated_users_sections("COURSE_ID")
 
         assert response == sections
-        http_session.send.assert_called_once_with(
-            Any.request(
-                "GET",
-                url=Any.url.with_path("api/v1/courses/COURSE_ID").with_query(
-                    {"include[]": "sections"}
-                ),
-            ),
-            timeout=Any(),
+        self.assert_session_send(
+            http_session, "api/v1/courses/COURSE_ID", query={"include[]": "sections"}
         )
 
     def test_authenticated_users_sections_deduplicates_sections(
@@ -101,11 +95,10 @@ class TestCanvasAPIClientIntegrated:
         response = canvas_api_client.course_sections("COURSE_ID")
 
         assert response == sections
-        http_session.send.assert_called_once_with(
-            Any.request(
-                "GET", url=Any.url.with_path("api/v1/courses/COURSE_ID/sections")
-            ),
-            timeout=Any(),
+        self.assert_session_send(
+            http_session,
+            "api/v1/courses/COURSE_ID/sections",
+            query={"per_page": Any.string()},
         )
 
     def test_course_sections_deduplicates_sections(
@@ -153,15 +146,10 @@ class TestCanvasAPIClientIntegrated:
         response = canvas_api_client.course_group_categories("COURSE_ID")
 
         assert response == group_categories
-
-        http_session.send.assert_called_once_with(
-            Any.request(
-                "GET",
-                url=Any.url.with_path(
-                    "api/v1/courses/COURSE_ID/group_categories"
-                ).with_query({"per_page": Any.string()}),
-            ),
-            timeout=Any(),
+        self.assert_session_send(
+            http_session,
+            "api/v1/courses/COURSE_ID/group_categories",
+            query={"per_page": Any.string()},
         )
 
     @pytest.mark.parametrize(
@@ -206,13 +194,10 @@ class TestCanvasAPIClientIntegrated:
             expected_params["include[]"] = "users"
             expected_timeout = (31, 31)  # pylint:disable=redefined-variable-type
 
-        http_session.send.assert_called_once_with(
-            Any.request(
-                "GET",
-                url=Any.url.with_path("api/v1/courses/COURSE_ID/groups").with_query(
-                    expected_params
-                ),
-            ),
+        self.assert_session_send(
+            http_session,
+            "api/v1/courses/COURSE_ID/groups",
+            query=expected_params,
             timeout=expected_timeout,
         )
 
@@ -302,14 +287,10 @@ class TestCanvasAPIClientIntegrated:
         response = canvas_api_client.group_category_groups(course_id, "GROUP_CATEGORY")
 
         assert len(response) == 2
-        http_session.send.assert_called_once_with(
-            Any.request(
-                "GET",
-                url=Any.url.with_path(
-                    "api/v1/group_categories/GROUP_CATEGORY/groups"
-                ).with_query({"per_page": Any.string()}),
-            ),
-            timeout=Any(),
+        self.assert_session_send(
+            http_session,
+            "api/v1/group_categories/GROUP_CATEGORY/groups",
+            query={"per_page": Any.string()},
         )
 
     @pytest.mark.usefixtures("list_groups_response")
@@ -336,14 +317,10 @@ class TestCanvasAPIClientIntegrated:
         response = canvas_api_client.users_sections("USER_ID", "COURSE_ID")
 
         assert response == [{"id": 101}, {"id": 102}]
-        http_session.send.assert_called_once_with(
-            Any.request(
-                "GET",
-                url=Any.url.with_path(
-                    "api/v1/courses/COURSE_ID/users/USER_ID"
-                ).with_query({"include[]": "enrollments"}),
-            ),
-            timeout=Any(),
+        self.assert_session_send(
+            http_session,
+            "api/v1/courses/COURSE_ID/users/USER_ID",
+            query={"include[]": "enrollments"},
         )
 
     def test_users_sections_deduplicates_sections(
@@ -360,42 +337,40 @@ class TestCanvasAPIClientIntegrated:
 
         assert sections == [{"id": 1}]
 
-    def test_list_files(self, canvas_api_client, http_session):
-        files = [
-            {
-                "display_name": "display_name_1",
-                "id": 1,
-                "updated_at": "updated_at_1",
-                "size": 12345,
-            },
-            {
-                "display_name": "display_name_1",
-                "id": 2,
-                "updated_at": "updated_at_1",
-                "size": 12345,
-            },
+    def test_list_files(
+        self, canvas_api_client, http_session, file_service, list_files_json
+    ):
+        files_with_noise = [
+            dict(file, unexpected="ignored") for file in list_files_json
         ]
-        files_with_noise = [dict(file, unexpected="ignored") for file in files]
         http_session.send.return_value = factories.requests.Response(
             status_code=200, json_data=files_with_noise
         )
 
         response = canvas_api_client.list_files("COURSE_ID")
 
-        assert response == files
-
-        http_session.send.assert_called_once_with(
-            Any.request(
-                "GET",
-                url=Any.url.with_path("api/v1/courses/COURSE_ID/files").with_query(
-                    {
-                        "content_types[]": "application/pdf",
-                        "per_page": Any.string(),
-                        "sort": "position",
-                    }
-                ),
-            ),
-            timeout=Any(),
+        assert response == list_files_json
+        self.assert_session_send(
+            http_session,
+            "api/v1/courses/COURSE_ID/files",
+            query={
+                "content_types[]": "application/pdf",
+                "per_page": Any.string(),
+                "sort": "position",
+            },
+        )
+        file_service.upsert.assert_called_once_with(
+            [
+                {
+                    "type": "canvas_file",
+                    "course_id": "COURSE_ID",
+                    "lms_id": file["id"],
+                    "name": file["display_name"],
+                    "size": file["size"],
+                    "parent_lms_id": file["folder_id"],
+                }
+                for file in list_files_json
+            ]
         )
 
     def test_list_duplicate_files(self, canvas_api_client, http_session):
@@ -405,12 +380,14 @@ class TestCanvasAPIClientIntegrated:
                 "id": 1,
                 "updated_at": "updated_at_1",
                 "size": 12345,
+                "folder_id": 100,
             },
             {
                 "display_name": "display_name_1",
                 "id": 1,
                 "updated_at": "updated_at_1",
                 "size": 12345,
+                "folder_id": 100,
             },
         ]
         http_session.send.return_value = factories.requests.Response(
@@ -421,39 +398,88 @@ class TestCanvasAPIClientIntegrated:
 
         assert response == [files[0]]
 
-    def test_list_files_upserts_files(
+    def test_list_files_with_folders(
         self,
         canvas_api_client,
         http_session,
         file_service,
+        list_files_json,
+        list_folders_json,
     ):
-        files = [
-            {
-                "id": i,
-                "display_name": "display_name_{i}",
-                "updated_at": "updated_at_{i}",
-                "size": 1000 + i,
-            }
-            for i in range(2)
+        canvas_api_client._with_folders = True  # pylint:disable=protected-access
+        http_session.send.side_effect = [
+            factories.requests.Response(status_code=200, json_data=list_files_json),
+            factories.requests.Response(status_code=200, json_data=list_folders_json),
         ]
-        http_session.send.return_value = factories.requests.Response(
-            status_code=200, json_data=files
+
+        response = canvas_api_client.list_files("COURSE_ID")
+
+        http_session.send.assert_called_with(
+            Any.request(
+                "GET",
+                url=Any.url.with_path("api/v1/courses/COURSE_ID/folders").with_query(
+                    {"per_page": Any.string()}
+                ),
+            ),
+            timeout=Any(),
         )
 
-        canvas_api_client.list_files("COURSE_ID")
-
-        file_service.upsert.assert_called_once_with(
+        file_service.upsert.assert_called_with(
             [
                 {
-                    "type": "canvas_file",
+                    "type": "canvas_folder",
                     "course_id": "COURSE_ID",
-                    "lms_id": file["id"],
-                    "name": file["display_name"],
-                    "size": file["size"],
+                    "lms_id": folder["id"],
+                    "name": folder["name"],
+                    "parent_lms_id": folder["parent_folder_id"],
                 }
-                for file in files
+                for folder in list_folders_json
             ]
         )
+        assert response == [
+            {
+                "display_name": "File at root",
+                "size": 12345,
+                "id": 1,
+                "folder_id": 100,
+                "updated_at": "updated_at_1",
+                "type": "File",
+            },
+            {
+                "id": 200,
+                "display_name": "folder",
+                "folder_id": 100,
+                "updated_at": "updated_at_1",
+                "type": "Folder",
+                "children": [
+                    {
+                        "display_name": "File in folder",
+                        "size": 12345,
+                        "id": 2,
+                        "folder_id": 200,
+                        "updated_at": "updated_at_2",
+                        "type": "File",
+                    },
+                    {
+                        "id": 300,
+                        "display_name": "folder nested",
+                        "folder_id": 200,
+                        "updated_at": "updated_at_1",
+                        "type": "Folder",
+                        "children": [
+                            {
+                                "display_name": "File in folder nested",
+                                "size": 12345,
+                                "id": 3,
+                                "folder_id": 300,
+                                "updated_at": "updated_at_3",
+                                "type": "File",
+                            }
+                        ],
+                    },
+                ],
+            },
+        ]
 
     def test_public_url(self, canvas_api_client, http_session):
         http_session.send.return_value = factories.requests.Response(
@@ -463,12 +489,7 @@ class TestCanvasAPIClientIntegrated:
         response = canvas_api_client.public_url("FILE_ID")
 
         assert response == "public_url_value"
-        http_session.send.assert_called_once_with(
-            Any.request(
-                "GET", url=Any.url.with_path("api/v1/files/FILE_ID/public_url")
-            ),
-            timeout=Any(),
-        )
+        self.assert_session_send(http_session, "api/v1/files/FILE_ID/public_url")
 
     def test_methods_require_access_token(self, data_method, oauth2_token_service):
         oauth2_token_service.get.side_effect = OAuth2TokenError(
@@ -508,6 +529,55 @@ class TestCanvasAPIClientIntegrated:
         "list_files": ["course_id"],
         "public_url": ["file_id"],
     }
+
+    @pytest.fixture
+    def list_files_json(self):
+        return [
+            {
+                "display_name": "File at root",
+                "id": 1,
+                "updated_at": "updated_at_1",
+                "size": 12345,
+                "folder_id": 100,
+            },
+            {
+                "display_name": "File in folder",
+                "id": 2,
+                "updated_at": "updated_at_2",
+                "size": 12345,
+                "folder_id": 200,
+            },
+            {
+                "display_name": "File in folder nested",
+                "id": 3,
+                "updated_at": "updated_at_3",
+                "size": 12345,
+                "folder_id": 300,
+            },
+        ]
+
+    @pytest.fixture
+    def list_folders_json(self):
+        return [
+            {
+                "name": "root folder",
+                "id": 100,
+                "updated_at": "updated_at_1",
+                "parent_folder_id": None,
+            },
+            {
+                "name": "folder",
+                "id": 200,
+                "updated_at": "updated_at_1",
+                "parent_folder_id": 100,
+            },
+            {
+                "name": "folder nested",
+                "id": 300,
+                "updated_at": "updated_at_1",
+                "parent_folder_id": 200,
+            },
+        ]
 
     @pytest.fixture
     def list_groups_response(self, http_session):
@@ -560,6 +630,14 @@ class TestCanvasAPIClientIntegrated:
         method, args = request.param
 
         return lambda: getattr(canvas_api_client, method)(*args)
+
+    def assert_session_send(
+        self, http_session, path, method="GET", query=None, timeout=(10, 10)
+    ):
+        http_session.send.assert_called_once_with(
+            Any.request(method, url=Any.url.with_path(path).with_query(query)),
+            timeout=timeout,
+        )
 
 
 @pytest.fixture
