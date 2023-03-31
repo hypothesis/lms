@@ -47,6 +47,7 @@ export default function ContentSelector({
       d2l: { enabled: d2lFilesEnabled, listFiles: d2lListFilesApi },
       canvas: { enabled: canvasFilesEnabled, listFiles: listFilesApi },
       google: {
+        enabled: googleDriveEnabled,
         clientId: googleClientId,
         developerKey: googleDeveloperKey,
         origin: googleOrigin,
@@ -78,7 +79,12 @@ export default function ContentSelector({
   // We do this eagerly to make the picker load faster if the user does click
   // on the "Select from Google Drive" button.
   const googlePicker = useMemo(() => {
-    if (!googleClientId || !googleDeveloperKey || !googleOrigin) {
+    if (
+      !googleDriveEnabled ||
+      !googleClientId ||
+      !googleDeveloperKey ||
+      !googleOrigin
+    ) {
       return null;
     }
     return new GooglePickerClient({
@@ -91,7 +97,7 @@ export default function ContentSelector({
       // tab.
       origin: window === window.top ? window.location.href : googleOrigin,
     });
-  }, [googleDeveloperKey, googleClientId, googleOrigin]);
+  }, [googleDriveEnabled, googleDeveloperKey, googleClientId, googleOrigin]);
 
   // Initialize the OneDrive client if credentials have been provided.
   // We do this eagerly to make the picker load faster if the user does click
