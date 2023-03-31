@@ -74,12 +74,14 @@ class TestFilePickerConfig:
 
         assert config == expected_config
 
+    @pytest.mark.parametrize("enabled", (True, False))
     @pytest.mark.parametrize(
         "origin_from", (None, "custom_canvas_api_domain", "lms_url")
     )
     def test_google_files_config(
-        self, pyramid_request, application_instance, origin_from
+        self, pyramid_request, application_instance, origin_from, enabled
     ):
+        application_instance.settings.set("google_drive", "files_enabled", enabled)
         if origin_from == "custom_canvas_api_domain":
             pyramid_request.lti_params["custom_canvas_api_domain"] = sentinel.origin
         elif origin_from == "lms_url":
@@ -89,11 +91,13 @@ class TestFilePickerConfig:
             pyramid_request, application_instance
         )
 
-        assert config == {
-            "clientId": "fake_client_id",
-            "developerKey": "fake_developer_key",
-            "origin": sentinel.origin if origin_from else None,
-        }
+        expected = {"enabled": enabled}
+        if enabled:
+            expected["clientId"] = "fake_client_id"
+            expected["developerKey"] = "fake_developer_key"
+            expected["origin"] = sentinel.origin if origin_from else None
+
+        assert config == expected
 
     @pytest.mark.parametrize("enabled", (True, False))
     def test_microsoft_onedrive(self, pyramid_request, application_instance, enabled):

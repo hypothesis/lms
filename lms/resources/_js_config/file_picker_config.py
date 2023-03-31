@@ -65,8 +65,14 @@ class FilePickerConfig:
     @classmethod
     def google_files_config(cls, request, application_instance):
         """Get Google file picker config."""
+        enabled = application_instance.settings.get(
+            "google_drive", "files_enabled", default=True
+        )
+        if not enabled:
+            return {"enabled": False}
 
         return {
+            "enabled": True,
             "clientId": request.registry.settings["google_client_id"],
             "developerKey": request.registry.settings["google_developer_key"],
             # Get the URL of the top-most page that the LMS app is running in.
