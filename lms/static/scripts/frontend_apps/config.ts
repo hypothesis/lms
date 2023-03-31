@@ -82,9 +82,10 @@ export type FilePickerConfig = {
     listFiles: APICallInfo;
   };
   google: {
-    clientId: string;
-    developerKey: string;
-    origin: string;
+    enabled: boolean;
+    clientId?: string;
+    developerKey?: string;
+    origin?: string;
   };
   jstor: {
     enabled: boolean;

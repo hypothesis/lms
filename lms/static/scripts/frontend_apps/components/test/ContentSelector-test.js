@@ -260,6 +260,7 @@ describe('ContentSelector', () => {
   describe('Google picker', () => {
     beforeEach(() => {
       fakeConfig.filePicker.google = {
+        enabled: true,
         clientId: 'goog-client-id',
         developerKey: 'goog-developer-key',
         origin: 'https://test.chalkboard.com',
@@ -287,10 +288,23 @@ describe('ContentSelector', () => {
         btn.props().onClick();
       });
     }
+    it("doesn't show the Google Drive button if option is disabled", () => {
+      fakeConfig.filePicker.google.enabled = false;
+      const wrapper = renderContentSelector();
+
+      assert.isFalse(
+        wrapper.exists('Button[data-testid="google-drive-button"]')
+      );
+    });
 
     it('initializes Google Picker client when developer key is provided', () => {
+      const { developerKey, clientId, origin } = fakeConfig.filePicker.google;
       renderContentSelector();
-      assert.calledWith(FakeGooglePickerClient, fakeConfig.filePicker.google);
+      assert.calledWith(FakeGooglePickerClient, {
+        developerKey,
+        clientId,
+        origin,
+      });
     });
 
     it('shows "Select PDF from Google Drive" button if developer key is provided', () => {
