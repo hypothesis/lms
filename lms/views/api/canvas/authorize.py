@@ -24,6 +24,9 @@ FILES_SCOPES = (
     "url:GET|/api/v1/files/:id/public_url",
 )
 
+# Support for folders in our Canvas files integration.
+FOLDERS_SCOPES = ("url:GET|/api/v1/courses/:course_id/folders",)
+
 #: The Canvas API scopes that we need for our Sections feature.
 SECTIONS_SCOPES = (
     "url:GET|/api/v1/courses/:id",
@@ -50,6 +53,9 @@ def authorize(request):
     course_service = request.find_service(name="course")
 
     scopes = FILES_SCOPES
+
+    if application_instance.settings.get("canvas", "file_picker_folders"):
+        scopes += FOLDERS_SCOPES
 
     if application_instance.developer_key and (
         # If the instance could add a new course with sections...
