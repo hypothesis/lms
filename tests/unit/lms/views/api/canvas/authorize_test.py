@@ -7,7 +7,12 @@ from pyramid.httpexceptions import HTTPInternalServerError
 from lms.resources._js_config import JSConfig
 from lms.services import CanvasAPIServerError
 from lms.views.api.canvas import authorize
-from lms.views.api.canvas.authorize import FILES_SCOPES, GROUPS_SCOPES, SECTIONS_SCOPES
+from lms.views.api.canvas.authorize import (
+    FILES_SCOPES,
+    FOLDERS_SCOPES,
+    GROUPS_SCOPES,
+    SECTIONS_SCOPES,
+)
 
 pytestmark = pytest.mark.usefixtures(
     "application_instance_service", "course_service", "canvas_api_client"
@@ -68,8 +73,14 @@ class TestAuthorize:
         self.assert_sections_scopes(authorize.authorize(pyramid_request))
 
     @pytest.mark.usefixtures("groups_enabled")
-    def test_course_with_groups_enabled_triggers_groups_scopes(self, pyramid_request):
+    def test_instance_with_groups_enabled_triggers_groups_scopes(self, pyramid_request):
         self.assert_groups_scopes(authorize.authorize(pyramid_request))
+
+    @pytest.mark.usefixtures("with_file_picker_folders")
+    def test_instance_with_folders_enabled_triggers_folders_scopes(
+        self, pyramid_request
+    ):
+        self.assert_folder_scopes(authorize.authorize(pyramid_request))
 
     @pytest.mark.usefixtures("sections_not_supported")
     def test_no_sections_scopes_if_sections_is_disabled(self, pyramid_request):
@@ -108,6 +119,11 @@ class TestAuthorize:
 
         assert set(GROUPS_SCOPES).issubset(set(query_params["scope"][0].split()))
 
+    def assert_folder_scopes(self, response):
+        query_params = parse_qs(urlparse(response.location).query)
+
+        assert set(FOLDERS_SCOPES).issubset(set(query_params["scope"][0].split()))
+
     def assert_file_scopes_only(self, response):
         query_params = parse_qs(urlparse(response.location).query)
         assert query_params["scope"] == [
@@ -128,6 +144,12 @@ class TestAuthorize:
     def groups_enabled(self, application_instance_service):
         application_instance_service.get_current.return_value.settings.set(
             "canvas", "groups_enabled", True
+        )
+
+    @pytest.fixture
+    def with_file_picker_folders(self, application_instance_service):
+        application_instance_service.get_current.return_value.settings.set(
+            "canvas", "file_picker_folders", True
         )
 
     @pytest.fixture
