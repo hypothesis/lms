@@ -62,7 +62,11 @@ export default function ContentSelector({
         listFiles: blackboardListFilesApi,
       },
       d2l: { enabled: d2lFilesEnabled, listFiles: d2lListFilesApi },
-      canvas: { enabled: canvasFilesEnabled, listFiles: listFilesApi },
+      canvas: {
+        enabled: canvasFilesEnabled,
+        listFiles: listFilesApi,
+        withFolders: canvasWithFolders,
+      },
       google: {
         enabled: googleDriveEnabled,
         clientId: googleClientId,
@@ -191,6 +195,7 @@ export default function ContentSelector({
           onCancel={cancelDialog}
           onSelectFile={selectCanvasFile}
           missingFilesHelpLink="https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-upload-a-file-to-a-course/ta-p/618"
+          withBreadcrumbs={canvasWithFolders}
         />
       );
       break;
