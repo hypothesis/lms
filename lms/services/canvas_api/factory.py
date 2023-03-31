@@ -32,4 +32,7 @@ def canvas_api_client_factory(_context, request):
     return CanvasAPIClient(
         authenticated_api,
         file_service=request.find_service(name="file"),
+        with_folders=application_instance.settings.get(
+            "canvas", "file_picker_folders", default=False
+        ),
     )

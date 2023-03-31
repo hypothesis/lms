@@ -1,12 +1,15 @@
 """High level access to Canvas API methods."""
 
 import logging
+from collections import defaultdict
 from functools import lru_cache
+from typing import Dict, List
 
 import marshmallow
 from marshmallow import EXCLUDE, Schema, fields, post_load, validate, validates_schema
 
 from lms.services.exceptions import CanvasAPIError
+from lms.services.file import FileService
 from lms.validation import RequestsResponseSchema
 
 log = logging.getLogger(__name__)
@@ -40,14 +43,22 @@ class CanvasAPIClient:
         Canvas API request fails for any other reason
     """
 
-    def __init__(self, authenticated_client, file_service):
+    def __init__(
+        self,
+        authenticated_client,
+        file_service: FileService,
+        with_folders: bool = False,
+    ):
         """
         Create a new CanvasAPIClient.
 
         :param authenticated_client: An instance of AuthenticatedClient
+        :param file_service: FileService for persisting files from the API to the DB
+        :param with_folders: Whether to use folders while listing files
         """
         self._client = authenticated_client
         self._file_service = file_service
+        self._with_folders = with_folders
 
     def get_token(self, authorization_code):
         """
@@ -209,7 +220,7 @@ class CanvasAPIClient:
             ]
 
     @lru_cache(maxsize=128)
-    def list_files(self, course_id, sort="position"):
+    def list_files(self, course_id, sort="position") -> List[dict]:
         """
         Return the list of files for the given `course_id`.
 
@@ -217,7 +228,6 @@ class CanvasAPIClient:
         :param sort: field to sort by (on Canvas' API side).
             Defaults to "position" which is an undocumented option but that it should be the most stable of the options available as it sorts by both "position" and "name" on Canvas' side.
             https://github.com/instructure/canvas-lms/blob/d43feb92d40d2c69684c4536f74dec37992c557a/app/controllers/files_controller.rb#L305
-        :rtype: list(dict)
         """
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/files.html#method.files.api_index
@@ -250,15 +260,70 @@ class CanvasAPIClient:
                     "lms_id": file["id"],
                     "name": file["display_name"],
                     "size": file["size"],
+                    "parent_lms_id": file["folder_id"],
                 }
                 for file in files
             ]
         )
 
+        if self._with_folders:
+            folders = self._list_folders(course_id)
+
+            # Organize every item (file and folders) by its parent ID
+            items_by_parent = defaultdict(list)
+            for file in files:
+                items_by_parent[file["folder_id"]].append(dict(file, type="File"))
+            for folder in folders:
+                items_by_parent[folder["folder_id"]].append(dict(folder, type="Folder"))
+
+            # Find the root folder, the one with a None parent
+            root_folder_id = [f for f in folders if not f["folder_id"]][0]["id"]
+
+            return sorted(
+                self._files_tree(items_by_parent, folder_id=root_folder_id),
+                key=lambda item: item["display_name"].lower(),
+            )
+
         return sorted(files, key=lambda file_: file_["display_name"])
 
+    def _list_folders(self, course_id):
+        """Get all folders of a given course_id."""
+        folders = self._client.send(
+            "GET", f"courses/{course_id}/folders", schema=self._ListFoldersSchema
+        )
+        # Store the folders in the DB
+        self._file_service.upsert(
+            [
+                {
+                    "type": "canvas_folder",
+                    "course_id": course_id,
+                    "lms_id": folder["id"],
+                    "name": folder["display_name"],
+                    "parent_lms_id": folder["folder_id"],
+                }
+                for folder in folders
+            ]
+        )
+        return folders
+
+    def _files_tree(self, items: Dict[int, list], folder_id: int):
+        """Build a tree of files/folders recursively."""
+        for item in items[folder_id]:
+            if item["type"] == "Folder":
+                # For folders, recursively attach children
+                yield dict(
+                    item,
+                    children=sorted(
+                        self._files_tree(items, folder_id=item["id"]),
+                        key=lambda item: item["display_name"],
+                    ),
+                )
+            else:
+                # For files, yield them
+                yield item
+
     class _ListFilesSchema(RequestsResponseSchema):
-        """Schema for the list_files response."""
+        """Schema for the files returned by Canvas' API."""
 
         many = True
 
@@ -266,6 +331,19 @@ class CanvasAPIClient:
         id = fields.Integer(required=True)
         updated_at = fields.String(required=True)
         size = fields.Integer(required=True)
+        folder_id = fields.Integer(required=True)
+
+    class _ListFoldersSchema(RequestsResponseSchema):
+        """Schema for the folders returned by Canvas' API."""
+
+        many = True
+
+        display_name = fields.Str(required=True, data_key="name")
+        folder_id = fields.Integer(
+            required=True, allow_none=True, data_key="parent_folder_id"
+        )
+        id = fields.Integer(required=True)
+        updated_at = fields.String(required=True)
 
     @lru_cache(maxsize=128)
     def public_url(self, file_id):
