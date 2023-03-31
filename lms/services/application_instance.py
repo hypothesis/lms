@@ -311,7 +311,8 @@ class ApplicationInstanceService:
                     "sections_enabled": False,
                     "groups_enabled": bool(developer_key),
                     "files_enabled": bool(developer_key),
-                }
+                },
+                "google_drive": {"files_enabled": True},
             },
             deployment_id=deployment_id,
             lti_registration_id=lti_registration_id,
