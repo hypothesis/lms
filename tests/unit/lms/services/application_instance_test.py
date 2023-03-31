@@ -175,7 +175,8 @@ class TestApplicationInstanceService:
                 "sections_enabled": False,
                 "groups_enabled": bool(developer_key),
                 "files_enabled": bool(developer_key),
-            }
+            },
+            "google_drive": {"files_enabled": True},
         }
 
         # Things we delegate to `update_application_instance`
