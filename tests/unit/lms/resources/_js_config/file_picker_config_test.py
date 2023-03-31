@@ -1,6 +1,7 @@
 from unittest.mock import sentinel
 
 import pytest
+from h_matchers import Any
 
 from lms.product import Product
 from lms.resources._js_config import FilePickerConfig
@@ -66,6 +67,7 @@ class TestFilePickerConfig:
 
         expected_config = {
             "enabled": files_enabled,
+            "withFolders": Any(),
             "listFiles": {
                 "authUrl": "http://example.com/api/canvas/oauth/authorize",
                 "path": "/api/canvas/courses/COURSE_ID/files",

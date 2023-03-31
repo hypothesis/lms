@@ -52,6 +52,9 @@ class FilePickerConfig:
         course_id = request.lti_params.get("custom_canvas_course_id")
         config = {
             "enabled": files_enabled,
+            "withFolders": application_instance.settings.get(
+                "canvas", "file_picker_folders"
+            ),
             "listFiles": {
                 "authUrl": request.route_url(Canvas.route.oauth2_authorize),
                 "path": request.route_path(
