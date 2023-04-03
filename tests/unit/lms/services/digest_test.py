@@ -20,11 +20,8 @@ class TestDigestService:
     def test_send_instructor_email_digests(
         self, svc, h_api, context, DigestContext, db_session, mailchimp_service, sender
     ):
-        audience = ["userid1", "userid2"]
-        context.unified_users = {
-            "userid1": UnifiedUserFactory(h_userid="userid1"),
-            "userid2": UnifiedUserFactory(h_userid="userid2"),
-        }
+        context.unified_users = UnifiedUserFactory.create_batch(2)
+        audience = [unified_user.h_userid for unified_user in context.unified_users]
         digests = context.instructor_digest.side_effect = [
             {"total_annotations": 1},
             {"total_annotations": 2},
@@ -50,7 +47,7 @@ class TestDigestService:
                 recipient=EmailRecipient(unified_user.email, unified_user.display_name),
                 template_vars=digest,
             )
-            for unified_user, digest in zip(context.unified_users.values(), digests)
+            for unified_user, digest in zip(context.unified_users, digests)
         ]
 
     def test_send_instructor_email_digests_doesnt_send_empty_digests(
@@ -67,11 +64,12 @@ class TestDigestService:
     def test_send_instructor_email_digests_ignores_instructors_with_no_email_address(
         self, svc, context, mailchimp_service
     ):
-        context.unified_users = {sentinel.h_userid: UnifiedUserFactory(email=None)}
+        unified_user = UnifiedUserFactory(email=None)
+        context.unified_users = [unified_user]
         context.instructor_digest.return_value = {"total_annotations": 1}
 
         svc.send_instructor_email_digests(
-            [sentinel.h_userid], sentinel.updated_after, sentinel.updated_before
+            [unified_user.h_userid], sentinel.updated_after, sentinel.updated_before
         )
 
         mailchimp_service.send_template.assert_not_called()
@@ -79,10 +77,12 @@ class TestDigestService:
     def test_send_instructor_email_digests_uses_override_to_email(
         self, svc, context, mailchimp_service
     ):
+        unified_user = UnifiedUserFactory()
+        context.unified_users = [unified_user]
         context.instructor_digest.return_value = {"total_annotations": 1}
 
         svc.send_instructor_email_digests(
-            [sentinel.h_userid],
+            [unified_user.h_userid],
             sentinel.updated_after,
             sentinel.updated_before,
             override_to_email=sentinel.override_to_email,
@@ -215,29 +215,20 @@ class TestDigestContext:
 
     def test_unified_users(self, db_session):
         audience = factories.User.create_batch(2)
-        annotations = Annotation.create_batch(2)
-        annotators = [
-            factories.User(h_userid=annotation["author"]["userid"])
-            for annotation in annotations
-        ]
-        context = DigestContext(
-            db_session, [user.h_userid for user in audience], annotations
-        )
+        context = DigestContext(db_session, [user.h_userid for user in audience], [])
 
         unified_users = context.unified_users
 
-        assert unified_users == {
-            user.h_userid: UnifiedUser(
-                h_userid=user.h_userid, email=Any(), display_name=Any()
-            )
-            for user in audience + annotators
-        }
+        assert unified_users == [
+            UnifiedUser(h_userid=user.h_userid, email=Any(), display_name=Any())
+            for user in audience
+        ]
         assert context.unified_users is unified_users
 
     def test_unified_users_with_no_audience_or_annotations(self, db_session):
         context = DigestContext(db_session, [], [])
 
-        assert context.unified_users == {}
+        assert context.unified_users == []
 
     def test_unified_users_ignores_duplicate_userids(self, db_session):
         user = factories.User()
@@ -249,11 +240,9 @@ class TestDigestContext:
 
         unified_users = context.unified_users
 
-        assert unified_users == {
-            user.h_userid: UnifiedUser(
-                h_userid=user.h_userid, email=Any(), display_name=Any()
-            )
-        }
+        assert unified_users == [
+            UnifiedUser(h_userid=user.h_userid, email=Any(), display_name=Any())
+        ]
 
     @pytest.mark.parametrize(
         "users,expected_email",
@@ -302,7 +291,13 @@ class TestDigestContext:
 
         context = DigestContext(db_session, ["id"], [])
 
-        assert context.unified_users["id"].email == expected_email
+        assert context.unified_users == Any.list.containing(
+            [
+                Any.instance_of(UnifiedUser).with_attrs(
+                    {"h_userid": "id", "email": expected_email}
+                )
+            ]
+        )
 
     @pytest.mark.parametrize(
         "users,expected_display_name",
@@ -351,7 +346,13 @@ class TestDigestContext:
 
         context = DigestContext(db_session, ["id"], [])
 
-        assert context.unified_users["id"].display_name == expected_display_name
+        assert context.unified_users == Any.list.containing(
+            [
+                Any.instance_of(UnifiedUser).with_attrs(
+                    {"h_userid": "id", "display_name": expected_display_name}
+                )
+            ]
+        )
 
     def test_unified_courses(self, db_session, make_instructor, make_learner):
         course = factories.Course()
