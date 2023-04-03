@@ -21,24 +21,23 @@ class TestDigestService:
         self, svc, h_api, context, DigestContext, db_session, mailchimp_service, sender
     ):
         context.unified_users = UnifiedUserFactory.create_batch(2)
-        audience = [unified_user.h_userid for unified_user in context.unified_users]
         digests = context.instructor_digest.side_effect = [
             {"total_annotations": 1},
             {"total_annotations": 2},
         ]
 
         svc.send_instructor_email_digests(
-            audience, sentinel.updated_after, sentinel.updated_before
+            sentinel.audience, sentinel.updated_after, sentinel.updated_before
         )
 
         h_api.get_annotations.assert_called_once_with(
-            audience, sentinel.updated_after, sentinel.updated_before
+            sentinel.audience, sentinel.updated_after, sentinel.updated_before
         )
         DigestContext.assert_called_once_with(
-            db_session, audience, tuple(h_api.get_annotations.return_value)
+            db_session, sentinel.audience, tuple(h_api.get_annotations.return_value)
         )
         assert context.instructor_digest.call_args_list == [
-            call(h_userid) for h_userid in audience
+            call(user.h_userid) for user in context.unified_users
         ]
         assert mailchimp_service.send_template.call_args_list == [
             call(
@@ -53,6 +52,7 @@ class TestDigestService:
     def test_send_instructor_email_digests_doesnt_send_empty_digests(
         self, svc, context, mailchimp_service
     ):
+        context.unified_users = UnifiedUserFactory.create_batch(2)
         context.instructor_digest.return_value = {"total_annotations": 0}
 
         svc.send_instructor_email_digests(
@@ -64,12 +64,11 @@ class TestDigestService:
     def test_send_instructor_email_digests_ignores_instructors_with_no_email_address(
         self, svc, context, mailchimp_service
     ):
-        unified_user = UnifiedUserFactory(email=None)
-        context.unified_users = [unified_user]
+        context.unified_users = [UnifiedUserFactory(email=None)]
         context.instructor_digest.return_value = {"total_annotations": 1}
 
         svc.send_instructor_email_digests(
-            [unified_user.h_userid], sentinel.updated_after, sentinel.updated_before
+            sentinel.audience, sentinel.updated_after, sentinel.updated_before
         )
 
         mailchimp_service.send_template.assert_not_called()
@@ -77,12 +76,11 @@ class TestDigestService:
     def test_send_instructor_email_digests_uses_override_to_email(
         self, svc, context, mailchimp_service
     ):
-        unified_user = UnifiedUserFactory()
-        context.unified_users = [unified_user]
+        context.unified_users = [UnifiedUserFactory()]
         context.instructor_digest.return_value = {"total_annotations": 1}
 
         svc.send_instructor_email_digests(
-            [unified_user.h_userid],
+            sentinel.audience,
             sentinel.updated_after,
             sentinel.updated_before,
             override_to_email=sentinel.override_to_email,
@@ -152,29 +150,6 @@ class TestDigestContext:
                     {"title": courses[1].lms_name, "num_annotations": 1},
                 ]
             ).only(),
-        }
-
-    def test_instructor_digest_removes_duplicate_courses(
-        self, db_session, make_instructor
-    ):
-        course = factories.Course()
-        sub_groupings = factories.CanvasSection.create_batch(2, parent=course)
-        instructor, learner = factories.User.create_batch(2)
-        make_instructor(instructor, course)
-        annotations = [
-            Annotation(
-                authority_provided_id=sub_grouping.authority_provided_id,
-                userid=learner.h_userid,
-            )
-            for sub_grouping in sub_groupings
-        ]
-        context = DigestContext(db_session, [instructor.h_userid], annotations)
-
-        digest = context.instructor_digest(instructor.h_userid)
-
-        assert digest == {
-            "total_annotations": 2,
-            "courses": [{"title": course.lms_name, "num_annotations": 2}],
         }
 
     def test_instructor_digest_removes_courses_with_no_learner_annotations(
@@ -428,7 +403,10 @@ class TestDigestContext:
 
         assert context.unified_courses == [
             Any.instance_of(UnifiedCourse).with_attrs(
-                {"authority_provided_id": "course_id"}
+                {
+                    "authority_provided_id": "course_id",
+                    "learner_annotations": Any.tuple.of_size(6),
+                }
             )
         ]
 
