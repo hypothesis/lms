@@ -375,8 +375,8 @@ class TestDigestContext:
 
         unified_courses = context.unified_courses
 
-        assert unified_courses == {
-            grouping.authority_provided_id: Any.instance_of(UnifiedCourse).with_attrs(
+        assert unified_courses == [
+            Any.instance_of(UnifiedCourse).with_attrs(
                 {
                     "authority_provided_id": course.authority_provided_id,
                     "instructor_h_userids": Any.tuple.containing(
@@ -385,8 +385,7 @@ class TestDigestContext:
                     "learner_annotations": Any.tuple.containing(annotations).only(),
                 }
             )
-            for grouping in (course, section)
-        }
+        ]
         assert context.unified_courses is unified_courses
 
     def test_unified_courses_with_multiple_groupings(self, db_session):
@@ -427,19 +426,16 @@ class TestDigestContext:
         ]
         context = DigestContext(db_session, [], annotations)
 
-        assert context.unified_courses == {
-            authority_provided_id: Any.instance_of(UnifiedCourse).with_attrs(
+        assert context.unified_courses == [
+            Any.instance_of(UnifiedCourse).with_attrs(
                 {"authority_provided_id": "course_id"}
             )
-            for authority_provided_id in set(
-                grouping.authority_provided_id for grouping in courses + sub_groupings
-            )
-        }
+        ]
 
     def test_unified_courses_with_no_annotations(self, db_session):
         context = DigestContext(db_session, [], [])
 
-        assert context.unified_courses == {}
+        assert context.unified_courses == []
 
     def test_unified_courses_title(self, db_session):
         courses = [
@@ -464,7 +460,16 @@ class TestDigestContext:
             ],
         )
 
-        assert context.unified_courses["id"].title == "most_recent"
+        assert context.unified_courses == Any.list.containing(
+            [
+                Any.instance_of(UnifiedCourse).with_attrs(
+                    {
+                        "authority_provided_id": "id",
+                        "title": "most_recent",
+                    }
+                )
+            ]
+        )
 
     def test_unified_courses_doesnt_count_learners(self, db_session, make_learner):
         course = factories.Course()
@@ -475,11 +480,9 @@ class TestDigestContext:
         )
         context = DigestContext(db_session, [], [annotation])
 
-        assert context.unified_courses == {
-            course.authority_provided_id: Any.instance_of(UnifiedCourse).with_attrs(
-                {"instructor_h_userids": ()}
-            )
-        }
+        assert context.unified_courses == [
+            Any.instance_of(UnifiedCourse).with_attrs({"instructor_h_userids": ()})
+        ]
 
     def test_unified_courses_doesnt_count_instructor_annotations(
         self, db_session, make_instructor
@@ -493,11 +496,9 @@ class TestDigestContext:
         )
         context = DigestContext(db_session, [], [annotation])
 
-        assert context.unified_courses == {
-            course.authority_provided_id: Any.instance_of(UnifiedCourse).with_attrs(
-                {"learner_annotations": ()}
-            )
-        }
+        assert context.unified_courses == [
+            Any.instance_of(UnifiedCourse).with_attrs({"learner_annotations": ()})
+        ]
 
     def test_unified_courses_doesnt_count_instructors_from_other_courses(
         self, db_session, make_instructor
@@ -513,11 +514,11 @@ class TestDigestContext:
         )
         context = DigestContext(db_session, [], [annotation])
 
-        assert context.unified_courses == {
-            course.authority_provided_id: Any.instance_of(UnifiedCourse).with_attrs(
+        assert context.unified_courses == [
+            Any.instance_of(UnifiedCourse).with_attrs(
                 {"instructor_h_userids": (), "learner_annotations": (annotation,)}
             )
-        }
+        ]
 
     def test_unified_courses_doesnt_count_annotations_from_other_courses(
         self, db_session
@@ -533,16 +534,20 @@ class TestDigestContext:
             db_session, [], [course_annotation, other_course_annotation]
         )
 
-        assert context.unified_courses[course.authority_provided_id] == Any.instance_of(
-            UnifiedCourse
-        ).with_attrs({"learner_annotations": (course_annotation,)})
+        assert context.unified_courses == Any.list.containing(
+            [
+                Any.instance_of(UnifiedCourse).with_attrs(
+                    {"learner_annotations": (course_annotation,)}
+                )
+            ]
+        )
 
     def test_unified_courses_ignores_unknown_authority_provided_ids(self, db_session):
         context = DigestContext(
             db_session, [], [Annotation(authority_provided_id="unknown")]
         )
 
-        assert context.unified_courses == {}
+        assert context.unified_courses == []
 
 
 class TestServiceFactory:

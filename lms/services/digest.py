@@ -89,7 +89,7 @@ class DigestContext:
     def __init__(self, db, audience, annotations):
         self._db = db
         self.audience = audience
-        self._annotations = annotations
+        self.annotations = annotations
         self._unified_users = None
         self._unified_courses = None
 
@@ -104,13 +104,7 @@ class DigestContext:
         """
         course_digests = []
 
-        # Remove duplicates from self.unified_courses.values().
-        unified_courses = []
-        for unified_course in self.unified_courses.values():
-            if unified_course not in unified_courses:
-                unified_courses.append(unified_course)
-
-        for unified_course in unified_courses:
+        for unified_course in self.unified_courses:
             num_annotations = len(unified_course.learner_annotations)
 
             if not num_annotations:
@@ -165,20 +159,13 @@ class DigestContext:
 
     @property
     def unified_courses(self):
-        """
-        Return a dict mapping authority_provided_id's to UnifiedCourse's.
-
-        Multiple keys in the dict may point to the same UnifiedCourse object,
-        meaning that unified_courses.values() may contain duplicates. This
-        happens when there are annotations in multiple sub-groupings that
-        belong to the same course.
-        """
+        """Return a list of UnifiedCourse's for all the courses in self.annotations."""
         if self._unified_courses is not None:
             return self._unified_courses
 
         authority_provided_ids = set(
             annotation["group"]["authority_provided_id"]
-            for annotation in self._annotations
+            for annotation in self.annotations
         )
 
         # We're going to be joining the grouping table to itself and this requires
@@ -227,31 +214,27 @@ class DigestContext:
             .group_by(Course.authority_provided_id)
         )
 
-        self._unified_courses = {}
+        self._unified_courses = []
 
         for row in self._db.execute(query):
             # SQLAlchemy returns None instead of [].
             authority_provided_ids = row.authority_provided_ids or []
             instructor_h_userids = row.instructor_h_userids or []
 
-            unified_course = self._unified_courses.setdefault(
-                row.authority_provided_id,
+            self._unified_courses.append(
                 UnifiedCourse(
                     authority_provided_id=row.authority_provided_id,
                     title=row.lms_name,
                     instructor_h_userids=tuple(instructor_h_userids),
                     learner_annotations=tuple(
                         annotation
-                        for annotation in self._annotations
+                        for annotation in self.annotations
                         if annotation["group"]["authority_provided_id"]
                         in authority_provided_ids
                         and annotation["author"]["userid"] not in instructor_h_userids
                     ),
-                ),
+                )
             )
-
-            for authority_provided_id in authority_provided_ids:
-                self._unified_courses[authority_provided_id] = unified_course
 
         return self._unified_courses
 
