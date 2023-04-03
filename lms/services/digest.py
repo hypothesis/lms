@@ -40,14 +40,12 @@ class DigestService:
 
         context = DigestContext(self._db, audience, annotations)
 
-        for h_userid in audience:
-            digest = context.instructor_digest(h_userid)
+        for unified_user in context.unified_users:
+            digest = context.instructor_digest(unified_user.h_userid)
 
             if not digest["total_annotations"]:
                 # This user has no activity.
                 continue
-
-            unified_user = context.unified_users[h_userid]
 
             if override_to_email is None:
                 to_email = unified_user.email
@@ -90,7 +88,7 @@ class DigestContext:
 
     def __init__(self, db, audience, annotations):
         self._db = db
-        self._audience = audience
+        self.audience = audience
         self._annotations = annotations
         self._unified_users = None
         self._unified_courses = None
@@ -136,7 +134,7 @@ class DigestContext:
 
     @property
     def unified_users(self):
-        """Return a dict mapping h_userid's to UnifiedUser's."""
+        """Return a list of UnifiedUser's for all the users in self.audience."""
         if self._unified_users is not None:
             return self._unified_users
 
@@ -154,14 +152,14 @@ class DigestContext:
                 .filter(User.display_name.isnot(None))[1]
                 .label("display_name"),
             )
-            .where(User.h_userid.in_(self._h_userids))
+            .where(User.h_userid.in_(self.audience))
             .group_by(User.h_userid)
         )
 
-        self._unified_users = {
-            row.h_userid: UnifiedUser(row.h_userid, row.email, row.display_name)
+        self._unified_users = [
+            UnifiedUser(row.h_userid, row.email, row.display_name)
             for row in self._db.execute(query)
-        }
+        ]
 
         return self._unified_users
 
@@ -256,13 +254,6 @@ class DigestContext:
                 self._unified_courses[authority_provided_id] = unified_course
 
         return self._unified_courses
-
-    @property
-    def _h_userids(self):
-        return set(
-            self._audience
-            + [annotation["author"]["userid"] for annotation in self._annotations]
-        )
 
 
 def service_factory(_context, request):
