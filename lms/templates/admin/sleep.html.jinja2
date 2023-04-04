@@ -1,0 +1,15 @@
+{% extends "lms:templates/admin/base.html.jinja2" %}
+
+{% import "macros.html.jinja2" as macros %}
+
+{% block header %}
+    Sleep
+{% endblock header %}
+
+{% block content %}
+  <form method="POST" action="{{ request.route_url("admin.sleep") }}">
+      <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+      {{ macros.form_text_field(request, "Seconds", "seconds", "10") }}
+      <input type="submit" class="button is-info" value="Sleep"/>
+  </form>
+{% endblock content %}

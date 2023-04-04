@@ -111,7 +111,7 @@ run-docker:
 		--add-host host.docker.internal:host-gateway \
 		--net lms_default \
 		-e DATABASE_URL=postgresql://postgres@postgres/postgres \
-		-e BROKER_URL=amqp://guest:guest@localhost:5674// \
+		-e BROKER_URL=amqp://guest:guest@rabbit:5672// \
 		-e FEATURE_FLAGS_COOKIE_SECRET=notasecret \
 		-e H_API_URL_PRIVATE=http://host.docker.internal:5000/api/ \
 		-e H_API_URL_PUBLIC=http://localhost:5000/api/ \
@@ -121,6 +121,7 @@ run-docker:
 		-e VIA_SECRET=not_a_secret \
 		-e SESSION_COOKIE_SECRET=notasecret \
 		-e OAUTH2_STATE_SECRET=notasecret \
+		-e FDW_USERS=report \
 		--env-file .devdata.env \
 		-p 8001:8001 \
 		hypothesis/lms:$(DOCKER_TAG)

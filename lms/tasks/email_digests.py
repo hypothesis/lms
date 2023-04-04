@@ -1,4 +1,5 @@
 import logging
+import time
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
@@ -9,6 +10,15 @@ from lms.services import DigestService
 from lms.tasks.celery import app
 
 LOG = logging.getLogger(__name__)
+
+
+@app.task
+def sleep(seconds):
+    LOG.info("Starting to sleep")
+    for second in range(seconds):
+        LOG.info("Sleeping %i", second)
+        time.sleep(1)
+    LOG.info("Finished sleeping")
 
 
 @app.task
