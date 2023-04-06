@@ -56,6 +56,8 @@ def config_json(request):
                             "target_link_uri": request.route_url(
                                 "content_item_selection"
                             ),
+                            "selection_width": 800,
+                            "selection_height": 600,
                         },
                         {
                             "text": "Hypothesis",
@@ -65,6 +67,8 @@ def config_json(request):
                             "target_link_uri": request.route_url(
                                 "content_item_selection"
                             ),
+                            "selection_width": 800,
+                            "selection_height": 600,
                         },
                     ],
                 },
