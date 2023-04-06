@@ -24,8 +24,21 @@ def test_unsubscribe_error(pyramid_request, email_unsubscribe_service, exception
 
     result = unsubscribe(pyramid_request)
 
-    assert result == {"message": "Something went wrong while unsubscribing."}
+    assert result == {
+        "title": "Expired unsubscribe link",
+        "message": """
+                    <p>
+                        It looks like the unsubscribe link that you clicked on was invalid or had expired.
+                        Try clicking the unsubscribe link in a more recent email instead.
+                    </p>
+                    <p>
+                        If the problem persists, you can
+                         <a href="https://web.hypothes.is/get-help/?product=LMS_app" target="_blank" rel="noopener noreferrer">open a support ticket</a>
+                         or visit our <a href="https://web.hypothes.is/help/" target="_blank" rel="noopener noreferrer">help documents</a>.
+                    </p>
+                    """,
+    }
 
 
 def test_unsubscribed(pyramid_request):
-    assert unsubscribed(pyramid_request) == {"message": "You've been unsubscribed"}
+    assert unsubscribed(pyramid_request) == {"title": "You've been unsubscribed"}
