@@ -28,6 +28,8 @@ class TestConfigJSON:
                                 "placement": "link_selection",
                                 "message_type": "LtiDeepLinkingRequest",
                                 "target_link_uri": "http://example.com/content_item_selection",
+                                "selection_width": 800,
+                                "selection_height": 600,
                             },
                             {
                                 "text": "Hypothesis",
@@ -35,6 +37,8 @@ class TestConfigJSON:
                                 "placement": "assignment_selection",
                                 "message_type": "LtiDeepLinkingRequest",
                                 "target_link_uri": "http://example.com/content_item_selection",
+                                "selection_width": 800,
+                                "selection_height": 600,
                             },
                         ],
                     },
