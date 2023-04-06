@@ -24,6 +24,7 @@ from lms.services.canvas_api import CanvasAPIClient
 from lms.services.course import CourseService
 from lms.services.d2l_api import D2LAPIClient
 from lms.services.digest import DigestService
+from lms.services.email_unsubscribe import EmailUnsubscribeService
 from lms.services.event import EventService
 from lms.services.file import FileService
 from lms.services.grading_info import GradingInfoService

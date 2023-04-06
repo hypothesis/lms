@@ -4,6 +4,7 @@ from lms.services.canvas import CanvasService
 from lms.services.d2l_api.client import D2LAPIClient
 from lms.services.digest import DigestService
 from lms.services.document_url import DocumentURLService
+from lms.services.email_unsubscribe import EmailUnsubscribeService
 from lms.services.event import EventService
 from lms.services.exceptions import (
     CanvasAPIError,
@@ -124,6 +125,10 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.digest.service_factory", iface=DigestService
     )
+    config.register_service_factory(
+        "lms.services.email_unsubscribe.factory", iface=EmailUnsubscribeService
+    )
+
     # Plugins are not the same as top level services but we want to register them as pyramid services too
     # Importing them here to:
     # - Don't pollute the lms.services namespace
