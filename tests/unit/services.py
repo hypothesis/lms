@@ -90,6 +90,7 @@ __all__ = (
     "rsa_key_service",
     "user_service",
     "vitalsource_service",
+    "email_unsubscribe_service",
     # Product plugins
     "grouping_plugin",
     "course_copy_plugin",
@@ -330,6 +331,11 @@ def lti_user_service(mock_service):
 @pytest.fixture
 def vitalsource_service(mock_service):
     return mock_service(VitalSourceService)
+
+
+@pytest.fixture
+def email_unsubscribe_service(mock_service):
+    return mock_service(EmailUnsubscribeService)
 
 
 @pytest.fixture
