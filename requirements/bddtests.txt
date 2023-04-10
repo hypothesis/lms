@@ -25,7 +25,6 @@ attrs==20.2.0
     #   -r requirements/requirements.txt
     #   aiohttp
     #   jsonschema
-    #   pytest
 beautifulsoup4==4.9.3
     # via webtest
 behave==1.2.6
@@ -285,7 +284,7 @@ pyrsistent==0.17.3
     # via
     #   -r requirements/requirements.txt
     #   jsonschema
-pytest==7.2.2
+pytest==7.3.0
     # via -r requirements/bddtests.in
 python-dateutil==2.8.2
     # via
