@@ -1,6 +1,8 @@
+import logging
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
+from h_pyramid_sentry import report_exception
 from sqlalchemy import distinct, func, or_, select
 from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.orm import aliased
@@ -14,7 +16,22 @@ from lms.models import (
     User,
 )
 from lms.services.h_api import HAPI
-from lms.services.mailchimp import EmailRecipient, EmailSender, MailchimpService
+from lms.services.mailchimp import (
+    EmailRecipient,
+    EmailSender,
+    MailchimpError,
+    MailchimpService,
+)
+
+LOG = logging.getLogger(__name__)
+
+
+class SendDigestsError(Exception):
+    """An error when sending a batch of email digests."""
+
+    def __init__(self, errors):
+        super().__init__(errors)
+        self.errors = errors
 
 
 class DigestService:
@@ -40,6 +57,8 @@ class DigestService:
 
         context = DigestContext(self._db, audience, annotations)
 
+        errors = {}
+
         for unified_user in context.unified_users:
             digest = context.instructor_digest(unified_user.h_userid)
 
@@ -56,12 +75,20 @@ class DigestService:
                 # We don't have an email address for this user.
                 continue
 
-            self._mailchimp_service.send_template(
-                "instructor-email-digest",
-                self._sender,
-                recipient=EmailRecipient(to_email, unified_user.display_name),
-                template_vars=digest,
-            )
+            try:
+                self._mailchimp_service.send_template(
+                    "instructor-email-digest",
+                    self._sender,
+                    recipient=EmailRecipient(to_email, unified_user.display_name),
+                    template_vars=digest,
+                )
+            except MailchimpError as err:
+                errors[unified_user.h_userid] = err
+                LOG.exception(err)
+                report_exception(err)
+
+        if errors:
+            raise SendDigestsError(errors)
 
 
 @dataclass(frozen=True)

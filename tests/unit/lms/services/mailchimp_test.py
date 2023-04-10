@@ -7,6 +7,7 @@ from h_matchers import Any
 from lms.services.mailchimp import (
     EmailRecipient,
     EmailSender,
+    MailchimpError,
     MailchimpService,
     factory,
 )
@@ -60,6 +61,32 @@ class TestSendTemplate:
                 "async": True,
             }
         )
+
+    def test_if_mailchimp_client_raises(self, mailchimp_client):
+        original_exception = RuntimeError("Mailchimp crashed!")
+        mailchimp_client.messages.send_template.side_effect = original_exception
+        svc = MailchimpService(sentinel.api_key)
+
+        with pytest.raises(MailchimpError) as exc_info:
+            svc.send_template(
+                sentinel.template_name,
+                EmailSender(
+                    sentinel.subaccount_id,
+                    sentinel.from_email,
+                    sentinel.from_name,
+                ),
+                EmailRecipient(
+                    sentinel.to_email,
+                    sentinel.to_name,
+                ),
+                {},
+            )
+
+        assert exc_info.value.__cause__ == original_exception
+
+    @pytest.fixture
+    def mailchimp_client(self, mailchimp_transactional):
+        return mailchimp_transactional.Client.return_value
 
 
 class TestFactory:
