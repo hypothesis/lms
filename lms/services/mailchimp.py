@@ -29,8 +29,7 @@ class EmailRecipient:
 
 class MailchimpService:
     def __init__(self, api_key):
-        if api_key:
-            self.mailchimp_client = mailchimp_transactional.Client(api_key)
+        self.mailchimp_client = mailchimp_transactional.Client(api_key)
 
     def send_template(
         self,
@@ -65,10 +64,8 @@ class MailchimpService:
         }
 
         LOG.info("mailchimp_client.send_template(%r)", params)
-
-        if hasattr(self, "mailchimp_client"):
-            self.mailchimp_client.messages.send_template(params)
+        self.mailchimp_client.messages.send_template(params)
 
 
 def factory(_context, request):
-    return MailchimpService(request.registry.settings.get("mailchimp_api_key"))
+    return MailchimpService(request.registry.settings["mailchimp_api_key"])
