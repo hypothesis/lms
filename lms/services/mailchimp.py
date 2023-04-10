@@ -27,6 +27,10 @@ class EmailRecipient:
     """The recipient full name to use in the email's To: header."""
 
 
+class MailchimpError(Exception):
+    """An error when sending an email."""
+
+
 class MailchimpService:
     def __init__(self, api_key):
         self.mailchimp_client = mailchimp_transactional.Client(api_key)
@@ -64,7 +68,11 @@ class MailchimpService:
         }
 
         LOG.info("mailchimp_client.send_template(%r)", params)
-        self.mailchimp_client.messages.send_template(params)
+
+        try:
+            self.mailchimp_client.messages.send_template(params)
+        except Exception as exc:
+            raise MailchimpError() from exc
 
 
 def factory(_context, request):

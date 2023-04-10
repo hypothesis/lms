@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from unittest.mock import call, sentinel
 
@@ -8,11 +9,12 @@ from h_matchers import Any
 from lms.services.digest import (
     DigestContext,
     DigestService,
+    SendDigestsError,
     UnifiedCourse,
     UnifiedUser,
     service_factory,
 )
-from lms.services.mailchimp import EmailRecipient, EmailSender
+from lms.services.mailchimp import EmailRecipient, EmailSender, MailchimpError
 from tests import factories
 
 
@@ -91,9 +93,52 @@ class TestDigestService:
             == sentinel.override_to_email
         )
 
+    def test_send_instructor_email_digest_continues_if_mailchimp_crashes(
+        self, svc, context, mailchimp_service, report_exception, caplog
+    ):
+        context.unified_users = UnifiedUserFactory.create_batch(2)
+        digests = context.instructor_digest.side_effect = [
+            {"total_annotations": 1},
+            {"total_annotations": 2},
+        ]
+        mailchimp_error = MailchimpError("Mailchimp crashed!")
+        mailchimp_service.send_template.side_effect = [mailchimp_error, None]
+
+        with pytest.raises(SendDigestsError) as exc_info:
+            svc.send_instructor_email_digests(
+                sentinel.audience, sentinel.updated_after, sentinel.updated_before
+            )
+
+        # It sets SendDigestsError.errors to a dict mapping h_userids to their
+        # corresponding MailchimpError's.
+        assert exc_info.value.errors == {
+            context.unified_users[0].h_userid: mailchimp_error
+        }
+        # After the first call to MailchimpService failed it should have
+        # continued on to the next user and called MailchimpService again.
+        assert mailchimp_service.send_template.call_args_list == [
+            call(
+                Any(),
+                Any(),
+                recipient=EmailRecipient(unified_user.email, unified_user.display_name),
+                template_vars=Any(),
+            )
+            for unified_user, digest in zip(context.unified_users, digests)
+        ]
+        # It should have logged the exception.
+        assert caplog.record_tuples == [
+            ("lms.services.digest", logging.ERROR, "Mailchimp crashed!")
+        ]
+        # It should have reported the exception to Sentry.
+        report_exception.assert_called_once_with(mailchimp_error)
+
     @pytest.fixture(autouse=True)
     def DigestContext(self, patch):
         return patch("lms.services.digest.DigestContext")
+
+    @pytest.fixture(autouse=True)
+    def report_exception(self, patch):
+        return patch("lms.services.digest.report_exception")
 
     @pytest.fixture
     def context(self, DigestContext):
