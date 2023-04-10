@@ -1,11 +1,14 @@
 import logging
+import random
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
+from h_pyramid_sentry import report_exception
 from sqlalchemy import select
 
 from lms.models import ApplicationInstance, AssignmentMembership, LTIRole, User
 from lms.services import DigestService
+from lms.services.digest import SendDigestsError
 from lms.tasks.celery import app
 
 LOG = logging.getLogger(__name__)
@@ -69,8 +72,9 @@ def send_instructor_email_digest_tasks(batch_size):
                 )
 
 
-@app.task
+@app.task(bind=True, max_retries=2)
 def send_instructor_email_digests(
+    self,
     *,
     h_userids: List[str],
     updated_after: str,
@@ -95,12 +99,29 @@ def send_instructor_email_digests(
     updated_after = datetime.fromisoformat(updated_after)
     updated_before = datetime.fromisoformat(updated_before)
 
+    # How long to wait (in seconds) before retrying the task if it fails.
+    retry_countdown = (3600 * (self.request.retries + 1)) + random.randint(0, 900)
+
     with app.request_context() as request:  # pylint:disable=no-member
         with request.tm:
             digest_service = request.find_service(DigestService)
-            digest_service.send_instructor_email_digests(
-                h_userids,
-                updated_after,
-                updated_before,
-                override_to_email=override_to_email,
-            )
+
+            try:
+                digest_service.send_instructor_email_digests(
+                    h_userids,
+                    updated_after,
+                    updated_before,
+                    override_to_email=override_to_email,
+                )
+            except SendDigestsError as err:
+                self.retry(
+                    kwargs={
+                        **self.request.kwargs,
+                        "h_userids": list(err.errors.keys()),
+                    },
+                    countdown=retry_countdown,
+                )
+            except Exception as exc:  # pylint:disable=broad-exception-caught
+                LOG.exception(exc)
+                report_exception(exc)
+                self.retry(countdown=retry_countdown)
