@@ -77,7 +77,7 @@ describe('LaunchErrorDialog', () => {
     {
       errorState: 'd2l_file_not_found_in_course_instructor',
       expectedText:
-        'To fix the issue, recreate the assignment with a different file.',
+        'To fix the issue, recreate this assignment and select a different file.',
       expectedTitle: "Hypothesis couldn't find the file in the course",
       hasRetry: true,
       withError: true,

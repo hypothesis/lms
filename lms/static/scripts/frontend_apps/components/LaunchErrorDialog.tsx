@@ -54,8 +54,10 @@ export default function LaunchErrorDialog({
   onRetry,
 }: LaunchErrorDialogProps) {
   const { instructorToolbar } = useConfig();
+  const canEdit = Boolean(instructorToolbar?.editingEnabled);
+
   let extraActions;
-  if (instructorToolbar?.editingEnabled) {
+  if (canEdit) {
     extraActions = (
       <RouterLink href="/app/content-item-selection">
         <Link underline="always" data-testid="edit-link">
@@ -104,7 +106,8 @@ export default function LaunchErrorDialog({
           <ul className="px-4 list-disc">
             <li>
               The file has been deleted from Blackboard: an instructor needs to
-              re-create the assignment with a new file
+              {canEdit ? 'edit' : 'recreate'} this assignment and select a new
+              file
             </li>
             <li>
               You don{"'"}t have permission to read the file: an instructor
@@ -132,8 +135,9 @@ export default function LaunchErrorDialog({
             </li>
           </ul>
           <p>
-            To fix the issue, recreate the assignment with a different file.
-            More information can be found in our document about{' '}
+            To fix the issue, {canEdit ? 'edit' : 'recreate'} this assignment
+            and select a different file. More information can be found in our
+            document about{' '}
             <ExternalLink href="https://web.hypothes.is/help/using-hypothesis-with-d2l-course-content-files/">
               Using Hypothesis With D2L Course Content Files
             </ExternalLink>
