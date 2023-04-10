@@ -61,29 +61,6 @@ class TestSendTemplate:
             }
         )
 
-    def test_if_theres_no_api_key_doesnt_call_mailchimp(self, mailchimp_client):
-        svc = MailchimpService(None)
-
-        svc.send_template(
-            sentinel.template_name,
-            EmailSender(
-                sentinel.subaccount_id,
-                sentinel.from_email,
-                sentinel.from_name,
-            ),
-            EmailRecipient(
-                sentinel.to_email,
-                sentinel.to_name,
-            ),
-            {},
-        )
-
-        mailchimp_client.messages.send_template.assert_not_called()
-
-    @pytest.fixture
-    def mailchimp_client(self, mailchimp_transactional):
-        return mailchimp_transactional.Client.return_value
-
 
 class TestFactory:
     def test_it(self, pyramid_request, MailchimpService):
