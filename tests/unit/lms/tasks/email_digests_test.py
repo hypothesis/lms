@@ -1,10 +1,14 @@
+import logging
 from contextlib import contextmanager
 from datetime import datetime
 from unittest.mock import call, sentinel
 
 import pytest
 from freezegun import freeze_time
+from h_matchers import Any
 
+from lms.services.digest import SendDigestsError
+from lms.services.mailchimp import MailchimpError
 from lms.tasks.email_digests import (
     send_instructor_email_digest_tasks,
     send_instructor_email_digests,
@@ -170,7 +174,7 @@ class TestSendInstructorEmailDigests:
         updated_after = datetime(year=2023, month=3, day=1)
         updated_before = datetime(year=2023, month=3, day=2)
 
-        send_instructor_email_digests(
+        send_instructor_email_digests(  # pylint:disable=no-value-for-parameter
             h_userids=sentinel.h_userids,
             updated_after=updated_after.isoformat(),
             updated_before=updated_before.isoformat(),
@@ -196,11 +200,72 @@ class TestSendInstructorEmailDigests:
         self, updated_after, updated_before
     ):
         with pytest.raises(ValueError, match="^Invalid isoformat string"):
-            send_instructor_email_digests(
+            send_instructor_email_digests(  # pylint:disable=no-value-for-parameter
                 h_userids=sentinel.h_userids,
                 updated_after=updated_after,
                 updated_before=updated_before,
             )
+
+    def test_it_retries_if_sending_fails(self, digest_service, retry):
+        updated_after = datetime(year=2023, month=3, day=1)
+        updated_before = datetime(year=2023, month=3, day=2)
+        # send_instructor_email_digests() raises a SendDigestsError whose
+        # errors attribute is a dict mapping the h_userid's that failed to send
+        # to their corresponding MailchimpError's.
+        digest_service.send_instructor_email_digests.side_effect = SendDigestsError(
+            errors={
+                sentinel.failed_h_userid_1: MailchimpError(),
+                sentinel.failed_h_userid_2: MailchimpError(),
+            }
+        )
+
+        send_instructor_email_digests(  # pylint:disable=no-value-for-parameter
+            h_userids=sentinel.h_userids,
+            updated_after=updated_after.isoformat(),
+            updated_before=updated_before.isoformat(),
+            override_to_email=sentinel.override_to_email,
+        )
+
+        # It retries the task with the same arguments except that h_userids is
+        # now only those userids that failed to send.
+        retry.assert_called_once_with(
+            kwargs={
+                "h_userids": Any.list.containing(
+                    [sentinel.failed_h_userid_1, sentinel.failed_h_userid_2]
+                ).only(),
+                "updated_after": updated_after.isoformat(),
+                "updated_before": updated_before.isoformat(),
+                "override_to_email": sentinel.override_to_email,
+            },
+            countdown=Any.int(),
+        )
+
+    def test_it_retries_if_sending_fails_with_an_unexpected_exception(
+        self, caplog, digest_service, report_exception, retry
+    ):
+        exception = RuntimeError("Unexpected")
+        digest_service.send_instructor_email_digests.side_effect = exception
+
+        send_instructor_email_digests(  # pylint:disable=no-value-for-parameter
+            h_userids=sentinel.h_userids,
+            updated_after="2023-02-27T00:00:00",
+            updated_before="2023-02-28T00:00:00",
+            override_to_email=sentinel.override_to_email,
+        )
+
+        assert caplog.record_tuples == [
+            ("lms.tasks.email_digests", logging.ERROR, "Unexpected")
+        ]
+        report_exception.assert_called_once_with(exception)
+        retry.assert_called_once_with(countdown=Any.int())
+
+    @pytest.fixture
+    def report_exception(self, patch):
+        return patch("lms.tasks.email_digests.report_exception")
+
+    @pytest.fixture
+    def retry(self, patch):
+        return patch("lms.tasks.email_digests.send_instructor_email_digests.retry")
 
 
 @pytest.fixture(autouse=True)
