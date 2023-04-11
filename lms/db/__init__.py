@@ -7,6 +7,7 @@ import zope.sqlalchemy
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.orm.properties import ColumnProperty
+from sqlalchemy import text
 
 from lms.db._columns import varchar_enum
 from lms.db._text_search import full_text_match
@@ -100,14 +101,15 @@ def init(engine, drop=False, stamp=True):  # pragma: nocover
     :param drop: whether or not to delete existing tables
     :param stamp: whether or not to stamp alembic latest revision
     """
+    connection = engine.connect()
     try:
-        engine.execute("select 1 from alembic_version")
+        connection.execute(text("select 1 from alembic_version"))
     except sqlalchemy.exc.ProgrammingError:
         if drop:
             # SQLAlchemy doesnt' know about the report schema, and will end up
             # trying to drop tables without cascade that have dependent tables
             # in the report schema and failing. Clear it out first.
-            engine.execute("DROP SCHEMA IF EXISTS report CASCADE")
+            connection.execute(text("DROP SCHEMA IF EXISTS report CASCADE"))
             BASE.metadata.drop_all(engine)
         BASE.metadata.create_all(engine)
 
