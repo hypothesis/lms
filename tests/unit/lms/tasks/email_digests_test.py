@@ -28,15 +28,19 @@ class TestSendInstructurEmailDigestsTasks:
 
         assert send_instructor_email_digests.apply_async.call_args_list == [
             call(
-                [[user.h_userid for user in participating_instructors[:3]]],
+                (),
                 {
+                    "h_userids": [
+                        user.h_userid for user in participating_instructors[:3]
+                    ],
                     "updated_after": "2023-03-08T05:00:00",
                     "updated_before": "2023-03-09T05:00:00",
                 },
             ),
             call(
-                [[participating_instructors[-1].h_userid]],
+                (),
                 {
+                    "h_userids": [participating_instructors[-1].h_userid],
                     "updated_after": "2023-03-08T05:00:00",
                     "updated_before": "2023-03-09T05:00:00",
                 },
@@ -73,9 +77,9 @@ class TestSendInstructurEmailDigestsTasks:
         send_instructor_email_digest_tasks(batch_size=99)
 
         assert (
-            send_instructor_email_digests.apply_async.call_args[0][0][0].count(
-                duplicate_user.h_userid
-            )
+            send_instructor_email_digests.apply_async.call_args[0][1][
+                "h_userids"
+            ].count(duplicate_user.h_userid)
             == 1
         )
 
@@ -167,10 +171,10 @@ class TestSendInstructorEmailDigests:
         updated_before = datetime(year=2023, month=3, day=2)
 
         send_instructor_email_digests(
-            sentinel.h_userids,
-            updated_after.isoformat(),
-            updated_before.isoformat(),
-            sentinel.override_to_email,
+            h_userids=sentinel.h_userids,
+            updated_after=updated_after.isoformat(),
+            updated_before=updated_before.isoformat(),
+            override_to_email=sentinel.override_to_email,
         )
 
         digest_service.send_instructor_email_digests.assert_called_once_with(
@@ -193,7 +197,9 @@ class TestSendInstructorEmailDigests:
     ):
         with pytest.raises(ValueError, match="^Invalid isoformat string"):
             send_instructor_email_digests(
-                sentinel.h_userids, updated_after, updated_before
+                h_userids=sentinel.h_userids,
+                updated_after=updated_after,
+                updated_before=updated_before,
             )
 
 
