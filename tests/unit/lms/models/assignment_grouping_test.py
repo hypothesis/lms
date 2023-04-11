@@ -18,6 +18,9 @@ class TestAssignmentGrouping:
         assert rel.grouping == grouping
         assert rel.grouping_id == grouping.id
 
+    @pytest.mark.filterwarnings(
+        "ignore:transaction already deassociated from connection"
+    )
     def test_it_does_not_allow_duplicates(self, db_session, assignment, grouping):
         db_session.add(AssignmentGrouping(assignment=assignment, grouping=grouping))
         db_session.commit()

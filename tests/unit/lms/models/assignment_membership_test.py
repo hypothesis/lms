@@ -22,6 +22,9 @@ class TestAssignmentMembership:
         assert membership.lti_role == lti_role
         assert membership.lti_role_id == lti_role.id
 
+    @pytest.mark.filterwarnings(
+        "ignore:transaction already deassociated from connection"
+    )
     def test_it_does_not_allow_duplicates(self, db_session, user, assignment, lti_role):
         db_session.add(
             AssignmentMembership(user=user, assignment=assignment, lti_role=lti_role)
