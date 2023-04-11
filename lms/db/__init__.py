@@ -4,10 +4,10 @@ import alembic.command
 import alembic.config
 import sqlalchemy
 import zope.sqlalchemy
+from sqlalchemy import text
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.orm.properties import ColumnProperty
-from sqlalchemy import text
 
 from lms.db._columns import varchar_enum
 from lms.db._text_search import full_text_match

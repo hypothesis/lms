@@ -6,6 +6,7 @@ import httpretty
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from h_matchers import Any
+from sqlalchemy import text
 from webtest import TestApp
 
 from lms import db
@@ -31,7 +32,7 @@ def clean_database(db_engine):
     with contextlib.closing(db_engine.connect()) as conn:
         transaction = conn.begin()
         tnames = ", ".join('"' + t.name + '"' for t in tables)
-        conn.execute(f"TRUNCATE {tnames};")
+        conn.execute(text(f"TRUNCATE {tnames};"))
         transaction.commit()
 
 
