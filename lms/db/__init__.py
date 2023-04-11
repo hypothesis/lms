@@ -101,19 +101,18 @@ def init(engine, drop=False, stamp=True):  # pragma: nocover
     :param drop: whether or not to delete existing tables
     :param stamp: whether or not to stamp alembic latest revision
     """
-    connection = engine.connect()
     try:
-        connection.execute(text("select 1 from alembic_version"))
+        with engine.begin() as connection:
+            connection.execute(text("select 1 from alembic_version"))
     except sqlalchemy.exc.ProgrammingError:
-        if drop:
-            # SQLAlchemy doesnt' know about the report schema, and will end up
-            # trying to drop tables without cascade that have dependent tables
-            # in the report schema and failing. Clear it out first.
-            connection.execute(text("DROP SCHEMA IF EXISTS report CASCADE"))
-            BASE.metadata.drop_all(engine)
-        BASE.metadata.create_all(engine)
-
-        "NOPE"
+        with engine.begin() as connection:
+            if drop:
+                # SQLAlchemy doesnt' know about the report schema, and will end up
+                # trying to drop tables without cascade that have dependent tables
+                # in the report schema and failing. Clear it out first.
+                connection.execute(text("DROP SCHEMA IF EXISTS report CASCADE"))
+                BASE.metadata.drop_all(engine)
+            BASE.metadata.create_all(engine)
 
         if stamp:
             alembic.command.stamp(alembic.config.Config("conf/alembic.ini"), "head")
