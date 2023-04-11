@@ -62,7 +62,7 @@ def db_session(db_engine):
     """Get a standalone database session for preparing database state."""
 
     conn = db_engine.connect()
-    session = SESSION(bind=conn)
+    session = SESSION(bind=conn, future=True)
 
     factories.set_sqlalchemy_session(session, persistence="commit")
 

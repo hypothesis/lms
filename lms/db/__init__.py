@@ -120,7 +120,7 @@ def init(engine, drop=False, stamp=True):  # pragma: nocover
 
 def make_engine(settings):
     """Construct a sqlalchemy engine from the passed ``settings``."""
-    return sqlalchemy.create_engine(settings["database_url"])
+    return sqlalchemy.create_engine(settings["database_url"], future=True)
 
 
 SESSION = sessionmaker()
@@ -128,7 +128,7 @@ SESSION = sessionmaker()
 
 def _session(request):  # pragma: no cover
     engine = request.registry["sqlalchemy.engine"]
-    session = SESSION(bind=engine)
+    session = SESSION(bind=engine, future=True)
 
     # If the request has a transaction manager, associate the session with it.
     try:

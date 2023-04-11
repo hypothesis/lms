@@ -220,7 +220,7 @@ def db_session(db_engine):
     """
     conn = db_engine.connect()
     trans = conn.begin()
-    session = SESSION(bind=conn)
+    session = SESSION(bind=conn, future=True)
     session.begin_nested()
 
     @sqlalchemy.event.listens_for(session, "after_transaction_end")
