@@ -57,6 +57,7 @@ class TestSendTemplate:
                         {"name": "foo", "content": "FOO"},
                         {"name": "bar", "content": "BAR"},
                     ],
+                    "headers": {},
                 },
                 "async": True,
             }
@@ -67,26 +68,42 @@ class TestSendTemplate:
         mailchimp_client.messages.send_template.side_effect = original_exception
         svc = MailchimpService(sentinel.api_key)
 
-        with pytest.raises(MailchimpError) as exc_info:
-            svc.send_template(
-                sentinel.template_name,
-                EmailSender(
-                    sentinel.subaccount_id,
-                    sentinel.from_email,
-                    sentinel.from_name,
-                ),
-                EmailRecipient(
-                    sentinel.to_email,
-                    sentinel.to_name,
-                ),
-                {},
+        svc = MailchimpService(sentinel.api_key)
+
+        svc.send_template(
+            sentinel.template_name,
+            EmailSender(
+                sentinel.subaccount_id,
+                sentinel.from_email,
+                sentinel.from_name,
+            ),
+            EmailRecipient(
+                sentinel.to_email,
+                sentinel.to_name,
+            ),
+            {},
+            sentinel.unsubscribe_url,
+        )
+
+        mailchimp_transactional.Client.return_value.messages.send_template.assert_called_once_with(
+            Any.dict.containing(
+                {
+                    "message": Any.dict.containing(
+                        {
+                            "headers": {
+                                "List-Unsubscribe": sentinel.unsubscribe_url,
+                            },
+                            "global_merge_vars": [
+                                {
+                                    "name": "unsubscribe_url",
+                                    "content": sentinel.unsubscribe_url,
+                                }
+                            ],
+                        }
+                    )
+                }
             )
-
-        assert exc_info.value.__cause__ == original_exception
-
-    @pytest.fixture
-    def mailchimp_client(self, mailchimp_transactional):
-        return mailchimp_transactional.Client.return_value
+        )
 
 
 class TestFactory:

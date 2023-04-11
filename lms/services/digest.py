@@ -14,7 +14,9 @@ from lms.models import (
     Grouping,
     LTIRole,
     User,
+    EmailUnsubscribe,
 )
+from lms.services.email_unsubscribe import EmailUnsubscribeService
 from lms.services.h_api import HAPI
 from lms.services.mailchimp import (
     EmailRecipient,
@@ -37,10 +39,18 @@ class SendDigestsError(Exception):
 class DigestService:
     """A service for generating "digests" (activity reports)."""
 
-    def __init__(self, db, h_api, mailchimp_service, sender):
+    def __init__(  # pylint:disable=too-many-arguments
+        self,
+        db,
+        h_api,
+        mailchimp_service,
+        sender,
+        email_unsubscribe_service: EmailUnsubscribeService,
+    ):
         self._db = db
         self._h_api = h_api
         self._mailchimp_service = mailchimp_service
+        self._email_unsubscribe_service = email_unsubscribe_service
         self._sender = sender
 
     def send_instructor_email_digests(
@@ -81,6 +91,9 @@ class DigestService:
                     self._sender,
                     recipient=EmailRecipient(to_email, unified_user.display_name),
                     template_vars=digest,
+                    unsubscribe_url=self._email_unsubscribe_service.unsubscribe_url(
+                        unified_user.h_userid, EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST
+                    ),
                 )
             except MailchimpError as err:
                 errors[unified_user.h_userid] = err
@@ -271,6 +284,7 @@ def service_factory(_context, request):
         db=request.db,
         h_api=request.find_service(HAPI),
         mailchimp_service=request.find_service(MailchimpService),
+        email_unsubscribe_service=request.find_service(EmailUnsubscribeService),
         sender=EmailSender(
             request.registry.settings.get("mailchimp_digests_subaccount"),
             request.registry.settings.get("mailchimp_digests_email"),

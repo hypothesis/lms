@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from typing import Optional
 
 import mailchimp_transactional
 
@@ -35,18 +36,27 @@ class MailchimpService:
     def __init__(self, api_key):
         self.mailchimp_client = mailchimp_transactional.Client(api_key)
 
-    def send_template(
+    def send_template(  # pylint:disable=too-many-arguments
         self,
         template_name: str,
         sender: EmailSender,
         recipient: EmailRecipient,
         template_vars: dict,
+        unsubscribe_url: Optional[str] = None,
     ):
         """
         Send an email using Mailchimp Transactional's send-template API.
 
         https://mailchimp.com/developer/transactional/api/messages/send-using-message-template/
         """
+        headers = {}
+
+        if unsubscribe_url:
+            # If we do provide a unsubscribe_url expose it as template var
+            # and add the corresponding header for clients that support it.
+            template_vars["unsubscribe_url"] = unsubscribe_url
+            headers["List-Unsubscribe"] = unsubscribe_url
+
         params = {
             "template_name": template_name,
             # We're not using template_content but we still need to pass an
@@ -63,6 +73,7 @@ class MailchimpService:
                     {"name": key, "content": value}
                     for key, value in template_vars.items()
                 ],
+                "headers": headers,
             },
             "async": True,
         }
