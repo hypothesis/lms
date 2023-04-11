@@ -113,6 +113,8 @@ def init(engine, drop=False, stamp=True):  # pragma: nocover
             BASE.metadata.drop_all(engine)
         BASE.metadata.create_all(engine)
 
+        "NOPE"
+
         if stamp:
             alembic.command.stamp(alembic.config.Config("conf/alembic.ini"), "head")
 
