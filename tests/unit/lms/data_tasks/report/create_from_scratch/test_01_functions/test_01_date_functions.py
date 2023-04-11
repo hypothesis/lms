@@ -3,6 +3,7 @@ from datetime import datetime
 import importlib_resources
 import pytest
 from data_tasks.sql_script import SQLScript
+from sqlalchemy import text
 
 TASK_ROOT = importlib_resources.files("lms.data_tasks")
 
@@ -25,14 +26,14 @@ class TestDateFunctions:
     )
     def test_multi_truncate(self, db_session, timescale, value, expected):
         row = db_session.execute(
-            f"SELECT report.multi_truncate('{timescale}', ({value})::DATE)"
+            text(f"SELECT report.multi_truncate('{timescale}', ({value})::DATE)")
         ).one_or_none()
 
         assert row[0] == expected
 
     @pytest.fixture
     def with_date_functions(self, db_session):
-        db_session.execute("CREATE SCHEMA report")
+        db_session.execute(text("CREATE SCHEMA report"))
 
         script = SQLScript(
             path=str(
