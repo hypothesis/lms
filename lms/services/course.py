@@ -152,8 +152,8 @@ class CourseService:
 
     def _is_pre_sections(self, context_id):
         return bool(
-            self._db.query(CourseGroupsExportedFromH).get(
-                self._get_authority_provided_id(context_id)
+            self._db.get(
+                CourseGroupsExportedFromH, self._get_authority_provided_id(context_id)
             )
         )
 

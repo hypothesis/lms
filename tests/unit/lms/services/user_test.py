@@ -46,7 +46,7 @@ class TestUserService:
     def test_upsert_user_with_an_existing_user(self, service, lti_user, db_session):
         user = service.upsert_user(lti_user)
 
-        saved_user = db_session.query(User).get(user.id)
+        saved_user = db_session.get(User, user.id)
         assert saved_user.id == user.id
         assert saved_user.roles == lti_user.roles
         assert user == saved_user
