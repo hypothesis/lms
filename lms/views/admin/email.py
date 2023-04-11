@@ -61,8 +61,13 @@ class AdminEmailViews:
             )
 
         send_instructor_email_digests.apply_async(
-            [h_userids, since.isoformat(), until.isoformat()],
-            {"override_to_email": to_email},
+            (),
+            {
+                "h_userids": h_userids,
+                "updated_after": since.isoformat(),
+                "updated_before": until.isoformat(),
+                "override_to_email": to_email,
+            },
         )
 
         self.request.session.flash(

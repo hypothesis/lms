@@ -13,8 +13,13 @@ class TestAdminEmailViews:
         response = views.post()
 
         send_instructor_email_digests.apply_async.assert_called_once_with(
-            [["userid_1", "userid_2"], "2023-02-27T00:00:00", "2023-02-28T00:00:00"],
-            {"override_to_email": "someone@hypothes.is"},
+            (),
+            {
+                "h_userids": ["userid_1", "userid_2"],
+                "updated_after": "2023-02-27T00:00:00",
+                "updated_before": "2023-02-28T00:00:00",
+                "override_to_email": "someone@hypothes.is",
+            },
         )
         assert isinstance(response, HTTPFound)
         assert response.location == "http://example.com/admin/email"

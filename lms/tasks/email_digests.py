@@ -60,13 +60,18 @@ def send_instructor_email_digest_tasks(batch_size):
 
             for batch in batches:
                 send_instructor_email_digests.apply_async(
-                    [batch],
-                    {"updated_after": updated_after, "updated_before": updated_before},
+                    (),
+                    {
+                        "h_userids": batch,
+                        "updated_after": updated_after,
+                        "updated_before": updated_before,
+                    },
                 )
 
 
 @app.task
 def send_instructor_email_digests(
+    *,
     h_userids: List[str],
     updated_after: str,
     updated_before: str,
