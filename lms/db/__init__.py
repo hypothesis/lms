@@ -4,9 +4,8 @@ import alembic.command
 import alembic.config
 import sqlalchemy
 import zope.sqlalchemy
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.inspection import inspect
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.orm.properties import ColumnProperty
 
 from lms.db._columns import varchar_enum
