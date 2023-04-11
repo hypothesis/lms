@@ -18,8 +18,17 @@ from tests import factories
 
 class TestDigestService:
     def test_send_instructor_email_digests(
-        self, svc, h_api, context, DigestContext, db_session, mailchimp_service, sender
+        self,
+        svc,
+        h_api,
+        context,
+        DigestContext,
+        db_session,
+        mailchimp_service,
+        sender,
+        email_unsubscribe_service,
     ):
+        email_unsubscribe_service.is_unsubscribed.side_effect = [False, False]
         context.unified_users = UnifiedUserFactory.create_batch(2)
         digests = context.instructor_digest.side_effect = [
             {"total_annotations": 1},
@@ -39,12 +48,17 @@ class TestDigestService:
         assert context.instructor_digest.call_args_list == [
             call(user.h_userid) for user in context.unified_users
         ]
+        assert email_unsubscribe_service.is_unsubscribed.call_args_list == [
+            call(unified_user.email, "instructor_digest")
+            for unified_user in context.unified_users
+        ]
         assert mailchimp_service.send_template.call_args_list == [
             call(
                 "instructor-email-digest",
                 sender,
                 recipient=EmailRecipient(unified_user.email, unified_user.display_name),
                 template_vars=digest,
+                unsubscribe_url=email_unsubscribe_service.unsubscribe_url.return_value,
             )
             for unified_user, digest in zip(context.unified_users, digests)
         ]
@@ -73,6 +87,20 @@ class TestDigestService:
 
         mailchimp_service.send_template.assert_not_called()
 
+    def test_send_instructor_email_digests_doesnt_send_sent_to_unsubscribed(
+        self, svc, context, mailchimp_service, email_unsubscribe_service
+    ):
+        email_unsubscribe_service.is_unsubscribed.return_value = True
+        context.unified_users = [UnifiedUserFactory()]
+        context.instructor_digest.return_value = {"total_annotations": 1}
+
+        svc.send_instructor_email_digests(
+            sentinel.audience, sentinel.updated_after, sentinel.updated_before
+        )
+
+        mailchimp_service.send_template.assert_not_called()
+
+    @pytest.mark.usefixtures("email_unsubscribe_service")
     def test_send_instructor_email_digests_uses_override_to_email(
         self, svc, context, mailchimp_service
     ):
@@ -104,6 +132,11 @@ class TestDigestService:
         return EmailSender(sentinel.subaccount, sentinel.from_email, sentinel.from_name)
 
     @pytest.fixture
+    def email_unsubscribe_service(self, email_unsubscribe_service):
+        email_unsubscribe_service.is_unsubscribed.return_value = False
+        return email_unsubscribe_service
+
+    @pytest.fixture
     def h_api(self, h_api):
         h_api.get_annotations.return_value = [
             sentinel.annotation1,
@@ -112,12 +145,15 @@ class TestDigestService:
         return h_api
 
     @pytest.fixture
-    def svc(self, db_session, h_api, mailchimp_service, sender):
+    def svc(
+        self, db_session, h_api, mailchimp_service, sender, email_unsubscribe_service
+    ):
         return DigestService(
             db=db_session,
             h_api=h_api,
             mailchimp_service=mailchimp_service,
             sender=sender,
+            email_unsubscribe_service=email_unsubscribe_service,
         )
 
 
@@ -529,7 +565,14 @@ class TestDigestContext:
 
 
 class TestServiceFactory:
-    def test_it(self, pyramid_request, h_api, mailchimp_service, DigestService):
+    def test_it(
+        self,
+        pyramid_request,
+        h_api,
+        mailchimp_service,
+        DigestService,
+        email_unsubscribe_service,
+    ):
         settings = pyramid_request.registry.settings
         settings["mailchimp_digests_subaccount"] = sentinel.digests_subaccount
         settings["mailchimp_digests_email"] = sentinel.digests_from_email
@@ -546,6 +589,7 @@ class TestServiceFactory:
                 sentinel.digests_from_email,
                 sentinel.digests_from_name,
             ),
+            email_unsubscribe_service=email_unsubscribe_service,
         )
         assert service == DigestService.return_value
 

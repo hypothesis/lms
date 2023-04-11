@@ -56,9 +56,48 @@ class TestSendTemplate:
                         {"name": "foo", "content": "FOO"},
                         {"name": "bar", "content": "BAR"},
                     ],
+                    "headers": {},
                 },
                 "async": True,
             }
+        )
+
+    def test_with_unsubscirbe_url(self, mailchimp_transactional):
+        svc = MailchimpService(sentinel.api_key)
+
+        svc.send_template(
+            sentinel.template_name,
+            EmailSender(
+                sentinel.subaccount_id,
+                sentinel.from_email,
+                sentinel.from_name,
+            ),
+            EmailRecipient(
+                sentinel.to_email,
+                sentinel.to_name,
+            ),
+            {},
+            sentinel.unsubscribe_url,
+        )
+
+        mailchimp_transactional.Client.return_value.messages.send_template.assert_called_once_with(
+            Any.dict.containing(
+                {
+                    "message": Any.dict.containing(
+                        {
+                            "headers": {
+                                "List-Unsubscribe": sentinel.unsubscribe_url,
+                            },
+                            "global_merge_vars": [
+                                {
+                                    "name": "unsubscribe_url",
+                                    "content": sentinel.unsubscribe_url,
+                                }
+                            ],
+                        }
+                    )
+                }
+            )
         )
 
     def test_if_theres_no_api_key_doesnt_call_mailchimp(self, mailchimp_client):
