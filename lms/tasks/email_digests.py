@@ -96,9 +96,6 @@ def send_instructor_email_digests(
     updated_after = datetime.fromisoformat(updated_after)
     updated_before = datetime.fromisoformat(updated_before)
 
-    # How long to wait (in seconds) before retrying the task if it fails.
-    retry_countdown = (3600 * (self.request.retries + 1)) + random.randint(0, 900)
-
     with app.request_context() as request:  # pylint:disable=no-member
         with request.tm:
             digest_service = request.find_service(DigestService)
@@ -116,9 +113,13 @@ def send_instructor_email_digests(
                         **self.request.kwargs,
                         "h_userids": list(err.errors.keys()),
                     },
-                    countdown=retry_countdown,
+                    countdown=_retry_countdown(self.request),
                 )
             except Exception as exc:  # pylint:disable=broad-exception-caught
                 LOG.exception(exc)
                 report_exception(exc)
-                self.retry(countdown=retry_countdown)
+                self.retry(countdown=_retry_countdown(self.request))
+
+
+def _retry_countdown(celery_request):
+    return (3600 * (celery_request.retries + 1)) + random.randint(0, 900)
