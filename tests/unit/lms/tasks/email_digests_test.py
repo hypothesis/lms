@@ -1,8 +1,9 @@
 import logging
 from contextlib import contextmanager
 from datetime import datetime
-from unittest.mock import call, sentinel
+from unittest.mock import Mock, call, sentinel
 
+import celery
 import pytest
 from freezegun import freeze_time
 from h_matchers import Any
@@ -20,7 +21,9 @@ class TestSendInstructurEmailDigestsTasks:
     def test_it_does_nothing_if_there_are_no_instructors(
         self, send_instructor_email_digests
     ):
-        send_instructor_email_digest_tasks(batch_size=42)
+        send_instructor_email_digest_tasks(  # pylint:disable=no-value-for-parameter
+            batch_size=42
+        )
 
         send_instructor_email_digests.apply_async.assert_not_called()
 
@@ -28,7 +31,9 @@ class TestSendInstructurEmailDigestsTasks:
     def test_it_sends_digests_for_instructors(
         self, send_instructor_email_digests, participating_instructors
     ):
-        send_instructor_email_digest_tasks(batch_size=3)
+        send_instructor_email_digest_tasks(  # pylint:disable=no-value-for-parameter
+            batch_size=3
+        )
 
         assert send_instructor_email_digests.apply_async.call_args_list == [
             call(
@@ -51,17 +56,98 @@ class TestSendInstructurEmailDigestsTasks:
             ),
         ]
 
+    def test_it_retries_if_the_db_query_raises(
+        self, retry, caplog, report_exception, pyramid_request
+    ):
+        pyramid_request.db = Mock(spec_set=["scalars"])
+        exception = RuntimeError("The DB crashed!")
+        pyramid_request.db.scalars.side_effect = exception
+
+        with pytest.raises(celery.exceptions.Retry):
+            send_instructor_email_digest_tasks(  # pylint:disable=no-value-for-parameter
+                batch_size=42
+            )
+
+        assert caplog.record_tuples == [
+            ("lms.tasks.email_digests", logging.ERROR, "The DB crashed!")
+        ]
+        report_exception.assert_called_once_with(exception)
+        retry.assert_called_once_with(countdown=Any.int())
+
+    def test_it_retries_if_celery_raises(
+        self,
+        send_instructor_email_digests,
+        participating_instructors,
+        caplog,
+        report_exception,
+        retry,
+    ):
+        exception = RuntimeError("Celery crashed!")
+        # Make scheduling the first batch fail but the second succeed.
+        send_instructor_email_digests.apply_async.side_effect = [exception, None]
+
+        with pytest.raises(celery.exceptions.Retry):
+            send_instructor_email_digest_tasks(  # pylint:disable=no-value-for-parameter
+                batch_size=2
+            )
+
+        # The batches of h_userids that send_instructor_email_digests() was called with.
+        batches = [
+            call[0][1]["h_userids"]
+            for call in send_instructor_email_digests.apply_async.call_args_list
+        ]
+        # It should have loggged the exception when scheduling the first batch failed.
+        assert caplog.record_tuples == [
+            ("lms.tasks.email_digests", logging.ERROR, "Celery crashed!")
+        ]
+        # It should have reported the exception to Sentry.
+        report_exception.assert_called_once_with(exception)
+        # After scheduling the first batch failed it should have continued and
+        # tried to schedule the second batch anyway, so it should have tried to
+        # schedule all the h_userids.
+        assert set(h_userid for batch in batches for h_userid in batch) == set(
+            participating_instructor.h_userid
+            for participating_instructor in participating_instructors
+        )
+        # It should have scheduled a retry of the failed batch.
+        retry.assert_called_once_with(
+            kwargs={
+                "batch_size": 2,
+                "h_userids": batches[0],
+            },
+            countdown=Any.int(),
+        )
+
+    def test_it_uses_the_given_h_userids(self, send_instructor_email_digests):
+        # The method accepts an optional h_userids argument that will be used
+        # instead of retrieving the h_userids from the DB.
+        # This is used when the task schedules a retry of itself with only the
+        # h_userids that it failed to schedule.
+        h_userids = [sentinel.h_userid_1, sentinel.h_userid_2]
+
+        send_instructor_email_digest_tasks(  # pylint:disable=no-value-for-parameter
+            batch_size=2, h_userids=h_userids
+        )
+
+        send_instructor_email_digests.apply_async.assert_called_once_with(
+            (), Any.dict.containing({"h_userids": h_userids})
+        )
+
     @pytest.mark.usefixtures("non_participating_instructor")
     def test_it_doesnt_email_non_participating_instructors(
         self, send_instructor_email_digests
     ):
-        send_instructor_email_digest_tasks(batch_size=42)
+        send_instructor_email_digest_tasks(  # pylint:disable=no-value-for-parameter
+            batch_size=42
+        )
 
         send_instructor_email_digests.apply_async.assert_not_called()
 
     @pytest.mark.usefixtures("non_instructor")
     def test_it_doesnt_email_non_instructors(self, send_instructor_email_digests):
-        send_instructor_email_digest_tasks(batch_size=42)
+        send_instructor_email_digest_tasks(  # pylint:disable=no-value-for-parameter
+            batch_size=42
+        )
 
         send_instructor_email_digests.apply_async.assert_not_called()
 
@@ -78,7 +164,9 @@ class TestSendInstructurEmailDigestsTasks:
         )
         make_instructors([duplicate_user])
 
-        send_instructor_email_digest_tasks(batch_size=99)
+        send_instructor_email_digest_tasks(  # pylint:disable=no-value-for-parameter
+            batch_size=99
+        )
 
         assert (
             send_instructor_email_digests.apply_async.call_args[0][1][
@@ -162,6 +250,13 @@ class TestSendInstructurEmailDigestsTasks:
             db_session.flush()
 
         return make_learner
+
+    @pytest.fixture(autouse=True)
+    def retry(self, patch):
+        return patch(
+            "lms.tasks.email_digests.send_instructor_email_digest_tasks.retry",
+            side_effect=celery.exceptions.Retry,
+        )
 
     @pytest.fixture(autouse=True)
     def send_instructor_email_digests(self, patch):
@@ -260,10 +355,6 @@ class TestSendInstructorEmailDigests:
         retry.assert_called_once_with(countdown=Any.int())
 
     @pytest.fixture
-    def report_exception(self, patch):
-        return patch("lms.tasks.email_digests.report_exception")
-
-    @pytest.fixture
     def retry(self, patch):
         return patch("lms.tasks.email_digests.send_instructor_email_digests.retry")
 
@@ -279,3 +370,8 @@ def app(patch, pyramid_request):
     app.request_context = request_context
 
     return app
+
+
+@pytest.fixture(autouse=True)
+def report_exception(patch):
+    return patch("lms.tasks.email_digests.report_exception")
