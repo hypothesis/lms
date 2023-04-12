@@ -30,7 +30,6 @@ class TestDigestService:
         sender,
         email_unsubscribe_service,
     ):
-        email_unsubscribe_service.is_unsubscribed.side_effect = [False, False]
         context.unified_users = UnifiedUserFactory.create_batch(2)
         digests = context.instructor_digest.side_effect = [
             {"total_annotations": 1},
@@ -49,10 +48,6 @@ class TestDigestService:
         )
         assert context.instructor_digest.call_args_list == [
             call(user.h_userid) for user in context.unified_users
-        ]
-        assert email_unsubscribe_service.is_unsubscribed.call_args_list == [
-            call(unified_user.email, "instructor_digest")
-            for unified_user in context.unified_users
         ]
         assert mailchimp_service.send_template.call_args_list == [
             call(
@@ -81,19 +76,6 @@ class TestDigestService:
         self, svc, context, mailchimp_service
     ):
         context.unified_users = [UnifiedUserFactory(email=None)]
-        context.instructor_digest.return_value = {"total_annotations": 1}
-
-        svc.send_instructor_email_digests(
-            sentinel.audience, sentinel.updated_after, sentinel.updated_before
-        )
-
-        mailchimp_service.send_template.assert_not_called()
-
-    def test_send_instructor_email_digests_doesnt_send_sent_to_unsubscribed(
-        self, svc, context, mailchimp_service, email_unsubscribe_service
-    ):
-        email_unsubscribe_service.is_unsubscribed.return_value = True
-        context.unified_users = [UnifiedUserFactory()]
         context.instructor_digest.return_value = {"total_annotations": 1}
 
         svc.send_instructor_email_digests(
@@ -175,11 +157,6 @@ class TestDigestService:
     @pytest.fixture
     def sender(self):
         return EmailSender(sentinel.subaccount, sentinel.from_email, sentinel.from_name)
-
-    @pytest.fixture
-    def email_unsubscribe_service(self, email_unsubscribe_service):
-        email_unsubscribe_service.is_unsubscribed.return_value = False
-        return email_unsubscribe_service
 
     @pytest.fixture
     def h_api(self, h_api):
