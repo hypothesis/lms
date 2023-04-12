@@ -35,9 +35,12 @@ class GroupInfoService:
         if not group_info:
             group_info = GroupInfo(
                 authority_provided_id=grouping.authority_provided_id,
-                application_instance=grouping.application_instance,
             )
             self._db.add(group_info)
+            # SQLA not happy if added directly ot the object before adding it to the session
+            # "GroupInfo" object is being merged into a Session along the backref cascade path for relationship
+            # doing it in two stages here as a work around
+            group_info.application_instance = grouping.application_instance
 
         # This is very strange. The DB layout is wrong here. You can "steal" a
         # group info row from another application instance by updating it with
