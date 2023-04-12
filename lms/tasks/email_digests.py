@@ -14,8 +14,8 @@ from lms.tasks.celery import app
 LOG = logging.getLogger(__name__)
 
 
-@app.task
-def send_instructor_email_digest_tasks(*, batch_size):
+@app.task(bind=True, max_retries=2)
+def send_instructor_email_digest_tasks(self, *, batch_size, h_userids=None):
     """
     Generate and send instructor email digests.
 
@@ -40,32 +40,57 @@ def send_instructor_email_digest_tasks(*, batch_size):
 
     with app.request_context() as request:  # pylint:disable=no-member
         with request.tm:
-            h_userids = request.db.scalars(
-                select(User.h_userid)
-                .select_from(User)
-                .distinct()
-                .join(ApplicationInstance)
-                .join(AssignmentMembership)
-                .join(LTIRole)
-                .where(
-                    ApplicationInstance.settings["hypothesis"][
-                        "instructor_email_digests_enabled"
-                    ].astext
-                    == "true",
-                    LTIRole.type == "instructor",
-                )
-            ).all()
+            if not h_userids:
+                try:
+                    h_userids = request.db.scalars(
+                        select(User.h_userid)
+                        .select_from(User)
+                        .distinct()
+                        .join(ApplicationInstance)
+                        .join(AssignmentMembership)
+                        .join(LTIRole)
+                        .where(
+                            ApplicationInstance.settings["hypothesis"][
+                                "instructor_email_digests_enabled"
+                            ].astext
+                            == "true",
+                            LTIRole.type == "instructor",
+                        )
+                    ).all()
+                except Exception as exc:  # pylint:disable=broad-exception-caught
+                    LOG.exception(exc)
+                    report_exception(exc)
+                    self.retry(countdown=_retry_countdown(self.request))
 
-            while h_userids:
-                batch, h_userids = h_userids[:batch_size], h_userids[batch_size:]
+            batches = [
+                h_userids[i : i + batch_size]
+                for i in range(0, len(h_userids), batch_size)
+            ]
 
-                send_instructor_email_digests.apply_async(
-                    (),
-                    {
-                        "h_userids": batch,
-                        "updated_after": updated_after,
-                        "updated_before": updated_before,
+            failed_h_userids = []
+
+            for batch in batches:
+                try:
+                    send_instructor_email_digests.apply_async(
+                        (),
+                        {
+                            "h_userids": batch,
+                            "updated_after": updated_after,
+                            "updated_before": updated_before,
+                        },
+                    )
+                except Exception as exc:  # pylint:disable=broad-exception-caught
+                    LOG.exception(exc)
+                    report_exception(exc)
+                    failed_h_userids.extend(batch)
+
+            if failed_h_userids:
+                self.retry(
+                    kwargs={
+                        **self.request.kwargs,
+                        "h_userids": failed_h_userids,
                     },
+                    countdown=_retry_countdown(self.request),
                 )
 
 
