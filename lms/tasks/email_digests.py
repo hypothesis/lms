@@ -56,12 +56,9 @@ def send_instructor_email_digest_tasks(batch_size):
                 )
             ).all()
 
-            batches = [
-                h_userids[i : i + batch_size]
-                for i in range(0, len(h_userids), batch_size)
-            ]
+            while h_userids:
+                batch, h_userids = h_userids[:batch_size], h_userids[batch_size:]
 
-            for batch in batches:
                 send_instructor_email_digests.apply_async(
                     (),
                     {
