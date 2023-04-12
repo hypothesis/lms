@@ -2,8 +2,6 @@ from datetime import timedelta
 from functools import partial
 from typing import Callable
 
-from sqlalchemy import exists
-
 from lms.models import EmailUnsubscribe
 from lms.services.jwt import JWTService
 from lms.services.upsert import bulk_upsert
@@ -31,14 +29,6 @@ class EmailUnsubscribeService:
             values=[data],
             index_elements=["h_userid", "tag"],
             update_columns=["updated"],
-        )
-
-    def is_unsubscribed(self, h_userid, tag):
-        """Check if `h_userid` is unsubscribed for `tag` type emails."""
-        return self._db.scalar(
-            exists()
-            .where(EmailUnsubscribe.h_userid == h_userid, EmailUnsubscribe.tag == tag)
-            .select()
         )
 
     def _generate_token(self, h_userid, tag):

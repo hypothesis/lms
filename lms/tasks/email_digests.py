@@ -4,11 +4,17 @@ from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
 from h_pyramid_sentry import report_exception
-from sqlalchemy import select
+from sqlalchemy import and_, select
 
-from lms.models import ApplicationInstance, AssignmentMembership, LTIRole, User
-from lms.services import DigestService
+from lms.models import (
+    ApplicationInstance,
+    AssignmentMembership,
+    EmailUnsubscribe,
+    LTIRole,
+    User,
+)
 from lms.services.digest import SendDigestsError
+from lms.services import DigestService, EmailUnsubscribeService
 from lms.tasks.celery import app
 
 LOG = logging.getLogger(__name__)
@@ -49,12 +55,22 @@ def send_instructor_email_digest_tasks(self, *, batch_size, h_userids=None):
                         .join(ApplicationInstance)
                         .join(AssignmentMembership)
                         .join(LTIRole)
+                        .outerjoin(
+                            EmailUnsubscribe,
+                            and_(
+                                User.h_userid == EmailUnsubscribe.h_userid,
+                                EmailUnsubscribe.tag
+                                == EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST,
+                            ),
+                        )
                         .where(
                             ApplicationInstance.settings["hypothesis"][
                                 "instructor_email_digests_enabled"
                             ].astext
                             == "true",
                             LTIRole.type == "instructor",
+                            # No EmailUnsubscribes
+                            EmailUnsubscribe.id.is_(None),
                         )
                     ).all()
                 except Exception as exc:  # pylint:disable=broad-exception-caught

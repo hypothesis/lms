@@ -11,6 +11,7 @@ from lms.models import (
     AssignmentGrouping,
     AssignmentMembership,
     Course,
+    EmailUnsubscribe,
     Grouping,
     LTIRole,
     User,
