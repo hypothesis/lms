@@ -5,7 +5,6 @@ import pytest
 
 from lms.models import EmailUnsubscribe
 from lms.services.email_unsubscribe import EmailUnsubscribeService, factory
-from tests import factories
 
 
 class TestEmailUnsubscribeService:
@@ -42,23 +41,6 @@ class TestEmailUnsubscribeService:
             index_elements=["h_userid", "tag"],
             update_columns=["updated"],
         )
-
-    @pytest.mark.parametrize(
-        "tag,h_userid,expected",
-        [
-            ("digest", "OTHER_ID", False),
-            ("othertag", "OTHER_ID", False),
-            ("othertag", "UNSUBSCRIBED_ID", False),
-            ("digest", "UNSUBSCRIBED_ID", True),
-        ],
-    )
-    def test_is_unsubscribed(self, db_session, svc, h_userid, tag, expected):
-        factories.email_unsubscribe.EmailUnsubscribe(
-            tag="digest", h_userid="UNSUBSCRIBED_ID"
-        )
-        db_session.flush()
-
-        assert svc.is_unsubscribed(h_userid, tag) == expected
 
     @pytest.fixture
     def svc(self, db_session, jwt_service, pyramid_request):

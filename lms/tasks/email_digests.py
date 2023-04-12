@@ -2,9 +2,15 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
-from sqlalchemy import select
+from sqlalchemy import and_, select
 
-from lms.models import ApplicationInstance, AssignmentMembership, LTIRole, User
+from lms.models import (
+    ApplicationInstance,
+    AssignmentMembership,
+    EmailUnsubscribe,
+    LTIRole,
+    User,
+)
 from lms.services import DigestService
 from lms.tasks.celery import app
 
@@ -44,12 +50,21 @@ def send_instructor_email_digest_tasks(batch_size):
                 .join(ApplicationInstance)
                 .join(AssignmentMembership)
                 .join(LTIRole)
+                .outerjoin(
+                    EmailUnsubscribe,
+                    and_(
+                        User.h_userid == EmailUnsubscribe.h_userid,
+                        EmailUnsubscribe.tag == EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST,
+                    ),
+                )
                 .where(
                     ApplicationInstance.settings["hypothesis"][
                         "instructor_email_digests_enabled"
                     ].astext
                     == "true",
                     LTIRole.type == "instructor",
+                    # No EmailUnsubscribes
+                    EmailUnsubscribe.id.is_(None),
                 )
             ).all()
 

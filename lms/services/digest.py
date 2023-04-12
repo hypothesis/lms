@@ -9,6 +9,7 @@ from lms.models import (
     AssignmentGrouping,
     AssignmentMembership,
     Course,
+    EmailUnsubscribe,
     Grouping,
     LTIRole,
     User,
@@ -65,19 +66,13 @@ class DigestService:
                 # We don't have an email address for this user.
                 continue
 
-            if self._email_unsubscribe_service.is_unsubscribed(
-                to_email, EmailUnsubscribeService.Tag.INSTRUCTOR_DIGEST
-            ):
-                # `to_email` unsubscribed from this type of email
-                continue
-
             self._mailchimp_service.send_template(
                 "instructor-email-digest",
                 self._sender,
                 recipient=EmailRecipient(to_email, unified_user.display_name),
                 template_vars=digest,
                 unsubscribe_url=self._email_unsubscribe_service.unsubscribe_url(
-                    to_email, EmailUnsubscribeService.Tag.INSTRUCTOR_DIGEST
+                    to_email, EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST
                 ),
             )
 
