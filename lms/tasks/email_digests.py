@@ -15,7 +15,7 @@ LOG = logging.getLogger(__name__)
 
 
 @app.task
-def send_instructor_email_digest_tasks(batch_size):
+def send_instructor_email_digest_tasks(*, batch_size):
     """
     Generate and send instructor email digests.
 
