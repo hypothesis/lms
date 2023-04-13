@@ -8,7 +8,7 @@ from lms.views.email import unsubscribe, unsubscribed
 
 
 def test_unsubscribe(pyramid_request, email_unsubscribe_service):
-    pyramid_request.matchdict["token"] = sentinel.token
+    pyramid_request.params["token"] = sentinel.token
 
     result = unsubscribe(pyramid_request)
 
@@ -19,7 +19,7 @@ def test_unsubscribe(pyramid_request, email_unsubscribe_service):
 
 @pytest.mark.parametrize("exception", [ExpiredJWTError, InvalidJWTError])
 def test_unsubscribe_error(pyramid_request, email_unsubscribe_service, exception):
-    pyramid_request.matchdict["token"] = sentinel.token
+    pyramid_request.params["token"] = sentinel.token
     email_unsubscribe_service.unsubscribe.side_effect = exception
 
     result = unsubscribe(pyramid_request)

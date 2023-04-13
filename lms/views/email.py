@@ -14,12 +14,13 @@ LOG = logging.getLogger(__name__)
     route_name="email.unsubscribe",
     request_method="GET",
     renderer="lms:templates/message.html.jinja2",
+    request_param="token",
 )
 def unsubscribe(request):
     """Unsubscribe the email and tag combination encoded in token."""
     try:
         request.find_service(EmailUnsubscribeService).unsubscribe(
-            request.matchdict["token"]
+            request.params["token"]
         )
     except (InvalidJWTError, ExpiredJWTError):
         LOG.exception("Invalid unsubscribe token")
