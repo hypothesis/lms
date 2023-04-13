@@ -8,9 +8,9 @@ import pytest
 from freezegun import freeze_time
 from h_matchers import Any
 
+from lms.models import EmailUnsubscribe
 from lms.services.digest import SendDigestsError
 from lms.services.mailchimp import MailchimpError
-from lms.models import EmailUnsubscribe
 from lms.tasks.email_digests import (
     send_instructor_email_digest_tasks,
     send_instructor_email_digests,
@@ -155,10 +155,17 @@ class TestSendInstructurEmailDigestsTasks:
     def test_it_doesnt_email_unsubscribed_instructors(
         self, send_instructor_email_digests, unsubscribed_instructors
     ):
-        send_instructor_email_digest_tasks(batch_size=42)
+        send_instructor_email_digest_tasks(  # pylint:disable=no-value-for-parameter
+            batch_size=42
+        )
 
         assert send_instructor_email_digests.apply_async.call_args_list == [
-            call([[unsubscribed_instructors[0].h_userid]], Any.dict())
+            call(
+                (),
+                Any.dict.containing(
+                    {"h_userids": [unsubscribed_instructors[0].h_userid]}
+                ),
+            )
         ]
 
     def test_it_deduplicates_duplicate_h_userids(
@@ -380,38 +387,6 @@ class TestSendInstructorEmailDigests:
     @pytest.fixture
     def retry(self, patch):
         return patch("lms.tasks.email_digests.send_instructor_email_digests.retry")
-
-    def test_no_h_useids_doesnt_call_service(
-        self, digest_service, email_unsubscribe_service
-    ):
-        email_unsubscribe_service.filter_unsubscribed_h_userids.return_value = []
-        updated_after = datetime(year=2023, month=3, day=1)
-        updated_before = datetime(year=2023, month=3, day=2)
-
-        send_instructor_email_digests(
-            sentinel.h_userids,
-            updated_after.isoformat(),
-            updated_before.isoformat(),
-            sentinel.override_to_email,
-        )
-
-        digest_service.send_instructor_email_digests.assert_not_called()
-
-    def test_no_h_useids_doesnt_call_service(
-        self, digest_service, email_unsubscribe_service
-    ):
-        email_unsubscribe_service.filter_unsubscribed_h_userids.return_value = []
-        updated_after = datetime(year=2023, month=3, day=1)
-        updated_before = datetime(year=2023, month=3, day=2)
-
-        send_instructor_email_digests(
-            sentinel.h_userids,
-            updated_after.isoformat(),
-            updated_before.isoformat(),
-            sentinel.override_to_email,
-        )
-
-        digest_service.send_instructor_email_digests.assert_not_called()
 
 
 @pytest.fixture(autouse=True)

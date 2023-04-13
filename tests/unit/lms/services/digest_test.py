@@ -132,6 +132,7 @@ class TestDigestService:
                 Any(),
                 recipient=EmailRecipient(unified_user.email, unified_user.display_name),
                 template_vars=Any(),
+                unsubscribe_url=Any(),
             )
             for unified_user, digest in zip(context.unified_users, digests)
         ]
