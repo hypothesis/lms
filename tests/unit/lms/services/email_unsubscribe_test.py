@@ -18,7 +18,7 @@ class TestEmailUnsubscribeService:
             "SECRET",
             lifetime=timedelta(days=30),
         )
-        assert url == "http://example.com/email/unsubscribe/TOKEN"
+        assert url == "http://example.com/email/unsubscribe?token=TOKEN"
 
     def test_unsubscribe(self, svc, bulk_upsert, jwt_service, db_session):
         jwt_service.decode_with_secret.return_value = {

@@ -17,7 +17,7 @@ class EmailUnsubscribeService:
     def unsubscribe_url(self, h_userid, tag):
         """Generate the url for `email.unsubscribe` with the right token."""
         token = self._generate_token(h_userid, tag)
-        return self._route_url("email.unsubscribe", token=token)
+        return self._route_url("email.unsubscribe", _query={"token": token})
 
     def unsubscribe(self, token):
         """Create a new entry in EmailUnsubscribe based on the email and tag encode in `token`."""

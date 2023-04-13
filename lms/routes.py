@@ -131,7 +131,7 @@ def includeme(config):  # pylint:disable=too-many-statements
     )
     config.add_route("vitalsource_api.launch_url", "/api/vitalsource/launch_url")
 
-    config.add_route("email.unsubscribe", "/email/unsubscribe/{token}")
+    config.add_route("email.unsubscribe", "/email/unsubscribe")
     config.add_route("email.unsubscribed", "/email/unsubscribed")
 
     config.add_route("admin.index", "/admin/")
