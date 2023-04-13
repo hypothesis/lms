@@ -13,8 +13,8 @@ from lms.models import (
     LTIRole,
     User,
 )
+from lms.services import DigestService
 from lms.services.digest import SendDigestsError
-from lms.services import DigestService, EmailUnsubscribeService
 from lms.tasks.celery import app
 
 LOG = logging.getLogger(__name__)

@@ -15,7 +15,6 @@ from lms.models import (
     Grouping,
     LTIRole,
     User,
-    EmailUnsubscribe,
 )
 from lms.services.email_unsubscribe import EmailUnsubscribeService
 from lms.services.h_api import HAPI
