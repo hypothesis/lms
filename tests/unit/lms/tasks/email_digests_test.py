@@ -36,25 +36,19 @@ class TestSendInstructurEmailDigestsTasks:
             batch_size=3
         )
 
+        first_batch = [user.h_userid for user in participating_instructors[:3]]
+        second_batch = [participating_instructors[-1].h_userid]
+
         assert send_instructor_email_digests.apply_async.call_args_list == [
             call(
                 (),
                 {
-                    "h_userids": [
-                        user.h_userid for user in participating_instructors[:3]
-                    ],
+                    "h_userids": batch,
                     "updated_after": "2023-03-08T05:00:00",
                     "updated_before": "2023-03-09T05:00:00",
                 },
-            ),
-            call(
-                (),
-                {
-                    "h_userids": [participating_instructors[-1].h_userid],
-                    "updated_after": "2023-03-08T05:00:00",
-                    "updated_before": "2023-03-09T05:00:00",
-                },
-            ),
+            )
+            for batch in [first_batch, second_batch]
         ]
 
     def test_it_retries_if_the_db_query_raises(
@@ -215,7 +209,7 @@ class TestSendInstructurEmailDigestsTasks:
 
         make_instructors(users)
 
-        return users
+        return sorted(users, key=lambda u: u.h_userid)
 
     @pytest.fixture
     def unsubscribed_instructors(self, participating_instructors):
