@@ -10,7 +10,10 @@ LOG = logging.getLogger(__name__)
 
 
 @view_config(
-    route_name="email.unsubscribe", request_method="GET", request_param="token"
+    route_name="email.unsubscribe",
+    request_method="GET",
+    request_param="token",
+    renderer="lms:templates/email/unsubscribe_error.html.jinja2",
 )
 def unsubscribe(request):
     """Unsubscribe the email and tag combination encoded in token."""
@@ -20,7 +23,6 @@ def unsubscribe(request):
         )
     except (InvalidJWTError, ExpiredJWTError):
         LOG.exception("Invalid unsubscribe token")
-        request.override_renderer = "lms:templates/email/unsubscribe_error.html.jinja2"
         return {}
 
     return HTTPFound(location=request.route_url("email.unsubscribed"))

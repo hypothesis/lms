@@ -24,10 +24,6 @@ def test_unsubscribe_error(pyramid_request, email_unsubscribe_service, exception
 
     result = unsubscribe(pyramid_request)
 
-    assert (
-        pyramid_request.override_renderer
-        == "lms:templates/email/unsubscribe_error.html.jinja2"
-    )
     assert result == {}
 
 
