@@ -1,5 +1,5 @@
 import type { ModalProps } from '@hypothesis/frontend-shared/lib/components/feedback/Modal';
-import { Button, Modal } from '@hypothesis/frontend-shared/lib/next';
+import { Button, ModalDialog } from '@hypothesis/frontend-shared/lib/next';
 import type { ComponentChildren } from 'preact';
 import { useRef } from 'preact/hooks';
 
@@ -107,7 +107,7 @@ export default function ErrorModal({
     </>
   );
   return (
-    <Modal
+    <ModalDialog
       buttons={buttons}
       initialFocus={focusedDialogButton}
       onClose={onCancel}
@@ -121,6 +121,6 @@ export default function ErrorModal({
         </ErrorDisplay>
       )}
       {!error && children}
-    </Modal>
+    </ModalDialog>
   );
 }
