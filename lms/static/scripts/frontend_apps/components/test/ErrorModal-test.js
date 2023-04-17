@@ -26,7 +26,10 @@ describe('ErrorModal', () => {
       error: fakeError,
     });
 
-    assert.equal(wrapper.find('Modal').props().title, 'Something went wrong');
+    assert.equal(
+      wrapper.find('ModalDialog').props().title,
+      'Something went wrong'
+    );
   });
 
   it('renders a close button if cancel callback provided', () => {
@@ -66,7 +69,7 @@ describe('ErrorModal', () => {
       title: 'My custom title',
     });
 
-    const modalProps = wrapper.find('Modal').props();
+    const modalProps = wrapper.find('ModalDialog').props();
     assert.equal(modalProps.title, 'My custom title');
   });
 
