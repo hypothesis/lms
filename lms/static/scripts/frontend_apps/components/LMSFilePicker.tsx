@@ -1,6 +1,6 @@
 import {
   Button,
-  Modal,
+  ModalDialog,
   SpinnerOverlay,
 } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
@@ -374,7 +374,7 @@ export default function LMSFilePicker({
   }
 
   return (
-    <Modal
+    <ModalDialog
       classes={classnames({
         // Set a fixed height on the modal when displaying a list of files.
         // This prevents the height of the modal changing as items are loaded.
@@ -382,7 +382,7 @@ export default function LMSFilePicker({
       })}
       title="Select file"
       onClose={onCancel}
-      width="lg"
+      size="lg"
       buttons={[
         <Button data-testid="cancel-button" key="cancel" onClick={onCancel}>
           Cancel
@@ -436,6 +436,6 @@ export default function LMSFilePicker({
           />
         </>
       )}
-    </Modal>
+    </ModalDialog>
   );
 }
