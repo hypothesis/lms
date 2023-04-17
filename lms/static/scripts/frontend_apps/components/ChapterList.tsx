@@ -1,4 +1,5 @@
 import { DataTable, Scroll } from '@hypothesis/frontend-shared/lib/next';
+import { useEffect, useRef } from 'preact/hooks';
 
 import type { Chapter } from '../api-types';
 
@@ -28,6 +29,16 @@ export default function ChapterList({
   onSelectChapter,
   onUseChapter,
 }: ChapterListProps) {
+  const tableRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    // Focus the data-table widget when the component is first rendered
+    tableRef.current!.focus();
+    // We only want to run this effect once.
+    //
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const columns = [
     {
       label: 'Title',
@@ -43,6 +54,7 @@ export default function ChapterList({
   return (
     <Scroll>
       <DataTable
+        elementRef={tableRef}
         title="Table of Contents"
         columns={columns}
         loading={isLoading}
@@ -50,6 +62,8 @@ export default function ChapterList({
         onSelectRow={onSelectChapter}
         onConfirmRow={onUseChapter}
         selectedRow={selectedChapter}
+        data-testid="chapter-table"
+        tabIndex={-1}
       />
     </Scroll>
   );

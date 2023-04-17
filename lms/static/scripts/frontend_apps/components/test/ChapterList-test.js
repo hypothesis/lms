@@ -25,6 +25,43 @@ describe('ChapterList', () => {
       />
     );
 
+  describe('initial focus', () => {
+    let container;
+
+    beforeEach(() => {
+      container = document.createElement('div');
+      document.body.appendChild(container);
+    });
+
+    afterEach(() => {
+      container.remove();
+    });
+
+    it('focuses the URL text input element', () => {
+      const beforeFocused = document.activeElement;
+
+      const wrapper = mount(
+        <ChapterList
+          chapters={chapterData}
+          selectedChapter={null}
+          onSelectChapter={noop}
+          onUseChapter={noop}
+        />,
+        {
+          attachTo: container,
+        }
+      );
+
+      const focused = document.activeElement;
+      const table = wrapper
+        .find('table[data-testid="chapter-table"]')
+        .getDOMNode();
+
+      assert.notEqual(beforeFocused, focused);
+      assert.equal(focused, table);
+    });
+  });
+
   it('renders chapter titles', () => {
     const chapterList = renderChapterList();
     const rows = chapterList.find('tbody tr');
