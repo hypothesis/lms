@@ -1,4 +1,4 @@
-import { Button, Modal } from '@hypothesis/frontend-shared/lib/next';
+import { Button, ModalDialog } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
@@ -69,7 +69,7 @@ export default function BookPicker({
     (step === 'select-book' && book) || (step === 'select-chapter' && chapter);
 
   return (
-    <Modal
+    <ModalDialog
       classes={classnames(
         // Set a fix height when selecting a chapter so the modal content
         // doesn't resize after loading.
@@ -85,7 +85,7 @@ export default function BookPicker({
           ? 'Paste link to VitalSource book'
           : 'Pick where to start reading' // "Select a chapter"
       }
-      width="lg"
+      size="lg"
       buttons={
         <>
           <Button data-testid="cancel-button" onClick={onCancel}>
@@ -138,6 +138,6 @@ export default function BookPicker({
           error={error}
         />
       )}
-    </Modal>
+    </ModalDialog>
   );
 }
