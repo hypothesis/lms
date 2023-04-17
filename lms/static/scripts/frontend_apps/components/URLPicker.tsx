@@ -1,7 +1,7 @@
 import {
   Button,
   CancelIcon,
-  Modal,
+  ModalDialog,
   Input,
 } from '@hypothesis/frontend-shared/lib/next';
 import { useRef, useState } from 'preact/hooks';
@@ -52,7 +52,7 @@ export default function URLPicker({
   };
 
   return (
-    <Modal
+    <ModalDialog
       title="Enter URL"
       onClose={onCancel}
       buttons={[
@@ -104,6 +104,6 @@ export default function URLPicker({
           )}
         </div>
       </div>
-    </Modal>
+    </ModalDialog>
   );
 }
