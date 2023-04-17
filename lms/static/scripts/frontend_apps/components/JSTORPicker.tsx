@@ -7,7 +7,7 @@ import {
   Input,
   InputGroup,
   Link,
-  Modal,
+  ModalDialog,
   Thumbnail,
 } from '@hypothesis/frontend-shared/lib/next';
 import classnames from 'classnames';
@@ -129,12 +129,12 @@ export default function JSTORPicker({
   const isLoading = thumbnail.isLoading || metadata.isLoading;
 
   return (
-    <Modal
+    <ModalDialog
       initialFocus={inputRef}
       onClose={onCancel}
       scrollable={false}
       title="Select JSTOR article"
-      width="lg"
+      size="lg"
       buttons={[
         <Button data-testid="cancel-button" key="cancel" onClick={onCancel}>
           Cancel
@@ -246,6 +246,6 @@ export default function JSTORPicker({
           )}
         </div>
       </div>
-    </Modal>
+    </ModalDialog>
   );
 }
