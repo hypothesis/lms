@@ -46,6 +46,17 @@ class TestLTIUser:
 
         assert lti_user.is_learner == is_learner
 
+    def test_is_learner_and_instructor_preference_for_instructor(self):
+        lti_user = factories.LTIUser(
+            lti_roles=[
+                LTIRole(scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR),
+                LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
+            ]
+        )
+
+        assert not lti_user.is_learner
+        assert lti_user.is_instructor
+
     @pytest.mark.parametrize(
         "role,is_admin",
         [
