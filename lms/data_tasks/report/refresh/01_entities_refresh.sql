@@ -1,5 +1,5 @@
-REFRESH MATERIALIZED VIEW CONCURRENTLY report.users;
-ANALYSE report.users;
+REFRESH MATERIALIZED VIEW CONCURRENTLY report.raw_users;
+ANALYSE report.raw_users;
 
 REFRESH MATERIALIZED VIEW CONCURRENTLY report.user_map;
 ANALYSE report.user_map;
