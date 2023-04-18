@@ -406,7 +406,7 @@ class TestCanvasAPIClientIntegrated:
         list_files_json,
         list_folders_json,
     ):
-        canvas_api_client._with_folders = True  # pylint:disable=protected-access
+        canvas_api_client._folders_enabled = True  # pylint:disable=protected-access
         http_session.send.side_effect = [
             factories.requests.Response(status_code=200, json_data=list_files_json),
             factories.requests.Response(status_code=200, json_data=list_folders_json),

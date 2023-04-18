@@ -76,7 +76,7 @@ class TestAuthorize:
     def test_instance_with_groups_enabled_triggers_groups_scopes(self, pyramid_request):
         self.assert_groups_scopes(authorize.authorize(pyramid_request))
 
-    @pytest.mark.usefixtures("with_file_picker_folders")
+    @pytest.mark.usefixtures("with_folders_enabled")
     def test_instance_with_folders_enabled_triggers_folders_scopes(
         self, pyramid_request
     ):
@@ -147,9 +147,9 @@ class TestAuthorize:
         )
 
     @pytest.fixture
-    def with_file_picker_folders(self, application_instance_service):
+    def with_folders_enabled(self, application_instance_service):
         application_instance_service.get_current.return_value.settings.set(
-            "canvas", "file_picker_folders", True
+            "canvas", "folders_enabled", True
         )
 
     @pytest.fixture

@@ -54,7 +54,7 @@ def authorize(request):
 
     scopes = FILES_SCOPES
 
-    if application_instance.settings.get("canvas", "file_picker_folders"):
+    if application_instance.settings.get("canvas", "folders_enabled"):
         scopes += FOLDERS_SCOPES
 
     if application_instance.developer_key and (

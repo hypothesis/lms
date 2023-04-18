@@ -47,18 +47,18 @@ class CanvasAPIClient:
         self,
         authenticated_client,
         file_service: FileService,
-        with_folders: bool = False,
+        folders_enabled: bool = False,
     ):
         """
         Create a new CanvasAPIClient.
 
         :param authenticated_client: An instance of AuthenticatedClient
         :param file_service: FileService for persisting files from the API to the DB
-        :param with_folders: Whether to use folders while listing files
+        :param folders_enabled: Whether to use folders while listing files
         """
         self._client = authenticated_client
         self._file_service = file_service
-        self._with_folders = with_folders
+        self._folders_enabled = folders_enabled
 
     def get_token(self, authorization_code):
         """
@@ -266,7 +266,7 @@ class CanvasAPIClient:
             ]
         )
 
-        if self._with_folders:
+        if self._folders_enabled:
             folders = self._list_folders(course_id)
 
             # Organize every item (file and folders) by its parent ID
