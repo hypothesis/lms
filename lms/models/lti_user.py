@@ -48,6 +48,10 @@ class LTIUser:
     @property
     def is_learner(self):
         """Whether this user is a learner."""
+
+        if self.is_instructor:
+            return False
+
         return any(
             role.type == RoleType.LEARNER and role.scope == RoleScope.COURSE
             for role in self.lti_roles
