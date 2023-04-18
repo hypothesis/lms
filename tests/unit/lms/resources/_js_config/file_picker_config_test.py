@@ -67,7 +67,7 @@ class TestFilePickerConfig:
 
         expected_config = {
             "enabled": files_enabled,
-            "withFolders": Any(),
+            "foldersEnabled": Any(),
             "listFiles": {
                 "authUrl": "http://example.com/api/canvas/oauth/authorize",
                 "path": "/api/canvas/courses/COURSE_ID/files",

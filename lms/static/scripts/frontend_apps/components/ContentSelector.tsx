@@ -65,7 +65,7 @@ export default function ContentSelector({
       canvas: {
         enabled: canvasFilesEnabled,
         listFiles: listFilesApi,
-        withFolders: canvasWithFolders,
+        foldersEnabled: canvasWithFolders,
       },
       google: {
         enabled: googleDriveEnabled,

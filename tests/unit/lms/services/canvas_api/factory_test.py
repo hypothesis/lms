@@ -11,22 +11,24 @@ pytestmark = pytest.mark.usefixtures(
 
 class TestCanvasAPIClientFactory:
     @pytest.mark.usefixtures("aes_service")
-    @pytest.mark.parametrize("with_folders", [True, False])
+    @pytest.mark.parametrize("folders_enabled", [True, False])
     def test_building_the_CanvasAPIClient(
         self,
         pyramid_request,
         CanvasAPIClient,
         AuthenticatedClient,
         file_service,
-        with_folders,
+        folders_enabled,
         application_instance,
     ):
-        application_instance.settings.set("canvas", "file_picker_folders", with_folders)
+        application_instance.settings.set("canvas", "folders_enabled", folders_enabled)
 
         canvas_api = canvas_api_client_factory(sentinel.context, pyramid_request)
 
         CanvasAPIClient.assert_called_once_with(
-            AuthenticatedClient.return_value, file_service, with_folders=with_folders
+            AuthenticatedClient.return_value,
+            file_service,
+            folders_enabled=folders_enabled,
         )
         assert canvas_api == CanvasAPIClient.return_value
 
