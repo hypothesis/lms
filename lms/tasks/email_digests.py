@@ -20,7 +20,7 @@ from lms.tasks.celery import app
 LOG = logging.getLogger(__name__)
 
 
-@app.task(bind=True, max_retries=2)
+@app.task(acks_late=True, bind=True, max_retries=2)
 def send_instructor_email_digest_tasks(self, *, batch_size, h_userids=None):
     """
     Generate and send instructor email digests.
@@ -110,7 +110,7 @@ def send_instructor_email_digest_tasks(self, *, batch_size, h_userids=None):
                 )
 
 
-@app.task(bind=True, max_retries=2)
+@app.task(acks_late=True, bind=True, max_retries=2)
 def send_instructor_email_digests(
     self,
     *,

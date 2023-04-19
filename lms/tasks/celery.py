@@ -30,8 +30,6 @@ app.conf.update(
     },
     # Tell celery where our tasks are defined
     imports=("lms.tasks",),
-    # Acknowledge tasks after the task has executed, rather than just before
-    task_acks_late=True,
     # Don't store any results, we only use this for scheduling
     task_ignore_result=True,
     task_queues=[
