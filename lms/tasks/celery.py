@@ -7,7 +7,6 @@ from contextlib import contextmanager
 
 import celery.signals
 from celery import Celery
-from kombu import Exchange, Queue
 from pyramid.scripting import prepare
 
 from lms.app import create_app
@@ -34,14 +33,6 @@ app.conf.update(
     task_acks_late=True,
     # Don't store any results, we only use this for scheduling
     task_ignore_result=True,
-    task_queues=[
-        Queue(
-            "celery",
-            durable=True,
-            routing_key="celery",
-            exchange=Exchange("celery", type="direct", durable=True),
-        ),
-    ],
     # Only accept one task at a time rather than pulling lots off the queue
     # ahead of time. This lets other workers have a go if we fail
     worker_prefetch_multiplier=1,
