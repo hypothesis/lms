@@ -29,8 +29,6 @@ app.conf.update(
     },
     # Tell celery where our tasks are defined
     imports=("lms.tasks",),
-    # Don't store any results, we only use this for scheduling
-    task_ignore_result=True,
     # Only accept one task at a time rather than pulling lots off the queue
     # ahead of time. This lets other workers have a go if we fail
     worker_prefetch_multiplier=1,
