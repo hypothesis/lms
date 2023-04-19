@@ -29,10 +29,6 @@ app.conf.update(
     },
     # Tell celery where our tasks are defined
     imports=("lms.tasks",),
-    # Only accept one task at a time rather than pulling lots off the queue
-    # ahead of time. This lets other workers have a go if we fail
-    worker_prefetch_multiplier=1,
-    worker_disable_rate_limits=True,
 )
 
 
