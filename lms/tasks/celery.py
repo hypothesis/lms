@@ -18,16 +18,6 @@ LOG = logging.getLogger(__name__)
 app = Celery("lms")
 app.conf.update(
     broker_url=os.environ.get("BROKER_URL"),
-    # What options should we have when sending messages to the queue?
-    broker_transport_options={
-        "max_retries": 2,
-        # The delay until the first retry
-        "interval_start": 0.2,
-        # How many seconds added to the interval for each retry
-        "interval_step": 0.2,
-        # Maximum number of seconds to sleep between each retry
-        "interval_max": 0.6,
-    },
     # Tell celery where our tasks are defined
     imports=("lms.tasks",),
     # Acknowledge tasks after the task has executed, rather than just before
