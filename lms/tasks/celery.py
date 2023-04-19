@@ -37,10 +37,9 @@ app.conf.update(
     task_queues=[
         Queue(
             "celery",
-            # We don't care if the messages are lost if the broker restarts
-            durable=False,
+            durable=True,
             routing_key="celery",
-            exchange=Exchange("celery", type="direct", durable=False),
+            exchange=Exchange("celery", type="direct", durable=True),
         ),
     ],
     # Only accept one task at a time rather than pulling lots off the queue
