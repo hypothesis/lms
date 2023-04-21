@@ -93,7 +93,7 @@ class TestSearchApplicationInstanceViews:
     def test_search_callback_invalid(self, views, pyramid_request):
         pyramid_request.POST = {"id": "not a number"}
 
-        assert not views.search_callback()
+        assert views.search_callback() == {"settings": SETTINGS_BY_FIELD}
         assert pyramid_request.session.peek_flash
 
     def test_search_with_invalid_organization_public_id(
