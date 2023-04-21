@@ -47,7 +47,7 @@ class SearchApplicationInstanceViews(BaseApplicationInstanceView):
     @view_config(request_method="POST", require_csrf=True)
     def search_callback(self):
         if flash_validation(self.request, SearchApplicationInstanceSchema):
-            return {}
+            return {"settings": SETTINGS_BY_FIELD}
 
         settings = None
         if settings_key := self.request.params.get("settings_key"):
