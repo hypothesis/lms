@@ -41,7 +41,7 @@
     "gulp": "^4.0.2",
     "karma-chrome-launcher": "^3.2.0",
     "normalize.css": "^8.0.1",
-    "postcss": "^8.4.22",
+    "postcss": "^8.4.23",
     "preact": "10.13.2",
     "rollup": "^2.79.1",
     "rollup-plugin-string": "^3.0.0",
