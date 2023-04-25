@@ -17,15 +17,26 @@ LOG = logging.getLogger(__name__)
 app = Celery("lms")
 app.conf.update(
     broker_url=os.environ.get("BROKER_URL"),
-    # What options should we have when sending messages to the queue?
     broker_transport_options={
+        # Celery's docs are very unclear about this but: when publishing a
+        # message to RabbitMQ these options end up getting passed to Kombu's
+        # _ensure_connection() function:
+        # https://github.com/celery/kombu/blob/3e098dc94ed2a389276ccf3606a0ded3da157d72/kombu/connection.py#L399-L453
+        #
+        # By default _ensure_connection() can spend over 6s trying to establish
+        # a connection to RabbitMQ if RabbitMQ is down. This means that if
+        # RabbitMQ goes down then all of our web processes can quickly become
+        # occupied trying to establish connections when web requests try to
+        # call Celery tasks with .delay() or .apply_async().
+        #
+        # These options change it to use a smaller number of retries and less
+        # time between retries so that attempts fail fast when RabbitMQ is down
+        # and our whole web app remains responsive.
+        #
+        # For more info see: https://github.com/celery/celery/issues/4627#issuecomment-396907957
         "max_retries": 2,
-        # The delay until the first retry
         "interval_start": 0.2,
-        # How many seconds added to the interval for each retry
         "interval_step": 0.2,
-        # Maximum number of seconds to sleep between each retry
-        "interval_max": 0.6,
     },
     # Tell celery where our tasks are defined
     imports=("lms.tasks",),
