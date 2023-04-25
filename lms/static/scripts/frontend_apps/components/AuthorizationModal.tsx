@@ -1,4 +1,4 @@
-import { Button } from '@hypothesis/frontend-shared/lib/next';
+import { Button } from '@hypothesis/frontend-shared';
 import type { ComponentChildren } from 'preact';
 
 import AuthButton from './AuthButton';

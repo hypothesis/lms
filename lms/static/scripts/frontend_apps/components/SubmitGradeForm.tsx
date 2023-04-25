@@ -4,7 +4,7 @@ import {
   Input,
   Spinner,
   SpinnerOverlay,
-} from '@hypothesis/frontend-shared/lib/next';
+} from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useEffect, useLayoutEffect, useState, useRef } from 'preact/hooks';
 

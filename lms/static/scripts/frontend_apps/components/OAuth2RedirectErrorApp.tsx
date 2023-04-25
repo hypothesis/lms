@@ -1,4 +1,4 @@
-import { Link } from '@hypothesis/frontend-shared/lib/next';
+import { Link } from '@hypothesis/frontend-shared';
 
 import { useConfig } from '../config';
 import ErrorModal from './ErrorModal';

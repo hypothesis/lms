@@ -1,4 +1,4 @@
-import { Checkbox, Link, Select } from '@hypothesis/frontend-shared/lib/next';
+import { Checkbox, Link, Select } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 

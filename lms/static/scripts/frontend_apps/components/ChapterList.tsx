@@ -1,4 +1,4 @@
-import { DataTable, Scroll } from '@hypothesis/frontend-shared/lib/next';
+import { DataTable, Scroll } from '@hypothesis/frontend-shared';
 import { useEffect, useRef } from 'preact/hooks';
 
 import type { Chapter } from '../api-types';

@@ -7,7 +7,7 @@ import {
   Link,
   Scroll,
   SpinnerOverlay,
-} from '@hypothesis/frontend-shared/lib/next';
+} from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { Link as RouterLink } from 'wouter-preact';

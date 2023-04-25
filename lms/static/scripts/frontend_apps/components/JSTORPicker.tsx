@@ -9,7 +9,7 @@ import {
   Link,
   ModalDialog,
   Thumbnail,
-} from '@hypothesis/frontend-shared/lib/next';
+} from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useRef, useState } from 'preact/hooks';
 

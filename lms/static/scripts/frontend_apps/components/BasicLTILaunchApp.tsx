@@ -1,4 +1,4 @@
-import { SpinnerOverlay } from '@hypothesis/frontend-shared/lib/next';
+import { SpinnerOverlay } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 

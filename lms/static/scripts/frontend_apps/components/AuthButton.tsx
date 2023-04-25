@@ -1,4 +1,4 @@
-import { Button } from '@hypothesis/frontend-shared/lib/next';
+import { Button } from '@hypothesis/frontend-shared';
 import { useCallback, useEffect, useRef } from 'preact/hooks';
 
 import AuthWindow from '../utils/AuthWindow';

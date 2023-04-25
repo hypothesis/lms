@@ -1,4 +1,4 @@
-import { Button, ModalDialog } from '@hypothesis/frontend-shared/lib/next';
+import { Button, ModalDialog } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
