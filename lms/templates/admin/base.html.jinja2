@@ -3,7 +3,15 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}LMS Admin{% endblock %}</title>
+    <title>
+         {% block title %}
+            {% if self.header() %}
+                {{ self.header() }} - LMS Admin
+            {% else %}
+                LMS Admin
+            {% endif %}
+        {% endblock %}
+    </title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.2/css/bulma.min.css">
   </head>
   <body>
@@ -45,7 +53,7 @@
   </nav>
   {% endblock %}
   <div class="block has-text-centered mt-5">
-      <h1 class="title">{% block header %} Admin {% endblock %}</h1>
+      <h1 class="title">{% block header %}{% endblock %}</h1>
       <p class="subtitle">{% block subtitle %}{% endblock %}</p>
   </div>
   {% if request.session.peek_flash("errors")  %}
