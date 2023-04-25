@@ -1,4 +1,4 @@
-import { Button } from '@hypothesis/frontend-shared/lib/next';
+import { Button } from '@hypothesis/frontend-shared';
 import Library from '@hypothesis/frontend-shared/lib/pattern-library/components/Library';
 import { useState } from 'preact/hooks';
 

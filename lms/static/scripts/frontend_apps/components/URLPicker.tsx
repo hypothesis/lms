@@ -3,7 +3,7 @@ import {
   CancelIcon,
   ModalDialog,
   Input,
-} from '@hypothesis/frontend-shared/lib/next';
+} from '@hypothesis/frontend-shared';
 import { useRef, useState } from 'preact/hooks';
 
 export type URLPickerProps = {

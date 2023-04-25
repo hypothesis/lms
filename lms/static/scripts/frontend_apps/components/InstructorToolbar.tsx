@@ -1,4 +1,4 @@
-import { Link } from '@hypothesis/frontend-shared/lib/next';
+import { Link } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { Link as RouterLink } from 'wouter-preact';
 

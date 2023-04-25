@@ -4,7 +4,7 @@ import {
   IconButton,
   InputGroup,
   Select,
-} from '@hypothesis/frontend-shared/lib/next';
+} from '@hypothesis/frontend-shared';
 
 import type { StudentInfo } from '../config';
 import { useUniqueId } from '../utils/hooks';

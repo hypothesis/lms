@@ -1,4 +1,4 @@
-import { Button, SpinnerOverlay } from '@hypothesis/frontend-shared/lib/next';
+import { Button, SpinnerOverlay } from '@hypothesis/frontend-shared';
 import { useMemo, useState } from 'preact/hooks';
 
 import type { Book, File, Chapter } from '../api-types';

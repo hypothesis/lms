@@ -6,7 +6,7 @@ import {
   CardContent,
   Checkbox,
   LinkButton,
-} from '@hypothesis/frontend-shared/lib/next';
+} from '@hypothesis/frontend-shared';
 import Library from '@hypothesis/frontend-shared/lib/pattern-library/components/Library';
 import classnames from 'classnames';
 import type { ComponentChildren } from 'preact';

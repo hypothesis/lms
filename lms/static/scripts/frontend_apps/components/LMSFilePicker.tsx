@@ -2,7 +2,7 @@ import {
   Button,
   ModalDialog,
   SpinnerOverlay,
-} from '@hypothesis/frontend-shared/lib/next';
+} from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 

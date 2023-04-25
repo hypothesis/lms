@@ -1,4 +1,4 @@
-import { Link, Scroll } from '@hypothesis/frontend-shared/lib/next';
+import { Link, Scroll } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import type { ComponentChildren } from 'preact';
 

@@ -6,7 +6,7 @@ import {
   InputGroup,
   Input,
   Thumbnail,
-} from '@hypothesis/frontend-shared/lib/next';
+} from '@hypothesis/frontend-shared';
 import classNames from 'classnames';
 import { useEffect, useRef, useState } from 'preact/hooks';
 

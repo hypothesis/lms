@@ -3,7 +3,7 @@ import {
   FilePdfFilledIcon,
   FolderIcon,
   Scroll,
-} from '@hypothesis/frontend-shared/lib/next';
+} from '@hypothesis/frontend-shared';
 import type { ComponentChildren } from 'preact';
 
 import type { File } from '../api-types';
