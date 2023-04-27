@@ -1,4 +1,5 @@
 import logging
+from dataclasses import asdict
 from datetime import datetime
 from unittest.mock import call, sentinel
 
@@ -14,7 +15,7 @@ from lms.services.digest import (
     UnifiedUser,
     service_factory,
 )
-from lms.services.mailchimp import EmailRecipient, EmailSender, MailchimpError
+from lms.services.mailchimp import EmailRecipient, EmailSender
 from tests import factories
 
 
@@ -26,7 +27,7 @@ class TestDigestService:
         context,
         DigestContext,
         db_session,
-        mailchimp_service,
+        send_template,
         sender,
         email_unsubscribe_service,
     ):
@@ -49,11 +50,13 @@ class TestDigestService:
         assert context.instructor_digest.call_args_list == [
             call(user.h_userid) for user in context.unified_users
         ]
-        assert mailchimp_service.send_template.call_args_list == [
+        assert send_template.delay.call_args_list == [
             call(
-                "instructor-email-digest",
-                sender,
-                recipient=EmailRecipient(unified_user.email, unified_user.display_name),
+                template_name="instructor-email-digest",
+                sender=asdict(sender),
+                recipient=asdict(
+                    EmailRecipient(unified_user.email, unified_user.display_name)
+                ),
                 template_vars=digest,
                 unsubscribe_url=email_unsubscribe_service.unsubscribe_url.return_value,
             )
@@ -61,7 +64,7 @@ class TestDigestService:
         ]
 
     def test_send_instructor_email_digests_doesnt_send_empty_digests(
-        self, svc, context, mailchimp_service
+        self, svc, context, send_template
     ):
         context.unified_users = UnifiedUserFactory.create_batch(2)
         context.instructor_digest.return_value = {"total_annotations": 0}
@@ -70,10 +73,10 @@ class TestDigestService:
             [sentinel.h_userid], sentinel.updated_after, sentinel.updated_before
         )
 
-        mailchimp_service.send_template.assert_not_called()
+        send_template.delay.assert_not_called()
 
     def test_send_instructor_email_digests_ignores_instructors_with_no_email_address(
-        self, svc, context, mailchimp_service
+        self, svc, context, send_template
     ):
         context.unified_users = [UnifiedUserFactory(email=None)]
         context.instructor_digest.return_value = {"total_annotations": 1}
@@ -82,11 +85,11 @@ class TestDigestService:
             sentinel.audience, sentinel.updated_after, sentinel.updated_before
         )
 
-        mailchimp_service.send_template.assert_not_called()
+        send_template.delay.assert_not_called()
 
     @pytest.mark.usefixtures("email_unsubscribe_service")
     def test_send_instructor_email_digests_uses_override_to_email(
-        self, svc, context, mailchimp_service
+        self, svc, context, send_template
     ):
         context.unified_users = [UnifiedUserFactory()]
         context.instructor_digest.return_value = {"total_annotations": 1}
@@ -99,20 +102,20 @@ class TestDigestService:
         )
 
         assert (
-            mailchimp_service.send_template.call_args[1]["recipient"].email
+            send_template.delay.call_args[1]["recipient"]["email"]
             == sentinel.override_to_email
         )
 
-    def test_send_instructor_email_digest_continues_if_mailchimp_crashes(
-        self, svc, context, mailchimp_service, report_exception, caplog
+    def test_send_instructor_email_digest_continues_if_celery_crashes(
+        self, svc, context, send_template, report_exception, caplog
     ):
         context.unified_users = UnifiedUserFactory.create_batch(2)
         digests = context.instructor_digest.side_effect = [
             {"total_annotations": 1},
             {"total_annotations": 2},
         ]
-        mailchimp_error = MailchimpError("Mailchimp crashed!")
-        mailchimp_service.send_template.side_effect = [mailchimp_error, None]
+        celery_error = RuntimeError("Celery crashed!")
+        send_template.delay.side_effect = [celery_error, None]
 
         with pytest.raises(SendDigestsError) as exc_info:
             svc.send_instructor_email_digests(
@@ -120,17 +123,19 @@ class TestDigestService:
             )
 
         # It sets SendDigestsError.errors to a dict mapping h_userids to their
-        # corresponding MailchimpError's.
+        # corresponding exceptions.
         assert exc_info.value.errors == {
-            context.unified_users[0].h_userid: mailchimp_error
+            context.unified_users[0].h_userid: celery_error
         }
-        # After the first call to MailchimpService failed it should have
-        # continued on to the next user and called MailchimpService again.
-        assert mailchimp_service.send_template.call_args_list == [
+        # After the first call to Celery failed it should have continued on to
+        # the next user and called Celery again.
+        assert send_template.delay.call_args_list == [
             call(
-                Any(),
-                Any(),
-                recipient=EmailRecipient(unified_user.email, unified_user.display_name),
+                template_name=Any(),
+                sender=Any(),
+                recipient=asdict(
+                    EmailRecipient(unified_user.email, unified_user.display_name)
+                ),
                 template_vars=Any(),
                 unsubscribe_url=Any(),
             )
@@ -138,10 +143,10 @@ class TestDigestService:
         ]
         # It should have logged the exception.
         assert caplog.record_tuples == [
-            ("lms.services.digest", logging.ERROR, "Mailchimp crashed!")
+            ("lms.services.digest", logging.ERROR, "Celery crashed!")
         ]
         # It should have reported the exception to Sentry.
-        report_exception.assert_called_once_with(mailchimp_error)
+        report_exception.assert_called_once_with(celery_error)
 
     @pytest.fixture(autouse=True)
     def DigestContext(self, patch):
@@ -168,13 +173,10 @@ class TestDigestService:
         return h_api
 
     @pytest.fixture
-    def svc(
-        self, db_session, h_api, mailchimp_service, sender, email_unsubscribe_service
-    ):
+    def svc(self, db_session, h_api, sender, email_unsubscribe_service):
         return DigestService(
             db=db_session,
             h_api=h_api,
-            mailchimp_service=mailchimp_service,
             sender=sender,
             email_unsubscribe_service=email_unsubscribe_service,
         )
@@ -588,14 +590,7 @@ class TestDigestContext:
 
 
 class TestServiceFactory:
-    def test_it(
-        self,
-        pyramid_request,
-        h_api,
-        mailchimp_service,
-        DigestService,
-        email_unsubscribe_service,
-    ):
+    def test_it(self, pyramid_request, h_api, DigestService, email_unsubscribe_service):
         settings = pyramid_request.registry.settings
         settings["mailchimp_digests_subaccount"] = sentinel.digests_subaccount
         settings["mailchimp_digests_email"] = sentinel.digests_from_email
@@ -606,7 +601,6 @@ class TestServiceFactory:
         DigestService.assert_called_once_with(
             db=pyramid_request.db,
             h_api=h_api,
-            mailchimp_service=mailchimp_service,
             sender=EmailSender(
                 sentinel.digests_subaccount,
                 sentinel.digests_from_email,
@@ -692,3 +686,8 @@ def make_learner(db_session, learner_role):
         db_session.flush()
 
     return make_learner
+
+
+@pytest.fixture(autouse=True)
+def send_template(patch):
+    return patch("lms.services.digest.send_template")
