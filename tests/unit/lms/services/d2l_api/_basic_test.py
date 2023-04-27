@@ -55,7 +55,7 @@ class TestBasicClient:
 
         assert not exc_info.value.refreshable
 
-    def test_request_raises_OAuth2TokenError_if_the_request_fails_with_an_access_token_error(
+    def test_request_raises_OAuth2TokenError_if_the_request_fails_with_insufficient_scope(
         self, basic_client, oauth_http_service
     ):
         oauth_http_service.request.side_effect = ExternalRequestError(
@@ -68,6 +68,23 @@ class TestBasicClient:
             basic_client.request("GET", "/foo")
 
         assert not exc_info.value.refreshable
+
+    def test_request_raises_OAuth2TokenError_if_the_request_fails_with_an_access_token_error(
+        self, basic_client, oauth_http_service
+    ):
+        oauth_http_service.request.side_effect = ExternalRequestError(
+            response=factories.requests.Response(
+                status_code=401,
+                json_data={
+                    "type": "http://docs.valence.desire2learn.com/res/apiprop.html#invalid-token"
+                },
+            )
+        )
+
+        with pytest.raises(OAuth2TokenError) as exc_info:
+            basic_client.request("GET", "/foo")
+
+        assert exc_info.value.refreshable
 
     @pytest.mark.parametrize(
         "path,product,expected",

@@ -86,6 +86,14 @@ class BasicClient:
                 # server.
                 raise OAuth2TokenError(refreshable=False) from err
 
+            if (
+                "http://docs.valence.desire2learn.com/res/apiprop.html#invalid-token"
+                in response_text
+            ):
+                # There's a few known responses from D2L we rather tackle explicitly as OAuth2TokenError.
+                # They are part of regular operation and they would otherwise fill up the logs with noise.
+                raise OAuth2TokenError(refreshable=err.refreshable) from err
+
             raise
 
     def api_url(self, path, product="lp"):
