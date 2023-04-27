@@ -297,7 +297,7 @@ def ltia_http_service(mock_service):
 
 @pytest.fixture
 def mailchimp_service(mock_service):
-    return mock_service(MailchimpService)
+    return mock_service(MailchimpService, service_name="mailchimp")
 
 
 @pytest.fixture
