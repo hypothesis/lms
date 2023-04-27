@@ -9,12 +9,15 @@ import classnames from 'classnames';
 import { useEffect, useLayoutEffect, useState, useRef } from 'preact/hooks';
 
 import type { StudentInfo } from '../config';
+import { isLTILaunchServerError } from '../errors';
 import type { ErrorLike } from '../errors';
 import { useService, GradingService } from '../services';
 import { useFetch } from '../utils/fetch';
 import { formatGrade, validateGrade } from '../utils/grade-validation';
 import { useUniqueId } from '../utils/hooks';
+import { ErrorState } from './BasicLTILaunchApp';
 import ErrorModal from './ErrorModal';
+import LaunchErrorDialog from './LaunchErrorDialog';
 import ValidationMessage from './ValidationMessage';
 
 export type SubmitGradeFormProps = {
@@ -63,6 +66,9 @@ export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
   const [submitGradeError, setSubmitGradeError] = useState<ErrorLike | null>(
     null
   );
+
+  const [errorCode, setErrorCode] = useState<ErrorState | null>(null);
+
   // Is set to true when the grade is being currently posted to the service
   const [gradeSaving, setGradeSaving] = useState(false);
   // Changes the input field's background to green for a short duration when true
@@ -106,6 +112,9 @@ export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
         });
         setGradeSaved(true);
       } catch (e) {
+        if (isLTILaunchServerError(e)) {
+          setErrorCode(e.errorCode as ErrorState);
+        }
         setSubmitGradeError(e);
       }
       setGradeSaving(false);
@@ -180,7 +189,7 @@ export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
         </div>
         {gradeSaving && <SpinnerOverlay />}
       </form>
-      {!!submitGradeError && (
+      {!!submitGradeError && !errorCode && (
         <ErrorModal
           description="Unable to submit grade"
           error={submitGradeError}
@@ -190,6 +199,15 @@ export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
           cancelLabel="Close"
         />
       )}
+      {!!submitGradeError && errorCode && (
+        <LaunchErrorDialog
+          busy={true}
+          onRetry={undefined}
+          errorState={errorCode}
+          error={submitGradeError}
+        />
+      )}
+
       {grade.error && !fetchGradeErrorDismissed && (
         <ErrorModal
           description="Unable to fetch grade"

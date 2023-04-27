@@ -20,7 +20,8 @@ export type LTILaunchServerErrorCode =
   | 'canvas_group_set_empty'
   | 'canvas_student_not_in_group'
   | 'vitalsource_user_not_found'
-  | 'vitalsource_no_book_license';
+  | 'vitalsource_no_book_license'
+  | 'student_not_in_course';
 
 /**
  * An `Error` or error-like object. This allows components in the application
@@ -150,6 +151,7 @@ export function isLTILaunchServerError(error: ErrorLike): error is APIError {
       'canvas_student_not_in_group',
       'vitalsource_user_not_found',
       'vitalsource_no_book_license',
+      'student_not_in_course',
     ].includes(error.errorCode)
   );
 }

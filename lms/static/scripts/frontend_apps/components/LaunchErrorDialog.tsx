@@ -444,5 +444,18 @@ export default function LaunchErrorDialog({
           </p>
         </ErrorModal>
       );
+    case 'student_not_in_course':
+      // nb. There is no retry action here as we just suggest reloading the entire
+      // page.
+      return (
+        <ErrorModal
+          {...defaultProps}
+          onRetry={undefined}
+          title="Student no longer in the course"
+        >
+          <p>🤷</p>
+        </ErrorModal>
+      );
+
   }
 }
