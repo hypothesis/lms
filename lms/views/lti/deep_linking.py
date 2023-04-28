@@ -47,6 +47,7 @@ from pyramid.view import view_config, view_defaults
 from webargs import fields
 
 from lms.events import LTIEvent
+from lms.resources._js_config import JSConfig
 from lms.security import Permissions
 from lms.services import JWTService
 from lms.validation import DeepLinkingLTILaunchSchema
@@ -60,18 +61,22 @@ from lms.validation._base import JSONPyramidRequestSchema
     route_name="content_item_selection",
     schema=DeepLinkingLTILaunchSchema,
 )
-def deep_linking_launch(context, request):
+def deep_linking_launch(request):
     """Handle deep linking launches."""
+    js_config = JSConfig(request)
+    application_instance_service = request.find_service(name="application_instance")
 
-    request.find_service(name="application_instance").update_from_lti_params(
+    application_instance_service.update_from_lti_params(
         request.lti_user.application_instance, request.lti_params
     )
     course = request.find_service(name="course").get_from_launch(
         request.product, request.lti_params
     )
-    request.find_service(name="lti_h").sync([course], request.params)
+    request.find_service(name="lti_h").sync(
+        application_instance_service.get_current(), [course], request.params
+    )
 
-    context.js_config.enable_file_picker_mode(
+    js_config.enable_file_picker_mode(
         form_action=request.parsed_params["content_item_return_url"],
         form_fields={
             "lti_message_type": "ContentItemSelection",
@@ -79,7 +84,7 @@ def deep_linking_launch(context, request):
         },
     )
 
-    context.js_config.add_deep_linking_api()
+    js_config.add_deep_linking_api()
     return {}
 
 

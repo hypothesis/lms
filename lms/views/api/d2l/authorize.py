@@ -3,6 +3,7 @@ from urllib.parse import urlencode, urlunparse
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import exception_view_config, view_config
 
+from lms.resources._js_config import JSConfig
 from lms.security import Permissions
 from lms.services.d2l_api import D2LAPIClient
 from lms.validation.authentication import OAuthCallbackSchema
@@ -78,8 +79,7 @@ def oauth2_redirect(request):
     renderer="lms:templates/api/oauth2/redirect_error.html.jinja2",
 )
 def oauth2_redirect_error(request):
-    request.context.js_config.enable_oauth2_redirect_error_mode(
-        auth_route="d2l_api.oauth.authorize"
-    )
+    js_config = JSConfig(request)
+    js_config.enable_oauth2_redirect_error_mode(auth_route="d2l_api.oauth.authorize")
 
     return {}

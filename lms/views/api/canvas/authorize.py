@@ -14,6 +14,7 @@ from urllib.parse import urlencode, urlunparse
 from pyramid.httpexceptions import HTTPFound, HTTPInternalServerError
 from pyramid.view import exception_view_config, view_config
 
+from lms.resources._js_config import JSConfig
 from lms.security import Permissions
 from lms.services import CanvasAPIServerError
 from lms.validation.authentication import OAuthCallbackSchema
@@ -118,17 +119,18 @@ def oauth2_redirect(request):
     renderer="lms:templates/api/oauth2/redirect_error.html.jinja2",
 )
 def oauth2_redirect_error(request):
+    js_config = JSConfig(request)
     kwargs = {
         "auth_route": "canvas_api.oauth.authorize",
         "canvas_scopes": FILES_SCOPES + SECTIONS_SCOPES + GROUPS_SCOPES,
     }
 
     if request.params.get("error") == "invalid_scope":
-        kwargs["error_code"] = request.context.js_config.ErrorCode.CANVAS_INVALID_SCOPE
+        kwargs["error_code"] = js_config.ErrorCode.CANVAS_INVALID_SCOPE
 
     if error_description := request.params.get("error_description"):
         kwargs["error_details"] = {"error_description": error_description}
 
-    request.context.js_config.enable_oauth2_redirect_error_mode(**kwargs)
+    js_config.enable_oauth2_redirect_error_mode(**kwargs)
 
     return {}

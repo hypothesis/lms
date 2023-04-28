@@ -14,12 +14,10 @@ class LTIHService:
     received by us in LTI launch parameters) to corresponding h users and
     groups using the Bulk API.
 
-    All of these functions require you to be in an LTILaunchResource context.
-
     :raise HTTPInternalServerError: if any calls to the H API fail
     """
 
-    def __init__(self, _context, request):
+    def __init__(self, request):
         self._h_user = request.lti_user.h_user
         self._application_instance = request.lti_user.application_instance
 

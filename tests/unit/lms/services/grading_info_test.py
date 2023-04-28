@@ -1,11 +1,9 @@
 from operator import attrgetter
-from unittest import mock
 
 import pytest
 from h_matchers import Any
 
 from lms.models import GradingInfo
-from lms.resources import LTILaunchResource
 from lms.services.grading_info import GradingInfoService
 from tests import factories
 
@@ -164,9 +162,7 @@ class TestUpsertFromRequest:
 
 @pytest.fixture
 def svc(pyramid_request):
-    context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
-
-    return GradingInfoService(context, pyramid_request)
+    return GradingInfoService(pyramid_request)
 
 
 @pytest.fixture

@@ -3,6 +3,7 @@ from urllib.parse import urlencode, urlunparse
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import exception_view_config, view_config
 
+from lms.resources._js_config import JSConfig
 from lms.security import Permissions
 from lms.validation.authentication import OAuthCallbackSchema
 
@@ -64,8 +65,9 @@ def oauth2_redirect(request):
     renderer="lms:templates/api/oauth2/redirect_error.html.jinja2",
 )
 def oauth2_redirect_error(request):
-    request.context.js_config.enable_oauth2_redirect_error_mode(
-        error_code=request.context.js_config.ErrorCode.BLACKBOARD_MISSING_INTEGRATION
+    js_config = JSConfig(request)
+    js_config.enable_oauth2_redirect_error_mode(
+        error_code=js_config.ErrorCode.BLACKBOARD_MISSING_INTEGRATION
         if request.params.get("error_description")
         in ["Application not enabled for site", "Application not registered with site"]
         else None,

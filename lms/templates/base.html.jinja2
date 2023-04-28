@@ -34,8 +34,8 @@
     {% block scripts %}
       {# We use `request.context` rather than `context` here because we still want to refer to
          the original context in exception views. #}
-      {% if request.context.js_config is defined %}
-        <script type="application/json" class="js-config">{{ request.context.js_config.asdict()|tojson }}</script>
+      {% if js_config is defined %}
+        <script type="application/json" class="js-config">{{ js_config|tojson }}</script>
       {% endif %}
     {% endblock %}
   </body>

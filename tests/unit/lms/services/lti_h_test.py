@@ -81,7 +81,7 @@ class TestSync:
 
     @pytest.fixture
     def lti_h_svc(self, pyramid_request):
-        return LTIHService(None, pyramid_request)
+        return LTIHService(pyramid_request)
 
     @pytest.fixture
     def h_user(self, pyramid_request):

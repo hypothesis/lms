@@ -9,6 +9,7 @@ from pyramid.view import (
 )
 
 from lms.models import ReusedConsumerKey
+from lms.resources._js_config import JSConfig
 from lms.services import HAPIError, SerializableError
 from lms.validation import ValidationError
 
@@ -20,6 +21,7 @@ class ExceptionViews:
     def __init__(self, exception, request):
         self.exception = exception
         self.request = request
+        self.js_config = JSConfig(request)
 
     @notfound_view_config()
     def notfound(self):
@@ -68,8 +70,8 @@ class ExceptionViews:
     def reused_consumer_key(self):
         self.request.response.status_int = 400
 
-        self.request.context.js_config.enable_error_dialog_mode(
-            self.request.context.js_config.ErrorCode.REUSED_CONSUMER_KEY,
+        self.js_config.enable_error_dialog_mode(
+            self.js_config.ErrorCode.REUSED_CONSUMER_KEY,
             error_details={
                 "existing_tool_consumer_instance_guid": self.exception.existing_guid,
                 "new_tool_consumer_instance_guid": self.exception.new_guid,
@@ -84,7 +86,7 @@ class ExceptionViews:
     def serializable_error(self):
         self.request.response.status_int = 400
 
-        self.request.context.js_config.enable_error_dialog_mode(
+        self.js_config.enable_error_dialog_mode(
             error_code=self.exception.error_code,
             message=self.exception.message,
             error_details=self.exception.details,

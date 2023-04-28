@@ -9,32 +9,12 @@ def includeme(config):  # pylint:disable=too-many-statements
 
     config.add_route("canvas.v11.config", "/config_xml")
     config.add_route("canvas.v13.config", "/canvas/1.3/config")
-    config.add_route(
-        "configure_assignment",
-        "/assignment",
-        request_method="POST",
-        factory="lms.resources.LTILaunchResource",
-    )
-    config.add_route(
-        "edit_assignment",
-        "/assignment/edit",
-        request_method="POST",
-        factory="lms.resources.LTILaunchResource",
-    )
+    config.add_route("configure_assignment", "/assignment", request_method="POST")
+    config.add_route("edit_assignment", "/assignment/edit", request_method="POST")
 
-    config.add_route(
-        "lti_launches", "/lti_launches", factory="lms.resources.LTILaunchResource"
-    )
-    config.add_route(
-        "content_item_selection",
-        "/content_item_selection",
-        factory="lms.resources.LTILaunchResource",
-    )
-    config.add_route(
-        "lti.reconfigure",
-        "/lti/reconfigure",
-        factory="lms.resources.LTILaunchResource",
-    )
+    config.add_route("lti_launches", "/lti_launches")
+    config.add_route("content_item_selection", "/content_item_selection")
+    config.add_route("lti.reconfigure", "/lti/reconfigure")
 
     config.add_route("api.sync", "/api/sync", request_method="POST")
     config.add_route(

@@ -6,7 +6,6 @@ import pytest
 from freezegun import freeze_time
 from h_matchers import Any
 
-from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.views.lti.deep_linking import DeepLinkingFieldsViews, deep_linking_launch
 from tests import factories
@@ -16,16 +15,18 @@ from tests import factories
 class TestDeepLinkingLaunch:
     def test_it(
         self,
-        context,
+        js_config,
         pyramid_request,
         lti_h_service,
         application_instance_service,
         course_service,
     ):
-        deep_linking_launch(context, pyramid_request)
+        deep_linking_launch(pyramid_request)
 
         application_instance_service.update_from_lti_params.assert_called_once_with(
-            pyramid_request.lti_user.application_instance, pyramid_request.lti_params
+            pyramid_request.lti_user.application_instance,
+            pyramid_request.lti_params,
+            pyramid_request.lti_params,
         )
         course_service.get_from_launch.assert_called_once_with(
             pyramid_request.product, pyramid_request.lti_params
@@ -33,14 +34,14 @@ class TestDeepLinkingLaunch:
         lti_h_service.sync.assert_called_once_with(
             [course_service.get_from_launch.return_value], pyramid_request.params
         )
-        context.js_config.enable_file_picker_mode.assert_called_once_with(
+        js_config.enable_file_picker_mode.assert_called_once_with(
             form_action="TEST_CONTENT_ITEM_RETURN_URL",
             form_fields={
                 "lti_message_type": "ContentItemSelection",
                 "lti_version": "TEST_LTI_VERSION",
             },
         )
-        context.js_config.add_deep_linking_api.assert_called_once()
+        js_config.add_deep_linking_api.assert_called_once()
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
@@ -51,10 +52,8 @@ class TestDeepLinkingLaunch:
         return pyramid_request
 
     @pytest.fixture
-    def context(self):
-        context = create_autospec(LTILaunchResource, spec_set=True, instance=True)
-        context.js_config = create_autospec(JSConfig, spec_set=True, instance=True)
-        return context
+    def js_config(self):
+        return create_autospec(JSConfig, spec_set=True, instance=True)
 
 
 @pytest.mark.usefixtures("application_instance_service")

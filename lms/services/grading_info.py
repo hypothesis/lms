@@ -16,7 +16,7 @@ class GradingInfoService:
         lis_result_sourcedid = fields.Str(required=True)
         lis_outcome_service_url = fields.Str(required=True)
 
-    def __init__(self, _context, request):
+    def __init__(self, request):
         self._db = request.db
         self._authority = request.registry.settings["h_authority"]
 

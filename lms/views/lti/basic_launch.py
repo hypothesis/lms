@@ -16,12 +16,12 @@ from pyramid.view import view_config, view_defaults
 
 from lms.events import LTIEvent
 from lms.product import Product
+from lms.resources._js_config import JSConfig
 from lms.security import Permissions
 from lms.services import DocumentURLService
+from lms.services.application_instance import ApplicationInstanceService
 from lms.services.assignment import AssignmentService
 from lms.services.course import CourseService
-from lms.services.application_instance import ApplicationInstanceService
-from lms.resources._js_config import JSConfig
 from lms.services.grouping import GroupingService
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
 
@@ -41,9 +41,8 @@ def has_document_url(_context, request):
     permission=Permissions.LTI_LAUNCH_ASSIGNMENT,
     schema=BasicLTILaunchSchema,
 )
-class BasicLaunchViews:
-    def __init__(self, context, request):
-        self.context = context
+class BasicLaunchViews:  # pylint:disable=too-many-instance-attributes
+    def __init__(self, request):
         self.request = request
         self.assignment_service: AssignmentService = request.find_service(
             name="assignment"
@@ -53,9 +52,10 @@ class BasicLaunchViews:
         self.application_instance_service: ApplicationInstanceService = (
             request.find_service(name="application_instance")
         )
-        self._js_config = JSConfig(request)
+        self.application_instance = self.request.lti_user.application_instance
 
-        self.application_instance_ = self.request.lti_user.application_instance
+        self.js_config = JSConfig(request)
+
         self.application_instance.check_guid_aligns(
             self.request.lti_params.get("tool_consumer_instance_guid")
         )
@@ -78,7 +78,7 @@ class BasicLaunchViews:
         self.request.registry.notify(
             LTIEvent(request=self.request, type=LTIEvent.Type.CONFIGURED_LAUNCH)
         )
-        return {}
+        return {"js_config": self.js_config.asdict()}
 
     @view_config(
         route_name="lti_launches",
@@ -92,7 +92,7 @@ class BasicLaunchViews:
         This happens if we cannot resolve a document URL for any reason.
         """
         self._configure_js_for_file_picker()
-        return {}
+        return {"js_config": self.js_config.asdict()}
 
     @view_config(route_name="lti.reconfigure", renderer="json")
     def reconfigure_assignment_config(self):
@@ -129,7 +129,8 @@ class BasicLaunchViews:
         We then continue as if we were already configured with this document
         and display it to the user.
         """
-        return self._configure_and_show_document()
+        self._configure_and_show_document()
+        return {"js_config": self.js_config.asdict()}
 
     @view_config(
         route_name="edit_assignment",
@@ -155,7 +156,8 @@ class BasicLaunchViews:
                 },
             )
         )
-        return self._configure_and_show_document()
+        self._configure_and_show_document()
+        return {"js_config": self.js_config.asdict()}
 
     def _show_document(self, document_url, assignment_extra=None):
         """
@@ -249,7 +251,6 @@ class BasicLaunchViews:
 
         We'll use this mode to configure new assignments and to reconfigure existing ones.
         """
-
         if not self.request.has_permission(Permissions.LTI_CONFIGURE_ASSIGNMENT):
             # Looks like the user is not an instructor, so show an error page
 
@@ -258,10 +259,10 @@ class BasicLaunchViews:
             self.request.override_renderer = "lms:templates/lti/basic_launch/unconfigured_launch_not_authorized.html.jinja2"
             return {}
 
-        return self.context.js_config.enable_file_picker_mode(
+        return self.js_config.enable_file_picker_mode(
             form_action=self.request.route_url(route),
             form_fields=self.request.lti_params.serialize(
-                authorization=self.context.js_config.auth_token
+                authorization=self.js_config.auth_token
             ),
         )
 
@@ -276,31 +277,30 @@ class BasicLaunchViews:
                 and self.request.lti_user.is_learner
                 and self.request.lti_params.get("lis_result_sourcedid")
             ):
-                self.context.js_config.add_canvas_speedgrader_settings(document_url)
+                self.js_config.add_canvas_speedgrader_settings(document_url)
 
             # We add a `focused_user` query param to the SpeedGrader LTI launch
             # URLs we submit to Canvas for each student when the student
             # launches an assignment. Later, Canvas uses these URLs to launch
             # us when a teacher grades the assignment in SpeedGrader.
             if focused_user := self.request.params.get("focused_user"):
-                self.context.js_config.set_focused_user(focused_user)
+                self.js_config.set_focused_user(focused_user)
 
         elif self.request.lti_user.is_instructor:
             # nb. Canvas does not currently use/support any functionality from the
             # instructor toolbar. For grading it uses SpeedGrader and we don't
             # support editing assignments.
-            self.context.js_config.enable_instructor_toolbar(
+            self.js_config.enable_instructor_toolbar(
                 enable_grading=assignment.is_gradable
             )
 
-        self.context.js_config.add_document_url(document_url)
-        self.context.js_config.enable_lti_launch_mode(self.course, assignment)
+        self.js_config.add_document_url(document_url)
+        self.js_config.enable_lti_launch_mode(self.course, assignment)
 
     def _record_launch(self):
         """Persist launch type independent info to the DB."""
-
-        self.request.find_service(name="application_instance").update_from_lti_params(
-            self.request.lti_user.application_instance, self.request.lti_params
+        self.application_instance_service.update_from_lti_params(
+            self.application_instance, self.request.lti_params
         )
 
         if (

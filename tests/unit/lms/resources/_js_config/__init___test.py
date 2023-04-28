@@ -5,7 +5,7 @@ from h_matchers import Any
 
 from lms.models import Grouping, LTIParams
 from lms.product import Product
-from lms.resources import LTILaunchResource, OAuth2RedirectResource
+from lms.resources import OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
 from lms.services import HAPIError
 from lms.views.api.sync import APISyncSchema
@@ -13,6 +13,7 @@ from tests import factories
 from tests.conftest import TEST_SETTINGS
 
 pytestmark = pytest.mark.usefixtures(
+    "application_instance_service",
     "grading_info_service",
     "grouping_service",
     "grouping_plugin",
@@ -52,7 +53,13 @@ class TestFilePickerMode:
         ),
     )
     def test_it_adds_picker_config(
-        self, js_config, pyramid_request, FilePickerConfig, config_function, key
+        self,
+        js_config,
+        application_instance,
+        pyramid_request,
+        FilePickerConfig,
+        config_function,
+        key,
     ):
         js_config.enable_file_picker_mode(sentinel.form_action, sentinel.form_fields)
         config = js_config.asdict()
@@ -62,6 +69,7 @@ class TestFilePickerMode:
         config_provider.assert_called_once_with(
             pyramid_request, pyramid_request.lti_user.application_instance
         )
+        config_provider.assert_called_once_with(pyramid_request, application_instance)
 
     def test_it_adds_product_info(self, js_config):
         js_config.enable_file_picker_mode(sentinel.form_action, sentinel.form_fields)
@@ -98,15 +106,15 @@ class TestFilePickerMode:
 class TestEnableLTILaunchMode:
     def test_it(
         self,
+        application_instance,
         bearer_token_schema,
         grant_token_service,
         js_config,
         db_session,
         course,
         assignment,
-        lti_user,
     ):
-        lti_user.application_instance.organization = factories.Organization(
+        application_instance.organization = factories.Organization(
             _public_id="PUBLIC_ID"
         )
         db_session.flush()
@@ -124,7 +132,7 @@ class TestEnableLTILaunchMode:
                 "tags": [Any.string.matching("^role:.*")],
                 "values": {
                     "Organization ID": "us.lms.org.PUBLIC_ID",
-                    "Application Instance ID": lti_user.application_instance.id,
+                    "Application Instance ID": application_instance.id,
                     "LTI version": "LTI-1p0",
                 },
             },
@@ -231,8 +239,8 @@ class TestEnableLTILaunchMode:
         assert config == {}
 
     @pytest.fixture
-    def with_provisioning_disabled(self, pyramid_request):
-        pyramid_request.lti_user.application_instance.provisioning = False
+    def with_provisioning_disabled(self, application_instance):
+        application_instance.provisioning = False
 
 
 class TestAddDocumentURL:
@@ -366,6 +374,7 @@ class TestEnableInstructorToolbar:
         self,
         js_config,
         pyramid_request,
+        application_instance,
         grading_info_service,
         enable_editing,
         enable_grading,
@@ -389,7 +398,7 @@ class TestEnableInstructorToolbar:
             ]
             grading_info_service.get_by_assignment.assert_called_once_with(
                 context_id="test_course_id",
-                application_instance=pyramid_request.lti_user.application_instance,
+                application_instance=application_instance,
                 resource_link_id="TEST_RESOURCE_LINK_ID",
             )
         else:
@@ -624,8 +633,8 @@ def bearer_token_schema(BearerTokenSchema):
 
 
 @pytest.fixture
-def js_config(context, pyramid_request):
-    return JSConfig(context, pyramid_request)
+def js_config(pyramid_request):
+    return JSConfig(pyramid_request)
 
 
 @pytest.fixture
@@ -633,12 +642,6 @@ def config(js_config):
     return js_config.asdict()
 
 
-@pytest.fixture
-def context():
-    return create_autospec(LTILaunchResource, spec_set=True, instance=True)
-
-
-@pytest.fixture
 def pyramid_request(pyramid_request):
     pyramid_request.params.update(
         {

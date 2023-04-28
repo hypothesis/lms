@@ -1,10 +1,9 @@
-from unittest.mock import create_autospec, sentinel
+from unittest.mock import sentinel
 
 import pytest
 from pyramid import httpexceptions
 
 from lms.models import ReusedConsumerKey
-from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.security import DeniedWithException
 from lms.services import HAPIError, SerializableError
@@ -89,8 +88,7 @@ class TestExceptionViews:
         assert pyramid_request.response.status_int == exception.status_int
         assert template_data == {"error": exception}
 
-    @pytest.mark.usefixtures("js_config")
-    def test_serializable_error(self, pyramid_request):
+    def test_serializable_error(self, pyramid_request, js_config):
         exception = SerializableError(
             error_code=sentinel.error_code,
             message=sentinel.message,
@@ -99,7 +97,7 @@ class TestExceptionViews:
 
         template_data = ExceptionViews(exception, pyramid_request).serializable_error()
 
-        pyramid_request.context.js_config.enable_error_dialog_mode.assert_called_with(
+        js_config.enable_error_dialog_mode.assert_called_with(
             error_code=exception.error_code,
             error_details=exception.details,
             message=exception.message,
@@ -117,13 +115,12 @@ class TestExceptionViews:
             "message": "Sorry, but something went wrong. The issue has been reported and we'll try to fix it."
         }
 
-    @pytest.mark.usefixtures("js_config")
-    def test_reused_consumer_key(self, pyramid_request):
+    def test_reused_consumer_key(self, pyramid_request, js_config):
         exception = ReusedConsumerKey(sentinel.existing_guid, sentinel.new_guid)
 
         template_data = ExceptionViews(exception, pyramid_request).reused_consumer_key()
 
-        pyramid_request.context.js_config.enable_error_dialog_mode.assert_called_with(
+        js_config.enable_error_dialog_mode.assert_called_with(
             error_code=JSConfig.ErrorCode.REUSED_CONSUMER_KEY,
             error_details={
                 "existing_tool_consumer_instance_guid": sentinel.existing_guid,
@@ -133,18 +130,11 @@ class TestExceptionViews:
         assert not template_data
         assert pyramid_request.response.status_int == 400
 
-    @pytest.fixture
-    def js_config(self, pyramid_request):
-        js_config = create_autospec(
-            JSConfig,
-            instance=True,
-            spec_set=True,
-            ErrorCode=JSConfig.ErrorCode,
-        )
+    @pytest.fixture(autouse=True)
+    def js_config(self, patch):
+        js_config = patch(
+            "lms.views.exceptions.JSConfig", spec_set=True, autospec=JSConfig
+        ).return_value
 
-        context = create_autospec(
-            LTILaunchResource, instance=True, spec_set=True, js_config=js_config
-        )
-        pyramid_request.context = context
-
+        js_config.ErrorCode = JSConfig.ErrorCode
         return js_config
