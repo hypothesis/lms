@@ -3,7 +3,7 @@ from lms.services.vitalsource.service import VitalSourceService
 
 
 def service_factory(_context, request):
-    settings = request.find_service(name="application_instance").get_current().settings
+    settings = request.lti_user.application_instance.settings
 
     global_key = request.registry.settings["vitalsource_api_key"]
     customer_key = settings.get("vitalsource", "api_key")

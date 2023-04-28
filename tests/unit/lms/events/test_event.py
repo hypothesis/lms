@@ -11,7 +11,7 @@ class TestLTIEvent:
     def test_lti_event(
         self,
         pyramid_request,
-        application_instance_service,
+        application_instance,
         course_service,
         assignment_service,
         lti_user,
@@ -21,10 +21,7 @@ class TestLTIEvent:
 
         assert event.user_id == pyramid_request.user.id
         assert event.role_ids == [sentinel.id]
-        assert (
-            event.application_instance_id
-            == application_instance_service.get_current.return_value.id
-        )
+        assert event.application_instance_id == application_instance.id
 
         course_service.get_by_context_id.assert_called_once_with(sentinel.context_id)
         assert event.course_id == course_service.get_by_context_id.return_value.id
@@ -33,15 +30,6 @@ class TestLTIEvent:
             sentinel.tool_guid, sentinel.resource_link_id
         )
         assert event.assignment_id == assignment_service.get_assignment.return_value.id
-
-    @pytest.mark.usefixtures("lti_role_service", "course_service", "assignment_service")
-    def test_lti_event_when_no_application_instance(
-        self, pyramid_request, application_instance_service
-    ):
-        application_instance_service.get_current.return_value = None
-
-        event = LTIEvent(request=pyramid_request, type=sentinel.type)
-        assert not event.application_instance_id
 
     @pytest.mark.usefixtures(
         "lti_role_service", "application_instance_service", "assignment_service"

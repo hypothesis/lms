@@ -25,7 +25,7 @@ class TestDeepLinkingLaunch:
         deep_linking_launch(context, pyramid_request)
 
         application_instance_service.update_from_lti_params.assert_called_once_with(
-            context.application_instance, pyramid_request.lti_params
+            pyramid_request.lti_user.application_instance, pyramid_request.lti_params
         )
         course_service.get_from_launch.assert_called_once_with(
             pyramid_request.product, pyramid_request.lti_params

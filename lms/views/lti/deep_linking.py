@@ -64,7 +64,7 @@ def deep_linking_launch(context, request):
     """Handle deep linking launches."""
 
     request.find_service(name="application_instance").update_from_lti_params(
-        context.application_instance, request.lti_params
+        request.lti_user.application_instance, request.lti_params
     )
     course = request.find_service(name="course").get_from_launch(
         request.product, request.lti_params
@@ -107,9 +107,7 @@ class DeepLinkingFieldsViews:
 
     @view_config(route_name="lti.v13.deep_linking.form_fields")
     def file_picker_to_form_fields_v13(self):
-        application_instance = self.request.find_service(
-            name="application_instance"
-        ).get_current()
+        application_instance = self.request.lti_user.application_instance
 
         document_url = self._get_content_url(self.request)
 

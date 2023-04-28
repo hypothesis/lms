@@ -89,8 +89,5 @@ class FileService:
 
 def factory(_context, request):
     return FileService(
-        application_instance=request.find_service(
-            name="application_instance"
-        ).get_current(),
-        db=request.db,
+        application_instance=request.lti_user.application_instance, db=request.db
     )

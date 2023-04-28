@@ -49,7 +49,7 @@ class BasicLaunchViews:
         self.grouping_service: GroupingService = request.find_service(name="grouping")
         self.course_service: CourseService = request.find_service(name="course")
 
-        self.context.application_instance.check_guid_aligns(
+        self.request.lti_user.application_instance.check_guid_aligns(
             self.request.lti_params.get("tool_consumer_instance_guid")
         )
         self.course = self._record_course()
@@ -293,7 +293,7 @@ class BasicLaunchViews:
         """Persist launch type independent info to the DB."""
 
         self.request.find_service(name="application_instance").update_from_lti_params(
-            self.context.application_instance, self.request.lti_params
+            self.request.lti_user.application_instance, self.request.lti_params
         )
 
         if (

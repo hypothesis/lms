@@ -19,13 +19,12 @@ class TestFilesAPIViews:
     def test_via_url(
         self,
         pyramid_request,
-        application_instance_service,
+        application_instance,
         assignment_service,
         canvas_service,
         helpers,
     ):
         document_url = "canvas://file/course/COURSE_ID/file_id/FILE_ID"
-        application_instance = application_instance_service.get_current.return_value
         assignment = assignment_service.get_assignment.return_value
         assignment.document_url = document_url
         pyramid_request.matchdict = {

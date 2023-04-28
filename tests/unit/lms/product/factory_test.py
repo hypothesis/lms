@@ -7,7 +7,6 @@ from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
 from lms.product.factory import get_product_from_request
 from lms.product.product import Product
-from lms.services.application_instance import ApplicationInstanceNotFound
 
 
 @pytest.mark.usefixtures("application_instance_service")
@@ -105,12 +104,8 @@ class TestGetProductFromRequest:
         assert product == class_.from_request.return_value
         assert product.family == family
 
-    def test_from_application_instance_when_missing(
-        self, pyramid_request, application_instance_service
-    ):
-        application_instance_service.get_current.side_effect = (
-            ApplicationInstanceNotFound()
-        )
+    def test_from_application_instance_when_missing(self, pyramid_request):
+        pyramid_request.lti_user = None
 
         product = get_product_from_request(pyramid_request)
 

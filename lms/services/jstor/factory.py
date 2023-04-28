@@ -2,10 +2,7 @@ from lms.services.jstor.service import JSTORService
 
 
 def service_factory(_context, request):
-    ai_settings = (
-        request.find_service(name="application_instance").get_current().settings
-    )
-
+    ai_settings = request.lti_user.application_instance.settings
     app_settings = request.registry.settings
 
     return JSTORService(

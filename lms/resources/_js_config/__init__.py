@@ -39,6 +39,10 @@ class JSConfig:
     def _h_user(self):
         return self._lti_user.h_user
 
+    @property
+    def _application_instance(self):
+        return self._lti_user.application_instance
+
     def add_document_url(self, document_url):
         """
         Set the document to the document at the given document_url.
@@ -224,7 +228,7 @@ class JSConfig:
             HTML form that we submit
         """
 
-        args = self._request, self._context.application_instance
+        args = self._request, self._application_instance
 
         self._config.update(
             {
@@ -275,7 +279,7 @@ class JSConfig:
                 "context_id": self._request.lti_params["context_id"],
             },
         }
-        if self._context.application_instance.lti_version == "1.3.0":
+        if self._application_instance.lti_version == "1.3.0":
             config["path"] = self._request.route_path(
                 "lti.v13.deep_linking.form_fields"
             )
@@ -300,7 +304,7 @@ class JSConfig:
             students = []
 
             grading_infos = self._grading_info_service.get_by_assignment(
-                application_instance=self._context.application_instance,
+                application_instance=self._application_instance,
                 context_id=self._request.lti_params.get("context_id"),
                 resource_link_id=self._request.lti_params.get("resource_link_id"),
             )
@@ -500,7 +504,7 @@ class JSConfig:
         # mutable. You can do self._hypothesis_client["foo"] = "bar" and the
         # mutation will be preserved.
 
-        if not self._context.application_instance.provisioning:
+        if not self._application_instance.provisioning:
             return {}
 
         api_url = self._request.registry.settings["h_api_url_public"]
@@ -526,7 +530,7 @@ class JSConfig:
 
     def _configure_groups(self, course, assignment):
         """Configure how the client will fetch groups when in LAUNCH mode."""
-        if not self._context.application_instance.provisioning:
+        if not self._application_instance.provisioning:
             return
 
         grouping_type = self._request.find_service(
@@ -578,7 +582,7 @@ class JSConfig:
 
     def _get_lti_launch_debug_values(self):
         """Debug values common to different types of LTI launches."""
-        ai = self._context.application_instance
+        ai = self._application_instance
 
         return {
             "Organization ID": ai.organization.public_id if ai.organization else None,

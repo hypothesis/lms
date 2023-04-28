@@ -38,10 +38,7 @@ class FilesAPIViews:
         :raise lms.services.CanvasAPIError: if the Canvas API request fails.
             This exception is caught and handled by an exception view.
         """
-        application_instance = self.request.find_service(
-            name="application_instance"
-        ).get_current()
-
+        application_instance = self.request.lti_user.application_instance
         assignment = self.request.find_service(name="assignment").get_assignment(
             application_instance.tool_consumer_instance_guid,
             self.request.matchdict["resource_link_id"],

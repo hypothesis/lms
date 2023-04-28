@@ -248,8 +248,7 @@ def get_lti_user(request) -> Optional[LTIUser]:
 
 def _get_user(request):
     return request.find_service(UserService).get(
-        request.find_service(name="application_instance").get_current(),
-        request.lti_user.user_id,
+        request.lti_user.application_instance, request.lti_user.user_id
     )
 
 

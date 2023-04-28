@@ -54,17 +54,15 @@ class ApplicationInstanceService:
     def __init__(
         self,
         db,
-        request,
         aes_service: AESService,
         organization_service: OrganizationService,
     ):
         self._db = db
-        self._request = request
         self._aes_service = aes_service
         self._organization_service = organization_service
 
     @lru_cache(maxsize=1)
-    def get_current(self) -> ApplicationInstance:
+    def get_for_launch(self, id_) -> ApplicationInstance:
         """
         Return the current request's `ApplicationInstance`.
 
@@ -76,10 +74,8 @@ class ApplicationInstanceService:
         :raise AccountDisabled: If the organization associated with this
             instance is disabled
         """
-        if self._request.lti_user and self._request.lti_user.application_instance_id:
-            application_instance = self.get_by_id(
-                self._request.lti_user.application_instance_id
-            )
+        if id_:
+            application_instance = self.get_by_id(id_)
 
             # Check to see if this application instance belongs to a disabled
             # organization.
@@ -373,7 +369,6 @@ class ApplicationInstanceService:
 def factory(_context, request):
     return ApplicationInstanceService(
         db=request.db,
-        request=request,
         aes_service=request.find_service(AESService),
         organization_service=request.find_service(OrganizationService),
     )
