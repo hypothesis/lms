@@ -28,9 +28,7 @@ def authorize(request):
     if not scopes:
         raise NotImplementedError("Trying to get a D2L without any scopes")
 
-    application_instance = request.find_service(
-        name="application_instance"
-    ).get_current()
+    application_instance = request.lti_user.application_instance
     state = OAuthCallbackSchema(request).state_param()
 
     return HTTPFound(

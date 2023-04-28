@@ -4,9 +4,7 @@ from lms.services.ltia_http import LTIAHTTPService
 
 
 def service_factory(_context, request):
-    application_instance = request.find_service(
-        name="application_instance"
-    ).get_current()
+    application_instance = request.lti_user.application_instance
 
     if application_instance.lti_version == "1.3.0":
         return LTI13GradingService(

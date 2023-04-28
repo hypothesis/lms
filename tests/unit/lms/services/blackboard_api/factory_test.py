@@ -6,7 +6,7 @@ from lms.services.blackboard_api.factory import blackboard_api_client_factory
 
 
 def test_blackboard_api_client_factory(
-    application_instance_service,
+    application_instance,
     http_service,
     file_service,
     oauth_http_service,
@@ -14,7 +14,6 @@ def test_blackboard_api_client_factory(
     BasicClient,
     BlackboardAPIClient,
 ):
-    application_instance = application_instance_service.get_current.return_value
     settings = pyramid_request.registry.settings
 
     service = blackboard_api_client_factory(sentinel.context, pyramid_request)

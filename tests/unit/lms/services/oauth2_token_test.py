@@ -86,8 +86,7 @@ class TestOAuth2TokenService:
 
 
 class TestOAuth2TokenServiceFactory:
-    def test_it(self, pyramid_request, application_instance_service):
+    def test_it(self, pyramid_request):
         svc = oauth2_token_service_factory(mock.sentinel.context, pyramid_request)
 
-        application_instance_service.get_current.assert_called_once()
         assert isinstance(svc, OAuth2TokenService)

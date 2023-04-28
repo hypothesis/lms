@@ -17,13 +17,11 @@ from tests.matchers import temporary_redirect_to
 class TestAuthorize:
     def test_it_redirects_to_the_Blackboard_authorization_page(
         self,
-        application_instance_service,
+        application_instance,
         OAuthCallbackSchema,
         oauth_callback_schema,
         pyramid_request,
     ):
-        application_instance = application_instance_service.get_current.return_value
-
         response = authorize(pyramid_request)
 
         OAuthCallbackSchema.assert_called_once_with(pyramid_request)

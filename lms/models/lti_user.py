@@ -1,12 +1,13 @@
 from dataclasses import dataclass
 from typing import List
 
+from lms.models.application_instance import ApplicationInstance
 from lms.models.h_user import HUser
 from lms.models.lti_role import LTIRole, RoleScope, RoleType
 
 
 @dataclass
-class LTIUser:
+class LTIUser:  # pylint: disable=too-many-instance-attributes
     """An LTI user."""
 
     user_id: str
@@ -26,6 +27,9 @@ class LTIUser:
 
     application_instance_id: int
     """ID of the application instance this user belongs to"""
+
+    application_instance: ApplicationInstance = None
+    """Application instance this user belongs to"""
 
     email: str = ""
     """The user's email address."""

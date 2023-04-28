@@ -7,7 +7,6 @@ from lms.services.d2l_api.factory import d2l_api_client_factory
 
 
 def test_d2l_api_client_factory(
-    application_instance_service,
     http_service,
     oauth_http_service,
     aes_service,
@@ -18,7 +17,7 @@ def test_d2l_api_client_factory(
     lti_user,
 ):
     ai = create_autospec(ApplicationInstance)
-    application_instance_service.get_current.return_value = ai
+    pyramid_request.lti_user.application_instance = ai
 
     service = d2l_api_client_factory(sentinel.context, pyramid_request)
 

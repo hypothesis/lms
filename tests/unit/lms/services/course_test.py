@@ -5,7 +5,7 @@ import pytest
 from h_matchers import Any
 from sqlalchemy.exc import NoResultFound
 
-from lms.models import CourseGroupsExportedFromH, Grouping
+from lms.models import ApplicationSettings, CourseGroupsExportedFromH, Grouping
 from lms.product.product import Product
 from lms.services.course import CourseService, course_service_factory
 from tests import factories
@@ -155,6 +155,7 @@ class TestCourseService:
                 created=datetime.datetime.utcnow(),
             )
         )
+        application_instance.settings = ApplicationSettings({})
         application_instance.settings.set(
             "canvas", "sections_enabled", canvas_sections_enabled
         )
@@ -258,20 +259,12 @@ class TestCourseService:
 
 
 class TestCourseServiceFactory:
-    def test_it(
-        self,
-        pyramid_request,
-        application_instance_service,
-        grouping_service,
-        CourseService,
-    ):
+    def test_it(self, pyramid_request, grouping_service, CourseService):
         svc = course_service_factory(sentinel.context, pyramid_request)
-
-        application_instance_service.get_current.assert_called_once_with()
 
         CourseService.assert_called_once_with(
             db=pyramid_request.db,
-            application_instance=application_instance_service.get_current.return_value,
+            application_instance=pyramid_request.lti_user.application_instance,
             grouping_service=grouping_service,
         )
 

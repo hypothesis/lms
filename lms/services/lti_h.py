@@ -21,11 +21,9 @@ class LTIHService:
 
     def __init__(self, _context, request):
         self._h_user = request.lti_user.h_user
+        self._application_instance = request.lti_user.application_instance
 
         self._authority = request.registry.settings["h_authority"]
-        self._application_instance_service = request.find_service(
-            name="application_instance"
-        )
         self._h_api: HAPI = request.find_service(HAPI)
         self._group_info_service = request.find_service(name="group_info")
 
@@ -43,8 +41,7 @@ class LTIHService:
         :raise ApplicationInstanceNotFound: if
             `request.lti_user.oauth_consumer_key` isn't in the DB
         """
-        application_instance = self._application_instance_service.get_current()
-        if not application_instance.provisioning:
+        if not self._application_instance.provisioning:
             return
 
         self._h_api.execute_bulk(commands=self._yield_commands(groupings))

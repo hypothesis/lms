@@ -17,7 +17,5 @@ class YoutubeService:
 
 
 def factory(_context, request):
-    ai_settings = (
-        request.find_service(name="application_instance").get_current().settings
-    )
+    ai_settings = request.lti_user.application_instance.settings
     return YoutubeService(enabled=ai_settings.get("youtube", "enabled"))

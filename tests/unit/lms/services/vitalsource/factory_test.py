@@ -17,14 +17,13 @@ class TestServiceFactory:
         pyramid_request,
         VitalSourceService,
         VitalSourceClient,
-        application_instance_service,
         enabled,
         expected,
         customer_api_key,
     ):
         pyramid_request.registry.settings["vitalsource_api_key"] = None
         # This fixture is a bit odd and returns a real application instance
-        ai = application_instance_service.get_current()
+        ai = pyramid_request.lti_user.application_instance
         ai.settings.set("vitalsource", "user_lti_param", sentinel.user_lti_param)
         ai.settings.set("vitalsource", "user_lti_pattern", sentinel.user_lti_pattern)
         ai.settings.set("vitalsource", "api_key", customer_api_key)

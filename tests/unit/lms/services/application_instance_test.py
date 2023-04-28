@@ -19,33 +19,29 @@ from tests import factories
 
 class TestApplicationInstanceService:
     @pytest.mark.parametrize("has_org", (True, False))
-    def test_get_current(self, service, application_instance, has_org):
+    def test_get_for_launch(self, service, application_instance, has_org):
         if has_org:
             application_instance.organization = factories.Organization(enabled=True)
 
-        assert service.get_current() == application_instance
+        assert service.get_for_launch(application_instance.id) == application_instance
 
-    def test_get_current_raises_ApplicationInstanceNotFound_with_no_user(
-        self, service, pyramid_request
+    def test_get_for_launch_raises_ApplicationInstanceNotFound_with_no_id(
+        self, service
     ):
-        pyramid_request.lti_user = None
-
         with pytest.raises(ApplicationInstanceNotFound):
-            service.get_current()
+            service.get_for_launch(None)
 
-    def test_get_current_raises_for_non_existing_id(self, service, pyramid_request):
-        pyramid_request.lti_user.application_instance_id = 1000
-
+    def test_get_for_launch_raises_for_non_existing_id(self, service):
         with pytest.raises(ApplicationInstanceNotFound):
-            service.get_current()
+            service.get_for_launch(1000)
 
-    def test_get_current_raises_for_disabled_organisations(
+    def test_get_for_launch_raises_for_disabled_organisations(
         self, service, application_instance
     ):
         application_instance.organization = factories.Organization(enabled=False)
 
         with pytest.raises(AccountDisabled):
-            service.get_current()
+            service.get_for_launch(application_instance.id)
 
     def test_get_by_consumer_key(self, service, application_instance):
         assert (
@@ -350,10 +346,9 @@ class TestApplicationInstanceService:
         return registrations, instances
 
     @pytest.fixture
-    def service(self, db_session, pyramid_request, aes_service, organization_service):
+    def service(self, db_session, aes_service, organization_service):
         return ApplicationInstanceService(
             db=db_session,
-            request=pyramid_request,
             aes_service=aes_service,
             organization_service=organization_service,
         )
@@ -382,7 +377,6 @@ class TestFactory:
 
         ApplicationInstanceService.assert_called_once_with(
             db=pyramid_request.db,
-            request=pyramid_request,
             aes_service=aes_service,
             organization_service=organization_service,
         )

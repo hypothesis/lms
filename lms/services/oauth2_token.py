@@ -68,7 +68,5 @@ class OAuth2TokenService:
 
 def oauth2_token_service_factory(_context, request):
     return OAuth2TokenService(
-        request.db,
-        request.find_service(name="application_instance").get_current(),
-        request.lti_user.user_id,
+        request.db, request.lti_user.application_instance, request.lti_user.user_id
     )

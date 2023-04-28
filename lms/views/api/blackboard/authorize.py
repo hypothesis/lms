@@ -13,9 +13,7 @@ from lms.validation.authentication import OAuthCallbackSchema
     permission=Permissions.API,
 )
 def authorize(request):
-    application_instance = request.find_service(
-        name="application_instance"
-    ).get_current()
+    application_instance = request.lti_user.application_instance
     client_id = request.registry.settings["blackboard_api_client_id"]
     state = OAuthCallbackSchema(request).state_param()
 
