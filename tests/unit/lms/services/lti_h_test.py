@@ -4,7 +4,7 @@ import pytest
 from h_api.bulk_api import CommandBuilder
 
 from lms.models import Grouping
-from lms.services import ApplicationInstanceNotFound, HAPIError
+from lms.services import HAPIError
 from lms.services.lti_h import LTIHService
 from tests import factories
 
@@ -12,9 +12,9 @@ from tests import factories
 @pytest.mark.usefixtures("application_instance_service", "h_api", "group_info_service")
 class TestSync:
     def test_sync_does_nothing_if_provisioning_is_disabled(
-        self, application_instance_service, lti_h_svc, h_api, grouping
+        self, application_instance, lti_h_svc, h_api, grouping
     ):
-        application_instance_service.get_current.return_value.provisioning = False
+        application_instance.provisioning = False
 
         lti_h_svc.sync([grouping], sentinel.params)
 
@@ -69,16 +69,6 @@ class TestSync:
             CommandBuilder.group_membership.create("user_0", "group_0").raw,
             CommandBuilder.group_membership.create("user_0", "group_1").raw,
         ]
-
-    def test_sync_raises_if_theres_no_ApplicationInstance(
-        self, application_instance_service, grouping, lti_h_svc
-    ):
-        application_instance_service.get_current.side_effect = (
-            ApplicationInstanceNotFound
-        )
-
-        with pytest.raises(ApplicationInstanceNotFound):
-            lti_h_svc.sync([grouping], sentinel.params)
 
     def test_sync_upserts_the_GroupInfo_into_the_db(
         self, group_info_service, lti_h_svc, grouping

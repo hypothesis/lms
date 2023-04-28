@@ -6,9 +6,6 @@ class OAuth1Service:
 
     def __init__(self, _context, request):
         self._request = request
-        self._application_instance_service = request.find_service(
-            name="application_instance"
-        )
 
     def get_client(self):
         """
@@ -19,7 +16,7 @@ class OAuth1Service:
 
         :rtype: OAuth1
         """
-        application_instance = self._application_instance_service.get_current()
+        application_instance = self._request.lti_user.application_instance
 
         return OAuth1(
             client_key=application_instance.consumer_key,

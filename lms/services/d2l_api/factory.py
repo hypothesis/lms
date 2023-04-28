@@ -4,9 +4,7 @@ from lms.services.d2l_api.client import D2LAPIClient
 
 
 def d2l_api_client_factory(_context, request):
-    application_instance = request.find_service(
-        name="application_instance"
-    ).get_current()
+    application_instance = request.lti_user.application_instance
 
     return D2LAPIClient(
         BasicClient(

@@ -119,13 +119,9 @@ def mock_service(pyramid_config):
 
 @pytest.fixture
 def application_instance_service(mock_service, application_instance):
-    application_instance.settings.set("canvas", "sections_enabled", True)
-    application_instance.settings.set("canvas", "groups_enabled", False)
-
     application_instance_service = mock_service(
         ApplicationInstanceService, service_name="application_instance"
     )
-    application_instance_service.get_current.return_value = application_instance
     application_instance_service.get_by_consumer_key.return_value = application_instance
 
     return application_instance_service

@@ -20,27 +20,21 @@ pytestmark = pytest.mark.usefixtures(
 
 
 class TestAuthorize:
-    def test_it_redirects_to_the_right_Canvas_endpoint(
-        self, application_instance_service, pyramid_request
-    ):
+    def test_it_redirects_to_the_right_Canvas_endpoint(self, pyramid_request):
         response = authorize.authorize(pyramid_request)
 
         assert response.status_code == 302
-        application_instance_service.get_current.assert_called_once_with()
         assert response.location.startswith(
-            f"{application_instance_service.get_current.return_value.lms_url}login/oauth2/auth"
+            f"{pyramid_request.lti_user.application_instance.lms_url}login/oauth2/auth"
         )
 
-    def test_it_includes_the_client_id_in_a_query_param(
-        self, application_instance_service, pyramid_request
-    ):
+    def test_it_includes_the_client_id_in_a_query_param(self, pyramid_request):
         response = authorize.authorize(pyramid_request)
 
         query_params = parse_qs(urlparse(response.location).query)
 
-        application_instance_service.get_current.assert_called_once_with()
         assert query_params["client_id"] == [
-            str(application_instance_service.get_current.return_value.developer_key)
+            str(pyramid_request.lti_user.application_instance.developer_key)
         ]
 
     def test_it_includes_the_response_type_in_a_query_param(self, pyramid_request):
@@ -131,24 +125,24 @@ class TestAuthorize:
         ]
 
     @pytest.fixture
-    def sections_not_supported(self, application_instance_service):
-        application_instance_service.get_current.return_value.developer_key = None
+    def sections_not_supported(self, application_instance):
+        application_instance.developer_key = None
 
     @pytest.fixture
-    def sections_disabled(self, application_instance_service):
-        application_instance_service.get_current.return_value.settings.set(
+    def sections_disabled(self, pyramid_request):
+        pyramid_request.lti_user.application_instance.settings.set(
             "canvas", "sections_enabled", False
         )
 
     @pytest.fixture
-    def groups_enabled(self, application_instance_service):
-        application_instance_service.get_current.return_value.settings.set(
+    def groups_enabled(self, pyramid_request):
+        pyramid_request.lti_user.application_instance.settings.set(
             "canvas", "groups_enabled", True
         )
 
     @pytest.fixture
-    def with_folders_enabled(self, application_instance_service):
-        application_instance_service.get_current.return_value.settings.set(
+    def with_folders_enabled(self, pyramid_request):
+        pyramid_request.lti_user.application_instance.settings.set(
             "canvas", "folders_enabled", True
         )
 

@@ -48,8 +48,8 @@ class TestLTIUserService:
         }
 
     @pytest.fixture
-    def svc(self, lti_role_service):
-        return LTIUserService(lti_role_service)
+    def svc(self, lti_role_service, application_instance_service):
+        return LTIUserService(lti_role_service, application_instance_service)
 
     @pytest.fixture
     def display_name(self, patch):
@@ -57,7 +57,7 @@ class TestLTIUserService:
 
 
 class TestFactory:
-    @pytest.mark.usefixtures("lti_role_service")
+    @pytest.mark.usefixtures("lti_role_service", "application_instance_service")
     def test_it(self, pyramid_request):
         svc = factory(sentinel.context, pyramid_request)
 

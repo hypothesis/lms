@@ -1,5 +1,6 @@
 from lms.models.lti_user import LTIUser, display_name
 from lms.services import LTIRoleService
+from lms.services.application_instance import ApplicationInstanceService
 
 
 class LTIUserService:
@@ -10,8 +11,13 @@ class LTIUserService:
     This service handles de/serialization of LTIUsers.
     """
 
-    def __init__(self, lti_role_service):
+    def __init__(
+        self,
+        lti_role_service: LTIRoleService,
+        application_instance_service: ApplicationInstanceService,
+    ):
         self._lti_roles_service = lti_role_service
+        self._application_instance_service = application_instance_service
 
     def from_auth_params(self, application_instance, lti_core_schema) -> LTIUser:
         """Create an LTIUser from a LTIV11CoreSchema like dict."""
@@ -48,9 +54,17 @@ class LTIUserService:
     def deserialize(self, **kwargs: dict) -> LTIUser:
         """Create an LTIUser based on kwargs."""
         lti_roles = self._lti_roles_service.get_roles(kwargs["roles"])
+        application_instance = self._application_instance_service.get_for_launch(
+            kwargs["application_instance_id"]
+        )
 
-        return LTIUser(lti_roles=lti_roles, **kwargs)
+        return LTIUser(
+            lti_roles=lti_roles, application_instance=application_instance, **kwargs
+        )
 
 
 def factory(_context, request):
-    return LTIUserService(request.find_service(LTIRoleService))
+    return LTIUserService(
+        lti_role_service=request.find_service(LTIRoleService),
+        application_instance_service=request.find_service(name="application_instance"),
+    )

@@ -2,18 +2,13 @@ from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
 from lms.product.d2l import D2L
 from lms.product.product import Product
-from lms.services.application_instance import ApplicationInstanceNotFound
 
 _PRODUCT_MAP = {product.family: product for product in (Blackboard, Canvas, D2L)}
 
 
 def get_product_from_request(request) -> Product:
     """Get the correct product object from the provided request."""
-
-    try:
-        ai = request.find_service(name="application_instance").get_current()
-    except ApplicationInstanceNotFound:
-        ai = None
+    ai = request.lti_user.application_instance if request.lti_user else None
 
     family = _get_family(request, ai)
     product = _PRODUCT_MAP.get(family, Product).from_request(

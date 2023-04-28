@@ -49,7 +49,7 @@ class TestBasicLaunchViews:
         )
 
         # `_record_launch()`
-        context.application_instance.check_guid_aligns.assert_called_once_with(
+        pyramid_request.lti_user.application_instance.check_guid_aligns.assert_called_once_with(
             pyramid_request.lti_params["tool_consumer_instance_guid"]
         )
 
@@ -60,11 +60,12 @@ class TestBasicLaunchViews:
         pyramid_request,
         grading_info_service,
         application_instance_service,
+        lti_user,
     ):
         BasicLaunchViews(context, pyramid_request)
 
         application_instance_service.update_from_lti_params.assert_called_once_with(
-            context.application_instance, pyramid_request.lti_params
+            lti_user.application_instance, pyramid_request.lti_params
         )
 
         grading_info_service.upsert_from_request.assert_called_once_with(
@@ -351,9 +352,12 @@ class TestBasicLaunchViews:
         "with_gradable_assignment", "user_is_instructor", "with_canvas"
     )
     def test__show_document_does_not_enable_instructor_toolbar_in_canvas(
-        self, svc, context
+        self,
+        svc,
+        context,
+        application_instance,
     ):
-        context.application_instance.settings.set(
+        application_instance.settings.set(
             "hypothesis", "edit_assignments_enabled", True
         )
 
@@ -449,8 +453,6 @@ class TestBasicLaunchViews:
         context.js_config = mock.create_autospec(JSConfig, spec_set=True, instance=True)
 
         application_instance.check_guid_aligns = mock.Mock()
-        context.application_instance = application_instance
-
         return context
 
     @pytest.fixture

@@ -52,13 +52,7 @@ class TestFilePickerMode:
         ),
     )
     def test_it_adds_picker_config(
-        self,
-        js_config,
-        context,
-        pyramid_request,
-        FilePickerConfig,
-        config_function,
-        key,
+        self, js_config, pyramid_request, FilePickerConfig, config_function, key
     ):
         js_config.enable_file_picker_mode(sentinel.form_action, sentinel.form_fields)
         config = js_config.asdict()
@@ -66,7 +60,7 @@ class TestFilePickerMode:
         config_provider = getattr(FilePickerConfig, config_function)
         assert config["filePicker"][key] == config_provider.return_value
         config_provider.assert_called_once_with(
-            pyramid_request, context.application_instance
+            pyramid_request, pyramid_request.lti_user.application_instance
         )
 
     def test_it_adds_product_info(self, js_config):
@@ -105,14 +99,14 @@ class TestEnableLTILaunchMode:
     def test_it(
         self,
         bearer_token_schema,
-        context,
         grant_token_service,
         js_config,
         db_session,
         course,
         assignment,
+        lti_user,
     ):
-        context.application_instance.organization = factories.Organization(
+        lti_user.application_instance.organization = factories.Organization(
             _public_id="PUBLIC_ID"
         )
         db_session.flush()
@@ -130,7 +124,7 @@ class TestEnableLTILaunchMode:
                 "tags": [Any.string.matching("^role:.*")],
                 "values": {
                     "Organization ID": "us.lms.org.PUBLIC_ID",
-                    "Application Instance ID": context.application_instance.id,
+                    "Application Instance ID": lti_user.application_instance.id,
                     "LTI version": "LTI-1p0",
                 },
             },
@@ -237,8 +231,8 @@ class TestEnableLTILaunchMode:
         assert config == {}
 
     @pytest.fixture
-    def with_provisioning_disabled(self, context):
-        context.application_instance.provisioning = False
+    def with_provisioning_disabled(self, pyramid_request):
+        pyramid_request.lti_user.application_instance.provisioning = False
 
 
 class TestAddDocumentURL:
@@ -371,7 +365,6 @@ class TestEnableInstructorToolbar:
     def test_it(
         self,
         js_config,
-        context,
         pyramid_request,
         grading_info_service,
         enable_editing,
@@ -396,7 +389,7 @@ class TestEnableInstructorToolbar:
             ]
             grading_info_service.get_by_assignment.assert_called_once_with(
                 context_id="test_course_id",
-                application_instance=context.application_instance,
+                application_instance=pyramid_request.lti_user.application_instance,
                 resource_link_id="TEST_RESOURCE_LINK_ID",
             )
         else:
@@ -581,10 +574,10 @@ class TestAddDeepLinkingAPI:
         }
 
     @pytest.fixture
-    def with_lti_13(self, context):
+    def with_lti_13(self, application_instance):
         # Make the application instance `lti_version` return "1.3.0"
-        context.application_instance.lti_registration_id = sentinel.registration_id
-        context.application_instance.deployment_id = sentinel.deployment_id
+        application_instance.lti_registration_id = sentinel.registration_id
+        application_instance.deployment_id = sentinel.deployment_id
 
 
 class TestEnableErrorDialogMode:
@@ -641,13 +634,8 @@ def config(js_config):
 
 
 @pytest.fixture
-def context(application_instance):
-    return create_autospec(
-        LTILaunchResource,
-        spec_set=True,
-        instance=True,
-        application_instance=application_instance,
-    )
+def context():
+    return create_autospec(LTILaunchResource, spec_set=True, instance=True)
 
 
 @pytest.fixture

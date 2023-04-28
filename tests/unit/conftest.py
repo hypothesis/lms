@@ -116,6 +116,7 @@ def pyramid_request(db_session, application_instance, lti_v11_params):
     )
     pyramid_request.lti_user = factories.LTIUser(
         application_instance_id=application_instance.id,
+        application_instance=application_instance,
         user_id=lti_v11_params["user_id"],
         roles=lti_v11_params["roles"],
     )
@@ -281,6 +282,10 @@ def application_instance(db_session):
         provisioning=True,
         settings=ApplicationSettings({}),
     )
+
+    application_instance.settings.set("canvas", "sections_enabled", True)
+    application_instance.settings.set("canvas", "groups_enabled", False)
+
     # Force flush to get a non None application_instance.id
     db_session.flush()
     return application_instance

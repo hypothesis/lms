@@ -30,7 +30,6 @@ class TestAuthorize:
     )
     def test_it(
         self,
-        application_instance_service,
         OAuthCallbackSchema,
         oauth_callback_schema,
         pyramid_request,
@@ -39,7 +38,7 @@ class TestAuthorize:
         scopes,
     ):
         ai = create_autospec(ApplicationInstance)
-        application_instance_service.get_current.return_value = ai
+        pyramid_request.lti_user.application_instance = ai
         ai.settings.get.return_value = "CLIENT_ID"
         oauth_callback_schema.state_param.return_value = "STATE"
         pyramid_request.product.settings.groups_enabled = groups

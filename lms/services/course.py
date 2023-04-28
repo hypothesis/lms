@@ -161,8 +161,6 @@ class CourseService:
 def course_service_factory(_context, request):
     return CourseService(
         db=request.db,
-        application_instance=request.find_service(
-            name="application_instance"
-        ).get_current(),
+        application_instance=request.lti_user.application_instance,
         grouping_service=request.find_service(name="grouping"),
     )

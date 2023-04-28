@@ -57,12 +57,8 @@ class GradingInfoService:
             # LIS data is not present on the request.
             return
 
-        application_instance = request.find_service(
-            name="application_instance"
-        ).get_current()
-
         grading_info = self._find_or_create(
-            application_instance=application_instance,
+            application_instance=request.lti_user.application_instance,
             user_id=request.lti_user.user_id,
             context_id=parsed_params["context_id"],
             resource_link_id=parsed_params["resource_link_id"],

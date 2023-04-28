@@ -404,11 +404,11 @@ class TestGetLTIUser:
 
 
 class TestGetUser:
-    def test_it(self, pyramid_request, user_service, application_instance_service):
+    def test_it(self, pyramid_request, user_service):
         user = _get_user(pyramid_request)
 
         user_service.get.assert_called_once_with(
-            application_instance_service.get_current.return_value,
+            pyramid_request.lti_user.application_instance,
             pyramid_request.lti_user.user_id,
         )
         assert user == user_service.get.return_value

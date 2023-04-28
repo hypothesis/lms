@@ -66,12 +66,7 @@ class LTIEvent(BaseEvent):
         return [role.id for role in self.request.lti_user.lti_roles]
 
     def _get_application_instance_id(self):
-        if application_instance := self.request.find_service(
-            name="application_instance"
-        ).get_current():
-            return application_instance.id
-
-        return None
+        return self.request.lti_user.application_instance_id
 
     def _get_course_id(self):
         context_id = self.request.lti_params.get("context_id")

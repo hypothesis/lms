@@ -10,7 +10,7 @@ class TestServiceFactory:
     def test_it(
         self, pyramid_request, application_instance_service, JSTORService, user_agent
     ):
-        ai_settings = application_instance_service.get_current.return_value.settings
+        ai_settings = pyramid_request.lti_user.application_instance.settings
         ai_settings.set("jstor", "enabled", sentinel.jstor_enabled)
         ai_settings.set("jstor", "site_code", sentinel.jstor_site_code)
 

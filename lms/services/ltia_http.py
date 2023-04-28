@@ -65,12 +65,8 @@ class LTIAHTTPService:
 
 
 def factory(_context, request):
-    lti_registration = (
-        request.find_service(name="application_instance").get_current().lti_registration
-    )
-
     return LTIAHTTPService(
-        lti_registration,
+        request.lti_user.application_instance.lti_registration,
         request.product.plugin.misc,
         request.find_service(JWTService),
         request.find_service(name="http"),
