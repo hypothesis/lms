@@ -35,6 +35,7 @@ class ApplicationSettings(JSONSettings):
         JSONSetting("vitalsource", "disable_licence_check", asbool),
         JSONSetting("jstor", "enabled", asbool),
         JSONSetting("jstor", "site_code"),
+        JSONSetting("youtube_transcripts", "enabled", asbool),
         JSONSetting("hypothesis", "notes", name="Notes"),
         JSONSetting(
             "hypothesis",
