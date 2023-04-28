@@ -28,8 +28,7 @@ class JSConfig:
         CANVAS_INVALID_SCOPE = "canvas_invalid_scope"
         REUSED_CONSUMER_KEY = "reused_consumer_key"
 
-    def __init__(self, context, request):
-        self._context = context
+    def __init__(self, request):
         self._request = request
         self._authority = request.registry.settings["h_authority"]
         self._grading_info_service = request.find_service(name="grading_info")
