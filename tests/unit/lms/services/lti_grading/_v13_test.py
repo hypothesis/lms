@@ -5,7 +5,7 @@ from freezegun import freeze_time
 from h_matchers import Any
 from pytest import param
 
-from lms.services.exceptions import ExternalRequestError
+from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
 from lms.services.lti_grading._v13 import LTI13GradingService
 
 
@@ -90,6 +90,23 @@ class TestLTI13GradingService:
         )
 
         with pytest.raises(ExternalRequestError):
+            svc.record_result(sentinel.user_id, sentinel.score)
+
+    @pytest.mark.parametrize(
+        "code,text",
+        [
+            (400, "User could not be found:"),
+            (403, "User in requested score is not enrolled in the org unit"),
+        ],
+    )
+    def test_record_result_raises_StudentNotInCourse(
+        self, svc, ltia_http_service, code, text
+    ):
+        ltia_http_service.request.side_effect = ExternalRequestError(
+            response=Mock(status_code=code, text=text)
+        )
+
+        with pytest.raises(StudentNotInCourse):
             svc.record_result(sentinel.user_id, sentinel.score)
 
     def test_record_result_doesnt_raise_max_submissions(self, svc, ltia_http_service):

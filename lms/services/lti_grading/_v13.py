@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
-from lms.services.exceptions import ExternalRequestError
+from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
 from lms.services.lti_grading.interface import LTIGradingService
 from lms.services.ltia_http import LTIAHTTPService
 
@@ -77,6 +77,21 @@ class LTI13GradingService(LTIGradingService):
                 LOG.error("record_result: maximum number of allowed attempts")
                 # We silently shallow this type of error
                 return None
+
+            if (
+                # Blackboard
+                (
+                    err.status_code == 400
+                    and "User could not be found:" in err.response.text
+                )
+                # D2L
+                or (
+                    err.status_code == 403
+                    and "User in requested score is not enrolled in the org unit"
+                    in err.response.text
+                )
+            ):
+                raise StudentNotInCourse(grading_id) from err
 
             raise
 
