@@ -20,6 +20,8 @@ from lms.security import Permissions
 from lms.services import DocumentURLService
 from lms.services.assignment import AssignmentService
 from lms.services.course import CourseService
+from lms.services.application_instance import ApplicationInstanceService
+from lms.resources._js_config import JSConfig
 from lms.services.grouping import GroupingService
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
 
@@ -48,8 +50,13 @@ class BasicLaunchViews:
         )
         self.grouping_service: GroupingService = request.find_service(name="grouping")
         self.course_service: CourseService = request.find_service(name="course")
+        self.application_instance_service: ApplicationInstanceService = (
+            request.find_service(name="application_instance")
+        )
+        self._js_config = JSConfig(request)
 
-        self.request.lti_user.application_instance.check_guid_aligns(
+        self.application_instance_ = self.request.lti_user.application_instance
+        self.application_instance.check_guid_aligns(
             self.request.lti_params.get("tool_consumer_instance_guid")
         )
         self.course = self._record_course()
