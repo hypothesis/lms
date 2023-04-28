@@ -268,6 +268,15 @@ class FileNotFoundInCourse(SerializableError):
         super().__init__(error_code=error_code, details={"file_id": file_id})
 
 
+class StudentNotInCourse(SerializableError):
+    """A student is no longer in the current course."""
+
+    def __init__(self, grading_id):
+        super().__init__(
+            error_code="student_not_in_course", details={"grading_id": grading_id}
+        )
+
+
 def _repr_external_request_exception(exception):
     # Include the details of the request and response for debugging. This
     # appears in the logs and in tools like Sentry and Papertrail.
