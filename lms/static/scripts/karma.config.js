@@ -3,16 +3,6 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require('path');
 
-const chromeFlags = [];
-
-if (process.env.RUNNING_IN_DOCKER) {
-  // Use Chromium from Alpine packages.
-  process.env.CHROME_BIN = 'chromium-browser';
-
-  // In Docker, the tests run as root, so the sandbox must be disabled.
-  chromeFlags.push('--no-sandbox');
-}
-
 module.exports = function (config) {
   config.set({
     // Base path that will be used to resolve all patterns (eg. files, exclude)
@@ -57,14 +47,7 @@ module.exports = function (config) {
     // for more helpful rendering of test failures
     reporters: ['mocha', 'coverage-istanbul'],
 
-    browsers: ['ChromeHeadless_Custom'],
-
-    customLaunchers: {
-      ChromeHeadless_Custom: {
-        base: 'ChromeHeadless',
-        flags: chromeFlags,
-      },
-    },
+    browsers: ['ChromeHeadless'],
 
     // Log slow tests so we can fix them before they timeout
     reportSlowerThan: 500,
