@@ -2,9 +2,8 @@ import { babel } from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
-import { string } from 'rollup-plugin-string';
-import { terser } from 'rollup-plugin-terser';
 import virtual from '@rollup/plugin-virtual';
+import { terser } from 'rollup-plugin-terser';
 
 const isProd = process.env.NODE_ENV === 'production';
 const prodPlugins = [];
@@ -51,9 +50,6 @@ function bundleConfig(name, entryFile) {
         extensions: ['.js', '.ts', '.tsx'],
       }),
       commonjs({ include: 'node_modules/**' }),
-      string({
-        include: '**/*.svg',
-      }),
       ...prodPlugins,
     ],
   };
