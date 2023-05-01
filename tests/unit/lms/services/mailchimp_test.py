@@ -14,21 +14,15 @@ from lms.services.mailchimp import (
 
 
 class TestSendTemplate:
-    def test_it(self, mailchimp_transactional, caplog):
+    def test_it(
+        self, svc, mailchimp_transactional, mailchimp_client, caplog, sender, recipient
+    ):
         caplog.set_level(logging.INFO)
-        svc = MailchimpService(sentinel.api_key)
 
         svc.send_template(
             sentinel.template_name,
-            EmailSender(
-                sentinel.subaccount_id,
-                sentinel.from_email,
-                sentinel.from_name,
-            ),
-            EmailRecipient(
-                sentinel.to_email,
-                sentinel.to_name,
-            ),
+            sender,
+            recipient,
             template_vars={"foo": "FOO", "bar": "BAR"},
         )
 
@@ -42,7 +36,7 @@ class TestSendTemplate:
             )
         ]
         mailchimp_transactional.Client.assert_called_once_with(sentinel.api_key)
-        mailchimp_transactional.Client.return_value.messages.send_template.assert_called_once_with(
+        mailchimp_client.messages.send_template.assert_called_once_with(
             {
                 "template_name": sentinel.template_name,
                 "template_content": [{}],
@@ -63,25 +57,28 @@ class TestSendTemplate:
             }
         )
 
-    def test_with_unsubscribe_url(self, mailchimp_transactional):
-        svc = MailchimpService(sentinel.api_key)
+    def test_it_doesnt_send_duplicate_emails(
+        self, svc, mailchimp_client, sender, recipient
+    ):
+        # Try to send the same email twice.
+        for _ in range(2):
+            svc.send_template(
+                sentinel.template_name,
+                sender,
+                recipient,
+                template_vars={},
+                task_done_key="test_key",
+            )
 
+        # It should only have sent the email once.
+        assert len(mailchimp_client.messages.send_template.call_args_list) == 1
+
+    def test_with_unsubscribe_url(self, svc, mailchimp_client, sender, recipient):
         svc.send_template(
-            sentinel.template_name,
-            EmailSender(
-                sentinel.subaccount_id,
-                sentinel.from_email,
-                sentinel.from_name,
-            ),
-            EmailRecipient(
-                sentinel.to_email,
-                sentinel.to_name,
-            ),
-            {},
-            sentinel.unsubscribe_url,
+            sentinel.template_name, sender, recipient, {}, sentinel.unsubscribe_url
         )
 
-        mailchimp_transactional.Client.return_value.messages.send_template.assert_called_once_with(
+        mailchimp_client.messages.send_template.assert_called_once_with(
             Any.dict.containing(
                 {
                     "message": Any.dict.containing(
@@ -101,31 +98,36 @@ class TestSendTemplate:
             )
         )
 
-    def test_if_mailchimp_client_raises(self, mailchimp_client):
+    def test_if_mailchimp_client_raises(self, svc, mailchimp_client, sender, recipient):
         original_exception = RuntimeError("Mailchimp crashed!")
         mailchimp_client.messages.send_template.side_effect = original_exception
 
-        svc = MailchimpService(sentinel.api_key)
-
         with pytest.raises(MailchimpError) as exc_info:
-            svc.send_template(
-                sentinel.template_name,
-                EmailSender(
-                    sentinel.subaccount_id,
-                    sentinel.from_email,
-                    sentinel.from_name,
-                ),
-                EmailRecipient(
-                    sentinel.to_email,
-                    sentinel.to_name,
-                ),
-                {},
-            )
+            svc.send_template(sentinel.template_name, sender, recipient, {})
         assert exc_info.value.__cause__ == original_exception
 
     @pytest.fixture
     def mailchimp_client(self, mailchimp_transactional):
         return mailchimp_transactional.Client.return_value
+
+    @pytest.fixture
+    def sender(self):
+        return EmailSender(
+            sentinel.subaccount_id,
+            sentinel.from_email,
+            sentinel.from_name,
+        )
+
+    @pytest.fixture
+    def recipient(self):
+        return EmailRecipient(
+            sentinel.to_email,
+            sentinel.to_name,
+        )
+
+    @pytest.fixture
+    def svc(self, db_session):
+        return MailchimpService(db_session, sentinel.api_key)
 
 
 class TestFactory:
@@ -134,7 +136,7 @@ class TestFactory:
 
         svc = factory(sentinel.context, pyramid_request)
 
-        MailchimpService.assert_called_once_with(sentinel.api_key)
+        MailchimpService.assert_called_once_with(pyramid_request.db, sentinel.api_key)
         assert svc == MailchimpService.return_value
 
     @pytest.fixture

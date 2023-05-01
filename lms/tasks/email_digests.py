@@ -1,7 +1,7 @@
 import logging
 import random
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from typing import List
 
 from h_pyramid_sentry import report_exception
 from sqlalchemy import and_, select
@@ -112,12 +112,7 @@ def send_instructor_email_digest_tasks(self, *, batch_size, h_userids=None):
 
 @app.task(acks_late=True, bind=True, max_retries=2)
 def send_instructor_email_digests(
-    self,
-    *,
-    h_userids: List[str],
-    updated_after: str,
-    updated_before: str,
-    override_to_email: Optional[str] = None,
+    self, *, h_userids: List[str], updated_after: str, updated_before: str, **kwargs
 ) -> None:
     """
     Generate and send instructor email digests to the given users.
@@ -128,9 +123,7 @@ def send_instructor_email_digests(
     :param h_userids: the h_userid's of the instructors to email
     :param updated_after: the beginning of the time period as an ISO 8601 format string
     :param updated_before: the end of the time period as an ISO 8601 format string
-
-    :param override_to_email: send all the emails to this email address instead
-        of the users' email addresses (this is for test purposes)
+    :param kwargs: other keyword arguments to pass to DigestService.send_instructor_email_digests()
     """
     # Caution: datetime.fromisoformat() doesn't support all ISO 8601 strings!
     # This only works for the subset of ISO 8601 produced by datetime.isoformat().
@@ -143,10 +136,7 @@ def send_instructor_email_digests(
 
             try:
                 digest_service.send_instructor_email_digests(
-                    h_userids,
-                    updated_after,
-                    updated_before,
-                    override_to_email=override_to_email,
+                    h_userids, updated_after, updated_before, **kwargs
                 )
             except SendDigestsError as err:
                 self.retry(

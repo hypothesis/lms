@@ -67,6 +67,7 @@ class AdminEmailViews:
                 "updated_after": since.isoformat(),
                 "updated_before": until.isoformat(),
                 "override_to_email": to_email,
+                "deduplicate": False,
             },
         )
 

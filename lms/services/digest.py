@@ -1,5 +1,6 @@
 import logging
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from typing import Optional, Tuple
 
 from h_pyramid_sentry import report_exception
@@ -43,8 +44,13 @@ class DigestService:
         self._email_unsubscribe_service = email_unsubscribe_service
         self._sender = sender
 
-    def send_instructor_email_digests(
-        self, audience, updated_after, updated_before, override_to_email=None
+    def send_instructor_email_digests(  # pylint:disable=too-many-arguments
+        self,
+        audience,
+        updated_after,
+        updated_before,
+        override_to_email=None,
+        deduplicate=True,
     ):
         """Send instructor email digests for the given users and timeframe."""
         annotations = self._h_api.get_annotations(
@@ -75,8 +81,14 @@ class DigestService:
                 # We don't have an email address for this user.
                 continue
 
+            if deduplicate:
+                task_done_key = f"instructor_email_digest::{unified_user.h_userid}::{datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
+            else:
+                task_done_key = None
+
             try:
                 send_template.delay(
+                    task_done_key=task_done_key,
                     template_name="instructor-email-digest",
                     sender=asdict(self._sender),
                     recipient=asdict(
