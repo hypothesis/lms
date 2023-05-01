@@ -55,7 +55,7 @@
     "@types/gapi": "^0.0.44",
     "@types/google.accounts": "^0.0.7",
     "@types/google.picker": "^0.0.39",
-    "@typescript-eslint/eslint-plugin": "^5.59.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.1",
     "@typescript-eslint/parser": "^5.59.0",
     "axe-core": "^4.7.0",
     "babel-plugin-istanbul": "^6.1.1",
