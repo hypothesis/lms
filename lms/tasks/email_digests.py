@@ -1,5 +1,4 @@
 import logging
-import random
 from datetime import datetime, timedelta, timezone
 from typing import List
 
@@ -14,14 +13,13 @@ from lms.models import (
     User,
 )
 from lms.services import DigestService
-from lms.services.digest import SendDigestsError
 from lms.tasks.celery import app
 
 LOG = logging.getLogger(__name__)
 
 
-@app.task(acks_late=True, bind=True, max_retries=2)
-def send_instructor_email_digest_tasks(self, *, batch_size, h_userids=None):
+@app.task(acks_late=True, autoretry_for=(Exception,), max_retries=2, retry_backoff=3600)
+def send_instructor_email_digest_tasks(*, batch_size):
     """
     Generate and send instructor email digests.
 
@@ -46,44 +44,37 @@ def send_instructor_email_digest_tasks(self, *, batch_size, h_userids=None):
 
     with app.request_context() as request:  # pylint:disable=no-member
         with request.tm:
-            if not h_userids:
-                try:
-                    h_userids = request.db.scalars(
-                        select(User.h_userid)
-                        .select_from(User)
-                        .distinct()
-                        .join(ApplicationInstance)
-                        .join(AssignmentMembership)
-                        .join(LTIRole)
-                        .outerjoin(
-                            EmailUnsubscribe,
-                            and_(
-                                User.h_userid == EmailUnsubscribe.h_userid,
-                                EmailUnsubscribe.tag
-                                == EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST,
-                            ),
-                        )
-                        .where(
-                            ApplicationInstance.settings["hypothesis"][
-                                "instructor_email_digests_enabled"
-                            ].astext
-                            == "true",
-                            LTIRole.type == "instructor",
-                            # No EmailUnsubscribes
-                            EmailUnsubscribe.id.is_(None),
-                        )
-                    ).all()
-                except Exception as exc:  # pylint:disable=broad-exception-caught
-                    LOG.exception(exc)
-                    report_exception(exc)
-                    self.retry(countdown=_retry_countdown(self.request))
+            h_userids = request.db.scalars(
+                select(User.h_userid)
+                .select_from(User)
+                .distinct()
+                .join(ApplicationInstance)
+                .join(AssignmentMembership)
+                .join(LTIRole)
+                .outerjoin(
+                    EmailUnsubscribe,
+                    and_(
+                        User.h_userid == EmailUnsubscribe.h_userid,
+                        EmailUnsubscribe.tag == EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST,
+                    ),
+                )
+                .where(
+                    ApplicationInstance.settings["hypothesis"][
+                        "instructor_email_digests_enabled"
+                    ].astext
+                    == "true",
+                    LTIRole.type == "instructor",
+                    # No EmailUnsubscribes
+                    EmailUnsubscribe.id.is_(None),
+                )
+            ).all()
 
             batches = [
                 h_userids[i : i + batch_size]
                 for i in range(0, len(h_userids), batch_size)
             ]
 
-            failed_h_userids = []
+            failed = False
 
             for batch in batches:
                 try:
@@ -95,24 +86,20 @@ def send_instructor_email_digest_tasks(self, *, batch_size, h_userids=None):
                             "updated_before": updated_before,
                         },
                     )
-                except Exception as exc:  # pylint:disable=broad-exception-caught
-                    LOG.exception(exc)
-                    report_exception(exc)
-                    failed_h_userids.extend(batch)
+                except Exception as err:  # pylint:disable=broad-exception-caught
+                    failed = True
+                    LOG.exception(err)
+                    report_exception(err)
 
-            if failed_h_userids:
-                self.retry(
-                    kwargs={
-                        **self.request.kwargs,
-                        "h_userids": failed_h_userids,
-                    },
-                    countdown=_retry_countdown(self.request),
+            if failed:
+                raise RuntimeError(
+                    "One or more send_instructor_email_digests() batches failed to schedule"
                 )
 
 
-@app.task(acks_late=True, bind=True, max_retries=2)
+@app.task(acks_late=True, autoretry_for=(Exception,), max_retries=2, retry_backoff=3600)
 def send_instructor_email_digests(
-    self, *, h_userids: List[str], updated_after: str, updated_before: str, **kwargs
+    *, h_userids: List[str], updated_after: str, updated_before: str, **kwargs
 ) -> None:
     """
     Generate and send instructor email digests to the given users.
@@ -134,23 +121,6 @@ def send_instructor_email_digests(
         with request.tm:
             digest_service = request.find_service(DigestService)
 
-            try:
-                digest_service.send_instructor_email_digests(
-                    h_userids, updated_after, updated_before, **kwargs
-                )
-            except SendDigestsError as err:
-                self.retry(
-                    kwargs={
-                        **self.request.kwargs,
-                        "h_userids": list(err.errors.keys()),
-                    },
-                    countdown=_retry_countdown(self.request),
-                )
-            except Exception as exc:  # pylint:disable=broad-exception-caught
-                LOG.exception(exc)
-                report_exception(exc)
-                self.retry(countdown=_retry_countdown(self.request))
-
-
-def _retry_countdown(celery_request):
-    return (3600 * (celery_request.retries + 1)) + random.randint(0, 900)
+            digest_service.send_instructor_email_digests(
+                h_userids, updated_after, updated_before, **kwargs
+            )
