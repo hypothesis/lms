@@ -1177,12 +1177,13 @@
     fancy-log "^1.3.3"
     glob "^7.2.0"
 
-"@hypothesis/frontend-shared@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@hypothesis/frontend-shared/-/frontend-shared-6.0.0.tgz#27ef2944c406145e9ccee2d852ad73c179ff3ea9"
-  integrity sha512-sJIxjBLVq5YGdQIYT1ayV8GQ/NlUxXY5nJMcG45Xxl7hgmrmwL+4G7l9h2gAD2PwXx1Rt9gjbdF9Zmrq6Yp0IQ==
+"@hypothesis/frontend-shared@^6.1.1":
+  version "6.1.1"
+  resolved "https://registry.yarnpkg.com/@hypothesis/frontend-shared/-/frontend-shared-6.1.1.tgz#c3bd46f162e20c9c5612dd66f3fa4bb2e911f674"
+  integrity sha512-GGk6eb8pRNuqLN+QtQHQn+CC2ab7m5+a6cye0MSWkvuEclh8wLSxEHQk8/74xN9BJeWRWPbBNEswxKui8kph/A==
   dependencies:
     highlight.js "^11.6.0"
+    wouter-preact "^2.10.0-alpha.1"
 
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
