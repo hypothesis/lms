@@ -5,6 +5,7 @@ from unittest.mock import call, sentinel
 
 import factory
 import pytest
+from freezegun import freeze_time
 from h_matchers import Any
 
 from lms.services.digest import (
@@ -20,6 +21,7 @@ from tests import factories
 
 
 class TestDigestService:
+    @freeze_time("2023-04-30")
     def test_send_instructor_email_digests(
         self,
         svc,
@@ -52,6 +54,7 @@ class TestDigestService:
         ]
         assert send_template.delay.call_args_list == [
             call(
+                task_done_key=f"instructor_email_digest::{unified_user.h_userid}::2023-04-30",
                 template_name="instructor-email-digest",
                 sender=asdict(sender),
                 recipient=asdict(
@@ -62,6 +65,25 @@ class TestDigestService:
             )
             for unified_user, digest in zip(context.unified_users, digests)
         ]
+
+    def test_send_instructor_email_digests_without_deduplication(
+        self, svc, context, send_template
+    ):
+        context.unified_users = [UnifiedUserFactory()]
+        context.instructor_digest.side_effect = [{"total_annotations": 1}]
+
+        svc.send_instructor_email_digests(
+            sentinel.audience,
+            sentinel.updated_after,
+            sentinel.updated_before,
+            deduplicate=False,
+        )
+
+        # If deduplicate=True is passed to DigestService then it passes
+        # task_done_key=None to send_template() which disables deduplication of
+        # sent emails. This is used by admin pages that actually want to allow
+        # you to send duplicate emails if requested.
+        assert not send_template.delay.call_args.kwargs["task_done_key"]
 
     def test_send_instructor_email_digests_doesnt_send_empty_digests(
         self, svc, context, send_template
@@ -106,6 +128,7 @@ class TestDigestService:
             == sentinel.override_to_email
         )
 
+    @freeze_time("2023-04-30")
     def test_send_instructor_email_digest_continues_if_celery_crashes(
         self, svc, context, send_template, report_exception, caplog
     ):
@@ -131,6 +154,7 @@ class TestDigestService:
         # the next user and called Celery again.
         assert send_template.delay.call_args_list == [
             call(
+                task_done_key=f"instructor_email_digest::{unified_user.h_userid}::2023-04-30",
                 template_name=Any(),
                 sender=Any(),
                 recipient=asdict(

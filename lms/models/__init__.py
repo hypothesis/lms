@@ -29,6 +29,7 @@ from lms.models.oauth2_token import OAuth2Token
 from lms.models.organization import Organization
 from lms.models.region import Region, Regions
 from lms.models.rsa_key import RSAKey
+from lms.models.task_done import TaskDone
 from lms.models.user import User
 
 

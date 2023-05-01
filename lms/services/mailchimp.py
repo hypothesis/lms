@@ -3,6 +3,9 @@ from dataclasses import dataclass
 from typing import Optional
 
 import mailchimp_transactional
+from sqlalchemy import select
+
+from lms.models import TaskDone
 
 LOG = logging.getLogger(__name__)
 
@@ -33,7 +36,8 @@ class MailchimpError(Exception):
 
 
 class MailchimpService:
-    def __init__(self, api_key):
+    def __init__(self, db, api_key):
+        self.db = db
         self.mailchimp_client = mailchimp_transactional.Client(api_key)
 
     def send_template(  # pylint:disable=too-many-arguments
@@ -43,12 +47,21 @@ class MailchimpService:
         recipient: EmailRecipient,
         template_vars: dict,
         unsubscribe_url: Optional[str] = None,
+        task_done_key: Optional[str] = None,
     ):
         """
         Send an email using Mailchimp Transactional's send-template API.
 
         https://mailchimp.com/developer/transactional/api/messages/send-using-message-template/
         """
+
+        if task_done_key:
+            if self.db.execute(
+                select(TaskDone).filter_by(key=task_done_key)
+            ).one_or_none():
+                LOG.info("Not sending duplicate email %s", task_done_key)
+                return
+
         headers = {}
 
         if unsubscribe_url:
@@ -85,6 +98,10 @@ class MailchimpService:
         except Exception as exc:
             raise MailchimpError() from exc
 
+        if task_done_key:
+            # Record the email send in the DB to avoid sending duplicates.
+            self.db.add(TaskDone(key=task_done_key))
+
 
 def factory(_context, request):
-    return MailchimpService(request.registry.settings["mailchimp_api_key"])
+    return MailchimpService(request.db, request.registry.settings["mailchimp_api_key"])

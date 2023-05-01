@@ -13,4 +13,7 @@ def send_template(*, sender, recipient, **kwargs) -> None:
 
     with app.request_context() as request:  # pylint:disable=no-member
         mailchimp_service = request.find_service(name="mailchimp")
-        mailchimp_service.send_template(sender=sender, recipient=recipient, **kwargs)
+        with request.tm:
+            mailchimp_service.send_template(
+                sender=sender, recipient=recipient, **kwargs
+            )
