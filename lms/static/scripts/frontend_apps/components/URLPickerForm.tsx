@@ -1,32 +1,32 @@
 import { CancelIcon, Input } from '@hypothesis/frontend-shared';
-import type { Ref } from 'preact';
+import type { RefObject } from 'preact';
 
 import { useUniqueId } from '../utils/hooks';
 
-export type UrlPickerFormProps = {
-  onSubmit: () => void;
+export type URLPickerFormProps = {
+  onSubmit: (inputUrl: string) => void;
   error?: string;
   urlPlaceholder: string;
   defaultURL?: string;
   'aria-label': string;
-  inputRef?: Ref<HTMLElement | undefined>;
+  inputRef: RefObject<HTMLInputElement | undefined>;
 };
 
 /**
  * A form that displays a single URL input, and optionally, an error
  */
-export default function UrlPickerForm({
+export default function URLPickerForm({
   onSubmit,
   error,
   urlPlaceholder,
   defaultURL,
   'aria-label': ariaLabel,
   inputRef,
-}: UrlPickerFormProps) {
+}: URLPickerFormProps) {
   const id = useUniqueId('url');
   const submit = (event: Event) => {
     event.preventDefault();
-    onSubmit();
+    onSubmit(inputRef.current!.value);
   };
 
   return (

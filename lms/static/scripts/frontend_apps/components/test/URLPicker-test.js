@@ -11,7 +11,7 @@ describe('URLPicker', () => {
       defaultURL: 'https://arxiv.org/pdf/1234.pdf',
     });
     assert.equal(
-      wrapper.find('UrlPickerForm').prop('defaultURL'),
+      wrapper.find('URLPickerForm').prop('defaultURL'),
       'https://arxiv.org/pdf/1234.pdf'
     );
   });
@@ -19,12 +19,9 @@ describe('URLPicker', () => {
   it('invokes `onSelectURL` when user submits a URL', () => {
     const onSelectURL = sinon.stub();
 
-    const wrapper = renderUrlPicker({
-      onSelectURL,
-      defaultURL: 'https://example.com/foo',
-    });
+    const wrapper = renderUrlPicker({ onSelectURL });
 
-    wrapper.find('UrlPickerForm').props().onSubmit();
+    wrapper.find('URLPickerForm').props().onSubmit('https://example.com/foo');
 
     assert.calledWith(onSelectURL, 'https://example.com/foo');
   });
@@ -32,9 +29,9 @@ describe('URLPicker', () => {
   it('does not invoke `onSelectURL` if URL is not valid', () => {
     const onSelectURL = sinon.stub();
 
-    const wrapper = renderUrlPicker({ onSelectURL, defaultURL: 'not-a-url' });
+    const wrapper = renderUrlPicker({ onSelectURL });
 
-    wrapper.find('UrlPickerForm').props().onSubmit();
+    wrapper.find('URLPickerForm').props().onSubmit('not-a-url');
     wrapper.update();
 
     assert.notCalled(onSelectURL);
@@ -46,12 +43,9 @@ describe('URLPicker', () => {
   it('does not invoke `onSelectURL` if URL is for a non-http(s) protocol', () => {
     const onSelectURL = sinon.stub();
 
-    const wrapper = renderUrlPicker({
-      onSelectURL,
-      defaultURL: 'ftp:///warez.fun',
-    });
+    const wrapper = renderUrlPicker({ onSelectURL });
 
-    wrapper.find('UrlPickerForm').props().onSubmit();
+    wrapper.find('URLPickerForm').props().onSubmit('ftp:///warez.fun');
     wrapper.update();
 
     assert.notCalled(onSelectURL);
@@ -63,15 +57,26 @@ describe('URLPicker', () => {
     );
   });
 
+  it('invokes `onSelectURL` when submit button is clicked', () => {
+    const onSelectURL = sinon.stub();
+
+    const wrapper = renderUrlPicker({ onSelectURL });
+
+    wrapper.find('URLPickerForm').prop('inputRef').current.value =
+      'https://example.com/foo';
+    wrapper.update();
+
+    wrapper.find('button[data-testid="submit-button"]').props().onClick();
+
+    assert.calledWith(onSelectURL, 'https://example.com/foo');
+  });
+
   it('shows an additional error message if URL is for a local file', () => {
     const onSelectURL = sinon.stub();
 
-    const wrapper = renderUrlPicker({
-      onSelectURL,
-      defaultURL: 'file:///my/local.pdf',
-    });
+    const wrapper = renderUrlPicker({ onSelectURL });
 
-    wrapper.find('UrlPickerForm').props().onSubmit();
+    wrapper.find('URLPickerForm').props().onSubmit('file:///my/local.pdf');
     wrapper.update();
 
     assert.notCalled(onSelectURL);

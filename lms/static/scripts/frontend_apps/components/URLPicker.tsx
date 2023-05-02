@@ -1,7 +1,7 @@
 import { Button, ModalDialog } from '@hypothesis/frontend-shared';
 import { useRef, useState } from 'preact/hooks';
 
-import UrlPickerForm from './UrlPickerForm';
+import URLPickerForm from './URLPickerForm';
 
 export type URLPickerProps = {
   /** The initial value of the URL input field. */
@@ -27,9 +27,9 @@ export default function URLPicker({
   // input field
   const [error, setError] = useState<string | undefined>();
 
-  const submit = () => {
+  const submit = (inputUrl: string) => {
     try {
-      const url = new URL(input.current!.value);
+      const url = new URL(inputUrl);
       if (!url.protocol.startsWith('http')) {
         if (url.protocol.startsWith('file')) {
           setError(
@@ -39,7 +39,7 @@ export default function URLPicker({
           setError('Please use a URL that starts with "http" or "https"');
         }
       } else {
-        onSelectURL(input.current!.value);
+        onSelectURL(inputUrl);
       }
     } catch (e) {
       setError('Please enter a URL, e.g. "https://www.example.com"');
@@ -57,7 +57,7 @@ export default function URLPicker({
         <Button
           data-testid="submit-button"
           key="submit"
-          onClick={submit}
+          onClick={() => submit(input.current!.value)}
           variant="primary"
         >
           Submit
@@ -67,7 +67,7 @@ export default function URLPicker({
     >
       <div className="space-y-4">
         <p>Enter the URL of any publicly available web page or PDF:</p>
-        <UrlPickerForm
+        <URLPickerForm
           onSubmit={submit}
           urlPlaceholder="e.g. https://example.com/article.pdf"
           aria-label="Enter URL to web page or PDF"
