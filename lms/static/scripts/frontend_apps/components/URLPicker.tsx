@@ -1,10 +1,7 @@
-import {
-  Button,
-  CancelIcon,
-  ModalDialog,
-  Input,
-} from '@hypothesis/frontend-shared';
+import { Button, ModalDialog } from '@hypothesis/frontend-shared';
 import { useRef, useState } from 'preact/hooks';
+
+import UrlPickerForm from './UrlPickerForm';
 
 export type URLPickerProps = {
   /** The initial value of the URL input field. */
@@ -25,14 +22,12 @@ export default function URLPicker({
   onSelectURL,
 }: URLPickerProps) {
   const input = useRef<HTMLInputElement | null>(null);
-  const form = useRef<HTMLFormElement | null>(null);
 
   // Holds an error message corresponding to client-side validation of the
   // input field
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | undefined>();
 
-  const submit = (event: Event) => {
-    event.preventDefault();
+  const submit = () => {
     try {
       const url = new URL(input.current!.value);
       if (!url.protocol.startsWith('http')) {
@@ -72,37 +67,14 @@ export default function URLPicker({
     >
       <div className="space-y-4">
         <p>Enter the URL of any publicly available web page or PDF:</p>
-        <form
-          ref={form}
-          className="flex flex-row items-center space-x-2"
+        <UrlPickerForm
           onSubmit={submit}
-        >
-          <label htmlFor="url">URL: </label>
-
-          <Input
-            aria-label="Enter URL to web page or PDF"
-            classes="grow"
-            defaultValue={defaultURL}
-            hasError={!!error}
-            elementRef={input}
-            name="url"
-            placeholder="e.g. https://example.com/article.pdf"
-            required
-          />
-        </form>
-        {/** setting a height here "preserves space" for this error display
-         * and prevents the dialog size from jumping when an error is rendered */}
-        <div
-          className="h-4 flex flex-row items-center space-x-1 text-red-error"
-          data-testid="error-message"
-        >
-          {!!error && (
-            <>
-              <CancelIcon />
-              <div className="grow">{error}</div>
-            </>
-          )}
-        </div>
+          urlPlaceholder="e.g. https://example.com/article.pdf"
+          aria-label="Enter URL to web page or PDF"
+          error={error}
+          defaultURL={defaultURL}
+          inputRef={input}
+        />
       </div>
     </ModalDialog>
   );
