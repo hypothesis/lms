@@ -248,6 +248,7 @@ class JSConfig:
                     "microsoftOneDrive": FilePickerConfig.microsoft_onedrive(*args),
                     "vitalSource": FilePickerConfig.vitalsource_config(*args),
                     "jstor": FilePickerConfig.jstor_config(*args),
+                    "youtube": FilePickerConfig.youtube_config(*args),
                 },
             }
         )

@@ -1,7 +1,7 @@
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
 from lms.product.d2l import D2L
-from lms.services import JSTORService, VitalSourceService
+from lms.services import JSTORService, VitalSourceService, YoutubeService
 
 
 class FilePickerConfig:
@@ -111,3 +111,7 @@ class FilePickerConfig:
         """Get JSTOR config."""
 
         return {"enabled": request.find_service(JSTORService).enabled}
+
+    @classmethod
+    def youtube_config(cls, request, _application_instance):
+        return {"enabled": request.find_service(YoutubeService).enabled}
