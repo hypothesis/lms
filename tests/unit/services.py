@@ -48,6 +48,7 @@ from lms.services.oauth_http import OAuthHTTPService
 from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
 from lms.services.vitalsource import VitalSourceService
+from lms.services.youtube import YoutubeService
 from tests import factories
 
 __all__ = (
@@ -91,6 +92,7 @@ __all__ = (
     "user_service",
     "vitalsource_service",
     "email_unsubscribe_service",
+    "youtube_service",
     # Product plugins
     "grouping_plugin",
     "course_copy_plugin",
@@ -238,6 +240,11 @@ def http_service(mock_service):
 @pytest.fixture
 def jstor_service(mock_service):
     return mock_service(JSTORService)
+
+
+@pytest.fixture
+def youtube_service(mock_service):
+    return mock_service(YoutubeService)
 
 
 @pytest.fixture

@@ -138,6 +138,16 @@ class TestFilePickerConfig:
 
         assert config == {"enabled": enabled}
 
+    @pytest.mark.parametrize("enabled", (True, False))
+    def test_youtube_config(self, pyramid_request, youtube_service, enabled):
+        youtube_service.enabled = enabled
+
+        config = FilePickerConfig.youtube_config(
+            pyramid_request, sentinel.application_instance
+        )
+
+        assert config == {"enabled": enabled}
+
     @pytest.fixture
     def with_canvas(self, pyramid_request):
         pyramid_request.product.family = Product.Family.CANVAS

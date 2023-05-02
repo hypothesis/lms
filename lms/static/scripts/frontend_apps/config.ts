@@ -102,6 +102,9 @@ export type FilePickerConfig = {
   jstor: {
     enabled: boolean;
   };
+  youtube: {
+    enabled: boolean;
+  };
   microsoftOneDrive: {
     enabled: boolean;
     clientId?: string;
