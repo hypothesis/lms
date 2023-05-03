@@ -64,6 +64,9 @@ describe('ContentSelector', () => {
         vitalSource: {
           enabled: false,
         },
+        youtube: {
+          enabled: false,
+        },
       },
     };
     $imports.$mock(mockImportedComponents());
