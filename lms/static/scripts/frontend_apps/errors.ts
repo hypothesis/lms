@@ -110,6 +110,8 @@ export class APIError extends Error {
   }
 }
 
+export class InvalidArgumentError extends Error {}
+
 /**
  * Should the error be treated as an authorization error?
  *
