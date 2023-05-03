@@ -82,10 +82,9 @@ export default function ContentSelector({
         redirectURI: oneDriveRedirectURI,
       },
       vitalSource: { enabled: vitalSourceEnabled },
-      // youtube: { enabled: youtubeEnabled },
+      youtube: { enabled: youtubeEnabled },
     },
   } = useConfig(['filePicker']);
-  const youtubeEnabled = false;
 
   // Map the existing content selection to a dialog type and value. We don't
   // open the corresponding dialog immediately, but do pre-fill the dialog

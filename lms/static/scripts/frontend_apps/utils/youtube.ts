@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'preact/hooks';
+
+import type { ThumbnailData } from '../components/URLFormWithPreview';
 import { InvalidArgumentError } from '../errors';
 
 /**
@@ -21,7 +24,7 @@ export function videoIdFromYouTubeUrl(youTubeUrl: string): string | undefined {
  * Tries to match provided URL against known YouTube video URL formats,
  * throwing an error in case of invalid YouTube URL
  */
-export function validateYouTubeVideUrl(youTubeUrl: string): string {
+export function validateYouTubeVideoUrl(youTubeUrl: string): string {
   let url;
   try {
     url = new URL(youTubeUrl);
@@ -47,4 +50,34 @@ export function validateYouTubeVideUrl(youTubeUrl: string): string {
   }
 
   return videoId;
+}
+
+export function useYouTubeVideoInfo(videoId?: string) {
+  // TODO Use dummy data for now, until a proper API has been implemented
+  const [thumbnail, setThumbnail] = useState<ThumbnailData>();
+  const [metadata, setMetadata] = useState<{
+    title: string;
+    channel: string;
+  }>();
+
+  useEffect(() => {
+    if (videoId) {
+      setThumbnail({
+        alt: 'Youtube video',
+        image: 'https://i.ytimg.com/vi/EU6TDnV5osM/mqdefault.jpg',
+        isLoading: false,
+        ratio: 'landscape',
+      });
+      setMetadata({
+        title:
+          'Hypothesis and Atlassian New Partnership Announced at the Team23 Conference',
+        channel: 'Hypothesis',
+      });
+    } else {
+      setThumbnail(undefined);
+      setMetadata(undefined);
+    }
+  }, [videoId]);
+
+  return { thumbnail, metadata };
 }

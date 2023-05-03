@@ -1,9 +1,10 @@
-import { Button, ModalDialog } from '@hypothesis/frontend-shared';
+import { Button, CheckIcon, ModalDialog } from '@hypothesis/frontend-shared';
 import { useRef, useState } from 'preact/hooks';
 
 import { InvalidArgumentError } from '../errors';
 import {
-  validateYouTubeVideUrl,
+  useYouTubeVideoInfo,
+  validateYouTubeVideoUrl,
   videoIdFromYouTubeUrl,
 } from '../utils/youtube';
 import URLFormWithPreview from './URLFormWithPreview';
@@ -27,10 +28,11 @@ export default function YouTubePicker({
     defaultURL && videoIdFromYouTubeUrl(defaultURL)
   );
   const [error, setError] = useState<string>();
+  const { thumbnail, metadata } = useYouTubeVideoInfo(videoId);
 
   const verifyUrl = (inputUrl: string) => {
     try {
-      const videoId = validateYouTubeVideUrl(inputUrl);
+      const videoId = validateYouTubeVideoUrl(inputUrl);
 
       setVideoId(videoId);
       setError(undefined);
@@ -68,7 +70,7 @@ export default function YouTubePicker({
           onClick={confirmSelection}
           variant="primary"
         >
-          Accept and continue
+          Continue
         </Button>,
       ]}
     >
@@ -79,8 +81,17 @@ export default function YouTubePicker({
         urlPlaceholder="e.g. https://www.youtube.com/watch?v=cKxqzvzlnKU"
         label="Enter the URL of a YouTube video:"
         defaultURL={defaultURL}
-        thumbnail={undefined}
-      />
+        thumbnail={thumbnail ?? { ratio: 'landscape' }}
+      >
+        {metadata && (
+          <div className="flex flex-row space-x-2" data-testid="selected-book">
+            <CheckIcon className="text-green-success" />
+            <div className="grow font-bold italic">
+              {metadata.title} ({metadata.channel})
+            </div>
+          </div>
+        )}
+      </URLFormWithPreview>
     </ModalDialog>
   );
 }

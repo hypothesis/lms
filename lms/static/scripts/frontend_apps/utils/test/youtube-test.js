@@ -1,4 +1,4 @@
-import { validateYouTubeVideUrl, videoIdFromYouTubeUrl } from '../youtube';
+import { validateYouTubeVideoUrl, videoIdFromYouTubeUrl } from '../youtube';
 
 describe('youtube', () => {
   describe('videoIdFromYouTubeUrl', () => {
@@ -20,7 +20,7 @@ describe('youtube', () => {
     });
   });
 
-  describe('validateYouTubeVideUrl', () => {
+  describe('validateYouTubeVideoUrl', () => {
     [
       {
         url: 'foo',
@@ -45,7 +45,7 @@ describe('youtube', () => {
       },
     ].forEach(({ url, expectedError }) => {
       it('throws an error when provided URL is not a valid YouTube video', () => {
-        assert.throws(() => validateYouTubeVideUrl(url), expectedError);
+        assert.throws(() => validateYouTubeVideoUrl(url), expectedError);
       });
     });
 
@@ -56,7 +56,7 @@ describe('youtube', () => {
       'https://www.youtube.com/embed/cKxqzvzlnKU',
     ].forEach(url => {
       it('does not throw when provided URL is a valid YouTube video', () => {
-        assert.doesNotThrow(() => validateYouTubeVideUrl(url));
+        assert.doesNotThrow(() => validateYouTubeVideoUrl(url));
       });
     });
   });

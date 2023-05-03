@@ -11,10 +11,11 @@ import type { ComponentChildren, RefObject } from 'preact';
 
 import { useUniqueId } from '../utils/hooks';
 
-type ThumbnailData = {
+export type ThumbnailData = {
   image?: string;
   alt?: string;
   isLoading?: boolean;
+  ratio?: 'square' | 'landscape';
 };
 
 export type URLFormWithPreviewProps = {
@@ -47,6 +48,7 @@ export default function URLFormWithPreview({
       onChange();
     }
   };
+  const ratio = thumbnail?.ratio ?? 'square';
 
   return (
     <div className="flex flex-row space-x-2">
@@ -54,10 +56,18 @@ export default function URLFormWithPreview({
         className={classnames(
           // Negative vertical margins allow thumbnail to use up more vertical
           // space in the containing Modal
-          '-mb-12 -mt-2 w-[200px] min-w-[200px] h-[200px]'
+          'w-[200px] min-w-[200px]',
+          {
+            'h-[200px]': ratio === 'square', // Default
+            'h-[120px]': ratio === 'landscape',
+          }
         )}
       >
-        <Thumbnail size="sm" loading={thumbnail?.isLoading} ratio="1/1">
+        <Thumbnail
+          size="sm"
+          loading={thumbnail?.isLoading}
+          ratio={ratio === 'square' ? '1/1' : '16/9'}
+        >
           {thumbnail?.image && (
             <img
               className={classnames(
