@@ -2,7 +2,6 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import List
 
-from h_pyramid_sentry import report_exception
 from sqlalchemy import and_, select
 
 from lms.models import (
@@ -74,26 +73,14 @@ def send_instructor_email_digest_tasks(*, batch_size):
                 for i in range(0, len(h_userids), batch_size)
             ]
 
-            failed = False
-
             for batch in batches:
-                try:
-                    send_instructor_email_digests.apply_async(
-                        (),
-                        {
-                            "h_userids": batch,
-                            "updated_after": updated_after,
-                            "updated_before": updated_before,
-                        },
-                    )
-                except Exception as err:  # pylint:disable=broad-exception-caught
-                    failed = True
-                    LOG.exception(err)
-                    report_exception(err)
-
-            if failed:
-                raise RuntimeError(
-                    "One or more send_instructor_email_digests() batches failed to schedule"
+                send_instructor_email_digests.apply_async(
+                    (),
+                    {
+                        "h_userids": batch,
+                        "updated_after": updated_after,
+                        "updated_before": updated_before,
+                    },
                 )
 
 
