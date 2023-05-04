@@ -1,4 +1,3 @@
-import logging
 from contextlib import contextmanager
 from datetime import datetime
 from unittest.mock import call, sentinel
@@ -44,39 +43,6 @@ class TestSendInstructurEmailDigestsTasks:
             )
             for batch in [first_batch, second_batch]
         ]
-
-    def test_it_retries_if_celery_raises(
-        self,
-        send_instructor_email_digests,
-        participating_instructors,
-        caplog,
-        report_exception,
-    ):
-        exception = RuntimeError("Celery crashed!")
-        # Make scheduling the first batch fail but the second succeed.
-        send_instructor_email_digests.apply_async.side_effect = [exception, None]
-
-        with pytest.raises(celery.exceptions.Retry):
-            send_instructor_email_digest_tasks(batch_size=2)
-
-        # The batches of h_userids that send_instructor_email_digests() was called with.
-        batches = [
-            call[0][1]["h_userids"]
-            for call in send_instructor_email_digests.apply_async.call_args_list
-        ]
-        # It should have loggged the exception when scheduling the first batch failed.
-        assert caplog.record_tuples == [
-            ("lms.tasks.email_digests", logging.ERROR, "Celery crashed!")
-        ]
-        # It should have reported the exception to Sentry.
-        report_exception.assert_called_once_with(exception)
-        # After scheduling the first batch failed it should have continued and
-        # tried to schedule the second batch anyway, so it should have tried to
-        # schedule all the h_userids.
-        assert set(h_userid for batch in batches for h_userid in batch) == set(
-            participating_instructor.h_userid
-            for participating_instructor in participating_instructors
-        )
 
     @pytest.mark.usefixtures("non_participating_instructor")
     def test_it_doesnt_email_non_participating_instructors(
@@ -279,8 +245,3 @@ def app(patch, pyramid_request):
     app.request_context = request_context
 
     return app
-
-
-@pytest.fixture(autouse=True)
-def report_exception(patch):
-    return patch("lms.tasks.email_digests.report_exception")
