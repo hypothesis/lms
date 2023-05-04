@@ -13,6 +13,14 @@ describe('youtube', () => {
         url: 'https://www.youtube.com/embed/embeddedId',
         expectedId: 'embeddedId',
       },
+      {
+        url: 'https://www.youtube.com/shorts/shortId',
+        expectedId: 'shortId',
+      },
+      {
+        url: 'https://www.youtube.com/live/liveId?feature=share',
+        expectedId: 'liveId',
+      },
     ].forEach(({ url, expectedId }) => {
       it('resolves ID from valid YouTube video', () => {
         assert.equal(videoIdFromYouTubeUrl(url), expectedId);
@@ -54,6 +62,9 @@ describe('youtube', () => {
       'https://www.youtube.com/watch?v=cKxqzvzlnKU',
       'https://www.youtube.com/watch?channel=hypothesis&v=cKxqzvzlnKU',
       'https://www.youtube.com/embed/cKxqzvzlnKU',
+      'https://www.youtube.com/shorts/cKxqzvzlnKU',
+      'https://www.youtube.com/live/cKxqzvzlnKU',
+      'https://www.youtube.com/live/cKxqzvzlnKU?feature=share',
     ].forEach(url => {
       it('does not throw when provided URL is a valid YouTube video', () => {
         assert.doesNotThrow(() => validateYouTubeVideoUrl(url));

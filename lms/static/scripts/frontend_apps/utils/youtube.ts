@@ -12,9 +12,11 @@ export function videoIdFromYouTubeUrl(youTubeUrl: string): string | undefined {
   //  * youtu.be/{id}
   //  * {domain}/watch?v={id}[...]
   //  * {domain}/embed/{id}[...]
+  //  * {domain}/shorts/{id}[...]
+  //  * {domain}/live/{id}[...]
   // See https://stackoverflow.com/a/9102270 for details
   const match = youTubeUrl.match(
-    /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
+    /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|shorts\/|live\/|watch\?v=|&v=)([^#&?]*).*/
   );
 
   return match?.[2];
