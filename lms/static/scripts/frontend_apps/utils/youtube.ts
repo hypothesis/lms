@@ -68,7 +68,7 @@ export function useYouTubeVideoInfo(videoId?: string) {
         alt: 'Youtube video',
         image: 'https://i.ytimg.com/vi/EU6TDnV5osM/mqdefault.jpg',
         isLoading: false,
-        ratio: 'landscape',
+        orientation: 'landscape',
       });
       setMetadata({
         title:

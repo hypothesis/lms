@@ -81,7 +81,7 @@ export default function YouTubePicker({
         urlPlaceholder="e.g. https://www.youtube.com/watch?v=cKxqzvzlnKU"
         label="Enter the URL of a YouTube video:"
         defaultURL={defaultURL}
-        thumbnail={thumbnail ?? { ratio: 'landscape' }}
+        thumbnail={thumbnail ?? { orientation: 'landscape' }}
       >
         {metadata && (
           <div className="flex flex-row space-x-2" data-testid="selected-book">

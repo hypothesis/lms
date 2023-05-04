@@ -15,7 +15,7 @@ export type ThumbnailData = {
   image?: string;
   alt?: string;
   isLoading?: boolean;
-  ratio?: 'square' | 'landscape';
+  orientation?: 'square' | 'landscape';
 };
 
 export type URLFormWithPreviewProps = {
@@ -48,7 +48,7 @@ export default function URLFormWithPreview({
       onChange();
     }
   };
-  const ratio = thumbnail?.ratio ?? 'square';
+  const ratio = thumbnail?.orientation ?? 'square';
 
   return (
     <div className="flex flex-row space-x-2">
@@ -101,7 +101,7 @@ export default function URLFormWithPreview({
             icon={ArrowRightIcon}
             onClick={onChange}
             variant="dark"
-            title="Find article"
+            title="Find video"
           />
         </InputGroup>
 
