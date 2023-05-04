@@ -17,6 +17,11 @@ on:
       - '**/.gitignore'
       - '*.md'
       - 'tox.ini'
+      - 'rollup-tests.config.mjs'
+      - '**/test/*'
+      - '**/test-util/*'
+      - '**/bootstrap.js'
+      - '**/karma.config.js'
 jobs:
   ci:
     name: CI
