@@ -635,4 +635,25 @@ describe('ContentSelector', () => {
       });
     });
   });
+
+  describe('YouTube picker', () => {
+    it('renders YouTube picker button if enabled', () => {
+      fakeConfig.filePicker.youtube.enabled = true;
+      const wrapper = renderContentSelector();
+      assert.isTrue(wrapper.exists('Button[data-testid="youtube-button"]'));
+    });
+
+    it('shows YouTube picker when YouTube button is clicked', () => {
+      fakeConfig.filePicker.youtube.enabled = true;
+      const onSelectContent = sinon.stub();
+      const wrapper = renderContentSelector({ onSelectContent });
+
+      const button = wrapper.find('Button[data-testid="youtube-button"]');
+      interact(wrapper, () => {
+        button.props().onClick();
+      });
+
+      assert.isTrue(wrapper.exists('YouTubePicker'));
+    });
+  });
 });
