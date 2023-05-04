@@ -84,7 +84,7 @@ export default function YouTubePicker({
         thumbnail={thumbnail ?? { orientation: 'landscape' }}
       >
         {metadata && (
-          <div className="flex flex-row space-x-2" data-testid="selected-book">
+          <div className="flex flex-row space-x-2" data-testid="selected-video">
             <CheckIcon className="text-green-success" />
             <div className="grow font-bold italic">
               {metadata.title} ({metadata.channel})

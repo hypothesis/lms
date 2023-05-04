@@ -54,6 +54,7 @@ export function validateYouTubeVideoUrl(youTubeUrl: string): string {
   return videoId;
 }
 
+/* istanbul ignore next */
 export function useYouTubeVideoInfo(videoId?: string) {
   // TODO Use dummy data for now, until a proper API has been implemented
   const [thumbnail, setThumbnail] = useState<ThumbnailData>();
