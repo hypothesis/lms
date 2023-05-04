@@ -3,7 +3,6 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from typing import Optional, Tuple
 
-from h_pyramid_sentry import report_exception
 from sqlalchemy import distinct, func, or_, select
 from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.orm import aliased
@@ -23,14 +22,6 @@ from lms.services.mailchimp import EmailRecipient, EmailSender
 from lms.tasks.mailchimp import send_template
 
 LOG = logging.getLogger(__name__)
-
-
-class SendDigestsError(Exception):
-    """An error when sending a batch of email digests."""
-
-    def __init__(self, errors):
-        super().__init__(errors)
-        self.errors = errors
 
 
 class DigestService:
@@ -63,8 +54,6 @@ class DigestService:
 
         context = DigestContext(self._db, audience, annotations)
 
-        errors = {}
-
         for unified_user in context.unified_users:
             digest = context.instructor_digest(unified_user.h_userid)
 
@@ -86,26 +75,16 @@ class DigestService:
             else:
                 task_done_key = None
 
-            try:
-                send_template.delay(
-                    task_done_key=task_done_key,
-                    template_name="instructor-email-digest",
-                    sender=asdict(self._sender),
-                    recipient=asdict(
-                        EmailRecipient(to_email, unified_user.display_name)
-                    ),
-                    template_vars=digest,
-                    unsubscribe_url=self._email_unsubscribe_service.unsubscribe_url(
-                        unified_user.h_userid, EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST
-                    ),
-                )
-            except Exception as err:  # pylint:disable=broad-exception-caught
-                errors[unified_user.h_userid] = err
-                LOG.exception(err)
-                report_exception(err)
-
-        if errors:
-            raise SendDigestsError(errors)
+            send_template.delay(
+                task_done_key=task_done_key,
+                template_name="instructor-email-digest",
+                sender=asdict(self._sender),
+                recipient=asdict(EmailRecipient(to_email, unified_user.display_name)),
+                template_vars=digest,
+                unsubscribe_url=self._email_unsubscribe_service.unsubscribe_url(
+                    unified_user.h_userid, EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST
+                ),
+            )
 
 
 @dataclass(frozen=True)
