@@ -1,12 +1,7 @@
 import { Button, CheckIcon, ModalDialog } from '@hypothesis/frontend-shared';
 import { useRef, useState } from 'preact/hooks';
 
-import { InvalidArgumentError } from '../errors';
-import {
-  useYouTubeVideoInfo,
-  validateYouTubeVideoURL,
-  videoIdFromYouTubeURL,
-} from '../utils/youtube';
+import { useYouTubeVideoInfo, videoIdFromYouTubeURL } from '../utils/youtube';
 import URLFormWithPreview from './URLFormWithPreview';
 
 export type YouTubePickerProps = {
@@ -25,25 +20,21 @@ export default function YouTubePicker({
 }: YouTubePickerProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [videoId, setVideoId] = useState(
-    defaultURL && videoIdFromYouTubeURL(defaultURL)
+    (defaultURL && videoIdFromYouTubeURL(defaultURL)) || null
   );
   const [error, setError] = useState<string>();
   const { thumbnail, metadata } = useYouTubeVideoInfo(videoId);
 
   const verifyURL = (inputURL: string) => {
-    try {
-      const videoId = validateYouTubeVideoURL(inputURL);
-
+    const videoId = videoIdFromYouTubeURL(inputURL);
+    if (videoId) {
       setVideoId(videoId);
       setError(undefined);
-    } catch (e) {
-      const errorMessage =
-        e instanceof InvalidArgumentError
-          ? e.message
-          : 'Please enter a YouTube URL, e.g. "https://www.youtube.com/watch?v=cKxqzvzlnKU"';
-
-      setVideoId(undefined);
-      setError(errorMessage);
+    } else {
+      setVideoId(null);
+      setError(
+        'URL must be a YouTube video, e.g. "https://www.youtube.com/watch?v=cKxqzvzlnKU"'
+      );
     }
   };
   const confirmSelection = () => {
