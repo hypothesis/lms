@@ -128,7 +128,7 @@ describe('URLFormWithPreview', () => {
       assert.calledWith(onURLChange, 'https://example.com');
     });
 
-    it('invokes `onURLChange` when "Find video" is clicked', () => {
+    it('invokes `onURLChange` when confirm button is clicked', () => {
       const onURLChange = sinon.stub();
       const wrapper = renderComponent({ onURLChange });
       const input = wrapper.find('Input').find('input');

@@ -15,7 +15,7 @@ export function videoIdFromYouTubeURL(url: string): string | null {
   }
 
   if (
-    !parsedURL.protocol.startsWith('http') ||
+    !parsedURL.protocol.match(/^https?:$/) ||
     !['www.youtube.com', 'youtube.com', 'youtu.be'].includes(parsedURL.host)
   ) {
     return null;

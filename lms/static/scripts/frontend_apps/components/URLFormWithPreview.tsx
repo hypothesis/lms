@@ -19,34 +19,35 @@ export type ThumbnailData = {
 };
 
 export type URLFormWithPreviewProps = {
+  /** Optional extra content to be rendered together with the input and thumbnail */
   children?: ComponentChildren;
+  /** An error message to highlight that something went wrong */
   error?: string;
+  /** Thumbnail info to be displayed, if known */
   thumbnail?: ThumbnailData;
+  /** Reference to be set on the URL input */
   inputRef: RefObject<HTMLInputElement | undefined>;
-  urlPlaceholder?: string;
-  onURLChange: (inputUrl: string) => void;
+  /** Invoked every time the input URL changes, with the value that was input */
+  onURLChange: (inputURL: string) => void;
   label: string;
+  urlPlaceholder?: string;
   defaultURL?: string;
 };
 
 /**
- * Wraps a URL input and a Thumbnail were some kind of preview related with that URL is supposed to be displayed.
- * It also allows to optionally provide the next props:
- *  * `children`: Optional extra content that will be rendered right below the URL input.
- *  * `error`: An error message that will be rendered right below the URL input.
- *             Text is in red and will include a CancelIcon.
- *  * `defaultURL`: An initial value for the URL input. Mostly useful for tests.
+ * Wraps a URL input and a preview of the content available at the entered URL.
  */
 export default function URLFormWithPreview({
   children,
   error,
   thumbnail,
   inputRef,
-  urlPlaceholder,
   onURLChange,
   label,
+  urlPlaceholder,
   defaultURL,
 }: URLFormWithPreviewProps) {
+  const orientation = thumbnail?.orientation ?? 'square';
   const inputId = useUniqueId('url');
   const onChange = () => onURLChange(inputRef.current!.value);
   const onKeyDown = (event: KeyboardEvent) => {
@@ -56,7 +57,6 @@ export default function URLFormWithPreview({
       onChange();
     }
   };
-  const ratio = thumbnail?.orientation ?? 'square';
 
   return (
     <div className="flex flex-row space-x-2">
@@ -66,15 +66,15 @@ export default function URLFormWithPreview({
           // space in the containing Modal
           'w-[200px] min-w-[200px]',
           {
-            'h-[200px]': ratio === 'square', // Default
-            'h-[120px]': ratio === 'landscape',
+            'h-[200px]': orientation === 'square', // Default
+            'h-[120px]': orientation === 'landscape',
           }
         )}
       >
         <Thumbnail
           size="sm"
           loading={thumbnail?.isLoading}
-          ratio={ratio === 'square' ? '1/1' : '16/9'}
+          ratio={orientation === 'square' ? '1/1' : '16/9'}
         >
           {thumbnail?.image && (
             <img
@@ -109,7 +109,7 @@ export default function URLFormWithPreview({
             icon={ArrowRightIcon}
             onClick={onChange}
             variant="dark"
-            title="Find URL"
+            title="Confirm URL"
           />
         </InputGroup>
 
