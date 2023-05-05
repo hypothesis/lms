@@ -7,7 +7,7 @@ import { InvalidArgumentError } from '../errors';
  * Tries to resolve the video ID from a YouTube URL
  * @return Undefined if the ID could not be resolved
  */
-export function videoIdFromYouTubeUrl(youTubeUrl: string): string | undefined {
+export function videoIdFromYouTubeURL(url: string): string | undefined {
   // This regexp tries to match the video ID in the next possible URLs
   //  * youtu.be/{id}
   //  * {domain}/watch?v={id}[...]
@@ -15,7 +15,7 @@ export function videoIdFromYouTubeUrl(youTubeUrl: string): string | undefined {
   //  * {domain}/shorts/{id}[...]
   //  * {domain}/live/{id}[...]
   // See https://stackoverflow.com/a/9102270 for details
-  const match = youTubeUrl.match(
+  const match = url.match(
     /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|shorts\/|live\/|watch\?v=|&v=)([^#&?]*).*/
   );
 
@@ -26,25 +26,27 @@ export function videoIdFromYouTubeUrl(youTubeUrl: string): string | undefined {
  * Tries to match provided URL against known YouTube video URL formats,
  * throwing an error in case of invalid YouTube URL
  */
-export function validateYouTubeVideoUrl(youTubeUrl: string): string {
-  let url;
+export function validateYouTubeVideoURL(url: string): string {
+  let parsedURL;
   try {
-    url = new URL(youTubeUrl);
+    parsedURL = new URL(url);
   } catch (e) {
     throw new InvalidArgumentError(
       'Please enter a YouTube URL, e.g. "https://www.youtube.com/watch?v=cKxqzvzlnKU"'
     );
   }
 
-  if (!url.protocol.startsWith('https')) {
+  if (!parsedURL.protocol.startsWith('https')) {
     throw new InvalidArgumentError('Please use a URL that starts with "https"');
   }
 
-  if (!['www.youtube.com', 'youtube.com', 'youtu.be'].includes(url.host)) {
+  if (
+    !['www.youtube.com', 'youtube.com', 'youtu.be'].includes(parsedURL.host)
+  ) {
     throw new InvalidArgumentError('Please use a YouTube URL');
   }
 
-  const videoId = videoIdFromYouTubeUrl(youTubeUrl);
+  const videoId = videoIdFromYouTubeURL(url);
   if (!videoId) {
     throw new InvalidArgumentError(
       'Please, enter a URL for a specific YouTube video'

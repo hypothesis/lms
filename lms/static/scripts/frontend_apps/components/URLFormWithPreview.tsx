@@ -20,8 +20,8 @@ export type ThumbnailData = {
 
 export type URLFormWithPreviewProps = {
   children?: ComponentChildren;
-  thumbnail?: ThumbnailData;
   error?: string;
+  thumbnail?: ThumbnailData;
   inputRef: RefObject<HTMLInputElement | undefined>;
   urlPlaceholder?: string;
   onURLChange: (inputUrl: string) => void;
@@ -29,10 +29,18 @@ export type URLFormWithPreviewProps = {
   defaultURL?: string;
 };
 
+/**
+ * Wraps a URL input and a Thumbnail were some kind of preview related with that URL is supposed to be displayed.
+ * It also allows to optionally provide the next props:
+ *  * `children`: Optional extra content that will be rendered right below the URL input.
+ *  * `error`: An error message that will be rendered right below the URL input.
+ *             Text is in red and will include a CancelIcon.
+ *  * `defaultURL`: An initial value for the URL input. Mostly useful for tests.
+ */
 export default function URLFormWithPreview({
   children,
-  thumbnail,
   error,
+  thumbnail,
   inputRef,
   urlPlaceholder,
   onURLChange,
@@ -101,7 +109,7 @@ export default function URLFormWithPreview({
             icon={ArrowRightIcon}
             onClick={onChange}
             variant="dark"
-            title="Find video"
+            title="Find URL"
           />
         </InputGroup>
 

@@ -4,8 +4,8 @@ import { useRef, useState } from 'preact/hooks';
 import { InvalidArgumentError } from '../errors';
 import {
   useYouTubeVideoInfo,
-  validateYouTubeVideoUrl,
-  videoIdFromYouTubeUrl,
+  validateYouTubeVideoURL,
+  videoIdFromYouTubeURL,
 } from '../utils/youtube';
 import URLFormWithPreview from './URLFormWithPreview';
 
@@ -25,14 +25,14 @@ export default function YouTubePicker({
 }: YouTubePickerProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [videoId, setVideoId] = useState(
-    defaultURL && videoIdFromYouTubeUrl(defaultURL)
+    defaultURL && videoIdFromYouTubeURL(defaultURL)
   );
   const [error, setError] = useState<string>();
   const { thumbnail, metadata } = useYouTubeVideoInfo(videoId);
 
-  const verifyUrl = (inputUrl: string) => {
+  const verifyURL = (inputURL: string) => {
     try {
-      const videoId = validateYouTubeVideoUrl(inputUrl);
+      const videoId = validateYouTubeVideoURL(inputURL);
 
       setVideoId(videoId);
       setError(undefined);
@@ -75,7 +75,7 @@ export default function YouTubePicker({
       ]}
     >
       <URLFormWithPreview
-        onURLChange={verifyUrl}
+        onURLChange={verifyURL}
         error={error}
         inputRef={inputRef}
         urlPlaceholder="e.g. https://www.youtube.com/watch?v=cKxqzvzlnKU"

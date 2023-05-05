@@ -1,7 +1,7 @@
-import { validateYouTubeVideoUrl, videoIdFromYouTubeUrl } from '../youtube';
+import { validateYouTubeVideoURL, videoIdFromYouTubeURL } from '../youtube';
 
 describe('youtube', () => {
-  describe('videoIdFromYouTubeUrl', () => {
+  describe('videoIdFromYouTubeURL', () => {
     [
       { url: 'https://youtu.be/cKxqzvzlnKU', expectedId: 'cKxqzvzlnKU' },
       { url: 'https://www.youtube.com/watch?v=123', expectedId: '123' },
@@ -23,7 +23,7 @@ describe('youtube', () => {
       },
     ].forEach(({ url, expectedId }) => {
       it('resolves ID from valid YouTube video', () => {
-        assert.equal(videoIdFromYouTubeUrl(url), expectedId);
+        assert.equal(videoIdFromYouTubeURL(url), expectedId);
       });
     });
   });
@@ -53,7 +53,7 @@ describe('youtube', () => {
       },
     ].forEach(({ url, expectedError }) => {
       it('throws an error when provided URL is not a valid YouTube video', () => {
-        assert.throws(() => validateYouTubeVideoUrl(url), expectedError);
+        assert.throws(() => validateYouTubeVideoURL(url), expectedError);
       });
     });
 
@@ -67,7 +67,7 @@ describe('youtube', () => {
       'https://www.youtube.com/live/cKxqzvzlnKU?feature=share',
     ].forEach(url => {
       it('does not throw when provided URL is a valid YouTube video', () => {
-        assert.doesNotThrow(() => validateYouTubeVideoUrl(url));
+        assert.doesNotThrow(() => validateYouTubeVideoURL(url));
       });
     });
   });
