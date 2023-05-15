@@ -11,11 +11,6 @@ describe('JSTORPicker', () => {
   // Map of API path => fetch result state setter.
   let setAPIFetchResult;
 
-  function interact(wrapper, callback) {
-    act(callback);
-    wrapper.update();
-  }
-
   function simulateAPIFetch(wrapper, path, data, error = null) {
     act(() => {
       setAPIFetchResult[path]({
@@ -27,10 +22,14 @@ describe('JSTORPicker', () => {
     wrapper.update();
   }
 
-  function simulateMetadataFetch(wrapper, title, otherMetadata = {}) {
+  function simulateMetadataFetch(
+    wrapper,
+    title = undefined,
+    otherMetadata = {}
+  ) {
     simulateAPIFetch(wrapper, '/api/jstor/articles/1234', {
       item: {
-        title: title,
+        title,
         subtitle: 'The sequel',
       },
       content_status: 'available',
@@ -80,65 +79,34 @@ describe('JSTORPicker', () => {
     $imports.$restore();
   });
 
-  const getInput = wrapper => wrapper.find('Input').find('input');
-
-  // Set the value of the input field but do not fire any events
-  const setURL = (wrapper, url) => {
-    const input = getInput(wrapper);
-    input.getDOMNode().value = url;
-  };
+  const getForm = wrapper => wrapper.find('URLFormWithPreview');
 
   // Set the value of the input field AND fire `change` event
   const updateURL = (wrapper, url = 'foo') => {
-    setURL(wrapper, url);
-    const input = getInput(wrapper);
-    input.simulate('change');
+    const form = getForm(wrapper);
+    form.props().onURLChange(url);
+    wrapper.update();
   };
-
-  describe('initial focus', () => {
-    let container;
-
-    beforeEach(() => {
-      container = document.createElement('div');
-      document.body.appendChild(container);
-    });
-
-    afterEach(() => {
-      container.remove();
-    });
-
-    it('focuses the URL text input element', () => {
-      const beforeFocused = document.activeElement;
-
-      const wrapper = mount(<JSTORPicker onSelectURL={sinon.stub()} />, {
-        attachTo: container,
-      });
-
-      const focused = document.activeElement;
-      const input = wrapper.find('input[name="jstorURL"]').getDOMNode();
-
-      assert.notEqual(beforeFocused, focused);
-      assert.equal(focused, input);
-    });
-  });
 
   it('pre-fills input field with `defaultArticle` value and fetches article metadata/thumbnail', () => {
     const wrapper = mount(<JSTORPicker defaultArticle="1234" />);
 
-    // Input field should use existing article ID.
-    const input = wrapper.find('input[name="jstorURL"]').getDOMNode();
-    assert.equal(input.value, '1234');
+    // Form should use existing article ID.
+    assert.equal(getForm(wrapper).prop('defaultURL'), '1234');
 
     // The metadata and thumbnail for the existing article should be fetched.
     assert.calledWith(fakeArticleIdFromUserInput, '1234');
     simulateMetadataFetch(wrapper, 'Test article');
     simulateThumbnailFetch(wrapper);
     assert.include(wrapper.text(), 'Test article');
-    assert.equal(wrapper.find('img').prop('src'), 'data:thumbnail-image-data');
+    assert.equal(
+      getForm(wrapper).prop('thumbnail').image,
+      'data:thumbnail-image-data'
+    );
   });
 
-  context('entering, changing and submitting article URL', () => {
-    it('validates entered URL when the value of the text input changes', () => {
+  context('submitting article URL', () => {
+    it('validates entered URL when changed', () => {
       const wrapper = renderJSTORPicker();
 
       updateURL(wrapper, 'foo');
@@ -164,55 +132,22 @@ describe('JSTORPicker', () => {
       );
     });
 
-    it('validates entered URL when input is focused and "Enter" is pressed', () => {
-      const wrapper = renderJSTORPicker();
-      const input = getInput(wrapper);
-      const keyEvent = new Event('keydown');
-      keyEvent.key = 'Enter';
-
-      setURL(wrapper, 'https://www.jstor.org/stable/1234');
-
-      input.getDOMNode().dispatchEvent(keyEvent);
-
-      assert.calledOnce(fakeArticleIdFromUserInput);
-      assert.calledWith(
-        fakeArticleIdFromUserInput,
-        'https://www.jstor.org/stable/1234'
-      );
-    });
-
-    it('confirms the validated URL if "Enter" is pressed subsequently', () => {
+    it('confirms the validated URL if select button is clicked', () => {
       const onSelectURL = sinon.stub();
-      const wrapper = renderJSTORPicker({ onSelectURL });
-      const input = getInput(wrapper);
-      const keyEvent = new Event('keydown');
-      keyEvent.key = 'Enter';
-
-      setURL(wrapper, 'https://www.jstor.org/stable/1234');
-
-      // First enter press will validate URL
-      interact(wrapper, () => {
-        input.getDOMNode().dispatchEvent(keyEvent);
+      const wrapper = renderJSTORPicker({
+        onSelectURL,
+        defaultArticle: '1234',
       });
-      assert.calledOnce(fakeArticleIdFromUserInput);
 
       simulateMetadataFetch(wrapper, 'test title');
 
-      // Enter will submit if terms are checked and there is valid metadata fetched
-      input.getDOMNode().dispatchEvent(keyEvent);
+      wrapper
+        .find('Button[data-testid="select-button"]')
+        .find('button')
+        .simulate('click');
 
       assert.calledOnce(onSelectURL);
       assert.calledWith(onSelectURL, 'jstor://1234');
-    });
-
-    it('validates entered URL when `IconButton` is clicked', () => {
-      const wrapper = renderJSTORPicker();
-      setURL(wrapper, 'foo');
-
-      wrapper.find('IconButton button[title="Find article"]').simulate('click');
-
-      assert.calledOnce(fakeArticleIdFromUserInput);
-      assert.calledWith(fakeArticleIdFromUserInput, 'foo');
     });
 
     it('does not attempt to check the URL format if the field value is empty', () => {
@@ -232,33 +167,31 @@ describe('JSTORPicker', () => {
       const wrapper = renderJSTORPicker();
       updateURL(wrapper, 'foo');
 
-      const errorMessage = wrapper.find('[data-testid="error-message"]');
+      const errorMessage = getForm(wrapper).prop('error');
 
-      assert.isTrue(errorMessage.exists());
       assert.include(
-        errorMessage.text(),
+        errorMessage,
         "That doesn't look like a JSTOR article link or ID"
       );
-      assert.isTrue(errorMessage.find('CancelIcon').exists());
     });
   });
 
   it('displays metadata and thumbnail of selected article', () => {
-    const wrapper = renderJSTORPicker();
+    const wrapper = renderJSTORPicker({ defaultArticle: '1234' });
 
-    updateURL(wrapper);
     simulateMetadataFetch(wrapper, 'Some interesting article');
     simulateThumbnailFetch(wrapper);
 
     assert.include(wrapper.text(), 'Some interesting article: The sequel');
-    const thumbnail = wrapper.find('img');
-    assert.equal(thumbnail.prop('src'), 'data:thumbnail-image-data');
+    assert.equal(
+      getForm(wrapper).prop('thumbnail').image,
+      'data:thumbnail-image-data'
+    );
   });
 
   it('displays error if metadata cannot be fetched', () => {
-    const wrapper = renderJSTORPicker();
+    const wrapper = renderJSTORPicker({ defaultArticle: '1234' });
 
-    updateURL(wrapper);
     simulateAPIFetch(
       wrapper,
       '/api/jstor/articles/1234',
@@ -266,30 +199,25 @@ describe('JSTORPicker', () => {
       new Error('No such article')
     );
 
-    const errorMessage = wrapper.find('[data-testid="error-message"]');
-    assert.isTrue(errorMessage.exists());
+    const errorMessage = getForm(wrapper).prop('error');
     assert.include(
-      errorMessage.text(),
+      errorMessage,
       'Unable to fetch article details: No such article'
     );
   });
 
   it('clears metadata/thumbnail if pending URL is changed', () => {
-    const wrapper = renderJSTORPicker();
+    const wrapper = renderJSTORPicker({ defaultArticle: '1234' });
 
-    updateURL(wrapper);
     simulateMetadataFetch(wrapper);
     simulateThumbnailFetch(wrapper);
 
-    assert.isTrue(wrapper.exists('img'));
+    assert.isDefined(getForm(wrapper).prop('thumbnail').image);
     assert.isTrue(wrapper.exists('[data-testid="selected-book"]'));
 
-    const input = wrapper.find('Input');
-    interact(wrapper, () => {
-      input.prop('onInput')();
-    });
+    updateURL(wrapper, '');
 
-    assert.isFalse(wrapper.exists('img'));
+    assert.isUndefined(getForm(wrapper).prop('thumbnail').image);
     assert.isFalse(wrapper.exists('[data-testid="selected-book"]'));
   });
 
@@ -307,7 +235,7 @@ describe('JSTORPicker', () => {
 
     // Since the chosen item is usable (eg. not a collection), no error should
     // be displayed.
-    assert.isFalse(wrapper.exists('[data-testid="error-message"]'));
+    assert.isUndefined(getForm(wrapper).prop('error'));
   });
 
   [
@@ -334,9 +262,22 @@ describe('JSTORPicker', () => {
 
       assert.isTrue(wrapper.find(buttonSelector).props().disabled);
 
-      const errorMessage = wrapper.find('[data-testid="error-message"]');
-      assert.isTrue(errorMessage.exists());
-      assert.equal(errorMessage.text().trim(), expectedError);
+      const errorMessage = getForm(wrapper).prop('error');
+      assert.equal(errorMessage.trim(), expectedError);
     });
+  });
+
+  it("disables submit button when the input's state becomes dirty", () => {
+    const wrapper = renderJSTORPicker();
+    const buttonSelector = 'Button[data-testid="select-button"]';
+
+    updateURL(wrapper);
+    simulateMetadataFetch(wrapper);
+    assert.isFalse(wrapper.find(buttonSelector).props().disabled);
+
+    getForm(wrapper).props().onInput();
+    wrapper.update();
+
+    assert.isTrue(wrapper.find(buttonSelector).props().disabled);
   });
 });

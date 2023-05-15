@@ -1,24 +1,17 @@
 import {
-  ArrowRightIcon,
   Button,
-  CancelIcon,
   CheckIcon,
-  IconButton,
-  Input,
-  InputGroup,
   Link,
   ModalDialog,
-  Thumbnail,
 } from '@hypothesis/frontend-shared';
-import classnames from 'classnames';
 import { useRef, useState } from 'preact/hooks';
 
 import type { JSTORMetadata, JSTORThumbnail } from '../api-types';
 import { formatErrorMessage } from '../errors';
 import { urlPath, useAPIFetch } from '../utils/api';
 import type { FetchResult } from '../utils/fetch';
-import { useUniqueId } from '../utils/hooks';
 import { articleIdFromUserInput, jstorURLFromArticleId } from '../utils/jstor';
+import URLFormWithPreview from './URLFormWithPreview';
 
 export type JSTORPickerProps = {
   /**
@@ -75,7 +68,6 @@ export default function JSTORPicker({
   const inputRef = useRef<HTMLInputElement | null>(null);
   // The last confirmed value of the URL-entry text input
   const previousURL = useRef<string | null>(null);
-  const inputId = useUniqueId('jstor-article-id');
 
   const canConfirmSelection =
     articleId &&
@@ -87,13 +79,8 @@ export default function JSTORPicker({
       onSelectURL(jstorURLFromArticleId(articleId));
     }
   };
-
-  const onURLChange = (confirmSelectedUrl = false) => {
-    const url = inputRef.current!.value;
+  const onURLChange = (url: string) => {
     if (url && url === previousURL.current) {
-      if (confirmSelectedUrl) {
-        confirmSelection();
-      }
       return;
     }
 
@@ -114,16 +101,9 @@ export default function JSTORPicker({
     setError(null);
     setArticleId(articleId);
   };
-
-  /**
-   * Capture "Enter" keystrokes, and avoid submitting the entire parent `<form>`
-   */
-  const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      event.stopPropagation();
-      onURLChange(true /* confirmSelection */);
-    }
+  const resetArticle = () => {
+    previousURL.current = null;
+    setArticleId(null);
   };
 
   const isLoading = thumbnail.isLoading || metadata.isLoading;
@@ -150,102 +130,54 @@ export default function JSTORPicker({
         </Button>,
       ]}
     >
-      <div className="flex flex-row space-x-2">
-        <div
-          className={classnames(
-            // Negative vertical margins allow thumbnail to use up more vertical
-            // space in the containing Modal
-            '-mb-12 -mt-2 w-[200px] min-w-[200px] h-[200px]'
-          )}
-        >
-          <Thumbnail size="sm" loading={isLoading} ratio="1/1">
-            {thumbnail.data && (
-              <img
-                className={classnames(
-                  // Set up object positioning to "top". Bottom of thumbnail
-                  // image is "cropped" as necesary to fit container.
-                  'object-top'
-                )}
-                alt="article thumbnail"
-                src={thumbnail.data.image}
-              />
+      <URLFormWithPreview
+        label="Paste a link to the JSTOR article you'd like to use:"
+        urlPlaceholder="e.g. https://www.jstor.org/stable/1234"
+        confirmButtonTitle="Find article"
+        inputRef={inputRef}
+        onURLChange={onURLChange}
+        onInput={resetArticle}
+        error={renderedError}
+        defaultURL={defaultArticle}
+        thumbnail={{
+          isLoading,
+          alt: 'article thumbnail',
+          image: thumbnail.data?.image,
+        }}
+      >
+        {metadata.data && (
+          <div className="flex flex-row space-x-2" data-testid="selected-book">
+            {canConfirmSelection && (
+              <CheckIcon className="text-green-success" />
             )}
-          </Thumbnail>
-        </div>
-        <div className="space-y-2 grow flex flex-col">
-          <p>
-            <label htmlFor={inputId}>
-              Paste a link to the JSTOR article you&apos;d like to use:
-            </label>
-          </p>
-
-          <InputGroup>
-            <Input
-              defaultValue={defaultArticle}
-              elementRef={inputRef}
-              id={inputId}
-              name="jstorURL"
-              onChange={() => onURLChange()}
-              onInput={() => setArticleId(null)}
-              onKeyDown={onKeyDown}
-              placeholder="e.g. https://www.jstor.org/stable/1234"
-              spellcheck={false}
-            />
-            <IconButton
-              icon={ArrowRightIcon}
-              onClick={() => onURLChange()}
-              variant="dark"
-              title="Find article"
-            />
-          </InputGroup>
-
-          {metadata.data && (
-            <div
-              className="flex flex-row space-x-2"
-              data-testid="selected-book"
-            >
-              {canConfirmSelection && (
-                <CheckIcon className="text-green-success" />
+            <div className="grow font-bold italic">
+              {metadata.data.item.title}
+              {metadata.data.item.subtitle && (
+                <>: {metadata.data.item.subtitle}</>
               )}
-              <div className="grow font-bold italic">
-                {metadata.data.item.title}
-                {metadata.data.item.subtitle && (
-                  <>: {metadata.data.item.subtitle}</>
-                )}
-              </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {metadata.data && canConfirmSelection && (
-            <>
-              <div className="grow" />
-              <div className="self-stretch text-right px-1">
-                <label htmlFor="accept-jstor-terms" className="grow text-right">
-                  Your use of JSTOR indicates your acceptance of JSTOR&apos;s{' '}
-                  <Link
-                    classes="whitespace-nowrap"
-                    href="https://about.jstor.org/terms/"
-                    target="_blank"
-                    underline="always"
-                  >
-                    Terms and Conditions of Use.
-                  </Link>
-                </label>
-              </div>
-            </>
-          )}
-
-          {renderedError && (
-            <div
-              className="flex flex-row items-center space-x-2 text-red-error"
-              data-testid="error-message"
-            >
-              <CancelIcon />
-              <div className="grow">{renderedError}</div>
+        {metadata.data && canConfirmSelection && (
+          <>
+            <div className="grow" />
+            <div className="self-stretch text-right px-1">
+              <label htmlFor="accept-jstor-terms" className="grow text-right">
+                Your use of JSTOR indicates your acceptance of JSTOR&apos;s{' '}
+                <Link
+                  classes="whitespace-nowrap"
+                  href="https://about.jstor.org/terms/"
+                  target="_blank"
+                  underline="always"
+                >
+                  Terms and Conditions of Use.
+                </Link>
+              </label>
             </div>
-          )}
-        </div>
-      </div>
+          </>
+        )}
+      </URLFormWithPreview>
     </ModalDialog>
   );
 }
