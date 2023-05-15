@@ -177,6 +177,7 @@ class TestApplicationInstanceService:
                 "files_enabled": bool(developer_key),
             },
             "google_drive": {"files_enabled": True},
+            "hypothesis": {"instructor_email_digests_enabled": True},
         }
 
         # Things we delegate to `update_application_instance`
