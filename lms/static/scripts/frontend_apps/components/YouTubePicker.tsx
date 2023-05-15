@@ -26,6 +26,12 @@ export default function YouTubePicker({
   const { thumbnail, metadata } = useYouTubeVideoInfo(videoId);
 
   const verifyURL = (inputURL: string) => {
+    if (!inputURL) {
+      setVideoId(null);
+      setError(undefined);
+      return;
+    }
+
     const videoId = videoIdFromYouTubeURL(inputURL);
     if (videoId) {
       setVideoId(videoId);
@@ -66,11 +72,12 @@ export default function YouTubePicker({
       ]}
     >
       <URLFormWithPreview
+        label="Enter the URL of a YouTube video:"
+        urlPlaceholder="e.g. https://www.youtube.com/watch?v=cKxqzvzlnKU"
+        confirmBtnTitle="Confirm URL"
         onURLChange={verifyURL}
         error={error}
         inputRef={inputRef}
-        urlPlaceholder="e.g. https://www.youtube.com/watch?v=cKxqzvzlnKU"
-        label="Enter the URL of a YouTube video:"
         defaultURL={defaultURL}
         thumbnail={thumbnail ?? { orientation: 'landscape' }}
       >

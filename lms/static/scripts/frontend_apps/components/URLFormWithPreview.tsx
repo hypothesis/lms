@@ -30,6 +30,8 @@ export type URLFormWithPreviewProps = {
   /** Invoked every time the input URL changes, with the value that was input */
   onURLChange: (inputURL: string) => void;
   label: string;
+  /** Value to be set as "title" on the confirm button */
+  confirmBtnTitle: string;
   urlPlaceholder?: string;
   defaultURL?: string;
 };
@@ -44,6 +46,7 @@ export default function URLFormWithPreview({
   inputRef,
   onURLChange,
   label,
+  confirmBtnTitle,
   urlPlaceholder,
   defaultURL,
 }: URLFormWithPreviewProps) {
@@ -101,6 +104,7 @@ export default function URLFormWithPreview({
             id={inputId}
             name="URL"
             onChange={onChange}
+            onInput={() => onURLChange('')}
             onKeyDown={onKeyDown}
             placeholder={urlPlaceholder}
             spellcheck={false}
@@ -109,7 +113,7 @@ export default function URLFormWithPreview({
             icon={ArrowRightIcon}
             onClick={onChange}
             variant="dark"
-            title="Confirm URL"
+            title={confirmBtnTitle}
           />
         </InputGroup>
 
