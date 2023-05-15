@@ -12,6 +12,7 @@ import type { ErrorInfo } from './FilePickerApp';
 import JSTORPicker from './JSTORPicker';
 import LMSFilePicker from './LMSFilePicker';
 import URLPicker from './URLPicker';
+import YouTubePicker from './YouTubePicker';
 
 type DialogType =
   | 'blackboardFile'
@@ -20,6 +21,7 @@ type DialogType =
   | 'jstor'
   | 'url'
   | 'vitalSourceBook'
+  | 'youtube'
   | null;
 
 export type ContentSelectorProps = {
@@ -80,6 +82,7 @@ export default function ContentSelector({
         redirectURI: oneDriveRedirectURI,
       },
       vitalSource: { enabled: vitalSourceEnabled },
+      youtube: { enabled: youtubeEnabled },
     },
   } = useConfig(['filePicker']);
 
@@ -245,6 +248,9 @@ export default function ContentSelector({
         />
       );
       break;
+    case 'youtube':
+      dialog = <YouTubePicker onCancel={cancelDialog} onSelectURL={() => {}} />;
+      break;
     default:
       dialog = null;
   }
@@ -361,6 +367,15 @@ export default function ContentSelector({
               data-testid="vitalsource-button"
             >
               Select book from VitalSource
+            </Button>
+          )}
+          {youtubeEnabled && (
+            <Button
+              onClick={() => selectDialog('youtube')}
+              variant="primary"
+              data-testid="youtube-button"
+            >
+              Select video from YouTube
             </Button>
           )}
         </div>
