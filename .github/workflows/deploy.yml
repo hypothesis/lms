@@ -8,12 +8,12 @@ on:
     branches:
       - main
     paths-ignore:
-      - '.cookiecutter/*'
-      - '.github/*'
-      - 'docs/*'
+      - '.cookiecutter/**'
+      - '.github/**'
+      - 'docs/**'
       - 'requirements/*'
       - '!requirements/requirements.txt'
-      - 'tests/*'
+      - 'tests/**'
       - '**/.gitignore'
       - '*.md'
       - 'tox.ini'
