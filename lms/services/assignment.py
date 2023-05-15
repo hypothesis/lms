@@ -43,6 +43,9 @@ class AssignmentService:
 
         for param in resource_link_history_params:
             if historical_resource_link_id := lti_params.get(param):
+                # History might have a long chain of comma separated
+                # copies of copies, take the most recent one.
+                historical_resource_link_id = historical_resource_link_id.split(",")[0]
                 if historical_assignment := self.get_assignment(
                     tool_consumer_instance_guid=lti_params.get(
                         "tool_consumer_instance_guid"
