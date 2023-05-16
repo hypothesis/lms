@@ -17,9 +17,7 @@ def service_factory(_context, request):
         # conveniently available unique user ID in a standardized format and
         # doesn't contain private info (email addresses etc.).
         headers={
-            "Tracking-User-ID": request.lti_user.h_user.username
-            if request.lti_user
-            else None,
+            "Tracking-User-ID": request.lti_user.h_user.username,
             "Tracking-User-Agent": request.headers.get("User-Agent", None),
         },
     )

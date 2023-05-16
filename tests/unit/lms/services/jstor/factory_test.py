@@ -7,14 +7,8 @@ from lms.services.jstor.factory import service_factory
 
 class TestServiceFactory:
     @pytest.mark.parametrize("user_agent", ("Example UA", None))
-    @pytest.mark.parametrize("with_user", (True, False))
     def test_it(
-        self,
-        pyramid_request,
-        application_instance_service,
-        JSTORService,
-        user_agent,
-        with_user,
+        self, pyramid_request, application_instance_service, JSTORService, user_agent
     ):
         ai_settings = application_instance_service.get_current.return_value.settings
         ai_settings.set("jstor", "enabled", sentinel.jstor_enabled)
@@ -26,8 +20,6 @@ class TestServiceFactory:
 
         if user_agent:
             pyramid_request.headers["User-Agent"] = user_agent
-        if not with_user:
-            pyramid_request.lti_user = None
 
         svc = service_factory(sentinel.context, pyramid_request)
 
@@ -37,9 +29,7 @@ class TestServiceFactory:
             enabled=sentinel.jstor_enabled,
             site_code=sentinel.jstor_site_code,
             headers={
-                "Tracking-User-ID": pyramid_request.lti_user.h_user.username
-                if with_user
-                else None,
+                "Tracking-User-ID": pyramid_request.lti_user.h_user.username,
                 "Tracking-User-Agent": user_agent,
             },
         )
