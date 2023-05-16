@@ -82,3 +82,12 @@ export type JSTORMetadata = {
 export type JSTORThumbnail = {
   image: string;
 };
+
+/**
+ * Response for an `/api/youtube/videos/{video_id}` call.
+ */
+export type YouTubeMetadata = {
+  title: string;
+  channel: string;
+  image: string;
+};

@@ -27,7 +27,7 @@ export default function YouTubePicker({
     setVideoId(null);
     setError(undefined);
   };
-  const { thumbnail, metadata } = useYouTubeVideoInfo(videoId);
+  const videoInfo = useYouTubeVideoInfo(videoId);
 
   const verifyURL = (inputURL: string) => {
     const videoId = videoIdFromYouTubeURL(inputURL);
@@ -77,13 +77,18 @@ export default function YouTubePicker({
         urlPlaceholder="e.g. https://www.youtube.com/watch?v=cKxqzvzlnKU"
         label="Enter the URL of a YouTube video:"
         defaultURL={defaultURL}
-        thumbnail={thumbnail ?? { orientation: 'landscape' }}
+        thumbnail={{
+          isLoading: videoInfo.isLoading,
+          image: videoInfo.image,
+          alt: 'Youtube video',
+          orientation: 'landscape',
+        }}
       >
-        {metadata && (
+        {videoInfo.title && videoInfo.channel && (
           <div className="flex flex-row space-x-2" data-testid="selected-video">
             <CheckIcon className="text-green-success" />
             <div className="grow font-bold italic">
-              {metadata.title} ({metadata.channel})
+              {videoInfo.title} ({videoInfo.channel})
             </div>
           </div>
         )}

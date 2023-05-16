@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'preact/hooks';
-
-import type { ThumbnailData } from '../components/URLFormWithPreview';
+import type { YouTubeMetadata } from '../api-types';
+import { urlPath, useAPIFetch } from './api';
 
 /**
  * Tries to resolve the video ID from a YouTube URL
@@ -34,33 +33,23 @@ export function videoIdFromYouTubeURL(url: string): string | null {
   return match?.[2] ?? null;
 }
 
+type YouTubeVideoInfo = {
+  isLoading: boolean;
+  image?: string;
+  title?: string;
+  channel?: string;
+};
+
 /* istanbul ignore next */
-export function useYouTubeVideoInfo(videoId: string | null) {
-  // TODO Use dummy data for now, until a proper API has been implemented
-  const [thumbnail, setThumbnail] = useState<ThumbnailData>();
-  const [metadata, setMetadata] = useState<{
-    title: string;
-    channel: string;
-  }>();
+export function useYouTubeVideoInfo(videoId: string | null): YouTubeVideoInfo {
+  const metadata = useAPIFetch<YouTubeMetadata>(
+    videoId ? urlPath`/api/youtube/videos/${videoId}` : null
+  );
 
-  useEffect(() => {
-    if (videoId) {
-      setThumbnail({
-        alt: 'Youtube video',
-        image: 'https://i.ytimg.com/vi/EU6TDnV5osM/mqdefault.jpg',
-        isLoading: false,
-        orientation: 'landscape',
-      });
-      setMetadata({
-        title:
-          'Hypothesis and Atlassian New Partnership Announced at the Team23 Conference',
-        channel: 'Hypothesis',
-      });
-    } else {
-      setThumbnail(undefined);
-      setMetadata(undefined);
-    }
-  }, [videoId]);
-
-  return { thumbnail, metadata };
+  return {
+    isLoading: metadata.isLoading,
+    image: metadata.data?.image,
+    title: metadata.data?.title,
+    channel: metadata.data?.channel,
+  };
 }

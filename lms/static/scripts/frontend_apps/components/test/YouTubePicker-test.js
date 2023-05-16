@@ -84,10 +84,8 @@ describe('YouTubePicker', () => {
 
   it('displays video metadata when available', () => {
     fakeUseYouTubeVideoInfo.returns({
-      metadata: {
-        title: 'The video title',
-        channel: 'Hypothesis',
-      },
+      title: 'The video title',
+      channel: 'Hypothesis',
     });
 
     const wrapper = renderComponent();
