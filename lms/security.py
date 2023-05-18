@@ -10,7 +10,6 @@ from pyramid_googleauth import GoogleSecurityPolicy
 
 from lms.models import LTIUser
 from lms.services import UserService
-from lms.validation import ValidationError
 from lms.validation.authentication import (
     BearerTokenSchema,
     LTI11AuthSchema,
@@ -19,12 +18,12 @@ from lms.validation.authentication import (
 )
 
 
-class DeniedWithValidationError(Denied):
-    """A denial of an action due to a validation error."""
+class DeniedWithException(Denied):
+    """A denial of an action due to an exception."""
 
-    def __init__(self, validation_error: ValidationError):
+    def __init__(self, exception: Exception):
         super().__init__()
-        self.validation_error = validation_error
+        self.exception = exception
 
 
 class Identity(NamedTuple):
@@ -151,7 +150,8 @@ class LTIUserSecurityPolicy:
     def identity(self, request):
         try:
             lti_user = self._get_lti_user(request)
-        except ValidationError:
+        except Exception:  # pylint:disable=broad-exception-caught
+            # If anything went wrong, no identity
             return Identity("", [])
 
         if lti_user is None:
@@ -170,10 +170,10 @@ class LTIUserSecurityPolicy:
     def permits(self, request, _context, permission):
         try:
             # Getting lti_use here again for the potential exception
-            # side effect and allow us to return DeniedWithValidationError accordingly
+            # side effect and allow us to return DeniedWithException accordingly
             self._get_lti_user(request)
-        except ValidationError as err:
-            return DeniedWithValidationError(err)
+        except Exception as err:  # pylint:disable=broad-exception-caught
+            return DeniedWithException(err)
 
         return _permits(self.identity(request), permission)
 

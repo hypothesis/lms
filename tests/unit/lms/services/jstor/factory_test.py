@@ -7,9 +7,7 @@ from lms.services.jstor.factory import service_factory
 
 class TestServiceFactory:
     @pytest.mark.parametrize("user_agent", ("Example UA", None))
-    def test_it(
-        self, pyramid_request, application_instance_service, JSTORService, user_agent
-    ):
+    def test_it(self, pyramid_request, JSTORService, user_agent):
         ai_settings = pyramid_request.lti_user.application_instance.settings
         ai_settings.set("jstor", "enabled", sentinel.jstor_enabled)
         ai_settings.set("jstor", "site_code", sentinel.jstor_site_code)
