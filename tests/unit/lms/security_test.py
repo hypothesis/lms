@@ -5,7 +5,7 @@ from pyramid.interfaces import ISecurityPolicy
 from pyramid.security import Allowed, Denied
 
 from lms.security import (
-    DeniedWithValidationError,
+    DeniedWithException,
     Identity,
     LMSGoogleSecurityPolicy,
     LTIUserSecurityPolicy,
@@ -162,7 +162,7 @@ class TestLTIUserSecurityPolicy:
 
         is_allowed = policy.permits(pyramid_request, None, "some-permission")
 
-        assert is_allowed == DeniedWithValidationError(validation_error)
+        assert is_allowed == DeniedWithException(validation_error)
 
     @pytest.mark.parametrize(
         "lti_user,expected_userid",
