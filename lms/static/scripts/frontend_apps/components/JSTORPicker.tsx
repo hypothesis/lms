@@ -126,6 +126,11 @@ export default function JSTORPicker({
     }
   };
 
+  const resetCurrentArticle = () => {
+    previousURL.current = null;
+    setArticleId(null);
+  };
+
   const isLoading = thumbnail.isLoading || metadata.isLoading;
 
   return (
@@ -186,7 +191,7 @@ export default function JSTORPicker({
               id={inputId}
               name="jstorURL"
               onChange={() => onURLChange()}
-              onInput={() => setArticleId(null)}
+              onInput={() => resetCurrentArticle()}
               onKeyDown={onKeyDown}
               placeholder="e.g. https://www.jstor.org/stable/1234"
               spellcheck={false}
