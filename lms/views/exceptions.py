@@ -27,12 +27,23 @@ class ExceptionViews:
 
     @forbidden_view_config()
     def forbidden(self):
-        if validation_error := getattr(self.exception.result, "validation_error", None):
-            self.request.override_renderer = (
-                "lms:templates/validation_error.html.jinja2"
-            )
-            self.request.response.status_int = 403
-            return {"error": validation_error}
+        if exception := getattr(self.exception.result, "exception", None):
+            # If we have an exception attached to the Denied object
+            # we'll treat it the same way the corresponding exception view.
+            try:
+                self.exception = exception
+                raise exception
+            except ValidationError:
+                self.request.override_renderer = (
+                    "lms:templates/validation_error.html.jinja2"
+                )
+                self.request.response.status_int = 403
+                return {"error": exception}
+            except SerializableError:
+                self.request.override_renderer = (
+                    "lms:templates/error_dialog.html.jinja2"
+                )
+                return self.serializable_error()
 
         return self.error_response(403, _("You're not authorized to view this page"))
 

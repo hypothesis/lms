@@ -6,7 +6,7 @@ from pyramid import httpexceptions
 from lms.models import ReusedConsumerKey
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
-from lms.security import DeniedWithValidationError
+from lms.security import DeniedWithException
 from lms.services import HAPIError, SerializableError
 from lms.validation import ValidationError
 from lms.views.exceptions import ExceptionViews
@@ -29,20 +29,41 @@ class TestExceptionViews:
         assert pyramid_request.response.status_int == 403
         assert template_data == {"message": "You're not authorized to view this page"}
 
-    def test_forbidden_with_reason(self, pyramid_request):
-        validation_exception = ValidationError(sentinel.messages)
-        exception = httpexceptions.HTTPForbidden(
-            result=DeniedWithValidationError(validation_exception)
-        )
+    def test_forbidden_with_validation_error(self, pyramid_request):
+        exception = ValidationError(sentinel.messages)
+        forbidden = httpexceptions.HTTPForbidden(result=DeniedWithException(exception))
 
-        template_data = ExceptionViews(exception, pyramid_request).forbidden()
+        template_data = ExceptionViews(forbidden, pyramid_request).forbidden()
 
         assert (
             pyramid_request.override_renderer
             == "lms:templates/validation_error.html.jinja2"
         )
         assert pyramid_request.response.status_int == 403
-        assert template_data == {"error": validation_exception}
+        assert template_data == {"error": exception}
+
+    @pytest.mark.usefixtures("js_config")
+    def test_forbidden_with_serializable_error(self, pyramid_request):
+        exception = SerializableError(
+            error_code=sentinel.error_code,
+            message=sentinel.message,
+            details=sentinel.details,
+        )
+        forbidden = httpexceptions.HTTPForbidden(result=DeniedWithException(exception))
+
+        template_data = ExceptionViews(forbidden, pyramid_request).forbidden()
+
+        assert (
+            pyramid_request.override_renderer
+            == "lms:templates/error_dialog.html.jinja2"
+        )
+        assert pyramid_request.response.status_int == 400
+        pyramid_request.context.js_config.enable_error_dialog_mode.assert_called_with(
+            error_code=exception.error_code,
+            error_details=exception.details,
+            message=exception.message,
+        )
+        assert not template_data
 
     def test_http_client_error(self, pyramid_request):
         exception = httpexceptions.HTTPBadRequest(sentinel.message)
