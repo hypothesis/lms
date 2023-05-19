@@ -26,7 +26,7 @@ def enable_email_digest(conn, limit=500):
                 ELSE jsonb_set(settings, '{hypothesis,instructor_email_digests_enabled}', 'true')
             END
         FROM (
-            SELECT application_instance_id
+            SELECT distinct application_instance_id, count("user".id)
             FROM assignment_membership
             JOIN "user" ON "user".id = assignment_membership.user_id
             JOIN lti_role ON lti_role.id = lti_role_id
@@ -40,7 +40,7 @@ def enable_email_digest(conn, limit=500):
                 AND COALESCE(settings->'hypothesis'->>'instructor_email_digests_enabled', 'false') = 'false'
             GROUP BY application_instance_id, "user".id
             -- Least used first
-            ORDER BY COUNT("user".id) ASC
+            ORDER BY COUNT("user".id) ASC, application_instance_id
             LIMIT :limit
         ) AS candidates
         WHERE
