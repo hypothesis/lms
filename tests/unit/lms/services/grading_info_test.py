@@ -77,7 +77,7 @@ class TestGetByAssignment:
         return factories.GradingInfo.create_batch(3)
 
 
-class TestUpsertFromRequest:
+class TestUpsertGradingInfo:
     def test_it_creates_new_record_if_no_matching_exists(
         self,
         svc,
@@ -86,7 +86,7 @@ class TestUpsertFromRequest:
         db_session,
         lti_params,
     ):
-        svc.upsert_from_request(pyramid_request)
+        svc.upsert_grading_info(pyramid_request)
 
         result = db_session.get_last_inserted()
         assert result == Any.instance_of(GradingInfo)
@@ -113,7 +113,7 @@ class TestUpsertFromRequest:
         )
         pyramid_request.lti_user.display_name = "updated_display_name"
 
-        svc.upsert_from_request(pyramid_request)
+        svc.upsert_grading_info(pyramid_request)
 
         assert grading_info.h_display_name == "updated_display_name"
 
@@ -131,7 +131,7 @@ class TestUpsertFromRequest:
     ):
         del pyramid_request.POST[param]
 
-        svc.upsert_from_request(pyramid_request)
+        svc.upsert_grading_info(pyramid_request)
 
         assert db_session.get_last_inserted() is None
 
@@ -141,7 +141,7 @@ class TestUpsertFromRequest:
     ):
         del pyramid_request.POST[param]
 
-        svc.upsert_from_request(pyramid_request)
+        svc.upsert_grading_info(pyramid_request)
         assert db_session.get_last_inserted() == Any.instance_of(GradingInfo)
 
     @classmethod

@@ -1,7 +1,4 @@
-from marshmallow import fields
-
 from lms.models import GradingInfo
-from lms.validation import BasicLTILaunchSchema, ValidationError
 
 __all__ = ["GradingInfoService"]
 
@@ -11,7 +8,11 @@ class GradingInfoService:
 
     def __init__(self, _context, request):
         self._db = request.db
+        self._lti_user = request.lti_user
         self._authority = request.registry.settings["h_authority"]
+        self._application_instance_service = request.find_service(
+            name="application_instance"
+        )
 
     def get_by_assignment(self, application_instance, context_id, resource_link_id):
         """
@@ -33,21 +34,18 @@ class GradingInfoService:
             resource_link_id=resource_link_id,
         )
 
-    def upsert_from_request(
+    def upsert_grading_info(
         self,
-        request,
-        context_id,
-        resource_link_id,
+        context_id: str,
+        resource_link_id: str,
         lis_result_sourcedid=None,
         lis_outcome_service_url=None,
     ):
         """
-        Update or create a record based on the LTI params found in the request.
+        Update or create a GradingInfo.
 
         This function will do nothing if the correct parameters cannot be
         found in the request.
-
-        :arg request: A pyramid request
         """
 
         if not lis_result_sourcedid or not lis_outcome_service_url:
@@ -55,18 +53,16 @@ class GradingInfoService:
             # LIS data is not present on the request.
             return
 
-        application_instance = request.find_service(
-            name="application_instance"
-        ).get_current()
+        application_instance = self._application_instance_service.get_current()
 
         grading_info = self._find_or_create(
             application_instance=application_instance,
-            user_id=request.lti_user.user_id,
+            user_id=self._lti_user.user_id,
             context_id=context_id,
             resource_link_id=resource_link_id,
         )
-        grading_info.h_username = request.lti_user.h_user.username
-        grading_info.h_display_name = request.lti_user.h_user.display_name
+        grading_info.h_username = self._lti_user.h_user.username
+        grading_info.h_display_name = self._lti_user.h_user.display_name
 
         grading_info.lis_outcome_service_url = lis_outcome_service_url
         grading_info.lis_result_sourcedid = lis_outcome_service_url

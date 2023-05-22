@@ -67,7 +67,7 @@ class TestBasicLaunchViews:
             context.application_instance, pyramid_request.lti_params
         )
 
-        grading_info_service.upsert_from_request.assert_called_once_with(
+        grading_info_service.upsert_grading_info.assert_called_once_with(
             pyramid_request
         )
 
@@ -77,7 +77,7 @@ class TestBasicLaunchViews:
     ):
         BasicLaunchViews(context, pyramid_request)
 
-        grading_info_service.upsert_from_request.assert_not_called()
+        grading_info_service.upsert_grading_info.assert_not_called()
 
     @pytest.mark.usefixtures("user_is_learner", "with_canvas")
     def test__init___doesnt_update_grading_info_for_canvas(
@@ -85,7 +85,7 @@ class TestBasicLaunchViews:
     ):
         BasicLaunchViews(context, pyramid_request)
 
-        grading_info_service.upsert_from_request.assert_not_called()
+        grading_info_service.upsert_grading_info.assert_not_called()
 
     @pytest.mark.parametrize(
         "parsed_params,expected_extras",
