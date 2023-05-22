@@ -302,5 +302,10 @@ class BasicLaunchViews:
         ):
             # Create or update a record of LIS result data for a student launch
             self.request.find_service(name="grading_info").upsert_from_request(
-                self.request
+                context_id=self.request.lti_params["context_id"],
+                resource_link_id=self.request.lti_params["resource_link_id"],
+                lis_result_source_id=self.request.lti_params["lis_result_source_id"],
+                lis_outcome_service_url=self.request.lti_params[
+                    "lis_outcome_service_url"
+                ],
             )

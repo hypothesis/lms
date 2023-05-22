@@ -9,13 +9,6 @@ __all__ = ["GradingInfoService"]
 class GradingInfoService:
     """Methods for interacting with GradingInfo records."""
 
-    class _ParamsSchema(BasicLTILaunchSchema):
-        """Schema for the relevant parameters from the request."""
-
-        location = "form"
-        lis_result_sourcedid = fields.Str(required=True)
-        lis_outcome_service_url = fields.Str(required=True)
-
     def __init__(self, _context, request):
         self._db = request.db
         self._authority = request.registry.settings["h_authority"]
@@ -40,7 +33,14 @@ class GradingInfoService:
             resource_link_id=resource_link_id,
         )
 
-    def upsert_from_request(self, request):
+    def upsert_from_request(
+        self,
+        request,
+        context_id,
+        resource_link_id,
+        lis_result_sourcedid=None,
+        lis_outcome_service_url=None,
+    ):
         """
         Update or create a record based on the LTI params found in the request.
 
@@ -49,10 +49,8 @@ class GradingInfoService:
 
         :arg request: A pyramid request
         """
-        try:
-            parsed_params = self._ParamsSchema(request).parse()
-        except ValidationError:
-            # We're missing something we need in the request.
+
+        if not lis_result_sourcedid or not lis_outcome_service_url:
             # This can happen if the user is not a student, or if the needed
             # LIS data is not present on the request.
             return
@@ -64,13 +62,14 @@ class GradingInfoService:
         grading_info = self._find_or_create(
             application_instance=application_instance,
             user_id=request.lti_user.user_id,
-            context_id=parsed_params["context_id"],
-            resource_link_id=parsed_params["resource_link_id"],
+            context_id=context_id,
+            resource_link_id=resource_link_id,
         )
         grading_info.h_username = request.lti_user.h_user.username
         grading_info.h_display_name = request.lti_user.h_user.display_name
 
-        grading_info.update_from_dict(parsed_params)
+        grading_info.lis_outcome_service_url = lis_outcome_service_url
+        grading_info.lis_result_sourcedid = lis_outcome_service_url
 
     def _find_or_create(self, **query):
         result = self._db.query(GradingInfo).filter_by(**query).one_or_none()
