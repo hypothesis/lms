@@ -18,13 +18,16 @@ class GroupInfoService:
         "d2l_group": "d2l_group_group",
     }
 
-    def upsert_group_info(self, grouping: Grouping, params: dict):
+    def upsert_group_info(
+        self, grouping: Grouping, context_id, context_title, context_label
+    ):
         """
         Upsert a row into the `group_info` DB table.
 
         :param grouping: grouping to upsert based on
-        :param params: columns to set on the row ("authority_provided_id",
-            "id", "info" and any non-matching items will be ignored)
+        :param context_id: context_id of of the grouping or parent grouping.
+        :param context_title: context_id of of the grouping or parent grouping.
+        :param context_label: context_label of of the grouping or parent grouping.
         """
         group_info = (
             self._db.query(GroupInfo)
@@ -43,12 +46,32 @@ class GroupInfoService:
         # group info row from another application instance by updating it with
         # a grouping from another AI. This is wrong in because grouping to
         # AI should be many:many, and we reflect that wrongness here.
-        group_info.application_instance = grouping.application_instance
+        ai = grouping.application_instance
+        group_info.application_instance = ai
+
+        # GroupingInfo duplicates lots of info from the AI
+        group_info.consumer_key = ai.consumer_key
+        group_info.tool_consumer_info_product_family_code = (
+            ai.tool_consumer_info_product_family_code
+        )
+        group_info.tool_consumer_info_version = ai.tool_consumer_info_version
+        group_info.tool_consumer_instance_name = ai.tool_consumer_instance_name
+        group_info.tool_consumer_instance_description = (
+            ai.tool_consumer_instance_description
+        )
+        group_info.tool_consumer_instance_url = ai.tool_consumer_instance_url
+        group_info.tool_consumer_instance_contact_email = (
+            ai.tool_consumer_instance_contact_email
+        )
+        group_info.tool_consumer_instance_guid = ai.tool_consumer_instance_guid
+        group_info.custom_canvas_api_domain = ai.custom_canvas_api_domain
 
         group_info.type = self._GROUPING_TYPES[grouping.type]
-        group_info.update_from_dict(
-            params, skip_keys={"authority_provided_id", "id", "info"}
-        )
+
+        # GroupInfo always has info about the context, even if it's representing a sectoin or group
+        group_info.context_id = context_id
+        group_info.context_title = context_title
+        group_info.context_label = context_label
 
         if self._lti_user.is_instructor:
             group_info.upsert_instructor(

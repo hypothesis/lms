@@ -564,9 +564,9 @@ class JSConfig:
                         self._request, assignment
                     ),
                     "group_info": {
-                        key: value
-                        for key, value in self._request.lti_params.items()
-                        if key in GroupInfo.columns()
+                        "context_id": self._request.lti_params["context_id"],
+                        "context_title": self._request.lti_params.get("context_title"),
+                        "context_label": self._request.lti_params.get("context_label"),
                     },
                     # The student we are currently grading. In the case of Canvas
                     # this will be present in the SpeedGrader launch URL and

@@ -52,7 +52,10 @@ class LTIHService:
         # Keep a note of the groups locally for reporting purposes.
         for grouping in groupings:
             self._group_info_service.upsert_group_info(
-                grouping=grouping, params=group_info_params
+                grouping,
+                context_id=group_info_params.get("context_id"),
+                context_title=group_info_params.get("context_title"),
+                context_label=group_info_params.get("context_label"),
             )
 
     def _yield_commands(self, groupings):
