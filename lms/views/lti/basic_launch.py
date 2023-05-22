@@ -285,6 +285,15 @@ class BasicLaunchViews:
             self.context.js_config.enable_instructor_toolbar(
                 enable_grading=assignment.is_gradable
             )
+        elif not self.request.lti_user.is_instructor and assignment.is_gradable:
+            self.request.find_service(name="grading_info").upsert_grading_info(
+                context_id=self.request.lti_params["context_id"],
+                resource_link_id=self.request.lti_params["resource_link_id"],
+                lis_result_source_id=self.request.lti_params["lis_result_source_id"],
+                lis_outcome_service_url=self.request.lti_params[
+                    "lis_outcome_service_url"
+                ],
+            )
 
         self.context.js_config.add_document_url(document_url)
         self.context.js_config.enable_lti_launch_mode(self.course, assignment)
@@ -295,17 +304,3 @@ class BasicLaunchViews:
         self.request.find_service(name="application_instance").update_from_lti_params(
             self.context.application_instance, self.request.lti_params
         )
-
-        if (
-            not self.request.lti_user.is_instructor
-            and self.request.product.family != Product.Family.CANVAS
-        ):
-            # Create or update a record of LIS result data for a student launch
-            self.request.find_service(name="grading_info").upsert_from_request(
-                context_id=self.request.lti_params["context_id"],
-                resource_link_id=self.request.lti_params["resource_link_id"],
-                lis_result_source_id=self.request.lti_params["lis_result_source_id"],
-                lis_outcome_service_url=self.request.lti_params[
-                    "lis_outcome_service_url"
-                ],
-            )

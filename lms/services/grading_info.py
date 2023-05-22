@@ -65,7 +65,9 @@ class GradingInfoService:
         grading_info.h_display_name = self._lti_user.h_user.display_name
 
         grading_info.lis_outcome_service_url = lis_outcome_service_url
-        grading_info.lis_result_sourcedid = lis_outcome_service_url
+        grading_info.lis_result_sourcedid = lis_result_sourcedid
+
+        return grading_info
 
     def _find_or_create(self, **query):
         result = self._db.query(GradingInfo).filter_by(**query).one_or_none()
