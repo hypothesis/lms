@@ -27,7 +27,11 @@ describe('JSTORPicker', () => {
     wrapper.update();
   }
 
-  function simulateMetadataFetch(wrapper, title, otherMetadata = {}) {
+  function simulateMetadataFetch(
+    wrapper,
+    title = undefined,
+    otherMetadata = {}
+  ) {
     simulateAPIFetch(wrapper, '/api/jstor/articles/1234', {
       item: {
         title: title,
@@ -308,6 +312,27 @@ describe('JSTORPicker', () => {
     // Since the chosen item is usable (eg. not a collection), no error should
     // be displayed.
     assert.isFalse(wrapper.exists('[data-testid="error-message"]'));
+  });
+
+  it('enables submit button when valid same JSTOR article is input more than once', () => {
+    const onSelectURL = sinon.stub();
+    const wrapper = renderJSTORPicker({ onSelectURL });
+    const buttonSelector = 'Button[data-testid="select-button"]';
+
+    // We update the article once, which will enable the select button
+    assert.isTrue(wrapper.find(buttonSelector).props().disabled);
+    updateURL(wrapper, '123456');
+    simulateMetadataFetch(wrapper);
+    assert.isFalse(wrapper.find(buttonSelector).props().disabled);
+
+    // Then we simulate input on the URL field. This will disable the button
+    getInput(wrapper).props().onInput();
+    wrapper.update();
+    assert.isTrue(wrapper.find(buttonSelector).props().disabled);
+
+    // Then we update to the same article again, which should re-enable the button
+    updateURL(wrapper, '123456');
+    assert.isFalse(wrapper.find(buttonSelector).props().disabled);
   });
 
   [
