@@ -175,11 +175,22 @@ class TestReadResult:
 
 
 class TestRecordResult:
-    def test_it_records_result(self, pyramid_request, lti_grading_service):
+    @pytest.mark.parametrize(
+        "score,expected",
+        [
+            (0.7000000000000001, 0.7),
+            (0.7123000000000001, 0.7123),
+            (0.000000000000001, 0),
+        ],
+    )
+    def test_it_records_result(
+        self, pyramid_request, lti_grading_service, score, expected
+    ):
+        pyramid_request.parsed_params["score"] = score
         GradingViews(pyramid_request).record_result()
 
         lti_grading_service.record_result.assert_called_once_with(
-            "modelstudent-assignment1", score=pyramid_request.parsed_params["score"]
+            "modelstudent-assignment1", score=expected
         )
 
     @pytest.fixture
