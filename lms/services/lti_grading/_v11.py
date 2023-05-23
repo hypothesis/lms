@@ -2,7 +2,7 @@ from xml.parsers.expat import ExpatError
 
 import xmltodict
 
-from lms.services.exceptions import ExternalRequestError
+from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
 from lms.services.http import HTTPService
 from lms.services.lti_grading.interface import LTIGradingService
 from lms.services.oauth1 import OAuth1Service
@@ -19,13 +19,19 @@ class LTI11GradingService(LTIGradingService):
         self.oauth1_service = oauth1_service
 
     def read_result(self, grading_id):
-        result = self._send_request(
-            {
-                "readResultRequest": {
-                    "resultRecord": {"sourcedGUID": {"sourcedId": grading_id}}
+        try:
+            result = self._send_request(
+                {
+                    "readResultRequest": {
+                        "resultRecord": {"sourcedGUID": {"sourcedId": grading_id}}
+                    }
                 }
-            }
-        )
+            )
+        except ExternalRequestError as err:
+            if err.response and "Incorrect sourcedId" in err.response.text:
+                raise StudentNotInCourse(grading_id) from err
+
+            raise
 
         try:
             return float(
@@ -94,7 +100,6 @@ class LTI11GradingService(LTIGradingService):
             status = header["imsx_POXResponseHeaderInfo"]["imsx_statusInfo"][
                 "imsx_codeMajor"
             ]
-
         except KeyError as err:
             raise ExternalRequestError("Malformed LTI outcome response") from err
 

@@ -4,7 +4,7 @@ import pytest
 import xmltodict
 from h_matchers import Any
 
-from lms.services.exceptions import ExternalRequestError
+from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
 from lms.services.lti_grading._v11 import LTI11GradingService
 from tests import factories
 
@@ -37,6 +37,16 @@ class TestLTI11GradingService:
         respond_with(response)
 
         assert svc.read_result(sentinel.grading_id) is None
+
+    def test_methods_raises_StudentNotInCourse(self, svc, respond_with):
+        response = GradingResponse(
+            status_code="failure",
+            description="Incorrect sourcedId: sentinel.grading_id",
+        )
+        respond_with(response)
+
+        with pytest.raises(StudentNotInCourse):
+            svc.read_result(sentinel.grading_id)
 
     @pytest.mark.usefixtures("with_response")
     @pytest.mark.parametrize(
@@ -183,7 +193,9 @@ class TestLTI11GradingService:
 class GradingResponse(dict):
     """An LTI grading response dict with convenience accessors."""
 
-    def __init__(self, status_code="success", score=0.92):
+    def __init__(
+        self, status_code="success", score=0.92, description="An error occurred."
+    ):
         super().__init__(
             {
                 "imsx_POXEnvelopeResponse": {
@@ -197,7 +209,7 @@ class GradingResponse(dict):
                                 "imsx_severity": "status",
                                 "imsx_messageRefIdentifier": "999999123",
                                 "imsx_operationRefIdentifier": "readResult",
-                                "imsx_description": "An error occurred.",
+                                "imsx_description": description,
                             },
                         }
                     },
