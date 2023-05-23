@@ -27,9 +27,11 @@ class GradingViews:
     def record_result(self):
         """Proxy result (grade/score) to LTI Result API."""
 
+        # Fix any float point arithmetic issues
+        score = round(self.parsed_params["score"], 4)
+
         self.lti_grading_service.record_result(
-            self.parsed_params["lis_result_sourcedid"],
-            score=self.parsed_params["score"],
+            self.parsed_params["lis_result_sourcedid"], score
         )
 
         return {}
