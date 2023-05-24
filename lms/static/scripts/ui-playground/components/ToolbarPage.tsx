@@ -8,7 +8,7 @@ import {
   Input,
   InputGroup,
   LinkButton,
-  Modal,
+  ModalDialog,
   Select,
 } from '@hypothesis/frontend-shared';
 import type { ModalProps } from '@hypothesis/frontend-shared/lib/components/feedback/Modal';
@@ -32,15 +32,15 @@ function ToolbarExample({
     );
   } else {
     return (
-      <Modal
+      <ModalDialog
         title="Toolbar UI"
         {...modalProps}
         classes={classnames('w-[90vw]', classes)}
-        width="custom"
+        size="custom"
         onClose={closeModal}
       >
         <div className="border">{children}</div>
-      </Modal>
+      </ModalDialog>
     );
   }
 }
