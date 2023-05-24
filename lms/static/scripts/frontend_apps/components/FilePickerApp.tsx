@@ -4,6 +4,7 @@ import {
   Card,
   CardActions,
   CardContent,
+  CardHeader,
   Link,
   Scroll,
   SpinnerOverlay,
@@ -260,24 +261,25 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
           </div>
         )}
         <Card
+          width="custom"
           classes={classnames(
+            'w-[700px]',
             // Ensure children that have overflow-scroll do not exceed the
             // height constraints
             'flex flex-col min-h-0'
           )}
         >
-          <div className="bg-slate-0 px-3 py-2 border-b border-slate-5">
-            <h1 className="text-xl text-slate-7 font-normal">
-              Assignment details
-            </h1>
-          </div>
+          <CardHeader variant="secondary" title="Assignment details" />
           <Scroll>
-            <CardContent size="lg">
-              <div className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3">
-                <div className="text-end">
-                  <span className="font-medium text-sm leading-none text-slate-7">
+            <div className="px-3 py-6">
+              <div className="grid grid-cols-[14em_1fr] gap-x-6 gap-y-3">
+                <div className="space-y-1.5 pt-1">
+                  <div className="leading-none text-[14px] text-end font-medium text-slate-600 uppercase">
                     Assignment content
-                  </span>
+                  </div>
+                  <div className="text-[14px] text-end leading-none font-normal text-stone-500">
+                    <p>Select content for your assignment</p>
+                  </div>
                 </div>
                 <div className="space-y-3">
                   {content && !editingContent ? (
@@ -293,18 +295,11 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                       </Button>
                     </div>
                   ) : (
-                    <>
-                      <p>
-                        You can select content for your assignment from one of
-                        the following sources:
-                      </p>
-
-                      <ContentSelector
-                        initialContent={content ?? undefined}
-                        onSelectContent={selectContent}
-                        onError={setErrorInfo}
-                      />
-                    </>
+                    <ContentSelector
+                      initialContent={content ?? undefined}
+                      onSelectContent={selectContent}
+                      onError={setErrorInfo}
+                    />
                   )}
                 </div>
                 {content && !editingContent && enableGroupConfig && (
@@ -331,7 +326,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                   </>
                 )}
               </div>
-            </CardContent>
+            </div>
           </Scroll>
           {
             // See comments in `selectContent` about auto-submitting form if
