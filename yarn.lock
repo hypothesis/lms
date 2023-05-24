@@ -1179,9 +1179,9 @@
     glob "^7.2.0"
 
 "@hypothesis/frontend-shared@^6.1.1":
-  version "6.1.1"
-  resolved "https://registry.yarnpkg.com/@hypothesis/frontend-shared/-/frontend-shared-6.1.1.tgz#c3bd46f162e20c9c5612dd66f3fa4bb2e911f674"
-  integrity sha512-GGk6eb8pRNuqLN+QtQHQn+CC2ab7m5+a6cye0MSWkvuEclh8wLSxEHQk8/74xN9BJeWRWPbBNEswxKui8kph/A==
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/@hypothesis/frontend-shared/-/frontend-shared-6.2.0.tgz#c226a2b4509ac46b2de4a82559d367b18b027f5a"
+  integrity sha512-3fFbVlwTbb7KzZL2AcPrbgj1svaQfpgRNqX00GDD1B3SRm8391hnHiWs0hKnElyJmJ3gcTyguRNCw4zVGzw9Iw==
   dependencies:
     highlight.js "^11.6.0"
     wouter-preact "^2.10.0-alpha.1"
@@ -3924,9 +3924,9 @@ he@1.2.0:
   integrity sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==
 
 highlight.js@^11.6.0:
-  version "11.7.0"
-  resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-11.7.0.tgz#3ff0165bc843f8c9bce1fd89e2fda9143d24b11e"
-  integrity sha512-1rRqesRFhMO/PRF+G86evnyJkCgaZFOI+Z6kdj15TA18funfoqJXvgPCLSf0SWq3SRfg1j3HlDs8o4s3EGq1oQ==
+  version "11.8.0"
+  resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-11.8.0.tgz#966518ea83257bae2e7c9a48596231856555bb65"
+  integrity sha512-MedQhoqVdr0U6SSnWPzfiadUcDHfN/Wzq25AkXiQv9oiOO/sG0S7XkvpFIqWBl9Yq1UYyYOOVORs5UW2XlPyzg==
 
 homedir-polyfill@^1.0.1:
   version "1.0.3"
