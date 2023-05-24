@@ -1,4 +1,5 @@
-import { Button, SpinnerOverlay } from '@hypothesis/frontend-shared';
+import { ButtonBase, SpinnerOverlay } from '@hypothesis/frontend-shared';
+import type { ComponentProps } from 'preact';
 import { useMemo, useState } from 'preact/hooks';
 
 import type { Book, File, Chapter } from '../api-types';
@@ -45,6 +46,32 @@ function extractContentTypeAndValue(content: Content): [DialogType, string] {
     // being able to adjust the selection.
     return [null, ''];
   }
+}
+
+type ContentSelectorButtonProps = ComponentProps<typeof ButtonBase> & {
+  contentType?: string;
+};
+
+function ContentSelectorButton({
+  children,
+  contentType = 'pdf',
+  ...rest
+}: ContentSelectorButtonProps) {
+  return (
+    <ButtonBase
+      classes="w-full bg-stone-50 rounded-sm border border-stone-300 gap-x-2 items-center"
+      {...rest}
+    >
+      <div className="grow text-start p-2">
+        <strong className="text-slate-600">{children}</strong>
+      </div>
+      <div className="text-end p-2">
+        <span className="uppercase text-[11px] text-stone-500">
+          {contentType}
+        </span>
+      </div>
+    </ButtonBase>
+  );
 }
 
 /**
@@ -298,85 +325,80 @@ export default function ContentSelector({
     <>
       {isLoadingIndicatorVisible && <SpinnerOverlay />}
       <div className="flex flex-row p-y-2">
-        <div className="flex flex-col space-y-1">
-          <Button
+        <div className="grid grid-cols-2 gap-2 w-full">
+          <ContentSelectorButton
             onClick={() => selectDialog('url')}
-            variant="primary"
+            contentType="web page | PDF"
             data-testid="url-button"
           >
-            Enter URL of web page or PDF
-          </Button>
+            URL
+          </ContentSelectorButton>
           {canvasFilesEnabled && (
-            <Button
+            <ContentSelectorButton
               onClick={() => selectDialog('canvasFile')}
-              variant="primary"
               data-testid="canvas-file-button"
             >
-              Select PDF from Canvas
-            </Button>
+              Canvas
+            </ContentSelectorButton>
           )}
           {blackboardFilesEnabled && (
-            <Button
+            <ContentSelectorButton
               onClick={() => selectDialog('blackboardFile')}
-              variant="primary"
               data-testid="blackboard-file-button"
             >
-              Select PDF from Blackboard
-            </Button>
+              Blackboard
+            </ContentSelectorButton>
           )}
           {d2lFilesEnabled && (
-            <Button
+            <ContentSelectorButton
               onClick={() => selectDialog('d2lFile')}
-              variant="primary"
               data-testid="d2l-file-button"
             >
-              Select PDF from D2L
-            </Button>
+              D2L
+            </ContentSelectorButton>
           )}
           {googlePicker && (
-            <Button
+            <ContentSelectorButton
               onClick={showGooglePicker}
-              variant="primary"
               data-testid="google-drive-button"
             >
-              Select PDF from Google Drive
-            </Button>
+              Google Drive
+            </ContentSelectorButton>
           )}
           {jstorEnabled && (
-            <Button
+            <ContentSelectorButton
               onClick={() => selectDialog('jstor')}
-              variant="primary"
+              contentType="article"
               data-testid="jstor-button"
             >
-              Select JSTOR article
-            </Button>
+              JSTOR
+            </ContentSelectorButton>
           )}
           {oneDriveFilesEnabled && (
-            <Button
+            <ContentSelectorButton
               onClick={showOneDrivePicker}
-              variant="primary"
               data-testid="onedrive-button"
             >
-              Select PDF from OneDrive
-            </Button>
+              OneDrive
+            </ContentSelectorButton>
           )}
           {vitalSourceEnabled && (
-            <Button
+            <ContentSelectorButton
               onClick={() => selectDialog('vitalSourceBook')}
-              variant="primary"
+              contentType="book"
               data-testid="vitalsource-button"
             >
-              Select book from VitalSource
-            </Button>
+              VitalSource
+            </ContentSelectorButton>
           )}
           {youtubeEnabled && (
-            <Button
+            <ContentSelectorButton
               onClick={() => selectDialog('youtube')}
-              variant="primary"
+              contentType="video"
               data-testid="youtube-button"
             >
-              Select video from YouTube
-            </Button>
+              YouTube
+            </ContentSelectorButton>
           )}
         </div>
         {/** This flex-grow element takes up remaining horizontal space so that
