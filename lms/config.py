@@ -99,6 +99,7 @@ SETTINGS = (
     _Setting("blackboard_api_client_secret"),
     _Setting("jstor_api_url"),
     _Setting("jstor_api_secret"),
+    _Setting("youtube_api_key"),
     _Setting("disable_key_rotation", value_mapper=asbool),
     _Setting("mailchimp_api_key"),
     _Setting("mailchimp_digests_subaccount"),

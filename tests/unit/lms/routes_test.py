@@ -33,6 +33,11 @@ from pyramid.testing import DummyRequest
             {"article_id": "10.123/456"},
         ),
         ("/api/jstor/articles/10/456/thumbnail", None, None),
+        (
+            "/api/youtube/videos/456",
+            "youtube_api.videos",
+            {"video_id": "456"},
+        ),
     ],
 )
 def test_request_matches_expected_route(
