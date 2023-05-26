@@ -25,14 +25,16 @@ export default function Breadcrumbs<Item>({
     <ul className="flex flex-wrap leading-none">
       {breadcrumbs.map((item, idx) => (
         <li className="flex" key={idx}>
-          <LinkButton onClick={() => onSelectItem(item)}>
+          <LinkButton onClick={() => onSelectItem(item)} underline="none">
             {renderItem(item)}
           </LinkButton>
           <span className="mx-2">›</span>
         </li>
       ))}
       <li>
-        <LinkButton disabled>{renderItem(currentItem)}</LinkButton>
+        <LinkButton disabled underline="none">
+          {renderItem(currentItem)}
+        </LinkButton>
       </li>
     </ul>
   );

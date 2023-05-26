@@ -45,7 +45,11 @@ export default function ErrorDialogApp() {
             <li>
               This consumer key has already been used on another site. A site
               admin must{' '}
-              <Link target="_blank" href="https://web.hypothes.is/get-help/">
+              <Link
+                target="_blank"
+                href="https://web.hypothes.is/get-help/"
+                underline="none"
+              >
                 request a new consumer key
               </Link>{' '}
               for this site and re-install Hypothesis.
@@ -53,7 +57,11 @@ export default function ErrorDialogApp() {
             <li>
               This {"site's"} tool_consumer_instance_guid has changed. A site
               admin must{' '}
-              <Link target="_blank" href="https://web.hypothes.is/get-help/">
+              <Link
+                target="_blank"
+                href="https://web.hypothes.is/get-help/"
+                underline="none"
+              >
                 ask us to update the consumer key
               </Link>
               .

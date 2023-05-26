@@ -125,11 +125,19 @@ export default function ErrorDisplay({
         {children}
         <p data-testid="error-links">
           If the problem persists, you can{' '}
-          <Link href={supportURL(message, error)} target="_blank">
+          <Link
+            href={supportURL(message, error)}
+            target="_blank"
+            underline="none"
+          >
             open a support ticket
           </Link>{' '}
           or visit our{' '}
-          <Link href="https://web.hypothes.is/help/" target="_blank">
+          <Link
+            href="https://web.hypothes.is/help/"
+            target="_blank"
+            underline="none"
+          >
             help documents
           </Link>
           .
