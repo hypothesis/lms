@@ -1,3 +1,4 @@
+from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
