@@ -108,6 +108,7 @@ function NoGroupsError({ onCancel }: { onCancel: () => void }) {
           <Link
             href="https://web.hypothes.is/?s=group&ht-kb-search=1&lang=%0D%0A%09%09"
             target="_blank"
+            underline="none"
           >
             help articles about using groups
           </Link>
