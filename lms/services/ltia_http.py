@@ -1,9 +1,14 @@
+import logging
 import uuid
 from datetime import datetime, timedelta
+
+from requests.exceptions import JSONDecodeError
 
 from lms.models import LTIRegistration
 from lms.product.plugin.misc import MiscPlugin
 from lms.services.jwt import JWTService
+
+LOG = logging.getLogger(__name__)
 
 
 class LTIAHTTPService:
@@ -61,7 +66,11 @@ class LTIAHTTPService:
             timeout=(20, 20),
         )
 
-        return response.json()["access_token"]
+        try:
+            return response.json()["access_token"]
+        except JSONDecodeError:  # pragma: no cover
+            LOG.error("Non-json response: %s", response.text)
+            raise
 
 
 def factory(_context, request):
