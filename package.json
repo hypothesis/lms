@@ -42,7 +42,7 @@
     "karma-chrome-launcher": "^3.2.0",
     "normalize.css": "^8.0.1",
     "postcss": "^8.4.24",
-    "preact": "10.15.0",
+    "preact": "10.15.1",
     "rollup": "^2.79.1",
     "rollup-plugin-terser": "^7.0.2",
     "sass": "^1.62.1",
