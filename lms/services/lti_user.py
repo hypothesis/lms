@@ -47,7 +47,7 @@ class LTIUserService:
             "roles": lti_user.roles,
             "tool_consumer_instance_guid": lti_user.tool_consumer_instance_guid,
             "display_name": lti_user.display_name,
-            "application_instance_id": lti_user.application_instance_id,
+            "application_instance_id": lti_user.application_instance.id,
             "email": lti_user.email,
         }
 
@@ -55,7 +55,7 @@ class LTIUserService:
         """Create an LTIUser based on kwargs."""
         lti_roles = self._lti_roles_service.get_roles(kwargs["roles"])
         application_instance = self._application_instance_service.get_for_launch(
-            kwargs["application_instance_id"]
+            kwargs.pop("application_instance_id")
         )
 
         return LTIUser(

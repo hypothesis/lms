@@ -136,9 +136,9 @@ class TestLTIUserSecurityPolicy:
     def test_forget(self, pyramid_request):
         LTIUserSecurityPolicy(sentinel.get_lti_user).forget(pyramid_request)
 
-    def test_permits_allow(self, pyramid_request):
+    def test_permits_allow(self, pyramid_request, lti_user):
         policy = LTIUserSecurityPolicy(
-            create_autospec(get_lti_user, return_value=factories.LTIUser())
+            create_autospec(get_lti_user, return_value=lti_user)
         )
 
         is_allowed = policy.permits(
@@ -165,19 +165,20 @@ class TestLTIUserSecurityPolicy:
         assert is_allowed == DeniedWithException(validation_error)
 
     @pytest.mark.parametrize(
-        "lti_user,expected_userid",
+        "user_id,expected_userid",
         [
             (None, None),
-            (
-                factories.LTIUser(
-                    user_id="sam",
-                    application_instance_id=100,
-                ),
-                "c2Ft:100",
-            ),
+            ("sam", "c2Ft:100"),
         ],
     )
-    def test_authenticated_userid(self, lti_user, expected_userid, pyramid_request):
+    def test_authenticated_userid(self, user_id, expected_userid, pyramid_request):
+        lti_user = None
+        if user_id:
+            lti_user = factories.LTIUser(
+                user_id="sam",
+                application_instance=factories.ApplicationInstance(id=100),
+            )
+
         policy = LTIUserSecurityPolicy(
             create_autospec(get_lti_user, return_value=lti_user)
         )
@@ -382,7 +383,7 @@ class TestGetLTIUser:
         assert result == lti_user
         user_service.upsert_user.assert_called_once_with(result)
         sentry_sdk.set_tag.assert_called_once_with(
-            "application_instance_id", lti_user.application_instance_id
+            "application_instance_id", lti_user.application_instance.id
         )
 
     def test_it_when_no_lti_user(self, pyramid_request):

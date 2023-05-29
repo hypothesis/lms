@@ -7,7 +7,7 @@ from lms.models.lti_role import LTIRole, RoleScope, RoleType
 
 
 @dataclass
-class LTIUser:  # pylint: disable=too-many-instance-attributes
+class LTIUser:
     """An LTI user."""
 
     user_id: str
@@ -24,9 +24,6 @@ class LTIUser:  # pylint: disable=too-many-instance-attributes
 
     display_name: str
     """The user's display name."""
-
-    application_instance_id: int
-    """ID of the application instance this user belongs to"""
 
     application_instance: ApplicationInstance = None
     """Application instance this user belongs to"""

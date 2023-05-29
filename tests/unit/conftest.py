@@ -115,7 +115,6 @@ def pyramid_request(db_session, application_instance, lti_v11_params):
         lambda feature: False, return_value=False  # pragma: no cover
     )
     pyramid_request.lti_user = factories.LTIUser(
-        application_instance_id=application_instance.id,
         application_instance=application_instance,
         user_id=lti_v11_params["user_id"],
         roles=lti_v11_params["roles"],

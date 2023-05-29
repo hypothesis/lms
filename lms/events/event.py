@@ -66,7 +66,7 @@ class LTIEvent(BaseEvent):
         return [role.id for role in self.request.lti_user.lti_roles]
 
     def _get_application_instance_id(self):
-        return self.request.lti_user.application_instance_id
+        return self.request.lti_user.application_instance.id
 
     def _get_course_id(self):
         context_id = self.request.lti_params.get("context_id")

@@ -19,7 +19,7 @@ class TestUserService:
         assert saved_user == Any.instance_of(User).with_attrs(
             {
                 "id": Any.int(),
-                "application_instance_id": lti_user.application_instance_id,
+                "application_instance_id": lti_user.application_instance.id,
                 "created": Any.instance_of(datetime),
                 "updated": Any.instance_of(datetime),
                 "user_id": lti_user.user_id,

@@ -7,7 +7,12 @@ from lms.services.lti_user import LTIUserService, factory
 
 class TestLTIUserService:
     def test_from_auth_params(
-        self, application_instance, auth_params, svc, display_name
+        self,
+        application_instance,
+        auth_params,
+        svc,
+        display_name,
+        application_instance_service,
     ):
         lti_user = svc.from_auth_params(application_instance, auth_params)
 
@@ -23,7 +28,10 @@ class TestLTIUserService:
             auth_params["lis_person_name_family"],
             auth_params["lis_person_name_full"],
         )
-        assert lti_user.application_instance_id == application_instance.id
+        assert (
+            lti_user.application_instance.id
+            == application_instance_service.get_for_launch.return_value.id
+        )
 
     def test_serialize(self, svc, lti_user):
         assert svc.serialize(lti_user) == {
@@ -31,7 +39,7 @@ class TestLTIUserService:
             "roles": lti_user.roles,
             "tool_consumer_instance_guid": lti_user.tool_consumer_instance_guid,
             "display_name": lti_user.display_name,
-            "application_instance_id": lti_user.application_instance_id,
+            "application_instance_id": lti_user.application_instance.id,
             "email": lti_user.email,
         }
 

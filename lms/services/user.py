@@ -31,7 +31,7 @@ class UserService:
         # launched us, we could inflate our numbers or change their meaning.
 
         user = User(
-            application_instance_id=lti_user.application_instance_id,
+            application_instance_id=lti_user.application_instance.id,
             user_id=lti_user.user_id,
             roles=lti_user.roles,
             h_userid=lti_user.h_user.userid(self._h_authority),

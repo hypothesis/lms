@@ -138,7 +138,7 @@ class LTIUserSecurityPolicy:
         # decode it.
         safe_user_id = safe_user_id_bytes.decode("ascii")
 
-        return ":".join([safe_user_id, str(lti_user.application_instance_id)])
+        return ":".join([safe_user_id, str(lti_user.application_instance.id)])
 
     def authenticated_userid(self, request):
         identity = self.identity(request)
@@ -241,7 +241,7 @@ def get_lti_user(request) -> Optional[LTIUser]:
         request.find_service(UserService).upsert_user(lti_user)
 
         # Attach useful information to sentry in case we get an exception further down the line
-        sentry_sdk.set_tag("application_instance_id", lti_user.application_instance_id)
+        sentry_sdk.set_tag("application_instance_id", lti_user.application_instance.id)
 
     return lti_user
 
