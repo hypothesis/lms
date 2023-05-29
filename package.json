@@ -48,7 +48,7 @@
     "sass": "^1.62.1",
     "tailwindcss": "^3.3.2",
     "tiny-emitter": "^2.1.0",
-    "wouter-preact": "^2.10.0-alpha.1"
+    "wouter-preact": "^2.11.0"
   },
   "devDependencies": {
     "@types/gapi": "^0.0.44",

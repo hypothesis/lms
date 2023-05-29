@@ -7286,10 +7286,10 @@ workerpool@6.2.1:
   resolved "https://registry.yarnpkg.com/workerpool/-/workerpool-6.2.1.tgz#46fc150c17d826b86a008e5a4508656777e9c343"
   integrity sha512-ILEIE97kDZvF9Wb9f6h5aXK4swSlKGUcOEGiIYb2OOu/IrDU9iwj0fD//SsA6E5ibwJxpEvhullJY4Sl4GcpAw==
 
-wouter-preact@^2.10.0-alpha.1:
-  version "2.10.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/wouter-preact/-/wouter-preact-2.10.0-alpha.1.tgz#213394a210d1566f8bd5bfc794909b10cafb09b2"
-  integrity sha512-V6K8YBIURy9PHbF1e2P0gCuhCy0Oe0GbD1EZ1VxEWLU/rtBZ7IwkTj+6QVJ236NFbCklDuwL68PiUg44sSgq/w==
+wouter-preact@^2.10.0-alpha.1, wouter-preact@^2.11.0:
+  version "2.11.0"
+  resolved "https://registry.yarnpkg.com/wouter-preact/-/wouter-preact-2.11.0.tgz#587b12381a5b582be19cd2dcc77e9b6837fe5437"
+  integrity sha512-0eGcl9kI1lk/85/6uri46s5rP+j92F1US2FHzG1ezwF97l0Mas/1n0q9YmKNX3s1VzMxO+ajYKRfAKbsxn+/sA==
 
 wrap-ansi@^2.0.0:
   version "2.1.0"
