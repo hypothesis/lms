@@ -1,4 +1,5 @@
 import type { YouTubeMetadata } from '../api-types';
+import { isAPIError } from '../errors';
 import { urlPath, useAPIFetch } from './api';
 
 /**
@@ -38,6 +39,7 @@ type YouTubeVideoInfo = {
   image?: string;
   title?: string;
   channel?: string;
+  error?: 'video_not_found' | 'unknown';
 };
 
 /* istanbul ignore next */
@@ -45,6 +47,17 @@ export function useYouTubeVideoInfo(videoId: string | null): YouTubeVideoInfo {
   const metadata = useAPIFetch<YouTubeMetadata>(
     videoId ? urlPath`/api/youtube/videos/${videoId}` : null
   );
+
+  if (metadata.error) {
+    return {
+      isLoading: metadata.isLoading,
+      error:
+        isAPIError(metadata.error) &&
+        metadata.error.errorCode === 'youtube_video_not_found'
+          ? 'video_not_found'
+          : 'unknown',
+    };
+  }
 
   return {
     isLoading: metadata.isLoading,

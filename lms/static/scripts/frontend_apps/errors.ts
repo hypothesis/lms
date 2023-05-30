@@ -110,6 +110,10 @@ export class APIError extends Error {
   }
 }
 
+export function isAPIError(error: ErrorLike): error is APIError {
+  return error instanceof APIError;
+}
+
 /**
  * Should the error be treated as an authorization error?
  *
@@ -121,7 +125,7 @@ export class APIError extends Error {
  * it is considered an "authorization error".
  */
 export function isAuthorizationError(error: ErrorLike): boolean {
-  return error instanceof APIError && !error.serverMessage && !error.errorCode;
+  return isAPIError(error) && !error.serverMessage && !error.errorCode;
 }
 
 /**
@@ -131,7 +135,7 @@ export function isAuthorizationError(error: ErrorLike): boolean {
  */
 export function isLTILaunchServerError(error: ErrorLike): error is APIError {
   return (
-    error instanceof APIError &&
+    isAPIError(error) &&
     !!error.errorCode &&
     [
       'blackboard_file_not_found_in_course',

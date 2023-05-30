@@ -1,5 +1,5 @@
 import { Button, CheckIcon, ModalDialog } from '@hypothesis/frontend-shared';
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 
 import { useYouTubeVideoInfo, videoIdFromYouTubeURL } from '../utils/youtube';
 import URLFormWithPreview from './URLFormWithPreview';
@@ -28,17 +28,23 @@ export default function YouTubePicker({
     setError(undefined);
   };
   const videoInfo = useYouTubeVideoInfo(videoId);
+  const transitionToErrorState = (
+    errorMessage = 'URL must be a YouTube video, e.g. "https://www.youtube.com/watch?v=cKxqzvzlnKU"'
+  ) => {
+    setVideoId(null);
+    setError(errorMessage);
+  };
+  const transitionToSuccessState = (videoId: string) => {
+    setVideoId(videoId);
+    setError(undefined);
+  };
 
   const verifyURL = (inputURL: string) => {
     const videoId = videoIdFromYouTubeURL(inputURL);
     if (videoId) {
-      setVideoId(videoId);
-      setError(undefined);
+      transitionToSuccessState(videoId);
     } else {
-      setVideoId(null);
-      setError(
-        'URL must be a YouTube video, e.g. "https://www.youtube.com/watch?v=cKxqzvzlnKU"'
-      );
+      transitionToErrorState();
     }
   };
   const confirmSelection = () => {
@@ -46,6 +52,18 @@ export default function YouTubePicker({
       onSelectURL(`youtube://${videoId}`);
     }
   };
+
+  // Display an error if a videoId was resolved (meaning, the URL fulfils the right pattern), but the server returns
+  // an error
+  useEffect(() => {
+    if (videoInfo.error) {
+      transitionToErrorState(
+        videoInfo.error === 'video_not_found'
+          ? 'Provided URL does not belong to a valid YouTube video'
+          : undefined
+      );
+    }
+  }, [videoInfo]);
 
   return (
     <ModalDialog
