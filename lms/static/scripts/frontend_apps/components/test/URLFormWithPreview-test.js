@@ -9,6 +9,7 @@ describe('URLFormWithPreview', () => {
       <URLFormWithPreview
         label="Default label"
         onURLChange={sinon.stub()}
+        onInput={sinon.stub()}
         inputRef={createRef()}
         {...props}
       />
@@ -138,6 +139,16 @@ describe('URLFormWithPreview', () => {
       button.simulate('click');
 
       assert.calledWith(onURLChange, 'https://example.com');
+    });
+
+    it('invokes `onInput` when URL input content is modified', () => {
+      const onInput = sinon.stub();
+      const wrapper = renderComponent({ onInput });
+      const input = wrapper.find('Input').find('input');
+
+      input.simulate('input');
+
+      assert.called(onInput);
     });
   });
 });

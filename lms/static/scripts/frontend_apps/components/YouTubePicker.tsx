@@ -67,6 +67,7 @@ export default function YouTubePicker({
     >
       <URLFormWithPreview
         onURLChange={verifyURL}
+        onInput={() => setVideoId(null)}
         error={error}
         inputRef={inputRef}
         urlPlaceholder="e.g. https://www.youtube.com/watch?v=cKxqzvzlnKU"
