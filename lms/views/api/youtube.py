@@ -1,0 +1,18 @@
+from pyramid.view import view_config, view_defaults
+
+from lms.security import Permissions
+from lms.services import YoutubeService
+
+
+@view_defaults(renderer="json", permission=Permissions.API)
+class YouTubeAPIViews:
+    def __init__(self, request):
+        self.request = request
+        self.youtube_service: YoutubeService = request.find_service(
+            iface=YoutubeService
+        )
+
+    @view_config(route_name="youtube_api.videos")
+    def video_info(self) -> dict:
+        video_id = self.request.matchdict["video_id"]
+        return self.youtube_service.video_info(video_id)
