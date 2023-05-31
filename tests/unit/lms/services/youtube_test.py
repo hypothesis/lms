@@ -2,11 +2,11 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.services.youtube import VideoNotFound, YoutubeService, factory
+from lms.services.youtube import VideoNotFound, YouTubeService, factory
 from tests import factories
 
 
-class TestYoutubeService:
+class TestYouTubeService:
     @pytest.mark.parametrize(
         "enabled,api_key,expected_enabled",
         (
@@ -19,7 +19,7 @@ class TestYoutubeService:
         ),
     )
     def test_enabled(self, enabled, api_key, expected_enabled, http_service):
-        svc = YoutubeService(enabled=enabled, api_key=api_key, http=http_service)
+        svc = YouTubeService(enabled=enabled, api_key=api_key, http=http_service)
 
         assert svc.enabled == expected_enabled
 
@@ -61,14 +61,14 @@ class TestYoutubeService:
 
     @pytest.fixture
     def svc(self, http_service):
-        return YoutubeService(enabled=True, api_key="api_key", http=http_service)
+        return YouTubeService(enabled=True, api_key="api_key", http=http_service)
 
 
 class TestServiceFactory:
     @pytest.mark.usefixtures("application_instance_service")
     @pytest.mark.usefixtures("http_service")
     def test_it(
-        self, pyramid_request, application_instance, YoutubeService, http_service
+        self, pyramid_request, application_instance, YouTubeService, http_service
     ):
         application_instance.settings.set("youtube", "enabled", sentinel.enabled)
 
@@ -77,11 +77,11 @@ class TestServiceFactory:
 
         svc = factory(sentinel.context, pyramid_request)
 
-        YoutubeService.assert_called_once_with(
+        YouTubeService.assert_called_once_with(
             enabled=sentinel.enabled, api_key="api_key", http=http_service
         )
-        assert svc == YoutubeService.return_value
+        assert svc == YouTubeService.return_value
 
     @pytest.fixture
-    def YoutubeService(self, patch):
-        return patch("lms.services.youtube.YoutubeService")
+    def YouTubeService(self, patch):
+        return patch("lms.services.youtube.YouTubeService")

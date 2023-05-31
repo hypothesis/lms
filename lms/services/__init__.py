@@ -33,7 +33,7 @@ from lms.services.organization import OrganizationService
 from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
 from lms.services.vitalsource import VitalSourceService
-from lms.services.youtube import YoutubeService
+from lms.services.youtube import YouTubeService
 
 
 def includeme(config):
@@ -127,7 +127,7 @@ def includeme(config):
         "lms.services.email_unsubscribe.factory", iface=EmailUnsubscribeService
     )
     config.register_service_factory(
-        "lms.services.youtube.factory", iface=YoutubeService
+        "lms.services.youtube.factory", iface=YouTubeService
     )
 
     # Plugins are not the same as top level services but we want to register them as pyramid services too
