@@ -1,0 +1,2 @@
+bddtests: sh bin/create-db lms_bddtests
+bddtests: behave {posargs:tests/bdd/}

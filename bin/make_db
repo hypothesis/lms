@@ -1,0 +1,5 @@
+"""Initialize the dev environment's DB."""
+#!/usr/bin/env python3
+import sys
+from pyramid.paster import bootstrap
+bootstrap("conf/development.ini")

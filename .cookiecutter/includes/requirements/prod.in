@@ -2,7 +2,6 @@ aiohttp
 alembic
 celery
 data-tasks
-gunicorn
 h-api
 h-assets
 h-pyramid-sentry
@@ -10,13 +9,10 @@ h-vialib
 importlib_resources
 mailchimp-transactional
 marshmallow
-newrelic
 oauthlib
-psycopg2
 pycryptodomex
 PyJWT[crypto]
 python-jose[crypto]
-pyramid
 pyramid-exclog
 pyramid-googleauth
 pyramid-jinja2
@@ -25,7 +21,6 @@ pyramid-services
 pyramid-tm
 requests
 requests-oauthlib
-sqlalchemy
 sqlparse
 tabulate
 webargs

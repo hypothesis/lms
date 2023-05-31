@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 A CLI command for inserting standard dev data into the DB.
 
@@ -131,7 +132,6 @@ def devdata():
     parser = argparse.ArgumentParser(
         prog="devdata", description="Inserts standard dev data into the DB"
     )
-    parser.add_argument("config", help="Location of the paster configuration file")
     parser.add_argument(
         "-u",
         "--repo-url",
@@ -140,12 +140,12 @@ def devdata():
     )
     args = parser.parse_args()
 
-    with bootstrap(args.config) as env:
+    with bootstrap("conf/development.ini") as env:
         with tempfile.TemporaryDirectory() as tmpdirname:
             # The directory that we'll clone the devdata git repo into.
             git_dir = os.path.join(tmpdirname, "devdata")
 
-            subprocess.check_call(["git", "clone", args.repo_url, git_dir])
+            subprocess.check_call(["git", "clone", "--depth", "1", args.repo_url, git_dir])
 
             # Copy devdata env file into place.
             shutil.copyfile(
