@@ -1,105 +1,121 @@
-[![Build Status](https://travis-ci.org/hypothesis/lms.svg?branch=main)](https://travis-ci.org/hypothesis/lms)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
-[![Coverage: 100%](https://img.shields.io/badge/Coverage-100%25-brightgreen)](https://github.com/hypothesis/lms/blob/main/.coveragerc#L18)
+<a href="https://github.com/hypothesis/lms/actions/workflows/ci.yml?query=branch%3Amain"><img src="https://img.shields.io/github/actions/workflow/status/hypothesis/lms/ci.yml?branch=main"></a>
+<a><img src="https://img.shields.io/badge/python-3.8-success"></a>
+<a href="https://github.com/hypothesis/lms/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-BSD--2--Clause-success"></a>
+<a href="https://github.com/hypothesis/cookiecutters/tree/main/pyramid-app"><img src="https://img.shields.io/badge/cookiecutter-pyramid--app-success"></a>
+<a href="https://black.readthedocs.io/en/stable/"><img src="https://img.shields.io/badge/code%20style-black-000000"></a>
 
-# Hypothesis LMS App
+# LMS
+
+An app for integrating Hypothesis with Learning Management Systems (LMS's).
 
 See also:
 
-  * [Configuration](docs/configuration.md) - Details of environment variables and setup
-  * [Setting up a region](docs/setting-up-a-region.md) - How to setup a new geographic region
+* [Configuration](docs/configuration.md) - Details of environment variables and setup
+* [Setting up a region](docs/setting-up-a-region.md) - How to setup a new geographic region
 
-## Installing the Hypothesis LMS app in a development environment
+## Setting up Your LMS Development Environment
 
-### You will need
+First you'll need to install:
 
-* The LMS app integrates h, the Hypothesis client and Via, so you will need to
-  set up development environments for each of those before you can develop the
-  LMS app:
-
-  * https://h.readthedocs.io/en/latest/developing/install/
-  * https://h.readthedocs.io/projects/client/en/latest/developers/developing/
-  * https://github.com/hypothesis/via
-
-* [Git](https://git-scm.com/)
-
+* [Git](https://git-scm.com/).
+  On Ubuntu: `sudo apt install git`, on macOS: `brew install git`.
+* [GNU Make](https://www.gnu.org/software/make/).
+  This is probably already installed, run `make --version` to check.
+* [pyenv](https://github.com/pyenv/pyenv).
+  Follow the instructions in pyenv's README to install it.
+  The **Homebrew** method works best on macOS.
+  The **Basic GitHub Checkout** method works best on Ubuntu.
+  You _don't_ need to set up pyenv's shell integration ("shims"), you can
+  [use pyenv without shims](https://github.com/pyenv/pyenv#using-pyenv-without-shims).
+* [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+  On Ubuntu follow [Install on Ubuntu](https://docs.docker.com/desktop/install/ubuntu/).
+  On macOS follow [Install on Mac](https://docs.docker.com/desktop/install/mac-install/).
 * [Node](https://nodejs.org/) and npm.
-  On Linux you should follow
-  [nodejs.org's instructions for installing node](https://nodejs.org/en/download/package-manager/)
-  because the version of node in the standard Ubuntu package repositories is
-  too old.
-  On macOS you should use [Homebrew](https://brew.sh/) to install node.
+  On Ubuntu: `sudo snap install --classic node`.
+  On macOS: `brew install node`.
+* [Yarn](https://yarnpkg.com/): `sudo npm install -g yarn`.
 
-* [Docker](https://docs.docker.com/install/).
-  Follow the [instructions on the Docker website](https://docs.docker.com/install/)
-  to install "Docker Engine - Community".
+Then to set up your development environment:
 
-* [pyenv](https://github.com/pyenv/pyenv)
-  Follow the instructions in the pyenv README to install it.
-  The Homebrew method works best on macOS.
+```terminal
+git clone https://github.com/hypothesis/lms.git
+cd lms
+make services
+make devdata
+make help
+```
 
-* [Yarn](https://yarnpkg.com/)
+## Changing the Project's Python Version
 
-* `pg_config`. On Ubuntu: `sudo apt install libpq-dev`. On macOS: `brew install postgresql`.
+To change what version of Python the project uses:
 
-### Clone the Git repo
+1. Change the Python version in the
+   [cookiecutter.json](.cookiecutter/cookiecutter.json) file. For example:
 
-    git clone https://github.com/hypothesis/lms.git
+   ```json
+   "python_version": "3.10.4",
+   ```
 
-This will download the code into an `lms` directory in your current working
-directory. You need to be in the `lms` directory from the remainder of the
-installation process:
+2. Re-run the cookiecutter template:
 
-    cd lms
+   ```terminal
+   make template
+   ```
 
-### Run the services with Docker Compose
+3. Re-compile the `requirements/*.txt` files.
+   This is necessary because the same `requirements/*.in` file can compile to
+   different `requirements/*.txt` files in different versions of Python:
 
-Start the services that the LMS app requires using Docker Compose:
+   ```terminal
+   make requirements
+   ```
 
-    make services
+4. Commit everything to git and send a pull request
 
-### Create the development data and settings
+## Changing the Project's Python Dependencies
 
-Create the database contents and environment variable settings needed to get lms
-working nicely with your local development instances of the rest of the
-Hypothesis apps, and with our test LMS sites (Canvas, Blackboard, ...):
+### To Add a New Dependency
 
-    make devdata
+Add the package to the appropriate [`requirements/*.in`](requirements/)
+file(s) and then run:
 
-<details> <summary>Creating data and settings manually instead</summary>
+```terminal
+make requirements
+```
 
-`make devdata` requires you to have a git SSH key set up that has access to the
-private https://github.com/hypothesis/devdata repo. Otherwise it'll crash. If
-you aren't a Hypothesis team member and don't have access to the devdata repo,
-or if you're installing the app in a production environment, you can follow
-these instructions to create the necessary data and settings manually:
+### To Remove a Dependency
 
-[Creating the development data and settings manually](docs/getting-h-credentials.md)
-</details>
+Remove the package from the appropriate [`requirements/*.in`](requirements)
+file(s) and then run:
 
-### Start the development server
+```terminal
+make requirements
+```
 
-    make dev
+### To Upgrade or Downgrade a Dependency
 
-The first time you run `make dev` it might take a while to start because it'll
-need to install the application dependencies and build the client assets.
+We rely on [Dependabot](https://github.com/dependabot) to keep all our
+dependencies up to date by sending automated pull requests to all our repos.
+But if you need to upgrade or downgrade a package manually you can do that
+locally.
 
-This will start the server on <http://localhost:8001> and <https://localhost:48001>, 
-reload the application whenever changes are made to the source code, 
-and restart it should it crash for some reason.
+To upgrade a package to the latest version in all `requirements/*.txt` files:
 
-**That's it!** You’ve finished setting up your lms development environment. Run
-`make help` to see all the commands that're available for running the tests,
-linting, code formatting, Python and SQL shells, etc.
+```terminal
+make requirements --always-make args='--upgrade-package <FOO>'
+```
 
-### Run the tests
+To upgrade or downgrade a package to a specific version:
 
-You should now be able to run the tests successfully by typing:
+```terminal
+make requirements --always-make args='--upgrade-package <FOO>==<X.Y.Z>'
+```
 
-    make test
+To upgrade **all** packages to their latest versions:
 
-See [`HACKING.md`](HACKING.md) for documentation of common development tasks.
-
+```terminal
+make requirements --always-make args=--upgrade
+```
 
 ### Using self signed certificates with HTTPS
 

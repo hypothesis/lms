@@ -1,170 +1,106 @@
+comma := ,
+
 .PHONY: help
-help:
-	@echo "make help              Show this help message"
-	@echo 'make services          Run the services that `make dev` requires'
-	@echo "                       (Postgres) in Docker"
-	@echo 'make db                Upgrade the DB schema to the latest version'
-	@echo "make dev               Run the entire app (web server and other processes)"
-	@echo "make supervisor        Launch a supervisorctl shell for managing the processes "
-	@echo '                       that `make dev` starts, type `help` for docs'
-	@echo "make shell             Launch a Python shell in the dev environment"
-	@echo "make sql               Connect to the dev database with a psql shell"
-	@echo "make lint              Run the code linter(s) and print any warnings"
-	@echo "make format            Correctly format the code"
-	@echo "make checkformatting   Crash if the code isn't correctly formatted"
-	@echo "make test              Run all unit tests"
-	@echo "make coverage          Print the unit test coverage report"
-	@echo "make backend-tests     Run the backend unit tests"
-	@echo "make frontend-tests    Run the frontend unit tests"
-	@echo "make functests         Run the functional tests"
-	@echo "make bddtests          Run the gherkin tests"
-	@echo "make sure              Make sure that the formatter, linter, tests, etc all pass"
-	@echo "make docker            Make the app's Docker image"
-	@echo "make run-docker        Run the app's Docker image locally"
+help = help::; @echo $$$$(tput bold)$(strip $(1)):$$$$(tput sgr0) $(strip $(2))
+$(call help,make help,print this help message)
 
 .PHONY: services
+$(call help,make services,start the services that the app needs)
 services: args?=up -d
 services: python
-	@tox -qe dockercompose --run-command 'sh -c "docker network create dbs 2>/dev/null || true"'
-	@tox -qe dockercompose -- $(args)
+	@docker compose $(args)
 
 .PHONY: db
+$(call help,make db,initialize the DB and upgrade it to the latest migration)
 db: args?=upgrade head
 db: python
-	@tox -qqe dev --run-command 'python bin/initialize_db.py conf/development.ini'
+	@tox -qe dev --run-command 'python bin/make_db'
 	@tox -qe dev  --run-command 'alembic -c conf/alembic.ini $(args)'
 
-.PHONY: dev
-dev: build/manifest.json python
-	@tox -qe dev
-
-.PHONY: supervisor
-supervisor: python
-	@tox -qe dev --run-command 'supervisorctl -c conf/supervisord-dev.conf $(command)'
-
 .PHONY: devdata
-devdata: build/manifest.json  python
-	@tox -qe dev --run-command 'python bin/update_dev_data.py conf/development.ini'
+$(call help,make devdata,load development data and environment variables)
+devdata: python
+	@tox -qe dev --run-command 'python bin/make_devdata'
+
+.PHONY: dev
+$(call help,make dev,run the whole app \(all workers\))
+dev: python
+	@pyenv exec tox -qe dev
+
+.PHONY: web
+$(call help,make web,run just a single web worker process)
+web: python
+	@pyenv exec tox -qe dev --run-command 'gunicorn --bind :8001 --workers 1 --reload --timeout 0 --paste conf/development.ini'
 
 .PHONY: shell
-shell: build/manifest.json python
-	@tox -qe dev --run-command 'pshell conf/development.ini'
+$(call help,make shell,"launch a Python shell in this project's virtualenv")
+shell: python
+	@pyenv exec tox -qe dev --run-command 'pshell conf/development.ini'
 
 .PHONY: sql
+$(call help,make sql,"Connect to the dev database with a psql shell")
 sql: python
-	@tox -qe dockercompose -- exec postgres psql --pset expanded=auto -U postgres
+	@docker compose exec postgres psql --pset expanded=auto -U postgres
 
 .PHONY: lint
-lint: backend-lint frontend-lint
+$(call help,make lint,"lint the code and print any warnings")
+lint: python
+	@pyenv exec tox -qe lint
 
 .PHONY: format
-format: backend-format frontend-format
-
-.PHONY: backend-format
-backend-format: python
-	@tox -qe format
-
-.PHONY: frontend-format
-frontend-format: node_modules/.uptodate
-	@yarn format
+$(call help,make format,"format the code")
+format: python
+	@pyenv exec tox -qe format
 
 .PHONY: checkformatting
+$(call help,make checkformatting,"crash if the code isn't correctly formatted")
 checkformatting: python
-	@tox -qe checkformatting
+	@pyenv exec tox -qe checkformatting
 
 .PHONY: test
-test: backend-tests frontend-tests
-
-# Backend and frontend tests are split into separate targets because on Jenkins
-# we need to run them with different Docker images, but `make test` runs both.
-.PHONY: backend-tests
-backend-tests: python
-	@tox -qe tests
+$(call help,make test,"run the unit tests in Python 3.8")
+test: python
+	@pyenv exec tox -qe tests
 
 .PHONY: coverage
+$(call help,make coverage,"run the tests and print the coverage report")
 coverage: python
-	@tox -qe coverage
-
-.PHONY: frontend-tests
-frontend-tests: node_modules/.uptodate
-ifdef ARGS
-	yarn test $(ARGS)
-else
-	yarn test
-endif
+	@pyenv exec tox -qe 'tests,coverage'
 
 .PHONY: functests
-functests: build/manifest.json
-	@tox -qe functests
+$(call help,make functests,"run the functional tests in Python 3.8")
+functests: python
+	@pyenv exec tox -qe functests
 
-.PHONY: docker
-docker:
-	@git archive --format=tar.gz HEAD | docker build -t hypothesis/lms:$(DOCKER_TAG) -
-
-.PHONY: run-docker
-run-docker:
-	# To run the Docker container locally:
-	# 1. make devdata
-	# 2. make docker
-	# 3. make run-docker
-	@docker run \
-		--add-host host.docker.internal:host-gateway \
-		--net lms_default \
-		-e DATABASE_URL=postgresql://postgres@postgres/postgres \
-		-e BROKER_URL=amqp://guest:guest@localhost:5674// \
-		-e FEATURE_FLAGS_COOKIE_SECRET=notasecret \
-		-e H_API_URL_PRIVATE=http://host.docker.internal:5000/api/ \
-		-e H_API_URL_PUBLIC=http://localhost:5000/api/ \
-		-e H_AUTHORITY=lms.hypothes.is \
-		-e RPC_ALLOWED_ORIGINS=http://localhost:5000 \
-		-e VIA_URL=http://localhost:9083 \
-		-e VIA_SECRET=not_a_secret \
-		-e SESSION_COOKIE_SECRET=notasecret \
-		-e OAUTH2_STATE_SECRET=notasecret \
-		--env-file .devdata.env \
-		-p 8001:8001 \
-		hypothesis/lms:$(DOCKER_TAG)
-
-.PHONY: backend-lint
-backend-lint: python
-	@tox -qe lint
-
-.PHONY: frontend-lint
-frontend-lint: node_modules/.uptodate
-	@yarn checkformatting
-	@yarn lint
-	@yarn typecheck
-
-
-.PHONY: bddtests
-bddtests: python
-	@tox -qe bddtests
+.PHONY: sure
+$(call help,make sure,"make sure that the formatting$(comma) linting and tests all pass")
+sure: python
+sure:
+	@pyenv exec tox --parallel -qe 'checkformatting,lint,tests,coverage,functests'
 
 # Tell make how to compile requirements/*.txt files.
 #
 # `touch` is used to pre-create an empty requirements/%.txt file if none
 # exists, otherwise tox crashes.
 #
-# $(subst) is used because in the special case of making requirements.txt we
-# actually need to touch dev.txt not requirements.txt and we need to run
-# `tox -e dev ...` not `tox -e requirements ...`
+# $(subst) is used because in the special case of making prod.txt we actually
+# need to touch dev.txt not prod.txt and we need to run `tox -e dev ...`
+# not `tox -e prod ...`
 #
 # $(basename $(notdir $@))) gets just the environment name from the
 # requirements/%.txt filename, for example requirements/foo.txt -> foo.
 requirements/%.txt: requirements/%.in
-	@touch -a $(subst requirements.txt,dev.txt,$@)
-	@tox -qe $(subst requirements,dev,$(basename $(notdir $@))) --run-command 'pip --quiet --disable-pip-version-check install pip-tools'
-	@tox -qe $(subst requirements,dev,$(basename $(notdir $@))) --run-command 'pip-compile --allow-unsafe --quiet $(args) $<'
+	@touch -a $(subst prod.txt,dev.txt,$@)
+	@tox -qe $(subst prod,dev,$(basename $(notdir $@))) --run-command 'pip --quiet --disable-pip-version-check install pip-tools pip-sync-faster'
+	@tox -qe $(subst prod,dev,$(basename $(notdir $@))) --run-command 'pip-compile --allow-unsafe --quiet $(args) $<'
 
 # Inform make of the dependencies between our requirements files so that it
 # knows what order to re-compile them in and knows to re-compile a file if a
 # file that it depends on has been changed.
-requirements/checkformatting.txt: requirements/format.txt
-requirements/dev.txt: requirements/requirements.txt
-requirements/tests.txt: requirements/requirements.txt
-requirements/functests.txt: requirements/requirements.txt
-requirements/bddtests.txt: requirements/requirements.txt
-requirements/lint.txt: requirements/tests.txt requirements/functests.txt requirements/bddtests.txt
+requirements/dev.txt: requirements/prod.txt
+requirements/tests.txt: requirements/prod.txt
+requirements/functests.txt: requirements/prod.txt
+requirements/lint.txt: requirements/tests.txt requirements/functests.txt
 
 # Add a requirements target so you can just run `make requirements` to
 # re-compile *all* the requirements files at once.
@@ -177,22 +113,43 @@ requirements/lint.txt: requirements/tests.txt requirements/functests.txt require
 # requirements/*.in files from disk ($(wildcard requirements/*.in)) and replace
 # the .in's with .txt's.
 .PHONY: requirements requirements/
+$(call help,make requirements,"compile the requirements files")
 requirements requirements/: $(foreach file,$(wildcard requirements/*.in),$(basename $(file)).txt)
 
-.PHONY: sure
-sure: checkformatting backend-lint frontend-lint backend-tests coverage frontend-tests functests bddtests
-
+.PHONY: template
+$(call help,make template,"update from the latest cookiecutter template")
+template: python
+	@pyenv exec tox -e template -- $$(if [ -n "$${template+x}" ]; then echo "--template $$template"; fi) $$(if [ -n "$${checkout+x}" ]; then echo "--checkout $$checkout"; fi) $$(if [ -n "$${directory+x}" ]; then echo "--directory $$directory"; fi)
 
 DOCKER_TAG = dev
 
-build/manifest.json: node_modules/.uptodate
-	@yarn build
+.PHONY: docker
+$(call help,make docker,"make the app's docker image")
+docker:
+	@git archive --format=tar HEAD | docker build -t hypothesis/lms:$(DOCKER_TAG) -
 
-node_modules/.uptodate: package.json yarn.lock
-	@echo installing javascript dependencies
-	@yarn install
-	@touch $@
+.PHONY: docker-run
+$(call help,make docker-run,"run the app's docker image")
+docker-run:
+	@docker run \
+		--add-host host.docker.internal:host-gateway \
+		--net lms_default \
+		--env-file .docker.env \
+		--env-file .devdata.env \
+		-p 8001:8001 \
+		hypothesis/lms:$(DOCKER_TAG)
+
+.PHONY: clean
+$(call help,make clean,"delete temporary files etc")
+clean:
+	@rm -rf build dist .tox .coverage coverage .eslintcache node_modules supervisord.log supervisord.pid yarn-error.log
+	@find . -path '*/__pycache__*' -delete
+	@find . -path '*.egg-info*' -delete
+	@rm -f tests/bdd/steps/_compiled_feature_steps.py
 
 .PHONY: python
 python:
-	@./bin/install-python
+	@bin/make_python
+
+-include lms.mk
+-include frontend.mk

@@ -1,10 +1,10 @@
 pip-tools
 pip-sync-faster
-coverage
-httpretty
-aioresponses
+-r prod.txt
+coverage[toml]
 pytest
-freezegun
 factory-boy
 h-matchers
--r requirements.txt
+httpretty
+freezegun
+aioresponses

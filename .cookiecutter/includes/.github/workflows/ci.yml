@@ -1,0 +1,27 @@
+BDD_Tests:
+  name: BDD Tests
+  runs-on: ubuntu-latest
+  services:
+    postgres:
+      image: postgres:11.5-alpine
+      ports:
+      - 5433:5432
+  steps:
+    - uses: actions/checkout@v3
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+    - name: Cache the .tox dir
+      uses: actions/cache@v3
+      with:
+        path: .tox
+        key: bddtests-${{ runner.os }}-tox-${{ hashFiles('tox.ini') }}-${{ hashFiles('requirements/*') }}
+        restore-keys: |
+          bddtests-${{ runner.os }}-tox-
+    - name: Create test database
+      run: psql -U postgres -h localhost -p 5433 -c 'CREATE DATABASE lms_bddtests'
+    - run: yarn install --frozen-lockfile
+    - run: yarn build
+    - run: python -m pip install 'tox<4'
+    - run: tox -e bddtests

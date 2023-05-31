@@ -21,7 +21,7 @@ RUN addgroup -S lms \
 WORKDIR /var/lib/lms
 
 # Copy minimal data to allow installation of dependencies.
-COPY requirements/requirements.txt ./
+COPY requirements/prod.txt ./
 
 # Install build deps, build, and then clean up.
 RUN apk add --virtual build-deps \
@@ -30,7 +30,7 @@ RUN apk add --virtual build-deps \
     python3-dev \
     libffi-dev \
   && pip3 install --no-cache-dir -U pip \
-  && pip3 install --no-cache-dir -r requirements.txt \
+  && pip3 install --no-cache-dir -r prod.txt \
   && apk del build-deps
 
 # Copy frontend assets.

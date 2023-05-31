@@ -1,25 +1,26 @@
 version: 2
 updates:
-
-- package-ecosystem: pip
+- package-ecosystem: "pip"
   directory: "/"
   schedule:
-    interval: daily
-    time: "10:00"
-  open-pull-requests-limit: 10
-
-- package-ecosystem: npm
+    interval: "monthly"
+    day: "sunday"
+    time: "00:00"
+    timezone: "Europe/London"
+- package-ecosystem: "npm"
   directory: "/"
   schedule:
-    interval: weekly
-    time: "10:00"
-  open-pull-requests-limit: 10
-
-- package-ecosystem: docker
+    interval: "monthly"
+    day: "sunday"
+    time: "00:00"
+    timezone: "Europe/London"
+- package-ecosystem: "docker"
   directory: "/"
   schedule:
-    interval: daily
-  open-pull-requests-limit: 10
+    interval: "monthly"
+    day: "sunday"
+    time: "00:00"
+    timezone: "Europe/London"
   ignore:
     # Only send PRs for patch versions of Python.
     - dependency-name: "python"

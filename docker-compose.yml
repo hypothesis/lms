@@ -1,21 +1,18 @@
-version: '3'
 services:
   postgres:
     image: postgres:11.5-alpine
     ports:
-      - '127.0.0.1:5433:5432'
+      - "127.0.0.1:5433:5432"
     healthcheck:
-        test: ["CMD", "pg_isready", "-U", "postgres"]
-        interval: 1s
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 1s
     networks:
       - dbs
-
   rabbit:
    image: rabbitmq:3.6-management-alpine
    ports:
      - '127.0.0.1:5674:5672'
      - '127.0.0.1:15674:15672'
-
 networks:
   # This external network allows FDW connections between H, LMS and report DBs.
   # To avoid having unnecessary dependencies between the projects
