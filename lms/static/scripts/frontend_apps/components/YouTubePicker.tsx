@@ -1,7 +1,10 @@
 import { Button, CheckIcon, ModalDialog } from '@hypothesis/frontend-shared';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useMemo, useRef, useState } from 'preact/hooks';
 
-import { useYouTubeVideoInfo, videoIdFromYouTubeURL } from '../utils/youtube';
+import type { YouTubeVideoInfo } from '../api-types';
+import { isAPIError } from '../errors';
+import { urlPath, useAPIFetch } from '../utils/api';
+import { videoIdFromYouTubeURL } from '../utils/youtube';
 import URLFormWithPreview from './URLFormWithPreview';
 
 export type YouTubePickerProps = {
@@ -19,51 +22,40 @@ export default function YouTubePicker({
   onSelectURL,
 }: YouTubePickerProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [videoId, setVideoId] = useState(
-    (defaultURL && videoIdFromYouTubeURL(defaultURL)) || null
+  const [currentURL, setCurrentURL] = useState(defaultURL);
+  const videoId = useMemo(
+    () => (currentURL ? videoIdFromYouTubeURL(currentURL) : null),
+    [currentURL]
   );
-  const [error, setError] = useState<string>();
-  const resetToInitialState = () => {
-    setVideoId(null);
-    setError(undefined);
-  };
-  const videoInfo = useYouTubeVideoInfo(videoId);
-  const transitionToErrorState = (
-    errorMessage = 'URL must be a YouTube video, e.g. "https://www.youtube.com/watch?v=cKxqzvzlnKU"'
-  ) => {
-    setVideoId(null);
-    setError(errorMessage);
-  };
-  const transitionToSuccessState = (videoId: string) => {
-    setVideoId(videoId);
-    setError(undefined);
-  };
+  const videoInfo = useAPIFetch<YouTubeVideoInfo>(
+    videoId ? urlPath`/api/youtube/videos/${videoId}` : null
+  );
+  const error = useMemo(() => {
+    const defaultError =
+      'URL must be a YouTube video, e.g. "https://www.youtube.com/watch?v=cKxqzvzlnKU"';
 
-  const verifyURL = (inputURL: string) => {
-    const videoId = videoIdFromYouTubeURL(inputURL);
-    if (videoId) {
-      transitionToSuccessState(videoId);
-    } else {
-      transitionToErrorState();
+    // We have a fetch error. A valid YouTube URL was set, but the API could not find the video
+    if (videoInfo.error && isAPIError(videoInfo.error)) {
+      return videoInfo.error.errorCode === 'youtube_video_not_found'
+        ? 'Video not found'
+        : defaultError;
     }
-  };
+
+    // A URL was set, but it's not a valid YouTube URL
+    if (currentURL && !videoId) {
+      return defaultError;
+    }
+
+    return undefined;
+  }, [currentURL, videoId, videoInfo.error]);
+
+  const onURLChange = (inputURL: string) => setCurrentURL(inputURL);
+  const resetCurrentUrl = () => setCurrentURL(undefined);
   const confirmSelection = () => {
     if (videoId) {
       onSelectURL(`youtube://${videoId}`);
     }
   };
-
-  // Display an error if a videoId was resolved (meaning, the URL fulfils the right pattern), but the server returns
-  // an error
-  useEffect(() => {
-    if (videoInfo.error) {
-      transitionToErrorState(
-        videoInfo.error === 'video_not_found'
-          ? 'Provided URL does not belong to a valid YouTube video'
-          : undefined
-      );
-    }
-  }, [videoInfo]);
 
   return (
     <ModalDialog
@@ -88,8 +80,8 @@ export default function YouTubePicker({
       ]}
     >
       <URLFormWithPreview
-        onURLChange={verifyURL}
-        onInput={resetToInitialState}
+        onURLChange={onURLChange}
+        onInput={resetCurrentUrl}
         error={error}
         inputRef={inputRef}
         urlPlaceholder="e.g. https://www.youtube.com/watch?v=cKxqzvzlnKU"
@@ -97,16 +89,16 @@ export default function YouTubePicker({
         defaultURL={defaultURL}
         thumbnail={{
           isLoading: videoInfo.isLoading,
-          image: videoInfo.image,
-          alt: 'Youtube video',
+          image: videoInfo.data?.image,
+          alt: videoInfo.data?.title,
           orientation: 'landscape',
         }}
       >
-        {videoInfo.title && videoInfo.channel && (
+        {videoInfo.data?.title && videoInfo.data.channel && (
           <div className="flex flex-row space-x-2" data-testid="selected-video">
             <CheckIcon className="text-green-success" />
             <div className="grow font-bold italic">
-              {videoInfo.title} ({videoInfo.channel})
+              {videoInfo.data.title} ({videoInfo.data.channel})
             </div>
           </div>
         )}

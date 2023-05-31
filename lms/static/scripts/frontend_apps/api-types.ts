@@ -86,7 +86,7 @@ export type JSTORThumbnail = {
 /**
  * Response for an `/api/youtube/videos/{video_id}` call.
  */
-export type YouTubeMetadata = {
+export type YouTubeVideoInfo = {
   title: string;
   channel: string;
   image: string;
