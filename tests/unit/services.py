@@ -48,7 +48,7 @@ from lms.services.oauth_http import OAuthHTTPService
 from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
 from lms.services.vitalsource import VitalSourceService
-from lms.services.youtube import YoutubeService
+from lms.services.youtube import YouTubeService
 from tests import factories
 
 __all__ = (
@@ -240,7 +240,7 @@ def jstor_service(mock_service):
 
 @pytest.fixture
 def youtube_service(mock_service):
-    return mock_service(YoutubeService)
+    return mock_service(YouTubeService)
 
 
 @pytest.fixture

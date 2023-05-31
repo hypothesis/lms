@@ -12,7 +12,7 @@ class VideoNotFound(SerializableError):
         )
 
 
-class YoutubeService:
+class YouTubeService:
     """An interface for dealing with YouTube API."""
 
     def __init__(self, enabled: bool, api_key: str, http: HTTPService):
@@ -66,11 +66,11 @@ class YoutubeService:
         }
 
 
-def factory(_context, request) -> YoutubeService:
+def factory(_context, request) -> YouTubeService:
     ai_settings = request.lti_user.application_instance.settings
     app_settings = request.registry.settings
 
-    return YoutubeService(
+    return YouTubeService(
         enabled=ai_settings.get("youtube", "enabled"),
         api_key=app_settings.get("youtube_api_key"),
         http=request.find_service(name="http"),
