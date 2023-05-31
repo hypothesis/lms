@@ -96,4 +96,33 @@ describe('YouTubePicker', () => {
     assert.isTrue(metadata.exists());
     assert.equal(metadata.text(), 'The video title (Hypothesis)');
   });
+
+  it('resets selected video on URL input', () => {
+    const wrapper = renderComponent();
+    const buttonSelector = 'button[data-testid="select-button"]';
+
+    // The button is initially enabled
+    assert.isFalse(wrapper.find(buttonSelector).prop('disabled'));
+
+    wrapper.find('URLFormWithPreview').props().onInput();
+    wrapper.update();
+
+    // As soon as input changes, the video is reset, disabling the button
+    assert.isTrue(wrapper.find(buttonSelector).prop('disabled'));
+  });
+
+  it('resets visible errors on URL input', () => {
+    const wrapper = renderComponent();
+
+    // Invoking onURLChange with an invalid URL will set the error
+    wrapper.find('URLFormWithPreview').props().onURLChange('not-a-youtube-url');
+    wrapper.update();
+    assert.isDefined(wrapper.find('URLFormWithPreview').prop('error'));
+
+    wrapper.find('URLFormWithPreview').props().onInput();
+    wrapper.update();
+
+    // As soon as input changes, the error is unset
+    assert.isUndefined(wrapper.find('URLFormWithPreview').prop('error'));
+  });
 });

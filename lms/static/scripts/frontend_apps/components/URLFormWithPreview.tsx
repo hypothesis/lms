@@ -29,6 +29,8 @@ export type URLFormWithPreviewProps = {
   inputRef: RefObject<HTMLInputElement | undefined>;
   /** Invoked every time the input URL changes, with the value that was input */
   onURLChange: (inputURL: string) => void;
+  /** Invoked when the input content is modified */
+  onInput: () => void;
   label: string;
   urlPlaceholder?: string;
   defaultURL?: string;
@@ -43,6 +45,7 @@ export default function URLFormWithPreview({
   thumbnail,
   inputRef,
   onURLChange,
+  onInput,
   label,
   urlPlaceholder,
   defaultURL,
@@ -102,6 +105,7 @@ export default function URLFormWithPreview({
             name="URL"
             onChange={onChange}
             onKeyDown={onKeyDown}
+            onInput={onInput}
             placeholder={urlPlaceholder}
             spellcheck={false}
           />

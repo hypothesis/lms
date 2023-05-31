@@ -23,6 +23,10 @@ export default function YouTubePicker({
     (defaultURL && videoIdFromYouTubeURL(defaultURL)) || null
   );
   const [error, setError] = useState<string>();
+  const resetToInitialState = () => {
+    setVideoId(null);
+    setError(undefined);
+  };
   const { thumbnail, metadata } = useYouTubeVideoInfo(videoId);
 
   const verifyURL = (inputURL: string) => {
@@ -67,6 +71,7 @@ export default function YouTubePicker({
     >
       <URLFormWithPreview
         onURLChange={verifyURL}
+        onInput={resetToInitialState}
         error={error}
         inputRef={inputRef}
         urlPlaceholder="e.g. https://www.youtube.com/watch?v=cKxqzvzlnKU"
