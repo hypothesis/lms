@@ -1,21 +1,22 @@
 import { mount } from 'enzyme';
 
 import mockImportedComponents from '../../../test-util/mock-imported-components';
+import { APIError } from '../../errors';
 import YouTubePicker, { $imports } from '../YouTubePicker';
 
 describe('YouTubePicker', () => {
-  let fakeUseYouTubeVideoInfo;
+  let fakeUseAPIFetch;
   let fakeOnCancel;
   let fakeOnSelectURL;
 
   beforeEach(() => {
-    fakeUseYouTubeVideoInfo = sinon.stub().returns({});
+    fakeUseAPIFetch = sinon.stub().returns({});
     fakeOnCancel = sinon.stub();
     fakeOnSelectURL = sinon.stub();
 
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
-      '../utils/youtube': { useYouTubeVideoInfo: fakeUseYouTubeVideoInfo },
+      '../utils/api': { useAPIFetch: fakeUseAPIFetch },
     });
   });
 
@@ -82,10 +83,12 @@ describe('YouTubePicker', () => {
     assert.isUndefined(wrapper.find('URLFormWithPreview').prop('error'));
   });
 
-  it('displays video metadata when available', () => {
-    fakeUseYouTubeVideoInfo.returns({
-      title: 'The video title',
-      channel: 'Hypothesis',
+  it('displays video info when available', () => {
+    fakeUseAPIFetch.returns({
+      data: {
+        title: 'The video title',
+        channel: 'Hypothesis',
+      },
     });
 
     const wrapper = renderComponent();
@@ -93,6 +96,49 @@ describe('YouTubePicker', () => {
 
     assert.isTrue(metadata.exists());
     assert.equal(metadata.text(), 'The video title (Hypothesis)');
+  });
+
+  it('displays expected thumbnail based on API request', () => {
+    fakeUseAPIFetch.returns({
+      isLoading: false,
+      data: {
+        title: 'The video title',
+        image: 'https://i.ytimg.com/vi/9l55oKI_Ch8/mqdefault.jpg',
+      },
+    });
+
+    const wrapper = renderComponent();
+    const thumbnail = wrapper.find('URLFormWithPreview').prop('thumbnail');
+
+    assert.isFalse(thumbnail.isLoading);
+    assert.equal(
+      thumbnail.image,
+      'https://i.ytimg.com/vi/9l55oKI_Ch8/mqdefault.jpg'
+    );
+    assert.equal(thumbnail.alt, 'The video title');
+    assert.equal(thumbnail.orientation, 'landscape');
+  });
+
+  [
+    { errorCode: 'youtube_video_not_found', expectedError: 'Video not found' },
+    {
+      errorCode: 'unknown_error',
+      expectedError:
+        'URL must be a YouTube video, e.g. "https://www.youtube.com/watch?v=cKxqzvzlnKU"',
+    },
+  ].forEach(({ errorCode, expectedError }) => {
+    it('displays error when API request fails', () => {
+      fakeUseAPIFetch.returns({
+        error: new APIError(400, { error_code: errorCode }),
+      });
+
+      const wrapper = renderComponent();
+
+      assert.equal(
+        wrapper.find('URLFormWithPreview').prop('error'),
+        expectedError
+      );
+    });
   });
 
   it('resets selected video on URL input', () => {
