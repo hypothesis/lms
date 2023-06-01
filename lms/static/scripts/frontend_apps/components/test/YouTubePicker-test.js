@@ -64,6 +64,21 @@ describe('YouTubePicker', () => {
     });
   });
 
+  [
+    { data: undefined, isDisabled: true },
+    { data: {}, isDisabled: false },
+  ].forEach(({ data, isDisabled }) => {
+    it('disables Continue button as long as no data is loaded from API', () => {
+      fakeUseAPIFetch.returns({ data });
+
+      const wrapper = renderComponent({ defaultURL: 'https://youtu.be/123' });
+      assert.equal(
+        wrapper.find('button[data-testid="select-button"]').prop('disabled'),
+        isDisabled
+      );
+    });
+  });
+
   it('sets validation error when trying to set an invalid URL', () => {
     const wrapper = renderComponent();
 
@@ -139,20 +154,6 @@ describe('YouTubePicker', () => {
         expectedError
       );
     });
-  });
-
-  it('resets selected video on URL input', () => {
-    const wrapper = renderComponent();
-    const buttonSelector = 'button[data-testid="select-button"]';
-
-    // The button is initially enabled
-    assert.isFalse(wrapper.find(buttonSelector).prop('disabled'));
-
-    wrapper.find('URLFormWithPreview').props().onInput();
-    wrapper.update();
-
-    // As soon as input changes, the video is reset, disabling the button
-    assert.isTrue(wrapper.find(buttonSelector).prop('disabled'));
   });
 
   it('resets visible errors on URL input', () => {

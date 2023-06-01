@@ -50,7 +50,7 @@ export default function YouTubePicker({
   }, [currentURL, videoId, videoInfo.error]);
 
   const onURLChange = (inputURL: string) => setCurrentURL(inputURL);
-  const resetCurrentUrl = () => setCurrentURL(undefined);
+  const resetCurrentURL = () => setCurrentURL(undefined);
   const confirmSelection = () => {
     if (videoId) {
       onSelectURL(`youtube://${videoId}`);
@@ -70,7 +70,7 @@ export default function YouTubePicker({
         </Button>,
         <Button
           data-testid="select-button"
-          disabled={!videoId}
+          disabled={!videoInfo.data}
           key="submit"
           onClick={confirmSelection}
           variant="primary"
@@ -81,7 +81,7 @@ export default function YouTubePicker({
     >
       <URLFormWithPreview
         onURLChange={onURLChange}
-        onInput={resetCurrentUrl}
+        onInput={resetCurrentURL}
         error={error}
         inputRef={inputRef}
         urlPlaceholder="e.g. https://www.youtube.com/watch?v=cKxqzvzlnKU"
