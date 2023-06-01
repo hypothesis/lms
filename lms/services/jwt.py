@@ -4,7 +4,6 @@ import logging
 from functools import lru_cache
 
 import jwt
-import requests
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError, PyJWTError
 
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
@@ -24,9 +23,10 @@ class JWTService:
     JWT and us.
     """
 
-    def __init__(self, registration_service, rsa_key_service):
+    def __init__(self, registration_service, rsa_key_service, http_service):
         self._registration_service = registration_service
         self._rsa_key_service = rsa_key_service
+        self._http_service = http_service
 
     @classmethod
     def decode_with_secret(cls, jwt_str, secret) -> dict:
@@ -107,7 +107,7 @@ class JWTService:
 
         try:
             signing_key = self._get_jwk_client(
-                registration.key_set_url
+                self._http_service, registration.key_set_url
             ).get_signing_key_from_jwt(id_token)
 
             return jwt.decode(
@@ -134,36 +134,42 @@ class JWTService:
 
     @staticmethod
     @lru_cache
-    def _get_jwk_client(jwk_url: str):
+    def _get_jwk_client(http_service, jwk_url: str):
         """
         Get a PyJWKClient for the given key set URL.
 
         PyJWKClient maintains a cache of keys it has seen we want to keep
         the clients around with `lru_cache` in case we can reuse that internal cache
         """
-        return _RequestsPyJWKClient(jwk_url)
+        return _RequestsPyJWKClient(jwk_url, http_service=http_service)
 
 
 class _RequestsPyJWKClient(jwt.PyJWKClient):
     """
-    Version of PyJWKClient which uses requests to gather JWKs.
+    Version of PyJWKClient which uses our HTTPService to gather JWKs.
 
-    Having our own class and using request allows for easier customization.
+    Having our own class allows for easier customization.
     """
 
+    def __init__(self, *args, **kwargs):
+        self._http_service = kwargs.pop("http_service")
+        super().__init__(*args, **kwargs)
+
     def fetch_data(self):
-        # We found that some Moodle instances return 403s
-        # on request without an User-Agent.
-        with requests.get(
-            self.uri, headers={"User-Agent": "requests"}, timeout=(10, 10)
-        ) as response:
-            return response.json()
+        return self._http_service.get(
+            self.uri,
+            # We found that some Moodle instances return 403s
+            # on request without an User-Agent.
+            headers={"User-Agent": "requests"},
+            timeout=(10, 10),
+        ).json()
 
 
 def factory(_context, request):
     return JWTService(
         registration_service=request.find_service(LTIRegistrationService),
         rsa_key_service=request.find_service(RSAKeyService),
+        http_service=request.find_service(name="http"),
     )
 
 
