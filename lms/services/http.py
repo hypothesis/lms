@@ -1,6 +1,12 @@
+import requests
 from requests import RequestException, Response, Session
 
 from lms.services.exceptions import ExternalRequestError
+
+from tempfile import NamedTemporaryFile
+import ssl
+import certifi
+from aia import AIASession, openssl_get_cert_info, DEFAULT_USER_AGENT
 
 
 class HTTPService:
@@ -36,6 +42,38 @@ class HTTPService:
         try:
             response = self.session.request(method, url, timeout=timeout, **kwargs)
             response.raise_for_status()
+
+        except requests.exceptions.SSLError:
+
+            class CustomSession(AIASession):
+                def __init__(self):
+                    self.user_agent = DEFAULT_USER_AGENT
+                    self._context = ssl.create_default_context()
+
+                    self._context.check_hostname = False
+                    self._context.verify_mode = ssl.CERT_NONE
+
+                    self._context.load_default_certs()
+                    self._context.load_verify_locations(certifi.where())
+
+                    # Trusted certificates whitelist in dict format like:
+                    # {"RFC4514 string": b"DER certificate contents"}
+                    self._trusted = {
+                        openssl_get_cert_info(ca_der)["subject"]: ca_der
+                        for ca_der in self._context.get_ca_certs(True)
+                    }
+
+            aia_session = CustomSession()
+            url = "https://cborn00.its.carleton.edu/moodle/mod/lti/certs.php"
+            cadata = aia_session.cadata_from_url(url)  # Validated PEM certificate chain
+            with NamedTemporaryFile("w") as pem_file:
+                pem_file.write(cadata)
+                pem_file.flush()
+                response = self.session.request(
+                    method, url, timeout=timeout, verify=pem_file.name, **kwargs
+                )
+                response.raise_for_status()
+
         except RequestException as err:
             raise ExternalRequestError(request=err.request, response=response) from err
 
