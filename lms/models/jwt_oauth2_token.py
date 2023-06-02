@@ -10,10 +10,12 @@ class JWTOAuth2Token(CreatedUpdatedMixin, BASE):
 
     https://datatracker.ietf.org/doc/html/rfc7523
 
-    Similar to models.OAuth2Token but using the JWT profile required by LTIA APIs.
+    Similar to `models.OAuth2Token` but using the JWT profile required by LTIA
+    APIs.
 
-    These tokens are not valid for a particular user but for one tool from the point of view of the LMS.
-    In our system that's identified by "LTIRegistration".
+    These tokens are not valid for a particular user but for one tool from the
+    point of view of the LMS. In our system that's identified by
+    "LTIRegistration".
 
     Tokens are also valid for one set of scopes only.
     """

@@ -35,6 +35,7 @@ from lms.services.h_api import HAPI
 from lms.services.http import HTTPService
 from lms.services.jstor import JSTORService
 from lms.services.jwt import JWTService
+from lms.services.jwt_oauth2_token import JWTOAuth2TokenService
 from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_grading import LTIGradingService
 from lms.services.lti_h import LTIHService
@@ -76,6 +77,7 @@ __all__ = (
     "http_service",
     "jstor_service",
     "jwt_service",
+    "jwt_oauth2_token_service",
     "launch_verifier",
     "lti_grading_service",
     "lti_h_service",
@@ -246,6 +248,11 @@ def youtube_service(mock_service):
 @pytest.fixture
 def jwt_service(mock_service):
     return mock_service(JWTService)
+
+
+@pytest.fixture
+def jwt_oauth2_token_service(mock_service):
+    return mock_service(JWTOAuth2TokenService)
 
 
 @pytest.fixture

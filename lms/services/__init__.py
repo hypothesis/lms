@@ -18,6 +18,7 @@ from lms.services.exceptions import (
 from lms.services.h_api import HAPI, HAPIError
 from lms.services.jstor import JSTORService
 from lms.services.jwt import JWTService
+from lms.services.jwt_oauth2_token import JWTOAuth2TokenService
 from lms.services.launch_verifier import (
     ConsumerKeyLaunchVerificationError,
     LTILaunchVerificationError,
@@ -105,6 +106,9 @@ def includeme(config):
     )
     config.register_service_factory("lms.services.aes.factory", iface=AESService)
     config.register_service_factory("lms.services.jwt.factory", iface=JWTService)
+    config.register_service_factory(
+        "lms.services.jwt_oauth2_token.factory", iface=JWTOAuth2TokenService
+    )
     config.register_service_factory("lms.services.rsa_key.factory", iface=RSAKeyService)
     config.register_service_factory(
         "lms.services.ltia_http.factory", iface=LTIAHTTPService
