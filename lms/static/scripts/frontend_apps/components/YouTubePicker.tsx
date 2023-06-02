@@ -1,7 +1,10 @@
 import { Button, CheckIcon, ModalDialog } from '@hypothesis/frontend-shared';
-import { useRef, useState } from 'preact/hooks';
+import { useMemo, useRef, useState } from 'preact/hooks';
 
-import { useYouTubeVideoInfo, videoIdFromYouTubeURL } from '../utils/youtube';
+import type { YouTubeVideoInfo } from '../api-types';
+import { isAPIError } from '../errors';
+import { urlPath, useAPIFetch } from '../utils/api';
+import { videoIdFromYouTubeURL } from '../utils/youtube';
 import URLFormWithPreview from './URLFormWithPreview';
 
 export type YouTubePickerProps = {
@@ -19,28 +22,35 @@ export default function YouTubePicker({
   onSelectURL,
 }: YouTubePickerProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [videoId, setVideoId] = useState(
-    (defaultURL && videoIdFromYouTubeURL(defaultURL)) || null
+  const [currentURL, setCurrentURL] = useState(defaultURL);
+  const videoId = useMemo(
+    () => (currentURL ? videoIdFromYouTubeURL(currentURL) : null),
+    [currentURL]
   );
-  const [error, setError] = useState<string>();
-  const resetToInitialState = () => {
-    setVideoId(null);
-    setError(undefined);
-  };
-  const { thumbnail, metadata } = useYouTubeVideoInfo(videoId);
+  const videoInfo = useAPIFetch<YouTubeVideoInfo>(
+    videoId ? urlPath`/api/youtube/videos/${videoId}` : null
+  );
+  const error = useMemo(() => {
+    const defaultError =
+      'URL must be a YouTube video, e.g. "https://www.youtube.com/watch?v=cKxqzvzlnKU"';
 
-  const verifyURL = (inputURL: string) => {
-    const videoId = videoIdFromYouTubeURL(inputURL);
-    if (videoId) {
-      setVideoId(videoId);
-      setError(undefined);
-    } else {
-      setVideoId(null);
-      setError(
-        'URL must be a YouTube video, e.g. "https://www.youtube.com/watch?v=cKxqzvzlnKU"'
-      );
+    // We have a fetch error. A valid YouTube URL was set, but the API could not find the video
+    if (videoInfo.error && isAPIError(videoInfo.error)) {
+      return videoInfo.error.errorCode === 'youtube_video_not_found'
+        ? 'Video not found'
+        : defaultError;
     }
-  };
+
+    // A URL was set, but it's not a valid YouTube URL
+    if (currentURL && !videoId) {
+      return defaultError;
+    }
+
+    return undefined;
+  }, [currentURL, videoId, videoInfo.error]);
+
+  const onURLChange = (inputURL: string) => setCurrentURL(inputURL);
+  const resetCurrentURL = () => setCurrentURL(undefined);
   const confirmSelection = () => {
     if (videoId) {
       onSelectURL(`youtube://${videoId}`);
@@ -60,7 +70,7 @@ export default function YouTubePicker({
         </Button>,
         <Button
           data-testid="select-button"
-          disabled={!videoId}
+          disabled={!videoInfo.data}
           key="submit"
           onClick={confirmSelection}
           variant="primary"
@@ -70,20 +80,25 @@ export default function YouTubePicker({
       ]}
     >
       <URLFormWithPreview
-        onURLChange={verifyURL}
-        onInput={resetToInitialState}
+        onURLChange={onURLChange}
+        onInput={resetCurrentURL}
         error={error}
         inputRef={inputRef}
         urlPlaceholder="e.g. https://www.youtube.com/watch?v=cKxqzvzlnKU"
         label="Enter the URL of a YouTube video:"
         defaultURL={defaultURL}
-        thumbnail={thumbnail ?? { orientation: 'landscape' }}
+        thumbnail={{
+          isLoading: videoInfo.isLoading,
+          image: videoInfo.data?.image,
+          alt: videoInfo.data?.title,
+          orientation: 'landscape',
+        }}
       >
-        {metadata && (
+        {videoInfo.data?.title && videoInfo.data.channel && (
           <div className="flex flex-row space-x-2" data-testid="selected-video">
             <CheckIcon className="text-green-success" />
             <div className="grow font-bold italic">
-              {metadata.title} ({metadata.channel})
+              {videoInfo.data.title} ({videoInfo.data.channel})
             </div>
           </div>
         )}
