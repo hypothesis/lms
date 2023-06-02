@@ -10,9 +10,18 @@ from tests import factories
 
 class TestLTIAHTTPService:
     @freeze_time("2022-04-04")
-    def test_request(
-        self, svc, jwt_service, application_instance, uuid, http_service, misc_plugin
+    def test_request_with_new_token(
+        self,
+        svc,
+        jwt_service,
+        application_instance,
+        uuid,
+        http_service,
+        misc_plugin,
+        jwt_oauth2_token_service,
     ):
+        jwt_oauth2_token_service.get.return_value = None
+
         response = svc.request("POST", "https://example.com", ["SCOPE_1", "SCOPE_2"])
 
         misc_plugin.get_ltia_aud_claim.assert_called_once_with(
@@ -42,18 +51,49 @@ class TestLTIAHTTPService:
             "POST",
             "https://example.com",
             headers={
-                "Authorization": f"Bearer {http_service.post.return_value.json.return_value['access_token']}"
+                "Authorization": f"Bearer {jwt_oauth2_token_service.save.return_value.access_token}"
             },
         )
         assert response == http_service.request.return_value
+        jwt_oauth2_token_service.save.assert_called_once_with(
+            application_instance.lti_registration,
+            "SCOPE_1 SCOPE_2",
+            http_service.post.return_value.json.return_value["access_token"],
+            http_service.post.return_value.json.return_value["expires_in"],
+        )
+
+    @freeze_time("2022-04-04")
+    def test_request_with_existing_token(
+        self, svc, http_service, jwt_oauth2_token_service
+    ):
+        token = factories.JWTOAuth2Token()
+        jwt_oauth2_token_service.get.return_value = token
+
+        response = svc.request("POST", "https://example.com", ["SCOPE_1", "SCOPE_2"])
+
+        http_service.request.assert_called_once_with(
+            "POST",
+            "https://example.com",
+            headers={"Authorization": f"Bearer {token.access_token}"},
+        )
+        assert response == http_service.request.return_value
+        jwt_oauth2_token_service.save.assert_not_called()
 
     @pytest.fixture
-    def svc(self, application_instance, jwt_service, http_service, misc_plugin):
+    def svc(
+        self,
+        application_instance,
+        jwt_service,
+        http_service,
+        misc_plugin,
+        jwt_oauth2_token_service,
+    ):
         return LTIAHTTPService(
             application_instance.lti_registration,
             misc_plugin,
             jwt_service,
             http_service,
+            jwt_oauth2_token_service,
         )
 
     @pytest.fixture
@@ -71,6 +111,7 @@ class TestFactory:
         http_service,
         jwt_service,
         misc_plugin,
+        jwt_oauth2_token_service,
     ):
         ltia_http_service = factory(sentinel.context, pyramid_request)
 
@@ -79,6 +120,7 @@ class TestFactory:
             misc_plugin,
             jwt_service,
             http_service,
+            jwt_oauth2_token_service,
         )
         assert ltia_http_service == LTIAHTTPService.return_value
 

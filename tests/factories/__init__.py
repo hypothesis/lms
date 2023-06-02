@@ -18,7 +18,6 @@ from tests.factories.attributes import (
     TOOL_CONSUMER_INSTANCE_GUID,
     USER_ID,
 )
-from tests.factories.jwt_oauth2_token import JWTOAuth2Token
 from tests.factories.email_unsubscribe import EmailUnsubscribe
 from tests.factories.file import File
 from tests.factories.grading_info import GradingInfo
@@ -26,6 +25,7 @@ from tests.factories.group_info import GroupInfo
 from tests.factories.grouping import BlackboardGroup, CanvasGroup, CanvasSection, Course
 from tests.factories.grouping_membership import GroupingMembership
 from tests.factories.h_user import HUser
+from tests.factories.jwt_oauth2_token import JWTOAuth2Token
 from tests.factories.lti_registration import LTIRegistration
 from tests.factories.lti_role import LTIRole
 from tests.factories.lti_user import LTIUser

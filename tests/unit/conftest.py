@@ -290,7 +290,7 @@ def application_instance(db_session):
 
 
 @pytest.fixture
-def lti_registration(db_session):
+def lti_registration():
     return factories.LTIRegistration()
 
 

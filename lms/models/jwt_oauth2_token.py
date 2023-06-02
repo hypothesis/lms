@@ -8,8 +8,6 @@ class JWTOAuth2Token(CreatedUpdatedMixin, BASE):
     """
     JWT based OAuth2Token.
 
-    https://datatracker.ietf.org/doc/html/rfc7523
-
     Similar to `models.OAuth2Token` but using the JWT profile required by LTIA
     APIs.
 
@@ -18,6 +16,11 @@ class JWTOAuth2Token(CreatedUpdatedMixin, BASE):
     "LTIRegistration".
 
     Tokens are also valid for one set of scopes only.
+
+    See the spec for the JWT Profile for OAuth 2.0 over:
+
+       https://datatracker.ietf.org/doc/html/rfc7523
+
     """
 
     __tablename__ = "jwt_oauth2_token"
