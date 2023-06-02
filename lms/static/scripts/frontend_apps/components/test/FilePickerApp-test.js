@@ -299,7 +299,7 @@ describe('FilePickerApp', () => {
 
       assert.equal(
         wrapper.find('[data-testid="content-summary"]').text(),
-        'en.wikipedia.org/…/Cannonball_Baker_Sea-To-Shining-Sea_Memorial_…'
+        'en.wikipedia.org/…/Cannonball_Baker_Sea-To-Shinin…'
       );
     });
 
@@ -408,43 +408,46 @@ describe('FilePickerApp', () => {
       const wrapper = renderFilePicker();
       const description = wrapper.find('[data-testid="content-summary"]');
       assert.equal(description.text(), 'https://test.com/example.pdf');
-      assert.isTrue(wrapper.exists('Button[data-testid="edit-content"]'));
+      assert.isTrue(wrapper.exists('button[data-testid="edit-content"]'));
     });
 
     it('shows "Save" button instead of "Continue" button', () => {
       const wrapper = renderFilePicker();
-      const saveButton = wrapper.find('Button[data-testid="save-button"]');
+      const saveButton = wrapper.find('button[data-testid="save-button"]');
       assert.equal(saveButton.text(), 'Save');
     });
 
-    it('allows editing content selection', () => {
-      const wrapper = renderFilePicker();
+    [true, false].forEach(groupsEnabled => {
+      it('allows editing content selection', () => {
+        fakeConfig.product.settings.groupsEnabled = groupsEnabled;
+        const wrapper = renderFilePicker();
 
-      // Initially the content selector form is not visible.
-      assert.isFalse(wrapper.exists('ContentSelector'));
+        // Initially the content selector form is not visible.
+        assert.isFalse(wrapper.exists('ContentSelector'));
 
-      // Clicking on the change/edit button next to the content description
-      // should show the content selector.
-      clickButton(wrapper, 'edit-content');
-      const contentSelector = wrapper.find('ContentSelector');
-      assert.isTrue(contentSelector.exists());
-      assert.deepEqual(contentSelector.prop('initialContent'), {
-        type: 'url',
-        url: 'https://test.com/example.pdf',
-      });
-
-      // Selecting new content should revert back to showing the content
-      // description.
-      act(() => {
-        contentSelector.prop('onSelectContent')({
+        // Clicking on the change/edit button next to the content description
+        // should show the content selector.
+        clickButton(wrapper, 'edit-content');
+        const contentSelector = wrapper.find('ContentSelector');
+        assert.isTrue(contentSelector.exists());
+        assert.deepEqual(contentSelector.prop('initialContent'), {
           type: 'url',
-          url: 'https://othersite.com/test.pdf',
+          url: 'https://test.com/example.pdf',
         });
+
+        // Selecting new content should revert back to showing the content
+        // description.
+        act(() => {
+          contentSelector.prop('onSelectContent')({
+            type: 'url',
+            url: 'https://othersite.com/test.pdf',
+          });
+        });
+        wrapper.update();
+        assert.isFalse(wrapper.exists('ContentSelector'));
+        const description = wrapper.find('[data-testid="content-summary"]');
+        assert.equal(description.text(), 'https://othersite.com/test.pdf');
       });
-      wrapper.update();
-      assert.isFalse(wrapper.exists('ContentSelector'));
-      const description = wrapper.find('[data-testid="content-summary"]');
-      assert.equal(description.text(), 'https://othersite.com/test.pdf');
     });
 
     it('cancels editing content when clicking "Cancel" button', () => {

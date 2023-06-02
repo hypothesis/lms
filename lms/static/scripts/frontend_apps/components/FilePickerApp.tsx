@@ -4,11 +4,14 @@ import {
   Card,
   CardActions,
   CardContent,
+  CardHeader,
   Link,
+  LinkButton,
   Scroll,
   SpinnerOverlay,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
+import type { ComponentChildren } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { Link as RouterLink } from 'wouter-preact';
 
@@ -32,6 +35,10 @@ export type FilePickerAppProps = {
   /** Callback invoked when the form is submitted */
   onSubmit?: () => void;
 };
+
+/* A step or 'screen' of the assignment configuration */
+type PickerStep = 'content-selection' | 'group-configuration';
+
 /**
  * For URL content, show the most meaningful explanation of the content we can
  * to the user. In cases where we have a filename (name), show that. For
@@ -56,7 +63,7 @@ function formatContentURL(content: URLContent) {
     return 'Book from VitalSource';
   }
 
-  return truncateURL(content.url, 65 /* maxLength */);
+  return truncateURL(content.url, 50 /* maxLength */);
 }
 /**
  * Return a human-readable description of assignment content.
@@ -108,6 +115,33 @@ export async function loadFilePickerConfig(
 }
 
 /**
+ * Render a label for a step in the configuration. Any provided `description`
+ * will only render if this label's associated `step` is the `currentStep`.
+ */
+function PanelLabel({
+  children,
+  description,
+  isCurrentStep,
+}: {
+  children: ComponentChildren;
+  description?: ComponentChildren;
+  isCurrentStep: boolean;
+}) {
+  return (
+    <div className="space-y-1.5 leading-none">
+      <div className="sm:text-end font-medium text-slate-600 uppercase">
+        {children}
+      </div>
+      {isCurrentStep && (
+        <div className="sm:text-end font-normal text-stone-500">
+          {description}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
  * An application that allows the user to choose the web page or PDF for an
  * assignment.
  */
@@ -129,9 +163,20 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
 
   // Flag indicating if we are editing content that was previously selected.
   const [editingContent, setEditingContent] = useState(false);
-
   // True if we are editing an existing assignment configuration.
   const isEditing = !!assignment;
+
+  let currentStep: PickerStep;
+  if (editingContent) {
+    currentStep = 'content-selection';
+  } else if (isEditing) {
+    currentStep = 'group-configuration';
+  } else {
+    currentStep =
+      content && enableGroupConfig
+        ? 'group-configuration'
+        : 'content-selection';
+  }
 
   const [groupConfig, setGroupConfig] = useState<GroupConfig>({
     useGroupSet: !!assignment?.group_set_id,
@@ -226,95 +271,75 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   );
 
   return (
-    <main
-      className={classnames(
-        // Full-width and -height light-grey background
-        'bg-grey-1 w-full h-full p-2'
-      )}
-    >
+    <main className="bg-grey-1 w-full h-full p-2">
       {/*
        * The <form> is styled as a constraining container that determines
-       * the Card's dimensions
+       * the Card's dimensions. The flex-column layout constrains content
+       * (including scrolling content) to the available height.
        */}
       <form
         action={formAction}
         className={classnames(
-          // Preferred width of 640px, not to exceed 80vw
-          'w-[640px] max-w-[80vw]',
-          // Constrain Card height to the height of this container
-          'flex flex-col min-h-0 h-full',
-          // Center the Card horizontally
-          'mx-auto'
+          'w-[640px] max-w-[90vw] mx-auto',
+          'flex flex-col min-h-0 h-full space-y-2'
         )}
         method="POST"
         onSubmit={onSubmit}
       >
         {isEditing && (
-          <div className="my-2">
-            <RouterLink href="/app/basic-lti-launch" data-testid="back-link">
-              <Link classes="flex gap-x-1" underline="always">
-                <ArrowLeftIcon className="w-[0.875em] h-[0.875em]" />
-                Back to assignment
-              </Link>
-            </RouterLink>
-          </div>
+          <RouterLink href="/app/basic-lti-launch" data-testid="back-link">
+            <Link classes="flex gap-x-1 items-center" underline="always">
+              <ArrowLeftIcon className="w-[0.875em] h-[0.875em]" />
+              Back to assignment
+            </Link>
+          </RouterLink>
         )}
-        <Card
-          classes={classnames(
-            // Ensure children that have overflow-scroll do not exceed the
-            // height constraints
-            'flex flex-col min-h-0'
-          )}
-        >
-          <div className="bg-slate-0 px-3 py-2 border-b border-slate-5">
-            <h1 className="text-xl text-slate-7 font-normal">
-              Assignment details
-            </h1>
-          </div>
+        {/* Card constrains overflow-scroll children to height constraints */}
+        <Card classes="flex flex-col min-h-0">
+          <CardHeader variant="secondary" title="Assignment details" />
           <Scroll>
             <CardContent size="lg">
-              <div className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3">
-                <div className="text-end">
-                  <span className="font-medium text-sm leading-none text-slate-7">
-                    Assignment content
-                  </span>
-                </div>
-                <div className="space-y-3">
-                  {content && !editingContent ? (
+              {/* 1-col grid for very narrow screens; 2-col for everyone else */}
+              <div className="grid grid-cols-1 sm:grid-cols-[10rem_1fr] gap-x-6 gap-y-3">
+                <PanelLabel
+                  description={<p>Select content for your assignment</p>}
+                  isCurrentStep={currentStep === 'content-selection'}
+                >
+                  Assignment content
+                </PanelLabel>
+
+                <div data-testid="content-selector-container">
+                  {content && currentStep !== 'content-selection' ? (
                     <div className="flex gap-x-2 items-center">
-                      <i data-testid="content-summary" style="break-all">
+                      <span
+                        className="break-words italic"
+                        data-testid="content-summary"
+                      >
                         {contentDescription(content)}
-                      </i>
-                      <Button
+                      </span>
+                      <LinkButton
                         onClick={() => setEditingContent(true)}
                         data-testid="edit-content"
+                        title="Change assignment content"
+                        underline="always"
                       >
                         Change
-                      </Button>
+                      </LinkButton>
                     </div>
                   ) : (
-                    <>
-                      <p>
-                        You can select content for your assignment from one of
-                        the following sources:
-                      </p>
-
-                      <ContentSelector
-                        initialContent={content ?? undefined}
-                        onSelectContent={selectContent}
-                        onError={setErrorInfo}
-                      />
-                    </>
+                    <ContentSelector
+                      initialContent={content ?? undefined}
+                      onSelectContent={selectContent}
+                      onError={setErrorInfo}
+                    />
                   )}
                 </div>
-                {content && !editingContent && enableGroupConfig && (
+                {currentStep === 'group-configuration' && (
                   <>
-                    <div className="col-span-2 border-b" />
-                    <div className="text-end">
-                      <span className="font-medium text-sm leading-none text-slate-7">
-                        Group assignment
-                      </span>
-                    </div>
+                    <div className="sm:col-span-2 border-b" />
+                    <PanelLabel isCurrentStep={true}>
+                      Group assignment
+                    </PanelLabel>
                     <div
                       className={classnames(
                         // Set a height on this container to give the group
@@ -336,8 +361,8 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
           {
             // See comments in `selectContent` about auto-submitting form if
             // this is a new assignment and groups are not available.
-            content && (isEditing || enableGroupConfig) && (
-              <CardContent>
+            (editingContent || currentStep === 'group-configuration') && (
+              <CardContent size="lg">
                 <CardActions>
                   {editingContent && (
                     <Button
@@ -347,7 +372,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                       Back
                     </Button>
                   )}
-                  {!editingContent && (
+                  {!editingContent && content && (
                     <Button
                       data-testid="save-button"
                       disabled={
