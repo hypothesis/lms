@@ -1,4 +1,4 @@
-import { Button, SpinnerOverlay } from '@hypothesis/frontend-shared';
+import { OptionButton, SpinnerOverlay } from '@hypothesis/frontend-shared';
 import { useMemo, useState } from 'preact/hooks';
 
 import type { Book, File, Chapter } from '../api-types';
@@ -297,93 +297,97 @@ export default function ContentSelector({
   return (
     <>
       {isLoadingIndicatorVisible && <SpinnerOverlay />}
-      <div className="flex flex-row p-y-2">
-        <div className="flex flex-col space-y-1">
-          <Button
-            onClick={() => selectDialog('url')}
-            variant="primary"
-            data-testid="url-button"
+      <div className="grid grid-cols-2 gap-y-2 gap-x-3 max-w-[28rem]">
+        <OptionButton
+          data-testid="url-button"
+          details="Web page | PDF"
+          onClick={() => selectDialog('url')}
+          title="Enter a URL to a web page or PDF"
+        >
+          URL
+        </OptionButton>
+        {canvasFilesEnabled && (
+          <OptionButton
+            data-testid="canvas-file-button"
+            details="PDF"
+            onClick={() => selectDialog('canvasFile')}
+            title="Select PDF from Canvas"
           >
-            Enter URL of web page or PDF
-          </Button>
-          {canvasFilesEnabled && (
-            <Button
-              onClick={() => selectDialog('canvasFile')}
-              variant="primary"
-              data-testid="canvas-file-button"
-            >
-              Select PDF from Canvas
-            </Button>
-          )}
-          {blackboardFilesEnabled && (
-            <Button
-              onClick={() => selectDialog('blackboardFile')}
-              variant="primary"
-              data-testid="blackboard-file-button"
-            >
-              Select PDF from Blackboard
-            </Button>
-          )}
-          {d2lFilesEnabled && (
-            <Button
-              onClick={() => selectDialog('d2lFile')}
-              variant="primary"
-              data-testid="d2l-file-button"
-            >
-              Select PDF from D2L
-            </Button>
-          )}
-          {googlePicker && (
-            <Button
-              onClick={showGooglePicker}
-              variant="primary"
-              data-testid="google-drive-button"
-            >
-              Select PDF from Google Drive
-            </Button>
-          )}
-          {jstorEnabled && (
-            <Button
-              onClick={() => selectDialog('jstor')}
-              variant="primary"
-              data-testid="jstor-button"
-            >
-              Select JSTOR article
-            </Button>
-          )}
-          {oneDriveFilesEnabled && (
-            <Button
-              onClick={showOneDrivePicker}
-              variant="primary"
-              data-testid="onedrive-button"
-            >
-              Select PDF from OneDrive
-            </Button>
-          )}
-          {vitalSourceEnabled && (
-            <Button
-              onClick={() => selectDialog('vitalSourceBook')}
-              variant="primary"
-              data-testid="vitalsource-button"
-            >
-              Select book from VitalSource
-            </Button>
-          )}
-          {youtubeEnabled && (
-            <Button
-              onClick={() => selectDialog('youtube')}
-              variant="primary"
-              data-testid="youtube-button"
-            >
-              Select video from YouTube
-            </Button>
-          )}
-        </div>
-        {/** This flex-grow element takes up remaining horizontal space so that
-         * buttons don't span full width unecessarily.
-         */}
-        <div className="grow" />
+            Canvas
+          </OptionButton>
+        )}
+        {blackboardFilesEnabled && (
+          <OptionButton
+            data-testid="blackboard-file-button"
+            details="PDF"
+            onClick={() => selectDialog('blackboardFile')}
+            title="Select PDF from Blackboard"
+          >
+            Blackboard
+          </OptionButton>
+        )}
+        {d2lFilesEnabled && (
+          <OptionButton
+            data-testid="d2l-file-button"
+            details="PDF"
+            onClick={() => selectDialog('d2lFile')}
+            title="Select PDF from D2L"
+          >
+            D2L
+          </OptionButton>
+        )}
+        {googlePicker && (
+          <OptionButton
+            details="PDF"
+            data-testid="google-drive-button"
+            onClick={showGooglePicker}
+            title="Select PDF from Google Drive"
+          >
+            Google Drive
+          </OptionButton>
+        )}
+        {jstorEnabled && (
+          <OptionButton
+            data-testid="jstor-button"
+            details="Article"
+            onClick={() => selectDialog('jstor')}
+            title="Select JSTOR article"
+          >
+            JSTOR
+          </OptionButton>
+        )}
+        {oneDriveFilesEnabled && (
+          <OptionButton
+            data-testid="onedrive-button"
+            details="PDF"
+            onClick={showOneDrivePicker}
+            title="Select PDF from OneDrive"
+          >
+            OneDrive
+          </OptionButton>
+        )}
+        {vitalSourceEnabled && (
+          <OptionButton
+            data-testid="vitalsource-button"
+            details="Book"
+            onClick={() => selectDialog('vitalSourceBook')}
+            title="Select book from VitalSource"
+          >
+            VitalSource
+          </OptionButton>
+        )}
+        {youtubeEnabled && (
+          <OptionButton
+            data-testid="youtube-button"
+            details="Video"
+            onClick={() => selectDialog('youtube')}
+            title="Select video from YouTube"
+          >
+            YouTube
+          </OptionButton>
+        )}
       </div>
+
       <div>{dialog}</div>
     </>
   );
