@@ -290,9 +290,12 @@ def application_instance(db_session):
 
 
 @pytest.fixture
-def lti_v13_application_instance(db_session):
-    lti_registration = factories.LTIRegistration()
+def lti_registration(db_session):
+    return factories.LTIRegistration()
 
+
+@pytest.fixture
+def lti_v13_application_instance(db_session, lti_registration):
     application_instance = factories.ApplicationInstance(
         developer_key="TEST_DEVELOPER_KEY",
         provisioning=True,
