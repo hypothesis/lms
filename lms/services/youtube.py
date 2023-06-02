@@ -58,11 +58,22 @@ class YouTubeService:
             raise VideoNotFound(video_id) from err
 
         snippet = item["snippet"]
+        content_details = item.get("contentDetails", {})
+        restrictions = []
+
+        # ytRating field docs: https://developers.google.com/youtube/v3/docs/videos#contentDetails.contentRating.ytRating
+        if (
+            content_details.get("contentRating", {}).get("ytRating", "")
+            == "ytAgeRestricted"
+        ):
+            restrictions.append("age")
+
         return {
             "image": snippet["thumbnails"]["medium"]["url"],
             "title": snippet["title"],
             "channel": snippet["channelTitle"],
-            "duration": item["contentDetails"]["duration"],  # ISO duration
+            "duration": content_details["duration"],  # ISO duration
+            "restrictions": restrictions,
         }
 
 
