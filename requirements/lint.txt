@@ -567,7 +567,7 @@ soupsieve==2.2.1
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   beautifulsoup4
-sqlalchemy==1.4.47
+sqlalchemy==2.0.15
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -620,7 +620,7 @@ translationstring==1.4
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid
-typing-extensions==4.0.0
+typing-extensions==4.6.3
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -629,6 +629,7 @@ typing-extensions==4.0.0
     #   astroid
     #   async-timeout
     #   pylint
+    #   sqlalchemy
 urllib3==1.26.15
     # via
     #   -r requirements/bddtests.txt

@@ -332,7 +332,7 @@ six==1.15.0
     #   google-auth
     #   mailchimp-transactional
     #   python-dateutil
-sqlalchemy==1.4.47
+sqlalchemy==2.0.15
     # via
     #   -r requirements/prod.txt
     #   alembic
@@ -367,11 +367,12 @@ translationstring==1.4
     # via
     #   -r requirements/prod.txt
     #   pyramid
-typing-extensions==4.0.0
+typing-extensions==4.6.3
     # via
     #   -r requirements/prod.txt
     #   alembic
     #   async-timeout
+    #   sqlalchemy
 urllib3==1.26.15
     # via
     #   -r requirements/prod.txt
