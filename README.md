@@ -45,6 +45,8 @@ make devdata
 make help
 ```
 
+To run the app locally run `make dev` and visit http://localhost:8001.
+
 ## Changing the Project's Python Version
 
 To change what version of Python the project uses:
