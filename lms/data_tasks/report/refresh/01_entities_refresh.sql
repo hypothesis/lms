@@ -12,3 +12,6 @@ ANALYSE report.groups;
 
 REFRESH MATERIALIZED VIEW CONCURRENTLY report.events;
 ANALYSE report.events;
+
+REFRESH MATERIALIZED VIEW CONCURRENTLY report.assignments;
+ANALYSE report.assignments;
