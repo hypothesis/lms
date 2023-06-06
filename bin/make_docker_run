@@ -1,0 +1,8 @@
+#!/bin/bash
+docker run \
+    --add-host host.docker.internal:host-gateway \
+    --net lms_default \
+    --env-file .docker.env \
+    --env-file .devdata.env \
+    -p 8001:8001 \
+    hypothesis/lms:dev
