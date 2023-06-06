@@ -120,7 +120,7 @@ h-assets==1.0.5
     # via -r requirements/prod.txt
 h-pyramid-sentry==1.2.4
     # via -r requirements/prod.txt
-h-vialib==1.1.0
+h-vialib==1.2.0
     # via -r requirements/prod.txt
 hupper==1.10.2
     # via
