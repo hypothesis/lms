@@ -121,23 +121,15 @@ $(call help,make template,"update from the latest cookiecutter template")
 template: python
 	@pyenv exec tox -e template -- $$(if [ -n "$${template+x}" ]; then echo "--template $$template"; fi) $$(if [ -n "$${checkout+x}" ]; then echo "--checkout $$checkout"; fi) $$(if [ -n "$${directory+x}" ]; then echo "--directory $$directory"; fi)
 
-DOCKER_TAG = dev
-
 .PHONY: docker
 $(call help,make docker,"make the app's docker image")
 docker:
-	@git archive --format=tar HEAD | docker build -t hypothesis/lms:$(DOCKER_TAG) -
+	@git archive --format=tar HEAD | docker build -t hypothesis/lms:dev -
 
 .PHONY: docker-run
 $(call help,make docker-run,"run the app's docker image")
 docker-run:
-	@docker run \
-		--add-host host.docker.internal:host-gateway \
-		--net lms_default \
-		--env-file .docker.env \
-		--env-file .devdata.env \
-		-p 8001:8001 \
-		hypothesis/lms:$(DOCKER_TAG)
+	@bin/make_docker_run
 
 .PHONY: clean
 $(call help,make clean,"delete temporary files etc")
