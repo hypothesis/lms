@@ -58,7 +58,7 @@ checkformatting: python
 	@pyenv exec tox -qe checkformatting
 
 .PHONY: test
-$(call help,make test,"run the unit tests in Python 3.8")
+$(call help,make test,"run the unit tests")
 test: python
 	@pyenv exec tox -qe tests
 
@@ -68,7 +68,7 @@ coverage: python
 	@pyenv exec tox -qe 'tests,coverage'
 
 .PHONY: functests
-$(call help,make functests,"run the functional tests in Python 3.8")
+$(call help,make functests,"run the functional tests")
 functests: python
 	@pyenv exec tox -qe functests
 
