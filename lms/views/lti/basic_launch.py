@@ -177,6 +177,9 @@ class BasicLaunchViews:
             document_url, extra=assignment_extra, is_gradable=assignment_gradable
         )
 
+        # Set up grading related config
+        self._configure_grading(document_url, assignment)
+
         # Set up the JS config for the front-end
         self._configure_js_to_show_document(document_url, assignment)
 
@@ -259,6 +262,10 @@ class BasicLaunchViews:
         )
 
     def _configure_js_to_show_document(self, document_url, assignment):
+        self.context.js_config.add_document_url(document_url)
+        self.context.js_config.enable_lti_launch_mode(self.course, assignment)
+
+    def _configure_grading(self, document_url, assignment):
         if self.request.product.family == Product.Family.CANVAS:
             # For students in Canvas with grades to submit we need to enable
             # Speedgrader settings for gradable assignments
@@ -278,16 +285,21 @@ class BasicLaunchViews:
             if focused_user := self.request.params.get("focused_user"):
                 self.context.js_config.set_focused_user(focused_user)
 
-        elif self.request.lti_user.is_instructor:
-            # nb. Canvas does not currently use/support any functionality from the
-            # instructor toolbar. For grading it uses SpeedGrader and we don't
-            # support editing assignments.
+        else:
+            self._configure_grading_bar(assignment)
+
+    def _configure_grading_bar(self, assignment):
+        if self.request.lti_user.is_instructor:
+            # Display the grading bar for instructors
             self.context.js_config.enable_instructor_toolbar(
                 enable_grading=assignment.is_gradable
             )
 
-        self.context.js_config.add_document_url(document_url)
-        self.context.js_config.enable_lti_launch_mode(self.course, assignment)
+        else:
+            # For students, keep a record of the grading information.
+            self.request.find_service(name="grading_info").upsert_from_request(
+                self.request
+            )
 
     def _record_launch(self):
         """Persist launch type independent info to the DB."""
@@ -295,12 +307,3 @@ class BasicLaunchViews:
         self.request.find_service(name="application_instance").update_from_lti_params(
             self.request.lti_user.application_instance, self.request.lti_params
         )
-
-        if (
-            not self.request.lti_user.is_instructor
-            and self.request.product.family != Product.Family.CANVAS
-        ):
-            # Create or update a record of LIS result data for a student launch
-            self.request.find_service(name="grading_info").upsert_from_request(
-                self.request
-            )

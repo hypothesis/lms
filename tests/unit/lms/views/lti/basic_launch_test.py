@@ -55,38 +55,13 @@ class TestBasicLaunchViews:
 
     @pytest.mark.usefixtures("user_is_learner")
     def test__init__stores_data(
-        self,
-        context,
-        pyramid_request,
-        grading_info_service,
-        application_instance_service,
-        lti_user,
+        self, context, pyramid_request, application_instance_service, lti_user
     ):
         BasicLaunchViews(context, pyramid_request)
 
         application_instance_service.update_from_lti_params.assert_called_once_with(
             lti_user.application_instance, pyramid_request.lti_params
         )
-
-        grading_info_service.upsert_from_request.assert_called_once_with(
-            pyramid_request
-        )
-
-    @pytest.mark.usefixtures("user_is_instructor")
-    def test__init___doesnt_update_grading_info_for_instructors(
-        self, context, pyramid_request, grading_info_service
-    ):
-        BasicLaunchViews(context, pyramid_request)
-
-        grading_info_service.upsert_from_request.assert_not_called()
-
-    @pytest.mark.usefixtures("user_is_learner", "with_canvas")
-    def test__init___doesnt_update_grading_info_for_canvas(
-        self, context, pyramid_request, grading_info_service
-    ):
-        BasicLaunchViews(context, pyramid_request)
-
-        grading_info_service.upsert_from_request.assert_not_called()
 
     @pytest.mark.parametrize(
         "parsed_params,expected_extras",
@@ -263,6 +238,7 @@ class TestBasicLaunchViews:
         misc_plugin,
         lti_user,
         course_service,
+        grading_info_service,
     ):
         # pylint: disable=protected-access
         result = svc._show_document(
@@ -295,6 +271,12 @@ class TestBasicLaunchViews:
             assignment, groupings=[course_service.get_from_launch.return_value]
         )
 
+        # `_configure_grading`
+        grading_info_service.upsert_from_request.assert_called_once_with(
+            pyramid_request
+        )
+
+        # `__configure_js_to_show_document`
         context.js_config.enable_lti_launch_mode.assert_called_once_with(
             course_service.get_from_launch.return_value, assignment
         )
@@ -323,6 +305,22 @@ class TestBasicLaunchViews:
         svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
 
         context.js_config.set_focused_user.assert_not_called()
+
+    @pytest.mark.usefixtures("user_is_instructor")
+    def test__show_document_doesnt_update_grading_info_for_instructors(
+        self, grading_info_service, svc
+    ):
+        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+
+        grading_info_service.upsert_from_request.assert_not_called()
+
+    @pytest.mark.usefixtures("user_is_learner", "with_canvas")
+    def test__show_document_doesnt_update_grading_info_for_canvas(
+        self, grading_info_service, svc
+    ):
+        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+
+        grading_info_service.upsert_from_request.assert_not_called()
 
     @pytest.mark.usefixtures("user_is_instructor")
     @pytest.mark.parametrize(
