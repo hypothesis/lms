@@ -43,7 +43,7 @@ describe('URLPicker', () => {
     wrapper.update();
 
     assert.notCalled(onSelectURL);
-    const errorMessage = wrapper.find('[data-testid="error-message"]');
+    const errorMessage = wrapper.find('UIMessage[status="error"]');
     assert.isTrue(errorMessage.exists());
     assert.include(errorMessage.text(), 'Please enter a URL');
   });
@@ -61,7 +61,7 @@ describe('URLPicker', () => {
     wrapper.update();
 
     assert.notCalled(onSelectURL);
-    const errorMessage = wrapper.find('[data-testid="error-message"]');
+    const errorMessage = wrapper.find('UIMessage[status="error"]');
     assert.isTrue(errorMessage.exists());
     assert.include(
       errorMessage.text(),
@@ -82,7 +82,7 @@ describe('URLPicker', () => {
     wrapper.update();
 
     assert.notCalled(onSelectURL);
-    const errorMessage = wrapper.find('[data-testid="error-message"]');
+    const errorMessage = wrapper.find('UIMessage[status="error"]');
     assert.isTrue(errorMessage.exists());
     assert.include(
       errorMessage.text(),

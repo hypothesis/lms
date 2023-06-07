@@ -1,10 +1,11 @@
-import { Button, CheckIcon, ModalDialog } from '@hypothesis/frontend-shared';
+import { Button, ModalDialog } from '@hypothesis/frontend-shared';
 import { useMemo, useRef, useState } from 'preact/hooks';
 
 import type { YouTubeVideoInfo } from '../api-types';
 import { isAPIError } from '../errors';
 import { urlPath, useAPIFetch } from '../utils/api';
 import { videoIdFromYouTubeURL } from '../utils/youtube';
+import UIMessage from './UIMessage';
 import URLFormWithPreview from './URLFormWithPreview';
 
 export type YouTubePickerProps = {
@@ -95,12 +96,11 @@ export default function YouTubePicker({
         }}
       >
         {videoInfo.data?.title && videoInfo.data.channel && (
-          <div className="flex flex-row space-x-2" data-testid="selected-video">
-            <CheckIcon className="text-green-success" />
-            <div className="grow font-bold italic">
+          <UIMessage data-testid="selected-video" status="success">
+            <span className="font-bold italic">
               {videoInfo.data.title} ({videoInfo.data.channel})
-            </div>
-          </div>
+            </span>
+          </UIMessage>
         )}
       </URLFormWithPreview>
     </ModalDialog>
