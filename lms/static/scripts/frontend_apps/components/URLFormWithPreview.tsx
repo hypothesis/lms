@@ -121,7 +121,7 @@ export default function URLFormWithPreview({
 
         {error && (
           <div
-            className="flex flex-row items-center space-x-2 text-red-error"
+            className="flex flex-row space-x-2 text-red-error"
             data-testid="error-message"
           >
             <CancelIcon />
