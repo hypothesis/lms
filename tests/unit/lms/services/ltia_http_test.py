@@ -21,7 +21,7 @@ class TestLTIAHTTPService:
         jwt_oauth2_token_service,
         scopes,
     ):
-        jwt_oauth2_token_service.get.return_value = None
+        jwt_oauth2_token_service.get_token.return_value = None
 
         response = svc.request("POST", "https://example.com", scopes)
 
@@ -52,11 +52,11 @@ class TestLTIAHTTPService:
             "POST",
             "https://example.com",
             headers={
-                "Authorization": f"Bearer {jwt_oauth2_token_service.save.return_value.access_token}"
+                "Authorization": f"Bearer {jwt_oauth2_token_service.save_token.return_value.access_token}"
             },
         )
         assert response == http_service.request.return_value
-        jwt_oauth2_token_service.save.assert_called_once_with(
+        jwt_oauth2_token_service.save_token.assert_called_once_with(
             application_instance.lti_registration,
             scopes,
             http_service.post.return_value.json.return_value["access_token"],
@@ -68,7 +68,7 @@ class TestLTIAHTTPService:
         self, svc, http_service, jwt_oauth2_token_service, scopes
     ):
         token = factories.JWTOAuth2Token()
-        jwt_oauth2_token_service.get.return_value = token
+        jwt_oauth2_token_service.get_token.return_value = token
 
         response = svc.request("POST", "https://example.com", scopes)
 
@@ -78,7 +78,7 @@ class TestLTIAHTTPService:
             headers={"Authorization": f"Bearer {token.access_token}"},
         )
         assert response == http_service.request.return_value
-        jwt_oauth2_token_service.save.assert_not_called()
+        jwt_oauth2_token_service.save_token.assert_not_called()
 
     @pytest.fixture
     def svc(
