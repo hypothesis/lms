@@ -11,6 +11,9 @@ CREATE MATERIALIZED VIEW report.organization_assignments AS (
         grouping.id = grouping_id
     JOIN application_instances ON
         application_instances.id = grouping.application_instance_id
+    GROUP BY
+        application_instances.organization_id,
+        assignment_grouping.assignment_id
     ORDER BY
         application_instances.organization_id,
         assignment_grouping.assignment_id
