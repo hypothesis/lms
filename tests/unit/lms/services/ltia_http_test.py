@@ -19,10 +19,11 @@ class TestLTIAHTTPService:
         http_service,
         misc_plugin,
         jwt_oauth2_token_service,
+        scopes,
     ):
         jwt_oauth2_token_service.get.return_value = None
 
-        response = svc.request("POST", "https://example.com", ["SCOPE_1", "SCOPE_2"])
+        response = svc.request("POST", "https://example.com", scopes)
 
         misc_plugin.get_ltia_aud_claim.assert_called_once_with(
             application_instance.lti_registration
@@ -43,7 +44,7 @@ class TestLTIAHTTPService:
                 "grant_type": "client_credentials",
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
                 "client_assertion": jwt_service.encode_with_private_key.return_value,
-                "scope": "SCOPE_1 SCOPE_2",
+                "scope": " ".join(scopes),
             },
             timeout=(20, 20),
         )
@@ -57,19 +58,19 @@ class TestLTIAHTTPService:
         assert response == http_service.request.return_value
         jwt_oauth2_token_service.save.assert_called_once_with(
             application_instance.lti_registration,
-            "SCOPE_1 SCOPE_2",
+            scopes,
             http_service.post.return_value.json.return_value["access_token"],
             http_service.post.return_value.json.return_value["expires_in"],
         )
 
     @freeze_time("2022-04-04")
     def test_request_with_existing_token(
-        self, svc, http_service, jwt_oauth2_token_service
+        self, svc, http_service, jwt_oauth2_token_service, scopes
     ):
         token = factories.JWTOAuth2Token()
         jwt_oauth2_token_service.get.return_value = token
 
-        response = svc.request("POST", "https://example.com", ["SCOPE_1", "SCOPE_2"])
+        response = svc.request("POST", "https://example.com", scopes)
 
         http_service.request.assert_called_once_with(
             "POST",
@@ -99,6 +100,10 @@ class TestLTIAHTTPService:
     @pytest.fixture
     def uuid(self, patch):
         return patch("lms.services.ltia_http.uuid")
+
+    @pytest.fixture
+    def scopes(self):
+        return ["SCOPE_1", "SCOPE_2"]
 
 
 class TestFactory:

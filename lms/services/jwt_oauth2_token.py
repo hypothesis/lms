@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
-from functools import lru_cache
-from typing import Optional
+from typing import List, Optional
 
 from lms.models.jwt_oauth2_token import JWTOAuth2Token
 
@@ -15,7 +14,7 @@ class JWTOAuth2TokenService:
         self._db = db
 
     def save(
-        self, lti_registration, scopes: str, access_token: str, expires_in: int
+        self, lti_registration, scopes: List[str], access_token: str, expires_in: int
     ) -> JWTOAuth2Token:
         """
         Save a JWT OAuth2Token to the DB.
@@ -25,7 +24,9 @@ class JWTOAuth2TokenService:
         """
         token = self.get(lti_registration, scopes, exclude_expired=False)
         if not token:
-            token = JWTOAuth2Token(lti_registration=lti_registration, scopes=scopes)
+            token = JWTOAuth2Token(
+                lti_registration=lti_registration, scopes=self._normalize_scopes(scopes)
+            )
             self._db.add(token)
 
         token.access_token = access_token
@@ -34,9 +35,8 @@ class JWTOAuth2TokenService:
 
         return token
 
-    @lru_cache(maxsize=1)
     def get(
-        self, lti_registration, scopes: str, exclude_expired=True
+        self, lti_registration, scopes: List[str], exclude_expired=True
     ) -> Optional[JWTOAuth2Token]:
         """
         Get a token for the given registration and scopes if present in the DB.
@@ -47,7 +47,7 @@ class JWTOAuth2TokenService:
         """
         query = self._db.query(JWTOAuth2Token).filter(
             JWTOAuth2Token.lti_registration == lti_registration,
-            JWTOAuth2Token.scopes == scopes,
+            JWTOAuth2Token.scopes == self._normalize_scopes(scopes),
         )
         if exclude_expired:
             query = query.filter(
@@ -56,6 +56,10 @@ class JWTOAuth2TokenService:
             )
 
         return query.one_or_none()
+
+    def _normalize_scopes(self, scopes: List[str]) -> str:
+        """Normalize a list of scopes to be queried/stored in DB."""
+        return " ".join(sorted(scopes))
 
 
 def factory(_context, request):
