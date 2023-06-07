@@ -13,7 +13,7 @@ class JWTOAuth2TokenService:
     def __init__(self, db):
         self._db = db
 
-    def save(
+    def save_token(
         self, lti_registration, scopes: List[str], access_token: str, expires_in: int
     ) -> JWTOAuth2Token:
         """
@@ -22,7 +22,7 @@ class JWTOAuth2TokenService:
         If there's already one for this registration and scopes then overwrite
         its values; otherwise create a new one and add it to the DB.
         """
-        token = self.get(lti_registration, scopes, exclude_expired=False)
+        token = self.get_token(lti_registration, scopes, exclude_expired=False)
         if not token:
             token = JWTOAuth2Token(
                 lti_registration=lti_registration, scopes=self._normalize_scopes(scopes)
@@ -35,7 +35,7 @@ class JWTOAuth2TokenService:
 
         return token
 
-    def get(
+    def get_token(
         self, lti_registration, scopes: List[str], exclude_expired=True
     ) -> Optional[JWTOAuth2Token]:
         """

@@ -41,7 +41,7 @@ class LTIAHTTPService:
 
     def _get_access_token(self, scopes: List[str]) -> str:
         """Get a valid access token from the DB or get a new one from the LMS."""
-        token = self._jwt_oauth2_token_service.get(self._lti_registration, scopes)
+        token = self._jwt_oauth2_token_service.get_token(self._lti_registration, scopes)
         if not token:
             LOG.debug("Requesting new LTIA JWT token")
             token = self._get_new_access_token(scopes)
@@ -86,7 +86,7 @@ class LTIAHTTPService:
             LOG.error("Non-json response: %s", response.text)
             raise
 
-        token = self._jwt_oauth2_token_service.save(
+        token = self._jwt_oauth2_token_service.save_token(
             lti_registration=self._lti_registration,
             scopes=scopes,
             access_token=token_data["access_token"],

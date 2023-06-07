@@ -12,14 +12,14 @@ class TestJWTOAuth2TokenServiceTest:
     @freeze_time("2022-04-04")
     @pytest.mark.parametrize("scopes", [("1", "2"), ("2", "1")])
     def test_it(self, svc, lti_registration, scopes):
-        token = svc.save(lti_registration, scopes, "ACCESS_TOKEN", 3600)
+        token = svc.save_token(lti_registration, scopes, "ACCESS_TOKEN", 3600)
 
-        assert svc.get(lti_registration, scopes) == token
+        assert svc.get_token(lti_registration, scopes) == token
         assert token.scopes == "1 2"
 
     @freeze_time("2022-04-04")
     def test_save_new_token(self, svc, lti_registration, scopes):
-        token = svc.save(lti_registration, scopes, "ACCESS_TOKEN", 3600)
+        token = svc.save_token(lti_registration, scopes, "ACCESS_TOKEN", 3600)
 
         assert token.access_token == "ACCESS_TOKEN"
         assert token.received_at == datetime(2022, 4, 4, 0)
@@ -33,7 +33,7 @@ class TestJWTOAuth2TokenServiceTest:
             expires_at=datetime.now(),
         )
 
-        token = svc.save(lti_registration, scopes, "ACCESS_TOKEN", 3600)
+        token = svc.save_token(lti_registration, scopes, "ACCESS_TOKEN", 3600)
 
         assert existing_token == token
         assert token.received_at == datetime(2022, 4, 4, 0)
@@ -48,7 +48,7 @@ class TestJWTOAuth2TokenServiceTest:
         )
         db_session.flush()
 
-        token = svc.get(lti_registration, scopes)
+        token = svc.get_token(lti_registration, scopes)
 
         assert existing_token == token
 
@@ -61,7 +61,7 @@ class TestJWTOAuth2TokenServiceTest:
         )
         db_session.flush()
 
-        token = svc.get(lti_registration, scopes)
+        token = svc.get_token(lti_registration, scopes)
 
         assert not token
 
@@ -76,7 +76,7 @@ class TestJWTOAuth2TokenServiceTest:
         )
         db_session.flush()
 
-        token = svc.get(lti_registration, scopes, exclude_expired=False)
+        token = svc.get_token(lti_registration, scopes, exclude_expired=False)
 
         assert token == expired_token
 
