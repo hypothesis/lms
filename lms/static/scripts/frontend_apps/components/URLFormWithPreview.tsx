@@ -1,6 +1,5 @@
 import {
   ArrowRightIcon,
-  CancelIcon,
   IconButton,
   Input,
   InputGroup,
@@ -10,6 +9,7 @@ import classnames from 'classnames';
 import type { ComponentChildren, RefObject } from 'preact';
 
 import { useUniqueId } from '../utils/hooks';
+import UIMessage from './UIMessage';
 
 export type ThumbnailData = {
   image?: string;
@@ -120,13 +120,9 @@ export default function URLFormWithPreview({
         {children}
 
         {error && (
-          <div
-            className="flex flex-row items-center space-x-2 text-red-error"
-            data-testid="error-message"
-          >
-            <CancelIcon />
-            <div className="grow">{error}</div>
-          </div>
+          <UIMessage status="error" data-testid="error-message">
+            {error}
+          </UIMessage>
         )}
       </div>
     </div>

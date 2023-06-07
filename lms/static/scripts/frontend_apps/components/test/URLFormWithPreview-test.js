@@ -38,7 +38,7 @@ describe('URLFormWithPreview', () => {
   it('displays error if provided', () => {
     const error = 'Something went wrong';
     const wrapper = renderComponent({ error });
-    const errorComponent = wrapper.find('[data-testid="error-message"]');
+    const errorComponent = wrapper.find('UIMessage[status="error"]');
 
     assert.isTrue(errorComponent.exists());
     assert.equal(errorComponent.text(), error);

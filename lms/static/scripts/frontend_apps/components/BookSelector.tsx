@@ -1,7 +1,5 @@
 import {
   ArrowRightIcon,
-  CancelIcon,
-  CheckIcon,
   IconButton,
   InputGroup,
   Input,
@@ -14,6 +12,7 @@ import type { Book } from '../api-types';
 import { formatErrorMessage } from '../errors';
 import { useService, VitalSourceService } from '../services';
 import { extractBookID } from '../utils/vitalsource';
+import UIMessage from './UIMessage';
 
 export type BookSelectorProps = {
   /** The currently-selected book, if any */
@@ -194,23 +193,15 @@ export default function BookSelector({
         </InputGroup>
 
         {selectedBook && (
-          <div
-            className="flex flex-row items-center space-x-2"
-            data-testid="selected-book"
-          >
-            <CheckIcon className="text-green-success" />
-            <div className="grow font-bold italic">{selectedBook.title}</div>
-          </div>
+          <UIMessage status="success" data-testid="selected-book">
+            <span className="font-bold italic">{selectedBook.title}</span>
+          </UIMessage>
         )}
 
         {error && (
-          <div
-            className="flex flex-row items-center space-x-2 text-red-error"
-            data-testid="error-message"
-          >
-            <CancelIcon />
-            <div className="grow">{error}</div>
-          </div>
+          <UIMessage status="error" data-testid="error-message">
+            {error}
+          </UIMessage>
         )}
       </div>
     </div>

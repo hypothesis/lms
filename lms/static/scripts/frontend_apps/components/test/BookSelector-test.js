@@ -193,7 +193,7 @@ describe('BookSelector', () => {
       const wrapper = renderBookSelector();
       updateURL(wrapper, 'foo');
 
-      const errorMessage = wrapper.find('[data-testid="error-message"]');
+      const errorMessage = wrapper.find('UIMessage[status="error"]');
 
       assert.isTrue(errorMessage.exists());
       assert.include(
@@ -270,11 +270,10 @@ describe('BookSelector', () => {
           selectedBook: fakeBookData.book1,
         });
 
-        const selectedBook = wrapper.find('[data-testid="selected-book"]');
+        const selectedBook = wrapper.find('UIMessage[status="success"]');
 
         assert.isTrue(wrapper.find('Thumbnail img').exists());
         assert.include(selectedBook.text(), 'Book One');
-        assert.isTrue(selectedBook.find('CheckIcon').exists());
       });
     });
 
@@ -287,10 +286,10 @@ describe('BookSelector', () => {
         const wrapper = renderBookSelector();
         updateURL(wrapper, 'foo');
 
-        await waitForElement(wrapper, '[data-testid="error-message"]');
+        await waitForElement(wrapper, 'UIMessage[status="error"]');
 
         assert.calledWith(fakeFormatErrorMessage, error);
-        const errorMessage = wrapper.find('[data-testid="error-message"]');
+        const errorMessage = wrapper.find('UIMessage[status="error"]');
         assert.include(errorMessage.text(), 'Something went wrong');
       });
     });

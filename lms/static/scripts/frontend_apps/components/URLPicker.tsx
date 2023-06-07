@@ -1,10 +1,7 @@
-import {
-  Button,
-  CancelIcon,
-  ModalDialog,
-  Input,
-} from '@hypothesis/frontend-shared';
+import { Button, ModalDialog, Input } from '@hypothesis/frontend-shared';
 import { useRef, useState } from 'preact/hooks';
+
+import UIMessage from './UIMessage';
 
 export type URLPickerProps = {
   /** The initial value of the URL input field. */
@@ -92,16 +89,8 @@ export default function URLPicker({
         </form>
         {/** setting a height here "preserves space" for this error display
          * and prevents the dialog size from jumping when an error is rendered */}
-        <div
-          className="h-4 flex flex-row items-center space-x-1 text-red-error"
-          data-testid="error-message"
-        >
-          {!!error && (
-            <>
-              <CancelIcon />
-              <div className="grow">{error}</div>
-            </>
-          )}
+        <div className="h-4 min-h-4">
+          {!!error && <UIMessage status="error">{error}</UIMessage>}
         </div>
       </div>
     </ModalDialog>

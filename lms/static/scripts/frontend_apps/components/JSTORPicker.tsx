@@ -1,8 +1,6 @@
 import {
   ArrowRightIcon,
   Button,
-  CancelIcon,
-  CheckIcon,
   IconButton,
   Input,
   InputGroup,
@@ -19,6 +17,7 @@ import { urlPath, useAPIFetch } from '../utils/api';
 import type { FetchResult } from '../utils/fetch';
 import { useUniqueId } from '../utils/hooks';
 import { articleIdFromUserInput, jstorURLFromArticleId } from '../utils/jstor';
+import UIMessage from './UIMessage';
 
 export type JSTORPickerProps = {
   /**
@@ -205,20 +204,17 @@ export default function JSTORPicker({
           </InputGroup>
 
           {metadata.data && (
-            <div
-              className="flex flex-row space-x-2"
+            <UIMessage
+              status={canConfirmSelection ? 'success' : 'info'}
               data-testid="selected-book"
             >
-              {canConfirmSelection && (
-                <CheckIcon className="text-green-success" />
-              )}
-              <div className="grow font-bold italic">
+              <span className="font-bold italic">
                 {metadata.data.item.title}
                 {metadata.data.item.subtitle && (
                   <>: {metadata.data.item.subtitle}</>
                 )}
-              </div>
-            </div>
+              </span>
+            </UIMessage>
           )}
 
           {metadata.data && canConfirmSelection && (
@@ -241,13 +237,7 @@ export default function JSTORPicker({
           )}
 
           {renderedError && (
-            <div
-              className="flex flex-row items-center space-x-2 text-red-error"
-              data-testid="error-message"
-            >
-              <CancelIcon />
-              <div className="grow">{renderedError}</div>
-            </div>
+            <UIMessage status="error">{renderedError}</UIMessage>
           )}
         </div>
       </div>
