@@ -110,6 +110,7 @@ class DeepLinkingFieldsViews:
         application_instance = self.request.lti_user.application_instance
 
         document_url = self._get_content_url(self.request)
+        print(document_url)
 
         now = datetime.utcnow()
         message = {
@@ -123,7 +124,12 @@ class DeepLinkingFieldsViews:
             "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
             "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
             "https://purl.imsglobal.org/spec/lti-dl/claim/content_items": [
-                {"type": "ltiResourceLink", "url": document_url}
+                {
+                    "type": "ltiResourceLink",
+                    "url": self.request.route_url("lti_launches"),
+                    "title": "TItle from Hypothesis",
+                    "custom": {"document_url": self._get_content_url_d2l(self.request)},
+                }
             ],
         }
 
@@ -217,3 +223,15 @@ class DeepLinkingFieldsViews:
             ._replace(query=urlencode(params))
             .geturl()
         )
+
+    @staticmethod
+    def _get_content_url_d2l(request):
+        """
+        Translate content information from the frontend to a launch URL.
+
+        We submit the content information to the LMS as an URL pointing to our
+        `lti_launches` endpoint with any information required to identity
+        the content as query parameters.
+        """
+        content = request.parsed_params["content"]
+        return content["url"]

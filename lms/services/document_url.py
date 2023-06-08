@@ -22,6 +22,7 @@ class DocumentURLService:
         if no configuration can be found.
         """
         for document_url_source in (
+            self._from_deep_linking_provided_url_in_custom_parameter,
             self._from_deep_linking_provided_url,
             self._from_canvas_file,
             self._from_legacy_vitalsource_book,
@@ -53,6 +54,17 @@ class DocumentURLService:
                 url = unquote(url)
 
         return url
+
+    @classmethod
+    def _from_deep_linking_provided_url_in_custom_parameter(cls, request):
+        """
+        Get the URL from the deep linking information.
+
+        This is the parameter we send during deep linking configuration coming
+        back to us from the LMS.
+        """
+        print(request.lti_params)
+        return request.lti_params.get("custom_document_url")
 
     @classmethod
     def _from_canvas_file(cls, request):
