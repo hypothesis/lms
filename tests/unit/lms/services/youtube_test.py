@@ -31,15 +31,22 @@ class TestYouTubeService:
             svc.video_info(video_id="invalid_video_id")
 
     @pytest.mark.parametrize(
-        "content_rating,expected_restrictions",
+        "content_rating, status,expected_restrictions",
         (
-            ({}, []),
-            ({"ytRating": "foo"}, []),
-            ({"ytRating": "ytAgeRestricted"}, ["age"]),
+            ({}, {}, []),
+            ({"ytRating": "foo"}, {}, []),
+            ({"ytRating": "foo"}, {"embeddable": True}, []),
+            ({"ytRating": "ytAgeRestricted"}, {}, ["age"]),
+            ({}, {"embeddable": False}, ["no_embed"]),
+            (
+                {"ytRating": "ytAgeRestricted"},
+                {"embeddable": False},
+                ["age", "no_embed"],
+            ),
         ),
     )
     def test_video_info_parses_json_response(
-        self, svc, http_service, content_rating, expected_restrictions
+        self, svc, http_service, content_rating, status, expected_restrictions
     ):
         response = factories.requests.Response(
             json_data={
@@ -58,6 +65,7 @@ class TestYouTubeService:
                             "duration": "P2M10S",
                             "contentRating": content_rating,
                         },
+                        "status": status,
                     }
                 ]
             }

@@ -1,3 +1,5 @@
+from typing import List
+
 from lms.services import SerializableError
 from lms.services.http import HTTPService
 
@@ -41,16 +43,15 @@ class YouTubeService:
         """
 
         # Endpoint docs: https://developers.google.com/youtube/v3/docs/videos/list
-        resp = self._http.get(
+        json_resp: dict = self._http.get(
             url=f"{YOUTUBE_API_URL}/videos",
             params={
                 "id": video_id,
                 "key": self._api_key,
-                "part": "contentDetails,snippet",
+                "part": "contentDetails,snippet,status",
                 "maxResults": "1",
             },
-        )
-        json_resp: dict = resp.json()
+        ).json()
 
         try:
             item = json_resp["items"][0]
@@ -59,14 +60,7 @@ class YouTubeService:
 
         snippet = item["snippet"]
         content_details = item.get("contentDetails", {})
-        restrictions = []
-
-        # ytRating field docs: https://developers.google.com/youtube/v3/docs/videos#contentDetails.contentRating.ytRating
-        if (
-            content_details.get("contentRating", {}).get("ytRating", "")
-            == "ytAgeRestricted"
-        ):
-            restrictions.append("age")
+        restrictions = self._resolve_video_restrictions(item)
 
         return {
             "image": snippet["thumbnails"]["medium"]["url"],
@@ -75,6 +69,22 @@ class YouTubeService:
             "duration": content_details["duration"],  # ISO duration
             "restrictions": restrictions,
         }
+
+    def _resolve_video_restrictions(self, item: dict) -> List[str]:
+        restrictions: List[str] = []
+
+        # Check if the video is age restricted
+        if (
+            item.get("contentDetails", {}).get("contentRating", {}).get("ytRating", "")
+            == "ytAgeRestricted"
+        ):
+            restrictions.append("age")
+
+        # Check if the video does not allow embedding
+        if not item.get("status", {}).get("embeddable", True):
+            restrictions.append("no_embed")
+
+        return restrictions
 
 
 def factory(_context, request) -> YouTubeService:
