@@ -30,7 +30,17 @@ class TestYouTubeService:
         with pytest.raises(VideoNotFound):
             svc.video_info(video_id="invalid_video_id")
 
-    def test_video_info_parses_json_response(self, svc, http_service):
+    @pytest.mark.parametrize(
+        "content_rating,expected_restrictions",
+        (
+            ({}, []),
+            ({"ytRating": "foo"}, []),
+            ({"ytRating": "ytAgeRestricted"}, ["age"]),
+        ),
+    )
+    def test_video_info_parses_json_response(
+        self, svc, http_service, content_rating, expected_restrictions
+    ):
         response = factories.requests.Response(
             json_data={
                 "items": [
@@ -44,7 +54,10 @@ class TestYouTubeService:
                                 }
                             },
                         },
-                        "contentDetails": {"duration": "P2M10S"},
+                        "contentDetails": {
+                            "duration": "P2M10S",
+                            "contentRating": content_rating,
+                        },
                     }
                 ]
             }
@@ -57,6 +70,7 @@ class TestYouTubeService:
             "channel": "Hypothesis",
             "image": "https://i.ytimg.com/vi/EU6TDnV5osM/mqdefault.jpg",
             "duration": "P2M10S",
+            "restrictions": expected_restrictions,
         }
 
     @pytest.fixture
