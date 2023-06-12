@@ -286,6 +286,13 @@ class BasicLaunchViews:
                 enable_grading=assignment.is_gradable
             )
 
+            from lms.services import LTIGradingService
+
+            self.request.find_service(LTIGradingService).assignment_grades(assignment)
+            """
+            [{'id': 'https://aunltd.brightspacedemo.com/d2l/api/lti/ags/2.0/deployment/ec9e6e7c-69fc-4123-a32c-e8afe4868c38/orgunit/6782/lineitems/cd37b09e-825b-4414-ac64-53fd1722f675', 'scoreMaximum': 38.0, 'label': 'Grade created by hand (marcos)', 'tag': None, 'resourceId': None, 'resourceLinkId': '668_6782'}]
+            """
+
         self.context.js_config.add_document_url(document_url)
         self.context.js_config.enable_lti_launch_mode(self.course, assignment)
 

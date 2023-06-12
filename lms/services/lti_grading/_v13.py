@@ -24,6 +24,16 @@ class LTI13GradingService(LTIGradingService):
         super().__init__(line_item_url, line_item_container_url)
         self._ltia_service = ltia_service
 
+    def assignment_grades(self, assignment):
+        response = self._ltia_service.request(
+            "GET",
+            self.line_item_container_url,
+            scopes=self.LTIA_SCOPES,
+            params={"resource_link_id": assignment.resource_link_id},
+            headers={"Accept": "application/vnd.ims.lis.v2.lineitemcontainer+json"},
+        )
+        print(response.json())
+
     def read_result(self, grading_id):
         try:
             response = self._ltia_service.request(
@@ -55,6 +65,7 @@ class LTI13GradingService(LTIGradingService):
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "activityProgress": "Completed",
             "gradingProgress": "FullyGraded",
+            "comment": "Comment sent by hypothesis",
         }
         if pre_record_hook:
             payload = pre_record_hook(score=score, request_body=payload)
