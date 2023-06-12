@@ -298,7 +298,7 @@ pytz==2022.1
     # via
     #   -r requirements/prod.txt
     #   celery
-requests==2.28.2
+requests==2.31.0
     # via
     #   -r requirements/prod.txt
     #   mailchimp-transactional
