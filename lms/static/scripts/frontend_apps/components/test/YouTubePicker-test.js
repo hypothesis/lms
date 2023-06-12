@@ -86,7 +86,7 @@ describe('YouTubePicker', () => {
     wrapper.find('URLFormWithPreview').props().onURLChange('not-a-youtube-url');
     wrapper.update();
 
-    assert.isDefined(wrapper.find('URLFormWithPreview').prop('error'));
+    assert.isDefined(wrapper.find('URLFormWithPreview').prop('errors'));
 
     // Invoking onURLChange with a valid URL will remove the error above
     wrapper
@@ -95,7 +95,7 @@ describe('YouTubePicker', () => {
       .onURLChange('https://youtube.com/watch?v=videoId');
     wrapper.update();
 
-    assert.isUndefined(wrapper.find('URLFormWithPreview').prop('error'));
+    assert.isUndefined(wrapper.find('URLFormWithPreview').prop('errors'));
   });
 
   it('displays video info when available', () => {
@@ -150,7 +150,7 @@ describe('YouTubePicker', () => {
       const wrapper = renderComponent();
 
       assert.equal(
-        wrapper.find('URLFormWithPreview').prop('error'),
+        wrapper.find('URLFormWithPreview').prop('errors')[0],
         expectedError
       );
     });
@@ -162,12 +162,12 @@ describe('YouTubePicker', () => {
     // Invoking onURLChange with an invalid URL will set the error
     wrapper.find('URLFormWithPreview').props().onURLChange('not-a-youtube-url');
     wrapper.update();
-    assert.isDefined(wrapper.find('URLFormWithPreview').prop('error'));
+    assert.isDefined(wrapper.find('URLFormWithPreview').prop('errors'));
 
     wrapper.find('URLFormWithPreview').props().onInput();
     wrapper.update();
 
     // As soon as input changes, the error is unset
-    assert.isUndefined(wrapper.find('URLFormWithPreview').prop('error'));
+    assert.isUndefined(wrapper.find('URLFormWithPreview').prop('errors'));
   });
 });

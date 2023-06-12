@@ -83,7 +83,7 @@ export default function YouTubePicker({
       <URLFormWithPreview
         onURLChange={onURLChange}
         onInput={resetCurrentURL}
-        error={error}
+        errors={error && [error]}
         inputRef={inputRef}
         urlPlaceholder="e.g. https://www.youtube.com/watch?v=cKxqzvzlnKU"
         label="Enter the URL of a YouTube video:"

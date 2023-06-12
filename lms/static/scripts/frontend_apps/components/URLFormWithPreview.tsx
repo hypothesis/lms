@@ -21,8 +21,8 @@ export type ThumbnailData = {
 export type URLFormWithPreviewProps = {
   /** Optional extra content to be rendered together with the input and thumbnail */
   children?: ComponentChildren;
-  /** An error message to highlight that something went wrong */
-  error?: string;
+  /** A list of error messages to highlight that something went wrong */
+  errors?: string[];
   /** Thumbnail info to be displayed, if known */
   thumbnail?: ThumbnailData;
   /** Reference to be set on the URL input */
@@ -41,7 +41,7 @@ export type URLFormWithPreviewProps = {
  */
 export default function URLFormWithPreview({
   children,
-  error,
+  errors,
   thumbnail,
   inputRef,
   onURLChange,
@@ -119,9 +119,13 @@ export default function URLFormWithPreview({
 
         {children}
 
-        {error && (
+        {errors && errors.length > 0 && (
           <UIMessage status="error" data-testid="error-message">
-            {error}
+            <div className="space-y-2">
+              {errors.map((error, index) => (
+                <p key={`${error}_${index}`}>{error}</p>
+              ))}
+            </div>
           </UIMessage>
         )}
       </div>
