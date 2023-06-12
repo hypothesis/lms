@@ -14,7 +14,7 @@ aiosignal==1.2.0
     # via
     #   -r requirements/prod.txt
     #   aiohttp
-alembic==1.10.3
+alembic==1.11.1
     # via -r requirements/prod.txt
 amqp==5.1.1
     # via
