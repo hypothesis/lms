@@ -66,7 +66,7 @@ describe('YouTubePicker', () => {
 
   [
     { data: undefined, isDisabled: true },
-    { data: {}, isDisabled: false },
+    { data: { restrictions: [] }, isDisabled: false },
   ].forEach(({ data, isDisabled }) => {
     it('disables Continue button as long as no data is loaded from API', () => {
       fakeUseAPIFetch.returns({ data });
@@ -103,6 +103,7 @@ describe('YouTubePicker', () => {
       data: {
         title: 'The video title',
         channel: 'Hypothesis',
+        restrictions: [],
       },
     });
 
@@ -119,6 +120,7 @@ describe('YouTubePicker', () => {
       data: {
         title: 'The video title',
         image: 'https://i.ytimg.com/vi/9l55oKI_Ch8/mqdefault.jpg',
+        restrictions: [],
       },
     });
 
@@ -132,6 +134,85 @@ describe('YouTubePicker', () => {
     );
     assert.equal(thumbnail.alt, 'The video title');
     assert.equal(thumbnail.orientation, 'landscape');
+  });
+
+  context('when loaded video has restrictions', () => {
+    it('does not display video info', () => {
+      fakeUseAPIFetch.returns({
+        data: {
+          title: 'The video title',
+          channel: 'Hypothesis',
+          restrictions: ['age'],
+        },
+      });
+
+      const wrapper = renderComponent();
+      const metadata = wrapper.find('[data-testid="selected-video"]');
+
+      assert.isFalse(metadata.exists());
+    });
+
+    [
+      {
+        restriction: 'age',
+        expectedError:
+          'This video cannot be used in an assignment because it contains age-restricted content',
+      },
+      {
+        restriction: 'no_embed',
+        expectedError:
+          "This video cannot be used in an assignment because the video's owner does not allow this video to be embedded",
+      },
+    ].forEach(({ restriction, expectedError }) => {
+      it('displays single error when loaded video has one restriction', () => {
+        fakeUseAPIFetch.returns({
+          isLoading: false,
+          data: {
+            title: 'The video title',
+            image: 'https://i.ytimg.com/vi/9l55oKI_Ch8/mqdefault.jpg',
+            restrictions: [restriction],
+          },
+        });
+
+        const wrapper = renderComponent();
+
+        assert.equal(
+          wrapper.find('URLFormWithPreview').prop('error'),
+          expectedError
+        );
+      });
+    });
+
+    it('displays multiple errors when video has more than one restriction', () => {
+      fakeUseAPIFetch.returns({
+        isLoading: false,
+        data: {
+          title: 'The video title',
+          image: 'https://i.ytimg.com/vi/9l55oKI_Ch8/mqdefault.jpg',
+          restrictions: ['age', 'no_embed'],
+        },
+      });
+
+      const wrapper = renderComponent();
+
+      // When there's more than one error, the `error` prop contains a component.
+      // It needs to be wrapped in a div because the top-most node is a fragment,
+      // which enzyme does not allow
+      const errorWrapper = mount(
+        <div>{wrapper.find('URLFormWithPreview').prop('error')}</div>
+      );
+      const errorText = errorWrapper.text();
+
+      assert.include(
+        errorText,
+        'This video cannot be used in an assignment because:'
+      );
+      assert.include(errorText, 'it contains age-restricted content');
+      assert.include(
+        errorText,
+        "the video's owner does not allow this video to be embedded"
+      );
+    });
   });
 
   [
