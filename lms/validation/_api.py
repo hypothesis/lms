@@ -80,3 +80,6 @@ class APIRecordResultSchema(JSONPyramidRequestSchema):
     """
     Score — i.e. grade — for this submission. A value between 0 and 1, inclusive.
     """
+
+    student_user_id = fields.Str(required=True)
+    """The LTIUser.user_id of the student being graded."""
