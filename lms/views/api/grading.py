@@ -3,6 +3,7 @@ from datetime import timezone
 
 from pyramid.view import view_config, view_defaults
 
+from lms.events import LTIEvent
 from lms.security import Permissions
 from lms.services import LTIGradingService
 from lms.validation import (
@@ -32,6 +33,17 @@ class GradingViews:
 
         self.lti_grading_service.record_result(
             self.parsed_params["lis_result_sourcedid"], score
+        )
+
+        self.request.registry.notify(
+            LTIEvent(
+                request=self.request,
+                type=LTIEvent.Type.SCORED,
+                data={
+                    "student_user_id": self.parsed_params["student_user_id"],
+                    "score": score,
+                },
+            )
         )
 
         return {}

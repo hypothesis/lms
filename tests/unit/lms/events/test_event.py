@@ -22,11 +22,11 @@ class TestLTIEvent:
         assert event.role_ids == [sentinel.id]
         assert event.application_instance_id == application_instance.id
 
-        course_service.get_by_context_id.assert_called_once_with(sentinel.context_id)
+        course_service.get_by_context_id.assert_called_once_with(lti_user.lti.course_id)
         assert event.course_id == course_service.get_by_context_id.return_value.id
 
         assignment_service.get_assignment.assert_called_once_with(
-            sentinel.tool_guid, sentinel.resource_link_id
+            lti_user.tool_consumer_instance_guid, lti_user.lti.assignment_id
         )
         assert event.assignment_id == assignment_service.get_assignment.return_value.id
 
