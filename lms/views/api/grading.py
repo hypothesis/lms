@@ -99,7 +99,9 @@ class GradingViews:
         self.lti_grading_service.record_result(
             lis_result_sourcedid, pre_record_hook=CanvasPreRecordHook(self.request)
         )
-
+        self.request.registry.notify(
+            LTIEvent(request=self.request, type=LTIEvent.Type.SUBMISSION)
+        )
         return {}
 
 
