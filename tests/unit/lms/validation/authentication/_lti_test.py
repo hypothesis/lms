@@ -15,29 +15,15 @@ pytestmark = pytest.mark.usefixtures(
 
 class TestLTI11AuthSchema:
     def test_it_returns_the_lti_user_info(
-        self, schema, application_instance_service, lti_user_service
+        self, schema, application_instance_service, lti_user_service, pyramid_request
     ):
         lti_user = schema.lti_user()
 
-        lti_user_service.from_auth_params.assert_called_once_with(
+        lti_user_service.from_lti_params.assert_called_once_with(
             application_instance_service.get_by_consumer_key.return_value,
-            {
-                "oauth_signature_method": "SHA256",
-                "lis_person_name_family": "TEST_FAMILY_NAME",
-                "lis_person_contact_email_primary": "EMAIL",
-                "oauth_nonce": "TEST_NONCE",
-                "oauth_consumer_key": "TEST_OAUTH_CONSUMER_KEY",
-                "lis_person_name_full": "TEST_FULL_NAME",
-                "oauth_version": "1p0p0",
-                "lis_person_name_given": "TEST_GIVEN_NAME",
-                "oauth_signature": "TEST_OAUTH_SIGNATURE",
-                "roles": "Instructor",
-                "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
-                "user_id": "TEST_USER_ID",
-                "oauth_timestamp": "TEST_TIMESTAMP",
-            },
+            pyramid_request.lti_params,
         )
-        assert lti_user == lti_user_service.from_auth_params.return_value
+        assert lti_user == lti_user_service.from_lti_params.return_value
 
     def test_it_raises_missing_application_instance(
         self, schema, application_instance_service
@@ -102,15 +88,15 @@ class TestLTI11AuthSchema:
 
 class TestLTI13AuthSchema:
     def test_lti_user(
-        self, schema, schema_params, application_instance_service, lti_user_service
+        self, schema, pyramid_request, application_instance_service, lti_user_service
     ):
         lti_user = schema.lti_user()
 
-        lti_user_service.from_auth_params.assert_called_once_with(
+        lti_user_service.from_lti_params.assert_called_once_with(
             application_instance_service.get_by_deployment_id.return_value,
-            schema_params,
+            pyramid_request.lti_params,
         )
-        assert lti_user == lti_user_service.from_auth_params.return_value
+        assert lti_user == lti_user_service.from_lti_params.return_value
 
     def test_it_raises_missing_application_instance(
         self, schema, application_instance_service
@@ -135,10 +121,6 @@ class TestLTI13AuthSchema:
     @pytest.fixture
     def schema(self, pyramid_request):
         return LTI13AuthSchema(pyramid_request)
-
-    @pytest.fixture
-    def schema_params(self, schema):
-        return schema.parse()
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request, lti_v13_params):
