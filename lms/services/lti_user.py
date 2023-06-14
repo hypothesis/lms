@@ -19,20 +19,22 @@ class LTIUserService:
         self._lti_roles_service = lti_role_service
         self._application_instance_service = application_instance_service
 
-    def from_auth_params(self, application_instance, lti_core_schema) -> LTIUser:
-        """Create an LTIUser from a LTIV11CoreSchema like dict."""
+    def from_lti_params(self, application_instance, lti_params) -> LTIUser:
+        """Create an LTIUser from a LTIParams."""
 
         return self.deserialize(
-            user_id=lti_core_schema["user_id"],
+            user_id=lti_params["user_id"],
             application_instance_id=application_instance.id,
-            roles=lti_core_schema["roles"],
-            tool_consumer_instance_guid=lti_core_schema["tool_consumer_instance_guid"],
+            roles=lti_params["roles"],
+            tool_consumer_instance_guid=lti_params["tool_consumer_instance_guid"],
             display_name=display_name(
-                lti_core_schema["lis_person_name_given"],
-                lti_core_schema["lis_person_name_family"],
-                lti_core_schema["lis_person_name_full"],
+                lti_params["lis_person_name_given"],
+                lti_params["lis_person_name_family"],
+                lti_params["lis_person_name_full"],
             ),
-            email=lti_core_schema["lis_person_contact_email_primary"],
+            email=lti_params.get("lis_person_contact_email_primary"),
+            context_id=lti_params["context_id"],
+            resource_link_id=lti_params.get("resource_link_id"),
         )
 
     @staticmethod
@@ -49,6 +51,8 @@ class LTIUserService:
             "display_name": lti_user.display_name,
             "application_instance_id": lti_user.application_instance_id,
             "email": lti_user.email,
+            "context_id": lti_user.context_id,
+            "resource_link_id": lti_user.resource_link_id,
         }
 
     def deserialize(self, **kwargs: dict) -> LTIUser:

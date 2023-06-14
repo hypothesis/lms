@@ -11,4 +11,5 @@ LTIUser = make_factory(
     lti_roles=[],
     tool_consumer_instance_guid=TOOL_CONSUMER_INSTANCE_GUID,
     display_name=Faker("name"),
+    context_id=Faker("hexify", text="^" * 40),
 )

@@ -6,10 +6,10 @@ from lms.services.lti_user import LTIUserService, factory
 
 
 class TestLTIUserService:
-    def test_from_auth_params(
+    def test_from_lti_params(
         self, application_instance, auth_params, svc, display_name
     ):
-        lti_user = svc.from_auth_params(application_instance, auth_params)
+        lti_user = svc.from_lti_params(application_instance, auth_params)
 
         assert lti_user.user_id == auth_params["user_id"]
         assert lti_user.roles == auth_params["roles"]
