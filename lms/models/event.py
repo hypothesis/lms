@@ -15,6 +15,7 @@ class EventType(BASE):
         DEEP_LINKING = "deep_linking"
         AUDIT_TRAIL = "audit"
         EDITED_ASSIGNMENT = "edited_assignment"
+        SCORED = "scored"
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
     type = varchar_enum(Type)

@@ -45,7 +45,6 @@ class GradingViews:
                 },
             )
         )
-
         return {}
 
     @view_config(
