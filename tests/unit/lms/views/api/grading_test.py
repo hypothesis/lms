@@ -30,7 +30,7 @@ class TestRecordCanvasSpeedgraderSubmission:
         lti_grading_service.record_result.assert_not_called()
 
     def test_it_passes_the_callback_if_there_is_no_score(
-        self, pyramid_request, lti_grading_service
+        self, pyramid_request, lti_grading_service, LTIEvent
     ):
         lti_grading_service.read_result.return_value = None
 
@@ -41,6 +41,9 @@ class TestRecordCanvasSpeedgraderSubmission:
             pre_record_hook=Any.instance_of(CanvasPreRecordHook),
             # lti_launch_url=expected_launch_url,
             # submitted_at=datetime.datetime(2001, 1, 1, tzinfo=timezone.utc),
+        )
+        LTIEvent.assert_called_once_with(
+            request=pyramid_request, type=LTIEvent.Type.SUBMISSION
         )
 
     @pytest.fixture
@@ -203,3 +206,8 @@ class TestRecordResult:
             "score": 0.5,
         }
         return pyramid_request
+
+
+@pytest.fixture
+def LTIEvent(patch):
+    return patch("lms.views.api.grading.LTIEvent")
