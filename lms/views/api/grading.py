@@ -34,18 +34,6 @@ class GradingViews:
         self.lti_grading_service.record_result(
             self.parsed_params["lis_result_sourcedid"], score
         )
-
-        self.request.registry.notify(
-            LTIEvent(
-                request=self.request,
-                type=LTIEvent.Type.SCORED,
-                data={
-                    "student_user_id": self.parsed_params["student_user_id"],
-                    "score": score,
-                },
-            )
-        )
-
         return {}
 
     @view_config(
@@ -100,7 +88,9 @@ class GradingViews:
         self.lti_grading_service.record_result(
             lis_result_sourcedid, pre_record_hook=CanvasPreRecordHook(self.request)
         )
-
+        self.request.registry.notify(
+            LTIEvent(request=self.request, type=LTIEvent.Type.SUBMISSION)
+        )
         return {}
 
 
