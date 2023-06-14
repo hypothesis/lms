@@ -69,7 +69,7 @@ class LTIEvent(BaseEvent):
 
     def _get_course_id(self):
         if course := self.request.find_service(name="course").get_by_context_id(
-            self.request.lti_params.get("context_id")
+            self.request.lti_user.lti.course_id
         ):
             return course.id
 
@@ -77,8 +77,8 @@ class LTIEvent(BaseEvent):
 
     def _get_assignment_id(self):
         if assignment := self.request.find_service(name="assignment").get_assignment(
-            self.request.lti_params.get("tool_consumer_instance_guid"),
-            self.request.lti_params.get("resource_link_id"),
+            self.request.lti_user.tool_consumer_instance_guid,
+            self.request.lti_user.lti.assignment_id,
         ):
             return assignment.id
 
