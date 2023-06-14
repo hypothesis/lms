@@ -53,8 +53,8 @@ export default function YouTubePicker({
   const onURLChange = (inputURL: string) => setCurrentURL(inputURL);
   const resetCurrentURL = () => setCurrentURL(undefined);
   const confirmSelection = () => {
-    if (videoId) {
-      onSelectURL(`youtube://${videoId}`);
+    if (currentURL) {
+      onSelectURL(currentURL);
     }
   };
 
