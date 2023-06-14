@@ -113,7 +113,8 @@ class TestAPIRecordResultSchema:
         assert parsed_params == all_fields
 
     @pytest.mark.parametrize(
-        "field", ["lis_outcome_service_url", "lis_result_sourcedid", "score"]
+        "field",
+        ["lis_outcome_service_url", "lis_result_sourcedid", "score", "student_user_id"],
     )
     def test_it_raises_if_required_fields_missing(
         self, json_request, all_fields, field
@@ -148,6 +149,7 @@ class TestAPIRecordResultSchema:
             "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
             "lis_result_sourcedid": "modelstudent-assignment1",
             "score": 0.5,
+            "student_user_id": "STUDENT_ID",
         }
 
 

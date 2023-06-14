@@ -6,6 +6,9 @@ export type Student = {
 
   /** API URL for posting outcome results. */
   LISOutcomeServiceUrl: string;
+
+  /** LTI user id for this student. */
+  lmsId: string;
 };
 
 /**
@@ -35,6 +38,7 @@ export class GradingService {
       data: {
         lis_result_sourcedid: student.LISResultSourcedId,
         lis_outcome_service_url: student.LISOutcomeServiceUrl,
+        student_user_id: student.lmsId,
         score: grade,
       },
     });

@@ -45,20 +45,20 @@ describe('GradingService', () => {
         student: {
           LISResultSourcedId: 0,
           LISOutcomeServiceUrl: 'url',
+          lmsId: 'studentId',
         },
         grade: 1,
       });
-      assert.isTrue(
-        fakeAPICall.calledWithMatch({
-          authToken: 'dummy-token',
-          path: '/api/lti/result',
-          data: {
-            lis_result_sourcedid: 0,
-            lis_outcome_service_url: 'url',
-            score: 1,
-          },
-        })
-      );
+      assert.calledWithMatch(fakeAPICall, {
+        authToken: 'dummy-token',
+        path: '/api/lti/result',
+        data: {
+          lis_result_sourcedid: 0,
+          lis_outcome_service_url: 'url',
+          student_user_id: 'studentId',
+          score: 1,
+        },
+      });
     });
   });
 });
