@@ -1,4 +1,3 @@
-import json
 from dataclasses import asdict, dataclass, field, fields
 from typing import Dict, List, Optional
 
@@ -69,16 +68,8 @@ class LTIEvent(BaseEvent):
         return self.request.lti_user.application_instance_id
 
     def _get_course_id(self):
-        context_id = self.request.lti_params.get("context_id")
-        if not context_id:
-            try:
-                # If we are deeplinking we'll get the context_id from json instead
-                context_id = self.request.json.get("context_id")
-            except json.decoder.JSONDecodeError:
-                pass
-
         if course := self.request.find_service(name="course").get_by_context_id(
-            context_id
+            self.request.lti_params.get("context_id")
         ):
             return course.id
 
