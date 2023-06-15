@@ -637,14 +637,16 @@ describe('ContentSelector', () => {
   });
 
   describe('YouTube picker', () => {
-    it('renders YouTube picker button if enabled', () => {
+    beforeEach(() => {
       fakeConfig.filePicker.youtube.enabled = true;
+    });
+
+    it('renders YouTube picker button if enabled', () => {
       const wrapper = renderContentSelector();
       assert.isTrue(wrapper.exists('Button[data-testid="youtube-button"]'));
     });
 
     it('shows YouTube picker when YouTube button is clicked', () => {
-      fakeConfig.filePicker.youtube.enabled = true;
       const onSelectContent = sinon.stub();
       const wrapper = renderContentSelector({ onSelectContent });
 
@@ -654,6 +656,24 @@ describe('ContentSelector', () => {
       });
 
       assert.isTrue(wrapper.exists('YouTubePicker'));
+    });
+
+    it('supports selecting a URL', () => {
+      const onSelectContent = sinon.stub();
+      const wrapper = renderContentSelector({
+        defaultActiveDialog: 'youtube',
+        onSelectContent,
+      });
+
+      const picker = wrapper.find('YouTubePicker');
+      interact(wrapper, () => {
+        picker.props().onSelectURL('https://youtu.be/EU6TDnV5osM');
+      });
+
+      assert.calledWith(onSelectContent, {
+        type: 'url',
+        url: 'https://youtu.be/EU6TDnV5osM',
+      });
     });
   });
 });

@@ -52,7 +52,7 @@ describe('YouTubePicker', () => {
     const wrapper = renderComponent();
 
     wrapper.find('button[data-testid="select-button"]').props().onClick();
-    assert.calledWith(fakeOnSelectURL, 'youtube://videoId');
+    assert.calledWith(fakeOnSelectURL, 'https://youtu.be/videoId');
   });
 
   [undefined, 'not-a-youtube-url'].forEach(defaultURL => {

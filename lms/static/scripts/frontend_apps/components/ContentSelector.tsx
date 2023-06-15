@@ -249,7 +249,9 @@ export default function ContentSelector({
       );
       break;
     case 'youtube':
-      dialog = <YouTubePicker onCancel={cancelDialog} onSelectURL={() => {}} />;
+      dialog = (
+        <YouTubePicker onCancel={cancelDialog} onSelectURL={selectURL} />
+      );
       break;
     default:
       dialog = null;
