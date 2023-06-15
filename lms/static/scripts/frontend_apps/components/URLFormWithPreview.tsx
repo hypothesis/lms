@@ -21,8 +21,8 @@ export type ThumbnailData = {
 export type URLFormWithPreviewProps = {
   /** Optional extra content to be rendered together with the input and thumbnail */
   children?: ComponentChildren;
-  /** An error message to highlight that something went wrong */
-  error?: string;
+  /** Error content to highlight that something went wrong */
+  error?: ComponentChildren;
   /** Thumbnail info to be displayed, if known */
   thumbnail?: ThumbnailData;
   /** Reference to be set on the URL input */

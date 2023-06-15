@@ -83,6 +83,8 @@ export type JSTORThumbnail = {
   image: string;
 };
 
+export type YouTubeVideoRestriction = 'age' | 'no_embed';
+
 /**
  * Response for an `/api/youtube/videos/{video_id}` call.
  */
@@ -90,4 +92,5 @@ export type YouTubeVideoInfo = {
   title: string;
   channel: string;
   image: string;
+  restrictions: YouTubeVideoRestriction[];
 };
