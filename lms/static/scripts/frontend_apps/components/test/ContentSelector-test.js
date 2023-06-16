@@ -669,12 +669,18 @@ describe('ContentSelector', () => {
 
       const picker = getYouTubePicker(wrapper);
       interact(wrapper, () => {
-        picker.props().onSelectURL('https://youtu.be/EU6TDnV5osM');
+        picker
+          .props()
+          .onSelectURL(
+            'https://youtu.be/EU6TDnV5osM',
+            'The video title (channel)'
+          );
       });
 
       assert.calledWith(onSelectContent, {
         type: 'url',
         url: 'https://youtu.be/EU6TDnV5osM',
+        name: 'YouTube: The video title (channel)',
       });
     });
 

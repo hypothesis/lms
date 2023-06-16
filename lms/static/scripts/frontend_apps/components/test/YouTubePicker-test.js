@@ -52,7 +52,26 @@ describe('YouTubePicker', () => {
     const wrapper = renderComponent();
 
     wrapper.find('button[data-testid="select-button"]').props().onClick();
-    assert.calledWith(fakeOnSelectURL, 'https://youtu.be/videoId');
+    assert.calledWith(fakeOnSelectURL, 'https://youtu.be/videoId', undefined);
+  });
+
+  it('invokes `onSelectURL` with video data, when available', () => {
+    fakeUseAPIFetch.returns({
+      data: {
+        title: 'The video title',
+        channel: 'Hypothesis',
+        restrictions: [],
+      },
+    });
+
+    const wrapper = renderComponent();
+
+    wrapper.find('button[data-testid="select-button"]').props().onClick();
+    assert.calledWith(
+      fakeOnSelectURL,
+      'https://youtu.be/videoId',
+      'The video title (Hypothesis)'
+    );
   });
 
   [undefined, 'not-a-youtube-url'].forEach(defaultURL => {

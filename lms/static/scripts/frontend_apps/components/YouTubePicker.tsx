@@ -15,7 +15,7 @@ export type YouTubePickerProps = {
 
   onCancel: () => void;
   /** Callback invoked with the entered URL when the user accepts the dialog */
-  onSelectURL: (url: string) => void;
+  onSelectURL: (url: string, videoName?: string) => void;
 };
 
 function formatRestrictionError(
@@ -42,6 +42,10 @@ function formatRestrictionError(
       </ul>
     </>
   );
+}
+
+function formatVideoName(videoInfo: YouTubeVideoInfo): string {
+  return `${videoInfo.title} (${videoInfo.channel})`;
 }
 
 export default function YouTubePicker({
@@ -87,7 +91,10 @@ export default function YouTubePicker({
   const resetCurrentURL = () => setCurrentURL(undefined);
   const confirmSelection = () => {
     if (currentURL) {
-      onSelectURL(currentURL);
+      const videoName = videoInfo.data
+        ? formatVideoName(videoInfo.data)
+        : undefined;
+      onSelectURL(currentURL, videoName);
     }
   };
 
@@ -131,7 +138,7 @@ export default function YouTubePicker({
         {!error && videoInfo.data?.title && videoInfo.data.channel && (
           <UIMessage data-testid="selected-video" status="success">
             <span className="font-bold italic">
-              {videoInfo.data.title} ({videoInfo.data.channel})
+              {formatVideoName(videoInfo.data)}
             </span>
           </UIMessage>
         )}
