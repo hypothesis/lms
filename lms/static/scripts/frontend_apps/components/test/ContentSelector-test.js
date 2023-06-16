@@ -637,6 +637,8 @@ describe('ContentSelector', () => {
   });
 
   describe('YouTube picker', () => {
+    const getYouTubePicker = wrapper => wrapper.find('YouTubePicker');
+
     beforeEach(() => {
       fakeConfig.filePicker.youtube.enabled = true;
     });
@@ -665,7 +667,7 @@ describe('ContentSelector', () => {
         onSelectContent,
       });
 
-      const picker = wrapper.find('YouTubePicker');
+      const picker = getYouTubePicker(wrapper);
       interact(wrapper, () => {
         picker.props().onSelectURL('https://youtu.be/EU6TDnV5osM');
       });
@@ -674,6 +676,28 @@ describe('ContentSelector', () => {
         type: 'url',
         url: 'https://youtu.be/EU6TDnV5osM',
       });
+    });
+
+    [
+      'https://youtu.be/EU6TDnV5osM',
+      'https://www.youtube.com/watch?v=123',
+      'https://www.youtube.com/shorts/shortId',
+    ].forEach(url => {
+      it('sets default value when it is a YouTube URL', () => {
+        const wrapper = renderContentSelector({
+          defaultActiveDialog: 'youtube',
+          initialContent: { type: 'url', url },
+        });
+        assert.equal(getYouTubePicker(wrapper).prop('defaultURL'), url);
+      });
+    });
+
+    it('does not set default value when it is not a YouTube URL', () => {
+      const wrapper = renderContentSelector({
+        defaultActiveDialog: 'youtube',
+        initialContent: { type: 'url', url: 'http://example.com/1234' },
+      });
+      assert.isUndefined(getYouTubePicker(wrapper).prop('defaultURL'));
     });
   });
 });
