@@ -153,7 +153,8 @@ export default function ContentSelector({
 
   const selectCanvasFile = (file: File) => {
     cancelDialog();
-    onSelectContent({ type: 'file', file });
+    // file.id is a URL with a `canvas://` prefix.
+    onSelectContent({ type: 'url', url: file.id });
   };
 
   const selectBlackboardFile = (file: File) => {
