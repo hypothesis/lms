@@ -357,7 +357,7 @@ class JSConfig:
 
         self._hypothesis_client["focus"]["user"]["displayName"] = display_name
 
-    def add_canvas_speedgrader_settings(self, document_url):
+    def add_canvas_speedgrader_settings(self, document_url, assignment):
         """
         Add config for students to record submissions with Canvas Speedgrader.
 
@@ -372,7 +372,9 @@ class JSConfig:
         self._config["canvas"]["speedGrader"] = {
             "submissionParams": {
                 "h_username": self._h_user.username,
-                "group_set": self._request.params.get("group_set"),
+                "group_set": self._request.product.plugin.grouping.get_group_set_id(
+                    self._request, assignment
+                ),
                 "document_url": document_url,
                 # Canvas doesn't send the right value for this on speed grader launches
                 # sending instead the same value as for "context_id"

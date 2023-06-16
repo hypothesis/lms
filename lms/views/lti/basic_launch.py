@@ -269,7 +269,9 @@ class BasicLaunchViews:
                 and self.request.lti_user.is_learner
                 and self.request.lti_params.get("lis_result_sourcedid")
             ):
-                self.context.js_config.add_canvas_speedgrader_settings(document_url)
+                self.context.js_config.add_canvas_speedgrader_settings(
+                    document_url, assignment
+                )
 
             # We add a `focused_user` query param to the SpeedGrader LTI launch
             # URLs we submit to Canvas for each student when the student
