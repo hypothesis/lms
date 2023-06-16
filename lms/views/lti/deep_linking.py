@@ -109,7 +109,7 @@ class DeepLinkingFieldsViews:
     def file_picker_to_form_fields_v13(self):
         application_instance = self.request.lti_user.application_instance
 
-        document_url = self._get_content_url(self.request)
+        launch_parameters = self._get_content_url(self.request)
 
         now = datetime.utcnow()
         message = {
@@ -123,8 +123,12 @@ class DeepLinkingFieldsViews:
             "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
             "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
             "https://purl.imsglobal.org/spec/lti-dl/claim/content_items": [
-                {"type": "ltiResourceLink", "url": document_url}
+                {
+                    "type": "ltiResourceLink",
+                    "url": self.request.route_url("lti_launches"),
+                }
             ],
+            "https://purl.imsglobal.org/spec/lti/claim/custom": launch_parameters,
         }
 
         # From:
@@ -145,7 +149,7 @@ class DeepLinkingFieldsViews:
             LTIEvent(
                 request=self.request,
                 type=LTIEvent.Type.DEEP_LINKING,
-                data={"document_url": document_url},
+                data=launch_parameters,
             )
         )
 
@@ -163,12 +167,12 @@ class DeepLinkingFieldsViews:
 
         See https://www.imsglobal.org/specs/lticiv1p0/specification.
         """
-        url = self._get_content_url(self.request)
+        launch_parameters = self._get_content_url(self.request)
         self.request.registry.notify(
             LTIEvent(
                 request=self.request,
                 type=LTIEvent.Type.DEEP_LINKING,
-                data={"document_url": url},
+                data=launch_parameters,
             )
         )
         return {
@@ -179,7 +183,8 @@ class DeepLinkingFieldsViews:
                         {
                             "@type": "LtiLinkItem",
                             "mediaType": "application/vnd.ims.lti.v1.ltilink",
-                            "url": url,
+                            "url": self.request.route_url("lti_launches"),
+                            "custom": launch_parameters,
                         },
                     ],
                 }
@@ -197,20 +202,14 @@ class DeepLinkingFieldsViews:
         """
         content = request.parsed_params["content"]
 
-        # Filter out any `null` values to avoid adding a ?key=None on the resulting URL
-        params = {
-            key: value
-            for key, value in (request.parsed_params.get("extra_params") or {}).items()
-            if value is not None
-        }
-
+        params = {}
         if content["type"] == "url":
             params["url"] = content["url"]
         else:
             raise ValueError(f"Unknown content type: '{content['type']}'")
 
-        return (
-            urlparse(request.route_url("lti_launches"))
-            ._replace(query=urlencode(params))
-            .geturl()
-        )
+        extra_params = request.parsed_params.get("extra_params") or {}
+        if group_set_id := extra_params.get("group_set"):
+            params["group_set_id"] = group_set_id
+
+        return params
