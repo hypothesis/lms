@@ -29,3 +29,7 @@ export function videoIdFromYouTubeURL(url: string): string | null {
   );
   return match?.[2] ?? null;
 }
+
+export function isYouTubeURL(url: string): boolean {
+  return videoIdFromYouTubeURL(url) !== null;
+}

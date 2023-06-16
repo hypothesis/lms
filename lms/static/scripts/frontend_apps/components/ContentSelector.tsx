@@ -7,6 +7,7 @@ import { PickerCanceledError } from '../errors';
 import type { Content } from '../utils/content-item';
 import { GooglePickerClient } from '../utils/google-picker-client';
 import { OneDrivePickerClient } from '../utils/onedrive-picker-client';
+import { isYouTubeURL } from '../utils/youtube';
 import BookPicker from './BookPicker';
 import type { ErrorInfo } from './FilePickerApp';
 import JSTORPicker from './JSTORPicker';
@@ -179,6 +180,11 @@ export default function ContentSelector({
   const getDefaultValue = (type: DialogType) =>
     type === initialType ? initialValue : undefined;
 
+  const getDefaultValueIfYouTubeURL = () => {
+    const url = getDefaultValue('url');
+    return url && isYouTubeURL(url) ? url : undefined;
+  };
+
   let dialog;
   switch (activeDialog) {
     case 'url':
@@ -250,7 +256,11 @@ export default function ContentSelector({
       break;
     case 'youtube':
       dialog = (
-        <YouTubePicker onCancel={cancelDialog} onSelectURL={selectURL} />
+        <YouTubePicker
+          defaultURL={getDefaultValueIfYouTubeURL()}
+          onCancel={cancelDialog}
+          onSelectURL={selectURL}
+        />
       );
       break;
     default:
