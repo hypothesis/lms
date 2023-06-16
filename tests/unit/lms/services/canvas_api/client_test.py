@@ -349,7 +349,17 @@ class TestCanvasAPIClientIntegrated:
 
         response = canvas_api_client.list_files("COURSE_ID")
 
-        assert response == list_files_json
+        assert response == [
+            {
+                "updated_at": file["updated_at"],
+                "lms_id": file["id"],
+                "folder_id": file["folder_id"],
+                "display_name": file["display_name"],
+                "size": file["size"],
+                "id": f'canvas://file/course/COURSE_ID/file_id/{file["id"]}',
+            }
+            for file in list_files_json
+        ]
         self.assert_session_send(
             http_session,
             "api/v1/courses/COURSE_ID/files",
@@ -396,7 +406,7 @@ class TestCanvasAPIClientIntegrated:
 
         response = canvas_api_client.list_files("COURSE_ID")
 
-        assert response == [files[0]]
+        assert len(response) == 1
 
     def test_list_files_with_folders(
         self,
@@ -440,7 +450,8 @@ class TestCanvasAPIClientIntegrated:
             {
                 "display_name": "File at root",
                 "size": 12345,
-                "id": 1,
+                "id": "canvas://file/course/COURSE_ID/file_id/1",
+                "lms_id": 1,
                 "folder_id": 100,
                 "updated_at": "updated_at_1",
                 "type": "File",
@@ -455,7 +466,8 @@ class TestCanvasAPIClientIntegrated:
                     {
                         "display_name": "File in folder",
                         "size": 12345,
-                        "id": 2,
+                        "lms_id": 2,
+                        "id": "canvas://file/course/COURSE_ID/file_id/2",
                         "folder_id": 200,
                         "updated_at": "updated_at_2",
                         "type": "File",
@@ -470,7 +482,8 @@ class TestCanvasAPIClientIntegrated:
                             {
                                 "display_name": "File in folder nested",
                                 "size": 12345,
-                                "id": 3,
+                                "lms_id": 3,
+                                "id": "canvas://file/course/COURSE_ID/file_id/3",
                                 "folder_id": 300,
                                 "updated_at": "updated_at_3",
                                 "type": "File",

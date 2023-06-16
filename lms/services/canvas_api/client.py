@@ -244,7 +244,14 @@ class CanvasAPIClient:
         #   remove them and notify sentry to see how often this happens after using a different sort parameter.
         raw_count = len(files)
         files = list(
-            {file_["id"]: file_ for file_ in files}.values()
+            {
+                file_["lms_id"]: dict(
+                    file_,
+                    # we build our internal ID for the file here
+                    id=f"canvas://file/course/{course_id}/file_id/{file_['lms_id']}",
+                )
+                for file_ in files
+            }.values()
         )  # De_duplicate by ID
         de_duplicated_count = len(files)
         if raw_count != de_duplicated_count:
@@ -257,7 +264,7 @@ class CanvasAPIClient:
                 {
                     "type": "canvas_file",
                     "course_id": course_id,
-                    "lms_id": file["id"],
+                    "lms_id": file["lms_id"],
                     "name": file["display_name"],
                     "size": file["size"],
                     "parent_lms_id": file["folder_id"],
@@ -328,7 +335,7 @@ class CanvasAPIClient:
         many = True
 
         display_name = fields.Str(required=True)
-        id = fields.Integer(required=True)
+        lms_id = fields.Integer(required=True, data_key="id")
         updated_at = fields.String(required=True)
         size = fields.Integer(required=True)
         folder_id = fields.Integer(required=True)
