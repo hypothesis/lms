@@ -14,7 +14,7 @@ class CanvasCourseCopyPlugin:
             # The Canvas API returns file IDs as ints but the file_id param
             # that this method receives (from our proxy API) is a string.
             # Convert ints to strings so that we can compare them.
-            if str(file["id"]) == file_id:
+            if str(file["lms_id"]) == file_id:
                 return
 
         raise FileNotFoundInCourse("canvas_file_not_found_in_course", file_id)
@@ -39,9 +39,9 @@ class CanvasCourseCopyPlugin:
                 if (
                     file_dict["display_name"] == file.name
                     and file_dict["size"] == file.size
-                    and str(file_dict["id"]) != file.lms_id
+                    and str(file_dict["lms_id"]) != file.lms_id
                 ):
-                    return str(file_dict["id"])
+                    return str(file_dict["lms_id"])
 
         return None
 
