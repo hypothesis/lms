@@ -65,6 +65,9 @@ function formatContentURL(content: URLContent) {
   if (content.url.startsWith('d2l://')) {
     return 'PDF file in D2L';
   }
+  if (content.url.startsWith('canvas://')) {
+    return 'PDF file in Canvas';
+  }
   if (content.url.startsWith('vitalsource://')) {
     return 'Book from VitalSource';
   }
@@ -78,8 +81,6 @@ function contentDescription(content: Content) {
   switch (content.type) {
     case 'url':
       return formatContentURL(content);
-    case 'file':
-      return 'PDF file in Canvas';
     default:
       /* istanbul ignore next */
       throw new Error('Unknown content type');
