@@ -152,6 +152,13 @@ export default function ContentSelector({
     onSelectContent({ type: 'url', url });
   };
 
+  const selectYouTubeURL = (url: string, title?: string) => {
+    cancelDialog();
+
+    const name = title && `YouTube: ${title}`;
+    onSelectContent({ type: 'url', url, name });
+  };
+
   const selectCanvasFile = (file: File) => {
     cancelDialog();
     onSelectContent({ type: 'file', file });
@@ -259,7 +266,7 @@ export default function ContentSelector({
         <YouTubePicker
           defaultURL={getDefaultValueIfYouTubeURL()}
           onCancel={cancelDialog}
-          onSelectURL={selectURL}
+          onSelectURL={selectYouTubeURL}
         />
       );
       break;

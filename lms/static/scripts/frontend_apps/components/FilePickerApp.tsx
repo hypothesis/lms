@@ -310,7 +310,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
 
                 <div data-testid="content-selector-container">
                   {content && currentStep !== 'content-selection' ? (
-                    <div className="flex gap-x-2 items-center">
+                    <div className="flex gap-x-2 items-start">
                       <span
                         className="break-words italic"
                         data-testid="content-summary"
