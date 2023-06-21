@@ -123,12 +123,14 @@ class DeepLinkingFieldsViews:
             "https://purl.imsglobal.org/spec/lti/claim/deployment_id": application_instance.deployment_id,
             "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
             "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
+            "https://purl.imsglobal.org/spec/lti/claim/custom": assignment_params,
             "https://purl.imsglobal.org/spec/lti-dl/claim/content_items": [
                 {
                     "type": "ltiResourceLink",
                     "url": self.misc_plugin.get_deeplinking_launch_url(
                         self.request, assignment_params
                     ),
+                    "custom": assignment_params,
                 }
             ],
         }
