@@ -17,7 +17,13 @@ from lms.tasks.celery import app
 LOG = logging.getLogger(__name__)
 
 
-@app.task(acks_late=True, autoretry_for=(Exception,), max_retries=2, retry_backoff=3600)
+@app.task(
+    acks_late=True,
+    autoretry_for=(Exception,),
+    max_retries=2,
+    retry_backoff=3600,
+    retry_backoff_max=7200,
+)
 def send_instructor_email_digest_tasks(*, batch_size):
     """
     Generate and send instructor email digests.
@@ -82,7 +88,13 @@ def send_instructor_email_digest_tasks(*, batch_size):
                 )
 
 
-@app.task(acks_late=True, autoretry_for=(Exception,), max_retries=2, retry_backoff=3600)
+@app.task(
+    acks_late=True,
+    autoretry_for=(Exception,),
+    max_retries=2,
+    retry_backoff=3600,
+    retry_backoff_max=7200,
+)
 def send_instructor_email_digests(
     *, h_userids: List[str], updated_after: str, updated_before: str, **kwargs
 ) -> None:
