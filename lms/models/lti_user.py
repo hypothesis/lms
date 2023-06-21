@@ -7,6 +7,15 @@ from lms.models.lti_role import LTIRole, RoleScope, RoleType
 
 
 @dataclass
+class LTI:
+    course_id: str
+    """ID of the course in the LMS, context_id using LTI naming"""
+
+    assignment_id: Optional[str] = None
+    """ID of the assignment in the LMS, resource_link_id using LTI naming"""
+
+
+@dataclass
 class LTIUser:  # pylint: disable=too-many-instance-attributes
     """An LTI user."""
 
@@ -28,11 +37,8 @@ class LTIUser:  # pylint: disable=too-many-instance-attributes
     application_instance_id: int
     """ID of the application instance this user belongs to"""
 
-    context_id: str
-    """ID of the course in the LMS, context_id using LTI naming"""
-
-    resource_link_id: Optional[str] = None
-    """ID of the assignment in the LMS, resource_link_id using LTI naming"""
+    lti: LTI
+    """Additional information about the LTI launch"""
 
     application_instance: ApplicationInstance = None
     """Application instance this user belongs to"""
