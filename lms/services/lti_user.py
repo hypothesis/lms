@@ -1,4 +1,4 @@
-from lms.models.lti_user import LTIUser, display_name
+from lms.models.lti_user import LTI, LTIUser, display_name
 from lms.services import LTIRoleService
 from lms.services.application_instance import ApplicationInstanceService
 
@@ -33,8 +33,10 @@ class LTIUserService:
                 lti_params["lis_person_name_full"],
             ),
             email=lti_params.get("lis_person_contact_email_primary"),
-            context_id=lti_params["context_id"],
-            resource_link_id=lti_params.get("resource_link_id"),
+            lti={
+                "course_id": lti_params["context_id"],
+                "assignment_id": lti_params.get("resource_link_id"),
+            },
         )
 
     @staticmethod
@@ -51,8 +53,10 @@ class LTIUserService:
             "display_name": lti_user.display_name,
             "application_instance_id": lti_user.application_instance_id,
             "email": lti_user.email,
-            "context_id": lti_user.context_id,
-            "resource_link_id": lti_user.resource_link_id,
+            "lti": {
+                "course_id": lti_user.lti.course_id,
+                "assignment_id": lti_user.lti.assignment_id,
+            },
         }
 
     def deserialize(self, **kwargs: dict) -> LTIUser:
@@ -61,9 +65,18 @@ class LTIUserService:
         application_instance = self._application_instance_service.get_for_launch(
             kwargs["application_instance_id"]
         )
+        lti = None
+        if lti_data := kwargs.pop("lti"):
+            lti = LTI(
+                course_id=lti_data["course_id"],
+                assignment_id=lti_data["assignment_id"],
+            )
 
         return LTIUser(
-            lti_roles=lti_roles, application_instance=application_instance, **kwargs
+            lti_roles=lti_roles,
+            application_instance=application_instance,
+            lti=lti,
+            **kwargs,
         )
 
 
