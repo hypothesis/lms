@@ -1,3 +1,5 @@
+from urllib.parse import urlencode, urlparse
+
 from pyramid.request import Request
 
 from lms.models import LTIParams, LTIRegistration
@@ -39,3 +41,19 @@ class MiscPlugin:
     def get_ltia_aud_claim(self, lti_registration: LTIRegistration) -> str:
         """Get the value of the `aud` claim used in LTI advantage requests."""
         return lti_registration.token_url
+
+    def get_deeplinking_launch_url(self, request, params: dict):
+        """
+        Launch URL for deep linked assignments.
+
+        After a deep linking request we must submit a deeplinking response back
+        to the LMS pointing to which URL should be used in the launch.
+
+        For LMSes that support query parameters in the launch URL we encode them there
+        """
+
+        return (
+            urlparse(request.route_url("lti_launches"))
+            ._replace(query=urlencode(params))
+            .geturl()
+        )
