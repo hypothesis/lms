@@ -4,7 +4,13 @@ from lms.services.mailchimp import EmailRecipient, EmailSender
 from lms.tasks.celery import app
 
 
-@app.task(acks_late=True, autoretry_for=(Exception,), max_retries=2, retry_backoff=3600)
+@app.task(
+    acks_late=True,
+    autoretry_for=(Exception,),
+    max_retries=2,
+    retry_backoff=3600,
+    retry_backoff_max=7200,
+)
 def send_template(*, sender, recipient, **kwargs) -> None:
     """Send an email using Mailchimp's send-template API."""
 
