@@ -6,22 +6,20 @@ from lms.services.lti_user import LTIUserService, factory
 
 
 class TestLTIUserService:
-    def test_from_lti_params(
-        self, application_instance, auth_params, svc, display_name
-    ):
-        lti_user = svc.from_lti_params(application_instance, auth_params)
+    def test_from_lti_params(self, application_instance, lti_params, svc, display_name):
+        lti_user = svc.from_lti_params(application_instance, lti_params)
 
-        assert lti_user.user_id == auth_params["user_id"]
-        assert lti_user.roles == auth_params["roles"]
+        assert lti_user.user_id == lti_params["user_id"]
+        assert lti_user.roles == lti_params["roles"]
         assert (
             lti_user.tool_consumer_instance_guid
-            == auth_params["tool_consumer_instance_guid"]
+            == lti_params["tool_consumer_instance_guid"]
         )
-        assert lti_user.email == auth_params["lis_person_contact_email_primary"]
+        assert lti_user.email == lti_params["lis_person_contact_email_primary"]
         assert lti_user.display_name == display_name(
-            auth_params["lis_person_name_given"],
-            auth_params["lis_person_name_family"],
-            auth_params["lis_person_name_full"],
+            lti_params["lis_person_name_given"],
+            lti_params["lis_person_name_family"],
+            lti_params["lis_person_name_full"],
         )
         assert lti_user.application_instance_id == application_instance.id
 
@@ -44,10 +42,14 @@ class TestLTIUserService:
             "display_name": lti_user.display_name,
             "application_instance_id": lti_user.application_instance_id,
             "email": lti_user.email,
+            "lti": {
+                "course_id": lti_user.lti.course_id,
+                "assignment_id": lti_user.lti.assignment_id,
+            },
         }
 
     @pytest.fixture
-    def auth_params(self):
+    def lti_params(self):
         return {
             "user_id": "USER_ID",
             "roles": "ROLES",
@@ -56,6 +58,8 @@ class TestLTIUserService:
             "lis_person_name_family": "LIS_PERSON_NAME_FAMILY",
             "lis_person_name_full": "LIS_PERSON_NAME_FULL",
             "lis_person_contact_email_primary": "LIS_PERSON_CONTACT_EMAIL_PRIMARY",
+            "context_id": "CONTEXT_ID",
+            "resource_link_id": "RESOURCE_LINK_ID",
         }
 
     @pytest.fixture
