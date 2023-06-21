@@ -131,6 +131,7 @@ class TestHAPI:
                 }
             ),
             stream=True,
+            timeout=(60, 60),
         )
 
         assert result == expected_result
@@ -146,6 +147,7 @@ class TestHAPI:
                 auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
                 headers={"Hypothesis-Application": "lms"},
                 stream=False,
+                timeout=(60, 60),
                 data=sentinel.raw_body,
             )
         ]

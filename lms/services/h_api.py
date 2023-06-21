@@ -164,6 +164,7 @@ class HAPI:
                 auth=self._http_auth,
                 headers=headers,
                 stream=stream,
+                timeout=(60, 60),
                 **request_args,
             )
         except ExternalRequestError as err:
