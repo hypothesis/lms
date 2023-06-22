@@ -9,12 +9,7 @@ from lms.product.plugin.course_copy import (
 )
 from lms.product.plugin.grouping import GroupingPlugin
 from lms.product.plugin.misc import MiscPlugin
-from lms.services import (
-    CanvasService,
-    DocumentURLService,
-    LTIRoleService,
-    OrganizationService,
-)
+from lms.services import CanvasService, LTIRoleService, OrganizationService
 from lms.services.aes import AESService
 from lms.services.application_instance import ApplicationInstanceService
 from lms.services.assignment import AssignmentService
@@ -66,7 +61,6 @@ __all__ = (
     "course_service",
     "d2l_api_client",
     "digest_service",
-    "document_url_service",
     "event_service",
     "file_service",
     "grading_info_service",
@@ -182,11 +176,6 @@ def d2l_api_client(mock_service):
 @pytest.fixture
 def digest_service(mock_service):
     return mock_service(DigestService)
-
-
-@pytest.fixture
-def document_url_service(mock_service):
-    return mock_service(DocumentURLService)
 
 
 @pytest.fixture

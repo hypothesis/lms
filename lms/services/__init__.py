@@ -3,7 +3,6 @@ from lms.services.application_instance import ApplicationInstanceNotFound
 from lms.services.canvas import CanvasService
 from lms.services.d2l_api.client import D2LAPIClient
 from lms.services.digest import DigestService
-from lms.services.document_url import DocumentURLService
 from lms.services.email_unsubscribe import EmailUnsubscribeService
 from lms.services.event import EventService
 from lms.services.exceptions import (
@@ -114,9 +113,6 @@ def includeme(config):
         "lms.services.ltia_http.factory", iface=LTIAHTTPService
     )
     config.register_service_factory("lms.services.mailchimp.factory", name="mailchimp")
-    config.register_service_factory(
-        "lms.services.document_url.factory", iface=DocumentURLService
-    )
     config.register_service_factory("lms.services.event.factory", iface=EventService)
     config.register_service_factory(
         "lms.services.organization.service_factory", iface=OrganizationService

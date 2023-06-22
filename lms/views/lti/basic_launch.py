@@ -17,7 +17,6 @@ from pyramid.view import view_config, view_defaults
 from lms.events import LTIEvent
 from lms.product import Product
 from lms.security import Permissions
-from lms.services import DocumentURLService
 from lms.services.assignment import AssignmentService
 from lms.services.course import CourseService
 from lms.services.grouping import GroupingService
@@ -31,7 +30,7 @@ def has_document_url(_context, request):
     This is imported into `lms.views.predicates` to provide the
     `has_document_url` predicate.
     """
-    return bool(request.find_service(DocumentURLService).get_document_url(request))
+    return bool(request.product.plugin.misc.get_document_url(request))
 
 
 @view_defaults(
@@ -64,9 +63,7 @@ class BasicLaunchViews:
         """Display a document if we can resolve one to show."""
 
         self._show_document(
-            document_url=self.request.find_service(DocumentURLService).get_document_url(
-                self.request
-            )
+            document_url=self.request.product.plugin.misc.get_document_url(self.request)
         )
         self.request.registry.notify(
             LTIEvent(request=self.request, type=LTIEvent.Type.CONFIGURED_LAUNCH)
