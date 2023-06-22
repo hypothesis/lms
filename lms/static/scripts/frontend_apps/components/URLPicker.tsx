@@ -1,6 +1,7 @@
 import { Button, ModalDialog, Input } from '@hypothesis/frontend-shared';
 import { useRef, useState } from 'preact/hooks';
 
+import { isYouTubeURL } from '../utils/youtube';
 import UIMessage from './UIMessage';
 
 export type URLPickerProps = {
@@ -10,6 +11,8 @@ export type URLPickerProps = {
   onCancel: () => void;
   /** Callback invoked with the entered URL when the user accepts the dialog */
   onSelectURL: (url: string) => void;
+  /** Indicates if YouTube transcript annotations are enabled */
+  youtubeEnabled?: boolean;
 };
 
 /**
@@ -20,6 +23,7 @@ export default function URLPicker({
   defaultURL = '',
   onCancel,
   onSelectURL,
+  youtubeEnabled = false,
 }: URLPickerProps) {
   const input = useRef<HTMLInputElement | null>(null);
   const form = useRef<HTMLFormElement | null>(null);
@@ -31,7 +35,9 @@ export default function URLPicker({
   const submit = (event: Event) => {
     event.preventDefault();
     try {
-      const url = new URL(input.current!.value);
+      const rawInputValue = input.current!.value;
+      const url = new URL(rawInputValue);
+
       if (!url.protocol.startsWith('http')) {
         if (url.protocol.startsWith('file')) {
           setError(
@@ -40,6 +46,12 @@ export default function URLPicker({
         } else {
           setError('Please use a URL that starts with "http" or "https"');
         }
+      } else if (isYouTubeURL(rawInputValue)) {
+        setError(
+          youtubeEnabled
+            ? 'To annotate a video, go back and choose the YouTube option.'
+            : 'Annotating YouTube videos is not yet supported. This feature is coming soon.'
+        );
       } else {
         onSelectURL(input.current!.value);
       }

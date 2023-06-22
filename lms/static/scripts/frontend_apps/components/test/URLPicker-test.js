@@ -90,6 +90,37 @@ describe('URLPicker', () => {
     );
   });
 
+  [
+    {
+      youtubeEnabled: true,
+      expectedError:
+        'To annotate a video, go back and choose the YouTube option.',
+    },
+    {
+      youtubeEnabled: false,
+      expectedError:
+        'Annotating YouTube videos is not yet supported. This feature is coming soon.',
+    },
+  ].forEach(({ youtubeEnabled, expectedError }) => {
+    it('does not invoke `onSelectURL` if URL is for a YouTube video', () => {
+      const onSelectURL = sinon.stub();
+
+      const wrapper = renderUrlPicker({ onSelectURL, youtubeEnabled });
+      wrapper.find('input').getDOMNode().value = 'https://youtu.be/EU6TDnV5osM';
+
+      wrapper
+        .find('button[data-testid="submit-button"]')
+        .props()
+        .onClick(new Event('click'));
+      wrapper.update();
+
+      assert.notCalled(onSelectURL);
+      const errorMessage = wrapper.find('UIMessage[status="error"]');
+      assert.isTrue(errorMessage.exists());
+      assert.include(errorMessage.text(), expectedError);
+    });
+  });
+
   it(
     'should pass a11y checks',
     checkAccessibility({

@@ -200,6 +200,7 @@ export default function ContentSelector({
           defaultURL={getDefaultValue('url')}
           onCancel={cancelDialog}
           onSelectURL={selectURL}
+          youtubeEnabled={youtubeEnabled}
         />
       );
       break;
