@@ -39,3 +39,25 @@ class MiscPlugin:
     def get_ltia_aud_claim(self, lti_registration: LTIRegistration) -> str:
         """Get the value of the `aud` claim used in LTI advantage requests."""
         return lti_registration.token_url
+
+    def get_document_url(self, request):
+        """Get a document URL from an assignment launch."""
+
+        # For assignments that don't use deep linking the source of truth for this information is our DB.
+        assignment_service = request.find_service(name="assignment")
+
+        assignment = assignment_service.get_assignment(
+            tool_consumer_instance_guid=request.lti_params.get(
+                "tool_consumer_instance_guid"
+            ),
+            resource_link_id=request.lti_params.get("resource_link_id"),
+        )
+
+        if not assignment:
+            # If the current assignment is not yet in the DB maybe we
+            # are launching for the first time a copied assignment.
+            assignment = assignment_service.get_copied_from_assignment(
+                request.lti_params
+            )
+
+        return assignment.document_url if assignment else None

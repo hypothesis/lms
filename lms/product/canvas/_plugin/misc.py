@@ -3,16 +3,11 @@ from functools import lru_cache
 from typing import Optional
 from urllib.parse import unquote
 
-from lms.services.assignment import AssignmentService
+from lms.product.plugin.misc import MiscPlugin
 from lms.services.vitalsource import VSBookLocation
 
 
-class DocumentURLService:
-    """A service for getting LTI launch document URLs."""
-
-    def __init__(self, assignment_service: AssignmentService):
-        self._assignment_service = assignment_service
-
+class CanvasMiscPlugin(MiscPlugin):
     @lru_cache(1)
     def get_document_url(self, request) -> Optional[str]:
         """
@@ -25,7 +20,6 @@ class DocumentURLService:
             self._from_deep_linking_provided_url,
             self._from_canvas_file,
             self._from_legacy_vitalsource_book,
-            self._from_assignment_in_db,
         ):
             if document_url := document_url_source(request):
                 return document_url
@@ -87,26 +81,6 @@ class DocumentURLService:
 
         return None
 
-    def _from_assignment_in_db(self, request):
-        """Get a document URL from an assignment in the DB matching a param."""
-
-        assignment = self._assignment_service.get_assignment(
-            tool_consumer_instance_guid=request.lti_params.get(
-                "tool_consumer_instance_guid"
-            ),
-            resource_link_id=request.lti_params.get("resource_link_id"),
-        )
-        if not assignment:
-            # If the current assignment is not yet in the DB maybe we
-            # are launching for the first time a copied assignment.
-            assignment = self._assignment_service.get_copied_from_assignment(
-                request.lti_params
-            )
-
-        return assignment.document_url if assignment else None
-
-
-def factory(_context, request):
-    return DocumentURLService(
-        assignment_service=request.find_service(name="assignment")
-    )
+    @classmethod
+    def factory(cls, _context, _request):
+        return cls()
