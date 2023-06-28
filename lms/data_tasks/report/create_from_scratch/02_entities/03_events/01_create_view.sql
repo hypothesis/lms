@@ -1,7 +1,11 @@
 DROP TYPE IF EXISTS report.event_type CASCADE;
 
 CREATE TYPE report.event_type AS ENUM (
-    'configured_launch', 'deep_linking', 'audit', 'edited_assignment'
+    'configured_launch',
+    'deep_linking',
+    'audit',
+    'edited_assignment',
+    'submission'
 );
 
 DROP MATERIALIZED VIEW IF EXISTS report.events CASCADE;
