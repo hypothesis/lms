@@ -31,8 +31,5 @@ IMPORT FOREIGN SCHEMA "public" LIMIT TO (
 
 IMPORT FOREIGN SCHEMA "report" LIMIT TO (
     authorities,
-    annotation_counts,
-    annotation_group_counts,
-    annotation_type_group_counts,
-    annotation_user_counts
+    annotation_counts
 ) FROM SERVER "h_server" INTO h;
