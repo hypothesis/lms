@@ -1,3 +1,6 @@
+REFRESH MATERIALIZED VIEW CONCURRENTLY report.user_annotation_counts;
+ANALYSE report.user_annotation_counts;
+
 REFRESH MATERIALIZED VIEW CONCURRENTLY report.user_activity;
 ANALYSE report.user_activity;
 
