@@ -22,12 +22,16 @@ CREATE MATERIALIZED VIEW report.users AS (
             FROM (
                 -- Using a weekly timestamp here loses us some accuracy, but
                 -- it's way faster than going through the whole annotation table
+                -- We'll use the H table directly to avoid dependency loops
                 SELECT
                     user_id,
                     created_week AS active_date
-                FROM report.user_activity
+                FROM h.annotation_counts
+                JOIN h.authorities ON
+                    annotation_counts.authority_id = authorities.id
+                    AND authorities.authority = '{{ region.authority }}'
 
-                UNION
+                UNION ALL
 
                 -- Ideally we'd power this metric entirely with login info, but
                 -- our data doesn't go back far enough. So we merge it with
