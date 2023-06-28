@@ -8,9 +8,11 @@ CREATE MATERIALIZED VIEW report.group_type_counts AS (
         group_id,
         sub_type,
         shared,
-        count
-    FROM h.annotation_type_group_counts
+        SUM(count) AS count
+    FROM h.annotation_counts
     JOIN h.authorities ON
-        annotation_type_group_counts.authority_id = authorities.id
+        annotation_counts.authority_id = authorities.id
         AND authorities.authority = '{{ region.authority }}'
+    GROUP BY
+        created_week, group_id, sub_type, shared
 ) WITH NO DATA;

@@ -6,9 +6,9 @@ CREATE MATERIALIZED VIEW report.user_activity AS (
         created_week,
         user_id,
         SUM(count) AS annotation_count
-    FROM h.annotation_user_counts
+    FROM h.annotation_counts
     JOIN h.authorities ON
-        annotation_user_counts.authority_id = authorities.id
+        annotation_counts.authority_id = authorities.id
         AND authorities.authority = '{{ region.authority }}'
         -- AND authorities.authority = 'lms.hypothes.is'
     GROUP BY created_week, user_id
