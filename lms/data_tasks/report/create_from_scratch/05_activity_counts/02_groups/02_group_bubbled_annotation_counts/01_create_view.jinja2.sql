@@ -5,7 +5,7 @@ DROP MATERIALIZED VIEW IF EXISTS report.group_bubbled_annotation_counts CASCADE;
 
 CREATE MATERIALIZED VIEW report.group_bubbled_annotation_counts AS (
     SELECT
-        group_id,
+        group_to_group.parent_id AS group_id,
         created_week,
         role,
         sub_type,
@@ -16,6 +16,6 @@ CREATE MATERIALIZED VIEW report.group_bubbled_annotation_counts AS (
     -- so the child_id here is all children and ourselves
     JOIN report.group_annotation_counts ON
         group_annotation_counts.group_id = group_to_group.child_id
-    GROUP BY group_id, created_week, role, sub_type, shared
-    ORDER BY group_id, created_week, count DESC
+    GROUP BY group_to_group.parent_id, created_week, role, sub_type, shared
+    ORDER BY group_to_group.parent_id, created_week, count DESC
 ) WITH NO DATA;
