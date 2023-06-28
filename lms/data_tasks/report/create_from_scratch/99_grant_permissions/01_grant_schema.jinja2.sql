@@ -22,6 +22,8 @@
     GRANT SELECT ON report.events TO "{{fdw_user}}";
     GRANT SELECT ON report.groups TO "{{fdw_user}}";
     GRANT SELECT ON report.group_map TO "{{fdw_user}}";
+    GRANT SELECT ON report.group_annotation_counts TO "{{fdw_user}}";
+    GRANT SELECT ON report.group_bubbled_annotation_counts TO "{{fdw_user}}";
     GRANT SELECT ON report.group_bubbled_activity TO "{{fdw_user}}";
     GRANT SELECT ON report.group_bubbled_counts TO "{{fdw_user}}";
     GRANT SELECT ON report.group_type_counts TO "{{fdw_user}}";
