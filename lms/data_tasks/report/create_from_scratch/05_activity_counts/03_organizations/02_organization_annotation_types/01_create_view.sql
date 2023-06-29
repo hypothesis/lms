@@ -14,7 +14,7 @@ CREATE MATERIALIZED VIEW report.organization_annotation_types AS (
         -- `organization_activity` query
         weeks AS (
             SELECT DISTINCT(created_week) AS timestamp_week
-            FROM report.group_type_counts
+            FROM report.group_annotation_counts
         ),
 
         timescales AS (
@@ -44,14 +44,14 @@ CREATE MATERIALIZED VIEW report.organization_annotation_types AS (
         (period + report.single_interval(timescale::text))::DATE AS end_date,
         report.present_date(timescale::text, period) AS period,
         group_map.organization_id,
-        group_type_counts.sub_type,
-        group_type_counts.shared,
-        SUM(group_type_counts.count) AS count
+        group_annotation_counts.sub_type,
+        group_annotation_counts.shared,
+        SUM(group_annotation_counts.count) AS count
     FROM facets
-    JOIN report.group_type_counts ON
-        group_type_counts.created_week = facets.timestamp_week
+    JOIN report.group_annotation_counts ON
+        group_annotation_counts.created_week = facets.timestamp_week
     JOIN report.group_map ON
-        group_map.group_id = group_type_counts.group_id
+        group_map.group_id = group_annotation_counts.group_id
     GROUP BY period, timescale, sub_type, shared, organization_id
     ORDER BY period, timescale, sub_type, shared, organization_id
 ) WITH NO DATA;
