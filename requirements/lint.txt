@@ -123,7 +123,7 @@ click-repl==0.2.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   celery
-coverage[toml]==7.2.3
+coverage[toml]==7.2.7
     # via -r requirements/tests.txt
 cryptography==39.0.1
     # via
@@ -318,7 +318,7 @@ multidict==5.2.0
     #   -r requirements/tests.txt
     #   aiohttp
     #   yarl
-newrelic==8.8.0
+newrelic==8.8.1
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -434,7 +434,7 @@ pycryptodomex==3.17
     #   -r requirements/tests.txt
 pydocstyle==6.3.0
     # via -r requirements/lint.in
-pyjwt[crypto]==2.6.0
+pyjwt[crypto]==2.7.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt

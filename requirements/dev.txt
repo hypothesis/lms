@@ -185,7 +185,7 @@ multidict==5.2.0
     #   -r requirements/prod.txt
     #   aiohttp
     #   yarl
-newrelic==8.8.0
+newrelic==8.8.1
     # via -r requirements/prod.txt
 oauthlib==3.2.2
     # via
@@ -255,7 +255,7 @@ pycryptodomex==3.17
     # via -r requirements/prod.txt
 pygments==2.12.0
     # via ipython
-pyjwt[crypto]==2.6.0
+pyjwt[crypto]==2.7.0
     # via
     #   -r requirements/prod.txt
     #   pyramid-googleauth
