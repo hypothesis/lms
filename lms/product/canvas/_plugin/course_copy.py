@@ -24,19 +24,17 @@ class CanvasCourseCopyPlugin:
 
         Return None if no matching file is found.
         """
+        # Find the files in the current course. We call this for the side effect of storing the files in the DB
+        _ = self._api.list_files(course_id)
+
         for file_id in file_ids:
             file = self._file_service.get(file_id, type_="canvas_file")
 
             if not file:
                 continue
 
-            for file_dict in self._api.list_files(course_id):
-                if (
-                    file_dict["display_name"] == file.name
-                    and file_dict["size"] == file.size
-                    and str(file_dict["id"]) != file.lms_id
-                ):
-                    return str(file_dict["id"])
+            if new_file := self._file_service.find_copied_file(course_id, file):
+                return new_file.lms_id
 
         return None
 

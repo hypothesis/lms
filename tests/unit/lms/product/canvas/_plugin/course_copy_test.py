@@ -25,14 +25,6 @@ class TestCanvasCourseCopyPlugin:
         self, plugin, canvas_api_client, file_service
     ):
         file_service.get.return_value = factories.File()
-        canvas_api_client.list_files.return_value = [
-            {"id": 1, "display_name": "File 1", "size": 1024},
-            {
-                "id": sentinel.matching_file_id,
-                "display_name": file_service.get.return_value.name,
-                "size": file_service.get.return_value.size,
-            },
-        ]
 
         matching_file_id = plugin.find_matching_file_in_course(
             sentinel.course_id, [sentinel.file_id]
@@ -40,7 +32,10 @@ class TestCanvasCourseCopyPlugin:
 
         file_service.get.assert_called_once_with(sentinel.file_id, type_="canvas_file")
         canvas_api_client.list_files.assert_called_once_with(sentinel.course_id)
-        assert matching_file_id == str(sentinel.matching_file_id)
+        file_service.find_copied_file.assert_called_once_with(
+            sentinel.course_id, file_service.get.return_value
+        )
+        assert matching_file_id == file_service.find_copied_file.return_value.lms_id
 
     def test_find_matching_file_in_course_with_multiple_file_ids(
         self, plugin, canvas_api_client, file_service
@@ -54,6 +49,11 @@ class TestCanvasCourseCopyPlugin:
             # The third file_id *will* be found in the course.
             matching_file,
         ]
+        file_service.find_copied_file.side_effect = [
+            None,
+            matching_file,
+        ]
+
         canvas_api_client.list_files.return_value = [
             {
                 "id": sentinel.matching_file_id,
@@ -73,7 +73,7 @@ class TestCanvasCourseCopyPlugin:
             call(sentinel.file_id_2, type_="canvas_file"),
             call(sentinel.file_id_3, type_="canvas_file"),
         ]
-        assert matching_file_id == str(sentinel.matching_file_id)
+        assert matching_file_id == matching_file.lms_id
 
     def test_find_matching_file_in_course_returns_None_if_theres_no_file_in_the_db(
         self, plugin, file_service
@@ -88,24 +88,7 @@ class TestCanvasCourseCopyPlugin:
         self, plugin, file_service
     ):
         file_service.get.return_value = factories.File(name="foo")
-
-        assert not plugin.find_matching_file_in_course(
-            sentinel.course_id, [sentinel.file_id]
-        )
-
-    def test_find_matching_file_in_course_doesnt_return_the_same_file(
-        self, plugin, canvas_api_client, file_service
-    ):
-        # If the response from the Canvas API contains a "matching" file dict
-        # that happens to be the *same* file as the one we're searching for (it
-        # has the same id) find_matching_file_in_course() should not return
-        # the same file_id as it was asked to search for a match for.
-        matching_file_dict = canvas_api_client.list_files.return_value[1]
-        file_service.get.return_value = factories.File(
-            lms_id=str(matching_file_dict["id"]),
-            name=matching_file_dict["display_name"],
-            size=matching_file_dict["size"],
-        )
+        file_service.find_copied_file.return_value = None
 
         assert not plugin.find_matching_file_in_course(
             sentinel.course_id, [sentinel.file_id]
