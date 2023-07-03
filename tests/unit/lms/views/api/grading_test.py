@@ -47,6 +47,10 @@ class TestRecordCanvasSpeedgraderSubmission:
         )
 
     @pytest.fixture
+    def LTIEvent(self, patch):
+        return patch("lms.views.api.grading.LTIEvent")
+
+    @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.parsed_params = {
             # Information that is needed to construct the LTI launch URL for
@@ -206,8 +210,3 @@ class TestRecordResult:
             "score": 0.5,
         }
         return pyramid_request
-
-
-@pytest.fixture
-def LTIEvent(patch):
-    return patch("lms.views.api.grading.LTIEvent")
