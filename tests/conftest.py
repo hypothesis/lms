@@ -4,6 +4,7 @@ from unittest import mock
 
 import pytest
 import sqlalchemy
+from filelock import FileLock
 
 from lms import db
 
@@ -43,14 +44,34 @@ TEST_SETTINGS = {
 
 
 @pytest.fixture(scope="session")
-def db_engine():
+def db_engine(tmp_path_factory):
     engine = sqlalchemy.create_engine(TEST_SETTINGS["database_url"])
 
-    # Delete all database tables and re-initialize the database schema based on
-    # the current models. Doing this at the beginning of each test run ensures
-    # that any schema changes made to the models since the last test run will
-    # be applied to the test DB schema before running the tests again.
-    db.init(engine, drop=True, stamp=False)
+    # Use a filelock to only init the DB once even though we have multiple
+    # parallel pytest-xdist workers. See:
+    # https://pytest-xdist.readthedocs.io/en/stable/how-to.html?highlight=filelock#making-session-scoped-fixtures-execute-only-once
+
+    # The temporary directory shared by all pytest-xdist workers.
+    shared_tmpdir = tmp_path_factory.getbasetemp().parent
+
+    # The existence of this file records that a worker has initialized the DB.
+    done_file = shared_tmpdir / "db_initialized"
+
+    with FileLock(str(done_file) + ".lock"):
+        if done_file.is_file():
+            # Another worker already initialized the DB.
+            pass
+        else:
+            # Delete all database tables and re-initialize the database schema
+            # based on the current models. Doing this at the beginning of each
+            # test run ensures that any schema changes made to the models since
+            # the last test run will be applied to the test DB schema before
+            # running the tests again.
+            db.init(engine, drop=True, stamp=False)
+
+            # Make sure that no other worker tries to init the DB after we
+            # release the lock file.
+            done_file.touch()
 
     return engine
 

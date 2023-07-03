@@ -131,7 +131,9 @@ click-repl==0.2.0
     #   -r requirements/tests.txt
     #   celery
 coverage[toml]==7.2.7
-    # via -r requirements/tests.txt
+    # via
+    #   -r requirements/tests.txt
+    #   pytest-cov
 cryptography==41.0.3
     # via
     #   -r requirements/bddtests.txt
@@ -158,6 +160,10 @@ exceptiongroup==1.0.0rc9
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pytest
+execnet==2.0.2
+    # via
+    #   -r requirements/tests.txt
+    #   pytest-xdist
 factory-boy==3.3.0
     # via
     #   -r requirements/bddtests.txt
@@ -170,6 +176,11 @@ faker==8.1.2
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   factory-boy
+filelock==3.12.3
+    # via
+    #   -r requirements/bddtests.txt
+    #   -r requirements/functests.txt
+    #   -r requirements/tests.txt
 freezegun==1.2.2
     # via -r requirements/tests.txt
 frozenlist==1.2.0
@@ -411,6 +422,10 @@ prompt-toolkit==3.0.29
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   click-repl
+psutil==5.9.5
+    # via
+    #   -r requirements/tests.txt
+    #   pytest-xdist
 psycopg2==2.9.6
     # via
     #   -r requirements/bddtests.txt
@@ -514,11 +529,25 @@ pytest==7.4.0
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
+    #   pytest-cov
     #   pytest-factoryboy
+    #   pytest-xdist
+pytest-cov==4.1.0
+    # via
+    #   -r requirements/tests.txt
+    #   pytest-cover
+pytest-cover==3.0.0
+    # via
+    #   -r requirements/tests.txt
+    #   pytest-coverage
+pytest-coverage==0.0
+    # via -r requirements/tests.txt
 pytest-factoryboy==2.5.1
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
+pytest-xdist[psutil]==3.3.1
+    # via -r requirements/tests.txt
 python-dateutil==2.8.2
     # via
     #   -r requirements/bddtests.txt
@@ -639,6 +668,7 @@ typing-extensions==4.7.1
     #   -r requirements/tests.txt
     #   alembic
     #   async-timeout
+    #   filelock
     #   kombu
     #   pylint
     #   pytest-factoryboy
