@@ -32,7 +32,12 @@ class CanvasService:
 
         try:
             if check_in_course:
-                self._course_copy_plugin.is_file_in_course(course_id, effective_file_id)
+                if not self._course_copy_plugin.is_file_in_course(
+                    course_id, effective_file_id
+                ):
+                    raise FileNotFoundInCourse(
+                        "canvas_file_not_found_in_course", file_id
+                    )
             return self.api.public_url(effective_file_id)
         except (FileNotFoundInCourse, CanvasAPIPermissionError):
             # The user can't see the file in the course. This could be because:

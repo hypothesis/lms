@@ -3,7 +3,6 @@ from unittest.mock import call, sentinel
 import pytest
 
 from lms.product.canvas import CanvasCourseCopyPlugin
-from lms.services.exceptions import FileNotFoundInCourse
 from tests import factories
 
 
@@ -13,25 +12,14 @@ class TestCanvasCourseCopyPlugin:
             sentinel.course, sentinel.group_set_id
         )
 
-    def test_is_file_in_course_doesnt_raise_if_the_file_is_in_the_course(
-        self, plugin, canvas_api_client
-    ):
-        canvas_api_client.list_files.return_value = [
-            {"id": sentinel.file_id},
-            {"id": sentinel.other_file_id},
-        ]
+    def test_is_file_in_course(self, plugin, course_copy_files_helper):
+        result = plugin.is_file_in_course(sentinel.course_id, sentinel.file_id)
 
-        plugin.is_file_in_course(sentinel.course_id, str(sentinel.file_id))
+        course_copy_files_helper.is_file_in_course.assert_called_once_with(
+            sentinel.course_id, sentinel.file_id, "canvas_file"
+        )
 
-    def test_is_file_in_course_course_raises_if_the_file_isnt_in_the_course(
-        self, plugin, canvas_api_client
-    ):
-        canvas_api_client.list_files.return_value = [{"id": sentinel.other_file_id}]
-
-        with pytest.raises(FileNotFoundInCourse) as excinfo:
-            plugin.is_file_in_course(sentinel.course_id, sentinel.file_id)
-
-        assert excinfo.value.error_code == "canvas_file_not_found_in_course"
+        assert result == course_copy_files_helper.is_file_in_course.return_value
 
     def test_find_matching_file_in_course_returns_the_matching_file_id(
         self, plugin, canvas_api_client, file_service
@@ -123,12 +111,18 @@ class TestCanvasCourseCopyPlugin:
             sentinel.course_id, [sentinel.file_id]
         )
 
-    @pytest.mark.usefixtures("canvas_api_client", "file_service")
+    @pytest.mark.usefixtures(
+        "canvas_api_client", "file_service", "course_copy_files_helper"
+    )
     def test_factory(self, pyramid_request):
         plugin = CanvasCourseCopyPlugin.factory(sentinel.context, pyramid_request)
 
         assert isinstance(plugin, CanvasCourseCopyPlugin)
 
     @pytest.fixture
-    def plugin(self, canvas_api_client, file_service):
-        return CanvasCourseCopyPlugin(api=canvas_api_client, file_service=file_service)
+    def plugin(self, canvas_api_client, file_service, course_copy_files_helper):
+        return CanvasCourseCopyPlugin(
+            api=canvas_api_client,
+            file_service=file_service,
+            files_helper=course_copy_files_helper,
+        )

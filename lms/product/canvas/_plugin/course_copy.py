@@ -1,23 +1,18 @@
-from lms.services.exceptions import FileNotFoundInCourse
+from lms.product.plugin.course_copy import CourseCopyFilesHelper
 
 
 class CanvasCourseCopyPlugin:
     """Handle course copy in Canvas."""
 
-    def __init__(self, api, file_service):
+    file_type = "canvas_file"
+
+    def __init__(self, api, file_service, files_helper: CourseCopyFilesHelper):
         self._api = api
         self._file_service = file_service
+        self._files_helper = files_helper
 
     def is_file_in_course(self, course_id, file_id):
-        """Raise if the current user can't see file_id in course_id."""
-        for file in self._api.list_files(course_id):
-            # The Canvas API returns file IDs as ints but the file_id param
-            # that this method receives (from our proxy API) is a string.
-            # Convert ints to strings so that we can compare them.
-            if str(file["id"]) == file_id:
-                return
-
-        raise FileNotFoundInCourse("canvas_file_not_found_in_course", file_id)
+        return self._files_helper.is_file_in_course(course_id, file_id, self.file_type)
 
     def find_matching_file_in_course(self, course_id, file_ids):
         """
@@ -57,4 +52,5 @@ class CanvasCourseCopyPlugin:
         return cls(
             api=request.find_service(name="canvas_api_client"),
             file_service=request.find_service(name="file"),
+            files_helper=request.find_service(CourseCopyFilesHelper),
         )

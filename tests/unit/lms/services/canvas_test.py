@@ -49,9 +49,7 @@ class TestPublicURLForFile:
         assignment,
         public_url_for_file,
     ):
-        course_copy_plugin.is_file_in_course.side_effect = FileNotFoundInCourse(
-            "canvas_file_not_found_in_course", sentinel.file_id
-        )
+        course_copy_plugin.is_file_in_course.return_value = False
         course_copy_plugin.find_matching_file_in_course.return_value = (
             sentinel.found_file_id
         )
@@ -72,9 +70,7 @@ class TestPublicURLForFile:
     def test_if_the_file_isnt_in_the_course_and_theres_no_matching_file_it_raises(
         self, course_copy_plugin, public_url_for_file
     ):
-        course_copy_plugin.is_file_in_course.side_effect = FileNotFoundInCourse(
-            "canvas_file_not_found_in_course", sentinel.file_id
-        )
+        course_copy_plugin.is_file_in_course.return_value = False
         course_copy_plugin.find_matching_file_in_course.return_value = None
 
         with pytest.raises(FileNotFoundInCourse):
