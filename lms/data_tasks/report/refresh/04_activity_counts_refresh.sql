@@ -24,6 +24,3 @@ ANALYSE report.organization_annotation_counts;
 
 REFRESH MATERIALIZED VIEW CONCURRENTLY report.organization_activity;
 ANALYSE report.organization_activity;
-
-REFRESH MATERIALIZED VIEW CONCURRENTLY report.organization_annotation_types;
-ANALYSE report.organization_annotation_types;
