@@ -7,3 +7,4 @@ factory-boy
 pytest-factoryboy
 h-matchers
 webtest
+filelock
