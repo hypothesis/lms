@@ -128,6 +128,7 @@ packaging==21.3
     # via
     #   marshmallow
     #   webargs
+    #   zope-sqlalchemy
 pastedeploy==2.1.0
     # via plaster-pastedeploy
 plaster==1.0
@@ -280,7 +281,7 @@ zope-interface==5.1.0
     #   transaction
     #   wired
     #   zope-sqlalchemy
-zope-sqlalchemy==2.0
+zope-sqlalchemy==3.0
     # via -r requirements/prod.in
 
 # The following packages are considered to be unsafe in a requirements file:

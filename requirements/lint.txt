@@ -338,6 +338,7 @@ packaging==21.3
     #   marshmallow
     #   pytest
     #   webargs
+    #   zope-sqlalchemy
 parse==1.19.0
     # via
     #   -r requirements/bddtests.txt
@@ -729,7 +730,7 @@ zope-interface==5.1.0
     #   transaction
     #   wired
     #   zope-sqlalchemy
-zope-sqlalchemy==2.0
+zope-sqlalchemy==3.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
