@@ -40,17 +40,14 @@ CREATE MATERIALIZED VIEW report.organization_activity AS (
             ) AS data
         ),
 
-        periods AS (
+        facets AS (
             SELECT
-                timestamp_week,
-                timescale::report.academic_timescale,
-                report.multi_truncate(timescale, timestamp_week) AS period
+                weeks.timestamp_week,
+                report.multi_truncate(timescale, weeks.timestamp_week) AS period,
+                timescales.timescale::report.academic_timescale,
+                roles.role
             FROM weeks
             CROSS JOIN timescales
-        ),
-
-        facets AS (
-            SELECT * FROM periods
             CROSS JOIN roles
         ),
 
