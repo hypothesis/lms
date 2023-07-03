@@ -30,11 +30,7 @@ CREATE MATERIALIZED VIEW report.group_activity AS (
                 SUM(count) AS annotation_count,
                 SUM(count) FILTER (WHERE shared=True) AS annotation_shared_count,
                 SUM(count) FILTER (WHERE sub_type='reply') AS annotation_replies_count
-            FROM h.annotation_counts
-            JOIN h.authorities ON
-                annotation_counts.authority_id = authorities.id
-                AND authorities.authority = '{{ region.authority }}'
-                -- AND authorities.authority = 'lms.hypothes.is'
+            FROM report.group_annotation_counts
             GROUP BY created_week, group_id
         )
 
