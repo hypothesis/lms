@@ -38,7 +38,20 @@ class LTIUser:  # pylint: disable=too-many-instance-attributes
     """ID of the application instance this user belongs to"""
 
     lti: LTI
-    """Additional information about the LTI launch"""
+    """
+    Additional information about the LTI launch.
+
+    Note that there's a bit of a backwards relationship here, we could have LTIUser inside LTI.
+
+    LTIUser is now a central part of the authentication system so more ambitions changes require big refactors but
+    there's an intention here to eventually replace the current:
+
+    request.lti_user
+
+    with something like:
+
+    request.lti_session or similar with contains the user and any other relevant values.
+    """
 
     application_instance: ApplicationInstance = None
     """Application instance this user belongs to"""
