@@ -1,9 +1,3 @@
-DROP TYPE IF EXISTS report.academic_timescale CASCADE;
-
-CREATE TYPE report.academic_timescale AS ENUM (
-    'week', 'month', 'semester', 'academic_year', 'trailing_year', 'all_time'
-);
-
 DROP MATERIALIZED VIEW IF EXISTS report.organization_activity CASCADE;
 
 -- A multifaceted look at organization activity over different timescales and
