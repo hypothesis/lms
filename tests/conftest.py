@@ -5,6 +5,7 @@ from unittest import mock
 import factory.random
 import pytest
 import sqlalchemy
+from filelock import FileLock
 
 from lms import db
 
@@ -45,14 +46,18 @@ TEST_SETTINGS = {
 
 
 @pytest.fixture(scope="session")
-def db_engine():
+def db_engine(tmp_path_factory):
     engine = sqlalchemy.create_engine(TEST_SETTINGS["database_url"])
 
-    # Delete all database tables and re-initialize the database schema based on
-    # the current models. Doing this at the beginning of each test run ensures
-    # that any schema changes made to the models since the last test run will
-    # be applied to the test DB schema before running the tests again.
-    db.init(engine, drop=True, stamp=False)
+    root_tmp_dir = tmp_path_factory.getbasetemp().parent
+    lockfile_name = root_tmp_dir / "db_engine.lock"
+    with FileLock(str(lockfile_name)):
+        if not lockfile_name.is_file():
+            # Delete all database tables and re-initialize the database schema based on
+            # the current models. Doing this at the beginning of each test run ensures
+            # that any schema changes made to the models since the last test run will
+            # be applied to the test DB schema before running the tests again.
+            db.init(engine, drop=True, stamp=False)
 
     return engine
 

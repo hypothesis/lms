@@ -6,3 +6,4 @@ pytest
 factory-boy
 h-matchers
 webtest
+filelock
