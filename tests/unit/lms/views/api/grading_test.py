@@ -1,6 +1,6 @@
 import datetime
 from datetime import timezone
-from unittest.mock import patch
+from unittest.mock import patch, sentinel
 
 import pytest
 from h_matchers import Any
@@ -45,10 +45,6 @@ class TestRecordCanvasSpeedgraderSubmission:
         LTIEvent.assert_called_once_with(
             request=pyramid_request, type=LTIEvent.Type.SUBMISSION
         )
-
-    @pytest.fixture
-    def LTIEvent(self, patch):
-        return patch("lms.views.api.grading.LTIEvent")
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
@@ -191,13 +187,18 @@ class TestRecordResult:
         ],
     )
     def test_it_records_result(
-        self, pyramid_request, lti_grading_service, score, expected
+        self, pyramid_request, lti_grading_service, score, expected, LTIEvent
     ):
         pyramid_request.parsed_params["score"] = score
         GradingViews(pyramid_request).record_result()
 
         lti_grading_service.record_result.assert_called_once_with(
             "modelstudent-assignment1", score=expected
+        )
+        LTIEvent.assert_called_once_with(
+            request=pyramid_request,
+            type=LTIEvent.Type.GRADE,
+            data={"student_user_id": sentinel.student_user_id, "score": expected},
         )
 
     @pytest.fixture
@@ -208,5 +209,11 @@ class TestRecordResult:
             "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
             "lis_result_sourcedid": "modelstudent-assignment1",
             "score": 0.5,
+            "student_user_id": sentinel.student_user_id,
         }
         return pyramid_request
+
+
+@pytest.fixture
+def LTIEvent(patch):
+    return patch("lms.views.api.grading.LTIEvent")
