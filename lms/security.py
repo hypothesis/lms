@@ -34,7 +34,7 @@ class Identity(NamedTuple):
 
 class Permissions(Enum):
     LTI_LAUNCH_ASSIGNMENT = "lti_launch_assignment"
-    LTI_CONFIGURE_ASSIGNMENT = "lti_configure_assignment"
+    INSTRUCTOR = "instructor"
     API = "api"
     ADMIN = "admin"
 
@@ -159,11 +159,8 @@ class LTIUserSecurityPolicy:
 
         permissions = [Permissions.LTI_LAUNCH_ASSIGNMENT, Permissions.API]
 
-        if any(
-            role in lti_user.roles.lower()
-            for role in ["administrator", "instructor", "teachingassistant"]
-        ):
-            permissions.append(Permissions.LTI_CONFIGURE_ASSIGNMENT)
+        if lti_user.is_instructor:
+            permissions.append(Permissions.INSTRUCTOR)
 
         return Identity(self._get_userid(lti_user), permissions, lti_user)
 
