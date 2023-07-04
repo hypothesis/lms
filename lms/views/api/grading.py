@@ -34,6 +34,17 @@ class GradingViews:
         self.lti_grading_service.record_result(
             self.parsed_params["lis_result_sourcedid"], score
         )
+        self.request.registry.notify(
+            LTIEvent(
+                request=self.request,
+                type=LTIEvent.Type.GRADE,
+                data={
+                    "student_user_id": self.parsed_params["student_user_id"],
+                    "score": score,
+                },
+            )
+        )
+
         return {}
 
     @view_config(
