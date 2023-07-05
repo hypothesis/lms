@@ -78,9 +78,9 @@ class AssignmentService:
 
     def get_assignment_for_launch(self, request) -> Optional[Assignment]:
         """
-        Get or create an assigment for the current launch.
+        Get or create an assignment for the current launch.
 
-        The returned assigment will have the relevant configuration for this launch.
+        The returned assignment will have the relevant configuration for this launch.
 
         Returns None if no assignment can be found or created.
         """
@@ -95,6 +95,8 @@ class AssignmentService:
         if not assignment:
             historical_assignment = self.get_copied_from_assignment(lti_params)
 
+        # Get the configuration for the assignment
+        # it might be based on the assignments we just queried or the request
         document_url = self._misc_plugin.get_document_url(
             request, assignment, historical_assignment
         )
@@ -124,7 +126,7 @@ class AssignmentService:
                         "group_set_id"
                     )
 
-        # Always update the assignment URL
+        # Always update the assignment configuration
         # It often will be the same one while launching the assignment again but
         # it might for example be an updated deep linked URL or similar.
         assignment.document_url = document_url

@@ -1,10 +1,10 @@
-from datetime import datetime, timedelta
-from unittest.mock import sentinel
+from datetime import datetime
+from unittest.mock import patch, sentinel
 
 import pytest
 from h_matchers import Any
 
-from lms.models import AssignmentGrouping, AssignmentMembership, LTIParams
+from lms.models import AssignmentGrouping, AssignmentMembership
 from lms.services.assignment import AssignmentService, factory
 from tests import factories
 
@@ -17,7 +17,6 @@ class TestAssignmentService:
         assert svc.get_assignment(**non_matching_params) is None
 
     def test_create_assignment(self, svc, db_session):
-
         assignment = svc.create_assignment(sentinel.guid, sentinel.resource_link_id)
 
         assert assignment.tool_consumer_instance_guid == sentinel.guid
@@ -69,138 +68,90 @@ class TestAssignmentService:
             }
         )
 
-    upsert_kwargs = {
-        "document_url": "new_document_url",
-        "extra": {"new": "values"},
-        "lti_params": LTIParams(
-            {
-                "resource_link_title": "title",
-                "resource_link_description": "description",
-            }
-        ),
-    }
-
-    upsert_attrs = {
-        "document_url": upsert_kwargs["document_url"],
-        "extra": upsert_kwargs["extra"],
-        "title": upsert_kwargs["lti_params"]["resource_link_title"],
-        "description": upsert_kwargs["lti_params"]["resource_link_description"],
-    }
-
-    @pytest.mark.parametrize("is_gradable", [True, False])
-    def test_upsert_assignment_with_existing(
-        self, svc, db_session, assignment, matching_params, is_gradable, misc_plugin
+    def test_get_assignment_for_launch_existing(
+        self,
+        pyramid_request,
+        svc,
+        misc_plugin,
+        get_assignment,
+        grouping_plugin,
+        get_copied_from_assignment,
     ):
-        misc_plugin.is_assignment_gradable.return_value = is_gradable
+        misc_plugin.get_document_url.return_value = sentinel.document_url
+        grouping_plugin.get_group_set_id.return_value = sentinel.group_set_id
+        get_assignment.return_value = factories.Assignment()
 
-        result = svc.upsert_assignment(**matching_params, **self.upsert_kwargs)
+        assignment = svc.get_assignment_for_launch(pyramid_request)
 
-        assert result == assignment
-        db_session.flush()
-        db_session.refresh(assignment)
-        Any.assert_on_comparison = True
-        assert assignment == Any.object.with_attrs(self.upsert_attrs)
-        assert assignment.created < datetime.now() - timedelta(days=1)
-        assert assignment.updated >= datetime.now() - timedelta(days=1)
-        assert assignment.is_gradable == is_gradable
+        get_copied_from_assignment.assert_not_called()
+        misc_plugin.get_document_url.assert_called_once_with(
+            pyramid_request, get_assignment.return_value, None
+        )
+        grouping_plugin.get_group_set_id.assert_called_once_with(
+            pyramid_request, get_assignment.return_value, None
+        )
+        misc_plugin.is_assignment_gradable.assert_called_once_with(
+            pyramid_request.lti_params
+        )
+        assert assignment.document_url == sentinel.document_url
+        assert assignment.extra["group_set_id"] == sentinel.group_set_id
 
-    def test_upsert_assignment_with_existing_no_extra(
-        self, svc, assignment, matching_params
+        assert assignment.title == pyramid_request.lti_params.get("resource_link_title")
+        assert assignment.description == pyramid_request.lti_params.get(
+            "resource_link_description"
+        )
+        assert assignment.is_gradable == misc_plugin.is_assignment_gradable.return_value
+
+    def test_get_assignment_returns_None_with_when_no_document(
+        self, pyramid_request, svc, misc_plugin
     ):
-        upsert_kwargs = dict(self.upsert_kwargs, extra={})
-        result = svc.upsert_assignment(**matching_params, **upsert_kwargs)
+        misc_plugin.get_document_url.return_value = None
 
-        assert result == assignment
-        assert not result.extra
+        assert not svc.get_assignment_for_launch(pyramid_request)
 
-    @pytest.mark.parametrize("is_gradable", [True, False])
-    def test_upsert_assignment_with_new(
-        self, svc, db_session, assignment, non_matching_params, is_gradable, misc_plugin
+    def test_get_assignment_creates_assignment(
+        self,
+        pyramid_request,
+        svc,
+        misc_plugin,
+        get_assignment,
+        get_copied_from_assignment,
+        create_assignment,
     ):
-        misc_plugin.is_assignment_gradable.return_value = is_gradable
+        misc_plugin.get_document_url.return_value = sentinel.document_url
+        get_assignment.return_value = None
+        get_copied_from_assignment.return_value = None
 
-        result = svc.upsert_assignment(**non_matching_params, **self.upsert_kwargs)
+        assignment = svc.get_assignment_for_launch(pyramid_request)
 
-        assert result != assignment
-        db_session.flush()
-        db_session.refresh(result)
-        assert result == Any.object.with_attrs(
-            dict(non_matching_params, **self.upsert_attrs)
+        get_copied_from_assignment.assert_called_once_with(pyramid_request.lti_params)
+        create_assignment.assert_called_once_with(
+            "TEST_TOOL_CONSUMER_INSTANCE_GUID", "TEST_RESOURCE_LINK_ID"
         )
+        assert assignment.document_url == sentinel.document_url
+        assert not assignment.copied_from
 
-        assert result.created >= datetime.now() - timedelta(days=1)
-        assert result.updated >= datetime.now() - timedelta(days=1)
-
-    @pytest.mark.parametrize(
-        "copied_from_param",
-        (
-            "resource_link_id_history",
-            "ext_d2l_resource_link_id_history",
-            "custom_ResourceLink.id.history",
-        ),
-    )
-    @pytest.mark.parametrize(
-        "value,expected",
-        (
-            ("ORIGINAL_ID", "ORIGINAL_ID"),
-            ("COPY_OF_ORIGINAL,ORIGINAL_ID", "COPY_OF_ORIGINAL"),
-        ),
-    )
-    def test_upsert_assignment_with_copied_fromr(
-        self, svc, copied_from_param, value, expected, db_session
+    def test_get_assignment_created_assignments_point_to_copy(
+        self,
+        pyramid_request,
+        svc,
+        misc_plugin,
+        get_assignment,
+        get_copied_from_assignment,
+        create_assignment,
     ):
-        upsert_params = dict(
-            self.upsert_kwargs,
-            resource_link_id="NEW_ID",
-            tool_consumer_instance_guid="MATCHING_GUID",
-        )
-        upsert_params["lti_params"][copied_from_param] = value
-        upsert_params["lti_params"]["tool_consumer_instance_guid"] = "MATCHING_GUID"
-        original_assignment = factories.Assignment(
-            resource_link_id=expected, tool_consumer_instance_guid="MATCHING_GUID"
-        )
-        db_session.flush()
+        misc_plugin.get_document_url.return_value = sentinel.document_url
+        get_assignment.return_value = None
+        get_copied_from_assignment.return_value = sentinel.original_assignment
 
-        new_assignment = svc.upsert_assignment(**upsert_params)
+        assignment = svc.get_assignment_for_launch(pyramid_request)
 
-        assert new_assignment != original_assignment
-        assert new_assignment.copied_from == original_assignment
-
-    @pytest.mark.parametrize(
-        "copied_from_param",
-        (
-            "resource_link_id_history",
-            "ext_d2l_resource_link_id_history",
-            "custom_ResourceLink.id.history",
-        ),
-    )
-    def test_upsert_assignment_with_copied_from_extra_parameter(
-        self, svc, copied_from_param, db_session
-    ):
-        upsert_params = dict(
-            self.upsert_kwargs,
-            resource_link_id="NEW_ID",
-            tool_consumer_instance_guid="MATCHING_GUID",
+        get_copied_from_assignment.assert_called_once_with(pyramid_request.lti_params)
+        create_assignment.assert_called_once_with(
+            "TEST_TOOL_CONSUMER_INSTANCE_GUID", "TEST_RESOURCE_LINK_ID"
         )
-        upsert_params["lti_params"][copied_from_param] = "ORIGINAL_ID"
-        upsert_params["lti_params"]["tool_consumer_instance_guid"] = "MATCHING_GUID"
-        original_assignment = factories.Assignment(
-            resource_link_id="ORIGINAL_ID",
-            tool_consumer_instance_guid="MATCHING_GUID",
-            extra={
-                "group_set_id": "ORIGINAL_GROUP_SET_ID",
-                "non_copied_value": "VALUE",
-            },
-        )
-        db_session.flush()
-
-        new_assignment = svc.upsert_assignment(**upsert_params)
-
-        assert new_assignment != original_assignment
-        assert new_assignment.extra == dict(
-            upsert_params["extra"],
-            group_set_id="ORIGINAL_GROUP_SET_ID",
-        )
+        assert assignment.copied_from == sentinel.original_assignment
+        assert assignment.document_url == sentinel.document_url
 
     def test_upsert_assignment_membership(self, svc, assignment):
         user = factories.User()
@@ -278,6 +229,21 @@ class TestAssignmentService:
             tool_consumer_instance_guid="noise_tool_consumer_instance_guid",
             resource_link_id=assignment.resource_link_id,
         )
+
+    @pytest.fixture
+    def create_assignment(self, svc):
+        with patch.object(svc, "create_assignment", autospec=True) as patched:
+            yield patched
+
+    @pytest.fixture
+    def get_assignment(self, svc):
+        with patch.object(svc, "get_assignment", autospec=True) as patched:
+            yield patched
+
+    @pytest.fixture
+    def get_copied_from_assignment(self, svc):
+        with patch.object(svc, "get_copied_from_assignment", autospec=True) as patched:
+            yield patched
 
 
 class TestFactory:
