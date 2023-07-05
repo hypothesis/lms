@@ -7,7 +7,6 @@ from lms.models import (
     AssignmentGrouping,
     AssignmentMembership,
     Grouping,
-    LTIParams,
     LTIRole,
     User,
 )
@@ -77,58 +76,63 @@ class AssignmentService:
 
         return None
 
-    # pylint: disable=too-many-arguments
-    def upsert_assignment(
-        self,
-        tool_consumer_instance_guid,
-        resource_link_id,
-        document_url,
-        lti_params: LTIParams,
-        extra=None,
-    ) -> Assignment:
+    def get_assignment_for_launch(self, request) -> Optional[Assignment]:
         """
-        Update or create an assignment with the given document_url.
+        Get or create an assigment for the current launch.
 
-        Set the document_url for the assignment that matches
-        tool_consumer_instance_guid and resource_link_id
-        or create a new one if none exist on the DB.
+        The returned assigment will have the relevant configuration for this launch.
 
-        Any existing document_url for this assignment will be overwritten.
-
-        If we detect that the new assignment in the LMS has been copied from a
-        historical assignment (perhaps by using the LMS's "course copy" feature)
-        then some of the new assignment's extra values might be taken from the historical assignment.
+        Returns None if no assignment can be found or created.
         """
-        extra = extra or {}
 
+        lti_params = request.lti_params
+        tool_consumer_instance_guid = lti_params["tool_consumer_instance_guid"]
+        resource_link_id = lti_params.get("resource_link_id")
+
+        # Get the potentially relevant assignments from the DB
         assignment = self.get_assignment(tool_consumer_instance_guid, resource_link_id)
+        historical_assignment = None
         if not assignment:
-            assignment = Assignment(
-                tool_consumer_instance_guid=tool_consumer_instance_guid,
-                document_url=document_url,
-                resource_link_id=resource_link_id,
+            historical_assignment = self.get_copied_from_assignment(lti_params)
+
+        document_url = self._misc_plugin.get_document_url(
+            request, assignment, historical_assignment
+        )
+
+        if not document_url:
+            # We can't find a document_url, we shouldn't try to create an assignment yet.
+            return None
+
+        if not assignment:
+            # We don't have an assignment in the DB but we know to which document url it should point
+            # This might happen for example on:
+            #   - the first launch of a deep linked assignment
+            #   - the first launch copied assignment
+            assignment = self.create_assignment(
+                tool_consumer_instance_guid, resource_link_id
             )
-            self._db.add(assignment)
 
-            # For new assignments check if we are copying
-            # from an existing one on the current launch
-            if historical_assignment := self.get_copied_from_assignment(lti_params):
+            if historical_assignment:
+                # While creating a new assignment we found the assignment we copied this one from
+                # Reference it on the DB
                 assignment.copied_from = historical_assignment
-
-                if historical_assignment.extra.get("group_set_id") and not extra.get(
-                    "group_set_id"
-                ):
-                    extra["group_set_id"] = historical_assignment.extra.get(
+                # And copy over any settings from the original assignment
+                # We don't yet copy the document_url over, we might have consulted `historical_assignment`
+                # earlier while getting a new `document_url`
+                if historical_assignment.extra.get("group_set_id"):
+                    assignment.extra["group_set_id"] = historical_assignment.extra.get(
                         "group_set_id"
                     )
 
+        # Always update the assignment URL
+        # It often will be the same one while launching the assignment again but
+        # it might for example be an updated deep linked URL or similar.
         assignment.document_url = document_url
+
+        # And metadata based on the launch
         assignment.title = lti_params.get("resource_link_title")
         assignment.description = lti_params.get("resource_link_description")
         assignment.is_gradable = self._misc_plugin.is_assignment_gradable(lti_params)
-
-        if extra:
-            assignment.extra = extra
 
         return assignment
 
