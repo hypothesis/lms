@@ -9,7 +9,9 @@ from lms.services.vitalsource import VSBookLocation
 
 class CanvasMiscPlugin(MiscPlugin):
     @lru_cache(1)
-    def get_document_url(self, request) -> Optional[str]:
+    def get_document_url(
+        self, request, assignment, historical_assignment
+    ) -> Optional[str]:
         """
         Get the configured document for this LTI launch.
 

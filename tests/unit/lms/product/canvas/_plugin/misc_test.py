@@ -7,7 +7,9 @@ from lms.product.canvas._plugin.misc import CanvasMiscPlugin
 
 class TestCanvasMiscPlugin:
     def test_get_document_url(self, plugin, pyramid_request):
-        assert not plugin.get_document_url(pyramid_request)
+        assert not plugin.get_document_url(
+            pyramid_request, sentinel.assignment, sentinel.historical_assignment
+        )
 
     @pytest.mark.parametrize(
         "url,expected",
@@ -74,16 +76,24 @@ class TestCanvasMiscPlugin:
         if url:
             pyramid_request.params["url"] = url
 
-        assert plugin.get_document_url(pyramid_request) == expected
+        assert (
+            plugin.get_document_url(
+                pyramid_request, sentinel.assignment, sentinel.historical_assignment
+            )
+            == expected
+        )
 
     def test_get_document_url_with_canvas_files(self, plugin, pyramid_request):
         pyramid_request.params["canvas_file"] = "any"
         pyramid_request.params["file_id"] = "FILE_ID"
         pyramid_request.lti_params["custom_canvas_course_id"] = "COURSE_ID"
 
-        result = plugin.get_document_url(pyramid_request)
-
-        assert result == "canvas://file/course/COURSE_ID/file_id/FILE_ID"
+        assert (
+            plugin.get_document_url(
+                pyramid_request, sentinel.assignment, sentinel.historical_assignment
+            )
+            == "canvas://file/course/COURSE_ID/file_id/FILE_ID"
+        )
 
     @pytest.mark.parametrize("cfi", (None, sentinel.cfi))
     def test_get_document_url_with_legacy_vitalsource_book(
@@ -94,7 +104,9 @@ class TestCanvasMiscPlugin:
         if cfi:
             pyramid_request.params["cfi"] = cfi
 
-        result = plugin.get_document_url(pyramid_request)
+        result = plugin.get_document_url(
+            pyramid_request, sentinel.assignment, sentinel.historical_assignment
+        )
 
         VSBookLocation.assert_called_once_with(book_id=sentinel.book_id, cfi=cfi)
         assert result == VSBookLocation.return_value.document_url
