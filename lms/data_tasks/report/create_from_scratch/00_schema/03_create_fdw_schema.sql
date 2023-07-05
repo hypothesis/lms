@@ -23,13 +23,11 @@ CREATE TYPE report.annotation_sub_type AS ENUM (
     'annotation', 'reply', 'highlight', 'page_note'
 );
 
-IMPORT FOREIGN SCHEMA "public" LIMIT TO (
-    user_group,
-    "user",
-    "group"
-) FROM SERVER "h_server" INTO h;
 
 IMPORT FOREIGN SCHEMA "report" LIMIT TO (
     authorities,
-    annotation_counts
+    annotation_counts,
+    groups,
+    users,
+    user_group
 ) FROM SERVER "h_server" INTO h;

@@ -7,7 +7,7 @@ CREATE MATERIALIZED VIEW report.user_groups AS (
          user_id,
          group_id
     FROM h.user_group
-    JOIN h.user AS users ON
+    JOIN h.users ON
         users.id = user_group.user_id
         AND users.authority = '{{ region.authority }}'
         -- AND users.authority = 'lms.hypothes.is'
