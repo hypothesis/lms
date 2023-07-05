@@ -8,19 +8,8 @@ from lms.product import Product
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.security import Permissions
-from lms.views.lti.basic_launch import BasicLaunchViews, has_document_url
+from lms.views.lti.basic_launch import BasicLaunchViews
 from tests import factories
-
-
-class TestHasDocumentURL:
-    @pytest.mark.parametrize("document_url", (None, "a_url"))
-    def test_it(self, misc_plugin, pyramid_request, document_url):
-        misc_plugin.get_document_url.return_value = document_url
-
-        result = has_document_url(sentinel.context, pyramid_request)
-
-        misc_plugin.get_document_url.assert_called_once_with(pyramid_request)
-        assert result == bool(document_url)
 
 
 @pytest.mark.usefixtures(
@@ -171,7 +160,7 @@ class TestBasicLaunchViews:
             assignment_extra=expected_extras,
         )
 
-    def test_configured_launch(
+    def test_lti_launch_configured(
         self,
         svc,
         misc_plugin,
@@ -179,25 +168,26 @@ class TestBasicLaunchViews:
         _show_document,
         LTIEvent,
     ):
-        svc.configured_launch()
+        misc_plugin.get_document_url.return_value = sentinel.document_url
+
+        svc.lti_launch()
 
         misc_plugin.get_document_url.assert_called_once_with(pyramid_request)
 
-        _show_document.assert_called_once_with(
-            document_url=misc_plugin.get_document_url.return_value
-        )
+        _show_document.assert_called_once_with(document_url=sentinel.document_url)
         LTIEvent.assert_called_once_with(
             request=pyramid_request,
             type=LTIEvent.Type.CONFIGURED_LAUNCH,
         )
         pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
 
-    def test_unconfigured_launch(self, svc, context, pyramid_request):
+    def test_lti_launch_unconfigured(self, svc, context, pyramid_request, misc_plugin):
+        misc_plugin.get_document_url.return_value = None
         pyramid_request.lti_params = mock.create_autospec(
             LTIParams, spec_set=True, instance=True
         )
 
-        svc.unconfigured_launch()
+        svc.lti_launch()
 
         pyramid_request.lti_params.serialize.assert_called_once_with(
             authorization=context.js_config.auth_token
@@ -207,12 +197,13 @@ class TestBasicLaunchViews:
             form_fields=pyramid_request.lti_params.serialize.return_value,
         )
 
-    def test_unconfigured_launch_not_authorized(
-        self, context, pyramid_request, has_permission
+    def test_lti_launch_unconfigured_launch_not_authorized(
+        self, context, pyramid_request, has_permission, misc_plugin
     ):
         has_permission.return_value = False
+        misc_plugin.get_document_url.return_value = None
 
-        response = BasicLaunchViews(context, pyramid_request).unconfigured_launch()
+        response = BasicLaunchViews(context, pyramid_request).lti_launch()
 
         has_permission.assert_called_once_with(Permissions.LTI_CONFIGURE_ASSIGNMENT)
         assert (

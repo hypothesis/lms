@@ -23,16 +23,6 @@ from lms.services.grouping import GroupingService
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
 
 
-def has_document_url(_context, request):
-    """
-    Get if the current launch has a resolvable document URL.
-
-    This is imported into `lms.views.predicates` to provide the
-    `has_document_url` predicate.
-    """
-    return bool(request.product.plugin.misc.get_document_url(request))
-
-
 @view_defaults(
     request_method="POST",
     permission=Permissions.LTI_LAUNCH_ASSIGNMENT,
@@ -56,32 +46,28 @@ class BasicLaunchViews:
 
     @view_config(
         route_name="lti_launches",
-        has_document_url=True,
         renderer="lms:templates/lti/basic_launch/basic_launch.html.jinja2",
     )
-    def configured_launch(self):
-        """Display a document if we can resolve one to show."""
+    def lti_launch(self):
+        """Handle regular LTI launches."""
 
-        self._show_document(
-            document_url=self.request.product.plugin.misc.get_document_url(self.request)
-        )
-        self.request.registry.notify(
-            LTIEvent(request=self.request, type=LTIEvent.Type.CONFIGURED_LAUNCH)
-        )
-        return {}
+        if document_url := self.request.product.plugin.misc.get_document_url(
+            self.request
+        ):
+            self.request.override_renderer = (
+                "lms:templates/lti/basic_launch/basic_launch.html.jinja2"
+            )
+            self._show_document(document_url=document_url)
+            self.request.registry.notify(
+                LTIEvent(request=self.request, type=LTIEvent.Type.CONFIGURED_LAUNCH)
+            )
+            return {}
 
-    @view_config(
-        route_name="lti_launches",
-        has_document_url=False,
-        renderer="lms:templates/file_picker.html.jinja2",
-    )
-    def unconfigured_launch(self):
-        """
-        Show the file-picker for the user to choose a document.
-
-        This happens if we cannot resolve a document URL for any reason.
-        """
+        # Show the file-picker for the user to choose a document.
+        # This happens if we cannot resolve a document URL for any reason.
+        self.request.override_renderer = "lms:templates/file_picker.html.jinja2"
         self._configure_js_for_file_picker()
+
         return {}
 
     @view_config(route_name="lti.reconfigure", renderer="json")
