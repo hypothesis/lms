@@ -51,13 +51,13 @@ class BasicLaunchViews:
     def lti_launch(self):
         """Handle regular LTI launches."""
 
-        if document_url := self.request.product.plugin.misc.get_document_url(
+        if assignment := self.assignment_service.get_assignment_for_launch(
             self.request
         ):
             self.request.override_renderer = (
                 "lms:templates/lti/basic_launch/basic_launch.html.jinja2"
             )
-            self._show_document(document_url=document_url)
+            self._show_document(assignment)
             self.request.registry.notify(
                 LTIEvent(request=self.request, type=LTIEvent.Type.CONFIGURED_LAUNCH)
             )
@@ -105,7 +105,14 @@ class BasicLaunchViews:
         We then continue as if we were already configured with this document
         and display it to the user.
         """
-        return self._configure_and_show_document()
+        assignment = self.assignment_service.create_assignment(
+            tool_consumer_instance_guid=self.request.lti_params[
+                "tool_consumer_instance_guid"
+            ],
+            resource_link_id=self.request.lti_params.get("resource_link_id"),
+        )
+
+        return self._configure_and_show_document(assignment)
 
     @view_config(
         route_name="edit_assignment",
@@ -131,9 +138,9 @@ class BasicLaunchViews:
                 },
             )
         )
-        return self._configure_and_show_document()
+        return self._configure_and_show_document(assignment)
 
-    def _show_document(self, document_url, assignment_extra=None):
+    def _show_document(self, assignment):
         """
         Display a document to the user for annotation or grading.
 
@@ -148,26 +155,6 @@ class BasicLaunchViews:
             [self.course], self.request.lti_params
         )
 
-        # Store lots of info
-        assignment = self._record_assignment(document_url, extra=assignment_extra)
-
-        # Set up the JS config for the front-end
-        self._configure_js_to_show_document(document_url, assignment)
-
-        return {}
-
-    def _record_assignment(self, document_url, extra):
-        # Store assignment details
-        assignment = self.assignment_service.upsert_assignment(
-            document_url=document_url,
-            tool_consumer_instance_guid=self.request.lti_params[
-                "tool_consumer_instance_guid"
-            ],
-            resource_link_id=self.request.lti_params.get("resource_link_id"),
-            lti_params=self.request.lti_params,
-            extra=extra,
-        )
-
         # Store the relationship between the assignment and the course
         self.assignment_service.upsert_assignment_membership(
             assignment=assignment,
@@ -179,7 +166,10 @@ class BasicLaunchViews:
             assignment, groupings=[self.course]
         )
 
-        return assignment
+        # Set up the JS config for the front-end
+        self._configure_js_to_show_document(assignment)
+
+        return {}
 
     def _record_course(self):
         course = self.course_service.get_from_launch(
@@ -190,22 +180,23 @@ class BasicLaunchViews:
         )
         return course
 
-    def _configure_and_show_document(self):
+    def _configure_and_show_document(self, assignment):
         """
         Prepare an assignment with new configuration and show it.
 
         The configuration  could be because we are creating this assignment
         for the first time or from an edit.
         """
-        extra = {"group_set_id": self.request.parsed_params.get("group_set")}
+        self.assignment_service.update_assignment(
+            assignment,
+            document_url=self.request.parsed_params["document_url"],
+            group_set_id=self.request.parsed_params.get("group_set"),
+        )
 
         # Make any product-specific actions after configuring the assignment
         self.request.product.plugin.misc.post_configure_assignment(self.request)
 
-        return self._show_document(
-            document_url=self.request.parsed_params["document_url"],
-            assignment_extra=extra,
-        )
+        return self._show_document(assignment)
 
     def _configure_js_for_file_picker(
         self, route: str = "configure_assignment"
@@ -231,7 +222,7 @@ class BasicLaunchViews:
             ),
         )
 
-    def _configure_js_to_show_document(self, document_url, assignment):
+    def _configure_js_to_show_document(self, assignment):
         if self.request.product.family == Product.Family.CANVAS:
             # For students in Canvas with grades to submit we need to enable
             # Speedgrader settings for gradable assignments
@@ -242,7 +233,9 @@ class BasicLaunchViews:
                 and self.request.lti_user.is_learner
                 and self.request.lti_params.get("lis_result_sourcedid")
             ):
-                self.context.js_config.add_canvas_speedgrader_settings(document_url)
+                self.context.js_config.add_canvas_speedgrader_settings(
+                    assignment.document_url
+                )
 
             # We add a `focused_user` query param to the SpeedGrader LTI launch
             # URLs we submit to Canvas for each student when the student
@@ -259,7 +252,7 @@ class BasicLaunchViews:
                 enable_grading=assignment.is_gradable
             )
 
-        self.context.js_config.add_document_url(document_url)
+        self.context.js_config.add_document_url(assignment.document_url)
         self.context.js_config.enable_lti_launch_mode(self.course, assignment)
 
     def _record_launch(self):

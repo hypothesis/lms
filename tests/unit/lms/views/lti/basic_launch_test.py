@@ -77,54 +77,34 @@ class TestBasicLaunchViews:
 
         grading_info_service.upsert_from_request.assert_not_called()
 
-    @pytest.mark.parametrize(
-        "parsed_params,expected_extras",
-        [
-            ({}, {"group_set_id": None}),
-            ({"group_set": 42}, {"group_set_id": 42}),
-        ],
-    )
     def test_configure_assignment_callback(
-        self,
-        svc,
-        pyramid_request,
-        parsed_params,
-        expected_extras,
-        _show_document,
-        misc_plugin,
+        self, svc, pyramid_request, _show_document, misc_plugin, assignment_service
     ):
-        # The document_url, resource_link_id and tool_consumer_instance_guid parsed
-        # params are always present when configure_assignment() is called.
-        # ConfigureAssignmentSchema ensures this.
         pyramid_request.parsed_params = {
-            "document_url": "TEST_DOCUMENT_URL",
-            "resource_link_id": "TEST_RESOURCE_LINK_ID",
-            "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
+            "document_url": sentinel.document_url,
+            "group_set": sentinel.group_set,
         }
-        pyramid_request.parsed_params.update(parsed_params)
 
         svc.configure_assignment_callback()
 
+        assignment_service.create_assignment.assert_called_once_with(
+            tool_consumer_instance_guid="TEST_TOOL_CONSUMER_INSTANCE_GUID",
+            resource_link_id="TEST_RESOURCE_LINK_ID",
+        )
+        assignment_service.update_assignment.assert_called_once_with(
+            assignment_service.create_assignment.return_value,
+            document_url=sentinel.document_url,
+            group_set_id=sentinel.group_set,
+        )
         misc_plugin.post_configure_assignment.assert_called_once_with(pyramid_request)
         _show_document.assert_called_once_with(
-            document_url=pyramid_request.parsed_params["document_url"],
-            assignment_extra=expected_extras,
+            assignment_service.create_assignment.return_value,
         )
 
-    @pytest.mark.parametrize(
-        "parsed_params,expected_extras",
-        [
-            ({}, {"group_set_id": None}),
-            ({"group_set": None}, {"group_set_id": None}),
-            ({"group_set": 42}, {"group_set_id": 42}),
-        ],
-    )
     def test_edit_assignment_callback(
         self,
         svc,
         pyramid_request,
-        parsed_params,
-        expected_extras,
         _show_document,
         misc_plugin,
         assignment_service,
@@ -132,10 +112,8 @@ class TestBasicLaunchViews:
     ):
         pyramid_request.parsed_params = {
             "document_url": "TEST_DOCUMENT_URL",
-            "resource_link_id": "TEST_RESOURCE_LINK_ID",
-            "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
+            "group_set": sentinel.group_set,
         }
-        pyramid_request.parsed_params.update(parsed_params)
 
         svc.edit_assignment_callback()
 
@@ -156,33 +134,37 @@ class TestBasicLaunchViews:
 
         misc_plugin.post_configure_assignment.assert_called_once_with(pyramid_request)
         _show_document.assert_called_once_with(
-            document_url=pyramid_request.parsed_params["document_url"],
-            assignment_extra=expected_extras,
+            assignment_service.get_assignment.return_value,
         )
 
     def test_lti_launch_configured(
         self,
         svc,
-        misc_plugin,
+        assignment_service,
         pyramid_request,
         _show_document,
         LTIEvent,
     ):
-        misc_plugin.get_document_url.return_value = sentinel.document_url
-
         svc.lti_launch()
 
-        misc_plugin.get_document_url.assert_called_once_with(pyramid_request)
+        assignment_service.get_assignment_for_launch.assert_called_once_with(
+            pyramid_request
+        )
 
-        _show_document.assert_called_once_with(document_url=sentinel.document_url)
+        _show_document.assert_called_once_with(
+            assignment_service.get_assignment_for_launch.return_value
+        )
         LTIEvent.assert_called_once_with(
             request=pyramid_request,
             type=LTIEvent.Type.CONFIGURED_LAUNCH,
         )
         pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
 
-    def test_lti_launch_unconfigured(self, svc, context, pyramid_request, misc_plugin):
-        misc_plugin.get_document_url.return_value = None
+    def test_lti_launch_unconfigured(
+        self, svc, context, pyramid_request, assignment_service
+    ):
+        assignment_service.get_assignment_for_launch.return_value = None
+
         pyramid_request.lti_params = mock.create_autospec(
             LTIParams, spec_set=True, instance=True
         )
@@ -198,10 +180,10 @@ class TestBasicLaunchViews:
         )
 
     def test_lti_launch_unconfigured_launch_not_authorized(
-        self, context, pyramid_request, has_permission, misc_plugin
+        self, context, pyramid_request, has_permission, assignment_service
     ):
         has_permission.return_value = False
-        misc_plugin.get_document_url.return_value = None
+        assignment_service.get_assignment_for_launch.return_value = None
 
         response = BasicLaunchViews(context, pyramid_request).lti_launch()
 
@@ -253,28 +235,16 @@ class TestBasicLaunchViews:
         assignment_service,
         lti_user,
         course_service,
+        assignment,
     ):
         # pylint: disable=protected-access
-        result = svc._show_document(
-            sentinel.document_url, assignment_extra=sentinel.assignment_extra
-        )
+        result = svc._show_document(assignment)
 
         lti_h_service.sync.assert_called_once_with(
             [course_service.get_from_launch.return_value], pyramid_request.lti_params
         )
 
         # `_record_assignment()`
-        assignment_service.upsert_assignment.assert_called_once_with(
-            tool_consumer_instance_guid=pyramid_request.lti_params[
-                "tool_consumer_instance_guid"
-            ],
-            resource_link_id=pyramid_request.lti_params["resource_link_id"],
-            document_url=sentinel.document_url,
-            lti_params=pyramid_request.lti_params,
-            extra=sentinel.assignment_extra,
-        )
-        assignment = assignment_service.upsert_assignment.return_value
-
         assignment_service.upsert_assignment_membership.assert_called_once_with(
             assignment=assignment,
             user=pyramid_request.user,
@@ -289,126 +259,124 @@ class TestBasicLaunchViews:
         )
         context.js_config.set_focused_user.assert_not_called()
         context.js_config.add_document_url.assert_called_once_with(
-            sentinel.document_url
+            assignment.document_url
         )
 
         assert result == {}
 
     @pytest.mark.usefixtures("with_canvas")
-    def test__show_document_focuses_on_users(self, svc, pyramid_request, context):
+    def test__show_document_focuses_on_users(
+        self, svc, pyramid_request, context, assignment
+    ):
         pyramid_request.params["focused_user"] = sentinel.focused_user
 
-        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+        svc._show_document(assignment)  # pylint: disable=protected-access
 
         context.js_config.set_focused_user.assert_called_once_with(
             sentinel.focused_user
         )
 
     def test__show_document_focuses_on_users_only_for_canvas(
-        self, svc, pyramid_request, context
+        self, svc, pyramid_request, context, assignment
     ):
         pyramid_request.params["focused_user"] = sentinel.focused_user
 
-        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+        svc._show_document(assignment)  # pylint: disable=protected-access
 
         context.js_config.set_focused_user.assert_not_called()
 
     @pytest.mark.usefixtures("user_is_instructor")
-    @pytest.mark.parametrize(
-        "assignment_fixture_name,enable_grading",
-        [("with_gradable_assignment", True), ("with_non_gradable_assignment", False)],
-    )
+    @pytest.mark.parametrize("is_gradable", [True, False])
     def test__show_document_enables_instructor_toolbar_for_instructors(
-        self, svc, context, assignment_fixture_name, request, enable_grading
+        self, svc, context, is_gradable
     ):
-        _ = request.getfixturevalue(assignment_fixture_name)
+        assignment = factories.Assignment(is_gradable=is_gradable)
 
-        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+        svc._show_document(assignment)  # pylint: disable=protected-access
 
         context.js_config.enable_instructor_toolbar.assert_called_with(
-            enable_grading=enable_grading
+            enable_grading=is_gradable
         )
 
-    @pytest.mark.usefixtures("with_gradable_assignment", "user_is_learner")
+    @pytest.mark.usefixtures("user_is_learner")
     def test__show_document_does_not_enable_instructor_toolbar_for_students(
-        self, svc, context
+        self, svc, context, gradable_assignment
     ):
-        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+        svc._show_document(gradable_assignment)  # pylint: disable=protected-access
 
         context.js_config.enable_instructor_toolbar.assert_not_called()
 
-    @pytest.mark.usefixtures(
-        "with_gradable_assignment", "user_is_instructor", "with_canvas"
-    )
+    @pytest.mark.usefixtures("user_is_instructor", "with_canvas")
     def test__show_document_does_not_enable_instructor_toolbar_in_canvas(
         self,
         svc,
         context,
         application_instance,
+        gradable_assignment,
     ):
         application_instance.settings.set(
             "hypothesis", "edit_assignments_enabled", True
         )
 
-        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+        svc._show_document(gradable_assignment)  # pylint: disable=protected-access
 
         context.js_config.enable_instructor_toolbar.assert_not_called()
 
     @pytest.mark.usefixtures(
-        "with_gradable_assignment",
         "with_canvas",
         "with_student_grading_id",
         "user_is_learner",
     )
-    def test__show_document_enables_speedgrader_settings(self, svc, context):
-        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+    def test__show_document_enables_speedgrader_settings(
+        self, svc, context, gradable_assignment
+    ):
+        svc._show_document(gradable_assignment)  # pylint: disable=protected-access
 
         context.js_config.add_canvas_speedgrader_settings.assert_called_once_with(
-            sentinel.document_url
+            gradable_assignment.document_url
         )
 
-    @pytest.mark.usefixtures("with_gradable_assignment", "with_student_grading_id")
-    def test__show_document_no_speedgrader_without_canvas(self, svc, context):
-        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+    @pytest.mark.usefixtures("with_student_grading_id")
+    def test__show_document_no_speedgrader_without_canvas(
+        self, svc, context, gradable_assignment
+    ):
+        svc._show_document(gradable_assignment)  # pylint: disable=protected-access
 
         context.js_config.add_canvas_speedgrader_settings.assert_not_called()
 
     @pytest.mark.usefixtures(
-        "with_canvas",
-        "with_gradable_assignment",
-        "with_student_grading_id",
-        "user_is_instructor",
+        "with_canvas", "with_student_grading_id", "user_is_instructor"
     )
-    def test__show_document_no_speedgrader_with_instructor(self, svc, context):
-        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+    def test__show_document_no_speedgrader_with_instructor(
+        self, svc, context, gradable_assignment
+    ):
+        svc._show_document(gradable_assignment)  # pylint: disable=protected-access
 
         context.js_config.add_canvas_speedgrader_settings.assert_not_called()
 
     @pytest.mark.usefixtures("with_canvas", "with_student_grading_id")
     def test__show_document_no_speedgrader_without_gradable_assignment(
-        self, svc, context
+        self, svc, context, assignment
     ):
-        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+        svc._show_document(assignment)  # pylint: disable=protected-access
 
         context.js_config.add_canvas_speedgrader_settings.assert_not_called()
 
-    @pytest.mark.usefixtures("with_gradable_assignment", "with_canvas")
-    def test__show_document_no_speedgrader_without_grading_id(self, svc, context):
-        svc._show_document(sentinel.document_url)  # pylint: disable=protected-access
+    @pytest.mark.usefixtures("with_canvas")
+    def test__show_document_no_speedgrader_without_grading_id(
+        self, svc, context, gradable_assignment
+    ):
+        svc._show_document(gradable_assignment)  # pylint: disable=protected-access
 
         context.js_config.add_canvas_speedgrader_settings.assert_not_called()
 
     @pytest.fixture
-    def with_gradable_assignment(self, assignment_service):
-        assignment_service.upsert_assignment.return_value = factories.Assignment(
-            is_gradable=True
-        )
+    def gradable_assignment(self):
+        return factories.Assignment(is_gradable=True)
 
     @pytest.fixture
-    def with_non_gradable_assignment(self, assignment_service):
-        assignment_service.upsert_assignment.return_value = factories.Assignment(
-            is_gradable=False
-        )
+    def assignment(self):
+        return factories.Assignment(is_gradable=False)
 
     @pytest.fixture
     def with_student_grading_id(self, pyramid_request):
