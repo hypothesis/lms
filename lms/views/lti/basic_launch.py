@@ -148,24 +148,15 @@ class BasicLaunchViews:
             [self.course], self.request.lti_params
         )
 
-        # An assignment has been configured in the LMS as "gradable" if it has
-        # the `lis_outcome_service_url` param
-
-        assignment_gradable = self.request.product.plugin.misc.is_assignment_gradable(
-            self.request.lti_params
-        )
-
         # Store lots of info
-        assignment = self._record_assignment(
-            document_url, extra=assignment_extra, is_gradable=assignment_gradable
-        )
+        assignment = self._record_assignment(document_url, extra=assignment_extra)
 
         # Set up the JS config for the front-end
         self._configure_js_to_show_document(document_url, assignment)
 
         return {}
 
-    def _record_assignment(self, document_url, extra, is_gradable):
+    def _record_assignment(self, document_url, extra):
         # Store assignment details
         assignment = self.assignment_service.upsert_assignment(
             document_url=document_url,
@@ -175,7 +166,6 @@ class BasicLaunchViews:
             resource_link_id=self.request.lti_params.get("resource_link_id"),
             lti_params=self.request.lti_params,
             extra=extra,
-            is_gradable=is_gradable,
         )
 
         # Store the relationship between the assignment and the course

@@ -251,7 +251,6 @@ class TestBasicLaunchViews:
         context,
         lti_h_service,
         assignment_service,
-        misc_plugin,
         lti_user,
         course_service,
     ):
@@ -272,7 +271,6 @@ class TestBasicLaunchViews:
             resource_link_id=pyramid_request.lti_params["resource_link_id"],
             document_url=sentinel.document_url,
             lti_params=pyramid_request.lti_params,
-            is_gradable=misc_plugin.is_assignment_gradable.return_value,
             extra=sentinel.assignment_extra,
         )
         assignment = assignment_service.upsert_assignment.return_value
