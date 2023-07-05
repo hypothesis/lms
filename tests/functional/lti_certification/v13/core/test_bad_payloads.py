@@ -19,7 +19,7 @@ class TestBadPayloads:
         """
         del jwt_headers["kid"]
 
-        do_lti_launch({"id_token": make_jwt(test_payload, jwt_headers)}, status=422)
+        do_lti_launch({"id_token": make_jwt(test_payload, jwt_headers)}, status=403)
 
         assert "Missing 'kid' value in JWT header" in caplog.messages
 
@@ -28,7 +28,7 @@ class TestBadPayloads:
     ):
         jwt_headers["kid"] = "imstester_66067"
 
-        do_lti_launch({"id_token": make_jwt(test_payload, jwt_headers)}, status=422)
+        do_lti_launch({"id_token": make_jwt(test_payload, jwt_headers)}, status=403)
         assert (
             Any.string.matching(
                 "^Invalid JWT for:.* Unable to find a signing key that matches:.*$"
@@ -58,9 +58,7 @@ class TestBadPayloads:
         """The provided JSON is NOT a 1.3 JWT launch"""
         payload = {"name": "badltilaunch"}
 
-        response = do_lti_launch({"id_token": make_jwt(payload)}, status=422)
-
-        assert response.status_code == 422
+        _ = do_lti_launch({"id_token": make_jwt(payload)}, status=403)
 
     def test_missing_lti_claims(self, test_payload, do_lti_launch, make_jwt):
         """The provided 1.3 JWT launch is missing one or more required claims"""
@@ -74,9 +72,8 @@ class TestBadPayloads:
         for missing_claim in missing_claims:
             del test_payload[missing_claim]
 
-        response = do_lti_launch({"id_token": make_jwt(test_payload)}, status=422)
+        response = do_lti_launch({"id_token": make_jwt(test_payload)}, status=403)
 
-        assert response.status_code == 422
         assert response.html
 
     def test_timestamps_incorrect(self, test_payload, do_lti_launch, make_jwt):
@@ -84,13 +81,15 @@ class TestBadPayloads:
         test_payload["iat"] = 11111
         test_payload["exp"] = 22222
 
-        response = do_lti_launch({"id_token": make_jwt(test_payload)}, status=422)
+        response = do_lti_launch({"id_token": make_jwt(test_payload)}, status=403)
         assert response.html
 
     def test_message_type_claim_missing(self, test_payload, assert_missing_claim):
         """The Required message_type Claim Not Present"""
         response = assert_missing_claim(
-            test_payload, "https://purl.imsglobal.org/spec/lti/claim/message_type"
+            test_payload,
+            "https://purl.imsglobal.org/spec/lti/claim/message_type",
+            status=422,
         )
 
         assert "There were problems with these request parameters" in response.text
@@ -99,23 +98,21 @@ class TestBadPayloads:
     def test_role_claim_missing(self, test_payload, assert_missing_claim):
         """The Required role Claim Not Present"""
         assert_missing_claim(
-            test_payload,
-            "https://purl.imsglobal.org/spec/lti/claim/roles",
-            status=403,
+            test_payload, "https://purl.imsglobal.org/spec/lti/claim/roles"
         )
 
     def test_deployment_id_claim_missing(self, test_payload, assert_missing_claim):
         """The Required deployment_id Claim Not Present"""
         assert_missing_claim(
-            test_payload,
-            "https://purl.imsglobal.org/spec/lti/claim/deployment_id",
-            status=403,
+            test_payload, "https://purl.imsglobal.org/spec/lti/claim/deployment_id"
         )
 
     def test_resource_link_id_claim_missing(self, test_payload, assert_missing_claim):
         """The Required resource_link_id Claim Not Present"""
         assert_missing_claim(
-            test_payload, "https://purl.imsglobal.org/spec/lti/claim/resource_link"
+            test_payload,
+            "https://purl.imsglobal.org/spec/lti/claim/resource_link",
+            status=422,
         )
 
     def test_user_claim_missing(self, test_payload, assert_missing_claim):
@@ -134,7 +131,7 @@ class TestBadPayloads:
 
     @pytest.fixture
     def assert_missing_claim(self, do_lti_launch, make_jwt):
-        def _missing_claim(payload, missing_claim, status=422):
+        def _missing_claim(payload, missing_claim, status=403):
             del payload[missing_claim]
 
             response = do_lti_launch({"id_token": make_jwt(payload)}, status=status)
