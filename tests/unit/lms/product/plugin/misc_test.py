@@ -22,43 +22,23 @@ class TestMiscPlugin:
         assert plugin.get_ltia_aud_claim(lti_registration) == lti_registration.token_url
 
     def test_get_document_url_with_assignment_in_db_existing_assignment(
-        self, plugin, pyramid_request, assignment_service
+        self, plugin, pyramid_request
     ):
-        assignment_service.get_assignment.return_value = factories.Assignment(
-            document_url=sentinel.document_url
-        )
+        assignment = factories.Assignment(document_url=sentinel.document_url)
         pyramid_request.lti_params["resource_link_id"] = sentinel.link_id
 
-        result = plugin.get_document_url(pyramid_request)
-
-        assignment_service.get_assignment.assert_called_once_with(
-            tool_consumer_instance_guid=pyramid_request.lti_params[
-                "tool_consumer_instance_guid"
-            ],
-            resource_link_id=sentinel.link_id,
+        result = plugin.get_document_url(
+            pyramid_request, assignment, sentinel.historical_assignment
         )
+
         assert result == sentinel.document_url
 
     def test_get_document_url_with_assignment_in_db_copied_assignment(
-        self, plugin, pyramid_request, assignment_service
+        self, plugin, pyramid_request
     ):
-        assignment_service.get_assignment.return_value = None
-        assignment_service.get_copied_from_assignment.return_value = (
-            factories.Assignment(document_url=sentinel.document_url)
-        )
-        pyramid_request.lti_params["resource_link_id"] = sentinel.link_id
+        historical_assignment = factories.Assignment(document_url=sentinel.document_url)
 
-        result = plugin.get_document_url(pyramid_request)
-
-        assignment_service.get_assignment.assert_called_once_with(
-            tool_consumer_instance_guid=pyramid_request.lti_params[
-                "tool_consumer_instance_guid"
-            ],
-            resource_link_id=sentinel.link_id,
-        )
-        assignment_service.get_copied_from_assignment.assert_called_once_with(
-            pyramid_request.lti_params
-        )
+        result = plugin.get_document_url(pyramid_request, None, historical_assignment)
 
         assert result == sentinel.document_url
 

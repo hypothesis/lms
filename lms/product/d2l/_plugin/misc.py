@@ -43,8 +43,8 @@ class D2LMiscPlugin(MiscPlugin):
         # `lti_registration.token_url` as in other LMS
         return "https://api.brightspace.com/auth/token"
 
-    def get_document_url(self, request):
-        url = super().get_document_url(request)
+    def get_document_url(self, request, assignment, historical_assignment):
+        url = super().get_document_url(request, assignment, historical_assignment)
 
         if not url:
             # In D2L support both deep linking and DB backed assignment.
