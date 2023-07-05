@@ -54,7 +54,6 @@ class TestAssignmentService:
     upsert_kwargs = {
         "document_url": "new_document_url",
         "extra": {"new": "values"},
-        "is_gradable": True,
         "lti_params": LTIParams(
             {
                 "resource_link_title": "title",
@@ -68,12 +67,14 @@ class TestAssignmentService:
         "extra": upsert_kwargs["extra"],
         "title": upsert_kwargs["lti_params"]["resource_link_title"],
         "description": upsert_kwargs["lti_params"]["resource_link_description"],
-        "is_gradable": upsert_kwargs["is_gradable"],
     }
 
+    @pytest.mark.parametrize("is_gradable", [True, False])
     def test_upsert_assignment_with_existing(
-        self, svc, db_session, assignment, matching_params
+        self, svc, db_session, assignment, matching_params, is_gradable, misc_plugin
     ):
+        misc_plugin.is_assignment_gradable.return_value = is_gradable
+
         result = svc.upsert_assignment(**matching_params, **self.upsert_kwargs)
 
         assert result == assignment
@@ -83,6 +84,7 @@ class TestAssignmentService:
         assert assignment == Any.object.with_attrs(self.upsert_attrs)
         assert assignment.created < datetime.now() - timedelta(days=1)
         assert assignment.updated >= datetime.now() - timedelta(days=1)
+        assert assignment.is_gradable == is_gradable
 
     def test_upsert_assignment_with_existing_no_extra(
         self, svc, assignment, matching_params
@@ -93,9 +95,12 @@ class TestAssignmentService:
         assert result == assignment
         assert not result.extra
 
+    @pytest.mark.parametrize("is_gradable", [True, False])
     def test_upsert_assignment_with_new(
-        self, svc, db_session, assignment, non_matching_params
+        self, svc, db_session, assignment, non_matching_params, is_gradable, misc_plugin
     ):
+        misc_plugin.is_assignment_gradable.return_value = is_gradable
+
         result = svc.upsert_assignment(**non_matching_params, **self.upsert_kwargs)
 
         assert result != assignment
@@ -222,8 +227,8 @@ class TestAssignmentService:
         )
 
     @pytest.fixture
-    def svc(self, db_session):
-        return AssignmentService(db_session)
+    def svc(self, db_session, misc_plugin):
+        return AssignmentService(db_session, misc_plugin)
 
     @pytest.fixture(autouse=True)
     def assignment(self):
@@ -258,10 +263,12 @@ class TestAssignmentService:
 
 
 class TestFactory:
-    def test_it(self, pyramid_request, AssignmentService):
+    def test_it(self, pyramid_request, AssignmentService, misc_plugin):
         svc = factory(sentinel.context, pyramid_request)
 
-        AssignmentService.assert_called_once_with(db=pyramid_request.db)
+        AssignmentService.assert_called_once_with(
+            db=pyramid_request.db, misc_plugin=misc_plugin
+        )
         assert svc == AssignmentService.return_value
 
     @pytest.fixture
