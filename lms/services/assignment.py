@@ -33,6 +33,26 @@ class AssignmentService:
             .one_or_none()
         )
 
+    def create_assignment(self, tool_consumer_instance_guid, resource_link_id):
+        """Create a new assignment."""
+
+        assignment = Assignment(
+            tool_consumer_instance_guid=tool_consumer_instance_guid,
+            resource_link_id=resource_link_id,
+            extra={},
+        )
+        self._db.add(assignment)
+
+        return assignment
+
+    def update_assignment(self, assignment, document_url, group_set_id):
+        """Update an existing assignment."""
+
+        assignment.extra["group_set_id"] = group_set_id
+        assignment.document_url = document_url
+
+        return assignment
+
     def get_copied_from_assignment(self, lti_params) -> Optional[Assignment]:
         """Return the assignment that the current assignment was copied from."""
 

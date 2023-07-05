@@ -16,6 +16,24 @@ class TestAssignmentService:
     def test_get_assignment_without_match(self, svc, non_matching_params):
         assert svc.get_assignment(**non_matching_params) is None
 
+    def test_create_assignment(self, svc, db_session):
+
+        assignment = svc.create_assignment(sentinel.guid, sentinel.resource_link_id)
+
+        assert assignment.tool_consumer_instance_guid == sentinel.guid
+        assert assignment.resource_link_id == sentinel.resource_link_id
+        assert assignment.extra == {}
+
+        assert assignment in db_session.new
+
+    def test_update_assignment(self, svc):
+        assignment = svc.update_assignment(
+            factories.Assignment(), sentinel.document_url, sentinel.group_set_id
+        )
+
+        assert assignment.document_url == sentinel.document_url
+        assert assignment.extra["group_set_id"] == sentinel.group_set_id
+
     @pytest.mark.parametrize(
         "param",
         (
