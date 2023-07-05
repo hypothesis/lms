@@ -11,14 +11,16 @@ from lms.models import (
     LTIRole,
     User,
 )
+from lms.product.plugin.misc import MiscPlugin
 from lms.services.upsert import bulk_upsert
 
 
 class AssignmentService:
     """A service for getting and setting assignments."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, misc_plugin: MiscPlugin):
         self._db = db
+        self._misc_plugin = misc_plugin
 
     def get_assignment(self, tool_consumer_instance_guid, resource_link_id):
         """Get an assignment by resource_link_id."""
@@ -63,7 +65,6 @@ class AssignmentService:
         resource_link_id,
         document_url,
         lti_params: LTIParams,
-        is_gradable=False,
         extra=None,
     ) -> Assignment:
         """
@@ -74,7 +75,6 @@ class AssignmentService:
         or create a new one if none exist on the DB.
 
         Any existing document_url for this assignment will be overwritten.
-
 
         If we detect that the new assignment in the LMS has been copied from a
         historical assignment (perhaps by using the LMS's "course copy" feature)
@@ -106,7 +106,8 @@ class AssignmentService:
         assignment.document_url = document_url
         assignment.title = lti_params.get("resource_link_title")
         assignment.description = lti_params.get("resource_link_description")
-        assignment.is_gradable = is_gradable
+        assignment.is_gradable = self._misc_plugin.is_assignment_gradable(lti_params)
+
         if extra:
             assignment.extra = extra
 
@@ -164,4 +165,4 @@ class AssignmentService:
 
 
 def factory(_context, request):
-    return AssignmentService(db=request.db)
+    return AssignmentService(db=request.db, misc_plugin=request.product.plugin.misc)
