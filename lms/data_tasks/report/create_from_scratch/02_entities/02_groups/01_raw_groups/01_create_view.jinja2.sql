@@ -57,7 +57,7 @@ CREATE VIEW report.raw_groups AS (
         END as name,
         group_types.type AS group_type,
         groups.created::date
-    FROM h.group AS groups
+    FROM h.groups
     LEFT OUTER JOIN group_types ON
         groups.authority_provided_id = group_types.authority_provided_id
     WHERE

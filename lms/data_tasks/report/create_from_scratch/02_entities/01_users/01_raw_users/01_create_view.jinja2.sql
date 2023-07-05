@@ -7,7 +7,7 @@ CREATE MATERIALIZED VIEW report.raw_users AS (
          id,
          username,
          registered_date::date
-    FROM h.user AS users
+    FROM h.users
     WHERE
         users.authority = '{{ region.authority }}'
         -- users.authority = 'lms.hypothes.is'
