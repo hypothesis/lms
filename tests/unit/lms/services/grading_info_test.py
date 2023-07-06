@@ -135,15 +135,6 @@ class TestUpsertFromRequest:
 
         assert db_session.get_last_inserted() is None
 
-    @pytest.mark.parametrize("param", ("tool_consumer_info_product_family_code",))
-    def test_it_works_fine_with_optional_parameter_missing(
-        self, svc, pyramid_request, db_session, param
-    ):
-        del pyramid_request.POST[param]
-
-        svc.upsert_from_request(pyramid_request)
-        assert db_session.get_last_inserted() == Any.instance_of(GradingInfo)
-
     @classmethod
     def model_as_dict(cls, model):
         return {col: getattr(model, col) for col in model.columns()}
@@ -176,5 +167,4 @@ def lti_params():
         "lis_outcome_service_url": "https://somewhere.else",
         "context_id": "random context",
         "resource_link_id": "random resource link id",
-        "tool_consumer_info_product_family_code": "MyFakeLTITool",
     }

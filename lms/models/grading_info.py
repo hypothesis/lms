@@ -62,7 +62,5 @@ class GradingInfo(CreatedUpdatedMixin, BASE):
     user_id = sa.Column(sa.UnicodeText(), nullable=False)
     context_id = sa.Column(sa.UnicodeText(), nullable=False)
     resource_link_id = sa.Column(sa.UnicodeText(), nullable=False)
-    # The "family" of LMS tool, e.g. "BlackboardLearn" or "canvas"
-    tool_consumer_info_product_family_code = sa.Column(sa.UnicodeText(), nullable=True)
     h_username = sa.Column(sa.UnicodeText(), nullable=False)
     h_display_name = sa.Column(sa.UnicodeText(), nullable=False)
