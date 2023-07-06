@@ -5,7 +5,8 @@ CREATE TYPE report.event_type AS ENUM (
     'deep_linking',
     'audit',
     'edited_assignment',
-    'submission'
+    'submission',
+    'grade'
 );
 
 DROP MATERIALIZED VIEW IF EXISTS report.events CASCADE;
