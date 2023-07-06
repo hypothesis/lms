@@ -20,10 +20,6 @@ GradingInfo = make_factory(
     user_id=USER_ID,
     context_id=Faker("hexify", text="^" * 32),
     resource_link_id=RESOURCE_LINK_ID,
-    tool_consumer_info_product_family_code=Faker(
-        "random_element",
-        elements=["BlackBoardLearn", "moodle", "canvas", "sakai", "desire2learn"],
-    ),
     h_username=H_USERNAME,
     h_display_name=H_DISPLAY_NAME,
     application_instance=SubFactory(ApplicationInstance),
