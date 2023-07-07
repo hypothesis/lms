@@ -12,7 +12,7 @@ from lms.views.lti.deep_linking import DeepLinkingFieldsViews, deep_linking_laun
 from tests import factories
 
 
-@pytest.mark.usefixtures("application_instance_service", "lti_h_service")
+@pytest.mark.usefixtures("application_instance_service", "lti_h_service", "misc_plugin")
 class TestDeepLinkingLaunch:
     def test_it(
         self,
@@ -57,7 +57,7 @@ class TestDeepLinkingLaunch:
         return context
 
 
-@pytest.mark.usefixtures("application_instance_service")
+@pytest.mark.usefixtures("application_instance_service", "misc_plugin")
 class TestDeepLinkingFieldsView:
     @freeze_time("2022-04-04")
     def test_it_for_v13(
@@ -65,10 +65,11 @@ class TestDeepLinkingFieldsView:
         jwt_service,
         application_instance,
         views,
-        _get_content_url_mock,
         uuid,
         LTIEvent,
         pyramid_request,
+        misc_plugin,
+        _get_assignment_configuration,
     ):
         fields = views.file_picker_to_form_fields_v13()
 
@@ -86,7 +87,7 @@ class TestDeepLinkingFieldsView:
                 "https://purl.imsglobal.org/spec/lti-dl/claim/content_items": [
                     {
                         "type": "ltiResourceLink",
-                        "url": _get_content_url_mock.return_value,
+                        "url": misc_plugin.get_deeplinking_launch_url.return_value,
                     }
                 ],
                 "https://purl.imsglobal.org/spec/lti-dl/claim/data": sentinel.deep_linking_settings_data,
@@ -95,7 +96,7 @@ class TestDeepLinkingFieldsView:
         LTIEvent.assert_called_once_with(
             request=pyramid_request,
             type=LTIEvent.Type.DEEP_LINKING,
-            data={"document_url": _get_content_url_mock.return_value},
+            data=_get_assignment_configuration.return_value,
         )
         pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
         assert fields["JWT"] == jwt_service.encode_with_private_key.return_value
@@ -117,15 +118,20 @@ class TestDeepLinkingFieldsView:
             not in message.last_matched()  # pylint: disable=unsupported-membership-test
         )
 
-    def test_it_for_v11(self, views, _get_content_url_mock, pyramid_request, LTIEvent):
-        _get_content_url_mock.return_value = "https://launches-url.com"
-
+    def test_it_for_v11(
+        self,
+        views,
+        _get_assignment_configuration,
+        pyramid_request,
+        LTIEvent,
+        misc_plugin,
+    ):
         fields = views.file_picker_to_form_fields_v11()
 
         LTIEvent.assert_called_once_with(
             request=pyramid_request,
             type=LTIEvent.Type.DEEP_LINKING,
-            data={"document_url": _get_content_url_mock.return_value},
+            data=_get_assignment_configuration.return_value,
         )
         pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
 
@@ -135,7 +141,7 @@ class TestDeepLinkingFieldsView:
                 {
                     "@type": "LtiLinkItem",
                     "mediaType": "application/vnd.ims.lti.v1.ltilink",
-                    "url": _get_content_url_mock.return_value,
+                    "url": misc_plugin.get_deeplinking_launch_url.return_value,
                 },
             ],
         }
@@ -160,7 +166,7 @@ class TestDeepLinkingFieldsView:
             ({"extra": "value", "none_value": None}, {"extra": "value"}),
         ],
     )
-    def test_get_content_url(
+    def test_get_assignment_configuration(
         self, content, output_params, extra_params, extra_expected, pyramid_request
     ):
         pyramid_request.parsed_params.update(
@@ -168,10 +174,10 @@ class TestDeepLinkingFieldsView:
         )
 
         # pylint:disable=protected-access
-        url = DeepLinkingFieldsViews._get_content_url(pyramid_request)
+        config = DeepLinkingFieldsViews._get_assignment_configuration(pyramid_request)
 
         output_params.update(extra_expected)
-        assert url == Any.url.with_query(output_params)
+        assert config == output_params
 
     def test_it_with_unknown_file_type(self, pyramid_request):
         pyramid_request.parsed_params.update({"content": {"type": "other"}})
@@ -207,6 +213,8 @@ class TestDeepLinkingFieldsView:
         return application_instance
 
     @pytest.fixture
-    def _get_content_url_mock(self, views):
-        with patch.object(views, "_get_content_url", autospec=True) as patched:
+    def _get_assignment_configuration(self, views):
+        with patch.object(
+            views, "_get_assignment_configuration", autospec=True
+        ) as patched:
             yield patched
