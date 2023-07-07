@@ -99,6 +99,14 @@ class TestCanvasMiscPlugin:
         VSBookLocation.assert_called_once_with(book_id=sentinel.book_id, cfi=cfi)
         assert result == VSBookLocation.return_value.document_url
 
+    def test_get_deeplinking_launch_url(self, plugin, pyramid_request):
+        config = {"param": "value"}
+
+        assert (
+            plugin.get_deeplinking_launch_url(pyramid_request, config)
+            == "http://example.com/lti_launches?param=value"
+        )
+
     def test_factory(self, pyramid_request):
         plugin = CanvasMiscPlugin.factory(sentinel.context, pyramid_request)
         assert isinstance(plugin, CanvasMiscPlugin)

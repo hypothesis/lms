@@ -8,7 +8,6 @@ is done by the front-end.
 When the LMS launches us with a deep linked assignment, we will get the
 document url as part of the launch params, instead of reading it from the DB in
 `assignment`.
-
 The flow is:
 
  - LMS calls us on `deep_linking_launch`
@@ -126,9 +125,14 @@ class DeepLinkingFieldsViews:
             "https://purl.imsglobal.org/spec/lti-dl/claim/content_items": [
                 {
                     "type": "ltiResourceLink",
+                    # The URL we will be called back on when the
+                    # assignment is launched from the LMS
                     "url": self.misc_plugin.get_deeplinking_launch_url(
                         self.request, assignment_configuration
                     ),
+                    # These values should be passed back to us as custom
+                    # LTI params, but Canvas doesn't seem to.
+                    "custom": assignment_configuration,
                 }
             ],
         }
@@ -185,9 +189,14 @@ class DeepLinkingFieldsViews:
                         {
                             "@type": "LtiLinkItem",
                             "mediaType": "application/vnd.ims.lti.v1.ltilink",
+                            # The URL we will be called back on when the
+                            # assignment is launched from the LMS
                             "url": self.misc_plugin.get_deeplinking_launch_url(
                                 self.request, assignment_configuration
                             ),
+                            # These values should be passed back to us as custom
+                            # LTI params, but Canvas doesn't seem to.
+                            "custom": assignment_configuration,
                         },
                     ],
                 }
