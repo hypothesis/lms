@@ -61,3 +61,6 @@ class MiscPlugin:
             )
 
         return assignment.document_url if assignment else None
+
+    def get_deep_linked_assignment_configuration(self, _request):
+        return {}
