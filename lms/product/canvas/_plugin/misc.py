@@ -1,7 +1,7 @@
 import re
 from functools import lru_cache
 from typing import Optional
-from urllib.parse import unquote
+from urllib.parse import unquote, urlencode, urlparse
 
 from lms.product.plugin.misc import MiscPlugin
 from lms.services.vitalsource import VSBookLocation
@@ -104,6 +104,15 @@ class CanvasMiscPlugin(MiscPlugin):
                 params[param] = value
 
         return params
+
+    def get_deeplinking_launch_url(self, request, assignment_configuration: dict):
+        # In canvas we point to our generic launch URL
+        # and we encode the assignment configuration as query parameters.
+        return (
+            urlparse(request.route_url("lti_launches"))
+            ._replace(query=urlencode(assignment_configuration))
+            .geturl()
+        )
 
     @classmethod
     def factory(cls, _context, _request):

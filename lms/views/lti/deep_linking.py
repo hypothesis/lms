@@ -41,12 +41,12 @@ Canvas LMS's Content Item docs are also useful:
 import json
 import uuid
 from datetime import datetime, timedelta
-from urllib.parse import urlencode, urlparse
 
 from pyramid.view import view_config, view_defaults
 from webargs import fields
 
 from lms.events import LTIEvent
+from lms.product.plugin.misc import MiscPlugin
 from lms.security import Permissions
 from lms.services import JWTService
 from lms.validation import DeepLinkingLTILaunchSchema
@@ -104,12 +104,13 @@ class DeepLinkingFieldsViews:
 
     def __init__(self, request):
         self.request = request
+        self.misc_plugin: MiscPlugin = request.product.plugin.misc
 
     @view_config(route_name="lti.v13.deep_linking.form_fields")
     def file_picker_to_form_fields_v13(self):
         application_instance = self.request.lti_user.application_instance
 
-        document_url = self._get_content_url(self.request)
+        assignment_configuration = self._get_assignment_configuration(self.request)
 
         now = datetime.utcnow()
         message = {
@@ -123,7 +124,12 @@ class DeepLinkingFieldsViews:
             "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
             "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
             "https://purl.imsglobal.org/spec/lti-dl/claim/content_items": [
-                {"type": "ltiResourceLink", "url": document_url}
+                {
+                    "type": "ltiResourceLink",
+                    "url": self.misc_plugin.get_deeplinking_launch_url(
+                        self.request, assignment_configuration
+                    ),
+                }
             ],
         }
 
@@ -145,7 +151,7 @@ class DeepLinkingFieldsViews:
             LTIEvent(
                 request=self.request,
                 type=LTIEvent.Type.DEEP_LINKING,
-                data={"document_url": document_url},
+                data=assignment_configuration,
             )
         )
 
@@ -163,12 +169,12 @@ class DeepLinkingFieldsViews:
 
         See https://www.imsglobal.org/specs/lticiv1p0/specification.
         """
-        url = self._get_content_url(self.request)
+        assignment_configuration = self._get_assignment_configuration(self.request)
         self.request.registry.notify(
             LTIEvent(
                 request=self.request,
                 type=LTIEvent.Type.DEEP_LINKING,
-                data={"document_url": url},
+                data=assignment_configuration,
             )
         )
         return {
@@ -179,7 +185,9 @@ class DeepLinkingFieldsViews:
                         {
                             "@type": "LtiLinkItem",
                             "mediaType": "application/vnd.ims.lti.v1.ltilink",
-                            "url": url,
+                            "url": self.misc_plugin.get_deeplinking_launch_url(
+                                self.request, assignment_configuration
+                            ),
                         },
                     ],
                 }
@@ -187,17 +195,12 @@ class DeepLinkingFieldsViews:
         }
 
     @staticmethod
-    def _get_content_url(request):
-        """
-        Translate content information from the frontend to a launch URL.
-
-        We submit the content information to the LMS as an URL pointing to our
-        `lti_launches` endpoint with any information required to identity
-        the content as query parameters.
-        """
+    def _get_assignment_configuration(request) -> dict:
+        """Turn front-end content information into assignment configuration."""
         content = request.parsed_params["content"]
 
-        # Filter out any `null` values to avoid adding a ?key=None on the resulting URL
+        # Filter out any `null` values to avoid adding a ?key=None on the
+        # resulting URL
         params = {
             key: value
             for key, value in (request.parsed_params.get("extra_params") or {}).items()
@@ -212,8 +215,4 @@ class DeepLinkingFieldsViews:
         else:
             raise ValueError(f"Unknown content type: '{content['type']}'")
 
-        return (
-            urlparse(request.route_url("lti_launches"))
-            ._replace(query=urlencode(params))
-            .geturl()
-        )
+        return params

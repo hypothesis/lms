@@ -62,5 +62,17 @@ class MiscPlugin:
 
         return assignment.document_url if assignment else None
 
+    def get_deeplinking_launch_url(self, request, _assignment_configuration: dict):
+        """
+        Launch URL for deep linked assignments.
+
+        To which URL to point the deep linked assignments in the LMS.
+        This URL wel'll be part of the deep link response message
+        to finish the configuration during a deep link request.
+        """
+        # In general we'll point to our regular basic launch URL.
+        # The assignment configuration we'll be retrieved by other methods (eg, custom parameters) so that parameter is not used here.
+        return request.route_url("lti_launches")
+
     def get_deep_linked_assignment_configuration(self, _request):
         return {}
