@@ -16,12 +16,14 @@ class CanvasMiscPlugin(MiscPlugin):
         This will try all known methods for finding out, and will return None
         if no configuration can be found.
         """
+        deep_linked_parameters = self.get_deep_linked_assignment_configuration(request)
+
         for document_url_source in (
             self._from_deep_linking_provided_url,
             self._from_canvas_file,
             self._from_legacy_vitalsource_book,
         ):
-            if document_url := document_url_source(request):
+            if document_url := document_url_source(request, deep_linked_parameters):
                 return document_url
 
         return None
@@ -31,7 +33,7 @@ class CanvasMiscPlugin(MiscPlugin):
     _ENCODED_URL = re.compile("^[a-z][a-z0-9+.-]*%3a", re.IGNORECASE)
 
     @classmethod
-    def _from_deep_linking_provided_url(cls, request):
+    def _from_deep_linking_provided_url(cls, _request, deep_linked_configuration: dict):
         """
         Get the URL from the deep linking information.
 
@@ -39,7 +41,7 @@ class CanvasMiscPlugin(MiscPlugin):
         back to us from the LMS.
         """
 
-        if url := request.params.get("url"):
+        if url := deep_linked_configuration.get("url"):
             # Work around a bug in Canvas's handling of LTI Launch URLs in
             # SpeedGrader launches where query params get double-encoded.
             # See https://github.com/instructure/canvas-lms/issues/1486
@@ -49,7 +51,7 @@ class CanvasMiscPlugin(MiscPlugin):
         return url
 
     @classmethod
-    def _from_canvas_file(cls, request):
+    def _from_canvas_file(cls, request, deep_linked_configuration: dict):
         """
         Get a Canvas file URL.
 
@@ -57,29 +59,51 @@ class CanvasMiscPlugin(MiscPlugin):
         """
 
         if (
-            request.params.get("canvas_file")
+            deep_linked_configuration.get("canvas_file")
             and (course_id := request.lti_params.get("custom_canvas_course_id"))
-            and (file_id := request.params["file_id"])
+            and (file_id := deep_linked_configuration["file_id"])
         ):
             return f"canvas://file/course/{course_id}/file_id/{file_id}"
 
         return None
 
     @classmethod
-    def _from_legacy_vitalsource_book(cls, request):
+    def _from_legacy_vitalsource_book(cls, _request, deep_linked_configuration: dict):
         """
         Respond to a legacy configured VitalSource assignment.
 
         Newer Vitalsource assignments are configured with document URLs like
         `vitalsource://...`
         """
-        if request.params.get("vitalsource_book"):
+        if deep_linked_configuration.get("vitalsource_book"):
             return VSBookLocation(
-                book_id=request.params["book_id"],
-                cfi=request.params.get("cfi"),
+                book_id=deep_linked_configuration["book_id"],
+                cfi=deep_linked_configuration.get("cfi"),
             ).document_url
 
         return None
+
+    def get_deep_linked_assignment_configuration(self, request) -> dict:
+        params = {}
+
+        possible_parameters = [
+            "group_set",
+            # VS, legacy method
+            "vitalsource_book",
+            "book_id",
+            "cfi",
+            # Canvas files
+            "canvas_file",
+            "file_id",
+            # General document url of other types
+            "url",
+        ]
+
+        for param in possible_parameters:
+            if value := request.params.get(param):
+                params[param] = value
+
+        return params
 
     @classmethod
     def factory(cls, _context, _request):
