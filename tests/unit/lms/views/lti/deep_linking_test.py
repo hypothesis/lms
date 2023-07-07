@@ -88,6 +88,7 @@ class TestDeepLinkingFieldsView:
                     {
                         "type": "ltiResourceLink",
                         "url": misc_plugin.get_deeplinking_launch_url.return_value,
+                        "custom": _get_assignment_configuration.return_value,
                     }
                 ],
                 "https://purl.imsglobal.org/spec/lti-dl/claim/data": sentinel.deep_linking_settings_data,
@@ -126,6 +127,8 @@ class TestDeepLinkingFieldsView:
         LTIEvent,
         misc_plugin,
     ):
+        misc_plugin.get_deeplinking_launch_url.return_value = "LAUNCH_URL"
+
         fields = views.file_picker_to_form_fields_v11()
 
         LTIEvent.assert_called_once_with(
@@ -141,7 +144,8 @@ class TestDeepLinkingFieldsView:
                 {
                     "@type": "LtiLinkItem",
                     "mediaType": "application/vnd.ims.lti.v1.ltilink",
-                    "url": misc_plugin.get_deeplinking_launch_url.return_value,
+                    "url": "LAUNCH_URL",
+                    "custom": _get_assignment_configuration.return_value,
                 },
             ],
         }
@@ -151,7 +155,7 @@ class TestDeepLinkingFieldsView:
         [
             (
                 {"type": "file", "file": {"id": 1}},
-                {"canvas_file": "true", "file_id": "1"},
+                {"canvas_file": "true", "file_id": 1},
             ),
             (
                 {"type": "url", "url": "https://example.com"},
@@ -217,4 +221,5 @@ class TestDeepLinkingFieldsView:
         with patch.object(
             views, "_get_assignment_configuration", autospec=True
         ) as patched:
+            patched.return_value = {}
             yield patched
