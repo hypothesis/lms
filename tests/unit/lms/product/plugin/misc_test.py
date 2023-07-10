@@ -62,9 +62,47 @@ class TestMiscPlugin:
 
         assert result == sentinel.document_url
 
+    def test_get_deeplinking_launch_url(self, plugin, pyramid_request):
+        assert (
+            plugin.get_deeplinking_launch_url(pyramid_request, sentinel.config)
+            == "http://example.com/lti_launches"
+        )
+
+    @pytest.mark.parametrize(
+        "custom,expected",
+        [
+            (
+                {"url": sentinel.url, "group_set": sentinel.group_set},
+                {"url": sentinel.url, "group_set": sentinel.group_set},
+            ),
+            ({"url": sentinel.url}, {"url": sentinel.url}),
+            ({"group_set": sentinel.group_set}, {"group_set": sentinel.group_set}),
+            ({"other_param": sentinel.other_param}, {}),
+        ],
+    )
+    def test_get_deep_linked_assignment_configuration(
+        self, plugin, custom, expected, pyramid_request_with_custom_lti_params
+    ):
+        pyramid_request = pyramid_request_with_custom_lti_params(custom)
+
+        assert (
+            plugin.get_deep_linked_assignment_configuration(pyramid_request) == expected
+        )
+
     @pytest.fixture
     def lti_registration(self):
         return factories.LTIRegistration()
+
+    @pytest.fixture
+    def pyramid_request_with_custom_lti_params(self, pyramid_request):
+        def _with_custom(custom):
+            pyramid_request.lti_jwt = {
+                "https://purl.imsglobal.org/spec/lti/claim/custom": custom
+            }
+            pyramid_request.lti_params = LTIParams.from_request(pyramid_request)
+            return pyramid_request
+
+        return _with_custom
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):

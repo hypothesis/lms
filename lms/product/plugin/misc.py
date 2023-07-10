@@ -74,5 +74,14 @@ class MiscPlugin:
         # The assignment configuration we'll be retrieved by other methods (eg, custom parameters) so that parameter is not used here.
         return request.route_url("lti_launches")
 
-    def get_deep_linked_assignment_configuration(self, _request):
-        return {}
+    def get_deep_linked_assignment_configuration(self, request):
+        """Get the configuration of an assignment that was original deep linked."""
+        params = {}
+        possible_parameters = ["url", "group_set"]
+
+        for param in possible_parameters:
+            # Get the value from the custom parameters set during deep linking
+            if value := request.lti_params.get(f"custom_{param}"):
+                params[param] = value
+
+        return params
