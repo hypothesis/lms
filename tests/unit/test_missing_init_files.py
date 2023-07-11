@@ -34,6 +34,10 @@ def _find_missing():  # pragma: nocover
         if rel_root.startswith("bdd"):
             continue
 
+        # Ignore the cookiecutter's pytest_plugins dir.
+        if rel_root == "pytest_plugins":
+            continue
+
         for file in files:
             if file.endswith(".py"):
                 dirs_with_python.add(rel_root)

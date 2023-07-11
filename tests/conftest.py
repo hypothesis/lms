@@ -2,7 +2,6 @@ import functools
 import os
 from unittest import mock
 
-import factory.random
 import pytest
 import sqlalchemy
 
@@ -70,11 +69,3 @@ def autopatcher(request, target, **kwargs):
 @pytest.fixture
 def patch(request):
     return functools.partial(autopatcher, request)
-
-
-@pytest.fixture(scope="session", autouse=True)
-def factory_boy_random_seed():
-    # Set factory_boy's random seed so that it produces the same random values
-    # in each run of the tests.
-    # See: https://factoryboy.readthedocs.io/en/latest/index.html#reproducible-random-values
-    factory.random.reseed_random("hypothesis/lms")
