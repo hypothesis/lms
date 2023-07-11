@@ -89,7 +89,7 @@ sure:
 #
 # $(basename $(notdir $@))) gets just the environment name from the
 # requirements/%.txt filename, for example requirements/foo.txt -> foo.
-requirements/%.txt: requirements/%.in
+requirements/%.txt: requirements/%.in python
 	@touch -a $(subst prod.txt,dev.txt,$@)
 	@tox -qe $(subst prod,dev,$(basename $(notdir $@))) --run-command 'pip --quiet --disable-pip-version-check install pip-tools pip-sync-faster'
 	@tox -qe $(subst prod,dev,$(basename $(notdir $@))) --run-command 'pip-compile --allow-unsafe --quiet $(args) $<'
