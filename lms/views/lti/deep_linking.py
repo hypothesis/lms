@@ -86,6 +86,7 @@ class DeepLinkingFieldsRequestSchema(JSONPyramidRequestSchema):
     deep_linking_settings = fields.Dict(required=False, allow_none=True)
     content_item_return_url = fields.Str(required=True)
     content = fields.Dict(required=True)
+    title = fields.Str(required=False, allow_none=True)
 
     extra_params = fields.Dict(required=False)
 
@@ -111,6 +112,20 @@ class DeepLinkingFieldsViews:
 
         assignment_configuration = self._get_assignment_configuration(self.request)
 
+        content_item = {
+            "type": "ltiResourceLink",
+            # The URL we will be called back on when the
+            # assignment is launched from the LMS
+            "url": self.misc_plugin.get_deeplinking_launch_url(
+                self.request, assignment_configuration
+            ),
+            # These values should be passed back to us as custom
+            # LTI params, but Canvas doesn't seem to.
+            "custom": assignment_configuration,
+        }
+        if title := assignment_configuration.get("title"):
+            content_item["title"] = title
+
         now = datetime.utcnow()
         message = {
             "exp": now + timedelta(hours=1),
@@ -123,17 +138,7 @@ class DeepLinkingFieldsViews:
             "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
             "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
             "https://purl.imsglobal.org/spec/lti-dl/claim/content_items": [
-                {
-                    "type": "ltiResourceLink",
-                    # The URL we will be called back on when the
-                    # assignment is launched from the LMS
-                    "url": self.misc_plugin.get_deeplinking_launch_url(
-                        self.request, assignment_configuration
-                    ),
-                    # These values should be passed back to us as custom
-                    # LTI params, but Canvas doesn't seem to.
-                    "custom": assignment_configuration,
-                }
+                content_item
             ],
         }
 
@@ -181,27 +186,29 @@ class DeepLinkingFieldsViews:
                 data=assignment_configuration,
             )
         )
-        return {
-            "content_items": json.dumps(
-                {
-                    "@context": "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",
-                    "@graph": [
-                        {
-                            "@type": "LtiLinkItem",
-                            "mediaType": "application/vnd.ims.lti.v1.ltilink",
-                            # The URL we will be called back on when the
-                            # assignment is launched from the LMS
-                            "url": self.misc_plugin.get_deeplinking_launch_url(
-                                self.request, assignment_configuration
-                            ),
-                            # These values should be passed back to us as custom
-                            # LTI params, but Canvas doesn't seem to.
-                            "custom": assignment_configuration,
-                        },
-                    ],
-                }
-            )
+
+        content_item = {
+            "@type": "LtiLinkItem",
+            "mediaType": "application/vnd.ims.lti.v1.ltilink",
+            # The URL we will be called back on when the
+            # assignment is launched from the LMS
+            "url": self.misc_plugin.get_deeplinking_launch_url(
+                self.request, assignment_configuration
+            ),
+            # These values should be passed back to us as custom
+            # LTI params, but Canvas doesn't seem to.
+            "custom": assignment_configuration,
         }
+
+        if title := assignment_configuration.get("title"):
+            content_item["title"] = title
+
+        message = {
+            "@context": "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",
+            "@graph": [content_item],
+        }
+
+        return {"content_items": json.dumps(message)}
 
     @staticmethod
     def _get_assignment_configuration(request) -> dict:
@@ -215,6 +222,9 @@ class DeepLinkingFieldsViews:
             for key, value in (request.parsed_params.get("extra_params") or {}).items()
             if value is not None
         }
+
+        if title := request.parsed_params.get("title"):
+            params["title"] = title
 
         if content["type"] == "file":
             params["canvas_file"] = "true"
