@@ -6,9 +6,9 @@ from sqlalchemy.orm import sessionmaker
 
 from lms import db, models
 from tests.bdd.step_context import StepContext
-from tests.conftest import get_test_database_url
+from tests.conftest import get_database_url
 
-TEST_DATABASE_URL = get_test_database_url()
+DATABASE_URL = get_database_url()
 
 
 class LMSDBContext(StepContext):
@@ -16,7 +16,7 @@ class LMSDBContext(StepContext):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.engine = sqlalchemy.create_engine(TEST_DATABASE_URL)
+        self.engine = sqlalchemy.create_engine(DATABASE_URL)
         self.session_maker = sessionmaker(bind=self.engine.connect())
         db.init(self.engine, stamp=False, drop=True)
 

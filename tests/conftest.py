@@ -9,8 +9,8 @@ import sqlalchemy
 from lms import db
 
 
-def get_test_database_url():
-    return os.environ.get("TEST_DATABASE_URL")
+def get_database_url():
+    return os.environ.get("DATABASE_URL")
 
 
 TEST_SETTINGS = {
