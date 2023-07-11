@@ -14,10 +14,10 @@ from lms.models.lti_role import RoleScope, RoleType
 from lms.product import Product
 from lms.security import Identity
 from tests import factories
-from tests.conftest import TEST_SETTINGS, get_test_database_url
+from tests.conftest import TEST_SETTINGS, get_database_url
 from tests.unit.services import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
-TEST_SETTINGS["database_url"] = get_test_database_url()
+TEST_SETTINGS["database_url"] = get_database_url()
 
 
 @pytest.fixture
