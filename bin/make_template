@@ -12,7 +12,7 @@ with open(".cookiecutter/cookiecutter.json", "r", encoding="utf-8") as cookiecut
 
 extra_context = config.get("extra_context", {})
 extra_context["__ignore__"] = config.get("ignore", [])
-extra_context["__target_dir__"] = Path(os.getcwd())
+extra_context["__target_dir__"] = str(Path(os.getcwd()))
 
 parser = argparse.ArgumentParser(description="Update the project from the cookiecutter template")
 parser.add_argument("--template", help="the cookiecutter template to use (default: what's in cookiecutter.json)")
