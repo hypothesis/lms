@@ -4,6 +4,7 @@ pip-sync-faster
 coverage[toml]
 pytest
 factory-boy
+pytest-factoryboy
 h-matchers
 httpretty
 freezegun

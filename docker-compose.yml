@@ -6,6 +6,8 @@ services:
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 1s
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
     networks:
       - dbs
   rabbit:
