@@ -60,6 +60,7 @@ class TestDeepLinkingLaunch:
 @pytest.mark.usefixtures("application_instance_service", "misc_plugin")
 class TestDeepLinkingFieldsView:
     @freeze_time("2022-04-04")
+    @pytest.mark.parametrize("title", [None, "title"])
     def test_it_for_v13(
         self,
         jwt_service,
@@ -70,30 +71,38 @@ class TestDeepLinkingFieldsView:
         pyramid_request,
         misc_plugin,
         _get_assignment_configuration,
+        title,
     ):
+        if title:
+            _get_assignment_configuration.return_value = {"title": title}
+
         fields = views.file_picker_to_form_fields_v13()
 
-        jwt_service.encode_with_private_key.assert_called_once_with(
-            {
-                "exp": datetime(2022, 4, 4, 1, 0),
-                "iat": datetime(2022, 4, 4, 0, 0),
-                "iss": application_instance.lti_registration.client_id,
-                "sub": application_instance.lti_registration.client_id,
-                "aud": application_instance.lti_registration.issuer,
-                "nonce": uuid.uuid4().hex,
-                "https://purl.imsglobal.org/spec/lti/claim/deployment_id": application_instance.deployment_id,
-                "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
-                "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
-                "https://purl.imsglobal.org/spec/lti-dl/claim/content_items": [
-                    {
-                        "type": "ltiResourceLink",
-                        "url": misc_plugin.get_deeplinking_launch_url.return_value,
-                        "custom": _get_assignment_configuration.return_value,
-                    }
-                ],
-                "https://purl.imsglobal.org/spec/lti-dl/claim/data": sentinel.deep_linking_settings_data,
-            }
-        )
+        message = {
+            "exp": datetime(2022, 4, 4, 1, 0),
+            "iat": datetime(2022, 4, 4, 0, 0),
+            "iss": application_instance.lti_registration.client_id,
+            "sub": application_instance.lti_registration.client_id,
+            "aud": application_instance.lti_registration.issuer,
+            "nonce": uuid.uuid4().hex,
+            "https://purl.imsglobal.org/spec/lti/claim/deployment_id": application_instance.deployment_id,
+            "https://purl.imsglobal.org/spec/lti/claim/message_type": "LtiDeepLinkingResponse",
+            "https://purl.imsglobal.org/spec/lti/claim/version": "1.3.0",
+            "https://purl.imsglobal.org/spec/lti-dl/claim/content_items": [
+                {
+                    "type": "ltiResourceLink",
+                    "url": misc_plugin.get_deeplinking_launch_url.return_value,
+                    "custom": _get_assignment_configuration.return_value,
+                }
+            ],
+            "https://purl.imsglobal.org/spec/lti-dl/claim/data": sentinel.deep_linking_settings_data,
+        }
+        if title:
+            message["https://purl.imsglobal.org/spec/lti-dl/claim/content_items"][0][
+                "title"
+            ] = title
+
+        jwt_service.encode_with_private_key.assert_called_once_with(message)
         LTIEvent.assert_called_once_with(
             request=pyramid_request,
             type=LTIEvent.Type.DEEP_LINKING,
@@ -119,6 +128,7 @@ class TestDeepLinkingFieldsView:
             not in message.last_matched()  # pylint: disable=unsupported-membership-test
         )
 
+    @pytest.mark.parametrize("title", [None, "title"])
     def test_it_for_v11(
         self,
         views,
@@ -126,8 +136,11 @@ class TestDeepLinkingFieldsView:
         pyramid_request,
         LTIEvent,
         misc_plugin,
+        title,
     ):
         misc_plugin.get_deeplinking_launch_url.return_value = "LAUNCH_URL"
+        if title:
+            _get_assignment_configuration.return_value = {"title": title}
 
         fields = views.file_picker_to_form_fields_v11()
 
@@ -138,7 +151,7 @@ class TestDeepLinkingFieldsView:
         )
         pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
 
-        assert json.loads(fields["content_items"]) == {
+        content_items = {
             "@context": "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",
             "@graph": [
                 {
@@ -150,8 +163,13 @@ class TestDeepLinkingFieldsView:
             ],
         }
 
+        if title:
+            content_items["@graph"][0]["title"] = title
+
+        assert json.loads(fields["content_items"]) == content_items
+
     @pytest.mark.parametrize(
-        "content,output_params",
+        "content,expected_from_content",
         [
             (
                 {"type": "file", "file": {"id": 1}},
@@ -164,24 +182,30 @@ class TestDeepLinkingFieldsView:
         ],
     )
     @pytest.mark.parametrize(
-        "extra_params,extra_expected",
+        "data,expected",
         [
             ({}, {}),
-            ({"extra": "value", "none_value": None}, {"extra": "value"}),
+            ({"title": "title"}, {"title": "title"}),
+            (
+                {"extra_params": {"extra": "value", "none_value": None}},
+                {"extra": "value"},
+            ),
         ],
     )
     def test_get_assignment_configuration(
-        self, content, output_params, extra_params, extra_expected, pyramid_request
+        self,
+        content,
+        expected_from_content,
+        pyramid_request,
+        data,
+        expected,
     ):
-        pyramid_request.parsed_params.update(
-            {"content": content, "extra_params": extra_params}
-        )
+        pyramid_request.parsed_params.update({"content": content, **data})
 
         # pylint:disable=protected-access
         config = DeepLinkingFieldsViews._get_assignment_configuration(pyramid_request)
 
-        output_params.update(extra_expected)
-        assert config == output_params
+        assert config == {**expected, **expected_from_content}
 
     def test_it_with_unknown_file_type(self, pyramid_request):
         pyramid_request.parsed_params.update({"content": {"type": "other"}})
