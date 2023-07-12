@@ -86,9 +86,8 @@ class DeepLinkingFieldsRequestSchema(JSONPyramidRequestSchema):
     deep_linking_settings = fields.Dict(required=False, allow_none=True)
     content_item_return_url = fields.Str(required=True)
     content = fields.Dict(required=True)
+    group_set = fields.Str(required=False, allow_none=True)
     title = fields.Str(required=False, allow_none=True)
-
-    extra_params = fields.Dict(required=False)
 
 
 @view_defaults(
@@ -215,13 +214,10 @@ class DeepLinkingFieldsViews:
         """Turn front-end content information into assignment configuration."""
         content = request.parsed_params["content"]
 
-        # Filter out any `null` values to avoid adding a ?key=None on the
-        # resulting URL
-        params = {
-            key: value
-            for key, value in (request.parsed_params.get("extra_params") or {}).items()
-            if value is not None
-        }
+        params = {}
+
+        if group_set := request.parsed_params.get("group_set"):
+            params["group_set"] = group_set
 
         if title := request.parsed_params.get("title"):
             params["title"] = title

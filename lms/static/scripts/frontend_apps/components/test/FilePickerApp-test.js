@@ -185,7 +185,7 @@ describe('FilePickerApp', () => {
         data: {
           ...deepLinkingAPIData,
           content: { type: 'url', url: 'https://example.com' },
-          extra_params: { group_set: null },
+          group_set: null,
         },
       });
 

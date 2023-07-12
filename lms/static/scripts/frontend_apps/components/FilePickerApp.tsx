@@ -211,9 +211,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
         const data = {
           ...deepLinkingAPI.data,
           content,
-          extra_params: {
-            group_set: groupConfig.useGroupSet ? groupConfig.groupSet : null,
-          },
+          group_set: groupConfig.useGroupSet ? groupConfig.groupSet : null,
         };
         setDeepLinkingFields(
           await apiCall({
