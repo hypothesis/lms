@@ -15,6 +15,10 @@ from lms.product import Product
 from lms.security import Identity
 from tests import factories
 from tests.conftest import TEST_SETTINGS, get_database_url
+from tests.factories.factoryboy_sqlalchemy_session import (
+    clear_factoryboy_sqlalchemy_session,
+    set_factoryboy_sqlalchemy_session,
+)
 from tests.unit.services import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
 TEST_SETTINGS["database_url"] = get_database_url()
@@ -231,12 +235,12 @@ def db_session(db_engine):
         ):
             session.begin_nested()
 
-    factories.set_sqlalchemy_session(session)
+    set_factoryboy_sqlalchemy_session(session)
 
     try:
         yield session
     finally:
-        factories.clear_sqlalchemy_session()
+        clear_factoryboy_sqlalchemy_session()
         session.close()
         trans.rollback()
         conn.close()

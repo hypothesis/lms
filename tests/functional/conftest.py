@@ -12,8 +12,11 @@ from webtest import TestApp
 from lms import db
 from lms.app import create_app
 from lms.db import SESSION
-from tests import factories
 from tests.conftest import TEST_SETTINGS, get_database_url
+from tests.factories.factoryboy_sqlalchemy_session import (
+    clear_factoryboy_sqlalchemy_session,
+    set_factoryboy_sqlalchemy_session,
+)
 
 TEST_SETTINGS["database_url"] = get_database_url()
 
@@ -64,12 +67,12 @@ def db_session(db_engine):
     conn = db_engine.connect()
     session = SESSION(bind=conn)
 
-    factories.set_sqlalchemy_session(session, persistence="commit")
+    set_factoryboy_sqlalchemy_session(session, persistence="commit")
 
     try:
         yield session
     finally:
-        factories.clear_sqlalchemy_session()
+        clear_factoryboy_sqlalchemy_session()
         session.close()
         conn.close()
 
