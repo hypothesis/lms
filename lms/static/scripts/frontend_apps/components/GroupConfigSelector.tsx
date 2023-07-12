@@ -51,7 +51,7 @@ function GroupSelect({
     <div
       className={classnames(
         // Style a slightly-recessed "well" for these controls
-        'bg-slate-0 p-4 rounded shadow-inner border'
+        'bg-slate-0 p-4 rounded-[4px] shadow-inner border'
       )}
     >
       <label

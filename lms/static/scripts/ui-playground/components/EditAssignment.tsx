@@ -123,7 +123,7 @@ function ReselectContentExample() {
             <div
               className={classnames(
                 // Style a slightly-recessed "well" for these controls
-                'bg-slate-0 p-4 rounded shadow-inner border space-y-2'
+                'bg-slate-0 p-4 rounded-[4px] shadow-inner border space-y-2'
               )}
             >
               <p>
