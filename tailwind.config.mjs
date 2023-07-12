@@ -19,6 +19,10 @@ export default {
         validationMessageOpen: 'validationMessageOpen 0.3s forwards',
         validationMessageClose: 'validationMessageClose 0.3s forwards',
       },
+      borderRadius: {
+        // Equivalent to tailwind default `rounded-sm` size
+        DEFAULT: '0.125rem',
+      },
       fontFamily: {
         sans: [
           '"Helvetica Neue"',
