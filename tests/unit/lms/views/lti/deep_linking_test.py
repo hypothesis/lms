@@ -186,9 +186,10 @@ class TestDeepLinkingFieldsView:
         [
             ({}, {}),
             ({"title": "title"}, {"title": "title"}),
+            ({"group_set": "1"}, {"group_set": "1"}),
             (
-                {"extra_params": {"extra": "value", "none_value": None}},
-                {"extra": "value"},
+                {"group_set": "1", "title": "title"},
+                {"group_set": "1", "title": "title"},
             ),
         ],
     )
