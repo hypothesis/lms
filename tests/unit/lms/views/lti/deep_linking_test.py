@@ -12,7 +12,7 @@ from lms.views.lti.deep_linking import DeepLinkingFieldsViews, deep_linking_laun
 from tests import factories
 
 
-@pytest.mark.usefixtures("application_instance_service", "lti_h_service", "misc_plugin")
+@pytest.mark.usefixtures("application_instance_service", "lti_h_service")
 class TestDeepLinkingLaunch:
     def test_it(
         self,
@@ -21,6 +21,7 @@ class TestDeepLinkingLaunch:
         lti_h_service,
         application_instance_service,
         course_service,
+        misc_plugin,
     ):
         deep_linking_launch(context, pyramid_request)
 
@@ -39,6 +40,7 @@ class TestDeepLinkingLaunch:
                 "lti_message_type": "ContentItemSelection",
                 "lti_version": "TEST_LTI_VERSION",
             },
+            prompt_for_title=misc_plugin.deep_linking_prompt_for_title,
         )
         context.js_config.add_deep_linking_api.assert_called_once()
 

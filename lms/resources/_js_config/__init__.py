@@ -215,7 +215,7 @@ class JSConfig:
             },
         }
 
-    def enable_file_picker_mode(self, form_action, form_fields):
+    def enable_file_picker_mode(self, form_action, form_fields, prompt_for_title=False):
         """
         Put the JavaScript code into "file picker" mode.
 
@@ -226,6 +226,7 @@ class JSConfig:
             submit the user's chosen document to
         :param form_fields: the fields (keys and values) to include in the
             HTML form that we submit
+        :param prompt_for_title: Whether or not to prompt for a title while configuring the assignment
         """
 
         args = self._request, self._application_instance
@@ -238,6 +239,7 @@ class JSConfig:
                 "filePicker": {
                     "formAction": form_action,
                     "formFields": form_fields,
+                    "promptForTitle": prompt_for_title,
                     # The "content item selection" that we submit to Canvas's
                     # content_item_return_url is actually an LTI launch URL with
                     # the selected document URL or file_id as a query parameter. To

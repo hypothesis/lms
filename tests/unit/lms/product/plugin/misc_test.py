@@ -8,6 +8,9 @@ from tests import factories
 
 
 class TestMiscPlugin:
+    def test_deep_linking_prompt_for_title(self, plugin):
+        assert not plugin.deep_linking_prompt_for_title
+
     @pytest.mark.parametrize(
         "service_url,expected", [(None, False), (sentinel.service_url, True)]
     )

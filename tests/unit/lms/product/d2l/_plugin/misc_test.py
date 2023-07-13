@@ -6,6 +6,9 @@ from lms.product.d2l._plugin.misc import D2LMiscPlugin
 
 
 class TestD2LMiscPlugin:
+    def test_deep_linking_prompt_for_title(self, plugin):
+        assert plugin.deep_linking_prompt_for_title
+
     def test_post_configure_assignment(
         self, plugin, lti_grading_service, pyramid_request
     ):

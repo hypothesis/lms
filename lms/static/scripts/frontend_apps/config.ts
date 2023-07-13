@@ -78,6 +78,7 @@ export type AssignmentConfig = {
 export type FilePickerConfig = {
   formAction: string;
   formFields: Record<string, string>;
+  promptForTitle: boolean;
   deepLinkingAPI?: APICallInfo;
   ltiLaunchUrl: string;
   blackboard: {

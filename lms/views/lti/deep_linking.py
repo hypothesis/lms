@@ -76,6 +76,7 @@ def deep_linking_launch(context, request):
             "lti_message_type": "ContentItemSelection",
             "lti_version": request.parsed_params["lti_version"],
         },
+        prompt_for_title=request.product.plugin.misc.deep_linking_prompt_for_title,
     )
 
     context.js_config.add_deep_linking_api()
