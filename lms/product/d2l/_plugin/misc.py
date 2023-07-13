@@ -6,6 +6,10 @@ class D2LMiscPlugin(MiscPlugin):
     def __init__(self, create_line_item: bool):
         self._create_line_item = create_line_item
 
+    # Deep linking in D2L implies creating a new assignment.
+    # Prompt for a title to set it for the new assignment.
+    deep_linking_prompt_for_title = True
+
     def post_configure_assignment(self, request):
         """
         Run any actions needed after configuring an assignment.

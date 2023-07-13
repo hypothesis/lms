@@ -15,13 +15,16 @@ class MiscPlugin:
     the code base.
 
     New methods here should not try to get a very tight API as easier to
-    refactor once multiple MS have the same issue vs getting the right
+    refactor once multiple LMSes have the same issue vs getting the right
     parameters in the first occurrence.
 
     Once any of these is implemented by more than one product or a group of
     methods looks like it could belong to their own plugin it's time to
     refactor them out.
     """
+
+    # Whether or not to prompt for an assignment title while deep linking.
+    deep_linking_prompt_for_title = False
 
     def post_configure_assignment(self, request: Request):  # pragma: nocover
         """
