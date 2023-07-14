@@ -53,28 +53,30 @@ class APIReadResultSchema(PyramidRequestSchema):
     location = "query"
 
     lis_outcome_service_url = fields.Str(required=True)
-    """URL provided by the LMS to submit grades or other results to."""
+    """URL provided by the LMS to read and submit grades to.
+    This encodes the course and assignment in LTI1.3 and it's a generic URL in LTI1.1."""
 
     lis_result_sourcedid = fields.Str(required=True)
     """
-    Opaque identifier provided by the LMS to identify a submission. This
-    typically encodes the assignment context and LMS user.
+    Opaque identifier provided by the LMS to identify a student for grading.
+    In LTI1.1 this identifier also encodes the course and assignment.
     """
 
     student_user_id = fields.Str(required=True)
-    """The LTIUser.user_id of the student being graded."""
+    """The LTIUser.user_id of the student."""
 
 
 class APIRecordResultSchema(JSONPyramidRequestSchema):
     """Schema for validating proxy requests to LTI Outcomes API for recording grades."""
 
     lis_outcome_service_url = fields.Str(required=True)
-    """URL provided by the LMS to submit grades or other results to."""
+    """URL provided by the LMS to read and submit grades to.
+    This encodes the course and assignment in LTI1.3 and it's a generic URL in LTI1.1."""
 
     lis_result_sourcedid = fields.Str(required=True)
     """
-    Opaque identifier provided by the LMS to identify a submission. This
-    typically encodes the assignment context and LMS user.
+    Opaque identifier provided by the LMS to identify a student for grading.
+    In LTI1.1 this identifier also encodes the course and assignment.
     """
 
     score = fields.Number(
@@ -85,4 +87,4 @@ class APIRecordResultSchema(JSONPyramidRequestSchema):
     """
 
     student_user_id = fields.Str(required=True)
-    """The LTIUser.user_id of the student being graded."""
+    """The LTIUser.user_id of the student."""
