@@ -314,12 +314,23 @@ class JSConfig:
                     username=grading_info.h_username,
                     display_name=grading_info.h_display_name,
                 )
+
+                lis_result_sourced_id = grading_info.lis_result_sourcedid
+                if self._application_instance.lti_version == "1.3.0":
+                    # In LTI 1.3 lis_result_sourcedid == user_id
+                    # or rather the concept of lis_result_sourcedid doesn't really exists and the LTI1.3 grading API is based on the user id.
+                    # We take the user id value instead here for LTI1.3.
+                    # This is important in the case of upgrades that happen midterm, wih grading_infos from before the upgrade:
+                    # we might have only the LTI1.1 value for lis_result_sourcedid but if we pick the user id instead
+                    # we are guaranteed to get the right value for the LTI1.3 API
+                    lis_result_sourced_id = grading_info.user_id
+
                 students.append(
                     {
                         "userid": h_user.userid(self._authority),
                         "displayName": h_user.display_name,
                         "lmsId": grading_info.user_id,
-                        "LISResultSourcedId": grading_info.lis_result_sourcedid,
+                        "LISResultSourcedId": lis_result_sourced_id,
                         # We are using the value from the request instead of the one stored in GradingInfo.
                         # This allows us to still read and submit grades when something in the LMS changes.
                         # For example in LTI version upgrades, the endpoint is likely to change as we move from
