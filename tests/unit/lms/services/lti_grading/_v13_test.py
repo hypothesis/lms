@@ -97,6 +97,7 @@ class TestLTI13GradingService:
         [
             (400, "User could not be found:"),
             (403, "User in requested score is not enrolled in the org unit"),
+            (404, "User in requested score does not exist"),
         ],
     )
     def test_record_result_raises_StudentNotInCourse(

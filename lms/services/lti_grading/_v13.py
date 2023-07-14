@@ -90,6 +90,10 @@ class LTI13GradingService(LTIGradingService):
                     and "User in requested score is not enrolled in the org unit"
                     in err.response.text
                 )
+                or (
+                    err.status_code == 404
+                    and "User in requested score does not exist" in err.response.text
+                )
             ):
                 raise StudentNotInCourse(grading_id) from err
 
