@@ -103,7 +103,7 @@ class GradingViews:
         return {}
 
     def _get_grading_user_id(self):
-        return self.parsed_params["lis_result_sourcedid"]
+        return self.request.product.plugin.misc.get_grading_user_id(self.parsed_params)
 
 
 class CanvasPreRecordHook:

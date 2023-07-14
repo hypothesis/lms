@@ -85,3 +85,11 @@ class MiscPlugin:
                 params[param] = value
 
         return params
+
+    def get_grading_user_id(self, params: dict):
+        """
+        Get the effective user_id to use with LTI grading API.
+
+        :param params: Parameters from our FE/BE grading APIs.
+        """
+        return params["lis_result_sourcedid"]
