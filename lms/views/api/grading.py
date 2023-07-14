@@ -31,9 +31,7 @@ class GradingViews:
         # Fix any float point arithmetic issues
         score = round(self.parsed_params["score"], 4)
 
-        self.lti_grading_service.record_result(
-            self.parsed_params["lis_result_sourcedid"], score
-        )
+        self.lti_grading_service.record_result(self._get_grading_user_id(), score)
         self.request.registry.notify(
             LTIEvent(
                 request=self.request,
@@ -56,7 +54,7 @@ class GradingViews:
         """Proxy request for current result (grade/score) to LTI Result API."""
 
         current_score = self.lti_grading_service.read_result(
-            self.parsed_params["lis_result_sourcedid"]
+            self._get_grading_user_id()
         )
 
         return {"currentScore": current_score}
@@ -90,19 +88,22 @@ class GradingViews:
         # absence of a submission from an ungraded submission. Non-Canvas LMSes in
         # theory require a grade).
 
-        lis_result_sourcedid = self.parsed_params["lis_result_sourcedid"]
+        user_grading_id = self._get_grading_user_id()
 
         # If we already have a score, then we've already recorded this info
-        if self.lti_grading_service.read_result(lis_result_sourcedid):
+        if self.lti_grading_service.read_result(user_grading_id):
             return None
 
         self.lti_grading_service.record_result(
-            lis_result_sourcedid, pre_record_hook=CanvasPreRecordHook(self.request)
+            user_grading_id, pre_record_hook=CanvasPreRecordHook(self.request)
         )
         self.request.registry.notify(
             LTIEvent(request=self.request, type=LTIEvent.Type.SUBMISSION)
         )
         return {}
+
+    def _get_grading_user_id(self):
+        return self.parsed_params["lis_result_sourcedid"]
 
 
 class CanvasPreRecordHook:
