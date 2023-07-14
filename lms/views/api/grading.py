@@ -103,7 +103,9 @@ class GradingViews:
         return {}
 
     def _get_grading_user_id(self):
-        return self.request.product.plugin.misc.get_grading_user_id(self.parsed_params)
+        return self.request.product.plugin.misc.get_grading_user_id(
+            self.request.lti_user.application_instance, self.parsed_params
+        )
 
 
 class CanvasPreRecordHook:
