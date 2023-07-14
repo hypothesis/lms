@@ -61,6 +61,9 @@ class APIReadResultSchema(PyramidRequestSchema):
     typically encodes the assignment context and LMS user.
     """
 
+    student_user_id = fields.Str(required=True)
+    """The LTIUser.user_id of the student being graded."""
+
 
 class APIRecordResultSchema(JSONPyramidRequestSchema):
     """Schema for validating proxy requests to LTI Outcomes API for recording grades."""

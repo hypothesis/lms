@@ -58,6 +58,7 @@ export class GradingService {
       params: {
         lis_result_sourcedid: student.LISResultSourcedId,
         lis_outcome_service_url: student.LISOutcomeServiceUrl,
+        student_user_id: student.lmsId,
       },
     });
   }
