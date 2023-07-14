@@ -362,6 +362,7 @@ class TestEnableInstructorToolbar:
     @pytest.mark.parametrize(
         "enable_editing, enable_grading", [(True, False), (False, True)]
     )
+    @pytest.mark.parametrize("lti_v13", [True, False])
     def test_it(
         self,
         js_config,
@@ -369,7 +370,12 @@ class TestEnableInstructorToolbar:
         grading_info_service,
         enable_editing,
         enable_grading,
+        lti_v13,
+        request,
     ):
+        if lti_v13:
+            _ = request.getfixturevalue("with_lti_13")
+
         js_config.enable_instructor_toolbar(
             enable_editing=enable_editing, enable_grading=enable_grading
         )
@@ -380,7 +386,9 @@ class TestEnableInstructorToolbar:
                     "userid": f"acct:{grading_info.h_username}@lms.hypothes.is",
                     "displayName": grading_info.h_display_name,
                     "lmsId": grading_info.user_id,
-                    "LISResultSourcedId": grading_info.lis_result_sourcedid,
+                    "LISResultSourcedId": grading_info.lis_result_sourcedid
+                    if not lti_v13
+                    else grading_info.user_id,
                     "LISOutcomeServiceUrl": pyramid_request.lti_params[
                         "lis_outcome_service_url"
                     ],
@@ -573,12 +581,6 @@ class TestAddDeepLinkingAPI:
             },
         }
 
-    @pytest.fixture
-    def with_lti_13(self, application_instance):
-        # Make the application instance `lti_version` return "1.3.0"
-        application_instance.lti_registration_id = sentinel.registration_id
-        application_instance.deployment_id = sentinel.deployment_id
-
 
 class TestEnableErrorDialogMode:
     def test_it(self, js_config):
@@ -674,3 +676,10 @@ def GroupInfo(patch):
     group_info_class = patch("lms.resources._js_config.GroupInfo")
     group_info_class.columns.return_value = ["context_id", "custom_canvas_course_id"]
     return group_info_class
+
+
+@pytest.fixture
+def with_lti_13(application_instance):
+    # Make the application instance `lti_version` return "1.3.0"
+    application_instance.lti_registration_id = sentinel.registration_id
+    application_instance.deployment_id = sentinel.deployment_id
