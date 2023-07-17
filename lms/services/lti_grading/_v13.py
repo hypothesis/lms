@@ -78,24 +78,18 @@ class LTI13GradingService(LTIGradingService):
                 # We silently shallow this type of error
                 return None
 
-            if (
+            for expected_code, expected_text in [
                 # Blackboard
-                (
-                    err.status_code == 400
-                    and "User could not be found:" in err.response.text
-                )
+                (400, "User could not be found:"),
                 # D2L
-                or (
-                    err.status_code == 403
-                    and "User in requested score is not enrolled in the org unit"
-                    in err.response.text
-                )
-                or (
-                    err.status_code == 404
-                    and "User in requested score does not exist" in err.response.text
-                )
-            ):
-                raise StudentNotInCourse(grading_id) from err
+                (403, "User in requested score is not enrolled in the org unit"),
+                (404, "User in requested score does not exist"),
+            ]:
+                if (
+                    err.status_code == expected_code
+                    and expected_text in err.response.text
+                ):
+                    raise StudentNotInCourse(grading_id) from err
 
             raise
 
