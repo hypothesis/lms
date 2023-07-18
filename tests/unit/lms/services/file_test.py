@@ -15,13 +15,29 @@ class TestFileService:
 
         assert svc.get(file_.lms_id, file_.type) == file_
 
+    def test_get_matching_guid(self, svc, db_session, application_instance):
+        same_guid_ai = factories.ApplicationInstance(
+            tool_consumer_instance_guid=application_instance.tool_consumer_instance_guid
+        )
+        file_ = factories.File(application_instance=same_guid_ai)
+        db_session.flush()
+
+        # Assert we an in fact querying by other AI
+        # pylint: disable=protected-access
+        assert svc._application_instance != same_guid_ai
+        assert svc.get(file_.lms_id, file_.type) == file_
+
     def test_get_returns_None_if_theres_no_matching_file(self, svc):
         assert not svc.get("unknown_file_id", "canvas_file")
 
-    def test_get_doesnt_return_matching_files_from_other_application_instances(
-        self, svc
+    def test_get_doesnt_return_matching_files_from_application_instances_with_different_guid(
+        self, svc, db_session
     ):
-        file_ = factories.File()
+        application_instance = factories.ApplicationInstance(
+            tool_consumer_instance_guid="OTHER"
+        )
+        file_ = factories.File(application_instance=application_instance)
+        db_session.flush()
 
         assert not svc.get(file_.lms_id, file_.type)
 
