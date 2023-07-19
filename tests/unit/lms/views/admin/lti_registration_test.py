@@ -34,9 +34,9 @@ class TestAdminApplicationInstanceViews:
                 "https://hypothesis.instructure.com",
                 "client_id",
                 {
-                    "auth_login_url": "https://canvas.instructure.com/api/lti/authorize_redirect",
-                    "key_set_url": "https://canvas.instructure.com/api/lti/security/jwks",
-                    "token_url": "https://canvas.instructure.com/login/oauth2/token",
+                    "auth_login_url": "https://sso.canvaslms.com/api/lti/authorize_redirect",
+                    "key_set_url": "https://sso.canvaslms.com/api/lti/security/jwks",
+                    "token_url": "https://sso.canvaslms.com/login/oauth2/token",
                 },
             ),
             (
