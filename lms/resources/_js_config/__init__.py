@@ -576,7 +576,7 @@ class JSConfig:
                     },
                     "context_id": self._request.lti_params["context_id"],
                     "group_set_id": self._request.product.plugin.grouping.get_group_set_id(
-                        self._request, assignment
+                        self._request, assignment, historical_assignment=None
                     ),
                     "group_info": {
                         key: value

@@ -74,7 +74,7 @@ class GroupingPlugin:
         """Check if sections are enabled for this LMS, instance and course."""
         return bool(self.sections_type)
 
-    def get_group_set_id(self, request, assignment):
+    def get_group_set_id(self, _request, assignment, historical_assignment=None):
         """
         Get the group set ID for group launches.
 
@@ -82,11 +82,25 @@ class GroupingPlugin:
         have different sets of groups for the same course.
 
         This ID identifies a collection of groups.
+
+        `historical_assignment` might be none even when it might exist on the DB
+        (or even available as assignment.copied_form). The historical_assignment
+        is only relevant to get the config when creating an assignment for the
+        first time.
         """
-        if not self.group_type or not assignment:
+        if not self.group_type:
+            # Groups not enabled on this product
             return None
 
-        return assignment.extra.get("group_set_id") if assignment else None
+        if assignment:
+            return assignment.extra.get("group_set_id")
+
+        if historical_assignment:
+            # When creating new assignments, take the value from the previous
+            # version of the assignment
+            return historical_assignment.extra.get("group_set_id")
+
+        return None
 
 
 class GroupError(Exception):
