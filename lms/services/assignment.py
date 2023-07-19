@@ -16,9 +16,10 @@ from lms.services.upsert import bulk_upsert
 class AssignmentService:
     """A service for getting and setting assignments."""
 
-    def __init__(self, db: Session, misc_plugin):
+    def __init__(self, db: Session, misc_plugin, grouping_plugin):
         self._db = db
         self._misc_plugin = misc_plugin
+        self._grouping_plugin = grouping_plugin
 
     def get_assignment(self, tool_consumer_instance_guid, resource_link_id):
         """Get an assignment by resource_link_id."""
@@ -100,6 +101,9 @@ class AssignmentService:
         document_url = self._misc_plugin.get_document_url(
             request, assignment, historical_assignment
         )
+        group_set_id = self._grouping_plugin.get_group_set_id(
+            request, assignment, historical_assignment
+        )
 
         if not document_url:
             # We can't find a document_url, we shouldn't try to create an assignment yet.
@@ -118,18 +122,14 @@ class AssignmentService:
                 # While creating a new assignment we found the assignment we copied this one from
                 # Reference it on the DB
                 assignment.copied_from = historical_assignment
-                # And copy over any settings from the original assignment
-                # We don't yet copy the document_url over, we might have consulted `historical_assignment`
-                # earlier while getting a new `document_url`
-                if historical_assignment.extra.get("group_set_id"):
-                    assignment.extra["group_set_id"] = historical_assignment.extra.get(
-                        "group_set_id"
-                    )
 
         # Always update the assignment configuration
         # It often will be the same one while launching the assignment again but
         # it might for example be an updated deep linked URL or similar.
         assignment.document_url = document_url
+        # Same for the group_set
+        if group_set_id:
+            assignment.extra["group_set_id"] = group_set_id
 
         # And metadata based on the launch
         assignment.title = lti_params.get("resource_link_title")
@@ -190,4 +190,8 @@ class AssignmentService:
 
 
 def factory(_context, request):
-    return AssignmentService(db=request.db, misc_plugin=request.product.plugin.misc)
+    return AssignmentService(
+        db=request.db,
+        misc_plugin=request.product.plugin.misc,
+        grouping_plugin=request.product.plugin.grouping,
+    )

@@ -109,6 +109,7 @@ class TestAssignmentService:
 
         assert not svc.get_assignment_for_launch(pyramid_request)
 
+    @pytest.mark.parametrize("group_set_id", [None, "1"])
     def test_get_assignment_creates_assignment(
         self,
         pyramid_request,
@@ -117,10 +118,14 @@ class TestAssignmentService:
         get_assignment,
         get_copied_from_assignment,
         create_assignment,
+        group_set_id,
+        grouping_plugin,
     ):
         misc_plugin.get_document_url.return_value = sentinel.document_url
+        create_assignment.return_value = factories.Assignment()
         get_assignment.return_value = None
         get_copied_from_assignment.return_value = None
+        grouping_plugin.get_group_set_id.return_value = group_set_id
 
         assignment = svc.get_assignment_for_launch(pyramid_request)
 
@@ -129,6 +134,8 @@ class TestAssignmentService:
             "TEST_TOOL_CONSUMER_INSTANCE_GUID", "TEST_RESOURCE_LINK_ID"
         )
         assert assignment.document_url == sentinel.document_url
+        if group_set_id:
+            assignment.extra["group_set_id"] = group_set_id
         assert not assignment.copied_from
 
     def test_get_assignment_created_assignments_point_to_copy(
@@ -196,8 +203,8 @@ class TestAssignmentService:
         )
 
     @pytest.fixture
-    def svc(self, db_session, misc_plugin):
-        return AssignmentService(db_session, misc_plugin)
+    def svc(self, db_session, misc_plugin, grouping_plugin):
+        return AssignmentService(db_session, misc_plugin, grouping_plugin)
 
     @pytest.fixture(autouse=True)
     def assignment(self):
@@ -247,11 +254,13 @@ class TestAssignmentService:
 
 
 class TestFactory:
-    def test_it(self, pyramid_request, AssignmentService, misc_plugin):
+    def test_it(self, pyramid_request, AssignmentService, misc_plugin, grouping_plugin):
         svc = factory(sentinel.context, pyramid_request)
 
         AssignmentService.assert_called_once_with(
-            db=pyramid_request.db, misc_plugin=misc_plugin
+            db=pyramid_request.db,
+            misc_plugin=misc_plugin,
+            grouping_plugin=grouping_plugin,
         )
         assert svc == AssignmentService.return_value
 

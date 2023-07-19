@@ -21,32 +21,41 @@ class TestGroupingPlugin:
             == expected
         )
 
-    def test_get_group_set_id_when_disabled(self, plugin):
-        plugin.group_type = None
+    def test_get_group_set_id_when_disabled(self, plugin_without_groups):
+        assert not plugin_without_groups.get_group_set_id(
+            sentinel.request, sentinel.assignment
+        )
 
-        assert not plugin.get_group_set_id(sentinel.request, sentinel.assignment)
-
-    def test_get_group_set_id_when_no_assignment(self, plugin_with_groups):
-        assert not plugin_with_groups.get_group_set_id(sentinel.request, None)
+    def test_get_group_set_id_when_no_assignment(self, plugin):
+        assert not plugin.get_group_set_id(sentinel.request, None)
 
     def test_get_group_set_id_when_no_group_set(self, plugin):
         assignment = factories.Assignment(extra={})
 
-        assert not plugin.get_group_set_id(sentinel.request, assignment)
+        assert not plugin.get_group_set_id(sentinel.request, assignment, None)
 
-    def test_get_group_set_id(self, plugin_with_groups):
-        assignment = factories.Assignment(extra={"group_set_id": sentinel.id})
+    def test_get_group_set_id_from_historical_assignment(self, plugin):
+        historical_assignment = factories.Assignment(
+            extra={"group_set_id": sentinel.id}
+        )
 
         assert (
-            plugin_with_groups.get_group_set_id(sentinel.request, assignment)
+            plugin.get_group_set_id(sentinel.request, None, historical_assignment)
             == sentinel.id
         )
 
-    @pytest.fixture
-    def plugin(self):
-        return GroupingPlugin()
+    def test_get_group_set_id(self, plugin):
+        assignment = factories.Assignment(extra={"group_set_id": sentinel.id})
+
+        assert plugin.get_group_set_id(sentinel.request, assignment) == sentinel.id
 
     @pytest.fixture
-    def plugin_with_groups(self, plugin):
+    def plugin(self):
+        plugin = GroupingPlugin()
         plugin.group_type = Grouping.Type.BLACKBOARD_GROUP
+        return plugin
+
+    @pytest.fixture
+    def plugin_without_groups(self, plugin):
+        plugin.group_type = None
         return plugin
