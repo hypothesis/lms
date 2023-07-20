@@ -125,4 +125,5 @@ class TestGetProductFromRequest:
     def pyramid_request(self, pyramid_request):
         pyramid_request.matched_route = Mock(spec_set=["name"])
         pyramid_request.matched_route.name = "some.route"
+        pyramid_request.lti_params = {}
         return pyramid_request
