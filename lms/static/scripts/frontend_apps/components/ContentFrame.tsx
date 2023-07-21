@@ -13,6 +13,7 @@ export default function ContentFrame({ url, iframeRef }: ContentFrameProps) {
   return (
     <iframe
       ref={iframeRef}
+      allow="clipboard-write"
       className={classnames(
         // It's important that this content render full width and grow to fill
         // available flex space. n.b. It may be rendered together with grading
