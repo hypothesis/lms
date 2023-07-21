@@ -20,9 +20,10 @@ class D2LGroupingPlugin(GroupingPlugin):
     group_type = Grouping.Type.D2L_GROUP
     sections_type = None  # We don't support sections in D2L
 
-    def __init__(self, d2l_api, api_user_id):
+    def __init__(self, d2l_api, api_user_id, misc_plugin):
         self._d2l_api = d2l_api
         self._api_user_id = api_user_id
+        self._misc_plugin = misc_plugin
 
     def get_group_sets(self, course: Course):
         group_sets = self._d2l_api.course_group_sets(course.lms_id)
@@ -71,10 +72,25 @@ class D2LGroupingPlugin(GroupingPlugin):
 
         return groups
 
+    def get_group_set_id(self, request, assignment, historical_assignment=None):
+        if assignment:
+            # For existing assignments return the config in our DB
+            return assignment.extra.get("group_set_id")
+
+        if historical_assignment:
+            # When creating a new assignment, default to the value of original one if we have one
+            return historical_assignment.extra.get("group_set_id")
+
+        # D2L also supports deep linking, use that as the last fallback
+        return self._misc_plugin.get_deep_linked_assignment_configuration(request).get(
+            "group_set"
+        )
+
     @classmethod
     def factory(cls, _context, request):
         d2l_api = request.find_service(D2LAPIClient)
         return cls(
             d2l_api=d2l_api,
             api_user_id=d2l_api.get_api_user_id(request.lti_user.user_id),
+            misc_plugin=request.product.plugin.misc,
         )
