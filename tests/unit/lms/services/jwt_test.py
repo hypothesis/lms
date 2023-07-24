@@ -129,6 +129,14 @@ class TestJWTService:
 
         assert "jwt" in exc_info.value.messages
 
+    def test_decode_lti_token_with_invalid_jwt_header(self, svc, jwt):
+        jwt.get_unverified_header.side_effect = InvalidTokenError()
+
+        with pytest.raises(ValidationError) as exc_info:
+            svc.decode_lti_token(sentinel.id_token)
+
+        assert "jwt" in exc_info.value.messages
+
     def test_decode_lti_token_with_invalid_jwt(self, svc, jwt):
         jwt.decode.side_effect = [{"aud": "AUD", "iss": "ISS"}, InvalidTokenError()]
 
