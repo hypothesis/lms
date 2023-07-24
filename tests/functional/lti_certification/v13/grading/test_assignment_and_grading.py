@@ -32,13 +32,17 @@ class TestAssignmentAndGradingSerices:
         ```
         # These are included in the JWT sent by the testing tool
         # https://purl.imsglobal.org/spec/lti/claim/resource_link -> id
-        RESOURCE_LINK_ID = "7a3f7bed2844419caa4edf74c93f4375"
+        RESOURCE_LINK_ID = "d57dfc1975a441da896c9d7eb0413b96"
         # https://purl.imsglobal.org/spec/lti-ags/claim/endpoint -> lineitmems
-        LINEITEMS = "https://ltiadvantagevalidator.imsglobal.org/ltitool/rest/assignmentsgrades/11151/lineitems"
+        LINE_ITEMS = "https://ltiadvantagevalidator.imsglobal.org/ltitool/rest/assignmentsgrades/16793/lineitems"
+
+        # The line item for this assignment doesn't yet exist, we'll crate it calling the LINE_ITEMS endpoint
+        LINE_ITEM = ""
 
 
         from lms.services.lti_grading._v13 import LTI13GradingService
         from lms.services import *
+        from lms.product.plugin import MiscPlugin
 
         application_instance = (
             db.query(models.ApplicationInstance)
@@ -48,15 +52,18 @@ class TestAssignmentAndGradingSerices:
         )
         ltia_service = LTIAHTTPService(
             application_instance.lti_registration,
+            MiscPlugin(),
             request.find_service(JWTService),
             request.find_service(name="http"),
+            request.find_service(JWTOAuth2TokenService),
         )
-        grading_service = LTI13GradingService(LINEITEMS, ltia_service)
+        grading_service = LTI13GradingService(LINE_ITEM, LINE_ITEMS, ltia_service)
 
 
+        # Create the line item here to hold the scores
         response = ltia_service.request(
             "POST",
-            LINEITEMS,
+            LINE_ITEMS,
             headers={"Content-Type": "application/vnd.ims.lis.v2.lineitem+json"},
             scopes=LTI13GradingService.LTIA_SCOPES,
             json={
@@ -66,7 +73,9 @@ class TestAssignmentAndGradingSerices:
                 "tag": "certification_grade",
             },
         )
-        grading_service.grading_url = response.json()["id"]
+        grading_service.line_item_url = response.json()["id"]
+
+        # Record a score in the newly created line item
         grading_service.record_result("40899", 0.8)
         grade = grading_service.read_result("40899")
         print("Grade:", grade)
