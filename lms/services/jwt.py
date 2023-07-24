@@ -86,15 +86,22 @@ class JWTService:
         if not id_token:
             return {}
 
-        if not jwt.get_unverified_header(id_token).get("kid"):
+        try:
+            unverified_header = jwt.get_unverified_header(id_token)
+            unverified_payload = jwt.decode(
+                id_token, options={"verify_signature": False}
+            )
+        except PyJWTError as err:
+            LOG.debug("Invalid JWT. %s", str(err))
+            raise ValidationError(messages={"jwt": [f"Invalid JWT. {err}"]}) from err
+
+        if not unverified_header.get("kid"):
             LOG.debug("Missing 'kid' value in JWT header")
             raise ValidationError(
                 messages={"jwt": ["Missing 'kid' value in JWT header"]}
             )
 
-        unverified_payload = jwt.decode(id_token, options={"verify_signature": False})
         iss, aud = unverified_payload.get("iss"), unverified_payload.get("aud")
-
         # Find the registration based on the token's claimed issuer & audience
         registration = self._registration_service.get(iss, aud)
         if not registration:
