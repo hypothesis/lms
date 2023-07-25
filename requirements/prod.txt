@@ -24,7 +24,7 @@ cachetools==4.2.2
     # via google-auth
 celery==5.2.7
     # via -r prod.in
-certifi==2022.12.7
+certifi==2023.7.22
     # via
     #   mailchimp-transactional
     #   requests
