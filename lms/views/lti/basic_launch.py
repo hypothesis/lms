@@ -18,8 +18,6 @@ from lms.events import LTIEvent
 from lms.product import Product
 from lms.security import Permissions
 from lms.services.assignment import AssignmentService
-from lms.services.course import CourseService
-from lms.services.grouping import GroupingService
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
 
 
@@ -35,9 +33,6 @@ class BasicLaunchViews:
         self.assignment_service: AssignmentService = request.find_service(
             name="assignment"
         )
-        self.grouping_service: GroupingService = request.find_service(name="grouping")
-        self.course_service: CourseService = request.find_service(name="course")
-
         self._guid = self.request.lti_params.get("tool_consumer_instance_guid")
         self._resource_link_id = self.request.lti_params.get("resource_link_id")
 
@@ -163,10 +158,10 @@ class BasicLaunchViews:
         return {}
 
     def _record_course(self):
-        course = self.course_service.get_from_launch(
+        course = self.request.find_service(name="course").get_from_launch(
             self.request.product, self.request.lti_params
         )
-        self.grouping_service.upsert_grouping_memberships(
+        self.request.find_service(name="grouping").upsert_grouping_memberships(
             user=self.request.user, groups=[course]
         )
         return course
@@ -184,7 +179,6 @@ class BasicLaunchViews:
             document_url=self.request.parsed_params["document_url"],
             group_set_id=self.request.parsed_params.get("group_set"),
         )
-
 
     def _configure_js_for_file_picker(
         self, route: str = "configure_assignment"
