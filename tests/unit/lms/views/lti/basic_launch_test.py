@@ -20,7 +20,6 @@ from tests import factories
     "lti_h_service",
     "lti_role_service",
     "grouping_service",
-    "misc_plugin",
 )
 class TestBasicLaunchViews:
     def test___init___(
@@ -78,7 +77,7 @@ class TestBasicLaunchViews:
         grading_info_service.upsert_from_request.assert_not_called()
 
     def test_configure_assignment_callback(
-        self, svc, pyramid_request, _show_document, misc_plugin, assignment_service
+        self, svc, pyramid_request, _show_document, assignment_service
     ):
         pyramid_request.parsed_params = {
             "document_url": sentinel.document_url,
@@ -92,11 +91,11 @@ class TestBasicLaunchViews:
             resource_link_id="TEST_RESOURCE_LINK_ID",
         )
         assignment_service.update_assignment.assert_called_once_with(
+            pyramid_request,
             assignment_service.create_assignment.return_value,
             document_url=sentinel.document_url,
             group_set_id=sentinel.group_set,
         )
-        misc_plugin.post_configure_assignment.assert_called_once_with(pyramid_request)
         _show_document.assert_called_once_with(
             assignment_service.create_assignment.return_value,
         )
@@ -106,7 +105,6 @@ class TestBasicLaunchViews:
         svc,
         pyramid_request,
         _show_document,
-        misc_plugin,
         assignment_service,
         LTIEvent,
     ):
@@ -131,8 +129,6 @@ class TestBasicLaunchViews:
             },
         )
         pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
-
-        misc_plugin.post_configure_assignment.assert_called_once_with(pyramid_request)
         _show_document.assert_called_once_with(
             assignment_service.get_assignment.return_value,
         )
