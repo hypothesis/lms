@@ -45,11 +45,25 @@ class AssignmentService:
 
         return assignment
 
-    def update_assignment(self, assignment, document_url, group_set_id):
-        """Update an existing assignment."""
-
-        assignment.extra["group_set_id"] = group_set_id
+    def _update_assignment(self, assignment, lti_params, document_url, group_set_id):
         assignment.document_url = document_url
+        assignment.extra["group_set_id"] = group_set_id
+
+        # Metadata based on the launch
+        assignment.title = lti_params.get("resource_link_title")
+        assignment.description = lti_params.get("resource_link_description")
+        assignment.is_gradable = self._misc_plugin.is_assignment_gradable(lti_params)
+
+        return assignment
+
+    def update_assignment(self, request, assignment, document_url, group_set_id):
+        """Update an existing assignment."""
+        assignment = self._update_assignment(
+            assignment, request.lti_params, document_url, group_set_id
+        )
+
+        # Make any product-specific actions after configuring the assignment
+        self._misc_plugin.post_configure_assignment(request)
 
         return assignment
 
@@ -81,9 +95,10 @@ class AssignmentService:
         """
         Get or create an assignment for the current launch.
 
-        The returned assignment will have the relevant configuration for this launch.
+        The returned assignment will have the relevant configuration for this
+        launch.
 
-        Returns None if no assignment can be found or created.
+        :returns: An assignment or None if one cannot be found or created.
         """
 
         lti_params = request.lti_params
@@ -106,37 +121,29 @@ class AssignmentService:
         )
 
         if not document_url:
-            # We can't find a document_url, we shouldn't try to create an assignment yet.
+            # We can't find a document_url, we shouldn't try to create an
+            # assignment yet.
             return None
 
         if not assignment:
-            # We don't have an assignment in the DB but we know to which document url it should point
-            # This might happen for example on:
-            #   - the first launch of a deep linked assignment
-            #   - the first launch copied assignment
+            # We don't have an assignment in the DB, but we know which document
+            # url it should point to. This might happen for example on:
+            #
+            #  * The first launch of a deep linked assignment
+            #  * The first launch copied assignment
             assignment = self.create_assignment(
                 tool_consumer_instance_guid, resource_link_id
             )
-
-            if historical_assignment:
-                # While creating a new assignment we found the assignment we copied this one from
-                # Reference it on the DB
-                assignment.copied_from = historical_assignment
+            # While creating a new assignment we found the assignment we
+            # copied this one from. Reference this in the DB.
+            assignment.copied_from = historical_assignment
 
         # Always update the assignment configuration
         # It often will be the same one while launching the assignment again but
         # it might for example be an updated deep linked URL or similar.
-        assignment.document_url = document_url
-        # Same for the group_set
-        if group_set_id:
-            assignment.extra["group_set_id"] = group_set_id
-
-        # And metadata based on the launch
-        assignment.title = lti_params.get("resource_link_title")
-        assignment.description = lti_params.get("resource_link_description")
-        assignment.is_gradable = self._misc_plugin.is_assignment_gradable(lti_params)
-
-        return assignment
+        return self._update_assignment(
+            assignment, lti_params, document_url, group_set_id
+        )
 
     def upsert_assignment_membership(
         self, assignment: Assignment, user: User, lti_roles: List[LTIRole]

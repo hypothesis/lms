@@ -183,13 +183,11 @@ class BasicLaunchViews:
         for the first time or from an edit.
         """
         self.assignment_service.update_assignment(
+            self.request,
             assignment,
             document_url=self.request.parsed_params["document_url"],
             group_set_id=self.request.parsed_params.get("group_set"),
         )
-
-        # Make any product-specific actions after configuring the assignment
-        self.request.product.plugin.misc.post_configure_assignment(self.request)
 
         return self._show_document(assignment)
 
