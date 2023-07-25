@@ -41,9 +41,9 @@ class TestAssignmentService:
             "custom_ResourceLink.id.history",
         ),
     )
-    def test_get_copied_from_assignment(self, svc, param, assignment):
+    def test__get_copied_from_assignment(self, svc, param, assignment):
         assert (
-            svc.get_copied_from_assignment(
+            svc._get_copied_from_assignment(  # pylint:disable=protected-access
                 {
                     param: assignment.resource_link_id,
                     "tool_consumer_instance_guid": assignment.tool_consumer_instance_guid,
@@ -52,16 +52,16 @@ class TestAssignmentService:
             == assignment
         )
 
-    def test_get_copied_from_assignment_not_found_bad_parameter(self, svc, assignment):
-        assert not svc.get_copied_from_assignment(
+    def test__get_copied_from_assignment_not_found_bad_parameter(self, svc, assignment):
+        assert not svc._get_copied_from_assignment(  # pylint:disable=protected-access
             {
                 "unknown_param": assignment.resource_link_id,
                 "tool_consumer_instance_guid": assignment.tool_consumer_instance_guid,
             }
         )
 
-    def test_get_copied_from_assignment_not_found(self, svc, assignment):
-        assert not svc.get_copied_from_assignment(
+    def test__get_copied_from_assignment_not_found(self, svc, assignment):
+        assert not svc._get_copied_from_assignment(  # pylint:disable=protected-access
             {
                 "resource_link_id_history": "Unknown_RESOURCE_LINK_ID",
                 "tool_consumer_instance_guid": assignment.tool_consumer_instance_guid,
@@ -75,7 +75,7 @@ class TestAssignmentService:
         misc_plugin,
         get_assignment,
         grouping_plugin,
-        get_copied_from_assignment,
+        _get_copied_from_assignment,
     ):
         misc_plugin.get_document_url.return_value = sentinel.document_url
         grouping_plugin.get_group_set_id.return_value = sentinel.group_set_id
@@ -83,7 +83,7 @@ class TestAssignmentService:
 
         assignment = svc.get_assignment_for_launch(pyramid_request)
 
-        get_copied_from_assignment.assert_not_called()
+        _get_copied_from_assignment.assert_not_called()
         misc_plugin.get_document_url.assert_called_once_with(
             pyramid_request, get_assignment.return_value, None
         )
@@ -116,7 +116,7 @@ class TestAssignmentService:
         svc,
         misc_plugin,
         get_assignment,
-        get_copied_from_assignment,
+        _get_copied_from_assignment,
         create_assignment,
         group_set_id,
         grouping_plugin,
@@ -124,12 +124,12 @@ class TestAssignmentService:
         misc_plugin.get_document_url.return_value = sentinel.document_url
         create_assignment.return_value = factories.Assignment()
         get_assignment.return_value = None
-        get_copied_from_assignment.return_value = None
+        _get_copied_from_assignment.return_value = None
         grouping_plugin.get_group_set_id.return_value = group_set_id
 
         assignment = svc.get_assignment_for_launch(pyramid_request)
 
-        get_copied_from_assignment.assert_called_once_with(pyramid_request.lti_params)
+        _get_copied_from_assignment.assert_called_once_with(pyramid_request.lti_params)
         create_assignment.assert_called_once_with(
             "TEST_TOOL_CONSUMER_INSTANCE_GUID", "TEST_RESOURCE_LINK_ID"
         )
@@ -144,16 +144,16 @@ class TestAssignmentService:
         svc,
         misc_plugin,
         get_assignment,
-        get_copied_from_assignment,
+        _get_copied_from_assignment,
         create_assignment,
     ):
         misc_plugin.get_document_url.return_value = sentinel.document_url
         get_assignment.return_value = None
-        get_copied_from_assignment.return_value = sentinel.original_assignment
+        _get_copied_from_assignment.return_value = sentinel.original_assignment
 
         assignment = svc.get_assignment_for_launch(pyramid_request)
 
-        get_copied_from_assignment.assert_called_once_with(pyramid_request.lti_params)
+        _get_copied_from_assignment.assert_called_once_with(pyramid_request.lti_params)
         create_assignment.assert_called_once_with(
             "TEST_TOOL_CONSUMER_INSTANCE_GUID", "TEST_RESOURCE_LINK_ID"
         )
@@ -248,8 +248,8 @@ class TestAssignmentService:
             yield patched
 
     @pytest.fixture
-    def get_copied_from_assignment(self, svc):
-        with patch.object(svc, "get_copied_from_assignment", autospec=True) as patched:
+    def _get_copied_from_assignment(self, svc):
+        with patch.object(svc, "_get_copied_from_assignment", autospec=True) as patched:
             yield patched
 
 

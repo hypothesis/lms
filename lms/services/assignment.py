@@ -53,7 +53,7 @@ class AssignmentService:
 
         return assignment
 
-    def get_copied_from_assignment(self, lti_params) -> Optional[Assignment]:
+    def _get_copied_from_assignment(self, lti_params) -> Optional[Assignment]:
         """Return the assignment that the current assignment was copied from."""
 
         resource_link_history_params = [
@@ -94,7 +94,7 @@ class AssignmentService:
         assignment = self.get_assignment(tool_consumer_instance_guid, resource_link_id)
         historical_assignment = None
         if not assignment:
-            historical_assignment = self.get_copied_from_assignment(lti_params)
+            historical_assignment = self._get_copied_from_assignment(lti_params)
 
         # Get the configuration for the assignment
         # it might be based on the assignments we just queried or the request
