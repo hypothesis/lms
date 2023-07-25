@@ -109,7 +109,8 @@ class BasicLaunchViews:
             resource_link_id=self._resource_link_id,
         )
 
-        return self._configure_and_show_document(assignment)
+        self._configure_assignment(assignment)
+        return self._show_document(assignment)
 
     @view_config(
         route_name="edit_assignment",
@@ -133,16 +134,11 @@ class BasicLaunchViews:
                 },
             )
         )
-        return self._configure_and_show_document(assignment)
+        self._configure_assignment(assignment)
+        return self._show_document(assignment)
 
     def _show_document(self, assignment):
-        """
-        Display a document to the user for annotation or grading.
-
-        :param document_url: URL of the document to display
-        :param assignment_extra: Any extra details to add to the assignment
-            when updating metadata.
-        """
+        """Display a document to the user for annotation or grading."""
 
         # Before any LTI assignments launch, create or update the Hypothesis
         # user and group corresponding to the LTI user and course.
@@ -175,11 +171,11 @@ class BasicLaunchViews:
         )
         return course
 
-    def _configure_and_show_document(self, assignment):
+    def _configure_assignment(self, assignment):
         """
-        Prepare an assignment with new configuration and show it.
+        Prepare an assignment with new configuration.
 
-        The configuration  could be because we are creating this assignment
+        The configuration could be because we are creating this assignment
         for the first time or from an edit.
         """
         self.assignment_service.update_assignment(
@@ -189,7 +185,6 @@ class BasicLaunchViews:
             group_set_id=self.request.parsed_params.get("group_set"),
         )
 
-        return self._show_document(assignment)
 
     def _configure_js_for_file_picker(
         self, route: str = "configure_assignment"
