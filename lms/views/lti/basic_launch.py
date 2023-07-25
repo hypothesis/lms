@@ -38,9 +38,10 @@ class BasicLaunchViews:
         self.grouping_service: GroupingService = request.find_service(name="grouping")
         self.course_service: CourseService = request.find_service(name="course")
 
-        self.request.lti_user.application_instance.check_guid_aligns(
-            self.request.lti_params.get("tool_consumer_instance_guid")
-        )
+        self._guid = self.request.lti_params.get("tool_consumer_instance_guid")
+        self._resource_link_id = self.request.lti_params.get("resource_link_id")
+
+        self.request.lti_user.application_instance.check_guid_aligns(self._guid)
         self.course = self._record_course()
         self._record_launch()
 
@@ -74,10 +75,8 @@ class BasicLaunchViews:
     def reconfigure_assignment_config(self):
         """Return the data needed to re-configure an assignment."""
         assignment = self.assignment_service.get_assignment(
-            tool_consumer_instance_guid=self.request.lti_params[
-                "tool_consumer_instance_guid"
-            ],
-            resource_link_id=self.request.lti_params.get("resource_link_id"),
+            tool_consumer_instance_guid=self._guid,
+            resource_link_id=self._resource_link_id,
         )
         config = self._configure_js_for_file_picker(route="edit_assignment")
         return {
@@ -106,10 +105,8 @@ class BasicLaunchViews:
         and display it to the user.
         """
         assignment = self.assignment_service.create_assignment(
-            tool_consumer_instance_guid=self.request.lti_params[
-                "tool_consumer_instance_guid"
-            ],
-            resource_link_id=self.request.lti_params.get("resource_link_id"),
+            tool_consumer_instance_guid=self._guid,
+            resource_link_id=self._resource_link_id,
         )
 
         return self._configure_and_show_document(assignment)
@@ -123,10 +120,8 @@ class BasicLaunchViews:
     def edit_assignment_callback(self):
         """Edit the configuration of an existing assignment."""
         assignment = self.assignment_service.get_assignment(
-            tool_consumer_instance_guid=self.request.lti_params[
-                "tool_consumer_instance_guid"
-            ],
-            resource_link_id=self.request.lti_params.get("resource_link_id"),
+            tool_consumer_instance_guid=self._guid,
+            resource_link_id=self._resource_link_id,
         )
         self.request.registry.notify(
             LTIEvent(
