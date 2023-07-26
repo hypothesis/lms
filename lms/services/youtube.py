@@ -92,7 +92,7 @@ def factory(_context, request) -> YouTubeService:
     app_settings = request.registry.settings
 
     return YouTubeService(
-        enabled=ai_settings.get("youtube", "enabled"),
+        enabled=ai_settings.get("youtube", "enabled", True),
         api_key=app_settings.get("youtube_api_key"),
         http=request.find_service(name="http"),
     )
