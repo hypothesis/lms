@@ -42,6 +42,9 @@ class TestMiscPlugin:
 
         assert result == sentinel.document_url
 
+    def test_get_document_url_with_no_document(self, plugin, pyramid_request):
+        assert not plugin.get_document_url(pyramid_request, None, None)
+
     def test_get_deeplinking_launch_url(self, plugin, pyramid_request):
         assert (
             plugin.get_deeplinking_launch_url(pyramid_request, sentinel.config)
