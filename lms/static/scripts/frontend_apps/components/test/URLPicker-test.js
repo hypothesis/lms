@@ -99,7 +99,7 @@ describe('URLPicker', () => {
     {
       youtubeEnabled: false,
       expectedError:
-        'Annotating YouTube videos is not yet supported. This feature is coming soon.',
+        'Annotating YouTube videos has been disabled at your organisation.',
     },
   ].forEach(({ youtubeEnabled, expectedError }) => {
     it('does not invoke `onSelectURL` if URL is for a YouTube video', () => {

@@ -47,10 +47,12 @@ export default function URLPicker({
           setError('Please use a URL that starts with "http" or "https"');
         }
       } else if (isYouTubeURL(rawInputValue)) {
+        // TODO If YouTube is enabled, take the user to the right content picker instead of displaying an error
+        //      instructing how to do it manually
         setError(
           youtubeEnabled
             ? 'To annotate a video, go back and choose the YouTube option.'
-            : 'Annotating YouTube videos is not yet supported. This feature is coming soon.'
+            : 'Annotating YouTube videos has been disabled at your organisation.'
         );
       } else {
         onSelectURL(input.current!.value);
