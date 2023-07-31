@@ -38,6 +38,15 @@ class LTIGradingService:  # pragma: no cover
         self.line_item_url = line_item_url
         self.line_item_container_url = line_item_container_url
 
+    def get_score_maximum(self, resource_link_id):
+        """
+        Read the grading configuration of an assignment.
+
+        In LTI nomenclature this is reading the line item container.
+        :param resource_link_id: ID of the assignment on the LMS.
+        """
+        return None
+
     def read_result(self, grading_id):
         """
         Return the last-submitted score for a given submission.
