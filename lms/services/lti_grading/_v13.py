@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timezone
+from typing import Optional
 from urllib.parse import urlparse
 
 from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
@@ -46,6 +47,13 @@ class LTI13GradingService(LTIGradingService):
             return results[-1]["resultScore"] / results[-1]["resultMaximum"]
         except (TypeError, ZeroDivisionError, KeyError, IndexError):
             return None
+
+    def get_score_maximum(self, resource_link_id) -> Optional[float]:
+        config = self._read_grading_configuration(resource_link_id)
+        if config:
+            return config[0].get("scoreMaximum")
+
+        return None
 
     def record_result(self, grading_id, score=None, pre_record_hook=None):
         payload = {
@@ -116,6 +124,31 @@ class LTI13GradingService(LTIGradingService):
             json=payload,
             headers={"Content-Type": "application/vnd.ims.lis.v2.lineitem+json"},
         ).json()
+
+    def _read_grading_configuration(self, resource_link_id) -> list:
+        """
+        Read the grading configuration of an assignment.
+
+        In LTI nomenclature this is reading the line item container.
+        :param resource_link_id: ID of the assignment on the LMS.
+        """
+        try:
+            return self._ltia_service.request(
+                "GET",
+                self.line_item_container_url,
+                scopes=self.LTIA_SCOPES,
+                params={"resource_link_id": resource_link_id},
+                headers={"Accept": "application/vnd.ims.lis.v2.lineitemcontainer+json"},
+            ).json()
+
+        except ExternalRequestError as err:
+            LOG.info(
+                "Error while reading grading config for %s. %s",
+                resource_link_id,
+                str(err),
+            )
+
+        return []
 
     @staticmethod
     def _service_url(base_url, endpoint):

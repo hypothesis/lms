@@ -62,6 +62,29 @@ class TestLTI13GradingService:
 
         assert not svc.read_result(sentinel.user_id)
 
+    def test_get_score_maximum(self, svc, ltia_http_service):
+        ltia_http_service.request.return_value.json.return_value = [
+            {"scoreMaximum": sentinel.score_max}
+        ]
+
+        score = svc.get_score_maximum(sentinel.resource_link_id)
+
+        ltia_http_service.request.assert_called_once_with(
+            "GET",
+            "http://example.com/linesitems",
+            scopes=svc.LTIA_SCOPES,
+            params={"resource_link_id": sentinel.resource_link_id},
+            headers={"Accept": "application/vnd.ims.lis.v2.lineitemcontainer+json"},
+        )
+        assert score == sentinel.score_max
+
+    def test_get_score_maximum_with_error(self, svc, ltia_http_service):
+        ltia_http_service.request.side_effect = ExternalRequestError(
+            response=Mock(status_code=500)
+        )
+
+        assert not svc.get_score_maximum(sentinel.resource_link_id)
+
     @freeze_time("2022-04-04")
     def test_record_result(self, svc, ltia_http_service):
         svc.line_item_url = "https://lms.com/lineitems?param=1"
