@@ -12,13 +12,18 @@ from other types of launch request (other "message types") but our code
 doesn't actually require basic launch requests to have this parameter.
 """
 
+import logging
+
 from pyramid.view import view_config, view_defaults
 
 from lms.events import LTIEvent
 from lms.product.plugin.misc import MiscPlugin
 from lms.security import Permissions
+from lms.services import LTIGradingService
 from lms.services.assignment import AssignmentService
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
+
+LOG = logging.getLogger(__name__)
 
 
 @view_defaults(
@@ -175,7 +180,18 @@ class BasicLaunchViews:
                         "lis_outcome_service_url"
                     ],
                 )
-                # Display them in the toolbar
+
+                # Refresh the max score for this assignment
+                score_maximum = self.request.find_service(
+                    LTIGradingService
+                ).get_score_maximum(assignment.resource_link_id)
+                LOG.debug(
+                    "Score maximum for %s: %s",
+                    assignment.resource_link_id,
+                    score_maximum,
+                )
+
+                # Display the grading interface in the toolbar
                 self.context.js_config.enable_toolbar_grading(students)
 
             if not self.request.lti_user.is_instructor:

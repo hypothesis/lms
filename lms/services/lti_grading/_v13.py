@@ -52,11 +52,7 @@ class LTI13GradingService(LTIGradingService):
             return None
 
     def get_score_maximum(self, resource_link_id) -> Optional[float]:
-        config = self._read_grading_configuration(resource_link_id)
-        if config:
-            return config[0].get("scoreMaximum")
-
-        return None
+        return self._read_grading_configuration(resource_link_id).get("scoreMaximum")
 
     def record_result(self, grading_id, score=None, pre_record_hook=None):
         payload = {
@@ -128,15 +124,16 @@ class LTI13GradingService(LTIGradingService):
             headers={"Content-Type": "application/vnd.ims.lis.v2.lineitem+json"},
         ).json()
 
-    def _read_grading_configuration(self, resource_link_id) -> list:
+    def _read_grading_configuration(self, resource_link_id) -> dict:
         """
         Read the grading configuration of an assignment.
 
         In LTI nomenclature this is reading the line item container.
         :param resource_link_id: ID of the assignment on the LMS.
         """
+        containers = []
         try:
-            return self._ltia_service.request(
+            containers = self._ltia_service.request(
                 "GET",
                 self.line_item_container_url,
                 scopes=self.LTIA_SCOPES,
@@ -151,7 +148,12 @@ class LTI13GradingService(LTIGradingService):
                 str(err),
             )
 
-        return []
+        # Only return the container relevant for the current launch
+        for container in containers:
+            if container["id"] == self.line_item_url:
+                return container
+
+        return {}
 
     @staticmethod
     def _service_url(base_url, endpoint):

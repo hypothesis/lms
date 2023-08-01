@@ -250,6 +250,7 @@ class TestBasicLaunchViews:
         is_gradable,
         is_instructor,
         grading_info_service,
+        lti_grading_service,
     ):
         assignment = factories.Assignment(is_gradable=is_gradable)
         if is_instructor:
@@ -274,6 +275,11 @@ class TestBasicLaunchViews:
                     resource_link_id="TEST_RESOURCE_LINK_ID",
                     lis_outcome_service_url=sentinel.grading_url,
                 )
+
+                lti_grading_service.get_score_maximum.assert_called_once_with(
+                    assignment.resource_link_id
+                )
+
                 context.js_config.enable_toolbar_grading.assert_called_once_with(
                     students=grading_info_service.get_students_for_grading.return_value
                 )

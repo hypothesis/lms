@@ -38,7 +38,7 @@ class LTIGradingService:  # pragma: no cover
         self.line_item_url = line_item_url
         self.line_item_container_url = line_item_container_url
 
-    def get_score_maximum(self, resource_link_id):
+    def get_score_maximum(self, resource_link_id):  # pylint:disable=unused-argument
         """
         Read the grading configuration of an assignment.
 

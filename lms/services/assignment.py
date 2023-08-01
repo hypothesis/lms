@@ -1,3 +1,4 @@
+import logging
 from typing import List, Optional
 
 from sqlalchemy.orm import Session
@@ -11,6 +12,8 @@ from lms.models import (
     User,
 )
 from lms.services.upsert import bulk_upsert
+
+LOG = logging.getLogger(__name__)
 
 
 class AssignmentService:
@@ -53,7 +56,6 @@ class AssignmentService:
         assignment.title = lti_params.get("resource_link_title")
         assignment.description = lti_params.get("resource_link_description")
         assignment.is_gradable = self._misc_plugin.is_assignment_gradable(lti_params)
-
         return assignment
 
     def update_assignment(self, request, assignment, document_url, group_set_id):
