@@ -22,7 +22,7 @@
   "dependencies": {
     "@babel/core": "^7.22.9",
     "@babel/preset-env": "^7.22.4",
-    "@babel/preset-react": "^7.22.3",
+    "@babel/preset-react": "^7.22.5",
     "@babel/preset-typescript": "^7.21.5",
     "@hypothesis/frontend-build": "^2.2.0",
     "@hypothesis/frontend-shared": "^6.1.1",
