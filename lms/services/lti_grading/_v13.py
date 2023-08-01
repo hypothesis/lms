@@ -15,6 +15,9 @@ class LTI13GradingService(LTIGradingService):
 
     LTIA_SCOPES = [
         "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
+        # Although this is implied by scope/lineitem according to the spec
+        # Moodle requires this one explicitly for the GET
+        "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly",
         "https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly",
         "https://purl.imsglobal.org/spec/lti-ags/scope/score",
     ]
