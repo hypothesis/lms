@@ -64,14 +64,15 @@ class TestLTI13GradingService:
 
     def test_get_score_maximum(self, svc, ltia_http_service):
         ltia_http_service.request.return_value.json.return_value = [
-            {"scoreMaximum": sentinel.score_max}
+            {"scoreMaximum": sentinel.score_max, "id": svc.line_item_url},
+            {"scoreMaximum": 1, "id": sentinel.other_lineitem},
         ]
 
         score = svc.get_score_maximum(sentinel.resource_link_id)
 
         ltia_http_service.request.assert_called_once_with(
             "GET",
-            "http://example.com/linesitems",
+            "http://example.com/lineitems",
             scopes=svc.LTIA_SCOPES,
             params={"resource_link_id": sentinel.resource_link_id},
             headers={"Accept": "application/vnd.ims.lis.v2.lineitemcontainer+json"},
@@ -82,6 +83,13 @@ class TestLTI13GradingService:
         ltia_http_service.request.side_effect = ExternalRequestError(
             response=Mock(status_code=500)
         )
+
+        assert svc.get_score_maximum(sentinel.resource_link_id) is None
+
+    def test_get_score_maximum_no_line_item(self, svc, ltia_http_service):
+        ltia_http_service.request.return_value.json.return_value = [
+            {"scoreMaximum": sentinel.score_max, "id": sentinel.other_lineitem}
+        ]
 
         assert not svc.get_score_maximum(sentinel.resource_link_id)
 
@@ -196,6 +204,6 @@ class TestLTI13GradingService:
     def svc(self, ltia_http_service):
         return LTI13GradingService(
             "http://example.com/lineitem",
-            "http://example.com/linesitems",
+            "http://example.com/lineitems",
             ltia_http_service,
         )
