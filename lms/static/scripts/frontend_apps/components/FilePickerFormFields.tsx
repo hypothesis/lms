@@ -15,6 +15,9 @@ export type FilePickerFormFieldsProps = {
    * if group sets have been disabled.
    */
   groupSet: string | null;
+
+  /** Assignment title chosen by the user, if supported by the current LMS. */
+  title: string | null;
 };
 
 /**
@@ -30,6 +33,7 @@ export type FilePickerFormFieldsProps = {
  *    See the `configure_assignment` view.
  */
 export default function FilePickerFormFields({
+  title,
   content,
   formFields,
   groupSet,
@@ -45,6 +49,7 @@ export default function FilePickerFormFields({
         // view. Used in LMSes where assignments are configured on first launch.
         <input name="document_url" type="hidden" value={content.url} />
       )}
+      {title !== null && <input type="hidden" name="title" value={title} />}
     </>
   );
 }

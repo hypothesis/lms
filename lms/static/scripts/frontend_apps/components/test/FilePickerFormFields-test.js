@@ -15,6 +15,7 @@ describe('FilePickerFormFields', () => {
         content={{ type: 'url', url: 'https://testsite.example/' }}
         formFields={staticFormFields}
         groupSet={null}
+        title={null}
         {...props}
       />
     );
@@ -62,5 +63,15 @@ describe('FilePickerFormFields', () => {
     const documentURLField = formFields.find('input[name="document_url"]');
     assert.isTrue(documentURLField.exists());
     assert.equal(documentURLField.prop('value'), 'https://example.com/');
+  });
+
+  it('renders `title` field if `title` prop is set', () => {
+    const formFields = createComponent({
+      content: { type: 'url', url: 'https://example.com/' },
+      title: 'Example assignment',
+    });
+    const titleField = formFields.find('input[name="title"]');
+    assert.isTrue(titleField.exists());
+    assert.equal(titleField.prop('value'), 'Example assignment');
   });
 });

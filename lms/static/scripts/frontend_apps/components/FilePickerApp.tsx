@@ -7,6 +7,7 @@ import {
   CardHeader,
   Link,
   LinkButton,
+  Input,
   Scroll,
   SpinnerOverlay,
 } from '@hypothesis/frontend-shared';
@@ -20,6 +21,7 @@ import type { ConfigObject } from '../config';
 import { apiCall } from '../utils/api';
 import type { Content, URLContent } from '../utils/content-item';
 import { truncateURL } from '../utils/format';
+import { useUniqueId } from '../utils/hooks';
 import ContentSelector from './ContentSelector';
 import ErrorModal from './ErrorModal';
 import FilePickerFormFields from './FilePickerFormFields';
@@ -37,7 +39,11 @@ export type FilePickerAppProps = {
 };
 
 /* A step or 'screen' of the assignment configuration */
-type PickerStep = 'content-selection' | 'group-configuration';
+type PickerStep =
+  | 'content-selection'
+  // Final screen where the settings for the assignment are shown, and also
+  // additional settings which don't need a whole screen.
+  | 'details';
 
 /**
  * For URL content, show the most meaningful explanation of the content we can
@@ -153,7 +159,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       settings: { groupsEnabled: enableGroupConfig },
     },
     assignment,
-    filePicker: { deepLinkingAPI, formAction, formFields },
+    filePicker: { deepLinkingAPI, formAction, formFields, promptForTitle },
   } = useConfig(['filePicker']);
 
   // Currently selected content for assignment.
@@ -166,22 +172,29 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   // True if we are editing an existing assignment configuration.
   const isEditing = !!assignment;
 
+  // Whether there are additional configuration options to present after the
+  // user has selected the content for the assignment.
+  const showDetailsScreen = enableGroupConfig || promptForTitle;
+
   let currentStep: PickerStep;
   if (editingContent) {
     currentStep = 'content-selection';
   } else if (isEditing) {
-    currentStep = 'group-configuration';
+    currentStep = 'details';
   } else {
     currentStep =
-      content && enableGroupConfig
-        ? 'group-configuration'
-        : 'content-selection';
+      content && showDetailsScreen ? 'details' : 'content-selection';
   }
 
   const [groupConfig, setGroupConfig] = useState<GroupConfig>({
     useGroupSet: !!assignment?.group_set_id,
     groupSet: assignment?.group_set_id ?? null,
   });
+
+  const [title, setTitle] = useState(
+    promptForTitle ? 'Hypothesis assignment' : null
+  );
+  const titleInputId = useUniqueId('title-input');
 
   const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null);
 
@@ -261,11 +274,11 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
 
       // If this is a new assignment and the only choice the user has to make
       // is the content, we submit as soon as they select the content.
-      if (!isEditing && !enableGroupConfig) {
+      if (!isEditing && !showDetailsScreen) {
         submit(content);
       }
     },
-    [enableGroupConfig, isEditing, submit]
+    [isEditing, showDetailsScreen, submit]
   );
 
   return (
@@ -332,8 +345,24 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                     />
                   )}
                 </div>
-                {currentStep === 'group-configuration' && (
+                {currentStep === 'details' && (
                   <>
+                    {typeof title === 'string' && (
+                      <>
+                        <div className="sm:col-span-2 border-b" />
+                        <PanelLabel isCurrentStep={true}>Title</PanelLabel>
+                        <Input
+                          data-testid="title-input"
+                          id={titleInputId}
+                          name="Title"
+                          onInput={(e: Event) =>
+                            setTitle((e.target as HTMLInputElement).value)
+                          }
+                          placeholder="Hypothesis assignment"
+                          value={title}
+                        />
+                      </>
+                    )}
                     <div className="sm:col-span-2 border-b" />
                     <PanelLabel isCurrentStep={true}>
                       Group assignment
@@ -357,9 +386,8 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
             </CardContent>
           </Scroll>
           {
-            // See comments in `selectContent` about auto-submitting form if
-            // this is a new assignment and groups are not available.
-            (editingContent || currentStep === 'group-configuration') && (
+            // See comments in `selectContent` about auto-submitting form.
+            (editingContent || currentStep === 'details') && (
               <CardContent size="lg">
                 <CardActions>
                   {editingContent && (
@@ -388,6 +416,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
           }
           {content && (
             <FilePickerFormFields
+              title={title}
               content={content}
               formFields={{ ...formFields, ...deepLinkingFields }}
               groupSet={groupConfig.useGroupSet ? groupConfig.groupSet : null}
