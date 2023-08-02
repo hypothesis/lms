@@ -371,7 +371,9 @@ class TestEnableInstructorToolbar:
         enable_grading,
     ):
         js_config.enable_instructor_toolbar(
-            enable_editing=enable_editing, enable_grading=enable_grading
+            enable_editing=sentinel.editing,
+            enable_grading=sentinel.grading,
+            students=sentinel.students,
         )
 
         expected_students = None
@@ -387,11 +389,11 @@ class TestEnableInstructorToolbar:
             )
 
         assert js_config.asdict()["instructorToolbar"] == {
-            "editingEnabled": enable_editing,
-            "gradingEnabled": enable_grading,
+            "editingEnabled": sentinel.editing,
+            "gradingEnabled": sentinel.grading,
             "courseName": pyramid_request.lti_params["context_title"],
             "assignmentName": pyramid_request.lti_params["resource_link_title"],
-            "students": expected_students,
+            "students": sentinel.students,
         }
 
     @pytest.fixture(autouse=True)
