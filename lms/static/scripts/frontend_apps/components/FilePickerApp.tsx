@@ -128,17 +128,23 @@ function PanelLabel({
   children,
   description,
   isCurrentStep,
+  verticalAlign = 'top',
 }: {
   children: ComponentChildren;
   description?: ComponentChildren;
   isCurrentStep: boolean;
+  verticalAlign?: 'top' | 'center';
 }) {
   return (
-    <div className="space-y-1.5 leading-none">
+    <div
+      className={classnames('space-y-1.5 leading-none', {
+        'flex flex-col justify-center': verticalAlign === 'center',
+      })}
+    >
       <div className="sm:text-end font-medium text-slate-600 uppercase">
         {children}
       </div>
-      {isCurrentStep && (
+      {isCurrentStep && description && (
         <div className="sm:text-end font-normal text-stone-500">
           {description}
         </div>
@@ -350,7 +356,9 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                     {typeof title === 'string' && (
                       <>
                         <div className="sm:col-span-2 border-b" />
-                        <PanelLabel isCurrentStep={true}>Title</PanelLabel>
+                        <PanelLabel isCurrentStep={true} verticalAlign="center">
+                          Title
+                        </PanelLabel>
                         <Input
                           data-testid="title-input"
                           id={titleInputId}
