@@ -323,7 +323,7 @@ class JSConfig:
         }
 
     def set_focused_user(self, focused_user):
-        """Configure the client to only show one users' annotations."""
+        """Configure the client to only show one users' annotations while an instructor is in SpeedGrader."""
         self._hypothesis_client["focus"] = {"user": {"username": focused_user}}
 
         # Unfortunately we need to pass the user's current display name to the
