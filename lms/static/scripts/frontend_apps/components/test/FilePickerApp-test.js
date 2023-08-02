@@ -50,6 +50,7 @@ describe('FilePickerApp', () => {
       filePicker: {
         formAction: 'https://www.shinylms.com/',
         formFields: { hidden_field: 'hidden_value' },
+        promptForTitle: false,
       },
     };
 
@@ -69,16 +70,15 @@ describe('FilePickerApp', () => {
    */
   function checkFormFields(
     wrapper,
-    expectedContent,
-    expectedGroupSet,
-    extraFormFields = {}
+    { content, groupSet = null, formFields = {}, title = null }
   ) {
-    const formFields = wrapper.find('FilePickerFormFields');
-    assert.deepEqual(formFields.props(), {
+    const fieldsComponent = wrapper.find('FilePickerFormFields');
+    assert.deepEqual(fieldsComponent.props(), {
       children: [],
-      content: expectedContent,
-      formFields: { ...fakeConfig.filePicker.formFields, ...extraFormFields },
-      groupSet: expectedGroupSet,
+      content,
+      formFields: { ...fakeConfig.filePicker.formFields, ...formFields },
+      groupSet,
+      title,
     });
   }
 
@@ -120,7 +120,7 @@ describe('FilePickerApp', () => {
     });
   }
 
-  context('when groups are not enabled', () => {
+  context('when only content needs to be selected', () => {
     it('submits form when content is selected', () => {
       const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
       const wrapper = renderFilePicker({ onSubmit });
@@ -128,14 +128,12 @@ describe('FilePickerApp', () => {
       selectContent(wrapper, 'https://example.com');
 
       assert.called(onSubmit);
-      checkFormFields(
-        wrapper,
-        {
+      checkFormFields(wrapper, {
+        content: {
           type: 'url',
           url: 'https://example.com',
         },
-        null /* groupSet */
-      );
+      });
     });
 
     it('shows activity indicator when form is submitted', () => {
@@ -192,15 +190,13 @@ describe('FilePickerApp', () => {
       await waitFor(() => onSubmit.called, 100);
 
       wrapper.update();
-      checkFormFields(
-        wrapper,
-        {
+      checkFormFields(wrapper, {
+        content: {
           type: 'url',
           url: 'https://example.com',
         },
-        null /* groupSet */,
-        fakeFormFields
-      );
+        formFields: fakeFormFields,
+      });
     });
 
     it('shows an error if the deepLinkingAPI call fails', async () => {
@@ -222,18 +218,29 @@ describe('FilePickerApp', () => {
     });
   });
 
-  context('when group configuration is enabled', () => {
-    beforeEach(() => {
-      fakeConfig.product.settings.groupsEnabled = true;
-    });
+  [
+    {
+      initConfig: () => (fakeConfig.product.settings.groupsEnabled = true),
+    },
+    {
+      initConfig: () => (fakeConfig.filePicker.promptForTitle = true),
+    },
+  ].forEach(({ initConfig }) => {
+    it('does not auto-submit form if details screen is enabled', () => {
+      initConfig();
 
-    it('does not submit form when content is selected', () => {
       const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
       const wrapper = renderFilePicker({ onSubmit });
 
       selectContent(wrapper, 'https://example.com');
 
       assert.notCalled(onSubmit);
+    });
+  });
+
+  context('when details screen is enabled', () => {
+    beforeEach(() => {
+      fakeConfig.product.settings.groupsEnabled = true;
     });
 
     [
@@ -314,6 +321,32 @@ describe('FilePickerApp', () => {
       );
     });
 
+    describe('when `promptForTitle` is enabled', () => {
+      beforeEach(() => {
+        fakeConfig.filePicker.promptForTitle = true;
+      });
+
+      it('displays "Title" input on details screen', () => {
+        const wrapper = renderFilePicker();
+        selectContent(wrapper, 'https://example.com');
+        const titleInput = wrapper.find('input[data-testid="title-input"]');
+        assert.isTrue(titleInput.exists());
+        assert.equal(titleInput.getDOMNode().value, 'Hypothesis assignment');
+      });
+
+      it('includes title when submitting form', () => {
+        const wrapper = renderFilePicker();
+        selectContent(wrapper, 'https://example.com');
+
+        const titleInput = wrapper.find('input[data-testid="title-input"]');
+        titleInput.getDOMNode().value = 'Example assignment';
+        titleInput.simulate('input');
+
+        const formFields = wrapper.find('FilePickerFormFields');
+        assert.equal(formFields.prop('title'), 'Example assignment');
+      });
+    });
+
     [true, false].forEach(useGroupSet => {
       it('submits form when "Continue" button is clicked', () => {
         const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
@@ -328,14 +361,13 @@ describe('FilePickerApp', () => {
         });
 
         assert.called(onSubmit);
-        checkFormFields(
-          wrapper,
-          {
+        checkFormFields(wrapper, {
+          content: {
             type: 'url',
             url: 'https://example.com',
           },
-          useGroupSet ? 'groupSet1' : null
-        );
+          groupSet: useGroupSet ? 'groupSet1' : null,
+        });
       });
     });
 
