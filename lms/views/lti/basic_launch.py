@@ -15,7 +15,7 @@ doesn't actually require basic launch requests to have this parameter.
 from pyramid.view import view_config, view_defaults
 
 from lms.events import LTIEvent
-from lms.product import Product
+from lms.product.plugin.grading import GradingPlugin
 from lms.security import Permissions
 from lms.services.assignment import AssignmentService
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
@@ -30,6 +30,8 @@ class BasicLaunchViews:
     def __init__(self, context, request):
         self.context = context
         self.request = request
+
+        self._grading_plugin: GradingPlugin = request.product.plugin.grading
         self.assignment_service: AssignmentService = request.find_service(
             name="assignment"
         )
@@ -37,8 +39,10 @@ class BasicLaunchViews:
         self._resource_link_id = self.request.lti_params.get("resource_link_id")
 
         self.request.lti_user.application_instance.check_guid_aligns(self._guid)
+        self.request.find_service(name="application_instance").update_from_lti_params(
+            self.request.lti_user.application_instance, self.request.lti_params
+        )
         self.course = self._record_course()
-        self._record_launch()
 
     @view_config(
         route_name="lti_launches",
@@ -152,8 +156,14 @@ class BasicLaunchViews:
             assignment, groupings=[self.course]
         )
 
+        # Set up grading
+        self._grading_plugin.configure_grading_for_launch(
+            self.request, self.context.js_config, assignment
+        )
+
         # Set up the JS config for the front-end
-        self._configure_js_to_show_document(assignment)
+        self.context.js_config.add_document_url(assignment.document_url)
+        self.context.js_config.enable_lti_launch_mode(self.course, assignment)
 
         return {}
 
@@ -203,52 +213,3 @@ class BasicLaunchViews:
                 authorization=self.context.js_config.auth_token
             ),
         )
-
-    def _configure_js_to_show_document(self, assignment):
-        if self.request.product.family == Product.Family.CANVAS:
-            # For students in Canvas with grades to submit we need to enable
-            # Speedgrader settings for gradable assignments
-            # `lis_result_sourcedid` associates a specific user with an
-            # assignment.
-            if (
-                assignment.is_gradable
-                and self.request.lti_user.is_learner
-                and self.request.lti_params.get("lis_result_sourcedid")
-            ):
-                self.context.js_config.add_canvas_speedgrader_settings(
-                    assignment.document_url
-                )
-
-            # We add a `focused_user` query param to the SpeedGrader LTI launch
-            # URLs we submit to Canvas for each student when the student
-            # launches an assignment. Later, Canvas uses these URLs to launch
-            # us when a teacher grades the assignment in SpeedGrader.
-            if focused_user := self.request.params.get("focused_user"):
-                self.context.js_config.set_focused_user(focused_user)
-
-        elif self.request.lti_user.is_instructor:
-            # nb. Canvas does not currently use/support any functionality from the
-            # instructor toolbar. For grading it uses SpeedGrader and we don't
-            # support editing assignments.
-            self.context.js_config.enable_instructor_toolbar(
-                enable_grading=assignment.is_gradable
-            )
-
-        self.context.js_config.add_document_url(assignment.document_url)
-        self.context.js_config.enable_lti_launch_mode(self.course, assignment)
-
-    def _record_launch(self):
-        """Persist launch type independent info to the DB."""
-
-        self.request.find_service(name="application_instance").update_from_lti_params(
-            self.request.lti_user.application_instance, self.request.lti_params
-        )
-
-        if (
-            not self.request.lti_user.is_instructor
-            and self.request.product.family != Product.Family.CANVAS
-        ):
-            # Create or update a record of LIS result data for a student launch
-            self.request.find_service(name="grading_info").upsert_from_request(
-                self.request
-            )

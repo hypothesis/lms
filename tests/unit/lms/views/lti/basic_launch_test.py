@@ -4,7 +4,6 @@ from unittest.mock import patch, sentinel
 import pytest
 
 from lms.models import LTIParams
-from lms.product import Product
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.security import Permissions
@@ -20,10 +19,17 @@ from tests import factories
     "lti_h_service",
     "lti_role_service",
     "grouping_service",
+    "grading_plugin",
 )
 class TestBasicLaunchViews:
     def test___init___(
-        self, context, pyramid_request, grouping_service, course_service
+        self,
+        context,
+        pyramid_request,
+        grouping_service,
+        course_service,
+        application_instance_service,
+        lti_user,
     ):
         BasicLaunchViews(context, pyramid_request)
 
@@ -36,45 +42,12 @@ class TestBasicLaunchViews:
             groups=[course_service.get_from_launch.return_value],
         )
 
-        # `_record_launch()`
         pyramid_request.lti_user.application_instance.check_guid_aligns.assert_called_once_with(
             pyramid_request.lti_params["tool_consumer_instance_guid"]
         )
-
-    @pytest.mark.usefixtures("user_is_learner")
-    def test__init__stores_data(
-        self,
-        context,
-        pyramid_request,
-        grading_info_service,
-        application_instance_service,
-        lti_user,
-    ):
-        BasicLaunchViews(context, pyramid_request)
-
         application_instance_service.update_from_lti_params.assert_called_once_with(
             lti_user.application_instance, pyramid_request.lti_params
         )
-
-        grading_info_service.upsert_from_request.assert_called_once_with(
-            pyramid_request
-        )
-
-    @pytest.mark.usefixtures("user_is_instructor")
-    def test__init___doesnt_update_grading_info_for_instructors(
-        self, context, pyramid_request, grading_info_service
-    ):
-        BasicLaunchViews(context, pyramid_request)
-
-        grading_info_service.upsert_from_request.assert_not_called()
-
-    @pytest.mark.usefixtures("user_is_learner", "with_canvas")
-    def test__init___doesnt_update_grading_info_for_canvas(
-        self, context, pyramid_request, grading_info_service
-    ):
-        BasicLaunchViews(context, pyramid_request)
-
-        grading_info_service.upsert_from_request.assert_not_called()
 
     def test_configure_assignment_callback(
         self, svc, pyramid_request, _show_document, assignment_service
@@ -232,6 +205,7 @@ class TestBasicLaunchViews:
         lti_user,
         course_service,
         assignment,
+        grading_plugin,
     ):
         # pylint: disable=protected-access
         result = svc._show_document(assignment)
@@ -240,7 +214,6 @@ class TestBasicLaunchViews:
             [course_service.get_from_launch.return_value], pyramid_request.lti_params
         )
 
-        # `_record_assignment()`
         assignment_service.upsert_assignment_membership.assert_called_once_with(
             assignment=assignment,
             user=pyramid_request.user,
@@ -250,135 +223,22 @@ class TestBasicLaunchViews:
             assignment, groupings=[course_service.get_from_launch.return_value]
         )
 
+        grading_plugin.configure_grading_for_launch.assert_called_once_with(
+            pyramid_request, context.js_config, assignment
+        )
+
         context.js_config.enable_lti_launch_mode.assert_called_once_with(
             course_service.get_from_launch.return_value, assignment
         )
-        context.js_config.set_focused_user.assert_not_called()
         context.js_config.add_document_url.assert_called_once_with(
             assignment.document_url
         )
 
         assert result == {}
 
-    @pytest.mark.usefixtures("with_canvas")
-    def test__show_document_focuses_on_users(
-        self, svc, pyramid_request, context, assignment
-    ):
-        pyramid_request.params["focused_user"] = sentinel.focused_user
-
-        svc._show_document(assignment)  # pylint: disable=protected-access
-
-        context.js_config.set_focused_user.assert_called_once_with(
-            sentinel.focused_user
-        )
-
-    def test__show_document_focuses_on_users_only_for_canvas(
-        self, svc, pyramid_request, context, assignment
-    ):
-        pyramid_request.params["focused_user"] = sentinel.focused_user
-
-        svc._show_document(assignment)  # pylint: disable=protected-access
-
-        context.js_config.set_focused_user.assert_not_called()
-
-    @pytest.mark.usefixtures("user_is_instructor")
-    @pytest.mark.parametrize("is_gradable", [True, False])
-    def test__show_document_enables_instructor_toolbar_for_instructors(
-        self, svc, context, is_gradable
-    ):
-        assignment = factories.Assignment(is_gradable=is_gradable)
-
-        svc._show_document(assignment)  # pylint: disable=protected-access
-
-        context.js_config.enable_instructor_toolbar.assert_called_with(
-            enable_grading=is_gradable
-        )
-
-    @pytest.mark.usefixtures("user_is_learner")
-    def test__show_document_does_not_enable_instructor_toolbar_for_students(
-        self, svc, context, gradable_assignment
-    ):
-        svc._show_document(gradable_assignment)  # pylint: disable=protected-access
-
-        context.js_config.enable_instructor_toolbar.assert_not_called()
-
-    @pytest.mark.usefixtures("user_is_instructor", "with_canvas")
-    def test__show_document_does_not_enable_instructor_toolbar_in_canvas(
-        self,
-        svc,
-        context,
-        application_instance,
-        gradable_assignment,
-    ):
-        application_instance.settings.set(
-            "hypothesis", "edit_assignments_enabled", True
-        )
-
-        svc._show_document(gradable_assignment)  # pylint: disable=protected-access
-
-        context.js_config.enable_instructor_toolbar.assert_not_called()
-
-    @pytest.mark.usefixtures(
-        "with_canvas",
-        "with_student_grading_id",
-        "user_is_learner",
-    )
-    def test__show_document_enables_speedgrader_settings(
-        self, svc, context, gradable_assignment
-    ):
-        svc._show_document(gradable_assignment)  # pylint: disable=protected-access
-
-        context.js_config.add_canvas_speedgrader_settings.assert_called_once_with(
-            gradable_assignment.document_url
-        )
-
-    @pytest.mark.usefixtures("with_student_grading_id")
-    def test__show_document_no_speedgrader_without_canvas(
-        self, svc, context, gradable_assignment
-    ):
-        svc._show_document(gradable_assignment)  # pylint: disable=protected-access
-
-        context.js_config.add_canvas_speedgrader_settings.assert_not_called()
-
-    @pytest.mark.usefixtures(
-        "with_canvas", "with_student_grading_id", "user_is_instructor"
-    )
-    def test__show_document_no_speedgrader_with_instructor(
-        self, svc, context, gradable_assignment
-    ):
-        svc._show_document(gradable_assignment)  # pylint: disable=protected-access
-
-        context.js_config.add_canvas_speedgrader_settings.assert_not_called()
-
-    @pytest.mark.usefixtures("with_canvas", "with_student_grading_id")
-    def test__show_document_no_speedgrader_without_gradable_assignment(
-        self, svc, context, assignment
-    ):
-        svc._show_document(assignment)  # pylint: disable=protected-access
-
-        context.js_config.add_canvas_speedgrader_settings.assert_not_called()
-
-    @pytest.mark.usefixtures("with_canvas")
-    def test__show_document_no_speedgrader_without_grading_id(
-        self, svc, context, gradable_assignment
-    ):
-        svc._show_document(gradable_assignment)  # pylint: disable=protected-access
-
-        context.js_config.add_canvas_speedgrader_settings.assert_not_called()
-
-    @pytest.fixture
-    def gradable_assignment(self):
-        return factories.Assignment(is_gradable=True)
-
     @pytest.fixture
     def assignment(self):
         return factories.Assignment(is_gradable=False)
-
-    @pytest.fixture
-    def with_student_grading_id(self, pyramid_request):
-        # This shows that a student has launched the assignment and a grade
-        # is assignable to them
-        pyramid_request.lti_params["lis_result_sourcedid"] = "9083745892345834h5"
 
     @pytest.fixture
     def svc(self, context, pyramid_request):
@@ -388,10 +248,6 @@ class TestBasicLaunchViews:
     def _show_document(self, svc):
         with mock.patch.object(svc, "_show_document") as _show_document:
             yield _show_document
-
-    @pytest.fixture
-    def with_canvas(self, pyramid_request):
-        pyramid_request.product.family = Product.Family.CANVAS
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from lms.product.plugin.course_copy import CourseCopyPlugin
+from lms.product.plugin.grading import GradingPlugin
 from lms.product.plugin.grouping import GroupingPlugin
 from lms.product.plugin.misc import MiscPlugin
 
@@ -10,6 +11,7 @@ class PluginConfig:
     """A collection of plugin class definitions."""
 
     # These also provide the default implementations
+    grading: type = GradingPlugin
     grouping: type = GroupingPlugin
     course_copy: type = CourseCopyPlugin
     misc: type = MiscPlugin
@@ -33,6 +35,7 @@ class Plugins:
 
     grouping: GroupingPlugin = _LazyPlugin()
     course_copy: CourseCopyPlugin = _LazyPlugin()
+    grading: GradingPlugin = _LazyPlugin()
     misc: MiscPlugin = _LazyPlugin()
 
     def __init__(self, request, plugin_config: PluginConfig):
