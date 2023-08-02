@@ -20,10 +20,11 @@ class CanvasGradingPlugin:
         ):
             js_config.add_canvas_speedgrader_settings(assignment.document_url)
 
-        # We add a `focused_user` query param to the SpeedGrader LTI launch
-        # URLs we submit to Canvas for each student when the student
-        # launches an assignment. Later, Canvas uses these URLs to launch
-        # us when a teacher grades the assignment in SpeedGrader.
+        # We add a `focused_user` query param to the LTI launch URL
+        # we send to canvas with student submissions.
+        # Later, when Canvas uses these URLs to launch
+        # us when a teacher grades the assignment in SpeedGrader we read that value and
+        # filter the annotations on the client to only show the ones by that student.
         if focused_user := request.params.get("focused_user"):
             js_config.set_focused_user(focused_user)
 
