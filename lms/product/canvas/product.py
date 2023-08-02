@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from lms.product.canvas._plugin.course_copy import CanvasCourseCopyPlugin
+from lms.product.canvas._plugin.grading import CanvasGradingPlugin
 from lms.product.canvas._plugin.grouping import CanvasGroupingPlugin
 from lms.product.canvas._plugin.misc import CanvasMiscPlugin
 from lms.product.product import PluginConfig, Product, Routes
@@ -18,6 +19,7 @@ class Canvas(Product):
     )
 
     plugin_config: PluginConfig = PluginConfig(
+        grading=CanvasGradingPlugin,
         grouping=CanvasGroupingPlugin,
         course_copy=CanvasCourseCopyPlugin,
         misc=CanvasMiscPlugin,

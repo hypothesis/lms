@@ -1,4 +1,5 @@
 from lms.product.canvas._plugin.course_copy import CanvasCourseCopyPlugin
+from lms.product.canvas._plugin.grading import CanvasGradingPlugin
 from lms.product.canvas._plugin.grouping import CanvasGroupingPlugin
 from lms.product.canvas._plugin.misc import CanvasMiscPlugin
 from lms.product.canvas.product import Canvas
@@ -7,6 +8,9 @@ from lms.product.canvas.product import Canvas
 def includeme(config):  # pragma: nocover
     """Register all of our plugins."""
 
+    config.register_service_factory(
+        CanvasGradingPlugin.factory, iface=CanvasGradingPlugin
+    )
     config.register_service_factory(
         CanvasGroupingPlugin.factory, iface=CanvasGroupingPlugin
     )

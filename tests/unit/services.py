@@ -7,6 +7,7 @@ from lms.product.plugin.course_copy import (
     CourseCopyGroupsHelper,
     CourseCopyPlugin,
 )
+from lms.product.plugin.grading import GradingPlugin
 from lms.product.plugin.grouping import GroupingPlugin
 from lms.product.plugin.misc import MiscPlugin
 from lms.services import CanvasService, LTIRoleService, OrganizationService
@@ -90,6 +91,7 @@ __all__ = (
     "email_unsubscribe_service",
     "youtube_service",
     # Product plugins
+    "grading_plugin",
     "grouping_plugin",
     "course_copy_plugin",
     "course_copy_files_helper",
@@ -350,6 +352,11 @@ def course_copy_groups_helper(mock_service):
 @pytest.fixture
 def course_copy_plugin(mock_service):
     return mock_service(CourseCopyPlugin)
+
+
+@pytest.fixture
+def grading_plugin(mock_service):
+    return mock_service(GradingPlugin)
 
 
 @pytest.fixture
