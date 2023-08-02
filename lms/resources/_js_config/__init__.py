@@ -292,14 +292,16 @@ class JSConfig:
         self._config.setdefault("filePicker", {})
         self._config["filePicker"]["deepLinkingAPI"] = config
 
-    def enable_instructor_toolbar(self, enable_editing=True, enable_grading=False):
+    def enable_instructor_toolbar(
+        self, enable_editing=True, enable_grading=False, students=None
+    ):
         """
         Enable the toolbar with controls for instructors in LMS assignments.
 
         :param enable_editing: Whether to enable controls for editing assignment configuration
         :param enable_grading: Whether to enable grading controls
+        :param students: When grading is enabled, list of students for the dropdown.
         """
-
         if enable_grading:
             # Get one student dict for each student who has launched the assignment
             # and had grading info recorded for them.
