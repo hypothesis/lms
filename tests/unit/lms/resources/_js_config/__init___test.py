@@ -394,13 +394,6 @@ class TestEnableInstructorToolbar:
             "students": expected_students,
         }
 
-    @pytest.fixture
-    def grading_info_service(self, grading_info_service):
-        grading_info_service.get_by_assignment.return_value = (
-            factories.GradingInfo.create_batch(3)
-        )
-        return grading_info_service
-
     @pytest.fixture(autouse=True)
     def pyramid_request(self, pyramid_request):
         pyramid_request.lti_params["resource_link_title"] = "test_assignment_name"
@@ -541,7 +534,7 @@ class TestAddDeepLinkingAPI:
             },
         }
 
-    @pytest.mark.usefixtures("with_lti_13")
+    @pytest.mark.usefixtures("lti_v13_application_instance")
     def test_it_adds_deep_linking_v13(self, js_config, pyramid_request):
         pyramid_request.lti_params.update(
             {
@@ -658,10 +651,3 @@ def GroupInfo(patch):
     group_info_class = patch("lms.resources._js_config.GroupInfo")
     group_info_class.columns.return_value = ["context_id", "custom_canvas_course_id"]
     return group_info_class
-
-
-@pytest.fixture
-def with_lti_13(application_instance):
-    # Make the application instance `lti_version` return "1.3.0"
-    application_instance.lti_registration_id = sentinel.registration_id
-    application_instance.deployment_id = sentinel.deployment_id

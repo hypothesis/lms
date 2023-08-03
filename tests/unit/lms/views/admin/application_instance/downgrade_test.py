@@ -8,7 +8,7 @@ from tests.matchers import temporary_redirect_to
 
 @pytest.mark.usefixtures("application_instance_service")
 class TestDowngradeApplicationInstanceView:
-    @pytest.mark.usefixtures("with_lti_13_ai")
+    @pytest.mark.usefixtures("lti_v13_application_instance")
     def test_downgrade_instance(self, view, pyramid_request, ai_from_matchdict):
         response = view.downgrade_instance()
 
@@ -24,7 +24,7 @@ class TestDowngradeApplicationInstanceView:
 
         assert pyramid_request.session.peek_flash("errors")
 
-    @pytest.mark.usefixtures("with_lti_13_ai")
+    @pytest.mark.usefixtures("lti_v13_application_instance")
     def test_downgrade_instance_no_consumer_key(
         self, view, pyramid_request, ai_from_matchdict
     ):
