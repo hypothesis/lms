@@ -1,6 +1,8 @@
+from typing import List
+
 from marshmallow import fields
 
-from lms.models import GradingInfo
+from lms.models import GradingInfo, HUser
 from lms.validation import BasicLTILaunchSchema, ValidationError
 
 __all__ = ["GradingInfoService"]
@@ -20,11 +22,17 @@ class GradingInfoService:
         self._db = request.db
         self._authority = request.registry.settings["h_authority"]
 
-    def get_by_assignment(self, application_instance, context_id, resource_link_id):
+    def get_students_for_grading(
+        self,
+        application_instance,
+        context_id,
+        resource_link_id,
+        lis_outcome_service_url,
+    ) -> List[dict]:
         """
-        Return all GradingInfo's for a given assignment.
+        Return all students available for grading for a given assignment.
 
-        The returned list will contain one GradingInfo for each student who has
+        The returned list will contain one dict for each student who has
         launched this assignment (and had GradingInfo data persisted for them).
 
         :param application_instance: the assignment's application_instance
@@ -33,12 +41,47 @@ class GradingInfoService:
             (identifies the course within the LMS)
         :param resource_link_id: the assignment's resource_link_id
             (identifies the assignment within the LMS course)
+        :param lis_outcome_service_url: Grading URL given by the URL in the current launch
         """
-        return self._db.query(GradingInfo).filter_by(
+        grading_infos = self._db.query(GradingInfo).filter_by(
             application_instance=application_instance,
             context_id=context_id,
             resource_link_id=resource_link_id,
         )
+        students = []
+
+        for grading_info in grading_infos:
+            h_user = HUser(
+                username=grading_info.h_username,
+                display_name=grading_info.h_display_name,
+            )
+
+            lis_result_sourced_id = grading_info.lis_result_sourcedid
+            if application_instance.lti_version == "1.3.0":
+                # In LTI 1.3 lis_result_sourcedid == user_id
+                # or rather the concept of lis_result_sourcedid doesn't really exists and the LTI1.3 grading API is based on the user id.
+                # We take the user id value instead here for LTI1.3.
+                # This is important in the case of upgrades that happen midterm, wih grading_infos from before the upgrade:
+                # we might have only the LTI1.1 value for lis_result_sourcedid but if we pick the user id instead
+                # we are guaranteed to get the right value for the LTI1.3 API
+                lis_result_sourced_id = grading_info.user_id
+
+            students.append(
+                {
+                    "userid": h_user.userid(self._authority),
+                    "displayName": h_user.display_name,
+                    "lmsId": grading_info.user_id,
+                    "LISResultSourcedId": lis_result_sourced_id,
+                    # We are using the value from the request instead of the one stored in GradingInfo.
+                    # This allows us to still read and submit grades when something in the LMS changes.
+                    # For example in LTI version upgrades, the endpoint is likely to change as we move from
+                    # LTI 1.1 basic outcomes API to LTI1.3's Assignment and Grade Services.
+                    # Also when the install's domain is updated all the records in the DB will be outdated.
+                    "LISOutcomeServiceUrl": lis_outcome_service_url,
+                }
+            )
+
+        return students
 
     def upsert_from_request(self, request):
         """
@@ -55,7 +98,7 @@ class GradingInfoService:
             # We're missing something we need in the request.
             # This can happen if the user is not a student, or if the needed
             # LIS data is not present on the request.
-            return
+            return None
 
         grading_info = self._find_or_create(
             application_instance=request.lti_user.application_instance,
@@ -67,6 +110,7 @@ class GradingInfoService:
         grading_info.h_display_name = request.lti_user.h_user.display_name
 
         grading_info.update_from_dict(parsed_params)
+        return grading_info
 
     def _find_or_create(self, **query):
         result = self._db.query(GradingInfo).filter_by(**query).one_or_none()

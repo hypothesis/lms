@@ -1,4 +1,3 @@
-from operator import attrgetter
 from unittest import mock
 
 import pytest
@@ -12,17 +11,36 @@ from tests import factories
 pytestmark = pytest.mark.usefixtures("application_instance_service")
 
 
-class TestGetByAssignment:
-    def test_it(self, svc, matching_grading_infos, application_instance):
-        grading_infos = svc.get_by_assignment(
+class TestGetStudentsForGrading:
+    @pytest.mark.parametrize("lti_v13", [True, False])
+    def test_it(
+        self, request, svc, matching_grading_infos, application_instance, lti_v13
+    ):
+        if lti_v13:
+            application_instance = request.getfixturevalue(
+                "lti_v13_application_instance"
+            )
+
+        students = svc.get_students_for_grading(
             application_instance,
             "matching_context_id",
             "matching_resource_link_id",
+            mock.sentinel.grading_url,
         )
 
-        assert sorted(grading_infos, key=attrgetter("id")) == sorted(
-            matching_grading_infos, key=attrgetter("id")
-        )
+        expected_students = [
+            {
+                "userid": f"acct:{grading_info.h_username}@lms.hypothes.is",
+                "displayName": grading_info.h_display_name,
+                "lmsId": grading_info.user_id,
+                "LISResultSourcedId": grading_info.lis_result_sourcedid
+                if not lti_v13
+                else grading_info.user_id,
+                "LISOutcomeServiceUrl": mock.sentinel.grading_url,
+            }
+            for grading_info in matching_grading_infos
+        ]
+        assert students == expected_students
 
     @pytest.mark.parametrize(
         "filter_application_instance,context_id,resource_link_id",
@@ -53,10 +71,11 @@ class TestGetByAssignment:
         resource_link_id,
         application_instance,
     ):
-        grading_infos = svc.get_by_assignment(
+        grading_infos = svc.get_students_for_grading(
             application_instance if filter_application_instance else None,
             context_id,
             resource_link_id,
+            mock.sentinel.grading_url,
         )
 
         assert not list(grading_infos)
@@ -79,18 +98,11 @@ class TestGetByAssignment:
 
 class TestUpsertFromRequest:
     def test_it_creates_new_record_if_no_matching_exists(
-        self,
-        svc,
-        application_instance,
-        pyramid_request,
-        db_session,
-        lti_params,
+        self, svc, application_instance, pyramid_request, lti_params
     ):
-        svc.upsert_from_request(pyramid_request)
+        result = svc.upsert_from_request(pyramid_request)
 
-        result = db_session.get_last_inserted()
         assert result == Any.instance_of(GradingInfo)
-
         # Check the lti_params are there
         assert self.model_as_dict(result) == Any.dict.containing(lti_params)
 
@@ -100,7 +112,7 @@ class TestUpsertFromRequest:
 
         # Check the LTI user data are there
         assert result.user_id == pyramid_request.lti_user.user_id
-        assert result.application_instance_id == application_instance.id
+        assert result.application_instance == application_instance
 
     def test_it_updates_existing_record_if_matching_exists(
         self, svc, pyramid_request, lti_user, application_instance
@@ -127,24 +139,15 @@ class TestUpsertFromRequest:
         ),
     )
     def test_it_does_nothing_with_required_parameter_missing(
-        self, svc, pyramid_request, db_session, param
+        self, svc, pyramid_request, param
     ):
         del pyramid_request.POST[param]
 
-        svc.upsert_from_request(pyramid_request)
-
-        assert db_session.get_last_inserted() is None
+        assert not svc.upsert_from_request(pyramid_request)
 
     @classmethod
     def model_as_dict(cls, model):
         return {col: getattr(model, col) for col in model.columns()}
-
-    @pytest.fixture
-    def db_session(self, db_session):
-        db_session.get_last_inserted = lambda: db_session.query(
-            GradingInfo
-        ).one_or_none()
-        return db_session
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request, lti_params):
