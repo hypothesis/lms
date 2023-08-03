@@ -295,16 +295,12 @@ def lti_registration():
 
 
 @pytest.fixture
-def lti_v13_application_instance(db_session, lti_registration):
-    application_instance = factories.ApplicationInstance(
-        developer_key="TEST_DEVELOPER_KEY",
-        provisioning=True,
-        deployment_id="TEST_DEPLOYMENT_ID",
-        lti_registration=lti_registration,
-        settings=ApplicationSettings({}),
-    )
+def lti_v13_application_instance(db_session, application_instance, lti_registration):
     # Force flush to get a non None application_instance and lti_registration IDs
     db_session.flush()
+
+    application_instance.lti_registration_id = lti_registration.id
+    application_instance.deployment_id = "ID"
     return application_instance
 
 
