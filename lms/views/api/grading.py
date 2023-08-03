@@ -1,4 +1,5 @@
 import datetime
+import logging
 from datetime import timezone
 
 from pyramid.view import view_config, view_defaults
@@ -11,6 +12,8 @@ from lms.validation import (
     APIRecordResultSchema,
     APIRecordSpeedgraderSchema,
 )
+
+LOG = logging.getLogger(__name__)
 
 
 @view_defaults(request_method="POST", renderer="json", permission=Permissions.API)
@@ -94,6 +97,10 @@ class GradingViews:
 
         # If we already have a score, then we've already recorded this info
         if self.lti_grading_service.read_result(lis_result_sourcedid):
+            LOG.debug(
+                "Grade already present, not recording submission. User ID: %s",
+                self.request.user.id,
+            )
             return None
 
         self.lti_grading_service.record_result(
