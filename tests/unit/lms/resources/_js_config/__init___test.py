@@ -362,7 +362,6 @@ class TestEnableInstructorToolbar:
     @pytest.mark.parametrize(
         "enable_editing, enable_grading", [(True, False), (False, True)]
     )
-    @pytest.mark.parametrize("lti_v13", [True, False])
     def test_it(
         self,
         js_config,
@@ -370,39 +369,22 @@ class TestEnableInstructorToolbar:
         grading_info_service,
         enable_editing,
         enable_grading,
-        lti_v13,
-        request,
     ):
-        if lti_v13:
-            _ = request.getfixturevalue("with_lti_13")
-
         js_config.enable_instructor_toolbar(
             enable_editing=enable_editing, enable_grading=enable_grading
         )
 
+        expected_students = None
         if enable_grading:
-            expected_students = [
-                {
-                    "userid": f"acct:{grading_info.h_username}@lms.hypothes.is",
-                    "displayName": grading_info.h_display_name,
-                    "lmsId": grading_info.user_id,
-                    "LISResultSourcedId": grading_info.lis_result_sourcedid
-                    if not lti_v13
-                    else grading_info.user_id,
-                    "LISOutcomeServiceUrl": pyramid_request.lti_params[
-                        "lis_outcome_service_url"
-                    ],
-                }
-                for grading_info in grading_info_service.get_by_assignment.return_value
-            ]
-            grading_info_service.get_by_assignment.assert_called_once_with(
+            grading_info_service.get_students_for_grading.assert_called_once_with(
                 context_id="test_course_id",
                 application_instance=pyramid_request.lti_user.application_instance,
                 resource_link_id="TEST_RESOURCE_LINK_ID",
+                lis_outcome_service_url="example_lis_outcome_service_url",
             )
-        else:
-            expected_students = None
-            grading_info_service.get_by_assignment.assert_not_called()
+            expected_students = (
+                grading_info_service.get_students_for_grading.return_value
+            )
 
         assert js_config.asdict()["instructorToolbar"] == {
             "editingEnabled": enable_editing,
