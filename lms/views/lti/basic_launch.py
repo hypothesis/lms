@@ -156,7 +156,13 @@ class BasicLaunchViews:
             assignment, groupings=[self.course]
         )
 
-        # Set up grading
+        if self.request.product.use_toolbar_editing:
+            self.context.js_config.enable_toolbar_assignment_editing()
+
+        if self.request.product.use_toolbar_grading and assignment.is_gradable:
+            self.context.js_config.enable_toolbar_grading()
+
+        # Configure any LMS specific grading
         self._grading_plugin.configure_grading_for_launch(
             self.request, self.context.js_config, assignment
         )

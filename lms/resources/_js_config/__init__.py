@@ -292,6 +292,37 @@ class JSConfig:
         self._config.setdefault("filePicker", {})
         self._config["filePicker"]["deepLinkingAPI"] = config
 
+    def enable_toolbar_assignment_editing(self):
+        toolbar_config = self._get_toolbar_config()
+
+        toolbar_config["editingEnabled"] = True
+        self._config["instructorToolbar"] = toolbar_config
+
+    def enable_toolbar_grading(self):
+        toolbar_config = self._get_toolbar_config()
+        # Get the list of students to display in the drop down
+        students = self._grading_info_service.get_students_for_grading(
+            application_instance=self._application_instance,
+            context_id=self._request.lti_params.get("context_id"),
+            resource_link_id=self._request.lti_params.get("resource_link_id"),
+            lis_outcome_service_url=self._request.lti_params["lis_outcome_service_url"],
+        )
+
+        toolbar_config["gradingEnabled"] = True
+        toolbar_config["students"] = students
+
+        self._config["instructorToolbar"] = toolbar_config
+
+    def _get_toolbar_config(self):
+        toolbar_config = self._config.get("instructorToolbar", {})
+        toolbar_config.setdefault(
+            "courseName", self._request.lti_params.get("context_title")
+        )
+        toolbar_config.setdefault(
+            "assignmentName", self._request.lti_params.get("resource_link_title")
+        )
+        return toolbar_config
+
     def enable_instructor_toolbar(
         self, enable_editing=True, enable_grading=False, students=None
     ):
