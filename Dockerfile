@@ -2,10 +2,12 @@
 FROM node:20.5.0-alpine as frontend-build
 
 ENV NODE_ENV production
-COPY .babelrc rollup.config.mjs tailwind.config.mjs gulpfile.mjs package.json yarn.lock ./
-COPY lms/static ./lms/static
+COPY .babelrc rollup.config.mjs tailwind.config.mjs gulpfile.mjs package.json .yarnrc.yml yarn.lock /tmp/frontend-build/
+COPY .yarn /tmp/frontend-build/.yarn
+COPY lms/static /tmp/frontend-build/lms/static
 
-RUN yarn install --frozen-lockfile
+WORKDIR /tmp/frontend-build
+RUN yarn install --immutable
 RUN yarn build
 
 # Stage 2: Build the rest of the app using build output from Stage 1.
@@ -34,7 +36,7 @@ RUN apk add --virtual build-deps \
   && apk del build-deps
 
 # Copy frontend assets.
-COPY --from=frontend-build /build build
+COPY --from=frontend-build /tmp/frontend-build/build build
 
 # Copy the rest of the application files.
 COPY . .
