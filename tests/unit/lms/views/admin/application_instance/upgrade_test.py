@@ -76,7 +76,7 @@ class TestUpgradeApplicationInstanceViews:
 
         assert views.upgrade_instance_callback() == REDIRECT_TO_UPGRADE_AI
 
-    @pytest.mark.usefixtures("with_upgrade_form", "with_lti_13_ai")
+    @pytest.mark.usefixtures("with_upgrade_form", "lti_v13_application_instance")
     def test_upgrade_instance_callback_already_upgraded(self, views):
         assert views.upgrade_instance_callback() == REDIRECT_TO_UPGRADE_AI
 
