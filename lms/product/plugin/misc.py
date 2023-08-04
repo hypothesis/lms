@@ -32,6 +32,11 @@ class MiscPlugin:
             - The deep linking message could include details about grading.
         """
 
+    def post_launch_assignment_hook(
+        self, request, js_config, assignment
+    ):  # pragma: nocover
+        """Run any actions needed for a successful launch of an assignment."""
+
     def is_assignment_gradable(self, lti_params: LTIParams) -> bool:
         """Check if the assignment of the current launch is gradable."""
         return bool(lti_params.get("lis_outcome_service_url"))

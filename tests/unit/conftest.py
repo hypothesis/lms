@@ -36,6 +36,7 @@ def lti_v11_params():
         "content_item_return_url": "https://www.example.com",
         "lti_version": "LTI-1p0",
         "resource_link_id": "TEST_RESOURCE_LINK_ID",
+        "resource_link_title": "TEST_RESOURCE_LINK_TITLE",
         "lis_person_name_given": "TEST_GIVEN_NAME",
         "lis_person_name_family": "TEST_FAMILY_NAME",
         "lis_person_name_full": "TEST_FULL_NAME",
