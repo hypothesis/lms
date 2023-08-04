@@ -25,9 +25,14 @@ attrs==20.2.0
     #   -r requirements/prod.txt
     #   aiohttp
     #   jsonschema
+backports-zoneinfo[tzdata]==0.2.1
+    # via
+    #   -r requirements/prod.txt
+    #   celery
+    #   kombu
 beautifulsoup4==4.9.3
     # via webtest
-billiard==3.6.4.0
+billiard==4.1.0
     # via
     #   -r requirements/prod.txt
     #   celery
@@ -37,7 +42,7 @@ cachetools==4.2.2
     # via
     #   -r requirements/prod.txt
     #   google-auth
-celery==5.2.7
+celery==5.3.1
     # via -r requirements/prod.txt
 certifi==2023.7.22
     # via
@@ -160,7 +165,7 @@ jsonschema==4.7.2
     # via
     #   -r requirements/prod.txt
     #   h-api
-kombu==5.2.4
+kombu==5.3.1
     # via
     #   -r requirements/prod.txt
     #   celery
@@ -290,16 +295,13 @@ pytest-factoryboy==2.5.1
 python-dateutil==2.8.2
     # via
     #   -r requirements/prod.txt
+    #   celery
     #   faker
     #   mailchimp-transactional
 python-jose[crypto,cryptography]==3.3.0
     # via
     #   -r requirements/prod.txt
     #   h-vialib
-pytz==2022.1
-    # via
-    #   -r requirements/prod.txt
-    #   celery
 requests==2.31.0
     # via
     #   -r requirements/prod.txt
@@ -363,7 +365,13 @@ typing-extensions==4.0.0
     #   -r requirements/prod.txt
     #   alembic
     #   async-timeout
+    #   kombu
     #   pytest-factoryboy
+tzdata==2023.3
+    # via
+    #   -r requirements/prod.txt
+    #   backports-zoneinfo
+    #   celery
 urllib3==1.26.15
     # via
     #   -r requirements/prod.txt
