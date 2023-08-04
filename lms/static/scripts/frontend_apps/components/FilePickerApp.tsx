@@ -215,8 +215,15 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     string
   > | null>(null);
 
+  const formRef = useRef<HTMLFormElement>(null);
+
   const submit = useCallback(
     async (content: Content) => {
+      // Validate form fields which are shown on the details screen.
+      if (!formRef.current?.reportValidity()) {
+        return;
+      }
+
       // Set shouldSubmit to true early to show the spinner while fetching form fields
       setShouldSubmit(true);
 
@@ -304,6 +311,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
         )}
         method="POST"
         onSubmit={onSubmit}
+        ref={formRef}
       >
         {isEditing && (
           <RouterLink href="/app/basic-lti-launch" data-testid="back-link">
@@ -365,10 +373,13 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                           data-testid="title-input"
                           id={titleInputId}
                           name="Title"
+                          // Max length is based on what D2L supports, which is the first LMS that
+                          // supported setting a title in assignment configuration.
+                          maxLength={150}
                           onInput={(e: Event) =>
                             setTitle((e.target as HTMLInputElement).value)
                           }
-                          placeholder="Hypothesis assignment"
+                          required
                           value={title}
                         />
                       </>
