@@ -18,11 +18,15 @@ attrs==20.2.0
     # via
     #   aiohttp
     #   jsonschema
-billiard==3.6.4.0
+backports-zoneinfo[tzdata]==0.2.1
+    # via
+    #   celery
+    #   kombu
+billiard==4.1.0
     # via celery
 cachetools==4.2.2
     # via google-auth
-celery==5.2.7
+celery==5.3.1
     # via -r requirements/prod.in
 certifi==2023.7.22
     # via
@@ -99,7 +103,7 @@ jinja2==2.11.3
     #   pyramid-jinja2
 jsonschema==4.7.2
     # via h-api
-kombu==5.2.4
+kombu==5.3.1
     # via celery
 mailchimp-transactional==1.0.50
     # via -r requirements/prod.in
@@ -186,13 +190,13 @@ pyramid-tm==2.5
 pyrsistent==0.17.3
     # via jsonschema
 python-dateutil==2.8.2
-    # via mailchimp-transactional
+    # via
+    #   celery
+    #   mailchimp-transactional
 python-jose[crypto,cryptography]==3.3.0
     # via
     #   -r requirements/prod.in
     #   h-vialib
-pytz==2022.1
-    # via celery
 requests==2.31.0
     # via
     #   -r requirements/prod.in
@@ -239,6 +243,11 @@ typing-extensions==4.0.0
     # via
     #   alembic
     #   async-timeout
+    #   kombu
+tzdata==2023.3
+    # via
+    #   backports-zoneinfo
+    #   celery
 urllib3==1.26.15
     # via
     #   mailchimp-transactional
