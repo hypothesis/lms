@@ -69,7 +69,7 @@ class Product:
     """Key in the ai.settings dictionary that holds the product specific settings"""
 
     use_toolbar_grading = True
-    """Wether to use grading in our toolbar."""
+    """Whether to use grading in our toolbar."""
     use_toolbar_editing = True
     """Wether to allow assignment editing in our toolbar."""
 

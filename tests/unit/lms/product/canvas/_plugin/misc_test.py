@@ -1,11 +1,48 @@
-from unittest.mock import sentinel
+from unittest.mock import create_autospec, sentinel
 
 import pytest
 
 from lms.product.canvas._plugin.misc import CanvasMiscPlugin
+from lms.resources._js_config import JSConfig
+from tests import factories
 
 
 class TestCanvasMiscPlugin:
+    @pytest.mark.parametrize("is_gradable", [True, False])
+    @pytest.mark.parametrize("is_learner", [True, False])
+    @pytest.mark.parametrize("grading_id", [None, sentinel.grading_id])
+    @pytest.mark.parametrize("focused_user", [None, sentinel.focused_user])
+    def test_post_launch_assignment_hook(
+        self,
+        request,
+        plugin,
+        js_config,
+        pyramid_request,
+        is_gradable,
+        is_learner,
+        grading_id,
+        focused_user,
+    ):
+        assignment = factories.Assignment(is_gradable=is_gradable)
+        pyramid_request.lti_params["lis_result_sourcedid"] = grading_id
+        pyramid_request.params["focused_user"] = focused_user
+        if is_learner:
+            request.getfixturevalue("user_is_learner")
+
+        plugin.post_launch_assignment_hook(pyramid_request, js_config, assignment)
+
+        if assignment.is_gradable and is_learner and grading_id:
+            js_config.add_canvas_speedgrader_settings.assert_called_once_with(
+                assignment.document_url
+            )
+        else:
+            js_config.add_canvas_speedgrader_settings.assert_not_called()
+
+        if focused_user:
+            js_config.set_focused_user.assert_called_once_with(focused_user)
+        else:
+            js_config.set_focused_user.assert_not_called()
+
     def test_get_document_url(self, plugin, pyramid_request):
         assert not plugin.get_document_url(
             pyramid_request, sentinel.assignment, sentinel.historical_assignment
@@ -126,6 +163,10 @@ class TestCanvasMiscPlugin:
     @pytest.fixture
     def plugin(self):
         return CanvasMiscPlugin()
+
+    @pytest.fixture
+    def js_config(self):
+        return create_autospec(JSConfig, spec_set=True, instance=True)
 
     @pytest.fixture
     def VSBookLocation(self, patch):

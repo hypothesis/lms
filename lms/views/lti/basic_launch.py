@@ -15,7 +15,7 @@ doesn't actually require basic launch requests to have this parameter.
 from pyramid.view import view_config, view_defaults
 
 from lms.events import LTIEvent
-from lms.product.plugin.grading import GradingPlugin
+from lms.product.plugin.misc import MiscPlugin
 from lms.security import Permissions
 from lms.services.assignment import AssignmentService
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
@@ -31,7 +31,7 @@ class BasicLaunchViews:
         self.context = context
         self.request = request
 
-        self._grading_plugin: GradingPlugin = request.product.plugin.grading
+        self._misc_plugin: MiscPlugin = request.product.plugin.misc
         self.assignment_service: AssignmentService = request.find_service(
             name="assignment"
         )
@@ -157,19 +157,40 @@ class BasicLaunchViews:
         )
 
         if self.request.product.use_toolbar_editing:
-            self.context.js_config.enable_toolbar_assignment_editing()
+            self.context.js_config.enable_toolbar_editing()
 
         if self.request.product.use_toolbar_grading and assignment.is_gradable:
-            self.context.js_config.enable_toolbar_grading()
+            if self.request.lti_user.is_instructor:
+                # Get the list of students to display in the drop down
+                students = self.request.find_service(
+                    name="grading_info"
+                ).get_students_for_grading(
+                    application_instance=self.request.lti_user.application_instance,
+                    context_id=self.request.lti_params.get("context_id"),
+                    resource_link_id=self.request.lti_params.get("resource_link_id"),
+                    lis_outcome_service_url=self.request.lti_params[
+                        "lis_outcome_service_url"
+                    ],
+                )
+                # Display them in the toolbar
+                self.context.js_config.enable_toolbar_grading(students)
 
-        # Configure any LMS specific grading
-        self._grading_plugin.configure_grading_for_launch(
-            self.request, self.context.js_config, assignment
-        )
+            if not self.request.lti_user.is_instructor:
+                # Create or update a record of LIS result data for a student launch
+                # We'll query these rows to populate the student drop down in the
+                # instructor toolbar
+                self.request.find_service(name="grading_info").upsert_from_request(
+                    self.request
+                )
 
         # Set up the JS config for the front-end
         self.context.js_config.add_document_url(assignment.document_url)
         self.context.js_config.enable_lti_launch_mode(self.course, assignment)
+
+        # Run any non standard code for the current product
+        self._misc_plugin.post_launch_assignment_hook(
+            self.request, self.context.js_config, assignment
+        )
 
         return {}
 

@@ -292,21 +292,14 @@ class JSConfig:
         self._config.setdefault("filePicker", {})
         self._config["filePicker"]["deepLinkingAPI"] = config
 
-    def enable_toolbar_assignment_editing(self):
+    def enable_toolbar_editing(self):
         toolbar_config = self._get_toolbar_config()
 
         toolbar_config["editingEnabled"] = True
         self._config["instructorToolbar"] = toolbar_config
 
-    def enable_toolbar_grading(self):
+    def enable_toolbar_grading(self, students):
         toolbar_config = self._get_toolbar_config()
-        # Get the list of students to display in the drop down
-        students = self._grading_info_service.get_students_for_grading(
-            application_instance=self._application_instance,
-            context_id=self._request.lti_params.get("context_id"),
-            resource_link_id=self._request.lti_params.get("resource_link_id"),
-            lis_outcome_service_url=self._request.lti_params["lis_outcome_service_url"],
-        )
 
         toolbar_config["gradingEnabled"] = True
         toolbar_config["students"] = students
@@ -322,40 +315,6 @@ class JSConfig:
             "assignmentName", self._request.lti_params.get("resource_link_title")
         )
         return toolbar_config
-
-    def enable_instructor_toolbar(
-        self, enable_editing=True, enable_grading=False, students=None
-    ):
-        """
-        Enable the toolbar with controls for instructors in LMS assignments.
-
-        :param enable_editing: Whether to enable controls for editing assignment configuration
-        :param enable_grading: Whether to enable grading controls
-        :param students: When grading is enabled, list of students for the dropdown.
-        """
-        if enable_grading:
-            # Get one student dict for each student who has launched the assignment
-            # and had grading info recorded for them.
-            students = []
-
-            students = self._grading_info_service.get_students_for_grading(
-                application_instance=self._application_instance,
-                context_id=self._request.lti_params.get("context_id"),
-                resource_link_id=self._request.lti_params.get("resource_link_id"),
-                lis_outcome_service_url=self._request.lti_params[
-                    "lis_outcome_service_url"
-                ],
-            )
-        else:
-            students = None
-
-        self._config["instructorToolbar"] = {
-            "courseName": self._request.lti_params.get("context_title"),
-            "assignmentName": self._request.lti_params.get("resource_link_title"),
-            "editingEnabled": enable_editing,
-            "gradingEnabled": enable_grading,
-            "students": students,
-        }
 
     def set_focused_user(self, focused_user):
         """Configure the client to only show one users' annotations while an instructor is in SpeedGrader."""

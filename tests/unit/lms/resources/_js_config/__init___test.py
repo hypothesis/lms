@@ -358,49 +358,32 @@ class TestAddCanvasSpeedgraderSettings:
         }
 
 
-class TestEnableInstructorToolbar:
+class TestInstructorToolbar:
     @pytest.mark.parametrize(
         "enable_editing, enable_grading", [(True, False), (False, True)]
     )
-    def test_it(
-        self,
-        js_config,
-        pyramid_request,
-        grading_info_service,
-        enable_editing,
-        enable_grading,
+    def test_instructor_toolbar(
+        self, js_config, pyramid_request, enable_editing, enable_grading
     ):
-        js_config.enable_instructor_toolbar(
-            enable_editing=sentinel.editing,
-            enable_grading=sentinel.grading,
-            students=sentinel.students,
-        )
-
-        expected_students = None
         if enable_grading:
-            grading_info_service.get_students_for_grading.assert_called_once_with(
-                context_id="test_course_id",
-                application_instance=pyramid_request.lti_user.application_instance,
-                resource_link_id="TEST_RESOURCE_LINK_ID",
-                lis_outcome_service_url="example_lis_outcome_service_url",
-            )
-            expected_students = (
-                grading_info_service.get_students_for_grading.return_value
-            )
+            js_config.enable_toolbar_grading(sentinel.students)
 
-        assert js_config.asdict()["instructorToolbar"] == {
-            "editingEnabled": sentinel.editing,
-            "gradingEnabled": sentinel.grading,
+        if enable_editing:
+            js_config.enable_toolbar_editing()
+
+        expected = {
             "courseName": pyramid_request.lti_params["context_title"],
             "assignmentName": pyramid_request.lti_params["resource_link_title"],
-            "students": sentinel.students,
         }
 
-    @pytest.fixture(autouse=True)
-    def pyramid_request(self, pyramid_request):
-        pyramid_request.lti_params["resource_link_title"] = "test_assignment_name"
+        if enable_editing:
+            expected["editingEnabled"] = enable_editing
 
-        return pyramid_request
+        if enable_grading:
+            expected["gradingEnabled"] = enable_grading
+            expected["students"] = sentinel.students
+
+        assert js_config.asdict()["instructorToolbar"] == expected
 
 
 class TestSetFocusedUser:

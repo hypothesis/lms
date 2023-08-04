@@ -40,7 +40,9 @@ class TestGetStudentsForGrading:
             }
             for grading_info in matching_grading_infos
         ]
-        assert students == expected_students
+        assert sorted(students, key=lambda x: x["userid"]) == sorted(
+            expected_students, key=lambda x: x["userid"]
+        )
 
     @pytest.mark.parametrize(
         "filter_application_instance,context_id,resource_link_id",

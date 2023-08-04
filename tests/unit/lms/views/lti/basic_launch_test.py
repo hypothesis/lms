@@ -19,7 +19,7 @@ from tests import factories
     "lti_h_service",
     "lti_role_service",
     "grouping_service",
-    "grading_plugin",
+    "misc_plugin",
 )
 class TestBasicLaunchViews:
     def test___init___(
@@ -204,8 +204,8 @@ class TestBasicLaunchViews:
         assignment_service,
         lti_user,
         course_service,
+        misc_plugin,
         assignment,
-        grading_plugin,
     ):
         # pylint: disable=protected-access
         result = svc._show_document(assignment)
@@ -223,16 +223,61 @@ class TestBasicLaunchViews:
             assignment, groupings=[course_service.get_from_launch.return_value]
         )
 
-        grading_plugin.configure_grading_for_launch.assert_called_once_with(
-            pyramid_request, context.js_config, assignment
-        )
-
         context.js_config.enable_lti_launch_mode.assert_called_once_with(
             course_service.get_from_launch.return_value, assignment
         )
         context.js_config.add_document_url.assert_called_once_with(
             assignment.document_url
         )
+        misc_plugin.post_launch_assignment_hook.assert_called_once_with(
+            pyramid_request, context.js_config, assignment
+        )
+        assert result == {}
+
+    @pytest.mark.parametrize("use_toolbar_editing", [True, False])
+    @pytest.mark.parametrize("use_toolbar_grading", [True, False])
+    @pytest.mark.parametrize("is_gradable", [True, False])
+    @pytest.mark.parametrize("is_instructor", [True, False])
+    def test__show_document_configures_toolbar(
+        self,
+        svc,
+        request,
+        pyramid_request,
+        context,
+        lti_user,
+        use_toolbar_editing,
+        use_toolbar_grading,
+        is_gradable,
+        is_instructor,
+        grading_info_service,
+    ):
+        assignment = factories.Assignment(is_gradable=is_gradable)
+        if is_instructor:
+            request.getfixturevalue("user_is_instructor")
+        pyramid_request.product.use_toolbar_grading = use_toolbar_grading
+        pyramid_request.product.use_toolbar_editing = use_toolbar_editing
+
+        # pylint: disable=protected-access
+        result = svc._show_document(assignment)
+
+        if use_toolbar_editing:
+            context.js_config.enable_toolbar_editing.assert_called_once()
+
+        if use_toolbar_grading and is_gradable:
+            if is_instructor:
+                grading_info_service.get_students_for_grading.assert_called_once_with(
+                    application_instance=lti_user.application_instance,
+                    context_id="DUMMY-CONTEXT-ID",
+                    resource_link_id="TEST_RESOURCE_LINK_ID",
+                    lis_outcome_service_url=sentinel.grading_url,
+                )
+                context.js_config.enable_toolbar_grading.assert_called_once_with(
+                    students=grading_info_service.get_students_for_grading.return_value
+                )
+            else:
+                grading_info_service.upsert_from_request.assert_called_once_with(
+                    pyramid_request
+                )
 
         assert result == {}
 
@@ -253,6 +298,7 @@ class TestBasicLaunchViews:
     def pyramid_request(self, pyramid_request):
         pyramid_request.user = factories.User()
         pyramid_request.lti_params = LTIParams.from_request(pyramid_request)
+        pyramid_request.lti_params["lis_outcome_service_url"] = sentinel.grading_url
 
         return pyramid_request
 
