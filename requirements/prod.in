@@ -4,6 +4,8 @@ newrelic
 sqlalchemy
 psycopg2
 alembic
+pyramid-tm
+zope.sqlalchemy
 aiohttp
 alembic
 celery
@@ -24,11 +26,9 @@ pyramid-googleauth
 pyramid-jinja2
 pyramid-retry
 pyramid-services
-pyramid-tm
 requests
 requests-oauthlib
 sqlparse
 tabulate
 webargs
 xmltodict
-zope.sqlalchemy
