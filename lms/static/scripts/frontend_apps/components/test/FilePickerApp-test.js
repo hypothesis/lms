@@ -200,6 +200,23 @@ describe('FilePickerApp', () => {
       });
     });
 
+    it('fetches form field values via deep linking API on implicit form submission', async () => {
+      // Enable title field, which is a field where the user could trigger an
+      // implicit submission by pressing Enter.
+      fakeConfig.filePicker.promptForTitle = true;
+
+      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+      const wrapper = renderFilePicker({ onSubmit });
+
+      selectContent(wrapper, 'https://example.com');
+
+      // Simulate implicit form submission, as if pressing Enter in title field.
+      wrapper.find('form').getDOMNode().requestSubmit();
+
+      await waitFor(() => fakeAPICall.called);
+      await waitFor(() => onSubmit.called);
+    });
+
     it('shows an error if the deepLinkingAPI call fails', async () => {
       const error = new Error('Something happened');
       const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
