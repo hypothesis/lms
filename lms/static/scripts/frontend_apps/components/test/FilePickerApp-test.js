@@ -348,6 +348,12 @@ describe('FilePickerApp', () => {
       });
     });
 
+    function clickContinueButton(wrapper) {
+      interact(wrapper, () => {
+        wrapper.find('Button[data-testid="save-button"]').props().onClick();
+      });
+    }
+
     [true, false].forEach(useGroupSet => {
       it('submits form when "Continue" button is clicked', () => {
         const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
@@ -357,9 +363,7 @@ describe('FilePickerApp', () => {
         selectGroupConfig(wrapper, { useGroupSet, groupSet: 'groupSet1' });
 
         assert.notCalled(onSubmit);
-        interact(wrapper, () => {
-          wrapper.find('Button[data-testid="save-button"]').props().onClick();
-        });
+        clickContinueButton(wrapper);
 
         assert.called(onSubmit);
         checkFormFields(wrapper, {
@@ -370,6 +374,29 @@ describe('FilePickerApp', () => {
           groupSet: useGroupSet ? 'groupSet1' : null,
         });
       });
+    });
+
+    it('does not submit form when "Continue" is clicked if there are validation errors', () => {
+      fakeConfig.filePicker.promptForTitle = true;
+
+      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+      const wrapper = renderFilePicker({ onSubmit });
+
+      selectContent(wrapper, 'https://example.com');
+
+      // Make an input on the details screen invalid.
+      const titleInput = wrapper
+        .find('input[data-testid="title-input"]')
+        .getDOMNode();
+      titleInput.value = '';
+
+      clickContinueButton(wrapper);
+      assert.notCalled(onSubmit);
+
+      titleInput.value = 'No longer empty';
+      clickContinueButton(wrapper);
+
+      assert.called(onSubmit);
     });
 
     it('shows activity indicator when form is submitted', () => {
