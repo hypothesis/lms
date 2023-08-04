@@ -35,7 +35,7 @@ export type ErrorInfo = {
 
 export type FilePickerAppProps = {
   /** Callback invoked when the form is submitted */
-  onSubmit?: () => void;
+  onSubmit?: (e: Event) => void;
 };
 
 /* A step or 'screen' of the assignment configuration */
@@ -278,6 +278,10 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       // Submit form using a hidden button rather than calling `form.submit()`
       // to facilitate observing the submission in tests and suppressing the
       // actual submit.
+      //
+      // TODO - This could be simplified by using `HTMLFormElement.requestSubmit`
+      // *if available* instead of `HTMLFormElement.submit`, as `requestSubmit`
+      // _does_ trigger the "submit" event.
       submitButton.current!.click();
     }
   }, [shouldSubmit, deepLinkingAPI, deepLinkingFields]);
@@ -296,6 +300,13 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     [isEditing, showDetailsScreen, submit]
   );
 
+  // Whether the Save / Continue button should be enabled. This doesn't take
+  // into account the state of some input fields whose validity is checked via
+  // `HTMLFormElement.checkValidity` on submission.
+  const canSubmit =
+    content !== null &&
+    (!groupConfig.useGroupSet || groupConfig.groupSet !== null);
+
   return (
     <main className="bg-grey-1 w-full h-full p-2">
       {/*
@@ -310,7 +321,19 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
           'flex flex-col min-h-0 h-full space-y-2'
         )}
         method="POST"
-        onSubmit={onSubmit}
+        onSubmit={e => {
+          // If `shouldSubmit` is false, this submit was triggered by an
+          // implicit form submission. Route it through the same code as an
+          // explicit click on Save / Continue.
+          if (!shouldSubmit) {
+            e.preventDefault();
+            if (canSubmit) {
+              submit(content);
+            }
+            return;
+          }
+          onSubmit?.(e);
+        }}
         ref={formRef}
       >
         {isEditing && (
@@ -422,9 +445,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                   {!editingContent && content && (
                     <Button
                       data-testid="save-button"
-                      disabled={
-                        groupConfig.useGroupSet && !groupConfig.groupSet
-                      }
+                      disabled={!canSubmit}
                       variant="primary"
                       onClick={() => submit(content)}
                     >
@@ -443,7 +464,12 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
               groupSet={groupConfig.useGroupSet ? groupConfig.groupSet : null}
             />
           )}
-          <input style={{ display: 'none' }} ref={submitButton} type="submit" />
+          <input
+            disabled={!canSubmit}
+            style={{ display: 'none' }}
+            ref={submitButton}
+            type="submit"
+          />
         </Card>
         {shouldSubmit && <SpinnerOverlay />}
         {errorInfo && (
