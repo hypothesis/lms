@@ -5,10 +5,12 @@
   "ignore": [
     "Dockerfile",
     "lms/app.py",
+    "lms/db.py",
     "tests/unit/lms/app_test.py",
     "lms/pshell.py",
     "lms/migrations/env.py",
     "tests/functional/app_test.py",
+    "bin/make_db",
     "bin/make_devdata"
   ],
   "extra_context": {
