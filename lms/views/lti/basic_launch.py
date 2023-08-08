@@ -156,7 +156,10 @@ class BasicLaunchViews:
             assignment, groupings=[self.course]
         )
 
-        if self.request.product.use_toolbar_editing:
+        if (
+            self.request.product.use_toolbar_editing
+            and self.request.lti_user.is_instructor
+        ):
             self.context.js_config.enable_toolbar_editing()
 
         if self.request.product.use_toolbar_grading and assignment.is_gradable:
