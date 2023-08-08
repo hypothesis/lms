@@ -261,7 +261,10 @@ class TestBasicLaunchViews:
         result = svc._show_document(assignment)
 
         if use_toolbar_editing:
-            context.js_config.enable_toolbar_editing.assert_called_once()
+            if is_instructor:
+                context.js_config.enable_toolbar_editing.assert_called_once()
+            else:
+                context.js_config.enable_toolbar_editing.assert_not_called()
 
         if use_toolbar_grading and is_gradable:
             if is_instructor:
