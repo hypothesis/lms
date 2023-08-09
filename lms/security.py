@@ -37,6 +37,7 @@ class Permissions(Enum):
     LTI_CONFIGURE_ASSIGNMENT = "lti_configure_assignment"
     API = "api"
     ADMIN = "admin"
+    GRADE_ASSIGNMENT = "grade_assignment"
 
 
 class UnautheticatedSecurityPolicy:  # pragma: no cover
@@ -161,6 +162,7 @@ class LTIUserSecurityPolicy:
 
         if lti_user.is_instructor:
             permissions.append(Permissions.LTI_CONFIGURE_ASSIGNMENT)
+            permissions.append(Permissions.GRADE_ASSIGNMENT)
 
         return Identity(self._get_userid(lti_user), permissions, lti_user)
 
