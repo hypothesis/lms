@@ -366,7 +366,7 @@ class TestInstructorToolbar:
         self, js_config, pyramid_request, enable_editing, enable_grading
     ):
         if enable_grading:
-            js_config.enable_toolbar_grading(sentinel.students)
+            js_config.enable_toolbar_grading(sentinel.students, sentinel.score_maximum)
 
         if enable_editing:
             js_config.enable_toolbar_editing()
@@ -382,6 +382,7 @@ class TestInstructorToolbar:
         if enable_grading:
             expected["gradingEnabled"] = enable_grading
             expected["students"] = sentinel.students
+            expected["scoreMaximum"] = sentinel.score_maximum
 
         assert js_config.asdict()["instructorToolbar"] == expected
 

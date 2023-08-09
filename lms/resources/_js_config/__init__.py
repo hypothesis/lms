@@ -298,11 +298,12 @@ class JSConfig:
         toolbar_config["editingEnabled"] = True
         self._config["instructorToolbar"] = toolbar_config
 
-    def enable_toolbar_grading(self, students):
+    def enable_toolbar_grading(self, students, score_maximum=None):
         toolbar_config = self._get_toolbar_config()
 
         toolbar_config["gradingEnabled"] = True
         toolbar_config["students"] = students
+        toolbar_config["scoreMaximum"] = score_maximum
 
         self._config["instructorToolbar"] = toolbar_config
 

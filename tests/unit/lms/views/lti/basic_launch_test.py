@@ -281,7 +281,8 @@ class TestBasicLaunchViews:
                 )
 
                 context.js_config.enable_toolbar_grading.assert_called_once_with(
-                    students=grading_info_service.get_students_for_grading.return_value
+                    students=grading_info_service.get_students_for_grading.return_value,
+                    score_maximum=lti_grading_service.get_score_maximum.return_value,
                 )
             else:
                 grading_info_service.upsert_from_request.assert_called_once_with(

@@ -53,6 +53,7 @@ export type InstructorConfig = {
   editingEnabled: boolean;
   gradingEnabled: boolean;
   students: StudentInfo[] | null;
+  scoreMaximum: number | null;
 };
 
 /**
