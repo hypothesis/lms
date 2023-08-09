@@ -8,7 +8,10 @@ def service_factory(_context, request):
 
     if application_instance.lti_version == "1.3.0":
         return LTI13GradingService(
-            line_item_url=request.parsed_params.get("lis_outcome_service_url"),
+            # Pick the value from the right dictionary depending on the context we are running
+            # either an API call from the frontend (parsed_params) or inside an LTI launch (lti_params).
+            line_item_url=request.parsed_params.get("lis_outcome_service_url")
+            or request.lti_params.get("lis_outcome_service_url"),
             line_item_container_url=request.lti_params.get("lineitems"),
             ltia_service=request.find_service(LTIAHTTPService),
         )
