@@ -159,10 +159,7 @@ class LTIUserSecurityPolicy:
 
         permissions = [Permissions.LTI_LAUNCH_ASSIGNMENT, Permissions.API]
 
-        if any(
-            role in lti_user.roles.lower()
-            for role in ["administrator", "instructor", "teachingassistant"]
-        ):
+        if lti_user.is_instructor:
             permissions.append(Permissions.LTI_CONFIGURE_ASSIGNMENT)
 
         return Identity(self._get_userid(lti_user), permissions, lti_user)
