@@ -105,7 +105,10 @@ class TestLTIUserSecurityPolicy:
     @pytest.mark.parametrize(
         "lti_user_fixture,extra_permissions",
         (
-            ("user_is_instructor", [Permissions.LTI_CONFIGURE_ASSIGNMENT]),
+            (
+                "user_is_instructor",
+                [Permissions.LTI_CONFIGURE_ASSIGNMENT, Permissions.GRADE_ASSIGNMENT],
+            ),
             ("user_is_learner", []),
         ),
     )

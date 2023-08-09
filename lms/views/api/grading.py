@@ -27,7 +27,11 @@ class GradingViews:
             LTIGradingService
         )
 
-    @view_config(route_name="lti_api.result.record", schema=APIRecordResultSchema)
+    @view_config(
+        route_name="lti_api.result.record",
+        schema=APIRecordResultSchema,
+        permission=Permissions.GRADE_ASSIGNMENT,
+    )
     def record_result(self):
         """Proxy result (grade/score) to LTI Result API."""
 
@@ -54,6 +58,7 @@ class GradingViews:
         route_name="lti_api.result.read",
         request_method="GET",
         schema=APIReadResultSchema,
+        permission=Permissions.GRADE_ASSIGNMENT,
     )
     def read_result(self):
         """Proxy request for current result (grade/score) to LTI Result API."""
