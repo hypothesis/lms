@@ -192,7 +192,9 @@ class BasicLaunchViews:
                 )
 
                 # Display the grading interface in the toolbar
-                self.context.js_config.enable_toolbar_grading(students)
+                self.context.js_config.enable_toolbar_grading(
+                    students=students, score_maximum=score_maximum
+                )
 
             if not self.request.lti_user.is_instructor:
                 # Create or update a record of LIS result data for a student launch
