@@ -25,8 +25,10 @@ CREATE MATERIALIZED VIEW report.assignments AS (
             WHEN STARTS_WITH(url, 'jstor://') THEN 'JSTOR'
             WHEN STARTS_WITH(url, 'https://drive.google.com') THEN 'Google Drive'
             WHEN STARTS_WITH(url, 'https://api.onedrive.com') THEN 'Microsoft OneDrive'
-            -- This isn't live yet, and when it is, we probably won't do it like this
-            -- WHEN STARTS_WITH(url, 'https://www.youtube.com/watch') THEN 'YouTube'
+
+            WHEN STARTS_WITH(url, 'https://www.youtube.com') THEN 'YouTube'
+            WHEN STARTS_WITH(url, 'https://youtube.com') THEN 'YouTube'
+            WHEN STARTS_WITH(url, 'https://youtu.be') THEN 'YouTube'
 
             -- We're assuming we've caught everything by here, but anything we
             -- miss will be in this pot. This should be Via stuff hopefully.
