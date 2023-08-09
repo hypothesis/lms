@@ -103,19 +103,16 @@ class TestLTIUserSecurityPolicy:
         assert userid == Identity(userid="", permissions=[])
 
     @pytest.mark.parametrize(
-        "roles,extra_permissions",
+        "lti_user_fixture,extra_permissions",
         (
-            ("administrator,noise", [Permissions.LTI_CONFIGURE_ASSIGNMENT]),
-            ("instructor,noise", [Permissions.LTI_CONFIGURE_ASSIGNMENT]),
-            ("INSTRUCTOR,noise", [Permissions.LTI_CONFIGURE_ASSIGNMENT]),
-            ("teachingassistant,noise", [Permissions.LTI_CONFIGURE_ASSIGNMENT]),
-            ("other", []),
+            ("user_is_instructor", [Permissions.LTI_CONFIGURE_ASSIGNMENT]),
+            ("user_is_learner", []),
         ),
     )
     def test_identity_when_theres_an_lti_user(
-        self, pyramid_request, roles, extra_permissions
+        self, request, pyramid_request, lti_user_fixture, extra_permissions
     ):
-        pyramid_request.lti_user.roles = roles
+        _ = request.getfixturevalue(lti_user_fixture)
         policy = LTIUserSecurityPolicy(
             create_autospec(get_lti_user, return_value=pyramid_request.lti_user)
         )
