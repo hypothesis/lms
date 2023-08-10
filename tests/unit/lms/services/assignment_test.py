@@ -25,7 +25,7 @@ class TestAssignmentService:
 
         assert assignment in db_session.new
 
-    def test_update_assignment(self, svc, pyramid_request, misc_plugin):
+    def test_update_assignment(self, svc, pyramid_request):
         assignment = svc.update_assignment(
             pyramid_request,
             factories.Assignment(),
@@ -33,7 +33,6 @@ class TestAssignmentService:
             sentinel.group_set_id,
         )
 
-        misc_plugin.post_configure_assignment.assert_called_once_with(pyramid_request)
         assert assignment.document_url == sentinel.document_url
         assert assignment.extra["group_set_id"] == sentinel.group_set_id
 

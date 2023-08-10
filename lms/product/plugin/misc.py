@@ -1,5 +1,3 @@
-from pyramid.request import Request
-
 from lms.models import LTIParams, LTIRegistration
 
 
@@ -25,15 +23,6 @@ class MiscPlugin:
 
     # Whether or not to prompt for an assignment title while deep linking.
     deep_linking_prompt_for_title = False
-
-    def post_configure_assignment(self, request: Request):  # pragma: nocover
-        """
-        Run any actions needed after configuring an assignment.
-
-        This doesn't apply on deep linked setups where:
-            - The exact moment of configuration is not know.
-            - The deep linking message could include details about grading.
-        """
 
     def post_launch_assignment_hook(
         self, request, js_config, assignment

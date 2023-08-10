@@ -25,7 +25,6 @@ class ApplicationSettings(JSONSettings):
         JSONSetting("desire2learn", "client_secret", JSONSetting.AES_SECRET),
         JSONSetting("desire2learn", "groups_enabled", asbool),
         JSONSetting("desire2learn", "files_enabled", asbool),
-        JSONSetting("desire2learn", "create_line_item", asbool),
         JSONSetting("google_drive", "files_enabled", asbool),
         JSONSetting("microsoft_onedrive", "files_enabled", asbool),
         JSONSetting("vitalsource", "enabled", asbool),

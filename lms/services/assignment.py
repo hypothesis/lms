@@ -48,24 +48,18 @@ class AssignmentService:
 
         return assignment
 
-    def _update_assignment(self, assignment, lti_params, document_url, group_set_id):
+    def update_assignment(self, request, assignment, document_url, group_set_id):
+        """Update an existing assignment."""
+
         assignment.document_url = document_url
         assignment.extra["group_set_id"] = group_set_id
 
         # Metadata based on the launch
-        assignment.title = lti_params.get("resource_link_title")
-        assignment.description = lti_params.get("resource_link_description")
-        assignment.is_gradable = self._misc_plugin.is_assignment_gradable(lti_params)
-        return assignment
-
-    def update_assignment(self, request, assignment, document_url, group_set_id):
-        """Update an existing assignment."""
-        assignment = self._update_assignment(
-            assignment, request.lti_params, document_url, group_set_id
+        assignment.title = request.lti_params.get("resource_link_title")
+        assignment.description = request.lti_params.get("resource_link_description")
+        assignment.is_gradable = self._misc_plugin.is_assignment_gradable(
+            request.lti_params
         )
-
-        # Make any product-specific actions after configuring the assignment
-        self._misc_plugin.post_configure_assignment(request)
 
         return assignment
 
@@ -143,9 +137,7 @@ class AssignmentService:
         # Always update the assignment configuration
         # It often will be the same one while launching the assignment again but
         # it might for example be an updated deep linked URL or similar.
-        return self._update_assignment(
-            assignment, lti_params, document_url, group_set_id
-        )
+        return self.update_assignment(request, assignment, document_url, group_set_id)
 
     def upsert_assignment_membership(
         self, assignment: Assignment, user: User, lti_roles: List[LTIRole]
