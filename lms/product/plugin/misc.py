@@ -29,6 +29,11 @@ class MiscPlugin:
     ):  # pragma: nocover
         """Run any actions needed for a successful launch of an assignment."""
 
+    def accept_grading_comments(self, application_instance):
+        """Whether to accept comments while grading."""
+        # This is a LTI 1.3 only feature
+        return application_instance.lti_version == "1.3.0"
+
     def is_assignment_gradable(self, lti_params: LTIParams) -> bool:
         """Check if the assignment of the current launch is gradable."""
         return bool(lti_params.get("lis_outcome_service_url"))
