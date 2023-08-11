@@ -1,7 +1,7 @@
 from typing import List, Optional, Union
 
 from sqlalchemy import func
-from sqlalchemy.orm import aliased, subqueryload
+from sqlalchemy.orm import aliased
 
 from lms.models import Course, Grouping, GroupingMembership, LTIUser, User
 from lms.models._hashed_id import hashed_id
@@ -202,32 +202,6 @@ class GroupingService:
             )
 
         return self._to_groupings(user, groupings, course, self.plugin.group_type)
-
-    def get_known_groupings(self, user, course):
-        """
-        Get the groupings from the DB for the provided user.
-
-        This will include the course, and any sections / groups we have seen
-        before. This does not attempt to retrieve the groups from the tool
-        consumer using their API (for example by calling Canvas API).
-
-        This only works for direct children of the course, not children of
-        children.
-        """
-        parent_groups = aliased(Grouping)
-
-        groupings = (
-            # Get groupings which are children of the course
-            self._db.query(Grouping)
-            .filter_by(parent_id=course.id)
-            # Which the user is a part of
-            .join(GroupingMembership)
-            .filter(GroupingMembership.user == user)
-            # Eager load the parent groups
-            .options(subqueryload(parent_groups, Grouping.parent))
-        ).all()
-
-        return [course] + groupings
 
     def get_launch_grouping_type(self, request, course, assignment) -> Grouping.Type:
         """
