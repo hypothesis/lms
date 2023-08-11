@@ -15,7 +15,7 @@ class TestLTI13GradingService:
         ltia_http_service.request.return_value.json.return_value = response
         svc.line_item_url = "https://lms.com/lineitems?param=1"
 
-        score = svc.read_result(sentinel.user_id)
+        result = svc.read_result(sentinel.user_id)
 
         ltia_http_service.request.assert_called_once_with(
             "GET",
@@ -24,16 +24,19 @@ class TestLTI13GradingService:
             params={"user_id": sentinel.user_id},
             headers={"Accept": "application/vnd.ims.lis.v2.resultcontainer+json"},
         )
-        assert score == response[-1]["resultScore"] / response[-1]["resultMaximum"]
+        assert (
+            result.score == response[-1]["resultScore"] / response[-1]["resultMaximum"]
+        )
 
     def test_read_lti_result_empty(self, svc, ltia_http_service):
         ltia_http_service.request.side_effect = ExternalRequestError(
             response=Mock(status_code=404)
         )
 
-        score = svc.read_result(sentinel.user_id)
+        result = svc.read_result(sentinel.user_id)
 
-        assert not score
+        assert not result.score
+        assert not result.comment
 
     def test_read_lti_result_raises(self, svc, ltia_http_service):
         ltia_http_service.request.side_effect = ExternalRequestError(
@@ -46,7 +49,10 @@ class TestLTI13GradingService:
     def test_read_empty_lti_result(self, svc, ltia_http_service):
         ltia_http_service.request.return_value.json.return_value = []
 
-        assert not svc.read_result(sentinel.user_id)
+        result = svc.read_result(sentinel.user_id)
+
+        assert not result.score
+        assert not result.comment
 
     @pytest.mark.parametrize(
         "bad_response",
@@ -60,7 +66,10 @@ class TestLTI13GradingService:
     def test_read_bad_response_lti_result(self, svc, ltia_http_service, bad_response):
         ltia_http_service.request.return_value.json.return_value = bad_response
 
-        assert not svc.read_result(sentinel.user_id)
+        result = svc.read_result(sentinel.user_id)
+
+        assert not result.score
+        assert not result.comment
 
     def test_get_score_maximum(self, svc, ltia_http_service):
         ltia_http_service.request.return_value.json.return_value = [

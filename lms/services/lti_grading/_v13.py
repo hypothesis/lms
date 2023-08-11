@@ -4,7 +4,7 @@ from typing import Optional
 from urllib.parse import urlparse
 
 from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
-from lms.services.lti_grading.interface import LTIGradingService
+from lms.services.lti_grading.interface import GradingResult, LTIGradingService
 from lms.services.ltia_http import LTIAHTTPService
 
 LOG = logging.getLogger(__name__)
@@ -28,7 +28,8 @@ class LTI13GradingService(LTIGradingService):
         super().__init__(line_item_url, line_item_container_url)
         self._ltia_service = ltia_service
 
-    def read_result(self, grading_id):
+    def read_result(self, grading_id) -> GradingResult:
+        result = GradingResult(score=None, comment=None)
         try:
             response = self._ltia_service.request(
                 "GET",
@@ -39,17 +40,19 @@ class LTI13GradingService(LTIGradingService):
             )
         except ExternalRequestError as err:
             if err.status_code == 404:
-                return None
+                return result
             raise
 
         results = response.json()
         if not results:
-            return None
+            return result
 
         try:
-            return results[-1]["resultScore"] / results[-1]["resultMaximum"]
+            result.score = results[-1]["resultScore"] / results[-1]["resultMaximum"]
         except (TypeError, ZeroDivisionError, KeyError, IndexError):
-            return None
+            pass
+        result.comment = results[-1].get("comment")
+        return result
 
     def get_score_maximum(self, resource_link_id) -> Optional[float]:
         return self._read_grading_configuration(resource_link_id).get("scoreMaximum")

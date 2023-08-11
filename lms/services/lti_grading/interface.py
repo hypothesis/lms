@@ -1,3 +1,13 @@
+from dataclasses import dataclass
+from typing import Optional
+
+
+@dataclass
+class GradingResult:
+    score: Optional[float]
+    comment: Optional[str]
+
+
 class LTIGradingService:  # pragma: no cover
     """
     Service for sending grades back to the LMS.
@@ -47,7 +57,7 @@ class LTIGradingService:  # pragma: no cover
         """
         return None
 
-    def read_result(self, grading_id):
+    def read_result(self, grading_id) -> GradingResult:
         """
         Return the last-submitted score for a given submission.
 

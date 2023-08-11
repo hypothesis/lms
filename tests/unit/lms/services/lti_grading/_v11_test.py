@@ -14,14 +14,15 @@ class TestLTI11GradingService:
     def test_read_result(self, svc, respond_with, http_service):
         respond_with(GradingResponse(score=0.95))
 
-        score = svc.read_result(sentinel.grading_id)
+        result = svc.read_result(sentinel.grading_id)
 
         assert self.sent_pox_body(http_service) == {
             "readResultRequest": {
                 "resultRecord": {"sourcedGUID": {"sourcedId": "sentinel.grading_id"}}
             }
         }
-        assert score == 0.95
+        assert result.score == 0.95
+        assert result.comment is None
 
     @pytest.mark.parametrize("score", [None, "", "not-a-float"])
     def test_read_result_returns_none_if_score_not_a_float(
@@ -29,14 +30,14 @@ class TestLTI11GradingService:
     ):
         respond_with(GradingResponse(score=score))
 
-        assert svc.read_result(sentinel.grading_id) is None
+        assert svc.read_result(sentinel.grading_id).score is None
 
     def test_read_result_returns_none_if_no_score(self, svc, respond_with):
         response = GradingResponse()
         response.result_response["result"]["resultScore"].pop("textString")
         respond_with(response)
 
-        assert svc.read_result(sentinel.grading_id) is None
+        assert svc.read_result(sentinel.grading_id).score is None
 
     def test_methods_raises_StudentNotInCourse(self, svc, respond_with):
         response = GradingResponse(
