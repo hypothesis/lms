@@ -219,7 +219,7 @@ six==1.15.0
     #   google-auth
     #   mailchimp-transactional
     #   python-dateutil
-sqlalchemy==1.4.48
+sqlalchemy==2.0.19
     # via
     #   -r prod.in
     #   alembic
@@ -239,11 +239,12 @@ transaction==2.4.0
     #   zope-sqlalchemy
 translationstring==1.4
     # via pyramid
-typing-extensions==4.0.0
+typing-extensions==4.7.1
     # via
     #   alembic
     #   async-timeout
     #   kombu
+    #   sqlalchemy
 tzdata==2023.3
     # via
     #   backports-zoneinfo
