@@ -1,7 +1,7 @@
 """Insert LMS specific objects into the DB."""
 
-import sqlalchemy
 from behave import step  # pylint:disable=no-name-in-module
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from lms import db, models
@@ -16,7 +16,7 @@ class LMSDBContext(StepContext):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.engine = sqlalchemy.create_engine(DATABASE_URL)
+        self.engine = create_engine(DATABASE_URL)
         self.session_maker = sessionmaker(bind=self.engine.connect())
         db.init(self.engine, stamp=False, drop=True)
 
@@ -36,7 +36,7 @@ class LMSDBContext(StepContext):
             return
 
         table_names = ", ".join(f'"{table.name}"' for table in tables)
-        self.session.execute(f"TRUNCATE {table_names} CASCADE;")
+        self.session.execute(text(f"TRUNCATE {table_names} CASCADE;"))
         self.session.commit()
 
     def do_setup(self):
