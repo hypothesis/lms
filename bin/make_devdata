@@ -16,6 +16,7 @@ import subprocess
 import tempfile
 
 from pyramid.paster import bootstrap
+from sqlalchemy import text
 
 import lms
 from lms import models
@@ -123,7 +124,7 @@ class DevDataFactory:
         """Update the sequence of the PK so devdata rows don't overlap with the new ones."""
         sequence = f"{model.__tablename__}_id_seq"
         self.db.execute(
-            f"""SELECT SETVAL('{sequence}', GREATEST(:value+1, (SELECT last_value FROM "{sequence}")))""",
+            text(f"""SELECT SETVAL('{sequence}', GREATEST(:value+1, (SELECT last_value FROM "{sequence}")))"""),
             {"value": value},
         )
 
