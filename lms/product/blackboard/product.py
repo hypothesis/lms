@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from lms.product.blackboard._plugin.course_copy import BlackboardCourseCopyPlugin
 from lms.product.blackboard._plugin.grouping import BlackboardGroupingPlugin
+from lms.product.blackboard._plugin.misc import BlackboardMiscPlugin
 from lms.product.product import PluginConfig, Product, Routes
 
 
@@ -17,6 +18,8 @@ class Blackboard(Product):
     )
 
     plugin_config: PluginConfig = PluginConfig(
-        grouping=BlackboardGroupingPlugin, course_copy=BlackboardCourseCopyPlugin
+        grouping=BlackboardGroupingPlugin,
+        course_copy=BlackboardCourseCopyPlugin,
+        misc=BlackboardMiscPlugin,
     )
     settings_key = "blackboard"
