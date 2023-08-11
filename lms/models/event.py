@@ -30,7 +30,10 @@ class Event(BASE):
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
 
     timestamp = sa.Column(
-        sa.DateTime(), server_default=sa.func.now(), nullable=False, index=True
+        sa.DateTime(),
+        server_default=sa.func.now(),  # pylint:disable=not-callable
+        nullable=False,
+        index=True,
     )
     """Time the event occurred, defaults to now() if not specified"""
 
