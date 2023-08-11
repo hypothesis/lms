@@ -52,6 +52,7 @@ export type InstructorConfig = {
   courseName: string;
   editingEnabled: boolean;
   gradingEnabled: boolean;
+  acceptGradingComments: boolean;
   students: StudentInfo[] | null;
   scoreMaximum: number | null;
 };

@@ -300,6 +300,11 @@ class JSConfig:
         toolbar_config = self._get_toolbar_config()
 
         toolbar_config["gradingEnabled"] = True
+        toolbar_config[
+            "acceptGradingComments"
+        ] = self._request.product.plugin.misc.accept_grading_comments(
+            self._application_instance
+        )
         toolbar_config["students"] = students
         toolbar_config["scoreMaximum"] = score_maximum
 

@@ -20,6 +20,7 @@ pytestmark = pytest.mark.usefixtures(
     "h_api",
     "vitalsource_service",
     "jstor_service",
+    "misc_plugin",
 )
 
 
@@ -363,7 +364,13 @@ class TestInstructorToolbar:
         "enable_editing, enable_grading", [(True, False), (False, True)]
     )
     def test_instructor_toolbar(
-        self, js_config, pyramid_request, enable_editing, enable_grading
+        self,
+        js_config,
+        pyramid_request,
+        enable_editing,
+        enable_grading,
+        misc_plugin,
+        application_instance,
     ):
         if enable_grading:
             js_config.enable_toolbar_grading(sentinel.students, sentinel.score_maximum)
@@ -380,7 +387,13 @@ class TestInstructorToolbar:
             expected["editingEnabled"] = enable_editing
 
         if enable_grading:
+            misc_plugin.accept_grading_comments.assert_called_once_with(
+                application_instance
+            )
             expected["gradingEnabled"] = enable_grading
+            expected[
+                "acceptGradingComments"
+            ] = misc_plugin.accept_grading_comments.return_value
             expected["students"] = sentinel.students
             expected["scoreMaximum"] = sentinel.score_maximum
 
