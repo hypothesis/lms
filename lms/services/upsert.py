@@ -2,7 +2,7 @@
 
 from typing import List
 
-from sqlalchemy import column, tuple_
+from sqlalchemy import tuple_
 from sqlalchemy.dialects.postgresql import insert
 from zope.sqlalchemy import mark_changed
 
@@ -45,7 +45,7 @@ def bulk_upsert(
         # the same return type in all branches.
         return db.query(model_class).filter(False)
 
-    index_elements_columns = [column(c) for c in index_elements]
+    index_elements_columns = [getattr(model_class, c) for c in index_elements]
 
     stmt = insert(model_class).values(values)
     stmt = stmt.on_conflict_do_update(
