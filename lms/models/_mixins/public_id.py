@@ -7,7 +7,9 @@ from lms.models.public_id import PublicId
 from lms.models.region import Regions
 
 
-class _PublicIdComparator(Comparator):  # pylint: disable=abstract-method
+class _PublicIdComparator(
+    Comparator
+):  # pylint: disable=abstract-method, too-many-ancestors
     """A comparator for covering over details of comparing public ids."""
 
     def __eq__(self, other):
