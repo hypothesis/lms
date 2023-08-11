@@ -5,6 +5,7 @@ from unittest.mock import patch, sentinel
 import pytest
 from h_matchers import Any
 
+from lms.services.lti_grading.interface import GradingResult
 from lms.views.api.grading import CanvasPreRecordHook, GradingViews
 
 pytestmark = pytest.mark.usefixtures("lti_grading_service")
@@ -159,12 +160,17 @@ class TestReadResult:
             "modelstudent-assignment1"
         )
 
-    def test_it_returns_current_score(self, pyramid_request, lti_grading_service):
-        lti_grading_service.read_result.return_value = 0.5
+    def test_it_returns_current_result(self, pyramid_request, lti_grading_service):
+        lti_grading_service.read_result.return_value = GradingResult(
+            score=sentinel.score, comment=sentinel.comment
+        )
 
         current_score = GradingViews(pyramid_request).read_result()
 
-        assert current_score == {"currentScore": 0.5}
+        assert current_score == {
+            "currentScore": sentinel.score,
+            "comment": sentinel.comment,
+        }
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):

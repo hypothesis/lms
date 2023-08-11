@@ -4,7 +4,7 @@ import xmltodict
 
 from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
 from lms.services.http import HTTPService
-from lms.services.lti_grading.interface import LTIGradingService
+from lms.services.lti_grading.interface import GradingResult, LTIGradingService
 from lms.services.oauth1 import OAuth1Service
 
 
@@ -18,9 +18,10 @@ class LTI11GradingService(LTIGradingService):
         self.http_service = http_service
         self.oauth1_service = oauth1_service
 
-    def read_result(self, grading_id):
+    def read_result(self, grading_id) -> GradingResult:
+        result = GradingResult(score=None, comment=None)
         try:
-            result = self._send_request(
+            response = self._send_request(
                 {
                     "readResultRequest": {
                         "resultRecord": {"sourcedGUID": {"sourcedId": grading_id}}
@@ -34,11 +35,13 @@ class LTI11GradingService(LTIGradingService):
             raise
 
         try:
-            return float(
-                result["readResultResponse"]["result"]["resultScore"]["textString"]
+            result.score = float(
+                response["readResultResponse"]["result"]["resultScore"]["textString"]
             )
         except (TypeError, KeyError, ValueError):
-            return None
+            pass
+
+        return result
 
     def record_result(self, grading_id, score=None, pre_record_hook=None):
         request = {"resultRecord": {"sourcedGUID": {"sourcedId": grading_id}}}

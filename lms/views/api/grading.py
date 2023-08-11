@@ -63,11 +63,11 @@ class GradingViews:
     def read_result(self):
         """Proxy request for current result (grade/score) to LTI Result API."""
 
-        current_score = self.lti_grading_service.read_result(
+        result = self.lti_grading_service.read_result(
             self.parsed_params["lis_result_sourcedid"]
         )
 
-        return {"currentScore": current_score}
+        return {"currentScore": result.score, "comment": result.comment}
 
     @view_config(
         route_name="lti_api.submissions.record", schema=APIRecordSpeedgraderSchema
