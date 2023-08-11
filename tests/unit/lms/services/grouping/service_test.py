@@ -445,18 +445,6 @@ class TestGetGroupings:
         upsert_groupings.assert_not_called()
         upsert_grouping_memberships.assert_called_once_with(sentinel.user, groupings)
 
-    def test_get_known_groupings(self, svc, db_session):
-        groupings = factories.CanvasGroup.create_batch(3)
-        course = factories.Course(children=groupings)
-        user = factories.User()
-        factories.GroupingMembership(grouping=groupings[1], user=user)
-        db_session.flush()
-
-        results = svc.get_known_groupings(user, course)
-
-        # We get the course no matter what + only the grouping we are in
-        assert results == Any.list.containing([course, groupings[1]])
-
     @pytest.mark.parametrize(
         "sections_enabled,group_set_id,expected",
         [
