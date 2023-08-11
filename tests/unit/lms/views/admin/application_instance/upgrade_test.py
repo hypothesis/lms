@@ -80,6 +80,9 @@ class TestUpgradeApplicationInstanceViews:
     def test_upgrade_instance_callback_already_upgraded(self, views):
         assert views.upgrade_instance_callback() == REDIRECT_TO_UPGRADE_AI
 
+    @pytest.mark.filterwarnings(
+        "ignore:transaction already deassociated from connection"
+    )
     @pytest.mark.usefixtures("with_upgrade_form")
     def test_upgrade_instance_callback_with_duplicate(
         self, views, db_session, lti_registration_service
