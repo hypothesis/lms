@@ -15,9 +15,6 @@ from lms.db._text_search import full_text_match
 __all__ = ("BASE", "init", "varchar_enum")
 
 
-LOG = logging.getLogger(__name__)
-
-
 class BaseClass:
     """Functions common to all SQLAlchemy models."""
 
@@ -105,6 +102,7 @@ def init(engine, drop=False, stamp=True):  # pragma: nocover
     try:
         connection.execute(text("select 1 from alembic_version"))
     except sqlalchemy.exc.ProgrammingError:
+        connection.rollback()  # Rollback after failure to find the alembic table
         if drop:
             # SQLAlchemy doesnt' know about the report schema, and will end up
             # trying to drop tables without cascade that have dependent tables
