@@ -3,7 +3,11 @@ from datetime import datetime, timezone
 from typing import Optional
 from urllib.parse import urlparse
 
-from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
+from lms.services.exceptions import (
+    ExternalRequestError,
+    GradingError,
+    StudentNotInCourse,
+)
 from lms.services.lti_grading.interface import LTIGradingService
 from lms.services.ltia_http import LTIAHTTPService
 
@@ -76,14 +80,15 @@ class LTI13GradingService(LTIGradingService):
             )
 
         except ExternalRequestError as err:
-            if (
-                err.status_code == 422
-                and "maximum number of allowed attempts has been reached"
-                in err.response.text
-            ):
-                LOG.error("record_result: maximum number of allowed attempts")
-                # We silently shallow this type of error
-                return None
+            for expected_code, expected_text in [
+                (422, "maximum number of allowed attempts has been reached"),
+                (422, "course has concluded"),
+            ]:
+                if (
+                    err.status_code == expected_code
+                    and expected_text in err.response.text
+                ):
+                    raise GradingError(err.response.text) from err
 
             for expected_code, expected_text in [
                 # Blackboard

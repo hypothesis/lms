@@ -5,7 +5,11 @@ from freezegun import freeze_time
 from h_matchers import Any
 from pytest import param
 
-from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
+from lms.services.exceptions import (
+    ExternalRequestError,
+    GradingError,
+    StudentNotInCourse,
+)
 from lms.services.lti_grading._v13 import LTI13GradingService
 
 
@@ -141,17 +145,22 @@ class TestLTI13GradingService:
         with pytest.raises(StudentNotInCourse):
             svc.record_result(sentinel.user_id, sentinel.score)
 
-    def test_record_result_doesnt_raise_max_submissions(self, svc, ltia_http_service):
+    @pytest.mark.parametrize(
+        "code,text",
+        [
+            (422, "course has concluded"),
+            (422, "maximum number of allowed attempts has been reached"),
+        ],
+    )
+    def test_record_result_doesnt_raise_known_issues(
+        self, svc, ltia_http_service, code, text
+    ):
         ltia_http_service.request.side_effect = ExternalRequestError(
-            response=Mock(
-                status_code=422,
-                text="maximum number of allowed attempts has been reached",
-            )
+            response=Mock(status_code=code, text=text)
         )
 
-        response = svc.record_result(sentinel.user_id, sentinel.score)
-
-        assert not response
+        with pytest.raises(GradingError):
+            svc.record_result(sentinel.user_id, sentinel.score)
 
     def test_create_line_item(self, svc, ltia_http_service):
         response = svc.create_line_item(

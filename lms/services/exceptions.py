@@ -268,6 +268,13 @@ class FileNotFoundInCourse(SerializableError):
         super().__init__(error_code=error_code, details={"file_id": file_id})
 
 
+class GradingError(SerializableError):
+    """Generic, grading related errors that are not handled indepently."""
+
+    def __init__(self, text):
+        super().__init__(error_code="grading_error", details={"text": text})
+
+
 class StudentNotInCourse(SerializableError):
     """A student is no longer in the current course."""
 
