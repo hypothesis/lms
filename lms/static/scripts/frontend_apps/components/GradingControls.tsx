@@ -10,6 +10,7 @@ import SubmitGradeForm from './SubmitGradeForm';
 
 export type GradingControlsProps = {
   students: StudentInfo[];
+  scoreMaximum?: number;
 };
 
 /**
@@ -31,6 +32,7 @@ function localeSort<Item>(items: Item[], key: keyof Item): Item[] {
  */
 export default function GradingControls({
   students: unorderedStudents,
+  scoreMaximum,
 }: GradingControlsProps) {
   const {
     api: { authToken, sync: syncAPICallInfo },
@@ -102,7 +104,10 @@ export default function GradingControls({
         />
       </div>
       <div>
-        <SubmitGradeForm student={selectedStudent} />
+        <SubmitGradeForm
+          student={selectedStudent}
+          scoreMaximum={scoreMaximum}
+        />
       </div>
     </div>
   );
