@@ -11,7 +11,7 @@ RUN yarn install --immutable
 RUN yarn build
 
 # Stage 2: Build the rest of the app using build output from Stage 1.
-FROM python:3.8.12-alpine3.13
+FROM python:3.9.17-alpine3.13
 LABEL authors="Hypothes.is Project and contributors"
 
 # Install system build and runtime dependencies.
