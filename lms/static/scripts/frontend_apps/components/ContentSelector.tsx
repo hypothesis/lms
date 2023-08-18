@@ -159,21 +159,9 @@ export default function ContentSelector({
     onSelectContent({ type: 'url', url, name });
   };
 
-  const selectCanvasFile = (file: File) => {
+  const selectLMSFile = (file: File) => {
     cancelDialog();
-    // file.id is a URL with a `canvas://` prefix.
-    onSelectContent({ type: 'url', url: file.id });
-  };
-
-  const selectBlackboardFile = (file: File) => {
-    cancelDialog();
-    // file.id is a URL with a `blackboard://` prefix.
-    onSelectContent({ type: 'url', url: file.id });
-  };
-
-  const selectD2LFile = (file: File) => {
-    cancelDialog();
-    // file.id is a URL with a `d2l://` prefix.
+    // file.id is a URL with a `canvas|blackboard|d2l://` prefix.
     onSelectContent({ type: 'url', url: file.id });
   };
 
@@ -211,7 +199,7 @@ export default function ContentSelector({
           authToken={authToken}
           listFilesApi={listFilesApi}
           onCancel={cancelDialog}
-          onSelectFile={selectCanvasFile}
+          onSelectFile={selectLMSFile}
           missingFilesHelpLink="https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-upload-a-file-to-a-course/ta-p/618"
           withBreadcrumbs={canvasWithFolders}
         />
@@ -223,7 +211,7 @@ export default function ContentSelector({
           authToken={authToken}
           listFilesApi={blackboardListFilesApi}
           onCancel={cancelDialog}
-          onSelectFile={selectBlackboardFile}
+          onSelectFile={selectLMSFile}
           // An alias we maintain that provides multiple external documentation links for
           // different versions of Blackboard (Classic vs. Ultra)
           missingFilesHelpLink={'https://web.hypothes.is/help/bb-files'}
@@ -237,7 +225,7 @@ export default function ContentSelector({
           authToken={authToken}
           listFilesApi={d2lListFilesApi}
           onCancel={cancelDialog}
-          onSelectFile={selectD2LFile}
+          onSelectFile={selectLMSFile}
           missingFilesHelpLink={
             'https://web.hypothes.is/help/using-hypothesis-with-d2l-course-content-files/'
           }
