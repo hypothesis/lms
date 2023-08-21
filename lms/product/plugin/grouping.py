@@ -23,7 +23,9 @@ class GroupingPlugin:
     sections_type: Grouping.Type | None = None
     """The type of sections this plugin supports. `None` disables support."""
 
-    def get_sections_for_learner(self, svc, course) -> list | None:  # pragma: nocover
+    def get_sections_for_learner(
+        self, svc, course: Course
+    ) -> list | None:  # pragma: nocover
         """Get the sections from context when launched by a normal learner."""
 
         return None

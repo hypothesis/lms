@@ -1,6 +1,8 @@
 """Core models of the product."""
 
 from dataclasses import InitVar, dataclass
+from enum import Enum
+from typing import Optional
 
 from lms.product.family import Family  # pylint:disable=unused-import
 from lms.product.plugin import PluginConfig, Plugins
