@@ -33,7 +33,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
+          python-version: '3.9'
       - name: Cache the .tox dir
         uses: actions/cache@v3
         with:
@@ -50,7 +50,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
+          python-version: '3.9'
       - name: Cache the .tox dir
         uses: actions/cache@v3
         with:
@@ -79,7 +79,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
+          python-version: '3.9'
       - name: Cache the .tox dir
         uses: actions/cache@v3
         with:
@@ -108,7 +108,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
+          python-version: '3.9'
       - name: Cache the .tox dir
         uses: actions/cache@v3
         with:
@@ -141,7 +141,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
+          python-version: '3.9'
       - name: Cache the .tox dir
         uses: actions/cache@v3
         with:
@@ -170,7 +170,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
+          python-version: '3.9'
       - name: Cache the .tox dir
         uses: actions/cache@v3
         with:
