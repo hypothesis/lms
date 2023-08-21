@@ -1,5 +1,4 @@
 import classnames from 'classnames';
-import { useEffect, useState } from 'preact/hooks';
 
 export type ValidationMessageProps = {
   /** Error message text. */
@@ -21,22 +20,15 @@ export default function ValidationMessage({
   open = false,
   onClose = () => {},
 }: ValidationMessageProps) {
-  const [showError, setShowError] = useState(open);
-
-  useEffect(() => {
-    setShowError(open);
-  }, [open]);
-
   const closeValidationError = (event: Event) => {
     event.preventDefault();
-    setShowError(false);
     onClose();
   };
 
   return (
     <input
       type="button"
-      data-testid={showError ? 'message-open' : 'message-closed'}
+      data-testid={open ? 'message-open' : 'message-closed'}
       onClick={closeValidationError}
       className={classnames(
         'absolute z-10 shadow',
@@ -49,12 +41,12 @@ export default function ValidationMessage({
         // Make message the same height as its relative-positioned ancestor
         'h-full',
         {
-          'animate-validationMessageOpen': showError,
-          'animate-validationMessageClose': !showError,
+          'animate-validationMessageOpen': open,
+          'animate-validationMessageClose': !open,
         }
       )}
       value={message}
-      tabIndex={showError ? 0 : -1}
+      tabIndex={open ? 0 : -1}
     />
   );
 }
