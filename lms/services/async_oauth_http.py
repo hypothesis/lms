@@ -1,6 +1,5 @@
 import asyncio
 import json
-from typing import List
 
 import aiohttp
 
@@ -12,8 +11,8 @@ class AsyncOAuthHTTPService:
         self._oauth2_token_service = oauth2_token_service
 
     def request(
-        self, method, urls: List[str], timeout=10, headers=None, **kwargs
-    ) -> List[aiohttp.ClientResponse]:
+        self, method, urls: list[str], timeout=10, headers=None, **kwargs
+    ) -> list[aiohttp.ClientResponse]:
         r"""
         Send access token-authenticated async requests with aiohttp to all `urls`.
 

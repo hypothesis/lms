@@ -1,6 +1,5 @@
 """A helper for upserting into DB tables."""
 
-from typing import List
 
 from sqlalchemy import tuple_
 from sqlalchemy.dialects.postgresql import insert
@@ -10,9 +9,9 @@ from zope.sqlalchemy import mark_changed
 def bulk_upsert(
     db,
     model_class,
-    values: List[dict],
-    index_elements: List[str],
-    update_columns: List[str],
+    values: list[dict],
+    index_elements: list[str],
+    update_columns: list[str],
 ):
     """
     Create or update the specified values in a table.

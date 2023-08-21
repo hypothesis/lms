@@ -1,6 +1,6 @@
 import functools
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from pyramid.httpexceptions import HTTPClientError
 
@@ -152,7 +152,7 @@ class JSConfig:
         auth_route: str,
         error_code=None,
         error_details: Optional[dict] = None,
-        canvas_scopes: List[str] = None,
+        canvas_scopes: list[str] = None,
     ):
         """
         Configure the frontend to show the "Authorization failed" dialog.
@@ -413,7 +413,7 @@ class JSConfig:
 
         :param feature: A feature flag to enable.
         """
-        current_features: List[str] = self._hypothesis_client.setdefault("features", [])
+        current_features: list[str] = self._hypothesis_client.setdefault("features", [])
         if feature not in current_features:
             current_features.append(feature)
 
@@ -510,7 +510,7 @@ class JSConfig:
 
     @property
     @functools.lru_cache()
-    def _hypothesis_client(self) -> Dict[str, Any]:
+    def _hypothesis_client(self) -> dict[str, Any]:
         """
         Return the config object for the Hypothesis client.
 

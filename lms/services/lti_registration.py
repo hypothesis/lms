@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from lms.models import LTIRegistration
 
@@ -32,7 +32,7 @@ class LTIRegistrationService:
 
     def search_registrations(
         self, *, id_=None, issuer=None, client_id=None, limit=100
-    ) -> List[LTIRegistration]:
+    ) -> list[LTIRegistration]:
         """Return the registrations that match all of the passed parameters."""
 
         return (

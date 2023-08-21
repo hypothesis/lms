@@ -1,5 +1,3 @@
-from typing import List
-
 from lms.models import GradingInfo, HUser
 
 __all__ = ["GradingInfoService"]
@@ -18,7 +16,7 @@ class GradingInfoService:
         context_id,
         resource_link_id,
         lis_outcome_service_url,
-    ) -> List[dict]:
+    ) -> list[dict]:
         """
         Return all students available for grading for a given assignment.
 

@@ -1,5 +1,3 @@
-from typing import List
-
 from marshmallow import EXCLUDE, Schema, ValidationError, fields, validates_schema
 
 from lms.services.exceptions import ExternalRequestError, FileNotFoundInCourse
@@ -123,7 +121,7 @@ class D2LAPIClient:
 
         return groups
 
-    def list_files(self, org_unit) -> List[dict]:
+    def list_files(self, org_unit) -> list[dict]:
         """Get a nested list of files and folders for the given `org_unit`."""
         modules = self._get_course_modules(org_unit)
         files = list(self._find_files(org_unit, modules))
@@ -184,7 +182,7 @@ class D2LAPIClient:
         """
         return user_id.split("_")[-1]
 
-    def _get_course_modules(self, org_unit) -> List[dict]:
+    def _get_course_modules(self, org_unit) -> list[dict]:
         """
         Get a list of modules in the given course.
 

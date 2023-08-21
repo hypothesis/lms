@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional
 
 from marshmallow import fields
 
@@ -39,7 +39,7 @@ class CanvasPagesClient:
         self._client = client
         self._file_service = file_service
 
-    def list(self, course_id) -> List[CanvasPage]:
+    def list(self, course_id) -> list[CanvasPage]:
         pages = self._client.send(
             "GET",
             f"courses/{course_id}/pages",

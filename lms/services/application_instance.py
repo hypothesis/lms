@@ -2,7 +2,6 @@ import secrets
 from datetime import datetime
 from functools import lru_cache
 from logging import getLogger
-from typing import List
 
 import sqlalchemy as sa
 from sqlalchemy.exc import NoResultFound
@@ -171,7 +170,7 @@ class ApplicationInstanceService:
         email=None,
         settings=None,
         organization_public_id=None,
-    ) -> List[ApplicationInstance]:
+    ) -> list[ApplicationInstance]:
         """Return the instances that match all of the passed parameters."""
 
         return (

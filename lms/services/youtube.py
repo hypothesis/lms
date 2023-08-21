@@ -1,5 +1,3 @@
-from typing import List
-
 from lms.services.exceptions import SerializableError
 from lms.services.http import HTTPService
 
@@ -70,8 +68,8 @@ class YouTubeService:
             "restrictions": restrictions,
         }
 
-    def _resolve_video_restrictions(self, item: dict) -> List[str]:
-        restrictions: List[str] = []
+    def _resolve_video_restrictions(self, item: dict) -> list[str]:
+        restrictions: list[str] = []
 
         # Check if the video is age restricted
         if (

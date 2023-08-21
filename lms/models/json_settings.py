@@ -1,6 +1,6 @@
 import base64
 from dataclasses import dataclass
-from typing import Any, Optional, Tuple
+from typing import Any, Optional
 
 import sqlalchemy as sa
 from sqlalchemy.ext.mutable import MutableDict
@@ -67,7 +67,7 @@ class JSONSettings(MutableDict):
     >>> model.settings.changed()
     """
 
-    fields: Optional[Tuple[JSONSetting]] = None
+    fields: Optional[tuple[JSONSetting, ...]] = None
     """
     An optional spec for the acceptable fields and types.
     """

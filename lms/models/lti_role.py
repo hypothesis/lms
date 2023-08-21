@@ -2,7 +2,6 @@ import logging
 import re
 from dataclasses import dataclass
 from enum import Enum, unique
-from typing import Tuple
 
 import sqlalchemy as sa
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -175,7 +174,7 @@ class _RoleParser:
     }
 
     @classmethod
-    def parse_role(cls, role) -> Tuple[RoleScope, RoleType]:
+    def parse_role(cls, role) -> tuple[RoleScope, RoleType]:
         """Parse roles according to the expected values from the specs."""
         role_parts = {}
         for regex in cls._ROLE_REGEXP:

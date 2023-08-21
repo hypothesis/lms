@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import List
 
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
@@ -161,7 +160,7 @@ class D2LGroup(Grouping):
 class Course(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.COURSE}
 
-    def set_group_sets(self, group_sets: List[dict]):
+    def set_group_sets(self, group_sets: list[dict]):
         """
         Store this course's available group sets.
 
@@ -173,7 +172,7 @@ class Course(Grouping):
         group_sets = [{"id": str(g["id"]), "name": g["name"]} for g in group_sets]
         self.extra["group_sets"] = group_sets
 
-    def get_group_sets(self) -> List[dict]:
+    def get_group_sets(self) -> list[dict]:
         """Get this course's available group sets."""
         return self.extra.get("group_sets", [])
 
