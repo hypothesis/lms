@@ -1,5 +1,3 @@
-from typing import List
-
 from h_api.bulk_api import CommandBuilder
 
 from lms.models import Grouping
@@ -27,7 +25,7 @@ class LTIHService:
         self._h_api: HAPI = request.find_service(HAPI)
         self._group_info_service = request.find_service(name="group_info")
 
-    def sync(self, groupings: List[Grouping], group_info_params: dict):
+    def sync(self, groupings: list[Grouping], group_info_params: dict):
         """
         Sync standard data to h for an LTI launch with the provided groups.
 

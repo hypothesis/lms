@@ -1,5 +1,5 @@
 from dataclasses import asdict, dataclass, field, fields
-from typing import Dict, List, Optional
+from typing import Optional
 
 from pyramid.request import Request
 from sqlalchemy import inspect
@@ -24,7 +24,7 @@ class BaseEvent:  # pylint:disable=too-many-instance-attributes
     user_id: Optional[int] = None
     """Which user is related to this event"""
 
-    role_ids: List[int] = field(default_factory=list)
+    role_ids: list[int] = field(default_factory=list)
     """Which roles does the user have in relation to this event"""
 
     application_instance_id: Optional[int] = None
@@ -94,7 +94,7 @@ class AuditTrailEvent(BaseEvent):
         id: int  # pylint: disable=invalid-name
         source: str
         userid: str
-        changes: Dict[str, tuple]
+        changes: dict[str, tuple]
 
         @classmethod
         def from_instance(cls, instance, **kwargs):

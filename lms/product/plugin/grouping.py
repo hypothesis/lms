@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional
+from typing import Optional
 
 from lms.models import Course, Grouping
 
@@ -26,46 +26,46 @@ class GroupingPlugin:
 
     def get_sections_for_learner(
         self, svc, course
-    ) -> Optional[List]:  # pragma: nocover
+    ) -> Optional[list]:  # pragma: nocover
         """Get the sections from context when launched by a normal learner."""
 
         return None
 
     def get_sections_for_instructor(
         self, svc, course: Course
-    ) -> Optional[List]:  # pragma: nocover
+    ) -> Optional[list]:  # pragma: nocover
         """Get the sections from context when launched by an instructor."""
 
         return None
 
     def get_sections_for_grading(
         self, svc, course: Course, grading_student_id
-    ) -> Optional[List]:  # pragma: nocover
+    ) -> Optional[list]:  # pragma: nocover
         """Get the sections for a learner when they are being graded."""
 
         return None
 
-    def get_group_sets(self, course) -> List[dict]:  # pragma: nocover
+    def get_group_sets(self, course) -> list[dict]:  # pragma: nocover
         """Return the list of group sets for the given course."""
         return []
 
     def get_groups_for_learner(
         self, svc, course: Course, group_set_id
-    ) -> Optional[List]:  # pragma: nocover
+    ) -> Optional[list]:  # pragma: nocover
         """Get the sections from context when launched by a normal learner."""
 
         return None
 
     def get_groups_for_instructor(
         self, svc, course: Course, group_set_id
-    ) -> Optional[List]:  # pragma: nocover
+    ) -> Optional[list]:  # pragma: nocover
         """Get the groups from context when launched by an instructor."""
 
         return None
 
     def get_groups_for_grading(
         self, svc, course: Course, group_set_id, grading_student_id
-    ) -> Optional[List]:  # pragma: nocover
+    ) -> Optional[list]:  # pragma: nocover
         """Get the groups for a learner when they are being graded."""
 
         return None

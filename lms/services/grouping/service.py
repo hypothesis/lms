@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
@@ -33,10 +33,10 @@ class GroupingService:
 
     def upsert_groupings(
         self,
-        grouping_dicts: List[dict],
+        grouping_dicts: list[dict],
         type_: Grouping.Type,
         parent: Optional[Grouping] = None,
-    ) -> List[Grouping]:
+    ) -> list[Grouping]:
         """
         Upsert a Grouping generating the authority_provided_id based on its parent.
 
@@ -83,12 +83,12 @@ class GroupingService:
             update_columns=["lms_name", "extra", "updated"],
         ).all()
 
-    def upsert_grouping_memberships(self, user: User, groups: List[Grouping]):
+    def upsert_grouping_memberships(self, user: User, groups: list[Grouping]):
         """
         Upserts group memberships.
 
         :param user:  User the that belongs to the groups
-        :param groups: List of groups the `user` belongs to
+        :param groups: list of groups the `user` belongs to
         """
         if not user.id or any((group.id is None for group in groups)):
             # Ensure all ORM objects have their PK populated
@@ -146,7 +146,7 @@ class GroupingService:
 
     def get_sections(
         self, user: User, lti_user: LTIUser, course: Course, grading_student_id=None
-    ) -> Optional[List[Grouping]]:
+    ) -> Optional[list[Grouping]]:
         """
         Get the sections for the given user in the current context.
 
@@ -178,7 +178,7 @@ class GroupingService:
         course: Course,
         group_set_id,
         grading_student_id=None,
-    ) -> Optional[List[Grouping]]:
+    ) -> Optional[list[Grouping]]:
         """
         Get the groups for the given user in the current context.
 

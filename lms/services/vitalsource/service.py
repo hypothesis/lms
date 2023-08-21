@@ -1,5 +1,5 @@
 import re
-from typing import List, Optional
+from typing import Optional
 
 from lms.models import LTIParams
 from lms.services.vitalsource._client import VitalSourceClient
@@ -59,7 +59,7 @@ class VitalSourceService:
 
         return self._metadata_client.get_book_info(book_id)
 
-    def get_table_of_contents(self, book_id: str) -> List[dict]:
+    def get_table_of_contents(self, book_id: str) -> list[dict]:
         """Get the table of contents for a book."""
 
         return self._metadata_client.get_table_of_contents(book_id)

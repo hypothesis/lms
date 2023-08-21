@@ -2,7 +2,7 @@
 import json
 import re
 from datetime import datetime, timezone
-from typing import Iterator, List
+from typing import Iterator
 
 from h_api.bulk_api import BulkAPI, CommandBuilder
 
@@ -88,7 +88,7 @@ class HAPI:
 
     def get_annotations(
         self,
-        audience_userids: List[str],
+        audience_userids: list[str],
         updated_after: datetime,
         updated_before: datetime,
     ) -> Iterator[dict]:
@@ -99,7 +99,7 @@ class HAPI:
         userids. It is your responsibility to work out who can see what, by
         knowing which groups users are in.
 
-        :param audience_userids: List of h userids
+        :param audience_userids: list of h userids
         :param updated_after: Datetime to search after
         :param updated_before: Datetime to search before
         """

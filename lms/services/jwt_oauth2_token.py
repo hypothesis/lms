@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import Optional
 
 from lms.models.jwt_oauth2_token import JWTOAuth2Token
 
@@ -14,7 +14,7 @@ class JWTOAuth2TokenService:
         self._db = db
 
     def save_token(
-        self, lti_registration, scopes: List[str], access_token: str, expires_in: int
+        self, lti_registration, scopes: list[str], access_token: str, expires_in: int
     ) -> JWTOAuth2Token:
         """
         Save a JWT OAuth2Token to the DB.
@@ -36,7 +36,7 @@ class JWTOAuth2TokenService:
         return token
 
     def get_token(
-        self, lti_registration, scopes: List[str], exclude_expired=True
+        self, lti_registration, scopes: list[str], exclude_expired=True
     ) -> Optional[JWTOAuth2Token]:
         """
         Get a token for the given registration and scopes if present in the DB.
@@ -57,7 +57,7 @@ class JWTOAuth2TokenService:
 
         return query.one_or_none()
 
-    def _normalize_scopes(self, scopes: List[str]) -> str:
+    def _normalize_scopes(self, scopes: list[str]) -> str:
         """Normalize a list of scopes to be queried/stored in DB."""
         return " ".join(sorted(scopes))
 

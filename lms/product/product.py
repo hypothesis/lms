@@ -2,7 +2,7 @@
 
 from dataclasses import InitVar, dataclass
 from enum import Enum
-from typing import Dict, Optional
+from typing import Optional
 
 from lms.product.plugin import PluginConfig, Plugins
 
@@ -39,7 +39,7 @@ class Routes:
 class Settings:
     """Product specific settings."""
 
-    product_settings: InitVar[Dict]
+    product_settings: InitVar[dict]
 
     groups_enabled: bool = False
     """Is the course groups feature enabled"""
@@ -77,7 +77,7 @@ class Product:
     Family = Family
 
     @classmethod
-    def from_request(cls, request, ai_settings: Dict):
+    def from_request(cls, request, ai_settings: dict):
         """Create a populated product object from the provided request."""
         product_settings = ai_settings.get(cls.settings_key, {})
 

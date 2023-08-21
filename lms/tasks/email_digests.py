@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import List
 
 from sqlalchemy import select
 
@@ -97,7 +96,7 @@ def send_instructor_email_digest_tasks(*, batch_size):
     rate_limit="1/m",
 )
 def send_instructor_email_digests(
-    *, h_userids: List[str], updated_after: str, updated_before: str, **kwargs
+    *, h_userids: list[str], updated_after: str, updated_before: str, **kwargs
 ) -> None:
     """
     Generate and send instructor email digests to the given users.

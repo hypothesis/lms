@@ -1,5 +1,3 @@
-from typing import List
-
 from sqlalchemy.orm import Session
 
 from lms.models import LTIRole
@@ -11,7 +9,7 @@ class LTIRoleService:
     def __init__(self, db_session: Session):
         self._db = db_session
 
-    def get_roles(self, role_description: str) -> List[LTIRole]:
+    def get_roles(self, role_description: str) -> list[LTIRole]:
         """
         Get a list of role objects for the provided strings.
 

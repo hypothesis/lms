@@ -1,4 +1,3 @@
-from typing import List
 from urllib.parse import urlencode
 
 from lms.services.blackboard_api._schemas import (
@@ -183,7 +182,7 @@ class BlackboardAPIClient:
             )
         )
 
-    def _store_files(self, course_id, files: List[dict]):
+    def _store_files(self, course_id, files: list[dict]):
         """Store the given files in the DB."""
         self._file_service.upsert(
             [
@@ -201,7 +200,7 @@ class BlackboardAPIClient:
             ]
         )
 
-    def _get_all_following_pages(self, response, schema) -> List:
+    def _get_all_following_pages(self, response, schema) -> list:
         """
         Get all the paginated responses to `path`.
 
@@ -218,7 +217,7 @@ class BlackboardAPIClient:
 
         return results
 
-    def _get_all_folders_files(self, course_id, results: List[dict]) -> List[dict]:
+    def _get_all_folders_files(self, course_id, results: list[dict]) -> list[dict]:
         """Get all the files in the folders included in `results` recursively."""
         # Get all the folder URLs from `results`
         folder_urls = [

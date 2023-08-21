@@ -1,5 +1,3 @@
-from typing import List
-
 from marshmallow import fields
 
 from lms.models import GradingInfo, HUser
@@ -28,7 +26,7 @@ class GradingInfoService:
         context_id,
         resource_link_id,
         lis_outcome_service_url,
-    ) -> List[dict]:
+    ) -> list[dict]:
         """
         Return all students available for grading for a given assignment.
 

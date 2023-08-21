@@ -7,7 +7,7 @@ certification and it's not used anywhere in the codebase yet.
 https://www.imsglobal.org/spec/lti-nrps/v2p0
 https://www.imsglobal.org/ltiadvantage
 """
-from typing import List, Optional, TypedDict
+from typing import Optional, TypedDict
 
 from lms.services.ltia_http import LTIAHTTPService
 
@@ -19,7 +19,7 @@ class Member(TypedDict):
     family_name: str
     name: str
     picture: str
-    roles: List[str]
+    roles: list[str]
     status: str
     user_id: str
     lti11_legacy_user_id: Optional[str]
@@ -34,7 +34,7 @@ class LTINamesRolesService:
         self._service_url = service_url
         self._ltia_service = ltia_http_service
 
-    def get_context_memberships(self) -> List[Member]:
+    def get_context_memberships(self) -> list[Member]:
         """
         Get all the memberships of a context (a course).
 

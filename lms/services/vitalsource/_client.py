@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import List, Optional
+from typing import Optional
 
 import xmltodict
 from marshmallow import EXCLUDE, Schema, fields
@@ -71,7 +71,7 @@ class VitalSourceClient:
             "cover_image": book_info["resource_links"]["cover_image"],
         }
 
-    def get_table_of_contents(self, book_id: str) -> List[dict]:
+    def get_table_of_contents(self, book_id: str) -> list[dict]:
         """
         Get the table of contents for a book.
 
