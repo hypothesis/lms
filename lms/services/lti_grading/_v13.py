@@ -54,7 +54,7 @@ class LTI13GradingService(LTIGradingService):
     def get_score_maximum(self, resource_link_id) -> Optional[float]:
         return self._read_grading_configuration(resource_link_id).get("scoreMaximum")
 
-    def record_result(self, grading_id, score=None, pre_record_hook=None):
+    def record_result(self, grading_id, score=None, pre_record_hook=None, comment=None):
         payload = {
             "scoreMaximum": 1,
             "scoreGiven": score,
@@ -63,6 +63,9 @@ class LTI13GradingService(LTIGradingService):
             "activityProgress": "Completed",
             "gradingProgress": "FullyGraded",
         }
+        if comment:
+            payload["comment"] = comment
+
         if pre_record_hook:
             payload = pre_record_hook(score=score, request_body=payload)
 

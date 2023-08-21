@@ -186,14 +186,17 @@ class TestRecordResult:
             (0.000000000000001, 0),
         ],
     )
+    @pytest.mark.parametrize("comment", [None, sentinel.comment])
     def test_it_records_result(
-        self, pyramid_request, lti_grading_service, score, expected, LTIEvent
+        self, pyramid_request, lti_grading_service, score, expected, LTIEvent, comment
     ):
         pyramid_request.parsed_params["score"] = score
+        if comment:
+            pyramid_request.parsed_params["comment"] = comment
         GradingViews(pyramid_request).record_result()
 
         lti_grading_service.record_result.assert_called_once_with(
-            "modelstudent-assignment1", score=expected
+            "modelstudent-assignment1", score=expected, comment=comment
         )
         LTIEvent.assert_called_once_with(
             request=pyramid_request,

@@ -94,23 +94,28 @@ class TestLTI13GradingService:
         assert not svc.get_score_maximum(sentinel.resource_link_id)
 
     @freeze_time("2022-04-04")
-    def test_record_result(self, svc, ltia_http_service):
+    @pytest.mark.parametrize("comment", [sentinel.comment, None])
+    def test_record_result(self, svc, ltia_http_service, comment):
         svc.line_item_url = "https://lms.com/lineitems?param=1"
 
-        response = svc.record_result(sentinel.user_id, sentinel.score)
+        response = svc.record_result(sentinel.user_id, sentinel.score, comment=comment)
+
+        payload = {
+            "scoreMaximum": 1,
+            "scoreGiven": sentinel.score,
+            "userId": sentinel.user_id,
+            "timestamp": "2022-04-04T00:00:00+00:00",
+            "activityProgress": "Completed",
+            "gradingProgress": "FullyGraded",
+        }
+        if comment:
+            payload["comment"] = comment
 
         ltia_http_service.request.assert_called_once_with(
             "POST",
             "https://lms.com/lineitems/scores?param=1",
             scopes=svc.LTIA_SCOPES,
-            json={
-                "scoreMaximum": 1,
-                "scoreGiven": sentinel.score,
-                "userId": sentinel.user_id,
-                "timestamp": "2022-04-04T00:00:00+00:00",
-                "activityProgress": "Completed",
-                "gradingProgress": "FullyGraded",
-            },
+            json=payload,
             headers={"Content-Type": "application/vnd.ims.lis.v1.score+json"},
         )
         assert response == ltia_http_service.request.return_value
