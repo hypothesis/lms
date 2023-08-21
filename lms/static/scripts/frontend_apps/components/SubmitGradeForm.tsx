@@ -1,9 +1,12 @@
 import {
   Button,
+  CancelIcon,
   CheckIcon,
+  IconButton,
   Input,
   Spinner,
   SpinnerOverlay,
+  NoteIcon,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import {
@@ -13,6 +16,7 @@ import {
   useRef,
   useCallback,
   useMemo,
+  useId,
 } from 'preact/hooks';
 
 import type { StudentInfo } from '../config';
@@ -41,6 +45,8 @@ export type SubmitGradeFormProps = {
 
   /** It lets parent components know if there are unsaved changes in the grading form */
   onUnsavedChanges?: (hasUnsavedChanges: boolean) => void;
+
+  acceptGradingComments?: boolean;
 };
 
 const DEFAULT_MAX_SCORE = 10;
@@ -53,6 +59,7 @@ export default function SubmitGradeForm({
   student,
   onUnsavedChanges,
   scoreMaximum = DEFAULT_MAX_SCORE,
+  acceptGradingComments = false,
 }: SubmitGradeFormProps) {
   const [fetchGradeErrorDismissed, setFetchGradeErrorDismissed] =
     useState(false);
@@ -83,6 +90,10 @@ export default function SubmitGradeForm({
   const [gradeSaving, setGradeSaving] = useState(false);
   // Changes the input field's background to green for a short duration when true
   const [gradeSaved, setGradeSaved] = useState(false);
+
+  // Toggles the comment textarea
+  const [showCommentControls, setShowCommentControls] = useState(false);
+  const commentTextId = useId();
 
   // The following is state for local validation errors
   //
@@ -204,6 +215,51 @@ export default function SubmitGradeForm({
               </div>
             )}
           </span>
+
+          {acceptGradingComments && (
+            <span className="relative">
+              <Button
+                icon={NoteIcon}
+                disabled={disabled}
+                title="Add comment"
+                onClick={() => setShowCommentControls(prev => !prev)}
+                classes={classnames(
+                  'border border-r-0 rounded-none ring-inset h-full',
+                  'disabled:opacity-50'
+                )}
+              />
+              <div
+                className={classnames(
+                  'w-80 p-2 space-y-1',
+                  'shadow border bg-white',
+                  'absolute top-full right-0',
+                  // Hiding via CSS instead of dynamic rendering, so that the
+                  // comment is not lost when closed.
+                  { hidden: !showCommentControls }
+                )}
+              >
+                <div className="flex items-center">
+                  <label htmlFor={commentTextId} className="font-bold">
+                    Add a comment:
+                  </label>
+                  <div className="grow" />
+                  <IconButton
+                    title="Close comment"
+                    icon={CancelIcon}
+                    onClick={() => setShowCommentControls(false)}
+                  />
+                </div>
+                <textarea
+                  id={commentTextId}
+                  className={classnames(
+                    'focus-visible-ring ring-inset border rounded w-full h-20 p-2',
+                    'bg-grey-0 focus:bg-white disabled:bg-grey-1',
+                    'placeholder:text-color-grey-5 disabled:placeholder:color-grey-6'
+                  )}
+                />
+              </div>
+            </span>
+          )}
 
           <Button
             icon={CheckIcon}
