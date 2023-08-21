@@ -1,7 +1,6 @@
 import logging
 import uuid
 from datetime import datetime, timedelta
-from typing import List
 
 from requests.exceptions import JSONDecodeError
 
@@ -40,7 +39,7 @@ class LTIAHTTPService:
 
         return self._http.request(method, url, headers=headers, **kwargs)
 
-    def _get_access_token(self, scopes: List[str]) -> str:
+    def _get_access_token(self, scopes: list[str]) -> str:
         """Get a valid access token from the DB or get a new one from the LMS."""
         token = self._jwt_oauth2_token_service.get_token(self._lti_registration, scopes)
         if not token:
@@ -51,7 +50,7 @@ class LTIAHTTPService:
 
         return token.access_token
 
-    def _get_new_access_token(self, scopes: List[str]) -> JWTOAuth2Token:
+    def _get_new_access_token(self, scopes: list[str]) -> JWTOAuth2Token:
         """
         Get an access token from the LMS to use in LTA services.
 

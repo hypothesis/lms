@@ -1,7 +1,7 @@
 import logging
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-from typing import Optional, Tuple
+from typing import Optional
 
 from sqlalchemy import distinct, func, or_, select, tuple_
 from sqlalchemy.dialects.postgresql import aggregate_order_by
@@ -178,8 +178,8 @@ class CourseInfo:
 
     authority_provided_id: str
     title: Optional[str]
-    instructor_h_userids: Tuple[str]
-    learner_annotations: Tuple[dict]
+    instructor_h_userids: tuple[str]
+    learner_annotations: tuple[dict]
 
 
 class DigestContext:

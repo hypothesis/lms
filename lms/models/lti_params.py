@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import Optional
 
 CLAIM_PREFIX = "https://purl.imsglobal.org/spec/lti/claim"
 
@@ -199,7 +199,7 @@ def _to_lti_v11(v13_params):
     return v11_params
 
 
-def _get_key(data: dict, data_path: List[str]):
+def _get_key(data: dict, data_path: list[str]):
     # Descend into the object for each item in the path
     value = data
     for path_item in data_path:

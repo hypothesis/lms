@@ -3,7 +3,6 @@
 import logging
 from collections import defaultdict
 from functools import lru_cache
-from typing import Dict, List
 
 import marshmallow
 from marshmallow import EXCLUDE, Schema, fields, post_load, validate, validates_schema
@@ -229,7 +228,7 @@ class CanvasAPIClient:
             ]
 
     @lru_cache(maxsize=128)
-    def list_files(self, course_id, sort="position") -> List[dict]:
+    def list_files(self, course_id, sort="position") -> list[dict]:
         """
         Return the list of files for the given `course_id`.
 
@@ -315,7 +314,7 @@ class CanvasAPIClient:
         )
         return folders
 
-    def _files_tree(self, items: Dict[int, list], folder_id: int):
+    def _files_tree(self, items: dict[int, list], folder_id: int):
         """Build a tree of files/folders recursively."""
         for item in items[folder_id]:
             if item["type"] == "Folder":

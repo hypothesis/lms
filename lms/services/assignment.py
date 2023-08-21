@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import Optional
 
 from sqlalchemy.orm import Session
 
@@ -140,8 +140,8 @@ class AssignmentService:
         return self.update_assignment(request, assignment, document_url, group_set_id)
 
     def upsert_assignment_membership(
-        self, assignment: Assignment, user: User, lti_roles: List[LTIRole]
-    ) -> List[AssignmentMembership]:
+        self, assignment: Assignment, user: User, lti_roles: list[LTIRole]
+    ) -> list[AssignmentMembership]:
         """Store details of the roles a user plays in an assignment."""
 
         # Commit any changes to ensure that our user and role objects have ids
@@ -167,8 +167,8 @@ class AssignmentService:
         )
 
     def upsert_assignment_groupings(
-        self, assignment: Assignment, groupings: List[Grouping]
-    ) -> List[AssignmentGrouping]:
+        self, assignment: Assignment, groupings: list[Grouping]
+    ) -> list[AssignmentGrouping]:
         """Store details of any groups and courses an assignment is in."""
 
         # Commit any changes to ensure that our user and role objects have ids

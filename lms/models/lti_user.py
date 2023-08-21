@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional
 
 from lms.models.application_instance import ApplicationInstance
 from lms.models.h_user import HUser
@@ -25,10 +25,10 @@ class LTIUser:  # pylint: disable=too-many-instance-attributes
     roles: str
     """The user's raw LTI roles string."""
 
-    lti_roles: List[LTIRole]
+    lti_roles: list[LTIRole]
     """The original user's LTI roles."""
 
-    effective_lti_roles: List[Role]
+    effective_lti_roles: list[Role]
     """The effective user's roles for this AI, taking overrides into account."""
 
     tool_consumer_instance_guid: str

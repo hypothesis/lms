@@ -2,7 +2,7 @@ import base64
 from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache, partial
-from typing import Callable, List, NamedTuple, Optional
+from typing import Callable, NamedTuple, Optional
 
 import sentry_sdk
 from pyramid.authentication import AuthTktCookieHelper
@@ -31,7 +31,7 @@ class DeniedWithException(Denied):
 
 class Identity(NamedTuple):
     userid: str
-    permissions: List[str]
+    permissions: list[str]
     lti_user: Optional[LTIUser] = None
 
 

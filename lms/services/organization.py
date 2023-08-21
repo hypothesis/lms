@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from logging import getLogger
-from typing import List, Optional
+from typing import Optional
 
 import sqlalchemy as sa
 from sqlalchemy import Date, func, select
@@ -52,7 +52,7 @@ class OrganizationService:
 
         return self._organization_search_query(id_=id_).one_or_none()
 
-    def get_by_public_id(self, public_id: str) -> Optional[List]:
+    def get_by_public_id(self, public_id: str) -> Optional[list]:
         """
         Get an organization by its public_id.
 
@@ -86,7 +86,7 @@ class OrganizationService:
     # pylint:disable=too-many-arguments
     def search(
         self, id_=None, public_id=None, name=None, guid=None, limit=100
-    ) -> List[Organization]:
+    ) -> list[Organization]:
         """
         Search for organizations.
 
@@ -342,7 +342,7 @@ class OrganizationService:
         organization.parent = parent
         organization.parent_id = parent.id
 
-    def _get_hierarchy_ids(self, id_, include_parents=False) -> List[int]:
+    def _get_hierarchy_ids(self, id_, include_parents=False) -> list[int]:
         """
         Get an organization and it's children's ids order not guaranteed.
 

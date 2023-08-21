@@ -1,5 +1,3 @@
-from typing import List
-
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
@@ -13,7 +11,7 @@ class LTIRoleService:
     def __init__(self, db_session: Session):
         self._db = db_session
 
-    def get_roles(self, role_description: str) -> List[LTIRole]:
+    def get_roles(self, role_description: str) -> list[LTIRole]:
         """
         Get a list of role objects for the provided strings.
 
@@ -41,8 +39,8 @@ class LTIRoleService:
         return sorted(roles, key=lambda r: r.value)
 
     def get_roles_for_application_instance(
-        self, ai: ApplicationInstance, roles: List[LTIRole]
-    ) -> List[Role]:
+        self, ai: ApplicationInstance, roles: list[LTIRole]
+    ) -> list[Role]:
         self._db.flush()  # Make sure roles have IDs
         # pylint:disable=no-member
         overrides = self._db.execute(
