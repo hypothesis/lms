@@ -39,7 +39,9 @@ class GradingViews:
         score = round(self.parsed_params["score"], 4)
 
         self.lti_grading_service.record_result(
-            self.parsed_params["lis_result_sourcedid"], score
+            self.parsed_params["lis_result_sourcedid"],
+            score,
+            comment=self.parsed_params.get("comment"),
         )
         self.request.registry.notify(
             LTIEvent(

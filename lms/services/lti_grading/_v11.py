@@ -40,7 +40,7 @@ class LTI11GradingService(LTIGradingService):
         except (TypeError, KeyError, ValueError):
             return None
 
-    def record_result(self, grading_id, score=None, pre_record_hook=None):
+    def record_result(self, grading_id, score=None, pre_record_hook=None, comment=None):
         request = {"resultRecord": {"sourcedGUID": {"sourcedId": grading_id}}}
 
         if score is not None:

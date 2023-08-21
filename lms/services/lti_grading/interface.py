@@ -56,7 +56,7 @@ class LTIGradingService:  # pragma: no cover
         """
         raise NotImplementedError()
 
-    def record_result(self, grading_id, score=None, pre_record_hook=None):
+    def record_result(self, grading_id, score=None, pre_record_hook=None, comment=None):
         """
         Set the score or content URL for a student submission to an assignment.
 
@@ -70,6 +70,7 @@ class LTIGradingService:  # pragma: no cover
             Defined as required by the LTI spec but is optional in Canvas if
             an `lti_launch_url` is set.
         :param pre_record_hook: Hook to allow modification of the request
+        :param comment: Comment to associate with the grade as feedback for the student
 
         :raise TypeError: if the given pre_record_hook returns a non-dict
         """

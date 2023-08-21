@@ -83,3 +83,6 @@ class APIRecordResultSchema(JSONPyramidRequestSchema):
 
     student_user_id = fields.Str(required=True)
     """The LTIUser.user_id of the student being graded."""
+
+    comment = fields.Str(required=False, allow_none=True)
+    """Optional comment for the grade."""
