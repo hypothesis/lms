@@ -19,15 +19,23 @@ class CanvasGroupingPlugin(GroupingPlugin):
     group_type = Grouping.Type.CANVAS_GROUP
     sections_type = Grouping.Type.CANVAS_SECTION
 
-    def __init__(self, canvas_api):
+    def __init__(self, canvas_api, strict_section_membership: bool):
         self._canvas_api = canvas_api
+        self._strict_section_membership = strict_section_membership
 
     def get_sections_for_learner(self, _svc, course):
         return self._canvas_api.authenticated_users_sections(
             self._custom_course_id(course)
         )
 
-    def get_sections_for_instructor(self, _svc, course):
+    def get_sections_for_instructor(self, svc, course):
+        if self._strict_section_membership:
+            # Return only sections the current instructor belongs to
+            return self._canvas_api.authenticated_users_sections(
+                self._custom_course_id(course)
+            )
+
+        # Return all sections available in the course
         return self._canvas_api.course_sections(self._custom_course_id(course))
 
     def get_sections_for_grading(self, _svc, course, grading_student_id):
@@ -114,4 +122,9 @@ class CanvasGroupingPlugin(GroupingPlugin):
 
     @classmethod
     def factory(cls, _context, request):
-        return cls(request.find_service(name="canvas_api_client"))
+        return cls(
+            request.find_service(name="canvas_api_client"),
+            strict_section_membership=request.lti_user.application_instance.settings.get(
+                "canvas", "strict_section_membership", False
+            ),
+        )

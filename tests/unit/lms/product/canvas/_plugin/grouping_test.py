@@ -30,6 +30,18 @@ class TestCanvasGroupingPlugin:
         )
         assert api_groups == canvas_api_client.course_sections.return_value
 
+    def test_get_sections_for_instructor_with_strict_membership(
+        self, canvas_api_client, course, grouping_service, plugin
+    ):
+        plugin._strict_section_membership = True  # pylint:disable=protected-access
+
+        api_groups = plugin.get_sections_for_instructor(grouping_service, course)
+
+        canvas_api_client.authenticated_users_sections.assert_called_once_with(
+            sentinel.canvas_course_id
+        )
+        assert api_groups == canvas_api_client.authenticated_users_sections.return_value
+
     def test_get_sections_for_grading(
         self, canvas_api_client, course, grouping_service, plugin
     ):
@@ -198,4 +210,4 @@ class TestCanvasGroupingPlugin:
 
     @pytest.fixture
     def plugin(self, canvas_api_client):
-        return CanvasGroupingPlugin(canvas_api_client)
+        return CanvasGroupingPlugin(canvas_api_client, strict_section_membership=False)
