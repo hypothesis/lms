@@ -47,6 +47,10 @@ export type SubmitGradeFormProps = {
   /** It lets parent components know if there are unsaved changes in the grading form */
   onUnsavedChanges?: (hasUnsavedChanges: boolean) => void;
 
+  /**
+   * Allow instructors to provide an extra comment together with the grade value.
+   * Default value is false.
+   */
   acceptGradingComments?: boolean;
 };
 
@@ -96,15 +100,18 @@ export default function SubmitGradeForm({
   const [gradeSaved, setGradeSaved] = useState(false);
 
   // Comment-related state
+  // Track comments set for students, to make sure unsaved changes are not lost
+  // if the instructor moves to a different student
+  const studentComments = useRef(new Map<string, string | null | undefined>());
   const [showCommentControls, setShowCommentControls] = useState(false);
   const [commentValue, setCommentValue] = useState<string>();
   const commentId = useId();
-  // As long as the comment area is not manually edited, we consider a comment
-  // is set if one was initially returned.
-  // As soon as the area is edited, its value is the source of truth to determine
-  // if a comment has been set.
   const commentIsSet =
-    commentValue === undefined ? !!grade.data?.comment : !!commentValue;
+    !!student && !!studentComments.current.get(student.userid);
+  const commentHasBeenEdited =
+    !!student &&
+    !!grade.data &&
+    grade.data.comment !== studentComments.current.get(student.userid);
 
   // The following is state for local validation errors
   //
@@ -136,6 +143,17 @@ export default function SubmitGradeForm({
     setShowCommentControls(false);
     setDraftGradeValue(null);
   }, [student]);
+
+  useEffect(() => {
+    if (!student || !grade.data) {
+      return;
+    }
+
+    // Track initial comment for active student
+    if (!studentComments.current.has(student.userid)) {
+      studentComments.current.set(student.userid, grade.data.comment);
+    }
+  }, [student, grade]);
 
   useLayoutEffect(() => {
     inputRef.current!.focus();
@@ -185,7 +203,7 @@ export default function SubmitGradeForm({
     [grade.data, onUnsavedChanges]
   );
 
-  const disabled = !student;
+  const disabled = !student || grade.isLoading;
 
   return (
     <>
@@ -268,14 +286,25 @@ export default function SubmitGradeForm({
                   className={classnames(
                     'focus-visible-ring ring-inset border rounded w-full h-20 p-2',
                     'bg-grey-0 focus:bg-white disabled:bg-grey-1',
-                    'placeholder:text-color-grey-5 disabled:placeholder:color-grey-6'
+                    'placeholder:text-color-grey-5 disabled:placeholder:color-grey-6',
+                    { 'border-yellow-notice': commentHasBeenEdited }
                   )}
                   defaultValue={grade.data?.comment ?? ''}
                   value={commentValue}
-                  onChange={e =>
-                    setCommentValue((e.target as HTMLTextAreaElement).value)
-                  }
+                  onChange={e => {
+                    const newComment = (e.target as HTMLTextAreaElement).value;
+                    setCommentValue(newComment);
+
+                    if (student) {
+                      studentComments.current.set(student.userid, newComment);
+                    }
+                  }}
                 />
+                {commentHasBeenEdited && (
+                  <p className="text-right text-yellow-notice">
+                    Some changes have not been saved
+                  </p>
+                )}
               </div>
             </span>
           )}
