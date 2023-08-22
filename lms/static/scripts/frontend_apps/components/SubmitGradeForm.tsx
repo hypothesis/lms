@@ -7,6 +7,7 @@ import {
   Spinner,
   SpinnerOverlay,
   NoteIcon,
+  NoteFilledIcon,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import {
@@ -67,10 +68,13 @@ export default function SubmitGradeForm({
 
   const fetchGrade = async (student: StudentInfo) => {
     setFetchGradeErrorDismissed(false);
-    const { currentScore = null } = await gradingService.fetchGrade({
+    const { currentScore = null, comment } = await gradingService.fetchGrade({
       student,
     });
-    return formatGrade(currentScore, scoreMaximum);
+    return {
+      grade: formatGrade(currentScore, scoreMaximum),
+      comment,
+    };
   };
 
   // The stored grade value fetched from the LMS and converted to the range
@@ -91,9 +95,16 @@ export default function SubmitGradeForm({
   // Changes the input field's background to green for a short duration when true
   const [gradeSaved, setGradeSaved] = useState(false);
 
-  // Toggles the comment textarea
+  // Comment-related state
   const [showCommentControls, setShowCommentControls] = useState(false);
-  const commentTextId = useId();
+  const [commentValue, setCommentValue] = useState<string>();
+  const commentId = useId();
+  // As long as the comment area is not manually edited, we consider a comment
+  // is set if one was initially returned.
+  // As soon as the area is edited, its value is the source of truth to determine
+  // if a comment has been set.
+  const commentIsSet =
+    commentValue === undefined ? !!grade.data?.comment : !!commentValue;
 
   // The following is state for local validation errors
   //
@@ -112,16 +123,17 @@ export default function SubmitGradeForm({
 
   // Track if current grade has changed compared to what was originally loaded
   const hasUnsavedChanges = useMemo(
-    () => draftGradeValue !== null && draftGradeValue !== grade.data,
+    () => draftGradeValue !== null && draftGradeValue !== grade.data?.grade,
     [draftGradeValue, grade.data]
   );
 
   // Make sure instructors are notified if there's a risk to lose unsaved data
   useWarnOnPageUnload(hasUnsavedChanges);
 
-  // Clear the previous grade when the user changes.
+  // Clear the previous grade and hide comment controls when the user changes.
   useEffect(() => {
     setGradeSaved(false);
+    setShowCommentControls(false);
     setDraftGradeValue(null);
   }, [student]);
 
@@ -134,6 +146,7 @@ export default function SubmitGradeForm({
     event.preventDefault();
 
     const newGrade = inputRef.current!.value;
+    const newComment = acceptGradingComments ? commentValue : undefined;
     const result = validateGrade(newGrade, scoreMaximum);
 
     if (!result.valid) {
@@ -145,8 +158,9 @@ export default function SubmitGradeForm({
         await gradingService.submitGrade({
           student: student as StudentInfo,
           grade: result.grade,
+          comment: newComment,
         });
-        grade.mutate(newGrade);
+        grade.mutate({ grade: newGrade, comment: newComment });
         onUnsavedChanges?.(false);
         setGradeSaved(true);
       } catch (e) {
@@ -166,7 +180,7 @@ export default function SubmitGradeForm({
       setDraftGradeValue(newDraftGradeValue);
 
       // Check if there are unsavedChanges
-      onUnsavedChanges?.(newDraftGradeValue !== grade.data);
+      onUnsavedChanges?.(newDraftGradeValue !== grade.data?.grade);
     },
     [grade.data, onUnsavedChanges]
   );
@@ -206,7 +220,7 @@ export default function SubmitGradeForm({
               elementRef={inputRef}
               onInput={handleInput}
               type="text"
-              value={draftGradeValue ?? grade.data ?? ''}
+              value={draftGradeValue ?? grade.data?.grade ?? ''}
               key={student ? student.LISResultSourcedId : null}
             />
             {grade.isLoading && (
@@ -219,9 +233,9 @@ export default function SubmitGradeForm({
           {acceptGradingComments && (
             <span className="relative">
               <Button
-                icon={NoteIcon}
+                icon={commentIsSet ? NoteFilledIcon : NoteIcon}
                 disabled={disabled}
-                title="Add comment"
+                title={commentIsSet ? 'Edit comment' : 'Add comment'}
                 onClick={() => setShowCommentControls(prev => !prev)}
                 classes={classnames(
                   'border border-r-0 rounded-none ring-inset h-full',
@@ -239,7 +253,7 @@ export default function SubmitGradeForm({
                 )}
               >
                 <div className="flex items-center">
-                  <label htmlFor={commentTextId} className="font-bold">
+                  <label htmlFor={commentId} className="font-bold">
                     Add a comment:
                   </label>
                   <div className="grow" />
@@ -250,12 +264,17 @@ export default function SubmitGradeForm({
                   />
                 </div>
                 <textarea
-                  id={commentTextId}
+                  id={commentId}
                   className={classnames(
                     'focus-visible-ring ring-inset border rounded w-full h-20 p-2',
                     'bg-grey-0 focus:bg-white disabled:bg-grey-1',
                     'placeholder:text-color-grey-5 disabled:placeholder:color-grey-6'
                   )}
+                  defaultValue={grade.data?.comment ?? ''}
+                  value={commentValue}
+                  onChange={e =>
+                    setCommentValue((e.target as HTMLTextAreaElement).value)
+                  }
                 />
               </div>
             </span>
