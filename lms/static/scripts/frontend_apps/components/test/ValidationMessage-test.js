@@ -34,7 +34,7 @@ describe('ValidationMessage', () => {
     assert.equal(wrapper.find('input').props().value, 'some error');
   });
 
-  it('closes the message and calls `onClose` prop when clicked', () => {
+  it('calls `onClose` prop when clicked', () => {
     const onCloseProp = sinon.stub();
     const wrapper = renderMessage({
       onClose: onCloseProp,
@@ -43,7 +43,6 @@ describe('ValidationMessage', () => {
     });
     wrapper.find('input').simulate('click');
     assert.isTrue(onCloseProp.calledOnce);
-    assert.isTrue(wrapper.find('[data-testid="message-closed"]').exists());
   });
 
   it(
