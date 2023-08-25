@@ -7,7 +7,7 @@ import GradingControls from './GradingControls';
 
 /**
  * Toolbar for instructors.
- * Shows assignment information and grading controls (for gradeable assignments).
+ * Shows assignment information and grading controls (for gradable assignments).
  */
 export default function InstructorToolbar() {
   const { instructorToolbar } = useConfig();
@@ -22,6 +22,7 @@ export default function InstructorToolbar() {
     assignmentName,
     editingEnabled,
     gradingEnabled,
+    scoreMaximum,
   } = instructorToolbar;
 
   const withGradingControls = gradingEnabled && !!students;
@@ -70,7 +71,14 @@ export default function InstructorToolbar() {
         </h2>
       </div>
 
-      {withGradingControls ? <GradingControls students={students} /> : <div />}
+      {withGradingControls ? (
+        <GradingControls
+          students={students}
+          scoreMaximum={scoreMaximum ?? undefined}
+        />
+      ) : (
+        <div />
+      )}
     </header>
   );
 }

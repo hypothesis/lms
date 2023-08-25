@@ -19,25 +19,29 @@ import ValidationMessage from './ValidationMessage';
 
 export type SubmitGradeFormProps = {
   student: StudentInfo | null;
+
+  /**
+   * Scaling factor applied to grade values from the LMS to get the values
+   * entered by the user. Default value is 10.
+   *
+   * LTI 1.1 only supports grade values between 0 and 1, which we then rescale
+   * to 0-{scoreMaximum} in the UI. LTI 1.3+ offer more flexibility (see [1]).
+   *
+   * [1] https://www.imsglobal.org/spec/lti-ags/v2p0
+   */
+  scoreMaximum?: number;
 };
 
-/**
- * Scaling factor applied to grade values from the LMS to get the values
- * entered by the user.
- *
- * LTI 1.1 only supports grade values between 0 and 1, which we then rescale
- * to 0-10 in the UI. LTI 1.3+ offer more flexibility (see [1]) so this will
- * likely become dynamic in future.
- *
- * [1] https://www.imsglobal.org/spec/lti-ags/v2p0
- */
-const MAX_SCORE = 10;
+const DEFAULT_MAX_SCORE = 10;
 
 /**
  * A form with a single input field and submit button for an instructor to
  * save a student's grade.
  */
-export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
+export default function SubmitGradeForm({
+  student,
+  scoreMaximum = DEFAULT_MAX_SCORE,
+}: SubmitGradeFormProps) {
   const [fetchGradeErrorDismissed, setFetchGradeErrorDismissed] =
     useState(false);
   const gradingService = useService(GradingService);
@@ -47,7 +51,7 @@ export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
     const { currentScore = null } = await gradingService.fetchGrade({
       student,
     });
-    return formatGrade(currentScore, MAX_SCORE);
+    return formatGrade(currentScore, scoreMaximum);
   };
 
   // The stored grade value fetched from the LMS and converted to the range
@@ -92,7 +96,7 @@ export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
 
   const onSubmitGrade = async (event: Event) => {
     event.preventDefault();
-    const result = validateGrade(inputRef.current!.value, MAX_SCORE);
+    const result = validateGrade(inputRef.current!.value, scoreMaximum);
 
     if (!result.valid) {
       setValidationMessageMessage(result.error);
@@ -126,7 +130,7 @@ export default function SubmitGradeForm({ student }: SubmitGradeFormProps) {
     <>
       <form autoComplete="off">
         <label htmlFor={gradeId} className="font-semibold text-xs">
-          Grade (Out of 10)
+          Grade (Out of {scoreMaximum})
         </label>
         <div className="flex">
           <span className="relative w-14">

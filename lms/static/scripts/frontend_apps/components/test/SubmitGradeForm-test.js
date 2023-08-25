@@ -135,17 +135,19 @@ describe('SubmitGradeForm', () => {
     );
   });
 
-  it("selects the input field's text when changing students and fetching the grade", async () => {
-    document.body.focus();
-    const wrapper = renderForm();
+  [5, 10, 20, 100, undefined].forEach(scoreMaximum => {
+    it("selects the input field's text when changing students and fetching the grade", async () => {
+      document.body.focus();
+      const wrapper = renderForm({ scoreMaximum });
 
-    await waitForGradeFetch(wrapper);
+      await waitForGradeFetch(wrapper);
 
-    wrapper.setProps({ student: fakeStudentAlt });
+      wrapper.setProps({ student: fakeStudentAlt });
 
-    await waitForGradeFetch(wrapper);
+      await waitForGradeFetch(wrapper);
 
-    assert.equal(document.getSelection().toString(), '10');
+      assert.equal(document.getSelection().toString(), `${scoreMaximum ?? 10}`);
+    });
   });
 
   context('validation messages', () => {
@@ -282,7 +284,7 @@ describe('SubmitGradeForm', () => {
       );
     });
 
-    it('sets hides the Spinner after the grade is fetched', async () => {
+    it('hides the Spinner after the grade is fetched', async () => {
       const wrapper = renderForm();
       await waitForGradeFetch(wrapper);
       assert.isFalse(
