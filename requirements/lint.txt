@@ -462,7 +462,7 @@ pyparsing==3.0.6
     #   -r functests.txt
     #   -r tests.txt
     #   packaging
-pyramid==2.0
+pyramid==2.0.2
     # via
     #   -r bddtests.txt
     #   -r functests.txt

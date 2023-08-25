@@ -164,7 +164,7 @@ pyjwt[crypto]==2.8.0
     #   pyramid-googleauth
 pyparsing==3.0.6
     # via packaging
-pyramid==2.0
+pyramid==2.0.2
     # via
     #   -r prod.in
     #   h-assets

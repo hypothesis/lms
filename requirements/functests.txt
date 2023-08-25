@@ -259,7 +259,7 @@ pyparsing==3.0.6
     # via
     #   -r prod.txt
     #   packaging
-pyramid==2.0
+pyramid==2.0.2
     # via
     #   -r prod.txt
     #   h-assets
