@@ -44,6 +44,7 @@ class ApplicationSettings(JSONSettings):
             name="Auto Assigned To Organisation",
         ),
         JSONSetting("hypothesis", "instructor_email_digests_enabled", asbool),
+        JSONSetting("hypothesis", "lms_grading_scale", asbool),
     )
 
 

@@ -238,6 +238,7 @@ class TestBasicLaunchViews:
     @pytest.mark.parametrize("use_toolbar_grading", [True, False])
     @pytest.mark.parametrize("is_gradable", [True, False])
     @pytest.mark.parametrize("is_instructor", [True, False])
+    @pytest.mark.parametrize("lms_grading_scale", [True, False])
     def test__show_document_configures_toolbar(
         self,
         svc,
@@ -251,7 +252,11 @@ class TestBasicLaunchViews:
         is_instructor,
         grading_info_service,
         lti_grading_service,
+        lms_grading_scale,
     ):
+        pyramid_request.lti_user.application_instance.settings.set(
+            "hypothesis", "lms_grading_scale", lms_grading_scale
+        )
         assignment = factories.Assignment(is_gradable=is_gradable)
         if is_instructor:
             request.getfixturevalue("user_is_instructor")
@@ -282,7 +287,9 @@ class TestBasicLaunchViews:
 
                 context.js_config.enable_toolbar_grading.assert_called_once_with(
                     students=grading_info_service.get_students_for_grading.return_value,
-                    score_maximum=lti_grading_service.get_score_maximum.return_value,
+                    score_maximum=lti_grading_service.get_score_maximum.return_value
+                    if lms_grading_scale
+                    else None,
                 )
             else:
                 grading_info_service.upsert_from_request.assert_called_once_with(
