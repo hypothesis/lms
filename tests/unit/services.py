@@ -19,6 +19,7 @@ from lms.services.canvas_api import CanvasAPIClient
 from lms.services.course import CourseService
 from lms.services.d2l_api import D2LAPIClient
 from lms.services.digest import DigestService
+from lms.services.document import DocumentService
 from lms.services.email_unsubscribe import EmailUnsubscribeService
 from lms.services.event import EventService
 from lms.services.file import FileService
@@ -61,6 +62,7 @@ __all__ = (
     "course_service",
     "d2l_api_client",
     "digest_service",
+    "document_service",
     "event_service",
     "file_service",
     "grading_info_service",
@@ -360,3 +362,8 @@ def grouping_plugin(mock_service):
 @pytest.fixture
 def misc_plugin(mock_service):
     return mock_service(MiscPlugin)
+
+
+@pytest.fixture
+def document_service(mock_service):
+    return mock_service(DocumentService)

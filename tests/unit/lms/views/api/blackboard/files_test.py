@@ -1,5 +1,6 @@
 import pytest
 
+from lms.services.document import DocumentURLParts
 from lms.views.api.blackboard.files import BlackboardFilesAPIViews, FileNotFoundInCourse
 
 pytestmark = pytest.mark.usefixtures(
@@ -102,6 +103,7 @@ class TestViaURL:
         course_copy_plugin,
         is_instructor,
         request,
+        document_service,
     ):
         if is_instructor:
             request.getfixturevalue("user_is_instructor")
@@ -109,6 +111,9 @@ class TestViaURL:
 
         response = view()
 
+        document_service.get_document_url_parts.assert_called_once_with(
+            "blackboard://content-resource/FILE_ID/"
+        )
         course_service.get_by_context_id.assert_called_once_with(
             "COURSE_ID", raise_on_missing=True
         )
@@ -131,7 +136,7 @@ class TestViaURL:
         )
         assert response == {"via_url": helpers.via_url.return_value}
 
-    @pytest.mark.usefixtures("user_is_instructor")
+    @pytest.mark.usefixtures("user_is_instructor", "document_service")
     def test_it_when_file_not_in_course_fixed_by_course_copy(
         self,
         view,
@@ -171,7 +176,7 @@ class TestViaURL:
         )
         assert response == {"via_url": helpers.via_url.return_value}
 
-    @pytest.mark.usefixtures("user_is_instructor")
+    @pytest.mark.usefixtures("user_is_instructor", "document_service")
     def test_it_when_file_not_in_course(self, view, course_service, course_copy_plugin):
         course_copy_plugin.is_file_in_course.return_value = False
         course_copy_plugin.find_matching_file_in_course.return_value = None
@@ -194,6 +199,13 @@ class TestViaURL:
         course_copy_plugin.find_matching_file_in_course.assert_called_once_with(
             file_id, "COURSE_ID"
         )
+
+    @pytest.fixture
+    def document_service(self, document_service):
+        document_service.get_document_url_parts.return_value = DocumentURLParts(
+            file_id="FILE_ID"
+        )
+        return document_service
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):

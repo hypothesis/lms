@@ -1,5 +1,6 @@
 import pytest
 
+from lms.services.document import DocumentURLParts
 from lms.views.api.canvas.files import FilesAPIViews
 
 
@@ -23,6 +24,7 @@ class TestFilesAPIViews:
         assignment_service,
         canvas_service,
         helpers,
+        document_service,
     ):
         document_url = "canvas://file/course/COURSE_ID/file_id/FILE_ID"
         assignment = assignment_service.get_assignment.return_value
@@ -32,6 +34,7 @@ class TestFilesAPIViews:
         }
         result = FilesAPIViews(pyramid_request).via_url()
 
+        document_service.get_document_url_parts.assert_called_once_with(document_url)
         assignment_service.get_assignment.assert_called_once_with(
             application_instance.tool_consumer_instance_guid,
             "test_resource_link_id",
@@ -48,6 +51,13 @@ class TestFilesAPIViews:
             content_type="pdf",
         )
         assert result == {"via_url": helpers.via_url.return_value}
+
+    @pytest.fixture
+    def document_service(self, document_service):
+        document_service.get_document_url_parts.return_value = DocumentURLParts(
+            file_id="FILE_ID", course_id="COURSE_ID"
+        )
+        return document_service
 
     @pytest.fixture(params=("instructor", "learner"))
     def with_teacher_or_student(self, request, pyramid_request):

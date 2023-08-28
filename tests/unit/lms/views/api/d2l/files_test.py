@@ -2,6 +2,7 @@ from unittest.mock import sentinel
 
 import pytest
 
+from lms.services.document import DocumentURLParts
 from lms.services.exceptions import FileNotFoundInCourse
 from lms.views.api.d2l.files import list_files, via_url
 
@@ -25,6 +26,7 @@ def test_via_url(
     is_instructor,
     oauth2_token_service,
     request,
+    document_service,
 ):
     if is_instructor:
         request.getfixturevalue("user_is_instructor")
@@ -34,6 +36,9 @@ def test_via_url(
 
     course_service.get_by_context_id.assert_called_once_with(
         "COURSE_ID", raise_on_missing=True
+    )
+    document_service.get_document_url_parts.assert_called_once_with(
+        pyramid_request.params["document_url"]
     )
     course = course_service.get_by_context_id.return_value
     course.get_mapped_file_id.assert_called_once_with("FILE_ID")
@@ -56,7 +61,7 @@ def test_via_url(
     assert response == {"via_url": helpers.via_url.return_value}
 
 
-@pytest.mark.usefixtures("user_is_instructor")
+@pytest.mark.usefixtures("user_is_instructor", "document_service")
 def test_it_when_file_not_in_course_fixed_by_course_copy(
     d2l_api_client,
     helpers,
@@ -93,7 +98,7 @@ def test_it_when_file_not_in_course_fixed_by_course_copy(
     assert response == {"via_url": helpers.via_url.return_value}
 
 
-@pytest.mark.usefixtures("user_is_instructor")
+@pytest.mark.usefixtures("user_is_instructor", "document_service")
 def test_it_when_file_not_in_course(
     d2l_api_client, course_service, course_copy_plugin, pyramid_request
 ):
@@ -126,6 +131,14 @@ def pyramid_request(pyramid_request):
         "document_url"
     ] = "d2l://file/course/COURSE_ID/file_id/FILE_ID/"
     return pyramid_request
+
+
+@pytest.fixture
+def document_service(document_service):
+    document_service.get_document_url_parts.return_value = DocumentURLParts(
+        file_id="FILE_ID"
+    )
+    return document_service
 
 
 @pytest.fixture

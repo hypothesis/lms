@@ -1,15 +1,10 @@
-import re
-
 from pyramid.view import view_config
 
 from lms.security import Permissions
 from lms.services.d2l_api import D2LAPIClient
+from lms.services.document import DocumentService
 from lms.services.exceptions import FileNotFoundInCourse
 from lms.views import helpers
-
-DOCUMENT_URL_REGEX = re.compile(
-    r"d2l:\/\/file\/course\/(?P<course_id>[^\/]*)\/file_id\/(?P<file_id>[^\/]*)\/"
-)
 
 
 @view_config(
@@ -41,7 +36,9 @@ def via_url(_context, request):
     )
 
     file_id = course.get_mapped_file_id(
-        DOCUMENT_URL_REGEX.search(document_url)["file_id"]
+        request.find_service(DocumentService)
+        .get_document_url_parts(document_url)
+        .file_id
     )
     try:
         if request.lti_user.is_instructor:

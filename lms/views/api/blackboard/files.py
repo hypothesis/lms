@@ -1,18 +1,11 @@
 """Proxy API views for files-related Blackboard API endpoints."""
-import re
-
 from pyramid.view import view_config, view_defaults
 
 from lms.product.blackboard import Blackboard
 from lms.security import Permissions
+from lms.services.document import DocumentService
 from lms.services.exceptions import FileNotFoundInCourse
 from lms.views import helpers
-
-#: A regex for parsing just the file_id part out of one of our custom
-#: blackboard://content-resource/<file_id>/ URLs.
-DOCUMENT_URL_REGEX = re.compile(
-    r"blackboard:\/\/content-resource\/(?P<file_id>[^\/]*)\/"
-)
 
 
 @view_defaults(permission=Permissions.API, renderer="json")
@@ -71,11 +64,12 @@ class BlackboardFilesAPIViews:
         course = self.request.find_service(name="course").get_by_context_id(
             course_id, raise_on_missing=True
         )
-
-        document_url = self.request.params["document_url"]
-        file_id = course.get_mapped_file_id(
-            DOCUMENT_URL_REGEX.search(document_url)["file_id"]
+        document_url_file_id = (
+            self.request.find_service(DocumentService)
+            .get_document_url_parts(self.request.params["document_url"])
+            .file_id
         )
+        file_id = course.get_mapped_file_id(document_url_file_id)
         try:
             if self.request.lti_user.is_instructor:
                 if not self.course_copy_plugin.is_file_in_course(course_id, file_id):
