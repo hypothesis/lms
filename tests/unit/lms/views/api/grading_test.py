@@ -24,7 +24,9 @@ class TestRecordCanvasSpeedgraderSubmission:
     def test_it_does_not_record_result_if_score_already_exists(
         self, pyramid_request, lti_grading_service
     ):
-        lti_grading_service.read_result.return_value = 0.5
+        lti_grading_service.read_result.return_value = GradingResult(
+            score=0.5, comment=None
+        )
 
         GradingViews(pyramid_request).record_canvas_speedgrader_submission()
 
@@ -33,7 +35,9 @@ class TestRecordCanvasSpeedgraderSubmission:
     def test_it_passes_the_callback_if_there_is_no_score(
         self, pyramid_request, lti_grading_service, LTIEvent
     ):
-        lti_grading_service.read_result.return_value = None
+        lti_grading_service.read_result.return_value = GradingResult(
+            score=None, comment=None
+        )
 
         GradingViews(pyramid_request).record_canvas_speedgrader_submission()
 
