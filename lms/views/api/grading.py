@@ -103,7 +103,7 @@ class GradingViews:
         lis_result_sourcedid = self.parsed_params["lis_result_sourcedid"]
 
         # If we already have a score, then we've already recorded this info
-        if self.lti_grading_service.read_result(lis_result_sourcedid):
+        if self.lti_grading_service.read_result(lis_result_sourcedid).score:
             LOG.debug(
                 "Grade already present, not recording submission. User ID: %s",
                 self.request.user.id,
