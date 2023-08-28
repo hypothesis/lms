@@ -110,9 +110,9 @@ export default function SubmitGradeForm({
   const [showCommentControls, setShowCommentControls] = useState(false);
   const [commentValue, setCommentValue] = useState<string>();
   const commentId = useId();
-  const commentIsSet =
-    !disabled && !!studentComments.current.get(student.userid);
+  const commentIsSet = !disabled && !!commentValue;
   const commentHasBeenEdited =
+    !gradeSaved &&
     !disabled &&
     !!grade.data &&
     grade.data.comment !== studentComments.current.get(student.userid);
@@ -153,9 +153,13 @@ export default function SubmitGradeForm({
       return;
     }
 
-    // Track initial comment for active student
     if (!studentComments.current.has(student.userid)) {
+      // Track initial comment for active student, and initialize comment to loaded grade
       studentComments.current.set(student.userid, grade.data.comment);
+      setCommentValue(grade.data.comment ?? '');
+    } else {
+      // If already tracked, initialize comment to that value
+      setCommentValue(studentComments.current.get(student.userid) ?? '');
     }
   }, [student, grade]);
 
@@ -252,21 +256,20 @@ export default function SubmitGradeForm({
 
           {acceptGradingComments && (
             <span className="relative">
-              {commentIsSet && (
-                <div className=" absolute top-[5px] right-[4px] rounded-full p-1 bg-red-error" />
-              )}
               <Button
-                // Using a regular Button instead of an IconButton for style consistency
-                // with the "Submit grade" button
                 icon={commentIsSet ? NoteFilledIcon : NoteIcon}
                 disabled={disabled}
                 title={commentIsSet ? 'Edit comment' : 'Add comment'}
                 onClick={() => setShowCommentControls(prev => !prev)}
                 classes={classnames(
-                  'border border-r-0 rounded-none ring-inset h-full',
+                  'border border-r-0 rounded-none ring-inset h-full relative',
                   'disabled:opacity-50'
                 )}
-              />
+              >
+                {commentHasBeenEdited && (
+                  <div className="absolute top-[5px] right-[4px] rounded-full p-1 bg-red-error" />
+                )}
+              </Button>
               <div
                 className={classnames(
                   'w-80 p-3 space-y-1',
@@ -306,7 +309,6 @@ export default function SubmitGradeForm({
                     { 'border-yellow-notice': commentHasBeenEdited }
                   )}
                   rows={10}
-                  defaultValue={grade.data?.comment ?? ''}
                   value={commentValue}
                   onChange={e => {
                     const newComment = (e.target as HTMLTextAreaElement).value;
