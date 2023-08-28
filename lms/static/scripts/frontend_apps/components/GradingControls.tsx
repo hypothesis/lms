@@ -12,6 +12,7 @@ import SubmitGradeForm from './SubmitGradeForm';
 export type GradingControlsProps = {
   students: StudentInfo[];
   scoreMaximum?: number;
+  acceptGradingComments?: boolean;
 };
 
 /**
@@ -34,6 +35,7 @@ function localeSort<Item>(items: Item[], key: keyof Item): Item[] {
 export default function GradingControls({
   students: unorderedStudents,
   scoreMaximum,
+  acceptGradingComments,
 }: GradingControlsProps) {
   const {
     api: { authToken, sync: syncAPICallInfo },
@@ -134,6 +136,7 @@ export default function GradingControls({
           student={selectedStudent}
           scoreMaximum={scoreMaximum}
           onUnsavedChanges={setHasUnsavedChanges}
+          acceptGradingComments={acceptGradingComments}
         />
       </div>
     </div>

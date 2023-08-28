@@ -8,6 +8,7 @@ import {
   SpinnerOverlay,
   NoteIcon,
   NoteFilledIcon,
+  PointerUpIcon,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import {
@@ -99,7 +100,10 @@ export default function SubmitGradeForm({
   // Changes the input field's background to green for a short duration when true
   const [gradeSaved, setGradeSaved] = useState(false);
 
+  const disabled = !student || grade.isLoading;
+
   // Comment-related state
+  //
   // Track comments set for students, to make sure unsaved changes are not lost
   // if the instructor moves to a different student
   const studentComments = useRef(new Map<string, string | null | undefined>());
@@ -107,9 +111,9 @@ export default function SubmitGradeForm({
   const [commentValue, setCommentValue] = useState<string>();
   const commentId = useId();
   const commentIsSet =
-    !!student && !!studentComments.current.get(student.userid);
+    !disabled && !!studentComments.current.get(student.userid);
   const commentHasBeenEdited =
-    !!student &&
+    !disabled &&
     !!grade.data &&
     grade.data.comment !== studentComments.current.get(student.userid);
 
@@ -203,8 +207,6 @@ export default function SubmitGradeForm({
     [grade.data, onUnsavedChanges]
   );
 
-  const disabled = !student || grade.isLoading;
-
   return (
     <>
       <form autoComplete="off">
@@ -250,7 +252,12 @@ export default function SubmitGradeForm({
 
           {acceptGradingComments && (
             <span className="relative">
+              {commentIsSet && (
+                <div className=" absolute top-[5px] right-[4px] rounded-full p-1 bg-red-error" />
+              )}
               <Button
+                // Using a regular Button instead of an IconButton for style consistency
+                // with the "Submit grade" button
                 icon={commentIsSet ? NoteFilledIcon : NoteIcon}
                 disabled={disabled}
                 title={commentIsSet ? 'Edit comment' : 'Add comment'}
@@ -262,14 +269,22 @@ export default function SubmitGradeForm({
               />
               <div
                 className={classnames(
-                  'w-80 p-2 space-y-1',
-                  'shadow border bg-white',
+                  'w-80 p-3 space-y-1',
+                  'shadow border rounded bg-white',
                   'absolute top-full right-0',
                   // Hiding via CSS instead of dynamic rendering, so that the
                   // comment is not lost when closed.
                   { hidden: !showCommentControls }
                 )}
               >
+                <PointerUpIcon
+                  className={classnames(
+                    'text-grey-3 fill-white',
+                    'absolute inline z-2 w-[15px]',
+                    // Position arrow over "Add comment" button
+                    'right-[7px] top-[-9px]'
+                  )}
+                />
                 <div className="flex items-center">
                   <label htmlFor={commentId} className="font-bold">
                     Add a comment:
@@ -278,17 +293,19 @@ export default function SubmitGradeForm({
                   <IconButton
                     title="Close comment"
                     icon={CancelIcon}
+                    classes="hover:bg-grey-3/50"
                     onClick={() => setShowCommentControls(false)}
                   />
                 </div>
                 <textarea
                   id={commentId}
                   className={classnames(
-                    'focus-visible-ring ring-inset border rounded w-full h-20 p-2',
+                    'focus-visible-ring ring-inset border rounded w-full p-2',
                     'bg-grey-0 focus:bg-white disabled:bg-grey-1',
                     'placeholder:text-color-grey-5 disabled:placeholder:color-grey-6',
                     { 'border-yellow-notice': commentHasBeenEdited }
                   )}
+                  rows={10}
                   defaultValue={grade.data?.comment ?? ''}
                   value={commentValue}
                   onChange={e => {

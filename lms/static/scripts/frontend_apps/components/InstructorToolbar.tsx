@@ -23,6 +23,7 @@ export default function InstructorToolbar() {
     editingEnabled,
     gradingEnabled,
     scoreMaximum,
+    acceptGradingComments,
   } = instructorToolbar;
 
   const withGradingControls = gradingEnabled && !!students;
@@ -75,6 +76,7 @@ export default function InstructorToolbar() {
         <GradingControls
           students={students}
           scoreMaximum={scoreMaximum ?? undefined}
+          acceptGradingComments={acceptGradingComments}
         />
       ) : (
         <div />
