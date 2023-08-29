@@ -9,6 +9,7 @@ import {
   NoteIcon,
   NoteFilledIcon,
   PointerUpIcon,
+  Textarea,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import {
@@ -300,14 +301,9 @@ export default function SubmitGradeForm({
                     onClick={() => setShowCommentControls(false)}
                   />
                 </div>
-                <textarea
+                <Textarea
                   id={commentId}
-                  className={classnames(
-                    'focus-visible-ring ring-inset border rounded w-full p-2',
-                    'bg-grey-0 focus:bg-white disabled:bg-grey-1',
-                    'placeholder:text-color-grey-5 disabled:placeholder:color-grey-6',
-                    { 'border-yellow-notice': commentHasBeenEdited }
-                  )}
+                  feedback={commentHasBeenEdited ? 'warning' : undefined}
                   rows={10}
                   value={commentValue}
                   onChange={e => {
