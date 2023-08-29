@@ -59,17 +59,18 @@ class BlackboardFilesAPIViews:
     @view_config(request_method="GET", route_name="blackboard_api.files.via_url")
     def via_url(self):
         """Return the Via URL for annotating the given Blackboard file."""
-
+        document_url = self.request.params["document_url"]
         course_id = self.request.matchdict["course_id"]
         course = self.request.find_service(name="course").get_by_context_id(
             course_id, raise_on_missing=True
         )
-        document_url_file_id = (
-            self.request.find_service(DocumentService)
-            .get_document_url_parts(self.request.params["document_url"])
-            .file_id
-        )
-        file_id = course.get_mapped_file_id(document_url_file_id)
+        document_url_parts = self.request.find_service(
+            DocumentService
+        ).get_document_url_parts(document_url)
+        if not document_url_parts:
+            raise ValueError("Invalid URL for blackboard file")
+
+        file_id = course.get_mapped_file_id(document_url_parts.file_id)
         try:
             if self.request.lti_user.is_instructor:
                 if not self.course_copy_plugin.is_file_in_course(course_id, file_id):

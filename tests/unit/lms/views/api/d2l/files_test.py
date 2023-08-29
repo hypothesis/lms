@@ -61,6 +61,14 @@ def test_via_url(
     assert response == {"via_url": helpers.via_url.return_value}
 
 
+@pytest.mark.usefixtures("course_copy_plugin", "d2l_api_client", "course_service")
+def test_via_url_with_wrong_url(document_service, pyramid_request):
+    document_service.get_document_url_parts.return_value = None
+
+    with pytest.raises(ValueError):
+        via_url(sentinel.context, pyramid_request)
+
+
 @pytest.mark.usefixtures("user_is_instructor", "document_service")
 def test_it_when_file_not_in_course_fixed_by_course_copy(
     d2l_api_client,

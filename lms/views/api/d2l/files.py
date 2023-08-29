@@ -35,11 +35,13 @@ def via_url(_context, request):
         course_id, raise_on_missing=True
     )
 
-    file_id = course.get_mapped_file_id(
-        request.find_service(DocumentService)
-        .get_document_url_parts(document_url)
-        .file_id
+    document_url_parts = request.find_service(DocumentService).get_document_url_parts(
+        document_url
     )
+    if not document_url_parts:
+        raise ValueError("Invalid URL for D2L file")
+
+    file_id = course.get_mapped_file_id(document_url_parts.file_id)
     try:
         if request.lti_user.is_instructor:
             if not course_copy_plugin.is_file_in_course(course_id, file_id):

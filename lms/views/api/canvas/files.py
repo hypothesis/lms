@@ -30,6 +30,7 @@ class FilesAPIViews:
 
         :raise lms.services.CanvasAPIError: if the Canvas API request fails.
             This exception is caught and handled by an exception view.
+        :raise ValueError: if we fail to parse the file's URL.
         """
         application_instance = self.request.lti_user.application_instance
         assignment = self.request.find_service(name="assignment").get_assignment(
@@ -40,6 +41,9 @@ class FilesAPIViews:
         document_url_parts = self.request.find_service(
             DocumentService
         ).get_document_url_parts(assignment.document_url)
+        if not document_url_parts:
+            raise ValueError("Invalid URL for Canvas file")
+
         public_url = self.canvas.public_url_for_file(
             assignment,
             document_url_parts.file_id,

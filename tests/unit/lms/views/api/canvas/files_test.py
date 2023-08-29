@@ -52,6 +52,16 @@ class TestFilesAPIViews:
         )
         assert result == {"via_url": helpers.via_url.return_value}
 
+    @pytest.mark.usefixtures("with_teacher_or_student")
+    def test_via_url_with_wrong_url(self, pyramid_request, document_service):
+        document_service.get_document_url_parts.return_value = None
+        pyramid_request.matchdict = {
+            "resource_link_id": "test_resource_link_id",
+        }
+
+        with pytest.raises(ValueError):
+            FilesAPIViews(pyramid_request).via_url()
+
     @pytest.fixture
     def document_service(self, document_service):
         document_service.get_document_url_parts.return_value = DocumentURLParts(
