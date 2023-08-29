@@ -9,7 +9,13 @@ from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
 from lms.product.d2l import D2L
 from lms.resources._js_config.file_picker_config import FilePickerConfig
-from lms.services import HAPI, HAPIError, JSTORService, VitalSourceService
+from lms.services import (
+    HAPI,
+    HAPIError,
+    JSTORService,
+    VitalSourceService,
+    DocumentService,
+)
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
 
@@ -203,6 +209,10 @@ class JSConfig:
         }
         self._config["debug"]["values"] = self._get_lti_launch_debug_values()
 
+        document = self._request.find_service(
+            DocumentService
+        ).get_document_from_assignment(assignment)
+        self._config["document"] = {"filename": document.filename}
         self._config["editing"] = {
             # Endpoint to get any data needed to get into "editing mode"
             "getConfig": {
