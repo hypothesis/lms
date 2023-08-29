@@ -27,7 +27,7 @@ class TestDigestService:
         context,
         DigestContext,
         db_session,
-        send_template,
+        send,
         sender,
         email_unsubscribe_service,
     ):
@@ -50,10 +50,10 @@ class TestDigestService:
         assert context.instructor_digest.call_args_list == [
             call(user.h_userid) for user in context.unified_users
         ]
-        assert send_template.delay.call_args_list == [
+        assert send.delay.call_args_list == [
             call(
                 task_done_key=f"instructor_email_digest::{unified_user.h_userid}::2023-04-30",
-                template_name="instructor-email-digest",
+                template="lms:templates/email/instructor_email_digest/",
                 sender=asdict(sender),
                 recipient=asdict(
                     EmailRecipient(unified_user.email, unified_user.display_name)
@@ -65,7 +65,7 @@ class TestDigestService:
         ]
 
     def test_send_instructor_email_digests_without_deduplication(
-        self, svc, context, send_template
+        self, svc, context, send
     ):
         context.unified_users = [UnifiedUserFactory()]
         context.instructor_digest.side_effect = [{"total_annotations": 1}]
@@ -78,13 +78,13 @@ class TestDigestService:
         )
 
         # If deduplicate=True is passed to DigestService then it passes
-        # task_done_key=None to send_template() which disables deduplication of
+        # task_done_key=None to send() which disables deduplication of
         # sent emails. This is used by admin pages that actually want to allow
         # you to send duplicate emails if requested.
-        assert not send_template.delay.call_args.kwargs["task_done_key"]
+        assert not send.delay.call_args.kwargs["task_done_key"]
 
     def test_send_instructor_email_digests_doesnt_send_empty_digests(
-        self, svc, context, send_template
+        self, svc, context, send
     ):
         context.unified_users = UnifiedUserFactory.create_batch(2)
         context.instructor_digest.return_value = {"total_annotations": 0}
@@ -93,10 +93,10 @@ class TestDigestService:
             [sentinel.h_userid], sentinel.updated_after, sentinel.updated_before
         )
 
-        send_template.delay.assert_not_called()
+        send.delay.assert_not_called()
 
     def test_send_instructor_email_digests_ignores_instructors_with_no_email_address(
-        self, svc, context, send_template
+        self, svc, context, send
     ):
         context.unified_users = [UnifiedUserFactory(email=None)]
         context.instructor_digest.return_value = {"total_annotations": 1}
@@ -105,11 +105,11 @@ class TestDigestService:
             sentinel.audience, sentinel.updated_after, sentinel.updated_before
         )
 
-        send_template.delay.assert_not_called()
+        send.delay.assert_not_called()
 
     @pytest.mark.usefixtures("email_unsubscribe_service")
     def test_send_instructor_email_digests_uses_override_to_email(
-        self, svc, context, send_template
+        self, svc, context, send
     ):
         context.unified_users = [UnifiedUserFactory()]
         context.instructor_digest.return_value = {"total_annotations": 1}
@@ -122,8 +122,7 @@ class TestDigestService:
         )
 
         assert (
-            send_template.delay.call_args[1]["recipient"]["email"]
-            == sentinel.override_to_email
+            send.delay.call_args[1]["recipient"]["email"] == sentinel.override_to_email
         )
 
     @pytest.fixture(autouse=True)
@@ -663,5 +662,5 @@ def make_learner(db_session, learner_role):
 
 
 @pytest.fixture(autouse=True)
-def send_template(patch):
-    return patch("lms.services.digest.send_template")
+def send(patch):
+    return patch("lms.services.digest.send")

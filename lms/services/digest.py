@@ -19,7 +19,7 @@ from lms.models import (
 from lms.services.email_unsubscribe import EmailUnsubscribeService
 from lms.services.h_api import HAPI
 from lms.services.mailchimp import EmailRecipient, EmailSender
-from lms.tasks.mailchimp import send_template
+from lms.tasks.mailchimp import send
 
 LOG = logging.getLogger(__name__)
 
@@ -75,9 +75,9 @@ class DigestService:
             else:
                 task_done_key = None
 
-            send_template.delay(
+            send.delay(
                 task_done_key=task_done_key,
-                template_name="instructor-email-digest",
+                template="lms:templates/email/instructor_email_digest/",
                 sender=asdict(self._sender),
                 recipient=asdict(EmailRecipient(to_email, unified_user.display_name)),
                 template_vars=digest,
