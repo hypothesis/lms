@@ -105,8 +105,6 @@ SETTINGS = (
     _Setting("mailchimp_digests_subaccount"),
     _Setting("mailchimp_digests_email"),
     _Setting("mailchimp_digests_name"),
-    # Point to the URL the web app runs on. Useful in celery tasks and the shell
-    _Setting("web_app_url"),
 )
 
 

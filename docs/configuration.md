@@ -51,7 +51,7 @@ LMS. Each of these is mandatory to get the service working correctly.
 | `SESSION_COOKIE_SECRET`           | `random-string-12345`                  | An arbitrary secret value                       |
 | `VIA_SECRET`                      | `matching-string-from-via`             | Must match the shared secret from Via           |
 | `VIA_URL`                         | `https://via9.hypothes.is/`            | The matching Via                                |
-| `WEB_APP_URL`                     | `https://lms.hypothes.is/`             | Root URL of the web app                         |
+| `HTTP_HOST`                       | `localhost:8001`                       | The app's HTTP hostname (used by Celery workers)|
 
 See also:
 

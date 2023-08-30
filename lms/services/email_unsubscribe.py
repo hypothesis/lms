@@ -1,5 +1,4 @@
 from datetime import timedelta
-from functools import partial
 from typing import Callable
 
 from lms.models import EmailUnsubscribe
@@ -47,7 +46,5 @@ def factory(_context, request):
         request.db,
         request.find_service(iface=JWTService),
         secret=request.registry.settings["jwt_secret"],
-        route_url=partial(
-            request.route_url, _app_url=request.registry.settings["web_app_url"]
-        ),
+        route_url=request.route_url,
     )

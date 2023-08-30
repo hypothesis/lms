@@ -90,7 +90,13 @@ def bootstrap_worker(sender, **_kwargs):  # pragma: no cover
     @contextmanager
     def request_context():
         with prepare(registry=lms.registry) as env:
-            yield env["request"]
+            request = env["request"]
+
+            # Make Pyramid things like route_url() and static_url() use the
+            # right hostname and port when called by Celery tasks.
+            request.environ["HTTP_HOST"] = os.environ["HTTP_HOST"]
+
+            yield request
 
     sender.app.request_context = request_context
 
