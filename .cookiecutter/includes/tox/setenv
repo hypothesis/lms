@@ -16,4 +16,4 @@ dev: SESSION_COOKIE_SECRET = {env:SESSION_COOKIE_SECRET:notasecret}
 # Number of gunicorn workers: https://docs.gunicorn.org/en/stable/settings.html#worker-processes
 VIA_SECRET = not_a_secret
 FDW_USERS = {env:FDW_USERS:report-fdw}
-WEB_APP_URL=http://localhost:8001
+HTTP_HOST = {env:HTTP_HOST:localhost:8001}

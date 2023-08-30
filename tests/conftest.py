@@ -39,7 +39,6 @@ TEST_SETTINGS = {
     "blackboard_api_client_secret": "test_blackboard_api_client_secret",
     "vitalsource_api_key": "test_vs_api_key",
     "disable_key_rotation": False,
-    "web_app_url": "http://localhost:8001/",
 }
 
 

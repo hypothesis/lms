@@ -55,30 +55,18 @@ class TestEmailUnsubscribeService:
 
 class TestFactory:
     def test_it(
-        self,
-        pyramid_request,
-        EmailUnsubscribeService,
-        db_session,
-        jwt_service,
-        partial,
+        self, pyramid_request, EmailUnsubscribeService, db_session, jwt_service
     ):
         svc = factory(sentinel.context, pyramid_request)
 
-        partial.assert_called_once_with(
-            pyramid_request.route_url, _app_url="http://localhost:8001/"
-        )
         EmailUnsubscribeService.assert_called_once_with(
             db_session,
             jwt_service,
             secret="test_secret",
-            route_url=partial.return_value,
+            route_url=pyramid_request.route_url,
         )
         assert svc == EmailUnsubscribeService.return_value
 
     @pytest.fixture
     def EmailUnsubscribeService(self, patch):
         return patch("lms.services.email_unsubscribe.EmailUnsubscribeService")
-
-    @pytest.fixture
-    def partial(self, patch):
-        return patch("lms.services.email_unsubscribe.partial")
