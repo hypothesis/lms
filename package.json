@@ -52,7 +52,7 @@
   },
   "devDependencies": {
     "@types/gapi": "^0.0.44",
-    "@types/google.accounts": "^0.0.7",
+    "@types/google.accounts": "^0.0.9",
     "@types/google.picker": "^0.0.39",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.60.1",
