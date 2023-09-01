@@ -7119,7 +7119,7 @@ __metadata:
     postcss: ^8.4.27
     preact: 10.17.1
     prettier: 2.8.8
-    rollup: ^3.26.0
+    rollup: ^3.28.1
     sass: ^1.62.1
     sinon: ^15.1.0
     tailwindcss: ^3.3.2
@@ -9194,9 +9194,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:^3.26.0":
-  version: 3.26.0
-  resolution: "rollup@npm:3.26.0"
+"rollup@npm:^3.28.1":
+  version: 3.28.1
+  resolution: "rollup@npm:3.28.1"
   dependencies:
     fsevents: ~2.3.2
   dependenciesMeta:
@@ -9204,7 +9204,7 @@ __metadata:
       optional: true
   bin:
     rollup: dist/bin/rollup
-  checksum: 2d00f1ec8f5b3e84b005b7158446aacfbe669b61a55cea26d4cfb7014fed9169d78dffa8f845c8ef2c8cbc596b9de6e9f925597b87e7ef9b7de4c7da21f188ad
+  checksum: 1fcab0929c16130218447c76c19b56ccc0e677110552462297e3679188fc70185a6ec418cef8ce138ec9fb78fd5188537a3f5d28762788e8c88b12a7fb8ba0fb
   languageName: node
   linkType: hard
 
