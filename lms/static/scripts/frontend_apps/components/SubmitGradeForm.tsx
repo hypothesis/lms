@@ -101,7 +101,7 @@ export default function SubmitGradeForm({
   // Changes the input field's background to green for a short duration when true
   const [gradeSaved, setGradeSaved] = useState(false);
 
-  const disabled = !student || grade.isLoading;
+  const disabled = !student;
 
   // Comment-related state
   //
@@ -155,11 +155,11 @@ export default function SubmitGradeForm({
     }
 
     if (!studentComments.current.has(student.userid)) {
-      // Track initial comment for active student, and initialize comment to loaded grade
+      // Track initial comment for active student, and initialize comment with loaded value
       studentComments.current.set(student.userid, grade.data.comment);
       setCommentValue(grade.data.comment ?? '');
     } else {
-      // If already tracked, initialize comment to that value
+      // If already tracked, initialize comment with tracked one
       setCommentValue(studentComments.current.get(student.userid) ?? '');
     }
   }, [student, grade]);
@@ -189,6 +189,7 @@ export default function SubmitGradeForm({
         });
         grade.mutate({ grade: newGrade, comment: newComment });
         onUnsavedChanges?.(false);
+        setShowCommentControls(false);
         setGradeSaved(true);
       } catch (e) {
         setSubmitGradeError(e);
@@ -271,56 +272,69 @@ export default function SubmitGradeForm({
                   <div className="absolute top-[5px] right-[4px] rounded-full p-1 bg-red-error" />
                 )}
               </Button>
-              <div
-                className={classnames(
-                  'w-80 p-3 space-y-1',
-                  'shadow border rounded bg-white',
-                  'absolute top-full right-0',
-                  // Hiding via CSS instead of dynamic rendering, so that the
-                  // comment is not lost when closed.
-                  { hidden: !showCommentControls }
-                )}
-              >
-                <PointerUpIcon
+              {showCommentControls && (
+                <div
                   className={classnames(
-                    'text-grey-3 fill-white',
-                    'absolute inline z-2 w-[15px]',
-                    // Position arrow over "Add comment" button
-                    'right-[7px] top-[-9px]'
+                    'w-80 p-3',
+                    'shadow border rounded bg-white',
+                    'absolute top-[calc(100%+3px)] right-0'
                   )}
-                />
-                <div className="flex items-center">
-                  <label htmlFor={commentId} className="font-bold">
-                    Add a comment:
-                  </label>
-                  <div className="grow" />
-                  <IconButton
-                    title="Close comment"
-                    icon={CancelIcon}
-                    classes="hover:bg-grey-3/50"
-                    onClick={() => setShowCommentControls(false)}
+                >
+                  <PointerUpIcon
+                    className={classnames(
+                      'text-grey-3 fill-white',
+                      'absolute inline z-2 w-[15px]',
+                      // Position arrow over "Add comment" button
+                      'right-[7px] top-[-9px]'
+                    )}
                   />
-                </div>
-                <Textarea
-                  id={commentId}
-                  feedback={commentHasBeenEdited ? 'warning' : undefined}
-                  rows={10}
-                  value={commentValue}
-                  onChange={e => {
-                    const newComment = (e.target as HTMLTextAreaElement).value;
-                    setCommentValue(newComment);
+                  <div className="flex items-center">
+                    <label htmlFor={commentId} className="font-bold">
+                      Add a comment:
+                    </label>
+                    <div className="grow" />
+                    <IconButton
+                      title="Close comment"
+                      icon={CancelIcon}
+                      classes="hover:bg-grey-3/50"
+                      onClick={() => setShowCommentControls(false)}
+                    />
+                  </div>
+                  <Textarea
+                    id={commentId}
+                    feedback={commentHasBeenEdited ? 'warning' : undefined}
+                    classes="mt-1"
+                    rows={10}
+                    value={commentValue}
+                    onChange={e => {
+                      const newComment = (e.target as HTMLTextAreaElement)
+                        .value;
+                      setCommentValue(newComment);
 
-                    if (student) {
-                      studentComments.current.set(student.userid, newComment);
-                    }
-                  }}
-                />
-                {commentHasBeenEdited && (
-                  <p className="text-right text-yellow-notice">
-                    Some changes have not been saved
-                  </p>
-                )}
-              </div>
+                      if (student) {
+                        studentComments.current.set(student.userid, newComment);
+                      }
+                    }}
+                  />
+                  <div className="flex flex-row-reverse space-x-2 space-x-reverse mt-3">
+                    <Button
+                      variant="primary"
+                      disabled={disabled}
+                      onClick={onSubmitGrade}
+                    >
+                      {commentHasBeenEdited
+                        ? 'Update comment'
+                        : 'Save & Submit'}
+                    </Button>
+                    <Button
+                      icon={CancelIcon}
+                      onClick={() => setShowCommentControls(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
             </span>
           )}
 
