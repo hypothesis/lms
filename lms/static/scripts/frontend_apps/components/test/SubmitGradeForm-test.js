@@ -26,6 +26,8 @@ describe('SubmitGradeForm', () => {
     fetchGrade: sinon.stub().resolves({ currentScore: 1 }),
   };
 
+  const fakeUseWarnOnPageUnload = sinon.stub();
+
   const SubmitGradeFormWrapper = withServices(SubmitGradeForm, () => [
     [GradingService, fakeGradingService],
   ]);
@@ -64,6 +66,9 @@ describe('SubmitGradeForm', () => {
       '../utils/grade-validation': {
         validateGrade: fakeValidateGrade,
       },
+      '../utils/use-warn-on-page-unload': {
+        useWarnOnPageUnload: fakeUseWarnOnPageUnload,
+      },
     });
   });
 
@@ -90,33 +95,33 @@ describe('SubmitGradeForm', () => {
     const wrapper = renderForm();
     await waitForGradeFetch(wrapper);
 
-    assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '10');
+    assert.strictEqual(wrapper.find(inputSelector).prop('value'), '10');
     wrapper.setProps({ student: fakeStudentAlt });
-    assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '');
+    assert.strictEqual(wrapper.find(inputSelector).prop('value'), '');
   });
 
   it('clears the displayed grade value if the currently-focused student has an empty grade', async () => {
     const wrapper = renderForm();
 
     await waitForGradeFetch(wrapper);
-    assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '10');
+    assert.strictEqual(wrapper.find(inputSelector).prop('value'), '10');
 
     fakeGradingService.fetchGrade.resolves({ currentScore: null });
     wrapper.setProps({ student: fakeStudentAlt });
     await waitForGradeFetch(wrapper);
 
-    assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '');
+    assert.strictEqual(wrapper.find(inputSelector).prop('value'), '');
   });
 
   it("displays a focused-student's grade if it is 0 (zero)", async () => {
     fakeGradingService.fetchGrade.resolves({ currentScore: 0 });
     const wrapper = renderForm();
 
-    assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '');
+    assert.strictEqual(wrapper.find(inputSelector).prop('value'), '');
 
     await waitForGradeFetch(wrapper);
 
-    assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '0');
+    assert.strictEqual(wrapper.find(inputSelector).prop('value'), '0');
   });
 
   it('focuses the input field when changing students and fetching the grade', async () => {
@@ -252,7 +257,7 @@ describe('SubmitGradeForm', () => {
 
       await waitForGradeFetch(wrapper);
 
-      assert.strictEqual(wrapper.find(inputSelector).prop('defaultValue'), '');
+      assert.strictEqual(wrapper.find(inputSelector).prop('value'), '');
     });
 
     it('shows the error dialog when the grade request throws an error', async () => {
@@ -278,10 +283,7 @@ describe('SubmitGradeForm', () => {
       const wrapper = renderForm();
       await waitForGradeFetch(wrapper);
       // note, grade is scaled by 10
-      assert.strictEqual(
-        wrapper.find(inputSelector).prop('defaultValue'),
-        '10'
-      );
+      assert.strictEqual(wrapper.find(inputSelector).prop('value'), '10');
     });
 
     it('hides the Spinner after the grade is fetched', async () => {
@@ -290,6 +292,20 @@ describe('SubmitGradeForm', () => {
       assert.isFalse(
         wrapper.find('.SubmitGradeForm__grade-wrapper').find('Spinner').exists()
       );
+    });
+  });
+
+  context('when there are unsaved changes', () => {
+    it('will warn on page unload', () => {
+      const wrapper = renderForm();
+
+      assert.calledWith(fakeUseWarnOnPageUnload.lastCall, false);
+
+      // Change the input value to something different from the original grade
+      wrapper.find(inputSelector).getDOMNode().value = '8';
+      wrapper.find(inputSelector).simulate('input');
+
+      assert.calledWith(fakeUseWarnOnPageUnload.lastCall, true);
     });
   });
 

@@ -6,7 +6,13 @@ import {
   SpinnerOverlay,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
-import { useEffect, useLayoutEffect, useState, useRef } from 'preact/hooks';
+import {
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useRef,
+  useMemo,
+} from 'preact/hooks';
 
 import type { StudentInfo } from '../config';
 import type { ErrorLike } from '../errors';
@@ -14,6 +20,7 @@ import { useService, GradingService } from '../services';
 import { useFetch } from '../utils/fetch';
 import { formatGrade, validateGrade } from '../utils/grade-validation';
 import { useUniqueId } from '../utils/hooks';
+import { useWarnOnPageUnload } from '../utils/use-warn-on-page-unload';
 import ErrorModal from './ErrorModal';
 import ValidationMessage from './ValidationMessage';
 
@@ -84,9 +91,22 @@ export default function SubmitGradeForm({
   // Used to handle keyboard input changes for the grade input field.
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Clear the previous grade saved status when the user changes.
+  // This is used to track an unsaved grade. It is null until user input occurs.
+  const [draftGradeValue, setDraftGradeValue] = useState<string | null>(null);
+
+  // Track if current grade has changed compared to what was originally loaded
+  const hasUnsavedChanges = useMemo(
+    () => draftGradeValue !== null && draftGradeValue !== grade.data,
+    [draftGradeValue, grade.data]
+  );
+
+  // Make sure instructors are notified if there's a risk to lose unsaved data
+  useWarnOnPageUnload(hasUnsavedChanges);
+
+  // Clear the previous grade when the user changes.
   useEffect(() => {
     setGradeSaved(false);
+    setDraftGradeValue(null);
   }, [student]);
 
   useLayoutEffect(() => {
@@ -96,7 +116,9 @@ export default function SubmitGradeForm({
 
   const onSubmitGrade = async (event: Event) => {
     event.preventDefault();
-    const result = validateGrade(inputRef.current!.value, scoreMaximum);
+
+    const newGrade = inputRef.current!.value;
+    const result = validateGrade(newGrade, scoreMaximum);
 
     if (!result.valid) {
       setValidationMessageMessage(result.error);
@@ -108,6 +130,7 @@ export default function SubmitGradeForm({
           student: student as StudentInfo,
           grade: result.grade,
         });
+        grade.mutate(newGrade);
         setGradeSaved(true);
       } catch (e) {
         setSubmitGradeError(e);
@@ -116,12 +139,11 @@ export default function SubmitGradeForm({
     }
   };
 
-  /**
-   * If any input is detected, close the ValidationMessage.
-   */
-  const handleKeyDown = () => {
+  const handleInput = (e: Event) => {
+    // If any input is detected, close the ValidationMessage.
     setValidationError(false);
     setGradeSaved(false);
+    setDraftGradeValue((e.target as HTMLInputElement).value);
   };
 
   const disabled = !student;
@@ -157,9 +179,9 @@ export default function SubmitGradeForm({
               disabled={disabled}
               id={gradeId}
               elementRef={inputRef}
-              onInput={handleKeyDown}
+              onInput={handleInput}
               type="text"
-              defaultValue={grade.data ?? ''}
+              value={draftGradeValue ?? grade.data ?? ''}
               key={student ? student.LISResultSourcedId : null}
             />
             {grade.isLoading && (
