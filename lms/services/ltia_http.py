@@ -7,7 +7,8 @@ from requests.exceptions import JSONDecodeError
 
 from lms.models import JWTOAuth2Token, LTIRegistration
 from lms.product.plugin.misc import MiscPlugin
-from lms.services import JWTOAuth2TokenService, JWTService
+from lms.services.jwt import JWTService
+from lms.services.jwt_oauth2_token import JWTOAuth2TokenService
 
 LOG = logging.getLogger(__name__)
 

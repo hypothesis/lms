@@ -6,7 +6,7 @@ from pyramid.settings import asbool
 from sqlalchemy.dialects.postgresql import JSONB
 
 from lms.db import BASE
-from lms.models import CreatedUpdatedMixin
+from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.exceptions import ReusedConsumerKey
 from lms.models.json_settings import JSONSetting, JSONSettings
 

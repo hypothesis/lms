@@ -1,6 +1,6 @@
 from typing import List
 
-from lms.services import SerializableError
+from lms.services.exceptions import SerializableError
 from lms.services.http import HTTPService
 
 YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3"

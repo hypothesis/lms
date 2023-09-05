@@ -1,6 +1,6 @@
 from lms.models.lti_user import LTI, LTIUser, display_name
-from lms.services import LTIRoleService
 from lms.services.application_instance import ApplicationInstanceService
+from lms.services.lti_role_service import LTIRoleService
 
 
 class LTIUserService:
