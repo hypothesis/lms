@@ -64,7 +64,11 @@ export function useFetch<T = unknown>(
 
   useEffect(() => {
     const controller = new AbortController();
-    const mutate = (newValue: T) => setResult(r => ({ ...r, data: newValue }));
+    const mutate = (newValue: T) => {
+      // Prevent in-flight fetch from overwriting this value.
+      controller.abort();
+      setResult(r => ({ ...r, error: null, isLoading: false, data: newValue }));
+    };
     setResult({
       data: null,
       error: null,
