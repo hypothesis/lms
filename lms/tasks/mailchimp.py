@@ -19,6 +19,5 @@ def send(*, sender, recipient, **kwargs) -> None:
 
     with app.request_context() as request:  # pylint:disable=no-member
         mailchimp_service = request.find_service(name="mailchimp")
-        print(request.environ)
         with request.tm:
             mailchimp_service.send(sender=sender, recipient=recipient, **kwargs)
