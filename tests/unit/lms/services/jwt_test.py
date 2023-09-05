@@ -7,6 +7,7 @@ import httpretty
 import jwt
 import pytest
 from freezegun import freeze_time
+from jose import constants
 from jwt.exceptions import InvalidTokenError
 from pyramid.config import Configurator
 from pytest import param
@@ -145,6 +146,21 @@ class TestJWTService:
 
         assert "jwt" in exc_info.value.messages
 
+    def test_encrypt_dict(self, svc, json, jwe):
+        payload_dict = {"some": "data"}
+        secret = "SECRET" * 10
+
+        encrypted = svc.encrypt_dict(secret, payload_dict)
+
+        json.dumps.assert_called_with(payload_dict)
+        jwe.encrypt.assert_called_once_with(
+            json.dumps.return_value,
+            secret.ljust(32),
+            algorithm=constants.ALGORITHMS.DIR,
+            encryption=constants.ALGORITHMS.A128CBC_HS256,
+        )
+        assert encrypted == jwe.encrypt.return_value.decode.return_value
+
     @staticmethod
     def encode_jwt(
         payload,
@@ -181,6 +197,14 @@ class TestJWTService:
         # Clear the lru_cache to make tests independent
         svc._get_jwk_client.cache_clear()  # pylint: disable=protected-access
         return svc
+
+    @pytest.fixture
+    def json(self, patch):
+        return patch("lms.services.jwt.json")
+
+    @pytest.fixture
+    def jwe(self, patch):
+        return patch("lms.services.jwt.jwe")
 
 
 class Test_RequestsPyJWKClient:
