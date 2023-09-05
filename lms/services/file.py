@@ -63,7 +63,7 @@ class FileService:
             update_columns=["name", "size", "updated"],
         )
 
-    def _file_search_query(
+    def _file_search_query(  # pylint:disable=too-many-arguments
         self, guid, type_, *, lms_id=None, course_id=None, name=None, size=None
     ):
         """Return a `File` query with the passed parameters applied as filters."""
