@@ -91,7 +91,7 @@ class AuditTrailEvent(BaseEvent):
     class ModelChange:
         action: str
         model: str
-        id: int  # pylint: disable=invalid-name
+        id: int
         source: str
         userid: str
         changes: Dict[str, tuple]
