@@ -153,6 +153,13 @@ describe('useFetch', () => {
 
       assert.equal(getResultText(wrapper), 'Data: Saved');
     });
+
+    it('takes precedence over in-flight fetch', async () => {
+      const wrapper = renderWidget('some-key', async () => 'Some data');
+      wrapper.find('[data-testid="save"]').simulate('click');
+      await waitForFetch(wrapper);
+      assert.equal(getResultText(wrapper), 'Data: Saved');
+    });
   });
 
   describe('`retry` callback', () => {
