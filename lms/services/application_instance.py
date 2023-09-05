@@ -134,7 +134,7 @@ class ApplicationInstanceService:
         except NoResultFound as err:
             raise ApplicationInstanceNotFound() from err
 
-    def search(
+    def search(  # pylint:disable=too-many-arguments
         self,
         *,
         id_=None,
@@ -172,7 +172,7 @@ class ApplicationInstanceService:
             .all()
         )
 
-    # pylint: disable=too-complex
+    # pylint: disable=too-complex,too-many-arguments
     def _ai_search_query(
         self,
         *,
