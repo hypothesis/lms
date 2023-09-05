@@ -6,6 +6,16 @@ export type FetchResult<T> = {
   isLoading: boolean;
 
   /**
+   * Set the fetched result to `data`. This is useful to update the result of
+   * a {@link useFetch} callback following an API call to update it on the
+   * backend.
+   *
+   * `newValue` should be the same as the value that would be returned by a
+   * re-fetch using `retry`. This method does not currently verify this.
+   */
+  mutate: (newValue: T) => void;
+
+  /**
    * Callback which retries the fetch. This does nothing if there is nothing
    * to fetch or the fetch has not yet finished.
    */
@@ -45,6 +55,7 @@ export function useFetch<T = unknown>(
     data: null,
     error: null,
     isLoading: key !== null,
+    mutate: /* istanbul ignore next */ () => null,
     retry: /* istanbul ignore next */ () => null,
   });
 
@@ -53,10 +64,12 @@ export function useFetch<T = unknown>(
 
   useEffect(() => {
     const controller = new AbortController();
+    const mutate = (newValue: T) => setResult(r => ({ ...r, data: newValue }));
     setResult({
       data: null,
       error: null,
       isLoading: key !== null,
+      mutate,
       retry: () => null,
     });
 
@@ -73,12 +86,24 @@ export function useFetch<T = unknown>(
       fetcher(controller.signal)
         .then(data => {
           if (!controller.signal.aborted) {
-            setResult({ data, error: null, isLoading: false, retry: doFetch });
+            setResult({
+              data,
+              error: null,
+              isLoading: false,
+              mutate,
+              retry: doFetch,
+            });
           }
         })
         .catch(error => {
           if (!controller.signal.aborted) {
-            setResult({ data: null, error, isLoading: false, retry: doFetch });
+            setResult({
+              data: null,
+              error,
+              isLoading: false,
+              mutate,
+              retry: doFetch,
+            });
           }
         });
     };

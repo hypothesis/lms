@@ -25,6 +25,9 @@ describe('useFetch', () => {
         <button data-testid="retry" onClick={thing.retry}>
           Retry
         </button>
+        <button data-testid="save" onClick={() => thing.mutate('Saved')}>
+          Save
+        </button>
       </>
     );
   }
@@ -138,6 +141,18 @@ describe('useFetch', () => {
     assert.throws(() => {
       renderWidget('some-key');
     }, 'Fetch key provided but no fetcher set');
+  });
+
+  describe('`mutate` callback', () => {
+    it('replaces fetched value with locally set value', async () => {
+      const wrapper = renderWidget('some-key', async () => 'Some data');
+      await waitForFetch(wrapper);
+      assert.equal(getResultText(wrapper), 'Data: Some data');
+
+      wrapper.find('[data-testid="save"]').simulate('click');
+
+      assert.equal(getResultText(wrapper), 'Data: Saved');
+    });
   });
 
   describe('`retry` callback', () => {
