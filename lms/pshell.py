@@ -1,3 +1,4 @@
+import os
 import sys
 from contextlib import suppress
 
@@ -14,6 +15,10 @@ def setup(env):
     sys.path = sys.path[1:]
 
     request = env["request"]
+
+    # Make Pyramid things like route_url() and static_url() use the right
+    # hostname and port when called from pshell.
+    request.environ["HTTP_HOST"] = os.environ["HTTP_HOST"]
 
     request.tm.begin()
 
