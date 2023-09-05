@@ -29,7 +29,7 @@ amqp==5.1.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   kombu
-astroid==2.15.5
+astroid==3.0.0a9
     # via pylint
 async-timeout==4.0.1
     # via
@@ -295,8 +295,6 @@ kombu==5.3.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   celery
-lazy-object-proxy==1.6.0
-    # via astroid
 mailchimp-transactional==1.0.50
     # via
     #   -r requirements/bddtests.txt
@@ -454,7 +452,7 @@ pyjwt[crypto]==2.8.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid-googleauth
-pylint==2.17.4
+pylint==3.0.0a7
     # via -r requirements/lint.in
 pyparsing==3.0.6
     # via
@@ -640,7 +638,6 @@ typing-extensions==4.7.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   alembic
-    #   astroid
     #   async-timeout
     #   kombu
     #   pylint
@@ -715,8 +712,6 @@ wired==0.2.2
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid-services
-wrapt==1.12.1
-    # via astroid
 xmltodict==0.13.0
     # via
     #   -r requirements/bddtests.txt
