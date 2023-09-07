@@ -18,43 +18,45 @@ describe('useWarnOnPageUnload', () => {
   };
   const createComponent = () => mount(<FakeComponent />);
 
+  const waitForBeforeUnloadEvent = () => {
+    const promise = new Promise(resolve =>
+      fakeWindow.addEventListener('beforeunload', resolve)
+    );
+    fakeWindow.dispatchEvent(new Event('beforeunload', { cancelable: true }));
+
+    return promise;
+  };
+
   beforeEach(() => {
     fakeWindow = new EventTarget();
-    sinon.spy(fakeWindow, 'addEventListener');
-    sinon.spy(fakeWindow, 'removeEventListener');
   });
 
-  it('registers event listener when unsaved data is true', () => {
+  it('registers event listener when unsaved data is true', async () => {
     createComponent();
 
-    assert.called(fakeWindow.addEventListener);
-    assert.notCalled(fakeWindow.removeEventListener);
+    const event = await waitForBeforeUnloadEvent();
+
+    assert.isTrue(event.defaultPrevented);
+    assert.equal(event.returnValue, '');
   });
 
-  it('unregisters event listener when unsaved data is false', () => {
+  it('unregisters event listener when unsaved data is false', async () => {
     const wrapper = createComponent();
 
     wrapper.find('button').simulate('click');
     wrapper.update();
 
-    assert.called(fakeWindow.removeEventListener);
+    const event = await waitForBeforeUnloadEvent();
+
+    assert.isFalse(event.defaultPrevented);
   });
 
-  it('unregisters event listener when component is unmounted', () => {
+  it('unregisters event listener when component is unmounted', async () => {
     const wrapper = createComponent();
     wrapper.unmount();
 
-    assert.called(fakeWindow.removeEventListener);
-  });
+    const event = await waitForBeforeUnloadEvent();
 
-  it('acts on provided event when listener is invoked', () => {
-    createComponent();
-
-    const event = new Event('beforeunload');
-    sinon.stub(event, 'preventDefault');
-
-    fakeWindow.dispatchEvent(event);
-
-    assert.called(event.preventDefault);
+    assert.isFalse(event.defaultPrevented);
   });
 });
