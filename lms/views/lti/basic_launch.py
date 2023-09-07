@@ -213,6 +213,15 @@ class BasicLaunchViews:
         self.context.js_config.add_document_url(assignment.document_url)
         self.context.js_config.enable_lti_launch_mode(self.course, assignment)
 
+        import_export_enabled = self.request.lti_user.application_instance.settings.get(
+            "hypothesis", "import_export_enabled", False
+        )
+
+        if import_export_enabled:
+            js_config = self.context.js_config
+            js_config.enable_client_feature("import_annotations")
+            js_config.enable_client_feature("export_annotations")
+
         # Run any non standard code for the current product
         self._misc_plugin.post_launch_assignment_hook(
             self.request, self.context.js_config, assignment
