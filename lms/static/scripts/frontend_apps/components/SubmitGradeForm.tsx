@@ -104,19 +104,14 @@ export default function SubmitGradeForm({
   const disabled = !student;
 
   // Comment-related state
-  //
-  // Track comments set for students, to make sure unsaved changes are not lost
-  // if the instructor moves to a different student
-  const studentComments = useRef(new Map<string, string | null | undefined>());
   const [showCommentControls, setShowCommentControls] = useState(false);
-  const [commentValue, setCommentValue] = useState<string>();
+  const [draftCommentValue, setDraftCommentValue] = useState<string | null>(
+    null
+  );
+  const commentIsSet =
+    !disabled && (!!draftCommentValue || !!grade.data?.comment);
   const commentId = useId();
-  const commentIsSet = !disabled && !!commentValue;
-  const commentHasBeenEdited =
-    !gradeSaved &&
-    !disabled &&
-    !!grade.data &&
-    grade.data.comment !== studentComments.current.get(student.userid);
+  const commentRef = useRef<HTMLTextAreaElement | null>(null);
 
   // The following is state for local validation errors
   //
@@ -147,22 +142,8 @@ export default function SubmitGradeForm({
     setGradeSaved(false);
     setShowCommentControls(false);
     setDraftGradeValue(null);
+    setDraftCommentValue(null);
   }, [student]);
-
-  useEffect(() => {
-    if (!student || !grade.data) {
-      return;
-    }
-
-    if (!studentComments.current.has(student.userid)) {
-      // Track initial comment for active student, and initialize comment with loaded value
-      studentComments.current.set(student.userid, grade.data.comment);
-      setCommentValue(grade.data.comment ?? '');
-    } else {
-      // If already tracked, initialize comment with tracked one
-      setCommentValue(studentComments.current.get(student.userid) ?? '');
-    }
-  }, [student, grade]);
 
   useLayoutEffect(() => {
     inputRef.current!.focus();
@@ -173,7 +154,9 @@ export default function SubmitGradeForm({
     event.preventDefault();
 
     const newGrade = inputRef.current!.value;
-    const newComment = acceptGradingComments ? commentValue : undefined;
+    const newComment = acceptGradingComments
+      ? commentRef.current!.value
+      : undefined;
     const result = validateGrade(newGrade, scoreMaximum);
 
     if (!result.valid) {
@@ -199,16 +182,19 @@ export default function SubmitGradeForm({
   };
 
   const handleInput = useCallback(
-    (e: Event) => {
+    (e: Event, setValue: (newValue: string) => void) => {
       // If any input is detected, close the ValidationMessage.
       setValidationError(false);
       setGradeSaved(false);
 
-      const newDraftGradeValue = (e.target as HTMLInputElement).value;
-      setDraftGradeValue(newDraftGradeValue);
+      const newValue = (e.target as HTMLInputElement).value;
+      setValue(newValue);
 
       // Check if there are unsavedChanges
-      onUnsavedChanges?.(newDraftGradeValue !== grade.data?.grade);
+      // TODO Check both grade value and comment
+      //  (draftGradeValue !== null && draftGradeValue !== grade.data?.grade) ||
+      //  (draftCommentValue !== null && draftCommentValue !== grade.data?.comment),
+      onUnsavedChanges?.(newValue !== grade.data?.grade);
     },
     [grade.data, onUnsavedChanges]
   );
@@ -244,7 +230,7 @@ export default function SubmitGradeForm({
               disabled={disabled}
               id={gradeId}
               elementRef={inputRef}
-              onInput={handleInput}
+              onInput={e => handleInput(e, setDraftGradeValue)}
               type="text"
               value={draftGradeValue ?? grade.data?.grade ?? ''}
               key={student ? student.LISResultSourcedId : null}
@@ -267,11 +253,7 @@ export default function SubmitGradeForm({
                   'border border-r-0 rounded-none ring-inset h-full relative',
                   'disabled:opacity-50'
                 )}
-              >
-                {commentHasBeenEdited && (
-                  <div className="absolute top-[5px] right-[4px] rounded-full p-1 bg-red-error" />
-                )}
-              </Button>
+              />
               {showCommentControls && (
                 <div
                   className={classnames(
@@ -302,19 +284,11 @@ export default function SubmitGradeForm({
                   </div>
                   <Textarea
                     id={commentId}
-                    feedback={commentHasBeenEdited ? 'warning' : undefined}
                     classes="mt-1"
                     rows={10}
-                    value={commentValue}
-                    onChange={e => {
-                      const newComment = (e.target as HTMLTextAreaElement)
-                        .value;
-                      setCommentValue(newComment);
-
-                      if (student) {
-                        studentComments.current.set(student.userid, newComment);
-                      }
-                    }}
+                    elementRef={commentRef}
+                    value={draftCommentValue ?? grade.data?.comment ?? ''}
+                    onInput={e => handleInput(e, setDraftCommentValue)}
                   />
                   <div className="flex flex-row-reverse space-x-2 space-x-reverse mt-3">
                     <Button
@@ -322,9 +296,7 @@ export default function SubmitGradeForm({
                       disabled={disabled}
                       onClick={onSubmitGrade}
                     >
-                      {commentHasBeenEdited
-                        ? 'Update comment'
-                        : 'Save & Submit'}
+                      Submit Grade
                     </Button>
                     <Button
                       icon={CancelIcon}
