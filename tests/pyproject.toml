@@ -4,7 +4,9 @@ jobs = 0 # Use one process for CPU.
 load-plugins = [
     "pylint.extensions.bad_builtin",
     "pylint.extensions.check_elif",
+    "pylint.extensions.comparetozero",
     "pylint.extensions.docparams",
+    "pylint.extensions.emptystring",
     "pylint.extensions.mccabe",
     "pylint.extensions.overlapping_exceptions",
     "pylint.extensions.redefined_variable_type",
