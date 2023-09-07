@@ -329,12 +329,15 @@ class TestAddDocumentURL:
 
 class TestAddCanvasSpeedgraderSettings:
     @pytest.mark.parametrize("group_set", (sentinel.group_set, None))
-    def test_it(self, js_config, pyramid_request, group_set):
+    def test_it(self, js_config, pyramid_request, course, assignment, group_set):
         pyramid_request.feature.return_value = False
         if group_set:
             pyramid_request.params["group_set"] = group_set
 
         js_config.add_canvas_speedgrader_settings(sentinel.document_url)
+
+        # Ensure `hypothesisClient` is added to config.
+        js_config.enable_lti_launch_mode(course, assignment)
 
         config = js_config.asdict()
         assert config["canvas"]["speedGrader"]["submissionParams"] == {
@@ -350,13 +353,28 @@ class TestAddCanvasSpeedgraderSettings:
                 "custom_canvas_user_id"
             ],
         }
-        # This doesn't get flushed out to the config until we call
-        # `enable_lti_launch_mode` so we have to inspect it directly
-        # pylint: disable=protected-access
-        assert js_config._hypothesis_client["reportActivity"] == {
+        assert config["hypothesisClient"]["reportActivity"] == {
             "method": "reportActivity",
             "events": ["create", "update"],
         }
+
+
+class TestEnableClientFeature:
+    def test_it(self, js_config, course, assignment):
+        js_config.enable_client_feature("feature_a")
+        js_config.enable_client_feature("feature_b")
+
+        # Enable feature a second time. This should be a no-op.
+        js_config.enable_client_feature("feature_a")
+
+        # Ensure `hypothesisClient` is added to config.
+        js_config.enable_lti_launch_mode(course, assignment)
+        config = js_config.asdict()
+
+        assert config["hypothesisClient"]["features"] == [
+            "feature_a",
+            "feature_b",
+        ]
 
 
 class TestInstructorToolbar:

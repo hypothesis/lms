@@ -1,6 +1,6 @@
 import functools
 from enum import Enum
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from pyramid.httpexceptions import HTTPClientError
 
@@ -373,6 +373,19 @@ class JSConfig:
             "events": ["create", "update"],
         }
 
+    def enable_client_feature(self, feature: str):
+        """
+        Enable a feature flag in the client.
+
+        The effective set of enabled feature flags is the union of flags enabled
+        via this method and flags enabled for the H user.
+
+        :param feature: A feature flag to enable.
+        """
+        current_features: List[str] = self._hypothesis_client.setdefault("features", [])
+        if feature not in current_features:
+            current_features.append(feature)
+
     @property
     def auth_token(self):
         """Return the authToken setting."""
@@ -466,7 +479,7 @@ class JSConfig:
 
     @property
     @functools.lru_cache()
-    def _hypothesis_client(self):
+    def _hypothesis_client(self) -> Dict[str, Any]:
         """
         Return the config object for the Hypothesis client.
 
