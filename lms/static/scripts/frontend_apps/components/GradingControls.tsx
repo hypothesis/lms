@@ -1,3 +1,4 @@
+import { confirm } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
@@ -39,8 +40,32 @@ export default function GradingControls({
   } = useConfig();
 
   const clientRPC = useService(ClientRPC);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<StudentInfo | null>(
     null
+  );
+  const changeSelectedStudent = useCallback(
+    async (newSelectedStudent: StudentInfo | null) => {
+      const discardChanges =
+        !hasUnsavedChanges ||
+        (await confirm({
+          title: 'Discard changes?',
+          message: (
+            <div>
+              There are unsaved changes to{' '}
+              <span className="font-bold">{selectedStudent?.displayName}</span>
+              {"'"}s grade. Do you want to discard them?
+            </div>
+          ),
+          confirmAction: 'Discard changes',
+          cancelAction: 'Continue editing',
+        }));
+
+      if (discardChanges) {
+        setSelectedStudent(newSelectedStudent);
+      }
+    },
+    [hasUnsavedChanges, selectedStudent]
   );
 
   const students = useMemo(
@@ -98,7 +123,7 @@ export default function GradingControls({
     >
       <div>
         <StudentSelector
-          onSelectStudent={setSelectedStudent}
+          onSelectStudent={changeSelectedStudent}
           students={students}
           selectedStudent={selectedStudent}
         />
@@ -107,6 +132,7 @@ export default function GradingControls({
         <SubmitGradeForm
           student={selectedStudent}
           scoreMaximum={scoreMaximum}
+          onUnsavedChanges={setHasUnsavedChanges}
         />
       </div>
     </div>
