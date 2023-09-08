@@ -13,6 +13,7 @@ describe('GradingControls', () => {
   let fakeConfig;
   let fakeStudents;
   let fakeClientRPC;
+  let fakeConfirm;
 
   /**
    * Helper to return a list of displayNames of the students.
@@ -57,8 +58,11 @@ describe('GradingControls', () => {
       setFocusedUser: sinon.stub(),
     };
 
+    fakeConfirm = sinon.stub().resolves(false);
+
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
+      '@hypothesis/frontend-shared': { confirm: fakeConfirm },
       '../utils/api': {
         apiCall: fakeApiCall,
       },
@@ -68,6 +72,11 @@ describe('GradingControls', () => {
   afterEach(() => {
     $imports.$restore();
   });
+
+  const selectFirstStudent = wrapper =>
+    act(() =>
+      wrapper.find('StudentSelector').props().onSelectStudent(fakeStudents[0])
+    );
 
   const renderGrader = (props = {}) => {
     const services = new Map([[ClientRPC, fakeClientRPC]]);
@@ -152,12 +161,10 @@ describe('GradingControls', () => {
     assert.calledWith(fakeClientRPC.setFocusedUser, null);
   });
 
-  it('sets the focused user when a valid student is selected', () => {
+  it('sets the focused user when a valid student is selected', async () => {
     const wrapper = renderGrader();
 
-    act(() => {
-      wrapper.find('StudentSelector').props().onSelectStudent(fakeStudents[0]); // note: initial index is -1
-    });
+    await selectFirstStudent(wrapper);
 
     assert.calledWith(
       fakeClientRPC.setFocusedUser,
@@ -190,12 +197,7 @@ describe('GradingControls', () => {
       // Initial call on first render sets focused user to null
       assert.calledOnce(fakeClientRPC.setFocusedUser);
 
-      act(() => {
-        wrapper
-          .find('StudentSelector')
-          .props()
-          .onSelectStudent(fakeStudents[0]);
-      });
+      selectFirstStudent(wrapper);
 
       await waitFor(() => fakeApiCall.called);
 
@@ -210,15 +212,10 @@ describe('GradingControls', () => {
       assert.notCalled(console.error);
     });
 
-    it('Passes fetched student groups to RPC method', async () => {
+    it('passes fetched student groups to RPC method', async () => {
       const wrapper = renderGrader();
 
-      act(() => {
-        wrapper
-          .find('StudentSelector')
-          .props()
-          .onSelectStudent(fakeStudents[0]);
-      });
+      selectFirstStudent(wrapper);
 
       await waitFor(() => fakeApiCall.called);
 
@@ -235,12 +232,7 @@ describe('GradingControls', () => {
       fakeApiCall.rejects();
       const wrapper = renderGrader();
 
-      act(() => {
-        wrapper
-          .find('StudentSelector')
-          .props()
-          .onSelectStudent(fakeStudents[0]);
-      });
+      selectFirstStudent(wrapper);
 
       await waitFor(() => fakeApiCall.called);
 
@@ -269,6 +261,47 @@ describe('GradingControls', () => {
       null /* user */,
       null /* groups */
     );
+  });
+
+  context('when has unsaved grade changes', () => {
+    const setUnsavedChanges = wrapper =>
+      act(() => wrapper.find('SubmitGradeForm').props().onUnsavedChanges(true));
+    const getSelectedStudent = wrapper =>
+      wrapper.find('StudentSelector').props().selectedStudent;
+
+    [
+      // Selected student should still be the first
+      {
+        discardChanges: false,
+        expectedStudentAfterChange: () => fakeStudents[0],
+      },
+
+      // Selected student should change from first to second
+      {
+        discardChanges: true,
+        expectedStudentAfterChange: () => fakeStudents[1],
+      },
+    ].forEach(({ discardChanges, expectedStudentAfterChange }) => {
+      it('"cancels" selected user change if instructor selected to continue editing', async () => {
+        const wrapper = renderGrader();
+        await selectFirstStudent(wrapper);
+
+        await setUnsavedChanges(wrapper);
+        wrapper.update();
+        fakeConfirm.resolves(discardChanges);
+
+        // Try to select another student
+        await act(() =>
+          wrapper
+            .find('StudentSelector')
+            .props()
+            .onSelectStudent(fakeStudents[1])
+        );
+        wrapper.update();
+
+        assert.equal(getSelectedStudent(wrapper), expectedStudentAfterChange());
+      });
+    });
   });
 
   it(

@@ -296,16 +296,32 @@ describe('SubmitGradeForm', () => {
   });
 
   context('when there are unsaved changes', () => {
+    // Default new value to something different from the original grade
+    const changeGrade = (wrapper, newValue = 8) => {
+      wrapper.find(inputSelector).getDOMNode().value = `${newValue}`;
+      wrapper.find(inputSelector).simulate('input');
+    };
+
     it('will warn on page unload', () => {
       const wrapper = renderForm();
 
       assert.calledWith(fakeUseWarnOnPageUnload.lastCall, false);
-
-      // Change the input value to something different from the original grade
-      wrapper.find(inputSelector).getDOMNode().value = '8';
-      wrapper.find(inputSelector).simulate('input');
-
+      changeGrade(wrapper);
       assert.calledWith(fakeUseWarnOnPageUnload.lastCall, true);
+    });
+
+    it('will notify onUnsavedChanges', async () => {
+      const fakeOnUnsavedChanges = sinon.stub();
+      const wrapper = renderForm({ onUnsavedChanges: fakeOnUnsavedChanges });
+
+      await waitForGradeFetch(wrapper);
+
+      changeGrade(wrapper);
+      assert.calledWith(fakeOnUnsavedChanges.lastCall, true);
+
+      // Changing back to the original grade should notify there are no unsaved changes
+      changeGrade(wrapper, 10);
+      assert.calledWith(fakeOnUnsavedChanges.lastCall, false);
     });
   });
 

@@ -11,7 +11,7 @@ import {
   useLayoutEffect,
   useState,
   useRef,
-  useMemo,
+  useCallback,
 } from 'preact/hooks';
 
 import type { StudentInfo } from '../config';
@@ -37,6 +37,9 @@ export type SubmitGradeFormProps = {
    * [1] https://www.imsglobal.org/spec/lti-ags/v2p0
    */
   scoreMaximum?: number;
+
+  /** It lets parent components know if there are unsaved changes in the grading form */
+  onUnsavedChanges?: (hasUnsavedChanges: boolean) => void;
 };
 
 const DEFAULT_MAX_SCORE = 10;
@@ -47,6 +50,7 @@ const DEFAULT_MAX_SCORE = 10;
  */
 export default function SubmitGradeForm({
   student,
+  onUnsavedChanges,
   scoreMaximum = DEFAULT_MAX_SCORE,
 }: SubmitGradeFormProps) {
   const [fetchGradeErrorDismissed, setFetchGradeErrorDismissed] =
@@ -95,9 +99,13 @@ export default function SubmitGradeForm({
   const [draftGradeValue, setDraftGradeValue] = useState<string | null>(null);
 
   // Track if current grade has changed compared to what was originally loaded
-  const hasUnsavedChanges = useMemo(
-    () => draftGradeValue !== null && draftGradeValue !== grade.data,
-    [draftGradeValue, grade.data]
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
+  const updateHasUnsavedChanges = useCallback(
+    (hasUnsavedChanges: boolean) => {
+      setHasUnsavedChanges(hasUnsavedChanges);
+      onUnsavedChanges?.(hasUnsavedChanges);
+    },
+    [onUnsavedChanges]
   );
 
   // Make sure instructors are notified if there's a risk to lose unsaved data
@@ -131,6 +139,7 @@ export default function SubmitGradeForm({
           grade: result.grade,
         });
         grade.mutate(newGrade);
+        updateHasUnsavedChanges(false);
         setGradeSaved(true);
       } catch (e) {
         setSubmitGradeError(e);
@@ -139,12 +148,20 @@ export default function SubmitGradeForm({
     }
   };
 
-  const handleInput = (e: Event) => {
-    // If any input is detected, close the ValidationMessage.
-    setValidationError(false);
-    setGradeSaved(false);
-    setDraftGradeValue((e.target as HTMLInputElement).value);
-  };
+  const handleInput = useCallback(
+    (e: Event) => {
+      // If any input is detected, close the ValidationMessage.
+      setValidationError(false);
+      setGradeSaved(false);
+
+      const newDraftGradeValue = (e.target as HTMLInputElement).value;
+      setDraftGradeValue(newDraftGradeValue);
+
+      // Check if there are unsavedChanges
+      updateHasUnsavedChanges(newDraftGradeValue !== grade.data);
+    },
+    [grade.data, updateHasUnsavedChanges]
+  );
 
   const disabled = !student;
 
