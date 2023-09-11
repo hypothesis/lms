@@ -188,7 +188,7 @@ multidict==5.2.0
     #   -r requirements/prod.txt
     #   aiohttp
     #   yarl
-newrelic==8.8.1
+newrelic==9.0.0
     # via -r requirements/prod.txt
 oauthlib==3.2.2
     # via
