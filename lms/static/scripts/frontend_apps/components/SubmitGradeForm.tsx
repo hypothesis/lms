@@ -130,8 +130,10 @@ export default function SubmitGradeForm({
 
   // Track if current grade has changed compared to what was originally loaded
   const hasUnsavedChanges = useMemo(
-    () => draftGradeValue !== null && draftGradeValue !== grade.data?.grade,
-    [draftGradeValue, grade.data]
+    () =>
+      (draftGradeValue !== null && draftGradeValue !== grade.data?.grade) ||
+      (draftCommentValue !== null && draftCommentValue !== grade.data?.comment),
+    [draftCommentValue, draftGradeValue, grade.data?.comment, grade.data?.grade]
   );
 
   // Make sure instructors are notified if there's a risk to lose unsaved data
@@ -181,22 +183,51 @@ export default function SubmitGradeForm({
     }
   };
 
-  const handleInput = useCallback(
-    (e: Event, setValue: (newValue: string) => void) => {
-      // If any input is detected, close the ValidationMessage.
-      setValidationError(false);
-      setGradeSaved(false);
+  const handleInputCommon = useCallback((e: Event): string => {
+    // If any input is detected, close the ValidationMessage.
+    setValidationError(false);
+    setGradeSaved(false);
 
-      const newValue = (e.target as HTMLInputElement).value;
-      setValue(newValue);
+    return (e.target as HTMLInputElement).value;
+  }, []);
+  const handleGradeInput = useCallback(
+    (e: Event) => {
+      const newGrade = handleInputCommon(e);
+      setDraftGradeValue(newGrade);
 
       // Check if there are unsavedChanges
-      // TODO Check both grade value and comment
-      //  (draftGradeValue !== null && draftGradeValue !== grade.data?.grade) ||
-      //  (draftCommentValue !== null && draftCommentValue !== grade.data?.comment),
-      onUnsavedChanges?.(newValue !== grade.data?.grade);
+      onUnsavedChanges?.(
+        newGrade !== grade.data?.grade ||
+          (draftCommentValue !== null &&
+            draftCommentValue !== grade.data.comment)
+      );
     },
-    [grade.data, onUnsavedChanges]
+    [
+      handleInputCommon,
+      onUnsavedChanges,
+      grade.data?.grade,
+      grade.data?.comment,
+      draftCommentValue,
+    ]
+  );
+  const handleCommentInput = useCallback(
+    (e: Event) => {
+      const newComment = handleInputCommon(e);
+      setDraftCommentValue(newComment);
+
+      // Check if there are unsavedChanges
+      onUnsavedChanges?.(
+        newComment !== grade.data?.comment ||
+          (draftGradeValue !== null && draftGradeValue !== grade.data.grade)
+      );
+    },
+    [
+      handleInputCommon,
+      onUnsavedChanges,
+      grade.data?.comment,
+      grade.data?.grade,
+      draftGradeValue,
+    ]
   );
 
   return (
@@ -230,7 +261,7 @@ export default function SubmitGradeForm({
               disabled={disabled}
               id={gradeId}
               elementRef={inputRef}
-              onInput={e => handleInput(e, setDraftGradeValue)}
+              onInput={handleGradeInput}
               type="text"
               value={draftGradeValue ?? grade.data?.grade ?? ''}
               key={student ? student.LISResultSourcedId : null}
@@ -288,7 +319,7 @@ export default function SubmitGradeForm({
                     rows={10}
                     elementRef={commentRef}
                     value={draftCommentValue ?? grade.data?.comment ?? ''}
-                    onInput={e => handleInput(e, setDraftCommentValue)}
+                    onInput={handleCommentInput}
                   />
                   <div className="flex flex-row-reverse space-x-2 space-x-reverse mt-3">
                     <Button
