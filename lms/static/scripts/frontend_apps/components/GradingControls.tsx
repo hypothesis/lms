@@ -63,6 +63,7 @@ export default function GradingControls({
 
       if (discardChanges) {
         setSelectedStudent(newSelectedStudent);
+        setHasUnsavedChanges(false);
       }
     },
     [hasUnsavedChanges, selectedStudent]

@@ -12,6 +12,7 @@ import {
   useState,
   useRef,
   useCallback,
+  useMemo,
 } from 'preact/hooks';
 
 import type { StudentInfo } from '../config';
@@ -99,13 +100,9 @@ export default function SubmitGradeForm({
   const [draftGradeValue, setDraftGradeValue] = useState<string | null>(null);
 
   // Track if current grade has changed compared to what was originally loaded
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
-  const updateHasUnsavedChanges = useCallback(
-    (hasUnsavedChanges: boolean) => {
-      setHasUnsavedChanges(hasUnsavedChanges);
-      onUnsavedChanges?.(hasUnsavedChanges);
-    },
-    [onUnsavedChanges]
+  const hasUnsavedChanges = useMemo(
+    () => draftGradeValue !== null && draftGradeValue !== grade.data,
+    [draftGradeValue, grade.data]
   );
 
   // Make sure instructors are notified if there's a risk to lose unsaved data
@@ -139,7 +136,7 @@ export default function SubmitGradeForm({
           grade: result.grade,
         });
         grade.mutate(newGrade);
-        updateHasUnsavedChanges(false);
+        onUnsavedChanges?.(false);
         setGradeSaved(true);
       } catch (e) {
         setSubmitGradeError(e);
@@ -158,9 +155,9 @@ export default function SubmitGradeForm({
       setDraftGradeValue(newDraftGradeValue);
 
       // Check if there are unsavedChanges
-      updateHasUnsavedChanges(newDraftGradeValue !== grade.data);
+      onUnsavedChanges?.(newDraftGradeValue !== grade.data);
     },
-    [grade.data, updateHasUnsavedChanges]
+    [grade.data, onUnsavedChanges]
   );
 
   const disabled = !student;
