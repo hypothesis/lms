@@ -57,11 +57,18 @@ describe('InstructorToolbar', () => {
     assert.isTrue(wrapper.exists('[data-testid="edit"]'));
   });
 
-  it('renders grading controls when grading is enabled', () => {
-    fakeInstructorToolbar.gradingEnabled = true;
-    fakeInstructorToolbar.students = [];
-    const wrapper = renderToolbar();
-    assert.isTrue(wrapper.exists('GradingControls'));
+  [true, false, undefined].forEach(acceptComments => {
+    it('renders grading controls when grading is enabled', () => {
+      fakeInstructorToolbar.gradingEnabled = true;
+      fakeInstructorToolbar.students = [];
+      fakeInstructorToolbar.acceptGradingComments = acceptComments;
+
+      const wrapper = renderToolbar();
+      const gradingControls = wrapper.find('GradingControls');
+
+      assert.isTrue(gradingControls.exists());
+      assert.equal(gradingControls.prop('acceptComments'), acceptComments);
+    });
   });
 
   it('does not render grading controls when grading is not enabled', () => {

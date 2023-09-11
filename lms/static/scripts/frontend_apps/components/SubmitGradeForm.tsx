@@ -1,9 +1,17 @@
 import {
   Button,
+  CancelIcon,
   CheckIcon,
+  IconButton,
   Input,
   Spinner,
   SpinnerOverlay,
+  NoteIcon,
+  NoteFilledIcon,
+  PointerUpIcon,
+  Textarea,
+  useKeyPress,
+  useClickAway,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import {
@@ -13,6 +21,7 @@ import {
   useRef,
   useCallback,
   useMemo,
+  useId,
 } from 'preact/hooks';
 
 import type { StudentInfo } from '../config';
@@ -41,9 +50,31 @@ export type SubmitGradeFormProps = {
 
   /** It lets parent components know if there are unsaved changes in the grading form */
   onUnsavedChanges?: (hasUnsavedChanges: boolean) => void;
+
+  /**
+   * Allow instructors to provide an extra comment together with the grade value.
+   * Default value is false.
+   */
+  acceptComments?: boolean;
 };
 
 const DEFAULT_MAX_SCORE = 10;
+
+type DraftGrading = {
+  grade: string | null;
+  comment: string | null;
+};
+
+/** Return true if there are unsaved changes to the grade. */
+function hasGradeChanged(
+  draft: DraftGrading,
+  savedGrade?: { grade: string; comment: string | null | undefined } | null
+): boolean {
+  return (
+    (draft.grade !== null && draft.grade !== savedGrade?.grade) ||
+    (draft.comment !== null && draft.comment !== savedGrade?.comment)
+  );
+}
 
 /**
  * A form with a single input field and submit button for an instructor to
@@ -53,6 +84,7 @@ export default function SubmitGradeForm({
   student,
   onUnsavedChanges,
   scoreMaximum = DEFAULT_MAX_SCORE,
+  acceptComments = false,
 }: SubmitGradeFormProps) {
   const [fetchGradeErrorDismissed, setFetchGradeErrorDismissed] =
     useState(false);
@@ -60,10 +92,13 @@ export default function SubmitGradeForm({
 
   const fetchGrade = async (student: StudentInfo) => {
     setFetchGradeErrorDismissed(false);
-    const { currentScore = null } = await gradingService.fetchGrade({
+    const { currentScore = null, comment } = await gradingService.fetchGrade({
       student,
     });
-    return formatGrade(currentScore, scoreMaximum);
+    return {
+      grade: formatGrade(currentScore, scoreMaximum),
+      comment,
+    };
   };
 
   // The stored grade value fetched from the LMS and converted to the range
@@ -84,6 +119,9 @@ export default function SubmitGradeForm({
   // Changes the input field's background to green for a short duration when true
   const [gradeSaved, setGradeSaved] = useState(false);
 
+  const disabled = !student;
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
   // The following is state for local validation errors
   //
   // Is there a validation error message to show?
@@ -96,23 +134,65 @@ export default function SubmitGradeForm({
   // Used to handle keyboard input changes for the grade input field.
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // This is used to track an unsaved grade. It is null until user input occurs.
-  const [draftGradeValue, setDraftGradeValue] = useState<string | null>(null);
+  // This is used to track unsaved grades or comments. It is null until user input occurs.
+  const [draftGrading, setDraftGrading] = useState<DraftGrading>({
+    grade: null,
+    comment: null,
+  });
+  const updateDraftGrading = useCallback(
+    (update: Partial<DraftGrading>) => {
+      const newDraftGrading = {
+        grade: update.grade ?? draftGrading.grade,
+        comment: update.comment ?? draftGrading.comment,
+      };
+
+      onUnsavedChanges?.(hasGradeChanged(newDraftGrading, grade.data));
+      setDraftGrading(prev => ({ ...prev, ...update }));
+    },
+    [draftGrading.grade, draftGrading.comment, onUnsavedChanges, grade.data]
+  );
+
+  // Comment-related state
+  const [showCommentPopover, setShowCommentPopover] = useState(false);
+  const closeCommentPopover = useCallback(
+    () => setShowCommentPopover(false),
+    []
+  );
+  // Comment is considered not set if:
+  //  * Draft is null, and previously loaded comment is "empty"
+  //  * Draft is not null, but falsy. It means it was explicitly removed, but maybe not saved yet
+  const commentIsSet =
+    !disabled &&
+    ((draftGrading.comment === null && !!grade.data?.comment) ||
+      !!draftGrading.comment);
+  const commentId = useId();
+  const commentRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useKeyPress(['Escape'], closeCommentPopover);
+  useClickAway(containerRef, closeCommentPopover);
+
+  // Focus comment textarea when popover is open
+  useLayoutEffect(() => {
+    if (showCommentPopover) {
+      commentRef.current!.focus();
+    }
+  }, [showCommentPopover]);
 
   // Track if current grade has changed compared to what was originally loaded
   const hasUnsavedChanges = useMemo(
-    () => draftGradeValue !== null && draftGradeValue !== grade.data,
-    [draftGradeValue, grade.data]
+    () => hasGradeChanged(draftGrading, grade.data),
+    [draftGrading, grade.data]
   );
 
   // Make sure instructors are notified if there's a risk to lose unsaved data
   useWarnOnPageUnload(hasUnsavedChanges);
 
-  // Clear the previous grade when the user changes.
+  // Clear the previous grade and hide comment controls when the user changes.
   useEffect(() => {
     setGradeSaved(false);
-    setDraftGradeValue(null);
-  }, [student]);
+    closeCommentPopover();
+    setDraftGrading({ grade: null, comment: null });
+  }, [student, closeCommentPopover]);
 
   useLayoutEffect(() => {
     inputRef.current!.focus();
@@ -123,6 +203,9 @@ export default function SubmitGradeForm({
     event.preventDefault();
 
     const newGrade = inputRef.current!.value;
+    const newComment = acceptComments
+      ? draftGrading.comment ?? grade.data?.comment
+      : undefined;
     const result = validateGrade(newGrade, scoreMaximum);
 
     if (!result.valid) {
@@ -134,9 +217,11 @@ export default function SubmitGradeForm({
         await gradingService.submitGrade({
           student: student as StudentInfo,
           grade: result.grade,
+          comment: newComment ?? undefined,
         });
-        grade.mutate(newGrade);
+        grade.mutate({ grade: newGrade, comment: newComment });
         onUnsavedChanges?.(false);
+        closeCommentPopover();
         setGradeSaved(true);
       } catch (e) {
         setSubmitGradeError(e);
@@ -146,21 +231,16 @@ export default function SubmitGradeForm({
   };
 
   const handleInput = useCallback(
-    (e: Event) => {
+    (e: Event, field: keyof DraftGrading) => {
       // If any input is detected, close the ValidationMessage.
       setValidationError(false);
       setGradeSaved(false);
 
-      const newDraftGradeValue = (e.target as HTMLInputElement).value;
-      setDraftGradeValue(newDraftGradeValue);
-
-      // Check if there are unsavedChanges
-      onUnsavedChanges?.(newDraftGradeValue !== grade.data);
+      const newValue = (e.target as HTMLInputElement).value;
+      updateDraftGrading({ [field]: newValue });
     },
-    [grade.data, onUnsavedChanges]
+    [updateDraftGrading]
   );
-
-  const disabled = !student;
 
   return (
     <>
@@ -168,7 +248,7 @@ export default function SubmitGradeForm({
         <label htmlFor={gradeId} className="font-semibold text-xs">
           Grade (Out of {scoreMaximum})
         </label>
-        <div className="flex">
+        <div className="flex" ref={containerRef}>
           <span className="relative w-14">
             {validationMessage && (
               <ValidationMessage
@@ -193,9 +273,9 @@ export default function SubmitGradeForm({
               disabled={disabled}
               id={gradeId}
               elementRef={inputRef}
-              onInput={handleInput}
+              onInput={e => handleInput(e, 'grade')}
               type="text"
-              value={draftGradeValue ?? grade.data ?? ''}
+              value={draftGrading.grade ?? grade.data?.grade ?? ''}
               key={student ? student.LISResultSourcedId : null}
             />
             {grade.isLoading && (
@@ -204,6 +284,81 @@ export default function SubmitGradeForm({
               </div>
             )}
           </span>
+
+          {acceptComments && (
+            <span className="relative">
+              <Button
+                icon={commentIsSet ? NoteFilledIcon : NoteIcon}
+                disabled={disabled}
+                title={commentIsSet ? 'Edit comment' : 'Add comment'}
+                onClick={() => setShowCommentPopover(prev => !prev)}
+                expanded={showCommentPopover}
+                classes={classnames(
+                  'border border-r-0 rounded-none ring-inset h-full relative',
+                  'disabled:opacity-50'
+                )}
+                data-testid="comment-toggle-button"
+              />
+              {showCommentPopover && (
+                <div
+                  role="dialog"
+                  className={classnames(
+                    'w-80 p-3',
+                    'shadow border rounded bg-white',
+                    'absolute top-[calc(100%+3px)] right-0'
+                  )}
+                  data-testid="comment-popover"
+                >
+                  <PointerUpIcon
+                    className={classnames(
+                      'text-grey-3 fill-white',
+                      'absolute inline z-2 w-[15px]',
+                      // Position arrow over "Add comment" button
+                      'right-[7px] top-[-9px]'
+                    )}
+                  />
+                  <div className="flex items-center">
+                    <label htmlFor={commentId} className="font-bold">
+                      Add a comment:
+                    </label>
+                    <div className="grow" />
+                    <IconButton
+                      title="Close comment"
+                      icon={CancelIcon}
+                      classes="hover:bg-grey-3/50"
+                      onClick={closeCommentPopover}
+                      data-testid="comment-textless-close-button"
+                    />
+                  </div>
+                  <Textarea
+                    id={commentId}
+                    classes="mt-1"
+                    rows={10}
+                    value={draftGrading.comment ?? grade.data?.comment ?? ''}
+                    onInput={e => handleInput(e, 'comment')}
+                    elementRef={commentRef}
+                  />
+                  <div className="flex flex-row-reverse space-x-2 space-x-reverse mt-3">
+                    <Button
+                      variant="primary"
+                      disabled={disabled}
+                      onClick={onSubmitGrade}
+                      data-testid="comment-submit-button"
+                    >
+                      Submit Grade
+                    </Button>
+                    <Button
+                      icon={CancelIcon}
+                      onClick={closeCommentPopover}
+                      data-testid="comment-close-button"
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </span>
+          )}
 
           <Button
             icon={CheckIcon}

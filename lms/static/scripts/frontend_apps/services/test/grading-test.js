@@ -40,25 +40,31 @@ describe('GradingService', () => {
   });
 
   describe('#submitGrade', () => {
-    it('calls "POST /api/lti/result" API', async () => {
-      await gradingService.submitGrade({
-        student: {
-          LISResultSourcedId: 0,
-          LISOutcomeServiceUrl: 'url',
-          lmsId: 'studentId',
-        },
-        grade: 1,
-      });
-      assert.calledWithMatch(fakeAPICall, {
-        authToken: 'dummy-token',
-        path: '/api/lti/result',
-        data: {
-          lis_result_sourcedid: 0,
-          lis_outcome_service_url: 'url',
-          student_user_id: 'studentId',
-          score: 1,
-        },
-      });
-    });
+    [{ grade: 1 }, { grade: 8, comment: 'Good job!' }].forEach(
+      ({ grade, comment }) => {
+        it('calls "POST /api/lti/result" API', async () => {
+          await gradingService.submitGrade({
+            student: {
+              LISResultSourcedId: 0,
+              LISOutcomeServiceUrl: 'url',
+              lmsId: 'studentId',
+            },
+            grade,
+            comment,
+          });
+          assert.calledWithMatch(fakeAPICall, {
+            authToken: 'dummy-token',
+            path: '/api/lti/result',
+            data: {
+              lis_result_sourcedid: 0,
+              lis_outcome_service_url: 'url',
+              student_user_id: 'studentId',
+              score: grade,
+              comment,
+            },
+          });
+        });
+      }
+    );
   });
 });
