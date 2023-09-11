@@ -268,6 +268,10 @@ describe('GradingControls', () => {
       act(() => wrapper.find('SubmitGradeForm').props().onUnsavedChanges(true));
     const getSelectedStudent = wrapper =>
       wrapper.find('StudentSelector').props().selectedStudent;
+    const selectStudent = (wrapper, student) =>
+      act(() =>
+        wrapper.find('StudentSelector').props().onSelectStudent(student)
+      );
 
     [
       // Selected student should still be the first
@@ -291,16 +295,33 @@ describe('GradingControls', () => {
         fakeConfirm.resolves(discardChanges);
 
         // Try to select another student
-        await act(() =>
-          wrapper
-            .find('StudentSelector')
-            .props()
-            .onSelectStudent(fakeStudents[1])
-        );
+        await selectStudent(wrapper, fakeStudents[1]);
         wrapper.update();
 
         assert.equal(getSelectedStudent(wrapper), expectedStudentAfterChange());
       });
+    });
+
+    it('resets unsaved changes when student is changed and changes are discarded', async () => {
+      const wrapper = renderGrader();
+      await selectFirstStudent(wrapper);
+
+      await setUnsavedChanges(wrapper);
+      wrapper.update();
+      fakeConfirm.resolves(true);
+
+      // Try to select another student
+      await selectStudent(wrapper, fakeStudents[1]);
+      wrapper.update();
+
+      assert.calledOnce(fakeConfirm);
+
+      // Select first student again
+      await selectFirstStudent(wrapper);
+      wrapper.update();
+
+      // It should not have called confirm for a second time
+      assert.calledOnce(fakeConfirm);
     });
   });
 
