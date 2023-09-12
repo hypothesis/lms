@@ -14,16 +14,75 @@ from lms.services.mailchimp import (
 
 
 class TestSend:
+    @pytest.mark.parametrize(
+        "template,template_vars,expected_subject",
+        [
+            (
+                "lms:templates/email/instructor_email_digest/",
+                {
+                    "total_annotations": 2,
+                    "annotators": [sentinel.annotator_1, sentinel.annotator_2],
+                    "courses": [sentinel.course_1, sentinel.course_2],
+                },
+                "Hypothesis: 2 annotations from 2 students in 2 courses",
+            ),
+            (
+                "lms:templates/email/instructor_email_digest/",
+                {
+                    "total_annotations": 2,
+                    "annotators": [sentinel.annotator_1, sentinel.annotator_2],
+                    "courses": [sentinel.course_1],
+                },
+                "Hypothesis: 2 annotations from 2 students in 1 course",
+            ),
+            (
+                "lms:templates/email/instructor_email_digest/",
+                {
+                    "total_annotations": 2,
+                    "annotators": [sentinel.annotator_1],
+                    "courses": [sentinel.course_1, sentinel.course_2],
+                },
+                "Hypothesis: 2 annotations from 1 student in 2 courses",
+            ),
+            (
+                "lms:templates/email/instructor_email_digest/",
+                {
+                    "total_annotations": 2,
+                    "annotators": [sentinel.annotator_1],
+                    "courses": [sentinel.course_1],
+                },
+                "Hypothesis: 2 annotations from 1 student in 1 course",
+            ),
+            (
+                "lms:templates/email/instructor_email_digest/",
+                {
+                    "total_annotations": 1,
+                    "annotators": [sentinel.annotator_1],
+                    "courses": [sentinel.course_1],
+                },
+                "Hypothesis: one of your students made an annotation",
+            ),
+        ],
+    )
     def test_it(
-        self, svc, mailchimp_transactional, mailchimp_client, caplog, sender, recipient
+        self,
+        svc,
+        mailchimp_transactional,
+        mailchimp_client,
+        caplog,
+        sender,
+        recipient,
+        template,
+        template_vars,
+        expected_subject,
     ):
         caplog.set_level(logging.INFO)
 
         svc.send(
-            "lms:templates/email/instructor_email_digest/",
+            template,
             sender,
             recipient,
-            template_vars={"foo": "FOO", "bar": "BAR"},
+            template_vars=template_vars,
         )
 
         assert caplog.record_tuples == [
@@ -37,7 +96,7 @@ class TestSend:
         mailchimp_client.messages.send.assert_called_once_with(
             {
                 "message": {
-                    "subject": Any.string(),
+                    "subject": expected_subject,
                     "html": Any.string(),
                     "subaccount": sentinel.subaccount_id,
                     "from_email": sentinel.from_email,
@@ -61,7 +120,7 @@ class TestSend:
                 "lms:templates/email/instructor_email_digest/",
                 sender,
                 recipient,
-                template_vars={},
+                template_vars={"total_annotations": 1},
                 task_done_key="test_key",
             )
 
@@ -73,8 +132,8 @@ class TestSend:
             "lms:templates/email/instructor_email_digest/",
             sender,
             recipient,
-            {},
-            sentinel.unsubscribe_url,
+            template_vars={"total_annotations": 1},
+            unsubscribe_url=sentinel.unsubscribe_url,
         )
 
         mailchimp_client.messages.send.assert_called_once_with(
@@ -93,7 +152,10 @@ class TestSend:
 
         with pytest.raises(MailchimpError) as exc_info:
             svc.send(
-                "lms:templates/email/instructor_email_digest/", sender, recipient, {}
+                "lms:templates/email/instructor_email_digest/",
+                sender,
+                recipient,
+                template_vars={"total_annotations": 1},
             )
         assert exc_info.value.__cause__ == original_exception
 

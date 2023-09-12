@@ -139,12 +139,28 @@ class DigestContext:
                 continue
 
             course_digests.append(
-                {"title": unified_course.title, "num_annotations": num_annotations}
+                {
+                    "title": unified_course.title,
+                    "num_annotations": num_annotations,
+                    "annotators": list(
+                        set(
+                            annotation["author"]["userid"]
+                            for annotation in unified_course.learner_annotations
+                        )
+                    ),
+                }
             )
 
         return {
             "total_annotations": sum(
                 course_digest["num_annotations"] for course_digest in course_digests
+            ),
+            "annotators": list(
+                set(
+                    annotator
+                    for course_digest in course_digests
+                    for annotator in course_digest["annotators"]
+                )
             ),
             "courses": course_digests,
         }
