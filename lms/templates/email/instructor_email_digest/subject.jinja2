@@ -1,1 +1,11 @@
-There has been some activity in Hypothesis
+{% if total_annotations > 1 and annotators|length > 1 and courses|length > 1 -%}
+Hypothesis: {{ total_annotations }} annotations from {{ annotators|length}} students in {{ courses|length }} courses
+{%- elif annotators|length > 1 -%}
+Hypothesis: {{ total_annotations }} annotations from {{ annotators|length}} students in 1 course
+{%- elif courses|length > 1 -%}
+Hypothesis: {{ total_annotations }} annotations from 1 student in {{ courses|length }} courses
+{%- elif total_annotations > 1 -%}
+Hypothesis: {{ total_annotations }} annotations from 1 student in 1 course
+{%- else -%}
+Hypothesis: one of your students made an annotation
+{%- endif %}

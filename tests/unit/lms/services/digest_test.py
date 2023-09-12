@@ -158,18 +158,25 @@ class TestDigestService:
 class TestDigestContext:
     def test_instructor_digest(self, db_session, make_instructor):
         courses = factories.Course.create_batch(2)
-        instructor, learner = factories.User.create_batch(2)
+        instructor, learner_1, learner_2 = factories.User.create_batch(3)
         for course in courses:
             make_instructor(instructor, course)
         annotations = [
-            *Annotation.create_batch(
-                2,
+            Annotation(
                 authority_provided_id=courses[0].authority_provided_id,
-                userid=learner.h_userid,
+                userid=learner_1.h_userid,
+            ),
+            Annotation(
+                authority_provided_id=courses[0].authority_provided_id,
+                userid=learner_2.h_userid,
             ),
             Annotation(
                 authority_provided_id=courses[1].authority_provided_id,
-                userid=learner.h_userid,
+                userid=learner_1.h_userid,
+            ),
+            Annotation(
+                authority_provided_id=courses[1].authority_provided_id,
+                userid=learner_1.h_userid,
             ),
         ]
         context = DigestContext(db_session, [instructor.h_userid], annotations)
@@ -177,11 +184,24 @@ class TestDigestContext:
         digest = context.instructor_digest(instructor.h_userid)
 
         assert digest == {
-            "total_annotations": 3,
+            "total_annotations": 4,
+            "annotators": Any.list.containing(
+                [learner_1.h_userid, learner_2.h_userid]
+            ).only(),
             "courses": Any.list.containing(
                 [
-                    {"title": courses[0].lms_name, "num_annotations": 2},
-                    {"title": courses[1].lms_name, "num_annotations": 1},
+                    {
+                        "title": courses[0].lms_name,
+                        "annotators": Any.list.containing(
+                            [learner_1.h_userid, learner_2.h_userid]
+                        ).only(),
+                        "num_annotations": 2,
+                    },
+                    {
+                        "title": courses[1].lms_name,
+                        "annotators": [learner_1.h_userid],
+                        "num_annotations": 2,
+                    },
                 ]
             ).only(),
         }
@@ -202,7 +222,7 @@ class TestDigestContext:
 
         digest = context.instructor_digest(instructor.h_userid)
 
-        assert digest == {"total_annotations": 0, "courses": []}
+        assert digest == {"total_annotations": 0, "annotators": [], "courses": []}
 
     def test_instructor_digest_omits_courses_where_the_user_isnt_an_instructor(
         self, db_session, make_instructor
@@ -220,7 +240,7 @@ class TestDigestContext:
 
         digest = context.instructor_digest(instructor.h_userid)
 
-        assert digest == {"total_annotations": 0, "courses": []}
+        assert digest == {"total_annotations": 0, "annotators": [], "courses": []}
 
     def test_unified_users(self, db_session):
         audience = factories.User.create_batch(2)
