@@ -1,6 +1,6 @@
 from typing import List
 
-from marshmallow import EXCLUDE, Schema, fields
+from marshmallow import EXCLUDE, Schema, ValidationError, fields, validates_schema
 
 from lms.services.exceptions import ExternalRequestError, FileNotFoundInCourse
 from lms.validation._base import RequestsResponseSchema
@@ -38,8 +38,14 @@ class _D2LTopic(Schema):
     display_name = fields.Str(required=True, data_key="Title")
     updated_at = fields.Str(required=True, data_key="LastModifiedDate")
     type = fields.Str(required=True, data_key="TypeIdentifier")
-    url = fields.Str(required=True, data_key="Url")
+    is_broken = fields.Boolean(data_key="IsBroken")
+    url = fields.Str(required=False, allow_none=True, data_key="Url")
     """Url contains the full filename, useful to get the extension of the file"""
+
+    @validates_schema
+    def validate_url(self, data, **_kwargs):
+        if not data.get("is_broken", False) and not data.get("url"):
+            raise ValidationError("URL is required for topics", "url")
 
 
 class _D2LModuleSchema(Schema):
@@ -201,7 +207,7 @@ class D2LAPIClient:
                     "updated_at": topic["updated_at"],
                 }
                 for topic in module.get("topics", [])
-                if topic.get("type") == "File"
+                if topic.get("type") == "File" and not topic.get("is_broken", False)
                 # Filter out non-pdfs using the file's name.
                 # Other LMS offer the content type of the file at this level
                 # but will have to rely on the extension for D2L.

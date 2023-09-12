@@ -88,6 +88,16 @@ class TestD2LAPIClient:
                                     "LastModifiedDate": "DATE 2",
                                     "Url": "NOT PDF.png",
                                 },
+                                # Check we don't include broken links
+                                {
+                                    "Identifier": "BROKEN",
+                                    "IsBroken": True,
+                                    "TypeIdentifier": "BROKEN",
+                                    "Title": "BROKEN",
+                                    "LastModifiedDate": "DATE 2",
+                                    # Broken topics don't have URLs
+                                    "Url": None,
+                                },
                             ],
                             "Modules": [
                                 {
@@ -192,6 +202,37 @@ class TestD2LAPIClient:
         file_service.upsert.assert_called_with(db_files)
 
         assert files == returned_files
+
+    @pytest.mark.parametrize(
+        "modules",
+        [
+            {
+                "Modules": [
+                    {
+                        "ModuleId": 1,
+                        "LastModifiedDate": "DATE 1",
+                        "Title": "MODULE 1",
+                        "Topics": [
+                            # Non-broken files without URL
+                            {
+                                "Identifier": "BROKEN",
+                                "IsBroken": False,
+                                "TypeIdentifier": "BROKEN",
+                                "Title": "BROKEN",
+                                "LastModifiedDate": "DATE 2",
+                                "Url": None,
+                            },
+                        ],
+                    }
+                ]
+            },
+        ],
+    )
+    def test_list_files_raises_for_invalid_data(self, svc, basic_client, modules):
+        basic_client.request.return_value.json.return_value = modules
+
+        with pytest.raises(ExternalRequestError):
+            svc.list_files("COURSE_ID")
 
     def test_public_url(self, svc, basic_client):
         public_url = svc.public_url("COURSE_ID", "FILE_ID")
