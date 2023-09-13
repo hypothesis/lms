@@ -638,11 +638,13 @@
                                                             {% for course in courses %}
                                                               <p>
                                                                 <strong>{{ course.title }}</strong><br>
-                                                                {% if course.num_annotations == 1 %}
-                                                                  A student made an annotation in an assignment.
+                                                                {% if course.num_annotations > 1 and course.annotators|length > 1 %}
+                                                                  {{ course.annotators|length }} students made
+                                                                  {{ course.num_annotations }} annotations in assignments.
+                                                                {% elif course.num_annotations > 1 %}
+                                                                  1 student made {{ course.num_annotations }} annotations in assignments.
                                                                 {% else %}
-                                                                  Students made {{ course.num_annotations }} annotations in
-                                                                  assignments.
+                                                                  A student made an annotation in an assignment.
                                                                 {% endif %}
                                                               </p>
                                                             {% endfor %}

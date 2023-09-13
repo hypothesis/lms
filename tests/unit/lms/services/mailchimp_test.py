@@ -2,6 +2,7 @@ import logging
 from unittest.mock import Mock, sentinel
 
 import pytest
+from factory import Sequence, make_factory
 from h_matchers import Any
 
 from lms.services.mailchimp import (
@@ -10,6 +11,14 @@ from lms.services.mailchimp import (
     MailchimpError,
     MailchimpService,
     factory,
+)
+
+#: A factory for course dicts as expected by the instructor_email_digest template.
+CourseDict = make_factory(
+    dict,
+    title=Sequence(lambda n: "Course {n}"),
+    num_annotations=3,
+    annotators=[sentinel.student_1, sentinel.student_2],
 )
 
 
@@ -22,7 +31,7 @@ class TestSend:
                 {
                     "total_annotations": 2,
                     "annotators": [sentinel.annotator_1, sentinel.annotator_2],
-                    "courses": [sentinel.course_1, sentinel.course_2],
+                    "courses": [CourseDict(), CourseDict()],
                 },
                 "Hypothesis: 2 annotations from 2 students in 2 courses",
             ),
@@ -31,7 +40,7 @@ class TestSend:
                 {
                     "total_annotations": 2,
                     "annotators": [sentinel.annotator_1, sentinel.annotator_2],
-                    "courses": [sentinel.course_1],
+                    "courses": [CourseDict()],
                 },
                 "Hypothesis: 2 annotations from 2 students in 1 course",
             ),
@@ -40,7 +49,7 @@ class TestSend:
                 {
                     "total_annotations": 2,
                     "annotators": [sentinel.annotator_1],
-                    "courses": [sentinel.course_1, sentinel.course_2],
+                    "courses": [CourseDict(), CourseDict()],
                 },
                 "Hypothesis: 2 annotations from 1 student in 2 courses",
             ),
@@ -49,7 +58,7 @@ class TestSend:
                 {
                     "total_annotations": 2,
                     "annotators": [sentinel.annotator_1],
-                    "courses": [sentinel.course_1],
+                    "courses": [CourseDict()],
                 },
                 "Hypothesis: 2 annotations from 1 student in 1 course",
             ),
@@ -58,7 +67,7 @@ class TestSend:
                 {
                     "total_annotations": 1,
                     "annotators": [sentinel.annotator_1],
-                    "courses": [sentinel.course_1],
+                    "courses": [CourseDict()],
                 },
                 "Hypothesis: one of your students made an annotation",
             ),
