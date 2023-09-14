@@ -16,6 +16,7 @@ export type Student = {
  */
 export type FetchGradeResult = {
   currentScore?: number | null;
+  comment?: string | null;
 };
 
 /**
@@ -31,7 +32,15 @@ export class GradingService {
   /**
    * Submits a student's grade to the LTI endpoint.
    */
-  submitGrade({ student, grade }: { student: Student; grade: number }) {
+  submitGrade({
+    student,
+    grade,
+    comment,
+  }: {
+    student: Student;
+    grade: number;
+    comment?: string;
+  }) {
     return apiCall<void>({
       authToken: this._authToken,
       path: '/api/lti/result',
@@ -40,6 +49,7 @@ export class GradingService {
         lis_outcome_service_url: student.LISOutcomeServiceUrl,
         student_user_id: student.lmsId,
         score: grade,
+        comment,
       },
     });
   }
