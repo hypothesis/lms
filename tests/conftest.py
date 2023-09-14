@@ -49,7 +49,7 @@ def db_engine(tmp_path_factory):
 
     # Use a filelock to only init the DB once even though we have multiple
     # parallel pytest-xdist workers. See:
-    # https://pytest-xdist.readthedocs.io/en/stable/how-to.html?highlight=filelock#making-session-scoped-fixtures-execute-only-once
+    # https://pytest-xdist.readthedocs.io/en/stable/how-to.html#making-session-scoped-fixtures-execute-only-once
 
     # The temporary directory shared by all pytest-xdist workers.
     shared_tmpdir = tmp_path_factory.getbasetemp().parent
