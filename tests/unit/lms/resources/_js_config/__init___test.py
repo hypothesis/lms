@@ -154,7 +154,10 @@ class TestEnableLTILaunchMode:
                         "grantToken": grant_token_service.generate_token.return_value,
                         "groups": Any(),
                     }
-                ]
+                ],
+                "annotationMetadata": {
+                    "lms": {"assignment_id": assignment.resource_link_id}
+                },
             },
             "mode": "basic-lti-launch",
             "rpcServer": {"allowedOrigins": ["http://localhost:5000"]},

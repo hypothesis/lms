@@ -202,6 +202,10 @@ class JSConfig:
         # postMessage.
         self._config["hypothesisClient"] = self._hypothesis_client
 
+        self._config["hypothesisClient"][
+            "annotationMetadata"
+        ] = self._generate_annotation_metadata(assignment)
+
         # Configure group related settings
         self._configure_groups(course, assignment)
 
@@ -581,3 +585,6 @@ class JSConfig:
             "Application Instance ID": ai.id,
             "LTI version": ai.lti_version,
         }
+
+    def _generate_annotation_metadata(self, assignment):
+        return {"lms": {"assignment_id": assignment.resource_link_id}}
