@@ -11,6 +11,7 @@ from lms.services import ApplicationInstanceNotFound
 from lms.services.application_instance import (
     AccountDisabled,
     ApplicationInstanceService,
+    ProvisioningDisabled,
     factory,
 )
 from lms.validation import ValidationError
@@ -41,6 +42,14 @@ class TestApplicationInstanceService:
         application_instance.organization = factories.Organization(enabled=False)
 
         with pytest.raises(AccountDisabled):
+            service.get_for_launch(application_instance.id)
+
+    def test_get_for_launch_raises_without_provisioning(
+        self, service, application_instance
+    ):
+        application_instance.provisioning = False
+
+        with pytest.raises(ProvisioningDisabled):
             service.get_for_launch(application_instance.id)
 
     def test_get_by_consumer_key(self, service, application_instance):

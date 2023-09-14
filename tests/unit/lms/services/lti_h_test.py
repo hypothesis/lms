@@ -11,15 +11,6 @@ from tests import factories
 
 @pytest.mark.usefixtures("application_instance_service", "h_api", "group_info_service")
 class TestSync:
-    def test_sync_does_nothing_if_provisioning_is_disabled(
-        self, application_instance, lti_h_svc, h_api, grouping
-    ):
-        application_instance.provisioning = False
-
-        lti_h_svc.sync([grouping], sentinel.params)
-
-        h_api.execute_bulk.assert_not_called()
-
     def test_sync_catches_HAPIErrors(
         self, h_api, lti_h_svc, grouping, group_info_service
     ):
