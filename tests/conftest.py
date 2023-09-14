@@ -55,9 +55,12 @@ def db_engine(tmp_path_factory):
     shared_tmpdir = tmp_path_factory.getbasetemp().parent
 
     # The existence of this file records that a worker has initialized the DB.
-    done_file = shared_tmpdir / "db_initialized"
+    done_file = shared_tmpdir / "db_initialized.done"
 
-    with FileLock(str(done_file) + ".lock"):
+    # The lock file prevents workers from entering the `with` at the same time.
+    lock_file = shared_tmpdir / "db_initialized.lock"
+
+    with FileLock(str(lock_file)):
         if done_file.is_file():
             # Another worker already initialized the DB.
             pass
