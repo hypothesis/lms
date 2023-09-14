@@ -35,6 +35,24 @@ class AccountDisabled(SerializableError):
         )
 
 
+class ProvisioningDisabled(SerializableError):
+    """
+    Indicate that provisioning is not enabled for this instance.
+
+    We suspect this is not actually in use.
+    Revisit after a while to completely remove the notion of "provisioning"
+    """
+
+    def __init__(self, application_instance: ApplicationInstance):
+        super().__init__(
+            message="User and group provisioning not enabled for instance",
+            error_code="instance_provisioning",
+            details={
+                "application_instance_id": application_instance.id,
+            },
+        )
+
+
 def _email_or_domain_match(columns, email):
     """
     Get an SQL comparator for matching emails.
@@ -73,6 +91,8 @@ class ApplicationInstanceService:
             `ApplicationInstance`
         :raise AccountDisabled: If the organization associated with this
             instance is disabled
+        :raise ProvisioningDisabled: if the instance has provisioning
+            disabled
         """
         if id_:
             application_instance = self.get_by_id(id_)
@@ -90,6 +110,9 @@ class ApplicationInstanceService:
                     org.id,
                 )
                 raise AccountDisabled(application_instance)
+
+            if application_instance and not application_instance.provisioning:
+                raise ProvisioningDisabled(application_instance)
 
             return application_instance
 

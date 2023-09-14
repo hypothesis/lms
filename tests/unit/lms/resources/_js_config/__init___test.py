@@ -222,19 +222,6 @@ class TestEnableLTILaunchMode:
         # Confirm we pass the schema for the sync end-point
         APISyncSchema(pyramid_request).load(sync_config["data"])
 
-    @pytest.mark.usefixtures("with_provisioning_disabled")
-    def test_client_config_is_empty_if_provisioning_feature_is_disabled(
-        self, js_config
-    ):
-        js_config.enable_lti_launch_mode(course, assignment)
-        config = js_config.asdict()["hypothesisClient"]
-
-        assert config == {}
-
-    @pytest.fixture
-    def with_provisioning_disabled(self, pyramid_request):
-        pyramid_request.lti_user.application_instance.provisioning = False
-
 
 class TestAddDocumentURL:
     """Unit tests for JSConfig.add_document_url()."""

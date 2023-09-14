@@ -495,10 +495,6 @@ class JSConfig:
         # We cache this property (@functools.lru_cache()) so that it's
         # mutable. You can do self._hypothesis_client["foo"] = "bar" and the
         # mutation will be preserved.
-
-        if not self._application_instance.provisioning:
-            return {}
-
         api_url = self._request.registry.settings["h_api_url_public"]
 
         # Generate a short-lived login token for the Hypothesis client.
@@ -522,9 +518,6 @@ class JSConfig:
 
     def _configure_groups(self, course, assignment):
         """Configure how the client will fetch groups when in LAUNCH mode."""
-        if not self._application_instance.provisioning:
-            return
-
         grouping_type = self._request.find_service(
             name="grouping"
         ).get_launch_grouping_type(self._request, course, assignment)
