@@ -2,22 +2,15 @@ import type { TextareaProps } from '@hypothesis/frontend-shared';
 import {
   Button,
   CancelIcon,
-  IconButton,
+  CloseButton,
+  Dialog,
   NoteFilledIcon,
   NoteIcon,
   PointerUpIcon,
   Textarea,
-  useClickAway,
-  useKeyPress,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
-import {
-  useCallback,
-  useId,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'preact/hooks';
+import { useCallback, useId, useRef, useState } from 'preact/hooks';
 
 type CommentPopoverProps = {
   disabled: boolean;
@@ -37,20 +30,21 @@ function CommentPopover({
   const commentRef = useRef<HTMLTextAreaElement | null>(null);
   const commentId = useId();
 
-  // Focus comment textarea when popover is open
-  useLayoutEffect(() => {
-    commentRef.current!.focus();
-  }, []);
-
   return (
-    <div
-      role="dialog"
-      className={classnames(
+    <Dialog
+      variant="custom"
+      title=""
+      classes={classnames(
         'w-80 p-3',
         'shadow border rounded bg-white',
         'absolute top-[calc(100%+3px)] right-0'
       )}
       data-testid="comment-popover"
+      onClose={closePopover}
+      initialFocus={commentRef}
+      restoreFocus
+      closeOnClickAway
+      closeOnEscape
     >
       <PointerUpIcon
         className={classnames(
@@ -65,11 +59,9 @@ function CommentPopover({
           Add a comment:
         </label>
         <div className="grow" />
-        <IconButton
+        <CloseButton
           title="Close comment"
-          icon={CancelIcon}
           classes="hover:bg-grey-3/50"
-          onClick={closePopover}
           data-testid="comment-textless-close-button"
         />
       </div>
@@ -102,7 +94,7 @@ function CommentPopover({
           Close
         </Button>
       </div>
-    </div>
+    </Dialog>
   );
 }
 
@@ -120,13 +112,9 @@ export default function GradingComment({
     []
   );
   const commentIsSet = !disabled && !!comment;
-  const containerRef = useRef<HTMLSpanElement | null>(null);
-
-  useKeyPress(['Escape'], closeCommentPopover);
-  useClickAway(containerRef, closeCommentPopover);
 
   return (
-    <span className="relative" ref={containerRef}>
+    <span className="relative">
       <Button
         icon={commentIsSet ? NoteFilledIcon : NoteIcon}
         disabled={disabled}
