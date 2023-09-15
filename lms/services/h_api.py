@@ -114,7 +114,6 @@ class HAPI:
                     "lte": _rfc3339_format(updated_before),
                 },
             },
-            "fields": ["author.username", "group.authority_provided_id"],
         }
 
         with self._api_request(

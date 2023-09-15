@@ -127,7 +127,6 @@ class TestHAPI:
                             "lte": "2002-02-03T04:05:06+00:00",
                         },
                     },
-                    "fields": ["author.username", "group.authority_provided_id"],
                 }
             ),
             stream=True,
