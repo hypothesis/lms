@@ -1,17 +1,9 @@
 import {
   Button,
-  CancelIcon,
   CheckIcon,
-  IconButton,
   Input,
   Spinner,
   SpinnerOverlay,
-  NoteIcon,
-  NoteFilledIcon,
-  PointerUpIcon,
-  Textarea,
-  useKeyPress,
-  useClickAway,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import {
@@ -21,7 +13,6 @@ import {
   useRef,
   useCallback,
   useMemo,
-  useId,
 } from 'preact/hooks';
 
 import type { StudentInfo } from '../config';
@@ -32,6 +23,7 @@ import { formatGrade, validateGrade } from '../utils/grade-validation';
 import { useUniqueId } from '../utils/hooks';
 import { useWarnOnPageUnload } from '../utils/use-warn-on-page-unload';
 import ErrorModal from './ErrorModal';
+import GradingCommentButton from './GradingCommentButton';
 import ValidationMessage from './ValidationMessage';
 
 export type SubmitGradeFormProps = {
@@ -120,7 +112,6 @@ export default function SubmitGradeForm({
   const [gradeSaved, setGradeSaved] = useState(false);
 
   const disabled = !student;
-  const containerRef = useRef<HTMLDivElement | null>(null);
 
   // The following is state for local validation errors
   //
@@ -152,32 +143,6 @@ export default function SubmitGradeForm({
     [draftGrading.grade, draftGrading.comment, onUnsavedChanges, grade.data]
   );
 
-  // Comment-related state
-  const [showCommentPopover, setShowCommentPopover] = useState(false);
-  const closeCommentPopover = useCallback(
-    () => setShowCommentPopover(false),
-    []
-  );
-  // Comment is considered not set if:
-  //  * Draft is null, and previously loaded comment is "empty"
-  //  * Draft is not null, but falsy. It means it was explicitly removed, but maybe not saved yet
-  const commentIsSet =
-    !disabled &&
-    ((draftGrading.comment === null && !!grade.data?.comment) ||
-      !!draftGrading.comment);
-  const commentId = useId();
-  const commentRef = useRef<HTMLTextAreaElement | null>(null);
-
-  useKeyPress(['Escape'], closeCommentPopover);
-  useClickAway(containerRef, closeCommentPopover);
-
-  // Focus comment textarea when popover is open
-  useLayoutEffect(() => {
-    if (showCommentPopover) {
-      commentRef.current!.focus();
-    }
-  }, [showCommentPopover]);
-
   // Track if current grade has changed compared to what was originally loaded
   const hasUnsavedChanges = useMemo(
     () => hasGradeChanged(draftGrading, grade.data),
@@ -187,12 +152,11 @@ export default function SubmitGradeForm({
   // Make sure instructors are notified if there's a risk to lose unsaved data
   useWarnOnPageUnload(hasUnsavedChanges);
 
-  // Clear the previous grade and hide comment controls when the user changes.
+  // Clear the previous grade when the user changes.
   useEffect(() => {
     setGradeSaved(false);
-    closeCommentPopover();
     setDraftGrading({ grade: null, comment: null });
-  }, [student, closeCommentPopover]);
+  }, [student]);
 
   useLayoutEffect(() => {
     inputRef.current!.focus();
@@ -221,7 +185,6 @@ export default function SubmitGradeForm({
         });
         grade.mutate({ grade: newGrade, comment: newComment });
         onUnsavedChanges?.(false);
-        closeCommentPopover();
         setGradeSaved(true);
       } catch (e) {
         setSubmitGradeError(e);
@@ -248,7 +211,7 @@ export default function SubmitGradeForm({
         <label htmlFor={gradeId} className="font-semibold text-xs">
           Grade (Out of {scoreMaximum})
         </label>
-        <div className="flex" ref={containerRef}>
+        <div className="flex">
           <span className="relative w-14">
             {validationMessage && (
               <ValidationMessage
@@ -286,78 +249,13 @@ export default function SubmitGradeForm({
           </span>
 
           {acceptComments && (
-            <span className="relative">
-              <Button
-                icon={commentIsSet ? NoteFilledIcon : NoteIcon}
-                disabled={disabled}
-                title={commentIsSet ? 'Edit comment' : 'Add comment'}
-                onClick={() => setShowCommentPopover(prev => !prev)}
-                expanded={showCommentPopover}
-                classes={classnames(
-                  'border border-r-0 rounded-none ring-inset h-full relative',
-                  'disabled:opacity-50'
-                )}
-                data-testid="comment-toggle-button"
-              />
-              {showCommentPopover && (
-                <div
-                  role="dialog"
-                  className={classnames(
-                    'w-80 p-3',
-                    'shadow border rounded bg-white',
-                    'absolute top-[calc(100%+3px)] right-0'
-                  )}
-                  data-testid="comment-popover"
-                >
-                  <PointerUpIcon
-                    className={classnames(
-                      'text-grey-3 fill-white',
-                      'absolute inline z-2 w-[15px]',
-                      // Position arrow over "Add comment" button
-                      'right-[7px] top-[-9px]'
-                    )}
-                  />
-                  <div className="flex items-center">
-                    <label htmlFor={commentId} className="font-bold">
-                      Add a comment:
-                    </label>
-                    <div className="grow" />
-                    <IconButton
-                      title="Close comment"
-                      icon={CancelIcon}
-                      classes="hover:bg-grey-3/50"
-                      onClick={closeCommentPopover}
-                      data-testid="comment-textless-close-button"
-                    />
-                  </div>
-                  <Textarea
-                    id={commentId}
-                    classes="mt-1"
-                    rows={10}
-                    value={draftGrading.comment ?? grade.data?.comment ?? ''}
-                    onInput={e => handleInput(e, 'comment')}
-                    elementRef={commentRef}
-                  />
-                  <div className="flex flex-row-reverse space-x-2 space-x-reverse mt-3">
-                    <Button
-                      variant="primary"
-                      disabled={disabled}
-                      onClick={onSubmitGrade}
-                      data-testid="comment-submit-button"
-                    >
-                      Submit Grade
-                    </Button>
-                    <Button
-                      icon={CancelIcon}
-                      onClick={closeCommentPopover}
-                      data-testid="comment-close-button"
-                    >
-                      Close
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </span>
+            <GradingCommentButton
+              disabled={disabled}
+              loading={grade.isLoading}
+              comment={draftGrading.comment ?? grade.data?.comment ?? ''}
+              onInput={e => handleInput(e, 'comment')}
+              onSubmit={onSubmitGrade}
+            />
           )}
 
           <Button
