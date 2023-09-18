@@ -23,7 +23,7 @@ import { formatGrade, validateGrade } from '../utils/grade-validation';
 import { useUniqueId } from '../utils/hooks';
 import { useWarnOnPageUnload } from '../utils/use-warn-on-page-unload';
 import ErrorModal from './ErrorModal';
-import GradingComment from './GradingComment';
+import GradingCommentButton from './GradingCommentButton';
 import ValidationMessage from './ValidationMessage';
 
 export type SubmitGradeFormProps = {
@@ -175,7 +175,6 @@ export default function SubmitGradeForm({
     if (!result.valid) {
       setValidationMessageMessage(result.error);
       setValidationError(true);
-      return false;
     } else {
       setGradeSaving(true);
       try {
@@ -187,13 +186,10 @@ export default function SubmitGradeForm({
         grade.mutate({ grade: newGrade, comment: newComment });
         onUnsavedChanges?.(false);
         setGradeSaved(true);
-        return true;
       } catch (e) {
         setSubmitGradeError(e);
-        return false;
-      } finally {
-        setGradeSaving(false);
       }
+      setGradeSaving(false);
     }
   };
 
@@ -253,8 +249,9 @@ export default function SubmitGradeForm({
           </span>
 
           {acceptComments && (
-            <GradingComment
+            <GradingCommentButton
               disabled={disabled}
+              loading={grade.isLoading}
               comment={draftGrading.comment ?? grade.data?.comment ?? ''}
               onInput={e => handleInput(e, 'comment')}
               onSubmit={onSubmitGrade}

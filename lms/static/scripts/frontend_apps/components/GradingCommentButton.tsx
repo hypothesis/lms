@@ -1,4 +1,4 @@
-import type { TextareaProps } from '@hypothesis/frontend-shared';
+import type { ButtonProps, TextareaProps } from '@hypothesis/frontend-shared';
 import {
   Button,
   CancelIcon,
@@ -13,15 +13,13 @@ import classnames from 'classnames';
 import { useCallback, useId, useRef, useState } from 'preact/hooks';
 
 type CommentPopoverProps = {
-  disabled: boolean;
   comment: string;
-  onInput?: TextareaProps['onInput'];
-  onSubmit?: (e: Event) => Promise<boolean>;
+  onInput: NonNullable<TextareaProps['onInput']>;
+  onSubmit: NonNullable<ButtonProps['onClick']>;
   closePopover: () => void;
 };
 
 function CommentPopover({
-  disabled,
   comment,
   onInput,
   onSubmit,
@@ -76,11 +74,9 @@ function CommentPopover({
       <div className="flex flex-row-reverse space-x-2 space-x-reverse mt-3">
         <Button
           variant="primary"
-          disabled={disabled}
-          onClick={async e => {
-            if (await onSubmit?.(e)) {
-              closePopover();
-            }
+          onClick={e => {
+            onSubmit(e);
+            closePopover();
           }}
           data-testid="comment-submit-button"
         >
@@ -98,10 +94,21 @@ function CommentPopover({
   );
 }
 
-export type GradingCommentProps = Omit<CommentPopoverProps, 'closePopover'>;
+export type GradingCommentProps = {
+  disabled: boolean;
+  loading: boolean;
+  comment: string;
+  onInput: NonNullable<TextareaProps['onInput']>;
+  onSubmit: NonNullable<ButtonProps['onClick']>;
+};
 
-export default function GradingComment({
+/**
+ * Grading button toggle button.
+ * It opens/closes the internal grading comment popover.
+ */
+export default function GradingCommentButton({
   disabled,
+  loading,
   comment,
   onInput,
   onSubmit,
@@ -111,7 +118,7 @@ export default function GradingComment({
     () => setShowCommentPopover(false),
     []
   );
-  const commentIsSet = !disabled && !!comment;
+  const commentIsSet = !loading && !!comment;
 
   return (
     <span className="relative">
@@ -129,7 +136,6 @@ export default function GradingComment({
       />
       {showCommentPopover && (
         <CommentPopover
-          disabled={disabled}
           closePopover={closeCommentPopover}
           comment={comment}
           onInput={onInput}
