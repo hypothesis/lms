@@ -340,113 +340,31 @@ describe('SubmitGradeForm', () => {
   });
 
   context('when comments are accepted', () => {
-    const getToggleButton = wrapper =>
-      wrapper.find('Button[data-testid="comment-toggle-button"]');
-
-    const togglePopover = wrapper =>
-      getToggleButton(wrapper).find('button').simulate('click');
-
-    const commentPopoverExists = wrapper =>
-      wrapper.exists('[data-testid="comment-popover"]');
-
     const changeComment = (wrapper, newComment) => {
-      wrapper.find('textarea').getDOMNode().value = newComment;
-      wrapper.find('textarea').simulate('input');
+      wrapper
+        .find('GradingCommentButton')
+        .props()
+        .onInput({
+          target: {
+            value: newComment,
+          },
+        });
+      wrapper.update();
     };
 
-    it('allows comment popover to be toggled', () => {
-      const wrapper = renderForm({ acceptComments: true });
-
-      // Popover is initially hidden
-      assert.isFalse(commentPopoverExists(wrapper));
-      assert.isFalse(getToggleButton(wrapper).prop('expanded'));
-
-      // Clicking the toggle will display the popover
-      togglePopover(wrapper);
-      assert.isTrue(commentPopoverExists(wrapper));
-      assert.isTrue(getToggleButton(wrapper).prop('expanded'));
-
-      // A second click will hide the popover
-      togglePopover(wrapper);
-      assert.isFalse(commentPopoverExists(wrapper));
-      assert.isFalse(getToggleButton(wrapper).prop('expanded'));
-    });
-
-    it('hides the popover when `Escape` is pressed', () => {
-      const wrapper = renderForm({ acceptComments: true });
-
-      // Show popover
-      togglePopover(wrapper);
-      assert.isTrue(commentPopoverExists(wrapper));
-
-      document.body.dispatchEvent(
-        new KeyboardEvent('keydown', { key: 'Escape' })
-      );
-      wrapper.update();
-
-      assert.isFalse(commentPopoverExists(wrapper));
-    });
-
-    it('hides the popover when clicking away', () => {
-      const wrapper = renderForm({ acceptComments: true });
-
-      // Show popover
-      togglePopover(wrapper);
-      assert.isTrue(commentPopoverExists(wrapper));
-
-      const externalButton = document.createElement('button');
-      document.body.append(externalButton);
-      externalButton.click();
-      wrapper.update();
-
-      assert.isFalse(commentPopoverExists(wrapper));
-
-      externalButton.remove();
-    });
-
-    it('adds proper title to toggle button based on the existence of a comment', async () => {
-      const wrapper = renderForm({ acceptComments: true });
-
-      assert.equal(getToggleButton(wrapper).prop('title'), 'Add comment');
-      await waitForGradeFetch(wrapper);
-      assert.equal(getToggleButton(wrapper).prop('title'), 'Edit comment');
-    });
-
-    ['comment-textless-close-button', 'comment-close-button'].forEach(
-      closeButtonTestId => {
-        it('closes popover when clicking close buttons', () => {
-          const wrapper = renderForm({ acceptComments: true });
-
-          togglePopover(wrapper);
-          assert.isTrue(commentPopoverExists(wrapper));
-
-          wrapper
-            .find(`button[data-testid="${closeButtonTestId}"]`)
-            .simulate('click');
-          assert.isFalse(commentPopoverExists(wrapper));
-        });
-      }
-    );
-
-    it('focuses comment textarea when popover is opened', async () => {
-      const wrapper = renderForm({ acceptComments: true });
-      togglePopover(wrapper);
-
-      assert.equal(
-        document.activeElement,
-        wrapper.find('textarea').getDOMNode()
-      );
+    [true, false].forEach(acceptComments => {
+      it('renders GradingCommentButton', () => {
+        const wrapper = renderForm({ acceptComments });
+        assert.equal(acceptComments, wrapper.exists('GradingCommentButton'));
+      });
     });
 
     it('submits grade using internal popover submit button', async () => {
       const wrapper = renderForm({ acceptComments: true });
       const submit = () =>
-        wrapper
-          .find('button[data-testid="comment-submit-button"]')
-          .simulate('click');
+        wrapper.find('GradingCommentButton').props().onSubmit(new Event(''));
 
       await waitForGradeFetch(wrapper);
-      togglePopover(wrapper);
 
       // If we submit with no changes, the originally loaded comment will be sent
       submit();
@@ -464,21 +382,6 @@ describe('SubmitGradeForm', () => {
         grade: 1,
         comment: 'Something else',
       });
-    });
-
-    it('updates comment draft on textarea input', async () => {
-      const wrapper = renderForm({ acceptComments: true });
-
-      await waitForGradeFetch(wrapper);
-      togglePopover(wrapper);
-
-      // The textarea value is initially the fetched comment
-      assert.equal(wrapper.find('textarea').prop('value'), 'Good job!');
-
-      // Once the input is changed, the value will also change
-      changeComment(wrapper, 'New comment');
-
-      assert.equal(wrapper.find('textarea').prop('value'), 'New comment');
     });
   });
 

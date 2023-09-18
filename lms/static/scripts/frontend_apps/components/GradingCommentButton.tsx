@@ -31,7 +31,6 @@ function CommentPopover({
   return (
     <Dialog
       variant="custom"
-      title=""
       classes={classnames(
         'w-80 p-3',
         'shadow border rounded bg-white',
@@ -43,6 +42,9 @@ function CommentPopover({
       restoreFocus
       closeOnClickAway
       closeOnEscape
+      // `title` is currently a mandatory Dialog prop, but it's not used when `variant="custom"`.
+      // We'll need to address it in the source. Setting an empty string as a workaround.
+      title=""
     >
       <PointerUpIcon
         className={classnames(
@@ -103,8 +105,7 @@ export type GradingCommentProps = {
 };
 
 /**
- * Grading button toggle button.
- * It opens/closes the internal grading comment popover.
+ * Grading comment toggle button and popover.
  */
 export default function GradingCommentButton({
   disabled,
