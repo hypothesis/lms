@@ -17,7 +17,6 @@ on:
       - 'requirements/dev.txt'
       - '.docker.env'
       - '**/.gitignore'
-      - '.python-version'
       - 'Dockerfile'
       - 'LICENSE'
       - '*.md'
