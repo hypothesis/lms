@@ -44,6 +44,14 @@ class TestSendInstructurEmailDigestsTasks:
             for batch in [first_batch, second_batch]
         ]
 
+    @pytest.mark.usefixtures("participating_instructors_with_no_launches")
+    def test_it_doesnt_email_for_courses_with_no_launches(
+        self, send_instructor_email_digests
+    ):
+        send_instructor_email_digest_tasks(batch_size=42)
+
+        send_instructor_email_digests.apply_async.assert_not_called()
+
     @pytest.mark.usefixtures("non_participating_instructor")
     def test_it_doesnt_email_non_participating_instructors(
         self, send_instructor_email_digests
@@ -58,6 +66,7 @@ class TestSendInstructurEmailDigestsTasks:
 
         send_instructor_email_digests.apply_async.assert_not_called()
 
+    @freeze_time("2023-03-09 05:15:00")
     def test_it_doesnt_email_unsubscribed_instructors(
         self, send_instructor_email_digests, unsubscribed_instructors
     ):
@@ -72,6 +81,7 @@ class TestSendInstructurEmailDigestsTasks:
             )
         ]
 
+    @freeze_time("2023-03-09 05:15:00")
     def test_it_deduplicates_duplicate_h_userids(
         self, send_instructor_email_digests, participating_instructors, make_instructors
     ):
@@ -83,7 +93,7 @@ class TestSendInstructurEmailDigestsTasks:
         duplicate_user = factories.User(
             h_userid=user.h_userid, application_instance=instance
         )
-        make_instructors([duplicate_user])
+        make_instructors([duplicate_user], instance)
 
         send_instructor_email_digest_tasks(batch_size=99)
 
@@ -115,16 +125,30 @@ class TestSendInstructurEmailDigestsTasks:
             for _ in range(2):
                 users.append(factories.User(application_instance=instance))
 
-        make_instructors(users)
+        make_instructors(users, participating_instances[0], with_launch=True)
+
+        return sorted(users, key=lambda u: u.h_userid)
+
+    @pytest.fixture
+    def participating_instructors_with_no_launches(
+        self, participating_instances, make_instructors
+    ):
+        """Return some users who're instructors in participating instances."""
+        users = []
+
+        for instance in participating_instances:
+            for _ in range(2):
+                users.append(factories.User(application_instance=instance))
+
+        make_instructors(users, participating_instances[0], with_launch=False)
 
         return sorted(users, key=lambda u: u.h_userid)
 
     @pytest.fixture
     def unsubscribed_instructors(self, participating_instructors):
-        # We leave the first instructor alone, no unsubcribes
-
+        # We leave the first instructor alone, no unsubscribes
         for instructor in participating_instructors[1:]:
-            # We unsubcribe the rest
+            # We unsubscribe the rest
             factories.EmailUnsubscribe(
                 h_userid=instructor.h_userid,
                 tag=EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST,
@@ -145,7 +169,7 @@ class TestSendInstructurEmailDigestsTasks:
     ):
         """Return a user who's an instructor in a non-participating instance."""
         user = factories.User(application_instance=non_participating_instance)
-        make_instructors([user])
+        make_instructors([user], non_participating_instance)
         return user
 
     @pytest.fixture
@@ -159,9 +183,20 @@ class TestSendInstructurEmailDigestsTasks:
     def make_instructors(self, db_session):
         instructor_role = factories.LTIRole(value="Instructor")
 
-        def make_instructors(users):
+        def make_instructors(users, application_instance, with_launch=True):
             """Make the given user instructors for an assignment."""
+            course = factories.Course()
             assignment = factories.Assignment()
+            factories.AssignmentGrouping(grouping=course, assignment=assignment)
+
+            if with_launch:
+                # Create a launch for this course/assignment
+                factories.Event(
+                    timestamp=datetime(2023, 3, 8, 22),
+                    application_instance=application_instance,
+                    course=course,
+                    assignment=assignment,
+                )
             for user in users:
                 factories.AssignmentMembership(
                     assignment=assignment, user=user, lti_role=instructor_role

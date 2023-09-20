@@ -6,8 +6,10 @@ from sqlalchemy import select
 
 from lms.models import (
     ApplicationInstance,
+    AssignmentGrouping,
     AssignmentMembership,
     EmailUnsubscribe,
+    Event,
     LTIRole,
     User,
 )
@@ -44,23 +46,47 @@ def send_instructor_email_digest_tasks(*, batch_size):
     now = datetime.now(timezone.utc)
     updated_before = datetime(year=now.year, month=now.month, day=now.day, hour=5)
     updated_after = updated_before - timedelta(days=1)
-    updated_before = updated_before.isoformat()
-    updated_after = updated_after.isoformat()
 
     with app.request_context() as request:  # pylint:disable=no-member
         with request.tm:
-            h_userids = request.db.scalars(
-                select(User.h_userid)
-                .select_from(User)
-                .distinct()
+            candidate_courses = (
+                select(Event.course_id)
                 .join(ApplicationInstance)
-                .join(AssignmentMembership)
-                .join(LTIRole)
                 .where(
+                    # Note here that we are considering earlier launches
+                    # We rather take a few more courses that miss some cases
+                    # where the launch that originated the annotations was made around the cutoff time.
+                    Event.timestamp >= updated_after - timedelta(days=7),
+                    Event.timestamp <= updated_before,
+                    # Only courses that belong to AIs with the feature enabled
                     ApplicationInstance.settings["hypothesis"][
                         "instructor_email_digests_enabled"
                     ].astext
                     == "true",
+                )
+            ).cte("candidate_courses")
+
+            h_userids = request.db.scalars(
+                select(User.h_userid)
+                .select_from(User)
+                .distinct()
+                # Although we don't care about assignments we use the assignment based tables
+                # as they have the correct LTIRole information.
+                # GroupingMembership doesn't role information at all
+                # and the User.roles information can't be trusted
+                # (only reflects the last role we've seen, in any course)
+                .join(AssignmentMembership)
+                .join(
+                    AssignmentGrouping,
+                    AssignmentGrouping.assignment_id
+                    == AssignmentMembership.assignment_id,
+                )
+                .join(LTIRole)
+                .where(
+                    # Consider only assignments that belong to the candidate courses selected before
+                    AssignmentGrouping.grouping_id.in_(
+                        select(candidate_courses.c.course_id)
+                    ),
                     LTIRole.type == "instructor",
                     # No EmailUnsubscribes
                     User.h_userid.not_in(
@@ -82,8 +108,8 @@ def send_instructor_email_digest_tasks(*, batch_size):
                     (),
                     {
                         "h_userids": batch,
-                        "updated_after": updated_after,
-                        "updated_before": updated_before,
+                        "updated_after": updated_after.isoformat(),
+                        "updated_before": updated_before.isoformat(),
                     },
                 )
 
