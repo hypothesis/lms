@@ -1,7 +1,6 @@
 from unittest.mock import sentinel
 
 import pytest
-from h_matchers import Any
 
 from lms.product import Product
 from lms.resources._js_config import FilePickerConfig
@@ -59,20 +58,38 @@ class TestFilePickerConfig:
 
     @pytest.mark.usefixtures("with_canvas")
     @pytest.mark.parametrize("files_enabled", [False, True])
-    def test_canvas_config(self, pyramid_request, application_instance, files_enabled):
+    @pytest.mark.parametrize("pages_enabled", [False, True])
+    @pytest.mark.parametrize("folders_enabled", [False, True])
+    def test_canvas_config(
+        self,
+        pyramid_request,
+        application_instance,
+        files_enabled,
+        pages_enabled,
+        folders_enabled,
+    ):
         application_instance.settings.set("canvas", "files_enabled", files_enabled)
+        application_instance.settings.set("canvas", "pages_enabled", pages_enabled)
+        application_instance.settings.set("canvas", "folders_enabled", folders_enabled)
         pyramid_request.lti_params["custom_canvas_course_id"] = "COURSE_ID"
 
         config = FilePickerConfig.canvas_config(pyramid_request, application_instance)
 
         expected_config = {
             "enabled": files_enabled,
-            "foldersEnabled": Any(),
+            "pagesEnabled": pages_enabled,
+            "foldersEnabled": folders_enabled,
             "listFiles": {
                 "authUrl": "http://example.com/api/canvas/oauth/authorize",
                 "path": "/api/canvas/courses/COURSE_ID/files",
             },
         }
+
+        if pages_enabled:
+            expected_config["listPages"] = {
+                "authUrl": "http://example.com/api/canvas/oauth/authorize",
+                "path": "/api/canvas/courses/COURSE_ID/pages",
+            }
 
         assert config == expected_config
 
