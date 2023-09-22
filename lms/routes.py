@@ -113,6 +113,10 @@ def includeme(config):  # pylint:disable=too-many-statements
     config.add_route("lti_api.result.read", "/api/lti/result", request_method="GET")
     config.add_route("lti_api.result.record", "/api/lti/result", request_method="POST")
 
+    config.add_route(
+        "canvas_api.courses.pages.list", "/api/canvas/courses/{course_id}/pages"
+    )
+
     # JSTOR article IDs need a custom pattern because they may contain a slash,
     # after URL-decoding of the path.
     jstor_article_id_pat = r"(10\.[0-9]+/)?[^/]+"

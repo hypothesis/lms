@@ -61,7 +61,12 @@ class CanvasAPIClient:
         self._file_service = file_service
         self._folders_enabled = folders_enabled
 
-        self.pages = CanvasPagesClient(authenticated_client)
+        self._pages = CanvasPagesClient(authenticated_client)
+
+    @property
+    def pages(self):
+        """Expose the Pages client."""
+        return self._pages
 
     def get_token(self, authorization_code):
         """
