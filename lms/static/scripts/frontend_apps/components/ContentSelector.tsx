@@ -23,6 +23,7 @@ type DialogType =
   | 'url'
   | 'vitalSourceBook'
   | 'youtube'
+  | 'canvasPage'
   | null;
 
 export type ContentSelectorProps = {
@@ -69,6 +70,8 @@ export default function ContentSelector({
         enabled: canvasFilesEnabled,
         listFiles: listFilesApi,
         foldersEnabled: canvasWithFolders,
+        pagesEnabled: canvasPagesEnabled, 
+        listPages: listPagesApi 
       },
       google: {
         enabled: googleDriveEnabled,
@@ -107,6 +110,7 @@ export default function ContentSelector({
   };
 
   const selectDialog = (type: DialogType) => {
+    console.log("SELECT DIALOG");
     setActiveDialog(type);
   };
   // Initialize the Google Picker client if credentials have been provided.
@@ -164,6 +168,13 @@ export default function ContentSelector({
     onSelectContent({ type: 'file', file });
   };
 
+  const selectCanvasPage = (file: File) => {
+  console.log("NOPE");
+    debugger;
+    cancelDialog();
+    onSelectContent({ type: 'url', url: file.id });
+  };
+
   const selectBlackboardFile = (file: File) => {
     cancelDialog();
     // file.id is a URL with a `blackboard://` prefix.
@@ -216,6 +227,18 @@ export default function ContentSelector({
         />
       );
       break;
+    case 'canvasPage':
+      dialog = (
+        <LMSFilePicker
+          authToken={authToken}
+          listFilesApi={listPagesApi}
+          onCancel={cancelDialog}
+          onSelectFile={selectCanvasPage}
+          missingFilesHelpLink="https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-upload-a-file-to-a-course/ta-p/618"
+        />
+      );
+      break;
+
     case 'blackboardFile':
       dialog = (
         <LMSFilePicker
@@ -333,9 +356,20 @@ export default function ContentSelector({
             onClick={() => selectDialog('canvasFile')}
             title="Select PDF from Canvas"
           >
-            Canvas
+            Canvas File
           </OptionButton>
         )}
+        {canvasPagesEnabled && (
+          <OptionButton
+            data-testid="canvas-page-button"
+            details="PAGE"
+            onClick={() => selectDialog('canvasPage')}
+            title="Select a Page from Canvas"
+          >
+            Canvas Page
+          </OptionButton>
+        )}
+
         {blackboardFilesEnabled && (
           <OptionButton
             data-testid="blackboard-file-button"

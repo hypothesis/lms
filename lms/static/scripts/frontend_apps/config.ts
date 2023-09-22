@@ -94,7 +94,9 @@ export type FilePickerConfig = {
   canvas: {
     enabled: boolean;
     foldersEnabled: boolean;
+    pagesEnabled: boolean;
     listFiles: APICallInfo;
+    listPages: APICallInfo;
   };
   google: {
     enabled: boolean;
