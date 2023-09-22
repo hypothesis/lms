@@ -48,10 +48,12 @@ class FilePickerConfig:
         """Get Canvas files config."""
 
         files_enabled = application_instance.settings.get("canvas", "files_enabled")
+        pages_enabled = application_instance.settings.get("canvas", "pages_enabled")
 
         course_id = request.lti_params.get("custom_canvas_course_id")
         config = {
             "enabled": files_enabled,
+            "pagesEnabled": pages_enabled,
             "foldersEnabled": application_instance.settings.get(
                 "canvas", "folders_enabled"
             ),
@@ -62,6 +64,14 @@ class FilePickerConfig:
                 ),
             },
         }
+
+        if pages_enabled:
+            config["listPages"] = {
+                "authUrl": request.route_url(Canvas.route.oauth2_authorize),
+                "path": request.route_path(
+                    "canvas_api.courses.pages.list", course_id=course_id
+                ),
+            }
 
         return config
 
