@@ -12,6 +12,8 @@ from lms.services.exceptions import CanvasAPIError
 from lms.services.file import FileService
 from lms.validation import RequestsResponseSchema
 
+from lms.services.canvas_api._pages import CanvasPagesClient
+
 log = logging.getLogger(__name__)
 
 
@@ -59,6 +61,8 @@ class CanvasAPIClient:
         self._client = authenticated_client
         self._file_service = file_service
         self._folders_enabled = folders_enabled
+
+        self.pages = CanvasPagesClient(authenticated_client)
 
     def get_token(self, authorization_code):
         """
