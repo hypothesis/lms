@@ -8,6 +8,7 @@ from typing import Dict, List
 import marshmallow
 from marshmallow import EXCLUDE, Schema, fields, post_load, validate, validates_schema
 
+from lms.services.canvas_api._pages import CanvasPagesClient
 from lms.services.exceptions import CanvasAPIError
 from lms.services.file import FileService
 from lms.validation import RequestsResponseSchema
@@ -59,6 +60,8 @@ class CanvasAPIClient:
         self._client = authenticated_client
         self._file_service = file_service
         self._folders_enabled = folders_enabled
+
+        self.pages = CanvasPagesClient(authenticated_client)
 
     def get_token(self, authorization_code):
         """
