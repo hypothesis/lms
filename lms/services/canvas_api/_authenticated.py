@@ -42,7 +42,13 @@ class AuthenticatedClient:
         self._redirect_uri = redirect_uri
 
     def send(
-        self, method, path, schema, timeout=DEFAULT_TIMEOUT, params=None
+        self,
+        method,
+        path,
+        schema,
+        timeout=DEFAULT_TIMEOUT,
+        params=None,
+        access_token=None,
     ):  # pylint:disable=too-many-arguments
         """
         Send a Canvas API request, and retry it if there are OAuth problems.
@@ -53,7 +59,8 @@ class AuthenticatedClient:
         :raise OAuth2TokenError: if the request fails because our Canvas API
             access token for the user is missing, expired, or has been deleted
         """
-        access_token = self._oauth2_token_service.get().access_token
+        if not access_token:
+            access_token = self._oauth2_token_service.get().access_token
 
         return self._client.send(
             method,
