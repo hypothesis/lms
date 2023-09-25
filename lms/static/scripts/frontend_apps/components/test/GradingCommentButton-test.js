@@ -108,16 +108,31 @@ describe('GradingCommentButton', () => {
     }
   );
 
-  it('submits grade using internal popover submit button', async () => {
-    const onSubmit = sinon.stub();
-    const wrapper = renderComponent({ onSubmit });
+  context('when clicking internal popover submit button', () => {
+    const clickSubmit = wrapper =>
+      wrapper
+        .find('button[data-testid="comment-submit-button"]')
+        .simulate('click');
 
-    togglePopover(wrapper);
+    it('submits grade', async () => {
+      const onSubmit = sinon.stub();
+      const wrapper = renderComponent({ onSubmit });
 
-    wrapper
-      .find('button[data-testid="comment-submit-button"]')
-      .simulate('click');
-    assert.called(onSubmit);
+      togglePopover(wrapper);
+
+      clickSubmit(wrapper);
+      assert.called(onSubmit);
+    });
+
+    it('closes popover after successfully submitting', () => {
+      const onSubmit = sinon.stub().returns(true);
+      const wrapper = renderComponent({ onSubmit });
+
+      togglePopover(wrapper);
+
+      clickSubmit(wrapper);
+      assert.isFalse(commentPopoverExists(wrapper));
+    });
   });
 
   it('updates comment on textarea input', async () => {

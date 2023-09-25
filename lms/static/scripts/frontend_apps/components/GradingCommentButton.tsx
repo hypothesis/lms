@@ -1,4 +1,4 @@
-import type { ButtonProps, TextareaProps } from '@hypothesis/frontend-shared';
+import type { TextareaProps } from '@hypothesis/frontend-shared';
 import {
   Button,
   CancelIcon,
@@ -15,7 +15,8 @@ import { useCallback, useId, useRef, useState } from 'preact/hooks';
 type CommentPopoverProps = {
   comment: string;
   onInput: NonNullable<TextareaProps['onInput']>;
-  onSubmit: NonNullable<ButtonProps['onClick']>;
+  /** @return True if the form is valid */
+  onSubmit: () => boolean;
   closePopover: () => void;
 };
 
@@ -73,9 +74,10 @@ function CommentPopover({
       <div className="flex flex-row-reverse space-x-2 space-x-reverse mt-3">
         <Button
           variant="primary"
-          onClick={e => {
-            onSubmit(e);
-            closePopover();
+          onClick={() => {
+            if (onSubmit()) {
+              closePopover();
+            }
           }}
           data-testid="comment-submit-button"
         >
@@ -98,7 +100,7 @@ export type GradingCommentProps = {
   loading: boolean;
   comment: string;
   onInput: NonNullable<TextareaProps['onInput']>;
-  onSubmit: NonNullable<ButtonProps['onClick']>;
+  onSubmit: () => boolean;
 };
 
 /**

@@ -16,8 +16,6 @@ export default {
     extend: {
       animation: {
         gradeSubmitSuccess: 'gradeSubmitSuccess 2s ease-out forwards',
-        validationMessageOpen: 'validationMessageOpen 0.3s forwards',
-        validationMessageClose: 'validationMessageClose 0.3s forwards',
       },
       borderRadius: {
         // Equivalent to tailwind default `rounded-sm` size
@@ -39,14 +37,6 @@ export default {
         gradeSubmitSuccess: {
           from: { backgroundColor: successGreen },
           to: { backgroundColor: 'transparent' },
-        },
-        validationMessageOpen: {
-          from: { opacity: 0, width: 0 },
-          to: { opacity: 0.9, width: '300px' },
-        },
-        validationMessageClose: {
-          from: { opacity: 0.9, width: '300px' },
-          to: { opacity: 0, width: 0 },
         },
       },
     },
