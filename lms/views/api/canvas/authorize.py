@@ -41,6 +41,9 @@ GROUPS_SCOPES = (
 )
 
 
+PAGES_SCOPES = ("url:GET|/api/v1/courses/:course_id/pages",)
+
+
 @view_config(
     request_method="GET",
     route_name="canvas_api.oauth.authorize",
@@ -54,6 +57,9 @@ def authorize(request):
 
     if application_instance.settings.get("canvas", "folders_enabled"):
         scopes += FOLDERS_SCOPES
+
+    if application_instance.settings.get("canvas", "pages_enabled"):
+        scopes += PAGES_SCOPES
 
     if application_instance.developer_key and (
         # If the instance could add a new course with sections...
