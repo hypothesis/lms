@@ -11,6 +11,7 @@ from lms.views.api.canvas.authorize import (
     FILES_SCOPES,
     FOLDERS_SCOPES,
     GROUPS_SCOPES,
+    PAGES_SCOPES,
     SECTIONS_SCOPES,
 )
 
@@ -66,16 +67,6 @@ class TestAuthorize:
     ):
         self.assert_sections_scopes(authorize.authorize(pyramid_request))
 
-    @pytest.mark.usefixtures("groups_enabled")
-    def test_instance_with_groups_enabled_triggers_groups_scopes(self, pyramid_request):
-        self.assert_groups_scopes(authorize.authorize(pyramid_request))
-
-    @pytest.mark.usefixtures("with_folders_enabled")
-    def test_instance_with_folders_enabled_triggers_folders_scopes(
-        self, pyramid_request
-    ):
-        self.assert_folder_scopes(authorize.authorize(pyramid_request))
-
     @pytest.mark.usefixtures("sections_not_supported")
     def test_no_sections_scopes_if_sections_is_disabled(self, pyramid_request):
         self.assert_file_scopes_only(authorize.authorize(pyramid_request))
@@ -98,31 +89,42 @@ class TestAuthorize:
             canvas_oauth_callback_schema.state_param.return_value
         ]
 
+    @pytest.mark.parametrize("folders_enabled", [True, False])
+    @pytest.mark.parametrize("groups_enabled", [True, False])
+    @pytest.mark.parametrize("pages_enabled", [True, False])
+    def test_setting_scopes(
+        self, folders_enabled, groups_enabled, pages_enabled, pyramid_request
+    ):
+        pyramid_request.lti_user.application_instance.settings.set(
+            "canvas", "folders_enabled", folders_enabled
+        )
+        pyramid_request.lti_user.application_instance.settings.set(
+            "canvas", "pages_enabled", pages_enabled
+        )
+        pyramid_request.lti_user.application_instance.settings.set(
+            "canvas", "groups_enabled", groups_enabled
+        )
+
+        response = authorize.authorize(pyramid_request)
+        query_params = parse_qs(urlparse(response.location).query)
+        scopes = set(query_params["scope"][0].split())
+
+        if groups_enabled:
+            assert set(GROUPS_SCOPES).issubset(scopes)
+        if folders_enabled:
+            assert set(FOLDERS_SCOPES).issubset(scopes)
+        if pages_enabled:
+            assert set(PAGES_SCOPES).issubset(scopes)
+
     def assert_sections_scopes(self, response):
         query_params = parse_qs(urlparse(response.location).query)
-        assert query_params["scope"] == [
-            "url:GET|/api/v1/courses/:course_id/files "
-            "url:GET|/api/v1/files/:id/public_url "
-            "url:GET|/api/v1/courses/:id "
-            "url:GET|/api/v1/courses/:course_id/sections "
-            "url:GET|/api/v1/courses/:course_id/users/:id"
-        ]
-
-    def assert_groups_scopes(self, response):
-        query_params = parse_qs(urlparse(response.location).query)
-
-        assert set(GROUPS_SCOPES).issubset(set(query_params["scope"][0].split()))
-
-    def assert_folder_scopes(self, response):
-        query_params = parse_qs(urlparse(response.location).query)
-
-        assert set(FOLDERS_SCOPES).issubset(set(query_params["scope"][0].split()))
+        assert set(query_params["scope"][0].split(" ")) == set(
+            FILES_SCOPES + SECTIONS_SCOPES
+        )
 
     def assert_file_scopes_only(self, response):
         query_params = parse_qs(urlparse(response.location).query)
-        assert query_params["scope"] == [
-            "url:GET|/api/v1/courses/:course_id/files url:GET|/api/v1/files/:id/public_url"
-        ]
+        assert set(query_params["scope"][0].split(" ")) == set(FILES_SCOPES)
 
     @pytest.fixture
     def sections_not_supported(self, application_instance):
@@ -132,18 +134,6 @@ class TestAuthorize:
     def sections_disabled(self, pyramid_request):
         pyramid_request.lti_user.application_instance.settings.set(
             "canvas", "sections_enabled", False
-        )
-
-    @pytest.fixture
-    def groups_enabled(self, pyramid_request):
-        pyramid_request.lti_user.application_instance.settings.set(
-            "canvas", "groups_enabled", True
-        )
-
-    @pytest.fixture
-    def with_folders_enabled(self, pyramid_request):
-        pyramid_request.lti_user.application_instance.settings.set(
-            "canvas", "folders_enabled", True
         )
 
     @pytest.fixture
