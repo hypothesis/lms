@@ -51,9 +51,9 @@
     "wouter-preact": "^2.11.0"
   },
   "devDependencies": {
-    "@types/gapi": "^0.0.44",
-    "@types/google.accounts": "^0.0.9",
-    "@types/google.picker": "^0.0.39",
+    "@types/gapi": "^0.0.45",
+    "@types/google.accounts": "^0.0.10",
+    "@types/google.picker": "^0.0.40",
     "@typescript-eslint/eslint-plugin": "^6.6.0",
     "@typescript-eslint/parser": "^6.6.0",
     "axe-core": "^4.8.2",
