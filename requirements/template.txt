@@ -20,7 +20,7 @@ click==8.1.3
     # via
     #   cookiecutter
     #   pip-tools
-cookiecutter==2.2.3
+cookiecutter==2.3.1
     # via -r requirements/template.in
 idna==3.4
     # via requests
@@ -28,8 +28,12 @@ importlib-metadata==6.6.0
     # via pip-sync-faster
 jinja2==3.1.2
     # via cookiecutter
+markdown-it-py==3.0.0
+    # via rich
 markupsafe==2.1.2
     # via jinja2
+mdurl==0.1.2
+    # via markdown-it-py
 packaging==23.1
     # via build
 pip-sync-faster==0.0.3
@@ -38,6 +42,8 @@ pip-tools==6.13.0
     # via
     #   -r requirements/template.in
     #   pip-sync-faster
+pygments==2.16.1
+    # via rich
 pyproject-hooks==1.0.0
     # via build
 python-dateutil==2.8.2
@@ -48,6 +54,8 @@ pyyaml==6.0
     # via cookiecutter
 requests==2.31.0
     # via cookiecutter
+rich==13.5.3
+    # via cookiecutter
 six==1.16.0
     # via python-dateutil
 text-unidecode==1.3
@@ -56,6 +64,8 @@ tomli==2.0.1
     # via
     #   build
     #   pyproject-hooks
+typing-extensions==4.8.0
+    # via rich
 urllib3==2.0.2
     # via requests
 wheel==0.40.0
