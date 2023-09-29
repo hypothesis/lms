@@ -1982,9 +1982,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-commonjs@npm:^25.0.2":
-  version: 25.0.2
-  resolution: "@rollup/plugin-commonjs@npm:25.0.2"
+"@rollup/plugin-commonjs@npm:^25.0.4":
+  version: 25.0.4
+  resolution: "@rollup/plugin-commonjs@npm:25.0.4"
   dependencies:
     "@rollup/pluginutils": ^5.0.1
     commondir: ^1.0.1
@@ -1997,13 +1997,13 @@ __metadata:
   peerDependenciesMeta:
     rollup:
       optional: true
-  checksum: d8c4e22d264c5b9286f697653c2f9288149c0fe0169d49b83b5dc8b542f96cc0b9113da3f30d241f2f277513fbf3f8c207d95def5559eb3800190f1872add794
+  checksum: 073b92b765a1f8ab8db8e1aa216c1950e62f6c0c41210d10bb7530c4fc63670a16c19c0bbbf73e2752467c4468ad4c8134cf4724924388c3eed83df45630fda6
   languageName: node
   linkType: hard
 
-"@rollup/plugin-node-resolve@npm:^15.1.0":
-  version: 15.1.0
-  resolution: "@rollup/plugin-node-resolve@npm:15.1.0"
+"@rollup/plugin-node-resolve@npm:^15.2.1":
+  version: 15.2.1
+  resolution: "@rollup/plugin-node-resolve@npm:15.2.1"
   dependencies:
     "@rollup/pluginutils": ^5.0.1
     "@types/resolve": 1.20.2
@@ -2016,7 +2016,7 @@ __metadata:
   peerDependenciesMeta:
     rollup:
       optional: true
-  checksum: 83617cdbb90cb780251e8b16dc1671e35bde90b8d4d30e008aefe706b5b643057f6299bdd3226b2a30bf5e4f807a880169de3faa47b9f2ba38d39f294f85f951
+  checksum: e8f706db6ab826e80d1c9a85d2d1e736f2f78a34ea5d49dd0004d6603249a504696967674b2f021cd144536b88d24ffa058383f08b61b4b665be3c7bfacc006a
   languageName: node
   linkType: hard
 
@@ -7028,8 +7028,8 @@ __metadata:
     "@hypothesis/frontend-build": ^2.2.0
     "@hypothesis/frontend-shared": ^6.7.0
     "@rollup/plugin-babel": ^6.0.3
-    "@rollup/plugin-commonjs": ^25.0.2
-    "@rollup/plugin-node-resolve": ^15.1.0
+    "@rollup/plugin-commonjs": ^25.0.4
+    "@rollup/plugin-node-resolve": ^15.2.1
     "@rollup/plugin-replace": ^5.0.2
     "@rollup/plugin-terser": ^0.4.3
     "@rollup/plugin-virtual": ^3.0.1
@@ -7069,7 +7069,7 @@ __metadata:
     postcss: ^8.4.27
     preact: 10.17.1
     prettier: 2.8.8
-    rollup: ^3.28.1
+    rollup: ^3.29.4
     sass: ^1.62.1
     sinon: ^15.1.0
     tailwindcss: ^3.3.2
@@ -9137,9 +9137,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:^3.28.1":
-  version: 3.28.1
-  resolution: "rollup@npm:3.28.1"
+"rollup@npm:^3.29.4":
+  version: 3.29.4
+  resolution: "rollup@npm:3.29.4"
   dependencies:
     fsevents: ~2.3.2
   dependenciesMeta:
@@ -9147,7 +9147,7 @@ __metadata:
       optional: true
   bin:
     rollup: dist/bin/rollup
-  checksum: 1fcab0929c16130218447c76c19b56ccc0e677110552462297e3679188fc70185a6ec418cef8ce138ec9fb78fd5188537a3f5d28762788e8c88b12a7fb8ba0fb
+  checksum: 8bb20a39c8d91130825159c3823eccf4dc2295c9a0a5c4ed851a5bf2167dbf24d9a29f23461a54c955e5506395e6cc188eafc8ab0e20399d7489fb33793b184e
   languageName: node
   linkType: hard
 
