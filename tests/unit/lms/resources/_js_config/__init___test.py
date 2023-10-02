@@ -240,12 +240,8 @@ class TestAddDocumentURL:
             "path": "/api/blackboard/courses/test_course_id/via_url?document_url=blackboard%3A%2F%2Fcontent-resource%2Fxyz123",
         }
 
-    def test_it_adds_the_viaUrl_api_config_for_Canvas_documents(
-        self, js_config, pyramid_request
-    ):
+    def test_it_adds_the_viaUrl_api_config_for_Canvas_files(self, js_config):
         course_id, file_id = "125", "100"
-        pyramid_request.params["custom_canvas_course_id"] = course_id
-        pyramid_request.params["file_id"] = file_id
 
         js_config.add_document_url(
             f"canvas://file/course/{course_id}/file_id/{file_id}"
@@ -254,6 +250,18 @@ class TestAddDocumentURL:
         assert js_config.asdict()["api"]["viaUrl"] == {
             "authUrl": "http://example.com/api/canvas/oauth/authorize",
             "path": "/api/canvas/assignments/TEST_RESOURCE_LINK_ID/via_url",
+        }
+
+    def test_it_adds_the_viaUrl_api_config_for_Canvas_pages(self, js_config):
+        course_id, page_id = "125", "100"
+
+        js_config.add_document_url(
+            f"canvas://page/course/{course_id}/page_id/{page_id}"
+        )
+
+        assert js_config.asdict()["api"]["viaUrl"] == {
+            "authUrl": "http://example.com/api/canvas/oauth/authorize",
+            "path": "/api/canvas/assignments/TEST_RESOURCE_LINK_ID/pages/via_url",
         }
 
     def test_it_adds_the_viaUrl_api_config_for_D2L_documents(self, js_config):
