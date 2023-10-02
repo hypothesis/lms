@@ -97,8 +97,11 @@ class SecurityPolicy:
             # LTIUser serialized in the state param for the oauth flow
             return LTIUserSecurityPolicy(get_lti_user_from_oauth_callback)
 
-        if path.startswith("/api") and path.endswith("authorize"):
-            # LTUser serialized as query param for authorization failures
+        # LTUser serialized as query param for authorization failures
+        if (path.startswith("/api") and path.endswith("authorize")) or path in {
+            # To fetch pages content from Canvas' API
+            "/api/canvas/pages/proxy"
+        }:
             return LTIUserSecurityPolicy(
                 partial(get_lti_user_from_bearer_token, location="querystring")
             )
