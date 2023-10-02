@@ -76,10 +76,12 @@ class PagesAPIViews:
         document_url_match = DOCUMENT_URL_REGEX.search(
             self.request.params["document_url"]
         )
-        page = self.canvas.api.pages.page(
-            document_url_match["course_id"], document_url_match["page_id"]
-        )
+        course_id = document_url_match["course_id"]
+        page = self.canvas.api.pages.page(course_id, document_url_match["page_id"])
         return {
+            "canonical_url": page.canonical_url(
+                self.request.lti_user.application_instance.lms_host(), course_id
+            ),
             "title": page.title,
             "body": page.body,
         }

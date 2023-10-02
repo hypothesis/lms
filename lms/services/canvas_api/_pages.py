@@ -14,6 +14,9 @@ class CanvasPage:
 
     body: Optional[str] = None
 
+    def canonical_url(self, lms_host, course_id):
+        return f"https://{lms_host}/courses/{course_id}/pages/{self.id}"
+
 
 class ListPagesSchema(RequestsResponseSchema):
     many = True
