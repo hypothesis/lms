@@ -28,10 +28,12 @@ class TestCanvasAPIClientFactory:
         canvas_api = canvas_api_client_factory(sentinel.context, pyramid_request)
 
         BasicClient.assert_called_once_with(application_instance.lms_host())
-        CanvasPagesClient.assert_called_once_with(AuthenticatedClient.return_value)
+        CanvasPagesClient.assert_called_once_with(
+            AuthenticatedClient.return_value, file_service
+        )
         CanvasAPIClient.assert_called_once_with(
             AuthenticatedClient.return_value,
-            file_service,
+            file_service=file_service,
             pages_client=CanvasPagesClient.return_value,
             folders_enabled=folders_enabled,
         )

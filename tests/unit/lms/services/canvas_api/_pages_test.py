@@ -7,7 +7,7 @@ from tests import factories
 
 @pytest.mark.usefixtures("http_session", "oauth_token")
 class TestCanvasPagesClient:
-    def test_list(self, pages_client, http_session):
+    def test_list(self, pages_client, http_session, file_service):
         pages = [
             {"page_id": 1, "title": "PAGE 1", "updated_at": "UPDATED_AT_1"},
             {"page_id": 2, "title": "PAGE 2", "updated_at": "UPDATED_AT_2"},
@@ -23,6 +23,18 @@ class TestCanvasPagesClient:
             path="api/v1/courses/COURSE_ID/pages",
             query={"published": "1", "per_page": "1000"},
         )
+        file_service.upsert.assert_called_once_with(
+            [
+                {
+                    "type": "canvas_page",
+                    "course_id": "COURSE_ID",
+                    "lms_id": page["page_id"],
+                    "name": page["title"],
+                }
+                for page in pages
+            ]
+        )
+
         assert response_pages == [
             CanvasPage(
                 id=page["page_id"], title=page["title"], updated_at=page["updated_at"]
@@ -63,5 +75,5 @@ class TestCanvasPagesClient:
         )
 
     @pytest.fixture
-    def pages_client(self, authenticated_client):
-        return CanvasPagesClient(authenticated_client)
+    def pages_client(self, authenticated_client, file_service):
+        return CanvasPagesClient(authenticated_client, file_service)

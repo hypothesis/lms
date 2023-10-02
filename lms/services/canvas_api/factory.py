@@ -27,11 +27,12 @@ def canvas_api_client_factory(_context, request):
         client_secret=developer_secret,
         redirect_uri=request.route_url("canvas_api.oauth.callback"),
     )
+    file_service = request.find_service(name="file")
 
     return CanvasAPIClient(
         authenticated_api,
-        file_service=request.find_service(name="file"),
-        pages_client=CanvasPagesClient(authenticated_api),
+        file_service=file_service,
+        pages_client=CanvasPagesClient(authenticated_api, file_service),
         folders_enabled=application_instance.settings.get(
             "canvas", "folders_enabled", default=False
         ),

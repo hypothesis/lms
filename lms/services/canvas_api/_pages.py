@@ -3,6 +3,7 @@ from typing import List, Optional
 
 from marshmallow import fields
 
+from lms.services.file import FileService
 from lms.validation import RequestsResponseSchema
 
 
@@ -34,8 +35,9 @@ class PagesSchema(RequestsResponseSchema):
 
 
 class CanvasPagesClient:
-    def __init__(self, client):
+    def __init__(self, client, file_service: FileService):
         self._client = client
+        self._file_service = file_service
 
     def list(self, course_id) -> List[CanvasPage]:
         pages = self._client.send(
@@ -43,6 +45,18 @@ class CanvasPagesClient:
             f"courses/{course_id}/pages",
             params={"published": 1},
             schema=ListPagesSchema,
+        )
+
+        self._file_service.upsert(
+            [
+                {
+                    "type": "canvas_page",
+                    "course_id": course_id,
+                    "lms_id": page["id"],
+                    "name": page["title"],
+                }
+                for page in pages
+            ]
         )
 
         return [
