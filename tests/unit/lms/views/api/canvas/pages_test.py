@@ -2,7 +2,6 @@ from unittest.mock import sentinel
 
 import pytest
 from h_matchers import Any
-from pyramid.response import Response
 
 from lms.services.canvas_api._pages import CanvasPage
 from lms.views.api.canvas.pages import PagesAPIViews
@@ -70,13 +69,13 @@ class TestPageAPIViews:
             "document_url"
         ] = "canvas://page/course/COURSE_ID/page_id/PAGE_ID"
         canvas_service.api.pages.page.return_value = CanvasPage(
-            id=1, title="Title", updated_at="updated", body="BODY"
+            id=1, title=sentinel.title, updated_at="updated", body=sentinel.body
         )
 
         response = PagesAPIViews(pyramid_request).proxy()
 
         canvas_service.api.pages.page.assert_called_once_with("COURSE_ID", "PAGE_ID")
-        assert response.text == Response("BODY").text
+        assert response == {"title": sentinel.title, "body": sentinel.body}
 
     @pytest.fixture
     def pages(self):

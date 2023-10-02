@@ -1,6 +1,5 @@
 import re
 
-from pyramid.response import Response
 from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
@@ -67,7 +66,11 @@ class PagesAPIViews:
             )
         }
 
-    @view_config(request_method="GET", route_name="canvas_api.pages.proxy")
+    @view_config(
+        request_method="GET",
+        route_name="canvas_api.pages.proxy",
+        renderer="lms:templates/api/canvas/page.html.jinja2",
+    )
     def proxy(self):
         """Proxy the contents of a canvas page."""
         document_url_match = DOCUMENT_URL_REGEX.search(
@@ -76,5 +79,7 @@ class PagesAPIViews:
         page = self.canvas.api.pages.page(
             document_url_match["course_id"], document_url_match["page_id"]
         )
-
-        return Response(body=page.body)
+        return {
+            "title": page.title,
+            "body": page.body,
+        }
