@@ -42,9 +42,6 @@ function CommentPopover({
       restoreFocus
       closeOnClickAway
       closeOnEscape
-      // `title` is currently a mandatory Dialog prop, but it's not used when `variant="custom"`.
-      // We'll need to address it in the source. Setting an empty string as a workaround.
-      title=""
     >
       <PointerUpIcon
         className={classnames(
