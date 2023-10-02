@@ -17,6 +17,8 @@ class TestCanvasAPIClientFactory:
         pyramid_request,
         CanvasAPIClient,
         AuthenticatedClient,
+        BasicClient,
+        CanvasPagesClient,
         file_service,
         folders_enabled,
         application_instance,
@@ -25,20 +27,15 @@ class TestCanvasAPIClientFactory:
 
         canvas_api = canvas_api_client_factory(sentinel.context, pyramid_request)
 
+        BasicClient.assert_called_once_with(application_instance.lms_host())
+        CanvasPagesClient.assert_called_once_with(AuthenticatedClient.return_value)
         CanvasAPIClient.assert_called_once_with(
             AuthenticatedClient.return_value,
             file_service,
+            pages_client=CanvasPagesClient.return_value,
             folders_enabled=folders_enabled,
         )
         assert canvas_api == CanvasAPIClient.return_value
-
-    @pytest.mark.usefixtures("aes_service")
-    def test_building_the_BasicClient(
-        self, pyramid_request, BasicClient, application_instance
-    ):
-        canvas_api_client_factory(sentinel.context, pyramid_request)
-
-        BasicClient.assert_called_once_with(application_instance.lms_host())
 
     def test_building_the_AuthenticatedClient(
         self,
@@ -66,6 +63,10 @@ class TestCanvasAPIClientFactory:
     @pytest.fixture(autouse=True)
     def AuthenticatedClient(self, patch):
         return patch("lms.services.canvas_api.factory.AuthenticatedClient")
+
+    @pytest.fixture(autouse=True)
+    def CanvasPagesClient(self, patch):
+        return patch("lms.services.canvas_api.factory.CanvasPagesClient")
 
     @pytest.fixture(autouse=True)
     def CanvasAPIClient(self, patch):

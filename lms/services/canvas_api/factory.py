@@ -1,6 +1,7 @@
 from lms.services.aes import AESService
 from lms.services.canvas_api._authenticated import AuthenticatedClient
 from lms.services.canvas_api._basic import BasicClient
+from lms.services.canvas_api._pages import CanvasPagesClient
 from lms.services.canvas_api.client import CanvasAPIClient
 
 
@@ -30,6 +31,7 @@ def canvas_api_client_factory(_context, request):
     return CanvasAPIClient(
         authenticated_api,
         file_service=request.find_service(name="file"),
+        pages_client=CanvasPagesClient(authenticated_api),
         folders_enabled=application_instance.settings.get(
             "canvas", "folders_enabled", default=False
         ),
