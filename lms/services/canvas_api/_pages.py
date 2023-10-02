@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 from marshmallow import fields
 
@@ -12,6 +12,8 @@ class CanvasPage:
     title: str
     updated_at: str
 
+    body: Optional[str] = None
+
 
 class ListPagesSchema(RequestsResponseSchema):
     many = True
@@ -19,6 +21,13 @@ class ListPagesSchema(RequestsResponseSchema):
     id = fields.Integer(required=True, data_key="page_id")
     title = fields.Str(required=True)
     updated_at = fields.String(required=True)
+
+
+class PagesSchema(RequestsResponseSchema):
+    id = fields.Integer(required=True, data_key="page_id")
+    title = fields.Str(required=True)
+    updated_at = fields.String(required=True)
+    body = fields.String(required=True)
 
 
 class CanvasPagesClient:
@@ -39,3 +48,16 @@ class CanvasPagesClient:
             )
             for page in pages
         ]
+
+    def page(self, course_id, page_id) -> CanvasPage:
+        page = self._client.send(
+            "GET",
+            f"courses/{course_id}/pages/{page_id}",
+            schema=PagesSchema,
+        )
+        return CanvasPage(
+            id=page["id"],
+            title=page["title"],
+            updated_at=page["updated_at"],
+            body=page["body"],
+        )

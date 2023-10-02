@@ -30,6 +30,30 @@ class TestCanvasPagesClient:
             for page in pages
         ]
 
+    def test_page(self, pages_client, http_session):
+        page = {
+            "page_id": 1,
+            "title": "PAGE 1",
+            "updated_at": "UPDATED_AT_1",
+            "body": "SOME HTML",
+        }
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200, json_data=page
+        )
+
+        response_page = pages_client.page("PAGE_ID")
+
+        self.assert_http_send(
+            http_session,
+            path="api/v1/courses/COURSE_ID/pages/PAGE_ID",
+        )
+        assert response_page == CanvasPage(
+            id=page["page_id"],
+            title=page["title"],
+            updated_at=page["updated_at"],
+            body=page["body"],
+        )
+
     def assert_http_send(
         self, http_session, path, method="GET", query=None, timeout=(10, 10)
     ):
