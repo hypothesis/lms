@@ -104,7 +104,7 @@ factory-boy==3.3.0
     #   pytest-factoryboy
 faker==8.1.2
     # via factory-boy
-filelock==3.12.3
+filelock==3.12.4
     # via -r requirements/tests.in
 freezegun==1.2.2
     # via -r requirements/tests.in
@@ -387,7 +387,6 @@ typing-extensions==4.7.1
     #   -r requirements/prod.txt
     #   alembic
     #   async-timeout
-    #   filelock
     #   kombu
     #   pytest-factoryboy
     #   sqlalchemy
