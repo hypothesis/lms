@@ -41,7 +41,7 @@ class TestCanvasPagesClient:
             status_code=200, json_data=page
         )
 
-        response_page = pages_client.page("PAGE_ID")
+        response_page = pages_client.page("COURSE_ID", "PAGE_ID")
 
         self.assert_http_send(
             http_session,

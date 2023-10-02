@@ -1,7 +1,18 @@
+import re
+
+from pyramid.response import Response
 from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
 from lms.services.canvas import CanvasService
+from lms.validation.authentication import BearerTokenSchema
+from lms.views import helpers
+
+# A regex for parsing the COURSE_ID and PAGE_ID parts out of one of our custom
+# canvas://file/course/COURSE_ID/page_id/PAGE_ID URLs.
+DOCUMENT_URL_REGEX = re.compile(
+    r"canvas:\/\/page\/course\/(?P<course_id>[^\/]*)\/page_id\/(?P<page_id>[^\/]*)"
+)
 
 
 @view_defaults(permission=Permissions.API, renderer="json")
@@ -29,3 +40,41 @@ class PagesAPIViews:
             }
             for page in self.canvas.api.pages.list(course_id)
         ]
+
+    @view_config(request_method="GET", route_name="canvas_api.pages.via_url")
+    def via_url(self):
+        application_instance = self.request.lti_user.application_instance
+        assignment = self.request.find_service(name="assignment").get_assignment(
+            application_instance.tool_consumer_instance_guid,
+            self.request.matchdict["resource_link_id"],
+        )
+
+        # We build a token to authorize the view that fetches the actual
+        # canvas pages content as the user making this request.
+        auth_token = BearerTokenSchema(self.request).authorization_param(
+            self.request.lti_user
+        )
+        return {
+            "via_url": helpers.via_url(
+                self.request,
+                self.request.route_url(
+                    "canvas_api.pages.proxy",
+                    _query={
+                        "document_url": assignment.document_url,
+                        "authorization": auth_token,
+                    },
+                ),
+            )
+        }
+
+    @view_config(request_method="GET", route_name="canvas_api.pages.proxy")
+    def proxy(self):
+        """Proxy the contents of a canvas page."""
+        document_url_match = DOCUMENT_URL_REGEX.search(
+            self.request.params["document_url"]
+        )
+        page = self.canvas.api.pages.page(
+            document_url_match["course_id"], document_url_match["page_id"]
+        )
+
+        return Response(body=page.body)
