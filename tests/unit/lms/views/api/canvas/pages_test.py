@@ -64,7 +64,7 @@ class TestPageAPIViews:
         )
         assert response == {"via_url": helpers.via_url.return_value}
 
-    def test_proxy(self, canvas_service, pyramid_request):
+    def test_proxy(self, canvas_service, pyramid_request, application_instance):
         pyramid_request.params[
             "document_url"
         ] = "canvas://page/course/COURSE_ID/page_id/PAGE_ID"
@@ -75,7 +75,11 @@ class TestPageAPIViews:
         response = PagesAPIViews(pyramid_request).proxy()
 
         canvas_service.api.pages.page.assert_called_once_with("COURSE_ID", "PAGE_ID")
-        assert response == {"title": sentinel.title, "body": sentinel.body}
+        assert response == {
+            "title": sentinel.title,
+            "body": sentinel.body,
+            "canonical_url": f"https://{application_instance.lms_host()}/courses/COURSE_ID/pages/1",
+        }
 
     @pytest.fixture
     def pages(self):
