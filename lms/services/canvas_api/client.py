@@ -48,6 +48,7 @@ class CanvasAPIClient:
         self,
         authenticated_client,
         file_service: FileService,
+        pages_client: CanvasPagesClient,
         folders_enabled: bool = False,
     ):
         """
@@ -61,7 +62,7 @@ class CanvasAPIClient:
         self._file_service = file_service
         self._folders_enabled = folders_enabled
 
-        self._pages = CanvasPagesClient(authenticated_client)
+        self._pages = pages_client
 
     @property
     def pages(self):

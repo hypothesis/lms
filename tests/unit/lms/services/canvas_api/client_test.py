@@ -41,8 +41,7 @@ class TestCanvasAPIClientIntegrated:
     """
 
     def test_pages(self, canvas_api_client):
-        # pylint:disable=protected-access
-        assert canvas_api_client.pages == canvas_api_client._pages
+        assert canvas_api_client.pages == sentinel.pages_client
 
     def test_authenticated_users_sections(self, canvas_api_client, http_session):
         sections = [{"id": 1, "name": "name_1"}, {"id": 2, "name": "name_2"}]
@@ -646,4 +645,6 @@ class TestCanvasAPIClientIntegrated:
 
 @pytest.fixture
 def canvas_api_client(authenticated_client, file_service):
-    return CanvasAPIClient(authenticated_client, file_service)
+    return CanvasAPIClient(
+        authenticated_client, file_service, pages_client=sentinel.pages_client
+    )
