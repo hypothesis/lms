@@ -41,7 +41,10 @@ GROUPS_SCOPES = (
 )
 
 
-PAGES_SCOPES = ("url:GET|/api/v1/courses/:course_id/pages",)
+PAGES_SCOPES = (
+    "url:GET|/api/v1/courses/:course_id/pages",
+    "url:GET|/api/v1/courses/:course_id/pages/:url_or_id",
+)
 
 
 @view_config(
