@@ -176,7 +176,7 @@ faker==8.1.2
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   factory-boy
-filelock==3.12.3
+filelock==3.12.4
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -669,7 +669,6 @@ typing-extensions==4.7.1
     #   alembic
     #   astroid
     #   async-timeout
-    #   filelock
     #   kombu
     #   pylint
     #   pytest-factoryboy
