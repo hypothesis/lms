@@ -1,13 +1,13 @@
 pip-tools
 pip-sync-faster
 -r prod.txt
-pytest-coverage
 pytest
+pytest-coverage
+pytest-xdist[psutil]
+filelock
 factory-boy
 pytest-factoryboy
 h-matchers
 httpretty
 freezegun
 aioresponses
-pytest-xdist[psutil]
-filelock
