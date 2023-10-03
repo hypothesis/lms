@@ -210,8 +210,14 @@ describe('FilePickerApp', () => {
 
       selectContent(wrapper, 'https://example.com');
 
+      const form = wrapper.find('form').getDOMNode();
+      const waitForFormSubmit = new Promise(resolve =>
+        form.addEventListener('submit', resolve)
+      );
+
       // Simulate implicit form submission, as if pressing Enter in title field.
-      wrapper.find('form').getDOMNode().requestSubmit();
+      form.requestSubmit();
+      await waitForFormSubmit;
 
       await waitFor(() => fakeAPICall.called);
       await waitFor(() => onSubmit.called);
