@@ -44,7 +44,7 @@ class OIDCRequestSchema(PyramidRequestSchema):
 
     target_link_uri = fields.Str(required=True)
     login_hint = fields.Str(required=True)
-    lti_message_hint = fields.Str(required=True)
+    lti_message_hint = fields.Str(required=False)
 
 
 @view_config(
@@ -70,7 +70,7 @@ def oidc_view(request):
         "response_mode": "form_post",
         "prompt": "none",
         "login_hint": params["login_hint"],
-        "lti_message_hint": params["lti_message_hint"],
+        "lti_message_hint": params.get("lti_message_hint"),
         # We might not have been provided the client id in the request, so use
         # the client id from the registration
         "client_id": registration.client_id,
