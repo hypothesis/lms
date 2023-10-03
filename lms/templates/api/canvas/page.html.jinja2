@@ -2,11 +2,15 @@
 <html lang=en>
   <head>
     <meta charset=utf-8>
+    <link rel="stylesheet" type="text/css" href="{{ 'lms:static/styles/api/canvas/common.css'|static_path }}">
+    <link rel="stylesheet" type="text/css" href="{{ 'lms:static/styles/api/canvas/pages.css'|static_path }}">
     <link rel="canonical" href="{{canonical_url}}" />
     <title>{{title}}</title>
   </head>
-  <body>
-    <h1>{{title}}</h1>
-    {{body|safe}}
+  <body class="pages show">
+    <div class="show-content user_content clearfix enhanced">
+        <h1 class="page-title">{{title}}</h1>
+        {{body|safe}}
+    </div>
   </body>
 </html>
