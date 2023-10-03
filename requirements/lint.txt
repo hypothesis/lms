@@ -482,7 +482,7 @@ pyjwt[crypto]==2.8.0
     #   -r functests.txt
     #   -r tests.txt
     #   pyramid-googleauth
-pylint==3.0.0b0
+pylint==3.0.0
     # via -r lint.in
 pyparsing==3.0.6
     # via
@@ -691,7 +691,6 @@ typing-extensions==4.7.1
     #   -r functests.txt
     #   -r tests.txt
     #   alembic
-    #   astroid
     #   async-timeout
     #   kombu
     #   pylint
