@@ -7,7 +7,7 @@ import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
 import { APIError } from '../../errors';
-import FileList from '../FileList';
+import DocumentList from '../DocumentList';
 import LMSFilePicker, { $imports } from '../LMSFilePicker';
 
 describe('LMSFilePicker', () => {
@@ -71,9 +71,9 @@ describe('LMSFilePicker', () => {
       '../utils/api': {
         apiCall: fakeApiCall,
       },
-      // Don't mock <FileList> because <NoFiles> requires
+      // Don't mock <DocumentList> because <NoFiles> requires
       // it to render for code coverage.
-      './FileList': FileList,
+      './DocumentList': DocumentList,
     });
   });
 
@@ -90,15 +90,15 @@ describe('LMSFilePicker', () => {
     });
 
     const expectedFiles = await fakeApiCall.returnValues[0];
-    const fileList = await waitForElement(wrapper, 'FileList');
-    assert.deepEqual(fileList.prop('files'), expectedFiles);
+    const fileList = await waitForElement(wrapper, 'DocumentList');
+    assert.deepEqual(fileList.prop('documents'), expectedFiles);
   });
 
   it('shows a full-screen spinner when the component is fetching', async () => {
     const wrapper = renderFilePicker();
     assert.isTrue(wrapper.find('SpinnerOverlay').exists());
 
-    await waitForElement(wrapper, 'FileList');
+    await waitForElement(wrapper, 'DocumentList');
     assert.isFalse(wrapper.find('SpinnerOverlay').exists());
   });
 
@@ -223,8 +223,8 @@ describe('LMSFilePicker', () => {
       path: fakeListFilesApi.path,
     });
 
-    const fileList = wrapper.find('FileList');
-    assert.deepEqual(fileList.prop('files'), expectedFiles);
+    const fileList = wrapper.find('DocumentList');
+    assert.deepEqual(fileList.prop('documents'), expectedFiles);
   });
 
   it('shows the "Authorize" and "Try again" buttons after 2 failed authorization requests', async () => {
@@ -263,7 +263,7 @@ describe('LMSFilePicker', () => {
 
     // After authorization completes, files should be fetched and then the
     // file list should be displayed.
-    assert.isTrue(wrapper.exists('FileList'));
+    assert.isTrue(wrapper.exists('DocumentList'));
     assert.isFalse(wrapper.exists('AuthButton'));
     assert.isFalse(wrapper.exists('p[data-testid="authorization warning"]'));
     assert.isFalse(wrapper.exists('ErrorDisplay'));
@@ -308,7 +308,10 @@ describe('LMSFilePicker', () => {
 
       // After authorization completes, files should be fetched and then the
       // file list should be displayed.
-      assert.isTrue(wrapper.exists('FileList'), 'File list was not displayed');
+      assert.isTrue(
+        wrapper.exists('DocumentList'),
+        'File list was not displayed'
+      );
     });
   });
 
@@ -390,11 +393,11 @@ describe('LMSFilePicker', () => {
 
     await act(() => reloadButton.prop('onClick')());
 
-    const fileList = await waitForElement(wrapper, 'FileList');
+    const fileList = await waitForElement(wrapper, 'DocumentList');
 
     // It should set the file list to the files for the active directory,
     // not the root directory
-    assert.equal(fileList.props().files, expectedFiles);
+    assert.equal(fileList.props().documents, expectedFiles);
   });
 
   it('shows a "Select" button when the request return a list with one or more files', async () => {
@@ -418,19 +421,19 @@ describe('LMSFilePicker', () => {
     wrapper.update();
     assert.called(fakeApiCall);
 
-    const fileList = await waitForElement(wrapper, 'FileList');
-    assert.deepEqual(fileList.prop('files'), expectedFiles);
+    const fileList = await waitForElement(wrapper, 'DocumentList');
+    assert.deepEqual(fileList.prop('documents'), expectedFiles);
   });
 
   it('maintains selected file state', async () => {
     const wrapper = renderFilePicker();
     const file = { id: 123 };
 
-    const fileList = await waitForElement(wrapper, 'FileList');
-    fileList.prop('onSelectFile')(file);
+    const fileList = await waitForElement(wrapper, 'DocumentList');
+    fileList.prop('onSelectDocument')(file);
     wrapper.update();
 
-    assert.equal(wrapper.find('FileList').prop('selectedFile'), file);
+    assert.equal(wrapper.find('DocumentList').prop('selectedDocument'), file);
   });
 
   it('invokes `onSelectFile` when user chooses a file', async () => {
@@ -438,8 +441,8 @@ describe('LMSFilePicker', () => {
     const wrapper = renderFilePicker({ onSelectFile });
 
     const file = { id: 123 };
-    const fileList = await waitForElement(wrapper, 'FileList');
-    fileList.prop('onUseFile')(file);
+    const fileList = await waitForElement(wrapper, 'DocumentList');
+    fileList.prop('onUseDocument')(file);
     assert.calledWith(onSelectFile, file);
   });
 
@@ -448,8 +451,8 @@ describe('LMSFilePicker', () => {
     const wrapper = renderFilePicker({ onSelectFile });
 
     const file = null;
-    const fileList = await waitForElement(wrapper, 'FileList');
-    fileList.prop('onUseFile')(file);
+    const fileList = await waitForElement(wrapper, 'DocumentList');
+    fileList.prop('onUseDocument')(file);
     assert.notCalled(onSelectFile);
   });
 
@@ -458,8 +461,8 @@ describe('LMSFilePicker', () => {
     const wrapper = renderFilePicker({ onSelectFile, withBreadcrumbs: true });
 
     const file = fakeFiles[1]; // This is a folder
-    const fileList = await waitForElement(wrapper, 'FileList');
-    fileList.prop('onUseFile')(file);
+    const fileList = await waitForElement(wrapper, 'DocumentList');
+    fileList.prop('onUseDocument')(file);
     // Folders cannot be selected as a file...
     assert.notCalled(onSelectFile);
 
@@ -484,8 +487,8 @@ describe('LMSFilePicker', () => {
   it('enables "Select" button when a file is selected', async () => {
     const wrapper = renderFilePicker();
 
-    const fileList = await waitForElement(wrapper, 'FileList');
-    fileList.prop('onSelectFile')({ id: 123 });
+    const fileList = await waitForElement(wrapper, 'DocumentList');
+    fileList.prop('onSelectDocument')({ id: 123 });
     wrapper.update();
 
     assert.equal(
@@ -500,8 +503,8 @@ describe('LMSFilePicker', () => {
 
     const file = { id: 123 };
 
-    const fileList = await waitForElement(wrapper, 'FileList');
-    fileList.prop('onSelectFile')(file);
+    const fileList = await waitForElement(wrapper, 'DocumentList');
+    fileList.prop('onSelectDocument')(file);
     wrapper.update();
 
     wrapper.find('button[data-testid="select"]').prop('onClick')();
@@ -517,40 +520,76 @@ describe('LMSFilePicker', () => {
     assert.isTrue(wrapper.isEmptyRender());
     assert.isTrue(wrapper.find('SpinnerOverlay').exists());
 
-    await waitForElement(wrapper, 'FileList');
+    await waitForElement(wrapper, 'DocumentList');
     assert.isFalse(wrapper.isEmptyRender());
   });
 
   describe('when no files are provided', () => {
+    const getNoFilesMessage = async ({
+      changeToSubfolder,
+      documentType = 'file',
+    } = {}) => {
+      const wrapper = renderFilePicker({
+        withBreadcrumbs: changeToSubfolder,
+        documentType,
+      });
+      let fileList = await waitForElement(
+        wrapper,
+        'DocumentList[isLoading=false]'
+      );
+
+      if (changeToSubfolder) {
+        changePath(wrapper, fakeFolders[0]);
+        fileList = await waitForElement(wrapper, 'DocumentList');
+      }
+
+      return fileList.prop('noDocumentsMessage');
+    };
+
     beforeEach(() => {
       fakeApiCall = sinon.stub().resolves([]); // no files returned
     });
 
-    it('renders no file message with a help link', async () => {
-      const wrapper = renderFilePicker();
-      const fileList = await waitForElement(
-        wrapper,
-        'FileList[isLoading=false]'
-      );
-      assert.equal(
-        fileList.prop('noFilesMessage').props.href,
-        'https://fake_help_link'
-      );
+    it('renders no-file message with a help link', async () => {
+      const { props } = await getNoFilesMessage();
+
+      assert.equal(props.href, 'https://fake_help_link');
       // After first file fetch, we're at the top level, so the no-files message
       // should operate in its "course" context
-      assert.isFalse(fileList.prop('noFilesMessage').props.inSubfolder);
+      assert.isFalse(props.inSubfolder);
     });
 
     it('renders no-file message in folder context if in a subfolder', async () => {
-      const wrapper = renderFilePicker({ withBreadcrumbs: true });
-      await waitForElement(wrapper, 'FileList[isLoading=false]');
+      const { props } = await getNoFilesMessage({ changeToSubfolder: true });
 
-      changePath(wrapper, fakeFolders[0]);
-      const fileList = await waitForElement(wrapper, 'FileList');
+      // After changing path, we're in a subfolder, so the no-files message should
+      // operate in its "folder" context
+      assert.isTrue(props.inSubfolder);
+    });
 
-      // After first file fetch, we're at the top level, so the no-files message
-      // should operate in its "course" context
-      assert.isTrue(fileList.prop('noFilesMessage').props.inSubfolder);
+    [
+      {
+        options: { documentType: 'page' },
+        expectedContent:
+          'There are no pages in this course. Create some pages in the course and try again.',
+      },
+      {
+        options: { documentType: 'file' },
+        expectedContent:
+          'There are no files in this course. Upload some files to the course and try again.',
+      },
+      {
+        options: { documentType: 'file', changeToSubfolder: true },
+        expectedContent:
+          'There are no files in this folder. Upload some files to the folder and try again.',
+      },
+    ].forEach(({ options, expectedContent }) => {
+      it('renders no-file message with expected content', async () => {
+        const noFilesMessage = await getNoFilesMessage(options);
+        const wrapper = mount(noFilesMessage);
+
+        assert.equal(wrapper.text(), expectedContent);
+      });
     });
   });
 });

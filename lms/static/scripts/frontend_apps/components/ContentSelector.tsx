@@ -1,7 +1,7 @@
 import { OptionButton, SpinnerOverlay } from '@hypothesis/frontend-shared';
 import { useMemo, useState } from 'preact/hooks';
 
-import type { Book, File, Chapter } from '../api-types';
+import type { Book, File, Chapter, Page } from '../api-types';
 import { useConfig } from '../config';
 import { PickerCanceledError } from '../errors';
 import type { Content } from '../utils/content-item';
@@ -18,6 +18,7 @@ import YouTubePicker from './YouTubePicker';
 type DialogType =
   | 'blackboardFile'
   | 'canvasFile'
+  | 'canvasPage'
   | 'd2lFile'
   | 'jstor'
   | 'url'
@@ -69,6 +70,8 @@ export default function ContentSelector({
         enabled: canvasFilesEnabled,
         listFiles: listFilesApi,
         foldersEnabled: canvasWithFolders,
+        pagesEnabled: canvasPagesEnabled,
+        listPages: listPagesApi,
       },
       google: {
         enabled: googleDriveEnabled,
@@ -109,6 +112,7 @@ export default function ContentSelector({
   const selectDialog = (type: DialogType) => {
     setActiveDialog(type);
   };
+
   // Initialize the Google Picker client if credentials have been provided.
   // We do this eagerly to make the picker load faster if the user does click
   // on the "Select from Google Drive" button.
@@ -159,18 +163,27 @@ export default function ContentSelector({
     onSelectContent({ type: 'url', url, name });
   };
 
-  const selectCanvasFile = (file: File) => {
+  const selectCanvasFile = (file: File | Page) => {
     cancelDialog();
-    onSelectContent({ type: 'file', file });
+    onSelectContent({ type: 'file', file: file as File });
   };
 
-  const selectBlackboardFile = (file: File) => {
+  const selectCanvasPage = (page: File | Page) => {
+    cancelDialog();
+    onSelectContent({
+      type: 'url',
+      url: page.id,
+      name: `Canvas page: ${page.display_name}`,
+    });
+  };
+
+  const selectBlackboardFile = (file: File | Page) => {
     cancelDialog();
     // file.id is a URL with a `blackboard://` prefix.
     onSelectContent({ type: 'url', url: file.id });
   };
 
-  const selectD2LFile = (file: File) => {
+  const selectD2LFile = (file: File | Page) => {
     cancelDialog();
     // file.id is a URL with a `d2l://` prefix.
     onSelectContent({ type: 'url', url: file.id });
@@ -216,6 +229,19 @@ export default function ContentSelector({
         />
       );
       break;
+    case 'canvasPage':
+      dialog = (
+        <LMSFilePicker
+          authToken={authToken}
+          listFilesApi={listPagesApi}
+          onCancel={cancelDialog}
+          onSelectFile={selectCanvasPage}
+          missingFilesHelpLink="TODO"
+          documentType="page"
+        />
+      );
+      break;
+
     case 'blackboardFile':
       dialog = (
         <LMSFilePicker
@@ -333,9 +359,20 @@ export default function ContentSelector({
             onClick={() => selectDialog('canvasFile')}
             title="Select PDF from Canvas"
           >
-            Canvas
+            Canvas File
           </OptionButton>
         )}
+        {canvasPagesEnabled && (
+          <OptionButton
+            data-testid="canvas-page-button"
+            details="Page"
+            onClick={() => selectDialog('canvasPage')}
+            title="Select a Page from Canvas"
+          >
+            Canvas Page
+          </OptionButton>
+        )}
+
         {blackboardFilesEnabled && (
           <OptionButton
             data-testid="blackboard-file-button"

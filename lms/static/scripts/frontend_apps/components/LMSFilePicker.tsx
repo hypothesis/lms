@@ -6,14 +6,14 @@ import {
 import classnames from 'classnames';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
-import type { File } from '../api-types';
+import type { File, Page } from '../api-types';
 import type { APICallInfo } from '../config';
 import { isAuthorizationError } from '../errors';
 import { apiCall } from '../utils/api';
 import AuthButton from './AuthButton';
 import Breadcrumbs from './Breadcrumbs';
+import DocumentList from './DocumentList';
 import ErrorDisplay from './ErrorDisplay';
-import FileList from './FileList';
 
 type NoFilesMessageProps = {
   /**
@@ -25,19 +25,30 @@ type NoFilesMessageProps = {
    * has the user navigated to a sub-folder?
    */
   inSubfolder: boolean;
+
+  documentType: 'file' | 'page';
 };
 
 /**
  * Renders a helpful message with a link to documentation when there are no
  * uploaded files.
  */
-function NoFilesMessage({ href, inSubfolder }: NoFilesMessageProps) {
+function NoFilesMessage({
+  href,
+  inSubfolder,
+  documentType,
+}: NoFilesMessageProps) {
   const documentContext = inSubfolder ? 'folder' : 'course';
+  const action =
+    documentType === 'file'
+      ? `Upload some files to the ${documentContext}`
+      : `Create some pages in the ${documentContext}`;
+
   return (
     <div>
-      There are no PDFs in this {documentContext}.{' '}
+      There are no {documentType}s in this {documentContext}.{' '}
       <a href={href} target="_blank" rel="noreferrer">
-        Upload some files to the {documentContext}
+        {action}
       </a>{' '}
       and try again.
     </div>
@@ -61,9 +72,9 @@ type LMSFilePickerProps = {
   onCancel: () => any;
 
   /**
-   * Callback invoked with the metadata of the selected file if the user makes a selection
+   * Callback invoked with the metadata of the selected document if the user makes a selection
    */
-  onSelectFile: (f: File) => void;
+  onSelectFile: (d: File | Page) => void;
 
   /**
    * A helpful URL to documentation that explains how to upload files to an LMS such as Canvas or Blackboard.
@@ -75,6 +86,12 @@ type LMSFilePickerProps = {
    * Render path breadcrumbs and allow sub-folder navigation?
    */
   withBreadcrumbs?: boolean;
+
+  /**
+   * The type of documents handled by the file picker, which can influence user-facing messages.
+   * Defaults to 'file'
+   */
+  documentType?: 'file' | 'page';
 };
 
 type FetchingState = {
@@ -142,6 +159,7 @@ export default function LMSFilePicker({
   onSelectFile,
   missingFilesHelpLink,
   withBreadcrumbs = false,
+  documentType = 'file',
 }: LMSFilePickerProps) {
   const [dialogState, setDialogState] = useState<LMSFilePickerState>({
     state: 'fetching',
@@ -285,10 +303,10 @@ export default function LMSFilePicker({
     if (!file) {
       return;
     }
-    if (!file.type || file.type === 'File') {
-      onSelectFile(file);
-    } else {
+    if (file.type === 'Folder') {
       onChangePath(file);
+    } else {
+      onSelectFile(file);
     }
   };
 
@@ -380,7 +398,7 @@ export default function LMSFilePicker({
         // This prevents the height of the modal changing as items are loaded.
         'h-[25rem]': withFileUI,
       })}
-      title="Select file"
+      title={`Select ${documentType}`}
       onClose={onCancel}
       size="lg"
       buttons={[
@@ -398,8 +416,8 @@ export default function LMSFilePicker({
             <span>Unable to authorize file access.</span>
           ) : (
             <span>
-              To select a file, you must authorize Hypothesis to access your
-              files.
+              To select a {documentType}, you must authorize Hypothesis to
+              access your {documentType}s.
             </span>
           )}
         </p>
@@ -407,7 +425,7 @@ export default function LMSFilePicker({
 
       {dialogState.state === 'error' && (
         <ErrorDisplay
-          description="There was a problem fetching files"
+          description={`There was a problem fetching ${documentType}s`}
           error={dialogState.error}
         />
       )}
@@ -421,16 +439,18 @@ export default function LMSFilePicker({
               renderItem={item => item.display_name}
             />
           )}
-          <FileList
-            files={dialogState.state === 'fetched' ? dialogState.files : []}
+          <DocumentList
+            title={`List of ${documentType}s`}
+            documents={dialogState.state === 'fetched' ? dialogState.files : []}
             isLoading={dialogState.state === 'fetching'}
-            selectedFile={selectedFile}
-            onUseFile={confirmSelectedItem}
-            onSelectFile={setSelectedFile}
-            noFilesMessage={
+            selectedDocument={selectedFile}
+            onUseDocument={confirmSelectedItem}
+            onSelectDocument={setSelectedFile}
+            noDocumentsMessage={
               <NoFilesMessage
                 href={missingFilesHelpLink}
                 inSubfolder={folderPath.length > 1}
+                documentType={documentType}
               />
             }
           />
