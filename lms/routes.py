@@ -116,10 +116,7 @@ def includeme(config):  # pylint:disable=too-many-statements
     config.add_route(
         "canvas_api.courses.pages.list", "/api/canvas/courses/{course_id}/pages"
     )
-    config.add_route(
-        "canvas_api.pages.via_url",
-        "/api/canvas/assignments/{resource_link_id}/pages/via_url",
-    )
+    config.add_route("canvas_api.pages.via_url", "/api/canvas/pages/via_url")
     config.add_route("canvas_api.pages.proxy", "/api/canvas/pages/proxy")
 
     # JSTOR article IDs need a custom pattern because they may contain a slash,

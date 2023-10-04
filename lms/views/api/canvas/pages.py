@@ -45,7 +45,7 @@ class PagesAPIViews:
         application_instance = self.request.lti_user.application_instance
         assignment = self.request.find_service(name="assignment").get_assignment(
             application_instance.tool_consumer_instance_guid,
-            self.request.matchdict["resource_link_id"],
+            self.request.lti_user.lti.assignment_id,
         )
 
         # We build a token to authorize the view that fetches the actual

@@ -261,7 +261,7 @@ class TestAddDocumentURL:
 
         assert js_config.asdict()["api"]["viaUrl"] == {
             "authUrl": "http://example.com/api/canvas/oauth/authorize",
-            "path": "/api/canvas/assignments/TEST_RESOURCE_LINK_ID/pages/via_url",
+            "path": "/api/canvas/pages/via_url",
         }
 
     def test_it_adds_the_viaUrl_api_config_for_D2L_documents(self, js_config):

@@ -75,10 +75,7 @@ class JSConfig:
         elif document_url.startswith("canvas://page"):
             self._config["api"]["viaUrl"] = {
                 "authUrl": self._request.route_url(Canvas.route.oauth2_authorize),
-                "path": self._request.route_path(
-                    "canvas_api.pages.via_url",
-                    resource_link_id=self._request.lti_params["resource_link_id"],
-                ),
+                "path": self._request.route_path("canvas_api.pages.via_url"),
             }
 
         elif document_url.startswith("d2l://"):
