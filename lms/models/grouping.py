@@ -177,19 +177,25 @@ class Course(Grouping):
         """Get this course's available group sets."""
         return self.extra.get("group_sets", [])
 
+    def _set_course_copy_mapped_key(self, key, old_id, new_id):
+        self.extra.setdefault(key, {})[old_id] = new_id
+
+    def _get_course_copy_mapped_key(self, key, id_):
+        return self.extra.get(key, {}).get(id_, id_)
+
     def get_mapped_file_id(self, file_id):
         """
         Get a previously mapped file id in a course.
 
         Returns the original `file_id` if no mapped one can be found.
         """
-        return self.extra.get("course_copy_file_mappings", {}).get(file_id, file_id)
+        return self._get_course_copy_mapped_key("course_copy_file_mappings", file_id)
 
     def set_mapped_file_id(self, old_file_id, new_file_id):
         """Store the mapping between old_file_id and new_file_id for future launches."""
-        self.extra.setdefault("course_copy_file_mappings", {})[
-            old_file_id
-        ] = new_file_id
+        self._set_course_copy_mapped_key(
+            "course_copy_file_mappings", old_file_id, new_file_id
+        )
 
     def get_mapped_group_set_id(self, group_set_id):
         """
@@ -197,15 +203,15 @@ class Course(Grouping):
 
         Returns the given `group_set_id` if no mapped one can be found.
         """
-        return self.extra.get("course_copy_group_set_mappings", {}).get(
-            group_set_id, group_set_id
+        return self._get_course_copy_mapped_key(
+            "course_copy_group_set_mappings", group_set_id
         )
 
     def set_mapped_group_set_id(self, old_group_set_id, group_set_id):
         """Store a mapping between old_group set id and group_set_id for future launches."""
-        self.extra.setdefault("course_copy_group_set_mappings", {})[
-            old_group_set_id
-        ] = group_set_id
+        self._set_course_copy_mapped_key(
+            "course_copy_group_set_mappings", old_group_set_id, group_set_id
+        )
 
 
 class GroupingMembership(CreatedUpdatedMixin, BASE):
