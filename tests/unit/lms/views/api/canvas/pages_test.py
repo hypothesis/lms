@@ -39,15 +39,13 @@ class TestPageAPIViews:
         lti_user,
         BearerTokenSchema,
     ):
-        pyramid_request.matchdict["resource_link_id"] = sentinel.resource_link_id
         assignment_service.get_assignment.return_value.document_url = "DOCUMENT_URL"
         BearerTokenSchema.return_value.authorization_param.return_value = "TOKEN"
 
         response = PagesAPIViews(pyramid_request).via_url()
 
         assignment_service.get_assignment.assert_called_once_with(
-            application_instance.tool_consumer_instance_guid,
-            sentinel.resource_link_id,
+            application_instance.tool_consumer_instance_guid, lti_user.lti.assignment_id
         )
         BearerTokenSchema.assert_called_once_with(pyramid_request)
         BearerTokenSchema.return_value.authorization_param.assert_called_once_with(
