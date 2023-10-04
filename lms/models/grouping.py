@@ -177,11 +177,19 @@ class Course(Grouping):
         """Get this course's available group sets."""
         return self.extra.get("group_sets", [])
 
-    def _set_course_copy_mapped_key(self, key, old_id, new_id):
-        self.extra.setdefault(key, {})[old_id] = new_id
+    def get_mapped_page_id(self, page_id):
+        """
+        Get a previously mapped page id in a course.
 
-    def _get_course_copy_mapped_key(self, key, id_):
-        return self.extra.get(key, {}).get(id_, id_)
+        Returns the original `page_id` if no mapped one can be found.
+        """
+        return self._get_course_copy_mapped_key("course_copy_page_mappings", page_id)
+
+    def set_mapped_page_id(self, old_page_id, new_page_id):
+        """Store the mapping between old_page and new_page_id for future launches."""
+        self._set_course_copy_mapped_key(
+            "course_copy_page_mappings", old_page_id, new_page_id
+        )
 
     def get_mapped_file_id(self, file_id):
         """
@@ -212,6 +220,12 @@ class Course(Grouping):
         self._set_course_copy_mapped_key(
             "course_copy_group_set_mappings", old_group_set_id, group_set_id
         )
+
+    def _set_course_copy_mapped_key(self, key, old_id, new_id):
+        self.extra.setdefault(key, {})[old_id] = new_id
+
+    def _get_course_copy_mapped_key(self, key, id_):
+        return self.extra.get(key, {}).get(id_, id_)
 
 
 class GroupingMembership(CreatedUpdatedMixin, BASE):
