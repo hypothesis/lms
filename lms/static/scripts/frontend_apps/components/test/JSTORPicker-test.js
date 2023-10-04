@@ -185,25 +185,28 @@ describe('JSTORPicker', () => {
       );
     });
 
-    it('confirms the validated URL if "Enter" is pressed subsequently', () => {
+    it('confirms the validated URL if "Enter" is pressed subsequently', async () => {
       const onSelectURL = sinon.stub();
       const wrapper = renderJSTORPicker({ onSelectURL });
-      const input = getInput(wrapper);
-      const keyEvent = new Event('keydown');
-      keyEvent.key = 'Enter';
+      const input = getInput(wrapper).getDOMNode();
+      const keyEvent = new KeyboardEvent('keydown', { key: 'Enter' });
 
       setURL(wrapper, 'https://www.jstor.org/stable/1234');
 
       // First enter press will validate URL
       interact(wrapper, () => {
-        input.getDOMNode().dispatchEvent(keyEvent);
+        input.dispatchEvent(keyEvent);
       });
       assert.calledOnce(fakeArticleIdFromUserInput);
 
       simulateMetadataFetch(wrapper, 'test title');
 
+      const waitForKeyDown = new Promise(resolve =>
+        input.addEventListener('keydown', resolve)
+      );
       // Enter will submit if terms are checked and there is valid metadata fetched
-      input.getDOMNode().dispatchEvent(keyEvent);
+      input.dispatchEvent(keyEvent);
+      await waitForKeyDown;
 
       assert.calledOnce(onSelectURL);
       assert.calledWith(onSelectURL, 'jstor://1234');
