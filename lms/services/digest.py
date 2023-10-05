@@ -3,11 +3,12 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from typing import Optional, Tuple
 
-from sqlalchemy import distinct, func, or_, select
+from sqlalchemy import distinct, func, or_, select, tuple_
 from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.orm import aliased
 
 from lms.models import (
+    Assignment,
     AssignmentGrouping,
     AssignmentMembership,
     Course,
@@ -87,6 +88,17 @@ class DigestService:
             )
 
 
+@dataclass(frozen=True, order=True)
+class AssignmentInfo:
+    """Information about an assignment."""
+
+    id: int
+    tool_consumer_instance_guid: str
+    resource_link_id: str
+    title: str
+    authority_provided_id: str
+
+
 @dataclass(frozen=True)
 class UnifiedUser:
     """All User's for a given h_userid, unified across all ApplicationInstance's."""
@@ -113,8 +125,9 @@ class DigestContext:
         self._db = db
         self.audience = audience
         self.annotations = annotations
-        self._unified_users = None
-        self._unified_courses = None
+        self._assignment_infos = None
+        self._user_infos = None
+        self._course_infos = None
 
     def instructor_digest(self, h_userid):
         """
@@ -138,6 +151,37 @@ class DigestContext:
                 # The user isn't an instructor in this course.
                 continue
 
+            course_assignments = []
+
+            for assignment_info in self.assignment_infos:
+                if (
+                    assignment_info.authority_provided_id
+                    != course_info.authority_provided_id
+                ):
+                    continue
+
+                assignment_learner_annotations = [
+                    annotation
+                    for annotation in unified_course.learner_annotations
+                    if annotation["assignment"]["tool_consumer_instance_guid"]
+                    == assignment_info.tool_consumer_instance_guid
+                    and annotation["assignment"]["resource_link_id"]
+                    == assignment_info.resource_link_id
+                ]
+
+                course_assignments.append(
+                    {
+                        "title": assignment_info.title,
+                        "num_annotations": len(assignment_learner_annotations),
+                        "annotators": list(
+                            set(
+                                annotation["author"]["userid"]
+                                for annotation in assignment_learner_annotations
+                            )
+                        ),
+                    }
+                )
+
             course_digests.append(
                 {
                     "title": unified_course.title,
@@ -148,6 +192,7 @@ class DigestContext:
                             for annotation in unified_course.learner_annotations
                         )
                     ),
+                    "assignments": course_assignments,
                 }
             )
 
@@ -164,6 +209,48 @@ class DigestContext:
             ),
             "courses": course_digests,
         }
+
+    @property
+    def assignment_infos(self):
+        """Return the list of Assignment's for all the assignment IDs in self.annotations."""
+        if self._assignment_infos is None:
+            self._assignment_infos = [
+                AssignmentInfo(
+                    row.id,
+                    row.tool_consumer_instance_guid,
+                    row.resource_link_id,
+                    row.title,
+                    row.authority_provided_id,
+                )
+                for row in self._db.execute(
+                    select(
+                        Assignment.id,
+                        Assignment.tool_consumer_instance_guid,
+                        Assignment.resource_link_id,
+                        Assignment.title,
+                        Course.authority_provided_id,
+                    ).where(
+                        tuple_(
+                            Assignment.tool_consumer_instance_guid,
+                            Assignment.resource_link_id,
+                        ).in_(
+                            [
+                                (
+                                    annotation["assignment"][
+                                        "tool_consumer_instance_guid"
+                                    ],
+                                    annotation["assignment"]["resource_link_id"],
+                                )
+                                for annotation in self.annotations
+                            ]
+                        ),
+                        AssignmentGrouping.assignment_id == Assignment.id,
+                        AssignmentGrouping.grouping_id == Course.id,
+                    )
+                ).all()
+            ]
+
+        return self._assignment_infos
 
     @property
     def unified_users(self):

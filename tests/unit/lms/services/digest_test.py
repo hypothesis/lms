@@ -8,6 +8,7 @@ from freezegun import freeze_time
 from h_matchers import Any
 
 from lms.services.digest import (
+    AssignmentInfo,
     DigestContext,
     DigestService,
     UnifiedCourse,
@@ -179,7 +180,11 @@ class TestDigestContext:
                 userid=learner_1.h_userid,
             ),
         ]
+        assignment = factories.Assignment(
+            title="Test Assignment Title", **annotations[0]["assignment"]
+        )
         context = DigestContext(db_session, [instructor.h_userid], annotations)
+        factories.AssignmentGrouping(assignment=assignment, grouping=courses[0])
 
         digest = context.instructor_digest(instructor.h_userid)
 
@@ -196,11 +201,19 @@ class TestDigestContext:
                             [learner_1.h_userid, learner_2.h_userid]
                         ).only(),
                         "num_annotations": 2,
+                        "assignments": [
+                            {
+                                "annotators": [learner_1.h_userid],
+                                "num_annotations": 1,
+                                "title": "Test Assignment Title",
+                            }
+                        ],
                     },
                     {
                         "title": courses[1].lms_name,
                         "annotators": [learner_1.h_userid],
                         "num_annotations": 2,
+                        "assignments": [],
                     },
                 ]
             ).only(),
@@ -241,6 +254,46 @@ class TestDigestContext:
         digest = context.instructor_digest(instructor.h_userid)
 
         assert digest == {"total_annotations": 0, "annotators": [], "courses": []}
+
+    def test_assignment_infos(self, db_session):
+        annotations = Annotation.create_batch(size=2)
+        assignments = [
+            factories.Assignment(
+                tool_consumer_instance_guid=annotation["assignment"][
+                    "tool_consumer_instance_guid"
+                ],
+                resource_link_id=annotation["assignment"]["resource_link_id"],
+            )
+            for annotation in annotations
+        ]
+        courses = factories.Course.create_batch(size=2)
+        for assignment, course in zip(assignments, courses):
+            factories.AssignmentGrouping(assignment=assignment, grouping=course)
+        context = DigestContext(db_session, sentinel.audience, annotations)
+
+        assignment_infos = context.assignment_infos
+
+        assert sorted(assignment_infos) == sorted(
+            [
+                AssignmentInfo(
+                    assignment.id,
+                    assignment.tool_consumer_instance_guid,
+                    assignment.resource_link_id,
+                    assignment.title,
+                    course.authority_provided_id,
+                )
+                for assignment, course in zip(assignments, courses)
+            ]
+        )
+
+    def test_assignment_infos_when_an_annotation_has_no_matching_assignment(
+        self, db_session
+    ):
+        context = DigestContext(db_session, sentinel.audience, [Annotation()])
+
+        assignment_infos = context.assignment_infos
+
+        assert assignment_infos == []
 
     def test_unified_users(self, db_session):
         audience = factories.User.create_batch(2)
@@ -613,11 +666,11 @@ class Annotation(factory.Factory):
     A factory for annotation dicts.
 
     >>> Annotation()
-    {'author': {'userid': 'acct:user_1@lms.hypothes.is'}, 'group': {'authority_provided_id': 'group_1'}}
+    {'author': {'userid': 'acct:user_1@lms.hypothes.is'}, 'group': ...}
     >>> Annotation(userid='acct:custom_username@lms.hypothes.is')
-    {'author': {'userid': 'acct:custom_username@lms.hypothes.is'}, 'group': {'authority_provided_id': 'group_2'}}
+    {'author': {'userid': 'acct:custom_username@lms.hypothes.is'}, 'group': ...}
     >>> Annotation(authority_provided_id='custom_id')
-    {'author': {'userid': 'acct:user_2@lms.hypothes.is'}, 'group': {'authority_provided_id': 'custom_id'}}
+    {'author': {'userid': 'acct:user_2@lms.hypothes.is'}, 'group': ...}
     """
 
     class Meta:
@@ -625,12 +678,20 @@ class Annotation(factory.Factory):
 
     userid = factory.Sequence(lambda n: f"acct:user_{n}@lms.hypothes.is")
     authority_provided_id = factory.Sequence(lambda n: f"group_{n}")
+    tool_consumer_instance_guid = factory.Sequence(
+        lambda n: f"tool_consumer_instance_guid_{n}"
+    )
+    resource_link_id = factory.Sequence(lambda n: f"resource_link_id{n}")
 
     @factory.post_generation
     def post(obj, *_args, **_kwargs):  # pylint:disable=no-self-argument
         # pylint:disable=unsupported-assignment-operation,no-member
         obj["author"] = {"userid": obj.pop("userid")}
         obj["group"] = {"authority_provided_id": obj.pop("authority_provided_id")}
+        obj["assignment"] = {
+            "tool_consumer_instance_guid": obj.pop("tool_consumer_instance_guid"),
+            "resource_link_id": obj.pop("resource_link_id"),
+        }
         return obj
 
 
