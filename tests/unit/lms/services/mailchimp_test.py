@@ -33,7 +33,7 @@ class TestSend:
                     "annotators": [sentinel.annotator_1, sentinel.annotator_2],
                     "courses": [CourseDict(), CourseDict()],
                 },
-                "Hypothesis: 2 annotations from 2 students in 2 courses",
+                "Hypothesis: 2 new annotations from 2 students in 2 courses",
             ),
             (
                 "lms:templates/email/instructor_email_digest/",
@@ -42,7 +42,7 @@ class TestSend:
                     "annotators": [sentinel.annotator_1, sentinel.annotator_2],
                     "courses": [CourseDict()],
                 },
-                "Hypothesis: 2 annotations from 2 students in 1 course",
+                "Hypothesis: 2 new annotations from 2 students in 1 course",
             ),
             (
                 "lms:templates/email/instructor_email_digest/",
@@ -51,7 +51,7 @@ class TestSend:
                     "annotators": [sentinel.annotator_1],
                     "courses": [CourseDict(), CourseDict()],
                 },
-                "Hypothesis: 2 annotations from 1 student in 2 courses",
+                "Hypothesis: 2 new annotations from 1 student in 2 courses",
             ),
             (
                 "lms:templates/email/instructor_email_digest/",
@@ -60,7 +60,7 @@ class TestSend:
                     "annotators": [sentinel.annotator_1],
                     "courses": [CourseDict()],
                 },
-                "Hypothesis: 2 annotations from 1 student in 1 course",
+                "Hypothesis: 2 new annotations from 1 student in 1 course",
             ),
             (
                 "lms:templates/email/instructor_email_digest/",
@@ -69,7 +69,7 @@ class TestSend:
                     "annotators": [sentinel.annotator_1],
                     "courses": [CourseDict()],
                 },
-                "Hypothesis: one of your students made an annotation",
+                "Hypothesis: one of your students made a new annotation",
             ),
         ],
     )

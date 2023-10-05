@@ -9,6 +9,7 @@ from h_matchers import Any
 
 from lms.services.digest import (
     Annotation,
+    AssignmentInfo,
     CourseInfo,
     DigestContext,
     DigestService,
@@ -53,6 +54,10 @@ class TestDigestService:
                     userid=annotation_dict["author"]["userid"],
                     authority_provided_id=annotation_dict["group"][
                         "authority_provided_id"
+                    ],
+                    guid=annotation_dict["metadata"]["lms"]["guid"],
+                    resource_link_id=annotation_dict["metadata"]["lms"]["assignment"][
+                        "resource_link_id"
                     ],
                 )
                 for annotation_dict in h_api.get_annotations.return_value
@@ -136,6 +141,26 @@ class TestDigestService:
             send.delay.call_args[1]["recipient"]["email"] == sentinel.override_to_email
         )
 
+    def test_send_instructor_email_digests_handles_annotations_with_no_metadata(
+        self, svc, h_api, DigestContext
+    ):
+        for annotation_dict in h_api.get_annotations.return_value:
+            del annotation_dict["metadata"]["lms"]
+
+        svc.send_instructor_email_digests(
+            [sentinel.h_userid], sentinel.created_after, sentinel.created_before
+        )
+
+        assert DigestContext.call_args[0][2] == [
+            Annotation(
+                userid=annotation_dict["author"]["userid"],
+                authority_provided_id=annotation_dict["group"]["authority_provided_id"],
+                guid=None,
+                resource_link_id=None,
+            )
+            for annotation_dict in h_api.get_annotations.return_value
+        ]
+
     @pytest.fixture(autouse=True)
     def DigestContext(self, patch):
         return patch("lms.services.digest.DigestContext")
@@ -158,6 +183,14 @@ class TestDigestService:
                 },
                 "group": {
                     "authority_provided_id": annotation.authority_provided_id,
+                },
+                "metadata": {
+                    "lms": {
+                        "guid": annotation.guid,
+                        "assignment": {
+                            "resource_link_id": annotation.resource_link_id,
+                        },
+                    },
                 },
             }
 
@@ -202,7 +235,13 @@ class TestDigestContext:
                 userid=learner_1.h_userid,
             ),
         ]
+        assignment = factories.Assignment(
+            title="Test Assignment Title",
+            tool_consumer_instance_guid=annotations[0].guid,
+            resource_link_id=annotations[0].resource_link_id,
+        )
         context = DigestContext(db_session, [instructor.h_userid], annotations)
+        factories.AssignmentGrouping(assignment=assignment, grouping=courses[0])
 
         digest = context.instructor_digest(instructor.h_userid)
 
@@ -219,11 +258,19 @@ class TestDigestContext:
                             [learner_1.h_userid, learner_2.h_userid]
                         ).only(),
                         "num_annotations": 2,
+                        "assignments": [
+                            {
+                                "annotators": [learner_1.h_userid],
+                                "num_annotations": 1,
+                                "title": assignment.title,
+                            }
+                        ],
                     },
                     {
                         "title": courses[1].lms_name,
                         "annotators": [learner_1.h_userid],
                         "num_annotations": 2,
+                        "assignments": [],
                     },
                 ]
             ).only(),
@@ -264,6 +311,61 @@ class TestDigestContext:
         digest = context.instructor_digest(instructor.h_userid)
 
         assert digest == {"total_annotations": 0, "annotators": [], "courses": []}
+
+    def test_assignment_infos(self, db_session):
+        annotations = AnnotationFactory.create_batch(size=2)
+        assignments = [
+            factories.Assignment(
+                tool_consumer_instance_guid=annotation.guid,
+                resource_link_id=annotation.resource_link_id,
+            )
+            for annotation in annotations
+        ]
+        courses = factories.Course.create_batch(size=2)
+        for assignment, course in zip(assignments, courses):
+            factories.AssignmentGrouping(assignment=assignment, grouping=course)
+        context = DigestContext(db_session, sentinel.audience, annotations)
+
+        assignment_infos = context.assignment_infos
+
+        assert sorted(assignment_infos) == sorted(
+            [
+                AssignmentInfo(
+                    assignment.id,
+                    assignment.tool_consumer_instance_guid,
+                    assignment.resource_link_id,
+                    assignment.title,
+                    course.authority_provided_id,
+                )
+                for assignment, course in zip(assignments, courses)
+            ]
+        )
+
+    def test_assignment_infos_when_an_annotation_has_no_matching_assignment(
+        self, db_session
+    ):
+        context = DigestContext(db_session, sentinel.audience, [AnnotationFactory()])
+
+        assignment_infos = context.assignment_infos
+
+        assert assignment_infos == []
+
+    def test_assignment_infos_doesnt_return_assignments_with_no_titles(
+        self, db_session
+    ):
+        annotation = AnnotationFactory()
+        assignment = factories.Assignment(
+            tool_consumer_instance_guid=annotation.guid,
+            resource_link_id=annotation.resource_link_id,
+            title=None,
+        )
+        course = factories.Course()
+        factories.AssignmentGrouping(assignment=assignment, grouping=course)
+        context = DigestContext(db_session, sentinel.audience, [annotation])
+
+        assignment_infos = context.assignment_infos
+
+        assert assignment_infos == []
 
     def test_user_infos(self, db_session):
         audience = factories.User.create_batch(2)
@@ -634,11 +736,11 @@ class AnnotationFactory(factory.Factory):
     A factory for annotation dicts.
 
     >>> Annotation()
-    {'author': {'userid': 'acct:user_1@lms.hypothes.is'}, 'group': {'authority_provided_id': 'group_1'}}
+    {'author': {'userid': 'acct:user_1@lms.hypothes.is'}, 'group': ...}
     >>> Annotation(userid='acct:custom_username@lms.hypothes.is')
-    {'author': {'userid': 'acct:custom_username@lms.hypothes.is'}, 'group': {'authority_provided_id': 'group_2'}}
+    {'author': {'userid': 'acct:custom_username@lms.hypothes.is'}, 'group': ...}
     >>> Annotation(authority_provided_id='custom_id')
-    {'author': {'userid': 'acct:user_2@lms.hypothes.is'}, 'group': {'authority_provided_id': 'custom_id'}}
+    {'author': {'userid': 'acct:user_2@lms.hypothes.is'}, 'group': ...}
     """
 
     class Meta:
@@ -646,6 +748,8 @@ class AnnotationFactory(factory.Factory):
 
     userid = factory.Sequence(lambda n: f"acct:user_{n}@lms.hypothes.is")
     authority_provided_id = factory.Sequence(lambda n: f"group_{n}")
+    guid = factory.Sequence(lambda n: f"guid_{n}")
+    resource_link_id = factory.Sequence(lambda n: f"resource_link_id{n}")
 
 
 class UserInfoFactory(factory.Factory):
