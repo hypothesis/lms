@@ -97,16 +97,36 @@ INSTRUCTOR_EMAIL_DIGEST_TEMPLATE_VARS = {
             "title": "History of Jazz Music",
             "annotators": [f"learner{i}" for i in range(10)],
             "num_annotations": 67,
+            "assignments": [
+                {
+                    "title": "First Assignment",
+                    "annotators": [f"learner{i}" for i in range(5)],
+                    "num_annotations": 33,
+                },
+                {
+                    "title": "Second Assignment",
+                    "annotators": [f"learner{i}" for i in range(5, 10)],
+                    "num_annotations": 34,
+                },
+            ],
         },
         {
             "title": "Making Sociology Fun",
             "annotators": ["learner01", "learner02"],
             "num_annotations": 10,
+            "assignments": [
+                {
+                    "title": "Assignment A",
+                    "annotators": ["learner01", "learner02"],
+                    "num_annotations": 10,
+                },
+            ],
         },
         {
             "title": "Amusement Park Engineering",
             "annotators": [f"learner{i}" for i in range(32)],
             "num_annotations": 101,
+            "assignments": [],
         },
     ],
 }

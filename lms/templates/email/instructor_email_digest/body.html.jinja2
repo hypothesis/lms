@@ -16,7 +16,8 @@
     <title>There has been some activity in Hypothesis</title>
     <style type="text/css">
  p{
-     margin:10px 0;
+     margin:0;
+     margin-bottom: 20px;
      padding:0;
 }
  table{
@@ -625,34 +626,50 @@
                                                           <p>Hi,</p>
 
                                                           <p>
-                                                            {% if total_annotations == 1 %}
-                                                              One of your students made an annotation in an assignment yesterday.
-                                                            {% else %}
-                                                              Your students made {{ total_annotations }} annotations in assignments
-                                                              yesterday.
-                                                            {% endif %}
-                                                              Let your students know about the activity to encourage the ongoing
-                                                              conversation.
+                                                            {% if total_annotations > 1 and annotators|length > 1 and courses|length > 1 -%}
+                                                              {{ annotators|length}} of your students made {{ total_annotations }} new annotations in {{ courses|length }} courses.
+                                                            {%- elif annotators|length > 1 -%}
+                                                              {{ annotators|length}} of your students made {{ total_annotations }} new annotations.
+                                                            {%- elif courses|length > 1 -%}
+                                                              One of your students made {{ total_annotations }} new annotations in {{ courses|length }} courses.
+                                                            {%- elif total_annotations > 1 -%}
+                                                              One of your students made {{ total_annotations }} new annotations.
+                                                            {%- else -%}
+                                                              One of your students made a new annotation.
+                                                            {%- endif %}
+                                                          </p>
+
+                                                          {% for course in courses %}
+                                                            <h3>{{ course.title }}</h3>
+                                                            <p>
+                                                              {% if course.num_annotations > 1 and course.annotators|length > 1 %}
+                                                                {{ course.annotators|length }} students made {{ course.num_annotations }} new annotations in this course.
+                                                              {% elif course.num_annotations > 1 %}
+                                                                1 student made {{ course.num_annotations }} new annotations in this course.
+                                                              {% else %}
+                                                                A student made a new annotation in this course.
+                                                              {% endif %}
+                                                              {% if course.assignments|length > 0 %}
+                                                                {% for assignment in course.assignments %}
+                                                                  <br/>
+                                                                  <strong>{{ assignment.title }}</strong>
+                                                                  <br/>
+                                                                 {% if assignment.num_annotations > 1 and assignment.annotators|length > 1 %}
+                                                                   {{ assignment.annotators|length }} students made {{ assignment.num_annotations }} new annotations in this assignment.
+                                                                 {% elif assignment.num_annotations > 1 %}
+                                                                   1 student made {{ assignment.num_annotations }} new annotations in this assignment.
+                                                                 {% else %}
+                                                                   A student made a new annotation in this assignment.
+                                                                 {% endif %}
+                                                                {% endfor %}
+                                                              {% endif %}
                                                             </p>
+                                                          {% endfor %}
 
-                                                            {% for course in courses %}
-                                                              <p>
-                                                                <strong>{{ course.title }}</strong><br>
-                                                                {% if course.num_annotations > 1 and course.annotators|length > 1 %}
-                                                                  {{ course.annotators|length }} students made
-                                                                  {{ course.num_annotations }} annotations in assignments.
-                                                                {% elif course.num_annotations > 1 %}
-                                                                  1 student made {{ course.num_annotations }} annotations in assignments.
-                                                                {% else %}
-                                                                  A student made an annotation in an assignment.
-                                                                {% endif %}
-                                                              </p>
-                                                            {% endfor %}
-
-                                                            <p><b>We'd love your feedback so we can continue to make improvements
-                                                            to our product. <a href="https://survey.hsforms.com/1pY2LBb_hR9aJMgo9jS0mVQ3quew">Take our survey</a>
-                                                            to tell us what you think of these new daily emails for
-                                                            instructors.</b></p>
+                                                          <p><b>We'd love your feedback so we can continue to make improvements
+                                                          to our product. <a href="https://survey.hsforms.com/1pY2LBb_hR9aJMgo9jS0mVQ3quew">Take our survey</a>
+                                                          to tell us what you think of these new daily emails for
+                                                          instructors.</b></p>
 
                                                         </td>
                                                       </tr>

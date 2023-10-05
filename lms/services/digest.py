@@ -3,11 +3,12 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from typing import Optional, Tuple
 
-from sqlalchemy import distinct, func, or_, select
+from sqlalchemy import distinct, func, or_, select, tuple_
 from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.orm import aliased
 
 from lms.models import (
+    Assignment,
     AssignmentGrouping,
     AssignmentMembership,
     Course,
@@ -87,22 +88,48 @@ class DigestService:
             )
 
 
+@dataclass(frozen=True, order=True)
+class AssignmentInfo:
+    """Information about an assignment."""
+
+    id: int
+    guid: str
+    resource_link_id: str
+    title: str
+    authority_provided_id: str
+
+
 @dataclass(frozen=True)
 class Annotation:
     """Info about an annotation from the h API."""
 
     userid: str
     authority_provided_id: str
+    guid: str
+    resource_link_id: str
 
     @classmethod
     def make(cls, annotation_dict):
         """Make an Annotation from an annotation dict from the h bulk annotation API."""
         userid = annotation_dict["author"]["userid"]
         authority_provided_id = annotation_dict["group"]["authority_provided_id"]
+        metadata = annotation_dict["metadata"]
+
+        try:
+            guid = metadata["lms"]["guid"]
+        except (KeyError, TypeError):
+            guid = None
+
+        try:
+            resource_link_id = metadata["lms"]["assignment"]["resource_link_id"]
+        except (KeyError, TypeError):
+            resource_link_id = None
 
         return cls(
             userid=userid,
             authority_provided_id=authority_provided_id,
+            guid=guid,
+            resource_link_id=resource_link_id,
         )
 
 
@@ -132,6 +159,7 @@ class DigestContext:
         self._db = db
         self.audience = audience
         self.annotations = annotations
+        self._assignment_infos = None
         self._user_infos = None
         self._course_infos = None
 
@@ -157,6 +185,35 @@ class DigestContext:
                 # The user isn't an instructor in this course.
                 continue
 
+            course_assignments = []
+
+            for assignment_info in self.assignment_infos:
+                if (
+                    assignment_info.authority_provided_id
+                    != course_info.authority_provided_id
+                ):
+                    continue
+
+                assignment_learner_annotations = [
+                    annotation
+                    for annotation in course_info.learner_annotations
+                    if annotation.guid == assignment_info.guid
+                    and annotation.resource_link_id == assignment_info.resource_link_id
+                ]
+
+                course_assignments.append(
+                    {
+                        "title": assignment_info.title,
+                        "num_annotations": len(assignment_learner_annotations),
+                        "annotators": list(
+                            set(
+                                annotation.userid
+                                for annotation in assignment_learner_annotations
+                            )
+                        ),
+                    }
+                )
+
             course_digests.append(
                 {
                     "title": course_info.title,
@@ -167,6 +224,7 @@ class DigestContext:
                             for annotation in course_info.learner_annotations
                         )
                     ),
+                    "assignments": course_assignments,
                 }
             )
 
@@ -183,6 +241,46 @@ class DigestContext:
             ),
             "courses": course_digests,
         }
+
+    @property
+    def assignment_infos(self):
+        """Return the list of AssignmentInfo's for all the assignment IDs in self.annotations."""
+        if self._assignment_infos is None:
+            self._assignment_infos = [
+                AssignmentInfo(
+                    row.id,
+                    row.tool_consumer_instance_guid,
+                    row.resource_link_id,
+                    row.title,
+                    row.authority_provided_id,
+                )
+                for row in self._db.execute(
+                    select(
+                        Assignment.id,
+                        Assignment.tool_consumer_instance_guid,
+                        Assignment.resource_link_id,
+                        Assignment.title,
+                        Course.authority_provided_id,
+                    ).where(
+                        tuple_(
+                            Assignment.tool_consumer_instance_guid,
+                            Assignment.resource_link_id,
+                        ).in_(
+                            [
+                                (annotation.guid, annotation.resource_link_id)
+                                for annotation in self.annotations
+                                if annotation.guid is not None
+                                and annotation.resource_link_id is not None
+                            ]
+                        ),
+                        AssignmentGrouping.assignment_id == Assignment.id,
+                        AssignmentGrouping.grouping_id == Course.id,
+                        Assignment.title.is_not(None),
+                    )
+                ).all()
+            ]
+
+        return self._assignment_infos
 
     @property
     def user_infos(self):

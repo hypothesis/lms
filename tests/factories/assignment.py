@@ -1,4 +1,4 @@
-from factory import Faker, make_factory
+from factory import Faker, Sequence, make_factory
 from factory.alchemy import SQLAlchemyModelFactory
 
 from lms import models
@@ -11,4 +11,5 @@ Assignment = make_factory(
     tool_consumer_instance_guid=TOOL_CONSUMER_INSTANCE_GUID,
     document_url=Faker("uri"),
     extra={},
+    title=Sequence(lambda n: f"Assignment {n}"),
 )
