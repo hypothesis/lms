@@ -29,7 +29,7 @@ class PagesAPIViews:
             This exception is caught and handled by an exception view.
         """
         course_id = self.request.matchdict["course_id"]
-        return [
+        pages = [
             {
                 "id": f"canvas://page/course/{course_id}/page_id/{page.id}",
                 "lms_id": page.id,
@@ -39,6 +39,7 @@ class PagesAPIViews:
             }
             for page in self.canvas.api.pages.list(course_id)
         ]
+        return sorted(pages, key=lambda page: page["display_name"].lower())
 
     @view_config(request_method="GET", route_name="canvas_api.pages.via_url")
     def via_url(self):

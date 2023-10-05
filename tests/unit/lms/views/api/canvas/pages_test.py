@@ -1,3 +1,4 @@
+import random
 from unittest.mock import sentinel
 
 import pytest
@@ -18,16 +19,19 @@ class TestPageAPIViews:
 
         result = PagesAPIViews(pyramid_request).list_pages()
 
-        assert result == [
-            {
-                "id": f"canvas://page/course/{course_id}/page_id/{page.id}",
-                "lms_id": page.id,
-                "display_name": page.title,
-                "type": "Page",
-                "updated_at": page.updated_at,
-            }
-            for page in pages
-        ]
+        assert result == sorted(
+            [
+                {
+                    "id": f"canvas://page/course/{course_id}/page_id/{page.id}",
+                    "lms_id": page.id,
+                    "display_name": page.title,
+                    "type": "Page",
+                    "updated_at": page.updated_at,
+                }
+                for page in pages
+            ],
+            key=lambda p: p["display_name"].lower(),
+        )
         canvas_service.api.pages.list.assert_called_once_with(course_id)
 
     def test_via_url(
@@ -81,10 +85,12 @@ class TestPageAPIViews:
 
     @pytest.fixture
     def pages(self):
-        return [
+        pages = [
             CanvasPage(id=i, title=f"title {i}", updated_at=f"updated {i}")
             for i in range(5)
         ]
+        random.shuffle(pages)
+        return pages
 
     @pytest.fixture
     def helpers(self, patch):
