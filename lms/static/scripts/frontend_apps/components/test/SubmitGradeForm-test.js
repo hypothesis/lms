@@ -1,8 +1,11 @@
+import {
+  checkAccessibility,
+  mockImportedComponents,
+  waitFor,
+  waitForElement,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import { checkAccessibility } from '../../../test-util/accessibility';
-import mockImportedComponents from '../../../test-util/mock-imported-components';
-import { waitFor, waitForElement } from '../../../test-util/wait';
 import { GradingService, withServices } from '../../services';
 import SubmitGradeForm, { $imports } from '../SubmitGradeForm';
 

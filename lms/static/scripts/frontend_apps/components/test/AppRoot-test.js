@@ -1,7 +1,9 @@
+import {
+  mockImportedComponents,
+  waitForElement,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import mockImportedComponents from '../../../test-util/mock-imported-components';
-import { waitForElement } from '../../../test-util/wait';
 import { useConfig } from '../../config';
 import { useService } from '../../services';
 import AppRoot, { $imports } from '../AppRoot';

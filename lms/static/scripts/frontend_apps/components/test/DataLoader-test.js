@@ -1,7 +1,7 @@
+import { waitForElement } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 import { useState } from 'preact/hooks';
 
-import { waitForElement } from '../../../test-util/wait';
 import DataLoader from '../DataLoader';
 
 async function fetchMessage() {

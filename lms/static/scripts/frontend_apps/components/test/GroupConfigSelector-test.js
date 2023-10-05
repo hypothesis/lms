@@ -1,8 +1,10 @@
+import {
+  mockImportedComponents,
+  waitForElement,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
-import mockImportedComponents from '../../../test-util/mock-imported-components';
-import { waitForElement } from '../../../test-util/wait';
 import { Config } from '../../config';
 import GroupConfigSelector, { $imports } from '../GroupConfigSelector';
 
