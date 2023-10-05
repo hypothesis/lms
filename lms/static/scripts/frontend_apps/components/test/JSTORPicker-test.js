@@ -1,8 +1,8 @@
+import { mockImportedComponents } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 import { useState } from 'preact/hooks';
 import { act } from 'preact/test-utils';
 
-import mockImportedComponents from '../../../test-util/mock-imported-components';
 import JSTORPicker, { $imports } from '../JSTORPicker';
 
 describe('JSTORPicker', () => {

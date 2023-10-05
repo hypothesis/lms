@@ -1,4 +1,5 @@
-import { delay } from '../../../test-util/wait';
+import { delay } from '@hypothesis/frontend-testing';
+
 import { PickerCanceledError } from '../../errors';
 import { OneDrivePickerClient, $imports } from '../onedrive-picker-client';
 

@@ -1873,6 +1873,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@hypothesis/frontend-testing@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@hypothesis/frontend-testing@npm:1.0.1"
+  dependencies:
+    axe-core: ^4.8.2
+    enzyme: ^3.11.0
+    preact: ^10.18.1
+  checksum: fafd09a34503262adaa52ccd31040ea6fd1c41e8ee947f38b2649ba5323c1618338964d4d10ba344df6571561f268249e0a91cb4390de420b9eada21de750d44
+  languageName: node
+  linkType: hard
+
 "@isaacs/cliui@npm:^8.0.2":
   version: 8.0.2
   resolution: "@isaacs/cliui@npm:8.0.2"
@@ -7376,6 +7387,7 @@ __metadata:
     "@babel/preset-typescript": ^7.23.0
     "@hypothesis/frontend-build": ^2.2.0
     "@hypothesis/frontend-shared": ^6.8.0
+    "@hypothesis/frontend-testing": ^1.0.1
     "@rollup/plugin-babel": ^6.0.3
     "@rollup/plugin-commonjs": ^25.0.4
     "@rollup/plugin-node-resolve": ^15.2.1
@@ -8891,7 +8903,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"preact@npm:10.18.1":
+"preact@npm:10.18.1, preact@npm:^10.18.1":
   version: 10.18.1
   resolution: "preact@npm:10.18.1"
   checksum: 691030149fdbd026cac7c07147756f48c6cb8cdea6a8af8c0f383e4c31f5bce48cdc751e4bccf8826560a0d2db77ada401c0308f2bcae2961d16972c26c95607

@@ -1,9 +1,12 @@
 /* eslint-disable new-cap */
+import {
+  delay,
+  waitFor,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
-import mockImportedComponents from '../../../test-util/mock-imported-components';
-import { delay, waitFor } from '../../../test-util/wait';
 import { Config } from '../../config';
 import { PickerCanceledError } from '../../errors';
 import ContentSelector, { $imports } from '../ContentSelector';
