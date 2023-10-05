@@ -792,18 +792,10 @@ describe('BasicLTILaunchApp', () => {
         // Error prompt should be present.
         assert.isTrue(wrapper.find('LaunchErrorDialog').exists());
         // Error prompt should also not go away after a short while (see issue #1826)
-        try {
-          await waitFor(() => {
-            wrapper.update();
-            if (!wrapper.exists('LaunchErrorDialog')) {
-              throw new Error();
-            }
-            return null;
-          }, 10);
-        } catch (e) {
-          if (!e.message) {
-            throw new Error('The dialog disappeared');
-          }
+        await delay(10);
+        wrapper.update();
+        if (!wrapper.exists('LaunchErrorDialog')) {
+          throw new Error('The dialog disappeared');
         }
       }
 
