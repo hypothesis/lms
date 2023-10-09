@@ -5,22 +5,29 @@
 import type { APICallInfo } from './config';
 
 /**
- * Object representing a file or folder resource in the LMS's file storage.
+ * Object representing a file, folder or document stored by the LMS
  */
-export type File = {
-  // FIXME - This ought to be present on all file objects.
-  type?: 'File' | 'Folder';
+export type Document = {
+  type?: 'File' | 'Folder' | 'Page';
 
-  /** Identifier for the resource within the LMS's file storage. */
+  /** Identifier for the document within the LMS. */
   id: string;
 
-  /** Name of the resource to present in the file picker. */
+  /** Name of the document to present in the document picker. */
   display_name: string;
 
   /** An ISO 8601 date string. */
   updated_at?: string;
+};
 
-  /** APICallInfo for fetching a folders's content. Only present if `type` is 'Folder'. */
+/**
+ * Object representing a file or folder in the LMS's file storage.
+ */
+export type File = Document & {
+  // FIXME - This ought to be present on all file objects.
+  type?: 'File' | 'Folder';
+
+  /** APICallInfo for fetching a folder's content. Only present if `type` is 'Folder'. */
   contents?: APICallInfo;
 
   /** Only present if `type` is 'Folder'. A folder may have a parent folder. */
@@ -28,6 +35,13 @@ export type File = {
 
   /** Applies only when `type` is 'Folder'. A folder may contain children (files and folders). */
   children?: File[];
+};
+
+/**
+ * Object representing Canvas pages or similar documents
+ */
+export type Page = Document & {
+  type: 'Page';
 };
 
 /**

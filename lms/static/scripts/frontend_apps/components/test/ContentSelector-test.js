@@ -43,9 +43,14 @@ describe('ContentSelector', () => {
         },
         canvas: {
           enabled: true,
+          pagesEnabled: true,
           listFiles: {
             authUrl: 'https://lms.anno.co/canvas/authorize',
             path: 'https://lms.anno.co/api/canvas/files',
+          },
+          listPages: {
+            authUrl: 'https://lms.anno.co/canvas/authorize',
+            path: 'https://lms.anno.co/api/canvas/pages',
           },
         },
         d2l: {
@@ -120,6 +125,7 @@ describe('ContentSelector', () => {
       [
         'url-button',
         'canvas-file-button',
+        'canvas-page-button',
         'blackboard-file-button',
         'd2l-file-button',
         'onedrive-button',
@@ -216,7 +222,7 @@ describe('ContentSelector', () => {
         files: () => fakeConfig.filePicker.d2l.listFiles,
       },
     ].forEach(test => {
-      it(`shows LMS file dialog when "Select PDF from ${test.name}" is clicked`, () => {
+      it(`shows LMS file dialog when "${test.name} file" is clicked`, () => {
         const wrapper = renderContentSelector();
 
         const btn = wrapper.find(`Button[data-testid="${test.buttonTestId}"]`);
@@ -293,6 +299,49 @@ describe('ContentSelector', () => {
           wrapper.find('LMSFilePicker').prop('missingFilesHelpLink'),
           test.missingFilesHelpLink
         );
+      });
+    });
+  });
+
+  describe('LMS page dialog', () => {
+    it('shows LMS file dialog when "Canvas page" is clicked', () => {
+      const wrapper = renderContentSelector();
+
+      const btn = wrapper.find(`Button[data-testid="canvas-page-button"]`);
+      interact(wrapper, () => {
+        btn.props().onClick();
+      });
+
+      const pagePicker = wrapper.find('LMSFilePicker');
+      assert.isTrue(pagePicker.exists());
+      assert.equal(pagePicker.prop('authToken'), fakeConfig.api.authToken);
+
+      assert.equal(
+        pagePicker.prop('listFilesApi'),
+        fakeConfig.filePicker.canvas.listPages
+      );
+
+      interact(wrapper, () => {
+        pagePicker.props().onCancel();
+      });
+    });
+
+    it('supports selecting a page from the page dialog', () => {
+      const onSelectContent = sinon.stub();
+      const wrapper = renderContentSelector({
+        defaultActiveDialog: 'canvasPage',
+        onSelectContent,
+      });
+
+      const picker = wrapper.find('LMSFilePicker');
+      interact(wrapper, () => {
+        picker.props().onSelectFile({ id: 123, display_name: 'Page title' });
+      });
+
+      assert.calledWith(onSelectContent, {
+        type: 'url',
+        url: 123,
+        name: 'Canvas page: Page title',
       });
     });
   });
