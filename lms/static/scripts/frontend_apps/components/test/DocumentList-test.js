@@ -42,7 +42,7 @@ describe('DocumentList', () => {
   [
     ['File', 'FilePdfFilledIcon'],
     ['Folder', 'FolderIcon'],
-    ['Page', 'FileCodeFilledIcon'],
+    ['Page', 'FileGenericIcon'],
   ].forEach(([type, expectedIcon]) => {
     it('renders documents with an icon, document name and date', () => {
       const wrapper = renderDocumentList({

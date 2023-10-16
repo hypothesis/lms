@@ -1,6 +1,6 @@
 import {
   DataTable,
-  FileCodeFilledIcon,
+  FileGenericIcon,
   FilePdfFilledIcon,
   FolderIcon,
   Scroll,
@@ -63,7 +63,7 @@ export default function DocumentList<DocumentType extends Document>({
             {document.type === 'Folder' ? (
               <FolderIcon className="w-5 h-5" />
             ) : document.type === 'Page' ? (
-              <FileCodeFilledIcon className="w-5 h-5" />
+              <FileGenericIcon className="w-5 h-5" />
             ) : (
               <FilePdfFilledIcon className="w-5 h-5" />
             )}
