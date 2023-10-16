@@ -11,10 +11,18 @@ CREATE SERVER "h_server" FOREIGN DATA WRAPPER postgres_fdw
         dbname '{{h_fdw.dbname}}'
 );
 
-DROP USER MAPPING IF EXISTS FOR "{{db_user}}" SERVER "h_server";
-CREATE USER MAPPING IF NOT EXISTS FOR "{{db_user}}"
-    SERVER "h_server"
-    OPTIONS (
-        user '{{h_fdw.user}}',
-        password '{{h_fdw.password}}' -- SECRET
-);
+
+{% macro map_fdw_users(users) %}
+    {% for user in users %}
+        DROP USER MAPPING IF EXISTS FOR "{{user}}" SERVER "h_server";
+        CREATE USER MAPPING IF NOT EXISTS FOR "{{user}}"
+            SERVER "h_server"
+            OPTIONS (
+                user '{{h_fdw.user}}',
+                password '{{h_fdw.password}}' -- SECRET
+        );
+    {% endfor %}
+{% endmacro %}
+
+
+{{ map_fdw_users(users=[db_user] + fdw_users) }}
