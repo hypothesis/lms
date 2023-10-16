@@ -1,12 +1,10 @@
 import copy
 import datetime
-import json
 import logging
 from functools import lru_cache
 
 import jwt
 import requests
-from jose import constants, jwe
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError, PyJWTError
 
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
@@ -25,9 +23,6 @@ class JWTService:
     This accounts for small clock differences between the server generating the
     JWT and us.
     """
-
-    JWE_ALGORITHM = constants.ALGORITHMS.DIR
-    JWE_ENCRYPTION = constants.ALGORITHMS.A128CBC_HS256
 
     def __init__(self, registration_service, rsa_key_service):
         self._registration_service = registration_service
@@ -143,16 +138,6 @@ class JWTService:
             algorithm="RS256",
             headers={"kid": key.kid},
         )
-
-    def encrypt_dict(self, secret, payload: dict) -> str:
-        """Encrypt a dictionary as a JWE."""
-
-        return jwe.encrypt(
-            json.dumps(payload),
-            secret,
-            algorithm=self.JWE_ALGORITHM,
-            encryption=self.JWE_ENCRYPTION,
-        ).decode("utf-8")
 
     @staticmethod
     @lru_cache
