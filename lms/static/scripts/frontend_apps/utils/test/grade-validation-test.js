@@ -1,41 +1,6 @@
-import { formatGrade, validateGrade } from '../grade-validation';
+import { formatGrade } from '../grade-validation';
 
 const MAX_POINTS = 10;
-
-describe('validateGrade', () => {
-  [
-    // Valid grade values
-    ['0', 0],
-    ['10', 1],
-    ['3', 3 / 10],
-    ['5', 5 / 10],
-    ['5.5', 55 / 100],
-
-    // Leading and trailing spaces
-    [' 1 ', 1 / 10],
-  ].forEach(([input, expected]) => {
-    it('returns parsed grade if valid', () => {
-      const result = validateGrade(input, MAX_POINTS);
-      assert.isTrue(result.valid);
-      assert.approximately(result.grade, expected, 1e-8 /* tolerance */);
-    });
-  });
-
-  [
-    ['', 'Grade must be a number between 0 and 10'],
-    ['foo', 'Grade must be a number between 0 and 10'],
-    ['2b', 'Grade must be a number between 0 and 10'],
-    ['-1', 'Grade must be between 0 and 10'],
-    ['20', 'Grade must be between 0 and 10'],
-  ].forEach(([input, error]) => {
-    it('returns error if validation fails', () => {
-      assert.deepEqual(validateGrade(input, MAX_POINTS), {
-        valid: false,
-        error,
-      });
-    });
-  });
-});
 
 describe('formatGrade', () => {
   [

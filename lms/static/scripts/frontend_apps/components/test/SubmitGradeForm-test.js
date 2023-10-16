@@ -5,6 +5,7 @@ import {
   waitForElement,
 } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
+import { act } from 'preact/test-utils';
 
 import { GradingService, withServices } from '../../services';
 import SubmitGradeForm, { $imports } from '../SubmitGradeForm';
@@ -24,10 +25,7 @@ describe('SubmitGradeForm', () => {
     LISOutcomeServiceUrl: '',
   };
 
-  const fakeGradingService = {
-    submitGrade: sinon.stub().resolves({}),
-    fetchGrade: sinon.stub().resolves({ currentScore: 1 }),
-  };
+  let fakeGradingService;
 
   const fakeUseWarnOnPageUnload = sinon.stub();
 
@@ -42,7 +40,6 @@ describe('SubmitGradeForm', () => {
     });
   };
 
-  const fakeValidateGrade = sinon.stub().returns({ valid: true, grade: 1.0 });
   const inputSelector = 'input[data-testid="grade-input"]';
 
   async function waitForGradeFetch(wrapper) {
@@ -61,17 +58,16 @@ describe('SubmitGradeForm', () => {
 
     // Reset the api grade stubs for each test because
     // some tests below will change these for specific cases.
-    fakeGradingService.submitGrade.resolves({});
-    fakeGradingService.fetchGrade.resolves({
-      currentScore: 1,
-      comment: 'Good job!',
-    });
+    fakeGradingService = fakeGradingService = {
+      submitGrade: sinon.stub().resolves({}),
+      fetchGrade: sinon.stub().resolves({
+        currentScore: 1,
+        comment: 'Good job!',
+      }),
+    };
 
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
-      '../utils/grade-validation': {
-        validateGrade: fakeValidateGrade,
-      },
       '../utils/use-warn-on-page-unload': {
         useWarnOnPageUnload: fakeUseWarnOnPageUnload,
       },
@@ -161,43 +157,25 @@ describe('SubmitGradeForm', () => {
     });
   });
 
-  context('validation messages', () => {
-    beforeEach(() => {
-      $imports.$mock({
-        '../utils/grade-validation': {
-          validateGrade: sinon.stub().returns({ valid: false, error: 'err' }),
-        },
-      });
+  // Enter a grade and submit the form.
+  function submitGrade(wrapper, gradeValue = 5) {
+    wrapper.find('input[data-testid="grade-input"]').getDOMNode().value =
+      gradeValue.toString();
+
+    act(() => {
+      // nb. `wrapper.simulate('click')` unfortunately doesn't submit forms.
+      wrapper.find('button[data-testid="submit-button"]').getDOMNode().click();
     });
 
-    it('does not render the validation message by default', () => {
-      const wrapper = renderForm();
-      assert.isFalse(wrapper.find('ValidationMessage').exists());
-    });
-
-    it('shows the validation message when the validator returns an error', () => {
-      const wrapper = renderForm();
-      wrapper.find('button[type="submit"]').simulate('click');
-      assert.isTrue(wrapper.find('ValidationMessage').prop('open'));
-      assert.equal(wrapper.find('ValidationMessage').prop('message'), 'err');
-
-      // Clicking the error message should dismiss it.
-      wrapper.find('ValidationMessage').invoke('onClose')();
-      assert.isFalse(wrapper.find('ValidationMessage').prop('open'));
-    });
-
-    it('hides the validation message after it was opened when input is detected', () => {
-      const wrapper = renderForm();
-      wrapper.find('button[type="submit"]').simulate('click');
-      wrapper.find(inputSelector).simulate('input');
-      assert.isFalse(wrapper.find('ValidationMessage').prop('open'));
-    });
-  });
+    wrapper.update();
+  }
 
   context('when submitting a grade', () => {
-    it('shows a loading spinner when submitting a grade', () => {
+    it('shows a loading spinner when submitting a grade', async () => {
       const wrapper = renderForm();
-      wrapper.find('button[type="submit"]').simulate('click');
+      await waitForGradeFetch(wrapper);
+
+      submitGrade(wrapper);
       assert.isTrue(wrapper.find('SpinnerOverlay').exists());
     });
 
@@ -209,7 +187,8 @@ describe('SubmitGradeForm', () => {
       };
       fakeGradingService.submitGrade.rejects(error);
 
-      wrapper.find('button[type="submit"]').simulate('click');
+      await waitForGradeFetch(wrapper);
+      submitGrade(wrapper);
 
       const errorModal = await waitForElement(wrapper, 'ErrorModal');
       // Ensure the error object passed to ErrorDialog is the same as the one thrown
@@ -222,9 +201,9 @@ describe('SubmitGradeForm', () => {
 
     it('sets the success animation class when the grade has posted', async () => {
       const wrapper = renderForm();
+      await waitForGradeFetch(wrapper);
 
-      wrapper.find('button[type="submit"]').simulate('click');
-
+      submitGrade(wrapper);
       await waitForGradeFetch(wrapper);
 
       assert.isTrue(
@@ -235,7 +214,8 @@ describe('SubmitGradeForm', () => {
     it('removes the success animation class after keyboard input', async () => {
       const wrapper = renderForm();
 
-      wrapper.find('button[type="submit"]').simulate('click');
+      await waitForGradeFetch(wrapper);
+      submitGrade(wrapper);
 
       await waitForGradeFetch(wrapper);
 
@@ -247,7 +227,9 @@ describe('SubmitGradeForm', () => {
 
     it('closes the spinner after the grade has posted', async () => {
       const wrapper = renderForm();
-      wrapper.find('button[type="submit"]').simulate('click');
+
+      await waitForGradeFetch(wrapper);
+      submitGrade(wrapper);
 
       await waitFor(() => {
         wrapper.update();
@@ -255,15 +237,39 @@ describe('SubmitGradeForm', () => {
       });
     });
 
-    it('calls grading service', () => {
-      const wrapper = renderForm();
-      wrapper.find('button[type="submit"]').simulate('click');
+    [
+      { gradeValue: 10, expectedGrade: 1 },
+      { gradeValue: 5.5, expectedGrade: 0.55 },
+      { gradeValue: 2, expectedGrade: 0.2 },
+    ].forEach(({ gradeValue, expectedGrade }) => {
+      it('calls grading service with right grade', () => {
+        const wrapper = renderForm();
 
-      assert.calledWith(fakeGradingService.submitGrade, {
-        student: fakeStudent,
-        grade: 1,
-        comment: undefined,
+        submitGrade(wrapper, gradeValue);
+
+        assert.calledWith(fakeGradingService.submitGrade, {
+          student: fakeStudent,
+          grade: expectedGrade,
+          comment: undefined,
+        });
       });
+    });
+
+    it('throws if the value is not a number', async () => {
+      const wrapper = renderForm();
+
+      let error;
+      try {
+        await wrapper
+          .find('form')
+          .props()
+          .onSubmit({ preventDefault: sinon.stub() });
+      } catch (e) {
+        error = e;
+      }
+
+      assert.instanceOf(error, Error);
+      assert.equal(error.message, 'New grade "" is not a number');
     });
   });
 
@@ -354,6 +360,8 @@ describe('SubmitGradeForm', () => {
         });
       wrapper.update();
     };
+    const submitForm = wrapper =>
+      wrapper.find('GradingCommentButton').props().onSubmit();
 
     [true, false].forEach(acceptComments => {
       it('renders GradingCommentButton', () => {
@@ -364,13 +372,11 @@ describe('SubmitGradeForm', () => {
 
     it('submits grade using internal popover submit button', async () => {
       const wrapper = renderForm({ acceptComments: true });
-      const submit = () =>
-        wrapper.find('GradingCommentButton').props().onSubmit(new Event(''));
 
       await waitForGradeFetch(wrapper);
 
       // If we submit with no changes, the originally loaded comment will be sent
-      submit();
+      submitForm(wrapper);
       assert.calledWith(fakeGradingService.submitGrade.lastCall, {
         student: fakeStudent,
         grade: 1,
@@ -379,12 +385,25 @@ describe('SubmitGradeForm', () => {
 
       // If we change the comment and submit again, the new comment will be sent
       changeComment(wrapper, 'Something else');
-      submit();
+      submitForm(wrapper);
       assert.calledWith(fakeGradingService.submitGrade.lastCall, {
         student: fakeStudent,
         grade: 1,
         comment: 'Something else',
       });
+    });
+
+    it('does not submit grade if form has invalid values', async () => {
+      const wrapper = renderForm({ acceptComments: true });
+
+      await waitForGradeFetch(wrapper);
+
+      // Set an invalid grade value and submit form via comment button
+      wrapper.find(inputSelector).getDOMNode().value = 'not a number';
+      wrapper.update();
+      submitForm(wrapper);
+
+      assert.notCalled(fakeGradingService.submitGrade);
     });
   });
 

@@ -19,12 +19,11 @@ import type { StudentInfo } from '../config';
 import type { ErrorLike } from '../errors';
 import { useService, GradingService } from '../services';
 import { useFetch } from '../utils/fetch';
-import { formatGrade, validateGrade } from '../utils/grade-validation';
+import { formatGrade } from '../utils/grade-validation';
 import { useUniqueId } from '../utils/hooks';
 import { useWarnOnPageUnload } from '../utils/use-warn-on-page-unload';
 import ErrorModal from './ErrorModal';
 import GradingCommentButton from './GradingCommentButton';
-import ValidationMessage from './ValidationMessage';
 
 export type SubmitGradeFormProps = {
   student: StudentInfo | null;
@@ -113,17 +112,12 @@ export default function SubmitGradeForm({
 
   const disabled = !student;
 
-  // The following is state for local validation errors
-  //
-  // Is there a validation error message to show?
-  const [showValidationError, setValidationError] = useState(false);
-  // The actual validation error message.
-  const [validationMessage, setValidationMessageMessage] = useState('');
   // Unique id attribute for <input>
   const gradeId = useUniqueId('SubmitGradeForm__grade:');
 
   // Used to handle keyboard input changes for the grade input field.
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
 
   // This is used to track unsaved grades or comments. It is null until user input occurs.
   const [draftGrading, setDraftGrading] = useState<DraftGrading>({
@@ -167,36 +161,46 @@ export default function SubmitGradeForm({
     event.preventDefault();
 
     const newGrade = inputRef.current!.value;
+    const newGradeAsNumber = inputRef.current!.valueAsNumber;
+    if (isNaN(newGradeAsNumber)) {
+      // This branch should not be reached because input type is number, and we validate before submission.
+      throw new Error(`New grade "${newGrade}" is not a number`);
+    }
+
     const newComment = acceptComments
       ? draftGrading.comment ?? grade.data?.comment
       : undefined;
-    const result = validateGrade(newGrade, scoreMaximum);
 
-    if (!result.valid) {
-      setValidationMessageMessage(result.error);
-      setValidationError(true);
-    } else {
-      setGradeSaving(true);
-      try {
-        await gradingService.submitGrade({
-          student: student as StudentInfo,
-          grade: result.grade,
-          comment: newComment ?? undefined,
-        });
-        grade.mutate({ grade: newGrade, comment: newComment });
-        onUnsavedChanges?.(false);
-        setGradeSaved(true);
-      } catch (e) {
-        setSubmitGradeError(e);
-      }
-      setGradeSaving(false);
+    setGradeSaving(true);
+    try {
+      await gradingService.submitGrade({
+        student: student as StudentInfo,
+        grade: newGradeAsNumber / scoreMaximum,
+        comment: newComment ?? undefined,
+      });
+      grade.mutate({ grade: newGrade, comment: newComment });
+      onUnsavedChanges?.(false);
+      setGradeSaved(true);
+    } catch (e) {
+      setSubmitGradeError(e);
     }
+    setGradeSaving(false);
   };
+
+  const submitGrade = useCallback(() => {
+    const form = formRef.current;
+
+    // Checks if the form is valid, and display native validation popups if needed
+    if (!form || !form.reportValidity()) {
+      return false;
+    }
+
+    form.requestSubmit();
+    return true;
+  }, []);
 
   const handleInput = useCallback(
     (e: Event, field: keyof DraftGrading) => {
-      // If any input is detected, close the ValidationMessage.
-      setValidationError(false);
       setGradeSaved(false);
 
       const newValue = (e.target as HTMLInputElement).value;
@@ -207,24 +211,16 @@ export default function SubmitGradeForm({
 
   return (
     <>
-      <form autoComplete="off">
+      <form autoComplete="off" onSubmit={onSubmitGrade} ref={formRef}>
         <label htmlFor={gradeId} className="font-semibold text-xs">
           Grade (Out of {scoreMaximum})
         </label>
         <div className="flex">
           <span className="relative w-14">
-            {validationMessage && (
-              <ValidationMessage
-                message={validationMessage}
-                open={showValidationError}
-                onClose={() => {
-                  // Sync up the state when the ValidationMessage is closed
-                  setValidationError(false);
-                }}
-              />
-            )}
             <Input
               classes={classnames(
+                // Hide up/down arrow buttons (https://stackoverflow.com/a/75872055)
+                '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
                 'text-center',
                 'disabled:opacity-50',
                 'border border-r-0 rounded-r-none',
@@ -237,9 +233,13 @@ export default function SubmitGradeForm({
               id={gradeId}
               elementRef={inputRef}
               onInput={e => handleInput(e, 'grade')}
-              type="text"
+              type="number"
               value={draftGrading.grade ?? grade.data?.grade ?? ''}
               key={student ? student.LISResultSourcedId : null}
+              min={0}
+              max={scoreMaximum}
+              step="any"
+              required
             />
             {grade.isLoading && (
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -254,19 +254,19 @@ export default function SubmitGradeForm({
               loading={grade.isLoading}
               comment={draftGrading.comment ?? grade.data?.comment ?? ''}
               onInput={e => handleInput(e, 'comment')}
-              onSubmit={onSubmitGrade}
+              onSubmit={submitGrade}
             />
           )}
 
           <Button
             icon={CheckIcon}
             type="submit"
+            data-testid="submit-button"
             classes={classnames(
               'border rounded-l-none ring-inset',
               'disabled:opacity-50'
             )}
             disabled={disabled}
-            onClick={onSubmitGrade}
           >
             Submit Grade
           </Button>
