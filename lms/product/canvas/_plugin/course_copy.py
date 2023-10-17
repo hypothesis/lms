@@ -5,6 +5,7 @@ class CanvasCourseCopyPlugin:
     """Handle course copy in Canvas."""
 
     file_type = "canvas_file"
+    page_type = "canvas_page"
 
     def __init__(self, api, file_service, files_helper: CourseCopyFilesHelper):
         self._api = api
@@ -28,7 +29,7 @@ class CanvasCourseCopyPlugin:
         _ = self._api.list_files(course_id)
 
         for file_id in file_ids:
-            file = self._file_service.get(file_id, type_="canvas_file")
+            file = self._file_service.get(file_id, type_=self.file_type)
 
             if not file:
                 continue
@@ -37,6 +38,11 @@ class CanvasCourseCopyPlugin:
                 return new_file.lms_id
 
         return None
+
+    def find_matching_page_in_course(self, original_page_id, new_course_id):
+        return self._files_helper.find_matching_file_in_course(
+            self._api.pages.list, self.page_type, original_page_id, new_course_id
+        )
 
     def find_matching_group_set_in_course(self, _course, _group_set_id):
         # We are not yet handling course copy for groups in Canvas.
