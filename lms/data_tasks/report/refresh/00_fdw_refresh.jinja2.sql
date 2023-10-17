@@ -1,11 +1,17 @@
-ALTER SERVER "h_server" OPTIONS(
-    SET host '{{h_fdw.host}}', -- SECRET
-    SET port '{{h_fdw.port}}', 
-    SET dbname '{{h_fdw.dbname}}'
-);
+{% macro refresh_fdw_server(server_name, credentials, users) %}
+    ALTER SERVER "{{server_name}}" OPTIONS(
+        SET host '{{credentials.host}}', -- SECRET
+        SET port '{{credentials.port}}', 
+        SET dbname '{{credentials.dbname}}'
+    );
 
 
-ALTER USER MAPPING FOR "{{db_user}}" SERVER "h_server" OPTIONS(
-    SET user '{{h_fdw.user}}',
-    SET password '{{h_fdw.password}}' -- SECRET
-);
+    {% for user in users %}
+        ALTER USER MAPPING FOR "{{user}}" SERVER "{{server_name}}" OPTIONS(
+            SET user '{{credentials.user}}',
+            SET password '{{credentials.password}}' -- SECRET
+        );
+    {% endfor %}
+{% endmacro %}
+
+{{ refresh_fdw_server("h_server", h_fdw, users=[db_user]) }}

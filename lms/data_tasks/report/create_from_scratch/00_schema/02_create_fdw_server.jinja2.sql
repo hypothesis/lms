@@ -3,18 +3,27 @@
 -- before this task can run successfully
 CREATE EXTENSION IF NOT EXISTS postgres_fdw;
 
-DROP SERVER IF EXISTS "h_server" CASCADE;
-CREATE SERVER "h_server" FOREIGN DATA WRAPPER postgres_fdw
-    OPTIONS (
-        host '{{h_fdw.host}}', -- SECRET
-        port '{{h_fdw.port}}',
-        dbname '{{h_fdw.dbname}}'
-);
 
-DROP USER MAPPING IF EXISTS FOR "{{db_user}}" SERVER "h_server";
-CREATE USER MAPPING IF NOT EXISTS FOR "{{db_user}}"
-    SERVER "h_server"
-    OPTIONS (
-        user '{{h_fdw.user}}',
-        password '{{h_fdw.password}}' -- SECRET
-);
+{% macro create_fdw_server(server_name, credentials, users) %}
+    DROP SERVER IF EXISTS "{{server_name}}" CASCADE;
+
+    CREATE SERVER "{{server_name}}" FOREIGN DATA WRAPPER postgres_fdw
+        OPTIONS (
+            host '{{credentials.host}}',  -- SECRET
+            port '{{credentials.port}}',
+            dbname '{{credentials.dbname}}'
+        );
+
+    {% for user in users %}
+        DROP USER MAPPING IF EXISTS FOR "{{user}}" SERVER "{{server_name}}";
+
+        CREATE USER MAPPING IF NOT EXISTS FOR "{{user}}"
+            SERVER "{{server_name}}"
+            OPTIONS (
+                user '{{credentials.user}}',
+                password '{{credentials.password}}' -- SECRET
+            );
+    {% endfor %}
+{% endmacro %}
+
+{{ create_fdw_server("h_server", h_fdw, users=[db_user]) }}
