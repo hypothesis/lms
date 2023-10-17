@@ -236,7 +236,7 @@ export default function ContentSelector({
           listFilesApi={listPagesApi}
           onCancel={cancelDialog}
           onSelectFile={selectCanvasPage}
-          missingFilesHelpLink="TODO"
+          missingFilesHelpLink="https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-create-a-new-page-in-a-course/ta-p/1031"
           documentType="page"
         />
       );
