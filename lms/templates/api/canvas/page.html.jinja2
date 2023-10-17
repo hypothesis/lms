@@ -3,10 +3,15 @@
   <head>
     <meta charset=utf-8>
     <link rel="canonical" href="{{canonical_url}}" />
+    {% for url in asset_urls("canvas_pages_css") %}
+      <link rel="stylesheet" href="{{ url }}">
+    {% endfor %}
     <title>{{title}}</title>
   </head>
   <body>
-    <h1>{{title}}</h1>
-    {{body|safe}}
+    <main class="user-content">
+      <h1 class="page-title">{{title}}</h1>
+      {{body|safe}}
+    </main>
   </body>
 </html>

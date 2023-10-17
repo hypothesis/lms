@@ -15,8 +15,9 @@ gulp.task('watch-js', () => watchJS('./rollup.config.mjs'));
 gulp.task('build-css', () =>
   buildCSS(
     [
-      './lms/static/styles/lms.scss',
+      './lms/static/styles/canvas_pages/canvas_pages.scss',
       './lms/static/styles/frontend_apps.scss',
+      './lms/static/styles/lms.scss',
       './lms/static/styles/ui-playground.scss',
     ],
     { tailwindConfig }
