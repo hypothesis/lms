@@ -131,3 +131,6 @@ class CourseCopyPlugin:  # pragma: nocover
 
     def find_matching_group_set_in_course(self, _course, group_set_id):
         raise NotImplementedError()
+
+    def find_matching_page_in_course(self, original_file_id, new_course_id):
+        raise NotImplementedError()

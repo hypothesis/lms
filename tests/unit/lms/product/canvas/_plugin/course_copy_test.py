@@ -94,6 +94,24 @@ class TestCanvasCourseCopyPlugin:
             sentinel.course_id, [sentinel.file_id]
         )
 
+    def test_find_matching_page_in_course(
+        self, plugin, course_copy_files_helper, canvas_api_client
+    ):
+        result = plugin.find_matching_page_in_course(
+            sentinel.page_id, sentinel.course_id
+        )
+
+        course_copy_files_helper.find_matching_file_in_course.assert_called_once_with(
+            canvas_api_client.pages.list,
+            "canvas_page",
+            sentinel.page_id,
+            sentinel.course_id,
+        )
+
+        assert (
+            result == course_copy_files_helper.find_matching_file_in_course.return_value
+        )
+
     @pytest.mark.usefixtures(
         "canvas_api_client", "file_service", "course_copy_files_helper"
     )
