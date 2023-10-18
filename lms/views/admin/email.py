@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from pyramid.httpexceptions import HTTPBadRequest, HTTPFound
+from pyramid.renderers import render
 from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
@@ -14,7 +15,12 @@ class AdminEmailViews:
 
     @view_config(request_method="GET", renderer="lms:templates/admin/email.html.jinja2")
     def get(self):
-        return {}
+        return {
+            "instructor_email_digest_subject": render(
+                "lms:templates/email/instructor_email_digest/subject.jinja2",
+                INSTRUCTOR_EMAIL_DIGEST_TEMPLATE_VARS,
+            )
+        }
 
     @view_config(request_method="POST")
     def post(self):
@@ -72,3 +78,35 @@ class AdminEmailViews:
         )
 
         return HTTPFound(location=self.request.route_url("admin.email"))
+
+    @view_config(
+        route_name="admin.email.preview.instructor_email_digest",
+        request_method="GET",
+        renderer="lms:templates/email/instructor_email_digest/body.html.jinja2",
+    )
+    def preview_instructor_email_digest(self):
+        return INSTRUCTOR_EMAIL_DIGEST_TEMPLATE_VARS
+
+
+#: Test template variables that the admin page will pass to the instructor_email_digest templates.
+INSTRUCTOR_EMAIL_DIGEST_TEMPLATE_VARS = {
+    "total_annotations": 78,
+    "annotators": [f"learner{i}" for i in range(12)],
+    "courses": [
+        {
+            "title": "History of Jazz Music",
+            "annotators": [f"learner{i}" for i in range(10)],
+            "num_annotations": 67,
+        },
+        {
+            "title": "Making Sociology Fun",
+            "annotators": ["learner01", "learner02"],
+            "num_annotations": 10,
+        },
+        {
+            "title": "Amusement Park Engineering",
+            "annotators": [f"learner{i}" for i in range(32)],
+            "num_annotations": 101,
+        },
+    ],
+}
