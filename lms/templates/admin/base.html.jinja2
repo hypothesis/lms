@@ -6,7 +6,7 @@
     <title>
          {% block title %}
             {% if self.header() %}
-                {{ self.header() }} - LMS Admin
+                {{ self.header()|striptags }} - LMS Admin
             {% else %}
                 LMS Admin
             {% endif %}
