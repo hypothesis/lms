@@ -9,10 +9,10 @@ from h_matchers import Any
 
 from lms.services.digest import (
     AssignmentInfo,
+    CourseInfo,
     DigestContext,
     DigestService,
-    UnifiedCourse,
-    UnifiedUser,
+    UserInfo,
     service_factory,
 )
 from lms.services.mailchimp import EmailRecipient, EmailSender
@@ -32,7 +32,7 @@ class TestDigestService:
         sender,
         email_unsubscribe_service,
     ):
-        context.unified_users = UnifiedUserFactory.create_batch(2)
+        context.user_infos = UserInfoFactory.create_batch(2)
         digests = context.instructor_digest.side_effect = [
             {"total_annotations": 1},
             {"total_annotations": 2},
@@ -49,26 +49,26 @@ class TestDigestService:
             db_session, sentinel.audience, tuple(h_api.get_annotations.return_value)
         )
         assert context.instructor_digest.call_args_list == [
-            call(user.h_userid) for user in context.unified_users
+            call(user.h_userid) for user in context.user_infos
         ]
         assert send.delay.call_args_list == [
             call(
-                task_done_key=f"instructor_email_digest::{unified_user.h_userid}::2023-04-30",
+                task_done_key=f"instructor_email_digest::{user_info.h_userid}::2023-04-30",
                 template="lms:templates/email/instructor_email_digest/",
                 sender=asdict(sender),
                 recipient=asdict(
-                    EmailRecipient(unified_user.email, unified_user.display_name)
+                    EmailRecipient(user_info.email, user_info.display_name)
                 ),
                 template_vars=digest,
                 unsubscribe_url=email_unsubscribe_service.unsubscribe_url.return_value,
             )
-            for unified_user, digest in zip(context.unified_users, digests)
+            for user_info, digest in zip(context.user_infos, digests)
         ]
 
     def test_send_instructor_email_digests_without_deduplication(
         self, svc, context, send
     ):
-        context.unified_users = [UnifiedUserFactory()]
+        context.user_infos = [UserInfoFactory()]
         context.instructor_digest.side_effect = [{"total_annotations": 1}]
 
         svc.send_instructor_email_digests(
@@ -87,7 +87,7 @@ class TestDigestService:
     def test_send_instructor_email_digests_doesnt_send_empty_digests(
         self, svc, context, send
     ):
-        context.unified_users = UnifiedUserFactory.create_batch(2)
+        context.user_infos = UserInfoFactory.create_batch(2)
         context.instructor_digest.return_value = {"total_annotations": 0}
 
         svc.send_instructor_email_digests(
@@ -99,7 +99,7 @@ class TestDigestService:
     def test_send_instructor_email_digests_ignores_instructors_with_no_email_address(
         self, svc, context, send
     ):
-        context.unified_users = [UnifiedUserFactory(email=None)]
+        context.user_infos = [UserInfoFactory(email=None)]
         context.instructor_digest.return_value = {"total_annotations": 1}
 
         svc.send_instructor_email_digests(
@@ -112,7 +112,7 @@ class TestDigestService:
     def test_send_instructor_email_digests_uses_override_to_email(
         self, svc, context, send
     ):
-        context.unified_users = [UnifiedUserFactory()]
+        context.user_infos = [UserInfoFactory()]
         context.instructor_digest.return_value = {"total_annotations": 1}
 
         svc.send_instructor_email_digests(
@@ -295,24 +295,24 @@ class TestDigestContext:
 
         assert assignment_infos == []
 
-    def test_unified_users(self, db_session):
+    def test_user_infos(self, db_session):
         audience = factories.User.create_batch(2)
         context = DigestContext(db_session, [user.h_userid for user in audience], [])
 
-        unified_users = context.unified_users
+        user_infos = context.user_infos
 
-        assert unified_users == [
-            UnifiedUser(h_userid=user.h_userid, email=Any(), display_name=Any())
+        assert user_infos == [
+            UserInfo(h_userid=user.h_userid, email=Any(), display_name=Any())
             for user in audience
         ]
-        assert context.unified_users is unified_users
+        assert context.user_infos is user_infos
 
-    def test_unified_users_with_no_audience_or_annotations(self, db_session):
+    def test_user_infos_with_no_audience_or_annotations(self, db_session):
         context = DigestContext(db_session, [], [])
 
-        assert context.unified_users == []
+        assert context.user_infos == []
 
-    def test_unified_users_ignores_duplicate_userids(self, db_session):
+    def test_user_infos_ignores_duplicate_userids(self, db_session):
         user = factories.User()
         context = DigestContext(
             db_session,
@@ -320,10 +320,10 @@ class TestDigestContext:
             Annotation.create_batch(2, userid=user.h_userid),
         )
 
-        unified_users = context.unified_users
+        user_infos = context.user_infos
 
-        assert unified_users == [
-            UnifiedUser(h_userid=user.h_userid, email=Any(), display_name=Any())
+        assert user_infos == [
+            UserInfo(h_userid=user.h_userid, email=Any(), display_name=Any())
         ]
 
     @pytest.mark.parametrize(
@@ -368,14 +368,14 @@ class TestDigestContext:
             ),
         ],
     )
-    def test_unified_users_email(self, db_session, users, expected_email):
+    def test_user_infos_email(self, db_session, users, expected_email):
         db_session.add_all(users)
 
         context = DigestContext(db_session, ["id"], [])
 
-        assert context.unified_users == Any.list.containing(
+        assert context.user_infos == Any.list.containing(
             [
-                Any.instance_of(UnifiedUser).with_attrs(
+                Any.instance_of(UserInfo).with_attrs(
                     {"h_userid": "id", "email": expected_email}
                 )
             ]
@@ -423,20 +423,20 @@ class TestDigestContext:
             ),
         ],
     )
-    def test_unified_users_display_name(self, db_session, users, expected_display_name):
+    def test_user_infos_display_name(self, db_session, users, expected_display_name):
         db_session.add_all(users)
 
         context = DigestContext(db_session, ["id"], [])
 
-        assert context.unified_users == Any.list.containing(
+        assert context.user_infos == Any.list.containing(
             [
-                Any.instance_of(UnifiedUser).with_attrs(
+                Any.instance_of(UserInfo).with_attrs(
                     {"h_userid": "id", "display_name": expected_display_name}
                 )
             ]
         )
 
-    def test_unified_courses(self, db_session, make_instructor, make_learner):
+    def test_course_infos(self, db_session, make_instructor, make_learner):
         course = factories.Course()
         instructors = factories.User.create_batch(2)
         for instructor in instructors:
@@ -455,10 +455,10 @@ class TestDigestContext:
             db_session, [instructor.h_userid for instructor in instructors], annotations
         )
 
-        unified_courses = context.unified_courses
+        course_infos = context.course_infos
 
-        assert unified_courses == [
-            Any.instance_of(UnifiedCourse).with_attrs(
+        assert course_infos == [
+            Any.instance_of(CourseInfo).with_attrs(
                 {
                     "authority_provided_id": course.authority_provided_id,
                     "instructor_h_userids": Any.tuple.containing(
@@ -468,9 +468,9 @@ class TestDigestContext:
                 }
             )
         ]
-        assert context.unified_courses is unified_courses
+        assert context.course_infos is course_infos
 
-    def test_unified_courses_with_multiple_groupings(self, db_session):
+    def test_course_infos_with_multiple_groupings(self, db_session):
         instances = factories.ApplicationInstance.create_batch(2)
         # Two courses with the same authority_provided_id but different instances.
         courses = [
@@ -508,8 +508,8 @@ class TestDigestContext:
         ]
         context = DigestContext(db_session, [], annotations)
 
-        assert context.unified_courses == [
-            Any.instance_of(UnifiedCourse).with_attrs(
+        assert context.course_infos == [
+            Any.instance_of(CourseInfo).with_attrs(
                 {
                     "authority_provided_id": "course_id",
                     "learner_annotations": Any.tuple.of_size(6),
@@ -517,12 +517,12 @@ class TestDigestContext:
             )
         ]
 
-    def test_unified_courses_with_no_annotations(self, db_session):
+    def test_course_infos_with_no_annotations(self, db_session):
         context = DigestContext(db_session, [], [])
 
-        assert context.unified_courses == []
+        assert context.course_infos == []
 
-    def test_unified_courses_title(self, db_session):
+    def test_course_infos_title(self, db_session):
         courses = [
             factories.Course.build(
                 authority_provided_id="id",
@@ -545,9 +545,9 @@ class TestDigestContext:
             ],
         )
 
-        assert context.unified_courses == Any.list.containing(
+        assert context.course_infos == Any.list.containing(
             [
-                Any.instance_of(UnifiedCourse).with_attrs(
+                Any.instance_of(CourseInfo).with_attrs(
                     {
                         "authority_provided_id": "id",
                         "title": "most_recent",
@@ -556,7 +556,7 @@ class TestDigestContext:
             ]
         )
 
-    def test_unified_courses_doesnt_count_learners(self, db_session, make_learner):
+    def test_course_infos_doesnt_count_learners(self, db_session, make_learner):
         course = factories.Course()
         learner = factories.User()
         make_learner(learner, course)
@@ -565,11 +565,11 @@ class TestDigestContext:
         )
         context = DigestContext(db_session, [], [annotation])
 
-        assert context.unified_courses == [
-            Any.instance_of(UnifiedCourse).with_attrs({"instructor_h_userids": ()})
+        assert context.course_infos == [
+            Any.instance_of(CourseInfo).with_attrs({"instructor_h_userids": ()})
         ]
 
-    def test_unified_courses_doesnt_count_instructor_annotations(
+    def test_course_infos_doesnt_count_instructor_annotations(
         self, db_session, make_instructor
     ):
         course = factories.Course()
@@ -581,11 +581,11 @@ class TestDigestContext:
         )
         context = DigestContext(db_session, [], [annotation])
 
-        assert context.unified_courses == [
-            Any.instance_of(UnifiedCourse).with_attrs({"learner_annotations": ()})
+        assert context.course_infos == [
+            Any.instance_of(CourseInfo).with_attrs({"learner_annotations": ()})
         ]
 
-    def test_unified_courses_doesnt_count_instructors_from_other_courses(
+    def test_course_infos_doesnt_count_instructors_from_other_courses(
         self, db_session, make_instructor
     ):
         course, other_course = factories.Course.create_batch(2)
@@ -599,15 +599,13 @@ class TestDigestContext:
         )
         context = DigestContext(db_session, [], [annotation])
 
-        assert context.unified_courses == [
-            Any.instance_of(UnifiedCourse).with_attrs(
+        assert context.course_infos == [
+            Any.instance_of(CourseInfo).with_attrs(
                 {"instructor_h_userids": (), "learner_annotations": (annotation,)}
             )
         ]
 
-    def test_unified_courses_doesnt_count_annotations_from_other_courses(
-        self, db_session
-    ):
+    def test_course_infos_doesnt_count_annotations_from_other_courses(self, db_session):
         course, other_course = factories.Course.create_batch(2)
         course_annotation = Annotation(
             authority_provided_id=course.authority_provided_id
@@ -619,20 +617,20 @@ class TestDigestContext:
             db_session, [], [course_annotation, other_course_annotation]
         )
 
-        assert context.unified_courses == Any.list.containing(
+        assert context.course_infos == Any.list.containing(
             [
-                Any.instance_of(UnifiedCourse).with_attrs(
+                Any.instance_of(CourseInfo).with_attrs(
                     {"learner_annotations": (course_annotation,)}
                 )
             ]
         )
 
-    def test_unified_courses_ignores_unknown_authority_provided_ids(self, db_session):
+    def test_course_infos_ignores_unknown_authority_provided_ids(self, db_session):
         context = DigestContext(
             db_session, [], [Annotation(authority_provided_id="unknown")]
         )
 
-        assert context.unified_courses == []
+        assert context.course_infos == []
 
 
 class TestServiceFactory:
@@ -695,9 +693,9 @@ class Annotation(factory.Factory):
         return obj
 
 
-class UnifiedUserFactory(factory.Factory):
+class UserInfoFactory(factory.Factory):
     class Meta:
-        model = UnifiedUser
+        model = UserInfo
 
     h_userid = factory.Sequence(lambda n: f"acct:user_{n}@lms.hypothes.is")
     email = factory.Sequence(lambda n: f"user_{n}@example.com")
