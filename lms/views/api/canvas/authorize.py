@@ -18,39 +18,35 @@ from lms.security import Permissions
 from lms.services import CanvasAPIServerError
 from lms.validation.authentication import OAuthCallbackSchema
 
-#: The Canvas API scopes that we need for our Canvas Files feature.
-FILES_SCOPES = (
-    "url:GET|/api/v1/courses/:course_id/files",
-    "url:GET|/api/v1/files/:id/public_url",
-)
-
-# Support for folders in our Canvas files integration.
-FOLDERS_SCOPES = ("url:GET|/api/v1/courses/:course_id/folders",)
-
-#: The Canvas API scopes that we need for our Sections feature.
-SECTIONS_SCOPES = (
-    "url:GET|/api/v1/courses/:id",
-    "url:GET|/api/v1/courses/:course_id/sections",
-    "url:GET|/api/v1/courses/:course_id/users/:id",
-)
-
-GROUPS_SCOPES = (
-    "url:GET|/api/v1/courses/:course_id/group_categories",
-    "url:GET|/api/v1/group_categories/:group_category_id/groups",
-    "url:GET|/api/v1/courses/:course_id/groups",
-)
-
-
-# Support for creating assignments using Canvas Pages
-PAGES_SCOPES = (
-    "url:GET|/api/v1/courses/:course_id/pages",
-    "url:GET|/api/v1/courses/:course_id/pages/:url_or_id",
-)
+SCOPES = {
+    # Support for assignments using Canvas files
+    "files": (
+        "url:GET|/api/v1/courses/:course_id/files",
+        "url:GET|/api/v1/files/:id/public_url",
+    ),
+    # Support for folders in Canvas file picker
+    "folders": ("url:GET|/api/v1/courses/:course_id/folders",),
+    # Assignment groups using Canvas groups
+    "groups": (
+        "url:GET|/api/v1/courses/:course_id/group_categories",
+        "url:GET|/api/v1/courses/:course_id/groups",
+        "url:GET|/api/v1/group_categories/:group_category_id/groups",
+    ),
+    # Support for assignments using Canvas pages
+    "pages": (
+        "url:GET|/api/v1/courses/:course_id/pages",
+        "url:GET|/api/v1/courses/:course_id/pages/:url_or_id",
+    ),
+    # Assignment groups using Canvas sections
+    "sections": (
+        "url:GET|/api/v1/courses/:course_id/sections",
+        "url:GET|/api/v1/courses/:course_id/users/:id",
+        "url:GET|/api/v1/courses/:id",
+    ),
+}
 
 # All the scopes that our LMS app may use.
-ALL_SCOPES = (
-    FILES_SCOPES + FOLDERS_SCOPES + GROUPS_SCOPES + PAGES_SCOPES + SECTIONS_SCOPES
-)
+ALL_SCOPES = set(scope for scopes in SCOPES.values() for scope in scopes)
 
 
 @view_config(
@@ -62,13 +58,13 @@ def authorize(request):
     application_instance = request.lti_user.application_instance
     course_service = request.find_service(name="course")
 
-    scopes = FILES_SCOPES
+    scopes = SCOPES["files"]
 
     if application_instance.settings.get("canvas", "folders_enabled"):
-        scopes += FOLDERS_SCOPES
+        scopes += SCOPES["folders"]
 
     if application_instance.settings.get("canvas", "pages_enabled"):
-        scopes += PAGES_SCOPES
+        scopes += SCOPES["pages"]
 
     if application_instance.developer_key and (
         # If the instance could add a new course with sections...
@@ -76,10 +72,10 @@ def authorize(request):
         # ... or any of it's existing courses have sections
         or course_service.any_with_setting("canvas", "sections_enabled", True)
     ):
-        scopes += SECTIONS_SCOPES
+        scopes += SCOPES["sections"]
 
     if application_instance.settings.get("canvas", "groups_enabled"):
-        scopes += GROUPS_SCOPES
+        scopes += SCOPES["groups"]
 
     auth_url = urlunparse(
         (

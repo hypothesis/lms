@@ -7,14 +7,7 @@ from pyramid.httpexceptions import HTTPInternalServerError
 from lms.resources._js_config import JSConfig
 from lms.services import CanvasAPIServerError
 from lms.views.api.canvas import authorize
-from lms.views.api.canvas.authorize import (
-    ALL_SCOPES,
-    FILES_SCOPES,
-    FOLDERS_SCOPES,
-    GROUPS_SCOPES,
-    PAGES_SCOPES,
-    SECTIONS_SCOPES,
-)
+from lms.views.api.canvas.authorize import ALL_SCOPES, SCOPES
 
 pytestmark = pytest.mark.usefixtures(
     "application_instance_service", "course_service", "canvas_api_client"
@@ -111,21 +104,21 @@ class TestAuthorize:
         scopes = set(query_params["scope"][0].split())
 
         if groups_enabled:
-            assert set(GROUPS_SCOPES).issubset(scopes)
+            assert set(SCOPES["groups"]).issubset(scopes)
         if folders_enabled:
-            assert set(FOLDERS_SCOPES).issubset(scopes)
+            assert set(SCOPES["folders"]).issubset(scopes)
         if pages_enabled:
-            assert set(PAGES_SCOPES).issubset(scopes)
+            assert set(SCOPES["pages"]).issubset(scopes)
 
     def assert_sections_scopes(self, response):
         query_params = parse_qs(urlparse(response.location).query)
         assert set(query_params["scope"][0].split(" ")) == set(
-            FILES_SCOPES + SECTIONS_SCOPES
+            SCOPES["files"] + SCOPES["sections"]
         )
 
     def assert_file_scopes_only(self, response):
         query_params = parse_qs(urlparse(response.location).query)
-        assert set(query_params["scope"][0].split(" ")) == set(FILES_SCOPES)
+        assert set(query_params["scope"][0].split(" ")) == set(SCOPES["files"])
 
     @pytest.fixture
     def sections_not_supported(self, application_instance):
