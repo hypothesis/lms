@@ -1,6 +1,12 @@
 {% import "lms:templates/admin/macros.html.jinja2" as macros %}
 
 {% extends "lms:templates/admin/base.html.jinja2" %}
+
+{% block title %}
+    Application instance {{instance.id}}
+{% endblock %}
+
+
 {% block header %}
     Application instance {{instance.id}}
 
