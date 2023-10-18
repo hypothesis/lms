@@ -41,9 +41,15 @@ GROUPS_SCOPES = (
 )
 
 
+# Support for creating assignments using Canvas Pages
 PAGES_SCOPES = (
     "url:GET|/api/v1/courses/:course_id/pages",
     "url:GET|/api/v1/courses/:course_id/pages/:url_or_id",
+)
+
+# All the scopes that our LMS app may use.
+ALL_SCOPES = (
+    FILES_SCOPES + FOLDERS_SCOPES + GROUPS_SCOPES + PAGES_SCOPES + SECTIONS_SCOPES
 )
 
 
@@ -127,10 +133,7 @@ def oauth2_redirect(request):
     renderer="lms:templates/api/oauth2/redirect_error.html.jinja2",
 )
 def oauth2_redirect_error(request):
-    kwargs = {
-        "auth_route": "canvas_api.oauth.authorize",
-        "canvas_scopes": FILES_SCOPES + SECTIONS_SCOPES + GROUPS_SCOPES,
-    }
+    kwargs = {"auth_route": "canvas_api.oauth.authorize", "canvas_scopes": ALL_SCOPES}
 
     if request.params.get("error") == "invalid_scope":
         kwargs["error_code"] = request.context.js_config.ErrorCode.CANVAS_INVALID_SCOPE
