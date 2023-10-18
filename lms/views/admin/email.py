@@ -12,15 +12,11 @@ class AdminEmailViews:
     def __init__(self, request):
         self.request = request
 
-    @view_config(
-        route_name="admin.email",
-        request_method="GET",
-        renderer="lms:templates/admin/email.html.jinja2",
-    )
+    @view_config(request_method="GET", renderer="lms:templates/admin/email.html.jinja2")
     def get(self):
         return {}
 
-    @view_config(route_name="admin.email", request_method="POST")
+    @view_config(request_method="POST")
     def post(self):
         to_email = self.request.POST["to_email"].strip()
         h_userids = self.request.POST["h_userids"].strip().split()
