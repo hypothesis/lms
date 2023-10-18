@@ -8,6 +8,7 @@ from lms.resources._js_config import JSConfig
 from lms.services import CanvasAPIServerError
 from lms.views.api.canvas import authorize
 from lms.views.api.canvas.authorize import (
+    ALL_SCOPES,
     FILES_SCOPES,
     FOLDERS_SCOPES,
     GROUPS_SCOPES,
@@ -167,7 +168,7 @@ class TestOAuth2RedirectError:
 
         pyramid_request.context.js_config.enable_oauth2_redirect_error_mode.assert_called_with(
             auth_route="canvas_api.oauth.authorize",
-            canvas_scopes=FILES_SCOPES + SECTIONS_SCOPES + GROUPS_SCOPES,
+            canvas_scopes=ALL_SCOPES,
         )
         assert not template_data
 
