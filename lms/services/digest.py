@@ -54,15 +54,15 @@ class DigestService:
 
         context = DigestContext(self._db, audience, annotations)
 
-        for unified_user in context.unified_users:
-            digest = context.instructor_digest(unified_user.h_userid)
+        for user_info in context.user_infos:
+            digest = context.instructor_digest(user_info.h_userid)
 
             if not digest["total_annotations"]:
                 # This user has no activity.
                 continue
 
             if override_to_email is None:
-                to_email = unified_user.email
+                to_email = user_info.email
             else:
                 to_email = override_to_email
 
@@ -71,7 +71,7 @@ class DigestService:
                 continue
 
             if deduplicate:
-                task_done_key = f"instructor_email_digest::{unified_user.h_userid}::{datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
+                task_done_key = f"instructor_email_digest::{user_info.h_userid}::{datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
             else:
                 task_done_key = None
 
@@ -79,16 +79,16 @@ class DigestService:
                 task_done_key=task_done_key,
                 template="lms:templates/email/instructor_email_digest/",
                 sender=asdict(self._sender),
-                recipient=asdict(EmailRecipient(to_email, unified_user.display_name)),
+                recipient=asdict(EmailRecipient(to_email, user_info.display_name)),
                 template_vars=digest,
                 unsubscribe_url=self._email_unsubscribe_service.unsubscribe_url(
-                    unified_user.h_userid, EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST
+                    user_info.h_userid, EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST
                 ),
             )
 
 
 @dataclass(frozen=True)
-class UnifiedUser:
+class UserInfo:
     """All User's for a given h_userid, unified across all ApplicationInstance's."""
 
     h_userid: str
@@ -97,7 +97,7 @@ class UnifiedUser:
 
 
 @dataclass(frozen=True)
-class UnifiedCourse:
+class CourseInfo:
     """All Course's for a given authority_provided_id, unified across all ApplicationInstance's."""
 
     authority_provided_id: str
@@ -113,8 +113,8 @@ class DigestContext:
         self._db = db
         self.audience = audience
         self.annotations = annotations
-        self._unified_users = None
-        self._unified_courses = None
+        self._user_infos = None
+        self._course_infos = None
 
     def instructor_digest(self, h_userid):
         """
@@ -127,25 +127,25 @@ class DigestContext:
         """
         course_digests = []
 
-        for unified_course in self.unified_courses:
-            num_annotations = len(unified_course.learner_annotations)
+        for course_info in self.course_infos:
+            num_annotations = len(course_info.learner_annotations)
 
             if not num_annotations:
                 # There was no activity in this course.
                 continue
 
-            if h_userid not in unified_course.instructor_h_userids:
+            if h_userid not in course_info.instructor_h_userids:
                 # The user isn't an instructor in this course.
                 continue
 
             course_digests.append(
                 {
-                    "title": unified_course.title,
+                    "title": course_info.title,
                     "num_annotations": num_annotations,
                     "annotators": list(
                         set(
                             annotation["author"]["userid"]
-                            for annotation in unified_course.learner_annotations
+                            for annotation in course_info.learner_annotations
                         )
                     ),
                 }
@@ -166,10 +166,10 @@ class DigestContext:
         }
 
     @property
-    def unified_users(self):
-        """Return a list of UnifiedUser's for all the users in self.audience."""
-        if self._unified_users is not None:
-            return self._unified_users
+    def user_infos(self):
+        """Return a list of UserInfo's for all the users in self.audience."""
+        if self._user_infos is not None:
+            return self._user_infos
 
         query = (
             select(
@@ -190,18 +190,18 @@ class DigestContext:
             .group_by(User.h_userid)
         )
 
-        self._unified_users = [
-            UnifiedUser(row.h_userid, row.email, row.display_name)
+        self._user_infos = [
+            UserInfo(row.h_userid, row.email, row.display_name)
             for row in self._db.execute(query)
         ]
 
-        return self._unified_users
+        return self._user_infos
 
     @property
-    def unified_courses(self):
-        """Return a list of UnifiedCourse's for all the courses in self.annotations."""
-        if self._unified_courses is not None:
-            return self._unified_courses
+    def course_infos(self):
+        """Return a list of CourseInfo's for all the courses in self.annotations."""
+        if self._course_infos is not None:
+            return self._course_infos
 
         authority_provided_ids = set(
             annotation["group"]["authority_provided_id"]
@@ -255,15 +255,15 @@ class DigestContext:
             .group_by(Course.authority_provided_id)
         )
 
-        self._unified_courses = []
+        self._course_infos = []
 
         for row in self._db.execute(query):
             # SQLAlchemy returns None instead of [].
             authority_provided_ids = row.authority_provided_ids or []
             instructor_h_userids = row.instructor_h_userids or []
 
-            self._unified_courses.append(
-                UnifiedCourse(
+            self._course_infos.append(
+                CourseInfo(
                     authority_provided_id=row.authority_provided_id,
                     title=row.lms_name,
                     instructor_h_userids=tuple(instructor_h_userids),
@@ -277,7 +277,7 @@ class DigestContext:
                 )
             )
 
-        return self._unified_courses
+        return self._course_infos
 
 
 def service_factory(_context, request):
