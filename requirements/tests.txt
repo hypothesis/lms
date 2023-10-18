@@ -388,6 +388,7 @@ text-unidecode==1.3
 tomli==2.0.0
     # via
     #   build
+    #   coverage
     #   pep517
     #   pytest
 transaction==2.4.0
@@ -412,7 +413,7 @@ tzdata==2023.3
     #   -r prod.txt
     #   backports-zoneinfo
     #   celery
-urllib3==1.26.17
+urllib3==1.26.18
     # via
     #   -r prod.txt
     #   mailchimp-transactional

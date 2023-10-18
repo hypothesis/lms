@@ -263,7 +263,7 @@ tzdata==2023.3
     # via
     #   backports-zoneinfo
     #   celery
-urllib3==1.26.17
+urllib3==1.26.18
     # via
     #   mailchimp-transactional
     #   requests
