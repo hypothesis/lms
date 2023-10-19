@@ -38,14 +38,14 @@ class DigestService:
     def send_instructor_email_digests(  # pylint:disable=too-many-arguments
         self,
         audience,
-        updated_after,
-        updated_before,
+        created_after,
+        created_before,
         override_to_email=None,
         deduplicate=True,
     ):
         """Send instructor email digests for the given users and timeframe."""
         annotations = self._h_api.get_annotations(
-            audience, updated_after, updated_before
+            audience, created_after, created_before
         )
 
         # HAPI.get_annotations() returns an iterable.

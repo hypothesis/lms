@@ -44,8 +44,8 @@ def send_instructor_email_digest_tasks(*, batch_size):
     don't need complete accuracy in the timing).
     """
     now = datetime.now(timezone.utc)
-    updated_before = datetime(year=now.year, month=now.month, day=now.day, hour=5)
-    updated_after = updated_before - timedelta(days=1)
+    created_before = datetime(year=now.year, month=now.month, day=now.day, hour=5)
+    created_after = created_before - timedelta(days=1)
 
     with app.request_context() as request:  # pylint:disable=no-member
         with request.tm:
@@ -56,8 +56,8 @@ def send_instructor_email_digest_tasks(*, batch_size):
                     # Note here that we are considering earlier launches
                     # We rather take a few more courses that miss some cases
                     # where the launch that originated the annotations was made around the cutoff time.
-                    Event.timestamp >= updated_after - timedelta(days=7),
-                    Event.timestamp <= updated_before,
+                    Event.timestamp >= created_after - timedelta(days=7),
+                    Event.timestamp <= created_before,
                     # Only courses that belong to AIs with the feature enabled
                     ApplicationInstance.settings["hypothesis"][
                         "instructor_email_digests_enabled"
@@ -108,8 +108,8 @@ def send_instructor_email_digest_tasks(*, batch_size):
                     (),
                     {
                         "h_userids": batch,
-                        "updated_after": updated_after.isoformat(),
-                        "updated_before": updated_before.isoformat(),
+                        "created_after": created_after.isoformat(),
+                        "created_before": created_before.isoformat(),
                     },
                 )
 
@@ -123,28 +123,28 @@ def send_instructor_email_digest_tasks(*, batch_size):
     rate_limit="1/m",
 )
 def send_instructor_email_digests(
-    *, h_userids: List[str], updated_after: str, updated_before: str, **kwargs
+    *, h_userids: List[str], created_after: str, created_before: str, **kwargs
 ) -> None:
     """
     Generate and send instructor email digests to the given users.
 
     The email digests will cover activity that occurred in the time period
-    described by the `updated_after` and `updated_before` arguments.
+    described by the `created_after` and `created_before` arguments.
 
     :param h_userids: the h_userid's of the instructors to email
-    :param updated_after: the beginning of the time period as an ISO 8601 format string
-    :param updated_before: the end of the time period as an ISO 8601 format string
+    :param created_after: the beginning of the time period as an ISO 8601 format string
+    :param created_before: the end of the time period as an ISO 8601 format string
     :param kwargs: other keyword arguments to pass to DigestService.send_instructor_email_digests()
     """
     # Caution: datetime.fromisoformat() doesn't support all ISO 8601 strings!
     # This only works for the subset of ISO 8601 produced by datetime.isoformat().
-    updated_after = datetime.fromisoformat(updated_after)
-    updated_before = datetime.fromisoformat(updated_before)
+    created_after = datetime.fromisoformat(created_after)
+    created_before = datetime.fromisoformat(created_before)
 
     with app.request_context() as request:  # pylint:disable=no-member
         with request.tm:
             digest_service = request.find_service(DigestService)
 
             digest_service.send_instructor_email_digests(
-                h_userids, updated_after, updated_before, **kwargs
+                h_userids, created_after, created_before, **kwargs
             )
