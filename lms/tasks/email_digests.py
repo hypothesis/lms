@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import List
 
-from sqlalchemy import select
+from sqlalchemy import not_, or_, select
 
 from lms.models import (
     ApplicationInstance,
@@ -12,6 +12,7 @@ from lms.models import (
     Event,
     LTIRole,
     User,
+    UserPreferences,
 )
 from lms.services import DigestService
 from lms.tasks.celery import app
@@ -82,6 +83,7 @@ def send_instructor_email_digest_tasks(*, batch_size):
                     == AssignmentMembership.assignment_id,
                 )
                 .join(LTIRole)
+                .outerjoin(UserPreferences, User.h_userid == UserPreferences.h_userid)
                 .where(
                     # Consider only assignments that belong to the candidate courses selected before
                     AssignmentGrouping.grouping_id.in_(
@@ -94,6 +96,14 @@ def send_instructor_email_digest_tasks(*, batch_size):
                             EmailUnsubscribe.tag
                             == EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST
                         )
+                    ),
+                    or_(
+                        UserPreferences.preferences.is_(None),
+                        not_(
+                            UserPreferences.preferences.contains(
+                                {"email_digests_frequency": {"monday": False}}
+                            )
+                        ),
                     ),
                 )
             ).all()

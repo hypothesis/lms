@@ -7,7 +7,7 @@ import pytest
 from freezegun import freeze_time
 from h_matchers import Any
 
-from lms.models import EmailUnsubscribe
+from lms.models import EmailUnsubscribe, UserPreferences
 from lms.tasks.email_digests import (
     send_instructor_email_digest_tasks,
     send_instructor_email_digests,
@@ -80,6 +80,31 @@ class TestSendInstructurEmailDigestsTasks:
                 ),
             )
         ]
+
+    @freeze_time("2023-03-09 05:15:00")
+    def test_it_doesnt_email_instructors_who_dont_get_emails_on_this_day(
+        self, db_session, send_instructor_email_digests, participating_instructors
+    ):
+        disabled_instructor = participating_instructors[-1]
+        db_session.add(
+            UserPreferences(
+                h_userid=disabled_instructor.h_userid,
+                preferences={
+                    "email_digests_frequency": {
+                        "monday": False,
+                    }
+                },
+            )
+        )
+
+        send_instructor_email_digest_tasks(batch_size=42)
+
+        assert (
+            disabled_instructor.h_userid
+            not in send_instructor_email_digests.apply_async.call_args[0][1][
+                "h_userids"
+            ]
+        )
 
     @freeze_time("2023-03-09 05:15:00")
     def test_it_deduplicates_duplicate_h_userids(
