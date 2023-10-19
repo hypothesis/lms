@@ -89,8 +89,8 @@ class HAPI:
     def get_annotations(
         self,
         audience_userids: List[str],
-        updated_after: datetime,
-        updated_before: datetime,
+        created_after: datetime,
+        created_before: datetime,
     ) -> Iterator[dict]:
         """
         Get an iterator of annotation objects for the specified audience.
@@ -100,8 +100,8 @@ class HAPI:
         knowing which groups users are in.
 
         :param audience_userids: List of h userids
-        :param updated_after: Datetime to search after
-        :param updated_before: Datetime to search before
+        :param created_after: Datetime to search after
+        :param created_before: Datetime to search before
         """
         audience_usernames = [self.get_username(userid) for userid in audience_userids]
 
@@ -109,9 +109,9 @@ class HAPI:
             "filter": {
                 "limit": 100000,
                 "audience": {"username": audience_usernames},
-                "updated": {
-                    "gt": _rfc3339_format(updated_after),
-                    "lte": _rfc3339_format(updated_before),
+                "created": {
+                    "gt": _rfc3339_format(created_after),
+                    "lte": _rfc3339_format(created_before),
                 },
             },
         }

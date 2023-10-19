@@ -37,8 +37,8 @@ class TestSendInstructurEmailDigestsTasks:
                 (),
                 {
                     "h_userids": batch,
-                    "updated_after": "2023-03-08T05:00:00",
-                    "updated_before": "2023-03-09T05:00:00",
+                    "created_after": "2023-03-08T05:00:00",
+                    "created_before": "2023-03-09T05:00:00",
                 },
             )
             for batch in [first_batch, second_batch]
@@ -233,39 +233,39 @@ class TestSendInstructurEmailDigestsTasks:
 @pytest.mark.usefixtures("digest_service")
 class TestSendInstructorEmailDigests:
     def test_it(self, digest_service):
-        updated_after = datetime(year=2023, month=3, day=1)
-        updated_before = datetime(year=2023, month=3, day=2)
+        created_after = datetime(year=2023, month=3, day=1)
+        created_before = datetime(year=2023, month=3, day=2)
 
         send_instructor_email_digests(
             h_userids=sentinel.h_userids,
-            updated_after=updated_after.isoformat(),
-            updated_before=updated_before.isoformat(),
+            created_after=created_after.isoformat(),
+            created_before=created_before.isoformat(),
             override_to_email=sentinel.override_to_email,
         )
 
         digest_service.send_instructor_email_digests.assert_called_once_with(
             sentinel.h_userids,
-            updated_after,
-            updated_before,
+            created_after,
+            created_before,
             override_to_email=sentinel.override_to_email,
         )
 
     @pytest.mark.parametrize(
-        "updated_after,updated_before",
+        "created_after,created_before",
         [
             ("invalid", "2023-02-28T00:00:00"),
             ("2023-02-28T00:00:00", "invalid"),
             ("invalid", "invalid"),
         ],
     )
-    def test_it_crashes_if_updated_after_or_updated_before_is_invalid(
-        self, updated_after, updated_before
+    def test_it_crashes_if_created_after_or_created_before_is_invalid(
+        self, created_after, created_before
     ):
         with pytest.raises(ValueError, match="^Invalid isoformat string"):
             send_instructor_email_digests(
                 h_userids=sentinel.h_userids,
-                updated_after=updated_after,
-                updated_before=updated_before,
+                created_after=created_after,
+                created_before=created_before,
             )
 
 

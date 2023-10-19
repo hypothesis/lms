@@ -38,11 +38,11 @@ class TestDigestService:
         ]
 
         svc.send_instructor_email_digests(
-            sentinel.audience, sentinel.updated_after, sentinel.updated_before
+            sentinel.audience, sentinel.created_after, sentinel.created_before
         )
 
         h_api.get_annotations.assert_called_once_with(
-            sentinel.audience, sentinel.updated_after, sentinel.updated_before
+            sentinel.audience, sentinel.created_after, sentinel.created_before
         )
         DigestContext.assert_called_once_with(
             db_session, sentinel.audience, tuple(h_api.get_annotations.return_value)
@@ -72,8 +72,8 @@ class TestDigestService:
 
         svc.send_instructor_email_digests(
             sentinel.audience,
-            sentinel.updated_after,
-            sentinel.updated_before,
+            sentinel.created_after,
+            sentinel.created_before,
             deduplicate=False,
         )
 
@@ -90,7 +90,7 @@ class TestDigestService:
         context.instructor_digest.return_value = {"total_annotations": 0}
 
         svc.send_instructor_email_digests(
-            [sentinel.h_userid], sentinel.updated_after, sentinel.updated_before
+            [sentinel.h_userid], sentinel.created_after, sentinel.created_before
         )
 
         send.delay.assert_not_called()
@@ -102,7 +102,7 @@ class TestDigestService:
         context.instructor_digest.return_value = {"total_annotations": 1}
 
         svc.send_instructor_email_digests(
-            sentinel.audience, sentinel.updated_after, sentinel.updated_before
+            sentinel.audience, sentinel.created_after, sentinel.created_before
         )
 
         send.delay.assert_not_called()
@@ -116,8 +116,8 @@ class TestDigestService:
 
         svc.send_instructor_email_digests(
             sentinel.audience,
-            sentinel.updated_after,
-            sentinel.updated_before,
+            sentinel.created_after,
+            sentinel.created_before,
             override_to_email=sentinel.override_to_email,
         )
 
