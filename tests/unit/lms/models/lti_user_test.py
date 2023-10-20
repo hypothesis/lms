@@ -18,7 +18,7 @@ class TestLTIUser:
         "role,is_instructor",
         [
             (LTIRole(scope=RoleScope.COURSE, type=RoleType.ADMIN), True),
-            (LTIRole(scope=RoleScope.INSTITUTION, type=RoleType.ADMIN), True),
+            (LTIRole(scope=RoleScope.COURSE, type=RoleType.ADMIN), True),
             (LTIRole(scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR), True),
             (
                 LTIRole(scope=RoleScope.INSTITUTION, type=RoleType.INSTRUCTOR),
@@ -61,8 +61,9 @@ class TestLTIUser:
         "role,is_admin",
         [
             (LTIRole(scope=RoleScope.COURSE, type=RoleType.ADMIN), True),
-            (LTIRole(scope=RoleScope.INSTITUTION, type=RoleType.ADMIN), True),
-            (LTIRole(scope=RoleScope.INSTITUTION, type=RoleType.INSTRUCTOR), False),
+            (LTIRole(scope=RoleScope.SYSTEM, type=RoleType.ADMIN), True),
+            (LTIRole(scope=RoleScope.INSTITUTION, type=RoleType.ADMIN), False),
+            (LTIRole(scope=RoleScope.SYSTEM, type=RoleType.INSTRUCTOR), False),
         ],
     )
     def test_is_admin(self, role, is_admin):
