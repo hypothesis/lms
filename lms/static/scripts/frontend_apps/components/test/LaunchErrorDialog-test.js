@@ -75,6 +75,13 @@ describe('LaunchErrorDialog', () => {
       withError: true,
     },
     {
+      errorState: 'canvas_page_not_found_in_course',
+      expectedText: 'The page has been deleted from Canvas',
+      expectedTitle: "Hypothesis couldn't find the page in the course",
+      hasRetry: true,
+      withError: true,
+    },
+    {
       errorState: 'd2l_file_not_found_in_course_instructor',
       expectedText:
         'To fix the issue, recreate this assignment and select a different file.',
