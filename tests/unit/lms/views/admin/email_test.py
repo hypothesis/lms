@@ -18,8 +18,8 @@ class TestAdminEmailViews:
             (),
             {
                 "h_userids": ["userid_1", "userid_2"],
-                "updated_after": "2023-02-27T00:00:00",
-                "updated_before": "2023-02-28T00:00:00",
+                "created_after": "2023-02-27T00:00:00",
+                "created_before": "2023-02-28T00:00:00",
                 "override_to_email": "someone@hypothes.is",
                 "deduplicate": False,
             },
