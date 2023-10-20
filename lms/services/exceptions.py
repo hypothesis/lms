@@ -264,8 +264,8 @@ class SerializableError(Exception):
 class FileNotFoundInCourse(SerializableError):
     """A file wasn't found in the current course."""
 
-    def __init__(self, error_code: str, file_id):
-        super().__init__(error_code=error_code, details={"file_id": file_id})
+    def __init__(self, error_code: str, document_id):
+        super().__init__(error_code=error_code, details={"document_id": document_id})
 
 
 class StudentNotInCourse(SerializableError):

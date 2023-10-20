@@ -9,18 +9,19 @@ export type LTILaunchServerErrorCode =
   | 'blackboard_group_set_empty'
   | 'blackboard_group_set_not_found'
   | 'blackboard_student_not_in_group'
-  | 'd2l_file_not_found_in_course_student'
-  | 'd2l_file_not_found_in_course_instructor'
-  | 'd2l_group_set_not_found'
-  | 'd2l_group_set_empty'
-  | 'd2l_student_not_in_group'
   | 'canvas_api_permission_error'
   | 'canvas_file_not_found_in_course'
-  | 'canvas_group_set_not_found'
   | 'canvas_group_set_empty'
+  | 'canvas_group_set_not_found'
+  | 'canvas_page_not_found_in_course'
   | 'canvas_student_not_in_group'
-  | 'vitalsource_user_not_found'
-  | 'vitalsource_no_book_license';
+  | 'd2l_file_not_found_in_course_instructor'
+  | 'd2l_file_not_found_in_course_student'
+  | 'd2l_group_set_empty'
+  | 'd2l_group_set_not_found'
+  | 'd2l_student_not_in_group'
+  | 'vitalsource_no_book_license'
+  | 'vitalsource_user_not_found';
 
 /**
  * An `Error` or error-like object. This allows components in the application
@@ -149,6 +150,7 @@ export function isLTILaunchServerError(error: ErrorLike): error is APIError {
       'd2l_student_not_in_group',
       'canvas_api_permission_error',
       'canvas_file_not_found_in_course',
+      'canvas_page_not_found_in_course',
       'canvas_group_set_not_found',
       'canvas_group_set_empty',
       'canvas_student_not_in_group',

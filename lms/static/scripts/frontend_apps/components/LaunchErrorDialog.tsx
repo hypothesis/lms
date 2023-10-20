@@ -212,6 +212,21 @@ export default function LaunchErrorDialog({
         </ErrorModal>
       );
 
+    case 'canvas_page_not_found_in_course':
+      return (
+        <ErrorModal
+          {...defaultProps}
+          title="Hypothesis couldn't find the page in the course"
+        >
+          <p>This might have happened because:</p>
+
+          <ul className="px-4 list-disc">
+            <li>The page has been deleted from Canvas</li>
+            <li>The course was copied from another course</li>
+          </ul>
+        </ErrorModal>
+      );
+
     case 'canvas_group_set_not_found':
       return (
         <ErrorModal
