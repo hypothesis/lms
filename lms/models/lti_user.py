@@ -89,7 +89,11 @@ class LTIUser:  # pylint: disable=too-many-instance-attributes
     @property
     def is_admin(self):
         """Whether this user is an admin."""
-        return any(role.type == RoleType.ADMIN for role in self.lti_roles)
+        return any(
+            role.type == RoleType.ADMIN
+            and role.scope in [RoleScope.COURSE, RoleScope.SYSTEM]
+            for role in self.lti_roles
+        )
 
 
 def display_name(given_name, family_name, full_name):
