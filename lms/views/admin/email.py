@@ -66,8 +66,8 @@ class AdminEmailViews:
             (),
             {
                 "h_userids": h_userids,
-                "updated_after": since.isoformat(),
-                "updated_before": until.isoformat(),
+                "created_after": since.isoformat(),
+                "created_before": until.isoformat(),
                 "override_to_email": to_email,
                 "deduplicate": False,
             },
