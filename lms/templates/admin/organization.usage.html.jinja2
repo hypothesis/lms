@@ -1,0 +1,26 @@
+{% import "macros.html.jinja2" as macros %}
+
+{% extends "lms:templates/admin/base.html.jinja2" %}
+
+{% block header %}
+    Organization {{org.id}} usage
+{% endblock %}
+
+
+{% block content %}
+    <fieldset class="box mt-6">
+        <legend class="label has-text-centered">Organization</legend>
+        {{ macros.organization_preview(request,org) }}
+    </fieldset>
+
+    <fieldset class="box mt-6">
+        Since: {{since}}
+        Until: {{until}}
+    </fieldset>
+
+    <table>
+    {% for row in report %}
+     <tr>{% for column in row %}<td>{{column}}</td>{% endfor%}</tr>
+    {% endfor %}
+    </table>
+{% endblock %}

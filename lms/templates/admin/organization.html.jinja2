@@ -65,6 +65,17 @@
             <ul>{{ org_hierarchy(hierarchy_root, org) }}</ul>
         </div>
     </div>
+
+    <fieldset class="box">
+    <legend class="label has-text-centered">Usage report</legend>
+    <form method="POST" action="{{ request.route_url("admin.organization.usage", id_=org.id) }}">
+          {{ macros.form_text_field(request, "Since", "since", "2023-10-01") }}
+          {{ macros.form_text_field(request, "", "until", "2023-10-31") }}
+          <div class="has-text-right mb-6">
+            <input type="submit" class="button is-primary" value="Generate" />
+          </div>
+    </fieldset>
+
     <fieldset class="box has-background-danger-light">
         <legend class="label has-text-centered has-text-danger">Danger zone</legend>
 
