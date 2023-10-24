@@ -30,7 +30,7 @@ dev: python
 .PHONY: web
 $(call help,make web,run just a single web worker process)
 web: python
-	@pyenv exec tox -qe dev --run-command 'gunicorn --bind :8001 --workers 1 --reload --timeout 0 --paste conf/development.ini'
+	@pyenv exec tox -qe dev --run-command 'gunicorn --bind :8001 --workers 1 --reload --reload-extra lms/templates/* --timeout 0 --paste conf/development.ini'
 
 .PHONY: shell
 $(call help,make shell,"launch a Python shell in this project's virtualenv")
