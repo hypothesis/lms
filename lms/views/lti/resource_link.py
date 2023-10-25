@@ -31,7 +31,7 @@ LOG = logging.getLogger(__name__)
     permission=Permissions.LTI_LAUNCH_ASSIGNMENT,
     schema=BasicLTILaunchSchema,
 )
-class BasicLaunchViews:
+class ResourceLinkLaunchViews:
     def __init__(self, context, request):
         self.context = context
         self.request = request

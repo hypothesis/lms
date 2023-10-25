@@ -7,7 +7,7 @@ from lms.models import LTIParams
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.security import Permissions
-from lms.views.lti.basic_launch import BasicLaunchViews
+from lms.views.lti.resource_link import ResourceLinkLaunchViews
 from tests import factories
 
 
@@ -21,7 +21,7 @@ from tests import factories
     "grouping_service",
     "misc_plugin",
 )
-class TestBasicLaunchViews:
+class TestResourceLinkLaunchViews:
     def test___init___(
         self,
         context,
@@ -31,7 +31,7 @@ class TestBasicLaunchViews:
         application_instance_service,
         lti_user,
     ):
-        BasicLaunchViews(context, pyramid_request)
+        ResourceLinkLaunchViews(context, pyramid_request)
 
         # `_record_course()`
         course_service.get_from_launch.assert_called_once_with(
@@ -154,7 +154,7 @@ class TestBasicLaunchViews:
         has_permission.return_value = False
         assignment_service.get_assignment_for_launch.return_value = None
 
-        response = BasicLaunchViews(context, pyramid_request).lti_launch()
+        response = ResourceLinkLaunchViews(context, pyramid_request).lti_launch()
 
         has_permission.assert_called_once_with(Permissions.LTI_CONFIGURE_ASSIGNMENT)
         assert (
@@ -327,7 +327,7 @@ class TestBasicLaunchViews:
 
     @pytest.fixture
     def svc(self, context, pyramid_request):
-        return BasicLaunchViews(context, pyramid_request)
+        return ResourceLinkLaunchViews(context, pyramid_request)
 
     @pytest.fixture
     def _show_document(self, svc):
