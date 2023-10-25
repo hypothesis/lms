@@ -20,7 +20,7 @@ class Grouping(CreatedUpdatedMixin, BASE):
         BLACKBOARD_GROUP = "blackboard_group"
         D2L_GROUP = "d2l_group"
 
-        # These are the LMS agnostic versions of the ones avobe.
+        # These are the LMS agnostic versions of the ones above.
         # They don't get stored in the DB but are meaningful in the codebase
         SECTION = "section"
         GROUP = "group"
