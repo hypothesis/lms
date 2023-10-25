@@ -156,7 +156,12 @@ class TestEnableLTILaunchMode:
                     }
                 ],
                 "annotationMetadata": {
-                    "lms": {"assignment_id": assignment.resource_link_id}
+                    "lms": {
+                        "assignment": {
+                            "guid": lti_user.application_instance.tool_consumer_instance_guid,
+                            "resource_link_id": assignment.resource_link_id,
+                        },
+                    }
                 },
             },
             "mode": "basic-lti-launch",
