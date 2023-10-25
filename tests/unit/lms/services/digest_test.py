@@ -8,6 +8,7 @@ from freezegun import freeze_time
 from h_matchers import Any
 
 from lms.services.digest import (
+    Annotation,
     CourseInfo,
     DigestContext,
     DigestService,
@@ -45,7 +46,17 @@ class TestDigestService:
             sentinel.audience, sentinel.created_after, sentinel.created_before
         )
         DigestContext.assert_called_once_with(
-            db_session, sentinel.audience, tuple(h_api.get_annotations.return_value)
+            db_session,
+            sentinel.audience,
+            [
+                Annotation(
+                    userid=annotation_dict["author"]["userid"],
+                    authority_provided_id=annotation_dict["group"][
+                        "authority_provided_id"
+                    ],
+                )
+                for annotation_dict in h_api.get_annotations.return_value
+            ],
         )
         assert context.instructor_digest.call_args_list == [
             call(user.h_userid) for user in context.user_infos
@@ -139,10 +150,22 @@ class TestDigestService:
 
     @pytest.fixture
     def h_api(self, h_api):
+        def asdict(annotation):
+            """Return the given Annotation in the h bulk annotation API's dict format."""
+            return {
+                "author": {
+                    "userid": annotation.userid,
+                },
+                "group": {
+                    "authority_provided_id": annotation.authority_provided_id,
+                },
+            }
+
         h_api.get_annotations.return_value = [
-            sentinel.annotation1,
-            sentinel.annotation2,
+            asdict(AnnotationFactory()),
+            asdict(AnnotationFactory()),
         ]
+
         return h_api
 
     @pytest.fixture
@@ -162,19 +185,19 @@ class TestDigestContext:
         for course in courses:
             make_instructor(instructor, course)
         annotations = [
-            Annotation(
+            AnnotationFactory(
                 authority_provided_id=courses[0].authority_provided_id,
                 userid=learner_1.h_userid,
             ),
-            Annotation(
+            AnnotationFactory(
                 authority_provided_id=courses[0].authority_provided_id,
                 userid=learner_2.h_userid,
             ),
-            Annotation(
+            AnnotationFactory(
                 authority_provided_id=courses[1].authority_provided_id,
                 userid=learner_1.h_userid,
             ),
-            Annotation(
+            AnnotationFactory(
                 authority_provided_id=courses[1].authority_provided_id,
                 userid=learner_1.h_userid,
             ),
@@ -213,7 +236,7 @@ class TestDigestContext:
         instructor = factories.User()
         make_instructor(instructor, course)
         annotations = [
-            Annotation(
+            AnnotationFactory(
                 authority_provided_id=course.authority_provided_id,
                 userid=instructor.h_userid,
             )
@@ -231,7 +254,7 @@ class TestDigestContext:
         instructor, learner = factories.User.create_batch(2)
         make_instructor(instructor, other_course)
         annotations = [
-            Annotation(
+            AnnotationFactory(
                 authority_provided_id=course.authority_provided_id,
                 userid=learner.h_userid,
             )
@@ -264,7 +287,7 @@ class TestDigestContext:
         context = DigestContext(
             db_session,
             [user.h_userid, user.h_userid],
-            Annotation.create_batch(2, userid=user.h_userid),
+            AnnotationFactory.create_batch(2, userid=user.h_userid),
         )
 
         user_infos = context.user_infos
@@ -392,7 +415,7 @@ class TestDigestContext:
         make_learner(learner, course)
         section = factories.CanvasSection(parent=course)
         annotations = [
-            Annotation(
+            AnnotationFactory(
                 authority_provided_id=grouping.authority_provided_id,
                 userid=learner.h_userid,
             )
@@ -450,7 +473,7 @@ class TestDigestContext:
             ],
         ]
         annotations = [
-            Annotation(authority_provided_id=grouping.authority_provided_id)
+            AnnotationFactory(authority_provided_id=grouping.authority_provided_id)
             for grouping in courses + sub_groupings
         ]
         context = DigestContext(db_session, [], annotations)
@@ -487,7 +510,7 @@ class TestDigestContext:
             db_session,
             [],
             [
-                Annotation(authority_provided_id=course.authority_provided_id)
+                AnnotationFactory(authority_provided_id=course.authority_provided_id)
                 for course in courses
             ],
         )
@@ -507,7 +530,7 @@ class TestDigestContext:
         course = factories.Course()
         learner = factories.User()
         make_learner(learner, course)
-        annotation = Annotation(
+        annotation = AnnotationFactory(
             authority_provided_id=course.authority_provided_id, userid=learner.h_userid
         )
         context = DigestContext(db_session, [], [annotation])
@@ -522,7 +545,7 @@ class TestDigestContext:
         course = factories.Course()
         instructor = factories.User()
         make_instructor(instructor, course)
-        annotation = Annotation(
+        annotation = AnnotationFactory(
             authority_provided_id=course.authority_provided_id,
             userid=instructor.h_userid,
         )
@@ -540,7 +563,7 @@ class TestDigestContext:
         # `user` is an instructor in `other_course`.
         make_instructor(user, other_course)
         # `user` is a learner in `course` and has created an annotation.
-        annotation = Annotation(
+        annotation = AnnotationFactory(
             authority_provided_id=course.authority_provided_id,
             userid=user.h_userid,
         )
@@ -554,10 +577,10 @@ class TestDigestContext:
 
     def test_course_infos_doesnt_count_annotations_from_other_courses(self, db_session):
         course, other_course = factories.Course.create_batch(2)
-        course_annotation = Annotation(
+        course_annotation = AnnotationFactory(
             authority_provided_id=course.authority_provided_id
         )
-        other_course_annotation = Annotation(
+        other_course_annotation = AnnotationFactory(
             authority_provided_id=other_course.authority_provided_id
         )
         context = DigestContext(
@@ -574,7 +597,7 @@ class TestDigestContext:
 
     def test_course_infos_ignores_unknown_authority_provided_ids(self, db_session):
         context = DigestContext(
-            db_session, [], [Annotation(authority_provided_id="unknown")]
+            db_session, [], [AnnotationFactory(authority_provided_id="unknown")]
         )
 
         assert context.course_infos == []
@@ -606,7 +629,7 @@ class TestServiceFactory:
         return patch("lms.services.digest.DigestService")
 
 
-class Annotation(factory.Factory):
+class AnnotationFactory(factory.Factory):
     """
     A factory for annotation dicts.
 
@@ -619,17 +642,10 @@ class Annotation(factory.Factory):
     """
 
     class Meta:
-        model = dict
+        model = Annotation
 
     userid = factory.Sequence(lambda n: f"acct:user_{n}@lms.hypothes.is")
     authority_provided_id = factory.Sequence(lambda n: f"group_{n}")
-
-    @factory.post_generation
-    def post(obj, *_args, **_kwargs):  # pylint:disable=no-self-argument
-        # pylint:disable=unsupported-assignment-operation,no-member
-        obj["author"] = {"userid": obj.pop("userid")}
-        obj["group"] = {"authority_provided_id": obj.pop("authority_provided_id")}
-        return obj
 
 
 class UserInfoFactory(factory.Factory):
