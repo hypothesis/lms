@@ -301,7 +301,7 @@ class TestApplicationInstanceService:
     ):
         lms_data = {
             field: field + "_value",
-            "tool_consumer_instance_guid": "GUID",
+            "tool_consumer_instance_guid": application_instance.tool_consumer_instance_guid,
         }
 
         service.update_from_lti_params(application_instance, LTIParams(lms_data))
@@ -315,12 +315,14 @@ class TestApplicationInstanceService:
     def test_update_from_lti_params_no_guid_doesnt_change_values(
         self, service, organization_service, application_instance
     ):
+        guid = application_instance.tool_consumer_instance_guid
+
         service.update_from_lti_params(
             application_instance, LTIParams({"tool_consumer_instance_url": "NO EFFECT"})
         )
 
         organization_service.auto_assign_organization.assert_not_called()
-        assert application_instance.tool_consumer_instance_guid is None
+        assert application_instance.tool_consumer_instance_guid == guid
         assert application_instance.tool_consumer_info_product_family_code is None
 
     def test_update_from_lti_params_existing_guid(
