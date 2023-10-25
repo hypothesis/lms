@@ -35,6 +35,7 @@ def includeme(config):  # pylint:disable=too-many-statements
         "/lti/reconfigure",
         factory="lms.resources.LTILaunchResource",
     )
+    config.add_route("lti.launch", "/lti")
 
     config.add_route("api.sync", "/api/sync", request_method="POST")
     config.add_route(

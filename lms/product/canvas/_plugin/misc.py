@@ -136,13 +136,18 @@ class CanvasMiscPlugin(MiscPlugin):
         return params
 
     def get_deeplinking_launch_url(self, request, assignment_configuration: dict):
-        # In canvas we point to our generic launch URL
-        # and we encode the assignment configuration as query parameters.
-        return (
-            urlparse(request.route_url("lti_launches"))
+        route_name = "lti_launches"
+        if request.json.get("single_lti_endpoint"):
+            # If we are using the single-endpoint flow, point to that
+            route_name = "lti.launch"
+
+        # In canvas we encode the assignment configuration as query parameters.
+        url = (
+            urlparse(request.route_url(route_name))
             ._replace(query=urlencode(assignment_configuration))
             .geturl()
         )
+        return url
 
     @classmethod
     def factory(cls, _context, _request):

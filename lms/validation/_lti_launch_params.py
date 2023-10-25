@@ -143,6 +143,24 @@ class BasicLTILaunchSchema(_CommonLTILaunchSchema):
         super().handle_error(error, data, many=many, **kwargs)
 
 
+class LTILaunchSchema(_CommonLTILaunchSchema):
+    """Generic schema for any type of LTI launch"""
+
+    lti_message_type = fields.Str(
+        validate=OneOf(
+            [
+                # LTI 1.1
+                "basic-lti-launch-request",
+                "ContentItemSelectionRequest",
+                # LTI1.3
+                "LtiResourceLinkRequest",
+                "LtiDeepLinkingRequest",
+            ],
+        ),
+        required=True,
+    )
+
+
 class DeepLinkingLTILaunchSchema(_CommonLTILaunchSchema):
     """Schema for deep linking LTI launches."""
 

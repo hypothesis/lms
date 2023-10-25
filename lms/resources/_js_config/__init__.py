@@ -288,6 +288,8 @@ class JSConfig:
                     "product": self._request.product.family,
                 },
                 "context_id": self._request.lti_params["context_id"],
+                # Pass if we are using the single endpoint setup
+                "single_lti_endpoint": self._request.params.get("single_lti_endpoint"),
             },
         }
         if self._application_instance.lti_version == "1.3.0":
