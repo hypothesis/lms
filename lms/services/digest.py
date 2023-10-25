@@ -44,13 +44,13 @@ class DigestService:
         deduplicate=True,
     ):
         """Send instructor email digests for the given users and timeframe."""
-        annotations = self._h_api.get_annotations(
+        annotation_dicts = self._h_api.get_annotations(
             audience, created_after, created_before
         )
 
-        # HAPI.get_annotations() returns an iterable.
-        # Turn it into a tuple because we need to iterate over it multiple times.
-        annotations = tuple(annotations)
+        annotations = [
+            Annotation.make(annotation_dict) for annotation_dict in annotation_dicts
+        ]
 
         context = DigestContext(self._db, audience, annotations)
 
@@ -85,6 +85,25 @@ class DigestService:
                     user_info.h_userid, EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST
                 ),
             )
+
+
+@dataclass(frozen=True)
+class Annotation:
+    """Info about an annotation from the h API."""
+
+    userid: str
+    authority_provided_id: str
+
+    @classmethod
+    def make(cls, annotation_dict):
+        """Make an Annotation from an annotation dict from the h bulk annotation API."""
+        userid = annotation_dict["author"]["userid"]
+        authority_provided_id = annotation_dict["group"]["authority_provided_id"]
+
+        return cls(
+            userid=userid,
+            authority_provided_id=authority_provided_id,
+        )
 
 
 @dataclass(frozen=True)
@@ -144,7 +163,7 @@ class DigestContext:
                     "num_annotations": num_annotations,
                     "annotators": list(
                         set(
-                            annotation["author"]["userid"]
+                            annotation.userid
                             for annotation in course_info.learner_annotations
                         )
                     ),
@@ -204,8 +223,7 @@ class DigestContext:
             return self._course_infos
 
         authority_provided_ids = set(
-            annotation["group"]["authority_provided_id"]
-            for annotation in self.annotations
+            annotation.authority_provided_id for annotation in self.annotations
         )
 
         # We're going to be joining the grouping table to itself and this requires
@@ -270,9 +288,8 @@ class DigestContext:
                     learner_annotations=tuple(
                         annotation
                         for annotation in self.annotations
-                        if annotation["group"]["authority_provided_id"]
-                        in authority_provided_ids
-                        and annotation["author"]["userid"] not in instructor_h_userids
+                        if annotation.authority_provided_id in authority_provided_ids
+                        and annotation.userid not in instructor_h_userids
                     ),
                 )
             )
