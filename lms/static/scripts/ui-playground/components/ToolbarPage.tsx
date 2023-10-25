@@ -9,7 +9,7 @@ import {
   InputGroup,
   LinkButton,
   ModalDialog,
-  Select,
+  SelectNext,
 } from '@hypothesis/frontend-shared';
 import type { ModalProps } from '@hypothesis/frontend-shared/lib/components/feedback/Modal';
 import Library from '@hypothesis/frontend-shared/lib/pattern-library/components/Library';
@@ -125,15 +125,23 @@ export default function ToolbarPage() {
                               title="previous student"
                               variant="dark"
                             />
-                            <Select
-                              aria-label="Select student"
-                              classes="xl:w-80"
-                              id="student-selector"
+                            <label
+                              className="sr-only"
+                              htmlFor="student-selector"
                             >
-                              <option key={'all-students'} value={-1}>
+                              Select student
+                            </label>
+                            <SelectNext
+                              classes="xl:!w-80"
+                              value={-1}
+                              onChange={() => {}}
+                              buttonId="student-selector"
+                              buttonContent="All Students"
+                            >
+                              <SelectNext.Option value={-1}>
                                 All Students
-                              </option>
-                            </Select>
+                              </SelectNext.Option>
+                            </SelectNext>
                             <IconButton
                               icon={ArrowRightIcon}
                               title="next student"

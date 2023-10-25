@@ -3,7 +3,7 @@ import {
   ArrowRightIcon,
   IconButton,
   InputGroup,
-  Select,
+  SelectNext,
 } from '@hypothesis/frontend-shared';
 
 import type { StudentInfo } from '../config';
@@ -47,15 +47,6 @@ export default function StudentSelector<Student extends StudentOption>({
     onSelectStudent(selectedIndex === 0 ? null : students[selectedIndex - 1]);
   };
 
-  const handleSelectStudent = (e: Event) => {
-    const studentIndex = parseInt((e.target as HTMLInputElement).value);
-    if (studentIndex === -1) {
-      onSelectStudent(null);
-    } else {
-      onSelectStudent(students[studentIndex]);
-    }
-  };
-
   return (
     <>
       <label
@@ -86,29 +77,21 @@ export default function StudentSelector<Student extends StudentOption>({
             title="Previous student"
             variant="dark"
           />
-          <Select
-            classes="min-w-[12rem] xl:w-[20rem]"
+          <SelectNext
+            classes="md:w-[12rem] lg:w-[16rem] xl:w-[20rem]"
             aria-label="Select student"
-            id={selectId}
-            onChange={handleSelectStudent}
+            value={selectedStudent}
+            onChange={onSelectStudent}
+            buttonId={selectId}
+            buttonContent={selectedStudent?.displayName ?? 'All Students'}
           >
-            <option
-              key={'student-all'}
-              selected={!hasSelectedStudent}
-              value={-1}
-            >
-              All Students
-            </option>
+            <SelectNext.Option value={null}>All Students</SelectNext.Option>
             {students.map((studentOption, idx) => (
-              <option
-                key={`student-${idx}`}
-                selected={selectedIndex === idx}
-                value={idx}
-              >
+              <SelectNext.Option value={studentOption} key={`student-${idx}`}>
                 {studentOption.displayName}
-              </option>
+              </SelectNext.Option>
             ))}
-          </Select>
+          </SelectNext>
           <IconButton
             data-testid="next-student-button"
             disabled={selectedIndex >= students.length - 1}
