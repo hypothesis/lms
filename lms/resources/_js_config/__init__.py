@@ -589,8 +589,8 @@ class JSConfig:
     def _generate_annotation_metadata(self, assignment):
         return {
             "lms": {
+                "guid": self._application_instance.tool_consumer_instance_guid,
                 "assignment": {
-                    "guid": self._application_instance.tool_consumer_instance_guid,
                     "resource_link_id": assignment.resource_link_id,
                 },
             },

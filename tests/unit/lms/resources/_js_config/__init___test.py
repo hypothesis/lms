@@ -157,8 +157,8 @@ class TestEnableLTILaunchMode:
                 ],
                 "annotationMetadata": {
                     "lms": {
+                        "guid": lti_user.application_instance.tool_consumer_instance_guid,
                         "assignment": {
-                            "guid": lti_user.application_instance.tool_consumer_instance_guid,
                             "resource_link_id": assignment.resource_link_id,
                         },
                     }
