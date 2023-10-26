@@ -64,7 +64,7 @@ export default function OAuth2RedirectErrorApp({
             A Canvas admin needs to edit {"Hypothesis's"} developer key and add
             these scopes:
           </p>
-          <ol className="px-4 list-decimal">
+          <ol className="px-8 list-decimal">
             {canvasScopes.map(scope => (
               <li key={scope}>
                 <code>{scope}</code>
