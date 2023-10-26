@@ -93,10 +93,19 @@ class AssignmentInfo:
     """Information about an assignment."""
 
     id: int
+    """The assignment's ID (Assignment.id)."""
+
     guid: str
+    """The tool_consumer_instance_guid of the assignment's LMS (Assignment.tool_consumer_instance_guid)."""
+
     resource_link_id: str
+    """The assignment's resource_link_id (Assignment.resource_link_id)."""
+
     title: str
+    """The assignment's title (Assignment.title)."""
+
     authority_provided_id: str
+    """The authority_provided_id of the assignment's course (Course.authority_provided_id)."""
 
 
 @dataclass(frozen=True)
@@ -104,9 +113,21 @@ class Annotation:
     """Info about an annotation from the h API."""
 
     userid: str
+    """The annotation's h userid."""
+
     authority_provided_id: str
+    """The authority_provided_id of the annotation's group.
+
+    This may be the ID of a non-course grouping that the annotation belongs to
+    such as a Canvas section or a Canvas group, or it may be the ID of the
+    annotation's course group.
+    """
+
     guid: str
+    """The tool_consumer_instance_guid of the annotation's LMS."""
+
     resource_link_id: str
+    """The resource_link_id of the annotation's assignment."""
 
     @classmethod
     def make(cls, annotation_dict):
