@@ -350,14 +350,15 @@ class TestDigestContext:
 
         assert assignment_infos == []
 
+    @pytest.mark.parametrize("title", [None, ""])
     def test_assignment_infos_doesnt_return_assignments_with_no_titles(
-        self, db_session
+        self, db_session, title
     ):
         annotation = AnnotationFactory()
         assignment = factories.Assignment(
             tool_consumer_instance_guid=annotation.guid,
             resource_link_id=annotation.resource_link_id,
-            title=None,
+            title=title,
         )
         course = factories.Course()
         factories.AssignmentGrouping(assignment=assignment, grouping=course)

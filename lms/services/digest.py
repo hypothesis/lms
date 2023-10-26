@@ -299,6 +299,7 @@ class DigestContext:
                         Assignment.title.is_not(None),
                     )
                 ).all()
+                if row.title.strip()
             ]
 
         return self._assignment_infos
