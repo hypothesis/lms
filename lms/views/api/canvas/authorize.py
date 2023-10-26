@@ -129,7 +129,10 @@ def oauth2_redirect(request):
     renderer="lms:templates/api/oauth2/redirect_error.html.jinja2",
 )
 def oauth2_redirect_error(request):
-    kwargs = {"auth_route": "canvas_api.oauth.authorize", "canvas_scopes": ALL_SCOPES}
+    kwargs = {
+        "auth_route": "canvas_api.oauth.authorize",
+        "canvas_scopes": list(ALL_SCOPES),
+    }
 
     if request.params.get("error") == "invalid_scope":
         kwargs["error_code"] = request.context.js_config.ErrorCode.CANVAS_INVALID_SCOPE
