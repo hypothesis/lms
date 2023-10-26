@@ -350,7 +350,7 @@ class TestDigestContext:
 
         assert assignment_infos == []
 
-    @pytest.mark.parametrize("title", [None, ""])
+    @pytest.mark.parametrize("title", [None, "", " "])
     def test_assignment_infos_doesnt_return_assignments_with_no_titles(
         self, db_session, title
     ):
