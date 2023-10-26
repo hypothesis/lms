@@ -161,7 +161,7 @@ class TestOAuth2RedirectError:
 
         pyramid_request.context.js_config.enable_oauth2_redirect_error_mode.assert_called_with(
             auth_route="canvas_api.oauth.authorize",
-            canvas_scopes=ALL_SCOPES,
+            canvas_scopes=list(ALL_SCOPES),
         )
         assert not template_data
 
