@@ -389,7 +389,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                     {typeof title === 'string' && (
                       <>
                         <div className="sm:col-span-2 border-b" />
-                        <PanelLabel isCurrentStep={true} verticalAlign="center">
+                        <PanelLabel isCurrentStep verticalAlign="center">
                           Title
                         </PanelLabel>
                         <Input
@@ -407,23 +407,27 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                         />
                       </>
                     )}
-                    <div className="sm:col-span-2 border-b" />
-                    <PanelLabel isCurrentStep={true}>
-                      Group assignment
-                    </PanelLabel>
-                    <div
-                      className={classnames(
-                        // Set a height on this container to give the group
-                        // <select> element room when it renders (avoid
-                        // changing the height of the Card later)
-                        'h-28'
-                      )}
-                    >
-                      <GroupConfigSelector
-                        groupConfig={groupConfig}
-                        onChangeGroupConfig={setGroupConfig}
-                      />
-                    </div>
+                    {enableGroupConfig && (
+                      <>
+                        <div className="sm:col-span-2 border-b" />
+                        <PanelLabel isCurrentStep={true}>
+                          Group assignment
+                        </PanelLabel>
+                        <div
+                          className={classnames(
+                            // Set a height on this container to give the group
+                            // <select> element room when it renders (avoid
+                            // changing the height of the Card later)
+                            'h-28'
+                          )}
+                        >
+                          <GroupConfigSelector
+                            groupConfig={groupConfig}
+                            onChangeGroupConfig={setGroupConfig}
+                          />
+                        </div>
+                      </>
+                    )}
                   </>
                 )}
               </div>
