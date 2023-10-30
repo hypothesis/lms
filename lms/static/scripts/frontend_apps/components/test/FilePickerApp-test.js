@@ -528,6 +528,13 @@ describe('FilePickerApp', () => {
         const description = wrapper.find('[data-testid="content-summary"]');
         assert.equal(description.text(), 'https://othersite.com/test.pdf');
       });
+
+      it('displays group config selector when groups are enabled', () => {
+        fakeConfig.product.settings.groupsEnabled = groupsEnabled;
+        const wrapper = renderFilePicker();
+
+        assert.equal(wrapper.exists('GroupConfigSelector'), groupsEnabled);
+      });
     });
 
     it('cancels editing content when clicking "Cancel" button', () => {
