@@ -258,7 +258,7 @@ prompt-toolkit==3.0.29
     #   click-repl
 psutil==5.9.5
     # via pytest-xdist
-psycopg2==2.9.6
+psycopg2==2.9.9
     # via
     #   -r requirements/prod.txt
     #   data-tasks

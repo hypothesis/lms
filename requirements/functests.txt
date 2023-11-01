@@ -246,7 +246,7 @@ prompt-toolkit==3.0.29
     # via
     #   -r requirements/prod.txt
     #   click-repl
-psycopg2==2.9.6
+psycopg2==2.9.9
     # via
     #   -r requirements/prod.txt
     #   data-tasks

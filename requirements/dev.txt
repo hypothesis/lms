@@ -248,7 +248,7 @@ prompt-toolkit==3.0.29
     #   -r requirements/prod.txt
     #   click-repl
     #   ipython
-psycopg2==2.9.6
+psycopg2==2.9.9
     # via
     #   -r requirements/prod.txt
     #   data-tasks
