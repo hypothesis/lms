@@ -151,7 +151,7 @@ plaster-pastedeploy==0.7
     # via pyramid
 prompt-toolkit==3.0.29
     # via click-repl
-psycopg2==2.9.6
+psycopg2==2.9.9
     # via
     #   -r requirements/prod.in
     #   data-tasks

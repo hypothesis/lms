@@ -248,7 +248,7 @@ prompt-toolkit==3.0.29
     #   -r prod.txt
     #   click-repl
     #   ipython
-psycopg2==2.9.6
+psycopg2==2.9.9
     # via
     #   -r prod.txt
     #   data-tasks
