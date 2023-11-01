@@ -60,7 +60,7 @@
     "axe-core": "^4.8.2",
     "babel-plugin-istanbul": "^6.1.1",
     "babel-plugin-mockable-imports": "^2.0.1",
-    "chai": "^4.3.7",
+    "chai": "^4.3.10",
     "diff": "^5.1.0",
     "enzyme": "^3.11.0",
     "enzyme-adapter-preact-pure": "^4.1.0",
