@@ -29,7 +29,7 @@ amqp==5.1.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   kombu
-astroid==3.0.0
+astroid==3.0.1
     # via pylint
 async-timeout==4.0.1
     # via
@@ -50,6 +50,7 @@ backports-zoneinfo[tzdata]==0.2.1
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
+    #   backports-zoneinfo
     #   celery
     #   kombu
 beautifulsoup4==4.9.3
@@ -134,6 +135,7 @@ click-repl==0.2.0
 coverage[toml]==7.2.7
     # via
     #   -r requirements/tests.txt
+    #   coverage
     #   pytest-cov
 cryptography==41.0.4
     # via
@@ -481,8 +483,9 @@ pyjwt[crypto]==2.8.0
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
+    #   pyjwt
     #   pyramid-googleauth
-pylint==3.0.0
+pylint==3.0.2
     # via -r requirements/lint.in
 pyparsing==3.0.6
     # via
@@ -548,7 +551,9 @@ pytest-factoryboy==2.5.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
 pytest-xdist[psutil]==3.3.1
-    # via -r requirements/tests.txt
+    # via
+    #   -r requirements/tests.txt
+    #   pytest-xdist
 python-dateutil==2.8.2
     # via
     #   -r requirements/bddtests.txt
@@ -564,6 +569,7 @@ python-jose[crypto,cryptography]==3.3.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   h-vialib
+    #   python-jose
 referencing==0.30.2
     # via
     #   -r requirements/bddtests.txt
@@ -683,6 +689,7 @@ typing-extensions==4.7.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   alembic
+    #   astroid
     #   async-timeout
     #   kombu
     #   pylint
