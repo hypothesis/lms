@@ -33,6 +33,7 @@ attrs==23.1.0
 backports-zoneinfo[tzdata]==0.2.1
     # via
     #   -r requirements/prod.txt
+    #   backports-zoneinfo
     #   celery
     #   kombu
 billiard==4.1.0
@@ -83,7 +84,9 @@ click-repl==0.2.0
     #   -r requirements/prod.txt
     #   celery
 coverage[toml]==7.2.7
-    # via pytest-cov
+    # via
+    #   coverage
+    #   pytest-cov
 cryptography==41.0.4
     # via
     #   -r requirements/prod.txt
@@ -130,7 +133,7 @@ gunicorn==20.1.0
     # via -r requirements/prod.txt
 h-api==1.1.0
     # via -r requirements/prod.txt
-h-assets==1.0.5
+h-assets==1.0.6
     # via -r requirements/prod.txt
 h-matchers==1.2.15
     # via -r requirements/tests.in
@@ -155,6 +158,7 @@ importlib-metadata==4.8.1
     #   alembic
     #   data-tasks
     #   h-api
+    #   h-assets
     #   h-vialib
     #   pip-sync-faster
 importlib-resources==6.0.0
@@ -277,6 +281,7 @@ pycryptodomex==3.18.0
 pyjwt[crypto]==2.8.0
     # via
     #   -r requirements/prod.txt
+    #   pyjwt
     #   pyramid-googleauth
 pyparsing==3.0.6
     # via
@@ -328,6 +333,7 @@ python-jose[crypto,cryptography]==3.3.0
     # via
     #   -r requirements/prod.txt
     #   h-vialib
+    #   python-jose
 referencing==0.30.2
     # via
     #   -r requirements/prod.txt
