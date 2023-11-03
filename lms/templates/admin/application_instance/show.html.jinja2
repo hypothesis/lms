@@ -48,6 +48,9 @@
                     <a>Settings</a>
                 </li>
                 <li>
+                    <a>Role Overrides</a>
+                </li>
+                <li>
                     <a>Danger</a>
                 </li>
             </ul>
@@ -101,8 +104,12 @@
                                 <input type="submit" class="button is-primary" value="Save" />
                             </div>
                         </fieldset>
-                    </li>
-                    <li>
+                    </form>
+                </li>
+                <li>
+                    <form method="POST"
+                          action="{{ request.route_url("admin.instance", id_=instance.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
                         <fieldset class="box">
                             <legend class="label has-text-centered">General settings</legend>
                             {{ settings_checkbox("Enable import/export in client", "hypothesis", "import_export_enabled", default=False) }}
@@ -158,6 +165,24 @@
                             <input type="submit" class="button is-primary" value="Save" />
                         </div>
                     </form>
+                </li>
+                <li>
+                    <fieldset class="box">
+                        <legend id="roles" class="label has-text-centered">Role overrides</legend>
+                        <div class="block has-text-right">
+                            <a class="button is-primary"
+                               href="{{ request.route_url("admin.role.override.new", id_=instance.id) }}">New role override</a>
+                        </div>
+                        {% if instance.role_overrides %}
+                            {{ macros.object_list_table(request, 'admin.role.override', instance.role_overrides,fields=[
+                                                        {"label": "Value", "name": "value"},
+                                                        {"label": "Scope", "name": "scope"},
+                                                        {"label": "Type", "name": "type"}
+                                                        ]) }}
+                        {% else %}
+                            <div class="has-text-centered">No role overrides</div>
+                        {% endif %}
+                    </fieldset>
                 </li>
                 <li>
                     <fieldset class="box has-background-danger-light">
