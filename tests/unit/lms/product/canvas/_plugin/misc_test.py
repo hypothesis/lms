@@ -156,6 +156,23 @@ class TestCanvasMiscPlugin:
             == "http://example.com/lti_launches?param=value"
         )
 
+    @pytest.mark.parametrize("url_param", (None, sentinel.from_url))
+    @pytest.mark.parametrize("custom_param", (None, sentinel.from_custom))
+    def test_get_deep_linked_assignment_configuration(
+        self, plugin, pyramid_request, url_param, custom_param
+    ):
+        pyramid_request.params["url"] = url_param
+        pyramid_request.lti_params["custom_url"] = custom_param
+
+        result = plugin.get_deep_linked_assignment_configuration(pyramid_request)
+
+        if url_param:
+            assert result["url"] == sentinel.from_url
+        elif custom_param:
+            assert result["url"] == sentinel.from_custom
+        else:
+            assert "url" not in result
+
     def test_factory(self, pyramid_request):
         plugin = CanvasMiscPlugin.factory(sentinel.context, pyramid_request)
         assert isinstance(plugin, CanvasMiscPlugin)
