@@ -1,7 +1,15 @@
 import pytest
 from sqlalchemy.exc import StatementError
 
-from lms.models.lti_role import LTIRole, RoleScope, RoleType
+from lms.models.lti_role import LTIRole, LTIRoleOverride, RoleScope, RoleType
+
+
+class TestLTIRoleOverride:
+    def test_value(self):
+        lti_role = LTIRole(value="ROLE")
+
+        # pylint:disable=comparison-with-callable
+        assert LTIRoleOverride(lti_role=lti_role).value == lti_role.value
 
 
 class TestLTIRole:

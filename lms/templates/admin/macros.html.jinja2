@@ -147,6 +147,20 @@
         {"label": "Issuer ID", "name": "issuer"},
         ]) }}
 {% endmacro %}
+{% macro instance_preview(request, instance) %}
+    {% if instance %}
+        <div class="block has-text-right">
+            <a class="button"
+               href="{{ request.route_url("admin.instance", id_=instance.id) }}">View</a>
+        </div>
+        <div class="columns">
+            <div class="column is-half">{{ disabled_text_field("Name", instance.name) }}</div>
+            <div class="column is-half">{{ disabled_text_field("Version", instance.lti_version) }}</div>
+        </div>
+    {% else %}
+        <div class="has-text-centered">No Application Instance</div>
+    {% endif %}
+{% endmacro %}
 {% macro registration_preview(request, lti_registration) %}
     {% if lti_registration %}
         <div class="block has-text-right">
@@ -174,4 +188,16 @@
     {% else %}
         <div class="has-text-centered">No organization</div>
     {% endif %}
+{% endmacro %}
+{% macro select(label, field_name, options, current=None) %}
+    {% call field_body(label) %}
+        <div class="select">
+            <select name="{{ field_name }}">
+                {% for value, name in options %}
+                    <option {% if current == value %}selected{% endif %} value={{ value }}>{{ name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    {% endcall %}
 {% endmacro %}

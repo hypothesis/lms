@@ -3,6 +3,7 @@ from factory import Faker, Sequence
 from factory.alchemy import SQLAlchemyModelFactory
 
 from lms import models
+from lms.models.lti_role import RoleScope, RoleType
 
 
 class LTIRole(SQLAlchemyModelFactory):
@@ -26,3 +27,11 @@ class LTIRole(SQLAlchemyModelFactory):
 
     # We want the value to be random, but it must also be guaranteed unique
     value = factory.LazyAttribute(lambda o: f"{o.primary_role}#{o.sub_role}")
+
+
+class LTIRoleOverride(SQLAlchemyModelFactory):
+    class Meta:
+        model = models.LTIRoleOverride
+
+    type = Faker("random_element", elements=list(RoleType))
+    scope = Faker("random_element", elements=list(RoleScope))

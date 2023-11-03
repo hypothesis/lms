@@ -28,7 +28,7 @@ from tests.factories.grouping_membership import GroupingMembership
 from tests.factories.h_user import HUser
 from tests.factories.jwt_oauth2_token import JWTOAuth2Token
 from tests.factories.lti_registration import LTIRegistration
-from tests.factories.lti_role import LTIRole
+from tests.factories.lti_role import LTIRole, LTIRoleOverride
 from tests.factories.lti_user import LTIUser
 from tests.factories.oauth2_token import OAuth2Token
 from tests.factories.organization import Organization
