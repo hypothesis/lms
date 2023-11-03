@@ -179,7 +179,7 @@ faker==8.1.2
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   factory-boy
-filelock==3.12.4
+filelock==3.13.1
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
