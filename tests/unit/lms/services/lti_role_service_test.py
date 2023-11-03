@@ -1,10 +1,11 @@
+import random
 from unittest.mock import sentinel
 
 import pytest
 from h_matchers import Any
 
-from lms.models.lti_role import LTIRole, RoleScope, RoleType
-from lms.services.lti_role_service import LTIRoleService, service_factory
+from lms.models.lti_role import LTIRole, LTIRoleOverride, RoleScope, RoleType
+from lms.services.lti_role_service import LTIRoleService, Role, service_factory
 from tests import factories
 
 
@@ -47,13 +48,120 @@ class TestLTIRoleService:
         assert roles[0].type == RoleType.INSTRUCTOR
         assert roles[0].scope == RoleScope.COURSE
 
+    def test_get_roles_for_application_instance_no_overrides(
+        self, svc, existing_roles, application_instance
+    ):
+        existing_role_strings = [role.value for role in existing_roles]
+        roles = svc.get_roles_for_application_instance(
+            application_instance, ", ".join(existing_role_strings)
+        )
+
+        assert roles == [
+            Role(scope=role.scope, type=role.type, value=role.value)
+            for role in existing_roles
+        ]
+
+    def test_get_roles_for_application_instance_with_overrides(
+        self, svc, existing_roles, application_instance, db_session
+    ):
+        override = LTIRoleOverride(
+            lti_role=existing_roles[0],
+            application_instance=application_instance,
+            # Make sure the override has different values
+            scope=self.random_enum_excluding(RoleScope, existing_roles[0].scope),
+            type=self.random_enum_excluding(RoleType, existing_roles[0].type),
+        )
+        db_session.add(override)
+
+        existing_role_strings = [role.value for role in existing_roles]
+        roles = svc.get_roles_for_application_instance(
+            application_instance, ", ".join(existing_role_strings)
+        )
+
+        assert override.scope == roles[0].scope
+        assert override.type == roles[0].type
+        assert roles[1:] == [
+            Role(scope=role.scope, type=role.type, value=role.value)
+            for role in existing_roles[1:]
+        ]
+
+    def test_search(self, existing_roles, svc):
+        results = svc.search()
+
+        assert results.all() == existing_roles
+
+    def test_search_by_id(self, existing_roles, svc, db_session):
+        db_session.flush()  # Give all roles IDs
+
+        results = svc.search(id_=existing_roles[0].id)
+
+        assert results.one() == existing_roles[0]
+
+    def test_search_override(self, existing_overrides, svc):
+        results = svc.search_override()
+
+        assert results.all() == existing_overrides
+
+    def test_search_override_by_id(self, existing_overrides, svc, db_session):
+        db_session.flush()  # Give all roles IDs
+
+        results = svc.search_override(id_=existing_overrides[0].id)
+
+        assert results.one() == existing_overrides[0]
+
+    def test_new_role_override(
+        self, svc, application_instance, existing_roles, db_session
+    ):
+        override = svc.new_role_override(
+            application_instance,
+            existing_roles[0],
+            type_=RoleType.INSTRUCTOR,
+            scope=RoleScope.SYSTEM,
+        )
+        db_session.commit()
+
+        assert svc.search_override(id_=override.id).one() == override
+        assert override.type == RoleType.INSTRUCTOR
+        assert override.scope == RoleScope.SYSTEM
+
+    def test_delete_override(self, existing_overrides, svc, db_session):
+        db_session.flush()  # Give all roles IDs
+        id_ = existing_overrides[0].id
+
+        svc.delete_override(existing_overrides[0])
+
+        assert not svc.search(id_=id_).all()
+
+    def test_update_override(self, existing_overrides, svc, db_session):
+        db_session.flush()  # Give all roles IDs
+
+        override = svc.update_override(
+            existing_overrides[0], scope=RoleScope.COURSE, type_=RoleType.INSTRUCTOR
+        )
+
+        assert override.scope == RoleScope.COURSE
+        assert override.type == RoleType.INSTRUCTOR
+
     @pytest.fixture
     def svc(self, db_session):
         return LTIRoleService(db_session=db_session)
 
     @pytest.fixture
     def existing_roles(self):
-        return factories.LTIRole.create_batch(3)
+        return sorted(factories.LTIRole.create_batch(3), key=lambda x: x.value)
+
+    @pytest.fixture
+    def existing_overrides(self, existing_roles, application_instance):
+        return [
+            factories.LTIRoleOverride(
+                lti_role=role, application_instance=application_instance
+            )
+            for role in existing_roles
+        ]
+
+    @staticmethod
+    def random_enum_excluding(enum_, excluding):
+        return random.choice(list(set(enum_) - {excluding}))
 
 
 class TestServiceFactory:

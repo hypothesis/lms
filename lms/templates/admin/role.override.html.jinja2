@@ -1,0 +1,23 @@
+{% import "macros.html.jinja2" as macros %}
+{% extends "lms:templates/admin/base.html.jinja2" %}
+{% block header %}Role Override - {{ override.id }}{% endblock %}
+{% block content %}
+    <fieldset class="box mt-6">
+        <legend class="label has-text-centered">Application Instance</legend>
+        {{ macros.instance_preview(request, override.application_instance) }}
+    </fieldset>
+    <form method="POST"
+          action="{{ request.route_url("admin.role.override", id_=override.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+        <fieldset class="box mt-6">
+            {{ macros.disabled_text_field("Value", override.value) }}
+            {{ macros.select("Scope", "scope", [("course", "Course") ,("system", "System"), ("institution", "Institution")], override.scope) }}
+            {{ macros.select("Type", "type", [("learner", "Learner") ,("instructor", "Instructor"), ("admin", "Admin")], override.type) }}
+        </fieldset>
+        <input type="submit" class="button is-info" value="Save" />
+        <input type="submit"
+               formaction="{{ request.route_url("admin.role.override.delete", id_=override.id) }}"
+               class="button is-danger"
+               value="Delete" />
+    </form>
+{% endblock %}

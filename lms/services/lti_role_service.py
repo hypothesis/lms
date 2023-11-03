@@ -1,8 +1,19 @@
+from dataclasses import dataclass
 from typing import List
 
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
-from lms.models import LTIRole
+from lms.models import ApplicationInstance
+from lms.models.lti_role import LTIRole, LTIRoleOverride, RoleScope, RoleType
+
+
+@dataclass
+class Role:
+    scope: RoleScope
+    type: RoleType
+
+    value: str
 
 
 class LTIRoleService:
@@ -36,7 +47,71 @@ class LTIRoleService:
 
             roles.extend(new_roles)
 
-        return roles
+        return sorted(roles, key=lambda r: r.value)
+
+    def get_roles_for_application_instance(
+        self, ai: ApplicationInstance, role_description: str
+    ) -> List[Role]:
+        roles = self.get_roles(role_description)
+
+        # pylint:disable=not-callable,no-member
+        overrides = self._db.execute(
+            select(
+                LTIRole.value.label("value"),
+                func.coalesce(LTIRoleOverride.type, LTIRole.type).label("type"),
+                func.coalesce(LTIRoleOverride.scope, LTIRole.scope).label("scope"),
+            )
+            .outerjoin(LTIRoleOverride)
+            .filter(
+                LTIRole.id.in_([role.id for role in roles]),
+                or_(
+                    LTIRoleOverride.application_instance_id == ai.id,
+                    LTIRoleOverride.application_instance_id.is_(None),
+                ),
+            )
+            .order_by("value")
+        )
+        return [
+            Role(scope=role.scope, type=role.type, value=role.value)
+            for role in overrides
+        ]
+
+    def search(self, id_=None):
+        query = self._db.query(LTIRole).order_by(LTIRole.value)
+
+        if id_:
+            query = query.filter(LTIRole.id == id_)
+
+        return query
+
+    def new_role_override(self, application_instance, role, type_, scope):
+        override = LTIRoleOverride(
+            application_instance=application_instance,
+            lti_role=role,
+            type=type_,
+            scope=scope,
+        )
+        self._db.add(override)
+        return override
+
+    def search_override(self, id_=None):
+        query = self._db.query(LTIRoleOverride)
+
+        if id_:
+            query = query.filter(LTIRoleOverride.id == id_)
+
+        return query
+
+    def update_override(
+        self, override: LTIRoleOverride, scope, type_
+    ) -> LTIRoleOverride:
+        override.scope = scope
+        override.type = type_
+
+        return override
+
+    def delete_override(self, override: LTIRoleOverride):
+        self._db.delete(override)
 
 
 def service_factory(_context, request) -> LTIRoleService:
