@@ -35,7 +35,7 @@ def setup(env):
     env["f"].__doc__ = "The test factories for quickly creating objects."
     factories.set_sqlalchemy_session(request.db)
 
-    env["tasks"] = tasks
+    env["t"] = env["tasks"] = tasks
     env["tasks"].__doc__ = "The lms.tasks package."
 
     env["s"] = env["services"] = services
