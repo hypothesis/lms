@@ -4,7 +4,7 @@ from contextlib import suppress
 
 from transaction.interfaces import NoTransaction
 
-from lms import models, tasks
+from lms import models, services, tasks
 
 
 def setup(env):
@@ -37,6 +37,9 @@ def setup(env):
 
     env["tasks"] = tasks
     env["tasks"].__doc__ = "The lms.tasks package."
+
+    env["s"] = env["services"] = services
+    env["s"].__doc__ = "The lms.services package."
 
     try:
         yield
