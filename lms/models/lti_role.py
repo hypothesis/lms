@@ -31,6 +31,41 @@ class RoleScope(str, Enum):
     SYSTEM = "system"
 
 
+class LTIRoleOverride(BASE):
+    __tablename__ = "lti_role_override"
+
+    __table_args__ = (sa.UniqueConstraint("application_instance_id", "lti_role_id"),)
+
+    id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
+
+    lti_role_id = sa.Column(
+        sa.Integer(),
+        sa.ForeignKey("lti_role.id", ondelete="cascade"),
+        nullable=True,
+        index=True,
+    )
+    lti_role = sa.orm.relationship("LTIRole")
+
+    application_instance_id = sa.Column(
+        sa.Integer(),
+        sa.ForeignKey("application_instances.id", ondelete="cascade"),
+        nullable=False,
+    )
+    application_instance = sa.orm.relationship(
+        "ApplicationInstance", back_populates="role_overrides"
+    )
+
+    type = varchar_enum(RoleType)
+    """Our interpretation of the value."""
+
+    scope = varchar_enum(RoleScope, nullable=True)
+    """Scope where this role applies"""
+
+    @property
+    def value(self):
+        return self.lti_role.value
+
+
 class LTIRole(BASE):
     """Model for LTI role strings and our interpretation of them."""
 

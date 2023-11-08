@@ -172,6 +172,10 @@ class ApplicationInstance(CreatedUpdatedMixin, BASE):
     # Unique identifier of this instance per LTIRegistration
     deployment_id = sa.Column(sa.UnicodeText, nullable=True)
 
+    role_overrides = sa.orm.relationship(
+        "LTIRoleOverride", back_populates="application_instance"
+    )
+
     def decrypted_developer_secret(self, aes_service):
         if self.developer_secret is None:
             return None
