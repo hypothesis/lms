@@ -35,7 +35,7 @@ function ErrorDetails({ error }: ErrorDetailsProps) {
 
   return (
     <details
-      className="border"
+      className="border rounded overflow-hidden"
       onToggle={onDetailsToggle}
       data-testid="error-details"
     >

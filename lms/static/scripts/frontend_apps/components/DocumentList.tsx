@@ -4,6 +4,7 @@ import {
   FilePdfFilledIcon,
   FolderIcon,
   Scroll,
+  ScrollContainer,
 } from '@hypothesis/frontend-shared';
 import type { ComponentChildren } from 'preact';
 
@@ -77,18 +78,21 @@ export default function DocumentList<DocumentType extends Document>({
   };
 
   return (
-    <Scroll>
-      <DataTable
-        title={title}
-        emptyMessage={noDocumentsMessage}
-        columns={columns}
-        loading={isLoading}
-        rows={documents}
-        selectedRow={selectedDocument}
-        onSelectRow={onSelectDocument}
-        onConfirmRow={onUseDocument}
-        renderItem={renderItem}
-      />
-    </Scroll>
+    <ScrollContainer rounded>
+      <Scroll>
+        <DataTable
+          title={title}
+          emptyMessage={noDocumentsMessage}
+          columns={columns}
+          loading={isLoading}
+          rows={documents}
+          selectedRow={selectedDocument}
+          onSelectRow={onSelectDocument}
+          onConfirmRow={onUseDocument}
+          renderItem={renderItem}
+          borderless
+        />
+      </Scroll>
+    </ScrollContainer>
   );
 }
