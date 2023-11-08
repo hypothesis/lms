@@ -29,7 +29,6 @@ WEEK_DAYS = (
 class EmailSettingsViews:
     def __init__(self, request):
         self.request = request
-        self._preferences = None
 
     @view_config(route_name="email.settings", request_param="token")
     def settings_redirect(self):
@@ -43,7 +42,9 @@ class EmailSettingsViews:
 
     @view_config(route_name="email.settings")
     def settings(self):
-        return {"preferences": self.preferences.get("instructor_email_digest", {})}
+        return {
+            "preferences": self.get_preferences().get("instructor_email_digest", {})
+        }
 
     @view_config(route_name="email.settings", request_method="POST")
     def save_settings(self):
@@ -52,27 +53,27 @@ class EmailSettingsViews:
         )
         return self._redirect_to_settings_page()
 
-    @property
-    def preferences(self):
-        if self._preferences is None:
-            h_userid = self.request.authenticated_userid
+    def get_preferences(self):
+        h_userid = self.request.authenticated_userid
 
-            try:
-                self._preferences = self.request.db.scalars(
-                    select(UserPreferences).where(UserPreferences.h_userid == h_userid)
-                ).one()
-            except NoResultFound:
-                self._preferences = UserPreferences(h_userid=h_userid, preferences={})
-                self.request.db.add(self._preferences)
+        try:
+            preferences = self.request.db.scalars(
+                select(UserPreferences).where(UserPreferences.h_userid == h_userid)
+            ).one()
+        except NoResultFound:
+            preferences = UserPreferences(h_userid=h_userid, preferences={})
+            self.request.db.add(preferences)
 
-        self._preferences.preferences.setdefault(
+        preferences.preferences.setdefault(
             "instructor_email_digest", {day: True for day in WEEK_DAYS}
         )
-        return self._preferences.preferences
 
-    def set_preferences(self, preferences):
-        self.preferences["instructor_email_digest"].update(preferences)
-        self.preferences.changed()
+        return preferences.preferences
+
+    def set_preferences(self, new_preferences):
+        preferences = self.get_preferences()
+        preferences["instructor_email_digest"].update(new_preferences)
+        preferences.changed()
 
     def _redirect_to_settings_page(self):
         return HTTPFound(
