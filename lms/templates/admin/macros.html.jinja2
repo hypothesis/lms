@@ -96,7 +96,7 @@
         {% endif %}
     {%- elif value.strftime -%}
         {{ value.strftime("%Y/%m/%d %H:%M") }}
-    {%- elif value.startswith('http') and html -%}
+    {%- elif value.startswith and value.startswith('http') and html -%}
         <a href="{{ value }}">{{ value }}</a>
     {%- else -%}
         {{ value }}
