@@ -1,33 +1,24 @@
 {% import "macros.html.jinja2" as macros %}
-
 {% extends "lms:templates/admin/base.html.jinja2" %}
-
-{% block header %}
-New registration
-{% endblock %}
-
+{% block header %}New registration{% endblock %}
 {% block content %}
-
-<form method="POST" action="{{ request.route_url("admin.registration.new") }}">
-    <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
-
-    <fieldset class="box mt-6">
-        <legend class="label has-text-centered">Registration</legend>
-
-        {{ macros.form_text_field(request, "Issuer", "issuer") }}
-        {{ macros.form_text_field(request, "Client ID", "client_id") }}
-
-
-        <div class="block has-text-right">
-            <input type="submit" class="button is-primary" value="Suggest URLs" formaction="{{ request.route_url("admin.registration.suggest_urls") }}"/>
-        </div>
-
-        {{ macros.form_text_field(request, "Auth login URL", "auth_login_url", auth_login_url) }}
-        {{ macros.form_text_field(request, "Key set URL", "key_set_url", key_set_url) }}
-        {{ macros.form_text_field(request, "Token URL", "token_url", token_url) }}
-    </fieldset>
-
-    <input type="submit" class="button is-info" value="New"/>
-</form>
-
+    <form method="POST"
+          action="{{ request.route_url("admin.registration.new") }}">
+        <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+        <fieldset class="box mt-6">
+            <legend class="label has-text-centered">Registration</legend>
+            {{ macros.form_text_field(request, "Issuer", "issuer") }}
+            {{ macros.form_text_field(request, "Client ID", "client_id") }}
+            <div class="block has-text-right">
+                <input type="submit"
+                       class="button is-primary"
+                       value="Suggest URLs"
+                       formaction="{{ request.route_url("admin.registration.suggest_urls") }}" />
+            </div>
+            {{ macros.form_text_field(request, "Auth login URL", "auth_login_url", auth_login_url) }}
+            {{ macros.form_text_field(request, "Key set URL", "key_set_url", key_set_url) }}
+            {{ macros.form_text_field(request, "Token URL", "token_url", token_url) }}
+        </fieldset>
+        <input type="submit" class="button is-info" value="New" />
+    </form>
 {% endblock %}

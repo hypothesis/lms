@@ -1,21 +1,14 @@
 {% import "macros.html.jinja2" as macros %}
-
 {% extends "lms:templates/admin/base.html.jinja2" %}
-
-{% block header %}
-New organization
-{% endblock %}
-
+{% block header %}New organization{% endblock %}
 {% block content %}
-
-<form method="POST" action="{{ request.route_url("admin.organization.new") }}">
-    <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
-
-    <fieldset class="box mt-6">
-        <legend class="label has-text-centered">Create new Organization</legend>
-        {{ macros.form_text_field(request, "Name", "name") }}
-    </fieldset>
-
-    <input type="submit" class="button is-info" value="New"/>
-</form>
+    <form method="POST"
+          action="{{ request.route_url("admin.organization.new") }}">
+        <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+        <fieldset class="box mt-6">
+            <legend class="label has-text-centered">Create new Organization</legend>
+            {{ macros.form_text_field(request, "Name", "name") }}
+        </fieldset>
+        <input type="submit" class="button is-info" value="New" />
+    </form>
 {% endblock %}
