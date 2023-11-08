@@ -1,39 +1,29 @@
 {% import "lms:templates/admin/macros.html.jinja2" as macros %}
-
 {% extends "lms:templates/admin/base.html.jinja2" %}
-
-{% block header %}
-New application instance
-{% endblock %}
-
+{% block header %}New application instance{% endblock %}
 {% block content %}
-
-{% if lti_registration %}
-    <fieldset class="box mt-6">
-        <legend class="label has-text-centered">Registration</legend>
-
-        {{ macros.registration_preview(request, lti_registration) }}
-    </fieldset>
-{% endif %}
-
-<form method="POST" action="{{ request.route_url("admin.instance.create") }}">
-    <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
-    <input type="hidden" name="lti_registration_id" value="{{ lti_registration.id }}">
-
-    <fieldset class="box mt-6">
-        <legend class="label has-text-centered">Create new application instance</legend>
-        {{ macros.form_text_field(request, "Name", "name") }}
-        {{ macros.form_text_field(request, "Organization Public Id", "organization_public_id") }}
-        {% if lti_registration %}
-            {{ macros.form_text_field(request, "Deployment ID", "deployment_id") }}
-        {% endif %}
-        {{ macros.form_text_field(request, "LMS URL", "lms_url") }}
-        {{ macros.form_text_field(request, "Email", "email") }}
-        {{ macros.form_text_field(request, "Canvas developer key", "developer_key") }}
-        {{ macros.form_text_field(request, "Canvas developer secret", "developer_secret") }}
-    </fieldset>
-
-    <input type="submit" class="button is-info" value="New"/>
-</form>
-
+    {% if lti_registration %}
+        <fieldset class="box mt-6">
+            <legend class="label has-text-centered">Registration</legend>
+            {{ macros.registration_preview(request, lti_registration) }}
+        </fieldset>
+    {% endif %}
+    <form method="POST"
+          action="{{ request.route_url("admin.instance.create") }}">
+        <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+        <input type="hidden"
+               name="lti_registration_id"
+               value="{{ lti_registration.id }}">
+        <fieldset class="box mt-6">
+            <legend class="label has-text-centered">Create new application instance</legend>
+            {{ macros.form_text_field(request, "Name", "name") }}
+            {{ macros.form_text_field(request, "Organization Public Id", "organization_public_id") }}
+            {% if lti_registration %}{{ macros.form_text_field(request, "Deployment ID", "deployment_id") }}{% endif %}
+            {{ macros.form_text_field(request, "LMS URL", "lms_url") }}
+            {{ macros.form_text_field(request, "Email", "email") }}
+            {{ macros.form_text_field(request, "Canvas developer key", "developer_key") }}
+            {{ macros.form_text_field(request, "Canvas developer secret", "developer_secret") }}
+        </fieldset>
+        <input type="submit" class="button is-info" value="New" />
+    </form>
 {% endblock %}

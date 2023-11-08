@@ -1,41 +1,34 @@
 {% extends "lms:templates/admin/base.html.jinja2" %}
-
 {% import "macros.html.jinja2" as macros %}
-
 {% block header %}
     Email
 {% endblock header %}
-
 {% block content %}
-  {% if request.session.peek_flash()  %}
-    <section class="section">
-      <div class="container">
-        <article class="message">
-          <div class="message-body">
-            <ul>
-            {% for message in request.session.pop_flash() %}
-              <li>{{ message }}</li>
-            {% endfor %}
-            </ul>
-          </div>
-        </article>
-      </div>
-    </section>
-  {% endif %}
-
-  <form method="POST" action="{{ request.route_url("admin.email") }}">
-      <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
-
-      <fieldset class="box mt-6">
-          <legend class="label has-text-centered">Send Test Instructor Digest Emails</legend>
-
-          <p>
-            This does an end-to-end test of the whole process of generating,
-            rendering and actually sending emails to your own address.
-            On QA and in production this will really send emails but only to
-            your own address.
-          </p></br>
-          <p>
+    {% if request.session.peek_flash() %}
+        <section class="section">
+            <div class="container">
+                <article class="message">
+                    <div class="message-body">
+                        <ul>
+                            {% for message in request.session.pop_flash() %}<li>{{ message }}</li>{% endfor %}
+                        </ul>
+                    </div>
+                </article>
+            </div>
+        </section>
+    {% endif %}
+    <form method="POST" action="{{ request.route_url("admin.email") }}">
+        <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+        <fieldset class="box mt-6">
+            <legend class="label has-text-centered">Send Test Instructor Digest Emails</legend>
+            <p>
+                This does an end-to-end test of the whole process of generating,
+                rendering and actually sending emails to your own address.
+                On QA and in production this will really send emails but only to
+                your own address.
+            </p>
+        </br>
+        <p>
             In local development if you've run <code>make devdata</code> then
             you'll have a Mailchimp Transactional
             <a href="https://mailchimp.com/developer/transactional/docs/fundamentals/#test-api-keys">test API key</a>.
@@ -44,31 +37,34 @@
             <a href="https://mailchimp.com/developer/transactional/docs/fundamentals/#switch-to-test-mode">switch to test mode</a>
             and go to <a href="https://mandrillapp.com/subaccounts/view?id=devdata">the <code>devdata</code> subaccount</a>
             to see the emails that would have been sent.
-          </p></br>
-
-          {{ macros.form_text_field(request, "To email", "to_email", request.identity.userid, placeholder="YOU@hypothes.is") }}
-          {{ macros.form_text_field(request, "User IDs", "h_userids", "acct:3a022b6c146dfd9df4ea8662178eac@lms.hypothes.is") }}
-          {{ macros.form_text_field(request, "Since", "since", "2023-03-09T05:00:00") }}
-          {{ macros.form_text_field(request, "Until", "until", "2023-03-10T05:00:00") }}
-      </fieldset>
-
-      <input type="submit" class="button is-info" value="Send"/>
-  </form>
-
-  <fieldset class="box mt-6">
+        </p>
+    </br>
+    {{ macros.form_text_field(request, "To email", "to_email", request.identity.userid, placeholder="YOU@hypothes.is") }}
+    {{ macros.form_text_field(request, "User IDs", "h_userids", "acct:3a022b6c146dfd9df4ea8662178eac@lms.hypothes.is") }}
+    {{ macros.form_text_field(request, "Since", "since", "2023-03-09T05:00:00") }}
+    {{ macros.form_text_field(request, "Until", "until", "2023-03-10T05:00:00") }}
+</fieldset>
+<input type="submit" class="button is-info" value="Send" />
+</form>
+<fieldset class="box mt-6">
     <legend class="label has-text-centered">Preview the Instructor Digest Email Template</legend>
-
     <p>
-      Below is a preview of the <code>instructor_email_digest</code> email
-      templates (subject and body) using some test data. This only tests the
-      template, it isn't an end-to-end test of the process of generating and
-      sending an email, but it can be convenient especially in local
-      development.
-    </p><br/>
-    <p><strong>Subject:</strong> {{ instructor_email_digest_subject }}</p>
-    <p><strong>Body:</strong></p>
-
-    <iframe style="width: 100%; height: 65em;" src="{{ request.route_url('admin.email.preview.instructor_email_digest') }}">
+        Below is a preview of the <code>instructor_email_digest</code> email
+        templates (subject and body) using some test data. This only tests the
+        template, it isn't an end-to-end test of the process of generating and
+        sending an email, but it can be convenient especially in local
+        development.
+    </p>
+    <br />
+    <p>
+        <strong>Subject:</strong> {{ instructor_email_digest_subject }}
+    </p>
+    <p>
+        <strong>Body:</strong>
+    </p>
+    <iframe style="width: 100%;
+                   height: 65em"
+            src="{{ request.route_url("admin.email.preview.instructor_email_digest") }}">
     </iframe>
-  </fieldset>
+</fieldset>
 {% endblock content %}

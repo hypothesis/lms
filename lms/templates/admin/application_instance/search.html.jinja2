@@ -1,79 +1,60 @@
 {% import "lms:templates/admin/macros.html.jinja2" as macros %}
-
 {% extends "lms:templates/admin/base.html.jinja2" %}
-{% block header %}
-Application instances
-{% endblock %}
-
+{% block header %}Application instances{% endblock %}
 {% block content %}
-
-<div class="block has-text-right">
-    <a class="button is-primary" href="{{request.route_url("admin.instance.create")}}">
-        New LTI 1.1 application instance
-    </a>
-</div>
-
-<fieldset class="box mt-6">
-    <legend class="label has-text-centered">Find application instances</legend>
-    <form method="POST" action="{{ request.route_url("admin.instance.search") }}">
-        <div class="columns">
-            <div class="column">
-                {{ macros.form_text_field(request, "Email / Domain", "email") }}
-                {{ macros.form_text_field(request, "Name", "name") }}
-                {{ macros.form_text_field(request, "Organization Public Id", "organization_public_id") }}
-
-                {% call macros.field_body("Setting") %}
-                    <div class="select">
-                        <select name="settings_key">
-                            <option value="">-</option>
-
-                            {% for setting in settings.values() %}
-                                <option
-                                    value="{{ setting.compound_key }}"
-                                    {% if request.params.get("settings_key") == setting.compound_key %}
-                                        selected
-                                    {% endif %}
-                                >{{ setting.label }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                {% endcall %}
-                {{ macros.form_text_field(request, "Setting Value", "settings_value") }}
-
-                {# This lines up in a less goofy way here than outside the column #}
-                {% call macros.field_body(label="") %}
-                    <input type="submit" class="button is-info" value="Search" />
-                {% endcall %}
+    <div class="block has-text-right">
+        <a class="button is-primary"
+           href="{{ request.route_url("admin.instance.create") }}">New LTI 1.1 application instance</a>
+    </div>
+    <fieldset class="box mt-6">
+        <legend class="label has-text-centered">Find application instances</legend>
+        <form method="POST"
+              action="{{ request.route_url("admin.instance.search") }}">
+            <div class="columns">
+                <div class="column">
+                    {{ macros.form_text_field(request, "Email / Domain", "email") }}
+                    {{ macros.form_text_field(request, "Name", "name") }}
+                    {{ macros.form_text_field(request, "Organization Public Id", "organization_public_id") }}
+                    {% call macros.field_body("Setting") %}
+                        <div class="select">
+                            <select name="settings_key">
+                                <option value="">-</option>
+                                {% for setting in settings.values() %}
+                                    <option value="{{ setting.compound_key }}"
+                                            {% if request.params.get("settings_key") == setting.compound_key %}selected{% endif %}>
+                                        {{ setting.label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endcall %}
+                    {{ macros.form_text_field(request, "Setting Value", "settings_value") }}
+                    {# This lines up in a less goofy way here than outside the column #}
+                    {% call macros.field_body(label="") %}
+                        <input type="submit" class="button is-info" value="Search" />
+                    {% endcall %}
+                </div>
+                <div class="column">
+                    {{ macros.form_text_field(request, "ID", "id") }}
+                    {{ macros.form_text_field(request, "GUID", "tool_consumer_instance_guid") }}
+                    {{ macros.form_text_field(request, "Client ID", "client_id") }}
+                    {{ macros.form_text_field(request, "Consumer key", "consumer_key") }}
+                    {{ macros.form_text_field(request, "Issuer", "issuer") }}
+                    {{ macros.form_text_field(request, "Deployment ID", "deployment_id") }}
+                </div>
             </div>
-
-            <div class="column">
-                {{ macros.form_text_field(request, "ID", "id") }}
-                {{ macros.form_text_field(request, "GUID", "tool_consumer_instance_guid") }}
-                {{ macros.form_text_field(request, "Client ID", "client_id") }}
-                {{ macros.form_text_field(request, "Consumer key", "consumer_key") }}
-                {{ macros.form_text_field(request, "Issuer", "issuer") }}
-                {{ macros.form_text_field(request, "Deployment ID", "deployment_id") }}
-            </div>
-        </div>
-
-        <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
-
-
-    </form>
-</fieldset>
-
-
-{% if instances is defined %}
-    {% if settings_focus %}
-        {% set extra_fields = [
-             {"label": settings_focus.label, "name": "settings_focus_value"}
-        ] %}
+            <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+        </form>
+    </fieldset>
+    {% if instances is defined %}
+        {% if settings_focus %}
+            {% set extra_fields = [
+                            {"label": settings_focus.label, "name": "settings_focus_value"}
+                        ] %}
+        {% endif %}
+        <fieldset class="box mt-6">
+            <legend class="label has-text-centered">Results</legend>
+            {{ macros.instances_table(request, instances, extra_fields) }}
+        </fieldset>
     {% endif %}
-
-<fieldset class="box mt-6">
-    <legend class="label has-text-centered">Results</legend>
-    {{ macros.instances_table(request, instances, extra_fields) }}
-</fieldset>
-{% endif %}
-
 {% endblock %}
