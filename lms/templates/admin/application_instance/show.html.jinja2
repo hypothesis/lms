@@ -38,125 +38,153 @@
     {% endcall %}
 {% endmacro %}
 {% block content %}
-    <form method="POST"
-          action="{{ request.route_url("admin.instance", id_=instance.id) }}">
-        <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
-        <fieldset class="box">
-            {{ macros.form_text_field(request, "Name", "name", field_value=instance.name) }}
-            {{ macros.settings_textarea(instance, "Notes", "hypothesis", "notes") }}
-            {{ macros.disabled_text_field("Consumer key", instance.consumer_key) }}
-            {{ macros.disabled_text_field("Shared secret", instance.shared_secret) }}
-            {{ macros.form_text_field(request, "Deployment ID", "deployment_id", field_value=instance.deployment_id) }}
-            {{ macros.form_text_field(request, "LMS URL", "lms_url", field_value=instance.lms_url) }}
-            {{ macros.disabled_text_field("Last Launched", instance.last_launched) }}
-        </fieldset>
-        <fieldset class="box mt-6">
-            <legend class="label has-text-centered">Organization</legend>
-            {{ macros.organization_preview(request, instance.organization) }}
-        </fieldset>
-        <fieldset class="box mt-6">
-            <legend class="label has-text-centered">Registration</legend>
-            {{ macros.registration_preview(request, instance.lti_registration) }}
-        </fieldset>
-        <fieldset class="box">
-            <legend class="label has-text-centered">Tool Consumer</legend>
-            {{ macros.disabled_text_field("GUID", instance.tool_consumer_instance_guid) }}
-            <div class="columns">
-                <div class="column is-half">
-                    {{ macros.disabled_text_field("Family code", instance.tool_consumer_info_product_family_code) }}
-                </div>
-                <div class="column is-half">
-                    {{ macros.disabled_text_field("Description", instance.tool_consumer_instance_description) }}
-                </div>
-            </div>
-            <div class="columns">
-                <div class="column is-half">{{ macros.disabled_text_field("URL", instance.tool_consumer_instance_url) }}</div>
-                <div class="column is-half">{{ macros.disabled_text_field("Name", instance.tool_consumer_instance_name) }}</div>
-            </div>
-            <div class="columns">
-                <div class="column is-half">
-                    {{ macros.disabled_text_field("Email", instance.tool_consumer_instance_contact_email) }}
-                </div>
-                <div class="column is-half">{{ macros.disabled_text_field("Version", instance.tool_consumer_info_version) }}</div>
-            </div>
-        </fieldset>
-        <fieldset class="box">
-            <legend class="label has-text-centered">General settings</legend>
-            {{ settings_checkbox("Enable import/export in client", "hypothesis", "import_export_enabled", default=False) }}
-            {{ settings_checkbox('Enable instructor email digests', 'hypothesis', 'instructor_email_digests_enabled') }}
-            {{ settings_checkbox("LMS grading scale", "hypothesis", "lms_grading_scale", default=False) }}
-            {{ settings_checkbox("Grading comments", "hypothesis", "grading_comments", default=False) }}
-        </fieldset>
-        <fieldset class="box">
-            <legend class="label has-text-centered">Canvas settings</legend>
-            {{ macros.disabled_text_field("API domain", instance.custom_canvas_api_domain) }}
-            {# Note the mismatch betwween canvas nomenclature and ours #}
-            {# developer id -> developer key #}
-            {# developer key -> developer secret #}
-            {{ macros.form_text_field(request, "Developer ID", "developer_key", field_value=instance.developer_key) }}
-            {{ macros.form_text_field(request,
-                        "Developer key",
-                        "developer_secret",
-                        placeholder="*" * 25 if instance.developer_secret else "") 
-            }}
-            {{ settings_checkbox('Files enabled', 'canvas', 'files_enabled') }}
-            {{ settings_checkbox("Folders enabled", "canvas", "folders_enabled", default=False) }}
-            {{ settings_checkbox('Groups enabled', 'canvas', 'groups_enabled') }}
-            {{ settings_checkbox('Sections enabled', 'canvas', 'sections_enabled') }}
-            {{ settings_checkbox("Pages enabled", "canvas", "pages_enabled", default=False) }}
-            {{ settings_checkbox("Sections strict membership", "canvas", "strict_section_membership", default=False) }}
-        </fieldset>
-        <fieldset class="box">
-            <legend class="label has-text-centered">Blackboard settings</legend>
-            {{ settings_checkbox('Groups enabled', 'blackboard', 'groups_enabled') }}
-            {{ settings_checkbox('Files enabled', 'blackboard', 'files_enabled') }}
-        </fieldset>
-        <fieldset class="box">
-            <legend class="label has-text-centered">D2L settings</legend>
-            {{ settings_text_field('API Client ID', 'desire2learn', 'client_id') }}
-            {{ settings_secret_field('API Client secret', 'desire2learn', 'client_secret') }}
-            {{ settings_checkbox('Groups enabled', 'desire2learn', 'groups_enabled') }}
-            {{ settings_checkbox('Files enabled', 'desire2learn', 'files_enabled') }}
-        </fieldset>
-        <fieldset class="box">
-            <legend class="label has-text-centered">Content integrations</legend>
-            {{ settings_checkbox("Google Drive enabled", "google_drive", "files_enabled", default=True) }}
-            {{ settings_checkbox("Microsoft OneDrive enabled", "microsoft_onedrive", "files_enabled", default=True) }}
-            {{ settings_checkbox('VitalSource enabled', 'vitalsource', 'enabled') }}
-            {{ settings_text_field('VitalSource API key', 'vitalsource', 'api_key') }}
-            {{ settings_text_field('VitalSource SSO user ID field', 'vitalsource', 'user_lti_param') }}
-            {{ settings_text_field('VitalSource SSO user ID regex', 'vitalsource', 'user_lti_pattern') }}
-            {{ settings_checkbox('VitalSource disable licence check on SSO', 'vitalsource', 'disable_licence_check') }}
-            {{ settings_checkbox('JSTOR enabled', 'jstor', 'enabled') }}
-            {{ settings_text_field('JSTOR site code', 'jstor', 'site_code') }}
-            {{ settings_checkbox("YouTube enabled", "youtube", "enabled", default=True) }}
-        </fieldset>
-        {{ macros.created_updated_fields(instance) }}
-        <div class="has-text-right mb-6">
-            <input type="submit" class="button is-primary" value="Save" />
+    <div class="tabs-wrapper">
+        <div class="tabs is-fullwidth is-medium is-boxed is-toggle">
+            <ul>
+                <li>
+                    <a>Info</a>
+                </li>
+                <li>
+                    <a>Settings</a>
+                </li>
+                <li>
+                    <a>Danger</a>
+                </li>
+            </ul>
         </div>
-    </form>
-    <fieldset class="box has-background-danger-light">
-        <legend class="label has-text-centered has-text-danger">Danger zone</legend>
-        {% call macros.field_body(label="Downgrade to LTI 1.1") %}
-            <form method="POST"
-                  action="{{ request.route_url("admin.instance.downgrade", id_=instance.id) }}">
-                <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
-                <input type="submit" class="button mb-2" value="Downgrade">
-                <p>Downgrade this instance to LTI 1.1 removing its association with a registration and its deployment ID.</p>
-                <p>
-                    This action will <b>break any existing LTI 1.3 assignments</b>. To undo it, upgrade it back again to LTI 1.3 using the same registration and deployment ID.
-                </p>
-            </form>
-        {% endcall %}
-        {% call macros.field_body(label="Move to organization") %}
-            <form method="POST"
-                  action="{{ request.route_url("admin.instance.move_org", id_=instance.id) }}">
-                <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
-                <input class="input" type="text" name="org_public_id">
-                <input type="submit" class="button mb-2" value="Move">
-            </form>
-            <p>Moving this application instance might have destructive effects.</p>
-        {% endcall %}
-    </fieldset>
+        <div class="tabs-content">
+            <ul>
+                <li>
+                    <form method="POST"
+                          action="{{ request.route_url("admin.instance", id_=instance.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+                        <fieldset class="box">
+                            {{ macros.form_text_field(request, "Name", "name", field_value=instance.name) }}
+                            {{ macros.settings_textarea(instance, "Notes", "hypothesis", "notes") }}
+                            {{ macros.disabled_text_field("Consumer key", instance.consumer_key) }}
+                            {{ macros.disabled_text_field("Shared secret", instance.shared_secret) }}
+                            {{ macros.form_text_field(request, "Deployment ID", "deployment_id", field_value=instance.deployment_id) }}
+                            {{ macros.form_text_field(request, "LMS URL", "lms_url", field_value=instance.lms_url) }}
+                            {{ macros.disabled_text_field("Last Launched", instance.last_launched) }}
+                        </fieldset>
+                        <fieldset class="box mt-6">
+                            <legend class="label has-text-centered">Organization</legend>
+                            {{ macros.organization_preview(request, instance.organization) }}
+                        </fieldset>
+                        <fieldset class="box mt-6">
+                            <legend class="label has-text-centered">Registration</legend>
+                            {{ macros.registration_preview(request, instance.lti_registration) }}
+                        </fieldset>
+                        <fieldset class="box">
+                            <legend class="label has-text-centered">Tool Consumer</legend>
+                            {{ macros.disabled_text_field("GUID", instance.tool_consumer_instance_guid) }}
+                            <div class="columns">
+                                <div class="column is-half">
+                                    {{ macros.disabled_text_field("Family code", instance.tool_consumer_info_product_family_code) }}
+                                </div>
+                                <div class="column is-half">
+                                    {{ macros.disabled_text_field("Description", instance.tool_consumer_instance_description) }}
+                                </div>
+                            </div>
+                            <div class="columns">
+                                <div class="column is-half">{{ macros.disabled_text_field("URL", instance.tool_consumer_instance_url) }}</div>
+                                <div class="column is-half">{{ macros.disabled_text_field("Name", instance.tool_consumer_instance_name) }}</div>
+                            </div>
+                            <div class="columns">
+                                <div class="column is-half">
+                                    {{ macros.disabled_text_field("Email", instance.tool_consumer_instance_contact_email) }}
+                                </div>
+                                <div class="column is-half">{{ macros.disabled_text_field("Version", instance.tool_consumer_info_version) }}</div>
+                            </div>
+                            {{ macros.created_updated_fields(instance) }}
+                            <div class="has-text-right mb-6">
+                                <input type="submit" class="button is-primary" value="Save" />
+                            </div>
+                        </fieldset>
+                    </li>
+                    <li>
+                        <fieldset class="box">
+                            <legend class="label has-text-centered">General settings</legend>
+                            {{ settings_checkbox("Enable import/export in client", "hypothesis", "import_export_enabled", default=False) }}
+                            {{ settings_checkbox('Enable instructor email digests', 'hypothesis', 'instructor_email_digests_enabled') }}
+                            {{ settings_checkbox("LMS grading scale", "hypothesis", "lms_grading_scale", default=False) }}
+                            {{ settings_checkbox("Grading comments", "hypothesis", "grading_comments", default=False) }}
+                        </fieldset>
+                        <fieldset class="box">
+                            <legend class="label has-text-centered">Canvas settings</legend>
+                            {{ macros.disabled_text_field("API domain", instance.custom_canvas_api_domain) }}
+                            {# Note the mismatch betwween canvas nomenclature and ours #}
+                            {# developer id -> developer key #}
+                            {# developer key -> developer secret #}
+                            {{ macros.form_text_field(request, "Developer ID", "developer_key", field_value=instance.developer_key) }}
+                            {{ macros.form_text_field(request,
+                                                        "Developer key",
+                                                        "developer_secret",
+                                                        placeholder="*" * 25 if instance.developer_secret else "") 
+                            }}
+                            {{ settings_checkbox('Files enabled', 'canvas', 'files_enabled') }}
+                            {{ settings_checkbox("Folders enabled", "canvas", "folders_enabled", default=False) }}
+                            {{ settings_checkbox('Groups enabled', 'canvas', 'groups_enabled') }}
+                            {{ settings_checkbox('Sections enabled', 'canvas', 'sections_enabled') }}
+                            {{ settings_checkbox("Pages enabled", "canvas", "pages_enabled", default=False) }}
+                            {{ settings_checkbox("Sections strict membership", "canvas", "strict_section_membership", default=False) }}
+                        </fieldset>
+                        <fieldset class="box">
+                            <legend class="label has-text-centered">Blackboard settings</legend>
+                            {{ settings_checkbox('Groups enabled', 'blackboard', 'groups_enabled') }}
+                            {{ settings_checkbox('Files enabled', 'blackboard', 'files_enabled') }}
+                        </fieldset>
+                        <fieldset class="box">
+                            <legend class="label has-text-centered">D2L settings</legend>
+                            {{ settings_text_field('API Client ID', 'desire2learn', 'client_id') }}
+                            {{ settings_secret_field('API Client secret', 'desire2learn', 'client_secret') }}
+                            {{ settings_checkbox('Groups enabled', 'desire2learn', 'groups_enabled') }}
+                            {{ settings_checkbox('Files enabled', 'desire2learn', 'files_enabled') }}
+                        </fieldset>
+                        <fieldset class="box">
+                            <legend class="label has-text-centered">Content integrations</legend>
+                            {{ settings_checkbox("Google Drive enabled", "google_drive", "files_enabled", default=True) }}
+                            {{ settings_checkbox("Microsoft OneDrive enabled", "microsoft_onedrive", "files_enabled", default=True) }}
+                            {{ settings_checkbox('VitalSource enabled', 'vitalsource', 'enabled') }}
+                            {{ settings_text_field('VitalSource API key', 'vitalsource', 'api_key') }}
+                            {{ settings_text_field('VitalSource SSO user ID field', 'vitalsource', 'user_lti_param') }}
+                            {{ settings_text_field('VitalSource SSO user ID regex', 'vitalsource', 'user_lti_pattern') }}
+                            {{ settings_checkbox('VitalSource disable licence check on SSO', 'vitalsource', 'disable_licence_check') }}
+                            {{ settings_checkbox('JSTOR enabled', 'jstor', 'enabled') }}
+                            {{ settings_text_field('JSTOR site code', 'jstor', 'site_code') }}
+                            {{ settings_checkbox("YouTube enabled", "youtube", "enabled", default=True) }}
+                        </fieldset>
+                        <div class="has-text-right mb-6">
+                            <input type="submit" class="button is-primary" value="Save" />
+                        </div>
+                    </form>
+                </li>
+                <li>
+                    <fieldset class="box has-background-danger-light">
+                        <legend class="label has-text-centered has-text-danger">Danger zone</legend>
+                        {% call macros.field_body(label="Downgrade to LTI 1.1") %}
+                            <form method="POST"
+                                  action="{{ request.route_url("admin.instance.downgrade", id_=instance.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+                                <input type="submit" class="button mb-2" value="Downgrade">
+                                <p>Downgrade this instance to LTI 1.1 removing its association with a registration and its deployment ID.</p>
+                                <p>
+                                    This action will <b>break any existing LTI 1.3 assignments</b>. To undo it, upgrade it back again to LTI 1.3 using the same registration and deployment ID.
+                                </p>
+                            </form>
+                        {% endcall %}
+                        {% call macros.field_body(label="Move to organization") %}
+                            <form method="POST"
+                                  action="{{ request.route_url("admin.instance.move_org", id_=instance.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+                                <input class="input" type="text" name="org_public_id">
+                                <input type="submit" class="button mb-2" value="Move">
+                            </form>
+                            <p>Moving this application instance might have destructive effects.</p>
+                        {% endcall %}
+                    </fieldset>
+                </li>
+            </ul>
+        </div>
+    </div>
 {% endblock %}
