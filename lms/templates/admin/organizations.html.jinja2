@@ -1,77 +1,67 @@
 {% import "macros.html.jinja2" as macros %}
-
 {% extends "lms:templates/admin/base.html.jinja2" %}
-{% block header %}
-Organizations
-{% endblock %}
-
+{% block header %}Organizations{% endblock %}
 {% block content %}
-<div class="block has-text-right">
-    <a class="button is-primary"
-        href="{{ request.route_url("admin.organization.new") }}">
-        New organization
-    </a>
-</div>
-
-<fieldset class="box mt-6">
-   <legend class="label has-text-centered">Find organization</legend>
-    <form method="POST" action="{{ request.route_url("admin.organizations") }}">
-        <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
-
-        {{ macros.form_text_field(request, "Public ID", "public_id") }}
-        {{ macros.form_text_field(request, "ID", "id") }}
-        {{ macros.form_text_field(request, "Name", "name") }}
-        {{ macros.form_text_field(request, "Linked GUID", "guid") }}
-        {% call macros.field_body(label="") %}
-            <input type="submit" class="button is-info" value="Search" />
-        {% endcall %}
-    </form>
-</fieldset>
-
-{% if organizations is defined %}
-<fieldset class="box mt-6">
-    {% if organizations %}
-        <legend class="label has-text-centered">Results</legend>
-        <div class="container">
-            <div class="table-container">
-                <table class="table is-fullwidth">
-                    <thead>
-                        <tr>
-                          <th></th>
-                          <th>Public ID</th>
-                          <th>ID</th>
-                          <th>Name</th>
-                          <th>Root</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {% for org in organizations %}
-                            <tr>
-                                <td>
-                                    <a class="button" href="{{ request.route_url('admin.organization', id_=org.id) }}">View</a>
-                                </td>
-                                <td>{{org.public_id}}</td>
-                                <td>{{org.id}}</td>
-                                <td>{{org.name}}</td>
-                                <td>
-                                    {% if org.parent %}
-                                        <span title="This organization has a parent">☐</span>
-                                    {% else %}
-                                        <b title="This organization has no parents">☑</b>
-                                    {% endif %}
-                                </td>
-                           </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    {% else %}
-        <legend class="label has-text-centered">No results found</legend>
-        <div class="container has-text-centered">😿</div>
+    <div class="block has-text-right">
+        <a class="button is-primary"
+           href="{{ request.route_url("admin.organization.new") }}">New organization</a>
+    </div>
+    <fieldset class="box mt-6">
+        <legend class="label has-text-centered">Find organization</legend>
+        <form method="POST" action="{{ request.route_url("admin.organizations") }}">
+            <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+            {{ macros.form_text_field(request, "Public ID", "public_id") }}
+            {{ macros.form_text_field(request, "ID", "id") }}
+            {{ macros.form_text_field(request, "Name", "name") }}
+            {{ macros.form_text_field(request, "Linked GUID", "guid") }}
+            {% call macros.field_body(label="") %}
+                <input type="submit" class="button is-info" value="Search" />
+            {% endcall %}
+        </form>
+    </fieldset>
+    {% if organizations is defined %}
+        <fieldset class="box mt-6">
+            {% if organizations %}
+                <legend class="label has-text-centered">Results</legend>
+                <div class="container">
+                    <div class="table-container">
+                        <table class="table is-fullwidth">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Public ID</th>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Root</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for org in organizations %}
+                                    <tr>
+                                        <td>
+                                            <a class="button"
+                                               href="{{ request.route_url('admin.organization', id_=org.id) }}">View</a>
+                                        </td>
+                                        <td>{{ org.public_id }}</td>
+                                        <td>{{ org.id }}</td>
+                                        <td>{{ org.name }}</td>
+                                        <td>
+                                            {% if org.parent %}
+                                                <span title="This organization has a parent">☐</span>
+                                            {% else %}
+                                                <b title="This organization has no parents">☑</b>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <legend class="label has-text-centered">No results found</legend>
+                <div class="container has-text-centered">😿</div>
+            {% endif %}
+        </fieldset>
     {% endif %}
-</fieldset>
-{% endif %}
-
 {% endblock %}

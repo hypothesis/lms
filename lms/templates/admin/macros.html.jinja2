@@ -5,81 +5,78 @@
         </div>
         <div class="field-body">
             <div class="field">
-                <div class="control is-expanded">
-                    {{ caller() }}
-                </div>
+                <div class="control is-expanded">{{ caller() }}</div>
             </div>
         </div>
     </div>
 {% endmacro %}
-
 {% macro disabled_text_field(label, value) %}
     {% call field_body(label) %}
-        <input class="input" disabled type="text" value="{{ auto_format(value, html=False) }}">
+        <input class="input"
+               disabled
+               type="text"
+               value="{{ auto_format(value, html=False) }}">
     {% endcall %}
 {% endmacro %}
-
 {% macro readonly_text_field(label, field_name, value) %}
     {% call field_body(label) %}
-        <input class="input" readonly type="text" name="{{field_name}}" value="{{value}}">
+        <input class="input"
+               readonly
+               type="text"
+               name="{{ field_name }}"
+               value="{{ value }}">
     {% endcall %}
 {% endmacro %}
-
 {% macro text_field(label, field_name) %}
     {% call field_body(label) %}
-        <input class="input" name="{{field_name}}" type="text">
+        <input class="input" name="{{ field_name }}" type="text">
     {% endcall %}
 {% endmacro %}
-
 {% macro form_text_field(request, label, field_name, field_value=None, placeholder="") %}
     {% call field_body(label) %}
         {% if field_value %}
-            <input class="input" name="{{field_name}}" value="{{ field_value }}" type="text">
+            <input class="input"
+                   name="{{ field_name }}"
+                   value="{{ field_value }}"
+                   type="text">
         {% elif request.params.get(field_name) %}
-            <input class="input" name="{{field_name}}" value="{{ request.params.get(field_name) }}" type="text">
+            <input class="input"
+                   name="{{ field_name }}"
+                   value="{{ request.params.get(field_name) }}"
+                   type="text">
         {% else %}
-            <input class="input" name="{{field_name}}" type="text" placeholder="{{placeholder}}">
+            <input class="input"
+                   name="{{ field_name }}"
+                   type="text"
+                   placeholder="{{ placeholder }}">
         {% endif %}
     {% endcall %}
 {% endmacro %}
-
-
 {% macro settings_textarea(object, label, setting, sub_setting, field_name, default='') %}
     {% call field_body(label) %}
-        {% set text = object.settings.get(setting, sub_setting, default) or ''  %}
+        {% set text = object.settings.get(setting, sub_setting, default) or '' %}
         <textarea class="textarea" name="{{ setting }}.{{ sub_setting }}">{{ text }}</textarea>
     {% endcall %}
 {% endmacro %}
-
-
 {% macro registration_fields(request, lti_registration, view_button=False) %}
     {% if view_button %}
-    <div class="block has-text-right">
-        <a class="button" href="{{ request.route_url("admin.registration.id", id_=lti_registration.id) }}">View</a>
-    </div>
+        <div class="block has-text-right">
+            <a class="button"
+               href="{{ request.route_url("admin.registration.id", id_=lti_registration.id) }}">View</a>
+        </div>
     {% endif %}
     <div class="columns">
-        <div class="column is-half">
-            {{ disabled_text_field("Issuer", lti_registration.issuer) }}
-        </div>
-        <div class="column is-half">
-            {{ disabled_text_field("Client ID", lti_registration.client_id) }}
-        </div>
+        <div class="column is-half">{{ disabled_text_field("Issuer", lti_registration.issuer) }}</div>
+        <div class="column is-half">{{ disabled_text_field("Client ID", lti_registration.client_id) }}</div>
     </div>
     {{ form_text_field(request, "Auth login URL", "auth_login_url", lti_registration.auth_login_url) }}
     {{ form_text_field(request, "Key set URL", "key_set_url", lti_registration.key_set_url) }}
     {{ form_text_field(request, "Token URL", "token_url", lti_registration.token_url) }}
 {% endmacro %}
-
-
 {% macro created_updated_fields(model) %}
     {{ disabled_text_field("Created", model.created) }}
-    {% if model.updated %}
-        {{ disabled_text_field("Updated", model.updated) }}
-    {% endif %}
+    {% if model.updated %}{{ disabled_text_field("Updated", model.updated) }}{% endif %}
 {% endmacro %}
-
-
 {#
     Attempt to guess the correct way to format something by inspecting it.
     This supports an `html` mode which is good for displaying content inline,
@@ -87,112 +84,94 @@
 #}
 {%- macro auto_format(value, html=True) -%}
     {%- if value is none -%}
-        {% if html %}<span style="color:#aaa">-</span>{% else %}{% endif %}
+        {% if html %}
+            <span style="color:#aaa">-</span>
+        {% else %}
+        {% endif %}
     {%- elif value is boolean -%}
-        {% if value %}✔️{% else %}❌{% endif %}
+        {% if value %}
+            ✔️
+        {% else %}
+            ❌
+        {% endif %}
     {%- elif value.strftime -%}
-        {{ value.strftime('%Y/%m/%d %H:%M') }}
+        {{ value.strftime("%Y/%m/%d %H:%M") }}
     {%- elif value.startswith('http') and html -%}
         <a href="{{ value }}">{{ value }}</a>
     {%- else -%}
         {{ value }}
     {%- endif -%}
 {%- endmacro -%}
-
-
 {% macro object_list_table(request, route, objects, fields) %}
-<div class="container">
-    <div class="table-container">
-        <table class="table is-fullwidth">
-          <thead>
-            <tr>
-              <th></th>
-              {% for field in fields %}
-              <th>{{field.label}}</th>
-              {% endfor %}
-            </tr>
-          </thead>
-          <tbody>
-            {% for object in objects %}
-                <tr>
-                  <td>
-                    <a class="button" href="{{ request.route_url(route, id_=object.id) }}">View</a>
-                  </td>
-                  {% for field in fields %}
-                  <td>{{ auto_format(object[field.name]) }}</td>
-                  {% endfor %}
-               </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+    <div class="container">
+        <div class="table-container">
+            <table class="table is-fullwidth">
+                <thead>
+                    <tr>
+                        <th></th>
+                        {% for field in fields %}<th>{{ field.label }}</th>{% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for object in objects %}
+                        <tr>
+                            <td>
+                                <a class="button" href="{{ request.route_url(route, id_=object.id) }}">View</a>
+                            </td>
+                            {% for field in fields %}<td>{{ auto_format(object[field.name]) }}</td>{% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
 {% endmacro %}
-
-
 {% macro instances_table(request, instances, extra_fields=None) %}
     {% if not extra_fields %}
         {% set extra_fields = [] %}
     {% endif %}
-
-    {{ object_list_table(
-        request, 'admin.instance', instances,
+    {{ object_list_table(request, 'admin.instance', instances,
         fields=[
-            {"label": "Name", "name": "name"},
-            {"label": "Created", "name": "created"},
-            {"label": "Last Launched", "name": "last_launched"},
-            {"label": "Product Family", "name": "tool_consumer_info_product_family_code"},
-            {"label": "Email", "name": "requesters_email"},
-            {"label": "LMS URL", "name": "lms_url"},
-        ] + extra_fields
-    ) }}
+        {"label": "Name", "name": "name"},
+        {"label": "Created", "name": "created"},
+        {"label": "Last Launched", "name": "last_launched"},
+        {"label": "Product Family", "name": "tool_consumer_info_product_family_code"},
+        {"label": "Email", "name": "requesters_email"},
+        {"label": "LMS URL", "name": "lms_url"},
+        ] + extra_fields) }}
 {% endmacro %}
-
-
 {% macro registrations_table(request, registrations) %}
-{{ object_list_table(
-    request, 'admin.registration.id', registrations,
-    fields=[
+    {{ object_list_table(request, 'admin.registration.id', registrations,
+        fields=[
         {"label": "Client ID", "name": "client_id"},
         {"label": "Issuer ID", "name": "issuer"},
-    ]
-) }}
+        ]) }}
 {% endmacro %}
-
-
 {% macro registration_preview(request, lti_registration) %}
     {% if lti_registration %}
-    <div class="block has-text-right">
-        <a class="button" href="{{ request.route_url("admin.registration.id", id_=lti_registration.id) }}">View</a>
-    </div>
-    <div class="columns">
-            <div class="column is-half">
-            {{ disabled_text_field("Issuer", lti_registration.issuer) }}
+        <div class="block has-text-right">
+            <a class="button"
+               href="{{ request.route_url("admin.registration.id", id_=lti_registration.id) }}">View</a>
         </div>
-        <div class="column is-half">
-            {{ disabled_text_field("Client ID", lti_registration.client_id) }}
+        <div class="columns">
+            <div class="column is-half">{{ disabled_text_field("Issuer", lti_registration.issuer) }}</div>
+            <div class="column is-half">{{ disabled_text_field("Client ID", lti_registration.client_id) }}</div>
         </div>
-    </div>
     {% else %}
-    <div class="has-text-centered">No LTI registration</div>
+        <div class="has-text-centered">No LTI registration</div>
     {% endif %}
 {% endmacro %}
-
-
 {% macro organization_preview(request, org) %}
     {% if org %}
-    <div class="block has-text-right">
-        <a class="button" href="{{ request.route_url("admin.organization", id_=org.id) }}">View</a>
-    </div>
-    <div class="columns">
-            <div class="column is-half">
-            {{ disabled_text_field("Name", org.name) }}
+        <div class="block has-text-right">
+            <a class="button"
+               href="{{ request.route_url("admin.organization", id_=org.id) }}">View</a>
         </div>
-        <div class="column is-half">
-            {{ disabled_text_field("ID", org.public_id) }}
+        <div class="columns">
+            <div class="column is-half">{{ disabled_text_field("Name", org.name) }}</div>
+            <div class="column is-half">{{ disabled_text_field("ID", org.public_id) }}</div>
         </div>
-    </div>
     {% else %}
-    <div class="has-text-centered">No organization</div>
+        <div class="has-text-centered">No organization</div>
     {% endif %}
 {% endmacro %}

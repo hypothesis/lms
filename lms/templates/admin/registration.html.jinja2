@@ -1,33 +1,29 @@
 {% import "macros.html.jinja2" as macros %}
-
 {% extends "lms:templates/admin/base.html.jinja2" %}
-{% block header %}
-    Registration {{registration.issuer}} / {{ registration.client_id }}
-{% endblock %}
-
+{% block header %}Registration {{ registration.issuer }} / {{ registration.client_id }}{% endblock %}
 {% block content %}
     <fieldset class="box">
-    <legend class="label has-text-centered">Registration</legend>
-    <form method="POST" action="{{ request.route_url("admin.registration.id", id_=registration.id) }}">
-        <input type="hidden" name="csrf_token" value="{{get_csrf_token()}}">
-        {{ macros.registration_fields(request, registration) }}
-        {{ macros.created_updated_fields(registration) }}
-        <div class="has-text-right mb-6">
-            <input type="submit" class="button is-primary" value="Save" />
-        </div>
-    </form>
+        <legend class="label has-text-centered">Registration</legend>
+        <form method="POST"
+              action="{{ request.route_url("admin.registration.id", id_=registration.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+            {{ macros.registration_fields(request, registration) }}
+            {{ macros.created_updated_fields(registration) }}
+            <div class="has-text-right mb-6">
+                <input type="submit" class="button is-primary" value="Save" />
+            </div>
+        </form>
     </fieldset>
-
     <fieldset class="box">
-    <legend class="label has-text-centered">Registration application instances</legend>
-         <div class="block has-text-right">
-            <a class="button is-primary" href="{{ request.route_url("admin.instance.upgrade", _query={"lti_registration_id": registration.id}) }}">Upgrade LTI 1.1 instance</a>
-
-            <a class="button is-primary" href="{{ request.route_url("admin.instance.create", _query={"lti_registration_id": registration.id}) }}">Add LTI 1.3 instance</a>
+        <legend class="label has-text-centered">Registration application instances</legend>
+        <div class="block has-text-right">
+            <a class="button is-primary"
+               href="{{ request.route_url("admin.instance.upgrade", _query={"lti_registration_id": registration.id}) }}">Upgrade LTI 1.1 instance</a>
+            <a class="button is-primary"
+               href="{{ request.route_url("admin.instance.create", _query={"lti_registration_id": registration.id}) }}">Add LTI 1.3 instance</a>
         </div>
-
         {% if registration.application_instances %}
             {{ macros.instances_table(request, registration.application_instances) }}
         {% endif %}
-    </fieldset/>
+    </fieldset />
 {% endblock %}
