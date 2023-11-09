@@ -111,10 +111,16 @@ class FilePickerConfig:
         }
 
     @classmethod
-    def vitalsource_config(cls, request, _application_instance):
+    def vitalsource_config(cls, request, application_instance):
         """Get VitalSource config."""
 
-        return {"enabled": request.find_service(VitalSourceService).enabled}
+        page_ranges = application_instance.settings.get(
+            "vitalsource", "page_ranges", default=False
+        )
+        return {
+            "enabled": request.find_service(VitalSourceService).enabled,
+            "pageRangesEnabled": page_ranges,
+        }
 
     @classmethod
     def jstor_config(cls, request, _application_instance):

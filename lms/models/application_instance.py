@@ -30,6 +30,7 @@ class ApplicationSettings(JSONSettings):
         JSONSetting("google_drive", "files_enabled", asbool),
         JSONSetting("microsoft_onedrive", "files_enabled", asbool),
         JSONSetting("vitalsource", "enabled", asbool),
+        JSONSetting("vitalsource", "page_ranges", asbool),
         JSONSetting("vitalsource", "user_lti_param"),
         JSONSetting("vitalsource", "user_lti_pattern"),
         JSONSetting("vitalsource", "api_key"),
