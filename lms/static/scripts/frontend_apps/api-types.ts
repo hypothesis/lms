@@ -72,6 +72,9 @@ export type TableOfContentsEntry = {
   page: string;
   title: string;
 
+  /** EPUB CFI of this chapter. */
+  cfi: string;
+
   /** Document URL to use for this chapter when creating an assignment. */
   url: string;
 

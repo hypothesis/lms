@@ -1,7 +1,7 @@
 import { OptionButton, SpinnerOverlay } from '@hypothesis/frontend-shared';
 import { useMemo, useState } from 'preact/hooks';
 
-import type { Book, File, TableOfContentsEntry, Page } from '../api-types';
+import type { File, Page } from '../api-types';
 import { useConfig } from '../config';
 import { PickerCanceledError } from '../errors';
 import type { Content } from '../utils/content-item';
@@ -85,7 +85,10 @@ export default function ContentSelector({
         clientId: oneDriveClientId,
         redirectURI: oneDriveRedirectURI,
       },
-      vitalSource: { enabled: vitalSourceEnabled },
+      vitalSource: {
+        enabled: vitalSourceEnabled,
+        pageRangesEnabled: vitalSourcePageRangesEnabled,
+      },
       youtube: { enabled: youtubeEnabled },
     },
   } = useConfig(['filePicker']);
@@ -189,11 +192,14 @@ export default function ContentSelector({
     onSelectContent({ type: 'url', url: file.id });
   };
 
-  const selectVitalSourceBook = (book: Book, chapter: TableOfContentsEntry) => {
+  const selectVitalSourceBook = async (
+    selection: unknown,
+    documentURL: string
+  ) => {
     cancelDialog();
     onSelectContent({
       type: 'url',
-      url: chapter.url,
+      url: documentURL,
     });
   };
 
@@ -283,6 +289,7 @@ export default function ContentSelector({
     case 'vitalSourceBook':
       dialog = (
         <BookPicker
+          allowPageRangeSelection={vitalSourcePageRangesEnabled}
           onCancel={cancelDialog}
           onSelectBook={selectVitalSourceBook}
         />

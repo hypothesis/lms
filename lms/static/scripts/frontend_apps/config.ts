@@ -117,6 +117,7 @@ export type FilePickerConfig = {
   };
   vitalSource: {
     enabled: boolean;
+    pageRangesEnabled: boolean;
   };
 };
 
