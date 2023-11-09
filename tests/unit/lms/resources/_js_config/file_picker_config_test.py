@@ -138,12 +138,19 @@ class TestFilePickerConfig:
 
         assert config == expected
 
-    def test_vitalsource_config(self, pyramid_request, vitalsource_service):
+    @pytest.mark.parametrize("page_ranges", (True, False))
+    def test_vitalsource_config(
+        self, pyramid_request, vitalsource_service, application_instance, page_ranges
+    ):
+        application_instance.settings.set("vitalsource", "page_ranges", page_ranges)
         config = FilePickerConfig.vitalsource_config(
-            pyramid_request, sentinel.application_instance
+            pyramid_request, application_instance
         )
 
-        assert config == {"enabled": vitalsource_service.enabled}
+        assert config == {
+            "enabled": vitalsource_service.enabled,
+            "pageRangesEnabled": page_ranges,
+        }
 
     @pytest.mark.parametrize("enabled", (True, False))
     def test_jstor_config(self, pyramid_request, jstor_service, enabled):
