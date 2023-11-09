@@ -1,5 +1,6 @@
 import {
   mockImportedComponents,
+  waitFor,
   waitForElement,
 } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
@@ -63,6 +64,15 @@ describe('BookPicker', () => {
 
   beforeEach(() => {
     fakeVitalSourceService = {
+      fetchDocumentURL: sinon.stub().callsFake(async selection => {
+        let content;
+        if (selection.content.type === 'page') {
+          content = `page/${selection.content.start}`;
+        } else {
+          content = `cfi/${selection.content.start.cfi}`;
+        }
+        return `vitalsource://books/bookID/${selection.book.id}/${content}`;
+      }),
       fetchTableOfContents: sinon
         .stub()
         .callsFake(async bookID => fakeBookData.chapters[bookID]),
@@ -100,12 +110,30 @@ describe('BookPicker', () => {
     return entry;
   };
 
+  /**
+   * Select the page range with a given start and end number.
+   *
+   * Page numbers can be specified as numbers or strings.
+   */
+  const selectPageRange = (wrapper, start = '', end = '') => {
+    const startInput = wrapper.find('input[data-testid="start-page"]');
+    const endInput = wrapper.find('input[data-testid="end-page"]');
+    startInput.getDOMNode().value = start.toString();
+    startInput.simulate('input');
+    endInput.getDOMNode().value = end.toString();
+    endInput.simulate('input');
+  };
+
   const clickSelectButton = wrapper => {
     act(() => {
       wrapper.find('button[data-testid="select-button"]').prop('onClick')();
     });
     wrapper.update();
   };
+
+  // Wait for the table of contents to finish loading.
+  const waitForTableOfContents = wrapper =>
+    waitForElement(wrapper, 'TableOfContentsPicker[isLoading=false]');
 
   it('renders book-selector component when picker is opened', () => {
     const picker = renderBookPicker();
@@ -149,11 +177,46 @@ describe('BookPicker', () => {
     assert.equal(tocPicker.prop('isLoading'), true);
     assert.calledWith(fakeVitalSourceService.fetchTableOfContents, 'book1');
 
-    await waitForElement(picker, 'TableOfContentsPicker[isLoading=false]');
+    await waitForTableOfContents(picker);
 
     // The table of contents for the selected book should be presented once fetched.
     tocPicker = picker.find('TableOfContentsPicker');
     assert.equal(tocPicker.prop('entries'), fakeBookData.chapters.book1);
+  });
+
+  [true, false].forEach(allowPageRangeSelection => {
+    it('displays page range picker if featur enabled', () => {
+      const picker = renderBookPicker({ allowPageRangeSelection });
+      selectBook(picker);
+      clickSelectButton(picker);
+      assert.equal(
+        picker.find('input[data-testid="start-page"]').exists(),
+        allowPageRangeSelection
+      );
+      assert.equal(
+        picker.find('input[data-testid="end-page"]').exists(),
+        allowPageRangeSelection
+      );
+    });
+  });
+
+  it('displays page numbers corresponding to selected chapter', async () => {
+    const onSelectBook = sinon.stub();
+    const picker = renderBookPicker({
+      allowPageRangeSelection: true,
+      onSelectBook,
+    });
+
+    selectBook(picker);
+    clickSelectButton(picker);
+
+    await waitForTableOfContents(picker);
+    selectChapter(picker);
+
+    const startInput = picker.find('input[data-testid="start-page"]');
+    const endInput = picker.find('input[data-testid="end-page"]');
+    assert.equal(startInput.prop('placeholder'), '1');
+    assert.equal(endInput.prop('placeholder'), '10');
   });
 
   it('invokes `onSelectBook` callback after a book and chapter are chosen', async () => {
@@ -163,11 +226,51 @@ describe('BookPicker', () => {
     const book = selectBook(picker);
     clickSelectButton(picker);
 
-    await waitForElement(picker, 'TableOfContentsPicker[isLoading=false]');
+    await waitForTableOfContents(picker);
     const chapter = selectChapter(picker);
     clickSelectButton(picker);
 
-    assert.calledWith(onSelectBook, book, chapter);
+    await waitFor(() => onSelectBook.called);
+    assert.calledWith(
+      onSelectBook,
+      {
+        book,
+        content: {
+          type: 'toc',
+          start: chapter,
+        },
+      },
+      'vitalsource://books/bookID/book1/cfi//1'
+    );
+  });
+
+  it('invokes `onSelectBook` callback after a book and page range are chosen', async () => {
+    const onSelectBook = sinon.stub();
+    const picker = renderBookPicker({
+      allowPageRangeSelection: true,
+      onSelectBook,
+    });
+
+    const book = selectBook(picker);
+    clickSelectButton(picker);
+
+    await waitForTableOfContents(picker);
+    selectPageRange(picker, 10, 20);
+    clickSelectButton(picker);
+
+    await waitFor(() => onSelectBook.called);
+    assert.calledWith(
+      onSelectBook,
+      {
+        book,
+        content: {
+          type: 'page',
+          start: '10',
+          end: '20',
+        },
+      },
+      'vitalsource://books/bookID/book1/page/10'
+    );
   });
 
   it('shows error that occurs while fetching table of contents', async () => {
@@ -176,6 +279,30 @@ describe('BookPicker', () => {
 
     const picker = renderBookPicker();
     selectBook(picker);
+    clickSelectButton(picker);
+
+    const errorDisplay = await waitForElement(picker, 'ErrorDisplay');
+
+    assert.equal(
+      errorDisplay.prop('description'),
+      'Unable to fetch book contents'
+    );
+    assert.equal(errorDisplay.prop('error'), error);
+    assert.isFalse(picker.exists('TableOfContentsPicker'));
+  });
+
+  it('shows error that occurs while fetching document URL', async () => {
+    const error = new Error('Something went wrong');
+    fakeVitalSourceService.fetchDocumentURL.rejects(error);
+
+    const onSelectBook = sinon.stub();
+    const picker = renderBookPicker({ onSelectBook });
+
+    selectBook(picker);
+    clickSelectButton(picker);
+
+    await waitForTableOfContents(picker);
+    selectChapter(picker);
     clickSelectButton(picker);
 
     const errorDisplay = await waitForElement(picker, 'ErrorDisplay');

@@ -9,6 +9,10 @@ describe('VitalSourceService', () => {
       assert.equal(authToken, 'dummy-token');
 
       switch (path) {
+        case '/api/vitalsource/document_url':
+          return {
+            document_url: 'vitalsource://books/bookID/BOOKSHELF-TUTORIAL',
+          };
         case '/api/vitalsource/books/BOOKSHELF-TUTORIAL':
           return {
             id: 'BOOKSHELF-TUTORIAL',
@@ -82,6 +86,54 @@ describe('VitalSourceService', () => {
       }
       assert.instanceOf(err, APIError);
       assert.equal(err.serverMessage, 'Book not found');
+    });
+  });
+
+  describe('#fetchDocumentURL', () => {
+    [
+      // TOC entry
+      {
+        selection: {
+          book: { id: 'BOOKSHELF-TUTORIAL' },
+          content: {
+            type: 'toc',
+            start: {
+              cfi: '/1/2',
+            },
+          },
+        },
+        expectedParams: {
+          book_id: 'BOOKSHELF-TUTORIAL',
+          cfi: '/1/2',
+        },
+      },
+      // Page range
+      {
+        selection: {
+          book: { id: 'BOOKSHELF-TUTORIAL' },
+          content: {
+            type: 'page',
+            start: '23',
+            end: '46',
+          },
+        },
+        expectedParams: {
+          book_id: 'BOOKSHELF-TUTORIAL',
+          page: '23',
+          end_page: '46',
+        },
+      },
+    ].forEach(({ selection, expectedParams }) => {
+      it('returns document URL', async () => {
+        const service = new VitalSourceService({ authToken: 'dummy-token' });
+        const url = await service.fetchDocumentURL(selection);
+        assert.calledWith(fakeAPICall, {
+          authToken: 'dummy-token',
+          path: '/api/vitalsource/document_url',
+          params: expectedParams,
+        });
+        assert.equal(url, 'vitalsource://books/bookID/BOOKSHELF-TUTORIAL');
+      });
     });
   });
 });

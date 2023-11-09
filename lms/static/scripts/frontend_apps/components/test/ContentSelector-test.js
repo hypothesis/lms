@@ -623,12 +623,19 @@ describe('ContentSelector', () => {
 
       const picker = wrapper.find('BookPicker');
       interact(wrapper, () => {
-        picker
-          .props()
-          .onSelectBook(
-            { id: 'test-book' },
-            { url: 'vitalsource://book/BOOK_ID/cfi/CFI' }
-          );
+        picker.props().onSelectBook(
+          {
+            book: { id: 'test-book' },
+            content: {
+              type: 'toc',
+              start: {
+                cfi: 'CFI',
+                // ... other fields omitted.
+              },
+            },
+          },
+          'vitalsource://book/BOOK_ID/cfi/CFI'
+        );
       });
 
       assert.calledWith(onSelectContent, {
