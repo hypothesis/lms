@@ -1,5 +1,5 @@
 import { DataTable, Scroll } from '@hypothesis/frontend-shared';
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useMemo, useRef } from 'preact/hooks';
 
 import type { Chapter } from '../api-types';
 
@@ -39,17 +39,20 @@ export default function ChapterList({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const columns = [
-    {
-      label: 'Title',
-      field: 'title',
-    },
-    {
-      label: 'Location',
-      field: 'page',
-      classes: 'w-32',
-    },
-  ];
+  const columns = useMemo(
+    () => [
+      {
+        label: 'Title',
+        field: 'title',
+      },
+      {
+        label: 'Location',
+        field: 'page',
+        classes: 'w-32',
+      },
+    ],
+    []
+  );
 
   return (
     <Scroll>
