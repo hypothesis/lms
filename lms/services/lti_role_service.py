@@ -1,19 +1,10 @@
-from dataclasses import dataclass
 from typing import List
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from lms.models import ApplicationInstance
-from lms.models.lti_role import LTIRole, LTIRoleOverride, RoleScope, RoleType
-
-
-@dataclass
-class Role:
-    scope: RoleScope
-    type: RoleType
-
-    value: str
+from lms.models.lti_role import LTIRole, LTIRoleOverride, Role
 
 
 class LTIRoleService:
@@ -50,10 +41,9 @@ class LTIRoleService:
         return sorted(roles, key=lambda r: r.value)
 
     def get_roles_for_application_instance(
-        self, ai: ApplicationInstance, role_description: str
+        self, ai: ApplicationInstance, roles: List[LTIRole]
     ) -> List[Role]:
-        roles = self.get_roles(role_description)
-
+        self._db.flush()  # Make sure roles have IDs
         # pylint:disable=not-callable,no-member
         overrides = self._db.execute(
             select(

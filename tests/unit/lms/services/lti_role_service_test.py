@@ -51,9 +51,8 @@ class TestLTIRoleService:
     def test_get_roles_for_application_instance_no_overrides(
         self, svc, existing_roles, application_instance
     ):
-        existing_role_strings = [role.value for role in existing_roles]
         roles = svc.get_roles_for_application_instance(
-            application_instance, ", ".join(existing_role_strings)
+            application_instance, existing_roles
         )
 
         assert roles == [
@@ -73,9 +72,8 @@ class TestLTIRoleService:
         )
         db_session.add(override)
 
-        existing_role_strings = [role.value for role in existing_roles]
         roles = svc.get_roles_for_application_instance(
-            application_instance, ", ".join(existing_role_strings)
+            application_instance, existing_roles
         )
 
         assert override.scope == roles[0].scope
