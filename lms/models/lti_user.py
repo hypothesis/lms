@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from lms.models.application_instance import ApplicationInstance
 from lms.models.h_user import HUser
-from lms.models.lti_role import LTIRole, RoleScope, RoleType
+from lms.models.lti_role import LTIRole, Role, RoleScope, RoleType
 
 
 @dataclass
@@ -26,7 +26,10 @@ class LTIUser:  # pylint: disable=too-many-instance-attributes
     """The user's raw LTI roles string."""
 
     lti_roles: List[LTIRole]
-    """The user's LTI roles."""
+    """The original user's LTI roles."""
+
+    effective_lti_roles: List[Role]
+    """The effective user's roles for this AI, taking overrides into account."""
 
     tool_consumer_instance_guid: str
     """Unique ID of the LMS instance that this user belongs to."""
@@ -71,7 +74,7 @@ class LTIUser:  # pylint: disable=too-many-instance-attributes
         return self.is_admin or any(
             # And any instructor in the course
             role.type == RoleType.INSTRUCTOR and role.scope == RoleScope.COURSE
-            for role in self.lti_roles
+            for role in self.effective_lti_roles
         )
 
     @property
@@ -83,7 +86,7 @@ class LTIUser:  # pylint: disable=too-many-instance-attributes
 
         return any(
             role.type == RoleType.LEARNER and role.scope == RoleScope.COURSE
-            for role in self.lti_roles
+            for role in self.effective_lti_roles
         )
 
     @property
@@ -92,7 +95,7 @@ class LTIUser:  # pylint: disable=too-many-instance-attributes
         return any(
             role.type == RoleType.ADMIN
             and role.scope in [RoleScope.COURSE, RoleScope.SYSTEM]
-            for role in self.lti_roles
+            for role in self.effective_lti_roles
         )
 
 

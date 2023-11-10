@@ -1,5 +1,6 @@
 import logging
 import re
+from dataclasses import dataclass
 from enum import Enum, unique
 from typing import Tuple
 
@@ -94,6 +95,16 @@ class LTIRole(BASE):
     def update_from_value(self):
         """Set scope and type based on `_value`."""
         self.scope, self.type = _RoleParser.parse_role(self._value)
+
+
+@dataclass
+class Role:
+    """Dataclass to abstract model differences between LTIRole and LTIRoleOverride."""
+
+    scope: RoleScope
+    type: RoleType
+
+    value: str
 
 
 class _RoleParser:

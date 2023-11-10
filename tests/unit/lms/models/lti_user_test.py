@@ -1,7 +1,7 @@
 import pytest
 
 from lms.models import display_name
-from lms.models.lti_role import LTIRole, RoleScope, RoleType
+from lms.models.lti_role import Role, RoleScope, RoleType
 from tests import factories
 
 
@@ -17,40 +17,43 @@ class TestLTIUser:
     @pytest.mark.parametrize(
         "role,is_instructor",
         [
-            (LTIRole(scope=RoleScope.COURSE, type=RoleType.ADMIN), True),
-            (LTIRole(scope=RoleScope.COURSE, type=RoleType.ADMIN), True),
-            (LTIRole(scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR), True),
+            (Role(value="r", scope=RoleScope.COURSE, type=RoleType.ADMIN), True),
+            (Role(value="r", scope=RoleScope.COURSE, type=RoleType.ADMIN), True),
+            (Role(value="r", scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR), True),
             (
-                LTIRole(scope=RoleScope.INSTITUTION, type=RoleType.INSTRUCTOR),
+                Role(value="r", scope=RoleScope.INSTITUTION, type=RoleType.INSTRUCTOR),
                 False,
             ),
-            (LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER), False),
+            (Role(value="r", scope=RoleScope.COURSE, type=RoleType.LEARNER), False),
         ],
     )
     def test_is_instructor(self, role, is_instructor):
-        lti_user = factories.LTIUser(lti_roles=[role])
+        lti_user = factories.LTIUser(effective_lti_roles=[role])
 
         assert lti_user.is_instructor == is_instructor
 
     @pytest.mark.parametrize(
         "role,is_learner",
         [
-            (LTIRole(scope=RoleScope.COURSE, type=RoleType.ADMIN), False),
-            (LTIRole(scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR), False),
-            (LTIRole(scope=RoleScope.INSTITUTION, type=RoleType.LEARNER), False),
-            (LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER), True),
+            (Role(value="r", scope=RoleScope.COURSE, type=RoleType.ADMIN), False),
+            (Role(value="r", scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR), False),
+            (
+                Role(value="r", scope=RoleScope.INSTITUTION, type=RoleType.LEARNER),
+                False,
+            ),
+            (Role(value="r", scope=RoleScope.COURSE, type=RoleType.LEARNER), True),
         ],
     )
     def test_is_learner(self, role, is_learner):
-        lti_user = factories.LTIUser(lti_roles=[role])
+        lti_user = factories.LTIUser(effective_lti_roles=[role])
 
         assert lti_user.is_learner == is_learner
 
     def test_is_learner_and_instructor_preference_for_instructor(self):
         lti_user = factories.LTIUser(
-            lti_roles=[
-                LTIRole(scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR),
-                LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
+            effective_lti_roles=[
+                Role(value="r", scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR),
+                Role(value="r", scope=RoleScope.COURSE, type=RoleType.LEARNER),
             ]
         )
 
@@ -60,14 +63,14 @@ class TestLTIUser:
     @pytest.mark.parametrize(
         "role,is_admin",
         [
-            (LTIRole(scope=RoleScope.COURSE, type=RoleType.ADMIN), True),
-            (LTIRole(scope=RoleScope.SYSTEM, type=RoleType.ADMIN), True),
-            (LTIRole(scope=RoleScope.INSTITUTION, type=RoleType.ADMIN), False),
-            (LTIRole(scope=RoleScope.SYSTEM, type=RoleType.INSTRUCTOR), False),
+            (Role(value="r", scope=RoleScope.COURSE, type=RoleType.ADMIN), True),
+            (Role(value="r", scope=RoleScope.SYSTEM, type=RoleType.ADMIN), True),
+            (Role(value="r", scope=RoleScope.INSTITUTION, type=RoleType.ADMIN), False),
+            (Role(value="r", scope=RoleScope.SYSTEM, type=RoleType.INSTRUCTOR), False),
         ],
     )
     def test_is_admin(self, role, is_admin):
-        lti_user = factories.LTIUser(lti_roles=[role])
+        lti_user = factories.LTIUser(effective_lti_roles=[role])
 
         assert lti_user.is_admin == is_admin
 
