@@ -27,7 +27,12 @@ class TestAdminRoleViews:
         }
 
     def test_new_override_post(
-        self, pyramid_request, application_instance_service, lti_role_service, views
+        self,
+        pyramid_request,
+        application_instance_service,
+        lti_role_service,
+        views,
+        AuditTrailEvent,
     ):
         pyramid_request.matchdict["id_"] = sentinel.id
         pyramid_request.params["role_id"] = sentinel.role_id
@@ -38,6 +43,15 @@ class TestAdminRoleViews:
 
         application_instance_service.get_by_id.assert_called_once_with(id_=sentinel.id)
         lti_role_service.search.assert_called_once_with(id_=sentinel.role_id)
+        lti_role_service.new_role_override.assert_called_once_with(
+            application_instance_service.get_by_id.return_value,
+            lti_role_service.search.return_value.one.return_value,
+            sentinel.type,
+            sentinel.scope,
+        )
+        AuditTrailEvent.notify.assert_called_once_with(
+            pyramid_request, lti_role_service.new_role_override.return_value
+        )
         assert response == temporary_redirect_to(
             pyramid_request.route_url(
                 "admin.instance",
@@ -58,7 +72,7 @@ class TestAdminRoleViews:
             ],
         }
 
-    def test_update(self, pyramid_request, lti_role_service, views):
+    def test_update(self, pyramid_request, lti_role_service, views, AuditTrailEvent):
         pyramid_request.matchdict["id_"] = sentinel.id
         pyramid_request.params["type"] = sentinel.type
         pyramid_request.params["scope"] = sentinel.scope
@@ -70,11 +84,12 @@ class TestAdminRoleViews:
         lti_role_service.update_override.assert_called_once_with(
             override, scope=sentinel.scope, type_=sentinel.type
         )
+        AuditTrailEvent.notify.assert_called_once_with(pyramid_request, override)
         assert response == temporary_redirect_to(
             pyramid_request.route_url("admin.role.override", id_=override.id)
         )
 
-    def test_delete(self, pyramid_request, lti_role_service, views):
+    def test_delete(self, pyramid_request, lti_role_service, views, AuditTrailEvent):
         pyramid_request.matchdict["id_"] = sentinel.id
 
         response = views.delete()
@@ -82,6 +97,7 @@ class TestAdminRoleViews:
         lti_role_service.search_override.assert_called_once_with(id_=sentinel.id)
         override = lti_role_service.search_override.return_value.one.return_value
         lti_role_service.delete_override.assert_called_once_with(override)
+        AuditTrailEvent.notify.assert_called_once_with(pyramid_request, override)
         assert response == temporary_redirect_to(
             pyramid_request.route_url(
                 "admin.instance", id_=override.application_instance_id
@@ -91,3 +107,7 @@ class TestAdminRoleViews:
     @pytest.fixture
     def views(self, pyramid_request):
         return AdminRoleViews(pyramid_request)
+
+    @pytest.fixture
+    def AuditTrailEvent(self, patch):
+        return patch("lms.views.admin.role.AuditTrailEvent")
