@@ -1,6 +1,7 @@
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config, view_defaults
 
+from lms.events import AuditTrailEvent
 from lms.security import Permissions
 from lms.services.application_instance import ApplicationInstanceService
 from lms.services.lti_role_service import LTIRoleService
@@ -37,9 +38,10 @@ class AdminRoleViews:
         )
         role = self.lti_role_service.search(id_=self.request.params["role_id"]).one()
 
-        self.lti_role_service.new_role_override(
+        override = self.lti_role_service.new_role_override(
             instance, role, self.request.params["type"], self.request.params["scope"]
         )
+        AuditTrailEvent.notify(self.request, override)
         self.request.session.flash(
             f"Created new role override for {role.value}", "messages"
         )
@@ -78,6 +80,7 @@ class AdminRoleViews:
             type_=self.request.params["type"],
         )
 
+        AuditTrailEvent.notify(self.request, override)
         self.request.session.flash(
             f"Updated role override for {override.value}", "messages"
         )
@@ -92,6 +95,7 @@ class AdminRoleViews:
         ).one()
 
         self.lti_role_service.delete_override(override)
+        AuditTrailEvent.notify(self.request, override)
         self.request.session.flash(
             f"Deleted role override for {override.value}", "messages"
         )
