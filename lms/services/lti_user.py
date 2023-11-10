@@ -61,9 +61,14 @@ class LTIUserService:
 
     def deserialize(self, **kwargs: dict) -> LTIUser:
         """Create an LTIUser based on kwargs."""
-        lti_roles = self._lti_roles_service.get_roles(kwargs["roles"])
         application_instance = self._application_instance_service.get_for_launch(
             kwargs["application_instance_id"]
+        )
+        lti_roles = self._lti_roles_service.get_roles(kwargs["roles"])
+        effective_lti_roles = (
+            self._lti_roles_service.get_roles_for_application_instance(
+                application_instance, lti_roles
+            )
         )
         lti_data = kwargs.pop("lti")
         lti = LTI(
@@ -73,6 +78,7 @@ class LTIUserService:
 
         return LTIUser(
             lti_roles=lti_roles,
+            effective_lti_roles=effective_lti_roles,
             application_instance=application_instance,
             lti=lti,
             **kwargs,

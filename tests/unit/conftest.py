@@ -10,7 +10,7 @@ from pyramid.request import apply_request_extensions
 from lms import models
 from lms.db import SESSION
 from lms.models import ApplicationSettings, LTIParams
-from lms.models.lti_role import RoleScope, RoleType
+from lms.models.lti_role import Role, RoleScope, RoleType
 from lms.product import Product
 from lms.security import Identity
 from tests import factories
@@ -147,12 +147,20 @@ def user_is_learner(lti_user):
     lti_user.lti_roles = [
         factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER)
     ]
+    lti_user.effective_lti_roles = [
+        Role(scope=role.scope, type=role.type, value=role.value)
+        for role in lti_user.lti_roles
+    ]
 
 
 @pytest.fixture
 def user_is_instructor(lti_user):
     lti_user.lti_roles = [
         factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR)
+    ]
+    lti_user.effective_lti_roles = [
+        Role(scope=role.scope, type=role.type, value=role.value)
+        for role in lti_user.lti_roles
     ]
 
 
