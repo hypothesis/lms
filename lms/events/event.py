@@ -93,6 +93,9 @@ class AuditTrailEvent(BaseEvent):
         model: str
         id: int
         source: str
+        # LTI users will have a FK to the User table.
+        # userid is useful for other authentication methods.
+        # For example this will be the user's email while using google oauth.
         userid: str
         changes: Dict[str, tuple]
 
@@ -107,8 +110,8 @@ class AuditTrailEvent(BaseEvent):
                     continue
 
                 changes[attr.key] = (
-                    history.deleted[0] if history.deleted else None,
-                    history.added[0] if history.added else None,
+                    _serialize_change(history.deleted[0]) if history.deleted else None,
+                    _serialize_change(history.added[0]) if history.added else None,
                 )
 
             return cls(
@@ -131,18 +134,43 @@ class AuditTrailEvent(BaseEvent):
 
     @staticmethod
     def notify(request: Request, instance: BASE, source="admin_pages"):
-        if request.db.is_modified(instance):
+        db = request.db
+        if db.is_modified(instance):
             request.registry.notify(
                 AuditTrailEvent(
                     request=request,
                     change=AuditTrailEvent.ModelChange.from_instance(
                         instance,
-                        action="update",
+                        action="insert" if instance in db.new else "update",
                         source=source,
-                        # LTI users will have a FK to the User table.
-                        # userid is useful for other authentication methods.
-                        # For example this will be the user's email while using google oauth.
                         userid=request.identity.userid,
                     ),
                 )
             )
+        elif instance in db.deleted:
+            request.registry.notify(
+                AuditTrailEvent(
+                    request=request,
+                    change=AuditTrailEvent.ModelChange(
+                        model=instance.__class__.__name__,
+                        id=instance.id,
+                        action="delete",
+                        source=source,
+                        userid=request.identity.userid,
+                        changes={},
+                    ),
+                )
+            )
+
+
+def _serialize_change(value):
+    """Serialize in a DB compatible manner a DB change."""
+    if isinstance(value, BASE):
+        if hasattr(value, "id"):
+            # If we have a model with simple PK, use that, it would make
+            # our lives easier in case we have to write SQL consulting these values
+            return value.id
+        # Just convert it to a string otherwise
+        return str(value)
+
+    return value

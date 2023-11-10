@@ -3,6 +3,7 @@ from unittest.mock import sentinel
 import pytest
 
 from lms.events import AuditTrailEvent, LTIEvent
+from lms.events.event import _serialize_change
 from tests import factories
 
 
@@ -80,10 +81,12 @@ class TestLTIEvent:
 
 class TestAuditTrailEvent:
     def test_model_change_from_instance(self, db_session):
+        parent = factories.Organization()
         org = factories.Organization(name="OLD_NAME", enabled=True)
         db_session.flush()
         org.name = "NEW_NAME"
         org.enabled = False
+        org.parent = parent
 
         assert AuditTrailEvent.ModelChange.from_instance(
             org, action=sentinel.action, source=sentinel.source, userid=sentinel.userid
@@ -93,7 +96,11 @@ class TestAuditTrailEvent:
             source=sentinel.source,
             action=sentinel.action,
             userid=sentinel.userid,
-            changes={"name": ("OLD_NAME", "NEW_NAME"), "enabled": (True, False)},
+            changes={
+                "name": ("OLD_NAME", "NEW_NAME"),
+                "enabled": (True, False),
+                "parent": (None, parent.id),
+            },
         )
 
     def test__get_data(self, pyramid_request):
@@ -133,6 +140,27 @@ class TestAuditTrailEvent:
             )
         )
 
+    def test_notify_deletion(self, pyramid_request, db_session):
+        org = factories.Organization()
+        db_session.flush()
+        db_session.delete(org)
+
+        AuditTrailEvent.notify(pyramid_request, org, source=sentinel.source)
+
+        pyramid_request.registry.notify.assert_called_once_with(
+            AuditTrailEvent(
+                request=pyramid_request,
+                change=AuditTrailEvent.ModelChange(
+                    id=org.id,
+                    model="Organization",
+                    action="delete",
+                    source=sentinel.source,
+                    userid=pyramid_request.identity.userid,
+                    changes={},
+                ),
+            )
+        )
+
     def test_notify_no_changes(self, pyramid_request, db_session):
         org = factories.Organization(name="OLD_NAME", enabled=True)
         db_session.flush()
@@ -140,3 +168,8 @@ class TestAuditTrailEvent:
         AuditTrailEvent.notify(pyramid_request, org, source=sentinel.source)
 
         pyramid_request.registry.notify.assert_not_called()
+
+
+def test_serialize_change_model_with_no_id():
+    value = _serialize_change(factories.AssignmentMembership())
+    assert isinstance(value, str)
