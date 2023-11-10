@@ -1,3 +1,5 @@
+import logging
+
 from pyramid import i18n
 from pyramid.config import not_
 from pyramid.httpexceptions import HTTPClientError
@@ -13,6 +15,8 @@ from lms.services import HAPIError, SerializableError
 from lms.validation import ValidationError
 
 _ = i18n.TranslationStringFactory(__package__)
+
+LOG = logging.getLogger(__name__)
 
 
 @view_defaults(path_info=not_("^/api/.*"), renderer="lms:templates/error.html.jinja2")
@@ -94,6 +98,7 @@ class ExceptionViews:
 
     @exception_view_config(context=Exception)
     def error(self):
+        LOG.exception("Unexpected error %s", type(self.exception))
         return self.error_response(
             500,
             _(
