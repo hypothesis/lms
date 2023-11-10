@@ -13,7 +13,20 @@
             {% endblock %}
         </title>
         <link rel="stylesheet"
+              href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.15.2/css/selectize.default.min.css"
+              integrity="sha512-pTaEn+6gF1IeWv3W1+7X7eM60TFu/agjgoHmYhAfLEU8Phuf6JKiiE8YmsNC0aCgQv4192s4Vai8YZ6VNM6vyQ=="
+              crossorigin="anonymous"
+              referrerpolicy="no-referrer" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+                integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+                crossorigin="anonymous"
+                referrerpolicy="no-referrer"></script>
+        <link rel="stylesheet"
               href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.15.2/js/selectize.min.js"
+                integrity="sha512-IOebNkvA/HZjMM7MxL0NYeLYEalloZ8ckak+NDtOViP7oiYzG5vn6WVXyrJDiJPhl4yRdmNAG49iuLmhkUdVsQ=="
+                crossorigin="anonymous"
+                referrerpolicy="no-referrer"></script>
         <script src="https://cdn.jsdelivr.net/npm/@vizuaalog/bulmajs@0.12.2/dist/bulma.min.js"></script>
         <style>
             {# For tabs support, see: https://bulmajs.tomerbe.co.uk/docs/0.12/2-core-components/tabs/#}
@@ -23,6 +36,13 @@
             }
             .tabs-content li.is-active {
                 display: block;
+            }
+            .selectize-input {
+                min-width: 600px !important;
+            }
+
+            .selectize-input::after {
+                visibility:hidden;
             }
         </style>
     </head>
@@ -125,4 +145,5 @@
             </div>
         </section>
     </body>
+    {% block extra_scripts %}{% endblock %}
 </html>

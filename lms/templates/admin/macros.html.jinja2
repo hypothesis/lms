@@ -102,7 +102,7 @@
         {{ value }}
     {%- endif -%}
 {%- endmacro -%}
-{% macro object_list_table(request, route, objects, fields) %}
+{% macro object_list_table(request, route, objects, fields, html=True) %}
     <div class="container">
         <div class="table-container">
             <table class="table is-fullwidth">
@@ -118,7 +118,7 @@
                             <td>
                                 <a class="button" href="{{ request.route_url(route, id_=object.id) }}">View</a>
                             </td>
-                            {% for field in fields %}<td>{{ auto_format(object[field.name]) }}</td>{% endfor %}
+                            {% for field in fields %}<td>{{ auto_format(object[field.name], html=html) }}</td>{% endfor %}
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -189,10 +189,10 @@
         <div class="has-text-centered">No organization</div>
     {% endif %}
 {% endmacro %}
-{% macro select(label, field_name, options, current=None) %}
+{% macro select(label, field_name, options, current=None, with_search=False) %}
     {% call field_body(label) %}
         <div class="select">
-            <select name="{{ field_name }}">
+            <select class="{% if with_search %} with-search {% endif %} style="width: 50%" name="{{ field_name }}">
                 {% for value, name in options %}
                     <option {% if current == value %}selected{% endif %} value={{ value }}>{{ name }}
                     </option>
