@@ -6,10 +6,17 @@ describe('ChapterList', () => {
   const chapterData = [
     {
       title: 'Chapter One',
+      level: 1,
       page: '10',
     },
     {
       title: 'Chapter Two',
+      level: 1,
+      page: '20',
+    },
+    {
+      title: 'Chapter Two - Part 1',
+      level: 2,
       page: '20',
     },
   ];
@@ -68,6 +75,13 @@ describe('ChapterList', () => {
     assert.equal(rows.length, chapterData.length);
     assert.equal(rows.at(0).find('td').at(0).text(), chapterData[0].title);
     assert.equal(rows.at(0).find('td').at(1).text(), chapterData[0].page);
+
+    const tocLevels = [
+      rows.at(0).find('[data-testid="toc-indent"]').prop('data-level'),
+      rows.at(1).find('[data-testid="toc-indent"]').prop('data-level'),
+      rows.at(2).find('[data-testid="toc-indent"]').prop('data-level'),
+    ];
+    assert.deepEqual(tocLevels, [0, 0, 1]);
   });
 
   [true, false].forEach(isLoading => {
