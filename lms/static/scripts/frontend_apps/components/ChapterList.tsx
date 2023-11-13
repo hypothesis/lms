@@ -1,4 +1,8 @@
-import { DataTable, Scroll } from '@hypothesis/frontend-shared';
+import {
+  DataTable,
+  Scroll,
+  ScrollContainer,
+} from '@hypothesis/frontend-shared';
 import { useEffect, useMemo, useRef } from 'preact/hooks';
 
 import type { Chapter } from '../api-types';
@@ -55,19 +59,22 @@ export default function ChapterList({
   );
 
   return (
-    <Scroll>
-      <DataTable
-        elementRef={tableRef}
-        title="Table of Contents"
-        columns={columns}
-        loading={isLoading}
-        rows={chapters}
-        onSelectRow={onSelectChapter}
-        onConfirmRow={onUseChapter}
-        selectedRow={selectedChapter}
-        data-testid="chapter-table"
-        tabIndex={-1}
-      />
-    </Scroll>
+    <ScrollContainer rounded>
+      <Scroll>
+        <DataTable
+          elementRef={tableRef}
+          title="Table of Contents"
+          columns={columns}
+          loading={isLoading}
+          rows={chapters}
+          onSelectRow={onSelectChapter}
+          onConfirmRow={onUseChapter}
+          selectedRow={selectedChapter}
+          data-testid="chapter-table"
+          tabIndex={-1}
+          borderless
+        />
+      </Scroll>
+    </ScrollContainer>
   );
 }

@@ -345,7 +345,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
           </RouterLink>
         )}
         {/* Card constrains overflow-scroll children to height constraints */}
-        <Card classes="flex flex-col min-h-0">
+        <Card classes="flex flex-col min-h-0 overflow-hidden">
           <CardHeader variant="secondary" title="Assignment details" />
           <Scroll>
             <CardContent size="lg">

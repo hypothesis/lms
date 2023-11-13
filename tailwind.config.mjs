@@ -17,10 +17,6 @@ export default {
       animation: {
         gradeSubmitSuccess: 'gradeSubmitSuccess 2s ease-out forwards',
       },
-      borderRadius: {
-        // Equivalent to tailwind default `rounded-sm` size
-        DEFAULT: '0.125rem',
-      },
       fontFamily: {
         sans: [
           '"Helvetica Neue"',
