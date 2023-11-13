@@ -61,13 +61,24 @@ export type Book = {
   cover_image: string;
 };
 
-/** Metadata for a chapter within an ebook. */
+/**
+ * Metadata for a table of contents entry within an ebook.
+ *
+ * The name "Chapter" is a misnomer. Although many ebooks do have one
+ * table-of-contents entry per chapter, the entries can be more or less
+ * fine-grained than this.
+ */
 export type Chapter = {
   page: string;
   title: string;
 
   /** Document URL to use for this chapter when creating an assignment. */
   url: string;
+
+  /**
+   * The nesting depth of this entry in the table of contents.
+   */
+  level?: number;
 };
 
 export type JSTORContentItemInfo = {

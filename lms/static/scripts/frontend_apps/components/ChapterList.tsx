@@ -3,7 +3,7 @@ import {
   Scroll,
   ScrollContainer,
 } from '@hypothesis/frontend-shared';
-import { useEffect, useMemo, useRef } from 'preact/hooks';
+import { useCallback, useEffect, useMemo, useRef } from 'preact/hooks';
 
 import type { Chapter } from '../api-types';
 
@@ -23,8 +23,8 @@ export type ChapterListProps = {
 };
 
 /**
- * Component that presents a list of chapters from a book and allows the user
- * to choose one for an assignment.
+ * Component that presents a book's table of contents and allows them to
+ * select a range for an assignment.
  */
 export default function ChapterList({
   chapters,
@@ -58,6 +58,31 @@ export default function ChapterList({
     []
   );
 
+  const renderItem = useCallback((chapter: Chapter, field: keyof Chapter) => {
+    switch (field) {
+      case 'page':
+        return chapter.page;
+      case 'title': {
+        // DataTable doesn't have true support for hierarchical data structures.
+        // Here we indicate the ToC level visually by indenting rows.
+        const level = typeof chapter.level === 'number' ? chapter.level - 1 : 0;
+        return (
+          <>
+            <span
+              data-testid="toc-indent"
+              data-level={level}
+              style={{ display: 'inline-block', width: `${level * 20}px` }}
+            />
+            {chapter.title}
+          </>
+        );
+      }
+      /* istanbul ignore next */
+      default:
+        return '';
+    }
+  }, []);
+
   return (
     <ScrollContainer rounded>
       <Scroll>
@@ -66,6 +91,7 @@ export default function ChapterList({
           title="Table of Contents"
           columns={columns}
           loading={isLoading}
+          renderItem={renderItem}
           rows={chapters}
           onSelectRow={onSelectChapter}
           onConfirmRow={onUseChapter}
