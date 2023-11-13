@@ -57,7 +57,9 @@ class TestVitalSourceClient:
     def test_get_table_of_contents(self, client, http_service):
         http_service.request.return_value = factories.requests.Response(
             json_data={
-                "table_of_contents": [{"title": "TITLE", "cfi": "CFI", "page": "PAGE"}]
+                "table_of_contents": [
+                    {"title": "TITLE", "cfi": "CFI", "level": 1, "page": "PAGE"}
+                ]
             }
         )
 
@@ -73,6 +75,7 @@ class TestVitalSourceClient:
             {
                 "title": "TITLE",
                 "cfi": "CFI",
+                "level": 1,
                 "page": "PAGE",
                 "url": "vitalsource://book/bookID/BOOK_ID/cfi/CFI",
             }

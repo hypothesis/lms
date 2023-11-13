@@ -270,4 +270,7 @@ class _BookTOCSchema(RequestsResponseSchema):
         page = fields.Str(required=True)
         """The start page of the chapter."""
 
+        level = fields.Integer()
+        """The nesting depth of this entry. This is an integer >= 1."""
+
     table_of_contents = fields.List(fields.Nested(Chapter), required=True)
