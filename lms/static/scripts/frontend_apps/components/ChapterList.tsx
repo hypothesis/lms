@@ -50,7 +50,7 @@ export default function ChapterList({
         field: 'title',
       },
       {
-        label: 'Location',
+        label: 'Page',
         field: 'page',
         classes: 'w-32',
       },
