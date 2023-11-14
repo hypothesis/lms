@@ -139,6 +139,7 @@ def includeme(config):  # pylint:disable=too-many-statements
 
     config.add_route("youtube_api.videos", "/api/youtube/videos/{video_id}")
 
+    config.add_route("email.settings", "/email/settings")
     config.add_route("email.unsubscribe", "/email/unsubscribe")
     config.add_route("email.unsubscribed", "/email/unsubscribed")
 

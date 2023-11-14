@@ -1,13 +1,13 @@
 """Create the role_overrides table.
 
 Revision ID: 14e959ea6f99
-Revises: 0c52a13c6cad
+Revises: d90718ce3415
 """
 import sqlalchemy as sa
 from alembic import op
 
 revision = "14e959ea6f99"
-down_revision = "0c52a13c6cad"
+down_revision = "d90718ce3415"
 
 
 def upgrade() -> None:

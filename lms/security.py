@@ -4,12 +4,13 @@ from functools import lru_cache, partial
 from typing import Callable, List, NamedTuple, Optional
 
 import sentry_sdk
+from pyramid.authentication import AuthTktCookieHelper
 from pyramid.request import Request
 from pyramid.security import Allowed, Denied
 from pyramid_googleauth import GoogleSecurityPolicy
 
 from lms.models import LTIUser
-from lms.services import UserService
+from lms.services import EmailUnsubscribeService, InvalidJWTError, UserService
 from lms.validation.authentication import (
     BearerTokenSchema,
     LTI11AuthSchema,
@@ -63,25 +64,28 @@ class SecurityPolicy:
     """Top-level authentication policy that delegates to sub-policies."""
 
     def authenticated_userid(self, request):
-        return self.get_policy(request.path).authenticated_userid(request)
+        return self.get_policy(request).authenticated_userid(request)
 
     def identity(self, request):
-        return self.get_policy(request.path).identity(request)
+        return self.get_policy(request).identity(request)
 
     def permits(self, request, context, permission):
-        return self.get_policy(request.path).permits(request, context, permission)
+        return self.get_policy(request).permits(request, context, permission)
 
     def remember(self, request, userid, **kw):
-        return self.get_policy(request.path).remember(request, userid, **kw)
+        return self.get_policy(request).remember(request, userid, **kw)
 
     def forget(self, request):
-        return self.get_policy(request.path).forget(request)
+        return self.get_policy(request).forget(request)
 
     @staticmethod
     @lru_cache(maxsize=1)
-    def get_policy(path: str):
+    def get_policy(request: Request):
         """Pick the right policy based the request's path."""
         # pylint:disable=too-many-return-statements
+
+        path = request.path
+
         if path.startswith("/admin") or path.startswith("/googleauth"):
             return LMSGoogleSecurityPolicy()
 
@@ -120,6 +124,11 @@ class SecurityPolicy:
             # LTUser serialized in a from for non deep-linked assignment configuration
             return LTIUserSecurityPolicy(
                 partial(get_lti_user_from_bearer_token, location="form")
+            )
+
+        if path in {"/email/settings", "/email/unsubscribe"}:
+            return EmailSettingsSecurityPolicy(
+                request.find_service(EmailUnsubscribeService)
             )
 
         return UnautheticatedSecurityPolicy()
@@ -197,6 +206,49 @@ class LMSGoogleSecurityPolicy(GoogleSecurityPolicy):
 
     def permits(self, request, _context, permission):
         return _permits(self.identity(request), permission)
+
+
+class EmailSettingsSecurityPolicy:
+    def __init__(self, email_unsubscribe_service: EmailUnsubscribeService):
+        self.helper = AuthTktCookieHelper(
+            secret="secret",
+            cookie_name="email.settings",
+            secure=False,
+            timeout=60 * 5,
+            reissue_time=0,
+            max_age=60 * 5,
+            path="/email/settings",
+            http_only=True,
+            wild_domain=False,
+            parent_domain=False,
+            domain="localhost",
+        )
+        self.email_unsubscribe_service = email_unsubscribe_service
+
+    def identity(self, request):
+        if token := request.params.get("token"):
+            try:
+                return self.email_unsubscribe_service.decode_token(token)["h_userid"]
+            except InvalidJWTError:
+                return None
+
+        try:
+            return self.helper.identify(request)["userid"]
+        except (KeyError, TypeError):
+            return None
+
+    def authenticated_userid(self, request):
+        return self.identity(request)
+
+    def permits(self, request, _context, permission):
+        identity = self.identity(request)
+        if identity is not None and permission == "email.settings":
+            return Allowed("Allowed")
+
+        return Denied("Denied")
+
+    def remember(self, request, userid, **_kw):
+        return self.helper.remember(request, userid)
 
 
 def _permits(identity, permission):
