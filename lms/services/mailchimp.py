@@ -50,6 +50,7 @@ class MailchimpService:
         template_vars: dict,
         unsubscribe_url: Optional[str] = None,
         task_done_key: Optional[str] = None,
+        task_done_data: Optional[str] = None,
     ):
         """
         Send an email using Mailchimp Transactional's API.
@@ -101,8 +102,10 @@ class MailchimpService:
             raise MailchimpError() from exc
 
         if task_done_key:
+            if task_done_data is None:
+                task_done_data = {}
             # Record the email send in the DB to avoid sending duplicates.
-            self.db.add(TaskDone(key=task_done_key))
+            self.db.add(TaskDone(key=task_done_key, data=task_done_data))
 
 
 def factory(_context, request):
