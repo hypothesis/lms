@@ -134,6 +134,35 @@ class HAPI:
                         author["userid"] = self.get_userid(author["username"])
                 yield annotation
 
+    def get_groups(
+        self,
+        groups: List[str],
+        annotations_created_after: datetime,
+        annotations_created_before: datetime,
+    ) -> Iterator[str]:
+        payload = {
+            "filter": {
+                "groups": groups,
+                "annotations_created": {
+                    "gt": _rfc3339_format(annotations_created_after),
+                    "lte": _rfc3339_format(annotations_created_before),
+                },
+            },
+        }
+
+        with self._api_request(
+            "POST",
+            path="bulk/groups",
+            body=json.dumps(payload),
+            headers={
+                "Content-Type": "application/vnd.hypothesis.v1+json",
+                "Accept": "application/vnd.hypothesis.v1+x-ndjson",
+            },
+            stream=True,
+        ) as response:
+            for line in response.iter_lines():
+                yield json.loads(line)
+
     # pylint: disable=too-many-arguments
     def _api_request(self, method, path, body=None, headers=None, stream=False):
         """
