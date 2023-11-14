@@ -64,10 +64,10 @@ describe('VitalSourceService', () => {
     });
   });
 
-  describe('#fetchChapters', () => {
+  describe('#fetchTableOfContents', () => {
     it('returns chapter list', async () => {
       const service = new VitalSourceService({ authToken: 'dummy-token' });
-      const data = await service.fetchChapters('BOOKSHELF-TUTORIAL');
+      const data = await service.fetchTableOfContents('BOOKSHELF-TUTORIAL');
       assert.isTrue(Array.isArray(data));
       assert.equal(data.length, 2);
     });
@@ -76,7 +76,7 @@ describe('VitalSourceService', () => {
       const service = new VitalSourceService({ authToken: 'dummy-token' });
       let err;
       try {
-        await service.fetchChapters('unknown-book-id');
+        await service.fetchTableOfContents('unknown-book-id');
       } catch (e) {
         err = e;
       }

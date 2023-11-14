@@ -68,7 +68,7 @@ export type Book = {
  * table-of-contents entry per chapter, the entries can be more or less
  * fine-grained than this.
  */
-export type Chapter = {
+export type TableOfContentsEntry = {
   page: string;
   title: string;
 

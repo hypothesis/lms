@@ -63,7 +63,7 @@ describe('BookPicker', () => {
 
   beforeEach(() => {
     fakeVitalSourceService = {
-      fetchChapters: sinon
+      fetchTableOfContents: sinon
         .stub()
         .callsFake(async bookID => fakeBookData.chapters[bookID]),
     };
@@ -91,13 +91,13 @@ describe('BookPicker', () => {
   };
 
   const selectChapter = (wrapper, index = 0) => {
-    const chapterList = wrapper.find('ChapterList');
-    const chapter = chapterList.prop('chapters')[index];
+    const tocPicker = wrapper.find('TableOfContentsPicker');
+    const entry = tocPicker.prop('entries')[index];
     act(() => {
-      chapterList.prop('onSelectChapter')(chapter);
+      tocPicker.prop('onSelectEntry')(entry);
     });
     wrapper.update();
-    return chapter;
+    return entry;
   };
 
   const clickSelectButton = wrapper => {
@@ -138,22 +138,22 @@ describe('BookPicker', () => {
     assert.calledOnce(fakeCancel);
   });
 
-  it('fetches chapters and renders chapter list when a book is selected', async () => {
+  it('fetches table of contents and renders picker when a book is selected', async () => {
     const picker = renderBookPicker();
     selectBook(picker);
 
     clickSelectButton(picker);
 
-    let chapterList = picker.find('ChapterList');
-    assert.isTrue(chapterList.exists());
-    assert.equal(chapterList.prop('isLoading'), true);
-    assert.calledWith(fakeVitalSourceService.fetchChapters, 'book1');
+    let tocPicker = picker.find('TableOfContentsPicker');
+    assert.isTrue(tocPicker.exists());
+    assert.equal(tocPicker.prop('isLoading'), true);
+    assert.calledWith(fakeVitalSourceService.fetchTableOfContents, 'book1');
 
-    await waitForElement(picker, 'ChapterList[isLoading=false]');
+    await waitForElement(picker, 'TableOfContentsPicker[isLoading=false]');
 
-    // The list of chapters for the selected book should be presented once fetched.
-    chapterList = picker.find('ChapterList');
-    assert.equal(chapterList.prop('chapters'), fakeBookData.chapters.book1);
+    // The table of contents for the selected book should be presented once fetched.
+    tocPicker = picker.find('TableOfContentsPicker');
+    assert.equal(tocPicker.prop('entries'), fakeBookData.chapters.book1);
   });
 
   it('invokes `onSelectBook` callback after a book and chapter are chosen', async () => {
@@ -163,16 +163,16 @@ describe('BookPicker', () => {
     const book = selectBook(picker);
     clickSelectButton(picker);
 
-    await waitForElement(picker, 'ChapterList[isLoading=false]');
+    await waitForElement(picker, 'TableOfContentsPicker[isLoading=false]');
     const chapter = selectChapter(picker);
     clickSelectButton(picker);
 
     assert.calledWith(onSelectBook, book, chapter);
   });
 
-  it('shows error that occurs while fetching chapters', async () => {
+  it('shows error that occurs while fetching table of contents', async () => {
     const error = new Error('Something went wrong');
-    fakeVitalSourceService.fetchChapters.rejects(error);
+    fakeVitalSourceService.fetchTableOfContents.rejects(error);
 
     const picker = renderBookPicker();
     selectBook(picker);
@@ -185,6 +185,6 @@ describe('BookPicker', () => {
       'Unable to fetch book contents'
     );
     assert.equal(errorDisplay.prop('error'), error);
-    assert.isFalse(picker.exists('ChapterList'));
+    assert.isFalse(picker.exists('TableOfContentsPicker'));
   });
 });

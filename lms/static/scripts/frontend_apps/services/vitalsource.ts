@@ -1,4 +1,4 @@
-import type { Book, Chapter } from '../api-types';
+import type { Book, TableOfContentsEntry } from '../api-types';
 import { apiCall, urlPath } from '../utils/api';
 
 /**
@@ -27,13 +27,12 @@ export class VitalSourceService {
   }
 
   /**
-   * Fetch a list of chapters that can be used as the target location for an
-   * ebook assignment.
+   * Fetch table of contents for a book.
    *
    * @param bookId - VitalSource book ID ("vbid")
    */
-  async fetchChapters(bookId: string): Promise<Chapter[]> {
-    return apiCall<Chapter[]>({
+  async fetchTableOfContents(bookId: string): Promise<TableOfContentsEntry[]> {
+    return apiCall<TableOfContentsEntry[]>({
       path: urlPath`/api/vitalsource/books/${bookId}/toc`,
       authToken: this._authToken,
     });

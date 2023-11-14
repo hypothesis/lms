@@ -2,16 +2,16 @@ import { Button, ModalDialog } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
-import type { Book, Chapter } from '../api-types';
+import type { Book, TableOfContentsEntry } from '../api-types';
 import { useService, VitalSourceService } from '../services';
 import BookSelector from './BookSelector';
-import ChapterList from './ChapterList';
 import ErrorDisplay from './ErrorDisplay';
+import TableOfContentsPicker from './TableOfContentsPicker';
 
 export type BookPickerProps = {
   onCancel: () => void;
   /** Callback invoked when both a book and chapter have been selected */
-  onSelectBook: (b: Book, c: Chapter) => void;
+  onSelectBook: (b: Book, e: TableOfContentsEntry) => void;
 };
 
 /**
@@ -34,9 +34,11 @@ export default function BookPicker({
 }: BookPickerProps) {
   const vsService = useService(VitalSourceService);
 
-  const [chapterList, setChapterList] = useState<Chapter[] | null>(null);
+  const [tableOfContents, setTableOfContents] = useState<
+    TableOfContentsEntry[] | null
+  >(null);
   const [book, setBook] = useState<Book | null>(null);
-  const [chapter, setChapter] = useState<Chapter | null>(null);
+  const [chapter, setChapter] = useState<TableOfContentsEntry | null>(null);
   const [step, setStep] = useState<'select-book' | 'select-chapter'>(
     'select-book'
   );
@@ -44,26 +46,26 @@ export default function BookPicker({
 
   const confirmBook = useCallback((book: Book) => {
     setBook(book);
-    setChapterList(null);
+    setTableOfContents(null);
     setStep('select-chapter');
   }, []);
 
   const confirmChapter = useCallback(
-    (chapter: Chapter) => {
+    (chapter: TableOfContentsEntry) => {
       onSelectBook(book!, chapter);
     },
     [book, onSelectBook]
   );
 
   useEffect(() => {
-    if (step === 'select-chapter' && !chapterList) {
+    if (step === 'select-chapter' && !tableOfContents) {
       const currentBook = book!;
       vsService
-        .fetchChapters(currentBook.id)
-        .then(setChapterList)
+        .fetchTableOfContents(currentBook.id)
+        .then(setTableOfContents)
         .catch(setError);
     }
-  }, [book, step, chapterList, vsService]);
+  }, [book, step, tableOfContents, vsService]);
 
   const canSubmit =
     (step === 'select-book' && book) || (step === 'select-chapter' && chapter);
@@ -120,12 +122,12 @@ export default function BookPicker({
         />
       )}
       {step === 'select-chapter' && !error && (
-        <ChapterList
-          chapters={chapterList || []}
-          isLoading={!chapterList}
-          selectedChapter={chapter}
-          onSelectChapter={setChapter}
-          onUseChapter={confirmChapter}
+        <TableOfContentsPicker
+          entries={tableOfContents || []}
+          isLoading={!tableOfContents}
+          selectedEntry={chapter}
+          onSelectEntry={setChapter}
+          onConfirmEntry={confirmChapter}
         />
       )}
       {error && (
