@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import List
 
-from sqlalchemy import not_, or_, select
+from sqlalchemy import func, not_, or_, select
 
 from lms.models import (
     ApplicationInstance,
@@ -11,6 +11,7 @@ from lms.models import (
     EmailUnsubscribe,
     Event,
     LTIRole,
+    TaskDone,
     User,
     UserPreferences,
 )
@@ -44,9 +45,13 @@ def send_instructor_email_digest_tasks(*, batch_size):
     EST is 5 hours behind UTC (ignoring daylight savings for simplicity: we
     don't need complete accuracy in the timing).
     """
+    # pylint:disable=too-many-locals
     now = datetime.now(timezone.utc)
+
+    current_weekday = now.strftime("%A").lower()
+
     created_before = datetime(year=now.year, month=now.month, day=now.day, hour=5)
-    created_after = created_before - timedelta(days=1)
+    created_after = created_before - timedelta(days=7)
 
     with app.request_context() as request:  # pylint:disable=no-member
         with request.tm:
@@ -67,9 +72,27 @@ def send_instructor_email_digest_tasks(*, batch_size):
                 )
             ).cte("candidate_courses")
 
-            h_userids = request.db.scalars(
-                select(User.h_userid)
-                .select_from(User)
+            tasks_done_subsubquery = (
+                select(
+                    TaskDone.data,
+                    func.rank()  # pylint:disable=not-callable
+                    .over(
+                        order_by=TaskDone.data["created_before"].desc(),
+                        partition_by=TaskDone.data["h_userid"],
+                    )
+                    .label("rank"),
+                ).where(TaskDone.data["h_userid"].as_string() == User.h_userid)
+            ).subquery()
+
+            tasks_done_subquery = (
+                select(tasks_done_subsubquery).filter(
+                    tasks_done_subsubquery.c.rank <= 1
+                )
+            ).subquery()
+
+            h_userids_query = (
+                select(User.h_userid, tasks_done_subquery)
+                .select_from(User, tasks_done_subquery)
                 .distinct()
                 # Although we don't care about assignments we use the assignment based tables
                 # as they have the correct LTIRole information.
@@ -84,6 +107,10 @@ def send_instructor_email_digest_tasks(*, batch_size):
                 )
                 .join(LTIRole)
                 .outerjoin(UserPreferences, User.h_userid == UserPreferences.h_userid)
+                .outerjoin(
+                    tasks_done_subquery,
+                    tasks_done_subquery.c.data["h_userid"].as_string() == User.h_userid,
+                )
                 .where(
                     # Consider only assignments that belong to the candidate courses selected before
                     AssignmentGrouping.grouping_id.in_(
@@ -101,27 +128,41 @@ def send_instructor_email_digest_tasks(*, batch_size):
                         UserPreferences.preferences.is_(None),
                         not_(
                             UserPreferences.preferences.contains(
-                                {"email_digests_frequency": {"monday": False}}
+                                {"email_digests_frequency": {current_weekday: False}}
                             )
                         ),
                     ),
                 )
-            ).all()
+                .order_by(User.h_userid)
+            )
 
-            batches = [
-                h_userids[i : i + batch_size]
-                for i in range(0, len(h_userids), batch_size)
-            ]
+            rows = request.db.execute(h_userids_query).all()
 
-            for batch in batches:
-                send_instructor_email_digests.apply_async(
-                    (),
-                    {
-                        "h_userids": batch,
-                        "created_after": created_after.isoformat(),
-                        "created_before": created_before.isoformat(),
-                    },
+            # Group h_userids by TaskDone.data["created_before"].
+            grouped = {}
+            for h_userid, task_done_data, _ in rows:
+                if task_done_data is None:
+                    task_done_data = {}
+                grouped.setdefault(task_done_data.get("created_before"), []).append(
+                    h_userid
                 )
+
+            # Send in batches.
+            for last_emailled, h_userids_ in grouped.items():
+                batches = [
+                    h_userids_[i : i + batch_size]
+                    for i in range(0, len(h_userids_), batch_size)
+                ]
+
+                for batch in batches:
+                    send_instructor_email_digests.apply_async(
+                        (),
+                        {
+                            "h_userids": batch,
+                            "created_after": last_emailled or created_after.isoformat(),
+                            "created_before": created_before.isoformat(),
+                        },
+                    )
 
 
 @app.task(

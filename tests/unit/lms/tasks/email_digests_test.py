@@ -1,13 +1,21 @@
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import call, sentinel
 
 import celery
 import pytest
+from factory import post_generation
 from freezegun import freeze_time
 from h_matchers import Any
+from sqlalchemy import delete
 
-from lms.models import EmailUnsubscribe, UserPreferences
+from lms.models import (
+    AssignmentMembership,
+    EmailUnsubscribe,
+    Event,
+    TaskDone,
+    UserPreferences,
+)
 from lms.tasks.email_digests import (
     send_instructor_email_digest_tasks,
     send_instructor_email_digests,
@@ -15,7 +23,8 @@ from lms.tasks.email_digests import (
 from tests import factories
 
 
-class TestSendInstructurEmailDigestsTasks:
+@freeze_time("2023-03-09 05:15:00")
+class TestSendInstructorEmailDigestsTasks:
     def test_it_does_nothing_if_there_are_no_instructors(
         self, send_instructor_email_digests
     ):
@@ -23,75 +32,232 @@ class TestSendInstructurEmailDigestsTasks:
 
         send_instructor_email_digests.apply_async.assert_not_called()
 
-    @freeze_time("2023-03-09 05:15:00")
     def test_it_sends_digests_for_instructors(
-        self, send_instructor_email_digests, participating_instructors
+        self, db_session, send_instructor_email_digests, InstructorFactory
     ):
-        send_instructor_email_digest_tasks(batch_size=3)
+        instructors = InstructorFactory.create_batch(size=4)
+        db_session.add_all(
+            [
+                TaskDone(
+                    key="task_done_0",
+                    data={
+                        "type": "instructor_email_digest",
+                        "h_userid": instructors[0].h_userid,
+                        "created_before": "2023-03-02T05:00:00",
+                    },
+                ),
+                TaskDone(
+                    key="task_done_1",
+                    data={
+                        "type": "instructor_email_digest",
+                        "h_userid": instructors[1].h_userid,
+                        "created_before": "2023-03-08T05:00:00",
+                    },
+                ),
+                TaskDone(
+                    key="task_done_2",
+                    data={
+                        "type": "instructor_email_digest",
+                        "h_userid": instructors[2].h_userid,
+                        "created_before": "2023-03-02T05:00:00",
+                    },
+                ),
+                TaskDone(
+                    key="task_done_3",
+                    data={
+                        "type": "instructor_email_digest",
+                        "h_userid": instructors[3].h_userid,
+                        "created_before": "2023-03-02T05:00:00",
+                    },
+                ),
+            ]
+        )
 
-        first_batch = [user.h_userid for user in participating_instructors[:3]]
-        second_batch = [participating_instructors[-1].h_userid]
+        send_instructor_email_digest_tasks(batch_size=2)
+
+        expected = Any.list.containing(
+            [
+                call(
+                    (),
+                    {
+                        "h_userids": Any.list.containing(
+                            [instructors[0].h_userid, instructors[2].h_userid]
+                        ).only(),
+                        "created_after": "2023-03-02T05:00:00",
+                        "created_before": "2023-03-09T05:00:00",
+                    },
+                ),
+                call(
+                    (),
+                    {
+                        "h_userids": [instructors[3].h_userid],
+                        "created_after": "2023-03-02T05:00:00",
+                        "created_before": "2023-03-09T05:00:00",
+                    },
+                ),
+                call(
+                    (),
+                    {
+                        "h_userids": [instructors[1].h_userid],
+                        "created_after": "2023-03-08T05:00:00",
+                        "created_before": "2023-03-09T05:00:00",
+                    },
+                ),
+            ]
+        ).only()
+        assert send_instructor_email_digests.apply_async.call_args_list == expected
+
+    def test_if_a_user_has_multiple_TaskDones_it_uses_the_latest_one(
+        self, db_session, send_instructor_email_digests, InstructorFactory
+    ):
+        instructor = InstructorFactory.create()
+        db_session.add_all(
+            [
+                TaskDone(
+                    key="task_done_0",
+                    data={
+                        "type": "instructor_email_digest",
+                        "h_userid": instructor.h_userid,
+                        "created_before": "2023-03-02T05:00:00",
+                    },
+                ),
+                TaskDone(
+                    key="task_done_1",
+                    data={
+                        "type": "instructor_email_digest",
+                        "h_userid": instructor.h_userid,
+                        "created_before": "2023-03-07T05:00:00",
+                    },
+                ),
+            ]
+        )
+
+        send_instructor_email_digest_tasks(batch_size=2)
 
         assert send_instructor_email_digests.apply_async.call_args_list == [
             call(
                 (),
                 {
-                    "h_userids": batch,
-                    "created_after": "2023-03-08T05:00:00",
+                    "h_userids": [instructor.h_userid],
+                    "created_after": "2023-03-07T05:00:00",
                     "created_before": "2023-03-09T05:00:00",
                 },
-            )
-            for batch in [first_batch, second_batch]
+            ),
         ]
 
-    @pytest.mark.usefixtures("participating_instructors_with_no_launches")
-    def test_it_doesnt_email_for_courses_with_no_launches(
-        self, send_instructor_email_digests
+    def test_if_a_user_has_no_TaskDones(
+        self, send_instructor_email_digests, InstructorFactory
     ):
-        send_instructor_email_digest_tasks(batch_size=42)
+        instructor = InstructorFactory.create()
 
-        send_instructor_email_digests.apply_async.assert_not_called()
-
-    @pytest.mark.usefixtures("non_participating_instructor")
-    def test_it_doesnt_email_non_participating_instructors(
-        self, send_instructor_email_digests
-    ):
-        send_instructor_email_digest_tasks(batch_size=42)
-
-        send_instructor_email_digests.apply_async.assert_not_called()
-
-    @pytest.mark.usefixtures("non_instructor")
-    def test_it_doesnt_email_non_instructors(self, send_instructor_email_digests):
-        send_instructor_email_digest_tasks(batch_size=42)
-
-        send_instructor_email_digests.apply_async.assert_not_called()
-
-    @freeze_time("2023-03-09 05:15:00")
-    def test_it_doesnt_email_unsubscribed_instructors(
-        self, send_instructor_email_digests, unsubscribed_instructors
-    ):
-        send_instructor_email_digest_tasks(batch_size=42)
+        send_instructor_email_digest_tasks(batch_size=2)
 
         assert send_instructor_email_digests.apply_async.call_args_list == [
             call(
                 (),
-                Any.dict.containing(
-                    {"h_userids": [unsubscribed_instructors[0].h_userid]}
-                ),
-            )
+                {
+                    "h_userids": [instructor.h_userid],
+                    "created_after": "2023-03-02T05:00:00",
+                    "created_before": "2023-03-09T05:00:00",
+                },
+            ),
         ]
 
-    @freeze_time("2023-03-09 05:15:00")
-    def test_it_doesnt_email_instructors_who_dont_get_emails_on_this_day(
-        self, db_session, send_instructor_email_digests, participating_instructors
+    def test_if_there_are_invalid_TaskDones(
+        self,
+        db_session,
+        send_instructor_email_digests,
+        InstructorFactory,
     ):
-        disabled_instructor = participating_instructors[-1]
+        instructor = InstructorFactory.create()
+        db_session.add_all(
+            [
+                TaskDone(
+                    key="task_done_0",
+                    data={
+                        "type": "instructor_email_digest",
+                        "h_userid": instructor.h_userid,
+                        # No "created_before".
+                    },
+                ),
+                TaskDone(
+                    key="task_done_1",
+                    data={},
+                ),
+                TaskDone(
+                    key="task_done_2",
+                    data=None,
+                ),
+            ]
+        )
+
+        send_instructor_email_digest_tasks(batch_size=2)
+
+        assert send_instructor_email_digests.apply_async.call_args_list == [
+            call(
+                (),
+                {
+                    "h_userids": [instructor.h_userid],
+                    "created_after": "2023-03-02T05:00:00",
+                    "created_before": "2023-03-09T05:00:00",
+                },
+            ),
+        ]
+
+    def test_it_doesnt_email_for_courses_with_no_launches(
+        self, db_session, send_instructor_email_digests, InstructorFactory
+    ):
+        InstructorFactory()
+        db_session.execute(delete(Event))
+
+        send_instructor_email_digest_tasks(batch_size=42)
+
+        send_instructor_email_digests.apply_async.assert_not_called()
+
+    def test_it_doesnt_email_non_participating_instructors(
+        self, send_instructor_email_digests, InstructorFactory
+    ):
+        instructor = InstructorFactory()
+        instructor.application_instance.settings.set(
+            "hypothesis", "instructor_email_digests_enabled", False
+        )
+
+        send_instructor_email_digest_tasks(batch_size=42)
+
+        send_instructor_email_digests.apply_async.assert_not_called()
+
+    def test_it_doesnt_email_non_instructors(
+        self, db_session, send_instructor_email_digests, InstructorFactory
+    ):
+        InstructorFactory()
+        db_session.execute(delete(AssignmentMembership))
+
+        send_instructor_email_digest_tasks(batch_size=42)
+
+        send_instructor_email_digests.apply_async.assert_not_called()
+
+    def test_it_doesnt_email_unsubscribed_instructors(
+        self, send_instructor_email_digests, InstructorFactory
+    ):
+        instructor = InstructorFactory()
+        factories.EmailUnsubscribe(
+            h_userid=instructor.h_userid, tag=EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST
+        )
+
+        send_instructor_email_digest_tasks(batch_size=42)
+
+        assert send_instructor_email_digests.apply_async.call_args_list == []
+
+    def test_it_doesnt_email_instructors_who_dont_get_emails_on_this_day(
+        self, db_session, send_instructor_email_digests, InstructorFactory
+    ):
+        instructor = InstructorFactory()
         db_session.add(
             UserPreferences(
-                h_userid=disabled_instructor.h_userid,
+                h_userid=instructor.h_userid,
                 preferences={
                     "email_digests_frequency": {
-                        "monday": False,
+                        datetime.now(timezone.utc).strftime("%A").lower(): False,
                     }
                 },
             )
@@ -99,149 +265,22 @@ class TestSendInstructurEmailDigestsTasks:
 
         send_instructor_email_digest_tasks(batch_size=42)
 
-        assert (
-            disabled_instructor.h_userid
-            not in send_instructor_email_digests.apply_async.call_args[0][1][
-                "h_userids"
-            ]
-        )
+        send_instructor_email_digests.apply_async.assert_not_called()
 
-    @freeze_time("2023-03-09 05:15:00")
     def test_it_deduplicates_duplicate_h_userids(
-        self, send_instructor_email_digests, participating_instructors, make_instructors
+        self, send_instructor_email_digests, InstructorFactory
     ):
-        # Make a user with the same h_userid as another user but
-        # a different application instance.
-        user = participating_instructors[0]
-        instance = participating_instructors[-1].application_instance
-        assert instance != user.application_instance
-        duplicate_user = factories.User(
-            h_userid=user.h_userid, application_instance=instance
-        )
-        make_instructors([duplicate_user], instance)
+        instructor = InstructorFactory()
+        duplicate_instructor = InstructorFactory(h_userid=instructor.h_userid)
 
         send_instructor_email_digest_tasks(batch_size=99)
 
         assert (
             send_instructor_email_digests.apply_async.call_args[0][1][
                 "h_userids"
-            ].count(duplicate_user.h_userid)
+            ].count(duplicate_instructor.h_userid)
             == 1
         )
-
-    @pytest.fixture
-    def participating_instances(self):
-        """Return some instances that have the feature enabled."""
-        instances = factories.ApplicationInstance.create_batch(2)
-
-        for instance in instances:
-            instance.settings.set(
-                "hypothesis", "instructor_email_digests_enabled", True
-            )
-
-        return instances
-
-    @pytest.fixture
-    def participating_instructors(self, participating_instances, make_instructors):
-        """Return some users who're instructors in participating instances."""
-        users = []
-
-        for instance in participating_instances:
-            for _ in range(2):
-                users.append(factories.User(application_instance=instance))
-
-        make_instructors(users, participating_instances[0], with_launch=True)
-
-        return sorted(users, key=lambda u: u.h_userid)
-
-    @pytest.fixture
-    def participating_instructors_with_no_launches(
-        self, participating_instances, make_instructors
-    ):
-        """Return some users who're instructors in participating instances."""
-        users = []
-
-        for instance in participating_instances:
-            for _ in range(2):
-                users.append(factories.User(application_instance=instance))
-
-        make_instructors(users, participating_instances[0], with_launch=False)
-
-        return sorted(users, key=lambda u: u.h_userid)
-
-    @pytest.fixture
-    def unsubscribed_instructors(self, participating_instructors):
-        # We leave the first instructor alone, no unsubscribes
-        for instructor in participating_instructors[1:]:
-            # We unsubscribe the rest
-            factories.EmailUnsubscribe(
-                h_userid=instructor.h_userid,
-                tag=EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST,
-            )
-
-        return participating_instructors
-
-    @pytest.fixture
-    def non_participating_instance(self):
-        """Return an instance that doesn't have the feature enabled."""
-        instance = factories.ApplicationInstance()
-        instance.settings.set("hypothesis", "instructor_email_digests_enabled", False)
-        return instance
-
-    @pytest.fixture
-    def non_participating_instructor(
-        self, non_participating_instance, make_instructors
-    ):
-        """Return a user who's an instructor in a non-participating instance."""
-        user = factories.User(application_instance=non_participating_instance)
-        make_instructors([user], non_participating_instance)
-        return user
-
-    @pytest.fixture
-    def non_instructor(self, participating_instances, make_learner):
-        """Return a user who isn't an instructor."""
-        user = factories.User(application_instance=participating_instances[0])
-        make_learner(user)
-        return user
-
-    @pytest.fixture
-    def make_instructors(self, db_session):
-        instructor_role = factories.LTIRole(value="Instructor")
-
-        def make_instructors(users, application_instance, with_launch=True):
-            """Make the given user instructors for an assignment."""
-            course = factories.Course()
-            assignment = factories.Assignment()
-            factories.AssignmentGrouping(grouping=course, assignment=assignment)
-
-            if with_launch:
-                # Create a launch for this course/assignment
-                factories.Event(
-                    timestamp=datetime(2023, 3, 8, 22),
-                    application_instance=application_instance,
-                    course=course,
-                    assignment=assignment,
-                )
-            for user in users:
-                factories.AssignmentMembership(
-                    assignment=assignment, user=user, lti_role=instructor_role
-                )
-            db_session.flush()
-
-        return make_instructors
-
-    @pytest.fixture
-    def make_learner(self, db_session):
-        learner_role = factories.LTIRole(value="Learner")
-
-        def make_learner(user):
-            """Make the given user a learner for an assignment."""
-            factories.AssignmentMembership(
-                assignment=factories.Assignment(), user=user, lti_role=learner_role
-            )
-            db_session.flush()
-
-        return make_learner
 
     @pytest.fixture(autouse=True)
     def retry(self, patch):
@@ -253,6 +292,38 @@ class TestSendInstructurEmailDigestsTasks:
     @pytest.fixture(autouse=True)
     def send_instructor_email_digests(self, patch):
         return patch("lms.tasks.email_digests.send_instructor_email_digests")
+
+    @pytest.fixture
+    def instructor_role(self):
+        return factories.LTIRole(value="Instructor")
+
+    @pytest.fixture
+    def InstructorFactory(self, db_session, instructor_role):
+        class InstructorFactory(factories.User):
+            class Meta:
+                sqlalchemy_session = db_session
+
+            @post_generation
+            def make_user_into_participating_instructor(
+                obj, _create, _extracted, **_kwargs
+            ):  # pylint:disable=no-self-argument
+                obj.application_instance.settings.set(
+                    "hypothesis", "instructor_email_digests_enabled", True
+                )
+                course = factories.Course(application_instance=obj.application_instance)
+                assignment = factories.Assignment()
+                factories.AssignmentGrouping(grouping=course, assignment=assignment)
+                factories.AssignmentMembership(
+                    assignment=assignment, user=obj, lti_role=instructor_role
+                )
+                factories.Event(
+                    timestamp=datetime(2023, 3, 8, 22),
+                    application_instance=obj.application_instance,
+                    course=course,
+                    assignment=assignment,
+                )
+
+        return InstructorFactory
 
 
 @pytest.mark.usefixtures("digest_service")
