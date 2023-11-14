@@ -1,7 +1,7 @@
 import { OptionButton, SpinnerOverlay } from '@hypothesis/frontend-shared';
 import { useMemo, useState } from 'preact/hooks';
 
-import type { Book, File, Chapter, Page } from '../api-types';
+import type { Book, File, TableOfContentsEntry, Page } from '../api-types';
 import { useConfig } from '../config';
 import { PickerCanceledError } from '../errors';
 import type { Content } from '../utils/content-item';
@@ -189,7 +189,7 @@ export default function ContentSelector({
     onSelectContent({ type: 'url', url: file.id });
   };
 
-  const selectVitalSourceBook = (book: Book, chapter: Chapter) => {
+  const selectVitalSourceBook = (book: Book, chapter: TableOfContentsEntry) => {
     cancelDialog();
     onSelectContent({
       type: 'url',
