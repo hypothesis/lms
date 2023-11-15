@@ -1,6 +1,7 @@
 """The H API service."""
 import json
 import re
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Iterator, List
 
@@ -38,6 +39,10 @@ class HAPI:
 
     :raise HAPIError: if a call to the "h" API raises an unhandled exception
     """
+
+    @dataclass
+    class HAPIGroup:
+        authority_provided_id: str
 
     def __init__(
         # pylint: disable=too-many-arguments
@@ -139,7 +144,7 @@ class HAPI:
         groups: List[str],
         annotations_created_after: datetime,
         annotations_created_before: datetime,
-    ) -> Iterator[str]:
+    ) -> Iterator[HAPIGroup]:
         payload = {
             "filter": {
                 "groups": groups,
@@ -152,7 +157,7 @@ class HAPI:
 
         with self._api_request(
             "POST",
-            path="bulk/groups",
+            path="bulk/group",
             body=json.dumps(payload),
             headers={
                 "Content-Type": "application/vnd.hypothesis.v1+json",
@@ -161,7 +166,10 @@ class HAPI:
             stream=True,
         ) as response:
             for line in response.iter_lines():
-                yield json.loads(line)
+                group = json.loads(line)
+                yield self.HAPIGroup(
+                    authority_provided_id=group["authority_provided_id"]
+                )
 
     # pylint: disable=too-many-arguments
     def _api_request(self, method, path, body=None, headers=None, stream=False):

@@ -1,5 +1,7 @@
+from datetime import datetime
+
 from marshmallow import validate
-from pyramid.httpexceptions import HTTPFound, HTTPNotFound
+from pyramid.httpexceptions import HTTPBadRequest, HTTPFound, HTTPNotFound
 from pyramid.view import view_config, view_defaults
 from webargs import fields
 
@@ -158,6 +160,36 @@ class AdminOrganizationViews:
             orgs = []
 
         return {"organizations": orgs}
+
+    @view_config(
+        route_name="admin.organization.usage",
+        request_method="POST",
+        renderer="lms:templates/admin/organization.usage.html.jinja2",
+    )
+    def usage(self):
+        org = self._get_org_or_404(self.request.matchdict["id_"])
+        try:
+            since = datetime.fromisoformat(self.request.params["since"])
+            until = datetime.fromisoformat(self.request.params["until"])
+        except ValueError as exc:
+            raise HTTPBadRequest(
+                "Times must be in ISO 8601 format, for example: '2023-02-27T00:00:00'."
+            ) from exc
+
+        if until <= since:
+            raise HTTPBadRequest(
+                "The 'since' time must be earlier than the 'until' time."
+            )
+
+        if since < datetime(2023, 1, 1):
+            raise HTTPBadRequest("Usage reports can only be generated since 2023")
+
+        return {
+            "org": org,
+            "since": since,
+            "until": until,
+            "report": self.organization_service.usage_report(org, since, until),
+        }
 
     def _get_org_or_404(self, id_) -> Organization:
         if org := self.organization_service.get_by_id(id_):

@@ -1,12 +1,15 @@
+from datetime import datetime, timedelta
 from unittest.mock import sentinel
 
 import pytest
 from h_matchers import Any
 
 from lms.models import Organization
+from lms.services.h_api import HAPI
 from lms.services.organization import (
     InvalidOrganizationParent,
     OrganizationService,
+    UsageReportRow,
     service_factory,
 )
 from tests import factories
@@ -214,6 +217,68 @@ class TestOrganizationService:
 
         assert org_with_parent.parent
 
+    def test_usage_report(self, svc, org_with_parent, h_api):
+        since = datetime(2023, 1, 1)
+        until = datetime(2023, 12, 31)
+
+        ai_root_org = factories.ApplicationInstance(organization=org_with_parent.parent)
+        ai_child_org = factories.ApplicationInstance(organization=org_with_parent)
+        course_root = factories.Course(application_instance=ai_root_org)
+        section = factories.CanvasSection(
+            application_instance=ai_root_org, parent=course_root
+        )
+        course_child = factories.Course(application_instance=ai_child_org)
+        # Course created after the until date
+        factories.Course(
+            application_instance=ai_child_org,
+            created=until + timedelta(days=1),
+        )
+        # Annotations in one section and in the other course
+        h_api.get_groups.return_value = [
+            HAPI.HAPIGroup(authority_provided_id=group.authority_provided_id)
+            for group in [section, course_child]
+        ]
+        # Users that belong to the course
+        user_1 = factories.User(display_name="NAME", email="EMAIL")
+        user_2 = factories.User()
+        factories.GroupingMembership(user=user_1, grouping=course_child)
+        factories.GroupingMembership(user=user_2, grouping=course_root)
+
+        report = svc.usage_report(org_with_parent.parent, since, until)
+
+        h_api.get_groups.assert_called_once_with(
+            Any.list.containing(
+                [
+                    course_root.authority_provided_id,
+                    course_child.authority_provided_id,
+                    section.authority_provided_id,
+                ]
+            ),
+            since,
+            until,
+        )
+
+        # We expect to get both users belonging to each course
+        expected = [
+            UsageReportRow(
+                name=user_1.display_name,
+                email=user_1.email,
+                h_userid=user_1.h_userid,
+                course_name=course_child.lms_name,
+                course_created=course_child.created.date(),
+                authority_provided_id=course_child.authority_provided_id,
+            ),
+            UsageReportRow(
+                name="<STUDENT>",
+                email="<STUDENT>",
+                h_userid=user_2.h_userid,
+                course_name=course_root.lms_name,
+                course_created=course_root.created.date(),
+                authority_provided_id=course_root.authority_provided_id,
+            ),
+        ]
+        assert report == Any.list.containing(expected)
+
     @pytest.fixture
     def org_with_parent(self, db_session):
         org_with_parent = factories.Organization.create(
@@ -231,8 +296,8 @@ class TestOrganizationService:
         )
 
     @pytest.fixture
-    def svc(self, db_session):
-        return OrganizationService(db_session=db_session)
+    def svc(self, db_session, h_api):
+        return OrganizationService(db_session=db_session, h_api=h_api)
 
     @pytest.fixture
     def application_instance(self):
@@ -242,10 +307,12 @@ class TestOrganizationService:
 
 
 class TestServiceFactory:
-    def test_it(self, pyramid_request, OrganizationService):
+    def test_it(self, pyramid_request, OrganizationService, h_api):
         svc = service_factory(sentinel.context, pyramid_request)
 
-        OrganizationService.assert_called_once_with(db_session=pyramid_request.db)
+        OrganizationService.assert_called_once_with(
+            db_session=pyramid_request.db, h_api=h_api
+        )
         assert svc == OrganizationService.return_value
 
     @pytest.fixture

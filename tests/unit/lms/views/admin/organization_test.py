@@ -1,8 +1,9 @@
+from datetime import datetime
 from unittest.mock import sentinel
 
 import pytest
 from h_matchers import Any
-from pyramid.httpexceptions import HTTPFound, HTTPNotFound
+from pyramid.httpexceptions import HTTPBadRequest, HTTPFound, HTTPNotFound
 
 from lms.models.public_id import InvalidPublicId
 from lms.services.organization import InvalidOrganizationParent
@@ -193,6 +194,61 @@ class TestAdminOrganizationViews:
 
         assert pyramid_request.session.peek_flash("errors")
         assert result == {"organizations": []}
+
+    @pytest.mark.usefixtures("with_valid_params_for_usage")
+    @pytest.mark.parametrize(
+        "form,expected_error_message",
+        [
+            ({"since": "invalid"}, r"^Times must be in ISO 8601 format"),
+            ({"until": "invalid"}, r"^Times must be in ISO 8601 format"),
+            (
+                {"since": "2023-02-28T00:00:00", "until": "2023-02-27T00:00:00"},
+                r"^The 'since' time must be earlier than the 'until' time\.$",
+            ),
+            (
+                {"since": "2022-02-28T00:00:00"},
+                r"Usage reports can only be generated since 2023",
+            ),
+        ],
+    )
+    def test_usage_crashes_if_you_submit_invalid_values(
+        self,
+        views,
+        pyramid_request,
+        organization_service,
+        form,
+        expected_error_message,
+    ):
+        for key in form:
+            pyramid_request.POST[key] = form[key]
+
+        with pytest.raises(HTTPBadRequest, match=expected_error_message):
+            views.usage()
+
+        organization_service.usage_report.assert_not_called()
+
+    @pytest.mark.usefixtures("with_valid_params_for_usage")
+    def test_usage(self, organization_service, views):
+        since = datetime(2023, 1, 1)
+        until = datetime(2023, 12, 31)
+
+        result = views.usage()
+
+        organization_service.get_by_id.assert_called_once_with(sentinel.id_)
+        org = organization_service.get_by_id.return_value
+        organization_service.usage_report.assert_called_once_with(org, since, until)
+        assert result == {
+            "org": org,
+            "since": since,
+            "until": until,
+            "report": organization_service.usage_report.return_value,
+        }
+
+    @pytest.fixture
+    def with_valid_params_for_usage(self, pyramid_request):
+        pyramid_request.POST["since"] = "2023-01-01"
+        pyramid_request.POST["until"] = "2023-12-31"
+        pyramid_request.matchdict["id_"] = sentinel.id_
 
     @pytest.fixture
     def views(self, pyramid_request):
