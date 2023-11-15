@@ -128,7 +128,7 @@ def send_instructor_email_digest_tasks(*, batch_size):
                         UserPreferences.preferences.is_(None),
                         not_(
                             UserPreferences.preferences.contains(
-                                {"email_digests_frequency": {current_weekday: False}}
+                                {"instructor_email_digest": {current_weekday: False}}
                             )
                         ),
                     ),
