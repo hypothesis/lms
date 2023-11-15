@@ -256,7 +256,7 @@ class TestSendInstructorEmailDigestsTasks:
             UserPreferences(
                 h_userid=instructor.h_userid,
                 preferences={
-                    "email_digests_frequency": {
+                    "instructor_email_digest": {
                         datetime.now(timezone.utc).strftime("%A").lower(): False,
                     }
                 },
