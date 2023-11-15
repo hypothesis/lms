@@ -8,6 +8,9 @@ from lms.services.async_oauth_http import AsyncOAuthHTTPService, factory
 from lms.services.exceptions import ExternalAsyncRequestError
 
 
+@pytest.mark.filterwarnings(
+    "ignore:Setting custom ClientSession._resolve_charset attribute is discouraged"
+)
 class TestAsyncOAuthHTTPService:
     def test_request_success(
         self, svc, urls, with_successful_responses, oauth2_token_service
