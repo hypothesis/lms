@@ -54,7 +54,7 @@ class EmailSettingsViews:
         return self._redirect_to_settings_page()
 
     def get_preferences(self):
-        h_userid = self.request.authenticated_userid
+        h_userid = f"acct:{self.request.authenticated_userid}"
 
         try:
             preferences = self.request.db.scalars(
