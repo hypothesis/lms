@@ -67,6 +67,8 @@ app.conf.update(
     # This can be overridden on a per-task basis by adding time_limit=n to the
     # task's @app.task() arguments.
     task_time_limit=240,
+    # Disable Celery task rate limits in local development.
+    worker_disable_rate_limits=os.environ.get("DEV") == "true",
     # Tell celery where our tasks are defined
     imports=("lms.tasks",),
 )
