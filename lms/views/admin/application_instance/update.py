@@ -19,8 +19,6 @@ class UpdateApplicationInstanceSchema(PyramidRequestSchema):
     name = fields.Str(required=True, validate=validate.Length(min=1))
     lms_url = fields.URL(required=False)
     deployment_id = fields.Str(required=False)
-    developer_key = fields.Str(required=False)
-    developer_secret = fields.Str(required=False)
 
 
 class UpdateApplicationInstanceView(BaseApplicationInstanceView):
@@ -51,7 +49,34 @@ class UpdateApplicationInstanceView(BaseApplicationInstanceView):
             developer_secret=self.request.params.get("developer_secret", "").strip(),
         )
 
+        # Notes are displayed in the main info tab but are stored alongside notes
+        notes = self.request.params.get("hypothesis.notes")
+        notes = notes.strip() if notes else None
+        ai.settings.set("hypothesis", "notes", notes)
+
+        self.request.session.flash(f"Updated application instance {ai.id}", "messages")
+        return self._redirect("admin.instance", id_=ai.id)
+
+    @view_config(
+        route_name="admin.instance.settings",
+        request_method="POST",
+        require_csrf=True,
+        permission=Permissions.ADMIN,
+    )
+    def update_instance_settings(self):
+        ai = self.application_instance
+
+        self.application_instance_service.update_application_instance(
+            ai,
+            developer_key=self.request.params.get("developer_key", "").strip(),
+            developer_secret=self.request.params.get("developer_secret", "").strip(),
+        )
+
         for field in ApplicationSettings.fields:
+            # Notes are updated in the main `info` tab, skip it here
+            if field.compound_key == "hypothesis.notes":
+                continue
+
             value = self.request.params.get(field.compound_key)
             value = value.strip() if value else None
 
@@ -69,6 +94,8 @@ class UpdateApplicationInstanceView(BaseApplicationInstanceView):
                 assert field.format == str
                 ai.settings.set(field.group, field.key, value)
 
-        self.request.session.flash(f"Updated application instance {ai.id}", "messages")
+        self.request.session.flash(
+            f"Updated application instance settings for {ai.id}", "messages"
+        )
 
         return self._redirect("admin.instance", id_=ai.id)
