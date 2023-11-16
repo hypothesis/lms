@@ -17,8 +17,23 @@ class TestUpdateApplicationInstanceView:
             pyramid_request.route_url("admin.instance", id_=ai_from_matchdict.id)
         )
 
+    @pytest.mark.parametrize(
+        "setting,sub_setting,value,expected",
+        (
+            ("hypothesis", "notes", "  NOTES ", "NOTES"),
+            ("hypothesis", "notes", "", None),
+        ),
+    )
     def test_update_application_instance(
-        self, views, pyramid_request, ai_from_matchdict, application_instance_service
+        self,
+        views,
+        pyramid_request,
+        ai_from_matchdict,
+        application_instance_service,
+        setting,
+        sub_setting,
+        value,
+        expected,
     ):
         pyramid_request.params = pyramid_request.POST = {
             "name": "  NAME  ",
@@ -27,6 +42,7 @@ class TestUpdateApplicationInstanceView:
             "developer_key": "  DEVELOPER KEY  ",
             "developer_secret": " DEVELOPER SECRET  ",
         }
+        pyramid_request.params[f"{setting}.{sub_setting}"] = value
 
         views.update_instance()
 
@@ -38,6 +54,7 @@ class TestUpdateApplicationInstanceView:
             developer_key="DEVELOPER KEY",
             developer_secret="DEVELOPER SECRET",
         )
+        assert ai_from_matchdict.settings.get(setting, sub_setting) == expected
 
     @pytest.mark.usefixtures("with_minimal_fields_for_update")
     def test_update_application_instance_with_minimal_arguments(
@@ -67,7 +84,6 @@ class TestUpdateApplicationInstanceView:
 
         application_instance_service.update_application_instance.assert_not_called()
 
-    @pytest.mark.usefixtures("with_minimal_fields_for_update")
     @pytest.mark.parametrize(
         "setting,sub_setting,value,expected",
         (
@@ -89,8 +105,6 @@ class TestUpdateApplicationInstanceView:
             ("vitalsource", "api_key", "api_key", "api_key"),
             ("vitalsource", "user_lti_param", "user_id", "user_id"),
             ("vitalsource", "user_lti_pattern", "name_(.*)", "name_(.*)"),
-            ("hypothesis", "notes", "  NOTES ", "NOTES"),
-            ("hypothesis", "notes", "", None),
         ),
     )
     def test_update_instance_saves_ai_settings(
@@ -105,11 +119,10 @@ class TestUpdateApplicationInstanceView:
     ):
         pyramid_request.params[f"{setting}.{sub_setting}"] = value
 
-        views.update_instance()
+        views.update_instance_settings()
 
         assert ai_from_matchdict.settings.get(setting, sub_setting) == expected
 
-    @pytest.mark.usefixtures("with_minimal_fields_for_update")
     @pytest.mark.parametrize(
         "setting,sub_setting", (("desire2learn", "client_secret"),)
     )
@@ -125,7 +138,7 @@ class TestUpdateApplicationInstanceView:
         pyramid_request.params[f"{setting}.{sub_setting}"] = "SECRET"
 
         with patch.object(ai_from_matchdict.settings, "set_secret"):
-            views.update_instance()
+            views.update_instance_settings()
 
             ai_from_matchdict.settings.set_secret.assert_called_once_with(
                 aes_service, setting, sub_setting, "SECRET"
