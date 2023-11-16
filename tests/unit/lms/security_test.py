@@ -197,7 +197,7 @@ class TestSecurityPolicy:
     def test_authenticated_userid(self, policy, get_policy, pyramid_request):
         user_id = policy.authenticated_userid(pyramid_request)
 
-        get_policy.assert_called_once_with(pyramid_request.path)
+        get_policy.assert_called_once_with(pyramid_request)
         get_policy.return_value.authenticated_userid.assert_called_once_with(
             pyramid_request
         )
@@ -206,14 +206,14 @@ class TestSecurityPolicy:
     def test_identity(self, policy, get_policy, pyramid_request):
         user_id = policy.identity(pyramid_request)
 
-        get_policy.assert_called_once_with(pyramid_request.path)
+        get_policy.assert_called_once_with(pyramid_request)
         get_policy.return_value.identity.assert_called_once_with(pyramid_request)
         assert user_id == get_policy.return_value.identity.return_value
 
     def test_permits(self, policy, get_policy, pyramid_request):
         user_id = policy.permits(pyramid_request, sentinel.context, sentinel.permission)
 
-        get_policy.assert_called_once_with(pyramid_request.path)
+        get_policy.assert_called_once_with(pyramid_request)
         get_policy.return_value.permits.assert_called_once_with(
             pyramid_request, sentinel.context, sentinel.permission
         )
@@ -224,7 +224,7 @@ class TestSecurityPolicy:
             pyramid_request, sentinel.userid, kwarg=sentinel.kwargs
         )
 
-        get_policy.assert_called_once_with(pyramid_request.path)
+        get_policy.assert_called_once_with(pyramid_request)
         get_policy.return_value.remember.assert_called_once_with(
             pyramid_request, sentinel.userid, kwarg=sentinel.kwargs
         )
@@ -233,7 +233,7 @@ class TestSecurityPolicy:
     def test_forgets(self, policy, pyramid_request, get_policy):
         user_id = policy.forget(pyramid_request)
 
-        get_policy.assert_called_once_with(pyramid_request.path)
+        get_policy.assert_called_once_with(pyramid_request)
         get_policy.return_value.forget.assert_called_once_with(pyramid_request)
         assert user_id == get_policy.return_value.forget.return_value
 
@@ -241,8 +241,9 @@ class TestSecurityPolicy:
         "path",
         ["/admin", "/admin/instance", "/googleauth"],
     )
-    def test_get_policy_google(self, path, LMSGoogleSecurityPolicy):
-        policy = SecurityPolicy.get_policy(path)
+    def test_get_policy_google(self, pyramid_request, path, LMSGoogleSecurityPolicy):
+        pyramid_request.path = path
+        policy = SecurityPolicy.get_policy(pyramid_request)
 
         assert policy == LMSGoogleSecurityPolicy.return_value
 
@@ -257,9 +258,10 @@ class TestSecurityPolicy:
         ],
     )
     def test_get_policy_lti_user(
-        self, path, lti_user_getter, policy, LTIUserSecurityPolicy
+        self, pyramid_request, path, lti_user_getter, policy, LTIUserSecurityPolicy
     ):
-        policy = policy.get_policy(path)
+        pyramid_request.path = path
+        policy = policy.get_policy(pyramid_request)
 
         LTIUserSecurityPolicy.assert_called_once_with(lti_user_getter)
         assert policy == LTIUserSecurityPolicy.return_value
@@ -275,9 +277,10 @@ class TestSecurityPolicy:
         ],
     )
     def test_picks_lti_launches_with_bearer_token(
-        self, path, location, LTIUserSecurityPolicy, policy
+        self, pyramid_request, path, location, LTIUserSecurityPolicy, policy
     ):
-        policy = policy.get_policy(path)
+        pyramid_request.path = path
+        policy = policy.get_policy(pyramid_request)
 
         LTIUserSecurityPolicy.assert_called_once()
         # Can't compare functions directly, discussion: https://bugs.python.org/issue3564
@@ -286,8 +289,11 @@ class TestSecurityPolicy:
         assert call_args[0].func.__name__ == "get_lti_user_from_bearer_token"
         assert policy == LTIUserSecurityPolicy.return_value
 
-    def test_unauthorized_policy(self, UnautheticatedSecurityPolicy, policy):
-        policy = policy.get_policy("/unknown")
+    def test_unauthorized_policy(
+        self, pyramid_request, UnautheticatedSecurityPolicy, policy
+    ):
+        pyramid_request.path = "/unknown"
+        policy = policy.get_policy(pyramid_request)
 
         UnautheticatedSecurityPolicy.assert_called_once()
         assert policy == UnautheticatedSecurityPolicy.return_value

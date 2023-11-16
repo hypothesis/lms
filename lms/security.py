@@ -64,25 +64,28 @@ class SecurityPolicy:
     """Top-level authentication policy that delegates to sub-policies."""
 
     def authenticated_userid(self, request):
-        return self.get_policy(request.path).authenticated_userid(request)
+        return self.get_policy(request).authenticated_userid(request)
 
     def identity(self, request):
-        return self.get_policy(request.path).identity(request)
+        return self.get_policy(request).identity(request)
 
     def permits(self, request, context, permission):
-        return self.get_policy(request.path).permits(request, context, permission)
+        return self.get_policy(request).permits(request, context, permission)
 
     def remember(self, request, userid, **kw):
-        return self.get_policy(request.path).remember(request, userid, **kw)
+        return self.get_policy(request).remember(request, userid, **kw)
 
     def forget(self, request):
-        return self.get_policy(request.path).forget(request)
+        return self.get_policy(request).forget(request)
 
     @staticmethod
     @lru_cache(maxsize=1)
-    def get_policy(path: str):
+    def get_policy(request: Request):
         """Pick the right policy based the request's path."""
         # pylint:disable=too-many-return-statements
+
+        path = request.path
+
         if path.startswith("/admin") or path.startswith("/googleauth"):
             return LMSGoogleSecurityPolicy()
 
