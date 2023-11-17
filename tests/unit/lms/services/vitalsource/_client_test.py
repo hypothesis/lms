@@ -52,6 +52,7 @@ class TestVitalSourceClient:
             "id": "VBID",
             "title": "TITLE",
             "cover_image": "COVER_IMAGE",
+            "url": "vitalsource://book/bookID/VBID",
         }
 
     def test_get_table_of_contents(self, client, http_service):

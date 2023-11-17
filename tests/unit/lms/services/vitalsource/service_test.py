@@ -116,6 +116,57 @@ class TestVitalSourceService:
         with pytest.raises(VitalSourceMalformedRegex):
             VitalSourceService.compile_user_lti_pattern(bad_pattern)
 
+    @pytest.mark.parametrize(
+        "page,cfi,end_page,end_cfi,expected",
+        [
+            # Book ID only
+            (
+                None,
+                None,
+                None,
+                None,
+                "vitalsource://book/bookID/some_book",
+            ),
+            # Book ID + start CFI
+            (
+                None,
+                "/1/2",
+                None,
+                None,
+                "vitalsource://book/bookID/some_book/cfi//1/2",
+            ),
+            # Book ID + start page
+            (
+                "23",
+                None,
+                None,
+                None,
+                "vitalsource://book/bookID/some_book/page/23",
+            ),
+            # Book ID + start and end page
+            (
+                "23",
+                None,
+                "46",
+                None,
+                "vitalsource://book/bookID/some_book/page/23?end_page=46",
+            ),
+            # Book ID + start and end CFI
+            (
+                None,
+                "/1/2",
+                None,
+                "/3/4",
+                "vitalsource://book/bookID/some_book/cfi//1/2?end_cfi=%2F3%2F4",
+            ),
+        ],
+    )
+    def test_get_document_url(self, svc, page, cfi, end_page, end_cfi, expected):
+        url = svc.get_document_url(
+            book_id="some_book", page=page, cfi=cfi, end_page=end_page, end_cfi=end_cfi
+        )
+        assert url == expected
+
     @pytest.fixture
     def global_client(self):
         return create_autospec(VitalSourceClient, instance=True, spec_set=True)

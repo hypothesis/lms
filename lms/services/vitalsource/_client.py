@@ -65,10 +65,16 @@ class VitalSourceClient:
 
         book_info = _BookInfoSchema(response).parse()
 
+        # This should be the same as `book_id` but it comes from the
+        # authoritative source. This might make a difference if the VS APIs
+        # normalize or redirect IDs.
+        vbid = book_info["vbid"]
+
         return {
-            "id": book_info["vbid"],
+            "id": vbid,
             "title": book_info["title"],
             "cover_image": book_info["resource_links"]["cover_image"],
+            "url": VSBookLocation(vbid).document_url,
         }
 
     def get_table_of_contents(self, book_id: str) -> List[dict]:
@@ -91,7 +97,7 @@ class VitalSourceClient:
 
         toc = _BookTOCSchema(response).parse()["table_of_contents"]
         for chapter in toc:
-            chapter["url"] = VSBookLocation(book_id, chapter["cfi"]).document_url
+            chapter["url"] = VSBookLocation(book_id, cfi=chapter["cfi"]).document_url
 
         return toc
 

@@ -1,5 +1,6 @@
 import re
 from typing import List, Optional
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from lms.models import LTIParams
 from lms.services.vitalsource._client import VitalSourceClient
@@ -63,6 +64,35 @@ class VitalSourceService:
         """Get the table of contents for a book."""
 
         return self._metadata_client.get_table_of_contents(book_id)
+
+    def get_document_url(
+        self,
+        book_id: str,
+        page: Optional[str] = None,
+        cfi: Optional[str] = None,
+        end_page: Optional[str] = None,
+        end_cfi: Optional[str] = None,
+    ) -> str:
+        """
+        Generate the document URL for an assignment.
+
+        :param book_id: VitalSource book ID (aka. "vbid")
+        :param page: Start location as a page number
+        :param cfi: Start location as a CFI
+        :param end_page: End location as a page number
+        :param end_cfi: End location as a CFI
+        """
+        url = VSBookLocation(book_id, cfi=cfi, page=page).document_url
+
+        url = urlparse(url)
+        params = parse_qs(url.query)
+        if end_page:
+            params["end_page"] = end_page
+        if end_cfi:
+            params["end_cfi"] = end_cfi
+        url = url._replace(query=urlencode(params, doseq=True))
+
+        return urlunparse(url)
 
     @classmethod
     def get_book_reader_url(cls, document_url) -> str:
