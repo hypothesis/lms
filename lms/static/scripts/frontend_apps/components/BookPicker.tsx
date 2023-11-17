@@ -23,10 +23,6 @@ export type BookPickerProps = {
  * The dialog has two steps: The user first chooses a book to use and then chooses
  * which chapter to use from that book. Once both are chosen the `onSelectBook`
  * callback is called.
- *
- * Note: The component logic is consistent about using the terminology of
- * "chapter" for content segments in a VitalSource eBook, but presents this
- * to the user as "location" and other slightly less precise language.
  */
 export default function BookPicker({
   onCancel,
