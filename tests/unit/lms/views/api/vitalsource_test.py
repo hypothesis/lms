@@ -23,6 +23,18 @@ class TestVitalSourceAPIViews:
         vitalsource_service.get_table_of_contents.assert_called_once_with("BOOK-ID")
         assert response == vitalsource_service.get_table_of_contents.return_value
 
+    def test_document_url(self, view, pyramid_request, vitalsource_service):
+        pyramid_request.parsed_params = {"book_id": "a-book", "cfi": "start-cfi"}
+
+        response = view.document_url()
+
+        vitalsource_service.get_document_url.assert_called_once_with(
+            **pyramid_request.parsed_params
+        )
+        assert response == {
+            "document_url": vitalsource_service.get_document_url.return_value
+        }
+
     def test_launch_url(self, view, pyramid_request, vitalsource_service):
         pyramid_request.params["user_reference"] = sentinel.user_reference
         pyramid_request.params["document_url"] = sentinel.document_url

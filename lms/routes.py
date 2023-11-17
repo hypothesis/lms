@@ -135,6 +135,7 @@ def includeme(config):  # pylint:disable=too-many-statements
     config.add_route(
         "vitalsource_api.books.toc", "/api/vitalsource/books/{book_id}/toc"
     )
+    config.add_route("vitalsource_api.document_url", "/api/vitalsource/document_url")
     config.add_route("vitalsource_api.launch_url", "/api/vitalsource/launch_url")
 
     config.add_route("youtube_api.videos", "/api/youtube/videos/{video_id}")
