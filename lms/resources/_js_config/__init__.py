@@ -2,8 +2,6 @@ import functools
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pyramid.httpexceptions import HTTPClientError
-
 from lms.models import Assignment, GroupInfo, Grouping, HUser
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
@@ -22,6 +20,7 @@ class JSConfig:
         BASIC_LTI_LAUNCH = "basic-lti-launch"
         FILE_PICKER = "content-item-selection"
         ERROR_DIALOG = "error-dialog"
+        EMAIL_NOTIFICATIONS = "email-notifications"
 
     class ErrorCode(str, Enum):
         BLACKBOARD_MISSING_INTEGRATION = "blackboard_missing_integration"
@@ -269,6 +268,19 @@ class JSConfig:
         )
         self._config["debug"]["values"] = self._get_lti_launch_debug_values()
         return self._config
+
+    def enable_email_notifications_mode(self, email_notifications_preferences):
+        """
+        Put the JavaScript code into "email notifications" mode.
+
+        This mode shows teachers the preferences for email notifications.
+        """
+        self._config.update(
+            {
+                "mode": JSConfig.Mode.EMAIL_NOTIFICATIONS,
+                "emailNotifications": email_notifications_preferences
+            }
+        )
 
     def add_deep_linking_api(self):
         """

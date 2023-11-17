@@ -27,7 +27,8 @@ WEEK_DAYS = (
     renderer="lms:templates/email/settings.html.jinja2",
 )
 class EmailSettingsViews:
-    def __init__(self, request):
+    def __init__(self, context, request):
+        self.context = context
         self.request = request
 
     @view_config(route_name="email.settings", request_param="token")
@@ -42,9 +43,10 @@ class EmailSettingsViews:
 
     @view_config(route_name="email.settings")
     def settings(self):
-        return {
-            "preferences": self.get_preferences().get("instructor_email_digest", {})
-        }
+        self.context.js_config.enable_email_notifications_mode(
+            email_notifications_preferences=self.get_preferences().get("instructor_email_digest", {})
+        )
+        return {}
 
     @view_config(route_name="email.settings", request_method="POST")
     def save_settings(self):
