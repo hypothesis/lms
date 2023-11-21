@@ -7,7 +7,7 @@
         {{ macros.instance_preview(request, instance) }}
     </fieldset>
     <form method="POST"
-          action="{{ request.route_url("admin.role.override.new", id_=instance.id) }}">
+          action="{{ request.route_url("admin.role.override.new", id_=instance.id) }}#role-overrides">
         <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
         <fieldset class="box mt-6">
             {{ macros.select("Value", "role_id", existing_roles, override.id if override else None, with_search=True) }}
