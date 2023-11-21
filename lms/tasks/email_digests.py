@@ -120,7 +120,7 @@ def send_instructor_email_digest_tasks(*, batch_size):
     max_retries=2,
     retry_backoff=3600,
     retry_backoff_max=7200,
-    rate_limit="3/m",
+    rate_limit="30/m",
 )
 def send_instructor_email_digests(
     *, h_userids: List[str], created_after: str, created_before: str, **kwargs
