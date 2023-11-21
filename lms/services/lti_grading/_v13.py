@@ -3,7 +3,9 @@ from datetime import datetime, timezone
 from typing import Optional
 from urllib.parse import urlparse
 
+from lms.product.family import Family
 from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
+from lms.services.html_service import strip_html_tags
 from lms.services.lti_grading.interface import GradingResult, LTIGradingService
 from lms.services.ltia_http import LTIAHTTPService
 
