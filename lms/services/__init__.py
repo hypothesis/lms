@@ -3,7 +3,7 @@ from lms.services.application_instance import ApplicationInstanceNotFound
 from lms.services.canvas import CanvasService
 from lms.services.d2l_api.client import D2LAPIClient
 from lms.services.digest import DigestService
-from lms.services.email_unsubscribe import EmailUnsubscribeService
+from lms.services.email_preferences import EmailPreferencesService
 from lms.services.event import EventService
 from lms.services.exceptions import (
     CanvasAPIError,
@@ -124,7 +124,7 @@ def includeme(config):
         "lms.services.digest.service_factory", iface=DigestService
     )
     config.register_service_factory(
-        "lms.services.email_unsubscribe.factory", iface=EmailUnsubscribeService
+        "lms.services.email_preferences.factory", iface=EmailPreferencesService
     )
     config.register_service_factory(
         "lms.services.youtube.factory", iface=YouTubeService

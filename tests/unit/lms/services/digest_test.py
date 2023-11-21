@@ -31,7 +31,7 @@ class TestDigestService:
         db_session,
         send,
         sender,
-        email_unsubscribe_service,
+        email_preferences_service,
     ):
         context.user_infos = UserInfoFactory.create_batch(2)
         digests = context.instructor_digest.side_effect = [
@@ -75,7 +75,7 @@ class TestDigestService:
                     EmailRecipient(user_info.email, user_info.display_name)
                 ),
                 template_vars=digest,
-                unsubscribe_url=email_unsubscribe_service.unsubscribe_url.return_value,
+                unsubscribe_url=email_preferences_service.unsubscribe_url.return_value,
             )
             for user_info, digest in zip(context.user_infos, digests)
         ]
@@ -123,7 +123,7 @@ class TestDigestService:
 
         send.delay.assert_not_called()
 
-    @pytest.mark.usefixtures("email_unsubscribe_service")
+    @pytest.mark.usefixtures("email_preferences_service")
     def test_send_instructor_email_digests_uses_override_to_email(
         self, svc, context, send
     ):
@@ -202,12 +202,12 @@ class TestDigestService:
         return h_api
 
     @pytest.fixture
-    def svc(self, db_session, h_api, sender, email_unsubscribe_service):
+    def svc(self, db_session, h_api, sender, email_preferences_service):
         return DigestService(
             db=db_session,
             h_api=h_api,
             sender=sender,
-            email_unsubscribe_service=email_unsubscribe_service,
+            email_preferences_service=email_preferences_service,
         )
 
 
@@ -707,7 +707,7 @@ class TestDigestContext:
 
 
 class TestServiceFactory:
-    def test_it(self, pyramid_request, h_api, DigestService, email_unsubscribe_service):
+    def test_it(self, pyramid_request, h_api, DigestService, email_preferences_service):
         settings = pyramid_request.registry.settings
         settings["mailchimp_digests_subaccount"] = sentinel.digests_subaccount
         settings["mailchimp_digests_email"] = sentinel.digests_from_email
@@ -723,7 +723,7 @@ class TestServiceFactory:
                 sentinel.digests_from_email,
                 sentinel.digests_from_name,
             ),
-            email_unsubscribe_service=email_unsubscribe_service,
+            email_preferences_service=email_preferences_service,
         )
         assert service == DigestService.return_value
 

@@ -19,7 +19,7 @@ from lms.services.canvas_api import CanvasAPIClient
 from lms.services.course import CourseService
 from lms.services.d2l_api import D2LAPIClient
 from lms.services.digest import DigestService
-from lms.services.email_unsubscribe import EmailUnsubscribeService
+from lms.services.email_preferences import EmailPreferencesService
 from lms.services.event import EventService
 from lms.services.file import FileService
 from lms.services.grading_info import GradingInfoService
@@ -87,7 +87,7 @@ __all__ = (
     "rsa_key_service",
     "user_service",
     "vitalsource_service",
-    "email_unsubscribe_service",
+    "email_preferences_service",
     "youtube_service",
     # Product plugins
     "grouping_plugin",
@@ -333,8 +333,8 @@ def vitalsource_service(mock_service):
 
 
 @pytest.fixture
-def email_unsubscribe_service(mock_service):
-    return mock_service(EmailUnsubscribeService)
+def email_preferences_service(mock_service):
+    return mock_service(EmailPreferencesService)
 
 
 @pytest.fixture
