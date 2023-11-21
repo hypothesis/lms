@@ -47,7 +47,9 @@ class AdminRoleViews:
         )
 
         return HTTPFound(
-            location=self.request.route_url("admin.instance", id_=instance.id)
+            location=self.request.route_url(
+                "admin.instance.section", id_=instance.id, section="role-overrides"
+            )
         )
 
     @view_config(
@@ -102,6 +104,8 @@ class AdminRoleViews:
 
         return HTTPFound(
             location=self.request.route_url(
-                "admin.instance", id_=override.application_instance_id
+                "admin.instance.section",
+                id_=override.application_instance_id,
+                section="role-overrides",
             )
         )

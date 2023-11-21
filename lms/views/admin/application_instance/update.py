@@ -58,7 +58,8 @@ class UpdateApplicationInstanceView(BaseApplicationInstanceView):
         return self._redirect("admin.instance", id_=ai.id)
 
     @view_config(
-        route_name="admin.instance.settings",
+        route_name="admin.instance.section",
+        match_param="section=settings",
         request_method="POST",
         require_csrf=True,
         permission=Permissions.ADMIN,
@@ -98,4 +99,4 @@ class UpdateApplicationInstanceView(BaseApplicationInstanceView):
             f"Updated application instance settings for {ai.id}", "messages"
         )
 
-        return self._redirect("admin.instance", id_=ai.id)
+        return self._redirect("admin.instance.section", id_=ai.id, section="settings")
