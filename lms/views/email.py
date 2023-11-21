@@ -3,7 +3,7 @@ import logging
 from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 
-from lms.services import EmailUnsubscribeService
+from lms.services import EmailPreferencesService
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 
 LOG = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ LOG = logging.getLogger(__name__)
 def unsubscribe(request):
     """Unsubscribe the email and tag combination encoded in token."""
     try:
-        request.find_service(EmailUnsubscribeService).unsubscribe(
+        request.find_service(EmailPreferencesService).unsubscribe(
             request.params["token"]
         )
     except (InvalidJWTError, ExpiredJWTError):

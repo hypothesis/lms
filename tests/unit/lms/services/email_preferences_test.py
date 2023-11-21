@@ -4,10 +4,10 @@ from unittest.mock import sentinel
 import pytest
 
 from lms.models import EmailUnsubscribe
-from lms.services.email_unsubscribe import EmailUnsubscribeService, factory
+from lms.services.email_preferences import EmailPreferencesService, factory
 
 
-class TestEmailUnsubscribeService:
+class TestEmailPreferencesService:
     def test_unsubscribe_url(self, svc, jwt_service):
         jwt_service.encode_with_secret.return_value = "TOKEN"
 
@@ -44,29 +44,29 @@ class TestEmailUnsubscribeService:
 
     @pytest.fixture
     def svc(self, db_session, jwt_service, pyramid_request):
-        return EmailUnsubscribeService(
+        return EmailPreferencesService(
             db_session, jwt_service, "SECRET", pyramid_request.route_url
         )
 
     @pytest.fixture
     def bulk_upsert(self, patch):
-        return patch("lms.services.email_unsubscribe.bulk_upsert")
+        return patch("lms.services.email_preferences.bulk_upsert")
 
 
 class TestFactory:
     def test_it(
-        self, pyramid_request, EmailUnsubscribeService, db_session, jwt_service
+        self, pyramid_request, EmailPreferencesService, db_session, jwt_service
     ):
         svc = factory(sentinel.context, pyramid_request)
 
-        EmailUnsubscribeService.assert_called_once_with(
+        EmailPreferencesService.assert_called_once_with(
             db_session,
             jwt_service,
             secret="test_secret",
             route_url=pyramid_request.route_url,
         )
-        assert svc == EmailUnsubscribeService.return_value
+        assert svc == EmailPreferencesService.return_value
 
     @pytest.fixture
-    def EmailUnsubscribeService(self, patch):
-        return patch("lms.services.email_unsubscribe.EmailUnsubscribeService")
+    def EmailPreferencesService(self, patch):
+        return patch("lms.services.email_preferences.EmailPreferencesService")

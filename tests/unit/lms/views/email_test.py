@@ -7,20 +7,20 @@ from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 from lms.views.email import unsubscribe, unsubscribed
 
 
-def test_unsubscribe(pyramid_request, email_unsubscribe_service):
+def test_unsubscribe(pyramid_request, email_preferences_service):
     pyramid_request.params["token"] = sentinel.token
 
     result = unsubscribe(pyramid_request)
 
-    email_unsubscribe_service.unsubscribe.assert_called_once_with(sentinel.token)
+    email_preferences_service.unsubscribe.assert_called_once_with(sentinel.token)
     assert isinstance(result, HTTPFound)
     assert result.location == "http://example.com/email/unsubscribed"
 
 
 @pytest.mark.parametrize("exception", [ExpiredJWTError, InvalidJWTError])
-def test_unsubscribe_error(pyramid_request, email_unsubscribe_service, exception):
+def test_unsubscribe_error(pyramid_request, email_preferences_service, exception):
     pyramid_request.params["token"] = sentinel.token
-    email_unsubscribe_service.unsubscribe.side_effect = exception
+    email_preferences_service.unsubscribe.side_effect = exception
 
     result = unsubscribe(pyramid_request)
 

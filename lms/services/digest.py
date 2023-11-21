@@ -17,7 +17,7 @@ from lms.models import (
     LTIRole,
     User,
 )
-from lms.services.email_unsubscribe import EmailUnsubscribeService
+from lms.services.email_preferences import EmailPreferencesService
 from lms.services.h_api import HAPI
 from lms.services.mailchimp import EmailRecipient, EmailSender
 from lms.tasks.mailchimp import send
@@ -29,11 +29,11 @@ class DigestService:
     """A service for generating "digests" (activity reports)."""
 
     def __init__(
-        self, db, h_api, sender, email_unsubscribe_service: EmailUnsubscribeService
+        self, db, h_api, sender, email_preferences_service: EmailPreferencesService
     ):
         self._db = db
         self._h_api = h_api
-        self._email_unsubscribe_service = email_unsubscribe_service
+        self._email_preferences_service = email_preferences_service
         self._sender = sender
 
     def send_instructor_email_digests(  # pylint:disable=too-many-arguments
@@ -82,7 +82,7 @@ class DigestService:
                 sender=asdict(self._sender),
                 recipient=asdict(EmailRecipient(to_email, user_info.display_name)),
                 template_vars=digest,
-                unsubscribe_url=self._email_unsubscribe_service.unsubscribe_url(
+                unsubscribe_url=self._email_preferences_service.unsubscribe_url(
                     user_info.h_userid, EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST
                 ),
             )
@@ -421,7 +421,7 @@ def service_factory(_context, request):
     return DigestService(
         db=request.db,
         h_api=request.find_service(HAPI),
-        email_unsubscribe_service=request.find_service(EmailUnsubscribeService),
+        email_preferences_service=request.find_service(EmailPreferencesService),
         sender=EmailSender(
             request.registry.settings.get("mailchimp_digests_subaccount"),
             request.registry.settings.get("mailchimp_digests_email"),

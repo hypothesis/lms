@@ -6,7 +6,7 @@ from lms.services.jwt import JWTService
 from lms.services.upsert import bulk_upsert
 
 
-class EmailUnsubscribeService:
+class EmailPreferencesService:
     def __init__(self, db, jwt_service: JWTService, secret: str, route_url: Callable):
         self._db = db
         self._jwt_service = jwt_service
@@ -42,7 +42,7 @@ class EmailUnsubscribeService:
 
 
 def factory(_context, request):
-    return EmailUnsubscribeService(
+    return EmailPreferencesService(
         request.db,
         request.find_service(iface=JWTService),
         secret=request.registry.settings["jwt_secret"],
