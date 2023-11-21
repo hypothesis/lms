@@ -72,6 +72,29 @@ class TestLTI13GradingService:
         assert not result.score
         assert not result.comment
 
+    def test_read_result_blackboard(
+        self, blackboard_svc, ltia_http_service, blackboard_response
+    ):
+        ltia_http_service.request.return_value.json.return_value = blackboard_response
+        blackboard_svc.line_item_url = "https://lms.com/lineitems?param=1"
+
+        result = blackboard_svc.read_result(sentinel.user_id)
+
+        ltia_http_service.request.assert_called_once_with(
+            "GET",
+            "https://lms.com/lineitems/results?param=1",
+            scopes=blackboard_svc.LTIA_SCOPES,
+            params={},
+            headers={"Accept": "application/vnd.ims.lis.v2.resultcontainer+json"},
+        )
+        assert (
+            result.score
+            == blackboard_response[0]["resultScore"]
+            / blackboard_response[0]["resultMaximum"]
+        )
+
+        assert result.comment == "Comment with HTML"
+
     def test_get_score_maximum(self, svc, ltia_http_service):
         ltia_http_service.request.return_value.json.return_value = [
             {"scoreMaximum": sentinel.score_max, "id": svc.line_item_url},
@@ -216,9 +239,40 @@ class TestLTI13GradingService:
         ]
 
     @pytest.fixture
+    def blackboard_response(self):
+        return [
+            {
+                "id": "https://lms.example.com/context/2923/lineitems/1/results/5323497",
+                "scoreOf": "https://lms.example.com/context/2923/lineitems/1",
+                "userId": sentinel.user_id,
+                "resultScore": 0.83,
+                "resultMaximum": 1,
+                "comment": "<div>Comment with HTML</div>",
+            },
+            {
+                "id": "https://lms.example.com/context/2923/lineitems/1/results/5323497",
+                "scoreOf": "https://lms.example.com/context/2923/lineitems/1",
+                "userId": "ANOTHER_USERID",
+                "resultScore": 0.0,
+                "resultMaximum": 1,
+                "comment": "This is exceptional work.",
+            },
+        ]
+
+    @pytest.fixture
     def svc(self, ltia_http_service):
         return LTI13GradingService(
             "http://example.com/lineitem",
             "http://example.com/lineitems",
             ltia_http_service,
+            product_family=Family.CANVAS,
+        )
+
+    @pytest.fixture
+    def blackboard_svc(self, ltia_http_service):
+        return LTI13GradingService(
+            "http://example.com/lineitem",
+            "http://example.com/lineitems",
+            ltia_http_service,
+            product_family=Family.BLACKBOARD,
         )

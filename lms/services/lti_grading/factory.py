@@ -14,6 +14,7 @@ def service_factory(_context, request):
             or request.lti_params.get("lis_outcome_service_url"),
             line_item_container_url=request.lti_params.get("lineitems"),
             ltia_service=request.find_service(LTIAHTTPService),
+            product_family=request.product.family,
         )
 
     return LTI11GradingService(

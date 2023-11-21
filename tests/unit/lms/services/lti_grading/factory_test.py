@@ -24,7 +24,10 @@ class TestFactory:
         svc = service_factory(sentinel.context, pyramid_request)
 
         LTI13GradingService.assert_called_once_with(
-            sentinel.grading_url, sentinel.lineitems, ltia_http_service
+            sentinel.grading_url,
+            sentinel.lineitems,
+            ltia_http_service,
+            pyramid_request.product.family,
         )
         assert svc == LTI13GradingService.return_value
 
@@ -37,7 +40,10 @@ class TestFactory:
         svc = service_factory(sentinel.context, pyramid_request)
 
         LTI13GradingService.assert_called_once_with(
-            sentinel.grading_url, sentinel.lineitems, ltia_http_service
+            sentinel.grading_url,
+            sentinel.lineitems,
+            ltia_http_service,
+            pyramid_request.product.family,
         )
         assert svc == LTI13GradingService.return_value
 

@@ -25,19 +25,31 @@ class LTI13GradingService(LTIGradingService):
     ]
 
     def __init__(
-        self, line_item_url, line_item_container_url, ltia_service: LTIAHTTPService
+        self,
+        line_item_url,
+        line_item_container_url,
+        ltia_service: LTIAHTTPService,
+        product_family: Family,
     ):
         super().__init__(line_item_url, line_item_container_url)
         self._ltia_service = ltia_service
+        self._product_family = product_family
 
     def read_result(self, grading_id) -> GradingResult:
         result = GradingResult(score=None, comment=None)
+
+        params = {"user_id": grading_id}
+        if self._product_family == Family.BLACKBOARD:
+            # There's currently a bug in Blackboard's LTIA implementation.
+            # Using the user filter in the request removes the comment field in the response's body.
+            del params["user_id"]
+
         try:
             response = self._ltia_service.request(
                 "GET",
                 self._service_url(self.line_item_url, "/results"),
                 scopes=self.LTIA_SCOPES,
-                params={"user_id": grading_id},
+                params=params,
                 headers={"Accept": "application/vnd.ims.lis.v2.resultcontainer+json"},
             )
         except ExternalRequestError as err:
@@ -46,6 +58,18 @@ class LTI13GradingService(LTIGradingService):
             raise
 
         results = response.json()
+        if self._product_family == Family.BLACKBOARD:
+            # Due to the bug mentioned above we didn't use the API filtering by user for blackboard.
+            # We'll filter ourselves here instead.
+            results = [result for result in results if result["userId"] == grading_id]
+
+            # On top of this, blackboard adds some HTML to the comments it returns
+            _ = [
+                result.update(comment=strip_html_tags(result["comment"]))
+                for result in results
+                if result.get("comment")
+            ]
+
         if not results:
             return result
 
