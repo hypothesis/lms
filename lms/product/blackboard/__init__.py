@@ -1,6 +1,5 @@
 from lms.product.blackboard._plugin.course_copy import BlackboardCourseCopyPlugin
 from lms.product.blackboard._plugin.grouping import BlackboardGroupingPlugin
-from lms.product.blackboard._plugin.misc import BlackboardMiscPlugin
 from lms.product.blackboard.product import Blackboard
 
 
@@ -12,7 +11,4 @@ def includeme(config):  # pragma: nocover
     )
     config.register_service_factory(
         BlackboardCourseCopyPlugin.factory, iface=BlackboardCourseCopyPlugin
-    )
-    config.register_service_factory(
-        BlackboardMiscPlugin.factory, iface=BlackboardMiscPlugin
     )
