@@ -1,7 +1,6 @@
-from html.parser import HTMLParser
-
 from marshmallow import fields
 
+from lms.services.html_service import strip_html_tags
 from lms.validation import RequestsResponseSchema
 
 
@@ -70,7 +69,7 @@ class ArticleMetadata:
             return titles
 
         if journal := self._data.get("journal"):
-            return {"type": "journal", "title": self._strip_html_tags(journal)}
+            return {"type": "journal", "title": strip_html_tags(journal)}
 
         return {"type": None, "title": None}
 
@@ -105,7 +104,7 @@ class ArticleMetadata:
         # Reviews of other works may not have a title of their own, but we can
         # generate one from the reviewed work's metadata.
         if reviewed_works := self._data.get("reviewed_works"):
-            return {"title": self._strip_html_tags(f"Review: {reviewed_works[0]}")}
+            return {"title": strip_html_tags(f"Review: {reviewed_works[0]}")}
 
         if titles := self._get_titles("title", "subtitle"):
             return titles
@@ -120,26 +119,11 @@ class ArticleMetadata:
         if title := self._data.get(title_key):
             # Some titles have a colon on the end. We'll remove these, so we
             # can more easily format these without checking for it.
-            titles["title"] = self._strip_html_tags(title).rstrip(": ")
+            titles["title"] = strip_html_tags(title).rstrip(": ")
 
             # Some articles have a subtitle which needs to be appended for the
             # title to make sense.
             if subtitle := self._data.get(subtitle_key):
-                titles["subtitle"] = self._strip_html_tags(subtitle)
+                titles["subtitle"] = strip_html_tags(subtitle)
 
         return titles
-
-    @staticmethod
-    def _strip_html_tags(html: str) -> str:
-        """Get plain text from a string which may contain HTML tags."""
-
-        # Extract text nodes using HTMLParser. We rely on it being tolerant of
-        # invalid markup.
-        chunks = []
-        parser = HTMLParser()
-        parser.handle_data = chunks.append
-        parser.feed(html)
-        parser.close()
-
-        # Strip leading/trailing whitespace and duplicate spaces
-        return " ".join("".join(chunks).split())
