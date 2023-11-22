@@ -8,7 +8,7 @@ class DowngradeApplicationInstanceView(BaseApplicationInstanceView):
     @view_config(
         route_name="admin.instance.downgrade",
         request_method="POST",
-        permission=Permissions.STAFF,
+        permission=Permissions.ADMIN,
     )
     def downgrade_instance(self):
         ai = self.application_instance

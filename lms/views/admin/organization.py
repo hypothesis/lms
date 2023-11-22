@@ -32,7 +32,7 @@ class NewOrganizationSchema(PyramidRequestSchema):
     name = fields.Str(required=True, validate=validate.Length(min=1))
 
 
-@view_defaults(request_method="GET", permission=Permissions.STAFF)
+@view_defaults(request_method="GET", permission=Permissions.ADMIN)
 class AdminOrganizationViews:
     def __init__(self, request):
         self.request = request
@@ -44,6 +44,7 @@ class AdminOrganizationViews:
         route_name="admin.organizations",
         request_method="GET",
         renderer="lms:templates/admin/organization/search.html.jinja2",
+        permission=Permissions.STAFF,
     )
     def organizations(self):  # pragma: no cover
         return {}
@@ -77,6 +78,7 @@ class AdminOrganizationViews:
         route_name="admin.organization",
         request_method="GET",
         renderer="lms:templates/admin/organization/show.html.jinja2",
+        permission=Permissions.STAFF,
     )
     def show_organization(self):
         org_id = self.request.matchdict["id_"]
@@ -143,6 +145,7 @@ class AdminOrganizationViews:
         route_name="admin.organizations",
         request_method="POST",
         renderer="lms:templates/admin/organization/search.html.jinja2",
+        permission=Permissions.STAFF,
     )
     def search(self):
         if flash_validation(self.request, SearchOrganizationSchema):

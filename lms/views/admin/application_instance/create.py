@@ -32,7 +32,7 @@ class CreateAppInstanceSchemaV13(CreateAppInstanceSchema):
     lti_registration_id = fields.Str(required=True)
 
 
-@view_defaults(route_name="admin.instance.create", permission=Permissions.STAFF)
+@view_defaults(route_name="admin.instance.create", permission=Permissions.ADMIN)
 class CreateApplicationInstanceViews(BaseApplicationInstanceView):
     def __init__(self, request):
         super().__init__(request)
