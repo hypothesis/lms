@@ -1,9 +1,11 @@
 import logging
 
 from pyramid.httpexceptions import HTTPFound
-from pyramid.view import view_config
+from pyramid.security import remember
+from pyramid.view import forbidden_view_config, view_config, view_defaults
 
-from lms.services import EmailPreferencesService
+from lms.security import Permissions
+from lms.services import EmailPreferencesService, EmailPrefs
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 
 LOG = logging.getLogger(__name__)
@@ -13,7 +15,7 @@ LOG = logging.getLogger(__name__)
     route_name="email.unsubscribe",
     request_method="GET",
     request_param="token",
-    renderer="lms:templates/email/unsubscribe_error.html.jinja2",
+    renderer="lms:templates/email/expired_link.html.jinja2",
 )
 def unsubscribe(request):
     """Unsubscribe the email and tag combination encoded in token."""
@@ -36,3 +38,62 @@ def unsubscribe(request):
 def unsubscribed(_request):
     """Render a message after a successful email unsubscribe."""
     return {}
+
+
+@forbidden_view_config(
+    route_name="email.preferences",
+    request_method="GET",
+    request_param="token",
+    renderer="lms:templates/email/expired_link.html.jinja2",
+)
+def forbidden(_request):
+    return {}
+
+
+@view_defaults(permission=Permissions.EMAIL_PREFERENCES)
+class EmailPreferencesViews:
+    def __init__(self, request):
+        self.request = request
+        self.email_preferences_service = request.find_service(EmailPreferencesService)
+
+    @view_config(
+        route_name="email.preferences",
+        request_method="GET",
+        request_param="token",
+    )
+    def preferences_redirect(self):
+        # The token has already been verified by the security policy, so we can
+        # just go right ahead with the redirect.
+        return HTTPFound(
+            location=self.request.route_url("email.preferences"),
+            # Set a cookie to keep the user logged in even though we're
+            # removing the authentication token from the URL.
+            headers=remember(self.request, self.request.authenticated_userid),
+        )
+
+    @view_config(
+        route_name="email.preferences",
+        request_method="GET",
+        renderer="lms:templates/email/preferences.html.jinja2",
+    )
+    def preferences(self):
+        return {
+            "preferences": self.email_preferences_service.get_preferences(
+                self.request.authenticated_userid
+            ).days(),
+        }
+
+    @view_config(
+        route_name="email.preferences",
+        request_method="POST",
+    )
+    def set_preferences(self):
+        self.email_preferences_service.set_preferences(
+            EmailPrefs(
+                self.request.authenticated_userid,
+                **{
+                    key: self.request.params.get(key) == "on" for key in EmailPrefs.DAYS
+                },
+            )
+        )
+        return HTTPFound(location=self.request.route_url("email.preferences"))

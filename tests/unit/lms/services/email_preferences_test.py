@@ -91,6 +91,16 @@ class TestEmailPreferencesService:
         )
         assert url == "http://example.com/email/unsubscribe?token=TOKEN"
 
+    def test_preferences_url(self, svc, jwt_service):
+        jwt_service.encode_with_secret.return_value = "TOKEN"
+
+        url = svc.preferences_url(sentinel.h_userid)
+
+        jwt_service.encode_with_secret.assert_called_once_with(
+            {"h_userid": sentinel.h_userid}, "SECRET", lifetime=timedelta(days=30)
+        )
+        assert url == "http://example.com/email/preferences?token=TOKEN"
+
     def test_unsubscribe(self, svc, bulk_upsert, jwt_service, db_session):
         jwt_service.decode_with_secret.return_value = {
             "h_userid": sentinel.h_userid,

@@ -41,6 +41,7 @@ TEST_SETTINGS = {
     "vitalsource_api_key": "test_vs_api_key",
     "disable_key_rotation": False,
     "admin_users": [],
+    "email_preferences_secret": "test_email_preferences_secret",
 }
 
 
