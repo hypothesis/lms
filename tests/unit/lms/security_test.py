@@ -48,10 +48,18 @@ class TestLMSGoogleSecurityPolicy:
                     permissions=[Permissions.STAFF],
                 ),
             ),
+            (
+                "admin@hypothes.is",
+                Identity(
+                    userid="admin@hypothes.is",
+                    permissions=[Permissions.STAFF, Permissions.ADMIN],
+                ),
+            ),
             ("testuser@example.com", Identity(userid="", permissions=[])),
         ],
     )
     def test_identity(self, policy, pyramid_request, userid, expected_identity):
+        pyramid_request.registry.settings = {"admin_users": ["admin@hypothes.is"]}
         pyramid_request.session["googleauth.userid"] = userid
 
         assert policy.identity(pyramid_request) == expected_identity

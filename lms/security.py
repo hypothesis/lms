@@ -37,6 +37,9 @@ class Permissions(Enum):
     LTI_CONFIGURE_ASSIGNMENT = "lti_configure_assignment"
     API = "api"
     STAFF = "staff"
+    """General access to the admin pages"""
+    ADMIN = "admin"
+    """Superuser access to the admin pages"""
     GRADE_ASSIGNMENT = "grade_assignment"
 
 
@@ -191,7 +194,11 @@ class LMSGoogleSecurityPolicy(GoogleSecurityPolicy):
         userid = self.authenticated_userid(request)
 
         if userid and userid.endswith("@hypothes.is"):
-            return Identity(userid, permissions=[Permissions.STAFF])
+            permissions = [Permissions.STAFF]
+            if userid in request.registry.settings["admin_users"]:
+                permissions.append(Permissions.ADMIN)
+
+            return Identity(userid, permissions=permissions)
 
         return Identity("", [])
 

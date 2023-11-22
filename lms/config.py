@@ -2,10 +2,17 @@
 
 import os
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, List, Optional
 
-from pyramid.config import Configurator, aslist
+from pyramid.config import Configurator
+from pyramid.config import aslist as _aslist
 from pyramid.settings import asbool
+
+
+def aslist(value: Optional[str]) -> List[str]:
+    # pyramid's aslist doesn't accept None values
+    # coerce those to "" which becomes an empty list.
+    return _aslist("" if value is None else value)
 
 
 class SettingError(Exception):
@@ -41,6 +48,8 @@ class _Setting:
 
 
 SETTINGS = (
+    # List of users that are ADMINS in the admin pages
+    _Setting("admin_users", value_mapper=aslist),
     _Setting("database_url"),
     _Setting("h_fdw_database_url"),
     _Setting("fdw_users", value_mapper=aslist),
