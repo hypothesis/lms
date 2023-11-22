@@ -1,0 +1,23 @@
+{% extends 'templates/base.plain.html.jinja2' %}
+
+{% block content %}
+{% for message in request.session.pop_flash() %}
+  <p><b>{{ message }}</b></p>
+{% endfor %}
+
+<form action="" method="post">
+  <fieldset>
+    <legend>Receive email notifications when your students annotate. Select
+    the days you'd like your emails:</legend>
+
+    <ul style="list-style-type:none;">
+      {% for key, value in preferences.items() %}
+        <li><input type="checkbox" id="{{ key }}" name="{{ key }}" {% if value %}checked{% endif %} />
+        <label for="{{ key }}">{{ key }}</label></li>
+      {% endfor %}
+    </ul>
+  </fieldset>
+
+  <button type="submit">Save</button>
+</form>
+{% endblock %}
