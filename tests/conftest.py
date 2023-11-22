@@ -40,6 +40,7 @@ TEST_SETTINGS = {
     "blackboard_api_client_secret": "test_blackboard_api_client_secret",
     "vitalsource_api_key": "test_vs_api_key",
     "disable_key_rotation": False,
+    "email_preferences_secret": "test_email_preferences_secret",
 }
 
 

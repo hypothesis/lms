@@ -1,10 +1,13 @@
 from unittest.mock import sentinel
 
 import pytest
+from h_matchers import Any
 from pyramid.httpexceptions import HTTPFound
 
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
-from lms.views.email import unsubscribe, unsubscribed
+from lms.views.email import EmailPreferencesViews, forbidden, unsubscribe, unsubscribed
+
+pytestmark = pytest.mark.usefixtures("email_preferences_service")
 
 
 def test_unsubscribe(pyramid_request, email_preferences_service):
@@ -29,3 +32,73 @@ def test_unsubscribe_error(pyramid_request, email_preferences_service, exception
 
 def test_unsubscribed(pyramid_request):
     assert not unsubscribed(pyramid_request)
+
+
+def test_forbidden(pyramid_request):
+    # pylint:disable=use-implicit-booleaness-not-comparison
+    assert forbidden(pyramid_request) == {}
+
+
+class TestEmailPreferencesViews:
+    def test_preferences_redirect(self, views, remember, pyramid_request):
+        remember.return_value = [("foo", "bar")]
+
+        result = views.preferences_redirect()
+
+        remember.assert_called_once_with(
+            pyramid_request, pyramid_request.authenticated_userid
+        )
+        assert result == Any.instance_of(HTTPFound).with_attrs(
+            {
+                "location": "http://example.com/email/preferences",
+            }
+        )
+        assert result.headers["foo"] == "bar"
+
+    def test_preferences(self, views, email_preferences_service, pyramid_request):
+        result = views.preferences()
+
+        email_preferences_service.get_preferences.assert_called_once_with(
+            pyramid_request.authenticated_userid
+        )
+        assert result == {
+            "preferences": email_preferences_service.get_preferences.return_value
+        }
+
+    def test_set_preferences(self, views, email_preferences_service, pyramid_request):
+        pyramid_request.params = {
+            "instructor_email_digests.days.1": "on",
+            "instructor_email_digests.days.3": "on",
+            "instructor_email_digests.days.4": "off",
+            "instructor_email_digests.days.5": "on",
+            "instructor_email_digests.days.7": "on",
+            "foo": "bar",
+        }
+
+        result = views.set_preferences()
+
+        email_preferences_service.set_preferences.assert_called_once_with(
+            pyramid_request.authenticated_userid,
+            {
+                "instructor_email_digests.days.1": True,
+                "instructor_email_digests.days.2": False,
+                "instructor_email_digests.days.3": True,
+                "instructor_email_digests.days.4": False,
+                "instructor_email_digests.days.5": True,
+                "instructor_email_digests.days.6": False,
+                "instructor_email_digests.days.7": True,
+            },
+        )
+        assert result == Any.instance_of(HTTPFound).with_attrs(
+            {
+                "location": "http://example.com/email/preferences",
+            }
+        )
+
+    @pytest.fixture
+    def views(self, pyramid_request):
+        return EmailPreferencesViews(pyramid_request)
+
+    @pytest.fixture(autouse=True)
+    def remember(self, patch):
+        return patch("lms.views.email.remember")
