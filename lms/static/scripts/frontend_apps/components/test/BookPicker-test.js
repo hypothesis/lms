@@ -185,7 +185,7 @@ describe('BookPicker', () => {
   });
 
   [true, false].forEach(allowPageRangeSelection => {
-    it('displays page range picker if featur enabled', () => {
+    it('displays page range picker if feature enabled', () => {
       const picker = renderBookPicker({ allowPageRangeSelection });
       selectBook(picker);
       clickSelectButton(picker);
