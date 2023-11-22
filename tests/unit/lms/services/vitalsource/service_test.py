@@ -35,10 +35,22 @@ class TestVitalSourceService:
 
         assert svc.sso_enabled == bool(enabled and customer_client and user_lti_param)
 
-    def test_get_book_reader_url(self, svc):
-        url = svc.get_book_reader_url("vitalsource://book/bookID/BOOK-ID/cfi/CFI")
-
-        assert url == "https://hypothesis.vitalsource.com/books/BOOK-ID/cfi/CFI"
+    @pytest.mark.parametrize(
+        "doc_url,reader_url",
+        [
+            (
+                "vitalsource://book/bookID/BOOK-ID/cfi/CFI",
+                "https://hypothesis.vitalsource.com/books/BOOK-ID/cfi/CFI",
+            ),
+            (
+                "vitalsource://book/bookID/BOOK-ID/page/42",
+                "https://hypothesis.vitalsource.com/books/BOOK-ID/page/42",
+            ),
+        ],
+    )
+    def test_get_book_reader_url(self, svc, doc_url, reader_url):
+        url = svc.get_book_reader_url(doc_url)
+        assert url == reader_url
 
     def test_get_sso_redirect(self, svc, customer_client):
         result = svc.get_sso_redirect(

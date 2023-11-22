@@ -102,8 +102,13 @@ class VitalSourceService:
         :param document_url: `vitalsource://` type URL identifying the document
         """
         loc = VSBookLocation.from_document_url(document_url)
+        prefix = f"https://hypothesis.vitalsource.com/books/{loc.book_id}"
 
-        return f"https://hypothesis.vitalsource.com/books/{loc.book_id}/cfi/{loc.cfi}"
+        if loc.cfi:
+            return f"{prefix}/cfi/{loc.cfi}"
+        if loc.page:
+            return f"{prefix}/page/{loc.page}"
+        return prefix  # pragma: nocover
 
     def get_sso_redirect(self, document_url, user_reference: str) -> str:
         """
