@@ -7,7 +7,7 @@ from lms.services.application_instance import ApplicationInstanceService
 from lms.services.lti_role_service import LTIRoleService
 
 
-@view_defaults(permission=Permissions.ADMIN)
+@view_defaults(permission=Permissions.STAFF)
 class AdminRoleViews:
     def __init__(self, request):
         self.request = request

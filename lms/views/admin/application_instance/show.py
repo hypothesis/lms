@@ -8,7 +8,7 @@ class ShowApplicationInstanceView(BaseApplicationInstanceView):
     @view_config(
         route_name="admin.instance",
         renderer="lms:templates/admin/application_instance/show.html.jinja2",
-        permission=Permissions.ADMIN,
+        permission=Permissions.STAFF,
         request_method="GET",
     )
     def show_instance(self):

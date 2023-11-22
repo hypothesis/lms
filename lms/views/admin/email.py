@@ -8,7 +8,7 @@ from lms.security import Permissions
 from lms.tasks.email_digests import send_instructor_email_digests
 
 
-@view_defaults(route_name="admin.email", permission=Permissions.ADMIN)
+@view_defaults(route_name="admin.email", permission=Permissions.STAFF)
 class AdminEmailViews:
     def __init__(self, request):
         self.request = request

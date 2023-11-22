@@ -77,7 +77,7 @@ URL_SUGGESTIONS = {
 }
 
 
-@view_defaults(request_method="GET", permission=Permissions.ADMIN)
+@view_defaults(request_method="GET", permission=Permissions.STAFF)
 class AdminLTIRegistrationViews:
     def __init__(self, request):
         self.request = request
