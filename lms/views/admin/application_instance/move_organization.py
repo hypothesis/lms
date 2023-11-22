@@ -10,7 +10,7 @@ class MoveOrgApplicationInstanceView(BaseApplicationInstanceView):
         route_name="admin.instance.move_org",
         request_method="POST",
         require_csrf=True,
-        permission=Permissions.STAFF,
+        permission=Permissions.ADMIN,
     )
     def move_application_instance_org(self):
         ai = self.application_instance

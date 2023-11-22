@@ -18,7 +18,7 @@ class UpgradeApplicationInstanceSchema(PyramidRequestSchema):
     deployment_id = fields.Str(required=True, validate=validate.Length(min=1))
 
 
-@view_defaults(permission=Permissions.STAFF, route_name="admin.instance.upgrade")
+@view_defaults(permission=Permissions.ADMIN, route_name="admin.instance.upgrade")
 class UpgradeApplicationInstanceViews(BaseApplicationInstanceView):
     def __init__(self, request):
         super().__init__(request)

@@ -31,7 +31,7 @@ class UpdateApplicationInstanceView(BaseApplicationInstanceView):
         route_name="admin.instance",
         request_method="POST",
         require_csrf=True,
-        permission=Permissions.STAFF,
+        permission=Permissions.ADMIN,
     )
     def update_instance(self):
         ai = self.application_instance
@@ -61,7 +61,7 @@ class UpdateApplicationInstanceView(BaseApplicationInstanceView):
         route_name="admin.instance.settings",
         request_method="POST",
         require_csrf=True,
-        permission=Permissions.STAFF,
+        permission=Permissions.ADMIN,
     )
     def update_instance_settings(self):
         ai = self.application_instance
