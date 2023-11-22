@@ -5,7 +5,15 @@ from lms.validation._exceptions import ValidationError
 
 
 @forbidden_view_config(path_info="/admin/*")
-def logged_out(request):
+def forbidden(request):
+    if request.identity.userid:
+        # Logged in but missing permissions, go back to the admin page's index.
+        request.session.flash(
+            f"You don't have permissions for that: {request.path}", "errors"
+        )
+        return HTTPFound(location=request.route_url("admin.index"))
+
+    # Not logged in, redirect to Google auth.
     return HTTPFound(
         location=request.route_url(
             "pyramid_googleauth.login", _query={"next": request.url}

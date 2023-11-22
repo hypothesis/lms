@@ -37,9 +37,7 @@ class Permissions(Enum):
     LTI_CONFIGURE_ASSIGNMENT = "lti_configure_assignment"
     API = "api"
     STAFF = "staff"
-    """General access to the admin pages"""
     ADMIN = "admin"
-    """Superuser access to the admin pages"""
     GRADE_ASSIGNMENT = "grade_assignment"
 
 
