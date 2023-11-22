@@ -50,6 +50,8 @@ class TestConfigure:
             ("dev", "", False),
             ("dev", "false", False),
             ("dev", "1", True),
+            ("rpc_allowed_origins", None, []),
+            ("rpc_allowed_origins", "", []),
             ("rpc_allowed_origins", "a", ["a"]),
             ("rpc_allowed_origins", "a\nb\nc", ["a", "b", "c"]),
         ),
