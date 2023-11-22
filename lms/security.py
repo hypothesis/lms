@@ -4,12 +4,14 @@ from functools import lru_cache, partial
 from typing import Callable, List, NamedTuple, Optional
 
 import sentry_sdk
+from pyramid.authentication import AuthTktCookieHelper
 from pyramid.request import Request
 from pyramid.security import Allowed, Denied
 from pyramid_googleauth import GoogleSecurityPolicy
 
 from lms.models import LTIUser
-from lms.services import UserService
+from lms.services import EmailPreferencesService, UserService
+from lms.services.email_preferences import InvalidTokenError, UnrecognisedURLError
 from lms.validation.authentication import (
     BearerTokenSchema,
     LTI11AuthSchema,
@@ -39,6 +41,7 @@ class Permissions(Enum):
     STAFF = "staff"
     ADMIN = "admin"
     GRADE_ASSIGNMENT = "grade_assignment"
+    EMAIL_PREFERENCES = "email.preferences"
 
 
 class UnautheticatedSecurityPolicy:  # pragma: no cover
@@ -126,6 +129,13 @@ class SecurityPolicy:
                 partial(get_lti_user_from_bearer_token, location="form")
             )
 
+        if path == "/email/preferences":
+            return EmailPreferencesSecurityPolicy(
+                secret=request.registry.settings["email_preferences_secret"],
+                domain=request.domain,
+                email_preferences_service=request.find_service(EmailPreferencesService),
+            )
+
         return UnautheticatedSecurityPolicy()
 
 
@@ -205,6 +215,56 @@ class LMSGoogleSecurityPolicy(GoogleSecurityPolicy):
 
     def permits(self, request, _context, permission):
         return _permits(self.identity(request), permission)
+
+
+class EmailPreferencesSecurityPolicy:
+    """The security policy for the email preferences page."""
+
+    def __init__(
+        self,
+        secret: str,
+        domain: str,
+        email_preferences_service: EmailPreferencesService,
+    ):
+        self.cookie = AuthTktCookieHelper(
+            secret=secret,
+            cookie_name="email.preferences",
+            secure=True,
+            timeout=60 * 5,
+            reissue_time=0,
+            max_age=60 * 5,
+            path="/email/preferences",
+            http_only=True,
+            domain=domain,
+        )
+        self.email_preferences_service = email_preferences_service
+
+    def identity(self, request):
+        try:
+            return self.email_preferences_service.h_userid(request.url)
+        except UnrecognisedURLError:
+            pass
+        except InvalidTokenError:
+            return None
+
+        try:
+            return self.cookie.identify(request)["userid"]
+        except (KeyError, TypeError):
+            return None
+
+    def authenticated_userid(self, request):
+        return self.identity(request)
+
+    def permits(self, request, _context, permission):
+        identity = self.identity(request)
+
+        if identity is not None and permission == Permissions.EMAIL_PREFERENCES:
+            return Allowed("Allowed")
+
+        return Denied("Denied")
+
+    def remember(self, request, userid, **_kw):
+        return self.cookie.remember(request, userid)
 
 
 def _permits(identity, permission):

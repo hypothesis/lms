@@ -51,9 +51,22 @@ class EmailPreferencesService:
         self._user_preferences_service = user_preferences_service
 
     def unsubscribe_url(self, h_userid, tag):
-        """Generate the url for `email.unsubscribe` with the right token."""
+        """Return an email unsubscribe URL for the given h_userid.
+
+        The URL will contain a scoped and time-limited authentication token for
+        the given h_userid in a query param.
+        """
         token = self._generate_token(h_userid, tag)
         return self._route_url("email.unsubscribe", _query={"token": token})
+
+    def preferences_url(self, h_userid):
+        """Return a URL for the email preferences page for the given h_userid.
+
+        The URL will contain a scoped and time-limited authentication token for
+        the given h_userid in a query param.
+        """
+        token = self._generate_token(h_userid)
+        return self._route_url("email.preferences", _query={"token": token})
 
     def unsubscribe(self, token):
         """Create a new entry in EmailUnsubscribe based on the email and tag encode in `token`."""
@@ -109,11 +122,14 @@ class EmailPreferencesService:
             {self.KEY_PREFIX + key: value for key, value in prefs.days().items()},
         )
 
-    def _generate_token(self, h_userid, tag):
+    def _generate_token(self, h_userid, tag=None):
+        payload = {"h_userid": h_userid}
+
+        if tag is not None:
+            payload["tag"] = tag
+
         return self._jwt_service.encode_with_secret(
-            {"h_userid": h_userid, "tag": tag},
-            self._secret,
-            lifetime=timedelta(days=30),
+            payload, self._secret, lifetime=timedelta(days=30)
         )
 
     def _decode_token(self, token):

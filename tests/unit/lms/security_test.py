@@ -6,6 +6,7 @@ from pyramid.security import Allowed, Denied
 
 from lms.security import (
     DeniedWithException,
+    EmailPreferencesSecurityPolicy,
     Identity,
     LMSGoogleSecurityPolicy,
     LTIUserSecurityPolicy,
@@ -18,6 +19,7 @@ from lms.security import (
     get_lti_user_from_oauth_callback,
     includeme,
 )
+from lms.services.email_preferences import InvalidTokenError, UnrecognisedURLError
 from lms.validation import ValidationError
 from tests import factories
 
@@ -90,6 +92,110 @@ class TestLMSGoogleSecurityPolicy:
     @pytest.fixture
     def policy(self):
         return LMSGoogleSecurityPolicy()
+
+
+class TestEmailPreferencesSecurityPolicy:
+    @pytest.mark.parametrize("method", ["identity", "authenticated_userid"])
+    def test_identity_returns_the_h_userid_from_the_token(
+        self, policy, pyramid_request, email_preferences_service, method
+    ):
+        identity = getattr(policy, method)(pyramid_request)
+
+        email_preferences_service.h_userid.assert_called_once_with(pyramid_request.url)
+        assert identity == email_preferences_service.h_userid.return_value
+
+    @pytest.mark.parametrize("method", ["identity", "authenticated_userid"])
+    def test_identity_returns_None_if_the_token_is_invalid(
+        self, policy, pyramid_request, email_preferences_service, method
+    ):
+        email_preferences_service.h_userid.side_effect = InvalidTokenError
+
+        assert getattr(policy, method)(pyramid_request) is None
+
+    @pytest.mark.parametrize("method", ["identity", "authenticated_userid"])
+    def test_identity_returns_the_h_userid_from_the_cookie(
+        self,
+        policy,
+        pyramid_request,
+        email_preferences_service,
+        AuthTktCookieHelper,
+        method,
+    ):
+        email_preferences_service.h_userid.side_effect = UnrecognisedURLError
+        AuthTktCookieHelper.return_value.identify.return_value = {
+            "userid": sentinel.h_userid
+        }
+
+        identity = getattr(policy, method)(pyramid_request)
+
+        AuthTktCookieHelper.return_value.identify.assert_called_once_with(
+            pyramid_request
+        )
+        assert identity == sentinel.h_userid
+
+    @pytest.mark.parametrize("method", ["identity", "authenticated_userid"])
+    @pytest.mark.parametrize("exception_class", [KeyError, TypeError])
+    def test_identity_returns_None_if_the_cookie_is_missing_or_invalid(
+        self,
+        policy,
+        pyramid_request,
+        email_preferences_service,
+        AuthTktCookieHelper,
+        exception_class,
+        method,
+    ):
+        email_preferences_service.h_userid.side_effect = UnrecognisedURLError
+        AuthTktCookieHelper.return_value.identify.side_effect = exception_class
+
+        assert getattr(policy, method)(pyramid_request) is None
+
+    @pytest.mark.parametrize(
+        "permission,expected_result",
+        [
+            (Permissions.EMAIL_PREFERENCES, Allowed("Allowed")),
+            ("foo", Denied("Denied")),
+        ],
+    )
+    def test_permits_when_authenticated(
+        self, pyramid_request, policy, permission, expected_result
+    ):
+        result = policy.permits(pyramid_request, sentinel.context, permission)
+
+        assert result == expected_result
+
+    @pytest.mark.parametrize(
+        "permission,expected_result",
+        [(Permissions.EMAIL_PREFERENCES, Denied("Denied")), ("foo", Denied("Denied"))],
+    )
+    def test_permits_when_not_authenticated(
+        self,
+        pyramid_request,
+        policy,
+        permission,
+        expected_result,
+        email_preferences_service,
+    ):
+        email_preferences_service.h_userid.side_effect = InvalidTokenError
+
+        result = policy.permits(pyramid_request, sentinel.context, permission)
+
+        assert result == expected_result
+
+    def test_remember(self, policy, pyramid_request, AuthTktCookieHelper):
+        result = policy.remember(pyramid_request, sentinel.userid)
+
+        AuthTktCookieHelper.return_value.remember.assert_called_once_with(
+            pyramid_request, sentinel.userid
+        )
+        assert result == AuthTktCookieHelper.return_value.remember.return_value
+
+    @pytest.fixture
+    def policy(self, email_preferences_service):
+        return EmailPreferencesSecurityPolicy(
+            secret="test_email_preferences_secret",
+            domain="example.com",
+            email_preferences_service=email_preferences_service,
+        )
 
 
 @pytest.mark.usefixtures("pyramid_config")
@@ -266,6 +372,24 @@ class TestSecurityPolicy:
         LTIUserSecurityPolicy.assert_called_once_with(lti_user_getter)
         assert policy == LTIUserSecurityPolicy.return_value
 
+    def test_get_policy_email_preferences(
+        self,
+        pyramid_request,
+        policy,
+        email_preferences_service,
+        EmailPreferencesSecurityPolicy,
+    ):
+        pyramid_request.path = "/email/preferences"
+
+        sub_policy = policy.get_policy(pyramid_request)
+
+        EmailPreferencesSecurityPolicy.assert_called_once_with(
+            secret="test_email_preferences_secret",
+            domain="example.com",
+            email_preferences_service=email_preferences_service,
+        )
+        assert sub_policy == EmailPreferencesSecurityPolicy.return_value
+
     @pytest.mark.parametrize(
         "path,location",
         [
@@ -305,6 +429,10 @@ class TestSecurityPolicy:
     @pytest.fixture(autouse=True)
     def LMSGoogleSecurityPolicy(self, patch):
         return patch("lms.security.LMSGoogleSecurityPolicy")
+
+    @pytest.fixture(autouse=True)
+    def EmailPreferencesSecurityPolicy(self, patch):
+        return patch("lms.security.EmailPreferencesSecurityPolicy")
 
     @pytest.fixture(autouse=True)
     def UnautheticatedSecurityPolicy(self, patch):
@@ -426,3 +554,8 @@ class TestGetUser:
             pyramid_request.lti_user.user_id,
         )
         assert user == user_service.get.return_value
+
+
+@pytest.fixture(autouse=True)
+def AuthTktCookieHelper(patch):
+    return patch("lms.security.AuthTktCookieHelper")
