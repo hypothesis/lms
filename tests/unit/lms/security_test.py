@@ -45,7 +45,7 @@ class TestLMSGoogleSecurityPolicy:
                 "testuser@hypothes.is",
                 Identity(
                     userid="testuser@hypothes.is",
-                    permissions=[Permissions.ADMIN],
+                    permissions=[Permissions.STAFF],
                 ),
             ),
             ("testuser@example.com", Identity(userid="", permissions=[])),
@@ -67,7 +67,7 @@ class TestLMSGoogleSecurityPolicy:
     @pytest.mark.parametrize(
         "permission,expected_result",
         [
-            (Permissions.ADMIN, Allowed("allowed")),
+            (Permissions.STAFF, Allowed("allowed")),
             ("some-other-permission", Denied("denied")),
         ],
     )

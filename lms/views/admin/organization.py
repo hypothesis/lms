@@ -32,7 +32,7 @@ class NewOrganizationSchema(PyramidRequestSchema):
     name = fields.Str(required=True, validate=validate.Length(min=1))
 
 
-@view_defaults(request_method="GET", permission=Permissions.ADMIN)
+@view_defaults(request_method="GET", permission=Permissions.STAFF)
 class AdminOrganizationViews:
     def __init__(self, request):
         self.request = request

@@ -36,7 +36,7 @@ class Permissions(Enum):
     LTI_LAUNCH_ASSIGNMENT = "lti_launch_assignment"
     LTI_CONFIGURE_ASSIGNMENT = "lti_configure_assignment"
     API = "api"
-    ADMIN = "admin"
+    STAFF = "staff"
     GRADE_ASSIGNMENT = "grade_assignment"
 
 
@@ -191,7 +191,7 @@ class LMSGoogleSecurityPolicy(GoogleSecurityPolicy):
         userid = self.authenticated_userid(request)
 
         if userid and userid.endswith("@hypothes.is"):
-            return Identity(userid, permissions=[Permissions.ADMIN])
+            return Identity(userid, permissions=[Permissions.STAFF])
 
         return Identity("", [])
 

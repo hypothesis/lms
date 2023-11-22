@@ -37,7 +37,7 @@ class SearchApplicationInstanceSchema(PyramidRequestSchema):
 @view_defaults(
     route_name="admin.instance.search",
     renderer="lms:templates/admin/application_instance/search.html.jinja2",
-    permission=Permissions.ADMIN,
+    permission=Permissions.STAFF,
 )
 class SearchApplicationInstanceViews(BaseApplicationInstanceView):
     @view_config(request_method="GET")
