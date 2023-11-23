@@ -6,6 +6,7 @@ from lms.models import EmailUnsubscribe
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 from lms.services.jwt import JWTService
 from lms.services.upsert import bulk_upsert
+from lms.services.user_preferences import UserPreferencesService
 
 
 class UnrecognisedURLError(Exception):
@@ -16,12 +17,25 @@ class InvalidTokenError(Exception):
     pass
 
 
+KEY_PREFIX = "instructor_email_digests.days."
+
+
 class EmailPreferencesService:
-    def __init__(self, db, jwt_service: JWTService, secret: str, route_url: Callable):
+    DAY_KEYS = [f"{KEY_PREFIX}{day}" for day in [1, 2, 3, 4, 5, 6, 7]]
+
+    def __init__(  # pylint:disable=too-many-arguments
+        self,
+        db,
+        secret: str,
+        route_url: Callable,
+        jwt_service: JWTService,
+        user_preferences_service: UserPreferencesService,
+    ):
         self._db = db
-        self._jwt_service = jwt_service
         self._secret = secret
         self._route_url = route_url
+        self._jwt_service = jwt_service
+        self._user_preferences_service = user_preferences_service
 
     def unsubscribe_url(self, h_userid, tag):
         """Generate the url for `email.unsubscribe` with the right token."""
@@ -60,6 +74,30 @@ class EmailPreferencesService:
         except (ExpiredJWTError, InvalidJWTError) as err:
             raise InvalidTokenError() from err
 
+    def get_preferences(self, h_userid) -> dict:
+        """Return h_userid's email preferences.
+
+        Changes to the returned dict will *not* be automatically saved to
+        the DB: you must call set_preferences() below.
+        """
+        preferences = self._user_preferences_service.get(h_userid)
+
+        for key in self.DAY_KEYS:
+            preferences.preferences.setdefault(key, True)
+
+        return {key: preferences.preferences[key] for key in self.DAY_KEYS}
+
+    def set_preferences(self, h_userid, new_preferences):
+        """Create or update h_userid's email preferences."""
+        self._user_preferences_service.set(
+            h_userid,
+            {
+                key: new_preferences[key]
+                for key in new_preferences
+                if key in self.DAY_KEYS
+            },
+        )
+
     def _generate_token(self, h_userid, tag):
         return self._jwt_service.encode_with_secret(
             {"h_userid": h_userid, "tag": tag},
@@ -74,7 +112,8 @@ class EmailPreferencesService:
 def factory(_context, request):
     return EmailPreferencesService(
         request.db,
-        request.find_service(iface=JWTService),
         secret=request.registry.settings["jwt_secret"],
         route_url=request.route_url,
+        jwt_service=request.find_service(iface=JWTService),
+        user_preferences_service=request.find_service(UserPreferencesService),
     )

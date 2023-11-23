@@ -43,6 +43,7 @@ from lms.services.oauth2_token import OAuth2TokenService
 from lms.services.oauth_http import OAuthHTTPService
 from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
+from lms.services.user_preferences import UserPreferencesService
 from lms.services.vitalsource import VitalSourceService
 from lms.services.youtube import YouTubeService
 from tests import factories
@@ -86,6 +87,7 @@ __all__ = (
     "organization_service",
     "rsa_key_service",
     "user_service",
+    "user_preferences_service",
     "vitalsource_service",
     "email_preferences_service",
     "youtube_service",
@@ -323,6 +325,11 @@ def user_service(mock_service):
 
 
 @pytest.fixture
+def user_preferences_service(mock_service):
+    return mock_service(UserPreferencesService)
+
+
+@pytest.fixture
 def lti_user_service(mock_service):
     return mock_service(LTIUserService)
 
@@ -334,7 +341,9 @@ def vitalsource_service(mock_service):
 
 @pytest.fixture
 def email_preferences_service(mock_service):
-    return mock_service(EmailPreferencesService)
+    email_preferences_service = mock_service(EmailPreferencesService)
+    email_preferences_service.DAY_KEYS = EmailPreferencesService.DAY_KEYS
+    return email_preferences_service
 
 
 @pytest.fixture
