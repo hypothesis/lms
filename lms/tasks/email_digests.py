@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import List
 
-from sqlalchemy import select
+from sqlalchemy import Boolean, not_, select
 
 from lms.models import (
     ApplicationInstance,
@@ -12,8 +12,9 @@ from lms.models import (
     Event,
     LTIRole,
     User,
+    UserPreferences,
 )
-from lms.services import DigestService
+from lms.services import DigestService, EmailPreferencesService, EmailPrefs
 from lms.tasks.celery import app
 
 LOG = logging.getLogger(__name__)
@@ -44,6 +45,7 @@ def send_instructor_email_digest_tasks(*, batch_size):
     don't need complete accuracy in the timing).
     """
     now = datetime.now(timezone.utc)
+    weekday = EmailPrefs.DAYS[now.weekday()]
     created_before = datetime(year=now.year, month=now.month, day=now.day, hour=5)
     created_after = created_before - timedelta(days=1)
 
@@ -82,6 +84,7 @@ def send_instructor_email_digest_tasks(*, batch_size):
                     == AssignmentMembership.assignment_id,
                 )
                 .join(LTIRole)
+                .outerjoin(UserPreferences, User.h_userid == UserPreferences.h_userid)
                 .where(
                     # Consider only assignments that belong to the candidate courses selected before
                     AssignmentGrouping.grouping_id.in_(
@@ -94,6 +97,13 @@ def send_instructor_email_digest_tasks(*, batch_size):
                             EmailUnsubscribe.tag
                             == EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST
                         )
+                    ),
+                    not_(
+                        UserPreferences.preferences[
+                            f"{EmailPreferencesService.KEY_PREFIX}{weekday}"
+                        ]
+                        .astext.cast(Boolean)
+                        .is_(False)
                     ),
                 )
             ).all()
