@@ -1,4 +1,5 @@
 {% import "lms:templates/admin/macros.html.jinja2" as macros %}
+{% extends "lms:templates/admin/organization/base.html.jinja2" %}
 {% macro org_hierarchy(node, focus_org) %}
     <li>
         {% if node.id == focus_org.id %}
@@ -14,109 +15,47 @@
         {% endif %}
     </li>
 {% endmacro %}
-{% extends "lms:templates/admin/base.html.jinja2" %}
-{% block header %}Organization {{ org.id }}{% endblock %}
 {% block content %}
-    <div class="tabs-wrapper">
-        <div class="tabs is-fullwidth is-medium is-boxed is-toggle">
-            <ul>
-                <li class="is-active">
-                    <a>Info</a>
-                </li>
-                <li>
-                    <a>Usage report</a>
-                </li>
-                <li>
-                    <a>Danger Zone</a>
-                </li>
-            </ul>
+    {{ macros.organization_tabs(request, org, "admin.organization") }}
+    <legend class="label has-text-centered">Organization</legend>
+    <form method="POST"
+          action="{{ request.route_url("admin.organization", id_=org.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+        {{ macros.disabled_text_field("ID", org.public_id) }}
+        {{ macros.form_text_field(request, "Name", "name", org.name) }}
+        {{ macros.settings_textarea(org, "Notes", "hypothesis", "notes") }}
+        {{ macros.created_updated_fields(org) }}
+        <div class="has-text-right mb-6">
+            <input type="submit" class="button is-primary" value="Save" />
         </div>
-        <div class="tabs-content">
-            <ul>
-                <li class="is-active">
-                    <legend class="label has-text-centered">Organization</legend>
-                    <form method="POST"
-                          action="{{ request.route_url("admin.organization", id_=org.id) }}">
-                        <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
-                        {{ macros.disabled_text_field("ID", org.public_id) }}
-                        {{ macros.form_text_field(request, "Name", "name", org.name) }}
-                        {{ macros.settings_textarea(org, "Notes", "hypothesis", "notes") }}
-                        {{ macros.created_updated_fields(org) }}
-                        <div class="has-text-right mb-6">
-                            <input type="submit" class="button is-primary" value="Save" />
-                        </div>
-                    </form>
-                </fieldset>
-                <fieldset class="box">
-                    <legend class="label has-text-centered">Application instances</legend>
-                    <div class="block has-text-right">
-                        <a class="button is-primary"
-                           href="{{ request.route_url("admin.instance.create", _query={"organization_public_id": org.public_id}) }}">
-                            Add New LTI 1.1 instance
-                        </a>
-                        {% if org.application_instances %}
-                            <a class="button"
-                               href="{{ request.route_url("admin.instance.search", _query={"organization_public_id": org.public_id}) }}">
-                                Start search
-                            </a>
-                        {% endif %}
-                    </div>
-                    {% if org.application_instances %}
-                        {{ macros.instances_table(request, org.application_instances) }}
-                    {% else %}
-                        <div class="is-size-5 has-text-centered">No application instances</div>
-                    {% endif %}
-                </fieldset>
-                <div class="box">
-                    <legend class="label has-text-centered">Hierarchy</legend>
-                    <div class="content">
-                        <ul>
-                            {{ org_hierarchy(hierarchy_root, org) }}
-                        </ul>
-                    </div>
-                </div>
-            </li>
-            <li>
-                <fieldset class="box">
-                    <legend class="label has-text-centered">Usage report</legend>
-                    <form method="POST"
-                          action="{{ request.route_url("admin.organization.usage", id_=org.id) }}">
-                        <div class="columns">
-                            <div class="column is-half">{{ macros.form_text_field(request, "Since", "since", "2023-10-01") }}</div>
-                            <div class="column is-half">{{ macros.form_text_field(request, "", "until", "2023-10-31") }}</div>
-                        </div>
-                        <div class="has-text-right mb-6">
-                            <input type="submit" class="button is-primary" value="Generate" />
-                        </div>
-                    </fieldset>
-                </li>
-                <li>
-                    <fieldset class="box has-background-danger-light">
-                        <legend class="label has-text-centered has-text-danger">Danger zone</legend>
-                        {% call macros.field_body("Enabled") %}
-                            <form method="POST"
-                                  action="{{ request.route_url("admin.organization.toggle", id_=org.id) }}">
-                                <label class="checkbox">
-                                    <input {% if org.enabled %}checked{% endif %} type="checkbox" name="enabled">
-                                </label>
-                                <p>
-                                    <b>Disabling the organization will disable all associated application instances. ALL LMS integrations will break.</b>
-                                </p>
-                                <input type="submit" class="button mb-2" value="Update">
-                            </form>
-                        {% endcall %}
-                        {% call macros.field_body(label="Move (or remove) parent organization") %}
-                            <form method="POST"
-                                  action="{{ request.route_url("admin.organization.move_org", id_=org.id) }}">
-                                <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
-                                <input class="input"
-                                       type="text"
-                                       name="parent_public_id"
-                                       value="{{ org.parent.public_id or '' }}">
-                                <input type="submit" class="button mb-2" value="Move">
-                            </form>
-                            <p>Moving this organization might have destructive effects.</p>
-                        {% endcall %}
-                    </fieldset>
-                </li>
-            {% endblock %}
+    </form>
+</fieldset>
+<fieldset class="box">
+    <legend class="label has-text-centered">Application instances</legend>
+    <div class="block has-text-right">
+        <a class="button is-primary"
+           href="{{ request.route_url("admin.instance.create", _query={"organization_public_id": org.public_id}) }}">
+            Add New LTI 1.1 instance
+        </a>
+        {% if org.application_instances %}
+            <a class="button"
+               href="{{ request.route_url("admin.instance.search", _query={"organization_public_id": org.public_id}) }}">
+                Start search
+            </a>
+        {% endif %}
+    </div>
+    {% if org.application_instances %}
+        {{ macros.instances_table(request, org.application_instances) }}
+    {% else %}
+        <div class="is-size-5 has-text-centered">No application instances</div>
+    {% endif %}
+</fieldset>
+<div class="box">
+    <legend class="label has-text-centered">Hierarchy</legend>
+    <div class="content">
+        <ul>
+            {{ org_hierarchy(hierarchy_root, org) }}
+        </ul>
+    </div>
+</div>
+{% endblock %}

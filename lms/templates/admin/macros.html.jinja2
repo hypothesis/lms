@@ -201,3 +201,33 @@
         </div>
     {% endcall %}
 {% endmacro %}
+{% macro tab_headers(request, tabs, active) %}
+    <div class="tabs-wrapper">
+        <div class="tabs is-fullwidth is-medium is-boxed is-toggle">
+            <ul>
+                {% for route, kwargs, title in tabs %}
+                    <li {% if active == route %}class="is-active"{% endif %}>
+                        <a href="{{ request.route_url(route, **kwargs) }}">{{ title }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="tabs-content">
+            <ul>
+                <li class="is-active">
+                    {% block tab_content %}{% endblock %}
+                </li>
+            </ul>
+        </div>
+    </div>
+{% endmacro %}
+{% macro organization_tabs(request, org, active="admin.organization") %}
+    {{ tab_headers(request,
+        [
+        ("admin.organization", {"id_":org.id}, "Info") ,
+    ("admin.organization.usage", {"id_":org.id}, "Usage report"),
+    ("admin.organization.danger", {"id_":org.id}, "Danger Zone")
+    ],
+    active
+    ) }}
+{% endmacro %}

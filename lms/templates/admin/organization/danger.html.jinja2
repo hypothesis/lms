@@ -1,0 +1,32 @@
+{% import "lms:templates/admin/macros.html.jinja2" as macros %}
+{% extends "lms:templates/admin/organization/base.html.jinja2" %}
+{% block content %}
+    {{ macros.organization_tabs(request, org, "admin.organization.danger") }}
+    <fieldset class="box has-background-danger-light">
+        <legend class="label has-text-centered has-text-danger">Danger zone</legend>
+        {% call macros.field_body("Enabled") %}
+            <form method="POST"
+                  action="{{ request.route_url("admin.organization.toggle", id_=org.id) }}">
+                <label class="checkbox">
+                    <input {% if org.enabled %}checked{% endif %} type="checkbox" name="enabled">
+                </label>
+                <p>
+                    <b>Disabling the organization will disable all associated application instances. ALL LMS integrations will break.</b>
+                </p>
+                <input type="submit" class="button mb-2" value="Update">
+            </form>
+        {% endcall %}
+        {% call macros.field_body(label="Move (or remove) parent organization") %}
+            <form method="POST"
+                  action="{{ request.route_url("admin.organization.move_org", id_=org.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+                <input class="input"
+                       type="text"
+                       name="parent_public_id"
+                       value="{{ org.parent.public_id or '' }}">
+                <input type="submit" class="button mb-2" value="Move">
+            </form>
+            <p>Moving this organization might have destructive effects.</p>
+        {% endcall %}
+    </fieldset>
+{% endblock %}

@@ -211,7 +211,7 @@ class TestAdminOrganizationViews:
             ),
         ],
     )
-    def test_usage_crashes_if_you_submit_invalid_values(
+    def test_usage_post_crashes_if_you_submit_invalid_values(
         self,
         views,
         pyramid_request,
@@ -223,7 +223,7 @@ class TestAdminOrganizationViews:
             pyramid_request.POST[key] = form[key]
 
         with pytest.raises(HTTPBadRequest, match=expected_error_message):
-            views.usage()
+            views.usage_post()
 
         organization_service.usage_report.assert_not_called()
 
@@ -232,7 +232,7 @@ class TestAdminOrganizationViews:
         since = datetime(2023, 1, 1)
         until = datetime(2023, 12, 31)
 
-        result = views.usage()
+        result = views.usage_post()
 
         organization_service.get_by_id.assert_called_once_with(sentinel.id_)
         org = organization_service.get_by_id.return_value

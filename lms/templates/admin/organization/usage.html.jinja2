@@ -1,46 +1,54 @@
 {% import "lms:templates/admin/macros.html.jinja2" as macros %}
-{% extends "lms:templates/admin/base.html.jinja2" %}
-{% block header %}Organization {{ org.id }} usage{% endblock %}
+{% extends "lms:templates/admin/organization/base.html.jinja2" %}
 {% block content %}
-    <fieldset class="box mt-6">
-        <legend class="label has-text-centered">Organization</legend>
-        {{ macros.organization_preview(request,org) }}
-    </fieldset>
-    <fieldset class="box mt-6">
-        <div class="columns">
-            <div class="column is-half">{{ macros.disabled_text_field("Since", since.strftime("%Y-%m-%d") ) }}</div>
-            <div class="column is-half">{{ macros.disabled_text_field("Until", until.strftime("%Y-%m-%d") ) }}</div>
-        </div>
-    </fieldset>
-    <table class="table datatable">
-        <thead>
-            <tr>
-                <th>User</th>
-                <th>Email</th>
-                <th>User ID</th>
-                <th>Course</th>
-                <th>Course created</th>
-                <th>Course ID</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in report %}
-                <tr>
-                    <td>{{ row.name }}</td>
-                    <td>{{ row.email }}</td>
-                    <td>{{ row.h_userid }}</td>
-                    <td>{{ row.course_name }}</td>
-                    <td>{{ row.course_created }}</td>
-                    <td>{{ row.authority_provided_id }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-{% endblock %}
-{% block extra_scripts %}
-    <script>
+    {{ macros.organization_tabs(request, org, "admin.organization.usage") }}
+    <fieldset class="box">
+        <legend class="label has-text-centered">Usage report</legend>
+        <form method="POST"
+              action="{{ request.route_url("admin.organization.usage", id_=org.id) }}">
+            <div class="columns">
+                <div class="column is-half">
+                    {{ macros.form_text_field(request, "Since", "since", since.strftime("%Y-%m-%d") if since is defined else  "2023-01-01") }}
+                </div>
+                <div class="column is-half">
+                    {{ macros.form_text_field(request, "", "until", until.strftime("%Y-%m-%d") if until is defined else  "2023-12-31") }}
+                </div>
+            </div>
+            <div class="has-text-right mb-6">
+                <input type="submit" class="button is-primary" value="Generate" />
+            </div>
+        </fieldset>
+        {% if report is defined %}
+            <table class="table datatable">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>User ID</th>
+                        <th>Course</th>
+                        <th>Course created</th>
+                        <th>Course ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in report %}
+                        <tr>
+                            <td>{{ row.name }}</td>
+                            <td>{{ row.email }}</td>
+                            <td>{{ row.h_userid }}</td>
+                            <td>{{ row.course_name }}</td>
+                            <td>{{ row.course_created }}</td>
+                            <td>{{ row.authority_provided_id }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    {% endblock %}
+    {% block extra_scripts %}
+        <script>
 $(function () {
    let table = $('table.datatable').DataTable({dom: 'Bfrtip',buttons: ["csv"]});
 });
-    </script>
-{% endblock %}
+        </script>
+    {% endblock %}

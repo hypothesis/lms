@@ -49,6 +49,26 @@ class AdminOrganizationViews:
         return {}
 
     @view_config(
+        route_name="admin.organization.danger",
+        request_method="GET",
+        renderer="lms:templates/admin/organization/danger.html.jinja2",
+    )
+    def danger(self):  # pragma: no cover
+        return {
+            "org": self._get_org_or_404(self.request.matchdict["id_"]),
+        }
+
+    @view_config(
+        route_name="admin.organization.usage",
+        request_method="GET",
+        renderer="lms:templates/admin/organization/usage.html.jinja2",
+    )
+    def usage(self):  # pragma: no cover
+        return {
+            "org": self._get_org_or_404(self.request.matchdict["id_"]),
+        }
+
+    @view_config(
         route_name="admin.organization.new",
         request_method="GET",
         renderer="lms:templates/admin/organization/new.html.jinja2",
@@ -166,7 +186,7 @@ class AdminOrganizationViews:
         request_method="POST",
         renderer="lms:templates/admin/organization/usage.html.jinja2",
     )
-    def usage(self):
+    def usage_post(self):
         org = self._get_org_or_404(self.request.matchdict["id_"])
         try:
             since = datetime.fromisoformat(self.request.params["since"])
