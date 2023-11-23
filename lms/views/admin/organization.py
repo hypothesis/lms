@@ -43,7 +43,7 @@ class AdminOrganizationViews:
     @view_config(
         route_name="admin.organizations",
         request_method="GET",
-        renderer="lms:templates/admin/organizations.html.jinja2",
+        renderer="lms:templates/admin/organization/search.html.jinja2",
     )
     def organizations(self):  # pragma: no cover
         return {}
@@ -51,7 +51,7 @@ class AdminOrganizationViews:
     @view_config(
         route_name="admin.organization.new",
         request_method="GET",
-        renderer="lms:templates/admin/organization.new.html.jinja2",
+        renderer="lms:templates/admin/organization/new.html.jinja2",
     )
     def new_organization(self):  # pragma: no cover
         return {}
@@ -59,7 +59,7 @@ class AdminOrganizationViews:
     @view_config(
         route_name="admin.organization.new",
         request_method="POST",
-        renderer="lms:templates/admin/organization.new.html.jinja2",
+        renderer="lms:templates/admin/organization/new.html.jinja2",
     )
     def new_organization_callback(self):
         if flash_validation(self.request, NewOrganizationSchema):
@@ -76,7 +76,7 @@ class AdminOrganizationViews:
     @view_config(
         route_name="admin.organization",
         request_method="GET",
-        renderer="lms:templates/admin/organization.html.jinja2",
+        renderer="lms:templates/admin/organization/show.html.jinja2",
     )
     def show_organization(self):
         org_id = self.request.matchdict["id_"]
@@ -142,7 +142,7 @@ class AdminOrganizationViews:
     @view_config(
         route_name="admin.organizations",
         request_method="POST",
-        renderer="lms:templates/admin/organizations.html.jinja2",
+        renderer="lms:templates/admin/organization/search.html.jinja2",
     )
     def search(self):
         if flash_validation(self.request, SearchOrganizationSchema):
@@ -164,7 +164,7 @@ class AdminOrganizationViews:
     @view_config(
         route_name="admin.organization.usage",
         request_method="POST",
-        renderer="lms:templates/admin/organization.usage.html.jinja2",
+        renderer="lms:templates/admin/organization/usage.html.jinja2",
     )
     def usage(self):
         org = self._get_org_or_404(self.request.matchdict["id_"])
