@@ -32,6 +32,7 @@ class TestDigestService:
         send,
         sender,
         email_preferences_service,
+        created_before,
     ):
         context.user_infos = UserInfoFactory.create_batch(2)
         digests = context.instructor_digest.side_effect = [
@@ -40,11 +41,11 @@ class TestDigestService:
         ]
 
         svc.send_instructor_email_digests(
-            sentinel.audience, sentinel.created_after, sentinel.created_before
+            sentinel.audience, sentinel.created_after, created_before
         )
 
         h_api.get_annotations.assert_called_once_with(
-            sentinel.audience, sentinel.created_after, sentinel.created_before
+            sentinel.audience, sentinel.created_after, created_before
         )
         DigestContext.assert_called_once_with(
             db_session,
@@ -69,6 +70,10 @@ class TestDigestService:
         assert send.delay.call_args_list == [
             call(
                 task_done_key=f"instructor_email_digest::{user_info.h_userid}::2023-04-30",
+                task_done_data={
+                    "type": "instructor_email_digest",
+                    "created_before": created_before.isoformat(),
+                },
                 template="lms:templates/email/instructor_email_digest/",
                 sender=asdict(sender),
                 recipient=asdict(
@@ -81,7 +86,7 @@ class TestDigestService:
         ]
 
     def test_send_instructor_email_digests_without_deduplication(
-        self, svc, context, send
+        self, svc, context, send, created_before
     ):
         context.user_infos = [UserInfoFactory()]
         context.instructor_digest.side_effect = [{"total_annotations": 1}]
@@ -89,7 +94,7 @@ class TestDigestService:
         svc.send_instructor_email_digests(
             sentinel.audience,
             sentinel.created_after,
-            sentinel.created_before,
+            created_before,
             deduplicate=False,
         )
 
@@ -98,34 +103,35 @@ class TestDigestService:
         # sent emails. This is used by admin pages that actually want to allow
         # you to send duplicate emails if requested.
         assert not send.delay.call_args.kwargs["task_done_key"]
+        assert not send.delay.call_args.kwargs["task_done_data"]
 
     def test_send_instructor_email_digests_doesnt_send_empty_digests(
-        self, svc, context, send
+        self, svc, context, send, created_before
     ):
         context.user_infos = UserInfoFactory.create_batch(2)
         context.instructor_digest.return_value = {"total_annotations": 0}
 
         svc.send_instructor_email_digests(
-            [sentinel.h_userid], sentinel.created_after, sentinel.created_before
+            [sentinel.h_userid], sentinel.created_after, created_before
         )
 
         send.delay.assert_not_called()
 
     def test_send_instructor_email_digests_ignores_instructors_with_no_email_address(
-        self, svc, context, send
+        self, svc, context, send, created_before
     ):
         context.user_infos = [UserInfoFactory(email=None)]
         context.instructor_digest.return_value = {"total_annotations": 1}
 
         svc.send_instructor_email_digests(
-            sentinel.audience, sentinel.created_after, sentinel.created_before
+            sentinel.audience, sentinel.created_after, created_before
         )
 
         send.delay.assert_not_called()
 
     @pytest.mark.usefixtures("email_preferences_service")
     def test_send_instructor_email_digests_uses_override_to_email(
-        self, svc, context, send
+        self, svc, context, send, created_before
     ):
         context.user_infos = [UserInfoFactory()]
         context.instructor_digest.return_value = {"total_annotations": 1}
@@ -133,7 +139,7 @@ class TestDigestService:
         svc.send_instructor_email_digests(
             sentinel.audience,
             sentinel.created_after,
-            sentinel.created_before,
+            created_before,
             override_to_email=sentinel.override_to_email,
         )
 
@@ -142,13 +148,13 @@ class TestDigestService:
         )
 
     def test_send_instructor_email_digests_handles_annotations_with_no_metadata(
-        self, svc, h_api, DigestContext
+        self, svc, h_api, DigestContext, created_before
     ):
         for annotation_dict in h_api.get_annotations.return_value:
             del annotation_dict["metadata"]["lms"]
 
         svc.send_instructor_email_digests(
-            [sentinel.h_userid], sentinel.created_after, sentinel.created_before
+            [sentinel.h_userid], sentinel.created_after, created_before
         )
 
         assert DigestContext.call_args[0][2] == [
@@ -160,6 +166,10 @@ class TestDigestService:
             )
             for annotation_dict in h_api.get_annotations.return_value
         ]
+
+    @pytest.fixture
+    def created_before(self):
+        return datetime.fromisoformat("2023-11-23T15:48:31.834581+00:00")
 
     @pytest.fixture(autouse=True)
     def DigestContext(self, patch):

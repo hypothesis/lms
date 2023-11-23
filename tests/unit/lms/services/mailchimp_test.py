@@ -4,7 +4,9 @@ from unittest.mock import Mock, sentinel
 import pytest
 from factory import Sequence, make_factory
 from h_matchers import Any
+from sqlalchemy import select
 
+from lms.models import TaskDone
 from lms.services.mailchimp import (
     EmailRecipient,
     EmailSender,
@@ -121,7 +123,7 @@ class TestSend:
         )
 
     def test_it_doesnt_send_duplicate_emails(
-        self, svc, mailchimp_client, sender, recipient
+        self, svc, mailchimp_client, sender, recipient, db_session
     ):
         # Try to send the same email twice.
         for _ in range(2):
@@ -131,10 +133,15 @@ class TestSend:
                 recipient,
                 template_vars={"total_annotations": 1},
                 task_done_key="test_key",
+                task_done_data={"foo": "bar"},
             )
 
         # It should only have sent the email once.
         assert len(mailchimp_client.messages.send.call_args_list) == 1
+        # It should have recorded the send in the DB.
+        assert db_session.scalars(select(TaskDone)).one() == Any.instance_of(
+            TaskDone
+        ).with_attrs({"key": "test_key", "data": {"foo": "bar"}})
 
     def test_with_unsubscribe_url(self, svc, mailchimp_client, sender, recipient):
         svc.send(
