@@ -67,19 +67,53 @@ class TestSendInstructurEmailDigestsTasks:
         send_instructor_email_digests.apply_async.assert_not_called()
 
     @freeze_time("2023-03-09 05:15:00")
-    def test_it_doesnt_email_unsubscribed_instructors(
-        self, send_instructor_email_digests, unsubscribed_instructors
+    def test_it_doesnt_email_unsubscribed_instructors_legacy(
+        self, send_instructor_email_digests, participating_instructors
     ):
+        participating_instructors, unsubscribed_instructors = (
+            participating_instructors[:1],
+            participating_instructors[1:],
+        )
+        for unsubscribed_instructor in unsubscribed_instructors:
+            factories.EmailUnsubscribe(
+                h_userid=unsubscribed_instructor.h_userid,
+                tag=EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST,
+            )
+
         send_instructor_email_digest_tasks(batch_size=42)
 
         assert send_instructor_email_digests.apply_async.call_args_list == [
             call(
                 (),
                 Any.dict.containing(
-                    {"h_userids": [unsubscribed_instructors[0].h_userid]}
+                    {"h_userids": [participating_instructors[0].h_userid]}
                 ),
             )
         ]
+
+    @freeze_time("2023-03-09 05:15:00")
+    def test_it_doesnt_email_unsubscribed_instructors(
+        self, send_instructor_email_digests, participating_instructors
+    ):
+        participating_instructors, unsubscribed_instructors = (
+            participating_instructors[:1],
+            participating_instructors[1:],
+        )
+        for unsubscribed_instructor in unsubscribed_instructors:
+            factories.UserPreferences(
+                h_userid=unsubscribed_instructor.h_userid,
+                preferences={"instructor_email_digests.days.thu": False},
+            )
+
+        send_instructor_email_digest_tasks(
+            batch_size=len(participating_instructors + unsubscribed_instructors)
+        )
+
+        assert not any(
+            unsubscribed_instructor.h_userid
+            in send_instructor_email_digests.apply_async.call_args[0][1]["h_userids"]
+            for unsubscribed_instructor in unsubscribed_instructors
+        )
 
     @freeze_time("2023-03-09 05:15:00")
     def test_it_deduplicates_duplicate_h_userids(
@@ -143,18 +177,6 @@ class TestSendInstructurEmailDigestsTasks:
         make_instructors(users, participating_instances[0], with_launch=False)
 
         return sorted(users, key=lambda u: u.h_userid)
-
-    @pytest.fixture
-    def unsubscribed_instructors(self, participating_instructors):
-        # We leave the first instructor alone, no unsubscribes
-        for instructor in participating_instructors[1:]:
-            # We unsubscribe the rest
-            factories.EmailUnsubscribe(
-                h_userid=instructor.h_userid,
-                tag=EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST,
-            )
-
-        return participating_instructors
 
     @pytest.fixture
     def non_participating_instance(self):
