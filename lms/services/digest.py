@@ -73,11 +73,17 @@ class DigestService:
 
             if deduplicate:
                 task_done_key = f"instructor_email_digest::{user_info.h_userid}::{datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
+                task_done_data = {
+                    "type": "instructor_email_digest",
+                    "created_before": created_before.isoformat(),
+                }
             else:
                 task_done_key = None
+                task_done_data = None
 
             send.delay(
                 task_done_key=task_done_key,
+                task_done_data=task_done_data,
                 template="lms:templates/email/instructor_email_digest/",
                 sender=asdict(self._sender),
                 recipient=asdict(EmailRecipient(to_email, user_info.display_name)),
