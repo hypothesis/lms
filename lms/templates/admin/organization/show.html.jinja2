@@ -1,4 +1,4 @@
-{% import "macros.html.jinja2" as macros %}
+{% import "lms:templates/admin/macros.html.jinja2" as macros %}
 {% macro org_hierarchy(node, focus_org) %}
     <li>
         {% if node.id == focus_org.id %}
