@@ -34,6 +34,7 @@ from tests.factories.oauth2_token import OAuth2Token
 from tests.factories.organization import Organization
 from tests.factories.rsa_key import RSAKey
 from tests.factories.user import User
+from tests.factories.user_preferences import UserPreferences
 
 
 def set_sqlalchemy_session(session, persistence=None):

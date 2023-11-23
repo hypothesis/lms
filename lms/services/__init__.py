@@ -3,7 +3,7 @@ from lms.services.application_instance import ApplicationInstanceNotFound
 from lms.services.canvas import CanvasService
 from lms.services.d2l_api.client import D2LAPIClient
 from lms.services.digest import DigestService
-from lms.services.email_preferences import EmailPreferencesService
+from lms.services.email_preferences import EmailPreferencesService, EmailPrefs
 from lms.services.event import EventService
 from lms.services.exceptions import (
     CanvasAPIError,
@@ -32,6 +32,7 @@ from lms.services.ltia_http import LTIAHTTPService
 from lms.services.organization import OrganizationService
 from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
+from lms.services.user_preferences import UserPreferencesService
 from lms.services.vitalsource import VitalSourceService
 from lms.services.youtube import YouTubeService
 
@@ -53,6 +54,9 @@ def includeme(config):
     )
     config.register_service_factory("lms.services.canvas.factory", iface=CanvasService)
     config.register_service_factory("lms.services.user.factory", iface=UserService)
+    config.register_service_factory(
+        "lms.services.user_preferences.factory", iface=UserPreferencesService
+    )
 
     config.register_service_factory("lms.services.h_api.service_factory", iface=HAPI)
     config.register_service_factory(
