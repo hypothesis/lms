@@ -29,6 +29,7 @@ export type APICallInfo = {
 export type AppMode =
   | 'basic-lti-launch'
   | 'content-item-selection'
+  | 'email-notifications'
   | 'error-dialog'
   | 'oauth2-redirect-error';
 
@@ -219,6 +220,10 @@ export type Product = {
   api: ProductAPI;
 };
 
+export type WeekDay = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+export type EmailNotificationsPreferences = Record<WeekDay, boolean>;
+
 /**
  * Data/configuration needed for frontend applications in the LMS app.
  * The `mode` property specifies which frontend application should load and
@@ -268,6 +273,9 @@ export type ConfigObject = {
 
   // Only present in "oauth2-redirect-error" mode.
   OAuth2RedirectError?: OAuthErrorConfig;
+
+  // Only present in "email-notifications" mode.
+  emailNotifications?: EmailNotificationsPreferences;
 };
 
 /**

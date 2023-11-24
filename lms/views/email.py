@@ -52,7 +52,8 @@ def forbidden(_request):
 
 @view_defaults(permission=Permissions.EMAIL_PREFERENCES)
 class EmailPreferencesViews:
-    def __init__(self, request):
+    def __init__(self, context, request):
+        self.context = context
         self.request = request
         self.email_preferences_service = request.find_service(EmailPreferencesService)
 
@@ -77,11 +78,12 @@ class EmailPreferencesViews:
         renderer="lms:templates/email/preferences.html.jinja2",
     )
     def preferences(self):
-        return {
-            "preferences": self.email_preferences_service.get_preferences(
+        self.context.js_config.enable_email_notifications_mode(
+            email_notifications_preferences=self.email_preferences_service.get_preferences(
                 self.request.authenticated_userid
-            ),
-        }
+            )
+        )
+        return {}
 
     @view_config(
         route_name="email.preferences",
