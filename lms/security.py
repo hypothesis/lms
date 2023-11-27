@@ -1,4 +1,5 @@
 import base64
+from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache, partial
 from typing import Callable, List, NamedTuple, Optional
@@ -129,7 +130,7 @@ class SecurityPolicy:
                 partial(get_lti_user_from_bearer_token, location="form")
             )
 
-        if path == "/email/preferences":
+        if path in {"/email/preferences", "/email/unsubscribe"}:
             return EmailPreferencesSecurityPolicy(
                 secret=request.registry.settings["email_preferences_secret"],
                 domain=request.domain,
@@ -217,6 +218,14 @@ class LMSGoogleSecurityPolicy(GoogleSecurityPolicy):
         return _permits(self.identity(request), permission)
 
 
+@dataclass
+class EmailPreferencesIdentity:
+    """The identity class used by EmailPreferencesSecurityPolicy."""
+
+    h_userid: str
+    tag: Optional[str] = None
+
+
 class EmailPreferencesSecurityPolicy:
     """The security policy for the email preferences page."""
 
@@ -241,19 +250,24 @@ class EmailPreferencesSecurityPolicy:
 
     def identity(self, request):
         try:
-            return self.email_preferences_service.h_userid(request.url)
+            token_payload = self.email_preferences_service.decode(request.url)
         except UnrecognisedURLError:
             pass
         except InvalidTokenError:
             return None
+        else:
+            return EmailPreferencesIdentity(token_payload.h_userid, token_payload.tag)
 
         try:
-            return self.cookie.identify(request)["userid"]
+            cookie_payload = self.cookie.identify(request)
         except (KeyError, TypeError):
             return None
 
+        return EmailPreferencesIdentity(cookie_payload["userid"])
+
     def authenticated_userid(self, request):
-        return self.identity(request)
+        identity = self.identity(request)
+        return identity.h_userid if identity else None
 
     def permits(self, request, _context, permission):
         identity = self.identity(request)

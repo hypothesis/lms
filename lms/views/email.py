@@ -6,28 +6,24 @@ from pyramid.view import forbidden_view_config, view_config, view_defaults
 
 from lms.security import Permissions
 from lms.services import EmailPreferencesService, EmailPrefs
-from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 
 LOG = logging.getLogger(__name__)
 
 
-@view_config(
+@forbidden_view_config(
+    route_name="email.preferences",
+    request_method="GET",
+    request_param="token",
+    renderer="lms:templates/email/expired_link.html.jinja2",
+)
+@forbidden_view_config(
     route_name="email.unsubscribe",
     request_method="GET",
     request_param="token",
     renderer="lms:templates/email/expired_link.html.jinja2",
 )
-def unsubscribe(request):
-    """Unsubscribe the email and tag combination encoded in token."""
-    try:
-        request.find_service(EmailPreferencesService).unsubscribe(
-            request.params["token"]
-        )
-    except (InvalidJWTError, ExpiredJWTError):
-        LOG.exception("Invalid unsubscribe token")
-        return {}
-
-    return HTTPFound(location=request.route_url("email.unsubscribed"))
+def forbidden(_request):
+    return {}
 
 
 @view_config(
@@ -40,21 +36,24 @@ def unsubscribed(_request):
     return {}
 
 
-@forbidden_view_config(
-    route_name="email.preferences",
-    request_method="GET",
-    request_param="token",
-    renderer="lms:templates/email/expired_link.html.jinja2",
-)
-def forbidden(_request):
-    return {}
-
-
 @view_defaults(permission=Permissions.EMAIL_PREFERENCES)
 class EmailPreferencesViews:
     def __init__(self, request):
         self.request = request
         self.email_preferences_service = request.find_service(EmailPreferencesService)
+
+    @view_config(
+        route_name="email.unsubscribe",
+        request_method="GET",
+        request_param="token",
+    )
+    def unsubscribe(self):
+        """Unsubscribe the email and tag combination encoded in token."""
+        self.request.find_service(EmailPreferencesService).unsubscribe(
+            self.request.identity.h_userid, self.request.identity.tag
+        )
+
+        return HTTPFound(location=self.request.route_url("email.unsubscribed"))
 
     @view_config(
         route_name="email.preferences",
