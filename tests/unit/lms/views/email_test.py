@@ -4,31 +4,11 @@ import pytest
 from h_matchers import Any
 from pyramid.httpexceptions import HTTPFound
 
+from lms.security import EmailPreferencesIdentity
 from lms.services import EmailPrefs
-from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
-from lms.views.email import EmailPreferencesViews, forbidden, unsubscribe, unsubscribed
+from lms.views.email import EmailPreferencesViews, forbidden, unsubscribed
 
 pytestmark = pytest.mark.usefixtures("email_preferences_service")
-
-
-def test_unsubscribe(pyramid_request, email_preferences_service):
-    pyramid_request.params["token"] = sentinel.token
-
-    result = unsubscribe(pyramid_request)
-
-    email_preferences_service.unsubscribe.assert_called_once_with(sentinel.token)
-    assert isinstance(result, HTTPFound)
-    assert result.location == "http://example.com/email/unsubscribed"
-
-
-@pytest.mark.parametrize("exception", [ExpiredJWTError, InvalidJWTError])
-def test_unsubscribe_error(pyramid_request, email_preferences_service, exception):
-    pyramid_request.params["token"] = sentinel.token
-    email_preferences_service.unsubscribe.side_effect = exception
-
-    result = unsubscribe(pyramid_request)
-
-    assert result == {}
 
 
 def test_unsubscribed(pyramid_request):
@@ -41,6 +21,20 @@ def test_forbidden(pyramid_request):
 
 
 class TestEmailPreferencesViews:
+    def test_unsubscribe(self, views, pyramid_config, email_preferences_service):
+        pyramid_config.testing_securitypolicy(
+            userid=sentinel.h_userid,
+            identity=EmailPreferencesIdentity(sentinel.h_userid, sentinel.tag),
+        )
+
+        result = views.unsubscribe()
+
+        email_preferences_service.unsubscribe.assert_called_once_with(
+            sentinel.h_userid, sentinel.tag
+        )
+        assert isinstance(result, HTTPFound)
+        assert result.location == "http://example.com/email/unsubscribed"
+
     def test_preferences_redirect(self, views, remember, pyramid_request):
         remember.return_value = [("foo", "bar")]
 
