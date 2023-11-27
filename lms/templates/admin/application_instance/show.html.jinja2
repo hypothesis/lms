@@ -57,7 +57,7 @@
         </div>
         <div class="tabs-content">
             <ul>
-                <li class="is-active">
+                <li class="tab-panel is-active">
                     <form method="POST"
                           action="{{ request.route_url("admin.instance", id_=instance.id) }}">
                         <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
@@ -106,7 +106,7 @@
                         </fieldset>
                     </form>
                 </li>
-                <li>
+                <li class="tab-panel">
                     <form method="POST"
                           action="{{ request.route_url("admin.instance.settings", id_=instance.id) }}">
                         <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
@@ -167,7 +167,7 @@
                         </div>
                     </form>
                 </li>
-                <li>
+                <li class="tab-panel">
                     <fieldset class="box">
                         <legend id="roles" class="label has-text-centered">Role overrides</legend>
                         <div class="block has-text-right">
@@ -185,7 +185,7 @@
                         {% endif %}
                     </fieldset>
                 </li>
-                <li>
+                <li class="tab-panel">
                     <fieldset class="box has-background-danger-light">
                         <legend class="label has-text-centered has-text-danger">Danger zone</legend>
                         {% call macros.field_body(label="Downgrade to LTI 1.1") %}

@@ -33,7 +33,7 @@
         </div>
         <div class="tabs-content">
             <ul>
-                <li class="is-active">
+                <li class="tab-panel is-active">
                     <legend class="label has-text-centered">Organization</legend>
                     <form method="POST"
                           action="{{ request.route_url("admin.organization", id_=org.id) }}">
@@ -76,7 +76,7 @@
                     </div>
                 </div>
             </li>
-            <li>
+            <li class="tab-panel">
                 <fieldset class="box">
                     <legend class="label has-text-centered">Usage report</legend>
                     <form method="POST"
@@ -90,7 +90,7 @@
                         </div>
                     </fieldset>
                 </li>
-                <li>
+                <li class="tab-panel">
                     <fieldset class="box has-background-danger-light">
                         <legend class="label has-text-centered has-text-danger">Danger zone</legend>
                         {% call macros.field_body("Enabled") %}
