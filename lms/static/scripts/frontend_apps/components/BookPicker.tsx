@@ -5,6 +5,7 @@ import { useCallback, useMemo, useEffect, useState } from 'preact/hooks';
 import type { Book, TableOfContentsEntry } from '../api-types';
 import { useService, VitalSourceService } from '../services';
 import type { ContentRange, Selection } from '../services/vitalsource';
+import { isPageRangeValid } from '../utils/vitalsource';
 import BookSelector from './BookSelector';
 import ErrorDisplay from './ErrorDisplay';
 import TableOfContentsPicker from './TableOfContentsPicker';
@@ -164,7 +165,8 @@ export default function BookPicker({
 
   const validContentRange =
     contentRange?.type === 'toc' ||
-    (contentRange?.type === 'page' && contentRange.start && contentRange.end);
+    (contentRange?.type === 'page' &&
+      isPageRangeValid(contentRange.start ?? '', contentRange.end ?? ''));
 
   // Compute the page number that corresponds to the currently selected
   // table-of-contents entry. This cannot always be determined and can be

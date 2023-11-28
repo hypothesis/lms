@@ -184,6 +184,42 @@ describe('BookPicker', () => {
     assert.equal(tocPicker.prop('entries'), fakeBookData.chapters.book1);
   });
 
+  [
+    // nb. We don't test all cases here. See `isPageRangeValid` tests for more.
+    {
+      start: '',
+      end: '',
+      valid: false,
+    },
+    {
+      start: '10',
+      end: '',
+      valid: false,
+    },
+    {
+      start: '10',
+      end: '20',
+      valid: true,
+    },
+    {
+      start: '20',
+      end: '10',
+      valid: false,
+    },
+  ].forEach(({ start, end, valid }) => {
+    it('enables final submit button when a valid page range is selected', async () => {
+      const picker = renderBookPicker({ allowPageRangeSelection: true });
+      const buttonSelector = 'button[data-testid="select-button"]';
+
+      selectBook(picker);
+      clickSelectButton(picker);
+      await waitForTableOfContents(picker);
+      selectPageRange(picker, start, end);
+
+      assert.equal(picker.find(buttonSelector).props().disabled, !valid);
+    });
+  });
+
   [true, false].forEach(allowPageRangeSelection => {
     it('displays page range picker if feature enabled', () => {
       const picker = renderBookPicker({ allowPageRangeSelection });
