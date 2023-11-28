@@ -14,11 +14,4 @@
     @apply text-tiny;
     @apply text-grey-9;
   }
-
-  :root {
-    // This is the same as default tailwind values
-    // Once our overwrites have been removed from the preset, this can be dropped
-    --h-border-radius: 0.25rem;
-    --h-border-radius-lg: 0.5rem;
-  }
 }

@@ -78,12 +78,12 @@ export default function StudentSelector<Student extends StudentOption>({
             variant="dark"
           />
           <SelectNext
-            classes="md:w-[12rem] lg:w-[16rem] xl:w-[20rem]"
             aria-label="Select student"
             value={selectedStudent}
             onChange={onSelectStudent}
             buttonId={selectId}
             buttonContent={selectedStudent?.displayName ?? 'All Students'}
+            buttonClasses="md:w-[12rem] lg:w-[16rem] xl:w-[20rem]"
           >
             <SelectNext.Option value={null}>All Students</SelectNext.Option>
             {students.map((studentOption, idx) => (

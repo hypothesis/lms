@@ -1,5 +1,5 @@
 import { Button, ModalDialog } from '@hypothesis/frontend-shared';
-import type { ModalProps } from '@hypothesis/frontend-shared/lib/components/feedback/Modal';
+import type { ModalDialogProps } from '@hypothesis/frontend-shared/lib/components/feedback/ModalDialog';
 import type { ComponentChildren } from 'preact';
 import { useRef } from 'preact/hooks';
 
@@ -61,7 +61,8 @@ type ErrorModalBaseProps = {
 };
 
 /** `title` is optional for this component but required by `Modal` */
-export type ErrorModalProps = Omit<ModalProps, 'title'> & ErrorModalBaseProps;
+export type ErrorModalProps = Omit<ModalDialogProps, 'title'> &
+  ErrorModalBaseProps;
 
 /**
  * Render information about an error inside of a modal dialog, with optional

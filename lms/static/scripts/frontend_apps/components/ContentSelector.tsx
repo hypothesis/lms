@@ -352,7 +352,6 @@ export default function ContentSelector({
       {isLoadingIndicatorVisible && <SpinnerOverlay />}
       <div className="grid grid-cols-2 gap-y-2 gap-x-3 max-w-[28rem]">
         <OptionButton
-          rounded
           data-testid="url-button"
           details="Web page | PDF"
           onClick={() => selectDialog('url')}
@@ -362,7 +361,6 @@ export default function ContentSelector({
         </OptionButton>
         {canvasFilesEnabled && (
           <OptionButton
-            rounded
             data-testid="canvas-file-button"
             details="PDF"
             onClick={() => selectDialog('canvasFile')}
@@ -373,7 +371,6 @@ export default function ContentSelector({
         )}
         {canvasPagesEnabled && (
           <OptionButton
-            rounded
             data-testid="canvas-page-button"
             details="Page"
             onClick={() => selectDialog('canvasPage')}
@@ -385,7 +382,6 @@ export default function ContentSelector({
 
         {blackboardFilesEnabled && (
           <OptionButton
-            rounded
             data-testid="blackboard-file-button"
             details="PDF"
             onClick={() => selectDialog('blackboardFile')}
@@ -396,7 +392,6 @@ export default function ContentSelector({
         )}
         {d2lFilesEnabled && (
           <OptionButton
-            rounded
             data-testid="d2l-file-button"
             details="PDF"
             onClick={() => selectDialog('d2lFile')}
@@ -407,7 +402,6 @@ export default function ContentSelector({
         )}
         {googlePicker && (
           <OptionButton
-            rounded
             details="PDF"
             data-testid="google-drive-button"
             onClick={showGooglePicker}
@@ -418,7 +412,6 @@ export default function ContentSelector({
         )}
         {jstorEnabled && (
           <OptionButton
-            rounded
             data-testid="jstor-button"
             details="Article"
             onClick={() => selectDialog('jstor')}
@@ -429,7 +422,6 @@ export default function ContentSelector({
         )}
         {oneDriveFilesEnabled && (
           <OptionButton
-            rounded
             data-testid="onedrive-button"
             details="PDF"
             onClick={showOneDrivePicker}
@@ -440,7 +432,6 @@ export default function ContentSelector({
         )}
         {vitalSourceEnabled && (
           <OptionButton
-            rounded
             data-testid="vitalsource-button"
             details="Book"
             onClick={() => selectDialog('vitalSourceBook')}
@@ -451,7 +442,6 @@ export default function ContentSelector({
         )}
         {youtubeEnabled && (
           <OptionButton
-            rounded
             data-testid="youtube-button"
             details="Video"
             onClick={() => selectDialog('youtube')}
