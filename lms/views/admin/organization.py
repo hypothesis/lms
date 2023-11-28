@@ -167,6 +167,7 @@ class AdminOrganizationViews:
     @view_config(
         route_name="admin.organization.usage",
         request_method="POST",
+        permission=Permissions.STAFF,
         renderer="lms:templates/admin/organization/usage.html.jinja2",
     )
     def usage(self):
