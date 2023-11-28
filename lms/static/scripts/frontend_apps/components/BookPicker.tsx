@@ -194,7 +194,7 @@ export default function BookPicker({
     (step === 'select-toc' && validContentRange);
 
   const pageRangeHeading = allowPageRangeSelection
-    ? 'Choose chapter or page range'
+    ? 'Choose a chapter or page range'
     : 'Pick where to start reading';
 
   return (
