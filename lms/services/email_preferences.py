@@ -90,6 +90,10 @@ class EmailPreferencesService:
             update_columns=["updated"],
         )
 
+        self.set_preferences(
+            EmailPrefs(h_userid, **{day: False for day in EmailPrefs.DAYS})
+        )
+
     def decode(self, url: str) -> TokenPayload:
         """Return the decoded token from the given URL.
 
