@@ -99,7 +99,7 @@ class TestEmailPreferencesService:
         )
         assert url == f"http://example.com/email/{path}?token=TOKEN"
 
-    def test_unsubscribe(self, svc, bulk_upsert, db_session):
+    def test_unsubscribe(self, svc, bulk_upsert, db_session, user_preferences_service):
         svc.unsubscribe(sentinel.h_userid, sentinel.tag)
 
         bulk_upsert.assert_called_once_with(
@@ -113,6 +113,19 @@ class TestEmailPreferencesService:
             ],
             index_elements=["h_userid", "tag"],
             update_columns=["updated"],
+        )
+
+        user_preferences_service.set.assert_called_once_with(
+            sentinel.h_userid,
+            {
+                "instructor_email_digests.days.mon": False,
+                "instructor_email_digests.days.tue": False,
+                "instructor_email_digests.days.wed": False,
+                "instructor_email_digests.days.thu": False,
+                "instructor_email_digests.days.fri": False,
+                "instructor_email_digests.days.sat": False,
+                "instructor_email_digests.days.sun": False,
+            },
         )
 
     def test_decode(self, svc, jwt_service):
