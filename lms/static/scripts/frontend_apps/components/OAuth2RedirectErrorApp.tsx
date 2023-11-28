@@ -56,7 +56,7 @@ export default function OAuth2RedirectErrorApp({
       onCancel={() => window.close()}
       onRetry={onRetry}
       title={title}
-      width="lg"
+      size="lg"
     >
       {errorCode === 'canvas_invalid_scope' && (
         <>
