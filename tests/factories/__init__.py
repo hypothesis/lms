@@ -18,7 +18,6 @@ from tests.factories.attributes import (
     TOOL_CONSUMER_INSTANCE_GUID,
     USER_ID,
 )
-from tests.factories.email_unsubscribe import EmailUnsubscribe
 from tests.factories.event import Event
 from tests.factories.file import File
 from tests.factories.grading_info import GradingInfo

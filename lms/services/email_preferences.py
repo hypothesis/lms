@@ -3,10 +3,8 @@ from datetime import timedelta
 from typing import Callable
 from urllib.parse import parse_qs, urlparse
 
-from lms.models import EmailUnsubscribe
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 from lms.services.jwt import JWTService
-from lms.services.upsert import bulk_upsert
 from lms.services.user_preferences import UserPreferencesService
 
 
@@ -82,14 +80,6 @@ class EmailPreferencesService:
 
     def unsubscribe(self, h_userid, tag):
         """Unsubscribe `h_userid` from emails of type `tag`."""
-        bulk_upsert(
-            self._db,
-            model_class=EmailUnsubscribe,
-            values=[{"h_userid": h_userid, "tag": tag}],
-            index_elements=["h_userid", "tag"],
-            update_columns=["updated"],
-        )
-
         self.set_preferences(
             EmailPrefs(h_userid, **{day: False for day in EmailPrefs.DAYS})
         )

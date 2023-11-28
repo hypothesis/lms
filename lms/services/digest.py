@@ -12,7 +12,6 @@ from lms.models import (
     AssignmentGrouping,
     AssignmentMembership,
     Course,
-    EmailUnsubscribe,
     Grouping,
     LTIRole,
     User,
@@ -83,7 +82,7 @@ class DigestService:
                 recipient=asdict(EmailRecipient(to_email, user_info.display_name)),
                 template_vars=digest,
                 unsubscribe_url=self._email_preferences_service.unsubscribe_url(
-                    user_info.h_userid, EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST
+                    user_info.h_userid, "instructor_digest"
                 ),
             )
 

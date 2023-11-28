@@ -7,7 +7,6 @@ import pytest
 from freezegun import freeze_time
 from h_matchers import Any
 
-from lms.models import EmailUnsubscribe
 from lms.tasks.email_digests import (
     send_instructor_email_digest_tasks,
     send_instructor_email_digests,

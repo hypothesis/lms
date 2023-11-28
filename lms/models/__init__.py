@@ -5,7 +5,6 @@ from lms.models.assignment_grouping import AssignmentGrouping
 from lms.models.assignment_membership import AssignmentMembership
 from lms.models.course import LegacyCourse
 from lms.models.course_groups_exported_from_h import CourseGroupsExportedFromH
-from lms.models.email_unsubscribe import EmailUnsubscribe
 from lms.models.event import Event, EventData, EventType, EventUser
 from lms.models.exceptions import ReusedConsumerKey
 from lms.models.file import File
