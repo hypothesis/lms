@@ -1,4 +1,4 @@
-import { extractBookID } from '../vitalsource';
+import { extractBookID, isPageRangeValid } from '../vitalsource';
 
 describe('extractBookID', () => {
   [
@@ -48,5 +48,37 @@ describe('extractBookID', () => {
     it(`should return null if no book ID found in string "${input}"`, () => {
       assert.isNull(extractBookID(input));
     });
+  });
+});
+
+describe('isPageRangeValid', () => {
+  it('returns false if `start` or `end` is empty', () => {
+    assert.isFalse(isPageRangeValid('12', ''));
+    assert.isFalse(isPageRangeValid('', '12'));
+  });
+
+  it('returns true if page range is not fully numeric', () => {
+    assert.isTrue(isPageRangeValid('i', 'iv'));
+    assert.isTrue(isPageRangeValid('400', 'A-1'));
+    assert.isTrue(isPageRangeValid('A-1', '400'));
+  });
+
+  it('returns true if page range is numeric and end >= start', () => {
+    assert.isTrue(isPageRangeValid('1', '10'));
+    assert.isTrue(isPageRangeValid('10', '10'));
+  });
+
+  it('returns false if page range is numeric and end < start', () => {
+    assert.isFalse(isPageRangeValid('10', '5'));
+    assert.isFalse(isPageRangeValid('100', '99'));
+  });
+
+  // We assume page numbers start from 1, though there is no doubt a programming
+  // book somewhere that uses 0-based numbering. I will wait until someone files
+  // an issue about it.
+  it('returns false if start page is <= 0', () => {
+    assert.isTrue(isPageRangeValid('1', '2'));
+    assert.isFalse(isPageRangeValid('0', '1'));
+    assert.isFalse(isPageRangeValid('-1', '0'));
   });
 });

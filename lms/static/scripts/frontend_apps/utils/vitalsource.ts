@@ -32,3 +32,28 @@ export function extractBookID(input: string): string | null {
   }
   return null;
 }
+
+/**
+ * Report whether a page range is valid. A page range is considered valid if:
+ *
+ *  - The start and end are specified
+ *  - The start and end pages are numbers, and start >= end
+ *  - Either the start or end is not a number
+ *
+ * The last condition handles the cases where books have some page numbers that
+ * are not numeric (eg. roman numerals). In that case we don't try to compare
+ * them and just trust the user.
+ */
+export function isPageRangeValid(start: string, end: string): boolean {
+  if (!start || !end) {
+    return false;
+  }
+
+  const startInt = parseInt(start);
+  const endInt = parseInt(end);
+  if (isNaN(startInt) || isNaN(endInt)) {
+    return true;
+  }
+
+  return startInt >= 1 && endInt >= startInt;
+}
