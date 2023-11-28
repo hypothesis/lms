@@ -175,7 +175,7 @@ export default function BookSelector({
           <Input
             aria-label="VitalSource URL or ISBN"
             data-testid="vitalsource-input"
-            hasError={!!error}
+            feedback={error ? 'error' : undefined}
             elementRef={inputRef}
             name="vitalSourceURL"
             onChange={() => onUpdateURL(false /* confirmSelectedBook */)}

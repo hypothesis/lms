@@ -94,7 +94,7 @@ export default function URLPicker({
             aria-label="Enter URL to web page or PDF"
             classes="grow"
             defaultValue={defaultURL}
-            hasError={!!error}
+            feedback={error ? 'error' : undefined}
             elementRef={input}
             name="url"
             placeholder="e.g. https://example.com/article.pdf"
