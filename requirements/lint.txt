@@ -4,7 +4,7 @@
 #
 #    pip-compile --allow-unsafe requirements/lint.in
 #
-aiohttp==3.8.6
+aiohttp==3.9.0
     # via
     #   -r bddtests.txt
     #   -r functests.txt
@@ -102,7 +102,6 @@ charset-normalizer==2.0.1
     #   -r bddtests.txt
     #   -r functests.txt
     #   -r tests.txt
-    #   aiohttp
     #   requests
 click==8.1.3
     # via

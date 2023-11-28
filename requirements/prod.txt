@@ -4,7 +4,7 @@
 #
 #    pip-compile --allow-unsafe requirements/prod.in
 #
-aiohttp==3.8.6
+aiohttp==3.9.0
     # via -r prod.in
 aiosignal==1.2.0
     # via aiohttp
@@ -37,9 +37,7 @@ certifi==2023.7.22
 cffi==1.15.0
     # via cryptography
 charset-normalizer==2.0.1
-    # via
-    #   aiohttp
-    #   requests
+    # via requests
 click==8.1.3
     # via
     #   celery
