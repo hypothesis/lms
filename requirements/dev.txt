@@ -5,26 +5,26 @@
 #    pip-compile --allow-unsafe requirements/dev.in
 #
 aiohttp==3.9.0
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 aiosignal==1.2.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   aiohttp
 alembic==1.12.0
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 amqp==5.1.1
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   kombu
 asttokens==2.0.5
     # via stack-data
 async-timeout==4.0.1
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   aiohttp
 attrs==23.1.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   aiohttp
     #   jsonschema
     #   referencing
@@ -32,39 +32,39 @@ backcall==0.2.0
     # via ipython
 backports-zoneinfo[tzdata]==0.2.1
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   backports-zoneinfo
     #   celery
     #   kombu
 billiard==4.1.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   celery
 build==0.8.0
     # via pip-tools
 cachetools==4.2.2
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   google-auth
 celery==5.3.4
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 certifi==2023.7.22
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   mailchimp-transactional
     #   requests
     #   sentry-sdk
 cffi==1.15.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   cryptography
 charset-normalizer==2.0.1
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   requests
 click==8.1.3
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   celery
     #   click-didyoumean
     #   click-plugins
@@ -72,74 +72,74 @@ click==8.1.3
     #   pip-tools
 click-didyoumean==0.3.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   celery
 click-plugins==1.1.1
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   celery
 click-repl==0.2.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   celery
-cryptography==41.0.4
+cryptography==41.0.6
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   pyjwt
     #   python-jose
 data-tasks==0.0.3
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 decorator==5.1.1
     # via ipython
 ecdsa==0.17.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   python-jose
 executing==0.8.3
     # via stack-data
 factory-boy==3.3.0
-    # via -r requirements/dev.in
+    # via -r dev.in
 faker==13.14.0
     # via factory-boy
 frozenlist==1.2.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   aiohttp
     #   aiosignal
 google-auth==1.30.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   google-auth-oauthlib
 google-auth-oauthlib==0.4.4
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   pyramid-googleauth
 greenlet==1.0.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   sqlalchemy
 gunicorn==20.1.0
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 h-api==1.1.0
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 h-assets==1.0.6
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 h-pyramid-sentry==1.2.4
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 h-vialib==1.2.1
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 hupper==1.10.2
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   pyramid
 idna==2.10
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   requests
     #   yarl
 importlib-metadata==4.8.1
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   alembic
     #   data-tasks
     #   h-api
@@ -148,7 +148,7 @@ importlib-metadata==4.8.1
     #   pip-sync-faster
 importlib-resources==6.0.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   alembic
     #   data-tasks
     #   h-api
@@ -160,53 +160,53 @@ jedi==0.18.1
     # via ipython
 jinja2==2.11.3
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   data-tasks
     #   pyramid-jinja2
 jsonschema==4.19.1
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   h-api
 jsonschema-specifications==2023.7.1
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   jsonschema
 kombu==5.3.2
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   celery
 mailchimp-transactional==1.0.50
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 mako==1.2.2
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   alembic
 markupsafe==1.1.1
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   jinja2
     #   mako
     #   pyramid-jinja2
 marshmallow==3.19.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   webargs
 matplotlib-inline==0.1.3
     # via ipython
 multidict==5.2.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   aiohttp
     #   yarl
 newrelic==9.0.0
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 oauthlib==3.2.2
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   requests-oauthlib
 packaging==21.3
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   build
     #   marshmallow
     #   webargs
@@ -215,7 +215,7 @@ parso==0.8.3
     # via jedi
 pastedeploy==2.1.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   plaster-pastedeploy
 pep517==0.12.0
     # via build
@@ -224,32 +224,32 @@ pexpect==4.8.0
 pickleshare==0.7.5
     # via ipython
 pip-sync-faster==0.0.3
-    # via -r requirements/dev.in
+    # via -r dev.in
 pip-tools==7.3.0
     # via
-    #   -r requirements/dev.in
+    #   -r dev.in
     #   pip-sync-faster
 pkgutil-resolve-name==1.3.10
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   jsonschema
 plaster==1.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   plaster-pastedeploy
     #   pyramid
 plaster-pastedeploy==0.7
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   pyramid
 prompt-toolkit==3.0.29
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   click-repl
     #   ipython
 psycopg2==2.9.9
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   data-tasks
 ptyprocess==0.7.0
     # via pexpect
@@ -257,34 +257,34 @@ pure-eval==0.2.2
     # via stack-data
 pyasn1==0.4.8
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   pyasn1-modules
     #   python-jose
     #   rsa
 pyasn1-modules==0.2.8
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   google-auth
 pycparser==2.21
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   cffi
 pycryptodomex==3.18.0
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 pygments==2.15.0
     # via ipython
 pyjwt[crypto]==2.8.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   pyjwt
     #   pyramid-googleauth
 pyparsing==3.0.6
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   packaging
 pyramid==2.0.2
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   h-assets
     #   h-pyramid-sentry
     #   pyramid-exclog
@@ -295,62 +295,62 @@ pyramid==2.0.2
     #   pyramid-services
     #   pyramid-tm
 pyramid-exclog==1.1
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 pyramid-googleauth==1.0.5
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 pyramid-ipython==0.2
-    # via -r requirements/dev.in
+    # via -r dev.in
 pyramid-jinja2==2.10
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 pyramid-retry==2.1.1
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 pyramid-services==2.2
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 pyramid-tm==2.5
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 python-dateutil==2.8.2
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   celery
     #   faker
     #   mailchimp-transactional
 python-jose[crypto,cryptography]==3.3.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   h-vialib
     #   python-jose
 referencing==0.30.2
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   h-api
     #   jsonschema
     #   jsonschema-specifications
 requests==2.31.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   mailchimp-transactional
     #   requests-oauthlib
 requests-oauthlib==1.3.1
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   google-auth-oauthlib
 rpds-py==0.10.3
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   jsonschema
     #   referencing
 rsa==4.7.2
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   google-auth
     #   python-jose
 sentry-sdk==1.14.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   h-pyramid-sentry
 six==1.15.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   asttokens
     #   click-repl
     #   ecdsa
@@ -359,21 +359,21 @@ six==1.15.0
     #   python-dateutil
 sqlalchemy==2.0.19
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   alembic
     #   data-tasks
     #   zope-sqlalchemy
 sqlparse==0.4.4
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   data-tasks
 stack-data==0.3.0
     # via ipython
 supervisor==4.2.5
-    # via -r requirements/dev.in
+    # via -r dev.in
 tabulate==0.9.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   data-tasks
 tomli==2.0.1
     # via
@@ -386,77 +386,77 @@ traitlets==5.3.0
     #   matplotlib-inline
 transaction==2.4.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   pyramid-tm
     #   zope-sqlalchemy
 translationstring==1.4
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   pyramid
 typing-extensions==4.7.1
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   alembic
     #   async-timeout
     #   kombu
     #   sqlalchemy
 tzdata==2023.3
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   backports-zoneinfo
     #   celery
 urllib3==1.26.18
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   mailchimp-transactional
     #   requests
     #   sentry-sdk
 venusian==3.0.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   pyramid
 vine==5.0.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   amqp
     #   celery
     #   kombu
 wcwidth==0.2.5
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   prompt-toolkit
 webargs==8.3.0
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 webob==1.8.6
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   h-vialib
     #   pyramid
 wheel==0.37.1
     # via pip-tools
 wired==0.2.2
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   pyramid-services
 xmltodict==0.13.0
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 yarl==1.7.2
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   aiohttp
 zipp==3.4.1
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   importlib-metadata
     #   importlib-resources
 zope-deprecation==4.3.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   pyramid
     #   pyramid-jinja2
 zope-interface==5.1.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   pyramid
     #   pyramid-retry
     #   pyramid-services
@@ -464,14 +464,14 @@ zope-interface==5.1.0
     #   wired
     #   zope-sqlalchemy
 zope-sqlalchemy==3.0
-    # via -r requirements/prod.txt
+    # via -r prod.txt
 
 # The following packages are considered to be unsafe in a requirements file:
 pip==23.3
     # via pip-tools
 setuptools==67.4.0
     # via
-    #   -r requirements/prod.txt
+    #   -r prod.txt
     #   google-auth
     #   gunicorn
     #   ipython

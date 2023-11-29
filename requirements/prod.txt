@@ -5,11 +5,11 @@
 #    pip-compile --allow-unsafe requirements/prod.in
 #
 aiohttp==3.9.0
-    # via -r requirements/prod.in
+    # via -r prod.in
 aiosignal==1.2.0
     # via aiohttp
 alembic==1.12.0
-    # via -r requirements/prod.in
+    # via -r prod.in
 amqp==5.1.1
     # via kombu
 async-timeout==4.0.1
@@ -28,7 +28,7 @@ billiard==4.1.0
 cachetools==4.2.2
     # via google-auth
 celery==5.3.4
-    # via -r requirements/prod.in
+    # via -r prod.in
 certifi==2023.7.22
     # via
     #   mailchimp-transactional
@@ -50,12 +50,12 @@ click-plugins==1.1.1
     # via celery
 click-repl==0.2.0
     # via celery
-cryptography==41.0.4
+cryptography==41.0.6
     # via
     #   pyjwt
     #   python-jose
 data-tasks==0.0.3
-    # via -r requirements/prod.in
+    # via -r prod.in
 ecdsa==0.17.0
     # via python-jose
 frozenlist==1.2.0
@@ -69,15 +69,15 @@ google-auth-oauthlib==0.4.4
 greenlet==1.0.0
     # via sqlalchemy
 gunicorn==20.1.0
-    # via -r requirements/prod.in
+    # via -r prod.in
 h-api==1.1.0
-    # via -r requirements/prod.in
+    # via -r prod.in
 h-assets==1.0.6
-    # via -r requirements/prod.in
+    # via -r prod.in
 h-pyramid-sentry==1.2.4
-    # via -r requirements/prod.in
+    # via -r prod.in
 h-vialib==1.2.1
-    # via -r requirements/prod.in
+    # via -r prod.in
 hupper==1.10.2
     # via pyramid
 idna==2.10
@@ -93,7 +93,7 @@ importlib-metadata==4.8.1
     #   h-vialib
 importlib-resources==6.0.0
     # via
-    #   -r requirements/prod.in
+    #   -r prod.in
     #   alembic
     #   data-tasks
     #   h-api
@@ -110,7 +110,7 @@ jsonschema-specifications==2023.7.1
 kombu==5.3.2
     # via celery
 mailchimp-transactional==1.0.50
-    # via -r requirements/prod.in
+    # via -r prod.in
 mako==1.2.2
     # via alembic
 markupsafe==1.1.1
@@ -120,17 +120,17 @@ markupsafe==1.1.1
     #   pyramid-jinja2
 marshmallow==3.19.0
     # via
-    #   -r requirements/prod.in
+    #   -r prod.in
     #   webargs
 multidict==5.2.0
     # via
     #   aiohttp
     #   yarl
 newrelic==9.0.0
-    # via -r requirements/prod.in
+    # via -r prod.in
 oauthlib==3.2.2
     # via
-    #   -r requirements/prod.in
+    #   -r prod.in
     #   requests-oauthlib
 packaging==21.3
     # via
@@ -151,7 +151,7 @@ prompt-toolkit==3.0.29
     # via click-repl
 psycopg2==2.9.9
     # via
-    #   -r requirements/prod.in
+    #   -r prod.in
     #   data-tasks
 pyasn1==0.4.8
     # via
@@ -163,16 +163,16 @@ pyasn1-modules==0.2.8
 pycparser==2.21
     # via cffi
 pycryptodomex==3.18.0
-    # via -r requirements/prod.in
+    # via -r prod.in
 pyjwt[crypto]==2.8.0
     # via
-    #   -r requirements/prod.in
+    #   -r prod.in
     #   pyramid-googleauth
 pyparsing==3.0.6
     # via packaging
 pyramid==2.0.2
     # via
-    #   -r requirements/prod.in
+    #   -r prod.in
     #   h-assets
     #   h-pyramid-sentry
     #   pyramid-exclog
@@ -182,24 +182,24 @@ pyramid==2.0.2
     #   pyramid-services
     #   pyramid-tm
 pyramid-exclog==1.1
-    # via -r requirements/prod.in
+    # via -r prod.in
 pyramid-googleauth==1.0.5
-    # via -r requirements/prod.in
+    # via -r prod.in
 pyramid-jinja2==2.10
-    # via -r requirements/prod.in
+    # via -r prod.in
 pyramid-retry==2.1.1
-    # via -r requirements/prod.in
+    # via -r prod.in
 pyramid-services==2.2
-    # via -r requirements/prod.in
+    # via -r prod.in
 pyramid-tm==2.5
-    # via -r requirements/prod.in
+    # via -r prod.in
 python-dateutil==2.8.2
     # via
     #   celery
     #   mailchimp-transactional
 python-jose[crypto,cryptography]==3.3.0
     # via
-    #   -r requirements/prod.in
+    #   -r prod.in
     #   h-vialib
 referencing==0.30.2
     # via
@@ -208,12 +208,12 @@ referencing==0.30.2
     #   jsonschema-specifications
 requests==2.31.0
     # via
-    #   -r requirements/prod.in
+    #   -r prod.in
     #   mailchimp-transactional
     #   requests-oauthlib
 requests-oauthlib==1.3.1
     # via
-    #   -r requirements/prod.in
+    #   -r prod.in
     #   google-auth-oauthlib
 rpds-py==0.10.3
     # via
@@ -234,17 +234,17 @@ six==1.15.0
     #   python-dateutil
 sqlalchemy==2.0.19
     # via
-    #   -r requirements/prod.in
+    #   -r prod.in
     #   alembic
     #   data-tasks
     #   zope-sqlalchemy
 sqlparse==0.4.4
     # via
-    #   -r requirements/prod.in
+    #   -r prod.in
     #   data-tasks
 tabulate==0.9.0
     # via
-    #   -r requirements/prod.in
+    #   -r prod.in
     #   data-tasks
 transaction==2.4.0
     # via
@@ -277,7 +277,7 @@ vine==5.0.0
 wcwidth==0.2.5
     # via prompt-toolkit
 webargs==8.3.0
-    # via -r requirements/prod.in
+    # via -r prod.in
 webob==1.8.6
     # via
     #   h-vialib
@@ -285,7 +285,7 @@ webob==1.8.6
 wired==0.2.2
     # via pyramid-services
 xmltodict==0.13.0
-    # via -r requirements/prod.in
+    # via -r prod.in
 yarl==1.7.2
     # via aiohttp
 zipp==3.4.1
@@ -305,7 +305,7 @@ zope-interface==5.1.0
     #   wired
     #   zope-sqlalchemy
 zope-sqlalchemy==3.0
-    # via -r requirements/prod.in
+    # via -r prod.in
 
 # The following packages are considered to be unsafe in a requirements file:
 setuptools==67.4.0

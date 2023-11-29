@@ -6,108 +6,108 @@
 #
 aiohttp==3.9.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   aioresponses
 aioresponses==0.7.6
-    # via -r requirements/tests.txt
+    # via -r tests.txt
 aiosignal==1.2.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   aiohttp
 alembic==1.12.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 amqp==5.1.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   kombu
 astroid==3.0.1
     # via pylint
 async-timeout==4.0.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   aiohttp
 attrs==23.1.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   aiohttp
     #   jsonschema
     #   referencing
 backports-zoneinfo[tzdata]==0.2.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   backports-zoneinfo
     #   celery
     #   kombu
 beautifulsoup4==4.9.3
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
     #   webtest
 behave==1.2.6
-    # via -r requirements/bddtests.txt
+    # via -r bddtests.txt
 billiard==4.1.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   celery
 build==0.8.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pip-tools
 cachetools==4.2.2
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   google-auth
 celery==5.3.4
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 certifi==2023.7.22
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   mailchimp-transactional
     #   requests
     #   sentry-sdk
 cffi==1.15.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   cryptography
 charset-normalizer==2.0.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   requests
 click==8.1.3
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   celery
     #   click-didyoumean
     #   click-plugins
@@ -115,154 +115,154 @@ click==8.1.3
     #   pip-tools
 click-didyoumean==0.3.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   celery
 click-plugins==1.1.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   celery
 click-repl==0.2.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   celery
 coverage[toml]==7.2.7
     # via
-    #   -r requirements/tests.txt
+    #   -r tests.txt
     #   coverage
     #   pytest-cov
-cryptography==41.0.4
+cryptography==41.0.6
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pyjwt
     #   python-jose
 data-tasks==0.0.3
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 dill==0.3.4
     # via pylint
 ecdsa==0.17.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   python-jose
 exceptiongroup==1.0.0rc9
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pytest
 execnet==2.0.2
     # via
-    #   -r requirements/tests.txt
+    #   -r tests.txt
     #   pytest-xdist
 factory-boy==3.3.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pytest-factoryboy
 faker==8.1.2
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   factory-boy
 filelock==3.13.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 freezegun==1.2.2
-    # via -r requirements/tests.txt
+    # via -r tests.txt
 frozenlist==1.2.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   aiohttp
     #   aiosignal
 google-auth==1.30.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   google-auth-oauthlib
 google-auth-oauthlib==0.4.4
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pyramid-googleauth
 greenlet==1.0.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   sqlalchemy
 gunicorn==20.1.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 h-api==1.1.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 h-assets==1.0.6
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 h-matchers==1.2.15
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 h-pyramid-sentry==1.2.4
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 h-vialib==1.2.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 httpretty==1.1.4
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 hupper==1.10.2
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pyramid
 idna==2.10
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   requests
     #   yarl
 importlib-metadata==4.8.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   alembic
     #   data-tasks
     #   h-api
@@ -271,9 +271,9 @@ importlib-metadata==4.8.1
     #   pip-sync-faster
 importlib-resources==6.0.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   alembic
     #   data-tasks
     #   h-api
@@ -281,92 +281,92 @@ importlib-resources==6.0.0
     #   jsonschema-specifications
 inflection==0.5.1
     # via
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pytest-factoryboy
 iniconfig==1.1.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pytest
 isort==5.12.0
     # via pylint
 jinja2==2.11.3
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   data-tasks
     #   pyramid-jinja2
 jsonschema==4.19.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   h-api
 jsonschema-specifications==2023.7.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   jsonschema
 kombu==5.3.2
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   celery
 mailchimp-transactional==1.0.50
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 mako==1.2.2
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   alembic
 markupsafe==1.1.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   jinja2
     #   mako
     #   pyramid-jinja2
 marshmallow==3.19.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   webargs
 mccabe==0.6.1
     # via pylint
 multidict==5.2.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   aiohttp
     #   yarl
 newrelic==9.0.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 oauthlib==3.2.2
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   requests-oauthlib
 packaging==21.3
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   build
     #   marshmallow
     #   pytest
@@ -374,130 +374,130 @@ packaging==21.3
     #   zope-sqlalchemy
 parse==1.19.0
     # via
-    #   -r requirements/bddtests.txt
+    #   -r bddtests.txt
     #   behave
     #   parse-type
 parse-type==0.5.2
     # via
-    #   -r requirements/bddtests.txt
+    #   -r bddtests.txt
     #   behave
 pastedeploy==2.1.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   plaster-pastedeploy
 pep517==0.12.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   build
 pip-sync-faster==0.0.3
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/lint.in
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r lint.in
+    #   -r tests.txt
 pip-tools==7.3.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/lint.in
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r lint.in
+    #   -r tests.txt
     #   pip-sync-faster
 pkgutil-resolve-name==1.3.10
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   jsonschema
 plaster==1.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   plaster-pastedeploy
     #   pyramid
 plaster-pastedeploy==0.7
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pyramid
 platformdirs==2.2.0
     # via pylint
 pluggy==0.13.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pytest
 prompt-toolkit==3.0.29
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   click-repl
 psutil==5.9.5
     # via
-    #   -r requirements/tests.txt
+    #   -r tests.txt
     #   pytest-xdist
 psycopg2==2.9.9
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   data-tasks
 pyasn1==0.4.8
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pyasn1-modules
     #   python-jose
     #   rsa
 pyasn1-modules==0.2.8
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   google-auth
 pycodestyle==2.11.0
-    # via -r requirements/lint.in
+    # via -r lint.in
 pycparser==2.21
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   cffi
 pycryptodomex==3.18.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 pydocstyle==6.3.0
-    # via -r requirements/lint.in
+    # via -r lint.in
 pyjwt[crypto]==2.8.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pyjwt
     #   pyramid-googleauth
 pylint==3.0.2
-    # via -r requirements/lint.in
+    # via -r lint.in
 pyparsing==3.0.6
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   packaging
 pyramid==2.0.2
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   h-assets
     #   h-pyramid-sentry
     #   pyramid-exclog
@@ -508,114 +508,114 @@ pyramid==2.0.2
     #   pyramid-tm
 pyramid-exclog==1.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 pyramid-googleauth==1.0.5
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 pyramid-jinja2==2.10
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 pyramid-retry==2.1.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 pyramid-services==2.2
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 pyramid-tm==2.5
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 pytest==7.4.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pytest-cov
     #   pytest-factoryboy
     #   pytest-xdist
 pytest-cov==4.1.0
-    # via -r requirements/tests.txt
+    # via -r tests.txt
 pytest-factoryboy==2.5.1
     # via
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 pytest-xdist[psutil]==3.3.1
     # via
-    #   -r requirements/tests.txt
+    #   -r tests.txt
     #   pytest-xdist
 python-dateutil==2.8.2
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   celery
     #   faker
     #   freezegun
     #   mailchimp-transactional
 python-jose[crypto,cryptography]==3.3.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   h-vialib
     #   python-jose
 referencing==0.30.2
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   h-api
     #   jsonschema
     #   jsonschema-specifications
 requests==2.31.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   mailchimp-transactional
     #   requests-oauthlib
 requests-oauthlib==1.3.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   google-auth-oauthlib
 rpds-py==0.10.3
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   jsonschema
     #   referencing
 rsa==4.7.2
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   google-auth
     #   python-jose
 sentry-sdk==1.14.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   h-pyramid-sentry
 six==1.15.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   behave
     #   click-repl
     #   ecdsa
@@ -627,42 +627,42 @@ snowballstemmer==2.2.0
     # via pydocstyle
 soupsieve==2.2.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
     #   beautifulsoup4
 sqlalchemy==2.0.19
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   alembic
     #   data-tasks
     #   zope-sqlalchemy
 sqlparse==0.4.4
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   data-tasks
 tabulate==0.9.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   data-tasks
 text-unidecode==1.3
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   faker
 toml==0.10.2
-    # via -r requirements/lint.in
+    # via -r lint.in
 tomli==2.0.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   build
     #   coverage
     #   pep517
@@ -673,22 +673,22 @@ tomlkit==0.11.0
     # via pylint
 transaction==2.4.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pyramid-tm
     #   zope-sqlalchemy
 translationstring==1.4
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pyramid
 typing-extensions==4.7.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   alembic
     #   astroid
     #   async-timeout
@@ -698,103 +698,103 @@ typing-extensions==4.7.1
     #   sqlalchemy
 tzdata==2023.3
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   backports-zoneinfo
     #   celery
 urllib3==1.26.18
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   mailchimp-transactional
     #   requests
     #   sentry-sdk
 venusian==3.0.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pyramid
 vine==5.0.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   amqp
     #   celery
     #   kombu
 waitress==2.1.2
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
     #   webtest
 wcwidth==0.2.5
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   prompt-toolkit
 webargs==8.3.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 webob==1.8.6
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   h-vialib
     #   pyramid
     #   webtest
 webtest==3.0.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
 wheel==0.37.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pip-tools
 wired==0.2.2
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pyramid-services
 xmltodict==0.13.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 yarl==1.7.2
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   aiohttp
 zipp==3.4.1
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   importlib-metadata
     #   importlib-resources
 zope-deprecation==4.3.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pyramid
     #   pyramid-jinja2
 zope-interface==5.1.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pyramid
     #   pyramid-retry
     #   pyramid-services
@@ -803,22 +803,22 @@ zope-interface==5.1.0
     #   zope-sqlalchemy
 zope-sqlalchemy==3.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 
 # The following packages are considered to be unsafe in a requirements file:
 pip==23.3
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   pip-tools
 setuptools==67.4.0
     # via
-    #   -r requirements/bddtests.txt
-    #   -r requirements/functests.txt
-    #   -r requirements/tests.txt
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
     #   google-auth
     #   gunicorn
     #   pip-tools
