@@ -101,6 +101,30 @@ class VitalSourceService:
         return urlunparse(url)
 
     @classmethod
+    def get_content_range(cls, document_url: str) -> dict:
+        """
+        Get the content range for an assignment from a `vitalsource://` URL.
+
+        This information is returned as a dict that is suitable for passing
+        through to the Hypothesis client.
+        """
+        loc = VSBookLocation.from_document_url(document_url)
+        parsed_url = urlparse(document_url)
+        params = parse_qs(parsed_url.query)
+
+        start = loc.page or loc.cfi
+        end = None
+        if "end_page" in params:
+            end = params["end_page"][-1]
+        if "end_cfi" in params:
+            end = params["end_cfi"][-1]
+
+        return {
+            "start": start,
+            "end": end,
+        }
+
+    @classmethod
     def get_book_reader_url(cls, document_url) -> str:
         """
         Get the public URL for VitalSource book viewer.
