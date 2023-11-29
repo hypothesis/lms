@@ -17,4 +17,5 @@ def service_factory(_context, request):
         customer_client=VitalSourceClient(customer_key) if customer_key else None,
         user_lti_param=settings.get("vitalsource", "user_lti_param"),
         user_lti_pattern=settings.get("vitalsource", "user_lti_pattern"),
+        page_ranges_enabled=settings.get("vitalsource", "page_ranges", default=False),
     )

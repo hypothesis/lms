@@ -19,6 +19,7 @@ class VitalSourceService:
         customer_client: Optional[VitalSourceClient] = None,
         user_lti_param: Optional[str] = None,
         user_lti_pattern: Optional[str] = None,
+        page_ranges_enabled: bool = False,
     ):
         """
         Initialise the service.
@@ -42,6 +43,7 @@ class VitalSourceService:
         self._sso_client = customer_client
         self._user_lti_param = user_lti_param
         self._user_lti_pattern = user_lti_pattern
+        self._page_ranges_enabled = page_ranges_enabled
 
     @property
     def enabled(self) -> bool:
@@ -54,6 +56,10 @@ class VitalSourceService:
         """Check if the service can use single sign on."""
 
         return bool(self.enabled and self._sso_client and self._user_lti_param)
+
+    @property
+    def page_ranges_enabled(self) -> bool:
+        return self._page_ranges_enabled
 
     def get_book_info(self, book_id: str) -> dict:
         """Get details of a book."""
