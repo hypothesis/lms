@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from typing import Optional
-from urllib.parse import quote_plus, unquote_plus
+from urllib.parse import quote_plus, unquote_plus, urlparse
 
 
 @dataclass
@@ -42,23 +42,34 @@ class VSBookLocation:
 
         return url
 
-    #: A regex for parsing the BOOK_ID and location parts out of one of our
-    #: custom vitalsource://book/bookID/BOOK_ID/LOCATION_TYPE/LOCATION URLs.
-    _DOCUMENT_URL_REGEX = re.compile(
-        r"vitalsource:\/\/book\/bookID\/(?P<book_id>[^\/]*)\/(?P<loc_type>[^\/]*)\/(?P<loc>.*)"
+    #: A regex for parsing the book ID, location type and location out of
+    #: "vitalsource://book/bookID/{book_id}/{loc_type}/{location}" URLs.
+    _PATH_REGEX = re.compile(
+        r"\/book\/bookID\/(?P<book_id>[^\/]*)\/(?P<loc_type>[^\/]*)\/(?P<loc>.*)"
     )
 
     @classmethod
     def from_document_url(cls, document_url):
         """Get a location from our internal representation."""
 
-        match = cls._DOCUMENT_URL_REGEX.search(document_url)
-        if match is None:
+        parsed = urlparse(document_url)
+        if parsed.scheme != "vitalsource":
             raise ValueError("URL is not a valid vitalsource:// URL")
 
-        book_id = match["book_id"]
-        loc_type = match["loc_type"]
-        loc = match["loc"]
+        # `vitalsource://` URLs were not designed with URL parsing in mind
+        # originally (:facepalm:), so they were structured in such a way that
+        # the first part of what should have been the path becomes the host.
+        path = parsed.path
+        if parsed.netloc == "book":
+            path = f"/{parsed.netloc}{path}"
+
+        path_match = cls._PATH_REGEX.search(path)
+        if path_match is None:
+            raise ValueError("URL is not a valid vitalsource:// URL")
+
+        book_id = path_match["book_id"]
+        loc_type = path_match["loc_type"]
+        loc = path_match["loc"]
 
         if loc_type not in ("cfi", "page"):
             raise ValueError("Invalid book location specifier")

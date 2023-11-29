@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 import pytest
 from h_matchers import Any
 
@@ -13,6 +15,20 @@ class TestVSBookLocation:
         ("vitalsource://book/bookID/book-id/page/23", "book-id", None, "23"),
         ("vitalsource://book/bookID/book-id/page/iv", "book-id", None, "iv"),
         ("vitalsource://book/bookID/book-id/page/A+B", "book-id", None, "A B"),
+        # Book ID with page number and end page
+        (
+            "vitalsource://book/bookID/book-id/page/20?end_page=10",
+            "book-id",
+            None,
+            "20",
+        ),
+        # Book ID with CFI and end CFI
+        (
+            "vitalsource://book/bookID/book-id/cfi//1/2?end_cfi=/2/3",
+            "book-id",
+            "/1/2",
+            None,
+        ),
     ]
 
     @pytest.mark.parametrize("document_url,book_id,cfi,page", TEST_CASES)
@@ -26,7 +42,19 @@ class TestVSBookLocation:
     @pytest.mark.parametrize(
         "document_url,expected",
         [
+            # Wrong scheme
             ("https://example.org", "URL is not a valid vitalsource:// URL"),
+            # Wrong path (first component)
+            (
+                "vitalsource://not-a-book/bookID/a-book/page/123",
+                "URL is not a valid vitalsource:// URL",
+            ),
+            # Wrong path (other component)
+            (
+                "vitalsource://book/not-a-bookID/a-book/page/123",
+                "URL is not a valid vitalsource:// URL",
+            ),
+            # Wrong location type ("pageindex" instead of "page")
             (
                 "vitalsource://book/bookID/a-book/pageindex/123",
                 "Invalid book location specifier",
@@ -42,4 +70,8 @@ class TestVSBookLocation:
     def test_document_url(self, document_url, book_id, cfi, page):
         loc = VSBookLocation(book_id, cfi, page)
 
-        assert loc.document_url == document_url
+        def strip_query(url: str) -> str:
+            parsed = urlparse(url)
+            return parsed._replace(query="").geturl()
+
+        assert loc.document_url == strip_query(document_url)
