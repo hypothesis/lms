@@ -317,6 +317,28 @@ class TestAddDocumentURL:
             == vitalsource_service.get_book_reader_url.return_value
         )
 
+    @pytest.mark.parametrize("page_ranges_enabled", (True, False))
+    def test_vitalsource_sets_content_range(
+        self, js_config, vitalsource_service, course, assignment, page_ranges_enabled
+    ):
+        document_url = "vitalsource://book/bookID/book-id/page/20?end_page=30"
+        vitalsource_service.get_content_range.return_value = {
+            "start": "20",
+            "end": "30",
+        }
+        vitalsource_service.page_ranges_enabled = page_ranges_enabled
+
+        # `add_document_url` fetches the content range, `enable_lti_launch_mode`
+        # adds it to the dict under `hypothesisClient`.
+        js_config.add_document_url(document_url)
+        js_config.enable_lti_launch_mode(course, assignment)
+
+        clientConfig = js_config.asdict()["hypothesisClient"]
+        if page_ranges_enabled:
+            assert clientConfig["contentRange"] == {"start": "20", "end": "30"}
+        else:
+            assert "contentRange" not in clientConfig
+
     def test_jstor_sets_config(self, js_config, jstor_service, pyramid_request):
         jstor_url = "jstor://DOI"
 

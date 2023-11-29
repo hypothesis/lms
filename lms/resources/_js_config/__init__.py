@@ -112,6 +112,10 @@ class JSConfig:
                     document_url=document_url
                 )
 
+            if svc.page_ranges_enabled:
+                content_range = svc.get_content_range(document_url)
+                self._hypothesis_client["contentRange"] = content_range
+
         elif jstor_service.enabled and document_url.startswith("jstor://"):
             self._config["viaUrl"] = jstor_service.via_url(self._request, document_url)
             self._config["contentBanner"] = {
