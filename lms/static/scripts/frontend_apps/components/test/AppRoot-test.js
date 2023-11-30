@@ -68,6 +68,10 @@ describe('AppRoot', () => {
       appComponent: 'FilePickerApp',
     },
     {
+      config: { mode: 'email-notifications' },
+      appComponent: 'EmailNotificationsApp',
+    },
+    {
       config: { mode: 'error-dialog' },
       appComponent: 'ErrorDialogApp',
     },

@@ -20,6 +20,7 @@ class JSConfig:
     class Mode(str, Enum):
         OAUTH2_REDIRECT_ERROR = "oauth2-redirect-error"
         BASIC_LTI_LAUNCH = "basic-lti-launch"
+        EMAIL_NOTIFICATIONS = "email-notifications"
         FILE_PICKER = "content-item-selection"
         ERROR_DIALOG = "error-dialog"
 
