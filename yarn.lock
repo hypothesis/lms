@@ -2433,24 +2433,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/gapi@npm:^0.0.46":
-  version: 0.0.46
-  resolution: "@types/gapi@npm:0.0.46"
-  checksum: fcb8db40ad552788ffc7f4f61307feedb2d7c52c6d18dd6557ae2afe8535f968bdfd6a795744222a22780e46695483af5510169a6d198083c17dddfac07a8111
+"@types/gapi@npm:^0.0.47":
+  version: 0.0.47
+  resolution: "@types/gapi@npm:0.0.47"
+  checksum: 9f18e5d22a549f0b0b99c43e63d2ed2f7438ee8edf12963f7edb3934592908f8ce24ad23cc5e36952faa4d9c486625b70d3dd39f4a905a397507ceb8f8ef41ce
   languageName: node
   linkType: hard
 
-"@types/google.accounts@npm:^0.0.13":
-  version: 0.0.13
-  resolution: "@types/google.accounts@npm:0.0.13"
-  checksum: 78b60d143f624672ff0f952f3179a0242d986a379c1bef138c07746535cb76fc7d0c500707b8b8cd1e21145a427716c3d2f2404edd9bf45e0f9878aac75ff7f8
+"@types/google.accounts@npm:^0.0.14":
+  version: 0.0.14
+  resolution: "@types/google.accounts@npm:0.0.14"
+  checksum: 6ec6864f5d5773e17b351e5b4a2dc8fee5e47d65c64b170f4bed99d4d534366b7d29320bd179f175f1cbf8aef35b3f268d890d894d49419570a1363079f07a75
   languageName: node
   linkType: hard
 
-"@types/google.picker@npm:^0.0.41":
-  version: 0.0.41
-  resolution: "@types/google.picker@npm:0.0.41"
-  checksum: 36a9e8913c64bf41a31f0d8b4c7d12bd6cd57b486b923b6e2b69ad8da71e1dfc8c2cec418c04166c075c4bce1b756dcd3156ac5a505762127cb21bdf08436430
+"@types/google.picker@npm:^0.0.42":
+  version: 0.0.42
+  resolution: "@types/google.picker@npm:0.0.42"
+  checksum: 73158d25912cc49d59aa61f210dbea98a95fcc9e1ad705b85222c7ee196084194f56eb5c1515c8d6f3f21f55f8bc1a00fb5ff4ecbb04f6c144861cf39942c5e5
   languageName: node
   linkType: hard
 
@@ -7577,9 +7577,9 @@ __metadata:
     "@rollup/plugin-terser": ^0.4.4
     "@rollup/plugin-virtual": ^3.0.2
     "@trivago/prettier-plugin-sort-imports": ^4.2.1
-    "@types/gapi": ^0.0.46
-    "@types/google.accounts": ^0.0.13
-    "@types/google.picker": ^0.0.41
+    "@types/gapi": ^0.0.47
+    "@types/google.accounts": ^0.0.14
+    "@types/google.picker": ^0.0.42
     "@typescript-eslint/eslint-plugin": ^6.9.1
     "@typescript-eslint/parser": ^6.9.1
     autoprefixer: ^10.4.14
