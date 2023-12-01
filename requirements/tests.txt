@@ -201,7 +201,7 @@ markupsafe==1.1.1
     #   jinja2
     #   mako
     #   pyramid-jinja2
-marshmallow==3.19.0
+marshmallow==3.20.1
     # via
     #   -r requirements/prod.txt
     #   webargs
