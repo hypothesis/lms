@@ -25,7 +25,7 @@ LOG = logging.getLogger(__name__)
     retry_backoff=3600,
     retry_backoff_max=7200,
 )
-def send_instructor_email_digest_tasks(*, batch_size):  # pylint:disable=unused-argument
+def send_instructor_email_digest_tasks():
     """
     Generate and send instructor email digests.
 

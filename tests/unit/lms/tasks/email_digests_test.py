@@ -17,7 +17,7 @@ class TestSendInstructorEmailDigestsTasks:
     def test_it_does_nothing_if_there_are_no_instructors(
         self, send_instructor_email_digest
     ):
-        send_instructor_email_digest_tasks(batch_size=42)
+        send_instructor_email_digest_tasks()
 
         send_instructor_email_digest.apply_async.assert_not_called()
 
@@ -25,7 +25,7 @@ class TestSendInstructorEmailDigestsTasks:
     def test_it_sends_digests_for_instructors(
         self, send_instructor_email_digest, participating_instructors
     ):
-        send_instructor_email_digest_tasks(batch_size=3)
+        send_instructor_email_digest_tasks()
 
         assert send_instructor_email_digest.apply_async.call_args_list == [
             call(
@@ -43,7 +43,7 @@ class TestSendInstructorEmailDigestsTasks:
     def test_it_doesnt_email_for_courses_with_no_launches(
         self, send_instructor_email_digest
     ):
-        send_instructor_email_digest_tasks(batch_size=42)
+        send_instructor_email_digest_tasks()
 
         send_instructor_email_digest.apply_async.assert_not_called()
 
@@ -51,13 +51,13 @@ class TestSendInstructorEmailDigestsTasks:
     def test_it_doesnt_email_non_participating_instructors(
         self, send_instructor_email_digest
     ):
-        send_instructor_email_digest_tasks(batch_size=42)
+        send_instructor_email_digest_tasks()
 
         send_instructor_email_digest.apply_async.assert_not_called()
 
     @pytest.mark.usefixtures("non_instructor")
     def test_it_doesnt_email_non_instructors(self, send_instructor_email_digest):
-        send_instructor_email_digest_tasks(batch_size=42)
+        send_instructor_email_digest_tasks()
 
         send_instructor_email_digest.apply_async.assert_not_called()
 
@@ -75,9 +75,7 @@ class TestSendInstructorEmailDigestsTasks:
                 preferences={"instructor_email_digests.days.thu": False},
             )
 
-        send_instructor_email_digest_tasks(
-            batch_size=len(participating_instructors + unsubscribed_instructors)
-        )
+        send_instructor_email_digest_tasks()
 
         emailed_huserids = [
             call[0][1]["h_userid"]
@@ -102,7 +100,7 @@ class TestSendInstructorEmailDigestsTasks:
         )
         make_instructors([duplicate_user], instance)
 
-        send_instructor_email_digest_tasks(batch_size=99)
+        send_instructor_email_digest_tasks()
 
         emailed_huserids = [
             call[0][1]["h_userid"]
