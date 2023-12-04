@@ -98,10 +98,7 @@ class TestHAPI:
         )
 
         result = h_api.get_annotations(
-            audience_userids=[
-                "acct:name_1@lms.hypothes.is",
-                "acct:name_2@lms.hypothes.is",
-            ],
+            h_userid="acct:name@lms.hypothes.is",
             created_after=datetime(2001, 2, 3, 4, 5, 6),
             created_before=datetime(2002, 2, 3, 4, 5, 6, tzinfo=timezone.utc),
         )
@@ -121,7 +118,7 @@ class TestHAPI:
                 {
                     "filter": {
                         "limit": 100000,
-                        "audience": {"username": ["name_1", "name_2"]},
+                        "audience": {"username": ["name"]},
                         "created": {
                             "gt": "2001-02-03T04:05:06+00:00",
                             "lte": "2002-02-03T04:05:06+00:00",

@@ -5,7 +5,7 @@ from pyramid.renderers import render
 from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
-from lms.tasks.email_digests import send_instructor_email_digests
+from lms.tasks.email_digests import send_instructor_email_digest
 
 
 @view_defaults(route_name="admin.email", permission=Permissions.STAFF)
@@ -62,16 +62,17 @@ class AdminEmailViews:
                 "The 'since' and 'until' times must be less than 30 days apart."
             )
 
-        send_instructor_email_digests.apply_async(
-            (),
-            {
-                "h_userids": h_userids,
-                "created_after": since.isoformat(),
-                "created_before": until.isoformat(),
-                "override_to_email": to_email,
-                "deduplicate": False,
-            },
-        )
+        for h_userid in h_userids:
+            send_instructor_email_digest.apply_async(
+                (),
+                {
+                    "h_userid": h_userid,
+                    "created_after": since.isoformat(),
+                    "created_before": until.isoformat(),
+                    "override_to_email": to_email,
+                    "deduplicate": False,
+                },
+            )
 
         self.request.session.flash(
             f"If the given users have any activity in the given timeframe then emails will be sent to {to_email}."
