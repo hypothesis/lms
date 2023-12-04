@@ -205,8 +205,10 @@ class BasicLaunchViews:
                 # Create or update a record of LIS result data for a student launch
                 # We'll query these rows to populate the student drop down in the
                 # instructor toolbar
-                self.request.find_service(name="grading_info").upsert_from_request(
-                    self.request
+                self.request.find_service(name="grading_info").upsert(
+                    self.request.lti_user,
+                    self.request.lti_params.get("lis_result_sourcedid"),
+                    self.request.lti_params.get("lis_outcome_service_url"),
                 )
 
         # Set up the JS config for the front-end

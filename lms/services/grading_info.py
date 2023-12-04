@@ -1,22 +1,12 @@
 from typing import List
 
-from marshmallow import fields
-
 from lms.models import GradingInfo, HUser
-from lms.validation import BasicLTILaunchSchema, ValidationError
 
 __all__ = ["GradingInfoService"]
 
 
 class GradingInfoService:
     """Methods for interacting with GradingInfo records."""
-
-    class _ParamsSchema(BasicLTILaunchSchema):
-        """Schema for the relevant parameters from the request."""
-
-        location = "form"
-        lis_result_sourcedid = fields.Str(required=True)
-        lis_outcome_service_url = fields.Str(required=True)
 
     def __init__(self, _context, request):
         self._db = request.db
@@ -83,33 +73,31 @@ class GradingInfoService:
 
         return students
 
-    def upsert_from_request(self, request):
+    def upsert(self, lti_user, lis_result_sourcedid, lis_outcome_service_url):
         """
         Update or create a record based on the LTI params found in the request.
 
         This function will do nothing if the correct parameters cannot be
-        found in the request.
-
-        :arg request: A pyramid request
+        found.
         """
-        try:
-            parsed_params = self._ParamsSchema(request).parse()
-        except ValidationError:
-            # We're missing something we need in the request.
+        if not lis_result_sourcedid or not lis_outcome_service_url:
+            # We're missing something we needed
             # This can happen if the user is not a student, or if the needed
             # LIS data is not present on the request.
             return None
 
         grading_info = self._find_or_create(
-            application_instance=request.lti_user.application_instance,
-            user_id=request.lti_user.user_id,
-            context_id=parsed_params["context_id"],
-            resource_link_id=parsed_params["resource_link_id"],
+            application_instance=lti_user.application_instance,
+            user_id=lti_user.user_id,
+            context_id=lti_user.lti.course_id,
+            resource_link_id=lti_user.lti.assignment_id,
         )
-        grading_info.h_username = request.lti_user.h_user.username
-        grading_info.h_display_name = request.lti_user.h_user.display_name
+        grading_info.h_username = lti_user.h_user.username
+        grading_info.h_display_name = lti_user.h_user.display_name
 
-        grading_info.update_from_dict(parsed_params)
+        grading_info.lis_outcome_service_url = lis_outcome_service_url
+        grading_info.lis_result_sourcedid = lis_result_sourcedid
+
         return grading_info
 
     def _find_or_create(self, **query):
