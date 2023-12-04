@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from unittest import mock
 
 import pytest
-from factory import Faker
+from factory import Faker, Sequence
 from freezegun import freeze_time
 from h_matchers import Any
 
@@ -351,6 +351,7 @@ class TestApplicationInstanceService:
                     lti_registration=registration,
                     tool_consumer_instance_guid=Faker("hexify", text="^" * 32),
                     deployment_id=Faker("hexify", text="^" * 8),
+                    name=Sequence(lambda n: f"Application Instance {n}"),
                 )
             )
 
