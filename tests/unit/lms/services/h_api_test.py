@@ -118,7 +118,7 @@ class TestHAPI:
                 {
                     "filter": {
                         "limit": 100000,
-                        "audience": {"username": ["name"]},
+                        "username": "name",
                         "created": {
                             "gt": "2001-02-03T04:05:06+00:00",
                             "lte": "2002-02-03T04:05:06+00:00",

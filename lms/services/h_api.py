@@ -111,7 +111,7 @@ class HAPI:
         payload = {
             "filter": {
                 "limit": 100000,
-                "audience": {"username": [username]},
+                "username": username,
                 "created": {
                     "gt": _rfc3339_format(created_after),
                     "lte": _rfc3339_format(created_before),
