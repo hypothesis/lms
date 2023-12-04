@@ -5,9 +5,7 @@ from unittest.mock import call, sentinel
 import celery
 import pytest
 from freezegun import freeze_time
-from h_matchers import Any
 
-from lms.models import EmailUnsubscribe
 from lms.tasks.email_digests import (
     send_instructor_email_digest_tasks,
     send_instructor_email_digests,
@@ -65,31 +63,6 @@ class TestSendInstructurEmailDigestsTasks:
         send_instructor_email_digest_tasks(batch_size=42)
 
         send_instructor_email_digests.apply_async.assert_not_called()
-
-    @freeze_time("2023-03-09 05:15:00")
-    def test_it_doesnt_email_unsubscribed_instructors_legacy(
-        self, send_instructor_email_digests, participating_instructors
-    ):
-        participating_instructors, unsubscribed_instructors = (
-            participating_instructors[:1],
-            participating_instructors[1:],
-        )
-        for unsubscribed_instructor in unsubscribed_instructors:
-            factories.EmailUnsubscribe(
-                h_userid=unsubscribed_instructor.h_userid,
-                tag=EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST,
-            )
-
-        send_instructor_email_digest_tasks(batch_size=42)
-
-        assert send_instructor_email_digests.apply_async.call_args_list == [
-            call(
-                (),
-                Any.dict.containing(
-                    {"h_userids": [participating_instructors[0].h_userid]}
-                ),
-            )
-        ]
 
     @freeze_time("2023-03-09 05:15:00")
     def test_it_doesnt_email_unsubscribed_instructors(

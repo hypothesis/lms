@@ -50,7 +50,7 @@ class EmailPreferencesViews:
     def unsubscribe(self):
         """Unsubscribe the email and tag combination encoded in token."""
         self.request.find_service(EmailPreferencesService).unsubscribe(
-            self.request.identity.h_userid, self.request.identity.tag
+            self.request.identity.h_userid
         )
 
         return HTTPFound(location=self.request.route_url("email.unsubscribed"))

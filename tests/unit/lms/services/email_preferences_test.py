@@ -3,7 +3,6 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.models import EmailUnsubscribe
 from lms.services.email_preferences import (
     EmailPreferencesService,
     EmailPrefs,
@@ -99,21 +98,8 @@ class TestEmailPreferencesService:
         )
         assert url == f"http://example.com/email/{path}?token=TOKEN"
 
-    def test_unsubscribe(self, svc, bulk_upsert, db_session, user_preferences_service):
-        svc.unsubscribe(sentinel.h_userid, sentinel.tag)
-
-        bulk_upsert.assert_called_once_with(
-            db_session,
-            model_class=EmailUnsubscribe,
-            values=[
-                {
-                    "h_userid": sentinel.h_userid,
-                    "tag": sentinel.tag,
-                }
-            ],
-            index_elements=["h_userid", "tag"],
-            update_columns=["updated"],
-        )
+    def test_unsubscribe(self, svc, user_preferences_service):
+        svc.unsubscribe(sentinel.h_userid)
 
         user_preferences_service.set.assert_called_once_with(
             sentinel.h_userid,
@@ -200,10 +186,6 @@ class TestEmailPreferencesService:
             jwt_service,
             user_preferences_service,
         )
-
-    @pytest.fixture
-    def bulk_upsert(self, patch):
-        return patch("lms.services.email_preferences.bulk_upsert")
 
 
 class TestFactory:

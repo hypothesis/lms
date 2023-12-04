@@ -8,7 +8,6 @@ from lms.models import (
     ApplicationInstance,
     AssignmentGrouping,
     AssignmentMembership,
-    EmailUnsubscribe,
     Event,
     LTIRole,
     User,
@@ -91,13 +90,6 @@ def send_instructor_email_digest_tasks(*, batch_size):
                         select(candidate_courses.c.course_id)
                     ),
                     LTIRole.type == "instructor",
-                    # No EmailUnsubscribes
-                    User.h_userid.not_in(
-                        select(EmailUnsubscribe.h_userid).where(
-                            EmailUnsubscribe.tag
-                            == EmailUnsubscribe.Tag.INSTRUCTOR_DIGEST
-                        )
-                    ),
                     not_(
                         UserPreferences.preferences[
                             f"{EmailPreferencesService.KEY_PREFIX}{weekday}"
