@@ -98,15 +98,18 @@ class TestGetStudentsForGrading:
         return factories.GradingInfo.create_batch(3)
 
 
-class TestUpsertFromRequest:
+class TestUpsert:
     def test_it_creates_new_record_if_no_matching_exists(
-        self, svc, application_instance, pyramid_request, lti_params
+        self, svc, application_instance, pyramid_request
     ):
-        result = svc.upsert_from_request(pyramid_request)
+        lti_params = pyramid_request.lti_params
+        result = svc.upsert(
+            pyramid_request.lti_user,
+            lti_params.get("lis_result_sourcedid"),
+            lti_params.get("lis_outcome_service_url"),
+        )
 
         assert result == Any.instance_of(GradingInfo)
-        # Check the lti_params are there
-        assert self.model_as_dict(result) == Any.dict.containing(lti_params)
 
         # Check the h_user data are there
         assert result.h_username == pyramid_request.lti_user.h_user.username
@@ -116,44 +119,54 @@ class TestUpsertFromRequest:
         assert result.user_id == pyramid_request.lti_user.user_id
         assert result.application_instance == application_instance
 
+        assert result.lis_result_sourcedid == lti_params["lis_result_sourcedid"]
+        assert result.lis_outcome_service_url == lti_params["lis_outcome_service_url"]
+        assert result.context_id == pyramid_request.lti_user.lti.course_id
+        assert result.resource_link_id == pyramid_request.lti_user.lti.assignment_id
+
     def test_it_updates_existing_record_if_matching_exists(
         self, svc, pyramid_request, lti_user, application_instance
     ):
         grading_info = factories.GradingInfo(
             application_instance=application_instance,
             user_id=lti_user.user_id,
-            context_id=pyramid_request.params["context_id"],
-            resource_link_id=pyramid_request.params["resource_link_id"],
+            context_id=pyramid_request.lti_user.lti.course_id,
+            resource_link_id=pyramid_request.lti_user.lti.assignment_id,
         )
         pyramid_request.lti_user.display_name = "updated_display_name"
 
-        svc.upsert_from_request(pyramid_request)
+        svc.upsert(
+            pyramid_request.lti_user,
+            pyramid_request.lti_params.get("lis_result_sourcedid"),
+            pyramid_request.lti_params.get("lis_outcome_service_url"),
+        )
 
         assert grading_info.h_display_name == "updated_display_name"
 
     @pytest.mark.parametrize(
         "param",
-        (
-            "lis_result_sourcedid",
-            "lis_outcome_service_url",
-            "context_id",
-            "resource_link_id",
-        ),
+        ("lis_result_sourcedid", "lis_outcome_service_url"),
     )
     def test_it_does_nothing_with_required_parameter_missing(
         self, svc, pyramid_request, param
     ):
-        del pyramid_request.POST[param]
+        del pyramid_request.lti_params[param]
 
-        assert not svc.upsert_from_request(pyramid_request)
-
-    @classmethod
-    def model_as_dict(cls, model):
-        return {col: getattr(model, col) for col in model.columns()}
+        assert not svc.upsert(
+            pyramid_request.lti_user,
+            pyramid_request.lti_params.get("lis_result_sourcedid"),
+            pyramid_request.lti_params.get("lis_outcome_service_url"),
+        )
 
     @pytest.fixture
-    def pyramid_request(self, pyramid_request, lti_params):
-        pyramid_request.POST.update(lti_params)
+    def pyramid_request(self, pyramid_request):
+        lti_params = {
+            "lis_result_sourcedid": "result_sourcedid",
+            "lis_outcome_service_url": "https://somewhere.else",
+        }
+        pyramid_request.lti_user.lti.course_id = "random context"
+        pyramid_request.lti_user.lti.assignment_id = "random resource link id"
+        pyramid_request.lti_params.update(lti_params)
 
         return pyramid_request
 
@@ -163,13 +176,3 @@ def svc(pyramid_request):
     context = mock.create_autospec(LTILaunchResource, spec_set=True, instance=True)
 
     return GradingInfoService(context, pyramid_request)
-
-
-@pytest.fixture
-def lti_params():
-    return {
-        "lis_result_sourcedid": "result_sourcedid",
-        "lis_outcome_service_url": "https://somewhere.else",
-        "context_id": "random context",
-        "resource_link_id": "random resource link id",
-    }

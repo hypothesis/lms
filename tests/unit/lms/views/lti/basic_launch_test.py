@@ -33,7 +33,6 @@ class TestBasicLaunchViews:
     ):
         BasicLaunchViews(context, pyramid_request)
 
-        # `_record_course()`
         course_service.get_from_launch.assert_called_once_with(
             pyramid_request.product, pyramid_request.lti_params
         )
@@ -292,8 +291,10 @@ class TestBasicLaunchViews:
                     else None,
                 )
             else:
-                grading_info_service.upsert_from_request.assert_called_once_with(
-                    pyramid_request
+                grading_info_service.upsert.assert_called_once_with(
+                    pyramid_request.lti_user,
+                    pyramid_request.lti_params.get("lis_result_sourcedid"),
+                    pyramid_request.lti_params.get("lis_outcome_service_url"),
                 )
 
         assert result == {}
