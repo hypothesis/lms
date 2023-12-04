@@ -29,9 +29,7 @@ class TestEmailPreferencesViews:
 
         result = views.unsubscribe()
 
-        email_preferences_service.unsubscribe.assert_called_once_with(
-            sentinel.h_userid, sentinel.tag
-        )
+        email_preferences_service.unsubscribe.assert_called_once_with(sentinel.h_userid)
         assert isinstance(result, HTTPFound)
         assert result.location == "http://example.com/email/unsubscribed"
 
