@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import List
 
 from sqlalchemy import Boolean, not_, select
 
@@ -26,7 +25,7 @@ LOG = logging.getLogger(__name__)
     retry_backoff=3600,
     retry_backoff_max=7200,
 )
-def send_instructor_email_digest_tasks(*, batch_size):
+def send_instructor_email_digest_tasks(*, batch_size):  # pylint:disable=unused-argument
     """
     Generate and send instructor email digests.
 
@@ -100,16 +99,11 @@ def send_instructor_email_digest_tasks(*, batch_size):
                 )
             ).all()
 
-            batches = [
-                h_userids[i : i + batch_size]
-                for i in range(0, len(h_userids), batch_size)
-            ]
-
-            for batch in batches:
-                send_instructor_email_digests.apply_async(
+            for h_userid in h_userids:
+                send_instructor_email_digest.apply_async(
                     (),
                     {
-                        "h_userids": batch,
+                        "h_userid": h_userid,
                         "created_after": created_after.isoformat(),
                         "created_before": created_before.isoformat(),
                     },
@@ -124,8 +118,8 @@ def send_instructor_email_digest_tasks(*, batch_size):
     retry_backoff_max=7200,
     rate_limit="10/m",
 )
-def send_instructor_email_digests(
-    *, h_userids: List[str], created_after: str, created_before: str, **kwargs
+def send_instructor_email_digest(
+    *, h_userid: str, created_after: str, created_before: str, **kwargs
 ) -> None:
     """
     Generate and send instructor email digests to the given users.
@@ -133,10 +127,10 @@ def send_instructor_email_digests(
     The email digests will cover activity that occurred in the time period
     described by the `created_after` and `created_before` arguments.
 
-    :param h_userids: the h_userid's of the instructors to email
+    :param h_userid: the h_userid of the instructor to email
     :param created_after: the beginning of the time period as an ISO 8601 format string
     :param created_before: the end of the time period as an ISO 8601 format string
-    :param kwargs: other keyword arguments to pass to DigestService.send_instructor_email_digests()
+    :param kwargs: other keyword arguments to pass to DigestService.send_instructor_email_digest()
     """
     # Caution: datetime.fromisoformat() doesn't support all ISO 8601 strings!
     # This only works for the subset of ISO 8601 produced by datetime.isoformat().
@@ -147,6 +141,6 @@ def send_instructor_email_digests(
         with request.tm:
             digest_service = request.find_service(DigestService)
 
-            digest_service.send_instructor_email_digests(
-                h_userids, created_after, created_before, **kwargs
+            digest_service.send_instructor_email_digest(
+                h_userid, created_after, created_before, **kwargs
             )

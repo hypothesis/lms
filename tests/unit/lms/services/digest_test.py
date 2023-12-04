@@ -1,6 +1,6 @@
 from dataclasses import asdict
 from datetime import datetime
-from unittest.mock import call, sentinel
+from unittest.mock import sentinel
 
 import factory
 import pytest
@@ -22,7 +22,7 @@ from tests import factories
 
 class TestDigestService:
     @freeze_time("2023-04-30")
-    def test_send_instructor_email_digests(
+    def test_send_instructor_email_digest(
         self,
         svc,
         h_api,
@@ -34,22 +34,19 @@ class TestDigestService:
         email_preferences_service,
         created_before,
     ):
-        context.user_infos = UserInfoFactory.create_batch(2)
-        digests = context.instructor_digest.side_effect = [
-            {"total_annotations": 1},
-            {"total_annotations": 2},
-        ]
+        context.user_info = UserInfoFactory()
+        context.instructor_digest.return_value = {"total_annotations": 1}
 
-        svc.send_instructor_email_digests(
-            sentinel.audience, sentinel.created_after, created_before
+        svc.send_instructor_email_digest(
+            sentinel.h_userid, sentinel.created_after, created_before
         )
 
         h_api.get_annotations.assert_called_once_with(
-            sentinel.audience, sentinel.created_after, created_before
+            sentinel.h_userid, sentinel.created_after, created_before
         )
         DigestContext.assert_called_once_with(
             db_session,
-            sentinel.audience,
+            sentinel.h_userid,
             [
                 Annotation(
                     userid=annotation_dict["author"]["userid"],
@@ -64,35 +61,30 @@ class TestDigestService:
                 for annotation_dict in h_api.get_annotations.return_value
             ],
         )
-        assert context.instructor_digest.call_args_list == [
-            call(user.h_userid) for user in context.user_infos
-        ]
-        assert send.delay.call_args_list == [
-            call(
-                task_done_key=f"instructor_email_digest::{user_info.h_userid}::2023-04-30",
-                task_done_data={
-                    "type": "instructor_email_digest",
-                    "created_before": created_before.isoformat(),
-                },
-                template="lms:templates/email/instructor_email_digest/",
-                sender=asdict(sender),
-                recipient=asdict(
-                    EmailRecipient(user_info.email, user_info.display_name)
-                ),
-                template_vars=digest,
-                unsubscribe_url=email_preferences_service.unsubscribe_url.return_value,
-            )
-            for user_info, digest in zip(context.user_infos, digests)
-        ]
+        context.instructor_digest.assert_called_once_with(context.user_info.h_userid)
+        send.delay.assert_called_once_with(
+            task_done_key=f"instructor_email_digest::{context.user_info.h_userid}::2023-04-30",
+            task_done_data={
+                "type": "instructor_email_digest",
+                "created_before": created_before.isoformat(),
+            },
+            template="lms:templates/email/instructor_email_digest/",
+            sender=asdict(sender),
+            recipient=asdict(
+                EmailRecipient(context.user_info.email, context.user_info.display_name)
+            ),
+            template_vars=context.instructor_digest.return_value,
+            unsubscribe_url=email_preferences_service.unsubscribe_url.return_value,
+        )
 
-    def test_send_instructor_email_digests_without_deduplication(
+    def test_send_instructor_email_digest_without_deduplication(
         self, svc, context, send, created_before
     ):
-        context.user_infos = [UserInfoFactory()]
+        context.user_info = UserInfoFactory()
         context.instructor_digest.side_effect = [{"total_annotations": 1}]
 
-        svc.send_instructor_email_digests(
-            sentinel.audience,
+        svc.send_instructor_email_digest(
+            sentinel.h_userid,
             sentinel.created_after,
             created_before,
             deduplicate=False,
@@ -105,39 +97,39 @@ class TestDigestService:
         assert not send.delay.call_args.kwargs["task_done_key"]
         assert not send.delay.call_args.kwargs["task_done_data"]
 
-    def test_send_instructor_email_digests_doesnt_send_empty_digests(
+    def test_send_instructor_email_digest_doesnt_send_empty_digests(
         self, svc, context, send, created_before
     ):
-        context.user_infos = UserInfoFactory.create_batch(2)
+        context.user_info = UserInfoFactory()
         context.instructor_digest.return_value = {"total_annotations": 0}
 
-        svc.send_instructor_email_digests(
-            [sentinel.h_userid], sentinel.created_after, created_before
+        svc.send_instructor_email_digest(
+            sentinel.h_userid, sentinel.created_after, created_before
         )
 
         send.delay.assert_not_called()
 
-    def test_send_instructor_email_digests_ignores_instructors_with_no_email_address(
+    def test_send_instructor_email_digest_ignores_instructors_with_no_email_address(
         self, svc, context, send, created_before
     ):
-        context.user_infos = [UserInfoFactory(email=None)]
+        context.user_info = UserInfoFactory(email=None)
         context.instructor_digest.return_value = {"total_annotations": 1}
 
-        svc.send_instructor_email_digests(
-            sentinel.audience, sentinel.created_after, created_before
+        svc.send_instructor_email_digest(
+            sentinel.h_userid, sentinel.created_after, created_before
         )
 
         send.delay.assert_not_called()
 
     @pytest.mark.usefixtures("email_preferences_service")
-    def test_send_instructor_email_digests_uses_override_to_email(
+    def test_send_instructor_email_digest_uses_override_to_email(
         self, svc, context, send, created_before
     ):
-        context.user_infos = [UserInfoFactory()]
+        context.user_info = UserInfoFactory()
         context.instructor_digest.return_value = {"total_annotations": 1}
 
-        svc.send_instructor_email_digests(
-            sentinel.audience,
+        svc.send_instructor_email_digest(
+            sentinel.h_userid,
             sentinel.created_after,
             created_before,
             override_to_email=sentinel.override_to_email,
@@ -147,13 +139,13 @@ class TestDigestService:
             send.delay.call_args[1]["recipient"]["email"] == sentinel.override_to_email
         )
 
-    def test_send_instructor_email_digests_handles_annotations_with_no_metadata(
+    def test_send_instructor_email_digest_handles_annotations_with_no_metadata(
         self, svc, h_api, DigestContext, created_before
     ):
         for annotation_dict in h_api.get_annotations.return_value:
             del annotation_dict["metadata"]["lms"]
 
-        svc.send_instructor_email_digests(
+        svc.send_instructor_email_digest(
             [sentinel.h_userid], sentinel.created_after, created_before
         )
 
@@ -334,7 +326,7 @@ class TestDigestContext:
         courses = factories.Course.create_batch(size=2)
         for assignment, course in zip(assignments, courses):
             factories.AssignmentGrouping(assignment=assignment, grouping=course)
-        context = DigestContext(db_session, sentinel.audience, annotations)
+        context = DigestContext(db_session, sentinel.h_userid, annotations)
 
         assignment_infos = context.assignment_infos
 
@@ -354,7 +346,7 @@ class TestDigestContext:
     def test_assignment_infos_when_an_annotation_has_no_matching_assignment(
         self, db_session
     ):
-        context = DigestContext(db_session, sentinel.audience, [AnnotationFactory()])
+        context = DigestContext(db_session, sentinel.h_userid, [AnnotationFactory()])
 
         assignment_infos = context.assignment_infos
 
@@ -372,42 +364,36 @@ class TestDigestContext:
         )
         course = factories.Course()
         factories.AssignmentGrouping(assignment=assignment, grouping=course)
-        context = DigestContext(db_session, sentinel.audience, [annotation])
+        context = DigestContext(db_session, sentinel.h_userid, [annotation])
 
         assignment_infos = context.assignment_infos
 
         assert assignment_infos == []
 
-    def test_user_infos(self, db_session):
-        audience = factories.User.create_batch(2)
-        context = DigestContext(db_session, [user.h_userid for user in audience], [])
+    def test_user_info(self, db_session):
+        user = factories.User()
+        context = DigestContext(db_session, user.h_userid, [])
 
-        user_infos = context.user_infos
+        user_info = context.user_info
 
-        assert user_infos == [
-            UserInfo(h_userid=user.h_userid, email=Any(), display_name=Any())
-            for user in audience
-        ]
-        assert context.user_infos is user_infos
+        assert user_info == UserInfo(
+            h_userid=user.h_userid, email=Any(), display_name=Any()
+        )
+        assert context.user_info is user_info
 
-    def test_user_infos_with_no_audience_or_annotations(self, db_session):
-        context = DigestContext(db_session, [], [])
-
-        assert context.user_infos == []
-
-    def test_user_infos_ignores_duplicate_userids(self, db_session):
+    def test_user_info_ignores_duplicate_userids(self, db_session):
         user = factories.User()
         context = DigestContext(
             db_session,
-            [user.h_userid, user.h_userid],
+            user.h_userid,
             AnnotationFactory.create_batch(2, userid=user.h_userid),
         )
 
-        user_infos = context.user_infos
+        user_info = context.user_info
 
-        assert user_infos == [
-            UserInfo(h_userid=user.h_userid, email=Any(), display_name=Any())
-        ]
+        assert user_info == UserInfo(
+            h_userid=user.h_userid, email=Any(), display_name=Any()
+        )
 
     @pytest.mark.parametrize(
         "users,expected_email",
@@ -451,17 +437,13 @@ class TestDigestContext:
             ),
         ],
     )
-    def test_user_infos_email(self, db_session, users, expected_email):
+    def test_user_info_email(self, db_session, users, expected_email):
         db_session.add_all(users)
 
-        context = DigestContext(db_session, ["id"], [])
+        context = DigestContext(db_session, "id", [])
 
-        assert context.user_infos == Any.list.containing(
-            [
-                Any.instance_of(UserInfo).with_attrs(
-                    {"h_userid": "id", "email": expected_email}
-                )
-            ]
+        assert context.user_info == Any.instance_of(UserInfo).with_attrs(
+            {"h_userid": "id", "email": expected_email}
         )
 
     @pytest.mark.parametrize(
@@ -506,17 +488,13 @@ class TestDigestContext:
             ),
         ],
     )
-    def test_user_infos_display_name(self, db_session, users, expected_display_name):
+    def test_user_info_display_name(self, db_session, users, expected_display_name):
         db_session.add_all(users)
 
-        context = DigestContext(db_session, ["id"], [])
+        context = DigestContext(db_session, "id", [])
 
-        assert context.user_infos == Any.list.containing(
-            [
-                Any.instance_of(UserInfo).with_attrs(
-                    {"h_userid": "id", "display_name": expected_display_name}
-                )
-            ]
+        assert context.user_info == Any.instance_of(UserInfo).with_attrs(
+            {"h_userid": "id", "display_name": expected_display_name}
         )
 
     def test_course_infos(self, db_session, make_instructor, make_learner):

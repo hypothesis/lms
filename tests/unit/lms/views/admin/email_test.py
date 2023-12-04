@@ -1,3 +1,5 @@
+from unittest.mock import call
+
 import pytest
 from h_matchers import Any
 from pyramid.httpexceptions import HTTPBadRequest, HTTPFound
@@ -11,19 +13,22 @@ class TestAdminEmailViews:
         assert views.get() == {"instructor_email_digest_subject": Any.string()}
 
     @pytest.mark.usefixtures("with_valid_post_params")
-    def test_post(self, views, send_instructor_email_digests):
+    def test_post(self, views, send_instructor_email_digest):
         response = views.post()
 
-        send_instructor_email_digests.apply_async.assert_called_once_with(
-            (),
-            {
-                "h_userids": ["userid_1", "userid_2"],
-                "created_after": "2023-02-27T00:00:00",
-                "created_before": "2023-02-28T00:00:00",
-                "override_to_email": "someone@hypothes.is",
-                "deduplicate": False,
-            },
-        )
+        assert send_instructor_email_digest.apply_async.call_args_list == [
+            call(
+                (),
+                {
+                    "h_userid": h_userid,
+                    "created_after": "2023-02-27T00:00:00",
+                    "created_before": "2023-02-28T00:00:00",
+                    "override_to_email": "someone@hypothes.is",
+                    "deduplicate": False,
+                },
+            )
+            for h_userid in ["userid_1", "userid_2"]
+        ]
         assert isinstance(response, HTTPFound)
         assert response.location == "http://example.com/admin/email"
 
@@ -63,7 +68,7 @@ class TestAdminEmailViews:
         self,
         views,
         pyramid_request,
-        send_instructor_email_digests,
+        send_instructor_email_digest,
         form,
         expected_error_message,
     ):
@@ -73,7 +78,7 @@ class TestAdminEmailViews:
         with pytest.raises(HTTPBadRequest, match=expected_error_message):
             views.post()
 
-        send_instructor_email_digests.apply_async.assert_not_called()
+        send_instructor_email_digest.apply_async.assert_not_called()
 
     def test_preview_instructor_email_digest(self, views):
         template_vars = views.preview_instructor_email_digest()
@@ -99,5 +104,5 @@ class TestAdminEmailViews:
 
 
 @pytest.fixture(autouse=True)
-def send_instructor_email_digests(patch):
-    return patch("lms.views.admin.email.send_instructor_email_digests")
+def send_instructor_email_digest(patch):
+    return patch("lms.views.admin.email.send_instructor_email_digest")

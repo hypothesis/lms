@@ -35,9 +35,9 @@ class DigestService:
         self._email_preferences_service = email_preferences_service
         self._sender = sender
 
-    def send_instructor_email_digests(  # pylint:disable=too-many-arguments
+    def send_instructor_email_digest(  # pylint:disable=too-many-arguments
         self,
-        audience,
+        h_userid,
         created_after,
         created_before,
         override_to_email=None,
@@ -45,52 +45,51 @@ class DigestService:
     ):
         """Send instructor email digests for the given users and timeframe."""
         annotation_dicts = self._h_api.get_annotations(
-            audience, created_after, created_before
+            h_userid, created_after, created_before
         )
 
         annotations = [
             Annotation.make(annotation_dict) for annotation_dict in annotation_dicts
         ]
 
-        context = DigestContext(self._db, audience, annotations)
+        context = DigestContext(self._db, h_userid, annotations)
 
-        for user_info in context.user_infos:
-            digest = context.instructor_digest(user_info.h_userid)
+        digest = context.instructor_digest(context.user_info.h_userid)
 
-            if not digest["total_annotations"]:
-                # This user has no activity.
-                continue
+        if not digest["total_annotations"]:
+            # This user has no activity.
+            return
 
-            if override_to_email is None:
-                to_email = user_info.email
-            else:
-                to_email = override_to_email
+        if override_to_email is None:
+            to_email = context.user_info.email
+        else:
+            to_email = override_to_email
 
-            if not to_email:
-                # We don't have an email address for this user.
-                continue
+        if not to_email:
+            # We don't have an email address for this user.
+            return
 
-            if deduplicate:
-                task_done_key = f"instructor_email_digest::{user_info.h_userid}::{datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
-                task_done_data = {
-                    "type": "instructor_email_digest",
-                    "created_before": created_before.isoformat(),
-                }
-            else:
-                task_done_key = None
-                task_done_data = None
+        if deduplicate:
+            task_done_key = f"instructor_email_digest::{context.user_info.h_userid}::{datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
+            task_done_data = {
+                "type": "instructor_email_digest",
+                "created_before": created_before.isoformat(),
+            }
+        else:
+            task_done_key = None
+            task_done_data = None
 
-            send.delay(
-                task_done_key=task_done_key,
-                task_done_data=task_done_data,
-                template="lms:templates/email/instructor_email_digest/",
-                sender=asdict(self._sender),
-                recipient=asdict(EmailRecipient(to_email, user_info.display_name)),
-                template_vars=digest,
-                unsubscribe_url=self._email_preferences_service.unsubscribe_url(
-                    user_info.h_userid, "instructor_digest"
-                ),
-            )
+        send.delay(
+            task_done_key=task_done_key,
+            task_done_data=task_done_data,
+            template="lms:templates/email/instructor_email_digest/",
+            sender=asdict(self._sender),
+            recipient=asdict(EmailRecipient(to_email, context.user_info.display_name)),
+            template_vars=digest,
+            unsubscribe_url=self._email_preferences_service.unsubscribe_url(
+                context.user_info.h_userid, "instructor_digest"
+            ),
+        )
 
 
 @dataclass(frozen=True, order=True)
@@ -181,12 +180,12 @@ class CourseInfo:
 class DigestContext:
     """A context/helper object for DigestService."""
 
-    def __init__(self, db, audience, annotations):
+    def __init__(self, db, h_userid, annotations):
         self._db = db
-        self.audience = audience
+        self.h_userid = h_userid
         self.annotations = annotations
         self._assignment_infos = None
-        self._user_infos = None
+        self._user_info = None
         self._course_infos = None
 
     def instructor_digest(self, h_userid):
@@ -310,12 +309,12 @@ class DigestContext:
         return self._assignment_infos
 
     @property
-    def user_infos(self):
-        """Return a list of UserInfo's for all the users in self.audience."""
-        if self._user_infos is not None:
-            return self._user_infos
+    def user_info(self):
+        """Return a UserInfo for self.h_userid."""
+        if self._user_info is not None:
+            return self._user_info
 
-        query = (
+        row = self._db.execute(
             select(
                 # pylint:disable=not-callable
                 User.h_userid,
@@ -330,16 +329,13 @@ class DigestContext:
                 .filter(User.display_name.isnot(None))[1]
                 .label("display_name"),
             )
-            .where(User.h_userid.in_(self.audience))
+            .where(User.h_userid == self.h_userid)
             .group_by(User.h_userid)
-        )
+        ).one()
 
-        self._user_infos = [
-            UserInfo(row.h_userid, row.email, row.display_name)
-            for row in self._db.execute(query)
-        ]
+        self._user_info = UserInfo(row.h_userid, row.email, row.display_name)
 
-        return self._user_infos
+        return self._user_info
 
     @property
     def course_infos(self):
