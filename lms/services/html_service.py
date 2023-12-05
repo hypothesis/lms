@@ -1,16 +1,22 @@
 from html.parser import HTMLParser
 
 
-def strip_html_tags(html: str) -> str:
-    """Get plain text from a string which may contain HTML tags."""
+class WhiteSpaceHTMLParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self._chunks = []
 
-    # Extract text nodes using HTMLParser. We rely on it being tolerant of
-    # invalid markup.
-    chunks = []
-    parser = HTMLParser()
-    parser.handle_data = chunks.append
+    def handle_data(self, data):
+        self._chunks.append(data)
+
+    def get_text(self) -> str:
+        # Strip leading/trailing whitespace and duplicate spaces
+        return " ".join("".join(self._chunks).split())
+
+
+def strip_html_tags(html: str) -> str:
+    parser = WhiteSpaceHTMLParser()
     parser.feed(html)
     parser.close()
 
-    # Strip leading/trailing whitespace and duplicate spaces
-    return " ".join("".join(chunks).split())
+    return parser.get_text()
