@@ -18,7 +18,9 @@ class TestFactory:
         )
         assert svc == LTI11GradingService.return_value
 
-    def test_v13(self, pyramid_request, LTI13GradingService, ltia_http_service):
+    def test_v13(
+        self, pyramid_request, LTI13GradingService, ltia_http_service, misc_plugin
+    ):
         pyramid_request.lti_user.application_instance = Mock(lti_version="1.3.0")
 
         svc = service_factory(sentinel.context, pyramid_request)
@@ -28,11 +30,12 @@ class TestFactory:
             sentinel.lineitems,
             ltia_http_service,
             pyramid_request.product.family,
+            misc_plugin,
         )
         assert svc == LTI13GradingService.return_value
 
     def test_v13_line_item_url_from_lti_params(
-        self, pyramid_request, LTI13GradingService, ltia_http_service
+        self, pyramid_request, LTI13GradingService, ltia_http_service, misc_plugin
     ):
         del pyramid_request.parsed_params["lis_outcome_service_url"]
         pyramid_request.lti_user.application_instance = Mock(lti_version="1.3.0")
@@ -44,6 +47,7 @@ class TestFactory:
             sentinel.lineitems,
             ltia_http_service,
             pyramid_request.product.family,
+            misc_plugin,
         )
         assert svc == LTI13GradingService.return_value
 

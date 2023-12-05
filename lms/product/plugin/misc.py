@@ -1,4 +1,5 @@
 from lms.models import LTIParams, LTIRegistration
+from lms.services.html_service import strip_html_tags
 
 
 class MiscPlugin:
@@ -38,6 +39,11 @@ class MiscPlugin:
 
         # This is a LTI 1.3 only feature
         return application_instance.lti_version == "1.3.0"
+
+    def clean_lms_grading_comment(self, comment: str) -> str:
+        """Clean a comment,/ coming from the LMS to display it in our grading comment textarea"""
+        # On top of this, blackboard adds some HTML to the comments it returns
+        return strip_html_tags(comment)
 
     def is_assignment_gradable(self, lti_params: LTIParams) -> bool:
         """Check if the assignment of the current launch is gradable."""
