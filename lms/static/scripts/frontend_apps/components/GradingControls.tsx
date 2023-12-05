@@ -39,7 +39,7 @@ export default function GradingControls({
 }: GradingControlsProps) {
   const {
     api: { authToken, sync: syncAPICallInfo },
-  } = useConfig();
+  } = useConfig(['api']);
 
   const clientRPC = useService(ClientRPC);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);

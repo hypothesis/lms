@@ -221,14 +221,7 @@ export type Product = {
   api: ProductAPI;
 };
 
-export type WeekDay =
-  | 'instructor_email_digests.days.mon'
-  | 'instructor_email_digests.days.tue'
-  | 'instructor_email_digests.days.wed'
-  | 'instructor_email_digests.days.thu'
-  | 'instructor_email_digests.days.fri'
-  | 'instructor_email_digests.days.sat'
-  | 'instructor_email_digests.days.sun';
+export type WeekDay = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
 export type EmailNotificationsPreferences = Record<WeekDay, boolean>;
 
@@ -243,7 +236,9 @@ export type EmailNotificationsPreferences = Record<WeekDay, boolean>;
 export type ConfigObject = {
   // Configuration present in all modes.
   mode: AppMode;
-  api: {
+
+  // Present in most modes.
+  api?: {
     authToken: string;
 
     // Only present in "basic-lti-launch" mode.

@@ -91,7 +91,7 @@ export default function ContentSelector({
       },
       youtube: { enabled: youtubeEnabled },
     },
-  } = useConfig(['filePicker']);
+  } = useConfig(['api', 'filePicker']);
 
   // Map the existing content selection to a dialog type and value. We don't
   // open the corresponding dialog immediately, but do pre-fill the dialog

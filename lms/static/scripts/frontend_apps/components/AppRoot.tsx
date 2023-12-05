@@ -40,7 +40,7 @@ export default function AppRoot({ initialConfig, services }: AppRootProps) {
               <FilePickerApp />
             </DataLoader>
           </Route>
-          <Route path="/app/email-notifications">
+          <Route path="/email/preferences">
             <EmailNotificationsApp />
           </Route>
           <Route path="/app/error-dialog">

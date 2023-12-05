@@ -5,13 +5,13 @@ import EmailNotificationsApp from '../EmailNotificationsApp';
 
 describe('EmailNotificationsApp', () => {
   const emailNotificationsConfig = {
-    'instructor_email_digests.days.mon': true,
-    'instructor_email_digests.days.tue': true,
-    'instructor_email_digests.days.wed': false,
-    'instructor_email_digests.days.thu': false,
-    'instructor_email_digests.days.fri': true,
-    'instructor_email_digests.days.sat': false,
-    'instructor_email_digests.days.sun': true,
+    mon: true,
+    tue: true,
+    wed: false,
+    thu: false,
+    fri: true,
+    sat: false,
+    sun: true,
   };
 
   function createComponent() {
@@ -36,8 +36,8 @@ describe('EmailNotificationsApp', () => {
   it('allows selected days to be updated', () => {
     const wrapper = createComponent();
     const newSelectedDays = {
-      'instructor_email_digests.days.mon': false,
-      'instructor_email_digests.days.wed': true,
+      mon: false,
+      wed: true,
     };
 
     wrapper

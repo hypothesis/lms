@@ -6,13 +6,13 @@ import { useCallback } from 'preact/hooks';
 import type { EmailNotificationsPreferences, WeekDay } from '../config';
 
 const dayNames: [WeekDay, string][] = [
-  ['instructor_email_digests.days.sun', 'Sunday'],
-  ['instructor_email_digests.days.mon', 'Monday'],
-  ['instructor_email_digests.days.tue', 'Tuesday'],
-  ['instructor_email_digests.days.wed', 'Wednesday'],
-  ['instructor_email_digests.days.thu', 'Thursday'],
-  ['instructor_email_digests.days.fri', 'Friday'],
-  ['instructor_email_digests.days.sat', 'Saturday'],
+  ['sun', 'Sunday'],
+  ['mon', 'Monday'],
+  ['tue', 'Tuesday'],
+  ['wed', 'Wednesday'],
+  ['thu', 'Thursday'],
+  ['fri', 'Friday'],
+  ['sat', 'Saturday'],
 ];
 
 export type EmailNotificationsPreferencesProps = {
@@ -31,13 +31,13 @@ export default function EmailNotificationsPreferences({
   const setAllTo = useCallback(
     (enabled: boolean) =>
       updateSelectedDays({
-        'instructor_email_digests.days.sun': enabled,
-        'instructor_email_digests.days.mon': enabled,
-        'instructor_email_digests.days.tue': enabled,
-        'instructor_email_digests.days.wed': enabled,
-        'instructor_email_digests.days.thu': enabled,
-        'instructor_email_digests.days.fri': enabled,
-        'instructor_email_digests.days.sat': enabled,
+        sun: enabled,
+        mon: enabled,
+        tue: enabled,
+        wed: enabled,
+        thu: enabled,
+        fri: enabled,
+        sat: enabled,
       }),
     [updateSelectedDays]
   );

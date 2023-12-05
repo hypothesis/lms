@@ -70,6 +70,7 @@ describe('AppRoot', () => {
     {
       config: { mode: 'email-notifications' },
       appComponent: 'EmailNotificationsApp',
+      route: '/email/preferences',
     },
     {
       config: { mode: 'error-dialog' },
@@ -79,9 +80,9 @@ describe('AppRoot', () => {
       config: { mode: 'oauth2-redirect-error' },
       appComponent: 'OAuth2RedirectErrorApp',
     },
-  ].forEach(({ config, appComponent }) => {
+  ].forEach(({ config, appComponent, route }) => {
     it('launches correct app for "mode" config', () => {
-      navigateTo(`/app/${config.mode}`);
+      navigateTo(route ?? `/app/${config.mode}`);
       const wrapper = renderAppRoot({ config, services: new Map() });
       assert.isTrue(wrapper.exists(appComponent));
     });

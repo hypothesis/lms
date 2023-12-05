@@ -50,16 +50,20 @@ describe('LMS frontend entry', () => {
     $imports.$restore();
   });
 
-  it('renders root component', () => {
-    init();
+  ['basic-lti-launch', 'email-notifications'].forEach(mode => {
+    it('renders root component', () => {
+      fakeReadConfig.returns({ ...minimalConfig, mode });
 
-    const container = document.querySelector('#app');
-    assert.ok(container.querySelector('[data-testid=app-root]'));
+      init();
 
-    assert.called(AppRoot);
-    const props = AppRoot.args[0][0];
-    assert.equal(props.initialConfig, fakeReadConfig());
-    assert.instanceOf(props.services, Map);
+      const container = document.querySelector('#app');
+      assert.ok(container.querySelector('[data-testid=app-root]'));
+
+      assert.called(AppRoot);
+      const props = AppRoot.args[0][0];
+      assert.equal(props.initialConfig, fakeReadConfig());
+      assert.instanceOf(props.services, Map);
+    });
   });
 
   it('console logs debug values', () => {

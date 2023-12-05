@@ -105,7 +105,7 @@ export async function loadFilePickerConfig(
     throw new Error('Assignment editing config missing');
   }
 
-  const authToken = config.api.authToken;
+  const authToken = config.api!.authToken;
   const { path, data } = config.editing.getConfig;
   const { assignment, filePicker } = await apiCall<Partial<ConfigObject>>({
     authToken,
@@ -166,7 +166,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
     },
     assignment,
     filePicker: { deepLinkingAPI, formAction, formFields, promptForTitle },
-  } = useConfig(['filePicker']);
+  } = useConfig(['api', 'filePicker']);
 
   // Currently selected content for assignment.
   const [content, setContent] = useState<Content | null>(

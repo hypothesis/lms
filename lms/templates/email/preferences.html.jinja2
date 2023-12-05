@@ -1,23 +1,20 @@
-{% extends 'templates/base.plain.html.jinja2' %}
+{% extends "lms:templates/base.html.jinja2" %}
 
 {% block content %}
-{% for message in request.session.pop_flash() %}
-  <p><b>{{ message }}</b></p>
-{% endfor %}
+    <div style="width: 100%; height: 100%;" id="app"></div>
+{% endblock %}
 
-<form action="" method="post">
-  <fieldset>
-    <legend>Receive email notifications when your students annotate. Select
-    the days you'd like your emails:</legend>
+{% block styles %}
+    {% for url in  asset_urls("frontend_apps_css") %}
+        <link rel="stylesheet" href="{{ url }}">
+    {% endfor %}
+{% endblock %}
 
-    <ul style="list-style-type:none;">
-      {% for key, value in preferences.items() %}
-        <li><input type="checkbox" id="{{ key }}" name="{{ key }}" {% if value %}checked{% endif %} />
-        <label for="{{ key }}">{{ key }}</label></li>
-      {% endfor %}
-    </ul>
-  </fieldset>
-
-  <button type="submit">Save</button>
-</form>
+{% block scripts %}
+    {# Not calling super() here, as the parent template tries to build the js-config using the JSConfig class, which is
+       not available here. #}
+    <script type="application/json" class="js-config">{{ jsConfig|tojson }}</script>
+    {% for url in asset_urls("frontend_apps_js") %}
+        <script type="module" src="{{ url }}"></script>
+    {% endfor %}
 {% endblock %}

@@ -173,7 +173,7 @@ export function useAPIFetch<T = unknown>(
 ): FetchResult<T> {
   const {
     api: { authToken },
-  } = useConfig();
+  } = useConfig(['api']);
 
   const fetcher: Fetcher<T> | undefined = path
     ? signal =>
