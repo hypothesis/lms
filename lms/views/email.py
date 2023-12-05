@@ -4,6 +4,7 @@ from pyramid.httpexceptions import HTTPFound
 from pyramid.security import remember
 from pyramid.view import forbidden_view_config, view_config, view_defaults
 
+from lms.resources._js_config import JSConfig
 from lms.security import Permissions
 from lms.services import EmailPreferencesService, EmailPrefs
 

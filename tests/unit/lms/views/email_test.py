@@ -4,6 +4,7 @@ import pytest
 from h_matchers import Any
 from pyramid.httpexceptions import HTTPFound
 
+from lms.resources._js_config import JSConfig
 from lms.security import EmailPreferencesIdentity
 from lms.services import EmailPrefs
 from lms.views.email import EmailPreferencesViews, forbidden, unsubscribed
