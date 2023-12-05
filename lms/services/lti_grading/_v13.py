@@ -5,9 +5,10 @@ from urllib.parse import urlparse
 
 from lms.product.family import Family
 from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
-from lms.services.html_service import strip_html_tags
 from lms.services.lti_grading.interface import GradingResult, LTIGradingService
 from lms.services.ltia_http import LTIAHTTPService
+
+from lms.product.plugin.misc import MiscPlugin
 
 LOG = logging.getLogger(__name__)
 
@@ -30,10 +31,12 @@ class LTI13GradingService(LTIGradingService):
         line_item_container_url,
         ltia_service: LTIAHTTPService,
         product_family: Family,
+        misc_plugin: MiscPlugin,
     ):
         super().__init__(line_item_url, line_item_container_url)
         self._ltia_service = ltia_service
         self._product_family = product_family
+        self._misc_plugin = misc_plugin
 
     def read_result(self, grading_id) -> GradingResult:
         result = GradingResult(score=None, comment=None)
@@ -63,13 +66,6 @@ class LTI13GradingService(LTIGradingService):
             # We'll filter ourselves here instead.
             results = [result for result in results if result["userId"] == grading_id]
 
-            # On top of this, blackboard adds some HTML to the comments it returns
-            _ = [
-                result.update(comment=strip_html_tags(result["comment"]))
-                for result in results
-                if result.get("comment")
-            ]
-
         if not results:
             return result
 
@@ -77,7 +73,9 @@ class LTI13GradingService(LTIGradingService):
             result.score = results[-1]["resultScore"] / results[-1]["resultMaximum"]
         except (TypeError, ZeroDivisionError, KeyError, IndexError):
             pass
-        result.comment = results[-1].get("comment")
+
+        if comment := results[-1].get("comment"):
+            result.comment = self._misc_plugin.clean_lms_grading_comment(comment)
         return result
 
     def get_score_maximum(self, resource_link_id) -> Optional[float]:

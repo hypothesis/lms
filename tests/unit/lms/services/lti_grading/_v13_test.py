@@ -73,7 +73,7 @@ class TestLTI13GradingService:
         assert not result.comment
 
     def test_read_result_blackboard(
-        self, blackboard_svc, ltia_http_service, blackboard_response
+        self, blackboard_svc, ltia_http_service, blackboard_response, misc_plugin
     ):
         ltia_http_service.request.return_value.json.return_value = blackboard_response
         blackboard_svc.line_item_url = "https://lms.com/lineitems?param=1"
@@ -92,8 +92,10 @@ class TestLTI13GradingService:
             == blackboard_response[0]["resultScore"]
             / blackboard_response[0]["resultMaximum"]
         )
-
-        assert result.comment == "Comment with HTML"
+        misc_plugin.clean_lms_grading_comment.assert_called_once_with(
+            blackboard_response[0]["comment"]
+        )
+        assert result.comment == misc_plugin.clean_lms_grading_comment.return_value
 
     def test_get_score_maximum(self, svc, ltia_http_service):
         ltia_http_service.request.return_value.json.return_value = [
@@ -247,7 +249,7 @@ class TestLTI13GradingService:
                 "userId": sentinel.user_id,
                 "resultScore": 0.83,
                 "resultMaximum": 1,
-                "comment": "<div>Comment with HTML</div>",
+                "comment": "This is exceptional work.",
             },
             {
                 "id": "https://lms.example.com/context/2923/lineitems/1/results/5323497",
@@ -260,19 +262,21 @@ class TestLTI13GradingService:
         ]
 
     @pytest.fixture
-    def svc(self, ltia_http_service):
+    def svc(self, ltia_http_service, misc_plugin):
         return LTI13GradingService(
             "http://example.com/lineitem",
             "http://example.com/lineitems",
             ltia_http_service,
             product_family=Family.CANVAS,
+            misc_plugin=misc_plugin,
         )
 
     @pytest.fixture
-    def blackboard_svc(self, ltia_http_service):
+    def blackboard_svc(self, ltia_http_service, misc_plugin):
         return LTI13GradingService(
             "http://example.com/lineitem",
             "http://example.com/lineitems",
             ltia_http_service,
             product_family=Family.BLACKBOARD,
+            misc_plugin=misc_plugin,
         )
