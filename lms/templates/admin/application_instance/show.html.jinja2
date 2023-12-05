@@ -41,23 +41,23 @@
     <div class="tabs-wrapper">
         <div class="tabs is-fullwidth is-medium is-boxed is-toggle">
             <ul>
-                <li class="is-active">
+                <li data-section-id="info">
                     <a>Info</a>
                 </li>
-                <li>
+                <li data-section-id="settings">
                     <a>Settings</a>
                 </li>
-                <li>
+                <li data-section-id="role-overrides">
                     <a>Role Overrides</a>
                 </li>
-                <li>
+                <li data-section-id="danger">
                     <a>Danger</a>
                 </li>
             </ul>
         </div>
         <div class="tabs-content">
             <ul>
-                <li class="tab-panel is-active">
+                <li class="tab-panel" data-section-id="info">
                     <form method="POST"
                           action="{{ request.route_url("admin.instance", id_=instance.id) }}">
                         <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
@@ -106,9 +106,9 @@
                         </fieldset>
                     </form>
                 </li>
-                <li class="tab-panel">
+                <li class="tab-panel" data-section-id="settings">
                     <form method="POST"
-                          action="{{ request.route_url("admin.instance.settings", id_=instance.id) }}">
+                          action="{{ request.route_url("admin.instance.section", id_=instance.id, section="settings") }}">
                         <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
                         <fieldset class="box">
                             <legend class="label has-text-centered">General settings</legend>
@@ -167,7 +167,7 @@
                         </div>
                     </form>
                 </li>
-                <li class="tab-panel">
+                <li class="tab-panel" data-section-id="role-overrides">
                     <fieldset class="box">
                         <legend id="roles" class="label has-text-centered">Role overrides</legend>
                         <div class="block has-text-right">
@@ -185,7 +185,7 @@
                         {% endif %}
                     </fieldset>
                 </li>
-                <li class="tab-panel">
+                <li class="tab-panel" data-section-id="danger">
                     <fieldset class="box has-background-danger-light">
                         <legend class="label has-text-centered has-text-danger">Danger zone</legend>
                         {% call macros.field_body(label="Downgrade to LTI 1.1") %}
@@ -213,4 +213,37 @@
             </ul>
         </div>
     </div>
+    <script>
+      function determineActiveSection() {
+        const currentPath = window.location.pathname;
+        // Remove leading and trailing bars
+        const trimmedCurrentPath = currentPath.replace(/^\/+|\/+$/g, '');
+        // We assume all routes here have a common prefix consisting on three parts
+        return trimmedCurrentPath.split('/')[3] ?? 'info';
+      }
+
+      function updateActiveTab() {
+        const activeSection = determineActiveSection();
+        const tabs = document.querySelectorAll('[data-section-id]');
+
+        // Iterate over tabs and tab panels, adding is-active to those which data-section-id matches active section,
+        // and removing it for the rest.
+        tabs.forEach(tab => {
+          tab.classList.toggle('is-active', tab.dataset.sectionId === activeSection);
+        });
+      }
+
+      // Select the first tab on window load
+      window.addEventListener('load', updateActiveTab);
+      // Update selected tab on history change
+      window.addEventListener('popstate', updateActiveTab);
+
+      // Capture clicks in tabs, to update the URL
+      document.querySelectorAll('.tabs li').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const newActiveSection = tab.dataset.sectionId;
+          window.history.pushState(null, '', newActiveSection);
+        });
+      });
+    </script>
 {% endblock %}

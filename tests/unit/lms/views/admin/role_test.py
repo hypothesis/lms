@@ -54,8 +54,9 @@ class TestAdminRoleViews:
         )
         assert response == temporary_redirect_to(
             pyramid_request.route_url(
-                "admin.instance",
+                "admin.instance.section",
                 id_=application_instance_service.get_by_id.return_value.id,
+                section="role-overrides",
             )
         )
 
@@ -100,7 +101,9 @@ class TestAdminRoleViews:
         AuditTrailEvent.notify.assert_called_once_with(pyramid_request, override)
         assert response == temporary_redirect_to(
             pyramid_request.route_url(
-                "admin.instance", id_=override.application_instance_id
+                "admin.instance.section",
+                id_=override.application_instance_id,
+                section="role-overrides",
             )
         )
 
