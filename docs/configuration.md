@@ -33,6 +33,7 @@ LMS. Each of these is mandatory to get the service working correctly.
 | `ADMIN_AUTH_GOOGLE_CLIENT_ID`     | `abcdef012.apps.googleusercontent.com` | An OAuth2 pair from Google for `/admin` pages   |
 | `ADMIN_AUTH_GOOGLE_CLIENT_SECRET` | `01234567-89ab-cdef-0123-456789abcdef` | The matching secret from the above              |
 | `ADMIN_USERS`                     | `admin@hypothes.is admin@hypothesis`   | Email addresses of users with ADMIN permission  |
+| `BROKER_URL`                      | `amqp://user:pw@host/lms?ssl=true`     | AMQP DSN for the main service                   | 
 | `DATABASE_URL`                    | `postgresql://user:pw@host/lms`        | Postgres DSN of this service main DB            | 
 | `DISABLE_KEY_ROTATION`            | `0`                                    | Disable key rotation. Useful in QA              |
 | `H_FDW_DATABASE_URL`              | `postgresql://user:pw@host/h`          | Postgres DSN pointing to H's DB                 | 
