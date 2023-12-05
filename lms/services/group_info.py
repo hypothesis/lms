@@ -46,9 +46,25 @@ class GroupInfoService:
         group_info.application_instance = grouping.application_instance
 
         group_info.type = self._GROUPING_TYPES[grouping.type]
-        group_info.update_from_dict(
-            params, skip_keys={"authority_provided_id", "id", "info"}
-        )
+
+        for field in [
+            # Most (all) of these are duplicated elsewhere, we'll keep updating for now
+            # because external analytics query rely on this table.
+            "context_id",
+            "context_title",
+            "context_label",
+            "tool_consumer_info_product_family_code",
+            "tool_consumer_info_version",
+            "tool_consumer_instance_name",
+            "tool_consumer_instance_description",
+            "tool_consumer_instance_url",
+            "tool_consumer_instance_contact_email",
+            "tool_consumer_instance_guid",
+            "custom_canvas_api_domain",
+            "custom_canvas_course_id",
+        ]:
+            if field in params:
+                setattr(group_info, field, params[field])
 
         if self._lti_user.is_instructor:
             group_info.upsert_instructor(

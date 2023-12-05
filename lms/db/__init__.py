@@ -28,34 +28,6 @@ class BaseClass:
             if isinstance(property, ColumnProperty)
         ]
 
-    def update_from_dict(self, data, skip_keys=None):
-        """
-        Update this model from the provided dict.
-
-        Any keys listed in ``skip_keys`` will *not* be updated, even if they are in ``data``.
-
-        :param data: The data to update
-        :param skip_keys: A set of keys to exclude from being updated (default: {"id"})
-        :type skip_keys: set[str]
-
-        :raise TypeError: if skip_keys isn't a set
-        """
-
-        if skip_keys is None:
-            skip_keys = {"id"}
-
-        if not isinstance(skip_keys, set):
-            raise TypeError(
-                f"Expected a set of keys to skip but found '{type(skip_keys)}'"
-            )
-
-        columns = set(self.columns())
-        columns -= skip_keys
-
-        for key in columns:
-            if key in data:
-                setattr(self, key, data[key])
-
     def __repr__(self):
         kwargs = ", ".join(
             f"{column}={repr(getattr(self, column))}" for column in self.columns()
