@@ -18,11 +18,12 @@ describe('EmailNotificationsPreferences', () => {
     fakeUpdateSelectedDays = sinon.stub();
   });
 
-  function createComponent() {
+  function createComponent(props = {}) {
     return mount(
       <EmailNotificationsPreferences
         selectedDays={initialSelectedDays}
         updateSelectedDays={fakeUpdateSelectedDays}
+        {...props}
       />
     );
   }
@@ -85,5 +86,34 @@ describe('EmailNotificationsPreferences', () => {
         [day]: !initialSelectedDays[day],
       });
     });
+  });
+
+  [
+    { message: 'Error', status: 'error' },
+    { message: 'Success', status: 'success' },
+    undefined,
+  ].forEach(result => {
+    it('displays error message if provided', () => {
+      const wrapper = createComponent({ result });
+      assert.equal(wrapper.exists('Callout'), !!result);
+    });
+  });
+
+  [true, false].forEach(saving => {
+    it('disables save button while saving', () => {
+      const wrapper = createComponent({ saving });
+      const button = wrapper.find('Button[data-testid="save-button"]');
+
+      assert.equal(button.prop('disabled'), saving);
+    });
+  });
+
+  it('saves preferences', () => {
+    const onSave = sinon.stub();
+    const wrapper = createComponent({ onSave });
+
+    wrapper.find('form').simulate('submit');
+
+    assert.called(onSave);
   });
 });

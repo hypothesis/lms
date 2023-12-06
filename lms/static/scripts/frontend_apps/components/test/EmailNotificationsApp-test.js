@@ -1,7 +1,8 @@
+import { mockImportedComponents } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
 import { Config } from '../../config';
-import EmailNotificationsApp from '../EmailNotificationsApp';
+import EmailNotificationsApp, { $imports } from '../EmailNotificationsApp';
 
 describe('EmailNotificationsApp', () => {
   const emailNotificationsConfig = {
@@ -13,6 +14,14 @@ describe('EmailNotificationsApp', () => {
     sat: false,
     sun: true,
   };
+
+  beforeEach(() => {
+    $imports.$mock(mockImportedComponents());
+  });
+
+  afterEach(() => {
+    $imports.$restore();
+  });
 
   function createComponent() {
     return mount(
@@ -53,5 +62,14 @@ describe('EmailNotificationsApp', () => {
         ...newSelectedDays,
       }
     );
+  });
+
+  it('when preferences are saved it sets saving to true', () => {
+    const wrapper = createComponent();
+
+    wrapper.find('EmailNotificationsPreferences').props().onSave();
+    wrapper.update();
+
+    assert.isTrue(wrapper.find('EmailNotificationsPreferences').prop('saving'));
   });
 });
