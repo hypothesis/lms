@@ -14,6 +14,13 @@ import {
 } from './services';
 import type { ServiceMap } from './services';
 
+/**
+ * Converts an app mode into its corresponding URL.
+ *
+ * For historical reasons, some resolve the mode itself prefixed with `/app/`,
+ * but that is not ideal, and should be avoided, because the BE is not aware of
+ * those routes and reloading the page results in a 404.
+ */
 function routeForAppMode(mode: AppMode): string {
   if (mode === 'email-notifications') {
     // For the email-notifications mode, since this app is not designed to be

@@ -10,6 +10,7 @@ const minimalConfig = {
     allowedOrigins: ['https://example.com'],
   },
   mode: 'basic-lti-launch',
+  emailNotifications: {},
 };
 
 describe('LMS frontend entry', () => {
