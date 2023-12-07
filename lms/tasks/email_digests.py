@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 from sqlalchemy import Boolean, not_, select
 
@@ -9,6 +10,7 @@ from lms.models import (
     AssignmentMembership,
     Event,
     LTIRole,
+    TaskDone,
     User,
     UserPreferences,
 )
@@ -45,7 +47,6 @@ def send_instructor_email_digest_tasks():
     now = datetime.now(timezone.utc)
     weekday = EmailPrefs.DAYS[now.weekday()]
     created_before = datetime(year=now.year, month=now.month, day=now.day, hour=5)
-    created_after = created_before - timedelta(days=1)
 
     with app.request_context() as request:  # pylint:disable=no-member
         with request.tm:
@@ -56,7 +57,7 @@ def send_instructor_email_digest_tasks():
                     # Note here that we are considering earlier launches
                     # We rather take a few more courses that miss some cases
                     # where the launch that originated the annotations was made around the cutoff time.
-                    Event.timestamp >= created_after - timedelta(days=7),
+                    Event.timestamp >= created_before - timedelta(days=14),
                     Event.timestamp <= created_before,
                     # Only courses that belong to AIs with the feature enabled
                     ApplicationInstance.settings["hypothesis"][
@@ -104,7 +105,6 @@ def send_instructor_email_digest_tasks():
                     (),
                     {
                         "h_userid": h_userid,
-                        "created_after": created_after.isoformat(),
                         "created_before": created_before.isoformat(),
                     },
                 )
@@ -119,28 +119,60 @@ def send_instructor_email_digest_tasks():
     rate_limit="10/m",
 )
 def send_instructor_email_digest(
-    *, h_userid: str, created_after: str, created_before: str, **kwargs
+    *, h_userid: str, created_before: str, **kwargs
 ) -> None:
     """
     Generate and send instructor email digests to the given users.
 
-    The email digests will cover activity that occurred in the time period
-    described by the `created_after` and `created_before` arguments.
+    The email digests will cover activity that occurred up until
+    `created_before`.
 
     :param h_userid: the h_userid of the instructor to email
-    :param created_after: the beginning of the time period as an ISO 8601 format string
-    :param created_before: the end of the time period as an ISO 8601 format string
+    :param created_before: cut-off time after which activity will not be
+        included in the email, as an ISO 8601 format string
     :param kwargs: other keyword arguments to pass to DigestService.send_instructor_email_digest()
     """
     # Caution: datetime.fromisoformat() doesn't support all ISO 8601 strings!
     # This only works for the subset of ISO 8601 produced by datetime.isoformat().
-    created_after = datetime.fromisoformat(created_after)
     created_before = datetime.fromisoformat(created_before)
 
     with app.request_context() as request:  # pylint:disable=no-member
         with request.tm:
+            task_done_data = _get_task_done_data(request.db, h_userid)
+
+            created_after = created_before - timedelta(days=7)
+
+            if task_done_data:
+                created_after = max(
+                    datetime.fromisoformat(task_done_data["created_before"]),
+                    created_after,
+                )
+
             digest_service = request.find_service(DigestService)
 
             digest_service.send_instructor_email_digest(
                 h_userid, created_after, created_before, **kwargs
             )
+
+
+def _get_task_done_data(db_session, h_userid: str) -> Optional[dict]:
+    """Return the most recent matching TaskDone.data dict for h_userid."""
+    task_dones = db_session.scalars(
+        select(TaskDone)
+        .where(
+            TaskDone.data["type"].as_string() == "instructor_email_digest",
+            TaskDone.data["h_userid"].as_string() == h_userid,
+            TaskDone.data["created_before"].isnot(None),
+        )
+        .order_by(TaskDone.data["created_before"].desc())
+    )
+
+    for task_done in task_dones:
+        try:
+            datetime.fromisoformat(task_done.data["created_before"])
+        except ValueError:
+            continue
+        else:
+            return task_done.data
+
+    return None

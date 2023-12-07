@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from unittest.mock import call, sentinel
 
 import celery
@@ -32,7 +32,6 @@ class TestSendInstructorEmailDigestsTasks:
                 (),
                 {
                     "h_userid": participating_instructor.h_userid,
-                    "created_after": "2023-03-08T05:00:00",
                     "created_before": "2023-03-09T05:00:00",
                 },
             )
@@ -224,41 +223,107 @@ class TestSendInstructorEmailDigestsTasks:
 
 @pytest.mark.usefixtures("digest_service")
 class TestSendInstructorEmailDigests:
-    def test_it(self, digest_service):
-        created_after = datetime(year=2023, month=3, day=1)
-        created_before = datetime(year=2023, month=3, day=2)
+    def test_it(
+        self, created_before, digest_service, db_session, h_userid, make_task_done
+    ):
+        # The TaskDone that we expect get_task_done() to return.
+        matching_task_done = make_task_done(created_before=created_before.isoformat())
+
+        db_session.add_all(
+            [
+                # An older TaskDone for the same user, this should be ignored.
+                make_task_done(
+                    created_before=(created_before - timedelta(days=1)).isoformat()
+                ),
+                # A TaskDone with a different type, this should be ignored.
+                make_task_done(type="DIFFERENT"),
+                # A TaskDone with a different h_userid, this should be ignored.
+                make_task_done(h_userid="DIFFERENT"),
+                # A TaskDone with None in the data column, this should be ignored.
+                factories.TaskDone(data=None),
+                # A TaskDone with no h_userid, this should be ignored.
+                make_task_done(omit=["h_userid"]),
+                # A TaskDone with no created_before, this should be ignored.
+                make_task_done(omit=["created_before"]),
+                # A TaskDone with an invalid created_before, this should be ignored.
+                make_task_done(created_before="foo"),
+                # The TaskDone that we expect get_task_done() to return.
+                matching_task_done,
+            ]
+        )
 
         send_instructor_email_digest(
-            h_userid=sentinel.h_userid,
-            created_after=created_after.isoformat(),
+            h_userid=h_userid,
             created_before=created_before.isoformat(),
             override_to_email=sentinel.override_to_email,
         )
 
         digest_service.send_instructor_email_digest.assert_called_once_with(
-            sentinel.h_userid,
-            created_after,
+            h_userid,
+            datetime.fromisoformat(matching_task_done.data["created_before"]),
             created_before,
             override_to_email=sentinel.override_to_email,
         )
 
-    @pytest.mark.parametrize(
-        "created_after,created_before",
-        [
-            ("invalid", "2023-02-28T00:00:00"),
-            ("2023-02-28T00:00:00", "invalid"),
-            ("invalid", "invalid"),
-        ],
-    )
-    def test_it_crashes_if_created_after_or_created_before_is_invalid(
-        self, created_after, created_before
+    def test_it_when_theres_no_matching_TaskDone(
+        self, created_before, digest_service, h_userid
     ):
-        with pytest.raises(ValueError, match="^Invalid isoformat string"):
-            send_instructor_email_digest(
-                h_userid=sentinel.h_userid,
-                created_after=created_after,
-                created_before=created_before,
+        send_instructor_email_digest(
+            h_userid=h_userid, created_before=created_before.isoformat()
+        )
+
+        digest_service.send_instructor_email_digest.assert_called_once_with(
+            h_userid, created_before - timedelta(days=7), created_before
+        )
+
+    def test_it_when_TaskDone_is_more_than_a_week_old(
+        self, created_before, db_session, digest_service, h_userid, make_task_done
+    ):
+        db_session.add(
+            make_task_done(
+                created_before=(created_before - timedelta(days=8)).isoformat()
             )
+        )
+
+        send_instructor_email_digest(
+            h_userid=h_userid, created_before=created_before.isoformat()
+        )
+
+        digest_service.send_instructor_email_digest.assert_called_once_with(
+            h_userid, created_before - timedelta(days=7), created_before
+        )
+
+    def test_it_crashes_if_created_before_is_invalid(self, h_userid):
+        with pytest.raises(ValueError, match="^Invalid isoformat string"):
+            send_instructor_email_digest(h_userid=h_userid, created_before="invalid")
+
+    @pytest.fixture
+    def h_userid(self):
+        """Return the h_userid arg that will be passed to send_instructor_email_digest()."""
+        return "test_h_userid"
+
+    @pytest.fixture
+    def created_before(self):
+        """Return the created_before arg that will be passed to send_instructor_email_digest()."""
+        return datetime.now(timezone.utc)
+
+    @pytest.fixture
+    def make_task_done(self, h_userid, created_before):
+        def make_task_done(omit=None, **kwargs):
+            data = {
+                "type": "instructor_email_digest",
+                "h_userid": h_userid,
+                "created_before": (created_before + timedelta(days=1)).isoformat(),
+            }
+
+            for field in omit or []:
+                del data[field]
+
+            data.update(kwargs)
+
+            return factories.TaskDone(data=data)
+
+        return make_task_done
 
 
 @pytest.fixture(autouse=True)
