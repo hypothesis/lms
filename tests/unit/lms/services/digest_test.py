@@ -66,6 +66,7 @@ class TestDigestService:
             task_done_key=f"instructor_email_digest::{context.user_info.h_userid}::2023-04-30",
             task_done_data={
                 "type": "instructor_email_digest",
+                "h_userid": context.user_info.h_userid,
                 "created_before": created_before.isoformat(),
             },
             template="lms:templates/email/instructor_email_digest/",

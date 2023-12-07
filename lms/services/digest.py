@@ -73,6 +73,7 @@ class DigestService:
             task_done_key = f"instructor_email_digest::{context.user_info.h_userid}::{datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
             task_done_data = {
                 "type": "instructor_email_digest",
+                "h_userid": context.user_info.h_userid,
                 "created_before": created_before.isoformat(),
             }
         else:
