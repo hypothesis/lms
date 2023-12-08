@@ -10,7 +10,7 @@ const minimalConfig = {
     allowedOrigins: ['https://example.com'],
   },
   mode: 'basic-lti-launch',
-  emailNotifications: {},
+  emailPreferences: {},
 };
 
 describe('LMS frontend entry', () => {
@@ -51,7 +51,7 @@ describe('LMS frontend entry', () => {
     $imports.$restore();
   });
 
-  ['basic-lti-launch', 'email-notifications'].forEach(mode => {
+  ['basic-lti-launch', 'email-preferences'].forEach(mode => {
     it('renders root component', () => {
       fakeReadConfig.returns({ ...minimalConfig, mode });
 

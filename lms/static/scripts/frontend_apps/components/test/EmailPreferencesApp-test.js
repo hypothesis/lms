@@ -2,10 +2,10 @@ import { mockImportedComponents } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
 import { Config } from '../../config';
-import EmailNotificationsApp, { $imports } from '../EmailNotificationsApp';
+import EmailPreferencesApp, { $imports } from '../EmailPreferencesApp';
 
-describe('EmailNotificationsApp', () => {
-  const emailNotificationsConfig = {
+describe('EmailPreferencesApp', () => {
+  const emailPreferences = {
     mon: true,
     tue: true,
     wed: false,
@@ -25,21 +25,18 @@ describe('EmailNotificationsApp', () => {
 
   function createComponent() {
     return mount(
-      <Config.Provider value={{ emailNotifications: emailNotificationsConfig }}>
-        <EmailNotificationsApp />
+      <Config.Provider value={{ emailPreferences }}>
+        <EmailPreferencesApp />
       </Config.Provider>
     );
   }
 
   it('loads preferences from config', () => {
     const wrapper = createComponent();
-    const preferencesComponent = wrapper.find('EmailNotificationsPreferences');
+    const preferencesComponent = wrapper.find('EmailPreferences');
 
     assert.isTrue(preferencesComponent.exists());
-    assert.equal(
-      preferencesComponent.prop('selectedDays'),
-      emailNotificationsConfig
-    );
+    assert.equal(preferencesComponent.prop('selectedDays'), emailPreferences);
   });
 
   it('allows selected days to be updated', () => {
@@ -50,26 +47,23 @@ describe('EmailNotificationsApp', () => {
     };
 
     wrapper
-      .find('EmailNotificationsPreferences')
+      .find('EmailPreferences')
       .props()
       .updateSelectedDays(newSelectedDays);
     wrapper.update();
 
-    assert.deepEqual(
-      wrapper.find('EmailNotificationsPreferences').prop('selectedDays'),
-      {
-        ...emailNotificationsConfig,
-        ...newSelectedDays,
-      }
-    );
+    assert.deepEqual(wrapper.find('EmailPreferences').prop('selectedDays'), {
+      ...emailPreferences,
+      ...newSelectedDays,
+    });
   });
 
   it('when preferences are saved it sets saving to true', () => {
     const wrapper = createComponent();
 
-    wrapper.find('EmailNotificationsPreferences').props().onSave();
+    wrapper.find('EmailPreferences').props().onSave();
     wrapper.update();
 
-    assert.isTrue(wrapper.find('EmailNotificationsPreferences').prop('saving'));
+    assert.isTrue(wrapper.find('EmailPreferences').prop('saving'));
   });
 });

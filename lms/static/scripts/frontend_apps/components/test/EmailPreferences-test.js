@@ -1,8 +1,8 @@
 import { mount } from 'enzyme';
 
-import EmailNotificationsPreferences from '../EmailNotificationsPreferences';
+import EmailPreferences from '../EmailPreferences';
 
-describe('EmailNotificationsPreferences', () => {
+describe('EmailPreferences', () => {
   let fakeUpdateSelectedDays;
   const initialSelectedDays = {
     sun: true,
@@ -20,7 +20,7 @@ describe('EmailNotificationsPreferences', () => {
 
   function createComponent(props = {}) {
     return mount(
-      <EmailNotificationsPreferences
+      <EmailPreferences
         selectedDays={initialSelectedDays}
         updateSelectedDays={fakeUpdateSelectedDays}
         {...props}

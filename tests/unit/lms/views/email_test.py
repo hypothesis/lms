@@ -56,8 +56,8 @@ class TestEmailPreferencesViews:
         )
         assert result == {
             "jsConfig": {
-                "mode": "email-notifications",
-                "emailNotifications": email_preferences_service.get_preferences.return_value.days.return_value,
+                "mode": "email-preferences",
+                "emailPreferences": email_preferences_service.get_preferences.return_value.days.return_value,
             }
         }
 

@@ -7,7 +7,7 @@ import type { ServiceMap } from '../services';
 import { Services } from '../services';
 import BasicLTILaunchApp from './BasicLTILaunchApp';
 import DataLoader from './DataLoader';
-import EmailNotificationsApp from './EmailNotificationsApp';
+import EmailPreferencesApp from './EmailPreferencesApp';
 import ErrorDialogApp from './ErrorDialogApp';
 import FilePickerApp, { loadFilePickerConfig } from './FilePickerApp';
 import OAuth2RedirectErrorApp from './OAuth2RedirectErrorApp';
@@ -41,7 +41,7 @@ export default function AppRoot({ initialConfig, services }: AppRootProps) {
             </DataLoader>
           </Route>
           <Route path="/email/preferences">
-            <EmailNotificationsApp />
+            <EmailPreferencesApp />
           </Route>
           <Route path="/app/error-dialog">
             <ErrorDialogApp />

@@ -78,8 +78,8 @@ class EmailPreferencesViews:
     def preferences(self):
         return {
             "jsConfig": {
-                "mode": "email-notifications",
-                "emailNotifications": self.email_preferences_service.get_preferences(
+                "mode": "email-preferences",
+                "emailPreferences": self.email_preferences_service.get_preferences(
                     self.request.authenticated_userid
                 ).days(),
             }
