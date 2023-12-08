@@ -1,7 +1,13 @@
 import type { PanelProps } from '@hypothesis/frontend-shared';
-import { Button, Callout, Checkbox, Panel } from '@hypothesis/frontend-shared';
+import {
+  Button,
+  Callout,
+  Checkbox,
+  Panel,
+  useArrowKeyNavigation,
+} from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
-import { useCallback } from 'preact/hooks';
+import { useCallback, useRef } from 'preact/hooks';
 
 import type { EmailPreferences as SelectedDays, WeekDay } from '../config';
 
@@ -65,6 +71,14 @@ export default function EmailPreferences({
   const selectAll = useCallback(() => setAllTo(true), [setAllTo]);
   const selectNone = useCallback(() => setAllTo(false), [setAllTo]);
 
+  // Allow vertical arrow key navigation between checkboxes
+  const checkboxesContainer = useRef<HTMLDivElement | null>(null);
+  useArrowKeyNavigation(checkboxesContainer, {
+    horizontal: false,
+    loop: false,
+    selector: 'input[type="checkbox"]',
+  });
+
   return (
     <form onSubmit={onSave} method="post">
       <Panel
@@ -87,7 +101,7 @@ export default function EmailPreferences({
         <p className="font-bold">Select the days you{"'"}d like your emails:</p>
 
         <div className="flex justify-between px-4">
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1" ref={checkboxesContainer}>
             {dayNames.map(([day, name]) => (
               <span
                 key={day}

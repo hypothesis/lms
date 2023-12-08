@@ -4,6 +4,7 @@ import EmailPreferences from '../EmailPreferences';
 
 describe('EmailPreferences', () => {
   let fakeUpdateSelectedDays;
+  const wrappers = [];
   const initialSelectedDays = {
     sun: true,
     mon: true,
@@ -18,14 +19,25 @@ describe('EmailPreferences', () => {
     fakeUpdateSelectedDays = sinon.stub();
   });
 
+  afterEach(() => {
+    wrappers.forEach(wrapper => wrapper.unmount());
+  });
+
   function createComponent(props = {}) {
-    return mount(
+    const container = document.createElement('div');
+    document.body.append(container);
+
+    const wrapper = mount(
       <EmailPreferences
         selectedDays={initialSelectedDays}
         updateSelectedDays={fakeUpdateSelectedDays}
         {...props}
-      />
+      />,
+      { attachTo: container }
     );
+    wrappers.push(wrapper);
+
+    return wrapper;
   }
 
   function getCheckbox(wrapper, day) {
@@ -115,5 +127,38 @@ describe('EmailPreferences', () => {
     wrapper.find('form').simulate('submit');
 
     assert.called(onSave);
+  });
+
+  it('can navigate checkboxes with the keyboard', async () => {
+    const wrapper = createComponent();
+    const getCheckbox = index =>
+      wrapper.find('input[type="checkbox"]').at(index).getDOMNode();
+    const pressArrow = key =>
+      document.activeElement.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          bubbles: true,
+          cancelable: true,
+          key,
+        })
+      );
+
+    // Focus first checkbox
+    getCheckbox(0).focus();
+    assert.equal(document.activeElement, getCheckbox(0));
+
+    // Press down arrow three times
+    pressArrow('ArrowDown');
+    pressArrow('ArrowDown');
+    pressArrow('ArrowDown');
+    assert.equal(document.activeElement, getCheckbox(3));
+
+    // Press down arrow once more
+    pressArrow('ArrowDown');
+    assert.equal(document.activeElement, getCheckbox(4));
+
+    // Press up arrow twice
+    pressArrow('ArrowUp');
+    pressArrow('ArrowUp');
+    assert.equal(document.activeElement, getCheckbox(2));
   });
 });
