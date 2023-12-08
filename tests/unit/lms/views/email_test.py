@@ -48,7 +48,13 @@ class TestEmailPreferencesViews:
         )
         assert result.headers["foo"] == "bar"
 
-    def test_preferences(self, views, email_preferences_service, pyramid_request):
+    @pytest.mark.parametrize("flash_message", (None, "This is the result"))
+    def test_preferences(
+        self, views, email_preferences_service, pyramid_request, flash_message
+    ):
+        if flash_message:
+            pyramid_request.session.flash(flash_message, "email_preferences_result")
+
         result = views.preferences()
 
         email_preferences_service.get_preferences.assert_called_once_with(
@@ -57,7 +63,10 @@ class TestEmailPreferencesViews:
         assert result == {
             "jsConfig": {
                 "mode": "email-preferences",
-                "emailPreferences": email_preferences_service.get_preferences.return_value.days.return_value,
+                "emailPreferences": {
+                    "selectedDays": email_preferences_service.get_preferences.return_value.days.return_value,
+                    "flashMessage": flash_message,
+                },
             }
         }
 
@@ -85,6 +94,9 @@ class TestEmailPreferencesViews:
                 sun=True,
             )
         )
+        assert pyramid_request.session.peek_flash("email_preferences_result") == [
+            "Preferences saved.",
+        ]
         assert result == Any.instance_of(HTTPFound).with_attrs(
             {
                 "location": "http://example.com/email/preferences",

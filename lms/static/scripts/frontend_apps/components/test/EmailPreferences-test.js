@@ -88,17 +88,6 @@ describe('EmailPreferences', () => {
     });
   });
 
-  [
-    { message: 'Error', status: 'error' },
-    { message: 'Success', status: 'success' },
-    undefined,
-  ].forEach(result => {
-    it('displays error message if provided', () => {
-      const wrapper = createComponent({ result });
-      assert.equal(wrapper.exists('Callout'), !!result);
-    });
-  });
-
   [true, false].forEach(saving => {
     it('disables save button while saving', () => {
       const wrapper = createComponent({ saving });

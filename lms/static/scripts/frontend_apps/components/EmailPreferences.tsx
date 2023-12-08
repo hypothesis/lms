@@ -1,9 +1,9 @@
 import type { PanelProps } from '@hypothesis/frontend-shared';
-import { Button, Callout, Checkbox, Panel } from '@hypothesis/frontend-shared';
+import { Button, Checkbox, Panel } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useCallback } from 'preact/hooks';
 
-import type { EmailPreferences as SelectedDays, WeekDay } from '../config';
+import type { SelectedDays, WeekDay } from '../config';
 
 const dayNames: [WeekDay, string][] = [
   ['sun', 'Sunday'],
@@ -25,14 +25,6 @@ export type EmailPreferencesProps = {
   onSave: (submitEvent: Event) => void;
   /** Indicates if a save operation is in progress */
   saving?: boolean;
-  /**
-   * Represents the result of saving preferences, which can be error or success,
-   * and includes a message to display.
-   */
-  result?: {
-    status: 'success' | 'error';
-    message: string;
-  };
 
   /**
    * Callback used to handle closing the panel.
@@ -46,7 +38,6 @@ export default function EmailPreferences({
   updateSelectedDays,
   onSave,
   saving = false,
-  result,
   onClose,
 }: EmailPreferencesProps) {
   const setAllTo = useCallback(
@@ -135,7 +126,6 @@ export default function EmailPreferences({
             </Button>
           </div>
         </div>
-        {result && <Callout status={result.status}>{result.message}</Callout>}
       </Panel>
     </form>
   );

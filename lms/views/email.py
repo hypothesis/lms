@@ -76,12 +76,16 @@ class EmailPreferencesViews:
         renderer="lms:templates/email/preferences.html.jinja2",
     )
     def preferences(self):
+        flash_messages = self.request.session.pop_flash("email_preferences_result")
         return {
             "jsConfig": {
                 "mode": "email-preferences",
-                "emailPreferences": self.email_preferences_service.get_preferences(
-                    self.request.authenticated_userid
-                ).days(),
+                "emailPreferences": {
+                    "selectedDays": self.email_preferences_service.get_preferences(
+                        self.request.authenticated_userid
+                    ).days(),
+                    "flashMessage": flash_messages[0] if flash_messages else None,
+                },
             }
         }
 
@@ -98,4 +102,5 @@ class EmailPreferencesViews:
                 },
             )
         )
+        self.request.session.flash("Preferences saved.", "email_preferences_result")
         return HTTPFound(location=self.request.route_url("email.preferences"))

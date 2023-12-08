@@ -223,7 +223,12 @@ export type Product = {
 
 export type WeekDay = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
-export type EmailPreferences = Record<WeekDay, boolean>;
+export type SelectedDays = Record<WeekDay, boolean>;
+
+export type EmailPreferences = {
+  selectedDays: SelectedDays;
+  flashMessage: string | null;
+};
 
 /**
  * Data/configuration needed for frontend applications in the LMS app.
