@@ -153,7 +153,7 @@ export default function GroupConfigSelector({
     product: {
       api: { listGroupSets: listGroupSetsAPI },
     },
-  } = useConfig();
+  } = useConfig(['api']);
 
   const useGroupSet = groupConfig.useGroupSet;
   const groupSet = useGroupSet ? groupConfig.groupSet : null;

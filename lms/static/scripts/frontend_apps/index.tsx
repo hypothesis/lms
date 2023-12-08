@@ -4,6 +4,7 @@ import { render } from 'preact';
 import 'preact/debug';
 
 import AppRoot from './components/AppRoot';
+import type { AppMode } from './config';
 import { readConfig } from './config';
 import {
   ClientRPC,
@@ -12,6 +13,24 @@ import {
   VitalSourceService,
 } from './services';
 import type { ServiceMap } from './services';
+
+/**
+ * Converts an app mode into its corresponding URL.
+ *
+ * For historical reasons, some resolve the mode itself prefixed with `/app/`,
+ * but that is not ideal, and should be avoided, because the BE is not aware of
+ * those routes and reloading the page results in a 404.
+ */
+function routeForAppMode(mode: AppMode): string {
+  if (mode === 'email-notifications') {
+    // For the email-notifications mode, since this app is not designed to be
+    // opened in an iframe, but as the main window frame, we want to use a route
+    // that matches the server-side one.
+    return '/email/preferences';
+  }
+
+  return `/app/${mode}`;
+}
 
 export function init() {
   // Read configuration embedded into page by backend.
@@ -39,12 +58,14 @@ export function init() {
   // Construct services used by the file picker app. We need this both for
   // direct launches into this app, and for transitions from viewing to
   // editing assignments.
-  services.set(
-    VitalSourceService,
-    new VitalSourceService({ authToken: config.api.authToken })
-  );
+  if (config.api?.authToken) {
+    services.set(
+      VitalSourceService,
+      new VitalSourceService({ authToken: config.api.authToken })
+    );
+  }
 
-  if (config.rpcServer && config.hypothesisClient) {
+  if (config.api && config.rpcServer && config.hypothesisClient) {
     const { authToken } = config.api;
     const clientRPC = new ClientRPC({
       authToken,
@@ -68,7 +89,7 @@ export function init() {
   }
 
   // Set route based on app mode.
-  const routePath = `/app/${config.mode}`;
+  const routePath = routeForAppMode(config.mode);
   if (location.pathname !== routePath) {
     history.replaceState({}, 'unused', routePath);
   }

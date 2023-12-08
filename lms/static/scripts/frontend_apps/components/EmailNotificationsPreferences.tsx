@@ -1,43 +1,66 @@
 import type { PanelProps } from '@hypothesis/frontend-shared';
-import { Button, Checkbox, Panel } from '@hypothesis/frontend-shared';
+import { Button, Callout, Checkbox, Panel } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useCallback } from 'preact/hooks';
 
 import type { EmailNotificationsPreferences, WeekDay } from '../config';
 
 const dayNames: [WeekDay, string][] = [
-  ['instructor_email_digests.days.sun', 'Sunday'],
-  ['instructor_email_digests.days.mon', 'Monday'],
-  ['instructor_email_digests.days.tue', 'Tuesday'],
-  ['instructor_email_digests.days.wed', 'Wednesday'],
-  ['instructor_email_digests.days.thu', 'Thursday'],
-  ['instructor_email_digests.days.fri', 'Friday'],
-  ['instructor_email_digests.days.sat', 'Saturday'],
+  ['sun', 'Sunday'],
+  ['mon', 'Monday'],
+  ['tue', 'Tuesday'],
+  ['wed', 'Wednesday'],
+  ['thu', 'Thursday'],
+  ['fri', 'Friday'],
+  ['sat', 'Saturday'],
 ];
 
 export type EmailNotificationsPreferencesProps = {
+  /** Currently selected days */
   selectedDays: EmailNotificationsPreferences;
+  /** Callback to fully or partially update currently selected days, without saving */
   updateSelectedDays: (
     newSelectedDays: Partial<EmailNotificationsPreferences>
   ) => void;
+
+  /** Callback invoked when saving currently selected days */
+  onSave: (submitEvent: Event) => void;
+  /** Indicates if a save operation is in progress */
+  saving?: boolean;
+  /**
+   * Represents the result of saving preferences, which can be error or success,
+   * and includes a message to display.
+   */
+  result?: {
+    status: 'success' | 'error';
+    message: string;
+  };
+
+  /**
+   * Callback used to handle closing the panel.
+   * If not provided, then the panel won't be considered closable.
+   */
   onClose?: PanelProps['onClose'];
 };
 
 export default function EmailNotificationsPreferences({
-  onClose,
   selectedDays,
   updateSelectedDays,
+  onSave,
+  saving = false,
+  result,
+  onClose,
 }: EmailNotificationsPreferencesProps) {
   const setAllTo = useCallback(
     (enabled: boolean) =>
       updateSelectedDays({
-        'instructor_email_digests.days.sun': enabled,
-        'instructor_email_digests.days.mon': enabled,
-        'instructor_email_digests.days.tue': enabled,
-        'instructor_email_digests.days.wed': enabled,
-        'instructor_email_digests.days.thu': enabled,
-        'instructor_email_digests.days.fri': enabled,
-        'instructor_email_digests.days.sat': enabled,
+        sun: enabled,
+        mon: enabled,
+        tue: enabled,
+        wed: enabled,
+        thu: enabled,
+        fri: enabled,
+        sat: enabled,
       }),
     [updateSelectedDays]
   );
@@ -45,62 +68,77 @@ export default function EmailNotificationsPreferences({
   const selectNone = useCallback(() => setAllTo(false), [setAllTo]);
 
   return (
-    <Panel
-      onClose={onClose}
-      title="Email Notifications"
-      buttons={<Button variant="primary">Save</Button>}
-    >
-      <p className="font-bold">
-        Receive email notifications when your students annotate.
-      </p>
-      <p className="font-bold">Select the days you{"'"}d like your emails:</p>
+    <form onSubmit={onSave} method="post">
+      <Panel
+        onClose={onClose}
+        title="Email Notifications"
+        buttons={
+          <Button
+            variant="primary"
+            type="submit"
+            disabled={saving}
+            data-testid="save-button"
+          >
+            Save
+          </Button>
+        }
+      >
+        <p className="font-bold">
+          Receive email notifications when your students annotate.
+        </p>
+        <p className="font-bold">Select the days you{"'"}d like your emails:</p>
 
-      <div className="flex justify-between px-4">
-        <div className="flex flex-col gap-1">
-          {dayNames.map(([day, name]) => (
-            <span
-              key={day}
-              className={classnames(
-                // The checked icon sets fill from the text color
-                'text-grey-6'
-              )}
-            >
-              <Checkbox
-                checked={selectedDays[day]}
-                onChange={() =>
-                  updateSelectedDays({ [day]: !selectedDays[day] })
-                }
-                data-testid={`${day}-checkbox`}
+        <div className="flex justify-between px-4">
+          <div className="flex flex-col gap-1">
+            {dayNames.map(([day, name]) => (
+              <span
+                key={day}
+                className={classnames(
+                  // The checked icon sets fill from the text color
+                  'text-grey-6'
+                )}
               >
-                <span
-                  className={classnames(
-                    // Override the color set for the checkbox fill
-                    'text-grey-9'
-                  )}
+                <Checkbox
+                  name={day}
+                  checked={selectedDays[day]}
+                  onChange={() =>
+                    updateSelectedDays({ [day]: !selectedDays[day] })
+                  }
+                  data-testid={`${day}-checkbox`}
                 >
-                  {name}
-                </span>
-              </Checkbox>
-            </span>
-          ))}
+                  <span
+                    className={classnames(
+                      // Override the color set for the checkbox fill
+                      'text-grey-9'
+                    )}
+                  >
+                    {name}
+                  </span>
+                </Checkbox>
+              </span>
+            ))}
+          </div>
+          <div className="flex items-start gap-2">
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={selectAll}
+              data-testid="select-all-button"
+            >
+              Select all
+            </Button>
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={selectNone}
+              data-testid="select-none-button"
+            >
+              Select none
+            </Button>
+          </div>
         </div>
-        <div className="flex items-start gap-2">
-          <Button
-            variant="secondary"
-            onClick={selectAll}
-            data-testid="select-all-button"
-          >
-            Select all
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={selectNone}
-            data-testid="select-none-button"
-          >
-            Select none
-          </Button>
-        </div>
-      </div>
-    </Panel>
+        {result && <Callout status={result.status}>{result.message}</Callout>}
+      </Panel>
+    </form>
   );
 }

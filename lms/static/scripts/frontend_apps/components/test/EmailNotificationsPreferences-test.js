@@ -5,32 +5,31 @@ import EmailNotificationsPreferences from '../EmailNotificationsPreferences';
 describe('EmailNotificationsPreferences', () => {
   let fakeUpdateSelectedDays;
   const initialSelectedDays = {
-    'instructor_email_digests.days.sun': true,
-    'instructor_email_digests.days.mon': true,
-    'instructor_email_digests.days.tue': false,
-    'instructor_email_digests.days.wed': true,
-    'instructor_email_digests.days.thu': false,
-    'instructor_email_digests.days.fri': false,
-    'instructor_email_digests.days.sat': true,
+    sun: true,
+    mon: true,
+    tue: false,
+    wed: true,
+    thu: false,
+    fri: false,
+    sat: true,
   };
 
   beforeEach(() => {
     fakeUpdateSelectedDays = sinon.stub();
   });
 
-  function createComponent() {
+  function createComponent(props = {}) {
     return mount(
       <EmailNotificationsPreferences
         selectedDays={initialSelectedDays}
         updateSelectedDays={fakeUpdateSelectedDays}
+        {...props}
       />
     );
   }
 
   function getCheckbox(wrapper, day) {
-    return wrapper.find(
-      `Checkbox[data-testid="instructor_email_digests.days.${day}-checkbox"]`
-    );
+    return wrapper.find(`Checkbox[data-testid="${day}-checkbox"]`);
   }
 
   it('initially selects appropriate checkboxes', () => {
@@ -51,13 +50,13 @@ describe('EmailNotificationsPreferences', () => {
     wrapper.find('button[data-testid="select-all-button"]').simulate('click');
 
     assert.calledWith(fakeUpdateSelectedDays, {
-      'instructor_email_digests.days.sun': true,
-      'instructor_email_digests.days.mon': true,
-      'instructor_email_digests.days.tue': true,
-      'instructor_email_digests.days.wed': true,
-      'instructor_email_digests.days.thu': true,
-      'instructor_email_digests.days.fri': true,
-      'instructor_email_digests.days.sat': true,
+      sun: true,
+      mon: true,
+      tue: true,
+      wed: true,
+      thu: true,
+      fri: true,
+      sat: true,
     });
   });
 
@@ -67,26 +66,54 @@ describe('EmailNotificationsPreferences', () => {
     wrapper.find('button[data-testid="select-none-button"]').simulate('click');
 
     assert.calledWith(fakeUpdateSelectedDays, {
-      'instructor_email_digests.days.sun': false,
-      'instructor_email_digests.days.mon': false,
-      'instructor_email_digests.days.tue': false,
-      'instructor_email_digests.days.wed': false,
-      'instructor_email_digests.days.thu': false,
-      'instructor_email_digests.days.fri': false,
-      'instructor_email_digests.days.sat': false,
+      sun: false,
+      mon: false,
+      tue: false,
+      wed: false,
+      thu: false,
+      fri: false,
+      sat: false,
     });
   });
 
   ['sun', 'mon', 'thu'].forEach(day => {
     it('lets individual days be changed', () => {
       const wrapper = createComponent();
-      const dayKey = `instructor_email_digests.days.${day}`;
 
       getCheckbox(wrapper, day).props().onChange();
 
       assert.calledWith(fakeUpdateSelectedDays, {
-        [dayKey]: !initialSelectedDays[dayKey],
+        [day]: !initialSelectedDays[day],
       });
     });
+  });
+
+  [
+    { message: 'Error', status: 'error' },
+    { message: 'Success', status: 'success' },
+    undefined,
+  ].forEach(result => {
+    it('displays error message if provided', () => {
+      const wrapper = createComponent({ result });
+      assert.equal(wrapper.exists('Callout'), !!result);
+    });
+  });
+
+  [true, false].forEach(saving => {
+    it('disables save button while saving', () => {
+      const wrapper = createComponent({ saving });
+      const button = wrapper.find('Button[data-testid="save-button"]');
+
+      assert.equal(button.prop('disabled'), saving);
+    });
+  });
+
+  it('saves preferences', () => {
+    const onSave = sinon.stub();
+    const wrapper = createComponent({ onSave });
+
+    wrapper.find('form').simulate('submit');
+
+    assert.called(onSave);
   });
 });

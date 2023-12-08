@@ -55,7 +55,10 @@ class TestEmailPreferencesViews:
             pyramid_request.authenticated_userid
         )
         assert result == {
-            "preferences": email_preferences_service.get_preferences.return_value.days.return_value
+            "jsConfig": {
+                "mode": "email-notifications",
+                "emailNotifications": email_preferences_service.get_preferences.return_value.days.return_value,
+            }
         }
 
     def test_set_preferences(self, views, email_preferences_service, pyramid_request):
