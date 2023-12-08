@@ -3,7 +3,7 @@ import { Button, Callout, Checkbox, Panel } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useCallback } from 'preact/hooks';
 
-import type { EmailNotificationsPreferences, WeekDay } from '../config';
+import type { EmailPreferences as SelectedDays, WeekDay } from '../config';
 
 const dayNames: [WeekDay, string][] = [
   ['sun', 'Sunday'],
@@ -15,13 +15,11 @@ const dayNames: [WeekDay, string][] = [
   ['sat', 'Saturday'],
 ];
 
-export type EmailNotificationsPreferencesProps = {
+export type EmailPreferencesProps = {
   /** Currently selected days */
-  selectedDays: EmailNotificationsPreferences;
+  selectedDays: SelectedDays;
   /** Callback to fully or partially update currently selected days, without saving */
-  updateSelectedDays: (
-    newSelectedDays: Partial<EmailNotificationsPreferences>
-  ) => void;
+  updateSelectedDays: (newSelectedDays: Partial<SelectedDays>) => void;
 
   /** Callback invoked when saving currently selected days */
   onSave: (submitEvent: Event) => void;
@@ -43,14 +41,14 @@ export type EmailNotificationsPreferencesProps = {
   onClose?: PanelProps['onClose'];
 };
 
-export default function EmailNotificationsPreferences({
+export default function EmailPreferences({
   selectedDays,
   updateSelectedDays,
   onSave,
   saving = false,
   result,
   onClose,
-}: EmailNotificationsPreferencesProps) {
+}: EmailPreferencesProps) {
   const setAllTo = useCallback(
     (enabled: boolean) =>
       updateSelectedDays({

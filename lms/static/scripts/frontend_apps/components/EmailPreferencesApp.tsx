@@ -1,18 +1,18 @@
 import { useCallback, useState } from 'preact/hooks';
 
 import { useConfig } from '../config';
-import EmailNotificationsPreferences from './EmailNotificationsPreferences';
+import EmailPreferences from './EmailPreferences';
 
-export default function EmailNotificationsApp() {
-  const { emailNotifications } = useConfig(['emailNotifications']);
-  const [selectedDays, setSelectedDays] = useState(emailNotifications);
+export default function EmailPreferencesApp() {
+  const { emailPreferences } = useConfig(['emailPreferences']);
+  const [selectedDays, setSelectedDays] = useState(emailPreferences);
   const [saving, setSaving] = useState(false);
   const onSave = useCallback(() => setSaving(true), []);
 
   return (
     <div className="h-full grid place-items-center">
       <div className="w-96">
-        <EmailNotificationsPreferences
+        <EmailPreferences
           selectedDays={selectedDays}
           updateSelectedDays={newSelectedDays =>
             setSelectedDays(prev => ({ ...prev, ...newSelectedDays }))
