@@ -570,7 +570,23 @@ class JSConfig:
                     "group_info": {
                         key: value
                         for key, value in self._request.lti_params.items()
-                        if key in GroupInfo.columns()
+                        if key
+                        in [
+                            # Most (all) of these are duplicated elsewhere, we'll keep updating for now
+                            # because external analytics query rely on this table.
+                            "context_id",
+                            "context_title",
+                            "context_label",
+                            "tool_consumer_info_product_family_code",
+                            "tool_consumer_info_version",
+                            "tool_consumer_instance_name",
+                            "tool_consumer_instance_description",
+                            "tool_consumer_instance_url",
+                            "tool_consumer_instance_contact_email",
+                            "tool_consumer_instance_guid",
+                            "custom_canvas_api_domain",
+                            "custom_canvas_course_id",
+                        ]
                     },
                     # The student we are currently grading. In the case of Canvas
                     # this will be present in the SpeedGrader launch URL and

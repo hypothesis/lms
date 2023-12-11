@@ -218,7 +218,11 @@ class TestEnableLTILaunchMode:
                 "context_id": "CONTEXT_ID",
                 "group_set_id": "GROUP_SET_ID",
                 "group_info": {
+                    "tool_consumer_instance_guid": "TEST_TOOL_CONSUMER_INSTANCE_GUID",
+                    "tool_consumer_info_product_family_code": "whiteboard",
                     "context_id": "CONTEXT_ID",
+                    "context_title": "A context title",
+                    "context_label": "A context label",
                     "custom_canvas_course_id": "test_course_id",
                 },
                 # This is only actually true for Canvas, but we do it for all
@@ -686,10 +690,3 @@ def course():
 @pytest.fixture(autouse=True)
 def via_url(patch):
     return patch("lms.resources._js_config.via_url")
-
-
-@pytest.fixture(autouse=True)
-def GroupInfo(patch):
-    group_info_class = patch("lms.resources._js_config.GroupInfo")
-    group_info_class.columns.return_value = ["context_id", "custom_canvas_course_id"]
-    return group_info_class

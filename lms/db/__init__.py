@@ -15,26 +15,6 @@ from lms.db._text_search import full_text_match
 __all__ = ("BASE", "init", "varchar_enum")
 
 
-class BaseClass:
-    """Functions common to all SQLAlchemy models."""
-
-    @classmethod
-    def columns(cls):
-        """Return a list of all declared SQLAlchemy column names."""
-
-        return [
-            property.key
-            for property in inspect(cls).iterate_properties
-            if isinstance(property, ColumnProperty)
-        ]
-
-    def __repr__(self):
-        kwargs = ", ".join(
-            f"{column}={repr(getattr(self, column))}" for column in self.columns()
-        )
-        return f"{self.__class__.__name__}({kwargs})"
-
-
 BASE = declarative_base(
     # Create a default metadata object with naming conventions for indexes and
     # constraints. This makes changing such constraints and indexes with
@@ -42,7 +22,6 @@ BASE = declarative_base(
     #
     #   http://docs.sqlalchemy.org/en/latest/core/constraints.html#configuring-constraint-naming-conventions
     #
-    cls=BaseClass,
     metadata=sqlalchemy.MetaData(
         naming_convention={
             "ix": "ix__%(column_0_label)s",
