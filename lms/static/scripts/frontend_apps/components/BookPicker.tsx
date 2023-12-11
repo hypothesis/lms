@@ -123,6 +123,30 @@ export default function BookPicker({
     setStep('select-toc');
   }, []);
 
+  // Return the next entry after `entry` which is at the same or higher level
+  // in the table of contents.
+  const nextEntryAfter = useCallback(
+    (entry: TableOfContentsEntry) => {
+      /* istanbul ignore next - early exit should be unreachable */
+      if (!tableOfContents) {
+        return undefined;
+      }
+      const idx = tableOfContents.indexOf(entry);
+      const level = entry.level ?? 0;
+
+      let nextEntry;
+      for (let i = idx + 1; i < tableOfContents.length; i++) {
+        const entryLevel = tableOfContents[i].level ?? 0;
+        if (entryLevel <= level) {
+          nextEntry = tableOfContents[i];
+          break;
+        }
+      }
+      return nextEntry;
+    },
+    [tableOfContents]
+  );
+
   const confirmChapter = useCallback(
     async (entry?: TableOfContentsEntry) => {
       /* istanbul ignore next - early exit should be unreachable */
@@ -131,7 +155,13 @@ export default function BookPicker({
       }
       const selection: Selection = {
         book: book!,
-        content: entry ? { type: 'toc', start: entry } : contentRange,
+        content: entry
+          ? {
+              type: 'toc',
+              start: entry,
+              end: allowPageRangeSelection ? nextEntryAfter(entry) : undefined,
+            }
+          : contentRange,
       };
       try {
         setLoading(true);
@@ -143,7 +173,14 @@ export default function BookPicker({
         setLoading(false);
       }
     },
-    [book, contentRange, onSelectBook, vsService]
+    [
+      allowPageRangeSelection,
+      book,
+      contentRange,
+      nextEntryAfter,
+      onSelectBook,
+      vsService,
+    ]
   );
 
   const updatePageRange = (start: string, end: string) => {
@@ -173,21 +210,12 @@ export default function BookPicker({
   // incorrect or off-by-one, due to limitations of the data from the API,
   // so should only used as a hint.
   const endPageForTOCRange = useMemo(() => {
-    if (!tableOfContents || !tocEntry) {
+    if (!tocEntry) {
       return '';
     }
-    const idx = tableOfContents.indexOf(tocEntry);
-    const level = tocEntry.level ?? 0;
-    let endPage = tocEntry.page;
-    for (let i = idx + 1; i < tableOfContents.length; i++) {
-      const entryLevel = tableOfContents[i].level ?? 0;
-      if (entryLevel <= level) {
-        endPage = tableOfContents[i].page;
-        break;
-      }
-    }
-    return endPage;
-  }, [tableOfContents, tocEntry]);
+    const entry = nextEntryAfter(tocEntry);
+    return entry?.page ?? '';
+  }, [nextEntryAfter, tocEntry]);
 
   const canSubmit =
     (step === 'select-book' && book) ||
@@ -270,9 +298,13 @@ export default function BookPicker({
           entries={tableOfContents || []}
           isLoading={!tableOfContents}
           selectedEntry={tocEntry}
-          onSelectEntry={entry =>
-            setContentRange({ type: 'toc', start: entry })
-          }
+          onSelectEntry={entry => {
+            setContentRange({
+              type: 'toc',
+              start: entry,
+              end: allowPageRangeSelection ? nextEntryAfter(entry) : undefined,
+            });
+          }}
           onConfirmEntry={confirmChapter}
         />
       )}

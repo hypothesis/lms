@@ -107,6 +107,25 @@ describe('VitalSourceService', () => {
           cfi: '/1/2',
         },
       },
+      {
+        selection: {
+          book: { id: 'BOOKSHELF-TUTORIAL' },
+          content: {
+            type: 'toc',
+            start: {
+              cfi: '/1/2',
+            },
+            end: {
+              cfi: '/1/4',
+            },
+          },
+        },
+        expectedParams: {
+          book_id: 'BOOKSHELF-TUTORIAL',
+          cfi: '/1/2',
+          end_cfi: '/1/4',
+        },
+      },
       // Page range
       {
         selection: {
