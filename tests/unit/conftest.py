@@ -44,6 +44,7 @@ def lti_v11_params():
         "lti_message_type": "basic-lti-launch-request",
         "context_id": "DUMMY-CONTEXT-ID",
         "context_title": "A context title",
+        "context_label": "A context label",
     }
 
 
