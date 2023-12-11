@@ -154,49 +154,6 @@
                 {% block content %}{% endblock %}
             </div>
         </section>
-
-        <script>
-          function pathSegments() {
-            const currentPath = window.location.pathname;
-            // Remove leading and trailing bars
-            const trimmedCurrentPath = currentPath.replace(/^\/+|\/+$/g, '');
-
-            return trimmedCurrentPath.split('/');
-          }
-
-          function determineActiveSection() {
-            // We assume all routes here have a common prefix consisting on three parts
-            return pathSegments()[3] ?? 'info';
-          }
-
-          function updateActiveTab() {
-            const activeSection = determineActiveSection();
-            const tabs = document.querySelectorAll('[data-section-id]');
-
-            // Iterate over tabs and tab panels, adding is-active to those which data-section-id matches active section,
-            // and removing it for the rest.
-            tabs.forEach(tab => {
-              tab.classList.toggle('is-active', tab.dataset.sectionId === activeSection);
-            });
-          }
-
-          // Select the first tab on window load
-          window.addEventListener('load', updateActiveTab);
-          // Update selected tab on history change
-          window.addEventListener('popstate', updateActiveTab);
-
-          // Capture clicks in tabs, to update the URL
-          document.querySelectorAll('.tabs li').forEach(tab => {
-            tab.addEventListener('click', () => {
-              const segments = pathSegments();
-              // We assume all routes here have a common prefix consisting on three parts
-              const prefix = `/${segments[0]}/${segments[1]}/${segments[2]}/`;
-              const newActiveSection = tab.dataset.sectionId;
-
-              window.history.pushState(null, '', `${prefix}${newActiveSection}`);
-            });
-          });
-        </script>
         {% block extra_scripts %}{% endblock %}
     </body>
 </html>

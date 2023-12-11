@@ -144,7 +144,9 @@ class AdminOrganizationViews:
         self.request.session.flash("Updated organization", "messages")
 
         return HTTPFound(
-            location=self.request.route_url("admin.organization.section", id_=org.id, section="danger")
+            location=self.request.route_url(
+                "admin.organization.section", id_=org.id, section="danger"
+            )
         )
 
     @view_config(
