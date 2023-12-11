@@ -1,6 +1,12 @@
 import type { Book, TableOfContentsEntry } from '../api-types';
 import { apiCall, urlPath } from '../utils/api';
 
+/**
+ * Range of pages in the book.
+ *
+ * Page ranges are inclusive, as if the user enters `5-10` they would expect
+ * that page 10 is included.
+ */
 export type PageRange = {
   type: 'page';
   start?: string;
@@ -10,13 +16,15 @@ export type PageRange = {
 /**
  * Range of entries in the table of contents.
  *
- * This currently only supports a start point because multi-selection is not yet
- * implemented for the TOC picker tree view. If a user wants to select multiple
- * chapters, they have to use a page range.
+ * CFI ranges are exclusive, so the range includes `start` but not `end`. Since
+ * CFIs do not reference predictably-sized chunks of the document (eg. they
+ * could refer to a whole chapter, a page or a single paragraph) it is more
+ * convenient to treat them as points that refer to the start of a section.
  */
 export type TableOfContentsRange = {
   type: 'toc';
   start?: TableOfContentsEntry;
+  end?: TableOfContentsEntry;
 };
 
 /**
@@ -92,10 +100,10 @@ export class VitalSourceService {
     const { book, content } = selection;
     const params: Record<string, string> = {};
     if (content.type === 'toc' && content.start) {
-      // When the location is specified as a CFI, we only include the start
-      // point. This is because the book picker UI doesn't support selecting
-      // a range of chapters.
       params.cfi = content.start.cfi;
+      if (content.end) {
+        params.end_cfi = content.end.cfi;
+      }
     }
     if (content.type === 'page' && content.start) {
       params.page = content.start;

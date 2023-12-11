@@ -255,29 +255,42 @@ describe('BookPicker', () => {
     assert.equal(endInput.prop('placeholder'), '10');
   });
 
-  it('invokes `onSelectBook` callback after a book and chapter are chosen', async () => {
-    const onSelectBook = sinon.stub();
-    const picker = renderBookPicker({ onSelectBook });
+  [
+    { allowPageRangeSelection: true },
+    { allowPageRangeSelection: false },
+  ].forEach(({ allowPageRangeSelection }) => {
+    it('invokes `onSelectBook` callback after a book and chapter are chosen', async () => {
+      const onSelectBook = sinon.stub();
+      const picker = renderBookPicker({
+        allowPageRangeSelection,
+        onSelectBook,
+      });
 
-    const book = selectBook(picker);
-    clickSelectButton(picker);
+      const book = selectBook(picker);
+      clickSelectButton(picker);
 
-    await waitForTableOfContents(picker);
-    const chapter = selectChapter(picker);
-    clickSelectButton(picker);
+      await waitForTableOfContents(picker);
+      const chapter = selectChapter(picker);
+      clickSelectButton(picker);
 
-    await waitFor(() => onSelectBook.called);
-    assert.calledWith(
-      onSelectBook,
-      {
-        book,
-        content: {
-          type: 'toc',
-          start: chapter,
+      const expectedEnd = allowPageRangeSelection
+        ? fakeBookData.chapters.book1[1] // Start of chapter after selection
+        : undefined;
+
+      await waitFor(() => onSelectBook.called);
+      assert.calledWith(
+        onSelectBook,
+        {
+          book,
+          content: {
+            type: 'toc',
+            start: chapter,
+            end: expectedEnd,
+          },
         },
-      },
-      'vitalsource://books/bookID/book1/cfi//1'
-    );
+        'vitalsource://books/bookID/book1/cfi//1'
+      );
+    });
   });
 
   it('invokes `onSelectBook` callback after a book and page range are chosen', async () => {
