@@ -4,11 +4,10 @@ from typing import Optional
 from urllib.parse import urlparse
 
 from lms.product.family import Family
+from lms.product.plugin.misc import MiscPlugin
 from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
 from lms.services.lti_grading.interface import GradingResult, LTIGradingService
 from lms.services.ltia_http import LTIAHTTPService
-
-from lms.product.plugin.misc import MiscPlugin
 
 LOG = logging.getLogger(__name__)
 

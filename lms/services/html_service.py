@@ -1,21 +1,26 @@
+import re
 from html.parser import HTMLParser
 
 
-class WhiteSpaceHTMLParser(HTMLParser):
-    def __init__(self):
+class WhiteSpaceHTMLParser(HTMLParser):  # pylint:disable=abstract-method
+    def __init__(self, tags_to_newline):
         super().__init__()
         self._chunks = []
+        self._tags_to_new_line = tags_to_newline or []
 
     def handle_data(self, data):
         self._chunks.append(data)
 
+    def handle_endtag(self, tag):
+        if tag in self._tags_to_new_line:
+            self._chunks.append("\n")
+
     def get_text(self) -> str:
-        # Strip leading/trailing whitespace and duplicate spaces
-        return " ".join("".join(self._chunks).split())
+        return "".join(self._chunks).strip()
 
 
-def strip_html_tags(html: str) -> str:
-    parser = WhiteSpaceHTMLParser()
+def strip_html_tags(html: str, tags_to_newline=None) -> str:
+    parser = WhiteSpaceHTMLParser(tags_to_newline)
     parser.feed(html)
     parser.close()
 
