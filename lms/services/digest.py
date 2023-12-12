@@ -60,6 +60,10 @@ class DigestService:
             # This user has no activity.
             return
 
+        digest["preferences_url"] = self._email_preferences_service.preferences_url(
+            context.user_info.h_userid, "instructor_digest"
+        )
+
         if override_to_email is None:
             to_email = context.user_info.email
         else:

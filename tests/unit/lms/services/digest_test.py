@@ -62,6 +62,13 @@ class TestDigestService:
             ],
         )
         context.instructor_digest.assert_called_once_with(context.user_info.h_userid)
+        email_preferences_service.preferences_url.assert_called_once_with(
+            context.user_info.h_userid, "instructor_digest"
+        )
+        assert (
+            context.instructor_digest.return_value["preferences_url"]
+            == email_preferences_service.preferences_url.return_value
+        )
         send.delay.assert_called_once_with(
             task_done_key=f"instructor_email_digest::{context.user_info.h_userid}::2023-04-30",
             task_done_data={
