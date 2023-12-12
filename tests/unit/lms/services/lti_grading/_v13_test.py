@@ -130,7 +130,7 @@ class TestLTI13GradingService:
 
     @freeze_time("2022-04-04")
     @pytest.mark.parametrize("comment", [sentinel.comment, None])
-    def test_record_result(self, svc, ltia_http_service, comment):
+    def test_record_result(self, svc, ltia_http_service, comment, misc_plugin):
         svc.line_item_url = "https://lms.com/lineitems?param=1"
 
         response = svc.record_result(sentinel.user_id, sentinel.score, comment=comment)
@@ -144,7 +144,8 @@ class TestLTI13GradingService:
             "gradingProgress": "FullyGraded",
         }
         if comment:
-            payload["comment"] = comment
+            misc_plugin.format_grading_comment_for_lms.assert_called_once_with(comment)
+            payload["comment"] = misc_plugin.format_grading_comment_for_lms.return_value
 
         ltia_http_service.request.assert_called_once_with(
             "POST",

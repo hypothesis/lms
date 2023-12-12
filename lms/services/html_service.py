@@ -16,7 +16,9 @@ class WhiteSpaceHTMLParser(HTMLParser):  # pylint:disable=abstract-method
             self._chunks.append("\n")
 
     def get_text(self) -> str:
-        return "".join(self._chunks).strip()
+        joined = "".join(self._chunks).strip()
+        # Remove any superfluous white space added after new lines
+        return re.sub(r"\n\s", "\n", joined)
 
 
 def strip_html_tags(html: str, tags_to_newline=None) -> str:

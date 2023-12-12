@@ -41,9 +41,12 @@ class MiscPlugin:
         return application_instance.lti_version == "1.3.0"
 
     def clean_lms_grading_comment(self, comment: str) -> str:
-        """Clean a comment,/ coming from the LMS to display it in our grading comment textarea"""
-        # On top of this, blackboard adds some HTML to the comments it returns
+        """Clean a comment coming from the LMS to display it in our grading comment textarea."""
         return strip_html_tags(comment)
+
+    def format_grading_comment_for_lms(self, comment: str) -> str:
+        """Format grading comment before sending it over via the API."""
+        return comment
 
     def is_assignment_gradable(self, lti_params: LTIParams) -> bool:
         """Check if the assignment of the current launch is gradable."""

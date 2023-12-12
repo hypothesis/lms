@@ -24,7 +24,7 @@ class LTI13GradingService(LTIGradingService):
         "https://purl.imsglobal.org/spec/lti-ags/scope/score",
     ]
 
-    def __init__(
+    def __init__(  # pylint:disable=too-many-arguments
         self,
         line_item_url,
         line_item_container_url,
@@ -90,7 +90,9 @@ class LTI13GradingService(LTIGradingService):
             "gradingProgress": "FullyGraded",
         }
         if comment:
-            payload["comment"] = comment
+            payload["comment"] = self._misc_plugin.format_grading_comment_for_lms(
+                comment
+            )
 
         if pre_record_hook:
             payload = pre_record_hook(score=score, request_body=payload)

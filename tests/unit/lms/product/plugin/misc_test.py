@@ -89,9 +89,24 @@ class TestMiscPlugin:
             plugin.get_deep_linked_assignment_configuration(pyramid_request) == expected
         )
 
+    def test_clean_lms_grading_comment(self, plugin, strip_html_tags):
+        result = plugin.clean_lms_grading_comment(sentinel.comment)
+
+        strip_html_tags.assert_called_once_with(sentinel.comment)
+        assert result == strip_html_tags.return_value
+
+    def test_format_grading_comment_for_lms(self, plugin):
+        assert (
+            plugin.format_grading_comment_for_lms(sentinel.comment) == sentinel.comment
+        )
+
     @pytest.fixture
     def lti_registration(self):
         return factories.LTIRegistration()
+
+    @pytest.fixture
+    def strip_html_tags(self, patch):
+        return patch("lms.product.plugin.misc.strip_html_tags")
 
     @pytest.fixture
     def pyramid_request_with_custom_lti_params(self, pyramid_request):
