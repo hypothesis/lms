@@ -259,11 +259,9 @@ class EmailPreferencesSecurityPolicy:
             return EmailPreferencesIdentity(token_payload.h_userid, token_payload.tag)
 
         try:
-            cookie_payload = self.cookie.identify(request)
+            return EmailPreferencesIdentity(self.cookie.identify(request)["userid"])
         except (KeyError, TypeError):
             return None
-
-        return EmailPreferencesIdentity(cookie_payload["userid"])
 
     def authenticated_userid(self, request):
         identity = self.identity(request)

@@ -161,6 +161,22 @@ class TestEmailPreferencesSecurityPolicy:
         assert result == expected_result
 
     @pytest.mark.parametrize("method", ["identity", "authenticated_userid"])
+    def test_identity_returns_None_if_theres_no_cookie(
+        self,
+        policy,
+        pyramid_request,
+        email_preferences_service,
+        AuthTktCookieHelper,
+        method,
+    ):
+        email_preferences_service.decode.side_effect = UnrecognisedURLError
+        AuthTktCookieHelper.return_value.identify.return_value = None
+
+        result = getattr(policy, method)(pyramid_request)
+
+        assert result is None
+
+    @pytest.mark.parametrize("method", ["identity", "authenticated_userid"])
     @pytest.mark.parametrize("exception_class", [KeyError, TypeError])
     def test_identity_returns_None_if_the_cookie_is_missing_or_invalid(
         self,
