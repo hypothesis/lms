@@ -6,8 +6,8 @@ from lms.product.blackboard._plugin.misc import BlackboardMiscPlugin
 
 
 class TestBlackboardMiscPlugin:
-    def test_accept_grading_comments(self, application_instance, plugin):
-        assert not plugin.accept_grading_comments(application_instance)
+    def test_format_grading_comment_for_lms(self, plugin):
+        assert plugin.format_grading_comment_for_lms("new\nline") == "new<br/>line"
 
     def test_factory(self, pyramid_request):
         plugin = BlackboardMiscPlugin.factory(sentinel.context, pyramid_request)
