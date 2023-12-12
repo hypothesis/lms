@@ -33,26 +33,18 @@ class TestEmailPreferencesViews:
         assert isinstance(result, HTTPFound)
         assert result.location == "http://example.com/email/unsubscribed"
 
-    def test_preferences_redirect(self, views, remember, pyramid_request):
+    def test_preferences(
+        self, views, email_preferences_service, pyramid_request, remember
+    ):
         remember.return_value = [("foo", "bar")]
 
-        result = views.preferences_redirect()
-
-        remember.assert_called_once_with(
-            pyramid_request, pyramid_request.authenticated_userid
-        )
-        assert result == Any.instance_of(HTTPFound).with_attrs(
-            {
-                "location": "http://example.com/email/preferences",
-            }
-        )
-        assert result.headers["foo"] == "bar"
-
-    def test_preferences(self, views, email_preferences_service, pyramid_request):
         result = views.preferences()
 
         email_preferences_service.get_preferences.assert_called_once_with(
             pyramid_request.authenticated_userid
+        )
+        remember.assert_called_once_with(
+            pyramid_request, pyramid_request.authenticated_userid
         )
         assert result == {
             "jsConfig": {
@@ -60,6 +52,7 @@ class TestEmailPreferencesViews:
                 "emailPreferences": email_preferences_service.get_preferences.return_value.days.return_value,
             }
         }
+        assert pyramid_request.response.headers["foo"] == "bar"
 
     def test_set_preferences(self, views, email_preferences_service, pyramid_request):
         pyramid_request.params = {

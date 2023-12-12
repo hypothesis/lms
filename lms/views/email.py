@@ -58,30 +58,20 @@ class EmailPreferencesViews:
     @view_config(
         route_name="email.preferences",
         request_method="GET",
-        request_param="token",
-    )
-    def preferences_redirect(self):
-        # The token has already been verified by the security policy, so we can
-        # just go right ahead with the redirect.
-        return HTTPFound(
-            location=self.request.route_url("email.preferences"),
-            # Set a cookie to keep the user logged in even though we're
-            # removing the authentication token from the URL.
-            headers=remember(self.request, self.request.authenticated_userid),
-        )
-
-    @view_config(
-        route_name="email.preferences",
-        request_method="GET",
         renderer="lms:templates/email/preferences.html.jinja2",
     )
     def preferences(self):
+        days = self.email_preferences_service.get_preferences(
+            self.request.authenticated_userid
+        ).days()
+        self.request.response.headers = remember(
+            self.request, self.request.authenticated_userid
+        )
+
         return {
             "jsConfig": {
                 "mode": "email-preferences",
-                "emailPreferences": self.email_preferences_service.get_preferences(
-                    self.request.authenticated_userid
-                ).days(),
+                "emailPreferences": days,
             }
         }
 
