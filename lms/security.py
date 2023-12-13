@@ -135,6 +135,7 @@ class SecurityPolicy:
                 secret=request.registry.settings["email_preferences_secret"],
                 domain=request.domain,
                 email_preferences_service=request.find_service(EmailPreferencesService),
+                use_secure_cookie=not request.registry.settings["dev"],
             )
 
         return UnautheticatedSecurityPolicy()
@@ -234,11 +235,12 @@ class EmailPreferencesSecurityPolicy:
         secret: str,
         domain: str,
         email_preferences_service: EmailPreferencesService,
+        use_secure_cookie: bool,
     ):
         self.cookie = AuthTktCookieHelper(
             secret=secret,
             cookie_name="email.preferences",
-            secure=True,
+            secure=use_secure_cookie,
             timeout=60 * 5,
             reissue_time=0,
             max_age=60 * 5,
