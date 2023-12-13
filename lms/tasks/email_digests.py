@@ -162,9 +162,6 @@ def send_instructor_email_digest(
                         tzinfo=timezone.utc
                     ),
                     created_after.replace(tzinfo=timezone.utc),
-                    # Don't count annotations from before we deployed https://github.com/hypothesis/lms/pull/5904.
-                    # This line can safely be removed on Weds 20th Dec 2023 or later.
-                    datetime(year=2023, month=12, day=13, hour=5, tzinfo=timezone.utc),
                 )
 
             digest_service = request.find_service(DigestService)
