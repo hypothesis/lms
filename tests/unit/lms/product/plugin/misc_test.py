@@ -22,18 +22,11 @@ class TestMiscPlugin:
         assert plugin.is_assignment_gradable(pyramid_request.lti_params) == expected
 
     @pytest.mark.parametrize("lti_v13", [True, False])
-    @pytest.mark.parametrize("grading_comments", [True, False])
-    def test_accept_grading_comments(self, request, plugin, lti_v13, grading_comments):
+    def test_accept_grading_comments(self, request, plugin, lti_v13):
         application_instance = request.getfixturevalue(
             "lti_v13_application_instance" if lti_v13 else "application_instance"
         )
-        application_instance.settings.set(
-            "hypothesis", "grading_comments", grading_comments
-        )
-
-        assert plugin.accept_grading_comments(application_instance) == (
-            grading_comments and lti_v13
-        )
+        assert plugin.accept_grading_comments(application_instance) == lti_v13
 
     def test_get_ltia_aud_claim(self, plugin, lti_registration):
         assert plugin.get_ltia_aud_claim(lti_registration) == lti_registration.token_url
