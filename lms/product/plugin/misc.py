@@ -32,11 +32,6 @@ class MiscPlugin:
 
     def accept_grading_comments(self, application_instance):
         """Whether to accept comments while grading."""
-        if not application_instance.settings.get(
-            "hypothesis", "grading_comments", False
-        ):
-            return False
-
         # This is a LTI 1.3 only feature
         return application_instance.lti_version == "1.3.0"
 
