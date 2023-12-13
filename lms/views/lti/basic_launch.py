@@ -193,12 +193,7 @@ class BasicLaunchViews:
 
                 # Display the grading interface in the toolbar
                 self.context.js_config.enable_toolbar_grading(
-                    students=students,
-                    score_maximum=score_maximum
-                    if self.request.lti_user.application_instance.settings.get(
-                        "hypothesis", "lms_grading_scale", False
-                    )
-                    else None,
+                    students=students, score_maximum=score_maximum
                 )
 
             if not self.request.lti_user.is_instructor:

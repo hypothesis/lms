@@ -47,7 +47,6 @@ class ApplicationSettings(JSONSettings):
         ),
         JSONSetting("hypothesis", "import_export_enabled", asbool),
         JSONSetting("hypothesis", "instructor_email_digests_enabled", asbool),
-        JSONSetting("hypothesis", "lms_grading_scale", asbool),
         JSONSetting("hypothesis", "grading_comments", asbool),
     )
 
