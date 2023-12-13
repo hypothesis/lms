@@ -80,6 +80,12 @@ class AdminOrganizationViews:
         renderer="lms:templates/admin/organization/show.html.jinja2",
         permission=Permissions.STAFF,
     )
+    @view_config(
+        route_name="admin.organization.section",
+        request_method="GET",
+        renderer="lms:templates/admin/organization/show.html.jinja2",
+        permission=Permissions.STAFF,
+    )
     def show_organization(self):
         org_id = self.request.matchdict["id_"]
 
@@ -138,7 +144,9 @@ class AdminOrganizationViews:
         self.request.session.flash("Updated organization", "messages")
 
         return HTTPFound(
-            location=self.request.route_url("admin.organization", id_=org.id)
+            location=self.request.route_url(
+                "admin.organization.section", id_=org.id, section="danger"
+            )
         )
 
     @view_config(
@@ -165,7 +173,8 @@ class AdminOrganizationViews:
         return {"organizations": orgs}
 
     @view_config(
-        route_name="admin.organization.usage",
+        route_name="admin.organization.section",
+        match_param="section=usage",
         request_method="POST",
         permission=Permissions.STAFF,
         renderer="lms:templates/admin/organization/usage.html.jinja2",

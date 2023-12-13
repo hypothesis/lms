@@ -160,11 +160,14 @@ def includeme(config):  # pylint:disable=too-many-statements
     config.add_route(
         "admin.role.override.new", "/admin/instance/{id_}/role/overrides/new"
     )
-    config.add_route("admin.organization.usage", "/admin/org/{id_}/usage")
     config.add_route("admin.role.override", "/admin/role/overrides/{id_}")
     config.add_route("admin.role.override.delete", "/admin/role/overrides/{id_}/delete")
 
     config.add_route("admin.organization", "/admin/org/{id_}")
+    config.add_route(
+        "admin.organization.section",
+        "/admin/org/{id_}/{section:info|usage|danger}",
+    )
     config.add_route("admin.organization.toggle", "/admin/org/{id_}/toggle")
     config.add_route("admin.organizations", "/admin/orgs")
     config.add_route("admin.organization.move_org", "/admin/org/{id_}/move_org")

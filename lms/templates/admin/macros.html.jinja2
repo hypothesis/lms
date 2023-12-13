@@ -201,3 +201,42 @@
         </div>
     {% endcall %}
 {% endmacro %}
+{% macro enable_tabs(prefix_segments_amount=3, default_tab="info") %}
+    <script>
+      function pathSegments() {
+        const currentPath = window.location.pathname;
+        // Remove leading and trailing bars
+        const trimmedCurrentPath = currentPath.replace(/^\/+|\/+$/g, '');
+
+        return trimmedCurrentPath.split('/');
+      }
+
+      function updateActiveTab() {
+        const activeSection = pathSegments()[{{ prefix_segments_amount }}] ?? '{{ default_tab }}';
+        const tabs = document.querySelectorAll('[data-section-id]');
+
+        // Iterate over tabs and tab panels, adding is-active to those which data-section-id matches active section,
+        // and removing it for the rest.
+        tabs.forEach(tab => {
+          tab.classList.toggle('is-active', tab.dataset.sectionId === activeSection);
+        });
+      }
+
+      // Select the first tab on window load
+      window.addEventListener('load', updateActiveTab);
+      // Update selected tab on history change
+      window.addEventListener('popstate', updateActiveTab);
+
+      // Capture clicks in tabs, to update the URL
+      document.querySelectorAll('.tabs li').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const segments = pathSegments().slice(0, {{ prefix_segments_amount }});
+          // We assume all routes here have a common prefix consisting on three parts
+          const prefix = `/${segments.join('/')}/`;
+          const newActiveSection = tab.dataset.sectionId;
+
+          window.history.pushState(null, '', `${prefix}${newActiveSection}`);
+        });
+      });
+    </script>
+{% endmacro %}
