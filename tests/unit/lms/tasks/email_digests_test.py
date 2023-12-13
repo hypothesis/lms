@@ -345,7 +345,7 @@ class TestSendInstructorEmailDigests:
     @pytest.fixture
     def created_before(self):
         """Return the created_before arg that will be passed to send_instructor_email_digest()."""
-        return datetime(year=2023, month=12, day=25, hour=5, tzinfo=timezone.utc)
+        return datetime.now(timezone.utc)
 
     @pytest.fixture
     def make_task_done(self, h_userid, created_before):
