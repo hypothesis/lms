@@ -90,8 +90,16 @@ export function init() {
 
   // Set route based on app mode.
   const routePath = routeForAppMode(config.mode);
+  const searchParams = new URLSearchParams(location.search);
   if (location.pathname !== routePath) {
     history.replaceState({}, 'unused', routePath);
+  } else if (config.mode === 'email-preferences' && searchParams.has('token')) {
+    // Remove auth token for email-preferences if present. We originally tried
+    // to do this server-side but Safari failed to preserve cookies after the
+    // token-stripping redirect.
+    const url = new URL(location.href);
+    url.searchParams.delete('token');
+    history.replaceState({}, 'unused', url);
   }
 
   // Render frontend application.

@@ -94,4 +94,26 @@ describe('LMS frontend entry', () => {
       assert.calledWith(fakeContentInfoFetcher.fetch, contentBanner);
     });
   });
+
+  context('when email-preferences includes a token', () => {
+    beforeEach(() => {
+      fakeReadConfig.returns({ ...minimalConfig, mode: 'email-preferences' });
+    });
+
+    it('removes whole query string if `token` is the only param', () => {
+      history.replaceState(null, '', '?token=12345');
+
+      assert.equal('?token=12345', location.search);
+      init();
+      assert.equal('', location.search);
+    });
+
+    it('keeps other query params', () => {
+      history.replaceState(null, '', '?token=12345&foo=bar&something=else');
+
+      assert.equal('?token=12345&foo=bar&something=else', location.search);
+      init();
+      assert.equal('?foo=bar&something=else', location.search);
+    });
+  });
 });
