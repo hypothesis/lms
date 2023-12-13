@@ -238,6 +238,7 @@ class TestEmailPreferencesSecurityPolicy:
             secret="test_email_preferences_secret",
             domain="example.com",
             email_preferences_service=email_preferences_service,
+            use_secure_cookie=True,
         )
 
 
@@ -432,6 +433,7 @@ class TestSecurityPolicy:
             secret="test_email_preferences_secret",
             domain="example.com",
             email_preferences_service=email_preferences_service,
+            use_secure_cookie=True,
         )
         assert sub_policy == EmailPreferencesSecurityPolicy.return_value
 
