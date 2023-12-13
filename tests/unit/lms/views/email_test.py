@@ -6,13 +6,9 @@ from pyramid.httpexceptions import HTTPFound
 
 from lms.security import EmailPreferencesIdentity
 from lms.services import EmailPrefs
-from lms.views.email import EmailPreferencesViews, forbidden, unsubscribed
+from lms.views.email import EmailPreferencesViews, forbidden
 
 pytestmark = pytest.mark.usefixtures("email_preferences_service")
-
-
-def test_unsubscribed(pyramid_request):
-    assert not unsubscribed(pyramid_request)
 
 
 def test_forbidden(pyramid_request):
@@ -21,7 +17,15 @@ def test_forbidden(pyramid_request):
 
 
 class TestEmailPreferencesViews:
-    def test_unsubscribe(self, views, pyramid_config, email_preferences_service):
+    def test_unsubscribe(
+        self,
+        views,
+        pyramid_config,
+        email_preferences_service,
+        remember,
+        pyramid_request,
+    ):
+        remember.return_value = [("foo", "bar")]
         pyramid_config.testing_securitypolicy(
             userid=sentinel.h_userid,
             identity=EmailPreferencesIdentity(sentinel.h_userid, sentinel.tag),
@@ -30,8 +34,18 @@ class TestEmailPreferencesViews:
         result = views.unsubscribe()
 
         email_preferences_service.unsubscribe.assert_called_once_with(sentinel.h_userid)
-        assert isinstance(result, HTTPFound)
-        assert result.location == "http://example.com/email/unsubscribed"
+        assert pyramid_request.session.pop_flash("email_preferences_result") == [
+            "You've been unsubscribed from email notifications."
+        ]
+        remember.assert_called_once_with(
+            pyramid_request, pyramid_request.authenticated_userid
+        )
+        assert result == Any.instance_of(HTTPFound).with_attrs(
+            {
+                "location": "http://example.com/email/preferences",
+            }
+        )
+        assert result.headers["foo"] == "bar"
 
     def test_preferences_redirect(self, views, remember, pyramid_request):
         remember.return_value = [("foo", "bar")]

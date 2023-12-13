@@ -26,16 +26,6 @@ def forbidden(_request):
     return {}
 
 
-@view_config(
-    route_name="email.unsubscribed",
-    request_method="GET",
-    renderer="lms:templates/email/unsubscribed.html.jinja2",
-)
-def unsubscribed(_request):
-    """Render a message after a successful email unsubscribe."""
-    return {}
-
-
 @view_defaults(permission=Permissions.EMAIL_PREFERENCES)
 class EmailPreferencesViews:
     def __init__(self, request):
@@ -52,8 +42,17 @@ class EmailPreferencesViews:
         self.request.find_service(EmailPreferencesService).unsubscribe(
             self.request.identity.h_userid
         )
+        self.request.session.flash(
+            "You've been unsubscribed from email notifications.",
+            "email_preferences_result",
+        )
 
-        return HTTPFound(location=self.request.route_url("email.unsubscribed"))
+        return HTTPFound(
+            location=self.request.route_url("email.preferences"),
+            # Set a cookie to keep the user logged in even though we're
+            # removing the authentication token from the URL.
+            headers=remember(self.request, self.request.authenticated_userid),
+        )
 
     @view_config(
         route_name="email.preferences",
