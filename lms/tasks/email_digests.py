@@ -121,16 +121,25 @@ def send_instructor_email_digest_tasks():
     rate_limit="10/m",
 )
 def send_instructor_email_digest(
-    *, h_userid: str, created_before: str, **kwargs
+    *, h_userid: str, created_before: str, created_after: Optional[str] = None, **kwargs
 ) -> None:
     """
     Generate and send instructor email digests to the given users.
 
-    The email digests will cover activity that occurred up until
+    The email digests will cover annotations that were created between the
+    `created_after` and `created_before` dates.
+
+    If no `created_after` is given then it defaults to seven days before
     `created_before`.
+
+    Annotations that the user has already been emailed about (according to the
+    `task_done` table) won't be covered even if they fall between the
+    `created_after` and `created_before` dates.
 
     :param h_userid: the h_userid of the instructor to email
     :param created_before: cut-off time after which activity will not be
+        included in the email, as an ISO 8601 format string
+    :param created_after: cut-off time before which activity will not be
         included in the email, as an ISO 8601 format string
     :param kwargs: other keyword arguments to pass to DigestService.send_instructor_email_digest()
     """
@@ -138,11 +147,14 @@ def send_instructor_email_digest(
     # This only works for the subset of ISO 8601 produced by datetime.isoformat().
     created_before = datetime.fromisoformat(created_before)
 
+    if created_after is None:
+        created_after = created_before - timedelta(days=7)
+    else:
+        created_after = datetime.fromisoformat(created_after)
+
     with app.request_context() as request:  # pylint:disable=no-member
         with request.tm:
             task_done_data = _get_task_done_data(request.db, h_userid)
-
-            created_after = created_before - timedelta(days=7)
 
             if task_done_data:
                 created_after = max(
@@ -158,7 +170,10 @@ def send_instructor_email_digest(
             digest_service = request.find_service(DigestService)
 
             digest_service.send_instructor_email_digest(
-                h_userid, created_after, created_before, **kwargs
+                h_userid=h_userid,
+                created_after=created_after,
+                created_before=created_before,
+                **kwargs,
             )
 
 
