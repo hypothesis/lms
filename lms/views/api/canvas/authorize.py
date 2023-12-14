@@ -14,8 +14,9 @@ from urllib.parse import urlencode, urlunparse
 from pyramid.httpexceptions import HTTPFound, HTTPInternalServerError
 from pyramid.view import exception_view_config, view_config
 
+from lms.events import LTIEvent
 from lms.security import Permissions
-from lms.services import CanvasAPIServerError
+from lms.services import CanvasAPIServerError, EventService
 from lms.validation.authentication import OAuthCallbackSchema
 
 SCOPES = {
@@ -127,15 +128,31 @@ def oauth2_redirect(request):
     request_method="GET",
     route_name="canvas_api.oauth.authorize",
     renderer="lms:templates/api/oauth2/redirect_error.html.jinja2",
+    tm_active=True,
 )
 def oauth2_redirect_error(request):
     kwargs = {
         "auth_route": "canvas_api.oauth.authorize",
         "canvas_scopes": list(ALL_SCOPES),
     }
-
     if request.params.get("error") == "invalid_scope":
-        kwargs["error_code"] = request.context.js_config.ErrorCode.CANVAS_INVALID_SCOPE
+        error_code = request.context.js_config.ErrorCode.CANVAS_INVALID_SCOPE
+        kwargs["error_code"] = error_code
+
+        # Create a new DB session outside the request cycle handled by zope's
+        # transaction manager.
+        # The default one rollbacks transactions in exceptions views.
+        error_db_session = request.registry["sqlalchemy.factory"](
+            bind=request.registry["sqlalchemy.engine"]
+        )
+        EventService.from_db_session(error_db_session).insert_event(
+            LTIEvent(
+                request=request,
+                type=LTIEvent.Type.ERROR_CODE,
+                data={"code": error_code},
+            )
+        )
+        error_db_session.commit()
 
     if error_description := request.params.get("error_description"):
         kwargs["error_details"] = {"error_description": error_description}
