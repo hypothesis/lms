@@ -10,7 +10,7 @@ def includeme(config):
     # https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/sessions.html)
     # but is inconvenient in development environments, so use insecure cookies
     # in dev for convenience but use secure (HTTPS-only) cookies otherwise.
-    secure = not config.registry.settings.get("debug", False)
+    secure = not config.registry.settings["dev"]
 
     config.set_session_factory(
         SignedCookieSessionFactory(
