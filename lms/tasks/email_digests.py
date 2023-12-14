@@ -46,7 +46,9 @@ def send_instructor_email_digest_tasks():
     """
     now = datetime.now(timezone.utc)
     weekday = EmailPrefs.DAYS[now.weekday()]
-    created_before = datetime(year=now.year, month=now.month, day=now.day, hour=5)
+    created_before = datetime(
+        year=now.year, month=now.month, day=now.day, hour=5, tzinfo=timezone.utc
+    )
 
     with app.request_context() as request:  # pylint:disable=no-member
         with request.tm:
@@ -144,8 +146,10 @@ def send_instructor_email_digest(
 
             if task_done_data:
                 created_after = max(
-                    datetime.fromisoformat(task_done_data["created_before"]),
-                    created_after,
+                    datetime.fromisoformat(task_done_data["created_before"]).replace(
+                        tzinfo=timezone.utc
+                    ),
+                    created_after.replace(tzinfo=timezone.utc),
                     # Don't count annotations from before we deployed https://github.com/hypothesis/lms/pull/5904.
                     # This line can safely be removed on Weds 20th Dec 2023 or later.
                     datetime(year=2023, month=12, day=13, hour=5, tzinfo=timezone.utc),
