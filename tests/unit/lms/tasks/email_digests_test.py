@@ -309,10 +309,28 @@ class TestSendInstructorEmailDigests:
         )
 
         digest_service.send_instructor_email_digest.assert_called_once_with(
-            h_userid,
+            h_userid=h_userid,
             # The task adds tzinfo if it was not already present in the DB
-            created_before.replace(tzinfo=timezone.utc) - timedelta(days=7),
-            created_before,
+            created_after=created_before.replace(tzinfo=timezone.utc)
+            - timedelta(days=7),
+            created_before=created_before,
+        )
+
+    def test_the_created_after_argument(self, created_before, digest_service, h_userid):
+        created_after = datetime(
+            year=2023, month=11, day=25, hour=5, tzinfo=timezone.utc
+        )
+
+        send_instructor_email_digest(
+            h_userid=h_userid,
+            created_before=created_before.isoformat(),
+            created_after=created_after.isoformat(),
+            override_to_email=sentinel.override_to_email,
+        )
+
+        assert (
+            digest_service.send_instructor_email_digest.call_args[1]["created_after"]
+            == created_after
         )
 
     def test_it_crashes_if_created_before_is_invalid(self, h_userid):
