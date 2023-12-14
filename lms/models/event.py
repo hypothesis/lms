@@ -17,6 +17,7 @@ class EventType(BASE):
         EDITED_ASSIGNMENT = "edited_assignment"
         SUBMISSION = "submission"
         GRADE = "grade"
+        ERROR_CODE = "error_code"
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
     type = varchar_enum(Type)

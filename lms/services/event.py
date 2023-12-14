@@ -49,6 +49,10 @@ class EventService:
 
         return event_type.id
 
+    @classmethod
+    def from_db_session(cls, db):
+        return cls(db)
+
 
 def factory(_context, request):
-    return EventService(request.db)
+    return EventService.from_db_session(db=request.db)

@@ -85,13 +85,18 @@ class TestEventService:
     def svc(self, db_session):
         return EventService(db_session)
 
+    def test_from_db_session(self):
+        svc = EventService.from_db_session(sentinel.db)
+
+        assert svc._db == sentinel.db  # pylint:disable=protected-access
+
 
 class TestFactory:
     def test_it(self, pyramid_request, EventService):
         svc = factory(sentinel.context, pyramid_request)
 
-        EventService.assert_called_once_with(db=pyramid_request.db)
-        assert svc == EventService.return_value
+        EventService.from_db_session.assert_called_once_with(db=pyramid_request.db)
+        assert svc == EventService.from_db_session.return_value
 
     @pytest.fixture
     def EventService(self, patch):

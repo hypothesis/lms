@@ -166,7 +166,7 @@ class TestOAuth2RedirectError:
         assert not template_data
 
     def test_it_sets_the_invalid_scope_error_code_for_invalid_scope_errors(
-        self, pyramid_request
+        self, pyramid_request, LTIEvent, EventService
     ):
         pyramid_request.params["error"] = "invalid_scope"
 
@@ -176,6 +176,14 @@ class TestOAuth2RedirectError:
         enable_oauth2_redirect_error_mode = js_config.enable_oauth2_redirect_error_mode
         error_code = enable_oauth2_redirect_error_mode.call_args[1].get("error_code")
         assert error_code == JSConfig.ErrorCode.CANVAS_INVALID_SCOPE
+        LTIEvent.assert_called_once_with(
+            request=pyramid_request,
+            type=LTIEvent.Type.ERROR_CODE,
+            data={"code": JSConfig.ErrorCode.CANVAS_INVALID_SCOPE},
+        )
+        EventService.from_db_session.return_value.insert_event.assert_called_once_with(
+            LTIEvent.return_value
+        )
 
     def test_it_sets_the_error_details_if_theres_an_error_description(
         self, pyramid_request
@@ -203,6 +211,14 @@ class TestOAuth2RedirectError:
     @pytest.fixture(autouse=True)
     def OAuth2RedirectResource(self, patch):
         return patch("lms.resources.OAuth2RedirectResource")
+
+    @pytest.fixture(autouse=True)
+    def EventService(self, patch):
+        return patch("lms.views.api.canvas.authorize.EventService")
+
+    @pytest.fixture(autouse=True)
+    def LTIEvent(self, patch):
+        return patch("lms.views.api.canvas.authorize.LTIEvent")
 
 
 @pytest.fixture(autouse=True)

@@ -107,6 +107,10 @@ def includeme(config):
     engine = make_engine(config.registry.settings)
     config.registry["sqlalchemy.engine"] = engine
 
+    # Register the DB session factory in case we need to create one session
+    # outside the request life cycle managed by zope's transaction manager
+    config.registry["sqlalchemy.factory"] = SESSION
+
     if config.registry.settings["dev"]:  # pragma: nocover
         init(engine)
 
