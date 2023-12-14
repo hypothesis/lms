@@ -1,10 +1,14 @@
-import { InfoIcon, Link, ToastMessages } from '@hypothesis/frontend-shared';
+import {
+  InfoIcon,
+  Link,
+  ToastMessages,
+  useToastMessages,
+} from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useCallback, useState } from 'preact/hooks';
 
 import type { SelectedDays, WeekDay } from '../config';
 import { useConfig } from '../config';
-import { useToastMessages } from '../hooks/use-toast-messages';
 import EmailPreferences from './EmailPreferences';
 
 export default function EmailPreferencesApp() {
