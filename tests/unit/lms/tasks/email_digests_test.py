@@ -32,7 +32,7 @@ class TestSendInstructorEmailDigestsTasks:
                 (),
                 {
                     "h_userid": participating_instructor.h_userid,
-                    "created_before": "2023-03-09T05:00:00",
+                    "created_before": "2023-03-09T05:00:00+00:00",
                 },
             )
             for participating_instructor in participating_instructors
@@ -291,6 +291,28 @@ class TestSendInstructorEmailDigests:
 
         digest_service.send_instructor_email_digest.assert_called_once_with(
             h_userid, created_before - timedelta(days=7), created_before
+        )
+
+    def test_it_when_TaskDone_doesnt_have_tzinfo(
+        self, created_before, db_session, digest_service, h_userid, make_task_done
+    ):
+        created_before = created_before.replace(tzinfo=None)
+
+        db_session.add(
+            make_task_done(
+                created_before=(created_before - timedelta(days=8)).isoformat()
+            )
+        )
+
+        send_instructor_email_digest(
+            h_userid=h_userid, created_before=created_before.isoformat()
+        )
+
+        digest_service.send_instructor_email_digest.assert_called_once_with(
+            h_userid,
+            # The task adds tzinfo if it was not already present in the DB
+            created_before.replace(tzinfo=timezone.utc) - timedelta(days=7),
+            created_before,
         )
 
     def test_it_crashes_if_created_before_is_invalid(self, h_userid):
