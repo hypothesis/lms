@@ -57,25 +57,23 @@ class TestVitalSourceService:
         assert url == reader_url
 
     @pytest.mark.parametrize(
-        "doc_url,expected_content_range",
+        "doc_url,expected_config",
         [
-            (
-                "vitalsource://book/bookID/BOOK-ID/cfi/CFI",
-                {"start": "CFI", "end": None},
-            ),
+            ("vitalsource://book/bookID/BOOK-ID/cfi/CFI", None),
+            ("vitalsource://book/bookID/BOOK-ID/page/42", None),
             (
                 "vitalsource://book/bookID/BOOK-ID/page/42?end_page=50",
-                {"start": "42", "end": "50"},
+                {"page": "42-50"},
             ),
             (
                 "vitalsource://book/bookID/BOOK-ID/cfi/CFI?end_cfi=END_CFI",
-                {"start": "CFI", "end": "END_CFI"},
+                {"cfi": {"range": "CFI-END_CFI", "label": "selected chapters"}},
             ),
         ],
     )
-    def test_get_content_range(self, svc, doc_url, expected_content_range):
-        content_range = svc.get_content_range(doc_url)
-        assert content_range == expected_content_range
+    def test_get_client_focus_config(self, svc, doc_url, expected_config):
+        config = svc.get_client_focus_config(doc_url)
+        assert config == expected_config
 
     def test_get_sso_redirect(self, svc, customer_client):
         result = svc.get_sso_redirect(

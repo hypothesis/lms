@@ -113,8 +113,9 @@ class JSConfig:
                 )
 
             if svc.page_ranges_enabled:
-                content_range = svc.get_content_range(document_url)
-                self._hypothesis_client["contentRange"] = content_range
+                content_config = svc.get_client_focus_config(document_url)
+                if content_config:
+                    self._update_focus_config(content_config)
 
         elif jstor_service.enabled and document_url.startswith("jstor://"):
             self._config["viaUrl"] = jstor_service.via_url(self._request, document_url)
@@ -124,6 +125,16 @@ class JSConfig:
             }
         else:
             self._config["viaUrl"] = via_url(self._request, document_url)
+
+    def _update_focus_config(self, updates: dict):
+        """
+        Update the `focus` dict in the Hypothesis client's configuration.
+
+        This configures the client to filter annotations based on a selected
+        user, page range etc.
+        """
+        focus_config = self._hypothesis_client.setdefault("focus", {})
+        focus_config.update(updates)
 
     def asdict(self):
         """
@@ -337,8 +348,6 @@ class JSConfig:
 
     def set_focused_user(self, focused_user):
         """Configure the client to only show one users' annotations while an instructor is in SpeedGrader."""
-        self._hypothesis_client["focus"] = {"user": {"username": focused_user}}
-
         # Unfortunately we need to pass the user's current display name to the
         # Hypothesis client, and we need to make a request to the h API to
         # retrieve that display name.
@@ -349,7 +358,14 @@ class JSConfig:
         except HAPIError:
             display_name = "(Couldn't fetch student name)"
 
-        self._hypothesis_client["focus"]["user"]["displayName"] = display_name
+        self._update_focus_config(
+            {
+                "user": {
+                    "username": focused_user,
+                    "displayName": display_name,
+                }
+            }
+        )
 
     def add_canvas_speedgrader_settings(self, document_url):
         """
