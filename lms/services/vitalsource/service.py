@@ -101,28 +101,35 @@ class VitalSourceService:
         return urlunparse(url)
 
     @classmethod
-    def get_content_range(cls, document_url: str) -> dict:
+    def get_client_focus_config(cls, document_url: str) -> Optional[dict]:
         """
         Get the content range for an assignment from a `vitalsource://` URL.
 
-        This information is returned as a dict that is suitable for passing
-        through to the Hypothesis client.
+        Returns a dict suitable for merging into the Hypothesis client's
+        "focus" configuration, or `None` if the URL doesn't specify a range.
         """
         loc = VSBookLocation.from_document_url(document_url)
         parsed_url = urlparse(document_url)
         params = parse_qs(parsed_url.query)
 
-        start = loc.page or loc.cfi
-        end = None
-        if "end_page" in params:
-            end = params["end_page"][-1]
-        if "end_cfi" in params:
-            end = params["end_cfi"][-1]
+        if loc.cfi and "end_cfi" in params:
+            end_cfi = params["end_cfi"][-1]
+            return {
+                "cfi": {
+                    "range": f"{loc.cfi}-{end_cfi}",
+                    # We currently use a generic label to describe the selected
+                    # content. It would be nicer to present the chapter name.
+                    "label": "selected chapters",
+                }
+            }
 
-        return {
-            "start": start,
-            "end": end,
-        }
+        if loc.page and "end_page" in params:
+            end_page = params["end_page"][-1]
+            return {
+                "page": f"{loc.page}-{end_page}",
+            }
+
+        return None
 
     @classmethod
     def get_book_reader_url(cls, document_url) -> str:
