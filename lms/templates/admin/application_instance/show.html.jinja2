@@ -112,7 +112,6 @@
                         <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
                         <fieldset class="box">
                             <legend class="label has-text-centered">General settings</legend>
-                            {{ settings_checkbox("Enable import/export in client", "hypothesis", "import_export_enabled", default=False) }}
                             {{ settings_checkbox('Enable instructor email digests', 'hypothesis', 'instructor_email_digests_enabled') }}
                         </fieldset>
                         <fieldset class="box">

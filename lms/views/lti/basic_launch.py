@@ -210,14 +210,11 @@ class BasicLaunchViews:
         self.context.js_config.add_document_url(assignment.document_url)
         self.context.js_config.enable_lti_launch_mode(self.course, assignment)
 
-        import_export_enabled = self.request.lti_user.application_instance.settings.get(
-            "hypothesis", "import_export_enabled", False
-        )
-
-        if import_export_enabled:
-            js_config = self.context.js_config
-            js_config.enable_client_feature("import_annotations")
-            js_config.enable_client_feature("export_annotations")
+        # If there are any Hypothesis client feature flags that need to be
+        # enabled based on the current application instance settings, those
+        # should be enabled here via `self.context.js_config.enable_client_feature`.
+        #
+        # There are currently no such features.
 
         # Run any non standard code for the current product
         self._misc_plugin.post_launch_assignment_hook(
