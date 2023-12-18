@@ -1,9 +1,14 @@
+import logging
 from functools import lru_cache
 
+from celery.exceptions import OperationalError
 from sqlalchemy.orm import Session
 
 from lms.events.event import BaseEvent
 from lms.models import Event, EventData, EventType, EventUser
+from lms.tasks.event import insert_event
+
+log = logging.getLogger(__name__)
 
 
 class EventService:
@@ -38,6 +43,19 @@ class EventService:
 
         return event
 
+    @staticmethod
+    def queue_event(event: BaseEvent) -> None:
+        """
+        Queue an event for insertion into the DB asynchronously.
+
+        This method hides errors while queuing the task and disables retries.
+        If more guarantees are need about the event recording, call `insert_event` directly.
+        """
+        try:
+            insert_event.apply_async((event.serialize(),), retry=False)
+        except OperationalError:
+            log.exception("Error while queueing event")
+
     @lru_cache(maxsize=10)
     def _get_type_pk(self, type_: EventType.Type) -> int:
         """Cache the PK of the event_type table to avoid an extra query while inserting events."""
@@ -49,10 +67,6 @@ class EventService:
 
         return event_type.id
 
-    @classmethod
-    def from_db_session(cls, db):
-        return cls(db)
-
 
 def factory(_context, request):
-    return EventService.from_db_session(db=request.db)
+    return EventService(db=request.db)

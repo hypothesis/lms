@@ -2,9 +2,33 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.events import AuditTrailEvent, LTIEvent
+from lms.events import AuditTrailEvent, BaseEvent, LTIEvent
 from lms.events.event import _serialize_change
 from tests import factories
+
+
+class TestBaseEvent:
+    def test_serialize(self, pyramid_request):
+        assert BaseEvent(
+            request=pyramid_request,
+            type=sentinel.type,
+            user_id=sentinel.user_id,
+            role_ids=sentinel.role_ids,
+            application_instance_id=sentinel.application_instance_id,
+            course_id=sentinel.course_id,
+            assignment_id=sentinel.assignment_id,
+            grouping_id=sentinel.grouping_id,
+            data=sentinel.data,
+        ).serialize() == {
+            "type": sentinel.type,
+            "user_id": sentinel.user_id,
+            "role_ids": sentinel.role_ids,
+            "application_instance_id": sentinel.application_instance_id,
+            "course_id": sentinel.course_id,
+            "assignment_id": sentinel.assignment_id,
+            "grouping_id": sentinel.grouping_id,
+            "data": sentinel.data,
+        }
 
 
 class TestLTIEvent:

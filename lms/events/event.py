@@ -15,11 +15,11 @@ class BaseEvent:  # pylint:disable=too-many-instance-attributes
     Type = EventType.Type
     """Expose the type here for the callers convenience"""
 
-    request: Request
-    """Reference to the current request"""
-
     type: EventType.Type
     """Type of the event"""
+
+    request: Optional[Request] = None
+    """Reference to the current request"""
 
     user_id: Optional[int] = None
     """Which user is related to this event"""
@@ -44,6 +44,14 @@ class BaseEvent:  # pylint:disable=too-many-instance-attributes
             if not getattr(self, event_field.name) and hasattr(self, getter_name):
                 setattr(self, event_field.name, getattr(self, getter_name)())
 
+    def serialize(self) -> dict:
+        return {
+            field.name: getattr(self, field.name)
+            for field in fields(self)
+            # Excluded non-serializable fields
+            if field.name not in ["request"]
+        }
+
 
 @dataclass
 class LTIEvent(BaseEvent):
@@ -53,8 +61,6 @@ class LTIEvent(BaseEvent):
     All the _get_`field`  method are used by the base class to
     fill up any missing fields
     """
-
-    # pylint:disable=no-member
 
     def _get_user_id(self):
         return self.request.user.id
