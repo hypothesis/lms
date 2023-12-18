@@ -290,6 +290,28 @@ class TestOrganizationService:
         ]
         assert report == Any.list.containing(expected)
 
+    def test_usage_report_with_no_courses(self, svc, org_with_parent):
+        since = datetime(2023, 1, 1)
+        until = datetime(2023, 12, 31)
+
+        with pytest.raises(ValueError) as error:
+            svc.usage_report(org_with_parent.parent, since, until)
+
+        assert "no courses found" in str(error.value).lower()
+
+    def test_usage_report_with_no_activity(self, svc, org_with_parent, h_api):
+        since = datetime(2023, 1, 1)
+        until = datetime(2023, 12, 31)
+
+        ai_root_org = factories.ApplicationInstance(organization=org_with_parent.parent)
+        factories.Course(application_instance=ai_root_org)
+        h_api.get_groups.return_value = []
+
+        with pytest.raises(ValueError) as error:
+            svc.usage_report(org_with_parent.parent, since, until)
+
+        assert "no courses with activity" in str(error.value).lower()
+
     @pytest.fixture
     def org_with_parent(self, db_session):
         org_with_parent = factories.Organization.create(

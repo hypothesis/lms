@@ -260,11 +260,19 @@ class OrganizationService:
             )
         ).all()
 
+        if not groups_from_org:
+            raise ValueError(f"No courses found for {organization.public_id}")
+
         # Of those groups, get the ones that do have annotations in the time period
         groups_with_annos = [
             group.authority_provided_id
             for group in self._h_api.get_groups(groups_from_org, since, until)
         ]
+        if not groups_with_annos:
+            raise ValueError(
+                f"No courses with activity found for {organization.public_id}"
+            )
+
         # Based on those groups generate the usage report based on the definition of unique user:
         # Users that belong to a course in which there are annotations in the time period
         parent = aliased(Grouping)
