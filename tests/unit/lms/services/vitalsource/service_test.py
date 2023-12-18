@@ -63,7 +63,7 @@ class TestVitalSourceService:
             ("vitalsource://book/bookID/BOOK-ID/page/42", None),
             (
                 "vitalsource://book/bookID/BOOK-ID/page/42?end_page=50",
-                {"page": "42-50"},
+                {"pages": "42-50"},
             ),
             (
                 "vitalsource://book/bookID/BOOK-ID/cfi/CFI?end_cfi=END_CFI",

@@ -126,7 +126,7 @@ class VitalSourceService:
         if loc.page and "end_page" in params:
             end_page = params["end_page"][-1]
             return {
-                "page": f"{loc.page}-{end_page}",
+                "pages": f"{loc.page}-{end_page}",
             }
 
         return None
