@@ -181,9 +181,7 @@ class TestOAuth2RedirectError:
             type=LTIEvent.Type.ERROR_CODE,
             data={"code": JSConfig.ErrorCode.CANVAS_INVALID_SCOPE},
         )
-        EventService.from_db_session.return_value.insert_event.assert_called_once_with(
-            LTIEvent.return_value
-        )
+        EventService.queue_event.assert_called_once_with(LTIEvent.return_value)
 
     def test_it_sets_the_error_details_if_theres_an_error_description(
         self, pyramid_request

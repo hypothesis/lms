@@ -128,6 +128,9 @@ def oauth2_redirect(request):
     request_method="GET",
     route_name="canvas_api.oauth.authorize",
     renderer="lms:templates/api/oauth2/redirect_error.html.jinja2",
+    # Explicitly declare the need for a transaction for exception view.
+    # While this view doesn't write any data to the DB it
+    # could issue queries to generate the Event object.
     tm_active=True,
 )
 def oauth2_redirect_error(request):
@@ -139,20 +142,13 @@ def oauth2_redirect_error(request):
         error_code = request.context.js_config.ErrorCode.CANVAS_INVALID_SCOPE
         kwargs["error_code"] = error_code
 
-        # Create a new DB session outside the request cycle handled by zope's
-        # transaction manager.
-        # The default one rollbacks transactions in exceptions views.
-        error_db_session = request.registry["sqlalchemy.factory"](
-            bind=request.registry["sqlalchemy.engine"]
-        )
-        EventService.from_db_session(error_db_session).insert_event(
+        EventService.queue_event(
             LTIEvent(
                 request=request,
                 type=LTIEvent.Type.ERROR_CODE,
                 data={"code": error_code},
             )
         )
-        error_db_session.commit()
 
     if error_description := request.params.get("error_description"):
         kwargs["error_details"] = {"error_description": error_description}
