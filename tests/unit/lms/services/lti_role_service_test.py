@@ -128,7 +128,7 @@ class TestLTIRoleService:
 
         svc.delete_override(existing_overrides[0])
 
-        assert not svc.search(id_=id_).all()
+        assert not svc.search_override(id_=id_).all()
 
     def test_update_override(self, existing_overrides, svc, db_session):
         db_session.flush()  # Give all roles IDs
