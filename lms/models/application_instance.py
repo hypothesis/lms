@@ -45,7 +45,6 @@ class ApplicationSettings(JSONSettings):
             asbool,
             name="Auto Assigned To Organisation",
         ),
-        JSONSetting("hypothesis", "import_export_enabled", asbool),
         JSONSetting("hypothesis", "instructor_email_digests_enabled", asbool),
     )
 

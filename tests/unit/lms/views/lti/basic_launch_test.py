@@ -292,29 +292,6 @@ class TestBasicLaunchViews:
 
         assert result == {}
 
-    @pytest.mark.parametrize("import_export_feature", [True, False])
-    def test__show_document_enables_client_features(
-        self, svc, pyramid_request, context, assignment, import_export_feature
-    ):
-        pyramid_request.lti_user.application_instance.settings.set(
-            "hypothesis", "import_export_enabled", import_export_feature
-        )
-
-        # pylint: disable=protected-access
-        svc._show_document(assignment)
-
-        expected_features = set()
-        if import_export_feature:
-            expected_features.add("import_annotations")
-            expected_features.add("export_annotations")
-
-        enable_client_feature = context.js_config.enable_client_feature
-        actual_features = set(
-            call.args[0] for call in enable_client_feature.call_args_list
-        )
-
-        assert actual_features == expected_features
-
     @pytest.fixture
     def assignment(self):
         return factories.Assignment(is_gradable=False)
