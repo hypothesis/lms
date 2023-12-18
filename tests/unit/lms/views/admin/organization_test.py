@@ -228,6 +228,13 @@ class TestAdminOrganizationViews:
         organization_service.usage_report.assert_not_called()
 
     @pytest.mark.usefixtures("with_valid_params_for_usage")
+    def test_usage_crashes_if_service_raises(self, views, organization_service):
+        organization_service.usage_report.side_effect = ValueError
+
+        with pytest.raises(HTTPBadRequest):
+            views.usage()
+
+    @pytest.mark.usefixtures("with_valid_params_for_usage")
     def test_usage(self, organization_service, views):
         since = datetime(2023, 1, 1)
         until = datetime(2023, 12, 31)

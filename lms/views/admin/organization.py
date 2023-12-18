@@ -197,12 +197,14 @@ class AdminOrganizationViews:
         if since < datetime(2023, 1, 1):
             raise HTTPBadRequest("Usage reports can only be generated since 2023")
 
-        return {
-            "org": org,
-            "since": since,
-            "until": until,
-            "report": self.organization_service.usage_report(org, since, until),
-        }
+        try:
+            report = self.organization_service.usage_report(org, since, until)
+        except ValueError as exc:
+            raise HTTPBadRequest(
+                f"There was a problem generating the report: {exc}."
+            ) from exc
+
+        return {"org": org, "since": since, "until": until, "report": report}
 
     def _get_org_or_404(self, id_) -> Organization:
         if org := self.organization_service.get_by_id(id_):
