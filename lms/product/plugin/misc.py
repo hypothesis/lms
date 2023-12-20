@@ -51,12 +51,7 @@ class MiscPlugin:
         """Get the value of the `aud` claim used in LTI advantage requests."""
         return lti_registration.token_url
 
-    def get_document_url(
-        self,
-        request,  # pylint:disable=unused-argument
-        assignment,
-        historical_assignment,
-    ):
+    def get_document_url(self, request, assignment, historical_assignment):
         """Get a document URL from an assignment launch."""
 
         if assignment:
@@ -65,7 +60,8 @@ class MiscPlugin:
         if historical_assignment:
             return historical_assignment.document_url
 
-        return None
+        # Use the DL url as a fallback.
+        return self.get_deep_linked_assignment_configuration(request).get("url")
 
     def get_deeplinking_launch_url(self, request, _assignment_configuration: dict):
         """
