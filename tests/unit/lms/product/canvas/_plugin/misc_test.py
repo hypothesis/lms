@@ -8,6 +8,9 @@ from tests import factories
 
 
 class TestCanvasMiscPlugin:
+    def test_deep_linking_prompt_for_title(self, plugin):
+        assert not plugin.deep_linking_prompt_for_title
+
     @pytest.mark.parametrize("is_gradable", [True, False])
     @pytest.mark.parametrize("is_learner", [True, False])
     @pytest.mark.parametrize("grading_id", [None, sentinel.grading_id])
