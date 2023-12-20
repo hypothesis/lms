@@ -8,6 +8,8 @@ from lms.services.vitalsource import VSBookLocation
 
 
 class CanvasMiscPlugin(MiscPlugin):
+    deep_linking_prompt_for_title = False
+
     def post_launch_assignment_hook(self, request, js_config, assignment):
         """
         Configure grading during a launch.

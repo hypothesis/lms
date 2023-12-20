@@ -23,7 +23,7 @@ class MiscPlugin:
     """
 
     # Whether or not to prompt for an assignment title while deep linking.
-    deep_linking_prompt_for_title = False
+    deep_linking_prompt_for_title = True
 
     def post_launch_assignment_hook(
         self, request, js_config, assignment
