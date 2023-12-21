@@ -6,7 +6,8 @@ CREATE TYPE report.event_type AS ENUM (
     'audit',
     'edited_assignment',
     'submission',
-    'grade'
+    'grade',
+    'error_code'
 );
 
 DROP MATERIALIZED VIEW IF EXISTS report.events CASCADE;
