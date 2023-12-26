@@ -1,3 +1,4 @@
+import logging
 from functools import lru_cache
 from typing import List, Optional
 
@@ -11,6 +12,8 @@ from lms.services.http import HTTPService
 from lms.services.vitalsource.exceptions import VitalSourceError
 from lms.services.vitalsource.model import VSBookLocation
 from lms.validation._base import RequestsResponseSchema
+
+LOG = logging.getLogger(__name__)
 
 
 class BookNotFound(SerializableError):
@@ -141,6 +144,9 @@ class VitalSourceClient:
         if credentials := result["credentials"].get("credential"):
             return self._to_camel_case(self._pick_first(credentials))
 
+        LOG.exception(
+            "VitalSource user not found: %s", result["credentials"].get("error")
+        )
         raise VitalSourceError(error_code="vitalsource_user_not_found")
 
     @classmethod
