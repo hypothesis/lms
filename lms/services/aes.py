@@ -1,5 +1,3 @@
-from typing import Union
-
 from Cryptodome import Random
 from Cryptodome.Cipher import AES
 
@@ -22,7 +20,7 @@ class AESService:
         cipher = AES.new(self.secret, AES.MODE_CFB, aes_iv)
         return cipher.decrypt(encrypted)
 
-    def encrypt(self, aes_iv, plain_text: Union[str, bytes]):
+    def encrypt(self, aes_iv, plain_text: str | bytes):
         if isinstance(plain_text, str):
             plain_text = plain_text.encode("utf-8")
 

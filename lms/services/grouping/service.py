@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional
 
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
@@ -114,7 +114,7 @@ class GroupingService:
         course: Course,
         user_id: str,
         type_: Grouping.Type,
-        group_set_id: Optional[Union[str, int]] = None,
+        group_set_id: Optional[str | int] = None,
     ):
         """
         Get the groupings a user belongs to in a given course.
