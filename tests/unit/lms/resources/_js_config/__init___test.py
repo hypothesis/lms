@@ -4,7 +4,7 @@ import pytest
 from h_matchers import Any
 
 from lms.models import Grouping, LTIParams
-from lms.product import Product
+from lms.product.product import Product, Routes
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
 from lms.services import HAPIError
@@ -74,7 +74,7 @@ class TestFilePickerMode:
         }
 
     def test_product_with_list_group_sets(self, js_config, pyramid_request):
-        pyramid_request.product.route.oauth2_authorize = "welcome"
+        pyramid_request.product.route = Routes(oauth2_authorize="welcome")
         pyramid_request.product.settings.groups_enabled = True
 
         js_config.enable_file_picker_mode(sentinel.form_action, sentinel.form_fields)
@@ -691,7 +691,7 @@ def pyramid_request(pyramid_request):
         }
     )
     pyramid_request.lti_params = LTIParams.from_request(pyramid_request)
-    pyramid_request.product.route.oauth2_authorize = "welcome"
+    pyramid_request.product.route = Routes(oauth2_authorize="welcome")
     return pyramid_request
 
 
