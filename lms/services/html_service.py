@@ -2,7 +2,7 @@ import re
 from html.parser import HTMLParser
 
 
-class WhiteSpaceHTMLParser(HTMLParser):  # pylint:disable=abstract-method
+class WhiteSpaceHTMLParser(HTMLParser):
     def __init__(self):
         super().__init__()
         self._chunks = []
