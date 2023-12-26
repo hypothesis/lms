@@ -5,7 +5,7 @@ from lms.product.plugin.grouping import GroupingPlugin
 from lms.product.plugin.misc import MiscPlugin
 
 
-@dataclass
+@dataclass(frozen=True)
 class PluginConfig:
     """A collection of plugin class definitions."""
 

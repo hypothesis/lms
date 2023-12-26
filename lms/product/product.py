@@ -7,7 +7,7 @@ from lms.product.family import Family  # pylint:disable=unused-import
 from lms.product.plugin import PluginConfig, Plugins
 
 
-@dataclass
+@dataclass(frozen=True)
 class Routes:
     """A collection of Pyramid route names for various functions."""
 

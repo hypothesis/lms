@@ -4,6 +4,7 @@ import pytest
 import requests
 from pyramid.httpexceptions import HTTPBadRequest
 
+from lms.product.product import Routes
 from lms.services import ExternalRequestError, OAuth2TokenError, SerializableError
 from lms.validation import ValidationError
 from lms.views.api.exceptions import APIExceptionViews, ErrorBody, strip_queryparams
@@ -219,7 +220,7 @@ class TestErrorBody:
     def test_json_includes_refresh_info_if_the_exception_is_refreshable(
         self, pyramid_request
     ):
-        pyramid_request.product.route.oauth2_refresh = "welcome"
+        pyramid_request.product.route = Routes(oauth2_refresh="welcome")
 
         body = ErrorBody().__json__(pyramid_request)
 
@@ -230,7 +231,7 @@ class TestErrorBody:
 
     @pytest.mark.usefixtures("with_refreshable_exception")
     def test_json_raises_if_no_refresh_route(self, pyramid_request):
-        pyramid_request.product.route.oauth2_refresh = None
+        pyramid_request.product.route = Routes()
 
         with pytest.raises(ValueError):
             ErrorBody().__json__(pyramid_request)
