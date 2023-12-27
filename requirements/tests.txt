@@ -319,8 +319,10 @@ pytest-cov==4.1.0
     # via -r requirements/tests.in
 pytest-factoryboy==2.5.1
     # via -r requirements/tests.in
-pytest-xdist[psutil]==3.3.1
-    # via -r requirements/tests.in
+pytest-xdist[psutil]==3.5.0
+    # via
+    #   -r requirements/tests.in
+    #   pytest-xdist
 python-dateutil==2.8.2
     # via
     #   -r requirements/prod.txt
