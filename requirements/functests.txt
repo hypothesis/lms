@@ -6,17 +6,17 @@
 #
 aiohttp==3.9.1
     # via -r requirements/prod.txt
-aiosignal==1.2.0
+aiosignal==1.3.1
     # via
     #   -r requirements/prod.txt
     #   aiohttp
-alembic==1.12.0
+alembic==1.13.1
     # via -r requirements/prod.txt
-amqp==5.1.1
+amqp==5.2.0
     # via
     #   -r requirements/prod.txt
     #   kombu
-async-timeout==4.0.1
+async-timeout==4.0.3
     # via
     #   -r requirements/prod.txt
     #   aiohttp
@@ -32,21 +32,21 @@ backports-zoneinfo[tzdata]==0.2.1
     #   backports-zoneinfo
     #   celery
     #   kombu
-beautifulsoup4==4.9.3
+beautifulsoup4==4.12.2
     # via webtest
 billiard==4.2.0
     # via
     #   -r requirements/prod.txt
     #   celery
-build==0.8.0
+build==1.0.3
     # via pip-tools
-cachetools==4.2.2
+cachetools==5.3.2
     # via
     #   -r requirements/prod.txt
     #   google-auth
 celery==5.3.6
     # via -r requirements/prod.txt
-certifi==2023.7.22
+certifi==2023.11.17
     # via
     #   -r requirements/prod.txt
     #   mailchimp-transactional
@@ -56,11 +56,11 @@ cffi==1.16.0
     # via
     #   -r requirements/prod.txt
     #   cryptography
-charset-normalizer==2.0.1
+charset-normalizer==3.3.2
     # via
     #   -r requirements/prod.txt
     #   requests
-click==8.1.3
+click==8.1.7
     # via
     #   -r requirements/prod.txt
     #   celery
@@ -76,49 +76,49 @@ click-plugins==1.1.1
     # via
     #   -r requirements/prod.txt
     #   celery
-click-repl==0.2.0
+click-repl==0.3.0
     # via
     #   -r requirements/prod.txt
     #   celery
-cryptography==41.0.6
+cryptography==41.0.7
     # via
     #   -r requirements/prod.txt
     #   pyjwt
     #   python-jose
 data-tasks==0.0.3
     # via -r requirements/prod.txt
-ecdsa==0.17.0
+ecdsa==0.18.0
     # via
     #   -r requirements/prod.txt
     #   python-jose
-exceptiongroup==1.0.0rc9
+exceptiongroup==1.2.0
     # via pytest
 factory-boy==3.3.0
     # via
     #   -r requirements/functests.in
     #   pytest-factoryboy
-faker==8.1.2
+faker==21.0.0
     # via factory-boy
 filelock==3.13.1
     # via -r requirements/functests.in
-frozenlist==1.2.0
+frozenlist==1.4.1
     # via
     #   -r requirements/prod.txt
     #   aiohttp
     #   aiosignal
-google-auth==1.30.0
+google-auth==2.25.2
     # via
     #   -r requirements/prod.txt
     #   google-auth-oauthlib
-google-auth-oauthlib==0.4.4
+google-auth-oauthlib==1.2.0
     # via
     #   -r requirements/prod.txt
     #   pyramid-googleauth
-greenlet==1.0.0
+greenlet==3.0.3
     # via
     #   -r requirements/prod.txt
     #   sqlalchemy
-gunicorn==20.1.0
+gunicorn==21.2.0
     # via -r requirements/prod.txt
 h-api==1.1.0
     # via -r requirements/prod.txt
@@ -132,7 +132,7 @@ h-vialib==1.2.1
     # via -r requirements/prod.txt
 httpretty==1.1.4
     # via -r requirements/functests.in
-hupper==1.10.2
+hupper==1.12
     # via
     #   -r requirements/prod.txt
     #   pyramid
@@ -141,10 +141,11 @@ idna==3.6
     #   -r requirements/prod.txt
     #   requests
     #   yarl
-importlib-metadata==4.8.1
+importlib-metadata==7.0.1
     # via
     #   -r requirements/prod.txt
     #   alembic
+    #   build
     #   data-tasks
     #   h-api
     #   h-assets
@@ -160,18 +161,18 @@ importlib-resources==6.1.1
     #   jsonschema-specifications
 inflection==0.5.1
     # via pytest-factoryboy
-iniconfig==1.1.1
+iniconfig==2.0.0
     # via pytest
-jinja2==2.11.3
+jinja2==3.1.2
     # via
     #   -r requirements/prod.txt
     #   data-tasks
     #   pyramid-jinja2
-jsonschema==4.19.1
+jsonschema==4.20.0
     # via
     #   -r requirements/prod.txt
     #   h-api
-jsonschema-specifications==2023.7.1
+jsonschema-specifications==2023.12.1
     # via
     #   -r requirements/prod.txt
     #   jsonschema
@@ -181,11 +182,11 @@ kombu==5.3.4
     #   celery
 mailchimp-transactional==1.0.50
     # via -r requirements/prod.txt
-mako==1.2.2
+mako==1.3.0
     # via
     #   -r requirements/prod.txt
     #   alembic
-markupsafe==1.1.1
+markupsafe==2.1.3
     # via
     #   -r requirements/prod.txt
     #   jinja2
@@ -195,7 +196,7 @@ marshmallow==3.20.1
     # via
     #   -r requirements/prod.txt
     #   webargs
-multidict==5.2.0
+multidict==6.0.4
     # via
     #   -r requirements/prod.txt
     #   aiohttp
@@ -206,20 +207,19 @@ oauthlib==3.2.2
     # via
     #   -r requirements/prod.txt
     #   requests-oauthlib
-packaging==21.3
+packaging==23.2
     # via
     #   -r requirements/prod.txt
     #   build
+    #   gunicorn
     #   marshmallow
     #   pytest
     #   webargs
     #   zope-sqlalchemy
-pastedeploy==2.1.0
+pastedeploy==3.1.0
     # via
     #   -r requirements/prod.txt
     #   plaster-pastedeploy
-pep517==0.12.0
-    # via build
 pip-sync-faster==0.0.3
     # via -r requirements/functests.in
 pip-tools==7.3.0
@@ -230,18 +230,18 @@ pkgutil-resolve-name==1.3.10
     # via
     #   -r requirements/prod.txt
     #   jsonschema
-plaster==1.0
+plaster==1.1.2
     # via
     #   -r requirements/prod.txt
     #   plaster-pastedeploy
     #   pyramid
-plaster-pastedeploy==0.7
+plaster-pastedeploy==1.0.1
     # via
     #   -r requirements/prod.txt
     #   pyramid
-pluggy==0.13.1
+pluggy==1.3.0
     # via pytest
-prompt-toolkit==3.0.29
+prompt-toolkit==3.0.43
     # via
     #   -r requirements/prod.txt
     #   click-repl
@@ -249,13 +249,13 @@ psycopg2==2.9.9
     # via
     #   -r requirements/prod.txt
     #   data-tasks
-pyasn1==0.4.8
+pyasn1==0.5.1
     # via
     #   -r requirements/prod.txt
     #   pyasn1-modules
     #   python-jose
     #   rsa
-pyasn1-modules==0.2.8
+pyasn1-modules==0.3.0
     # via
     #   -r requirements/prod.txt
     #   google-auth
@@ -270,10 +270,8 @@ pyjwt[crypto]==2.8.0
     #   -r requirements/prod.txt
     #   pyjwt
     #   pyramid-googleauth
-pyparsing==3.0.6
-    # via
-    #   -r requirements/prod.txt
-    #   packaging
+pyproject-hooks==1.0.0
+    # via build
 pyramid==2.0.2
     # via
     #   -r requirements/prod.txt
@@ -301,7 +299,7 @@ pytest==7.4.4
     # via
     #   -r requirements/functests.in
     #   pytest-factoryboy
-pytest-factoryboy==2.5.1
+pytest-factoryboy==2.6.0
     # via -r requirements/functests.in
 python-dateutil==2.8.2
     # via
@@ -314,7 +312,7 @@ python-jose[crypto,cryptography]==3.3.0
     #   -r requirements/prod.txt
     #   h-vialib
     #   python-jose
-referencing==0.30.2
+referencing==0.32.0
     # via
     #   -r requirements/prod.txt
     #   h-api
@@ -329,29 +327,27 @@ requests-oauthlib==1.3.1
     # via
     #   -r requirements/prod.txt
     #   google-auth-oauthlib
-rpds-py==0.10.3
+rpds-py==0.15.2
     # via
     #   -r requirements/prod.txt
     #   jsonschema
     #   referencing
-rsa==4.7.2
+rsa==4.9
     # via
     #   -r requirements/prod.txt
     #   google-auth
     #   python-jose
-sentry-sdk==1.14.0
+sentry-sdk==1.39.1
     # via
     #   -r requirements/prod.txt
     #   h-pyramid-sentry
 six==1.16.0
     # via
     #   -r requirements/prod.txt
-    #   click-repl
     #   ecdsa
-    #   google-auth
     #   mailchimp-transactional
     #   python-dateutil
-soupsieve==2.2.1
+soupsieve==2.5
     # via beautifulsoup4
 sqlalchemy==2.0.24
     # via
@@ -367,15 +363,13 @@ tabulate==0.9.0
     # via
     #   -r requirements/prod.txt
     #   data-tasks
-text-unidecode==1.3
-    # via faker
-tomli==2.0.0
+tomli==2.0.1
     # via
     #   build
-    #   pep517
     #   pip-tools
+    #   pyproject-hooks
     #   pytest
-transaction==2.4.0
+transaction==4.0
     # via
     #   -r requirements/prod.txt
     #   pyramid-tm
@@ -388,7 +382,7 @@ typing-extensions==4.9.0
     # via
     #   -r requirements/prod.txt
     #   alembic
-    #   async-timeout
+    #   faker
     #   kombu
     #   pytest-factoryboy
     #   sqlalchemy
@@ -397,13 +391,13 @@ tzdata==2023.3
     #   -r requirements/prod.txt
     #   backports-zoneinfo
     #   celery
-urllib3==1.26.18
+urllib3==2.1.0
     # via
     #   -r requirements/prod.txt
     #   mailchimp-transactional
     #   requests
     #   sentry-sdk
-venusian==3.0.0
+venusian==3.1.0
     # via
     #   -r requirements/prod.txt
     #   pyramid
@@ -415,13 +409,13 @@ vine==5.1.0
     #   kombu
 waitress==2.1.2
     # via webtest
-wcwidth==0.2.5
+wcwidth==0.2.12
     # via
     #   -r requirements/prod.txt
     #   prompt-toolkit
 webargs==8.3.0
     # via -r requirements/prod.txt
-webob==1.8.6
+webob==1.8.7
     # via
     #   -r requirements/prod.txt
     #   h-vialib
@@ -429,29 +423,29 @@ webob==1.8.6
     #   webtest
 webtest==3.0.0
     # via -r requirements/functests.in
-wheel==0.37.1
+wheel==0.42.0
     # via pip-tools
-wired==0.2.2
+wired==0.3
     # via
     #   -r requirements/prod.txt
     #   pyramid-services
 xmltodict==0.13.0
     # via -r requirements/prod.txt
-yarl==1.7.2
+yarl==1.9.4
     # via
     #   -r requirements/prod.txt
     #   aiohttp
-zipp==3.4.1
+zipp==3.17.0
     # via
     #   -r requirements/prod.txt
     #   importlib-metadata
     #   importlib-resources
-zope-deprecation==4.3.0
+zope-deprecation==5.0
     # via
     #   -r requirements/prod.txt
     #   pyramid
     #   pyramid-jinja2
-zope-interface==5.1.0
+zope-interface==6.1
     # via
     #   -r requirements/prod.txt
     #   pyramid
@@ -464,15 +458,12 @@ zope-sqlalchemy==3.1
     # via -r requirements/prod.txt
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==23.3
+pip==23.3.2
     # via pip-tools
-setuptools==67.4.0
+setuptools==69.0.3
     # via
     #   -r requirements/prod.txt
-    #   google-auth
-    #   gunicorn
     #   pip-tools
-    #   plaster
     #   pyramid
     #   zope-deprecation
     #   zope-interface
