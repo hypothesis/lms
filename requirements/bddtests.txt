@@ -36,7 +36,7 @@ beautifulsoup4==4.9.3
     # via webtest
 behave==1.2.6
     # via -r requirements/bddtests.in
-billiard==4.1.0
+billiard==4.2.0
     # via
     #   -r requirements/prod.txt
     #   celery
@@ -46,7 +46,7 @@ cachetools==4.2.2
     # via
     #   -r requirements/prod.txt
     #   google-auth
-celery==5.3.4
+celery==5.3.6
     # via -r requirements/prod.txt
 certifi==2023.7.22
     # via
@@ -173,7 +173,7 @@ jsonschema-specifications==2023.7.1
     # via
     #   -r requirements/prod.txt
     #   jsonschema
-kombu==5.3.2
+kombu==5.3.4
     # via
     #   -r requirements/prod.txt
     #   celery
