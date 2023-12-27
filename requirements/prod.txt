@@ -23,11 +23,11 @@ backports-zoneinfo[tzdata]==0.2.1
     # via
     #   celery
     #   kombu
-billiard==4.1.0
+billiard==4.2.0
     # via celery
 cachetools==4.2.2
     # via google-auth
-celery==5.3.4
+celery==5.3.6
     # via -r requirements/prod.in
 certifi==2023.7.22
     # via
@@ -107,7 +107,7 @@ jsonschema==4.19.1
     # via h-api
 jsonschema-specifications==2023.7.1
     # via jsonschema
-kombu==5.3.2
+kombu==5.3.4
     # via celery
 mailchimp-transactional==1.0.50
     # via -r requirements/prod.in
@@ -269,7 +269,7 @@ urllib3==1.26.18
     #   sentry-sdk
 venusian==3.0.0
     # via pyramid
-vine==5.0.0
+vine==5.1.0
     # via
     #   amqp
     #   celery

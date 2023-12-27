@@ -60,7 +60,7 @@ beautifulsoup4==4.9.3
     #   webtest
 behave==1.2.6
     # via -r requirements/bddtests.txt
-billiard==4.1.0
+billiard==4.2.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -78,7 +78,7 @@ cachetools==4.2.2
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   google-auth
-celery==5.3.4
+celery==5.3.6
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -311,7 +311,7 @@ jsonschema-specifications==2023.7.1
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   jsonschema
-kombu==5.3.2
+kombu==5.3.4
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -717,7 +717,7 @@ venusian==3.0.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid
-vine==5.0.0
+vine==5.1.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
