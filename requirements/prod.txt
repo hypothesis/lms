@@ -80,7 +80,7 @@ h-vialib==1.2.1
     # via -r requirements/prod.in
 hupper==1.10.2
     # via pyramid
-idna==2.10
+idna==3.6
     # via
     #   requests
     #   yarl

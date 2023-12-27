@@ -136,7 +136,7 @@ hupper==1.10.2
     # via
     #   -r requirements/prod.txt
     #   pyramid
-idna==2.10
+idna==3.6
     # via
     #   -r requirements/prod.txt
     #   requests
