@@ -9,7 +9,7 @@ filterwarnings = [
     "ignore:^Deprecated call to .pkg_resources\\.declare_namespace\\('.*'\\).\\.:DeprecationWarning:pkg_resources",
     # https://github.com/webpy/webpy/issues/732
     "ignore:^\\'cgi\\' is deprecated and slated for removal in Python 3\\.13:DeprecationWarning:webob",
-
+    "ignore:_SixMetaPathImporter:ImportWarning"
 ]
 
 [tool.pydocstyle]
