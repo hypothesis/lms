@@ -32,7 +32,7 @@ LOG = logging.getLogger(__name__)
     schema=BasicLTILaunchSchema,
 )
 class BasicLaunchViews:
-    def __init__(self, context, request):
+    def __init__(self, context, request) -> None:
         self.context = context
         self.request = request
 

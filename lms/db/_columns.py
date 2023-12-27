@@ -1,7 +1,7 @@
 import sqlalchemy as sa
 
 
-def varchar_enum(enum, max_length=64, nullable=False, unique=False):
+def varchar_enum(enum, max_length=64, nullable=False, unique=False) -> sa.Column:
     """Return a SA column type to store the python enum.Enum as a varchar in a table."""
     return sa.Column(
         sa.Enum(

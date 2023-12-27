@@ -141,3 +141,37 @@ score = "no"
 [tool.hdev]
 project_name = "lms"
 project_type = "application"
+
+[tool.mypy]
+python_version = 3.11
+
+disable_error_code = [
+    "arg-type",
+    "assignment",
+    "attr-defined",
+    "has-type",
+    "import-untyped",
+    "index",
+    "list-item",
+    "misc",
+    "no-redef",
+    "no-untyped-call",
+    "no-untyped-def",
+    "override",
+    "return-value",
+    "type-arg",
+    "union-attr",
+    "valid-type",
+]
+
+plugins = [
+    "sqlalchemy.ext.mypy.plugin",
+]
+
+[[tool.mypy.overrides]]
+module="tests.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module="lms.migrations.*"
+ignore_errors = true

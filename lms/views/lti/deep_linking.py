@@ -108,7 +108,7 @@ class DeepLinkingFieldsViews:
     to get all the necessary fields to configure the assignment submitting them in a form to the LMS.
     """
 
-    def __init__(self, request):
+    def __init__(self, request) -> None:
         self.request = request
         self.misc_plugin: MiscPlugin = request.product.plugin.misc
 

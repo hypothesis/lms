@@ -6,7 +6,7 @@ from lms.services.application_instance import ApplicationInstanceService
 
 
 class BaseApplicationInstanceView:
-    def __init__(self, request):
+    def __init__(self, request) -> None:
         self.request = request
         self.application_instance_service: ApplicationInstanceService = (
             request.find_service(name="application_instance")

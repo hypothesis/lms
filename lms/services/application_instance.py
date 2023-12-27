@@ -318,7 +318,7 @@ class ApplicationInstanceService:
             "Hypothesis" + secrets.token_hex(16) if not deployment_id else None
         )
 
-        application_instance = ApplicationInstance(
+        application_instance = ApplicationInstance(  # type: ignore
             name=name,
             consumer_key=consumer_key,
             shared_secret=secrets.token_hex(32),

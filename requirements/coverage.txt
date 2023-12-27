@@ -9,9 +9,7 @@ build==1.0.3
 click==8.1.7
     # via pip-tools
 coverage[toml]==7.4.1
-    # via
-    #   -r requirements/coverage.in
-    #   coverage
+    # via -r requirements/coverage.in
 importlib-metadata==7.0.1
     # via pip-sync-faster
 packaging==23.2

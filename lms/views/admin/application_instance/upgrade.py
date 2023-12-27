@@ -20,7 +20,7 @@ class UpgradeApplicationInstanceSchema(PyramidRequestSchema):
 
 @view_defaults(permission=Permissions.ADMIN, route_name="admin.instance.upgrade")
 class UpgradeApplicationInstanceViews(BaseApplicationInstanceView):
-    def __init__(self, request):
+    def __init__(self, request) -> None:
         super().__init__(request)
 
         self.lti_registration_service: LTIRegistrationService = request.find_service(

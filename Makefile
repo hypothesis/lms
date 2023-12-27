@@ -48,6 +48,11 @@ $(call help,make lint,"lint the code and print any warnings")
 lint: python
 	@pyenv exec tox -qe lint
 
+.PHONY: typecheck
+$(call help,make typecheck,"type check the code and print any warnings")
+typecheck: python
+	@pyenv exec tox -qe typecheck
+
 .PHONY: format
 $(call help,make format,"format the code")
 format: python
