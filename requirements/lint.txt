@@ -801,7 +801,7 @@ zope-interface==5.1.0
     #   transaction
     #   wired
     #   zope-sqlalchemy
-zope-sqlalchemy==3.0
+zope-sqlalchemy==3.1
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
