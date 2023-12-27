@@ -42,7 +42,7 @@ billiard==4.2.0
     #   celery
 build==0.8.0
     # via pip-tools
-cachetools==4.2.2
+cachetools==4.2.4
     # via
     #   -r requirements/prod.txt
     #   google-auth

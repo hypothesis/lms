@@ -72,7 +72,7 @@ build==0.8.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pip-tools
-cachetools==4.2.2
+cachetools==4.2.4
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
