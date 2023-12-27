@@ -485,7 +485,7 @@ pyjwt[crypto]==2.8.0
     #   -r requirements/tests.txt
     #   pyjwt
     #   pyramid-googleauth
-pylint==3.0.2
+pylint==3.0.3
     # via -r requirements/lint.in
 pyparsing==3.0.6
     # via
