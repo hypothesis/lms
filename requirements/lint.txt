@@ -251,7 +251,7 @@ hupper==1.10.2
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid
-idna==2.10
+idna==3.6
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
