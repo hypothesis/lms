@@ -536,7 +536,7 @@ pyramid-tm==2.5
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-pytest==7.4.0
+pytest==7.4.3
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
