@@ -227,18 +227,20 @@ class TestApplicationInstanceService:
     @pytest.mark.parametrize(
         "query,expected_names",
         (
-            ("A@example.com", ["a"]),
-            ("other.example.com", ["b"]),
-            ("example.com", ["a", "c"]),
+            ("marcos@one.example.com", ["marcos"]),
+            ("other.example.com", ["sean"]),
+            ("one.example.com", ["marcos", "ian"]),
         ),
     )
     def test_search_by_email(self, service, query, expected_names):
-        factories.ApplicationInstance.create(name="a", requesters_email="A@example.com")
         factories.ApplicationInstance.create(
-            name="b", requesters_email="B@other.example.com"
+            name="marcos", requesters_email="MARCOS@one.example.com"
         )
         factories.ApplicationInstance.create(
-            name="c", tool_consumer_instance_contact_email="C@example.com"
+            name="sean", requesters_email="SEAN@other.example.com"
+        )
+        factories.ApplicationInstance.create(
+            name="ian", tool_consumer_instance_contact_email="IAN@one.example.com"
         )
 
         instances = service.search(email=query)
