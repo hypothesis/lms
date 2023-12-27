@@ -160,7 +160,7 @@ importlib-resources==6.1.1
     #   jsonschema-specifications
 iniconfig==1.1.1
     # via pytest
-jinja2==2.11.3
+jinja2==3.1.2
     # via
     #   -r requirements/prod.txt
     #   data-tasks
@@ -183,7 +183,7 @@ mako==1.2.2
     # via
     #   -r requirements/prod.txt
     #   alembic
-markupsafe==1.1.1
+markupsafe==2.1.3
     # via
     #   -r requirements/prod.txt
     #   jinja2
