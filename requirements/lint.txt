@@ -684,7 +684,7 @@ translationstring==1.4
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid
-typing-extensions==4.7.1
+typing-extensions==4.9.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt

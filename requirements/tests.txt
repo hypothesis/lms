@@ -404,7 +404,7 @@ translationstring==1.4
     # via
     #   -r requirements/prod.txt
     #   pyramid
-typing-extensions==4.7.1
+typing-extensions==4.9.0
     # via
     #   -r requirements/prod.txt
     #   alembic
