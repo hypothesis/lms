@@ -611,7 +611,7 @@ sentry-sdk==1.14.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   h-pyramid-sentry
-six==1.15.0
+six==1.16.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
