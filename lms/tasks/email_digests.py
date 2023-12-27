@@ -147,7 +147,7 @@ def send_instructor_email_digest(
     created_before = datetime.fromisoformat(created_before)
 
     if created_after is None:
-        created_after = created_before - timedelta(days=7)
+        created_after = created_before - timedelta(days=7)  # type: ignore
     else:
         created_after = datetime.fromisoformat(created_after)
 
@@ -160,7 +160,7 @@ def send_instructor_email_digest(
                     datetime.fromisoformat(task_done_data["created_before"]).replace(
                         tzinfo=timezone.utc
                     ),
-                    created_after.replace(tzinfo=timezone.utc),
+                    created_after.replace(tzinfo=timezone.utc),  # type:ignore
                 )
 
             digest_service = request.find_service(DigestService)

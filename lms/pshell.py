@@ -9,7 +9,7 @@ from lms import models, services, tasks
 
 def setup(env):
     # pylint:disable=import-outside-toplevel
-    from h_testkit import set_factoryboy_sqlalchemy_session
+    from h_testkit import set_factoryboy_sqlalchemy_session  # type: ignore
 
     sys.path = ["."] + sys.path
 

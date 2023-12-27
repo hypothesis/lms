@@ -6,7 +6,7 @@ from lms.services import JSTORService
 
 @view_defaults(renderer="json", permission=Permissions.API)
 class JSTORAPIViews:
-    def __init__(self, request):
+    def __init__(self, request) -> None:
         self.request = request
         self.jstor_service: JSTORService = request.find_service(iface=JSTORService)
 

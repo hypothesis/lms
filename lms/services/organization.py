@@ -270,8 +270,8 @@ class OrganizationService:
         parent = aliased(Grouping)
         query = (
             select(
-                func.coalesce(User.display_name, "<STUDENT>").label("name"),
-                func.coalesce(User.email, "<STUDENT>").label("email"),
+                func.coalesce(User.display_name, "<STUDENT>").label("name"),  # type: ignore
+                func.coalesce(User.email, "<STUDENT>").label("email"),  # type:ignore
                 User.h_userid.label("h_userid"),
                 Grouping.lms_name.label("course_name"),
                 func.date_trunc("day", Grouping.created)

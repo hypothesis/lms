@@ -34,7 +34,7 @@ class NewOrganizationSchema(PyramidRequestSchema):
 
 @view_defaults(request_method="GET", permission=Permissions.ADMIN)
 class AdminOrganizationViews:
-    def __init__(self, request):
+    def __init__(self, request) -> None:
         self.request = request
         self.organization_service: OrganizationService = request.find_service(
             OrganizationService

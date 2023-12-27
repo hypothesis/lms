@@ -27,7 +27,7 @@ class _DocumentURLSchema(PyramidRequestSchema):
 
 @view_defaults(renderer="json", permission=Permissions.API)
 class VitalSourceAPIViews:
-    def __init__(self, request):
+    def __init__(self, request) -> None:
         self.request = request
         self.svc: VitalSourceService = request.find_service(VitalSourceService)
 

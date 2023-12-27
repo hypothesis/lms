@@ -20,7 +20,7 @@ LOG = logging.getLogger(__name__)
 class GradingViews:
     """Views for proxy APIs interacting with LTI grading APIs."""
 
-    def __init__(self, request):
+    def __init__(self, request) -> None:
         self.request = request
         self.parsed_params = self.request.parsed_params
         self.lti_grading_service: LTIGradingService = self.request.find_service(

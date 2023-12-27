@@ -34,7 +34,7 @@ class CreateAppInstanceSchemaV13(CreateAppInstanceSchema):
 
 @view_defaults(route_name="admin.instance.create", permission=Permissions.ADMIN)
 class CreateApplicationInstanceViews(BaseApplicationInstanceView):
-    def __init__(self, request):
+    def __init__(self, request) -> None:
         super().__init__(request)
 
         self.lti_registration_service: LTIRegistrationService = request.find_service(

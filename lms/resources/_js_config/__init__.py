@@ -41,7 +41,7 @@ class JSConfig:
     def _application_instance(self):
         return self._lti_user.application_instance
 
-    def add_document_url(self, document_url):
+    def add_document_url(self, document_url) -> None:
         """
         Set the document to the document at the given document_url.
 

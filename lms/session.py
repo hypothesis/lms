@@ -2,8 +2,6 @@
 
 from pyramid.session import JSONSerializer, SignedCookieSessionFactory
 
-__all__ = []
-
 
 def includeme(config):
     """Set up the app's Pyramid session."""

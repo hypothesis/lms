@@ -6,7 +6,7 @@ from lms.services import YouTubeService
 
 @view_defaults(renderer="json", permission=Permissions.API)
 class YouTubeAPIViews:
-    def __init__(self, request):
+    def __init__(self, request) -> None:
         self.request = request
         self.youtube_service: YouTubeService = request.find_service(
             iface=YouTubeService

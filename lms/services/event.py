@@ -31,7 +31,7 @@ class EventService:
         self._db.add(db_event)
 
         if event.user_id:
-            for role_id in event.role_ids or [None]:
+            for role_id in event.role_ids or [None]:  # type: ignore
                 self._db.add(
                     EventUser(
                         event=db_event, user_id=event.user_id, lti_role_id=role_id
