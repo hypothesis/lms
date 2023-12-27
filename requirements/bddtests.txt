@@ -408,7 +408,7 @@ venusian==3.0.0
     # via
     #   -r requirements/prod.txt
     #   pyramid
-vine==5.0.0
+vine==5.1.0
     # via
     #   -r requirements/prod.txt
     #   amqp
