@@ -463,7 +463,7 @@ pyasn1-modules==0.2.8
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   google-auth
-pycodestyle==2.11.0
+pycodestyle==2.11.1
     # via -r requirements/lint.in
 pycparser==2.21
     # via
