@@ -1,4 +1,4 @@
-from unittest.mock import sentinel
+from unittest.mock import patch, sentinel
 
 import pytest
 
@@ -51,6 +51,13 @@ class TestMiscPlugin:
         result = plugin.get_document_url(pyramid_request, None, historical_assignment)
 
         assert result == sentinel.document_url
+
+    def test_get_document_deep_linked_fallback(
+        self, plugin, get_deep_linked_assignment_configuration
+    ):
+        get_deep_linked_assignment_configuration.return_value = {"url": sentinel.url}
+
+        assert plugin.get_document_url(sentinel.request, None, None) == sentinel.url
 
     def test_get_document_url_with_no_document(self, plugin, pyramid_request):
         assert not plugin.get_document_url(pyramid_request, None, None)
@@ -111,6 +118,13 @@ class TestMiscPlugin:
             return pyramid_request
 
         return _with_custom
+
+    @pytest.fixture
+    def get_deep_linked_assignment_configuration(self, plugin):
+        with patch.object(
+            plugin, "get_deep_linked_assignment_configuration", autospec=True
+        ) as patched:
+            yield patched
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
