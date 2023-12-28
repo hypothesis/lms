@@ -1,3 +1,5 @@
+from typing import Optional
+
 from lms.models import LTIParams, LTIRegistration
 from lms.services.html_service import strip_html_tags
 
@@ -52,11 +54,8 @@ class MiscPlugin:
         return lti_registration.token_url
 
     def get_document_url(
-        self,
-        request,  # pylint:disable=unused-argument
-        assignment,
-        historical_assignment,
-    ):
+        self, request, assignment, historical_assignment
+    ) -> Optional[str]:
         """Get a document URL from an assignment launch."""
 
         if assignment:
@@ -65,7 +64,8 @@ class MiscPlugin:
         if historical_assignment:
             return historical_assignment.document_url
 
-        return None
+        # For LMSes that support both DL and non-DL assignments fallback to the DL parameters
+        return self.get_deep_linked_assignment_configuration(request).get("url")
 
     def get_deeplinking_launch_url(self, request, _assignment_configuration: dict):
         """
@@ -79,7 +79,7 @@ class MiscPlugin:
         # The assignment configuration we'll be retrieved by other methods (eg, custom parameters) so that parameter is not used here.
         return request.route_url("lti_launches")
 
-    def get_deep_linked_assignment_configuration(self, request):
+    def get_deep_linked_assignment_configuration(self, request) -> dict:
         """Get the configuration of an assignment that was original deep linked."""
         params = {}
         possible_parameters = ["url", "group_set"]
