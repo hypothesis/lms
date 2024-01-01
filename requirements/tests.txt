@@ -320,9 +320,7 @@ pytest-cov==4.1.0
 pytest-factoryboy==2.5.1
     # via -r requirements/tests.in
 pytest-xdist[psutil]==3.5.0
-    # via
-    #   -r requirements/tests.in
-    #   pytest-xdist
+    # via -r requirements/tests.in
 python-dateutil==2.8.2
     # via
     #   -r requirements/prod.txt
@@ -372,7 +370,7 @@ six==1.16.0
     #   google-auth
     #   mailchimp-transactional
     #   python-dateutil
-sqlalchemy==2.0.23
+sqlalchemy==2.0.24
     # via
     #   -r requirements/prod.txt
     #   alembic
