@@ -232,7 +232,7 @@ six==1.16.0
     #   google-auth
     #   mailchimp-transactional
     #   python-dateutil
-sqlalchemy==2.0.23
+sqlalchemy==2.0.24
     # via
     #   -r requirements/prod.in
     #   alembic
