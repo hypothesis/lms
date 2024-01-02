@@ -223,11 +223,18 @@ class TestOrganizationService:
 
         ai_root_org = factories.ApplicationInstance(organization=org_with_parent.parent)
         ai_child_org = factories.ApplicationInstance(organization=org_with_parent)
-        course_root = factories.Course(application_instance=ai_root_org)
-        section = factories.CanvasSection(
-            application_instance=ai_root_org, parent=course_root
+        course_root = factories.Course(
+            application_instance=ai_root_org,
+            created=since + timedelta(days=1),
         )
-        course_child = factories.Course(application_instance=ai_child_org)
+        section = factories.CanvasSection(
+            application_instance=ai_root_org,
+            parent=course_root,
+            created=since + timedelta(days=1),
+        )
+        course_child = factories.Course(
+            application_instance=ai_child_org, created=since + timedelta(days=1)
+        )
         # Course created after the until date
         factories.Course(
             application_instance=ai_child_org,
@@ -241,8 +248,12 @@ class TestOrganizationService:
         # Users that belong to the course
         user_1 = factories.User(display_name="NAME", email="EMAIL")
         user_2 = factories.User()
-        factories.GroupingMembership(user=user_1, grouping=course_child)
-        factories.GroupingMembership(user=user_2, grouping=course_root)
+        factories.GroupingMembership(
+            user=user_1, grouping=course_child, created=since + timedelta(days=1)
+        )
+        factories.GroupingMembership(
+            user=user_2, grouping=course_root, created=since + timedelta(days=1)
+        )
 
         report = svc.usage_report(org_with_parent.parent, since, until)
 
