@@ -24,7 +24,7 @@
     "@babel/preset-env": "^7.23.5",
     "@babel/preset-react": "^7.23.3",
     "@babel/preset-typescript": "^7.23.3",
-    "@hypothesis/frontend-build": "^2.2.0",
+    "@hypothesis/frontend-build": "^3.0.0",
     "@hypothesis/frontend-shared": "^7.1.0",
     "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-commonjs": "^25.0.7",
