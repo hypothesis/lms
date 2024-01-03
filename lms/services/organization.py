@@ -268,7 +268,6 @@ class OrganizationService:
         ]
         # Based on those groups generate the usage report based on the definition of unique user:
         # Users that belong to a course in which there are annotations in the time period
-        # pylint:disable=not-callable
         parent = aliased(Grouping)
         query = (
             select(
