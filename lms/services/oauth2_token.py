@@ -1,11 +1,10 @@
 import datetime
-import logging
 from functools import lru_cache
 
-from lms.models import ApplicationInstance, OAuth2Token
-from lms.services import OAuth2TokenError
+from sqlalchemy.orm.exc import NoResultFound
 
-LOG = logging.getLogger(__name__)
+from lms.models import OAuth2Token
+from lms.services import OAuth2TokenError
 
 
 class OAuth2TokenService:
@@ -52,23 +51,19 @@ class OAuth2TokenService:
 
         :raise OAuth2TokenError: if we don't have an OAuth 2 token for the user
         """
-        token = (
-            self._db.query(OAuth2Token)
-            .join(ApplicationInstance)
-            .filter(
-                # We don't query by application_instance but any token belonging to an AI with the same GUID
-                ApplicationInstance.tool_consumer_instance_guid
-                == self._application_instance.tool_consumer_instance_guid,
-                OAuth2Token.user_id == self._user_id,
+        try:
+            return (
+                self._db.query(OAuth2Token)
+                .filter_by(
+                    application_instance=self._application_instance,
+                    user_id=self._user_id,
+                )
+                .one()
             )
-            # We might find more that one token if we created them for multiple installs, prefere the latest.
-            .order_by(OAuth2Token.id.desc())
-            .first()
-        )
-        if not token:
-            raise OAuth2TokenError("We don't have an OAuth 2 token for this user")
-
-        return token
+        except NoResultFound as err:
+            raise OAuth2TokenError(
+                "We don't have an OAuth 2 token for this user"
+            ) from err
 
 
 def oauth2_token_service_factory(_context, request):

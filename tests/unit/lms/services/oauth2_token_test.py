@@ -36,21 +36,6 @@ class TestOAuth2TokenService:
 
         assert result == oauth_token
 
-    def test_get_returns_token_from_another_ai_with_same_guid(
-        self, svc, oauth_token, lti_user, application_instance
-    ):
-        oauth_token = factories.OAuth2Token(
-            user_id=lti_user.user_id,
-            application_instance=factories.ApplicationInstance(
-                tool_consumer_instance_guid=application_instance.tool_consumer_instance_guid
-            ),
-        )
-
-        result = svc.get()
-
-        assert result == oauth_token
-        assert result.application_instance != application_instance
-
     def test_get_raises_OAuth2TokenError_with_mismatching_application_instance(
         self, db_session, lti_user
     ):
