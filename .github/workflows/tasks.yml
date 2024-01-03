@@ -22,6 +22,7 @@ on:
         default: 'qa'
         options:
           - 'qa'
+          - 'staging'
           - 'prod'
       Timeout:
         type: string
