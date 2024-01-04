@@ -1,7 +1,7 @@
 {
   "programs": {
     "web": {
-      "command": "newrelic-admin run-program gunicorn --paste conf/production.ini --bind 0.0.0.0:8001 --worker-tmp-dir /dev/shm"
+      "command": "newrelic-admin run-program gunicorn --paste conf/production.ini --config conf/gunicorn.conf.py"
     },
     "worker": {
       "command": "newrelic-admin run-program celery -A lms.tasks.celery:app worker --loglevel INFO"
