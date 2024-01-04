@@ -8,6 +8,9 @@ on:
       qa:
         type: boolean
         description: Redeploy QA
+      staging:
+        type: boolean
+        description: Redeploy Staging
       production:
         type: boolean
         description: Redeploy Production
@@ -26,6 +29,18 @@ jobs:
       aws_region: us-west-1
       elasticbeanstalk_application: lms
       elasticbeanstalk_environment: qa
+    secrets: inherit
+  staging:
+    name: Staging
+    if: inputs.staging
+    uses: hypothesis/workflows/.github/workflows/deploy.yml@main
+    with:
+      operation: redeploy
+      github_environment_name: Staging
+      github_environment_url: https://hypothesis.instructure.com/courses/125/assignments/879
+      aws_region: us-west-1
+      elasticbeanstalk_application: lms
+      elasticbeanstalk_environment: staging
     secrets: inherit
   production:
     name: Production
