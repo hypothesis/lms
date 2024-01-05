@@ -3,12 +3,12 @@ import datetime
 
 import sqlalchemy as sa
 
-from lms.db import BASE
+from lms.db import Base
 
 __all__ = ["OAuth2Token"]
 
 
-class OAuth2Token(BASE):
+class OAuth2Token(Base):
     """
     An OAuth 2.0 access token, refresh token and expiry time.
 

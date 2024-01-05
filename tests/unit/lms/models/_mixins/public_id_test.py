@@ -3,18 +3,19 @@ import sqlalchemy as sa
 from h_matchers import Any
 from pytest import param
 
-from lms.db import BASE
+from lms.db import Base
 from lms.models._mixins.public_id import PublicIdMixin
 from lms.models.public_id import InvalidPublicId
 
 
-class ModelTestHost(PublicIdMixin, BASE):
+class ModelTestHost(PublicIdMixin, Base):
     __tablename__ = "model_test_host"
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
     public_id_model_code = "model_test"
 
 
+@pytest.mark.xdist_group("ModelTestHost")
 class TestPublicIdMixin:
     def test_public_id_column(self, model):
         # pylint: disable=protected-access
@@ -55,6 +56,13 @@ class TestPublicIdMixin:
             db_session.query(ModelTestHost).filter(
                 ModelTestHost.public_id == bad_public_id
             ).one_or_none()
+
+    @pytest.fixture(autouse=True, scope="class")
+    def create_model_test_host_table(self, db_engine):
+        ModelTestHost.__table__.drop(db_engine, checkfirst=True)
+        ModelTestHost.__table__.create(db_engine)
+        yield
+        ModelTestHost.__table__.drop(db_engine)
 
     @pytest.fixture
     def model(self, db_session):

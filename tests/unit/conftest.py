@@ -1,23 +1,22 @@
 from dataclasses import asdict
+from os import environ
 from unittest import mock
 
 import httpretty
 import pytest
-import sqlalchemy
 from pyramid import testing
 from pyramid.request import apply_request_extensions
 
 from lms import models
-from lms.db import SESSION
 from lms.models import ApplicationSettings, LTIParams
 from lms.models.lti_role import Role, RoleScope, RoleType
 from lms.product import Product
 from lms.security import Identity
 from tests import factories
-from tests.conftest import TEST_SETTINGS, get_database_url
+from tests.conftest import TEST_SETTINGS
 from tests.unit.services import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
-TEST_SETTINGS["database_url"] = get_database_url()
+TEST_SETTINGS["database_url"] = environ["DATABASE_URL"]
 
 
 @pytest.fixture
@@ -211,45 +210,6 @@ def pyramid_config(pyramid_request, lti_v11_params):
         apply_request_extensions(pyramid_request)
 
         yield config
-
-
-@pytest.fixture
-def db_session(db_engine):
-    """
-    Yield the SQLAlchemy session object.
-
-    We enable fast repeatable database tests by setting up the database only
-    once per session (see :func:`db_engine`) and then wrapping each test
-    function in a transaction that is rolled back.
-
-    Additionally, we set a SAVEPOINT before entering the test, and if we
-    detect that the test has committed (i.e. released the savepoint) we
-    immediately open another. This has the effect of preventing test code from
-    committing the outer transaction.
-
-    """
-    conn = db_engine.connect()
-    trans = conn.begin()
-    session = SESSION(bind=conn)
-    session.begin_nested()
-
-    @sqlalchemy.event.listens_for(session, "after_transaction_end")
-    def restart_savepoint(session, transaction):
-        if (
-            transaction.nested
-            and not transaction._parent.nested  # pylint: disable=protected-access
-        ):
-            session.begin_nested()
-
-    factories.set_sqlalchemy_session(session)
-
-    try:
-        yield session
-    finally:
-        factories.clear_sqlalchemy_session()
-        session.close()
-        trans.rollback()
-        conn.close()
 
 
 @pytest.fixture(autouse=True)

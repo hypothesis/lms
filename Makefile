@@ -14,12 +14,13 @@ services: python
 $(call help,make db,initialize the DB and upgrade it to the latest migration)
 db: args?=upgrade head
 db: python
-	@tox -qe dev --run-command 'python bin/make_db'
-	@tox -qe dev  --run-command 'alembic $(args)'
+	@tox -qe dev --run-command 'python3 -m lms.scripts.init_db --create --stamp'
+	@tox -qe dev --run-command 'alembic $(args)'
 
 .PHONY: devdata
 $(call help,make devdata,load development data and environment variables)
 devdata: python
+	@tox -qe dev --run-command 'python3 -m lms.scripts.init_db --create --stamp'
 	@tox -qe dev --run-command 'python bin/make_devdata'
 
 .PHONY: dev

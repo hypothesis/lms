@@ -1,10 +1,10 @@
 import sqlalchemy as sa
 
-from lms.db import BASE
+from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
 
 
-class File(CreatedUpdatedMixin, BASE):
+class File(CreatedUpdatedMixin, Base):
     """A record of files we've seen in LMS's."""
 
     __tablename__ = "file"

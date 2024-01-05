@@ -2,11 +2,11 @@ import uuid
 
 import sqlalchemy as sa
 
-from lms.db import BASE
+from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
 
 
-class RSAKey(CreatedUpdatedMixin, BASE):
+class RSAKey(CreatedUpdatedMixin, Base):
     __tablename__ = "rsa_key"
 
     id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)

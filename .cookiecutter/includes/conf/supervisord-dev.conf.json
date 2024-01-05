@@ -1,5 +1,9 @@
 {
   "programs": {
+    "init_db": {
+      "command": "python3 -m lms.scripts.init_db --create --stamp",
+      "startsecs": "0"
+    },
     "web": {
       "command": "newrelic-admin run-program gunicorn --paste conf/development.ini --config conf/gunicorn-dev.conf.py"
     },

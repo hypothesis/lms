@@ -6,5 +6,4 @@ factory-boy
 h-matchers
 webtest
 behave
-filelock
 -r prod.txt

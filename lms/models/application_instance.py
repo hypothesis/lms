@@ -5,7 +5,7 @@ import sqlalchemy as sa
 from pyramid.settings import asbool
 from sqlalchemy.dialects.postgresql import JSONB
 
-from lms.db import BASE
+from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.exceptions import ReusedConsumerKey
 from lms.models.json_settings import JSONSetting, JSONSettings
@@ -48,7 +48,7 @@ class ApplicationSettings(JSONSettings):
     )
 
 
-class ApplicationInstance(CreatedUpdatedMixin, BASE):
+class ApplicationInstance(CreatedUpdatedMixin, Base):
     """Class to represent a single lms install."""
 
     __tablename__ = "application_instances"

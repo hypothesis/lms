@@ -1,5 +1,6 @@
 import contextlib
 import re
+from os import environ
 from urllib.parse import urlencode
 
 import httpretty
@@ -13,9 +14,9 @@ from lms import db
 from lms.app import create_app
 from lms.db import SESSION
 from tests import factories
-from tests.conftest import TEST_SETTINGS, get_database_url
+from tests.conftest import TEST_SETTINGS
 
-TEST_SETTINGS["database_url"] = get_database_url()
+TEST_SETTINGS["database_url"] = environ["DATABASE_URL"]
 
 TEST_ENVIRONMENT = {
     key.upper(): value for key, value in TEST_SETTINGS.items() if isinstance(value, str)
@@ -28,7 +29,7 @@ TEST_ENVIRONMENT.update(
 @pytest.fixture(autouse=True)
 def clean_database(db_engine):
     """Delete any data added by the previous test."""
-    tables = reversed(db.BASE.metadata.sorted_tables)
+    tables = reversed(db.Base.metadata.sorted_tables)
     with contextlib.closing(db_engine.connect()) as conn:
         transaction = conn.begin()
         tnames = ", ".join('"' + t.name + '"' for t in tables)
@@ -51,9 +52,7 @@ def pyramid_app():
 
 
 @pytest.fixture
-def app(pyramid_app, db_engine):
-    db.init(db_engine, stamp=False)
-
+def app(pyramid_app):
     return TestApp(pyramid_app)
 
 

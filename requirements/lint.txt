@@ -158,11 +158,6 @@ faker==21.0.0
     #   -r functests.txt
     #   -r tests.txt
     #   factory-boy
-filelock==3.13.1
-    # via
-    #   -r bddtests.txt
-    #   -r functests.txt
-    #   -r tests.txt
 freezegun==1.4.0
     # via -r tests.txt
 frozenlist==1.4.1

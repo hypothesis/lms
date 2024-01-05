@@ -1,9 +1,9 @@
 import sqlalchemy as sa
 
-from lms.db import BASE
+from lms.db import Base
 
 
-class CourseGroupsExportedFromH(BASE):
+class CourseGroupsExportedFromH(Base):
     """
     A read-only table holding a one-time export of groups from h.
 

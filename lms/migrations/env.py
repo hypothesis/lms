@@ -7,7 +7,7 @@ from sqlalchemy import MetaData, engine_from_config, pool
 # Import all model modules here in order to populate the metadata
 # for 'autogenerate' support
 from lms import models  # noqa
-from lms.db import BASE
+from lms.db import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -17,7 +17,7 @@ config = context.config
 # This line sets up loggers basically.
 fileConfig(config.config_file_name)
 
-target_metadata = BASE.metadata
+target_metadata = Base.metadata
 
 
 def run_migrations_offline():

@@ -2,12 +2,12 @@ import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
 
-from lms.db import BASE
+from lms.db import Base
 
 __all__ = ["GroupInfo"]
 
 
-class GroupInfo(BASE):
+class GroupInfo(Base):
     """
     Some info about an LMS group that was created in h.
 

@@ -1,12 +1,12 @@
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 
-from lms.db import BASE
+from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin, PublicIdMixin
 from lms.models.json_settings import JSONSettings
 
 
-class Organization(CreatedUpdatedMixin, PublicIdMixin, BASE):
+class Organization(CreatedUpdatedMixin, PublicIdMixin, Base):
     """Model for Organizations comprised of application instances."""
 
     __tablename__ = "organization"

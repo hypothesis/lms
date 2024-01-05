@@ -2,11 +2,11 @@ import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
 
-from lms.db import BASE
+from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
 
 
-class Assignment(CreatedUpdatedMixin, BASE):
+class Assignment(CreatedUpdatedMixin, Base):
     """
     An assignment configuration.
 

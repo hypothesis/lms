@@ -1,14 +1,14 @@
 """Insert LMS specific objects into the DB."""
+from os import environ
 
 from behave import step  # pylint:disable=no-name-in-module
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
-from lms import db, models
+from lms import models
 from tests.bdd.step_context import StepContext
-from tests.conftest import get_database_url
 
-DATABASE_URL = get_database_url()
+DATABASE_URL = environ["DATABASE_URL"]
 
 
 class LMSDBContext(StepContext):
@@ -18,7 +18,6 @@ class LMSDBContext(StepContext):
         super().__init__(**kwargs)
         self.engine = create_engine(DATABASE_URL)
         self.session_maker = sessionmaker(bind=self.engine.connect())
-        db.init(self.engine, stamp=False, drop=True)
 
         self.session = None
         self.modified_tables = None
