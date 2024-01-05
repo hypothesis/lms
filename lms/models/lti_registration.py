@@ -1,10 +1,10 @@
 import sqlalchemy as sa
 
-from lms.db import BASE
+from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
 
 
-class LTIRegistration(CreatedUpdatedMixin, BASE):
+class LTIRegistration(CreatedUpdatedMixin, Base):
     """
     LTI1.3 registration details.
 

@@ -1,10 +1,10 @@
 import sqlalchemy as sa
 
-from lms.db import BASE
+from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
 
 
-class JWTOAuth2Token(CreatedUpdatedMixin, BASE):
+class JWTOAuth2Token(CreatedUpdatedMixin, Base):
     """
     JWT based OAuth2Token.
 

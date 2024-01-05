@@ -1,10 +1,10 @@
 import sqlalchemy as sa
 
-from lms.db import BASE
+from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
 
 
-class AssignmentMembership(CreatedUpdatedMixin, BASE):
+class AssignmentMembership(CreatedUpdatedMixin, Base):
     """Model for users associations with assignments."""
 
     __tablename__ = "assignment_membership"

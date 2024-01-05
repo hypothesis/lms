@@ -1,17 +1,12 @@
 import functools
-import os
+from os import environ
 from unittest import mock
 
 import pytest
-import sqlalchemy
-from filelock import FileLock
+from sqlalchemy.orm import sessionmaker
 
-from lms import db
-
-
-def get_database_url():
-    return os.environ.get("DATABASE_URL")
-
+from lms.db import create_engine
+from tests import factories
 
 TEST_SETTINGS = {
     "dev": False,
@@ -45,42 +40,6 @@ TEST_SETTINGS = {
 }
 
 
-@pytest.fixture(scope="session")
-def db_engine(tmp_path_factory):
-    engine = sqlalchemy.create_engine(TEST_SETTINGS["database_url"])
-
-    # Use a filelock to only init the DB once even though we have multiple
-    # parallel pytest-xdist workers. See:
-    # https://pytest-xdist.readthedocs.io/en/stable/how-to.html#making-session-scoped-fixtures-execute-only-once
-
-    # The temporary directory shared by all pytest-xdist workers.
-    shared_tmpdir = tmp_path_factory.getbasetemp().parent
-
-    # The existence of this file records that a worker has initialized the DB.
-    done_file = shared_tmpdir / "db_initialized.done"
-
-    # The lock file prevents workers from entering the `with` at the same time.
-    lock_file = shared_tmpdir / "db_initialized.lock"
-
-    with FileLock(str(lock_file)):
-        if done_file.is_file():
-            # Another worker already initialized the DB.
-            pass
-        else:
-            # Delete all database tables and re-initialize the database schema
-            # based on the current models. Doing this at the beginning of each
-            # test run ensures that any schema changes made to the models since
-            # the last test run will be applied to the test DB schema before
-            # running the tests again.
-            db.init(engine, drop=True, stamp=False)
-
-            # Make sure that no other worker tries to init the DB after we
-            # release the lock file.
-            done_file.touch()
-
-    return engine
-
-
 def autopatcher(request, target, **kwargs):
     """Patch and cleanup automatically. Wraps :py:func:`mock.patch`."""
     options = {"autospec": True}
@@ -89,6 +48,44 @@ def autopatcher(request, target, **kwargs):
     obj = patcher.start()
     request.addfinalizer(patcher.stop)
     return obj
+
+
+@pytest.fixture(scope="session")
+def db_engine():
+    return create_engine(environ["DATABASE_URL"])
+
+
+@pytest.fixture(scope="session")
+def db_sessionfactory():
+    return sessionmaker()
+
+
+@pytest.fixture
+def db_session(db_engine, db_sessionfactory):
+    """
+    Return the SQLAlchemy database session.
+
+    This returns a session that is wrapped in an external transaction that is
+    rolled back after each test, so tests can't make database changes that
+    affect later tests.  Even if the test (or the code under test) calls
+    session.commit() this won't touch the external transaction.
+
+    This is the same technique as used in SQLAlchemy's own CI:
+    https://docs.sqlalchemy.org/en/20/orm/session_transaction.html#joining-a-session-into-an-external-transaction-such-as-for-test-suites
+    """
+    connection = db_engine.connect()
+    transaction = connection.begin()
+    session = db_sessionfactory(
+        bind=connection, join_transaction_mode="create_savepoint"
+    )
+    factories.set_sqlalchemy_session(session)
+
+    yield session
+
+    factories.clear_sqlalchemy_session()
+    session.close()
+    transaction.rollback()
+    connection.close()
 
 
 @pytest.fixture

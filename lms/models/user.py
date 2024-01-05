@@ -1,10 +1,10 @@
 import sqlalchemy as sa
 
-from lms.db import BASE
+from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
 
 
-class User(CreatedUpdatedMixin, BASE):
+class User(CreatedUpdatedMixin, Base):
     """A user record to link between LTI users and H users."""
 
     __tablename__ = "user"

@@ -1,12 +1,12 @@
 import sqlalchemy as sa
 
-from lms.db import BASE
+from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
 
 __all__ = ["GradingInfo"]
 
 
-class GradingInfo(CreatedUpdatedMixin, BASE):
+class GradingInfo(CreatedUpdatedMixin, Base):
     """
     A record of a student's launch of a Hypothesis-configured LMS assignment.
 

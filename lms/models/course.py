@@ -1,11 +1,11 @@
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 
-from lms.db import BASE
+from lms.db import Base
 from lms.models.json_settings import JSONSettings
 
 
-class LegacyCourse(BASE):
+class LegacyCourse(Base):
     """An LTI course."""
 
     __tablename__ = "course"

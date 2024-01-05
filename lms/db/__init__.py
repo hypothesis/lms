@@ -12,10 +12,10 @@ from sqlalchemy.orm.properties import ColumnProperty
 from lms.db._columns import varchar_enum
 from lms.db._text_search import full_text_match
 
-__all__ = ("BASE", "init", "varchar_enum")
+__all__ = ("Base", "create_engine", "varchar_enum")
 
 
-BASE = declarative_base(
+Base = declarative_base(
     # Create a default metadata object with naming conventions for indexes and
     # constraints. This makes changing such constraints and indexes with
     # alembic after creation much easier. See:
@@ -34,41 +34,9 @@ BASE = declarative_base(
 )
 
 
-def init(engine, drop=False, stamp=True):  # pragma: nocover
-    """
-    Create all the database tables if they don't already exist.
-
-    If `drop=True` is given then delete all existing tables first and then
-    re-create them. Tests use this. If `drop=False` existing tables won't be
-    touched.
-
-    If `stamp=True` alembic's `alembic_version` will be overwritten with the latest revison
-    in order to avoid alembic trying to re-create tables created by `create_all`
-
-    :param engine: the sqlalchemy Engine object
-    :param drop: whether or not to delete existing tables
-    :param stamp: whether or not to stamp alembic latest revision
-    """
-    connection = engine.connect()
-    try:
-        connection.execute(text("select 1 from alembic_version"))
-    except sqlalchemy.exc.ProgrammingError:
-        connection.rollback()  # Rollback after failure to find the alembic table
-        if drop:
-            # SQLAlchemy doesnt' know about the report schema, and will end up
-            # trying to drop tables without cascade that have dependent tables
-            # in the report schema and failing. Clear it out first.
-            connection.execute(text("DROP SCHEMA IF EXISTS report CASCADE"))
-            BASE.metadata.drop_all(engine)
-        BASE.metadata.create_all(engine)
-
-        if stamp:
-            alembic.command.stamp(alembic.config.Config("conf/alembic.ini"), "head")
-
-
-def make_engine(settings):
+def create_engine(database_url):
     """Construct a sqlalchemy engine from the passed ``settings``."""
-    return sqlalchemy.create_engine(settings["database_url"])
+    return sqlalchemy.create_engine(database_url)
 
 
 SESSION = sessionmaker()
@@ -104,11 +72,8 @@ def _session(request):  # pragma: no cover
 
 def includeme(config):
     # Create the SQLAlchemy engine and save a reference in the app registry.
-    engine = make_engine(config.registry.settings)
+    engine = create_engine(config.registry.settings["database_url"])
     config.registry["sqlalchemy.engine"] = engine
-
-    if config.registry.settings["dev"]:  # pragma: nocover
-        init(engine)
 
     # Add a property to all requests for easy access to the session. This means
     # that view functions need only refer to ``request.db`` in order to

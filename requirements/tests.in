@@ -4,7 +4,6 @@ pip-sync-faster
 pytest
 pytest-cov
 pytest-xdist[psutil]
-filelock
 factory-boy
 pytest-factoryboy
 h-matchers

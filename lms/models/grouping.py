@@ -4,14 +4,14 @@ import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
 
-from lms.db import BASE, varchar_enum
+from lms.db import Base, varchar_enum
 from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.json_settings import JSONSettings
 
 MAX_GROUP_NAME_LENGTH = 25
 
 
-class Grouping(CreatedUpdatedMixin, BASE):
+class Grouping(CreatedUpdatedMixin, Base):
     class Type(str, Enum):
         COURSE = "course"
         CANVAS_SECTION = "canvas_section"
@@ -227,7 +227,7 @@ class Course(Grouping):
         return self.extra.get(key, {}).get(id_, id_)
 
 
-class GroupingMembership(CreatedUpdatedMixin, BASE):
+class GroupingMembership(CreatedUpdatedMixin, Base):
     __tablename__ = "grouping_membership"
     grouping_id = sa.Column(
         sa.Integer(), sa.ForeignKey("grouping.id", ondelete="cascade"), primary_key=True

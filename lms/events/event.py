@@ -3,7 +3,7 @@ from dataclasses import asdict, dataclass, field, fields
 from pyramid.request import Request
 from sqlalchemy import inspect
 
-from lms.db import BASE
+from lms.db import Base
 from lms.models import EventType
 
 
@@ -138,7 +138,7 @@ class AuditTrailEvent(BaseEvent):
         return asdict(self.change)
 
     @staticmethod
-    def notify(request: Request, instance: BASE, source="admin_pages"):
+    def notify(request: Request, instance: Base, source="admin_pages"):
         db = request.db
         if db.is_modified(instance):
             request.registry.notify(
@@ -170,7 +170,7 @@ class AuditTrailEvent(BaseEvent):
 
 def _serialize_change(value):
     """Serialize in a DB compatible manner a DB change."""
-    if isinstance(value, BASE):
+    if isinstance(value, Base):
         if hasattr(value, "id"):
             # If we have a model with simple PK, use that, it would make
             # our lives easier in case we have to write SQL consulting these values

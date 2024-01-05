@@ -4,10 +4,10 @@ import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
 
-from lms.db import BASE, varchar_enum
+from lms.db import Base, varchar_enum
 
 
-class EventType(BASE):
+class EventType(Base):
     __tablename__ = "event_type"
 
     class Type(str, Enum):
@@ -23,7 +23,7 @@ class EventType(BASE):
     type = varchar_enum(Type)
 
 
-class Event(BASE):
+class Event(Base):
     """Model to store any relevant events that occur within the application."""
 
     __tablename__ = "event"
@@ -78,7 +78,7 @@ class Event(BASE):
     """If this event belongs to one particular grouping, which one"""
 
 
-class EventUser(BASE):
+class EventUser(Base):
     """Relationship between events, users and their roles."""
 
     __tablename__ = "event_user"
@@ -114,7 +114,7 @@ class EventUser(BASE):
     """What role the user plays in event."""
 
 
-class EventData(BASE):
+class EventData(Base):
     """Keep potentially large blobs of data about an event in a separate table."""
 
     __tablename__ = "event_data"

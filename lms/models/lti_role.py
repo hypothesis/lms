@@ -6,7 +6,7 @@ from enum import Enum, unique
 import sqlalchemy as sa
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from lms.db import BASE, varchar_enum
+from lms.db import Base, varchar_enum
 
 LOG = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ class RoleScope(str, Enum):
     SYSTEM = "system"
 
 
-class LTIRoleOverride(BASE):
+class LTIRoleOverride(Base):
     __tablename__ = "lti_role_override"
 
     __table_args__ = (sa.UniqueConstraint("application_instance_id", "lti_role_id"),)
@@ -66,7 +66,7 @@ class LTIRoleOverride(BASE):
         return self.lti_role.value
 
 
-class LTIRole(BASE):
+class LTIRole(Base):
     """Model for LTI role strings and our interpretation of them."""
 
     __tablename__ = "lti_role"

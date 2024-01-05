@@ -1,15 +1,17 @@
+import pytest
 import sqlalchemy as sa
 from h_matchers import Any
 
-from lms.db import BASE
+from lms.db import Base
 from lms.services.upsert import bulk_upsert
 
 
+@pytest.mark.xdist_group("TableWithBulkUpsert")
 class TestBulkAction:
     INDEX_ELEMENTS = ["id"]
     UPDATE_COLUMNS = ["name"]
 
-    class TableWithBulkUpsert(BASE):
+    class TableWithBulkUpsert(Base):
         __tablename__ = "test_table_with_bulk_upsert"
 
         id = sa.Column(sa.Integer, primary_key=True)
@@ -81,3 +83,10 @@ class TestBulkAction:
                 ]
             ).only()
         )
+
+    @pytest.fixture(autouse=True, scope="class")
+    def create_test_table_with_bulk_upsert_table(self, db_engine):
+        self.TableWithBulkUpsert.__table__.drop(db_engine, checkfirst=True)
+        self.TableWithBulkUpsert.__table__.create(db_engine)
+        yield
+        self.TableWithBulkUpsert.__table__.drop(db_engine)

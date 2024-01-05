@@ -1,10 +1,10 @@
 import sqlalchemy as sa
 
-from lms.db import BASE
+from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
 
 
-class AssignmentGrouping(CreatedUpdatedMixin, BASE):
+class AssignmentGrouping(CreatedUpdatedMixin, Base):
     """Model for associations between assignments and groupings."""
 
     __tablename__ = "assignment_grouping"

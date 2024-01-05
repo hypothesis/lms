@@ -2,11 +2,11 @@ from sqlalchemy import Column, Integer, Unicode, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
 
-from lms.db import BASE
+from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
 
 
-class UserPreferences(CreatedUpdatedMixin, BASE):
+class UserPreferences(CreatedUpdatedMixin, Base):
     __tablename__ = "user_preferences"
 
     id = Column(Integer, autoincrement=True, primary_key=True)
