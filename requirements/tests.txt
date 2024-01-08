@@ -275,7 +275,7 @@ pycparser==2.21
     # via
     #   -r requirements/prod.txt
     #   cffi
-pycryptodomex==3.19.0
+pycryptodomex==3.19.1
     # via -r requirements/prod.txt
 pyjwt[crypto]==2.8.0
     # via
@@ -320,9 +320,7 @@ pytest-cov==4.1.0
 pytest-factoryboy==2.5.1
     # via -r requirements/tests.in
 pytest-xdist[psutil]==3.5.0
-    # via
-    #   -r requirements/tests.in
-    #   pytest-xdist
+    # via -r requirements/tests.in
 python-dateutil==2.8.2
     # via
     #   -r requirements/prod.txt

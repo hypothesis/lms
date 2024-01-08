@@ -471,7 +471,7 @@ pycparser==2.21
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   cffi
-pycryptodomex==3.19.0
+pycryptodomex==3.19.1
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -550,7 +550,7 @@ pytest-factoryboy==2.5.1
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-pytest-xdist[psutil]==3.3.1
+pytest-xdist[psutil]==3.5.0
     # via
     #   -r requirements/tests.txt
     #   pytest-xdist
