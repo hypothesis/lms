@@ -1,6 +1,5 @@
 import re
 from dataclasses import dataclass
-from typing import Optional
 from urllib.parse import quote_plus, unquote_plus, urlparse
 
 
@@ -11,10 +10,10 @@ class VSBookLocation:
     book_id: str
     """Id of the book"""
 
-    cfi: Optional[str] = None
+    cfi: str | None = None
     """Location within the book, specified as a CFI."""
 
-    page: Optional[str] = None
+    page: str | None = None
     """
     Location within the book, specified as a page number.
 

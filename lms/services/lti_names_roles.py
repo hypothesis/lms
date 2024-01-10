@@ -7,7 +7,7 @@ certification and it's not used anywhere in the codebase yet.
 https://www.imsglobal.org/spec/lti-nrps/v2p0
 https://www.imsglobal.org/ltiadvantage
 """
-from typing import Optional, TypedDict
+from typing import TypedDict
 
 from lms.services.ltia_http import LTIAHTTPService
 
@@ -22,7 +22,7 @@ class Member(TypedDict):
     roles: list[str]
     status: str
     user_id: str
-    lti11_legacy_user_id: Optional[str]
+    lti11_legacy_user_id: str | None
 
 
 class LTINamesRolesService:

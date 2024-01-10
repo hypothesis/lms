@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Optional
 
 from sqlalchemy import Boolean, not_, select
 
@@ -121,7 +120,7 @@ def send_instructor_email_digest_tasks():
     rate_limit="10/m",
 )
 def send_instructor_email_digest(
-    *, h_userid: str, created_before: str, created_after: Optional[str] = None, **kwargs
+    *, h_userid: str, created_before: str, created_after: str | None = None, **kwargs
 ) -> None:
     """
     Generate and send instructor email digests to the given users.
@@ -174,7 +173,7 @@ def send_instructor_email_digest(
             )
 
 
-def _get_task_done_data(db_session, h_userid: str) -> Optional[dict]:
+def _get_task_done_data(db_session, h_userid: str) -> dict | None:
     """Return the most recent matching TaskDone.data dict for h_userid."""
     task_dones = db_session.scalars(
         select(TaskDone)

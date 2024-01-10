@@ -1,11 +1,10 @@
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class GradingResult:
-    score: Optional[float]
-    comment: Optional[str]
+    score: float | None
+    comment: str | None
 
 
 class LTIGradingService:  # pragma: no cover

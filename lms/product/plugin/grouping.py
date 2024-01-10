@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Optional
 
 from lms.models import Course, Grouping
 
@@ -18,29 +17,27 @@ class GroupingPlugin:
     supported in this LMS.
     """
 
-    group_type: Optional[Grouping.Type] = None
+    group_type: Grouping.Type | None = None
     """The type of groups this plugin supports. `None` disables support."""
 
-    sections_type: Optional[Grouping.Type] = None
+    sections_type: Grouping.Type | None = None
     """The type of sections this plugin supports. `None` disables support."""
 
-    def get_sections_for_learner(
-        self, svc, course
-    ) -> Optional[list]:  # pragma: nocover
+    def get_sections_for_learner(self, svc, course) -> list | None:  # pragma: nocover
         """Get the sections from context when launched by a normal learner."""
 
         return None
 
     def get_sections_for_instructor(
         self, svc, course: Course
-    ) -> Optional[list]:  # pragma: nocover
+    ) -> list | None:  # pragma: nocover
         """Get the sections from context when launched by an instructor."""
 
         return None
 
     def get_sections_for_grading(
         self, svc, course: Course, grading_student_id
-    ) -> Optional[list]:  # pragma: nocover
+    ) -> list | None:  # pragma: nocover
         """Get the sections for a learner when they are being graded."""
 
         return None
@@ -51,21 +48,21 @@ class GroupingPlugin:
 
     def get_groups_for_learner(
         self, svc, course: Course, group_set_id
-    ) -> Optional[list]:  # pragma: nocover
+    ) -> list | None:  # pragma: nocover
         """Get the sections from context when launched by a normal learner."""
 
         return None
 
     def get_groups_for_instructor(
         self, svc, course: Course, group_set_id
-    ) -> Optional[list]:  # pragma: nocover
+    ) -> list | None:  # pragma: nocover
         """Get the groups from context when launched by an instructor."""
 
         return None
 
     def get_groups_for_grading(
         self, svc, course: Course, group_set_id, grading_student_id
-    ) -> Optional[list]:  # pragma: nocover
+    ) -> list | None:  # pragma: nocover
         """Get the groups for a learner when they are being graded."""
 
         return None

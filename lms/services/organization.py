@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
 from logging import getLogger
-from typing import Optional
 
 import sqlalchemy as sa
 from sqlalchemy import Date, func, select
@@ -23,8 +22,8 @@ LOG = getLogger(__name__)
 
 @dataclass
 class UsageReportRow:
-    name: Optional[str]
-    email: Optional[str]
+    name: str | None
+    email: str | None
     h_userid: str
 
     course_name: str
@@ -43,7 +42,7 @@ class OrganizationService:
         self._db_session = db_session
         self._h_api = h_api
 
-    def get_by_id(self, id_: int) -> Optional[Organization]:
+    def get_by_id(self, id_: int) -> Organization | None:
         """
         Get an organization by its private primary key.
 
@@ -52,7 +51,7 @@ class OrganizationService:
 
         return self._organization_search_query(id_=id_).one_or_none()
 
-    def get_by_public_id(self, public_id: str) -> Optional[list]:
+    def get_by_public_id(self, public_id: str) -> list | None:
         """
         Get an organization by its public_id.
 
@@ -139,7 +138,7 @@ class OrganizationService:
 
     def auto_assign_organization(
         self, application_instance: ApplicationInstance
-    ) -> Optional[Organization]:
+    ) -> Organization | None:
         """
         Automatically associate an application instance with an org by GUID.
 

@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 CLAIM_PREFIX = "https://purl.imsglobal.org/spec/lti/claim"
 
@@ -18,7 +17,7 @@ class LTIParams(dict):
     v11 and the object's dict interface.
     """
 
-    def __init__(self, v11: dict, v13: Optional[dict] = None):
+    def __init__(self, v11: dict, v13: dict | None = None):
         super().__init__(v11)
         self.v13 = v13
 

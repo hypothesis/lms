@@ -1,6 +1,5 @@
 from base64 import urlsafe_b64encode
 from dataclasses import dataclass
-from typing import Optional
 from uuid import uuid4
 
 from lms.models.region import Region, Regions
@@ -49,9 +48,9 @@ class PublicId:
     def parse(
         cls,
         public_id: str,
-        expect_app_code: Optional[str] = "lms",
-        expect_model_code: Optional[str] = None,
-        expect_region: Optional[Region] = None,
+        expect_app_code: str | None = "lms",
+        expect_model_code: str | None = None,
+        expect_region: Region | None = None,
     ):
         """
         Parse a public id string into a PublicID object.

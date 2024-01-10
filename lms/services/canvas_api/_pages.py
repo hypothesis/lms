@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from marshmallow import fields
 
@@ -13,7 +12,7 @@ class CanvasPage:
     title: str
     updated_at: str
 
-    body: Optional[str] = None
+    body: str | None = None
 
     def canonical_url(self, lms_host, course_id):
         return f"https://{lms_host}/courses/{course_id}/pages/{self.id}"

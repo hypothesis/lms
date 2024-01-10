@@ -1,6 +1,6 @@
 import functools
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from pyramid.httpexceptions import HTTPClientError
 
@@ -151,8 +151,8 @@ class JSConfig:
         self,
         auth_route: str,
         error_code=None,
-        error_details: Optional[dict] = None,
-        canvas_scopes: list[str] = None,
+        error_details: dict | None = None,
+        canvas_scopes: list[str] | None = None,
     ):
         """
         Configure the frontend to show the "Authorization failed" dialog.

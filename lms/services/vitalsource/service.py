@@ -1,5 +1,4 @@
 import re
-from typing import Optional
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from lms.models import LTIParams
@@ -15,10 +14,10 @@ class VitalSourceService:
     def __init__(
         self,
         enabled: bool = False,
-        global_client: Optional[VitalSourceClient] = None,
-        customer_client: Optional[VitalSourceClient] = None,
-        user_lti_param: Optional[str] = None,
-        user_lti_pattern: Optional[str] = None,
+        global_client: VitalSourceClient | None = None,
+        customer_client: VitalSourceClient | None = None,
+        user_lti_param: str | None = None,
+        user_lti_pattern: str | None = None,
         page_ranges_enabled: bool = False,
     ):
         """
@@ -74,10 +73,10 @@ class VitalSourceService:
     def get_document_url(
         self,
         book_id: str,
-        page: Optional[str] = None,
-        cfi: Optional[str] = None,
-        end_page: Optional[str] = None,
-        end_cfi: Optional[str] = None,
+        page: str | None = None,
+        cfi: str | None = None,
+        end_page: str | None = None,
+        end_cfi: str | None = None,
     ) -> str:
         """
         Generate the document URL for an assignment.
@@ -101,7 +100,7 @@ class VitalSourceService:
         return urlunparse(url)
 
     @classmethod
-    def get_client_focus_config(cls, document_url: str) -> Optional[dict]:
+    def get_client_focus_config(cls, document_url: str) -> dict | None:
         """
         Get the content range for an assignment from a `vitalsource://` URL.
 
@@ -162,7 +161,7 @@ class VitalSourceService:
             user_reference, self.get_book_reader_url(document_url)
         )
 
-    def get_user_reference(self, lti_params: LTIParams) -> Optional[str]:
+    def get_user_reference(self, lti_params: LTIParams) -> str | None:
         """Get the user reference from the provided LTI params."""
 
         value = lti_params.get(self._user_lti_param)
@@ -178,7 +177,7 @@ class VitalSourceService:
         return value
 
     @staticmethod
-    def compile_user_lti_pattern(pattern: str) -> Optional[re.Pattern]:
+    def compile_user_lti_pattern(pattern: str) -> re.Pattern | None:
         """
         Compile and vet a user id pattern.
 

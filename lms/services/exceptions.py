@@ -1,6 +1,3 @@
-from typing import Optional
-
-
 class JWTError(Exception):
     """A problem with a JWT."""
 
@@ -46,32 +43,32 @@ class ExternalRequestError(Exception):
         self.refreshable = refreshable
 
     @property
-    def url(self) -> Optional[str]:
+    def url(self) -> str | None:
         """Return the request's URL."""
         return getattr(self.request, "url", None)
 
     @property
-    def method(self) -> Optional[str]:
+    def method(self) -> str | None:
         """Return the HTTP request method."""
         return getattr(self.request, "method", None)
 
     @property
-    def request_body(self) -> Optional[str]:
+    def request_body(self) -> str | None:
         """Return the request body."""
         return getattr(self.request, "body", None)
 
     @property
-    def status_code(self) -> Optional[int]:
+    def status_code(self) -> int | None:
         """Return the response's status code."""
         return getattr(self.response, "status_code", None)
 
     @property
-    def reason(self) -> Optional[str]:
+    def reason(self) -> str | None:
         """Return the response's HTTP reason string, e.g. 'Bad Request'."""
         return getattr(self.response, "reason", None)
 
     @property
-    def response_body(self) -> Optional[str]:
+    def response_body(self) -> str | None:
         """Return the response body."""
         return getattr(self.response, "text", None)
 
@@ -99,17 +96,17 @@ class ExternalAsyncRequestError(Exception):
         )
 
     @property
-    def url(self) -> Optional[str]:
+    def url(self) -> str | None:
         """Return the request's URL."""
         return str(url) if (url := getattr(self._request_info, "url", None)) else None
 
     @property
-    def method(self) -> Optional[str]:
+    def method(self) -> str | None:
         """Return the HTTP request method."""
         return getattr(self._request_info, "method", None)
 
     @property
-    def status_code(self) -> Optional[int]:
+    def status_code(self) -> int | None:
         """Return the response's status code."""
         return getattr(self.response, "status", None)
 
@@ -119,7 +116,7 @@ class ExternalAsyncRequestError(Exception):
         return None
 
     @property
-    def reason(self) -> Optional[str]:
+    def reason(self) -> str | None:
         """Return the response's HTTP reason string, e.g. 'Bad Request'."""
         return getattr(self.response, "reason", None)
 
@@ -244,8 +241,8 @@ class SerializableError(Exception):
     def __init__(
         self,
         message: str = None,
-        error_code: Optional[str] = None,
-        details: Optional[dict] = None,
+        error_code: str | None = None,
+        details: dict | None = None,
     ):
         """
         Initialise the error.

@@ -1,5 +1,3 @@
-from typing import Optional
-
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
 
@@ -16,7 +14,7 @@ class GroupingService:
         self.plugin = plugin
 
     def get_authority_provided_id(
-        self, lms_id, type_: Grouping.Type, parent: Optional[Grouping] = None
+        self, lms_id, type_: Grouping.Type, parent: Grouping | None = None
     ):
         guid = self.application_instance.tool_consumer_instance_guid
 
@@ -35,7 +33,7 @@ class GroupingService:
         self,
         grouping_dicts: list[dict],
         type_: Grouping.Type,
-        parent: Optional[Grouping] = None,
+        parent: Grouping | None = None,
     ) -> list[Grouping]:
         """
         Upsert a Grouping generating the authority_provided_id based on its parent.
@@ -114,7 +112,7 @@ class GroupingService:
         course: Course,
         user_id: str,
         type_: Grouping.Type,
-        group_set_id: Optional[str | int] = None,
+        group_set_id: (str | int) | None = None,
     ):
         """
         Get the groupings a user belongs to in a given course.
@@ -146,7 +144,7 @@ class GroupingService:
 
     def get_sections(
         self, user: User, lti_user: LTIUser, course: Course, grading_student_id=None
-    ) -> Optional[list[Grouping]]:
+    ) -> list[Grouping] | None:
         """
         Get the sections for the given user in the current context.
 
@@ -178,7 +176,7 @@ class GroupingService:
         course: Course,
         group_set_id,
         grading_student_id=None,
-    ) -> Optional[list[Grouping]]:
+    ) -> list[Grouping] | None:
         """
         Get the groups for the given user in the current context.
 

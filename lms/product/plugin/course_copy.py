@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable
 
 from lms.models import File
 from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
@@ -24,7 +24,7 @@ class CourseCopyFilesHelper:
         file_type: str,
         original_file_id,
         new_course_id,
-    ) -> Optional[File]:
+    ) -> File | None:
         try:
             # Get the current (copied) courses files, that will have the side effect of storing files in the DB
             _ = store_new_course_files(new_course_id)

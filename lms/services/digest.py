@@ -1,7 +1,6 @@
 import logging
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-from typing import Optional
 
 from sqlalchemy import distinct, func, or_, select, tuple_
 from sqlalchemy.dialects.postgresql import aggregate_order_by
@@ -168,8 +167,8 @@ class UserInfo:
     """All User's for a given h_userid, unified across all ApplicationInstance's."""
 
     h_userid: str
-    email: Optional[str]
-    display_name: Optional[str]
+    email: str | None
+    display_name: str | None
 
 
 @dataclass(frozen=True)
@@ -177,7 +176,7 @@ class CourseInfo:
     """All Course's for a given authority_provided_id, unified across all ApplicationInstance's."""
 
     authority_provided_id: str
-    title: Optional[str]
+    title: str | None
     instructor_h_userids: tuple[str]
     learner_annotations: tuple[dict]
 

@@ -1,6 +1,5 @@
 import logging
 from functools import lru_cache
-from typing import Optional
 
 import xmltodict
 from marshmallow import EXCLUDE, Schema, fields
@@ -167,7 +166,7 @@ class VitalSourceClient:
         raise err
 
     @staticmethod
-    def _get_json_errors(err: ExternalRequestError) -> Optional[list]:
+    def _get_json_errors(err: ExternalRequestError) -> list | None:
         if err.response.headers.get("Content-Type", "").startswith("application/json"):
             # Many errors from VitalSource say they are JSON, but don't include
             # any actual JSON data to decode

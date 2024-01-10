@@ -2,14 +2,14 @@
 
 import os
 from dataclasses import dataclass
-from typing import Callable, List, Optional
+from typing import Callable
 
 from pyramid.config import Configurator
 from pyramid.config import aslist as _aslist
 from pyramid.settings import asbool
 
 
-def aslist(value: Optional[str]) -> List[str]:
+def aslist(value: str | None) -> list[str]:
     # Pyramid's aslist doesn't accept None values,
     # coerce those to "" which becomes an empty list.
     return _aslist("" if value is None else value)
