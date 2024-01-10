@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from sqlalchemy.orm import Session
 
@@ -63,7 +62,7 @@ class AssignmentService:
 
         return assignment
 
-    def _get_copied_from_assignment(self, lti_params) -> Optional[Assignment]:
+    def _get_copied_from_assignment(self, lti_params) -> Assignment | None:
         """Return the assignment that the current assignment was copied from."""
 
         resource_link_history_params = [
@@ -87,7 +86,7 @@ class AssignmentService:
 
         return None
 
-    def get_assignment_for_launch(self, request) -> Optional[Assignment]:
+    def get_assignment_for_launch(self, request) -> Assignment | None:
         """
         Get or create an assignment for the current launch.
 

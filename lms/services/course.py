@@ -1,6 +1,5 @@
 import json
 from copy import deepcopy
-from typing import Optional
 
 from sqlalchemy import Text, column, func
 
@@ -57,7 +56,7 @@ class CourseService:
             extra=extra,
         )
 
-    def get_by_context_id(self, context_id, raise_on_missing=False) -> Optional[Course]:
+    def get_by_context_id(self, context_id, raise_on_missing=False) -> Course | None:
         """
         Get a course (if one exists) by the GUID and context id.
 

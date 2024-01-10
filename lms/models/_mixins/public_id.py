@@ -1,5 +1,3 @@
-from typing import Optional
-
 import sqlalchemy as sa
 from sqlalchemy.ext.hybrid import Comparator, hybrid_property
 
@@ -44,7 +42,7 @@ class PublicIdMixin:
     """The short code which identifies this type of model."""
 
     @hybrid_property
-    def public_id(self) -> Optional[str]:
+    def public_id(self) -> str | None:
         """Get the globally unique id which also indicates the region."""
 
         if not self._public_id:

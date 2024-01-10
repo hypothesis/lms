@@ -1,5 +1,3 @@
-from typing import Optional
-
 from lms.models import LTIRegistration
 
 
@@ -7,7 +5,7 @@ class LTIRegistrationService:
     def __init__(self, db):
         self._db = db
 
-    def get(self, issuer: str, client_id: Optional[str] = None):
+    def get(self, issuer: str, client_id: str | None = None):
         """
         Get an LTIRegistration based on issuer and client_id.
 
@@ -27,7 +25,7 @@ class LTIRegistrationService:
             issuer=issuer, client_id=client_id
         ).one_or_none()
 
-    def get_by_id(self, id_) -> Optional[LTIRegistration]:
+    def get_by_id(self, id_) -> LTIRegistration | None:
         return self._registration_search_query(id_=id_).one_or_none()
 
     def search_registrations(

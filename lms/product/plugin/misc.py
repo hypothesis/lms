@@ -1,5 +1,3 @@
-from typing import Optional
-
 from lms.models import LTIParams, LTIRegistration
 from lms.services.html_service import strip_html_tags
 
@@ -55,7 +53,7 @@ class MiscPlugin:
 
     def get_document_url(
         self, request, assignment, historical_assignment
-    ) -> Optional[str]:
+    ) -> str | None:
         """Get a document URL from an assignment launch."""
 
         if assignment:

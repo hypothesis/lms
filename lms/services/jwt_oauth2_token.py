@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from typing import Optional
 
 from lms.models.jwt_oauth2_token import JWTOAuth2Token
 
@@ -37,7 +36,7 @@ class JWTOAuth2TokenService:
 
     def get_token(
         self, lti_registration, scopes: list[str], exclude_expired=True
-    ) -> Optional[JWTOAuth2Token]:
+    ) -> JWTOAuth2Token | None:
         """
         Get a token for the given registration and scopes if present in the DB.
 

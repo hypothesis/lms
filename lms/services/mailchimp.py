@@ -1,7 +1,6 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 import mailchimp_transactional
 from pyramid.renderers import render
@@ -48,9 +47,9 @@ class MailchimpService:
         sender: EmailSender,
         recipient: EmailRecipient,
         template_vars: dict,
-        unsubscribe_url: Optional[str] = None,
-        task_done_key: Optional[str] = None,
-        task_done_data: Optional[dict] = None,
+        unsubscribe_url: str | None = None,
+        task_done_key: str | None = None,
+        task_done_data: dict | None = None,
     ):
         """
         Send an email using Mailchimp Transactional's API.

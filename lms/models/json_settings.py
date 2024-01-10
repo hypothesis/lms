@@ -1,6 +1,6 @@
 import base64
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 import sqlalchemy as sa
 from sqlalchemy.ext.mutable import MutableDict
@@ -23,7 +23,7 @@ class JSONSetting:
     format: Any = str
     """An identifier to say what type of field this is."""
 
-    name: Optional[str] = None
+    name: str | None = None
     """An optional name for the field."""
 
     @property
@@ -67,7 +67,7 @@ class JSONSettings(MutableDict):
     >>> model.settings.changed()
     """
 
-    fields: Optional[tuple[JSONSetting, ...]] = None
+    fields: tuple[JSONSetting, ...] | None = None
     """
     An optional spec for the acceptable fields and types.
     """
@@ -122,7 +122,7 @@ class JSONSettings(MutableDict):
             aes_iv
         ).decode("utf-8")
 
-    def get_secret(self, aes_service, group, key) -> Optional[str]:
+    def get_secret(self, aes_service, group, key) -> str | None:
         """
         Get a secret setting.
 

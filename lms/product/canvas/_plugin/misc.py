@@ -1,6 +1,5 @@
 import re
 from functools import lru_cache
-from typing import Optional
 from urllib.parse import unquote, urlencode, urlparse
 
 from lms.product.plugin.misc import MiscPlugin
@@ -41,7 +40,7 @@ class CanvasMiscPlugin(MiscPlugin):
     @lru_cache(1)
     def get_document_url(
         self, request, assignment, historical_assignment
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Get the configured document for this LTI launch.
 

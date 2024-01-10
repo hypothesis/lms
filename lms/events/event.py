@@ -1,5 +1,4 @@
 from dataclasses import asdict, dataclass, field, fields
-from typing import Optional
 
 from pyramid.request import Request
 from sqlalchemy import inspect
@@ -18,21 +17,21 @@ class BaseEvent:  # pylint:disable=too-many-instance-attributes
     type: EventType.Type
     """Type of the event"""
 
-    request: Optional[Request] = None
+    request: Request | None = None
     """Reference to the current request"""
 
-    user_id: Optional[int] = None
+    user_id: int | None = None
     """Which user is related to this event"""
 
     role_ids: list[int] = field(default_factory=list)
     """Which roles does the user have in relation to this event"""
 
-    application_instance_id: Optional[int] = None
-    course_id: Optional[int] = None
-    assignment_id: Optional[int] = None
-    grouping_id: Optional[int] = None
+    application_instance_id: int | None = None
+    course_id: int | None = None
+    assignment_id: int | None = None
+    grouping_id: int | None = None
 
-    data: Optional[dict] = None
+    data: dict | None = None
     """Extra data to associate with this event"""
 
     def __post_init__(self):

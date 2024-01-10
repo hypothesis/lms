@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from lms.models.application_instance import ApplicationInstance
 from lms.models.h_user import HUser
@@ -11,7 +10,7 @@ class LTI:
     course_id: str
     """ID of the course in the LMS, context_id using LTI naming"""
 
-    assignment_id: Optional[str] = None
+    assignment_id: str | None = None
     """ID of the assignment in the LMS, resource_link_id using LTI naming"""
 
 

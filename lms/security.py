@@ -2,7 +2,7 @@ import base64
 from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache, partial
-from typing import Callable, NamedTuple, Optional
+from typing import Callable, NamedTuple
 
 import sentry_sdk
 from pyramid.authentication import AuthTktCookieHelper
@@ -32,7 +32,7 @@ class DeniedWithException(Denied):
 class Identity(NamedTuple):
     userid: str
     permissions: list[str]
-    lti_user: Optional[LTIUser] = None
+    lti_user: LTIUser | None = None
 
 
 class Permissions(Enum):
@@ -224,7 +224,7 @@ class EmailPreferencesIdentity:
     """The identity class used by EmailPreferencesSecurityPolicy."""
 
     h_userid: str
-    tag: Optional[str] = None
+    tag: str | None = None
 
 
 class EmailPreferencesSecurityPolicy:
@@ -307,7 +307,7 @@ def get_lti_user_from_oauth_callback(request) -> LTIUser:
 
 
 @lru_cache(maxsize=1)
-def get_lti_user(request) -> Optional[LTIUser]:
+def get_lti_user(request) -> LTIUser | None:
     """
     Return a models.LTIUser for the authenticated LTI user.
 

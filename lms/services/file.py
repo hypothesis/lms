@@ -1,5 +1,3 @@
-from typing import Optional
-
 from sqlalchemy import func
 
 from lms.models import ApplicationInstance, File
@@ -11,7 +9,7 @@ class FileService:
         self._application_instance = application_instance
         self._db = db
 
-    def get(self, lms_id, type_, course_id=None) -> Optional[File]:
+    def get(self, lms_id, type_, course_id=None) -> File | None:
         """Return the file with the given parameters or None."""
         return (
             self._file_search_query(

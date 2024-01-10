@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime, timezone
-from typing import Optional
 from urllib.parse import urlparse
 
 from lms.product.family import Family
@@ -77,7 +76,7 @@ class LTI13GradingService(LTIGradingService):
             result.comment = self._misc_plugin.clean_lms_grading_comment(comment)
         return result
 
-    def get_score_maximum(self, resource_link_id) -> Optional[float]:
+    def get_score_maximum(self, resource_link_id) -> float | None:
         return self._read_grading_configuration(resource_link_id).get("scoreMaximum")
 
     def record_result(self, grading_id, score=None, pre_record_hook=None, comment=None):

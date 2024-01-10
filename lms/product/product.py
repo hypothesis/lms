@@ -1,7 +1,6 @@
 """Core models of the product."""
 
 from dataclasses import InitVar, dataclass
-from typing import Optional
 
 from lms.product.family import Family  # pylint:disable=unused-import
 from lms.product.plugin import PluginConfig, Plugins
@@ -11,10 +10,10 @@ from lms.product.plugin import PluginConfig, Plugins
 class Routes:
     """A collection of Pyramid route names for various functions."""
 
-    oauth2_authorize: Optional[str] = None
+    oauth2_authorize: str | None = None
     """Authorizing with OAuth 2."""
 
-    oauth2_refresh: Optional[str] = None
+    oauth2_refresh: str | None = None
     """Refreshing OAuth 2 tokens."""
 
 
@@ -30,7 +29,7 @@ class Settings:
     files_enabled: bool = False
     """Is this product files feature enabled"""
 
-    custom: Optional[dict] = None
+    custom: dict | None = None
     """Other non-standard settings."""
 
     def __post_init__(self, product_settings):
@@ -48,7 +47,7 @@ class Product:
     plugin_config: PluginConfig = PluginConfig()
     route: Routes = Routes()
     family: Family = Family.UNKNOWN
-    settings_key: Optional[str] = None
+    settings_key: str | None = None
     """Key in the ai.settings dictionary that holds the product specific settings"""
 
     use_toolbar_grading = True
