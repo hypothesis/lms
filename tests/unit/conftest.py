@@ -329,4 +329,4 @@ def oauth_token(lti_user, application_instance):
 
 @pytest.fixture(autouse=True, scope="session")
 def with_us_region():
-    models.Regions.set_region(authority="lms.hypothes.is")
+    models.Regions.set_region(authority="lms.hypothes.is", code="us")

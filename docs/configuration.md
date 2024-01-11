@@ -40,6 +40,7 @@ LMS. Each of these is mandatory to get the service working correctly.
 | `H_API_URL_PRIVATE`               | `https://cloud.hosting.url/api`        | URL for service to service communication        |
 | `H_API_URL_PUBLIC`                | `https://fr.hypothes.is/api`           | URL for client to service communication         |
 | `H_AUTHORITY`                     | `lms.eg.hypothes.is`                   | An authority to separate LMS annotations in `h` |
+| `REGION_CODE`                     | `us`                                   | The deployment's region code                    |
 | `H_CLIENT_ID`                     | `fedcba98-7654-3210-fedc-ba9876543210` | A `client_credentials` OAuth2 pair from `h`     |
 | `H_CLIENT_SECRET`                 | `0123456789abcdefghijklmnopqrABCDEFGH` | A `client_credentials` OAuth2 pair from `h`     |
 | `H_JWT_CLIENT_ID`                 | `fedcba98-7654-3210-fedc-ba9876543210` | A `jwt_bearer` OAuth2 pair from `h`             |

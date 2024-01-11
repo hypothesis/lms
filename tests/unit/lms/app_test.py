@@ -33,13 +33,16 @@ class TestCreateApp:
         create_app(sentinel.pyramid_config, **settings)
 
         configure.assert_called_once_with(settings=settings)
-        Regions.set_region.assert_called_once_with(sentinel.h_authority)
+        Regions.set_region.assert_called_once_with(
+            sentinel.h_authority, sentinel.region_code
+        )
 
     @pytest.fixture(autouse=True)
     def registry(self, configure):
         registry = configure.return_value.registry
         registry.settings = {
             "h_authority": sentinel.h_authority,
+            "region_code": sentinel.region_code,
             "lms_secret": sentinel.lms_secret,
             "admin_auth_google_client_id": sentinel.admin_auth_google_client_id,
             "admin_auth_google_client_secret": sentinel.admin_auth_google_client_secret,
