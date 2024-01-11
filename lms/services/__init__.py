@@ -30,6 +30,7 @@ from lms.services.lti_role_service import LTIRoleService
 from lms.services.lti_user import LTIUserService
 from lms.services.ltia_http import LTIAHTTPService
 from lms.services.organization import OrganizationService
+from lms.services.region import RegionService
 from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
 from lms.services.user_preferences import UserPreferencesService
@@ -121,6 +122,7 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.organization.service_factory", iface=OrganizationService
     )
+    config.register_service_factory("lms.services.region.factory", iface=RegionService)
     config.register_service_factory(
         "lms.services.d2l_api.d2l_api_client_factory", iface=D2LAPIClient
     )
