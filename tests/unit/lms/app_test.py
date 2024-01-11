@@ -27,15 +27,12 @@ class TestConfigureJinja2Assets:
 
 
 class TestCreateApp:
-    def test_it(self, configure, Regions):
+    def test_it(self, configure):
         settings = {"key": "value"}
 
         create_app(sentinel.pyramid_config, **settings)
 
         configure.assert_called_once_with(settings=settings)
-        Regions.set_region.assert_called_once_with(
-            sentinel.h_authority, sentinel.region_code
-        )
 
     @pytest.fixture(autouse=True)
     def registry(self, configure):
@@ -48,10 +45,6 @@ class TestCreateApp:
             "admin_auth_google_client_secret": sentinel.admin_auth_google_client_secret,
         }
         return registry
-
-    @pytest.fixture(autouse=True)
-    def Regions(self, patch):
-        return patch("lms.app.Regions")
 
     @pytest.fixture(autouse=True)
     def configure(self, patch):

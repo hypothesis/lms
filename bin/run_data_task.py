@@ -14,7 +14,7 @@ from data_tasks.python_script import PythonScript
 from psycopg2.extensions import parse_dsn
 from pyramid.paster import bootstrap
 
-from lms.models import Regions
+from lms.services import RegionService
 
 TASK_ROOT = importlib_resources.files("lms.data_tasks")
 
@@ -53,13 +53,11 @@ def main():
         request = env["request"]
         settings = env["registry"].settings
 
-        Regions.set_region(settings["h_authority"], settings["region_code"])
-
         scripts = data_tasks.from_dir(
             task_dir=TASK_ROOT / args.task,
             template_vars={
                 "db_user": parse_dsn(settings["database_url"].strip())["user"],
-                "region": Regions.get_region(),
+                "region": request.find_service(RegionService).get(),
                 "h_fdw": parse_dsn(settings["h_fdw_database_url"]),
                 "fdw_users": settings["fdw_users"],
             },

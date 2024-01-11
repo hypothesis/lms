@@ -7,7 +7,6 @@ import sqlalchemy
 from pyramid import testing
 from pyramid.request import apply_request_extensions
 
-from lms import models
 from lms.db import SESSION
 from lms.models import ApplicationSettings, LTIParams
 from lms.models.lti_role import Role, RoleScope, RoleType
@@ -325,8 +324,3 @@ def oauth_token(lti_user, application_instance):
         user_id=lti_user.user_id,
         application_instance=application_instance,
     )
-
-
-@pytest.fixture(autouse=True, scope="session")
-def with_us_region():
-    models.Regions.set_region(authority="lms.hypothes.is", code="us")
