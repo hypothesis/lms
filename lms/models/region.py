@@ -65,12 +65,3 @@ class Regions:
         :raises ValueError: If `code` isn't a known region code
         """
         cls._current_region = cls.from_code(authority, code)
-
-
-def includeme(config):
-    config.add_request_method(
-        lambda _request: Regions.get_region(),
-        name="region",
-        property=True,
-        reify=True,
-    )
