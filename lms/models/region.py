@@ -1,38 +1,25 @@
 from dataclasses import dataclass
 
 
-@dataclass(frozen=True)
+@dataclass
 class Region:
     """Codes and details related to a deployment region."""
 
     code: str
     """Region code (e.g. ISO 3166 alpha-2 country code)."""
 
-    name: str
-    """Human readable description of the region."""
-
     authority: str
     """Associated Hypothesis authority."""
+
+    def __post_init__(self):
+        names = {"us": "Worldwide (U.S.)", "ca": "Canada"}
+
+        #: Human readable description of the region.
+        self.name: str = names[self.code]
 
 
 class Regions:
     """A collection of all the regions as an enum like object."""
-
-    @classmethod
-    def from_code(cls, authority: str, code: str) -> Region:
-        """
-        Get a region object based on its code.
-
-        :raises ValueError: If no valid region can be found.
-        """
-        names = {"us": "Worldwide (U.S.)", "ca": "Canada"}
-
-        try:
-            name = names[code]
-        except KeyError as err:
-            raise ValueError(f"Cannot find a name for the code '{code}'") from err
-
-        return Region(code=code, name=name, authority=authority)
 
     _current_region: Region = None
 
@@ -64,4 +51,4 @@ class Regions:
 
         :raises ValueError: If `code` isn't a known region code
         """
-        cls._current_region = cls.from_code(authority, code)
+        cls._current_region = Region(code=code, authority=authority)
