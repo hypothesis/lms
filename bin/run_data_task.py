@@ -53,7 +53,7 @@ def main():
         request = env["request"]
         settings = env["registry"].settings
 
-        Regions.set_region(settings["h_authority"])
+        Regions.set_region(settings["h_authority"], settings["region_code"])
 
         scripts = data_tasks.from_dir(
             task_dir=TASK_ROOT / args.task,

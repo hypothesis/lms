@@ -48,15 +48,13 @@ class PublicId:
     def parse(
         cls,
         public_id: str,
-        expect_app_code: str | None = "lms",
-        expect_model_code: str | None = None,
-        expect_region: Region | None = None,
+        expect_model_code: str,
+        expect_region: Region,
     ):
         """
         Parse a public id string into a PublicID object.
 
         :param public_id: Public id to parse
-        :param expect_app_code: Expect the specified app code
         :param expect_model_code: Expect the specified model code
         :param expect_region: Expect the specified region
 
@@ -71,22 +69,17 @@ class PublicId:
 
         region_code, app_code, model_code, instance_id = parts
 
-        if expect_app_code and app_code != expect_app_code:
-            raise InvalidPublicId(
-                f"Expected app '{expect_app_code}', found '{app_code}'"
-            )
-
-        if expect_model_code and model_code != expect_model_code:
+        if model_code != expect_model_code:
             raise InvalidPublicId(
                 f"Expected model '{expect_model_code}', found '{model_code}'"
             )
 
         try:
-            region = Regions.from_code(region_code)
+            region = Regions.from_code(expect_region.authority, region_code)
         except ValueError as exc:
             raise InvalidPublicId(exc.args[0]) from exc
 
-        if expect_region and region != expect_region:
+        if region != expect_region:
             raise InvalidPublicId(
                 f"Expected region '{expect_region}', found '{region}'"
             )

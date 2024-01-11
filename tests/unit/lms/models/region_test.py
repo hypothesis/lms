@@ -5,23 +5,36 @@ import pytest
 from h_matchers import Any
 from pyramid.config import Configurator
 
-from lms.models.region import Regions, includeme
+from lms.models.region import Region, Regions, includeme
 
 
 class TestRegions:
-    @pytest.mark.parametrize("code,region", (("us", Regions.US), ("ca", Regions.CA)))
+    @pytest.mark.parametrize(
+        "code,region",
+        (
+            (
+                "us",
+                Region(
+                    code="us", name="Worldwide (U.S.)", authority=sentinel.authority
+                ),
+            ),
+            ("ca", Region(code="ca", name="Canada", authority=sentinel.authority)),
+        ),
+    )
     def test_from_code(self, code, region):
-        assert Regions.from_code(code) == region
+        assert Regions.from_code(sentinel.authority, code) == region
 
     @pytest.mark.parametrize("bad_code", (None, "UNRECOGNIZED"))
     def test_from_code_raises_ValueError_for_bad_code(self, bad_code):
         with pytest.raises(ValueError):
-            Regions.from_code(bad_code)
+            Regions.from_code(sentinel.authority, bad_code)
 
     def test_get_region(self, current_region):
-        current_region.return_value = Regions.CA
+        current_region.return_value = Region(
+            code=sentinel.code, name=sentinel.name, authority=sentinel.authority
+        )
 
-        assert Regions.get_region() == Regions.CA
+        assert Regions.get_region() == current_region.return_value
 
     def test_get_region_with_no_region(self, current_region):
         current_region.return_value = None
@@ -29,14 +42,10 @@ class TestRegions:
         with pytest.raises(ValueError):
             Regions.get_region()
 
-    @pytest.mark.parametrize("bad_authority", (None, "UNRECOGNIZED"))
-    def test_from_request_raises_ValueError_for_bad_authorities(
-        self, pyramid_request, bad_authority
-    ):
-        pyramid_request.registry.settings["h_authority"] = bad_authority
-
+    @pytest.mark.parametrize("bad_code", (None, "UNRECOGNIZED"))
+    def test_set_region_raises_ValueError_for_bad_codes(self, bad_code):
         with pytest.raises(ValueError):
-            Regions.set_region(pyramid_request)
+            Regions.set_region(sentinel.authority, bad_code)
 
     @pytest.fixture
     def current_region(self):
