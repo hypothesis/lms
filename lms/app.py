@@ -3,7 +3,6 @@ import pyramid_tm
 from sqlalchemy.exc import IntegrityError
 
 from lms.config import configure
-from lms.models.region import Regions
 
 
 def configure_jinja2_assets(config):
@@ -14,12 +13,6 @@ def configure_jinja2_assets(config):
 
 def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config = configure(settings=settings)
-
-    # Set the singleton region, so it's accesible globally without going
-    # through the request object etc.
-    Regions.set_region(
-        config.registry.settings["h_authority"], config.registry.settings["region_code"]
-    )
 
     # Make sure that pyramid_exclog's tween runs under pyramid_tm's tween so
     # that pyramid_exclog doesn't re-open the DB session after pyramid_tm has
