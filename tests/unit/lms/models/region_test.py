@@ -6,31 +6,25 @@ import pytest
 from lms.models.region import Region, Regions
 
 
-class TestRegions:
+class TestRegion:
     @pytest.mark.parametrize(
-        "code,region",
-        (
-            (
-                "us",
-                Region(
-                    code="us", name="Worldwide (U.S.)", authority=sentinel.authority
-                ),
-            ),
-            ("ca", Region(code="ca", name="Canada", authority=sentinel.authority)),
-        ),
+        "code,name", [("us", "Worldwide (U.S.)"), ("ca", "Canada")]
     )
-    def test_from_code(self, code, region):
-        assert Regions.from_code(sentinel.authority, code) == region
+    def test_it(self, code, name):
+        region = Region(code=code, authority=sentinel.authority)
 
-    @pytest.mark.parametrize("bad_code", (None, "UNRECOGNIZED"))
-    def test_from_code_raises_ValueError_for_bad_code(self, bad_code):
-        with pytest.raises(ValueError):
-            Regions.from_code(sentinel.authority, bad_code)
+        assert region.code == code
+        assert region.authority == sentinel.authority
+        assert region.name == name
 
+    def test_it_crashes_if_the_code_is_unknown(self):
+        with pytest.raises(KeyError):
+            Region(code="unknown_code", authority=sentinel.authority_)
+
+
+class TestRegions:
     def test_get_region(self, current_region):
-        current_region.return_value = Region(
-            code=sentinel.code, name=sentinel.name, authority=sentinel.authority
-        )
+        current_region.return_value = Region(code="us", authority=sentinel.authority)
 
         assert Regions.get_region() == current_region.return_value
 
@@ -41,8 +35,8 @@ class TestRegions:
             Regions.get_region()
 
     @pytest.mark.parametrize("bad_code", (None, "UNRECOGNIZED"))
-    def test_set_region_raises_ValueError_for_bad_codes(self, bad_code):
-        with pytest.raises(ValueError):
+    def test_set_region_raises_for_bad_codes(self, bad_code):
+        with pytest.raises(KeyError):
             Regions.set_region(sentinel.authority, bad_code)
 
     @pytest.fixture

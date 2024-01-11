@@ -2,7 +2,7 @@ from base64 import urlsafe_b64encode
 from dataclasses import dataclass
 from uuid import uuid4
 
-from lms.models.region import Region, Regions
+from lms.models.region import Region
 
 
 class InvalidPublicId(Exception):
@@ -75,8 +75,8 @@ class PublicId:
             )
 
         try:
-            region = Regions.from_code(expect_region.authority, region_code)
-        except ValueError as exc:
+            region = Region(code=region_code, authority=expect_region.authority)
+        except KeyError as exc:
             raise InvalidPublicId(exc.args[0]) from exc
 
         if region != expect_region:
