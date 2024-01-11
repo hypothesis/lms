@@ -18,25 +18,21 @@ class Region:
 class Regions:
     """A collection of all the regions as an enum like object."""
 
-    # As region objects are frozen, these can be directly compared like enums
-    US = Region(code="us", name="Worldwide (U.S.)", authority="lms.hypothes.is")
-    CA = Region(code="ca", name="Canada", authority="lms.ca.hypothes.is")
-    ALL = US, CA
-
-    _AUTHORITY_MAP = {region.authority: region for region in ALL}
-    _CODE_MAP = {region.code: region for region in ALL}
-
     @classmethod
-    def from_code(cls, code: str) -> Region:
+    def from_code(cls, authority: str, code: str) -> Region:
         """
         Get a region object based on its code.
 
         :raises ValueError: If no valid region can be found.
         """
+        names = {"us": "Worldwide (U.S.)", "ca": "Canada"}
+
         try:
-            return cls._CODE_MAP[code]
+            name = names[code]
         except KeyError as err:
-            raise ValueError(f"Cannot find a region for the code '{code}'") from err
+            raise ValueError(f"Cannot find a name for the code '{code}'") from err
+
+        return Region(code=code, name=name, authority=authority)
 
     _current_region: Region = None
 
@@ -56,22 +52,19 @@ class Regions:
         return cls._current_region
 
     @classmethod
-    def set_region(cls, authority: str):
+    def set_region(cls, authority: str, code: str):
         """
         Set the region this app is running in.
 
         This is intended to be called once and accessed as a singleton via
         `get_region()`.
-        :param authority: The H authority for this app.
 
-        :raises ValueError: If the authority provided doesn't match a region
+        :param authority: The H authority for this app.
+        :param code: The region code for this app.
+
+        :raises ValueError: If `code` isn't a known region code
         """
-        try:
-            cls._current_region = cls._AUTHORITY_MAP[authority]
-        except KeyError as err:
-            raise ValueError(
-                f"Cannot find a region for the authority '{authority}'"
-            ) from err
+        cls._current_region = cls.from_code(authority, code)
 
 
 def includeme(config):
