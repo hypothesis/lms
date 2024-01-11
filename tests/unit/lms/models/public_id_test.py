@@ -10,9 +10,7 @@ from lms.models.region import Region
 class TestPublicId:
     def test_it_generates_ids(self):
         public_id = PublicId(
-            region=Region(
-                code="us", name="Worldwide (U.S.)", authority="lms.hypothes.is"
-            ),
+            region=Region(code="us", authority="lms.hypothes.is"),
             model_code="code",
         )
 
@@ -24,7 +22,7 @@ class TestPublicId:
         )
 
     def test_parse(self):
-        region = Region(code="us", name="Worldwide (U.S.)", authority="lms.hypothes.is")
+        region = Region(code="us", authority="lms.hypothes.is")
         public_id = PublicId.parse(
             "us.APP_CODE.MODEL_CODE.INSTANCE_ID",
             expect_model_code="MODEL_CODE",
@@ -51,27 +49,20 @@ class TestPublicId:
             PublicId.parse(
                 "NOT_A_REGION_CODE.lms.model.id",
                 expect_model_code="model",
-                expect_region=Region(
-                    code="ca", name="Canada", authority="lms.ca.hypothes.is"
-                ),
+                expect_region=Region(code="ca", authority="lms.ca.hypothes.is"),
             )
 
     @pytest.mark.parametrize(
         "kwargs",
         (
             {"expect_model_code": "not_model"},
-            {
-                "expect_region": Region(
-                    code="ca", name="Canada", authority="lms.ca.hypothes.is"
-                )
-            },
+            {"expect_region": Region(code="ca", authority="lms.ca.hypothes.is")},
         ),
     )
     def test_parse_raises_with_expectations_missed(self, kwargs):
         kwargs.setdefault("expect_model_code", "model")
         kwargs.setdefault(
-            "expect_region",
-            Region(code="us", name="Worldwide (U.S.)", authority="lms.hypothes.is"),
+            "expect_region", Region(code="us", authority="lms.hypothes.is")
         )
         with pytest.raises(InvalidPublicId):
             PublicId.parse("us.lms.model.id", **kwargs)
@@ -82,9 +73,7 @@ class TestPublicId:
     @pytest.fixture
     def public_id(self):
         return PublicId(
-            region=Region(
-                code="us", name="Worldwide (U.S.)", authority="lms.hypothes.is"
-            ),
+            region=Region(code="us", authority="lms.hypothes.is"),
             model_code="MODEL_CODE",
             app_code="APP_CODE",
             instance_id="INSTANCE_ID",
