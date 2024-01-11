@@ -1,8 +1,14 @@
+from os import environ
+
 import sqlalchemy as sa
 from sqlalchemy.ext.hybrid import Comparator, hybrid_property
 
 from lms.models.public_id import PublicId
-from lms.models.region import Regions
+from lms.models.region import Region
+
+
+def _get_current_region():
+    return Region(code=environ["REGION_CODE"], authority=environ["H_AUTHORITY"])
 
 
 class _PublicIdComparator(
@@ -17,7 +23,7 @@ class _PublicIdComparator(
                 # Using str here allows us to accept a public id object
                 public_id=str(other),
                 expect_model_code=self.expression.class_.public_id_model_code,
-                expect_region=Regions.get_region(),
+                expect_region=_get_current_region(),
             ).instance_id
         )
 
@@ -50,7 +56,7 @@ class PublicIdMixin:
 
         return str(
             PublicId(
-                region=Regions.get_region(),
+                region=_get_current_region(),
                 model_code=self.public_id_model_code,
                 instance_id=self._public_id,
             )
