@@ -6,8 +6,7 @@ from pyramid.view import view_config, view_defaults
 from webargs import fields
 
 from lms.events import AuditTrailEvent
-from lms.models import Organization
-from lms.models.public_id import InvalidPublicId
+from lms.models import InvalidOrganizationPublicId, Organization
 from lms.security import Permissions
 from lms.services import OrganizationService
 from lms.services.organization import InvalidOrganizationParent
@@ -123,7 +122,7 @@ class AdminOrganizationViews:
                 or None,
             )
             self.request.session.flash("Moved organization", "messages")
-        except (InvalidPublicId, InvalidOrganizationParent) as err:
+        except (InvalidOrganizationPublicId, InvalidOrganizationParent) as err:
             self.request.session.flash(
                 f"Could not move organization id: {err}", "errors"
             )
@@ -166,7 +165,7 @@ class AdminOrganizationViews:
                 public_id=self.request.params.get("public_id", "").strip(),
                 guid=self.request.params.get("guid", "").strip(),
             )
-        except InvalidPublicId as err:
+        except InvalidOrganizationPublicId as err:
             self.request.session.flash(str(err), "errors")
             orgs = []
 

@@ -3,7 +3,7 @@ from pyramid.view import view_config, view_defaults
 from sqlalchemy.exc import IntegrityError
 from webargs import fields
 
-from lms.models.public_id import InvalidPublicId
+from lms.models import InvalidOrganizationPublicId
 from lms.security import Permissions
 from lms.services import LTIRegistrationService
 from lms.validation._base import PyramidRequestSchema
@@ -88,7 +88,7 @@ class CreateApplicationInstanceViews(BaseApplicationInstanceView):
                 lti_registration_id=lti_registration_id,
             )
 
-        except InvalidPublicId as err:
+        except InvalidOrganizationPublicId as err:
             self.request.session.flash(
                 {"organization_public_id": [str(err)]}, "validation"
             )

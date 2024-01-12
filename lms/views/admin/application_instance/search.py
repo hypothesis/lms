@@ -2,9 +2,8 @@ from marshmallow import validate
 from pyramid.view import view_config, view_defaults
 from webargs import fields
 
-from lms.models import ApplicationSettings
+from lms.models import ApplicationSettings, InvalidOrganizationPublicId
 from lms.models.json_settings import JSONSetting
-from lms.models.public_id import InvalidPublicId
 from lms.security import Permissions
 from lms.validation import PyramidRequestSchema
 from lms.views.admin import flash_validation
@@ -78,7 +77,7 @@ class SearchApplicationInstanceViews(BaseApplicationInstanceView):
                 settings=settings,
             )
 
-        except InvalidPublicId as err:
+        except InvalidOrganizationPublicId as err:
             self.request.session.flash(
                 {"organization_public_id": [str(err)]}, "validation"
             )

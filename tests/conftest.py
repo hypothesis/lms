@@ -107,7 +107,6 @@ def envvars(monkeypatch):
     # So as a workaround this fixture makes sure that these envvars are set for
     # all tests.
     #
-    # It would be better if our model code did not read os.environ, then we
-    # wouldn't need this fixture.
+    # It would be better if our model code did not read os.environ, then we wouldn't need this fixture.
     monkeypatch.setenv("REGION_CODE", "us")
     monkeypatch.setenv("H_AUTHORITY", "lms.hypothes.is")

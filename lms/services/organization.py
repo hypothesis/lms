@@ -116,7 +116,10 @@ class OrganizationService:
             clauses.append(Organization.id == id_)
 
         if public_id:
-            clauses.append(Organization.public_id == public_id)
+            public_id = Organization.remove_prefix(public_id)
+            clauses.append(
+                Organization._public_id == public_id  # pylint:disable=protected-access
+            )
 
         if name:
             clauses.append(full_text_match(Organization.name, name))

@@ -7,7 +7,13 @@ import sqlalchemy as sa
 from sqlalchemy.exc import NoResultFound
 
 from lms.db import full_text_match
-from lms.models import ApplicationInstance, JSONSettings, LTIParams, LTIRegistration
+from lms.models import (
+    ApplicationInstance,
+    JSONSettings,
+    LTIParams,
+    LTIRegistration,
+    Organization,
+)
 from lms.services.aes import AESService
 from lms.services.exceptions import SerializableError
 from lms.services.organization import OrganizationService
@@ -253,8 +259,9 @@ class ApplicationInstanceService:
             )
 
         if organization_public_id:
+            organization_public_id = Organization.remove_prefix(organization_public_id)
             query = query.filter(
-                ApplicationInstance.organization.has(public_id=organization_public_id)
+                ApplicationInstance.organization.has(_public_id=organization_public_id)
             )
 
         return query
