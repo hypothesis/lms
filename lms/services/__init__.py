@@ -29,6 +29,7 @@ from lms.services.lti_registration import LTIRegistrationService
 from lms.services.lti_role_service import LTIRoleService
 from lms.services.lti_user import LTIUserService
 from lms.services.ltia_http import LTIAHTTPService
+from lms.services.moodle import MoodleAPIClient
 from lms.services.organization import OrganizationService
 from lms.services.region import RegionService
 from lms.services.rsa_key import RSAKeyService
@@ -135,6 +136,7 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.youtube.factory", iface=YouTubeService
     )
+    config.register_service_factory(MoodleAPIClient.factory, iface=MoodleAPIClient)
 
     # Plugins are not the same as top level services but we want to register them as pyramid services too
     # Importing them here to:
