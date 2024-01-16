@@ -12,6 +12,7 @@ def includeme(config):
     config.include("lms.product.blackboard")
     config.include("lms.product.canvas")
     config.include("lms.product.d2l")
+    config.include("lms.product.moodle")
 
     # Add the `request.product` method
     config.add_request_method(
