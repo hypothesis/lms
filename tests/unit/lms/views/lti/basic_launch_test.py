@@ -292,6 +292,27 @@ class TestBasicLaunchViews:
 
         assert result == {}
 
+    @pytest.mark.parametrize("export_formats_feature", [True, False])
+    def test__show_document_enables_client_features(
+        self, svc, pyramid_request, context, assignment, export_formats_feature
+    ):
+        pyramid_request.lti_user.application_instance.settings.set(
+            "hypothesis", "export_formats_enabled", export_formats_feature
+        )
+
+        # pylint: disable=protected-access
+        svc._show_document(assignment)
+
+        enable_client_feature = context.js_config.enable_client_feature
+        enabled_features = set(
+            call.args[0] for call in enable_client_feature.call_args_list
+        )
+
+        if export_formats_feature:
+            assert "export_formats" in enabled_features
+        else:
+            assert "export_formats" not in enabled_features
+
     @pytest.fixture
     def assignment(self):
         return factories.Assignment(is_gradable=False)
