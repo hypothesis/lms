@@ -18,6 +18,7 @@ class Grouping(CreatedUpdatedMixin, BASE):
         CANVAS_GROUP = "canvas_group"
         BLACKBOARD_GROUP = "blackboard_group"
         D2L_GROUP = "d2l_group"
+        MOODLE_GROUP = "moodle_group"
 
         # These are the LMS agnostic versions of the ones avobe.
         # They don't get stored in the DB but are meaningful in the codebase

@@ -29,6 +29,7 @@ from lms.services.lti_registration import LTIRegistrationService
 from lms.services.lti_role_service import LTIRoleService
 from lms.services.lti_user import LTIUserService
 from lms.services.ltia_http import LTIAHTTPService
+from lms.services.moodle import MoodleAPIClient
 from lms.services.organization import OrganizationService
 from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
@@ -124,6 +125,7 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.d2l_api.d2l_api_client_factory", iface=D2LAPIClient
     )
+    config.register_service_factory(MoodleAPIClient.factory, iface=MoodleAPIClient)
     config.register_service_factory(
         "lms.services.digest.service_factory", iface=DigestService
     )
