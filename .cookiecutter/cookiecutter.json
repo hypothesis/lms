@@ -11,7 +11,8 @@
     "lms/migrations/env.py",
     "tests/functional/app_test.py",
     "bin/make_db",
-    "bin/make_devdata"
+    "bin/make_devdata",
+    "lms/templates/.gitkeep"
   ],
   "extra_context": {
     "name": "LMS",
