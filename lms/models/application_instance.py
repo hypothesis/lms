@@ -45,6 +45,7 @@ class ApplicationSettings(JSONSettings):
             name="Auto Assigned To Organisation",
         ),
         JSONSetting("hypothesis", "instructor_email_digests_enabled", asbool),
+        JSONSetting("hypothesis", "export_formats_enabled", asbool),
     )
 
 

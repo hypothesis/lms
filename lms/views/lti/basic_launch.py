@@ -210,11 +210,17 @@ class BasicLaunchViews:
         self.context.js_config.add_document_url(assignment.document_url)
         self.context.js_config.enable_lti_launch_mode(self.course, assignment)
 
+        export_formats_enabled = (
+            self.request.lti_user.application_instance.settings.get(
+                "hypothesis", "export_formats_enabled", False
+            )
+        )
+
         # If there are any Hypothesis client feature flags that need to be
         # enabled based on the current application instance settings, those
         # should be enabled here via `self.context.js_config.enable_client_feature`.
-        #
-        # There are currently no such features.
+        if export_formats_enabled:
+            self.context.js_config.enable_client_feature("export_formats")
 
         # Run any non standard code for the current product
         self._misc_plugin.post_launch_assignment_hook(
