@@ -5,6 +5,7 @@ dev: FEATURE_FLAGS_COOKIE_SECRET = {env:FEATURE_FLAGS_COOKIE_SECRET:notasecret}
 dev: FEATURE_FLAGS_ALLOWED_IN_COOKIE = {env:FEATURE_FLAGS_ALLOWED_IN_COOKIE:vitalsource}
 dev: H_AUTHORITY = {env:H_AUTHORITY:lms.hypothes.is}
 dev: REGION_CODE = {env:REGION_CODE:us}
+dev: REGION_NAME = {env:REGION_NAME:Worldwide (U.S.)}
 dev: H_API_URL_PUBLIC = {env:H_API_URL_PUBLIC:http://localhost:5000/api/}
 dev: H_API_URL_PRIVATE = {env:H_API_URL_PRIVATE:http://localhost:5000/api/}
 dev: MAILCHIMP_DIGESTS_SUBACCOUNT = {env:MAILCHIMP_DIGESTS_SUBACCOUNT:devdata}

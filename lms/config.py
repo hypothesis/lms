@@ -83,6 +83,8 @@ SETTINGS = (
     _Setting("h_authority"),
     # The deployment's region code (e.g. "us").
     _Setting("region_code"),
+    # The human-readable description of the deployment's region code.
+    _Setting("region_name"),
     # The public base URL of the h API (e.g. "https://hypothes.is/api).
     _Setting("h_api_url_public", value_mapper=_append_trailing_slash),
     # A private (within-VPC) URL for the same h API. Faster and more secure

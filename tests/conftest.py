@@ -26,6 +26,7 @@ TEST_SETTINGS = {
     "h_jwt_client_secret": "TEST_JWT_CLIENT_SECRET",
     "h_authority": "lms.hypothes.is",
     "region_code": "us",
+    "region_name": "Worldwide (U.S.)",
     "h_api_url_public": "https://h.example.com/api/",
     "h_api_url_private": "https://h.example.com/private/api/",
     "rpc_allowed_origins": ["http://localhost:5000"],
@@ -107,4 +108,5 @@ def envvars(monkeypatch):
     # It would be better if our model code did not read os.environ, then we
     # wouldn't need this fixture.
     monkeypatch.setenv("REGION_CODE", "us")
+    monkeypatch.setenv("REGION_NAME", "Worldwide (U.S.)")
     monkeypatch.setenv("H_AUTHORITY", "lms.hypothes.is")

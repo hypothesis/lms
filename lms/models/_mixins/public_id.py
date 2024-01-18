@@ -8,7 +8,11 @@ from lms.models.region import Region
 
 
 def _get_current_region():
-    return Region(code=environ["REGION_CODE"], authority=environ["H_AUTHORITY"])
+    return Region(
+        code=environ["REGION_CODE"],
+        name=environ["REGION_NAME"],
+        authority=environ["H_AUTHORITY"],
+    )
 
 
 class _PublicIdComparator(
