@@ -92,19 +92,3 @@ def db_session(db_engine, db_sessionfactory):
 @pytest.fixture
 def patch(request):
     return functools.partial(autopatcher, request)
-
-
-@pytest.fixture(autouse=True)
-def envvars(monkeypatch):
-    # Because we (unfortunately) have code at the lowest level of our codebase
-    # (in the models) that's reading these envvars directly from os.environ we
-    # get lots of unit and functional tests across our test suite failing when
-    # these envvars don't exist.
-    #
-    # So as a workaround this fixture makes sure that these envvars are set for
-    # all tests.
-    #
-    # It would be better if our model code did not read os.environ, then we
-    # wouldn't need this fixture.
-    monkeypatch.setenv("REGION_CODE", "us")
-    monkeypatch.setenv("H_AUTHORITY", "lms.hypothes.is")

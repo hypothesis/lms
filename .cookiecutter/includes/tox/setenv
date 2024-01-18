@@ -17,3 +17,5 @@ dev: SESSION_COOKIE_SECRET = {env:SESSION_COOKIE_SECRET:notasecret}
 VIA_SECRET = not_a_secret
 FDW_USERS = {env:FDW_USERS:report-fdw}
 HTTP_HOST = {env:HTTP_HOST:localhost:8001}
+tests,functests: REGION_CODE = us
+tests,functests: H_AUTHORITY = lms.hypothes.is
