@@ -74,10 +74,7 @@ class PublicId:
                 f"Expected model '{expect_model_code}', found '{model_code}'"
             )
 
-        try:
-            region = Region(code=region_code, authority=expect_region.authority)
-        except KeyError as exc:
-            raise InvalidPublicId(exc.args[0]) from exc
+        region = Region(code=region_code, authority=expect_region.authority)
 
         if region != expect_region:
             raise InvalidPublicId(
