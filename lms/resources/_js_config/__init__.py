@@ -113,6 +113,7 @@ class JSConfig:
                 )
 
             if svc.page_ranges_enabled:
+                self.enable_client_feature("search_panel")
                 content_config = svc.get_client_focus_config(document_url)
                 if content_config:
                     self._update_focus_config(content_config)
