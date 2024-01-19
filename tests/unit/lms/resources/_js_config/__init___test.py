@@ -356,6 +356,9 @@ class TestAddDocumentURL:
         client_config = js_config.asdict()["hypothesisClient"]
         focus_config = client_config.get("focus", {})
 
+        if page_ranges_enabled:
+            assert "search_panel" in js_config.asdict()["hypothesisClient"]["features"]
+
         if page_ranges_enabled and assignment_has_content_range:
             assert focus_config["page"] == "20-30"
         else:
