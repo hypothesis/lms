@@ -210,6 +210,10 @@ h-pyramid-sentry==1.2.4
     #   -r bddtests.txt
     #   -r functests.txt
     #   -r tests.txt
+h-testkit==1.0.1
+    # via
+    #   -r functests.txt
+    #   -r tests.txt
 h-vialib==1.2.1
     # via
     #   -r bddtests.txt
