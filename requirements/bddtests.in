@@ -6,4 +6,5 @@ factory-boy
 h-matchers
 webtest
 behave
+h-testkit
 -r prod.txt

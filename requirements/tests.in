@@ -7,6 +7,7 @@ pytest-xdist[psutil]
 factory-boy
 pytest-factoryboy
 h-matchers
+h-testkit
 httpretty
 freezegun
 aioresponses
