@@ -7,13 +7,12 @@ import httpretty
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from h_matchers import Any
+from h_testkit import set_factoryboy_sqlalchemy_session
 from sqlalchemy import text
 from webtest import TestApp
 
 from lms import db
 from lms.app import create_app
-from lms.db import SESSION
-from tests import factories
 from tests.conftest import TEST_SETTINGS
 
 TEST_SETTINGS["database_url"] = environ["DATABASE_URL"]
@@ -57,20 +56,19 @@ def app(pyramid_app):
 
 
 @pytest.fixture
-def db_session(db_engine):
+def db_session(db_engine, db_sessionfactory):
     """Get a standalone database session for preparing database state."""
 
-    conn = db_engine.connect()
-    session = SESSION(bind=conn)
+    connection = db_engine.connect()
+    session = db_sessionfactory(bind=connection)
 
-    factories.set_sqlalchemy_session(session, persistence="commit")
+    set_factoryboy_sqlalchemy_session(session, persistence="commit")
 
     try:
         yield session
     finally:
-        factories.clear_sqlalchemy_session()
         session.close()
-        conn.close()
+        connection.close()
 
 
 @pytest.fixture

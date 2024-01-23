@@ -114,6 +114,8 @@ h-matchers==1.2.15
     # via -r functests.in
 h-pyramid-sentry==1.2.4
     # via -r prod.txt
+h-testkit==1.0.1
+    # via -r functests.in
 h-vialib==1.2.1
     # via -r prod.txt
 httpretty==1.1.4

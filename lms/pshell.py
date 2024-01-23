@@ -2,6 +2,7 @@ import os
 import sys
 from contextlib import suppress
 
+from h_testkit import set_factoryboy_sqlalchemy_session
 from transaction.interfaces import NoTransaction
 
 from lms import models, services, tasks
@@ -33,7 +34,7 @@ def setup(env):
 
     env["f"] = env["factories"] = factories
     env["f"].__doc__ = "The test factories for quickly creating objects."
-    factories.set_sqlalchemy_session(request.db)
+    set_factoryboy_sqlalchemy_session(request.db)
 
     env["t"] = env["tasks"] = tasks
     env["tasks"].__doc__ = "The lms.tasks package."
