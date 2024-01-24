@@ -31,6 +31,7 @@ class LTIUserService:
                 lti_params.get("lis_person_name_given", ""),
                 lti_params.get("lis_person_name_family", ""),
                 lti_params.get("lis_person_name_full", ""),
+                lti_params.get("custom_display_name", ""),
             ),
             email=lti_params.get("lis_person_contact_email_primary"),
             lti={

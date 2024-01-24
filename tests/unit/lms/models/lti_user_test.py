@@ -76,35 +76,41 @@ class TestLTIUser:
 
 
 @pytest.mark.parametrize(
-    "given_name,family_name,full_name,expected_display_name",
+    "given_name,family_name,full_name,custom_display_name,expected_display_name",
     [
-        # It returns the full name if there is one.
-        ("given", "family", "full", "full"),
+        # It returns the display_name name if there is one.
+        ("given", "family", "full", "display", "display"),
+        # It returns the full name if there is one otherwise
+        ("given", "family", "full", "", "full"),
         # If there's no full name it concatenates given and family names.
-        ("given", "family", "", "given family"),
-        ("given", "family", " ", "given family"),
+        ("given", "family", "", "", "given family"),
+        ("given", "family", " ", "", "given family"),
         # If there's no full name or given name it uses just the family name.
-        ("", "family", " ", "family"),
+        ("", "family", " ", "", "family"),
         # If there's no full name or family name it uses just the given name.
-        ("given", "", "", "given"),
-        ("given", " ", " ", "given"),
+        ("given", "", "", "", "given"),
+        ("given", " ", " ", "", "given"),
         # If there's nothing else it just returns "Anonymous".
-        ("", "", "", "Anonymous"),
-        (" ", " ", " ", "Anonymous"),
+        ("", "", "", "", "Anonymous"),
+        (" ", " ", " ", "", "Anonymous"),
         # Test white space stripping
-        ("", "", " full ", "full"),
-        ("  given ", "", "", "given"),
-        ("", "  family ", "", "family"),
-        ("  given  ", "  family  ", "", "given family"),
+        ("", "", " full ", "", "full"),
+        ("  given ", "", "", "", "given"),
+        ("", "  family ", "", "", "family"),
+        ("  given  ", "  family  ", "", "", "given family"),
         # Test truncation
-        ("", "", "x" * 100, "x" * 29 + "…"),
-        ("x" * 100, "", "", "x" * 29 + "…"),
-        ("", "x" * 100, "", "x" * 29 + "…"),
-        ("given" * 3, "family" * 3, "", "givengivengiven familyfamilyf…"),
+        ("", "", "x" * 100, "", "x" * 29 + "…"),
+        ("x" * 100, "", "", "", "x" * 29 + "…"),
+        ("", "x" * 100, "", "", "x" * 29 + "…"),
+        ("given" * 3, "family" * 3, "", "", "givengivengiven familyfamilyf…"),
     ],
 )
-def test_display_name(given_name, family_name, full_name, expected_display_name):
-    display_name_ = display_name(given_name, family_name, full_name)
+def test_display_name(
+    given_name, family_name, full_name, custom_display_name, expected_display_name
+):
+    display_name_ = display_name(
+        given_name, family_name, full_name, custom_display_name
+    )
 
     assert display_name_ == expected_display_name
 

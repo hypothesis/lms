@@ -98,16 +98,13 @@ class LTIUser:  # pylint: disable=too-many-instance-attributes
         )
 
 
-def display_name(given_name, family_name, full_name):
+def display_name(given_name, family_name, full_name, custom_display_name):
     """
     Return an h-compatible display name the given name parts.
 
-    LTI 1.1 launch requests have separate given_name (lis_person_name_given),
-    family_name (lis_person_name_family) and full_name (lis_person_name_full)
-    parameters. This function returns a single display name string based on
-    these three separate names.
+    Try to come up with the best display_name based on the LTI parameters available.
     """
-    name = full_name.strip()
+    name = custom_display_name.strip() or full_name.strip()
 
     if not name:
         given_name = given_name.strip()
