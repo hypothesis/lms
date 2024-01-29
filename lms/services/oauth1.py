@@ -57,7 +57,7 @@ class OAuth1Service:
         # Include the data we want to send in the payload
         payload.update(data)
 
-        # Clean parameters and generate the plaint text to sign
+        # Clean parameters and generate the plain text to sign
         params = signature.collect_parameters(
             body=payload, exclude_oauth_signature=False, with_realm=False
         )
