@@ -141,6 +141,7 @@ class TestDeepLinkingFieldsView:
         misc_plugin,
         title,
         opaque_data_lti11,
+        oauth1_service,
     ):
         misc_plugin.get_deeplinking_launch_url.return_value = "LAUNCH_URL"
         pyramid_request.parsed_params["opaque_data_lti11"] = opaque_data_lti11
@@ -172,11 +173,15 @@ class TestDeepLinkingFieldsView:
         if title:
             content_items["@graph"][0]["title"] = title
 
-        assert json.loads(fields["content_items"]) == content_items
+        expected_fields = {"content_items": json.dumps(content_items)}
+
         if opaque_data_lti11:
-            assert fields["data"] == opaque_data_lti11
-        else:
-            assert "data" not in fields
+            expected_fields["data"] = opaque_data_lti11
+
+        oauth1_service.sign.assert_called_once_with(
+            sentinel.return_url, "post", expected_fields
+        )
+        assert fields == oauth1_service.sign.return_value
 
     @pytest.mark.parametrize(
         "content,expected_from_content",
@@ -229,6 +234,7 @@ class TestDeepLinkingFieldsView:
         pyramid_request.parsed_params = {
             "opaque_data_lti13": {"data": sentinel.deep_linking_settings_data},
             "content": {"type": "url", "url": "https://example.com"},
+            "content_item_return_url": sentinel.return_url,
             "extra_params": {},
         }
         return pyramid_request
