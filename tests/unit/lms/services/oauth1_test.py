@@ -1,7 +1,9 @@
+import hashlib
 import json
 from unittest import mock
 
 import pytest
+from h_matchers import Any
 from requests import Request
 
 from lms.services.oauth1 import OAuth1Service
@@ -44,6 +46,46 @@ class TestOAuth1Service:
         # one is present.
         assert "oauth_signature=" in auth_header
 
+    def test_sign(
+        self, service, signature, uuid, datetime, application_instance, hmac, base64
+    ):
+        datetime.now.return_value.timestamp.return_value = 10000
+
+        payload = {
+            "oauth_version": "1.0",
+            "oauth_nonce": uuid.uuid4.return_value.hex,
+            "oauth_timestamp": "10000",
+            "oauth_consumer_key": application_instance.consumer_key,
+            "oauth_signature_method": "HMAC-SHA1",
+            "KEY": "VALUE",
+        }
+
+        signed_payload = service.sign("URL", "POST", {"KEY": "VALUE"})
+
+        signature.collect_parameters.assert_called_once_with(
+            body=Any.dict.containing(payload),
+            exclude_oauth_signature=False,
+            with_realm=False,
+        )
+        signature.normalize_parameters.assert_called_once_with(
+            signature.collect_parameters.return_value
+        )
+        signature.signature_base_string.assert_called_once_with(
+            "POST", "URL", signature.normalize_parameters.return_value
+        )
+
+        hmac.new.assert_called_once_with(
+            (application_instance.shared_secret + "&").encode("utf-8"),
+            signature.signature_base_string.return_value.encode.return_value,
+            hashlib.sha1,
+        )
+        base64.b64encode.assert_called_once_with(
+            hmac.new.return_value.digest.return_value
+        )
+        assert signed_payload == dict(
+            payload, oauth_signature=base64.b64encode.return_value.decode.return_value
+        )
+
     @pytest.mark.parametrize(
         "key,secret,nonce,timestamp,data,url,method,signature",
         [
@@ -74,17 +116,6 @@ class TestOAuth1Service:
                                     "@type": "LtiLinkItem",
                                     "url": "http://localhost/lti",
                                     "title": "Sample LTI launch",
-                                    "text": "This is an example of an LTI launch link set via the Content-Item launch message.  Please launch it to pass the related certification test.",
-                                    "icon": {
-                                        "@id": "https://apps.imsglobal.org//lti/cert/images/icon.png",
-                                        "height": 50,
-                                        "width": 50,
-                                    },
-                                    "placementAdvice": {
-                                        "displayHeight": 400,
-                                        "displayWidth": 400,
-                                        "presentationDocumentTarget": "IFRAME",
-                                    },
                                     "lineItem": {
                                         "@type": "LineItem",
                                         "label": "Chapter 13 quiz",
@@ -100,16 +131,6 @@ class TestOAuth1Service:
                                             "totalMaximum": 110,
                                         },
                                     },
-                                    "custom": {
-                                        "imscert": "launchbHYnJGxZ",
-                                        "contextHistory": "$Context.id.history",
-                                        "resourceHistory": "$ResourceLink.id.history",
-                                        "dueDate": "$ResourceLink.submission.endDateTime",
-                                        "userName": "$User.username",
-                                        "userEmail": "$Person.email.primary",
-                                        "userSysRoles": "@X@user.role@X@",
-                                        "source": "link",
-                                    },
                                 },
                             ],
                         },
@@ -117,29 +138,12 @@ class TestOAuth1Service:
                     ),
                 },
                 "http://photos.example.net/photos",
-                "GET",
-                "7cZohgSjlkbH8mR1mwIh6+4BM80=",
-            ),
-            # Blackboard
-            (
-                "",
-                "",
-                "9d9764e4-7920-4d78-9ee9-4a2ca8188ec4",
-                1706518363,
-                {
-                    "content_items": '{"@context":"http://purl.imsglobal.org/ctx/lti/v1/ContentItem","@graph":[{"mediaType":"application/vnd.ims.lti.v1.ltilink","@type":"LtiLinkItem","url":"http://localhost/lti","title":"Sample LTI launch","text":"This is an example of an LTI launch link set via the Content-Item launch message.  Please launch it to pass the related certification test.","icon":{"@id" :"https://apps.imsglobal.org//lti/cert/images/icon.png","height":50,"width":50},"placementAdvice":{"displayHeight":400,"displayWidth":400,"presentationDocumentTarget":"IFRAME"},"lineItem":{"@type":"LineItem","label":"Chapter 13 quiz","reportingMethod":"res:totalScore","assignedActivity":{"@id":"http://toolprovider.example.com/assessment/66400","activityId":"a-9334df-33"},"scoreConstraints":{"@type":"NumericLimits","normalMaximum":100,"extraCreditMaximum":10,"totalMaximum":110}},"custom":{"imscert":"launch»bHYnJGxZ","contextHistory":"$Context.id.history","resourceHistory":"$ResourceLink.id.history","dueDate":"$ResourceLink.submission.endDateTime","userName":"$User.username","userEmail":"$Person.email.primary","userSysRoles":"@X@user.role@X@","source":"link"}}]}',
-                    "data": "_19_1::_27_1::-1::true::false::_299_1::3b1b99704eca4f72b759484388f03fa7::false::false",
-                    "lti_message_type": "ContentItemSelection",
-                    "lti_version": "LTI-1p0",
-                    "oauth_callback": "about:blank",
-                },
-                "https://aunltd-test.blackboard.com/webapps/blackboard/controller/lti/contentitem",
                 "POST",
-                "a5G1Lwe9gdLe3yiyYbTlRzYQMas=",
+                "vtKTwm3wPH36s3fz20JH2fNjh8I=",
             ),
         ],
     )
-    def test_sign(
+    def test_sign_signature_value(
         self,
         service,
         uuid,
@@ -164,7 +168,7 @@ class TestOAuth1Service:
 
         assert result["oauth_signature_method"] == "HMAC-SHA1"
         assert result["oauth_nonce"] == nonce
-        assert result["oauth_timestamp"] == timestamp
+        assert result["oauth_timestamp"] == str(timestamp)
         assert result["oauth_consumer_key"] == key
         assert result["oauth_signature"] == signature
 
@@ -184,6 +188,18 @@ class TestOAuth1Service:
     @pytest.fixture
     def datetime(self, patch):
         return patch("lms.services.oauth1.datetime")
+
+    @pytest.fixture
+    def signature(self, patch):
+        return patch("lms.services.oauth1.signature")
+
+    @pytest.fixture
+    def hmac(self, patch):
+        return patch("lms.services.oauth1.hmac")
+
+    @pytest.fixture
+    def base64(self, patch):
+        return patch("lms.services.oauth1.base64")
 
     @pytest.fixture
     def OAuth1(self, patch):
