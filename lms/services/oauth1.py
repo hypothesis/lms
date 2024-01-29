@@ -75,9 +75,7 @@ class OAuth1Service:
 
         return payload
 
-    def get_auth_parameters(
-        self, url: str, data: dict, method: str = "POST"
-    ) -> dict[str, str]:
+    def sign_2(self, url, method, data):
         request = Request(
             method,
             url=url,
