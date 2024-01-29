@@ -586,6 +586,7 @@ class TestAddDeepLinkingAPI:
         pyramid_request.lti_params.update(
             {
                 "content_item_return_url": sentinel.content_item_return_url,
+                "data": sentinel.data,
             }
         )
 
@@ -598,6 +599,7 @@ class TestAddDeepLinkingAPI:
                 "content_item_return_url": sentinel.content_item_return_url,
                 "lms": {"product": Product.Family.UNKNOWN},
                 "context_id": pyramid_request.lti_params["context_id"],
+                "opaque_data_lti11": sentinel.data,
             },
         }
 
@@ -617,7 +619,7 @@ class TestAddDeepLinkingAPI:
             "path": "/lti/1.3/deep_linking/form_fields",
             "data": {
                 "content_item_return_url": sentinel.content_item_return_url,
-                "deep_linking_settings": sentinel.deep_linking_settings,
+                "opaque_data_lti13": sentinel.deep_linking_settings,
                 "lms": {"product": Product.Family.UNKNOWN},
                 "context_id": pyramid_request.lti_params["context_id"],
             },
