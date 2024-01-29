@@ -84,16 +84,21 @@ def deep_linking_launch(context, request):
 
 
 class DeepLinkingFieldsRequestSchema(JSONPyramidRequestSchema):
-    deep_linking_settings = fields.Dict(required=False, allow_none=True)
     content_item_return_url = fields.Str(required=True)
     content = fields.Dict(required=True)
     group_set = fields.Str(required=False, allow_none=True)
     title = fields.Str(required=False, allow_none=True)
 
 
-@view_defaults(
-    request_method="POST", renderer="json", schema=DeepLinkingFieldsRequestSchema
-)
+class LTI11DeepLinkingFieldsRequestSchema(DeepLinkingFieldsRequestSchema):
+    opaque_data_lti11 = fields.Str(required=False, allow_none=True)
+
+
+class LTI13DeepLinkingFieldsRequestSchema(DeepLinkingFieldsRequestSchema):
+    opaque_data_lti13 = fields.Dict(required=False, allow_none=True)
+
+
+@view_defaults(request_method="POST", renderer="json")
 class DeepLinkingFieldsViews:
     """
     Views that return the required form fields to complete a deep linking request to the LMS.
@@ -106,7 +111,10 @@ class DeepLinkingFieldsViews:
         self.request = request
         self.misc_plugin: MiscPlugin = request.product.plugin.misc
 
-    @view_config(route_name="lti.v13.deep_linking.form_fields")
+    @view_config(
+        route_name="lti.v13.deep_linking.form_fields",
+        schema=LTI13DeepLinkingFieldsRequestSchema,
+    )
     def file_picker_to_form_fields_v13(self):
         application_instance = self.request.lti_user.application_instance
 
@@ -152,7 +160,7 @@ class DeepLinkingFieldsViews:
         #
         # This claim is required if present in the `LtiDeepLinkingRequest`
         # message.
-        settings = self.request.parsed_params["deep_linking_settings"] or {}
+        settings = self.request.parsed_params["opaque_data_lti13"] or {}
         if data := settings.get("data"):
             message["https://purl.imsglobal.org/spec/lti-dl/claim/data"] = data
 
@@ -171,7 +179,10 @@ class DeepLinkingFieldsViews:
             )
         }
 
-    @view_config(route_name="lti.v11.deep_linking.form_fields")
+    @view_config(
+        route_name="lti.v11.deep_linking.form_fields",
+        schema=LTI11DeepLinkingFieldsRequestSchema,
+    )
     def file_picker_to_form_fields_v11(self):
         """
         Return a JSON-LD `ContentItem` representation of the LTI content.
@@ -203,12 +214,20 @@ class DeepLinkingFieldsViews:
         if title := assignment_configuration.get("title"):
             content_item["title"] = title
 
-        message = {
-            "@context": "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",
-            "@graph": [content_item],
+        payload = {
+            "content_items": json.dumps(
+                {
+                    "@context": "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",
+                    "@graph": [content_item],
+                }
+            )
         }
+        if data := self.request.parsed_params.get("opaque_data_lti11"):
+            # From: https://www.imsglobal.org/specs/lticiv1p0/specification
+            # An opaque value which should be returned by the TP in its response.
+            payload["data"] = data
 
-        return {"content_items": json.dumps(message)}
+        return payload
 
     @staticmethod
     def _get_assignment_configuration(request) -> dict:

@@ -118,7 +118,7 @@ class TestDeepLinkingFieldsView:
     def test_it_for_v13_missing_deep_linking_settings_data(
         self, jwt_service, views, pyramid_request, settings
     ):
-        pyramid_request.parsed_params["deep_linking_settings"] = settings
+        pyramid_request.parsed_params["opaque_data_lti13"] = settings
 
         views.file_picker_to_form_fields_v13()
 
@@ -131,6 +131,7 @@ class TestDeepLinkingFieldsView:
         )
 
     @pytest.mark.parametrize("title", [None, "title"])
+    @pytest.mark.parametrize("opaque_data_lti11", [None, "DATA"])
     def test_it_for_v11(
         self,
         views,
@@ -139,8 +140,11 @@ class TestDeepLinkingFieldsView:
         LTIEvent,
         misc_plugin,
         title,
+        opaque_data_lti11,
     ):
         misc_plugin.get_deeplinking_launch_url.return_value = "LAUNCH_URL"
+        pyramid_request.parsed_params["opaque_data_lti11"] = opaque_data_lti11
+
         if title:
             _get_assignment_configuration.return_value = {"title": title}
 
@@ -169,6 +173,10 @@ class TestDeepLinkingFieldsView:
             content_items["@graph"][0]["title"] = title
 
         assert json.loads(fields["content_items"]) == content_items
+        if opaque_data_lti11:
+            assert fields["data"] == opaque_data_lti11
+        else:
+            assert "data" not in fields
 
     @pytest.mark.parametrize(
         "content,expected_from_content",
@@ -219,7 +227,7 @@ class TestDeepLinkingFieldsView:
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.parsed_params = {
-            "deep_linking_settings": {"data": sentinel.deep_linking_settings_data},
+            "opaque_data_lti13": {"data": sentinel.deep_linking_settings_data},
             "content": {"type": "url", "url": "https://example.com"},
             "extra_params": {},
         }

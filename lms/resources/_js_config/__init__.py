@@ -310,9 +310,11 @@ class JSConfig:
             config["path"] = self._request.route_path(
                 "lti.v13.deep_linking.form_fields"
             )
-            config["data"]["deep_linking_settings"] = self._request.lti_params.get(
+            config["data"]["opaque_data_lti13"] = self._request.lti_params.get(
                 "deep_linking_settings"
             )
+        else:
+            config["data"]["opaque_data_lti11"] = self._request.lti_params.get("data")
 
         self._config.setdefault("filePicker", {})
         self._config["filePicker"]["deepLinkingAPI"] = config
