@@ -7,6 +7,8 @@ export type FilePickerFormFieldsProps = {
   /**
    * Form field values provided by the backend that should be rendered as
    * hidden input fields.
+   * These are used while using our own assignment configuration flow
+   * ie. while not using deep linking.
    */
   formFields: Record<string, string>;
 
@@ -24,13 +26,7 @@ export type FilePickerFormFieldsProps = {
  * Render the hidden form fields in the file picker form containing information
  * about the selected assignment.
  *
- * This form may be used in two different scenarios:
- *
- *  - A "Content Item Selection" form when configuring an assignment. In this
- *    case the form will look like "Section 3.2, Example Response" in
- *    https://www.imsglobal.org/specs/lticiv1p0/specification
- *  - When an assignment without any content configuration is launched.
- *    See the `configure_assignment` view.
+ * Used when an assignment without any content configuration is launched.
  */
 export default function FilePickerFormFields({
   title,

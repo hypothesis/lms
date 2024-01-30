@@ -27,6 +27,7 @@ import ErrorModal from './ErrorModal';
 import FilePickerFormFields from './FilePickerFormFields';
 import GroupConfigSelector from './GroupConfigSelector';
 import type { GroupConfig } from './GroupConfigSelector';
+import HiddenFormFields from './HiddenFormFields';
 
 export type ErrorInfo = {
   message: string;
@@ -460,14 +461,25 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
               </CardContent>
             )
           }
-          {content && (
-            <FilePickerFormFields
-              title={title}
-              content={content}
-              formFields={{ ...formFields, ...deepLinkingFields }}
-              groupSet={groupConfig.useGroupSet ? groupConfig.groupSet : null}
-            />
-          )}
+          {
+            // Render different fields depending on whether we are
+            // submitting the form to our backend, or to the LMS (aka. deep linking)
+            content && !deepLinkingFields && (
+              <FilePickerFormFields
+                title={title}
+                content={content}
+                formFields={formFields}
+                groupSet={groupConfig.useGroupSet ? groupConfig.groupSet : null}
+              />
+            )
+          }
+          {
+            // Or deep linking, submitting the form to the LMS.
+            content && deepLinkingFields && (
+              <HiddenFormFields fields={deepLinkingFields} />
+            )
+          }
+
           <input
             disabled={!canSubmit}
             style={{ display: 'none' }}
