@@ -173,7 +173,11 @@ class TestDeepLinkingFieldsView:
         if title:
             content_items["@graph"][0]["title"] = title
 
-        expected_fields = {"content_items": json.dumps(content_items)}
+        expected_fields = {
+            "lti_message_type": "ContentItemSelection",
+            "lti_version": "LTI-1p0",
+            "content_items": json.dumps(content_items),
+        }
 
         if opaque_data_lti11:
             expected_fields["data"] = opaque_data_lti11

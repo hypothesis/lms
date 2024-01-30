@@ -223,7 +223,9 @@ class DeepLinkingFieldsViews:
                     "@context": "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",
                     "@graph": [content_item],
                 }
-            )
+            ),
+            "lti_message_type": "ContentItemSelection",
+            "lti_version": "LTI-1p0",
         }
         if data := self.request.parsed_params.get("opaque_data_lti11"):
             # From: https://www.imsglobal.org/specs/lticiv1p0/specification

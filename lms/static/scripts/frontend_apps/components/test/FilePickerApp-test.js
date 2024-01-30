@@ -85,6 +85,14 @@ describe('FilePickerApp', () => {
     });
   }
 
+  function checkHiddenFormFields(wrapper, { fields = {} }) {
+    const fieldsComponent = wrapper.find('HiddenFormFields');
+    assert.deepEqual(fieldsComponent.props(), {
+      children: [],
+      fields: fields,
+    });
+  }
+
   it('renders form with correct action', () => {
     const wrapper = renderFilePicker();
     const form = wrapper.find('form');
@@ -194,12 +202,8 @@ describe('FilePickerApp', () => {
       await waitFor(() => onSubmit.called, 100);
 
       wrapper.update();
-      checkFormFields(wrapper, {
-        content: {
-          type: 'url',
-          url: 'https://example.com',
-        },
-        formFields: fakeFormFields,
+      checkHiddenFormFields(wrapper, {
+        fields: fakeFormFields,
       });
     });
 
