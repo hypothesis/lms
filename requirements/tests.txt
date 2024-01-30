@@ -4,7 +4,7 @@
 #
 #    pip-compile --allow-unsafe requirements/tests.in
 #
-aiohttp==3.9.1
+aiohttp==3.9.2
     # via
     #   -r prod.txt
     #   aioresponses
