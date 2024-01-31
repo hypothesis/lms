@@ -12,15 +12,6 @@ class APIRecordSpeedgraderSchema(JSONPyramidRequestSchema):
     document_url = fields.Str()
     """URL of the document for this assignment."""
 
-    canvas_file_id = fields.Str()
-    """ID of the Canvas file for this assignment."""
-
-    vitalsource_book_id = fields.Str()
-    """ID of the VitalSource book for this assignment."""
-
-    vitalsource_cfi = fields.Str()
-    """CFI of the VitalSource book for this assignment."""
-
     h_username = fields.Str(required=True)
     """h username generated for the active user."""
 

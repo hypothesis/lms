@@ -37,14 +37,6 @@ class TestAPIRecordSpeedgraderSchema:
         with pytest.raises(ValidationError):
             schema.parse()
 
-    @pytest.mark.parametrize("field", ["document_url", "canvas_file_id"])
-    def test_it_doesnt_raise_if_optional_fields_missing(
-        self, json_request, all_fields, field
-    ):
-        request = json_request(all_fields, exclude=[field])
-
-        APIRecordSpeedgraderSchema(request).parse()
-
     def test_it_doesnt_raise_null_group_set(self, json_request, all_fields):
         all_fields["group_set"] = None  # Present, but set to None
 
@@ -56,7 +48,6 @@ class TestAPIRecordSpeedgraderSchema:
     def all_fields(self):
         return {
             "document_url": "https://example.com",
-            "canvas_file_id": "file123",
             "h_username": "user123",
             "learner_canvas_user_id": "canvas_user_123",
             "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",

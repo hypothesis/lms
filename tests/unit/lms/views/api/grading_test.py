@@ -73,15 +73,7 @@ class TestCanvasPreRecordHook:
     @pytest.mark.parametrize(
         "parsed_params,url_params",
         [
-            [{"document_url": "https://example.com"}, {"url": "https://example.com"}],
-            [
-                {"vitalsource_book_id": "BOOK_ID", "vitalsource_cfi": "CFI"},
-                {"vitalsource_book": "true", "book_id": "BOOK_ID", "cfi": "CFI"},
-            ],
-            [
-                {"canvas_file_id": "file123"},
-                {"canvas_file": "true", "file_id": "file123"},
-            ],
+            ({"document_url": "https://example.com"}, {"url": "https://example.com"}),
         ],
     )
     def test_get_speedgrader_launch_url(
