@@ -156,20 +156,7 @@ class CanvasPreRecordHook:
             "resource_link_id": parsed_params.get("resource_link_id"),
         }
 
-        if parsed_params.get("document_url"):
-            params["url"] = parsed_params.get("document_url")
-        elif book_id := parsed_params.get("vitalsource_book_id"):
-            params["vitalsource_book"] = "true"
-            params["book_id"] = book_id
-            params["cfi"] = parsed_params["vitalsource_cfi"]
-        else:
-            assert parsed_params.get("canvas_file_id"), (
-                "All Canvas launches should have either a 'document_url' a 'vitalsource_book_id' or "
-                "a 'canvas_file_id' parameter."
-            )
-            params["canvas_file"] = "true"
-            params["file_id"] = parsed_params["canvas_file_id"]
-
+        params["url"] = parsed_params["document_url"]
         # **WARNING**
         #
         # Canvas has a bug with handling of percent-encoded characters in the
