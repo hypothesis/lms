@@ -2,13 +2,15 @@ import os
 import sys
 from contextlib import suppress
 
-from h_testkit import set_factoryboy_sqlalchemy_session
 from transaction.interfaces import NoTransaction
 
 from lms import models, services, tasks
 
 
 def setup(env):
+    # pylint:disable=import-outside-toplevel
+    from h_testkit import set_factoryboy_sqlalchemy_session
+
     sys.path = ["."] + sys.path
 
     from tests import factories  # pylint:disable=import-outside-toplevel
