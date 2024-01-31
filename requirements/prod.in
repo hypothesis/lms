@@ -12,6 +12,7 @@ celery
 data-tasks
 h-api
 h-assets
+sentry-sdk
 h-pyramid-sentry
 h-vialib
 importlib_resources
