@@ -3270,6 +3270,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"axe-core@npm:^4.8.3":
+  version: 4.8.3
+  resolution: "axe-core@npm:4.8.3"
+  checksum: f546c74d1f3a7bff81752457fe9e5573693a8ecce11d3c265db501a82105efe0cd29964a491dd98e5979f6f3d85db6776e5e46626c2b09ab579a3729108964fd
+  languageName: node
+  linkType: hard
+
 "axobject-query@npm:^3.2.1":
   version: 3.2.1
   resolution: "axobject-query@npm:3.2.1"
@@ -7659,7 +7666,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^6.16.0
     "@typescript-eslint/parser": ^6.16.0
     autoprefixer: ^10.4.17
-    axe-core: ^4.8.2
+    axe-core: ^4.8.3
     babel-plugin-istanbul: ^6.1.1
     babel-plugin-mockable-imports: ^2.0.1
     chai: ^4.3.10
