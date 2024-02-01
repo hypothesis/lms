@@ -1,4 +1,5 @@
 """Database model for persisting OAuth 2 tokens."""
+
 import datetime
 
 import sqlalchemy as sa

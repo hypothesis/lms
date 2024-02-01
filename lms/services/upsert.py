@@ -1,6 +1,5 @@
 """A helper for upserting into DB tables."""
 
-
 from sqlalchemy import tuple_
 from sqlalchemy.dialects.postgresql import insert
 from zope.sqlalchemy import mark_changed

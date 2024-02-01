@@ -1,4 +1,5 @@
 """Proxy API views for files-related Blackboard API endpoints."""
+
 import re
 
 from pyramid.view import view_config, view_defaults

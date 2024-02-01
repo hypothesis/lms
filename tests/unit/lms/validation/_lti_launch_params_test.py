@@ -244,9 +244,9 @@ class TestConfigureAssignmentSchema:
         pyramid_request.params["user_id"] = "test_user_id"
         pyramid_request.params["context_id"] = "test_context_id"
         pyramid_request.params["context_title"] = "test_context_title"
-        pyramid_request.params[
-            "tool_consumer_instance_guid"
-        ] = "test_tool_consumer_instance_guid"
+        pyramid_request.params["tool_consumer_instance_guid"] = (
+            "test_tool_consumer_instance_guid"
+        )
         return pyramid_request
 
     @pytest.fixture

@@ -187,9 +187,11 @@ class BlackboardAPIClient:
         self._file_service.upsert(
             [
                 {
-                    "type": "blackboard_file"
-                    if file["type"] == "File"
-                    else "blackboard_folder",
+                    "type": (
+                        "blackboard_file"
+                        if file["type"] == "File"
+                        else "blackboard_folder"
+                    ),
                     "course_id": course_id,
                     "lms_id": file["id"],
                     "name": file["name"],

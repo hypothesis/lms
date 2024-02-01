@@ -1,4 +1,5 @@
 """Celery tasks for maintaining the task_done database table."""
+
 from datetime import datetime
 
 from sqlalchemy import delete

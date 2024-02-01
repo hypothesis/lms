@@ -19,7 +19,7 @@ DOCUMENT_URL_REGEX = re.compile(
 
 
 class PageNotFoundInCourse(FileNotFoundInCourse):
-    ...
+    pass
 
 
 @view_defaults(permission=Permissions.API, renderer="json")

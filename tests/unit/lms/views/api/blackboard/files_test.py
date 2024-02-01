@@ -198,9 +198,9 @@ class TestViaURL:
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         pyramid_request.matchdict["course_id"] = "COURSE_ID"
-        pyramid_request.params[
-            "document_url"
-        ] = "blackboard://content-resource/FILE_ID/"
+        pyramid_request.params["document_url"] = (
+            "blackboard://content-resource/FILE_ID/"
+        )
         return pyramid_request
 
     @pytest.fixture

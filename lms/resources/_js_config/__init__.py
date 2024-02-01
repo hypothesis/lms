@@ -218,9 +218,9 @@ class JSConfig:
         # postMessage.
         self._config["hypothesisClient"] = self._hypothesis_client
 
-        self._config["hypothesisClient"][
-            "annotationMetadata"
-        ] = self._generate_annotation_metadata(assignment)
+        self._config["hypothesisClient"]["annotationMetadata"] = (
+            self._generate_annotation_metadata(assignment)
+        )
 
         # Configure group related settings
         self._configure_groups(course, assignment)
@@ -329,10 +329,10 @@ class JSConfig:
         toolbar_config = self._get_toolbar_config()
 
         toolbar_config["gradingEnabled"] = True
-        toolbar_config[
-            "acceptGradingComments"
-        ] = self._request.product.plugin.misc.accept_grading_comments(
-            self._application_instance
+        toolbar_config["acceptGradingComments"] = (
+            self._request.product.plugin.misc.accept_grading_comments(
+                self._application_instance
+            )
         )
         toolbar_config["students"] = students
         toolbar_config["scoreMaximum"] = score_maximum

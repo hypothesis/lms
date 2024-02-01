@@ -156,9 +156,11 @@ class D2LAPIClient:
         except ExternalRequestError as err:
             if err.status_code == 404:
                 raise FileNotFoundInCourse(
-                    "d2l_file_not_found_in_course_instructor"
-                    if self._lti_user.is_instructor
-                    else "d2l_file_not_found_in_course_student",
+                    (
+                        "d2l_file_not_found_in_course_instructor"
+                        if self._lti_user.is_instructor
+                        else "d2l_file_not_found_in_course_student"
+                    ),
                     file_id,
                 ) from err
             raise

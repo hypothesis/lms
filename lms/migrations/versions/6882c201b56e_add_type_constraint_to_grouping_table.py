@@ -1,4 +1,5 @@
 """Add type column values constraint to grouping table."""
+
 from alembic import op
 
 revision = "6882c201b56e"

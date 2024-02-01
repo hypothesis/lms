@@ -6,6 +6,7 @@ Revises: 9f1e88367596
 Create Date: 2023-05-01 10:37:08.209572
 
 """
+
 from alembic import op
 from sqlalchemy import Column, DateTime, Integer, UnicodeText, func, text
 

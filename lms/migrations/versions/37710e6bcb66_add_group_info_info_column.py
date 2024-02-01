@@ -6,6 +6,7 @@ Revises: a930adadac74
 Create Date: 2020-04-30 12:21:20.645402
 
 """
+
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects.postgresql import JSONB

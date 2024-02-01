@@ -459,9 +459,9 @@ class TestInstructorToolbar:
                 application_instance
             )
             expected["gradingEnabled"] = enable_grading
-            expected[
-                "acceptGradingComments"
-            ] = misc_plugin.accept_grading_comments.return_value
+            expected["acceptGradingComments"] = (
+                misc_plugin.accept_grading_comments.return_value
+            )
             expected["students"] = sentinel.students
             expected["scoreMaximum"] = sentinel.score_maximum
 

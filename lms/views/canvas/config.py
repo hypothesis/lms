@@ -4,6 +4,7 @@ Configuration views for Canvas.
 These views allow an admin user to paste in a URL and have Hypothesis automatically
 configured in Canvas.
 """
+
 from pyramid.view import view_config
 
 

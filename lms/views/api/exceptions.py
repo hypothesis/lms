@@ -1,4 +1,5 @@
 """Error views for the API."""
+
 import logging
 from dataclasses import asdict, dataclass
 from urllib.parse import urlparse, urlunparse

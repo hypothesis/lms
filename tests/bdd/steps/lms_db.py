@@ -1,4 +1,5 @@
 """Insert LMS specific objects into the DB."""
+
 from os import environ
 
 from behave import step  # pylint:disable=no-name-in-module

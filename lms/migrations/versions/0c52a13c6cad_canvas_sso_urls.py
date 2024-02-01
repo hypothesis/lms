@@ -11,6 +11,7 @@ See: https://community.canvaslms.com/t5/The-Product-Blog/Minor-LTI-1-3-Changes-N
 Revision ID: 0c52a13c6cad
 Revises: 1872d16c28a4
 """
+
 import sqlalchemy as sa
 from alembic import op
 

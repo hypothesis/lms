@@ -166,9 +166,9 @@ def user_is_instructor(lti_user):
 def configure_jinja2_assets(config):
     jinja2_env = config.get_jinja2_environment()
     jinja2_env.globals["asset_url"] = "http://example.com"
-    jinja2_env.globals[
-        "asset_urls"
-    ] = lambda bundle: "http://example.com"  # pragma: no cover
+    jinja2_env.globals["asset_urls"] = (
+        lambda bundle: "http://example.com"
+    )  # pragma: no cover
     jinja2_env.globals["js_config"] = {}
 
 

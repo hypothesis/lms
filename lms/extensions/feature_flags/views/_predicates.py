@@ -6,7 +6,6 @@ See:
 https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/hooks.html#registering-thirdparty-predicates
 """
 
-
 __all__ = ["FeatureFlagViewPredicate"]
 
 

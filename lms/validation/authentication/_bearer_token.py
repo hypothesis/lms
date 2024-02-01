@@ -1,4 +1,5 @@
 """Schema for our bearer token-based LTI authentication."""
+
 from datetime import timedelta
 
 import marshmallow

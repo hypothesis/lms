@@ -65,9 +65,11 @@ class CreateApplicationInstanceViews(BaseApplicationInstanceView):
 
         if flash_validation(
             self.request,
-            CreateAppInstanceSchemaV13
-            if lti_registration_id
-            else CreateAppInstanceSchema,
+            (
+                CreateAppInstanceSchemaV13
+                if lti_registration_id
+                else CreateAppInstanceSchema
+            ),
         ):
             # Looks like something went wrong!
             return self._redirect("admin.instance.create", _query=self.request.params)

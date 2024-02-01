@@ -3,6 +3,7 @@ Schemas for Blackboard API responses.
 
 See: https://developer.blackboard.com/portal/displayApi
 """
+
 from marshmallow import EXCLUDE, Schema, fields, post_load
 from marshmallow.validate import OneOf
 
