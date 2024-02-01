@@ -1,4 +1,5 @@
 """The app's Pyramid session."""
+
 from pyramid.session import JSONSerializer, SignedCookieSessionFactory
 
 __all__ = []

@@ -1,4 +1,5 @@
 """Common marshmallow schemas for the admin pages."""
+
 from marshmallow import fields, missing
 
 

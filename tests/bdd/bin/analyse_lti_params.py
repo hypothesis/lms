@@ -17,6 +17,7 @@ see fit.
 This is only used as a helper when writing the tests and doesn't form part of
 the final system.
 """
+
 import os.path
 from collections import Counter, defaultdict
 from glob import glob

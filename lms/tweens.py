@@ -1,4 +1,5 @@
 """Custom Pyramid tweens."""
+
 from pyramid.tweens import EXCVIEW
 
 __all__ = ["rollback_db_session_tween_factory"]

@@ -1,4 +1,5 @@
 """Base classes for validation schemas."""
+
 import marshmallow
 from marshmallow import pre_load
 from pyramid.httpexceptions import HTTPUnsupportedMediaType

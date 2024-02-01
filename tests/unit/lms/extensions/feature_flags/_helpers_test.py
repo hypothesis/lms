@@ -71,9 +71,9 @@ class TestFeatureFlagsCookieHelper:
 
     @pytest.fixture
     def pyramid_config(self, pyramid_config):
-        pyramid_config.registry.settings[
-            "feature_flags_allowed_in_cookie"
-        ] = "flag_one flag_two"
+        pyramid_config.registry.settings["feature_flags_allowed_in_cookie"] = (
+            "flag_one flag_two"
+        )
         return pyramid_config
 
     @pytest.fixture(autouse=True)

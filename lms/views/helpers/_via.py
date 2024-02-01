@@ -1,4 +1,5 @@
 """Via-related view helpers."""
+
 from h_vialib import ViaClient
 
 __all__ = ["via_url"]

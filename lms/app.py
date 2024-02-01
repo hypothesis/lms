@@ -76,12 +76,12 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
     config.registry.settings["pyramid_googleauth.secret"] = config.registry.settings[
         "lms_secret"
     ]
-    config.registry.settings[
-        "pyramid_googleauth.google_client_id"
-    ] = config.registry.settings["admin_auth_google_client_id"]
-    config.registry.settings[
-        "pyramid_googleauth.google_client_secret"
-    ] = config.registry.settings["admin_auth_google_client_secret"]
+    config.registry.settings["pyramid_googleauth.google_client_id"] = (
+        config.registry.settings["admin_auth_google_client_id"]
+    )
+    config.registry.settings["pyramid_googleauth.google_client_secret"] = (
+        config.registry.settings["admin_auth_google_client_secret"]
+    )
     config.include("pyramid_googleauth")
 
     config.include("lms.security")

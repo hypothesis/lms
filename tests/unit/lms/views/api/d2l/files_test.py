@@ -122,9 +122,9 @@ def test_it_when_file_not_in_course(
 @pytest.fixture
 def pyramid_request(pyramid_request):
     pyramid_request.matchdict = {"course_id": "COURSE_ID"}
-    pyramid_request.params[
-        "document_url"
-    ] = "d2l://file/course/COURSE_ID/file_id/FILE_ID/"
+    pyramid_request.params["document_url"] = (
+        "d2l://file/course/COURSE_ID/file_id/FILE_ID/"
+    )
     return pyramid_request
 
 

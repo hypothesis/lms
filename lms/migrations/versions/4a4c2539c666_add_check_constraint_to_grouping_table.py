@@ -1,4 +1,5 @@
 """Add a CHECK constraint to the grouping table."""
+
 from alembic import op
 
 revision = "4a4c2539c666"

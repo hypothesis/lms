@@ -41,9 +41,9 @@ class TestServiceFactory:
         VitalSourceService.assert_called_once_with(
             enabled=expected,
             global_client=None,
-            customer_client=VitalSourceClient.return_value
-            if customer_api_key
-            else None,
+            customer_client=(
+                VitalSourceClient.return_value if customer_api_key else None
+            ),
             user_lti_param=sentinel.user_lti_param,
             user_lti_pattern=sentinel.user_lti_pattern,
             page_ranges_enabled=sentinel.page_ranges_enabled,

@@ -161,9 +161,11 @@ class TestListFiles:
                 Any.dict.containing(
                     {
                         "lms_id": id_ + 1,
-                        "type": "blackboard_file"
-                        if type_ == "File"
-                        else "blackboard_folder",
+                        "type": (
+                            "blackboard_file"
+                            if type_ == "File"
+                            else "blackboard_folder"
+                        ),
                     }
                 )
                 for id_ in range(size)

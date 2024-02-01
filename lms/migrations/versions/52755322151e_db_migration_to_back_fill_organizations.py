@@ -6,6 +6,7 @@ Revises: 79eda94de79f
 Create Date: 2022-09-07 18:11:19.706885
 
 """
+
 import itertools
 from base64 import urlsafe_b64encode
 from collections import Counter

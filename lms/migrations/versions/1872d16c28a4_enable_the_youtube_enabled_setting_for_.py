@@ -6,6 +6,7 @@ currently have it explicitly set to false in the DB.
 Revision ID: 1872d16c28a4
 Revises: 106d94be7705
 """
+
 import sqlalchemy as sa
 from alembic import op
 

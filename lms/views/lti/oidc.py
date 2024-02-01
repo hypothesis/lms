@@ -25,6 +25,7 @@ The redirect is handled and verified by the LMS
 The actual LTI launch with an JWT token.
 
 """
+
 import uuid
 from urllib.parse import urlencode
 

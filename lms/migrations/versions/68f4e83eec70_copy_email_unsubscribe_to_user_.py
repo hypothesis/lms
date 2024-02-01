@@ -3,6 +3,7 @@
 Revision ID: 68f4e83eec70
 Revises: 6d72ce7efdeb
 """
+
 import logging
 
 from alembic import op

@@ -7,6 +7,7 @@ certification and it's not used anywhere in the codebase yet.
 https://www.imsglobal.org/spec/lti-nrps/v2p0
 https://www.imsglobal.org/ltiadvantage
 """
+
 from typing import TypedDict
 
 from lms.services.ltia_http import LTIAHTTPService

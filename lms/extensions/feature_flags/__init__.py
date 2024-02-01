@@ -142,6 +142,7 @@ set by that source. For example::
         elif feature_flag_name == "disabled_feature_flag":
             return False
 """
+
 from ._exceptions import SettingError
 from ._feature_flags import FeatureFlags
 from ._providers import config_file_provider  # noqa

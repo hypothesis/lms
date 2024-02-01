@@ -207,9 +207,9 @@ class TestAdminApplicationInstanceViews:
 
     @pytest.fixture
     def with_form_submission(self, pyramid_request):
-        pyramid_request.content_type = pyramid_request.headers[
-            "content-type"
-        ] = "multipart/form-data"
+        pyramid_request.content_type = pyramid_request.headers["content-type"] = (
+            "multipart/form-data"
+        )
         registration_data = {
             "issuer": "http://issuer.com",
             "client_id": "CLIENT_ID",

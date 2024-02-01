@@ -6,6 +6,7 @@ Revises: 83f18f61c76a
 Create Date: 2019-03-07 15:43:56.641856
 
 """
+
 from alembic import op
 
 revision = "cfd94b1300ce"

@@ -33,9 +33,11 @@ class TestGetStudentsForGrading:
                 "userid": f"acct:{grading_info.h_username}@lms.hypothes.is",
                 "displayName": grading_info.h_display_name,
                 "lmsId": grading_info.user_id,
-                "LISResultSourcedId": grading_info.lis_result_sourcedid
-                if not lti_v13
-                else grading_info.user_id,
+                "LISResultSourcedId": (
+                    grading_info.lis_result_sourcedid
+                    if not lti_v13
+                    else grading_info.user_id
+                ),
                 "LISOutcomeServiceUrl": mock.sentinel.grading_url,
             }
             for grading_info in matching_grading_infos

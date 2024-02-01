@@ -60,9 +60,11 @@ def _email_or_domain_match(columns, email):
     as a domain if not. This will search over all the provided fields.
     """
     return sa.or_(
-        sa.func.lower(column) == email.lower()
-        if "@" in email
-        else column.ilike(f"%@{email}")
+        (
+            sa.func.lower(column) == email.lower()
+            if "@" in email
+            else column.ilike(f"%@{email}")
+        )
         for column in columns
     )
 
