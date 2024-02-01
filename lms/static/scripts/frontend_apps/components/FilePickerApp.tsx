@@ -396,7 +396,6 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                         <Input
                           data-testid="title-input"
                           id={titleInputId}
-                          name="Title"
                           // Max length is based on what D2L supports, which is the first LMS that
                           // supported setting a title in assignment configuration.
                           maxLength={150}
