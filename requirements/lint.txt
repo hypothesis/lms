@@ -4,7 +4,7 @@
 #
 #    pip-compile --allow-unsafe requirements/lint.in
 #
-aiohttp==3.9.2
+aiohttp==3.9.3
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
