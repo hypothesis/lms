@@ -3,6 +3,7 @@ import hashlib
 import hmac
 import uuid
 from datetime import datetime
+from urllib import parse
 
 from oauthlib.oauth1.rfc5849 import signature
 from requests_oauthlib import OAuth1
@@ -46,6 +47,8 @@ class OAuth1Service:
         # We don't have a token but the trailing `&` is required
         client_secret = application_instance.shared_secret + "&"
 
+        parsed_url = parse.urlparse(url)
+
         # Oauth values
         payload = {
             "oauth_version": "1.0",
@@ -59,11 +62,15 @@ class OAuth1Service:
 
         # Clean parameters and generate the plain text to sign
         params = signature.collect_parameters(
-            body=payload, exclude_oauth_signature=False, with_realm=False
+            uri_query=parsed_url.query,
+            body=payload,
+            exclude_oauth_signature=False,
+            with_realm=False,
         )
         normalized_parameters = signature.normalize_parameters(params)
+        normalized_uri = signature.base_string_uri(url, parsed_url.netloc)
         base_string = signature.signature_base_string(
-            method, url, normalized_parameters
+            method, normalized_uri, normalized_parameters
         )
 
         # Generate the digest
