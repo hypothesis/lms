@@ -46,46 +46,6 @@ class TestOAuth1Service:
         # one is present.
         assert "oauth_signature=" in auth_header
 
-    def test_sign(
-        self, service, signature, uuid, datetime, application_instance, hmac, base64
-    ):
-        datetime.now.return_value.timestamp.return_value = 10000
-
-        payload = {
-            "oauth_version": "1.0",
-            "oauth_nonce": uuid.uuid4.return_value.hex,
-            "oauth_timestamp": "10000",
-            "oauth_consumer_key": application_instance.consumer_key,
-            "oauth_signature_method": "HMAC-SHA1",
-            "KEY": "VALUE",
-        }
-
-        signed_payload = service.sign("URL", "POST", {"KEY": "VALUE"})
-
-        signature.collect_parameters.assert_called_once_with(
-            body=Any.dict.containing(payload),
-            exclude_oauth_signature=False,
-            with_realm=False,
-        )
-        signature.normalize_parameters.assert_called_once_with(
-            signature.collect_parameters.return_value
-        )
-        signature.signature_base_string.assert_called_once_with(
-            "POST", "URL", signature.normalize_parameters.return_value
-        )
-
-        hmac.new.assert_called_once_with(
-            (application_instance.shared_secret + "&").encode("utf-8"),
-            signature.signature_base_string.return_value.encode.return_value,
-            hashlib.sha1,
-        )
-        base64.b64encode.assert_called_once_with(
-            hmac.new.return_value.digest.return_value
-        )
-        assert signed_payload == dict(
-            payload, oauth_signature=base64.b64encode.return_value.decode.return_value
-        )
-
     @pytest.mark.parametrize(
         "key,secret,nonce,timestamp,data,url,method,signature",
         [
@@ -188,18 +148,6 @@ class TestOAuth1Service:
     @pytest.fixture
     def datetime(self, patch):
         return patch("lms.services.oauth1.datetime")
-
-    @pytest.fixture
-    def signature(self, patch):
-        return patch("lms.services.oauth1.signature")
-
-    @pytest.fixture
-    def hmac(self, patch):
-        return patch("lms.services.oauth1.hmac")
-
-    @pytest.fixture
-    def base64(self, patch):
-        return patch("lms.services.oauth1.base64")
 
     @pytest.fixture
     def OAuth1(self, patch):
