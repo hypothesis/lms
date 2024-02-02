@@ -1,9 +1,7 @@
-import hashlib
 import json
 from unittest import mock
 
 import pytest
-from h_matchers import Any
 from requests import Request
 
 from lms.services.oauth1 import OAuth1Service
@@ -60,6 +58,17 @@ class TestOAuth1Service:
                 "GET",
                 "Jg5MXVnexhzMDTv7IBUy3goIGqc=",
             ),
+            # https://lti.tools/oauth/ with query param
+            (
+                "dpf43f3p2l4k3l03",
+                "kd94hf93k423kf44",
+                "kllo9940pd9333jh",
+                1191242096,
+                {"size": "original", "file": "vacation.jpg"},
+                "http://photos.example.net/photos?query=param",
+                "GET",
+                "Hw23z2Z8cXYc1utpLucO7isfYyA=",
+            ),
             # https://lti.tools/oauth/ with content items
             (
                 "dpf43f3p2l4k3l03",
@@ -103,7 +112,7 @@ class TestOAuth1Service:
             ),
         ],
     )
-    def test_sign_signature_value(
+    def test_sign(
         self,
         service,
         uuid,
