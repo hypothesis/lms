@@ -1,8 +1,8 @@
 import { Button, ModalDialog, Input } from '@hypothesis/frontend-shared';
-import { useRef, useState } from 'preact/hooks';
+import { useId, useRef, useState } from 'preact/hooks';
 
 import { isYouTubeURL } from '../utils/youtube';
-import UIMessage from './UIMessage';
+import ErrorMessage from './ErrorMessage';
 
 export type URLPickerProps = {
   /** The initial value of the URL input field. */
@@ -27,6 +27,7 @@ export default function URLPicker({
 }: URLPickerProps) {
   const input = useRef<HTMLInputElement | null>(null);
   const form = useRef<HTMLFormElement | null>(null);
+  const errorId = useId();
 
   // Holds an error message corresponding to client-side validation of the
   // input field
@@ -93,6 +94,7 @@ export default function URLPicker({
           <Input
             aria-label="Enter URL to web page or PDF"
             classes="grow"
+            aria-labelledby={errorId}
             defaultValue={defaultURL}
             feedback={error ? 'error' : undefined}
             elementRef={input}
@@ -103,9 +105,7 @@ export default function URLPicker({
         </form>
         {/** setting a height here "preserves space" for this error display
          * and prevents the dialog size from jumping when an error is rendered */}
-        <div className="h-4 min-h-4">
-          {!!error && <UIMessage status="error">{error}</UIMessage>}
-        </div>
+        <ErrorMessage error={error} className="h-4 min-h-4" id={errorId} />
       </div>
     </ModalDialog>
   );

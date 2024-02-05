@@ -236,11 +236,11 @@ describe('JSTORPicker', () => {
       const wrapper = renderJSTORPicker();
       updateURL(wrapper, 'foo');
 
-      const errorMessage = wrapper.find('UIMessage[status="error"]');
+      const errorMessage = wrapper.find('ErrorMessage');
 
       assert.isTrue(errorMessage.exists());
       assert.include(
-        errorMessage.text(),
+        errorMessage.prop('error'),
         "That doesn't look like a JSTOR article link or ID"
       );
     });
@@ -269,10 +269,10 @@ describe('JSTORPicker', () => {
       new Error('No such article')
     );
 
-    const errorMessage = wrapper.find('UIMessage[status="error"]');
+    const errorMessage = wrapper.find('ErrorMessage');
     assert.isTrue(errorMessage.exists());
     assert.include(
-      errorMessage.text(),
+      errorMessage.prop('error'),
       'Unable to fetch article details: No such article'
     );
   });
@@ -358,9 +358,9 @@ describe('JSTORPicker', () => {
 
       assert.isTrue(wrapper.find(buttonSelector).props().disabled);
 
-      const errorMessage = wrapper.find('UIMessage[status="error"]');
+      const errorMessage = wrapper.find('ErrorMessage');
       assert.isTrue(errorMessage.exists());
-      assert.equal(errorMessage.text().trim(), expectedError);
+      assert.equal(errorMessage.prop('error').trim(), expectedError);
     });
   });
 });
