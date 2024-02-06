@@ -49,6 +49,7 @@ class TestConfigJSON:
                 "custom_canvas_course_id": "$Canvas.course.id",
                 "custom_canvas_api_domain": "$Canvas.api.domain",
                 "custom_canvas_user_id": "$Canvas.user.id",
+                "custom_display_name": "$Person.name.display",
             },
             "scopes": [
                 "https://purl.imsglobal.org/spec/lti-ags/scope/score",
