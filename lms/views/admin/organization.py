@@ -200,9 +200,10 @@ class AdminOrganizationViews:
         try:
             report = self.organization_service.usage_report(org, since, until)
         except ValueError as exc:
-            raise HTTPBadRequest(
-                f"There was a problem generating the report: {exc}."
-            ) from exc
+            self.request.session.flash(
+                f"There was a problem generating the report: {exc}", "errors"
+            )
+            report = []
 
         return {"org": org, "since": since, "until": until, "report": report}
 
