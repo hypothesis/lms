@@ -304,7 +304,9 @@ class TestOrganizationService:
         until = datetime(2023, 12, 31)
 
         ai_root_org = factories.ApplicationInstance(organization=org_with_parent.parent)
-        factories.Course(application_instance=ai_root_org)
+        factories.Course(
+            application_instance=ai_root_org, created=since + timedelta(days=1)
+        )
         h_api.get_groups.return_value = []
 
         with pytest.raises(ValueError) as error:
