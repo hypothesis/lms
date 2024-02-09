@@ -1968,15 +1968,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hypothesis/frontend-shared@npm:^7.1.0":
-  version: 7.1.0
-  resolution: "@hypothesis/frontend-shared@npm:7.1.0"
+"@hypothesis/frontend-shared@npm:^7.4.0":
+  version: 7.4.0
+  resolution: "@hypothesis/frontend-shared@npm:7.4.0"
   dependencies:
     highlight.js: ^11.6.0
-    wouter-preact: ^2.10.0-alpha.1
+    wouter-preact: ^3.0.0
   peerDependencies:
     preact: ^10.4.0
-  checksum: 3dc7b2c82df68d7b17fa166c8ac78ad8317924129b241207ee5ae91a9e2688bcac5be7262735c98e8ec64aaa2654cdcfa4dd1476191b67b3bb2e8b96174339e2
+  checksum: 5744240cc37d0f2d30ff34f240cb95606c0f846fda8b52fba18d60ec5e402fde39629c3ff32593b36db3949a9556dc7c2f7985d2c281215d7877d87151d5b458
   languageName: node
   linkType: hard
 
@@ -7651,7 +7651,7 @@ __metadata:
     "@babel/preset-react": ^7.23.3
     "@babel/preset-typescript": ^7.23.3
     "@hypothesis/frontend-build": ^3.0.0
-    "@hypothesis/frontend-shared": ^7.1.0
+    "@hypothesis/frontend-shared": ^7.4.0
     "@hypothesis/frontend-testing": ^1.2.0
     "@rollup/plugin-babel": ^6.0.4
     "@rollup/plugin-commonjs": ^25.0.7
@@ -8174,6 +8174,13 @@ __metadata:
     minipass: ^3.0.0
     yallist: ^4.0.0
   checksum: f1fdeac0b07cf8f30fcf12f4b586795b97be856edea22b5e9072707be51fc95d41487faec3f265b42973a304fe3a64acd91a44a3826a963e37b37bafde0212c3
+  languageName: node
+  linkType: hard
+
+"mitt@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "mitt@npm:3.0.1"
+  checksum: b55a489ac9c2949ab166b7f060601d3b6d893a852515ae9eca4e11df01c013876df777ea109317622b5c1c60e8aae252558e33c8c94e14124db38f64a39614b1
   languageName: node
   linkType: hard
 
@@ -9560,6 +9567,13 @@ __metadata:
     define-properties: ^1.2.0
     set-function-name: ^2.0.0
   checksum: 869edff00288442f8d7fa4c9327f91d85f3b3acf8cbbef9ea7a220345cf23e9241b6def9263d2c1ebcf3a316b0aa52ad26a43a84aa02baca3381717b3e307f47
+  languageName: node
+  linkType: hard
+
+"regexparam@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "regexparam@npm:3.0.0"
+  checksum: c8649af1538ccc12b5c5d250525f61bd370227dce41f4fb908433a9651e18b7be21dd8f8518c322dd9ebd75f7caaaea4921e374c39a469c11d4f9d0c738043e0
   languageName: node
   linkType: hard
 
@@ -11523,12 +11537,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wouter-preact@npm:^2.10.0-alpha.1, wouter-preact@npm:^2.11.0":
+"wouter-preact@npm:^2.11.0":
   version: 2.11.0
   resolution: "wouter-preact@npm:2.11.0"
   peerDependencies:
     preact: ^10.0.0
   checksum: c4dd3f995dc664ecc2043a3ece6a415b85e88261a47f52a690354ee38a957eb8b03eac479a165dd464d867d1903774afa5c31b574c6fb0bfb991d191caea7243
+  languageName: node
+  linkType: hard
+
+"wouter-preact@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "wouter-preact@npm:3.0.0"
+  dependencies:
+    mitt: ^3.0.1
+    regexparam: ^3.0.0
+  peerDependencies:
+    preact: ^10.0.0
+  checksum: 253927b4dbf0906220f71f103f3934e649debc4a5f2c94c84e3097a9072c3c2d967b559421b626acb555437ab3aa416ed0faabedd2cf95fb3c61fdbb83370bca
   languageName: node
   linkType: hard
 

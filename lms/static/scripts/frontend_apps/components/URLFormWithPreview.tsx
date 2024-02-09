@@ -7,6 +7,7 @@ import {
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import type { ComponentChildren, RefObject } from 'preact';
+import { useId } from 'preact/hooks';
 
 import { useUniqueId } from '../utils/hooks';
 import UIMessage from './UIMessage';
@@ -52,6 +53,7 @@ export default function URLFormWithPreview({
 }: URLFormWithPreviewProps) {
   const orientation = thumbnail?.orientation ?? 'square';
   const inputId = useUniqueId('url');
+  const errorId = useId();
   const onChange = () => onURLChange(inputRef.current!.value);
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'Enter') {
@@ -103,11 +105,13 @@ export default function URLFormWithPreview({
             elementRef={inputRef}
             id={inputId}
             name="URL"
+            feedback={error ? 'error' : undefined}
             onChange={onChange}
             onKeyDown={onKeyDown}
             onInput={onInput}
             placeholder={urlPlaceholder}
             spellcheck={false}
+            aria-describedby={errorId}
           />
           <IconButton
             icon={ArrowRightIcon}
@@ -120,7 +124,7 @@ export default function URLFormWithPreview({
         {children}
 
         {error && (
-          <UIMessage status="error" data-testid="error-message">
+          <UIMessage status="error" data-testid="error-message" id={errorId}>
             {error}
           </UIMessage>
         )}
