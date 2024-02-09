@@ -157,6 +157,10 @@ _V11_TO_V13 = (
         ],
     ),
     (
+        "lis_person_sourcedid",
+        [f"{CLAIM_PREFIX}/lis", "person_sourcedid"],
+    ),
+    (
         "deep_linking_settings",
         ["https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings"],
     ),
@@ -172,6 +176,15 @@ _V11_TO_V13 = (
     (
         "resource_link_id",
         [f"{CLAIM_PREFIX}/lti1p1", "resource_link_id"],
+    ),
+    # LMS dependant variables that are not part of the "custom" claim
+    (
+        "org_defined_id",
+        [
+            "https://purl.imsglobal.org/spec/lti/claim/launch_presentation",
+            "http://www.brightspace.com",
+            "org_defined_id",
+        ],
     ),
 )
 

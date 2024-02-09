@@ -65,6 +65,9 @@ def lti_v13_params():
         "name": "FULL_NAME",
         "given_name": "GIVEN_NAME",
         "family_name": "FAMILY_NAME",
+        "https://purl.imsglobal.org/spec/lti/claim/lis": {
+            "person_sourcedid": "LIS_PERSON_SOURCEID"
+        },
         "https://purl.imsglobal.org/spec/lti/claim/context": {
             "id": "CONTEXT_ID",
             "label": "LTI",
@@ -86,6 +89,11 @@ def lti_v13_params():
         "https://purl.imsglobal.org/spec/lti/claim/custom": {
             "canvas_course_id": 319,
             "canvas_api_domain": "hypothesis.instructure.com",
+        },
+        "https://purl.imsglobal.org/spec/lti/claim/launch_presentation": {
+            "http://www.brightspace.com": {
+                "org_defined_id": "ORG_DEFINED_ID",
+            }
         },
     }
 
