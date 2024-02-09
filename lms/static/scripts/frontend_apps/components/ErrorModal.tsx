@@ -1,5 +1,5 @@
 import { Button, ModalDialog } from '@hypothesis/frontend-shared';
-import type { ModalDialogProps } from '@hypothesis/frontend-shared/lib/components/feedback/ModalDialog';
+import type { PanelModalDialogProps } from '@hypothesis/frontend-shared/lib/components/feedback/ModalDialog';
 import type { ComponentChildren } from 'preact';
 import { useRef } from 'preact/hooks';
 
@@ -61,7 +61,7 @@ type ErrorModalBaseProps = {
 };
 
 /** `title` is optional for this component but required by `Modal` */
-export type ErrorModalProps = Omit<ModalDialogProps, 'title'> &
+export type ErrorModalProps = Omit<PanelModalDialogProps, 'title'> &
   ErrorModalBaseProps;
 
 /**

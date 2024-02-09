@@ -1,5 +1,5 @@
 import { Button, ModalDialog, Input } from '@hypothesis/frontend-shared';
-import { useRef, useState } from 'preact/hooks';
+import { useId, useRef, useState } from 'preact/hooks';
 
 import { isYouTubeURL } from '../utils/youtube';
 import UIMessage from './UIMessage';
@@ -31,6 +31,7 @@ export default function URLPicker({
   // Holds an error message corresponding to client-side validation of the
   // input field
   const [error, setError] = useState<string | null>(null);
+  const errorId = useId();
 
   const submit = (event: Event) => {
     event.preventDefault();
@@ -99,12 +100,17 @@ export default function URLPicker({
             name="url"
             placeholder="e.g. https://example.com/article.pdf"
             required
+            aria-describedby={errorId}
           />
         </form>
         {/** setting a height here "preserves space" for this error display
          * and prevents the dialog size from jumping when an error is rendered */}
         <div className="h-4 min-h-4">
-          {!!error && <UIMessage status="error">{error}</UIMessage>}
+          {!!error && (
+            <UIMessage status="error" id={errorId}>
+              {error}
+            </UIMessage>
+          )}
         </div>
       </div>
     </ModalDialog>

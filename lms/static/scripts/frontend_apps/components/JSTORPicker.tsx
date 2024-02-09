@@ -9,7 +9,7 @@ import {
   Thumbnail,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
-import { useRef, useState } from 'preact/hooks';
+import { useId, useRef, useState } from 'preact/hooks';
 
 import type { JSTORMetadata, JSTORThumbnail } from '../api-types';
 import { formatErrorMessage } from '../errors';
@@ -41,6 +41,7 @@ export default function JSTORPicker({
   onSelectURL,
 }: JSTORPickerProps) {
   const [error, setError] = useState<string | null>(null);
+  const errorId = useId();
 
   // Selected JSTOR article ID or DOI, updated when the user confirms what
   // they have pasted/typed into the input field.
@@ -189,11 +190,13 @@ export default function JSTORPicker({
               elementRef={inputRef}
               id={inputId}
               name="jstorURL"
+              feedback={renderedError ? 'error' : undefined}
               onChange={() => onURLChange()}
               onInput={() => resetCurrentArticle()}
               onKeyDown={onKeyDown}
               placeholder="e.g. https://www.jstor.org/stable/1234"
               spellcheck={false}
+              aria-describedby={errorId}
             />
             <IconButton
               icon={ArrowRightIcon}
@@ -237,7 +240,9 @@ export default function JSTORPicker({
           )}
 
           {renderedError && (
-            <UIMessage status="error">{renderedError}</UIMessage>
+            <UIMessage status="error" id={errorId}>
+              {renderedError}
+            </UIMessage>
           )}
         </div>
       </div>
