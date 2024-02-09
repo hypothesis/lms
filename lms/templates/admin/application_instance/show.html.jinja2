@@ -12,12 +12,16 @@
         {% endif %}
     </span>
 {% endblock %}
-{% macro settings_checkbox(label, setting, sub_setting, field_name, default=False) %}
+{# Tri-state checkbox with enabled/disabled/use-default options. #}
+{% macro settings_checkbox(label, setting, sub_setting, field_name, default=None) %}
     {% call macros.field_body(label) %}
-        <label class="checkbox">
-            <input {% if instance.settings.get(setting, sub_setting, default) %}checked{% endif %}
-                   type="checkbox"
-                   name="{{ setting }}.{{ sub_setting }}">
+        {% set value = instance.settings.get(setting, sub_setting, default) %}
+        <label class="select">
+            <select name="{{setting}}.{{sub_setting}}">
+              <option value="true" {% if value is true %}selected{% endif %}>Enabled</option>
+              <option value="false" {% if value is false %}selected{% endif %}>Disabled</option>
+              <option value="none" {% if value is none %}selected {% endif %}>Default</option>
+            </select>
         </label>
     {% endcall %}
 {% endmacro %}
