@@ -6,12 +6,13 @@ import {
   Thumbnail,
 } from '@hypothesis/frontend-shared';
 import classNames from 'classnames';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useId, useRef, useState } from 'preact/hooks';
 
 import type { Book } from '../api-types';
 import { formatErrorMessage } from '../errors';
 import { useService, VitalSourceService } from '../services';
 import { extractBookID } from '../utils/vitalsource';
+import ErrorMessage from './ErrorMessage';
 import UIMessage from './UIMessage';
 
 export type BookSelectorProps = {
@@ -46,6 +47,7 @@ export default function BookSelector({
   const vsService = useService(VitalSourceService);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const errorId = useId();
 
   // is a request in-flight via the vitalsource service?
   const [isLoadingBook, setIsLoadingBook] = useState(false);
@@ -183,6 +185,7 @@ export default function BookSelector({
             placeholder="e.g. https://bookshelf.vitalsource.com/#/books/012345678..."
             readOnly={isLoadingBook}
             spellcheck={false}
+            aria-errormessage={errorId}
           />
           <IconButton
             icon={ArrowRightIcon}
@@ -198,11 +201,7 @@ export default function BookSelector({
           </UIMessage>
         )}
 
-        {error && (
-          <UIMessage status="error" data-testid="error-message">
-            {error}
-          </UIMessage>
-        )}
+        <ErrorMessage error={error} id={errorId} data-testid="error-message" />
       </div>
     </div>
   );

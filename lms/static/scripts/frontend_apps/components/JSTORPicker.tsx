@@ -9,7 +9,7 @@ import {
   Thumbnail,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
-import { useRef, useState } from 'preact/hooks';
+import { useId, useRef, useState } from 'preact/hooks';
 
 import type { JSTORMetadata, JSTORThumbnail } from '../api-types';
 import { formatErrorMessage } from '../errors';
@@ -17,6 +17,7 @@ import { urlPath, useAPIFetch } from '../utils/api';
 import type { FetchResult } from '../utils/fetch';
 import { useUniqueId } from '../utils/hooks';
 import { articleIdFromUserInput, jstorURLFromArticleId } from '../utils/jstor';
+import ErrorMessage from './ErrorMessage';
 import UIMessage from './UIMessage';
 
 export type JSTORPickerProps = {
@@ -70,6 +71,7 @@ export default function JSTORPicker({
   } else if (metadata.data?.content_status === 'no_access') {
     renderedError = 'Your institution does not have access to this item.';
   }
+  const errorId = useId();
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   // The last confirmed value of the URL-entry text input
@@ -189,11 +191,13 @@ export default function JSTORPicker({
               elementRef={inputRef}
               id={inputId}
               name="jstorURL"
+              feedback={renderedError ? 'error' : undefined}
               onChange={() => onURLChange()}
               onInput={() => resetCurrentArticle()}
               onKeyDown={onKeyDown}
               placeholder="e.g. https://www.jstor.org/stable/1234"
               spellcheck={false}
+              aria-errormessage={errorId}
             />
             <IconButton
               icon={ArrowRightIcon}
@@ -236,9 +240,7 @@ export default function JSTORPicker({
             </>
           )}
 
-          {renderedError && (
-            <UIMessage status="error">{renderedError}</UIMessage>
-          )}
+          <ErrorMessage error={renderedError} id={errorId} />
         </div>
       </div>
     </ModalDialog>
