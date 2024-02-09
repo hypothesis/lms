@@ -23,6 +23,7 @@ class TestLTIParams:
             ("lis_person_name_family", "FAMILY_NAME"),
             ("lis_person_name_full", "FULL_NAME"),
             ("lis_person_contact_email_primary", "EMAIL"),
+            ("lis_person_sourcedid", "LIS_PERSON_SOURCEID"),
             ("context_id", "CONTEXT_ID"),
             ("context_title", "CONTEXT_TITLE"),
             ("lti_version", "LTI_VERSION"),
@@ -30,6 +31,7 @@ class TestLTIParams:
             ("resource_link_id", "RESOURCE_LINK_ID"),
             ("resource_link_title", "RESOURCE_LINK_TITLE"),
             ("resource_link_description", "RESOURCE_LINK_DESCRIPTION"),
+            ("org_defined_id", "ORG_DEFINED_ID"),
         ],
     )
     def test_v13_mappings(self, pyramid_request, lti_v13_params, lti_11_key, value):
