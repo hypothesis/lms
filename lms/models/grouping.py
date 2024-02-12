@@ -86,6 +86,7 @@ class Grouping(CreatedUpdatedMixin, Base):
     parent_id = sa.Column(sa.Integer(), nullable=True)
     children = sa.orm.relationship(
         "Grouping",
+        foreign_keys=[parent_id, application_instance_id],
         backref=sa.orm.backref(
             "parent",
             remote_side=[id, application_instance_id],
@@ -126,6 +127,11 @@ class Grouping(CreatedUpdatedMixin, Base):
     )
 
     memberships = sa.orm.relationship("GroupingMembership", back_populates="grouping")
+
+    copied_from_id = sa.Column(
+        sa.Integer(), sa.ForeignKey("grouping.id"), nullable=True
+    )
+    """ID of the course grouping this one was copied from using the course copy feature in the LMS."""
 
     @property
     def name(self):
