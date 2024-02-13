@@ -134,6 +134,12 @@ class PagesAPIViews:
                         "authorization": auth_token,
                     },
                 ),
+                # Disable proxying of iframes. This enables embedded widgets to
+                # work if they require authentication or simply aren't compatible
+                # with viahtml's proxying.
+                #
+                # See https://github.com/hypothesis/support/issues/98.
+                options={"via.proxy_frames": "0"},
             )
         }
 

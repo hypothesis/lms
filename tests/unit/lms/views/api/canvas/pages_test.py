@@ -72,6 +72,7 @@ class TestPageAPIViews:
                     "authorization": "TOKEN",
                 }
             ),
+            options={"via.proxy_frames": "0"},
         )
         assert response == {"via_url": helpers.via_url.return_value}
 
@@ -106,6 +107,7 @@ class TestPageAPIViews:
                     "authorization": "TOKEN",
                 }
             ),
+            options={"via.proxy_frames": "0"},
         )
         assert response == {"via_url": helpers.via_url.return_value}
 
@@ -176,6 +178,7 @@ class TestPageAPIViews:
                     "authorization": "TOKEN",
                 }
             ),
+            options={"via.proxy_frames": "0"},
         )
         assert response == {"via_url": helpers.via_url.return_value}
 
