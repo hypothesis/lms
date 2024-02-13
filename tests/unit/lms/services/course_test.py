@@ -73,6 +73,7 @@ class TestCourseService:
             context_id=sentinel.context_id,
             name=sentinel.context_title,
             extra={"existing": "extra"},
+            copied_from=None,
         )
         assert course == upsert_course.return_value
 
@@ -91,7 +92,10 @@ class TestCourseService:
 
         get_by_context_id.assert_called_once_with(sentinel.context_id)
         upsert_course.assert_called_once_with(
-            context_id=sentinel.context_id, name=sentinel.context_title, extra={}
+            context_id=sentinel.context_id,
+            name=sentinel.context_title,
+            extra={},
+            copied_from=None,
         )
         assert course == upsert_course.return_value
 
@@ -115,6 +119,68 @@ class TestCourseService:
             context_id=sentinel.context_id,
             name=sentinel.context_title,
             extra={"canvas": {"custom_canvas_course_id": sentinel.canvas_id}},
+            copied_from=None,
+        )
+        assert course == upsert_course.return_value
+
+    def test_get_from_launch_when_new_and_historical_course_doesnt_exists(
+        self, svc, upsert_course, product, grouping_service
+    ):
+        grouping_service.get_authority_provided_id.side_effect = [
+            "authority_new_context_id",
+            "authority_original_context_id",
+        ]
+
+        course = svc.get_from_launch(
+            product,
+            lti_params={
+                "context_id": "new_context_id",
+                "context_title": sentinel.context_title,
+                "custom_Context.id.history": "original_context_id",
+            },
+        )
+
+        upsert_course.assert_called_once_with(
+            context_id="new_context_id",
+            name=sentinel.context_title,
+            extra={},
+            copied_from=None,
+        )
+        assert course == upsert_course.return_value
+
+    def test_get_from_launch_when_new_and_historical_course_exists(
+        self,
+        svc,
+        upsert_course,
+        product,
+        application_instance,
+        grouping_service,
+    ):
+        grouping_service.get_authority_provided_id.side_effect = [
+            "authority_new_context_id",
+            "authority_original_context_id",
+        ]
+
+        historical_course = factories.Course(
+            application_instance=application_instance,
+            authority_provided_id="authority_original_context_id",
+            lms_id="original_context_id",
+        )
+
+        course = svc.get_from_launch(
+            product,
+            lti_params={
+                "context_id": "new_context_id",
+                "context_title": sentinel.context_title,
+                "custom_Context.id.history": "original_context_id",
+            },
+        )
+
+        upsert_course.assert_called_once_with(
+            context_id="new_context_id",
+            name=sentinel.context_title,
+            extra={},
+            copied_from=historical_course,
         )
         assert course == upsert_course.return_value
 
@@ -136,6 +202,7 @@ class TestCourseService:
                 }
             ],
             type_=Grouping.Type.COURSE,
+            copied_from=None,
         )
 
         assert course == grouping_service.upsert_groupings.return_value[0]
@@ -169,6 +236,7 @@ class TestCourseService:
                 )
             ],
             type_=Any(),
+            copied_from=None,
         )
 
     @pytest.mark.usefixtures("course_with_group_sets")
