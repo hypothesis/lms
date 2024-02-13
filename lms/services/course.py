@@ -36,6 +36,8 @@ class CourseService:
 
     def get_from_launch(self, product, lti_params):
         """Get the course this LTI launch based on the request's params."""
+        historical_course = None
+
         if existing_course := self.get_by_context_id(lti_params["context_id"]):
             # Keep existing `extra` instead of replacing it with the default
             extra = existing_course.extra
@@ -49,11 +51,14 @@ class CourseService:
                         )
                     }
                 }
+            # Only make the query for the original course for new courses
+            historical_course = self._get_copied_from_course(lti_params)
 
         return self.upsert_course(
             context_id=lti_params["context_id"],
             name=lti_params["context_title"],
             extra=extra,
+            copied_from=historical_course,
         )
 
     def get_by_context_id(self, context_id, raise_on_missing=False) -> Course | None:
@@ -75,7 +80,14 @@ class CourseService:
 
         return query.one_or_none()
 
-    def upsert_course(self, context_id, name, extra, settings=None) -> Course:
+    def upsert_course(  # pylint:disable=too-many-arguments
+        self,
+        context_id,
+        name,
+        extra,
+        settings=None,
+        copied_from: Grouping | None = None,
+    ) -> Course:
         """
         Create or update a course based on the provided values.
 
@@ -83,6 +95,7 @@ class CourseService:
         :param name: The name of the course
         :param extra: Additional LMS specific values
         :param settings: A dict of settings for the course
+        :param copied_from: A reference to the course this one was copied from
         """
 
         return self._grouping_service.upsert_groupings(
@@ -95,6 +108,7 @@ class CourseService:
                 }
             ],
             type_=Grouping.Type.COURSE,
+            copied_from=copied_from,
         )[0]
 
     def find_group_set(self, group_set_id=None, name=None, context_id=None):
@@ -155,6 +169,23 @@ class CourseService:
                 CourseGroupsExportedFromH, self._get_authority_provided_id(context_id)
             )
         )
+
+    def _get_copied_from_course(self, lti_params) -> Course | None:
+        """Return the course that the current one was copied from."""
+
+        history_params = [
+            "custom_Context.id.history",  # LTI 1.3
+        ]
+
+        for param in history_params:
+            if historical_context_id := lti_params.get(param):
+                # History might have a long chain of comma separated
+                # copies of copies, take the most recent one.
+                historical_context_id = historical_context_id.split(",")[0]
+                if historical_course := self.get_by_context_id(historical_context_id):
+                    return historical_course
+
+        return None
 
 
 def course_service_factory(_context, request):

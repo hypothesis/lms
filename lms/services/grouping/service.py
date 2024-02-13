@@ -34,24 +34,27 @@ class GroupingService:
         grouping_dicts: list[dict],
         type_: Grouping.Type,
         parent: Grouping | None = None,
+        copied_from: Grouping | None = None,
     ) -> list[Grouping]:
         """
         Upsert a Grouping generating the authority_provided_id based on its parent.
 
         :param grouping_dicts: A list of dicts containing the grouping information
-        :param parent: Parent grouping for all upserted groups
         :param type_: Type of the groupings
+        :param parent: Parent grouping for all upserted groups
+        :param copied_from: Orignal grouping this one was copied from
         """
         if not grouping_dicts:
             return []
 
+        parent_id = None
         if parent:
             if not parent.id:
                 # Make sure we have a PK for the parent before upserting
                 self._db.flush()
             parent_id = parent.id
-        else:
-            parent_id = None
+
+        copied_from_id = copied_from.id if copied_from else None
 
         values = [
             {
@@ -63,6 +66,7 @@ class GroupingService:
                 "updated": func.now(),  # pylint:disable=not-callable
                 # From params
                 "parent_id": parent_id,
+                "copied_from_id": copied_from_id,
                 "type": type_,
                 # Things the caller provides
                 "lms_id": grouping["lms_id"],
