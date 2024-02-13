@@ -137,6 +137,7 @@ export default function JSTORPicker({
     <ModalDialog
       initialFocus={inputRef}
       onClose={onCancel}
+      closeTitle="Close JSTOR picker"
       scrollable={false}
       title="Select JSTOR article"
       size="lg"

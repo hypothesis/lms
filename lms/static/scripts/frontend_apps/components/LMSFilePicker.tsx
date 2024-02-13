@@ -400,6 +400,7 @@ export default function LMSFilePicker({
       })}
       title={`Select ${documentType}`}
       onClose={onCancel}
+      closeTitle="Close document picker"
       size="lg"
       buttons={[
         <Button data-testid="cancel-button" key="cancel" onClick={onCancel}>

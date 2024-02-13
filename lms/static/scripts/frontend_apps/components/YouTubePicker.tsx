@@ -102,6 +102,7 @@ export default function YouTubePicker({
     <ModalDialog
       title="Select YouTube video"
       onClose={onCancel}
+      closeTitle="Close YouTube picker"
       initialFocus={inputRef}
       size="lg"
       scrollable={false}
