@@ -234,8 +234,9 @@ export default function BookPicker({
       )}
       // Opt out of Modal's automatic focus handling; route focus manually in
       // sub-components
-      initialFocus={'manual'}
+      initialFocus="manual"
       onClose={onCancel}
+      closeTitle="Close book picker"
       scrollable={false}
       title={
         step === 'select-book'

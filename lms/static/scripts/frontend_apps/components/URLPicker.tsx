@@ -67,6 +67,7 @@ export default function URLPicker({
     <ModalDialog
       title="Enter URL"
       onClose={onCancel}
+      closeTitle="Close URL picker"
       buttons={[
         <Button data-testid="cancel-button" key="cancel" onClick={onCancel}>
           Cancel
