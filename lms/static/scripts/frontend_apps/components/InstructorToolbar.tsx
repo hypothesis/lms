@@ -52,7 +52,7 @@ export default function InstructorToolbar() {
             {assignmentName}
           </h1>
           {editingEnabled && (
-            <RouterLink href="/app/content-item-selection">
+            <RouterLink href="/app/content-item-selection" asChild>
               <Link
                 classes="text-xs"
                 data-testid="edit"

@@ -59,7 +59,7 @@ export default function LaunchErrorDialog({
   let extraActions;
   if (canEdit) {
     extraActions = (
-      <RouterLink href="/app/content-item-selection">
+      <RouterLink href="/app/content-item-selection" asChild>
         <Link underline="always" data-testid="edit-link">
           Edit assignment
         </Link>

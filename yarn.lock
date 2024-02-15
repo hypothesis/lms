@@ -7701,7 +7701,7 @@ __metadata:
     tailwindcss: ^3.3.3
     tiny-emitter: ^2.1.0
     typescript: ^5.2.2
-    wouter-preact: ^2.11.0
+    wouter-preact: ^3.0.0
   languageName: unknown
   linkType: soft
 
@@ -11534,15 +11534,6 @@ __metadata:
   version: 6.2.1
   resolution: "workerpool@npm:6.2.1"
   checksum: c2c6eebbc5225f10f758d599a5c016fa04798bcc44e4c1dffb34050cd361d7be2e97891aa44419e7afe647b1f767b1dc0b85a5e046c409d890163f655028b09d
-  languageName: node
-  linkType: hard
-
-"wouter-preact@npm:^2.11.0":
-  version: 2.11.0
-  resolution: "wouter-preact@npm:2.11.0"
-  peerDependencies:
-    preact: ^10.0.0
-  checksum: c4dd3f995dc664ecc2043a3ece6a415b85e88261a47f52a690354ee38a957eb8b03eac479a165dd464d867d1903774afa5c31b574c6fb0bfb991d191caea7243
   languageName: node
   linkType: hard
 
