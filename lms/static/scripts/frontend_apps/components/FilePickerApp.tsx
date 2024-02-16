@@ -338,7 +338,11 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
         ref={formRef}
       >
         {isEditing && (
-          <RouterLink href="/app/basic-lti-launch" data-testid="back-link">
+          <RouterLink
+            href="/app/basic-lti-launch"
+            data-testid="back-link"
+            asChild
+          >
             <Link classes="flex gap-x-1 items-center" underline="always">
               <ArrowLeftIcon className="w-[0.875em] h-[0.875em]" />
               Back to assignment
