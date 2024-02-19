@@ -261,17 +261,23 @@ class TestLTIUserSecurityPolicy:
         assert userid == Identity(userid="", permissions=[])
 
     @pytest.mark.parametrize(
-        "lti_user_fixture,extra_permissions",
+        "lti_user_fixture,permissions",
         (
             (
                 "user_is_instructor",
-                [Permissions.LTI_CONFIGURE_ASSIGNMENT, Permissions.GRADE_ASSIGNMENT],
+                [
+                    Permissions.LTI_LAUNCH_ASSIGNMENT,
+                    Permissions.API,
+                    Permissions.LTI_CONFIGURE_ASSIGNMENT,
+                    Permissions.GRADE_ASSIGNMENT,
+                ],
             ),
-            ("user_is_learner", []),
+            ("user_is_learner", [Permissions.LTI_LAUNCH_ASSIGNMENT, Permissions.API]),
+            ("user_has_no_roles", []),
         ),
     )
     def test_identity_when_theres_an_lti_user(
-        self, request, pyramid_request, lti_user_fixture, extra_permissions
+        self, request, pyramid_request, lti_user_fixture, permissions
     ):
         _ = request.getfixturevalue(lti_user_fixture)
         policy = LTIUserSecurityPolicy(
@@ -281,10 +287,7 @@ class TestLTIUserSecurityPolicy:
         identity = policy.identity(pyramid_request)
 
         assert identity.userid
-        assert (
-            identity.permissions
-            == [Permissions.LTI_LAUNCH_ASSIGNMENT, Permissions.API] + extra_permissions
-        )
+        assert identity.permissions == permissions
 
     def test_remember(self, pyramid_request):
         LTIUserSecurityPolicy(sentinel.get_lti_user).remember(
@@ -294,9 +297,9 @@ class TestLTIUserSecurityPolicy:
     def test_forget(self, pyramid_request):
         LTIUserSecurityPolicy(sentinel.get_lti_user).forget(pyramid_request)
 
-    def test_permits_allow(self, pyramid_request):
+    def test_permits_allow(self, pyramid_request, user_is_learner):
         policy = LTIUserSecurityPolicy(
-            create_autospec(get_lti_user, return_value=factories.LTIUser())
+            create_autospec(get_lti_user, return_value=user_is_learner)
         )
 
         is_allowed = policy.permits(

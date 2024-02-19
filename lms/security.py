@@ -177,7 +177,9 @@ class LTIUserSecurityPolicy:
         if lti_user is None:
             return Identity("", [])
 
-        permissions = [Permissions.LTI_LAUNCH_ASSIGNMENT, Permissions.API]
+        permissions = []
+        if lti_user.is_learner or lti_user.is_instructor or lti_user.is_admin:
+            permissions = [Permissions.LTI_LAUNCH_ASSIGNMENT, Permissions.API]
 
         if lti_user.is_instructor:
             permissions.append(Permissions.LTI_CONFIGURE_ASSIGNMENT)
