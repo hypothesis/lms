@@ -12,7 +12,7 @@
         <fieldset class="box mt-6">
             {{ macros.select("Value", "role_id", existing_roles, override.id if override else None, with_search=True) }}
             {{ macros.select("Scope", "scope", [("course", "Course") ,("system", "System"), ("institution", "Institution")], override.scope if override else None) }}
-            {{ macros.select("Type", "type", [("learner", "Learner") ,("instructor", "Instructor"), ("admin", "Admin")], override.type if override else None) }}
+            {{ macros.select("Type", "type", [("learner", "Learner") ,("instructor", "Instructor"), ("admin", "Admin"), ("none", "None")], override.type if override else None) }}
         </fieldset>
         <input type="submit" class="button is-info" value="New" />
     </form>
