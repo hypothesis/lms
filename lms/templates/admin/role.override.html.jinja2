@@ -12,7 +12,7 @@
         <fieldset class="box mt-6">
             {{ macros.disabled_text_field("Value", override.value) }}
             {{ macros.select("Scope", "scope", [("course", "Course") ,("system", "System"), ("institution", "Institution")], override.scope) }}
-            {{ macros.select("Type", "type", [("learner", "Learner") ,("instructor", "Instructor"), ("admin", "Admin")], override.type) }}
+            {{ macros.select("Type", "type", [("learner", "Learner") ,("instructor", "Instructor"), ("admin", "Admin"), ("none", "None")], override.type) }}
         </fieldset>
         <input type="submit" class="button is-info" value="Save" />
         <input type="submit"
