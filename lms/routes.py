@@ -189,6 +189,8 @@ def includeme(config):  # pylint:disable=too-many-statements
         "/admin/email/preview/instructor-email-digest",
     )
 
+    config.add_route("admin.analytics", "/admin/analytics")
+
     config.add_route("lti.oidc", "/lti/1.3/oidc")
     config.add_route("lti.jwks", "/lti/1.3/jwks")
     config.add_route(

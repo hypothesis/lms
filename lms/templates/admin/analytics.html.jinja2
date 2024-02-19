@@ -1,0 +1,18 @@
+{% extends "lms:templates/admin/base.html.jinja2" %}
+{% import "lms:templates/admin/macros.html.jinja2" as macros %}
+
+{% block header %}Analytics{% endblock header %}
+
+{% block content %}
+    <form method="get">
+        {{ macros.form_text_field(request, label="Introduce an instance ID", field_name="instance_id") }}
+    </form>
+
+    {% if request.params.get("instance_id") %}
+        <iframe
+            src="/admin/instance/{{ request.params.get("instance_id") }}/analytics"
+            style="width: 100%; margin-top: 2rem"
+        >
+        </iframe>
+    {% endif %}
+{% endblock content %}
