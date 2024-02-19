@@ -158,6 +158,7 @@ def user_is_learner(lti_user):
         Role(scope=role.scope, type=role.type, value=role.value)
         for role in lti_user.lti_roles
     ]
+    return lti_user
 
 
 @pytest.fixture
@@ -169,6 +170,12 @@ def user_is_instructor(lti_user):
         Role(scope=role.scope, type=role.type, value=role.value)
         for role in lti_user.lti_roles
     ]
+
+
+@pytest.fixture
+def user_has_no_roles(lti_user):
+    lti_user.lti_roles = []
+    lti_user.effective_lti_roles = []
 
 
 def configure_jinja2_assets(config):

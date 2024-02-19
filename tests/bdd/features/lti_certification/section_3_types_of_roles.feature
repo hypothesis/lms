@@ -84,8 +84,7 @@ Feature: Section 3 - Types of User Roles
 
      When I make an LTI launch request
 
-     Then the assigment opens successfully
-      And the user only has learner privileges
+     Then the response status code is 403
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 3.7 - Launch as a user with an institution role which has no corresponding context role
@@ -99,8 +98,7 @@ Feature: Section 3 - Types of User Roles
 
      When I make an LTI launch request
 
-     Then the assigment opens successfully
-      And the user only has learner privileges
+     Then the response status code is 403
 
   @v1.0 @v1.1 @v1.2 @required
   Scenario: Test 3.8 - Launch as a user with an unrecognised role
