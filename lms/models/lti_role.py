@@ -18,6 +18,7 @@ class RoleType(str, Enum):
     INSTRUCTOR = "instructor"
     LEARNER = "learner"
     ADMIN = "admin"
+    NONE = "none"
 
 
 @unique
@@ -160,7 +161,7 @@ class _RoleParser:
         "Manager": RoleType.INSTRUCTOR,
         "Member": RoleType.LEARNER,
         "Mentor": RoleType.INSTRUCTOR,
-        "None": RoleType.LEARNER,
+        "None": RoleType.NONE,
         "Observer": RoleType.LEARNER,
         "Office": RoleType.INSTRUCTOR,
         "Other": RoleType.LEARNER,

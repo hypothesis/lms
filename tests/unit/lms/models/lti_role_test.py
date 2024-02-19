@@ -55,7 +55,7 @@ class TestLTIRole:
                 RoleType.INSTRUCTOR,
                 RoleScope.INSTITUTION,
             ),
-            ("urn:lti:instrole:ims/lis/None", RoleType.LEARNER, RoleScope.INSTITUTION),
+            ("urn:lti:instrole:ims/lis/None", RoleType.NONE, RoleScope.INSTITUTION),
             (
                 "urn:lti:instrole:ims/lis/Observer",
                 RoleType.LEARNER,
@@ -106,7 +106,7 @@ class TestLTIRole:
                 RoleType.ADMIN,
                 RoleScope.SYSTEM,
             ),
-            ("urn:lti:sysrole:ims/lis/None", RoleType.LEARNER, RoleScope.SYSTEM),
+            ("urn:lti:sysrole:ims/lis/None", RoleType.NONE, RoleScope.SYSTEM),
             ("urn:lti:sysrole:ims/lis/SysAdmin", RoleType.ADMIN, RoleScope.SYSTEM),
             ("Administrator", RoleType.ADMIN, RoleScope.COURSE),
             ("Alumni", RoleType.LEARNER, RoleScope.COURSE),
@@ -186,6 +186,12 @@ class TestLTIRole:
                 RoleScope.SYSTEM,
             ),
             (f"{_V13_PREFIX}system/person#User", RoleType.LEARNER, RoleScope.SYSTEM),
+            (f"{_V13_PREFIX}system/person#None", RoleType.NONE, RoleScope.SYSTEM),
+            (
+                f"{_V13_PREFIX}institution/person#None",
+                RoleType.NONE,
+                RoleScope.INSTITUTION,
+            ),
             (
                 "http://purl.imsglobal.org/vocab/lti/system/person#TestUser",
                 RoleType.LEARNER,
