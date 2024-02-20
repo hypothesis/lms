@@ -3,16 +3,31 @@ from copy import deepcopy
 
 from sqlalchemy import Text, column, func
 
-from lms.models import Course, CourseGroupsExportedFromH, Grouping
+from lms.db import full_text_match
+from lms.models import (
+    ApplicationInstance,
+    Course,
+    CourseGroupsExportedFromH,
+    Grouping,
+    Organization,
+)
 from lms.product import Product
 from lms.services.grouping import GroupingService
+from lms.services.organization import OrganizationService
 
 
 class CourseService:
-    def __init__(self, db, application_instance, grouping_service: GroupingService):
+    def __init__(
+        self,
+        db,
+        application_instance,
+        grouping_service: GroupingService,
+        organization_service: OrganizationService,
+    ):
         self._db = db
         self._application_instance = application_instance
         self._grouping_service = grouping_service
+        self._organization_service = organization_service
 
     def any_with_setting(self, group, key, value=True) -> bool:
         """
@@ -60,6 +75,44 @@ class CourseService:
             extra=extra,
             copied_from=historical_course,
         )
+
+    def search(  # pylint:disable=too-many-arguments
+        self,
+        id_: int | None = None,
+        context_id: str | None = None,
+        h_id: str | None = None,
+        name: str | None = None,
+        limit: int = 100,
+        organization: Organization | None = None,
+    ) -> list[Course]:
+        query = self._db.query(Course)
+
+        if id_:
+            query = query.filter_by(id=id_)
+
+        if context_id:
+            query = query.filter_by(lms_id=context_id)
+
+        if h_id:
+            query = query.filter_by(authority_provided_id=h_id)
+
+        if name:
+            query = query.filter(full_text_match(Course.lms_name, name))
+
+        if organization:
+            organization_ids = self._organization_service.get_hierarchy_ids(
+                organization.id, include_parents=False
+            )
+            query = (
+                query.join(
+                    ApplicationInstance,
+                    Course.application_instance_id == ApplicationInstance.id,
+                )
+                .join(Organization)
+                .filter(Organization.id.in_(organization_ids))
+            )
+
+        return query.limit(limit).all()
 
     def get_by_context_id(self, context_id, raise_on_missing=False) -> Course | None:
         """
@@ -191,6 +244,9 @@ class CourseService:
 def course_service_factory(_context, request):
     return CourseService(
         db=request.db,
-        application_instance=request.lti_user.application_instance,
+        application_instance=(
+            request.lti_user.application_instance if request.lti_user else None
+        ),
         grouping_service=request.find_service(name="grouping"),
+        organization_service=request.find_service(OrganizationService),
     )

@@ -270,6 +270,47 @@ class TestCourseService:
     def test_find_group_set_returns_first_result(self, svc):
         assert svc.find_group_set()
 
+    @pytest.mark.parametrize(
+        "param,field",
+        (
+            ("name", "lms_name"),
+            ("context_id", "lms_id"),
+            ("id_", "id"),
+            ("h_id", "authority_provided_id"),
+        ),
+    )
+    def test_search(self, svc, param, field, db_session):
+        course = factories.Course(lms_name="NAME")
+        # Ensure ids are written
+        db_session.add(course)
+        db_session.flush()
+
+        assert svc.search(**{param: getattr(course, field)}) == [course]
+
+    def test_search_by_organization(self, svc, organization_service, db_session):
+        org = factories.Organization()
+        ai = factories.ApplicationInstance(organization=org)
+        course = factories.Course(application_instance=ai)
+        # Ensure ids are written
+        db_session.flush()
+        organization_service.get_hierarchy_ids.return_value = [org.id]
+
+        result = svc.search(organization=org)
+
+        organization_service.get_hierarchy_ids.assert_called_once_with(
+            org.id, include_parents=False
+        )
+
+        assert result == [course]
+
+    def test_search_limit(self, svc):
+        orgs = factories.Course.create_batch(10)
+
+        result = svc.search(limit=5)
+
+        assert len(result) == 5
+        assert orgs == Any.list.containing(result)
+
     @pytest.fixture
     def course(self, application_instance, grouping_service):
         return factories.Course(
@@ -308,11 +349,14 @@ class TestCourseService:
         return grouping_service
 
     @pytest.fixture
-    def svc(self, db_session, application_instance, grouping_service):
+    def svc(
+        self, db_session, application_instance, grouping_service, organization_service
+    ):
         return CourseService(
             db=db_session,
             application_instance=application_instance,
             grouping_service=grouping_service,
+            organization_service=organization_service,
         )
 
     @pytest.fixture
@@ -327,13 +371,16 @@ class TestCourseService:
 
 
 class TestCourseServiceFactory:
-    def test_it(self, pyramid_request, grouping_service, CourseService):
+    def test_it(
+        self, pyramid_request, grouping_service, CourseService, organization_service
+    ):
         svc = course_service_factory(sentinel.context, pyramid_request)
 
         CourseService.assert_called_once_with(
             db=pyramid_request.db,
             application_instance=pyramid_request.lti_user.application_instance,
             grouping_service=grouping_service,
+            organization_service=organization_service,
         )
 
         assert svc == CourseService.return_value
