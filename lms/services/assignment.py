@@ -6,10 +6,10 @@ from lms.models import (
     Assignment,
     AssignmentGrouping,
     AssignmentMembership,
+    Course,
     Grouping,
     LTIRole,
     User,
-    Course,
 )
 from lms.services.upsert import bulk_upsert
 

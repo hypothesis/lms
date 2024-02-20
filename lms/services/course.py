@@ -2,8 +2,8 @@ import json
 from copy import deepcopy
 
 from sqlalchemy import Text, column, func
-from lms.db import full_text_match
 
+from lms.db import full_text_match
 from lms.models import Course, CourseGroupsExportedFromH, Grouping
 from lms.product import Product
 from lms.services.grouping import GroupingService
@@ -219,8 +219,8 @@ class CourseService:
 def course_service_factory(_context, request):
     return CourseService(
         db=request.db,
-        application_instance=request.lti_user.application_instance
-        if request.lti_user
-        else None,
+        application_instance=(
+            request.lti_user.application_instance if request.lti_user else None
+        ),
         grouping_service=request.find_service(name="grouping"),
     )

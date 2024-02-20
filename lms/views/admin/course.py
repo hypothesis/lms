@@ -1,16 +1,10 @@
-from datetime import datetime
-
 from marshmallow import validate
-from pyramid.httpexceptions import HTTPBadRequest, HTTPFound, HTTPNotFound
+from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config, view_defaults
 from webargs import fields
 
-from lms.events import AuditTrailEvent
-from lms.models import Organization
-from lms.models.public_id import InvalidPublicId
+from lms.models import Course
 from lms.security import Permissions
-from lms.services import OrganizationService
-from lms.services.organization import InvalidOrganizationParent
 from lms.validation._base import PyramidRequestSchema
 from lms.views.admin import flash_validation
 from lms.views.admin._schemas import EmptyStringInt
@@ -89,7 +83,7 @@ class AdminOrganizationViews:
 
         return {"courses": courses}
 
-    def _get_course_or_404(self, id_) -> Organization:
+    def _get_course_or_404(self, id_) -> Course:
         if course := self.course_service.search(id_=id_):
             return course[0]
 
