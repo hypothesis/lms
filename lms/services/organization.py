@@ -71,7 +71,7 @@ class OrganizationService:
         # SQLAlchemy, and should be fast to access.
         hierarchy = (
             self._db_session.query(Organization).filter(
-                Organization.id.in_(self._get_hierarchy_ids(id_, include_parents=True))
+                Organization.id.in_(self.get_hierarchy_ids(id_, include_parents=True))
             )
             # Order by parent id, this will cause the root (if any) to be last.
             # The default ascending order puts NULL's last
@@ -246,7 +246,7 @@ class OrganizationService:
     ):
         # Organizations that are children of the current one.
         # It includes the current org ID.
-        organization_children = self._get_hierarchy_ids(
+        organization_children = self.get_hierarchy_ids(
             organization.id, include_parents=False
         )
         # All the groups that can hold annotations (courses and segments) from this org
@@ -340,7 +340,7 @@ class OrganizationService:
             )
 
         # Get a list including our self and all are children etc.
-        if parent.id in self._get_hierarchy_ids(organization.id, include_parents=False):
+        if parent.id in self.get_hierarchy_ids(organization.id, include_parents=False):
             raise InvalidOrganizationParent(
                 f"Cannot use '{parent_public_id}' as a parent as it a "
                 "child of this organization"
@@ -349,7 +349,7 @@ class OrganizationService:
         organization.parent = parent
         organization.parent_id = parent.id
 
-    def _get_hierarchy_ids(self, id_, include_parents=False) -> list[int]:
+    def get_hierarchy_ids(self, id_, include_parents=False) -> list[int]:
         """
         Get an organization and it's children's ids order not guaranteed.
 

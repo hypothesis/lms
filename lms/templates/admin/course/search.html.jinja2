@@ -1,0 +1,53 @@
+{% import "lms:templates/admin/macros.html.jinja2" as macros %}
+{% extends "lms:templates/admin/base.html.jinja2" %}
+{% block header %}Courses{% endblock %}
+{% block content %}
+    <fieldset class="box mt-6">
+        <legend class="label has-text-centered">Find courses</legend>
+        <form method="POST" action="{{ request.route_url("admin.courses") }}">
+        <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+        {{ macros.form_text_field(request, "ID", "id") }}
+        {{ macros.form_text_field(request, "Context ID", "context_id") }}
+        {{ macros.form_text_field(request, "H ID", "h_id") }}
+        {{ macros.form_text_field(request, "Organization ID", "org_public_id") }}
+        {{ macros.form_text_field(request, "Name", "name") }}
+        {% call macros.field_body(label="") %}
+        <input type="submit" class="button is-info" value="Search" />
+        {% endcall %}
+        </form>
+    </fieldset>
+    {% if courses is defined %}
+        <fieldset class="box mt-6">
+            {% if courses %}
+                <legend class="label has-text-centered">Results</legend>
+                <div class="container">
+                    <div class="table-container">
+                        <table class="table is-fullwidth">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Context ID</th>
+                                    <th>Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in courses %}
+                                    <tr>
+                                        <td>
+                                            <a class="button"
+                                               href="{{ request.route_url('admin.course', id_=course.id) }}">View</a>
+                                        </td>
+                                        <td>{{ course.lms_id }}</td>
+                                        <td>{{ course.name }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <legend class="label has-text-centered">No results found</legend>
+            {% endif %}
+        </fieldset>
+    {% endif %}
+{% endblock %}
