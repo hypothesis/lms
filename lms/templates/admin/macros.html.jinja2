@@ -147,6 +147,13 @@
         {"label": "Issuer ID", "name": "issuer"},
         ]) }}
 {% endmacro %}
+{% macro assignments_table(request, assignments) %}
+    {{ object_list_table(request, 'admin.assignment', assignments,
+        fields=[
+        {"label": "Title", "name": "title"},
+        {"label": "Resource link id", "name": "resource_link_id"},
+        ]) }}
+{% endmacro %}
 {% macro instance_preview(request, instance) %}
     {% if instance %}
         <div class="block has-text-right">

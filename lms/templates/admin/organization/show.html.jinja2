@@ -24,6 +24,9 @@
                     <a>Info</a>
                 </li>
                 <li data-section-id="usage">
+                    <a>Courses</a>
+                </li>
+                <li data-section-id="usage">
                     <a>Usage report</a>
                 </li>
                 <li data-section-id="danger">
@@ -76,6 +79,18 @@
                             </ul>
                         </div>
                     </div>
+                </li>
+                <li class="tab-panel" data-section-id="course">
+                    <legend class="label has-text-centered">Find courses</legend>
+                    <form method="POST" action="{{ request.route_url("admin.courses") }}">
+                        <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
+                        {{ macros.form_text_field(request, "ID", "id") }}
+                        {{ macros.form_text_field(request, "Context ID", "context_id") }}
+                        {{ macros.form_text_field(request, "Name", "name") }}
+                        {% call macros.field_body(label="") %}
+                            <input type="submit" class="button is-info" value="Search" />
+                        {% endcall %}
+                    </form>
                 </li>
                 <li class="tab-panel" data-section-id="usage">
                     <fieldset class="box">

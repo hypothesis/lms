@@ -9,6 +9,7 @@ from lms.models import (
     Grouping,
     LTIRole,
     User,
+    Course,
 )
 from lms.services.upsert import bulk_upsert
 
@@ -85,6 +86,14 @@ class AssignmentService:
                     return historical_assignment
 
         return None
+
+    def get_course_assignments(self, course: Course) -> list[Assignment]:
+        return (
+            self._db.query(Assignment)
+            .join(AssignmentGrouping)
+            .filter(AssignmentGrouping.grouping == course)
+            .all()
+        )
 
     def get_assignment_for_launch(self, request) -> Assignment | None:
         """
@@ -187,6 +196,9 @@ class AssignmentService:
                 update_columns=["updated"],
             )
         )
+
+    def get_by_id(self, id_):
+        return self._db.query(Assignment).filter_by(id=id_).one_or_none()
 
 
 def factory(_context, request):

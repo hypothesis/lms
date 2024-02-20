@@ -1,0 +1,24 @@
+{% import "lms:templates/admin/macros.html.jinja2" as macros %}
+{% extends "lms:templates/admin/base.html.jinja2" %}
+{% block header %}Course {{ course.id }}{% endblock %}
+{% block content %}
+<div>
+    <fieldset>
+        <legend class="label has-text-centered">Course</legend>
+            {{ macros.disabled_text_field("ID", course.id) }}
+            {{ macros.disabled_text_field("Name", course.name) }}
+            {{ macros.created_updated_fields(course) }}
+    </fieldset>
+    
+    <fieldset class="box">
+        <legend class="label has-text-centered">Assignments</legend>
+        {% if assignments %}
+            {{ macros.assignments_table(request, assignments) }}
+        {% else %}
+            <div class="is-size-5 has-text-centered">No assignments</div>
+        {% endif %}
+
+    </fieldset>
+
+</div>
+{% endblock %}

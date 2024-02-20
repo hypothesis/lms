@@ -2,6 +2,7 @@ import json
 from copy import deepcopy
 
 from sqlalchemy import Text, column, func
+from lms.db import full_text_match
 
 from lms.models import Course, CourseGroupsExportedFromH, Grouping
 from lms.product import Product
@@ -61,6 +62,30 @@ class CourseService:
             copied_from=historical_course,
         )
 
+    def search(
+        self,
+        id_: int | None = None,
+        context_id: str | None = None,
+        h_id: str | None = None,
+        name: str | None = None,
+        limit: int = 100,
+    ) -> list[Course]:
+        query = self._db.query(Course)
+
+        if id_:
+            query = query.filter_by(id=id_)
+
+        if context_id:
+            query = query.filter_by(lms_id=context_id)
+
+        if h_id:
+            query = query.filter_by(authority_provided_id=h_id)
+
+        if name:
+            query = query.filter(full_text_match(Course.name, name))
+
+        return query.limit(limit).all()
+
     def get_by_context_id(self, context_id, raise_on_missing=False) -> Course | None:
         """
         Get a course (if one exists) by the GUID and context id.
@@ -79,6 +104,9 @@ class CourseService:
             return query.one()
 
         return query.one_or_none()
+
+    def get_by_id(self, id_: int) -> Course | None:
+        return self._db.query.get(Course, id_)
 
     def upsert_course(  # pylint:disable=too-many-arguments
         self,
@@ -191,6 +219,8 @@ class CourseService:
 def course_service_factory(_context, request):
     return CourseService(
         db=request.db,
-        application_instance=request.lti_user.application_instance,
+        application_instance=request.lti_user.application_instance
+        if request.lti_user
+        else None,
         grouping_service=request.find_service(name="grouping"),
     )
