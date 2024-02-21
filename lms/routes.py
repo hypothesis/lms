@@ -229,3 +229,5 @@ def includeme(config):  # pylint:disable=too-many-statements
     config.add_route(
         "lti.v11.deep_linking.form_fields", "/lti/1.1/deep_linking/form_fields"
     )
+
+    config.add_route("analytics.assignment", "/analytics/assignment/{id_}")

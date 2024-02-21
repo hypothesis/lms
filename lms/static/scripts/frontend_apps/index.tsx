@@ -22,11 +22,10 @@ import type { ServiceMap } from './services';
  * those routes and reloading the page results in a 404.
  */
 function routeForAppMode(mode: AppMode): string {
-  if (mode === 'email-preferences') {
-    // For the email-preferences mode, since this app is not designed to be
-    // opened in an iframe, but as the main window frame, we want to use a route
-    // that matches the server-side one.
-    return '/email/preferences';
+  // For apps not designed to be opened in an iframe, but as the main window
+  // frame, we want to keep the server-side route.
+  if (['email-preferences', 'analytics'].includes(mode)) {
+    return location.pathname;
   }
 
   return `/app/${mode}`;
