@@ -88,6 +88,16 @@ class JSConfig:
                 ),
             }
 
+        elif document_url.startswith("moodle://file"):
+            self._config["api"]["viaUrl"] = {
+                "authUrl": None,
+                "path": self._request.route_path(
+                    "moodle_api.courses.files.via_url",
+                    course_id=self._request.lti_params["context_id"],
+                    _query={"document_url": document_url},
+                ),
+            }
+
         elif document_url.startswith("vitalsource://"):
             svc: VitalSourceService = self._request.find_service(VitalSourceService)
 
@@ -274,6 +284,7 @@ class JSConfig:
                     # Specific config for pickers
                     "blackboard": FilePickerConfig.blackboard_config(*args),
                     "d2l": FilePickerConfig.d2l_config(*args),
+                    "moodle": FilePickerConfig.moodle_config(*args),
                     "canvas": FilePickerConfig.canvas_config(*args),
                     "google": FilePickerConfig.google_files_config(*args),
                     "microsoftOneDrive": FilePickerConfig.microsoft_onedrive(*args),

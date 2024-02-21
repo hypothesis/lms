@@ -61,6 +61,13 @@ def includeme(config):  # pylint:disable=too-many-statements
     )
 
     config.add_route(
+        "moodle_api.courses.files.list", "/api/moodle/courses/{course_id}/files"
+    )
+    config.add_route(
+        "moodle_api.courses.files.via_url", "/api/moodle/courses/{course_id}/via_url"
+    )
+
+    config.add_route(
         "blackboard_api.oauth.authorize",
         "/api/blackboard/oauth/authorize",
         factory="lms.resources.OAuth2RedirectResource",
