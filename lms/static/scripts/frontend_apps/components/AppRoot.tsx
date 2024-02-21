@@ -5,6 +5,7 @@ import type { ConfigObject } from '../config';
 import { Config } from '../config';
 import type { ServiceMap } from '../services';
 import { Services } from '../services';
+import AnalyticsApp from './AnalyticsApp';
 import BasicLTILaunchApp from './BasicLTILaunchApp';
 import DataLoader from './DataLoader';
 import EmailPreferencesApp from './EmailPreferencesApp';
@@ -42,6 +43,9 @@ export default function AppRoot({ initialConfig, services }: AppRootProps) {
           </Route>
           <Route path="/email/preferences">
             <EmailPreferencesApp />
+          </Route>
+          <Route path="/admin/instance/:instanceId/analytics">
+            <AnalyticsApp />
           </Route>
           <Route path="/app/error-dialog">
             <ErrorDialogApp />
