@@ -497,7 +497,11 @@ class JSConfig:
 
         if self._request.product.settings.groups_enabled:
             product_info["api"]["listGroupSets"] = {
-                "authUrl": self._request.route_url(product.route.oauth2_authorize),
+                "authUrl": (
+                    self._request.route_url(product.route.oauth2_authorize)
+                    if product.route.oauth2_authorize
+                    else None
+                ),
                 "path": self._request.route_path(
                     "api.courses.group_sets.list",
                     course_id=self._request.lti_params["context_id"],
@@ -571,7 +575,11 @@ class JSConfig:
 
             req = self._request
             self._config["api"]["sync"] = {
-                "authUrl": req.route_url(req.product.route.oauth2_authorize),
+                "authUrl": (
+                    req.route_url(req.product.route.oauth2_authorize)
+                    if req.product.route.oauth2_authorize
+                    else None
+                ),
                 "path": req.route_path("api.sync"),
                 # This data is consumed by the view in `lms.views.api.sync` which
                 # defines the arguments it expects. We need to match that
