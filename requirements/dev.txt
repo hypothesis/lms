@@ -70,7 +70,7 @@ click-repl==0.3.0
     # via
     #   -r prod.txt
     #   celery
-cryptography==42.0.2
+cryptography==42.0.4
     # via
     #   -r prod.txt
     #   pyjwt
