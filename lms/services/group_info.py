@@ -16,6 +16,7 @@ class GroupInfoService:
         "canvas_group": "canvas_group_group",
         "blackboard_group": "blackboard_group_group",
         "d2l_group": "d2l_group_group",
+        "moodle_group": "moodle_group_group",
     }
 
     def upsert_group_info(self, grouping: Grouping, params: dict):

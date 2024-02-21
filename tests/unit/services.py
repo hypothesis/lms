@@ -38,6 +38,7 @@ from lms.services.lti_registration import LTIRegistrationService
 from lms.services.lti_user import LTIUserService
 from lms.services.ltia_http import LTIAHTTPService
 from lms.services.mailchimp import MailchimpService
+from lms.services.moodle import MoodleAPIClient
 from lms.services.oauth1 import OAuth1Service
 from lms.services.oauth2_token import OAuth2TokenService
 from lms.services.oauth_http import OAuthHTTPService
@@ -81,6 +82,7 @@ __all__ = (
     "lti_user_service",
     "ltia_http_service",
     "mailchimp_service",
+    "moodle_api_client",
     "oauth1_service",
     "oauth2_token_service",
     "oauth_http_service",
@@ -173,6 +175,11 @@ def course_service(mock_service):
 @pytest.fixture
 def d2l_api_client(mock_service):
     return mock_service(D2LAPIClient)
+
+
+@pytest.fixture
+def moodle_api_client(mock_service):
+    return mock_service(MoodleAPIClient)
 
 
 @pytest.fixture
