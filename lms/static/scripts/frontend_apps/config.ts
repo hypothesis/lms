@@ -30,6 +30,7 @@ export type AppMode =
   | 'basic-lti-launch'
   | 'content-item-selection'
   | 'email-preferences'
+  | 'analytics'
   | 'error-dialog'
   | 'oauth2-redirect-error';
 

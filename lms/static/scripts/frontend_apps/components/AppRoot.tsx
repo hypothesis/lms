@@ -11,6 +11,7 @@ import EmailPreferencesApp from './EmailPreferencesApp';
 import ErrorDialogApp from './ErrorDialogApp';
 import FilePickerApp, { loadFilePickerConfig } from './FilePickerApp';
 import OAuth2RedirectErrorApp from './OAuth2RedirectErrorApp';
+import AnalyticsApp from './analytics/AnalyticsApp';
 
 export type AppRootProps = {
   /** Initial route and configuration for the frontend, read from the HTML page. */
@@ -42,6 +43,9 @@ export default function AppRoot({ initialConfig, services }: AppRootProps) {
           </Route>
           <Route path="/email/preferences">
             <EmailPreferencesApp />
+          </Route>
+          <Route path="/analytics/assignment/:assignmentId">
+            <AnalyticsApp />
           </Route>
           <Route path="/app/error-dialog">
             <ErrorDialogApp />
