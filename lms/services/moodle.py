@@ -4,8 +4,9 @@ from lms.services.http import HTTPService
 
 
 class Function(str, Enum):
-    GET_SITE_INFO = "core_webservice_get_site_info"
-    GET_COURSE_GROUPS = "core_group_get_course_groups"
+    GET_COURSE_GROUPINGS = "core_group_get_course_groupings"
+    GET_GROUPINGS = "core_group_get_groupings"
+    GET_USER_GROUPS = "core_group_get_course_user_groups"
 
 
 class MoodleAPIClient:
@@ -21,7 +22,37 @@ class MoodleAPIClient:
 
         return url + f"&wsfunction={function.value}"
 
-    def get_groups(self, course_id: int):
-        url = self.api_url(Function.GET_COURSE_GROUPS)
-        response = self._http.post(url, params={"courseid": course_id})
-        return response.json()
+    def group_set_groups(self, course_id: int, group_set_id: int):
+        url = self.api_url(Function.GET_GROUPINGS)
+        url = f"{url}&groupingids[0]={group_set_id}&returngroups=1"
+        response = self._http.post(url).json()
+
+        return [
+            {"id": g["id"], "name": g["name"], "group_set_id": group_set_id}
+            for g in response[0]["groups"]
+        ]
+
+    def groups_for_user(self, course_id, group_set_id, user_id):
+        url = self.api_url(Function.GET_USER_GROUPS)
+        url = f"{url}&groupingid={group_set_id}&userid={user_id}&courseid={course_id}"
+        print(url)
+        response = self._http.post(url).json()
+
+        return [
+            {"id": g["id"], "name": g["name"], "group_set_id": group_set_id}
+            for g in response["groups"]
+        ]
+
+    def course_group_sets(self, course_id: int) -> list[dict]:
+        url = self.api_url(Function.GET_COURSE_GROUPINGS)
+        response = self._http.post(url, params={"courseid": course_id}).json()
+
+        return [{"id": g["id"], "name": g["name"]} for g in response]
+
+    @classmethod
+    def factory(cls, _context, request):
+        return MoodleAPIClient(
+            lms_url=request.lti_user.application_instance.lms_url,
+            token="",
+            http=request.find_service(name="http"),
+        )

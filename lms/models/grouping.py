@@ -18,8 +18,9 @@ class Grouping(CreatedUpdatedMixin, Base):
         CANVAS_GROUP = "canvas_group"
         BLACKBOARD_GROUP = "blackboard_group"
         D2L_GROUP = "d2l_group"
+        MOODLE_GROUP = "moodle_group"
 
-        # These are the LMS agnostic versions of the ones avobe.
+        # These are the LMS agnostic versions of the ones above.
         # They don't get stored in the DB but are meaningful in the codebase
         SECTION = "section"
         GROUP = "group"
@@ -155,6 +156,10 @@ class BlackboardGroup(Grouping):
 
 class D2LGroup(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.D2L_GROUP}
+
+
+class MoodleGroup(Grouping):
+    __mapper_args__ = {"polymorphic_identity": Grouping.Type.MOODLE_GROUP}
 
 
 class Course(Grouping):
