@@ -21,6 +21,7 @@ type DialogType =
   | 'canvasPage'
   | 'd2lFile'
   | 'moodleFile'
+  | 'moodlePage'
   | 'jstor'
   | 'url'
   | 'vitalSourceBook'
@@ -67,7 +68,7 @@ export default function ContentSelector({
         listFiles: blackboardListFilesApi,
       },
       d2l: { enabled: d2lFilesEnabled, listFiles: d2lListFilesApi },
-      moodle: { enabled: moodleFilesEnabled, listFiles: moodleListFilesApi },
+      moodle: { enabled: moodleFilesEnabled, listFiles: moodleListFilesApi, pagesEnabled: moodlePagesEnabled, listPages: moodleListPagesApi },
       canvas: {
         enabled: canvasFilesEnabled,
         listFiles: listFilesApi,
@@ -200,6 +201,15 @@ export default function ContentSelector({
     onSelectContent({ type: 'url', url: file.id });
   };
 
+  const selectMoodlePage = (page: File | Page) => {
+    cancelDialog();
+    onSelectContent({
+      type: 'url',
+      url: page.id,
+      name: `Moodle page: ${page.display_name}`,
+    });
+  };
+
 
   const selectVitalSourceBook = async (
     selection: unknown,
@@ -292,13 +302,25 @@ export default function ContentSelector({
           listFilesApi={moodleListFilesApi}
           onCancel={cancelDialog}
           onSelectFile={selectMoodleFile}
-          missingFilesHelpLink={
-            'https://web.hypothes.is/help/'
-          }
+          missingFilesHelpLink={'https://web.hypothes.is/help/'}
           withBreadcrumbs
         />
       );
       break;
+
+    case 'moodlePage':
+      dialog = (
+        <LMSFilePicker
+          authToken={authToken}
+          listFilesApi={moodleListPagesApi}
+          onCancel={cancelDialog}
+          onSelectFile={selectMoodlePage}
+          missingFilesHelpLink={'https://web.hypothes.is/help/'}
+          documentType="page"
+        />
+      );
+      break;
+
 
     case 'jstor':
       dialog = (
@@ -430,9 +452,21 @@ export default function ContentSelector({
             onClick={() => selectDialog('moodleFile')}
             title="Select PDF from Moodle"
           >
-            Moodle
+            Moodle File
           </OptionButton>
         )}
+        {moodlePagesEnabled && (
+          <OptionButton
+            data-testid="moodle-page-button"
+            details="Page"
+            onClick={() => selectDialog('moodlePage')}
+            title="Select a Page from Moodle"
+          >
+            Moodle Page
+          </OptionButton>
+        )}
+
+ 
 
         {googlePicker && (
           <OptionButton

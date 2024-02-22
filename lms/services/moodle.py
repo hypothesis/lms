@@ -10,6 +10,8 @@ class Function(str, Enum):
 
     GET_COURSE_CONTENTS = "core_course_get_contents"
 
+    GET_PAGES = "mod_page_get_pages_by_courses"
+
 
 class MoodleAPIClient:
     API_PATH = "webservice/rest/server.php"
@@ -37,7 +39,6 @@ class MoodleAPIClient:
     def groups_for_user(self, course_id, group_set_id, user_id):
         url = self.api_url(Function.GET_USER_GROUPS)
         url = f"{url}&groupingid={group_set_id}&userid={user_id}&courseid={course_id}"
-        print(url)
         response = self._http.post(url).json()
 
         return [
@@ -56,10 +57,39 @@ class MoodleAPIClient:
         response = self._http.post(url, params={"courseid": course_id}).json()
         return response
 
-    def list_files(self, course_id: int):
-        contents = self.get_course_contents(course_id)
+    def list_pages(self, course_id, page_id=None):
+        url = self.api_url(Function.GET_PAGES)
+        url = f"{url}&courseids[0]={course_id}"
+        response = self._http.post(url).json()
+        pages = response["pages"]
+        print(pages)
+        print(page_id)
 
-        from pprint import pprint
+        if page_id:
+            pages = [page for page in pages if int(page["id"]) == int(page_id)]
+
+        return pages
+
+    def page(self, course_id, page_id) -> dict | None:
+        pages = self.list_pages(course_id, page_id)
+        print(pages)
+        if not pages:
+            return None
+
+        page = pages[0]
+        print(page)
+
+        return dict(
+            id=page["id"],
+            course_module=page["coursemodule"],
+            title=page["name"],
+            updated_at=page["timemodified"],
+            body=page["content"],
+        )
+
+    def list_files(self, course_id: int):
+        self.list_pages(course_id)
+        contents = self.get_course_contents(course_id)
 
         files = []
 
@@ -73,6 +103,7 @@ class MoodleAPIClient:
                             module["contents"], course_id, parent=topic_name
                         )
                     )
+
                 elif module["modname"] == "folder":
                     files.extend(
                         self._get_contents(
@@ -90,7 +121,6 @@ class MoodleAPIClient:
     def _get_contents(contents, course_id, parent=None):
         file_paths = []
         for content in contents:
-            print(content["fileurl"])
             # TODO AVOID NON PDFS
             file_path = f"{parent}{content['filepath']}{content['filename']}"
             file_paths.append(

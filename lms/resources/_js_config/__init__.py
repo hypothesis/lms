@@ -97,6 +97,11 @@ class JSConfig:
                     _query={"document_url": document_url},
                 ),
             }
+        elif document_url.startswith("moodle://page"):
+            self._config["api"]["viaUrl"] = {
+                "authUrl": None,
+                "path": self._request.route_path("moodle_api.pages.via_url"),
+            }
 
         elif document_url.startswith("vitalsource://"):
             svc: VitalSourceService = self._request.find_service(VitalSourceService)

@@ -47,14 +47,25 @@ class FilePickerConfig:
     def moodle_config(cls, request, application_instance):
         files_enabled = application_instance.settings.get("moodle", "files_enabled")
         files_enabled = True
+        pages_enabled = application_instance.settings.get("moodle", "pages_enabled")
+        pages_enabled = True
 
-        config = {"enabled": files_enabled}
+        config = {"enabled": files_enabled, "pagesEnabled": pages_enabled}
+        course_id = request.lti_params.get("context_id")
         if files_enabled:
             config["listFiles"] = {
                 "authUrl": None,
                 "path": request.route_path(
                     "moodle_api.courses.files.list",
-                    course_id=request.lti_params.get("context_id"),
+                    course_id=course_id,
+                ),
+            }
+
+        if pages_enabled:
+            config["listPages"] = {
+                "authUrl": request.route_url(Canvas.route.oauth2_authorize),
+                "path": request.route_path(
+                    "moodle_api.courses.pages.list", course_id=course_id
                 ),
             }
 
