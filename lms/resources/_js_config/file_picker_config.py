@@ -46,8 +46,9 @@ class FilePickerConfig:
     @classmethod
     def moodle_config(cls, request, application_instance):
         files_enabled = application_instance.settings.get("moodle", "files_enabled")
+        pages_enabled = application_instance.settings.get("moodle", "pages_enabled")
 
-        config = {"enabled": files_enabled}
+        config = {"enabled": files_enabled, "pagesEnabled": pages_enabled}
         course_id = request.lti_params.get("context_id")
         if files_enabled:
             config["listFiles"] = {
@@ -55,6 +56,14 @@ class FilePickerConfig:
                 "path": request.route_path(
                     "moodle_api.courses.files.list",
                     course_id=course_id,
+                ),
+            }
+
+        if pages_enabled:
+            config["listPages"] = {
+                "authUrl": None,
+                "path": request.route_path(
+                    "moodle_api.courses.pages.list", course_id=course_id
                 ),
             }
 

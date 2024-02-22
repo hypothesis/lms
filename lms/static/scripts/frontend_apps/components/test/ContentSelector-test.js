@@ -55,9 +55,14 @@ describe('ContentSelector', () => {
         },
         moodle: {
           enabled: true,
+          pagesEnabled: true,
           listFiles: {
-            authUrl: 'https://lms.anno.co/moodle/authorize',
+            authUrl: null,
             path: 'https://lms.anno.co/api/moodle/files',
+          },
+          listPages: {
+            authUrl: null,
+            path: 'https://lms.anno.co/api/canvas/pages',
           },
         },
         d2l: {
@@ -136,6 +141,7 @@ describe('ContentSelector', () => {
         'blackboard-file-button',
         'd2l-file-button',
         'moodle-file-button',
+        'moodle-page-button',
         'onedrive-button',
       ]
     );
@@ -287,7 +293,6 @@ describe('ContentSelector', () => {
         },
         missingFilesHelpLink: 'https://web.hypothes.is/help/',
       },
-
       {
         name: 'd2l',
         dialogName: 'd2lFile',
@@ -328,44 +333,69 @@ describe('ContentSelector', () => {
   });
 
   describe('LMS page dialog', () => {
-    it('shows LMS file dialog when "Canvas page" is clicked', () => {
-      const wrapper = renderContentSelector();
+    [
+      {
+        name: 'Canvas',
+        buttonTestId: 'canvas-page-button',
+        pages: () => fakeConfig.filePicker.canvas.listPages,
+      },
+      {
+        name: 'Moodle',
+        buttonTestId: 'moodle-page-button',
+        pages: () => fakeConfig.filePicker.moodle.listPages,
+      },
+    ].forEach(test => {
+      it(`'shows LMS file dialog when "${test.name}" is clicked'`, () => {
+        const wrapper = renderContentSelector();
 
-      const btn = wrapper.find(`Button[data-testid="canvas-page-button"]`);
-      interact(wrapper, () => {
-        btn.props().onClick();
+        const btn = wrapper.find(`Button[data-testid="${test.buttonTestId}"]`);
+        interact(wrapper, () => {
+          btn.props().onClick();
+        });
+
+        const pagePicker = wrapper.find('LMSFilePicker');
+        assert.isTrue(pagePicker.exists());
+        assert.equal(pagePicker.prop('authToken'), fakeConfig.api.authToken);
+
+        assert.equal(pagePicker.prop('listFilesApi'), test.pages());
+
+        interact(wrapper, () => {
+          pagePicker.props().onCancel();
+        });
       });
 
-      const pagePicker = wrapper.find('LMSFilePicker');
-      assert.isTrue(pagePicker.exists());
-      assert.equal(pagePicker.prop('authToken'), fakeConfig.api.authToken);
+      [
+        {
+          name: 'Canvas',
+          dialog: 'canvasPage',
+          displayName: 'Canvas page: Page title',
+        },
+        {
+          name: 'Moodle',
+          dialog: 'moodlePage',
+          displayName: 'Moodle page: Page title',
+        },
+      ].forEach(test => {
+        it(`'supports selecting a page from the ${test.name} page dialog'`, () => {
+          const onSelectContent = sinon.stub();
+          const wrapper = renderContentSelector({
+            defaultActiveDialog: test.dialog,
+            onSelectContent,
+          });
 
-      assert.equal(
-        pagePicker.prop('listFilesApi'),
-        fakeConfig.filePicker.canvas.listPages
-      );
+          const picker = wrapper.find('LMSFilePicker');
+          interact(wrapper, () => {
+            picker
+              .props()
+              .onSelectFile({ id: 123, display_name: 'Page title' });
+          });
 
-      interact(wrapper, () => {
-        pagePicker.props().onCancel();
-      });
-    });
-
-    it('supports selecting a page from the page dialog', () => {
-      const onSelectContent = sinon.stub();
-      const wrapper = renderContentSelector({
-        defaultActiveDialog: 'canvasPage',
-        onSelectContent,
-      });
-
-      const picker = wrapper.find('LMSFilePicker');
-      interact(wrapper, () => {
-        picker.props().onSelectFile({ id: 123, display_name: 'Page title' });
-      });
-
-      assert.calledWith(onSelectContent, {
-        type: 'url',
-        url: 123,
-        name: 'Canvas page: Page title',
+          assert.calledWith(onSelectContent, {
+            type: 'url',
+            url: 123,
+            name: test.displayName,
+          });
+        });
       });
     });
   });

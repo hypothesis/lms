@@ -66,6 +66,11 @@ def includeme(config):  # pylint:disable=too-many-statements
     config.add_route(
         "moodle_api.courses.files.via_url", "/api/moodle/courses/{course_id}/via_url"
     )
+    config.add_route(
+        "moodle_api.courses.pages.list", "/api/moodle/courses/{course_id}/pages"
+    )
+    config.add_route("moodle_api.pages.via_url", "/api/moodle/pages/via_url")
+    config.add_route("moodle_api.pages.proxy", "/api/moodle/pages/proxy")
 
     config.add_route(
         "blackboard_api.oauth.authorize",

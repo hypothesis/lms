@@ -11,6 +11,8 @@ class Function(str, Enum):
 
     GET_COURSE_CONTENTS = "core_course_get_contents"
 
+    GET_PAGES = "mod_page_get_pages_by_courses"
+
 
 class MoodleAPIClient:
     API_PATH = "webservice/rest/server.php"
@@ -77,10 +79,60 @@ class MoodleAPIClient:
                             module["contents"], parent=topic_name + "/" + module["name"]
                         )
                     )
-                else:
-                    continue
 
         return self._construct_file_tree(course_id, files)
+
+    def page(self, course_id, page_id) -> dict | None:
+        url = self._api_url(Function.GET_PAGES)
+        url = f"{url}&courseids[0]={course_id}"
+        pages = self._http.post(url).json()["pages"]
+        pages = [page for page in pages if int(page["coursemodule"]) == int(page_id)]
+
+        if not pages:
+            return None
+        page = pages[0]
+
+        return {
+            "id": page["id"],
+            "course_module": page["coursemodule"],
+            "title": page["name"],
+            "body": page["content"],
+        }
+
+    def list_pages(self, course_id: int):
+        contents = self.course_contents(course_id)
+        root = {"type": "Folder", "display_name": "", "children": []}
+        folders = {root["display_name"]: root}
+
+        for topic in contents:
+            topic_name = topic["name"]
+
+            for module in topic["modules"]:
+                current_node = root
+                # Pages can only be at the top level modules
+                if module["modname"] == "page":
+                    if topic_name not in folders:
+                        new_folder = {
+                            "type": "Folder",
+                            "display_name": topic_name,
+                            "id": f"{course_id}-{topic_name}",
+                            "lms_id": f"{course_id}-{topic_name}",
+                            "children": [],
+                        }
+                        folders[topic_name] = new_folder
+                        current_node["children"].append(new_folder)
+
+                    current_node = folders[topic_name]
+
+                    file_node = {
+                        "type": "Page",
+                        "display_name": module["name"],
+                        "lms_id": f"moodle://page/course/{course_id}/page_id/{module['id']}",
+                        "id": f"moodle://page/course/{course_id}/page_id/{module['id']}",
+                    }
+                    current_node["children"].append(file_node)
+
+        return root["children"]
 
     @staticmethod
     def _get_contents(contents, parent=None):

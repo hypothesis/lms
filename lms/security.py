@@ -107,8 +107,9 @@ class SecurityPolicy:
 
         # LTUser serialized as query param for authorization failures
         if (path.startswith("/api") and path.endswith("authorize")) or path in {
-            # To fetch pages content from Canvas' API
-            "/api/canvas/pages/proxy"
+            # To fetch pages content from LMSes' APIs
+            "/api/canvas/pages/proxy",
+            "/api/moodle/pages/proxy",
         }:
             return LTIUserSecurityPolicy(
                 partial(get_lti_user_from_bearer_token, location="querystring")
