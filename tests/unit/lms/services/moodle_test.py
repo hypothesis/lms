@@ -55,6 +55,26 @@ class TestMoodleAPIClient:
         )
         assert api_contents == sentinel.contents
 
+    def test_page_not_found(self, svc, http_service, pages):
+        http_service.post.return_value.json.return_value = {"pages": pages}
+
+        assert not svc.page("COURSE_ID", "100")
+
+    def test_page(self, svc, http_service, pages):
+        http_service.post.return_value.json.return_value = {"pages": pages}
+
+        page = svc.page("COURSE_ID", "1")
+
+        http_service.post.assert_called_once_with(
+            "sentinel.lms_url/webservice/rest/server.php?wstoken=sentinel.token&moodlewsrestformat=json&wsfunction=mod_page_get_pages_by_courses&courseids[0]=COURSE_ID"
+        )
+        assert page == {
+            "id": "ID 1",
+            "course_module": "1",
+            "title": "PAGE 1",
+            "body": "HTML 1",
+        }
+
     def test_list_files(self, svc, http_service, contents):
         http_service.post.return_value.json.return_value = contents
 
@@ -103,6 +123,34 @@ class TestMoodleAPIClient:
                                 ],
                             },
                         ],
+                    },
+                ],
+            }
+        ]
+
+    def test_list_pages(self, svc, http_service, contents):
+        http_service.post.return_value.json.return_value = contents
+
+        api_pages = svc.list_pages("COURSE_ID")
+
+        assert api_pages == [
+            {
+                "type": "Folder",
+                "display_name": "General",
+                "id": "COURSE_ID-General",
+                "lms_id": "COURSE_ID-General",
+                "children": [
+                    {
+                        "type": "Page",
+                        "display_name": "A Page",
+                        "lms_id": "moodle://page/course/COURSE_ID/page_id/860",
+                        "id": "moodle://page/course/COURSE_ID/page_id/860",
+                    },
+                    {
+                        "type": "Page",
+                        "display_name": "Another Page",
+                        "lms_id": "moodle://page/course/COURSE_ID/page_id/1860",
+                        "id": "moodle://page/course/COURSE_ID/page_id/1860",
                     },
                 ],
             }
@@ -349,6 +397,29 @@ class TestMoodleAPIClient:
                             "repositorytype": "",
                         },
                     },
+                    {
+                        "id": 1860,
+                        "url": "https://hypothesisuniversity.moodlecloud.com/mod/page/view.php?id=1860",
+                        "name": "Another Page",
+                        "instance": 2,
+                        "contextid": 1135,
+                        "visible": 1,
+                        "uservisible": True,
+                        "visibleoncoursepage": 1,
+                        "modicon": "https://hypothesisuniversity.moodlecloud.com/theme/image.php/boost/page/1705160259/monologo?filtericon=1",
+                        "modname": "page",
+                        "modplural": "Pages",
+                        "availability": None,
+                        "indent": 0,
+                        "onclick": "",
+                        "afterlink": None,
+                        "customdata": '""',
+                        "noviewlink": False,
+                        "completion": 0,
+                        "downloadcontent": 1,
+                        "dates": [],
+                        "groupmode": 0,
+                    },
                 ],
             },
             {
@@ -385,6 +456,23 @@ class TestMoodleAPIClient:
                         "groupmode": 0,
                     },
                 ],
+            },
+        ]
+
+    @pytest.fixture
+    def pages(self):
+        return [
+            {
+                "id": "ID 1",
+                "coursemodule": "1",
+                "name": "PAGE 1",
+                "content": "HTML 1",
+            },
+            {
+                "id": "ID 2",
+                "coursemodule": "2",
+                "name": "PAGE 2",
+                "content": "HTML 2",
             },
         ]
 

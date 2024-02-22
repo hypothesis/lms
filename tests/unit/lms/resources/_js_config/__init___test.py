@@ -282,6 +282,13 @@ class TestAddDocumentURL:
                     "path": "/api/moodle/courses/test_course_id/via_url?document_url=moodle%3A%2F%2Ffile%2Fcourse%2F125%2Ffile_id%2F100",
                 },
             ),
+            (
+                "moodle://page/course/125/page_id/100",
+                {
+                    "authUrl": None,
+                    "path": "/api/moodle/pages/via_url",
+                },
+            ),
         ],
     )
     def test_it_adds_the_viaUrl_api_config(self, url, via_url, js_config):
