@@ -57,8 +57,12 @@ class PagesAPIViews:
                         "authorization": auth_token,
                     },
                 ),
-                # Disable proxying of iframes. This enables embedded widgets to work.
-                options={"via.proxy_frames": "0"},
+                options={
+                    # Disable proxying of iframes. This enables embedded widgets to work.
+                    "via.proxy_frames": "0",
+                    # Images from Moodle need cookie authentication, stop proxying them.
+                    "via.proxy_images": "0",
+                },
             )
         }
 

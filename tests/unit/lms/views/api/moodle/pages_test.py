@@ -53,7 +53,7 @@ class TestPageAPIViews:
                     "authorization": "TOKEN",
                 }
             ),
-            options={"via.proxy_frames": "0"},
+            options={"via.proxy_frames": "0", "via.proxy_images": "0"},
         )
         assert response == {"via_url": helpers.via_url.return_value}
 
