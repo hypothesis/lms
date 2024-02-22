@@ -21,6 +21,7 @@ type DialogType =
   | 'canvasPage'
   | 'd2lFile'
   | 'moodleFile'
+  | 'moodlePage'
   | 'jstor'
   | 'url'
   | 'vitalSourceBook'
@@ -67,7 +68,12 @@ export default function ContentSelector({
         listFiles: blackboardListFilesApi,
       },
       d2l: { enabled: d2lFilesEnabled, listFiles: d2lListFilesApi },
-      moodle: { enabled: moodleFilesEnabled, listFiles: moodleListFilesApi },
+      moodle: {
+        enabled: moodleFilesEnabled,
+        listFiles: moodleListFilesApi,
+        pagesEnabled: moodlePagesEnabled,
+        listPages: moodleListPagesApi,
+      },
       canvas: {
         enabled: canvasFilesEnabled,
         listFiles: listFilesApi,
@@ -180,6 +186,15 @@ export default function ContentSelector({
   // file.id is a URL with a `blackboard://`, `d2l://` or `moodle://` prefix.
   const selectFileAsURL = (file: File | Page) => selectURL(file.id);
 
+  const selectMoodlePage = (page: File | Page) => {
+    cancelDialog();
+    onSelectContent({
+      type: 'url',
+      url: page.id,
+      name: `Moodle page: ${page.display_name}`,
+    });
+  };
+
   const selectVitalSourceBook = async (
     selection: unknown,
     documentURL: string,
@@ -269,6 +284,20 @@ export default function ContentSelector({
         />
       );
       break;
+
+    case 'moodlePage':
+      dialog = (
+        <LMSFilePicker
+          authToken={authToken}
+          listFilesApi={moodleListPagesApi}
+          onCancel={cancelDialog}
+          onSelectFile={selectMoodlePage}
+          missingFilesHelpLink={'https://web.hypothes.is/help/'}
+          documentType="page"
+        />
+      );
+      break;
+
     case 'jstor':
       dialog = (
         <JSTORPicker
@@ -400,6 +429,16 @@ export default function ContentSelector({
             title="Select PDF from Moodle"
           >
             Moodle File
+          </OptionButton>
+        )}
+        {moodlePagesEnabled && (
+          <OptionButton
+            data-testid="moodle-page-button"
+            details="Page"
+            onClick={() => selectDialog('moodlePage')}
+            title="Select a Page from Moodle"
+          >
+            Moodle Page
           </OptionButton>
         )}
 

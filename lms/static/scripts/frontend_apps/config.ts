@@ -95,6 +95,8 @@ export type FilePickerConfig = {
   moodle: {
     enabled: boolean;
     listFiles: APICallInfo;
+    pagesEnabled: boolean;
+    listPages: APICallInfo;
   };
   canvas: {
     enabled: boolean;

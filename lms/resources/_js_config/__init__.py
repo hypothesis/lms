@@ -41,7 +41,9 @@ class JSConfig:
     def _application_instance(self):
         return self._lti_user.application_instance
 
-    def add_document_url(self, document_url) -> None:  # pylint: disable=too-complex
+    def add_document_url(  # pylint: disable=too-complex,too-many-branches
+        self, document_url
+    ) -> None:
         """
         Set the document to the document at the given document_url.
 
@@ -96,6 +98,11 @@ class JSConfig:
                     course_id=self._request.lti_params["context_id"],
                     _query={"document_url": document_url},
                 ),
+            }
+        elif document_url.startswith("moodle://page"):
+            self._config["api"]["viaUrl"] = {
+                "authUrl": None,
+                "path": self._request.route_path("moodle_api.pages.via_url"),
             }
 
         elif document_url.startswith("vitalsource://"):
