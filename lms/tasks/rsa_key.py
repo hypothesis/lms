@@ -14,6 +14,8 @@ def rotate_keys():
 
     with app.request_context() as request:  # pylint: disable=no-member
         if request.registry.settings["disable_key_rotation"]:
+            # Useful for environments where keys might be hardcoded on the LMS side
+            # like the local environment and QA
             LOG.info("RSA Key rotation is disabled")
             return
 
