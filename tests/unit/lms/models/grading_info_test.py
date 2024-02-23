@@ -40,7 +40,7 @@ class TestGradingInfo:
         db_session.add(grading_info)
         with pytest.raises(
             sqlalchemy.exc.IntegrityError,
-            match=f'null value in column "{non_nullable_field}" violates not-null constraint',
+            match=f'null value in column "{non_nullable_field}"',
         ):
             db_session.flush()
 

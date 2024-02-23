@@ -21,8 +21,7 @@ class TestGroupInfo:
         db_session.add(group_info)
 
         with pytest.raises(
-            IntegrityError,
-            match='"application_instance_id" violates not-null constrain',
+            IntegrityError, match='null value in column "application_instance_id"'
         ):
             db_session.flush()
 

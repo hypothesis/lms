@@ -30,13 +30,13 @@ class TestOAuth2Token:
         assert token.expires_in == 3600
         assert token.received_at == now
 
-    def test_user_id_cant_be_None(self, db_session, init_kwargs):
-        del init_kwargs["user_id"]
+    @pytest.mark.parametrize("column", ["user_id", "access_token"])
+    def test_columns_that_cant_be_None(self, db_session, init_kwargs, column):
+        del init_kwargs[column]
         db_session.add(OAuth2Token(**init_kwargs))
 
         with pytest.raises(
-            sqlalchemy.exc.IntegrityError,
-            match='null value in column "user_id" violates not-null constraint',
+            sqlalchemy.exc.IntegrityError, match=f'null value in column "{column}"'
         ):
             db_session.flush()
 
@@ -50,16 +50,6 @@ class TestOAuth2Token:
         db_session.flush()
 
         assert token.application_instance_id == application_instance.id
-
-    def test_access_token_cant_be_None(self, db_session, init_kwargs):
-        del init_kwargs["access_token"]
-        db_session.add(OAuth2Token(**init_kwargs))
-
-        with pytest.raises(
-            sqlalchemy.exc.IntegrityError,
-            match='null value in column "access_token" violates not-null constraint',
-        ):
-            db_session.flush()
 
     def test_refresh_token_defaults_to_None(self, db_session, init_kwargs):
         token = OAuth2Token(**init_kwargs)
