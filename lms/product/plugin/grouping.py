@@ -73,7 +73,7 @@ class GroupingPlugin:
         """Check if sections are enabled for this LMS, instance and course."""
         return bool(self.sections_type)
 
-    def get_group_set_id(self, _request, assignment, historical_assignment=None):
+    def get_group_set_id(self, request, assignment, historical_assignment=None):
         """
         Get the group set ID for group launches.
 
@@ -99,7 +99,10 @@ class GroupingPlugin:
             # version of the assignment
             return historical_assignment.extra.get("group_set_id")
 
-        return None
+        # For LMS that also supports deep linking, use that as the last fallback
+        return request.product.plugin.misc.get_deep_linked_assignment_configuration(
+            request
+        ).get("group_set")
 
 
 class GroupError(Exception):

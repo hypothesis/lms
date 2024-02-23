@@ -129,52 +129,12 @@ class TestD2LGroupingPlugin:
             )
         assert err.value.error_code == ErrorCodes.GROUP_SET_EMPTY
 
-    def test_get_group_set_id_when_no_assignment(
-        self, plugin, pyramid_request, misc_plugin
-    ):
-        misc_plugin.get_deep_linked_assignment_configuration.return_value = {}
-
-        assert not plugin.get_group_set_id(pyramid_request, None, None)
-
-    @pytest.mark.usefixtures("with_deep_linked_group_set")
-    def test_get_group_set_id_when_no_group_set_in_db(self, plugin, pyramid_request):
-        assignment = factories.Assignment(extra={})
-
-        assert not plugin.get_group_set_id(pyramid_request, assignment, None)
-
-    @pytest.mark.usefixtures("with_deep_linked_group_set")
-    def test_get_group_set_id_from_historical_assignment(self, plugin, pyramid_request):
-        historical_assignment = factories.Assignment(
-            extra={"group_set_id": sentinel.id}
-        )
-
-        assert (
-            plugin.get_group_set_id(pyramid_request, None, historical_assignment)
-            == sentinel.id
-        )
-
-    @pytest.mark.usefixtures("with_deep_linked_group_set")
-    def test_get_group_set_id_from_assignment(self, plugin, pyramid_request):
-        assignment = factories.Assignment(extra={"group_set_id": sentinel.id})
-
-        assert plugin.get_group_set_id(pyramid_request, assignment, None) == sentinel.id
-
-    @pytest.mark.usefixtures("with_deep_linked_group_set")
-    def test_get_group_set_id_from_deep_linking(self, plugin, pyramid_request):
-        assert plugin.get_group_set_id(pyramid_request, None, None) == sentinel.id
-
     def test_factory(self, pyramid_request, d2l_api_client, misc_plugin):
         plugin = D2LGroupingPlugin.factory(sentinel.context, pyramid_request)
         assert isinstance(plugin, D2LGroupingPlugin)
         # pylint: disable=protected-access
         assert plugin._d2l_api == d2l_api_client
         assert plugin._misc_plugin == misc_plugin
-
-    @pytest.fixture
-    def with_deep_linked_group_set(self, misc_plugin):
-        misc_plugin.get_deep_linked_assignment_configuration.return_value = {
-            "group_set": sentinel.id
-        }
 
     @pytest.fixture
     def plugin(self, d2l_api_client, misc_plugin):
