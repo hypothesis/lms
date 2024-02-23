@@ -72,20 +72,6 @@ class D2LGroupingPlugin(GroupingPlugin):
 
         return groups
 
-    def get_group_set_id(self, request, assignment, historical_assignment=None):
-        if assignment:
-            # For existing assignments return the config in our DB
-            return assignment.extra.get("group_set_id")
-
-        if historical_assignment:
-            # When creating a new assignment, default to the value of original one if we have one
-            return historical_assignment.extra.get("group_set_id")
-
-        # D2L also supports deep linking, use that as the last fallback
-        return self._misc_plugin.get_deep_linked_assignment_configuration(request).get(
-            "group_set"
-        )
-
     @classmethod
     def factory(cls, _context, request):
         d2l_api = request.find_service(D2LAPIClient)
