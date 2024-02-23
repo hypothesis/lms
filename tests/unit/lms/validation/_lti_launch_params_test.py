@@ -129,6 +129,22 @@ class TestBasicLTILaunchSchema:
     @pytest.mark.parametrize(
         "required_param",
         [
+            "lis_person_name_given",
+            "lis_person_name_family",
+            "lis_person_name_full",
+            "lis_person_contact_email_primary",
+        ],
+    )
+    def test_it_allow_none_values(self, pyramid_request, required_param):
+        pyramid_request.params[required_param] = None
+
+        schema = BasicLTILaunchSchema(pyramid_request)
+
+        schema.parse()
+
+    @pytest.mark.parametrize(
+        "required_param",
+        [
             "resource_link_id",
             "lti_version",
             "lti_message_type",
