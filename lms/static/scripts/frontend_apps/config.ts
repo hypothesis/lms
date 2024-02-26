@@ -18,7 +18,7 @@ export type APICallInfo = {
    * error. This is used when the API call requires an OAuth 2 authorization
    * flow to be completed with eg. an external LMS's API.
    */
-  authUrl?: string;
+  authUrl?: string | null;
   data?: object;
 };
 

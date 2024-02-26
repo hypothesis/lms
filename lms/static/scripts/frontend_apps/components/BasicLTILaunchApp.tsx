@@ -108,7 +108,7 @@ export default function BasicLTILaunchApp() {
     error: Error,
     state: ErrorState,
     retry = true,
-    authURL?: string
+    authURL?: string | null
   ) => {
     // Here we always set the authorization URL, but we could improve UX by
     // not setting it if the problem is not related to authorization (eg.
