@@ -53,6 +53,13 @@ describe('ContentSelector', () => {
             path: 'https://lms.anno.co/api/canvas/pages',
           },
         },
+        moodle: {
+          enabled: true,
+          listFiles: {
+            authUrl: 'https://lms.anno.co/moodle/authorize',
+            path: 'https://lms.anno.co/api/moodle/files',
+          },
+        },
         d2l: {
           enabled: true,
           listFiles: {
@@ -128,6 +135,7 @@ describe('ContentSelector', () => {
         'canvas-page-button',
         'blackboard-file-button',
         'd2l-file-button',
+        'moodle-file-button',
         'onedrive-button',
       ]
     );
@@ -221,6 +229,11 @@ describe('ContentSelector', () => {
         buttonTestId: 'd2l-file-button',
         files: () => fakeConfig.filePicker.d2l.listFiles,
       },
+      {
+        name: 'Moodle',
+        buttonTestId: 'moodle-file-button',
+        files: () => fakeConfig.filePicker.moodle.listFiles,
+      },
     ].forEach(test => {
       it(`shows LMS file dialog when "${test.name} file" is clicked`, () => {
         const wrapper = renderContentSelector();
@@ -264,6 +277,17 @@ describe('ContentSelector', () => {
         },
         missingFilesHelpLink: 'https://web.hypothes.is/help/bb-files',
       },
+      {
+        name: 'moodle',
+        dialogName: 'moodleFile',
+        file: { id: 'moodle://file/FILE' },
+        result: {
+          type: 'url',
+          url: 'moodle://file/FILE',
+        },
+        missingFilesHelpLink: 'https://web.hypothes.is/help/',
+      },
+
       {
         name: 'd2l',
         dialogName: 'd2lFile',

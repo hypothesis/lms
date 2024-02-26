@@ -274,6 +274,7 @@ class JSConfig:
                     # Specific config for pickers
                     "blackboard": FilePickerConfig.blackboard_config(*args),
                     "d2l": FilePickerConfig.d2l_config(*args),
+                    "moodle": FilePickerConfig.moodle_config(*args),
                     "canvas": FilePickerConfig.canvas_config(*args),
                     "google": FilePickerConfig.google_files_config(*args),
                     "microsoftOneDrive": FilePickerConfig.microsoft_onedrive(*args),

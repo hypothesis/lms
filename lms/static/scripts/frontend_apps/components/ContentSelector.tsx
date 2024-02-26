@@ -20,6 +20,7 @@ type DialogType =
   | 'canvasFile'
   | 'canvasPage'
   | 'd2lFile'
+  | 'moodleFile'
   | 'jstor'
   | 'url'
   | 'vitalSourceBook'
@@ -66,6 +67,7 @@ export default function ContentSelector({
         listFiles: blackboardListFilesApi,
       },
       d2l: { enabled: d2lFilesEnabled, listFiles: d2lListFilesApi },
+      moodle: { enabled: moodleFilesEnabled, listFiles: moodleListFilesApi },
       canvas: {
         enabled: canvasFilesEnabled,
         listFiles: listFilesApi,
@@ -192,6 +194,12 @@ export default function ContentSelector({
     onSelectContent({ type: 'url', url: file.id });
   };
 
+  const selectMoodleFile = (file: File | Page) => {
+    cancelDialog();
+    // file.id is a URL with a `moodle://` prefix.
+    onSelectContent({ type: 'url', url: file.id });
+  };
+
   const selectVitalSourceBook = async (
     selection: unknown,
     documentURL: string
@@ -272,6 +280,18 @@ export default function ContentSelector({
           missingFilesHelpLink={
             'https://web.hypothes.is/help/using-hypothesis-with-d2l-course-content-files/'
           }
+          withBreadcrumbs
+        />
+      );
+      break;
+    case 'moodleFile':
+      dialog = (
+        <LMSFilePicker
+          authToken={authToken}
+          listFilesApi={moodleListFilesApi}
+          onCancel={cancelDialog}
+          onSelectFile={selectMoodleFile}
+          missingFilesHelpLink={'https://web.hypothes.is/help/'}
           withBreadcrumbs
         />
       );
@@ -400,6 +420,17 @@ export default function ContentSelector({
             D2L
           </OptionButton>
         )}
+        {moodleFilesEnabled && (
+          <OptionButton
+            data-testid="moodle-file-button"
+            details="PDF"
+            onClick={() => selectDialog('moodleFile')}
+            title="Select PDF from Moodle"
+          >
+            Moodle File
+          </OptionButton>
+        )}
+
         {googlePicker && (
           <OptionButton
             details="PDF"

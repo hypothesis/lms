@@ -28,6 +28,23 @@ class TestFilePickerConfig:
 
         assert config == expected_config
 
+    @pytest.mark.parametrize("files_enabled", [False, True])
+    def test_moodle_config(self, pyramid_request, application_instance, files_enabled):
+        pyramid_request.lti_params["context_id"] = "COURSE_ID"
+        application_instance.settings.set("moodle", "files_enabled", files_enabled)
+
+        config = FilePickerConfig.moodle_config(pyramid_request, application_instance)
+
+        expected_config = {"enabled": files_enabled}
+
+        if files_enabled:
+            expected_config["listFiles"] = {
+                "authUrl": None,
+                "path": "/api/moodle/courses/COURSE_ID/files",
+            }
+
+        assert config == expected_config
+
     @pytest.mark.parametrize(
         "family,enabled,expected",
         [
