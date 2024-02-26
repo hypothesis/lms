@@ -44,6 +44,23 @@ class FilePickerConfig:
         return config
 
     @classmethod
+    def moodle_config(cls, request, application_instance):
+        files_enabled = application_instance.settings.get("moodle", "files_enabled")
+
+        config = {"enabled": files_enabled}
+        course_id = request.lti_params.get("context_id")
+        if files_enabled:
+            config["listFiles"] = {
+                "authUrl": None,
+                "path": request.route_path(
+                    "moodle_api.courses.files.list",
+                    course_id=course_id,
+                ),
+            }
+
+        return config
+
+    @classmethod
     def canvas_config(cls, request, application_instance):
         """Get Canvas files config."""
 

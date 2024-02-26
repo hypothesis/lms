@@ -41,7 +41,7 @@ class JSConfig:
     def _application_instance(self):
         return self._lti_user.application_instance
 
-    def add_document_url(self, document_url) -> None:
+    def add_document_url(self, document_url) -> None:  # pylint: disable=too-complex
         """
         Set the document to the document at the given document_url.
 
@@ -83,6 +83,16 @@ class JSConfig:
                 "authUrl": self._request.route_url(D2L.route.oauth2_authorize),
                 "path": self._request.route_path(
                     "d2l_api.courses.files.via_url",
+                    course_id=self._request.lti_params["context_id"],
+                    _query={"document_url": document_url},
+                ),
+            }
+
+        elif document_url.startswith("moodle://file"):
+            self._config["api"]["viaUrl"] = {
+                "authUrl": None,
+                "path": self._request.route_path(
+                    "moodle_api.courses.files.via_url",
                     course_id=self._request.lti_params["context_id"],
                     _query={"document_url": document_url},
                 ),
@@ -274,6 +284,7 @@ class JSConfig:
                     # Specific config for pickers
                     "blackboard": FilePickerConfig.blackboard_config(*args),
                     "d2l": FilePickerConfig.d2l_config(*args),
+                    "moodle": FilePickerConfig.moodle_config(*args),
                     "canvas": FilePickerConfig.canvas_config(*args),
                     "google": FilePickerConfig.google_files_config(*args),
                     "microsoftOneDrive": FilePickerConfig.microsoft_onedrive(*args),
