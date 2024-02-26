@@ -244,45 +244,50 @@ class TestAddDocumentURL:
         via_url.assert_called_once_with(pyramid_request, "example_document_url")
         assert js_config.asdict()["viaUrl"] == via_url.return_value
 
-    def test_it_adds_the_viaUrl_api_config_for_Blackboard_documents(self, js_config):
-        js_config.add_document_url("blackboard://content-resource/xyz123")
+    @pytest.mark.parametrize(
+        "url,via_url",
+        [
+            (
+                "blackboard://content-resource/xyz123",
+                {
+                    "authUrl": "http://example.com/api/blackboard/oauth/authorize",
+                    "path": "/api/blackboard/courses/test_course_id/via_url?document_url=blackboard%3A%2F%2Fcontent-resource%2Fxyz123",
+                },
+            ),
+            (
+                "canvas://file/course/COURSE/file_id/FILE",
+                {
+                    "authUrl": "http://example.com/api/canvas/oauth/authorize",
+                    "path": "/api/canvas/assignments/TEST_RESOURCE_LINK_ID/via_url",
+                },
+            ),
+            (
+                "canvas://page/course/COURSE/page_id/PAGE",
+                {
+                    "authUrl": "http://example.com/api/canvas/oauth/authorize",
+                    "path": "/api/canvas/pages/via_url",
+                },
+            ),
+            (
+                "d2l://file/course/125/file_id/100",
+                {
+                    "authUrl": "http://example.com/api/d2l/oauth/authorize",
+                    "path": "/api/d2l/courses/test_course_id/via_url?document_url=d2l%3A%2F%2Ffile%2Fcourse%2F125%2Ffile_id%2F100",
+                },
+            ),
+            (
+                "moodle://file/course/125/file_id/100",
+                {
+                    "authUrl": None,
+                    "path": "/api/moodle/courses/test_course_id/via_url?document_url=moodle%3A%2F%2Ffile%2Fcourse%2F125%2Ffile_id%2F100",
+                },
+            ),
+        ],
+    )
+    def test_it_adds_the_viaUrl_api_config(self, url, via_url, js_config):
+        js_config.add_document_url(url)
 
-        assert js_config.asdict()["api"]["viaUrl"] == {
-            "authUrl": "http://example.com/api/blackboard/oauth/authorize",
-            "path": "/api/blackboard/courses/test_course_id/via_url?document_url=blackboard%3A%2F%2Fcontent-resource%2Fxyz123",
-        }
-
-    def test_it_adds_the_viaUrl_api_config_for_Canvas_files(self, js_config):
-        course_id, file_id = "125", "100"
-
-        js_config.add_document_url(
-            f"canvas://file/course/{course_id}/file_id/{file_id}"
-        )
-
-        assert js_config.asdict()["api"]["viaUrl"] == {
-            "authUrl": "http://example.com/api/canvas/oauth/authorize",
-            "path": "/api/canvas/assignments/TEST_RESOURCE_LINK_ID/via_url",
-        }
-
-    def test_it_adds_the_viaUrl_api_config_for_Canvas_pages(self, js_config):
-        course_id, page_id = "125", "100"
-
-        js_config.add_document_url(
-            f"canvas://page/course/{course_id}/page_id/{page_id}"
-        )
-
-        assert js_config.asdict()["api"]["viaUrl"] == {
-            "authUrl": "http://example.com/api/canvas/oauth/authorize",
-            "path": "/api/canvas/pages/via_url",
-        }
-
-    def test_it_adds_the_viaUrl_api_config_for_D2L_documents(self, js_config):
-        js_config.add_document_url("d2l://file/course/125/file_id/100")
-
-        assert js_config.asdict()["api"]["viaUrl"] == {
-            "authUrl": "http://example.com/api/d2l/oauth/authorize",
-            "path": "/api/d2l/courses/test_course_id/via_url?document_url=d2l%3A%2F%2Ffile%2Fcourse%2F125%2Ffile_id%2F100",
-        }
+        assert js_config.asdict()["api"]["viaUrl"] == via_url
 
     def test_vitalsource_sets_config_with_sso(
         self, js_config, pyramid_request, vitalsource_service

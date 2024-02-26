@@ -20,6 +20,10 @@ class MoodleAPIClient:
         self._token = token
         self._http = http
 
+    @property
+    def token(self):  # pragma: no cover
+        return self._token
+
     def group_set_groups(self, group_set_id: int) -> list[dict]:
         url = self._api_url(Function.GET_GROUPINGS)
         url = f"{url}&groupingids[0]={group_set_id}&returngroups=1"
