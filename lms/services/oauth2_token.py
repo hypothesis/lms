@@ -4,6 +4,7 @@ from functools import lru_cache
 from sqlalchemy.orm.exc import NoResultFound
 
 from lms.models import OAuth2Token
+from lms.models.oauth2_token import Service
 from lms.services import OAuth2TokenError
 
 
@@ -22,7 +23,7 @@ class OAuth2TokenService:
         self._application_instance = application_instance
         self._user_id = user_id
 
-    def save(self, access_token, refresh_token, expires_in):
+    def save(self, access_token, refresh_token, expires_in, service=Service.LMS):
         """
         Save an OAuth 2 token to the DB.
 
@@ -31,11 +32,12 @@ class OAuth2TokenService:
         add it to the DB.
         """
         try:
-            oauth2_token = self.get()
+            oauth2_token = self.get(service)
         except OAuth2TokenError:
             oauth2_token = OAuth2Token(
                 application_instance=self._application_instance,
                 user_id=self._user_id,
+                service=service,
             )
             self._db.add(oauth2_token)
 
@@ -45,7 +47,7 @@ class OAuth2TokenService:
         oauth2_token.received_at = datetime.datetime.utcnow()
 
     @lru_cache(maxsize=1)
-    def get(self):
+    def get(self, service=Service.LMS):
         """
         Return the user's saved OAuth 2 token from the DB.
 
@@ -57,6 +59,7 @@ class OAuth2TokenService:
                 .filter_by(
                     application_instance=self._application_instance,
                     user_id=self._user_id,
+                    service=service,
                 )
                 .one()
             )

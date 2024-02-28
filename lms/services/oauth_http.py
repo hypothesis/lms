@@ -1,6 +1,7 @@
 from marshmallow import fields
 
-from lms.services import ExternalRequestError, OAuth2TokenError
+from lms.models.oauth2_token import Service
+from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 from lms.validation import RequestsResponseSchema
 from lms.validation.authentication import OAuthTokenResponseSchema
 
@@ -14,9 +15,12 @@ class _OAuthAccessTokenErrorResponseSchema(RequestsResponseSchema):
 class OAuthHTTPService:
     """Send OAuth 2.0 requests and return the responses."""
 
-    def __init__(self, http_service, oauth2_token_service):
+    def __init__(
+        self, http_service, oauth2_token_service, service: Service = Service.LMS
+    ):
         self._http_service = http_service
         self._oauth2_token_service = oauth2_token_service
+        self.service = service
 
     def get(self, *args, **kwargs):
         return self.request("GET", *args, **kwargs)
@@ -51,7 +55,7 @@ class OAuthHTTPService:
 
         assert "Authorization" not in headers
 
-        access_token = self._oauth2_token_service.get().access_token
+        access_token = self._oauth2_token_service.get(service=self.service).access_token
         headers["Authorization"] = f"Bearer {access_token}"
 
         return self._http_service.request(method, url, headers=headers, **kwargs)
@@ -122,12 +126,15 @@ class OAuthHTTPService:
             validated_data["access_token"],
             validated_data.get("refresh_token"),
             validated_data.get("expires_in"),
+            service=self.service,
         )
 
         return validated_data["access_token"]
 
 
-def factory(_context, request):
+def factory(_context, request, service: Service = Service.LMS) -> OAuthHTTPService:
     return OAuthHTTPService(
-        request.find_service(name="http"), request.find_service(name="oauth2_token")
+        request.find_service(name="http"),
+        request.find_service(name="oauth2_token"),
+        service=service,
     )

@@ -5,8 +5,9 @@ import marshmallow
 from webargs import fields
 
 from lms.models import LTIUser
-from lms.services import JWTService, LTIUserService
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
+from lms.services.jwt import JWTService
+from lms.services.lti_user import LTIUserService
 from lms.validation._base import PyramidRequestSchema, RequestsResponseSchema
 from lms.validation.authentication._exceptions import (
     ExpiredStateParamError,
@@ -93,27 +94,26 @@ class OAuthCallbackSchema(PyramidRequestSchema):
 
         return jwt_str
 
-    def lti_user(self) -> LTIUser:
+    def lti_user(self, state=None) -> LTIUser:
         """
-        Return the LTIUser authenticated by the request's state param.
+        Return the LTIUser authenticated by state data in an OAuth callback.
 
-        Return the models.LTIUser authenticated by the current
-        request's ``state`` query parameter.
+        If ``state`` is None, the state is obtained from the current request's
+        ``state`` query parameter.
 
         :raise MissingStateParamError: if the request has no ``state`` query
             parameter
-        :raise ExpiredStateParamError: if the request's ``state`` param has
-            expired
-        :raise InvalidStateParamError: if the request's ``state`` param is
-            invalid
-        :rtype: str
+        :raise ExpiredStateParamError: if the state has expired
+        :raise InvalidStateParamError: if the state is invalid
         """
-        request = self.context["request"]
 
-        try:
-            state = request.params["state"]
-        except KeyError as err:
-            raise MissingStateParamError() from err
+        if state is None:
+            request = self.context["request"]
+
+            try:
+                state = request.params["state"]
+            except KeyError as err:
+                raise MissingStateParamError() from err
 
         decoded_user = self._decode_state(state)["user"]
         return self._lti_user_service.deserialize(**decoded_user)

@@ -407,6 +407,7 @@ class TestSecurityPolicy:
             ("/content_item_selection", get_lti_user_from_launch_params),
             ("/canvas_oauth_callback", get_lti_user_from_oauth_callback),
             ("/api/blackboard/oauth/callback", get_lti_user_from_oauth_callback),
+            ("/api/canvas_studio/oauth/callback", get_lti_user_from_oauth_callback),
             ("/api/d2l/oauth/callback", get_lti_user_from_oauth_callback),
         ],
     )

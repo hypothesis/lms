@@ -5,8 +5,9 @@ from datetime import timedelta
 import marshmallow
 
 from lms.models import LTIUser
-from lms.services import JWTService, LTIUserService
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
+from lms.services.jwt import JWTService
+from lms.services.lti_user import LTIUserService
 from lms.validation import ValidationError
 from lms.validation._base import PyramidRequestSchema
 

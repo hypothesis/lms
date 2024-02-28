@@ -16,6 +16,7 @@ from lms.services.assignment import AssignmentService
 from lms.services.async_oauth_http import AsyncOAuthHTTPService
 from lms.services.blackboard_api.client import BlackboardAPIClient
 from lms.services.canvas_api import CanvasAPIClient
+from lms.services.canvas_studio import CanvasStudioService
 from lms.services.course import CourseService
 from lms.services.d2l_api import D2LAPIClient
 from lms.services.digest import DigestService
@@ -60,6 +61,7 @@ __all__ = (
     "blackboard_api_client",
     "canvas_api_client",
     "canvas_service",
+    "canvas_studio_service",
     "course_service",
     "d2l_api_client",
     "digest_service",
@@ -165,6 +167,11 @@ def canvas_service(mock_service, canvas_api_client):
     canvas_service.api = canvas_api_client
 
     return canvas_service
+
+
+@pytest.fixture
+def canvas_studio_service(mock_service):
+    return mock_service(CanvasStudioService)
 
 
 @pytest.fixture

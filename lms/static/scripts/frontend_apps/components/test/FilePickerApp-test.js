@@ -291,11 +291,17 @@ describe('FilePickerApp', () => {
       {
         content: {
           type: 'url',
+          url: 'canvas-studio://media/5',
+        },
+        summary: 'Video in Canvas Studio',
+      },
+      {
+        content: {
+          type: 'url',
           url: 'd2l://file/course/123/file_id/456',
         },
         summary: 'PDF file in D2L',
       },
-
       {
         content: { type: 'file', id: 'abcd' },
         summary: 'PDF file in Canvas',

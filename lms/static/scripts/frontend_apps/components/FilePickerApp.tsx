@@ -63,6 +63,9 @@ function formatContentURL(content: URLContent) {
   if (content.url.startsWith('blackboard://')) {
     return 'PDF file in Blackboard';
   }
+  if (content.url.startsWith('canvas-studio://')) {
+    return 'Video in Canvas Studio';
+  }
   if (content.url.startsWith('d2l://')) {
     return 'PDF file in D2L';
   }

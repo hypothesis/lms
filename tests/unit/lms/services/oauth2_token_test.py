@@ -7,19 +7,27 @@ from pytest import param
 
 from lms.models import OAuth2Token
 from lms.services import OAuth2TokenError
-from lms.services.oauth2_token import OAuth2TokenService, oauth2_token_service_factory
+from lms.services.oauth2_token import (
+    OAuth2TokenService,
+    Service,
+    oauth2_token_service_factory,
+)
 from tests import factories
 
 
 @pytest.mark.usefixtures("application_instance")
 class TestOAuth2TokenService:
     @pytest.mark.usefixtures("oauth_token_in_db_or_not")
-    def test_save(self, svc, db_session, application_instance, lti_user):
+    @pytest.mark.parametrize("service", [Service.LMS, Service.CANVAS_STUDIO])
+    def test_save(self, svc, db_session, application_instance, lti_user, service):
         svc.save(
-            access_token="access_token", refresh_token="refresh_token", expires_in=1234
+            access_token="access_token",
+            refresh_token="refresh_token",
+            expires_in=1234,
+            service=service,
         )
 
-        oauth2_token = db_session.query(OAuth2Token).one()
+        oauth2_token = db_session.query(OAuth2Token).filter_by(service=service).one()
         assert oauth2_token == Any.object(OAuth2Token).with_attrs(
             {
                 "application_instance_id": application_instance.id,
@@ -28,11 +36,22 @@ class TestOAuth2TokenService:
                 "refresh_token": "refresh_token",
                 "expires_in": 1234,
                 "received_at": Any.instance_of(datetime),
+                "service": service,
             }
         )
 
-    def test_get_returns_token_when_present(self, svc, oauth_token):
-        result = svc.get()
+    @pytest.mark.parametrize("service", [Service.LMS, Service.CANVAS_STUDIO])
+    def test_get_returns_token_when_present(
+        self, db_session, lti_user, application_instance, svc, service
+    ):
+        oauth_token = factories.OAuth2Token.build(
+            user_id=lti_user.user_id,
+            application_instance=application_instance,
+            service=service,
+        )
+        db_session.add(oauth_token)
+
+        result = svc.get(service)
 
         assert result == oauth_token
 
