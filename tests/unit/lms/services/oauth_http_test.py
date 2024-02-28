@@ -2,6 +2,7 @@ from unittest.mock import sentinel
 
 import pytest
 
+from lms.models.oauth2_token import Service
 from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 from lms.services.oauth_http import OAuthHTTPService, factory
 from lms.validation import ValidationError
@@ -58,6 +59,7 @@ class TestOAuthHTTPService:
 
     def test_get_access_token(
         self,
+        svc,
         call_get_access_token,
         http_service,
         OAuthTokenResponseSchema,
@@ -81,10 +83,15 @@ class TestOAuthHTTPService:
             validated_data["access_token"],
             validated_data["refresh_token"],
             validated_data["expires_in"],
+            svc.service,
         )
 
     def test_get_access_token_if_theres_no_refresh_token_or_expires_in(
-        self, call_get_access_token, oauth_token_response_schema, oauth2_token_service
+        self,
+        svc,
+        call_get_access_token,
+        oauth_token_response_schema,
+        oauth2_token_service,
     ):
         # refresh_token and expires_in are optional fields in
         # OAuthTokenResponseSchema so get_access_token() has to still work
@@ -95,7 +102,9 @@ class TestOAuthHTTPService:
 
         call_get_access_token()
 
-        oauth2_token_service.save.assert_called_once_with("access_token", None, None)
+        oauth2_token_service.save.assert_called_once_with(
+            "access_token", None, None, svc.service
+        )
 
     def test_get_access_token_raises_ExternalRequestError_if_the_HTTP_request_fails(
         self, call_get_access_token, http_service
@@ -140,6 +149,7 @@ class TestOAuthHTTPService:
             validated_data["access_token"],
             validated_data["refresh_token"],
             validated_data["expires_in"],
+            svc.service,
         )
 
     def test_refresh_access_token_if_theres_no_refresh_token_or_expires_in(
@@ -156,7 +166,9 @@ class TestOAuthHTTPService:
             sentinel.token_url, sentinel.redirect_uri, sentinel.auth
         )
 
-        oauth2_token_service.save.assert_called_once_with("access_token", None, None)
+        oauth2_token_service.save.assert_called_once_with(
+            "access_token", None, None, svc.service
+        )
 
     def test_refresh_access_token_raises_if_we_dont_have_a_refresh_token(
         self, svc, oauth2_token_service
@@ -212,9 +224,11 @@ class TestOAuthHTTPService:
                 sentinel.token_url, sentinel.redirect_uri, sentinel.auth
             )
 
-    @pytest.fixture
-    def svc(self, http_service, oauth2_token_service):
-        return OAuthHTTPService(http_service, oauth2_token_service)
+    # nb. We don't list every API service here, just two to ensure that all
+    # methods pass the right `service` when reading/saving tokens from the DB.
+    @pytest.fixture(params=[Service.LMS, Service.CANVAS_STUDIO])
+    def svc(self, request, http_service, oauth2_token_service):
+        return OAuthHTTPService(http_service, oauth2_token_service, request.param)
 
     @pytest.fixture
     def call_get_access_token(self, svc):
@@ -235,7 +249,22 @@ class TestFactory:
     ):
         service = factory(sentinel.context, pyramid_request)
 
-        OAuthHTTPService.assert_called_once_with(http_service, oauth2_token_service)
+        OAuthHTTPService.assert_called_once_with(
+            http_service, oauth2_token_service, Service.LMS
+        )
+        assert service == OAuthHTTPService.return_value
+
+    def test_with_custom_service(
+        self, http_service, oauth2_token_service, pyramid_request, OAuthHTTPService
+    ):
+
+        api_service = Service.CANVAS_STUDIO
+
+        service = factory(sentinel.context, pyramid_request, api_service)
+
+        OAuthHTTPService.assert_called_once_with(
+            http_service, oauth2_token_service, api_service
+        )
         assert service == OAuthHTTPService.return_value
 
     @pytest.fixture

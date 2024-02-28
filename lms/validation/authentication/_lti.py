@@ -1,11 +1,9 @@
 import marshmallow
 
 from lms.models import CLAIM_PREFIX, LTIUser
-from lms.services import (
-    ApplicationInstanceNotFound,
-    LTILaunchVerificationError,
-    LTIUserService,
-)
+from lms.services.application_instance import ApplicationInstanceNotFound
+from lms.services.launch_verifier import LTILaunchVerificationError
+from lms.services.lti_user import LTIUserService
 from lms.validation._exceptions import ValidationError
 from lms.validation._lti_launch_params import LTIV11CoreSchema
 

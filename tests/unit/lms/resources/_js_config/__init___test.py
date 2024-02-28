@@ -46,6 +46,7 @@ class TestFilePickerMode:
         (
             ("blackboard_config", "blackboard"),
             ("canvas_config", "canvas"),
+            ("canvas_studio_config", "canvasStudio"),
             ("google_files_config", "google"),
             ("microsoft_onedrive", "microsoftOneDrive"),
             ("vitalsource_config", "vitalSource"),

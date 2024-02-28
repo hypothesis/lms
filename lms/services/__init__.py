@@ -1,6 +1,7 @@
 from lms.services.aes import AESService
 from lms.services.application_instance import ApplicationInstanceNotFound
 from lms.services.canvas import CanvasService
+from lms.services.canvas_studio import CanvasStudioService
 from lms.services.d2l_api.client import D2LAPIClient
 from lms.services.digest import DigestService
 from lms.services.email_preferences import EmailPreferencesService, EmailPrefs
@@ -55,6 +56,9 @@ def includeme(config):
         "lms.services.canvas_api.canvas_api_client_factory", name="canvas_api_client"
     )
     config.register_service_factory("lms.services.canvas.factory", iface=CanvasService)
+    config.register_service_factory(
+        "lms.services.canvas_studio.factory", iface=CanvasStudioService
+    )
     config.register_service_factory("lms.services.user.factory", iface=UserService)
     config.register_service_factory(
         "lms.services.user_preferences.factory", iface=UserPreferencesService

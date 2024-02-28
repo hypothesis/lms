@@ -119,6 +119,23 @@ class TestFilePickerConfig:
 
         assert config == expected_config
 
+    @pytest.mark.parametrize("enabled", [True, False])
+    def test_canvas_studio_config(self, pyramid_request, application_instance, enabled):
+        application_instance.settings.set(
+            "canvas_studio", "client_id", "some_id" if enabled else None
+        )
+        config = FilePickerConfig.canvas_studio_config(
+            pyramid_request, application_instance
+        )
+
+        assert config["enabled"] is enabled
+
+        if enabled:
+            assert config["listMedia"] == {
+                "authUrl": "http://example.com/api/canvas_studio/oauth/authorize",
+                "path": "/api/canvas_studio/media",
+            }
+
     @pytest.mark.parametrize("enabled", (True, False))
     @pytest.mark.parametrize(
         "origin_from", (None, "custom_canvas_api_domain", "lms_url")

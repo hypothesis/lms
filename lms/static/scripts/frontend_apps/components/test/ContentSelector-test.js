@@ -53,6 +53,13 @@ describe('ContentSelector', () => {
             path: 'https://lms.anno.co/api/canvas/pages',
           },
         },
+        canvasStudio: {
+          enabled: true,
+          listMedia: {
+            authUrl: 'https://lms.anno.co/api/canvas_studio/oauth/authorize',
+            path: 'https://lms.anno.co/api/canvas_studio/media',
+          },
+        },
         moodle: {
           enabled: true,
           pagesEnabled: true,
@@ -138,6 +145,7 @@ describe('ContentSelector', () => {
         'url-button',
         'canvas-file-button',
         'canvas-page-button',
+        'canvas-studio-button',
         'blackboard-file-button',
         'd2l-file-button',
         'moodle-file-button',
@@ -336,12 +344,18 @@ describe('ContentSelector', () => {
     });
   });
 
-  describe('LMS page dialog', () => {
+  // Tests for other content sources that use our standard file picker.
+  describe('LMS page and media pickers', () => {
     [
       {
         name: 'Canvas',
         buttonTestId: 'canvas-page-button',
         pages: () => fakeConfig.filePicker.canvas.listPages,
+      },
+      {
+        name: 'Canvas Studio',
+        buttonTestId: 'canvas-studio-button',
+        pages: () => fakeConfig.filePicker.canvasStudio.listMedia,
       },
       {
         name: 'Moodle',
@@ -370,17 +384,22 @@ describe('ContentSelector', () => {
 
       [
         {
-          name: 'Canvas',
+          name: 'Canvas Pages',
           dialog: 'canvasPage',
-          displayName: 'Canvas page: Page title',
+          displayName: 'Canvas page: Item title',
         },
         {
-          name: 'Moodle',
+          name: 'Canvas Studio',
+          dialog: 'canvasStudio',
+          displayName: 'Canvas Studio video: Item title',
+        },
+        {
+          name: 'Moodle Pages',
           dialog: 'moodlePage',
-          displayName: 'Moodle page: Page title',
+          displayName: 'Moodle page: Item title',
         },
       ].forEach(test => {
-        it(`'supports selecting a page from the ${test.name} page dialog'`, () => {
+        it(`'supports selecting content from the ${test.name} dialog'`, () => {
           const onSelectContent = sinon.stub();
           const wrapper = renderContentSelector({
             defaultActiveDialog: test.dialog,
@@ -391,7 +410,7 @@ describe('ContentSelector', () => {
           interact(wrapper, () => {
             picker
               .props()
-              .onSelectFile({ id: 123, display_name: 'Page title' });
+              .onSelectFile({ id: 123, display_name: 'Item title' });
           });
 
           assert.calledWith(onSelectContent, {
