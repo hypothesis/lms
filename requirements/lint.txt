@@ -215,7 +215,7 @@ h-testkit==1.0.1
     #   -r bddtests.txt
     #   -r functests.txt
     #   -r tests.txt
-h-vialib==1.2.1
+h-vialib==1.2.2
     # via
     #   -r bddtests.txt
     #   -r functests.txt
@@ -246,7 +246,6 @@ importlib-metadata==7.0.1
     #   data-tasks
     #   h-api
     #   h-assets
-    #   h-vialib
     #   pip-sync-faster
 importlib-resources==6.1.1
     # via

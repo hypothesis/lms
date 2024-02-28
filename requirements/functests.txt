@@ -116,7 +116,7 @@ h-pyramid-sentry==1.2.4
     # via -r prod.txt
 h-testkit==1.0.1
     # via -r functests.in
-h-vialib==1.2.1
+h-vialib==1.2.2
     # via -r prod.txt
 httpretty==1.1.4
     # via -r functests.in
@@ -135,7 +135,6 @@ importlib-metadata==7.0.1
     #   data-tasks
     #   h-api
     #   h-assets
-    #   h-vialib
     #   pip-sync-faster
 importlib-resources==6.1.1
     # via
