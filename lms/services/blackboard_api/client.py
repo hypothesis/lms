@@ -1,5 +1,6 @@
 from urllib.parse import urlencode
 
+from lms.product.blackboard.product import Blackboard
 from lms.services.blackboard_api._schemas import (
     BlackboardListFilesSchema,
     BlackboardListGroups,
@@ -46,7 +47,7 @@ class BlackboardAPIClient:
         """
         self._api.refresh_access_token()
 
-    def list_files(self, course_id, folder_id=None):
+    def _list_files(self, course_id, folder_id=None):
         """Return the list of files in the given course or folder."""
 
         response = self._api.request("GET", self._list_files_url(course_id, folder_id))
@@ -54,6 +55,40 @@ class BlackboardAPIClient:
 
         self._store_files(course_id, files)
         return files
+
+    def list_files(self, course_id, folder_id):
+        """Return the list of files in the given course or folder."""
+
+        results = self._list_files(course_id, folder_id)
+
+        response_results = []
+
+        auth_url = self._request.route_url(Blackboard.route.oauth2_authorize)
+
+        for result in results:
+            response_result = {
+                "display_name": result["name"],
+                "updated_at": result["modified"],
+                "type": result["type"],
+                "parent_id": folder_id,
+            }
+
+            if result["type"] == "File" and result.get("mimeType") == "application/pdf":
+                response_result["id"] = f"blackboard://content-resource/{result['id']}/"
+                response_results.append(response_result)
+            elif result["type"] == "Folder":
+                response_result["id"] = result["id"]
+                response_result["contents"] = {
+                    "authUrl": auth_url,
+                    "path": self._request.route_path(
+                        "api.courses.folders.files.list",
+                        course_id=course_id,
+                        folder_id=result["id"],
+                    ),
+                }
+                response_results.append(response_result)
+
+        return response_results
 
     def list_all_files(self, course_id):
         """Return all files and folders in a course."""

@@ -40,6 +40,12 @@ def includeme(config):  # pylint:disable=too-many-statements
     config.add_route(
         "api.courses.group_sets.list", "/api/courses/{course_id}/group_sets"
     )
+    config.add_route("api.courses.files.list", "/api/courses/{course_id}/files")
+    config.add_route(
+        "api.courses.folders.files.list",
+        "/api/courses/{course_id}/folders/{folder_id}/files",
+    )
+
     config.add_route("api.grant_token", "/api/grant_token", request_method="GET")
 
     config.add_route("api.assignments.create", "/api/assignment", request_method="POST")
@@ -55,14 +61,10 @@ def includeme(config):  # pylint:disable=too-many-statements
         factory="lms.resources.OAuth2RedirectResource",
     )
     config.add_route("d2l_api.oauth.refresh", "/api/d2l/oauth/refresh")
-    config.add_route("d2l_api.courses.files.list", "/api/d2l/courses/{course_id}/files")
     config.add_route(
         "d2l_api.courses.files.via_url", "/api/d2l/courses/{course_id}/via_url"
     )
 
-    config.add_route(
-        "moodle_api.courses.files.list", "/api/moodle/courses/{course_id}/files"
-    )
     config.add_route(
         "moodle_api.courses.files.via_url", "/api/moodle/courses/{course_id}/via_url"
     )
@@ -83,13 +85,6 @@ def includeme(config):  # pylint:disable=too-many-statements
         factory="lms.resources.OAuth2RedirectResource",
     )
     config.add_route("blackboard_api.oauth.refresh", "/api/blackboard/oauth/refresh")
-    config.add_route(
-        "blackboard_api.courses.files.list", "/api/blackboard/courses/{course_id}/files"
-    )
-    config.add_route(
-        "blackboard_api.courses.folders.files.list",
-        "/api/blackboard/courses/{course_id}/folders/{folder_id}/files",
-    )
     config.add_route(
         "blackboard_api.files.via_url", "/api/blackboard/courses/{course_id}/via_url"
     )
@@ -114,9 +109,6 @@ def includeme(config):  # pylint:disable=too-many-statements
         factory="lms.resources.OAuth2RedirectResource",
     )
     config.add_route("canvas_api.oauth.refresh", "/api/canvas/oauth/refresh")
-    config.add_route(
-        "canvas_api.courses.files.list", "/api/canvas/courses/{course_id}/files"
-    )
     config.add_route(
         "canvas_api.files.via_url",
         "/api/canvas/assignments/{resource_link_id}/via_url",
