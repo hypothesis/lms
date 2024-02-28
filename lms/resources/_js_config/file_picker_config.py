@@ -102,6 +102,23 @@ class FilePickerConfig:
         return config
 
     @classmethod
+    def canvas_studio_config(cls, request, application_instance):
+        enabled = (
+            application_instance.settings.get("canvas_studio", "client_id") is not None
+        )
+
+        if not enabled:
+            return {"enabled": False}
+
+        return {
+            "enabled": True,
+            "listMedia": {
+                "authUrl": request.route_url("canvas_studio_api.oauth.authorize"),
+                "path": request.route_path("canvas_studio_api.media.list"),
+            },
+        }
+
+    @classmethod
     def google_files_config(cls, request, application_instance):
         """Get Google file picker config."""
         enabled = application_instance.settings.get(

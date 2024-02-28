@@ -131,6 +131,19 @@ def includeme(config):  # pylint:disable=too-many-statements
     config.add_route("canvas_api.pages.via_url", "/api/canvas/pages/via_url")
     config.add_route("canvas_api.pages.proxy", "/api/canvas/pages/proxy")
 
+    config.add_route(
+        "canvas_studio_api.oauth.authorize", "/api/canvas_studio/oauth/authorize"
+    )
+    config.add_route(
+        "canvas_studio_api.oauth.callback", "/api/canvas_studio/oauth/callback"
+    )
+    config.add_route("canvas_studio_api.media.list", "/api/canvas_studio/media")
+    config.add_route(
+        "canvas_studio_api.collections.media.list",
+        "/api/canvas_studio/collections/{collection_id}/media",
+    )
+    config.add_route("canvas_studio_api.via_url", "/api/canvas_studio/via_url")
+
     # JSTOR article IDs need a custom pattern because they may contain a slash,
     # after URL-decoding of the path.
     jstor_article_id_pat = r"(10\.[0-9]+/)?[^/]+"

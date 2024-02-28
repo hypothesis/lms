@@ -1,8 +1,17 @@
 """Via-related view helpers."""
 
+from urllib.parse import urlencode, urlparse, urlunparse
+
 from h_vialib import ViaClient
 
 __all__ = ["via_url"]
+
+
+def _common_via_params(request) -> dict:
+    return {
+        "via.client.requestConfigFromFrame.origin": request.host_url,
+        "via.client.requestConfigFromFrame.ancestorLevel": "2",
+    }
 
 
 def via_url(  # pylint:disable=too-many-arguments
@@ -27,12 +36,7 @@ def via_url(  # pylint:disable=too-many-arguments
     if not options:
         options = {}
 
-    options.update(
-        {
-            "via.client.requestConfigFromFrame.origin": request.host_url,
-            "via.client.requestConfigFromFrame.ancestorLevel": "2",
-        }
-    )
+    options.update(_common_via_params(request))
 
     return ViaClient(
         service_url=request.registry.settings["via_url"],
@@ -45,3 +49,37 @@ def via_url(  # pylint:disable=too-many-arguments
         headers=headers,
         query=query,
     )
+
+
+def via_video_url(
+    request, canonical_url: str, download_url: str, transcript_url: str
+) -> str:
+    """
+    Return the URL for annotating a video transcript through Via.
+
+    :param canonical_url: URL to save with annotations
+    :param download_url:
+        URL that can be used with a `<video>` element to display the video.
+    :param transcript_url:
+        URL of the video's transcript, in SRT or WebVTT formats.
+    """
+    via_service_url = urlparse(request.registry.settings["via_url"])
+    via_url = urlunparse(
+        (
+            via_service_url.scheme,
+            via_service_url.netloc,
+            "video",
+            "",
+            urlencode(
+                {
+                    **_common_via_params(request),
+                    "url": canonical_url,
+                    "media_url": download_url,
+                    "transcript": transcript_url,
+                    # TODO - Add `title` field
+                }
+            ),
+            "",
+        )
+    )
+    return via_url

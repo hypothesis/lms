@@ -19,6 +19,7 @@ type DialogType =
   | 'blackboardFile'
   | 'canvasFile'
   | 'canvasPage'
+  | 'canvasStudio'
   | 'd2lFile'
   | 'moodleFile'
   | 'moodlePage'
@@ -80,6 +81,10 @@ export default function ContentSelector({
         foldersEnabled: canvasWithFolders,
         pagesEnabled: canvasPagesEnabled,
         listPages: listPagesApi,
+      },
+      canvasStudio: {
+        enabled: canvasStudioEnabled,
+        listMedia: listCanvasStudioMediaApi,
       },
       google: {
         enabled: googleDriveEnabled,
@@ -188,6 +193,15 @@ export default function ContentSelector({
   const selectCanvasPage = (page: File | Page) =>
     selectPageAsURL(page, 'Canvas');
 
+  const selectCanvasStudio = (video: File | Page) => {
+    cancelDialog();
+    onSelectContent({
+      type: 'url',
+      url: video.id,
+      name: `Canvas Studio video: ${video.display_name}`,
+    });
+  };
+
   const selectMoodlePage = (page: File | Page) =>
     selectPageAsURL(page, 'Moodle');
 
@@ -236,6 +250,18 @@ export default function ContentSelector({
           onCancel={cancelDialog}
           onSelectFile={selectCanvasPage}
           missingFilesHelpLink="https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-create-a-new-page-in-a-course/ta-p/1031"
+          documentType="page"
+        />
+      );
+      break;
+    case 'canvasStudio':
+      dialog = (
+        <LMSFilePicker
+          authToken={authToken}
+          listFilesApi={listCanvasStudioMediaApi}
+          onCancel={cancelDialog}
+          onSelectFile={selectCanvasStudio}
+          missingFilesHelpLink="https://community.canvaslms.com/t5/Canvas-Studio-Guide/How-do-I-use-Canvas-Studio/ta-p/1678"
           documentType="page"
         />
       );
@@ -396,7 +422,15 @@ export default function ContentSelector({
             Canvas Page
           </OptionButton>
         )}
-
+        {canvasStudioEnabled && (
+          <OptionButton
+            data-testid="canvas-studio-button"
+            details="Canvas Studio"
+            onClick={() => selectDialog('canvasStudio')}
+          >
+          Canvas Studio
+          </OptionButton>
+        )}
         {blackboardFilesEnabled && (
           <OptionButton
             data-testid="blackboard-file-button"

@@ -46,6 +46,7 @@ class TestFilePickerMode:
         (
             ("blackboard_config", "blackboard"),
             ("canvas_config", "canvas"),
+            ("canvas_studio_config", "canvasStudio"),
             ("google_files_config", "google"),
             ("microsoft_onedrive", "microsoftOneDrive"),
             ("vitalsource_config", "vitalSource"),
@@ -266,6 +267,13 @@ class TestAddDocumentURL:
                 {
                     "authUrl": "http://example.com/api/canvas/oauth/authorize",
                     "path": "/api/canvas/pages/via_url",
+                },
+            ),
+            (
+                "canvas-studio://media/media_id",
+                {
+                    "authUrl": "http://example.com/api/canvas_studio/oauth/authorize",
+                    "path": "/api/canvas_studio/via_url?document_url=canvas-studio%3A%2F%2Fmedia%2Fmedia_id",
                 },
             ),
             (

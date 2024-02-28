@@ -54,7 +54,19 @@ class TestOauthCallbackSchema:
         )
         assert returned == lti_user_service.deserialize.return_value
 
-    def test_lti_user_raises_if_theres_no_state_param(self, schema, pyramid_request):
+    def test_lti_user_uses_explicitly_passed_state(
+        self, schema, jwt_service, lti_user_service, pyramid_request
+    ):
+        del pyramid_request.params["state"]
+
+        returned = schema.lti_user("custom_state")
+
+        jwt_service.decode_with_secret.assert_called_once_with(
+            "custom_state", "test_oauth2_state_secret"
+        )
+        assert returned == lti_user_service.deserialize.return_value
+
+    def test_lti_user_raises_if_theres_no_state(self, schema, pyramid_request):
         del pyramid_request.params["state"]
 
         with pytest.raises(MissingStateParamError):

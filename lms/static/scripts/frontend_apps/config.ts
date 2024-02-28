@@ -105,6 +105,10 @@ export type FilePickerConfig = {
     listFiles: APICallInfo;
     listPages: APICallInfo;
   };
+  canvasStudio: {
+    enabled: boolean;
+    listMedia: APICallInfo;
+  };
   google: {
     enabled: boolean;
     clientId?: string;

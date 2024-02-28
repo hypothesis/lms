@@ -100,6 +100,7 @@ class SecurityPolicy:
         if path in {
             "/canvas_oauth_callback",
             "/api/blackboard/oauth/callback",
+            "/api/canvas_studio/oauth/callback",
             "/api/d2l/oauth/callback",
         }:
             # LTIUser serialized in the state param for the oauth flow
