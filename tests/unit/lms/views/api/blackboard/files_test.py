@@ -33,7 +33,7 @@ class TestListFiles:
                         "blackboard_api.oauth.authorize"
                     ),
                     "path": pyramid_request.route_path(
-                        "blackboard_api.courses.folders.files.list",
+                        "api.courses.folders.files.list",
                         course_id="COURSE_ID",
                         folder_id="_7851_1",
                     ),

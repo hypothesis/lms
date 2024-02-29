@@ -7,14 +7,6 @@ from lms.views.api.canvas.files import FilesAPIViews
     "application_instance_service", "assignment_service", "canvas_service"
 )
 class TestFilesAPIViews:
-    def test_list_files(self, canvas_service, pyramid_request):
-        pyramid_request.matchdict = {"course_id": "test_course_id"}
-
-        result = FilesAPIViews(pyramid_request).list_files()
-
-        assert result == canvas_service.api.list_files.return_value
-        canvas_service.api.list_files.assert_called_once_with("test_course_id")
-
     @pytest.mark.usefixtures("with_teacher_or_student")
     def test_via_url(
         self,

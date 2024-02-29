@@ -14,17 +14,6 @@ DOCUMENT_URL_REGEX = re.compile(
 
 @view_config(
     request_method="GET",
-    route_name="d2l_api.courses.files.list",
-    renderer="json",
-    permission=Permissions.API,
-)
-def list_files(_context, request):
-    """Return the list of files in the given course."""
-    return request.find_service(D2LAPIClient).list_files(request.matchdict["course_id"])
-
-
-@view_config(
-    request_method="GET",
     route_name="d2l_api.courses.files.via_url",
     renderer="json",
     permission=Permissions.API,
