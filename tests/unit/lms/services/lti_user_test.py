@@ -47,6 +47,7 @@ class TestLTIUserService:
             "lti": {
                 "course_id": lti_user.lti.course_id,
                 "assignment_id": lti_user.lti.assignment_id,
+                "product_family": lti_user.lti.product_family,
             },
         }
 

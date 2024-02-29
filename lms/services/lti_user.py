@@ -1,4 +1,5 @@
 from lms.models.lti_user import LTI, LTIUser, display_name
+from lms.product.family import Family
 from lms.services.application_instance import ApplicationInstanceService
 from lms.services.lti_role_service import LTIRoleService
 
@@ -37,6 +38,7 @@ class LTIUserService:
             lti={
                 "course_id": lti_params.get("context_id"),
                 "assignment_id": lti_params.get("resource_link_id"),
+                "product_family": Family.from_launch(lti_params),
             },
         )
 
@@ -57,6 +59,7 @@ class LTIUserService:
             "lti": {
                 "course_id": lti_user.lti.course_id,
                 "assignment_id": lti_user.lti.assignment_id,
+                "product_family": lti_user.lti.product_family,
             },
         }
 
@@ -75,6 +78,7 @@ class LTIUserService:
         lti = LTI(
             course_id=lti_data["course_id"],
             assignment_id=lti_data["assignment_id"],
+            product_family=lti_data["product_family"],
         )
 
         return LTIUser(

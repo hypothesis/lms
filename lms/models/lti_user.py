@@ -10,6 +10,9 @@ class LTI:
     course_id: str
     """ID of the course in the LMS, context_id using LTI naming"""
 
+    product_family: str
+    """Name of the type of the current LMS (canvas, moodle...)"""
+
     assignment_id: str | None = None
     """ID of the assignment in the LMS, resource_link_id using LTI naming"""
 
