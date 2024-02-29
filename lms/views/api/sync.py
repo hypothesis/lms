@@ -1,4 +1,3 @@
-from marshmallow import Schema
 from pyramid.view import view_config
 from webargs import fields
 
@@ -8,10 +7,6 @@ from lms.validation._base import PyramidRequestSchema
 
 
 class APISyncSchema(PyramidRequestSchema):
-    class LMS(Schema):
-        product = fields.Str(required=True)
-
-    lms = fields.Nested(LMS, required=True)
     resource_link_id = fields.Str(required=True)
     context_id = fields.Str(required=True)
     group_set_id = fields.Str(required=False, allow_none=True)
