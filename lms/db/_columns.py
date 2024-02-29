@@ -1,7 +1,14 @@
 import sqlalchemy as sa
 
 
-def varchar_enum(enum, max_length=64, nullable=False, unique=False) -> sa.Column:
+def varchar_enum(  # pylint:disable=too-many-arguments
+    enum,
+    default=None,
+    max_length=64,
+    nullable=False,
+    server_default=None,
+    unique=False,
+) -> sa.Column:
     """Return a SA column type to store the python enum.Enum as a varchar in a table."""
     return sa.Column(
         sa.Enum(
@@ -18,6 +25,8 @@ def varchar_enum(enum, max_length=64, nullable=False, unique=False) -> sa.Column
             # Use the string values, not the keys to persist the values
             values_callable=lambda obj: [item.value for item in obj],
         ),
+        default=default,
         nullable=nullable,
+        server_default=server_default,
         unique=unique,
     )
