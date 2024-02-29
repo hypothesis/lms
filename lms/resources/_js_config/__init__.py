@@ -8,6 +8,8 @@ from lms.models import Assignment, GroupInfo, Grouping, HUser
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
 from lms.product.d2l import D2L
+from lms.product.moodle import Moodle
+
 from lms.resources._js_config.file_picker_config import FilePickerConfig
 from lms.services import HAPI, HAPIError, JSTORService, VitalSourceService
 from lms.validation.authentication import BearerTokenSchema
@@ -282,9 +284,11 @@ class JSConfig:
                     # base URL of our LTI launch endpoint.
                     "ltiLaunchUrl": self._request.route_url("lti_launches"),
                     # Specific config for pickers
-                    "blackboard": FilePickerConfig.blackboard_config(*args),
-                    "d2l": FilePickerConfig.d2l_config(*args),
-                    "moodle": FilePickerConfig.moodle_config(*args),
+                    "blackboard": FilePickerConfig.lms_config(
+                        self._request, Blackboard
+                    ),
+                    "d2l": FilePickerConfig.lms_config(self._request, D2L),
+                    "moodle": FilePickerConfig.lms_config(self._request, Moodle),
                     "canvas": FilePickerConfig.canvas_config(*args),
                     "google": FilePickerConfig.google_files_config(*args),
                     "microsoftOneDrive": FilePickerConfig.microsoft_onedrive(*args),

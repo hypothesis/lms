@@ -1,63 +1,50 @@
-from lms.product.blackboard import Blackboard
+# pylint:disable=invalid-name
 from lms.product.canvas import Canvas
-from lms.product.d2l import D2L
 from lms.services import JSTORService, VitalSourceService, YouTubeService
+from dataclasses import dataclass, asdict
+
+
+@dataclass
+class APICallInfo:
+    path: str
+    authUrl: str | None
+    data: dict | None = None
+
+
+@dataclass
+class Config:
+    enabled: bool = False
+    pagesEnabled: bool = False
+
+    listFiles: APICallInfo | None = None
+    listPages: APICallInfo | None = None
 
 
 class FilePickerConfig:
     """Config generation for specific file pickers."""
 
     @classmethod
-    def d2l_config(cls, request, _application_instance):
-        """Get D2L files config."""
-        files_enabled = (
-            request.product.family == D2L.family
-            and request.product.settings.files_enabled
+    def lms_config(cls, request, product) -> dict:
+        config = Config()
+        if request.product.family != product.family:
+            return asdict(config)
+
+        config.enabled = product.settings.files_enabled
+        config.pagesEnabled = product.settings.pages_enabled
+
+        auth_url = (
+            request.route_url(product.route.oauth2_authorize)
+            if product.route.oauth2_authorize
+            else None
         )
-        config = {"enabled": files_enabled}
-        if files_enabled:
-            config["listFiles"] = {
-                "authUrl": request.route_url(D2L.route.oauth2_authorize),
-                "path": request.route_path(
-                    "api.courses.files.list",
-                    course_id=request.lti_params.get("context_id"),
-                ),
-            }
-
-        return config
-
-    @classmethod
-    def blackboard_config(cls, request, application_instance):
-        """Get Blackboard files config."""
-        files_enabled = application_instance.settings.get("blackboard", "files_enabled")
-
-        config = {"enabled": files_enabled}
-        if files_enabled:
-            config["listFiles"] = {
-                "authUrl": request.route_url(Blackboard.route.oauth2_authorize),
-                "path": request.route_path(
-                    "api.courses.files.list",
-                    course_id=request.lti_params.get("context_id"),
-                ),
-            }
-
-        return config
-
-    @classmethod
-    def moodle_config(cls, request, application_instance):
-        files_enabled = application_instance.settings.get("moodle", "files_enabled")
-
-        config = {"enabled": files_enabled}
         course_id = request.lti_params.get("context_id")
-        if files_enabled:
-            config["listFiles"] = {
-                "authUrl": None,
-                "path": request.route_path(
-                    "api.courses.files.list", course_id=course_id
-                ),
-            }
+        if config.enabled:
+            config.listFiles = APICallInfo(
+                path=request.route_path("api.courses.files.list", course_id=course_id),
+                authUrl=auth_url,
+            )
 
-        return config
+        return asdict(config)
 
     @classmethod
     def canvas_config(cls, request, application_instance):
