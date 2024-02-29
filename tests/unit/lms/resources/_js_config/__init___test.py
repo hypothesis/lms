@@ -4,7 +4,7 @@ import pytest
 from h_matchers import Any
 
 from lms.models import Grouping, LTIParams
-from lms.product.product import Product, Routes
+from lms.product.product import Routes
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
 from lms.services import HAPIError
@@ -69,7 +69,6 @@ class TestFilePickerMode:
 
         assert js_config.asdict()["product"] == {
             "api": {},
-            "family": "unknown",
             "settings": {"groupsEnabled": False},
         }
 
@@ -80,12 +79,10 @@ class TestFilePickerMode:
         js_config.enable_file_picker_mode(sentinel.form_action, sentinel.form_fields)
 
         assert js_config.asdict()["product"] == {
-            "family": "unknown",
             "api": {
                 "listGroupSets": {
                     "authUrl": "http://example.com/welcome",
                     "path": "/api/courses/test_course_id/group_sets",
-                    "data": {"lms": {"product": Product.Family.UNKNOWN}},
                 }
             },
             "settings": {"groupsEnabled": True},
@@ -131,7 +128,6 @@ class TestEnableLTILaunchMode:
             },
             "product": {
                 "api": {},
-                "family": "unknown",
                 "settings": {"groupsEnabled": False},
             },
             "dev": False,
@@ -214,7 +210,6 @@ class TestEnableLTILaunchMode:
             "path": "/api/sync",
             "data": {
                 "resource_link_id": assignment.resource_link_id,
-                "lms": {"product": pyramid_request.product.family},
                 "context_id": "CONTEXT_ID",
                 "group_set_id": "GROUP_SET_ID",
                 "group_info": {
@@ -609,7 +604,6 @@ class TestAddDeepLinkingAPI:
             "path": "/lti/1.1/deep_linking/form_fields",
             "data": {
                 "content_item_return_url": sentinel.content_item_return_url,
-                "lms": {"product": Product.Family.UNKNOWN},
                 "context_id": pyramid_request.lti_params["context_id"],
                 "opaque_data_lti11": sentinel.data,
             },
@@ -632,7 +626,6 @@ class TestAddDeepLinkingAPI:
             "data": {
                 "content_item_return_url": sentinel.content_item_return_url,
                 "opaque_data_lti13": sentinel.deep_linking_settings,
-                "lms": {"product": Product.Family.UNKNOWN},
                 "context_id": pyramid_request.lti_params["context_id"],
             },
         }
