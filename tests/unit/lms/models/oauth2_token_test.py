@@ -4,6 +4,7 @@ import pytest
 import sqlalchemy.exc
 
 from lms.models import OAuth2Token
+from lms.models.oauth2_token import Service
 
 
 class TestOAuth2Token:
@@ -18,6 +19,7 @@ class TestOAuth2Token:
                 refresh_token="test_refresh_token",
                 expires_in=3600,
                 received_at=now,
+                service=Service.CANVAS_STUDIO,
             )
         )
 
@@ -29,6 +31,7 @@ class TestOAuth2Token:
         assert token.refresh_token == "test_refresh_token"
         assert token.expires_in == 3600
         assert token.received_at == now
+        assert token.service == Service.CANVAS_STUDIO
 
     @pytest.mark.parametrize("column", ["user_id", "access_token"])
     def test_columns_that_cant_be_None(self, db_session, init_kwargs, column):
@@ -51,29 +54,16 @@ class TestOAuth2Token:
 
         assert token.application_instance_id == application_instance.id
 
-    def test_refresh_token_defaults_to_None(self, db_session, init_kwargs):
+    def test_defaults(self, db_session, init_kwargs):
         token = OAuth2Token(**init_kwargs)
         db_session.add(token)
 
         db_session.flush()
 
         assert token.refresh_token is None
-
-    def test_expires_in_defaults_to_None(self, db_session, init_kwargs):
-        token = OAuth2Token(**init_kwargs)
-        db_session.add(token)
-
-        db_session.flush()
-
         assert token.expires_in is None
-
-    def test_received_at_defaults_to_now(self, db_session, init_kwargs):
-        token = OAuth2Token(**init_kwargs)
-        db_session.add(token)
-
-        db_session.flush()
-
         assert isinstance(token.received_at, datetime.datetime)
+        assert token.service == Service.LMS
 
     @pytest.fixture
     def init_kwargs(self, application_instance):

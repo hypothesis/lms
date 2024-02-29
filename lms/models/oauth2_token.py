@@ -1,12 +1,32 @@
 """Database model for persisting OAuth 2 tokens."""
 
 import datetime
+from enum import Enum, unique
 
 import sqlalchemy as sa
 
-from lms.db import Base
+from lms.db import Base, varchar_enum
 
 __all__ = ["OAuth2Token"]
+
+
+@unique
+class Service(str, Enum):
+    """Enum of the different APIs that OAuth tokens may be used for."""
+
+    LMS = "lms"
+    """
+    The main API of the LMS that a user belongs to.
+
+    This is the API used for resources that are built-in to the LMS.
+    """
+
+    CANVAS_STUDIO = "canvas_studio"
+    """
+    Canvas Studio API.
+
+    See https://tw.instructuremedia.com/api/public/docs/.
+    """
 
 
 class OAuth2Token(Base):
@@ -75,3 +95,7 @@ class OAuth2Token(Base):
         server_default=sa.func.now(),  # pylint:disable=not-callable
         nullable=False,
     )
+
+    #: The API that this token is used with. In OAuth 2.0 parlance, this
+    #: identifies which kind of resource server the token can be passed to.
+    service = varchar_enum(Service, default="lms", server_default="lms", nullable=False)
