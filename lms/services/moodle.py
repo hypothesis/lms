@@ -138,6 +138,8 @@ class MoodleAPIClient:
     def _get_contents(contents, parent=None):
         file_paths = []
         for content in contents:
+            if content["mimetype"] != "application/pdf":
+                continue
             file_path = f"{parent}{content['filepath']}{content['filename']}"
             file_paths.append(
                 {
