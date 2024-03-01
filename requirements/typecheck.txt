@@ -169,7 +169,7 @@ mypy==1.8.0
     # via -r requirements/typecheck.in
 mypy-extensions==1.0.0
     # via mypy
-newrelic==9.6.0
+newrelic==9.7.0
     # via -r requirements/prod.txt
 oauthlib==3.2.2
     # via
