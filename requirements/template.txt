@@ -20,7 +20,7 @@ click==8.1.7
     # via
     #   cookiecutter
     #   pip-tools
-cookiecutter==2.5.0
+cookiecutter==2.6.0
     # via -r requirements/template.in
 idna==3.6
     # via requests
