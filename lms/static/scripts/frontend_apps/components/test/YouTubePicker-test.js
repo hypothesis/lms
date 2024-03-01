@@ -31,7 +31,7 @@ describe('YouTubePicker', () => {
         onSelectURL={fakeOnSelectURL}
         defaultURL="https://youtu.be/videoId"
         {...props}
-      />
+      />,
     );
 
   it('invokes `onCancel` when dialog is closed', () => {
@@ -70,7 +70,7 @@ describe('YouTubePicker', () => {
     assert.calledWith(
       fakeOnSelectURL,
       'https://youtu.be/videoId',
-      'The video title (Hypothesis)'
+      'The video title (Hypothesis)',
     );
   });
 
@@ -78,7 +78,7 @@ describe('YouTubePicker', () => {
     it('disables Continue button as long as a valid URL has not been set', () => {
       const wrapper = renderComponent({ defaultURL });
       assert.isTrue(
-        wrapper.find('button[data-testid="select-button"]').prop('disabled')
+        wrapper.find('button[data-testid="select-button"]').prop('disabled'),
       );
     });
   });
@@ -93,7 +93,7 @@ describe('YouTubePicker', () => {
       const wrapper = renderComponent({ defaultURL: 'https://youtu.be/123' });
       assert.equal(
         wrapper.find('button[data-testid="select-button"]').prop('disabled'),
-        isDisabled
+        isDisabled,
       );
     });
   });
@@ -149,7 +149,7 @@ describe('YouTubePicker', () => {
     assert.isFalse(thumbnail.isLoading);
     assert.equal(
       thumbnail.image,
-      'https://i.ytimg.com/vi/9l55oKI_Ch8/mqdefault.jpg'
+      'https://i.ytimg.com/vi/9l55oKI_Ch8/mqdefault.jpg',
     );
     assert.equal(thumbnail.alt, 'The video title');
     assert.equal(thumbnail.orientation, 'landscape');
@@ -197,7 +197,7 @@ describe('YouTubePicker', () => {
 
         assert.equal(
           wrapper.find('URLFormWithPreview').prop('error'),
-          expectedError
+          expectedError,
         );
       });
     });
@@ -218,18 +218,18 @@ describe('YouTubePicker', () => {
       // It needs to be wrapped in a div because the top-most node is a fragment,
       // which enzyme does not allow
       const errorWrapper = mount(
-        <div>{wrapper.find('URLFormWithPreview').prop('error')}</div>
+        <div>{wrapper.find('URLFormWithPreview').prop('error')}</div>,
       );
       const errorText = errorWrapper.text();
 
       assert.include(
         errorText,
-        'This video cannot be used in an assignment because:'
+        'This video cannot be used in an assignment because:',
       );
       assert.include(errorText, 'it contains age-restricted content');
       assert.include(
         errorText,
-        "the video's owner does not allow this video to be embedded"
+        "the video's owner does not allow this video to be embedded",
       );
     });
   });
@@ -251,7 +251,7 @@ describe('YouTubePicker', () => {
 
       assert.equal(
         wrapper.find('URLFormWithPreview').prop('error'),
-        expectedError
+        expectedError,
       );
     });
   });

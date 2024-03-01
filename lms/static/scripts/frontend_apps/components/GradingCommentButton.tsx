@@ -35,7 +35,7 @@ function CommentPopover({
       classes={classnames(
         'w-80 p-3',
         'shadow border rounded bg-white',
-        'absolute top-[calc(100%+3px)] right-0'
+        'absolute top-[calc(100%+3px)] right-0',
       )}
       data-testid="comment-popover"
       onClose={closePopover}
@@ -49,7 +49,7 @@ function CommentPopover({
           'text-grey-3 fill-white',
           'absolute inline z-2 w-[15px]',
           // Position arrow over "Add comment" button
-          'right-[7px] top-[-9px]'
+          'right-[7px] top-[-9px]',
         )}
       />
       <div className="flex items-center">
@@ -116,7 +116,7 @@ export default function GradingCommentButton({
   const [showCommentPopover, setShowCommentPopover] = useState(false);
   const closeCommentPopover = useCallback(
     () => setShowCommentPopover(false),
-    []
+    [],
   );
   const commentIsSet = !loading && !!comment;
 
@@ -130,7 +130,7 @@ export default function GradingCommentButton({
         expanded={showCommentPopover}
         classes={classnames(
           'border border-r-0 rounded-none ring-inset h-full relative',
-          'disabled:opacity-50'
+          'disabled:opacity-50',
         )}
         data-testid="comment-toggle-button"
       />

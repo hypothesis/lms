@@ -108,7 +108,7 @@ export default function BasicLTILaunchApp() {
     error: Error,
     state: ErrorState,
     retry = true,
-    authURL?: string | null
+    authURL?: string | null,
   ) => {
     // Here we always set the authorization URL, but we could improve UX by
     // not setting it if the problem is not related to authorization (eg.
@@ -159,7 +159,7 @@ export default function BasicLTILaunchApp() {
           e,
           'error-fetching',
           true /* retry */,
-          syncAPICallInfo.authUrl
+          syncAPICallInfo.authUrl,
         );
         success = false;
       }
@@ -170,7 +170,7 @@ export default function BasicLTILaunchApp() {
 
       return success;
     },
-    [syncAPICallInfo, authToken, clientRPC]
+    [syncAPICallInfo, authToken, clientRPC],
   );
 
   /**
@@ -197,7 +197,7 @@ export default function BasicLTILaunchApp() {
         e,
         'error-fetching',
         true /* retry */,
-        viaAPICallInfo.authUrl
+        viaAPICallInfo.authUrl,
       );
       success = false;
     }
@@ -251,7 +251,7 @@ export default function BasicLTILaunchApp() {
         handleError(e, 'error-reporting-submission', false);
       }
     },
-    [authToken, canvas.speedGrader, contentReady]
+    [authToken, canvas.speedGrader, contentReady],
   );
 
   /**
@@ -273,7 +273,7 @@ export default function BasicLTILaunchApp() {
 
     function onAnnotationActivity(
       eventType: AnnotationEventType,
-      data: AnnotationEventData
+      data: AnnotationEventData,
     ) {
       if (
         ['create', 'update'].includes(eventType) &&

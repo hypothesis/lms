@@ -32,7 +32,7 @@ describe('postmessage_json_rpc/client', () => {
         [1, 2, 3],
         timeout,
         fakeWindow,
-        messageId
+        messageId,
       );
     }
 

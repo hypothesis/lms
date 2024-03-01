@@ -51,7 +51,7 @@ function GroupSelect({
     <div
       className={classnames(
         // Style a slightly-recessed "well" for these controls
-        'bg-slate-0 p-4 rounded shadow-inner border'
+        'bg-slate-0 p-4 rounded shadow-inner border',
       )}
     >
       <label
@@ -211,7 +211,7 @@ export default function GroupConfigSelector({
         groupSet: groupSetId,
       });
     },
-    [useGroupSet, onChangeGroupConfig]
+    [useGroupSet, onChangeGroupConfig],
   );
 
   useEffect(() => {

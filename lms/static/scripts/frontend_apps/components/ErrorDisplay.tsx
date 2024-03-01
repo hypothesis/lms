@@ -43,7 +43,7 @@ function ErrorDetails({ error }: ErrorDetailsProps) {
         className={classnames(
           'sticky top-0',
           'bg-grey-1 p-2 cursor-pointer',
-          'focus-visible-ring ring-inset'
+          'focus-visible-ring ring-inset',
         )}
       >
         Error Details
@@ -65,7 +65,7 @@ function supportURL(errorMessage: string, error: ErrorLike): string {
     'subject',
     errorMessage
       ? `(LMS Error) ${errorMessage}`
-      : 'Error encountered in Hypothesis LMS Application'
+      : 'Error encountered in Hypothesis LMS Application',
   );
 
   const details = formatErrorDetails(error);
@@ -116,7 +116,7 @@ export default function ErrorDisplay({
         // FIXME This class can be removed once the Modal in LMSFilePicker
         // has been updated to latest frontend-shared components.
         // Now it is needed to overwrite a style set on the modal itself.
-        '!mt-0'
+        '!mt-0',
       )}
     >
       <div className="pt-4 space-y-4">

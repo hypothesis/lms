@@ -38,7 +38,7 @@ describe('FilePickerApp', () => {
       </Config.Provider>,
       {
         attachTo: container,
-      }
+      },
     );
   };
 
@@ -73,7 +73,7 @@ describe('FilePickerApp', () => {
    */
   function checkFormFields(
     wrapper,
-    { content, groupSet = null, formFields = {}, title = null }
+    { content, groupSet = null, formFields = {}, title = null },
   ) {
     const fieldsComponent = wrapper.find('FilePickerFormFields');
     assert.deepEqual(fieldsComponent.props(), {
@@ -113,14 +113,14 @@ describe('FilePickerApp', () => {
               type: 'url',
               url: content,
             }
-          : content
+          : content,
       );
     });
   }
 
   function selectGroupConfig(
     wrapper,
-    { useGroupSet = false, groupSet = null }
+    { useGroupSet = false, groupSet = null },
   ) {
     const groupSelector = wrapper.find('GroupConfigSelector');
     interact(wrapper, () => {
@@ -316,7 +316,7 @@ describe('FilePickerApp', () => {
 
         assert.equal(
           wrapper.find('[data-testid="content-summary"]').text(),
-          summary
+          summary,
         );
       });
     });
@@ -326,12 +326,12 @@ describe('FilePickerApp', () => {
 
       selectContent(
         wrapper,
-        'https://en.wikipedia.org/wiki/Cannonball_Baker_Sea-To-Shining-Sea_Memorial_Trophy_Dash'
+        'https://en.wikipedia.org/wiki/Cannonball_Baker_Sea-To-Shining-Sea_Memorial_Trophy_Dash',
       );
 
       assert.equal(
         wrapper.find('[data-testid="content-summary"]').text(),
-        'en.wikipedia.org/…/Cannonball_Baker_Sea-To-Shinin…'
+        'en.wikipedia.org/…/Cannonball_Baker_Sea-To-Shinin…',
       );
     });
 
@@ -342,7 +342,7 @@ describe('FilePickerApp', () => {
       selectGroupConfig(wrapper, { useGroupSet: true, groupSet: null });
 
       assert.isTrue(
-        wrapper.find('Button[data-testid="save-button"]').prop('disabled')
+        wrapper.find('Button[data-testid="save-button"]').prop('disabled'),
       );
     });
 
@@ -553,7 +553,7 @@ describe('FilePickerApp', () => {
     'should pass a11y checks',
     checkAccessibility({
       content: () => renderFilePicker(),
-    })
+    }),
   );
 });
 
@@ -601,7 +601,7 @@ describe('loadFilePickerConfig', () => {
         authToken: config.api.authToken,
         path: '/assignments/edit',
         data: config.editing.getConfig.data,
-      })
+      }),
     );
     assert.deepEqual(updatedConfig, {
       ...config,

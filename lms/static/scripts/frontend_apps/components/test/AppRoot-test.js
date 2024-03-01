@@ -21,7 +21,7 @@ describe('AppRoot', () => {
 
   function renderAppRoot({ config, services }) {
     const wrapper = mount(
-      <AppRoot initialConfig={config} services={services} />
+      <AppRoot initialConfig={config} services={services} />,
     );
     wrappers.push(wrapper);
     return wrapper;

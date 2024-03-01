@@ -13,7 +13,7 @@ describe('Breadcrumbs', () => {
         onSelectItem={fakeOnSelectItem}
         renderItem={item => item}
         {...props}
-      />
+      />,
     );
 
   beforeEach(() => {

@@ -19,7 +19,7 @@ describe('StudentSelector', () => {
         selectedStudentIndex={fakeSelectedStudentIndex}
         students={fakeStudents}
         {...props}
-      />
+      />,
     );
   };
 
@@ -43,11 +43,11 @@ describe('StudentSelector', () => {
     const wrapper = renderSelector({ selectedStudent: null });
     assert.equal(
       wrapper.find('SelectNext').prop('buttonContent'),
-      'All Students'
+      'All Students',
     );
     assert.equal(
       wrapper.find('[data-testid="student-selector-label"]').text(),
-      '2 Students'
+      '2 Students',
     );
   });
 
@@ -56,7 +56,7 @@ describe('StudentSelector', () => {
     assert.equal(wrapper.find('SelectNext').prop('buttonContent'), 'Student 2');
     assert.equal(
       wrapper.find('[data-testid="student-selector-label"]').text(),
-      'Student 2 of 2'
+      'Student 2 of 2',
     );
   });
 
@@ -117,7 +117,7 @@ describe('StudentSelector', () => {
     assert.isTrue(
       wrapper
         .find('button[data-testid="previous-student-button"]')
-        .prop('disabled')
+        .prop('disabled'),
     );
   });
 
@@ -128,6 +128,6 @@ describe('StudentSelector', () => {
 
   it(
     'should pass a11y checks',
-    checkAccessibility({ content: () => renderSelector() })
+    checkAccessibility({ content: () => renderSelector() }),
   );
 });

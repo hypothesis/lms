@@ -26,7 +26,7 @@ describe('BasicLTILaunchApp', () => {
         <Services.Provider value={services}>
           <BasicLTILaunchApp {...props} />
         </Services.Provider>
-      </Config.Provider>
+      </Config.Provider>,
     );
   };
 
@@ -169,7 +169,7 @@ describe('BasicLTILaunchApp', () => {
       await contentVisible(wrapper);
       assert.equal(
         wrapper.find('iframe').prop('src'),
-        'https://via.hypothes.is/123'
+        'https://via.hypothes.is/123',
       );
     });
 
@@ -182,7 +182,7 @@ describe('BasicLTILaunchApp', () => {
       // Verify that an "Authorize" prompt is shown.
       const errorDialog = await waitForElement(
         wrapper,
-        'LaunchErrorDialog[errorState="error-authorizing"]'
+        'LaunchErrorDialog[errorState="error-authorizing"]',
       );
 
       // Click the "Authorize" button and verify that authorization is attempted.
@@ -201,7 +201,7 @@ describe('BasicLTILaunchApp', () => {
       await spinnerHidden(wrapper);
       assert.equal(
         wrapper.find('iframe').prop('src'),
-        'https://via.hypothes.is/123'
+        'https://via.hypothes.is/123',
       );
     });
 
@@ -212,7 +212,7 @@ describe('BasicLTILaunchApp', () => {
       const wrapper = renderLTILaunchApp();
       const errorDialog = await waitForElement(
         wrapper,
-        'LaunchErrorDialog[errorState="error-authorizing"]'
+        'LaunchErrorDialog[errorState="error-authorizing"]',
       );
 
       // Click the "Authorize" button
@@ -264,7 +264,7 @@ describe('BasicLTILaunchApp', () => {
         await spinnerHidden(wrapper);
         assert.equal(
           wrapper.find('iframe').prop('src'),
-          'https://via.hypothes.is/123'
+          'https://via.hypothes.is/123',
         );
       });
     });
@@ -272,7 +272,7 @@ describe('BasicLTILaunchApp', () => {
     it('shows Canvas file permission error if content URL fetch fails with "canvas_api_permission_error" error', async () => {
       // Make the initial URL fetch request reject with a Canvas API permission error.
       fakeApiCall.rejects(
-        new APIError(400, { error_code: 'canvas_api_permission_error' })
+        new APIError(400, { error_code: 'canvas_api_permission_error' }),
       );
 
       const wrapper = renderLTILaunchApp();
@@ -281,7 +281,7 @@ describe('BasicLTILaunchApp', () => {
       // Verify that the expected error dialog is shown.
       let errorDialog = await waitForElement(
         wrapper,
-        'LaunchErrorDialog[errorState="canvas_api_permission_error"]'
+        'LaunchErrorDialog[errorState="canvas_api_permission_error"]',
       );
 
       // Click the "Try again" button. This should re-authorize and then re-fetch files.
@@ -299,7 +299,7 @@ describe('BasicLTILaunchApp', () => {
       // should be shown.
       errorDialog = await waitForElement(
         wrapper,
-        'LaunchErrorDialog[errorState="canvas_api_permission_error"]'
+        'LaunchErrorDialog[errorState="canvas_api_permission_error"]',
       );
 
       // Change the API call to succeed and try again.
@@ -314,14 +314,14 @@ describe('BasicLTILaunchApp', () => {
       await spinnerHidden(wrapper);
       assert.equal(
         wrapper.find('iframe').prop('src'),
-        'https://via.hypothes.is/123'
+        'https://via.hypothes.is/123',
       );
     });
 
     it('shows Canvas file not found in course error if content URL fetch fails with "canvas_file_not_found_in_course" error', async () => {
       // Make the initial URL fetch request reject with a Canvas API permission error.
       fakeApiCall.rejects(
-        new APIError(400, { error_code: 'canvas_file_not_found_in_course' })
+        new APIError(400, { error_code: 'canvas_file_not_found_in_course' }),
       );
 
       const wrapper = renderLTILaunchApp();
@@ -330,7 +330,7 @@ describe('BasicLTILaunchApp', () => {
       // Verify that the expected error dialog is shown.
       let errorDialog = await waitForElement(
         wrapper,
-        'LaunchErrorDialog[errorState="canvas_file_not_found_in_course"]'
+        'LaunchErrorDialog[errorState="canvas_file_not_found_in_course"]',
       );
 
       // Click the "Try again" button. This should re-authorize and then re-fetch files.
@@ -347,7 +347,7 @@ describe('BasicLTILaunchApp', () => {
       // should be shown.
       errorDialog = await waitForElement(
         wrapper,
-        'LaunchErrorDialog[errorState="canvas_file_not_found_in_course"]'
+        'LaunchErrorDialog[errorState="canvas_file_not_found_in_course"]',
       );
 
       // Change the API call to succeed and try again.
@@ -362,14 +362,16 @@ describe('BasicLTILaunchApp', () => {
       await spinnerHidden(wrapper);
       assert.equal(
         wrapper.find('iframe').prop('src'),
-        'https://via.hypothes.is/123'
+        'https://via.hypothes.is/123',
       );
     });
 
     it('shows Blackboard file not found in course error if content URL fetch fails with "blackboard_file_not_found_in_course" error', async () => {
       // Make the initial URL fetch request reject with a Blackboard API permission error.
       fakeApiCall.rejects(
-        new APIError(400, { error_code: 'blackboard_file_not_found_in_course' })
+        new APIError(400, {
+          error_code: 'blackboard_file_not_found_in_course',
+        }),
       );
 
       const wrapper = renderLTILaunchApp();
@@ -378,7 +380,7 @@ describe('BasicLTILaunchApp', () => {
       // Verify that the expected error dialog is shown.
       let errorDialog = await waitForElement(
         wrapper,
-        'LaunchErrorDialog[errorState="blackboard_file_not_found_in_course"]'
+        'LaunchErrorDialog[errorState="blackboard_file_not_found_in_course"]',
       );
 
       // Click the "Try again" button. This should re-authorize and then re-fetch files.
@@ -395,7 +397,7 @@ describe('BasicLTILaunchApp', () => {
       // should be shown.
       errorDialog = await waitForElement(
         wrapper,
-        'LaunchErrorDialog[errorState="blackboard_file_not_found_in_course"]'
+        'LaunchErrorDialog[errorState="blackboard_file_not_found_in_course"]',
       );
 
       // Change the API call to succeed and try again.
@@ -410,7 +412,7 @@ describe('BasicLTILaunchApp', () => {
       await spinnerHidden(wrapper);
       assert.equal(
         wrapper.find('iframe').prop('src'),
-        'https://via.hypothes.is/123'
+        'https://via.hypothes.is/123',
       );
     });
   });
@@ -457,7 +459,7 @@ describe('BasicLTILaunchApp', () => {
       // ask the user to reload the page.
       const errorDialog = await waitForElement(
         wrapper,
-        'LaunchErrorDialog[errorState="error-reporting-submission"]'
+        'LaunchErrorDialog[errorState="error-reporting-submission"]',
       );
       assert.equal(errorDialog.prop('error'), error);
     });
@@ -507,8 +509,8 @@ describe('BasicLTILaunchApp', () => {
           await new Promise(resolve => setTimeout(resolve, 1));
           assert.isFalse(
             fakeApiCall.calledWith(
-              sinon.match({ path: '/api/lti/submissions' })
-            )
+              sinon.match({ path: '/api/lti/submissions' }),
+            ),
           );
 
           // After the successful API call, the iframe should still be rendered.
@@ -530,11 +532,11 @@ describe('BasicLTILaunchApp', () => {
               renderLTILaunchApp();
               assert.isFalse(
                 fakeApiCall.calledWith(
-                  sinon.match({ path: '/api/lti/submissions' })
-                )
+                  sinon.match({ path: '/api/lti/submissions' }),
+                ),
               );
               const annotationActivityCalls = getOnActivityCalls(
-                fakeRpcServer.on
+                fakeRpcServer.on,
               );
               const callback = annotationActivityCalls[0].callback;
               callback('create', { annotation: { isShared: true } });
@@ -543,7 +545,7 @@ describe('BasicLTILaunchApp', () => {
               assert.calledOnce(fakeApiCall);
               assert.calledWith(
                 fakeApiCall,
-                sinon.match({ path: '/api/lti/submissions' })
+                sinon.match({ path: '/api/lti/submissions' }),
               );
 
               const apiCall = fakeApiCall.getCall(0);
@@ -561,7 +563,7 @@ describe('BasicLTILaunchApp', () => {
               renderLTILaunchApp();
 
               const annotationActivityCalls = getOnActivityCalls(
-                fakeRpcServer.on
+                fakeRpcServer.on,
               );
               const callback = annotationActivityCalls[0].args[1];
               callback('create', { annotation: { isShared: true } });
@@ -570,13 +572,13 @@ describe('BasicLTILaunchApp', () => {
               assert.calledOnce(fakeApiCall);
               assert.calledWith(
                 fakeApiCall,
-                sinon.match({ path: '/api/lti/submissions' })
+                sinon.match({ path: '/api/lti/submissions' }),
               );
               assert.calledOnce(fakeRpcServer.off);
               assert.calledWith(
                 fakeRpcServer.off,
                 'annotationActivity',
-                callback
+                callback,
               );
             });
 
@@ -584,7 +586,7 @@ describe('BasicLTILaunchApp', () => {
               renderLTILaunchApp();
 
               const annotationActivityCalls = getOnActivityCalls(
-                fakeRpcServer.on
+                fakeRpcServer.on,
               );
               const callback = annotationActivityCalls[0].args[1];
               assert.notCalled(fakeApiCall);
@@ -603,7 +605,7 @@ describe('BasicLTILaunchApp', () => {
                 },
               });
             });
-          }
+          },
         );
 
         context(
@@ -612,7 +614,7 @@ describe('BasicLTILaunchApp', () => {
             it('does not submit a submission if event type not `create` or `update`', async () => {
               renderLTILaunchApp();
               const annotationActivityCalls = getOnActivityCalls(
-                fakeRpcServer.on
+                fakeRpcServer.on,
               );
               const callback = annotationActivityCalls[0].callback;
               callback('delete', { annotation: { isShared: true } });
@@ -625,7 +627,7 @@ describe('BasicLTILaunchApp', () => {
               renderLTILaunchApp();
 
               const annotationActivityCalls = getOnActivityCalls(
-                fakeRpcServer.on
+                fakeRpcServer.on,
               );
               const callback = annotationActivityCalls[0].args[1];
               callback('delete', { annotation: { isShared: true } });
@@ -637,7 +639,7 @@ describe('BasicLTILaunchApp', () => {
             it('does not submit if annotation is not shared', async () => {
               renderLTILaunchApp();
               const annotationActivityCalls = getOnActivityCalls(
-                fakeRpcServer.on
+                fakeRpcServer.on,
               );
               const callback = annotationActivityCalls[0].callback;
               callback('create', { annotation: { isShared: false } });
@@ -645,9 +647,9 @@ describe('BasicLTILaunchApp', () => {
 
               assert.notCalled(fakeApiCall);
             });
-          }
+          },
         );
-      }
+      },
     );
   });
 
@@ -683,7 +685,7 @@ describe('BasicLTILaunchApp', () => {
           new Promise((resolve, reject) => {
             contentUrlResolve = resolve;
             contentUrlReject = reject;
-          })
+          }),
         );
 
       fakeApiCall
@@ -701,7 +703,7 @@ describe('BasicLTILaunchApp', () => {
           new Promise((resolve, reject) => {
             groupsCallResolve = resolve;
             groupsCallReject = reject;
-          })
+          }),
         );
     };
 
@@ -756,14 +758,14 @@ describe('BasicLTILaunchApp', () => {
       contentUrlReject(new APIError(400, {}));
       await waitForElement(
         wrapper,
-        'LaunchErrorDialog[errorState="error-authorizing"]'
+        'LaunchErrorDialog[errorState="error-authorizing"]',
       );
 
       // Should still show an error even if the second request does not fail
       groupsCallResolve(['group1', 'group2']);
       await waitForElement(
         wrapper,
-        'LaunchErrorDialog[errorState="error-authorizing"]'
+        'LaunchErrorDialog[errorState="error-authorizing"]',
       );
       await contentHidden(wrapper);
     });
@@ -780,7 +782,7 @@ describe('BasicLTILaunchApp', () => {
       groupsCallReject(new APIError(400, {}));
       await waitForElement(
         wrapper,
-        'LaunchErrorDialog[errorState="error-authorizing"]'
+        'LaunchErrorDialog[errorState="error-authorizing"]',
       );
       await contentHidden(wrapper);
     });
@@ -807,7 +809,7 @@ describe('BasicLTILaunchApp', () => {
 
         const errorDialog = await waitForElement(
           wrapper,
-          'LaunchErrorDialog[errorState="error-authorizing"]'
+          'LaunchErrorDialog[errorState="error-authorizing"]',
         );
         resetApiCalls();
         await dialogShouldRemain(wrapper);
@@ -830,7 +832,7 @@ describe('BasicLTILaunchApp', () => {
 
         const errorDialog = await waitForElement(
           wrapper,
-          'LaunchErrorDialog[errorState="error-authorizing"]'
+          'LaunchErrorDialog[errorState="error-authorizing"]',
         );
         resetApiCalls();
         // groups still fails, but contentUrl does not.
@@ -855,7 +857,7 @@ describe('BasicLTILaunchApp', () => {
         // Click the "Authorize" button.
         const errorDialog = await waitForElement(
           wrapper,
-          'LaunchErrorDialog[errorState="error-authorizing"]'
+          'LaunchErrorDialog[errorState="error-authorizing"]',
         );
         act(() => {
           errorDialog.prop('onRetry')();
@@ -916,6 +918,6 @@ describe('BasicLTILaunchApp', () => {
           return renderLTILaunchApp();
         },
       },
-    ])
+    ]),
   );
 });

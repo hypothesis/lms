@@ -36,7 +36,7 @@ describe('InstructorToolbar', () => {
     return mount(
       <Config.Provider value={fakeConfig}>
         <InstructorToolbar {...props} />
-      </Config.Provider>
+      </Config.Provider>,
     );
   };
 
@@ -82,11 +82,11 @@ describe('InstructorToolbar', () => {
     const wrapper = renderToolbar();
     assert.equal(
       wrapper.find('[data-testid="assignment-name"]').text(),
-      'course assignment'
+      'course assignment',
     );
     assert.equal(
       wrapper.find('[data-testid="course-name"]').text(),
-      'course name'
+      'course name',
     );
   });
 
@@ -94,6 +94,6 @@ describe('InstructorToolbar', () => {
     'should pass a11y checks',
     checkAccessibility({
       content: () => renderToolbar(),
-    })
+    }),
   );
 });

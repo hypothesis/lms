@@ -9,7 +9,7 @@ import {
 function createGoogleLibFakes() {
   let resolvePickerVisible;
   const pickerVisible = new Promise(
-    resolve => (resolvePickerVisible = resolve)
+    resolve => (resolvePickerVisible = resolve),
   );
 
   const pickerBuilder = {
@@ -372,7 +372,7 @@ describe('GooglePickerClient', () => {
       assert.instanceOf(err, Error);
       assert.equal(
         err.message,
-        'Google Drive API access has not been authorized'
+        'Google Drive API access has not been authorized',
       );
     });
 

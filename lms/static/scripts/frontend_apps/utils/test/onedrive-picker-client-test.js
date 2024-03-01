@@ -72,12 +72,12 @@ describe('OneDrivePickerClient', () => {
         sinon.match({
           clientId,
           advanced: { redirectUri },
-        })
+        }),
       );
       assert.equal(name, 'Flumpy.pdf');
       assert.equal(
         url,
-        'https://api.onedrive.com/v1.0/shares/u!aHR0cHM6Ly8xZHJ2Lm1zL2IvcyFBbUg/root/content'
+        'https://api.onedrive.com/v1.0/shares/u!aHR0cHM6Ly8xZHJ2Lm1zL2IvcyFBbUg/root/content',
       );
     });
 

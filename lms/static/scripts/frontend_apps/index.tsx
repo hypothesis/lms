@@ -49,7 +49,7 @@ export function init() {
     /* eslint-disable no-console */
     console.groupCollapsed('Hypothesis debug info');
     Object.entries(config.debug.values).forEach(([key, value]) =>
-      console.log(key + ': ' + value)
+      console.log(key + ': ' + value),
     );
     console.groupEnd();
     /* eslint-enable no-console */
@@ -61,7 +61,7 @@ export function init() {
   if (config.api?.authToken) {
     services.set(
       VitalSourceService,
-      new VitalSourceService({ authToken: config.api.authToken })
+      new VitalSourceService({ authToken: config.api.authToken }),
     );
   }
 

@@ -46,15 +46,15 @@ export default function JSTORPicker({
   // Selected JSTOR article ID or DOI, updated when the user confirms what
   // they have pasted/typed into the input field.
   const [articleId, setArticleId] = useState<string | null>(
-    defaultArticle ? articleIdFromUserInput(defaultArticle) : null
+    defaultArticle ? articleIdFromUserInput(defaultArticle) : null,
   );
 
   const metadata: FetchResult<JSTORMetadata> = useAPIFetch(
-    articleId ? urlPath`/api/jstor/articles/${articleId}` : null
+    articleId ? urlPath`/api/jstor/articles/${articleId}` : null,
   );
 
   const thumbnail: FetchResult<JSTORThumbnail> = useAPIFetch(
-    articleId ? urlPath`/api/jstor/articles/${articleId}/thumbnail` : null
+    articleId ? urlPath`/api/jstor/articles/${articleId}/thumbnail` : null,
   );
 
   let renderedError;
@@ -63,7 +63,7 @@ export default function JSTORPicker({
   } else if (metadata.error) {
     renderedError = formatErrorMessage(
       metadata.error,
-      'Unable to fetch article details'
+      'Unable to fetch article details',
     );
   } else if (metadata.data?.content_status === 'no_content') {
     renderedError =
@@ -161,7 +161,7 @@ export default function JSTORPicker({
           className={classnames(
             // Negative vertical margins allow thumbnail to use up more vertical
             // space in the containing Modal
-            '-mb-12 -mt-2 w-[200px] min-w-[200px] h-[200px]'
+            '-mb-12 -mt-2 w-[200px] min-w-[200px] h-[200px]',
           )}
         >
           <Thumbnail size="sm" loading={isLoading} ratio="1/1">
@@ -170,7 +170,7 @@ export default function JSTORPicker({
                 className={classnames(
                   // Set up object positioning to "top". Bottom of thumbnail
                   // image is "cropped" as necesary to fit container.
-                  'object-top'
+                  'object-top',
                 )}
                 alt="article thumbnail"
                 src={thumbnail.data.image}

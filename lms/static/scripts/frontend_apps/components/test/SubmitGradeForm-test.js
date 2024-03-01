@@ -138,7 +138,7 @@ describe('SubmitGradeForm', () => {
 
     assert.equal(
       document.activeElement.getAttribute('data-testid'),
-      'grade-input'
+      'grade-input',
     );
   });
 
@@ -207,7 +207,7 @@ describe('SubmitGradeForm', () => {
       await waitForGradeFetch(wrapper);
 
       assert.isTrue(
-        wrapper.find(inputSelector).hasClass('animate-gradeSubmitSuccess')
+        wrapper.find(inputSelector).hasClass('animate-gradeSubmitSuccess'),
       );
     });
 
@@ -221,7 +221,7 @@ describe('SubmitGradeForm', () => {
 
       wrapper.find(inputSelector).simulate('input');
       assert.isFalse(
-        wrapper.find(inputSelector).hasClass('animate-gradeSubmitSuccess')
+        wrapper.find(inputSelector).hasClass('animate-gradeSubmitSuccess'),
       );
     });
 
@@ -313,7 +313,10 @@ describe('SubmitGradeForm', () => {
       const wrapper = renderForm();
       await waitForGradeFetch(wrapper);
       assert.isFalse(
-        wrapper.find('.SubmitGradeForm__grade-wrapper').find('Spinner').exists()
+        wrapper
+          .find('.SubmitGradeForm__grade-wrapper')
+          .find('Spinner')
+          .exists(),
       );
     });
   });
@@ -416,7 +419,7 @@ describe('SubmitGradeForm', () => {
       {
         name: 'when disabled',
         content: () => renderForm({ disabled: true }),
-      }
-    )
+      },
+    ),
   );
 });

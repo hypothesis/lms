@@ -24,7 +24,7 @@ export default function ContentFrame({ url, iframeRef }: ContentFrameProps) {
         // It's important that this content render full width and grow to fill
         // available flex space. n.b. It may be rendered together with grading
         // controls
-        'w-full grow border'
+        'w-full grow border',
       )}
       src={url}
       title="Course content with Hypothesis annotation viewer"

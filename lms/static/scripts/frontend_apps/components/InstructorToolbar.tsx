@@ -35,14 +35,14 @@ export default function InstructorToolbar() {
         // Default and narrower screens: content is stacked vertically
         'grid grid-cols-1 items-center gap-x-4 gap-y-2',
         // Wider screens: assignment metadata and grading controls side by side
-        'md:grid-cols-[1fr_auto] md:py-1'
+        'md:grid-cols-[1fr_auto] md:py-1',
       )}
     >
       <div className="space-y-1">
         <div
           className={classnames(
             // lays out assignment name and edit button
-            'flex gap-x-2 items-center'
+            'flex gap-x-2 items-center',
           )}
         >
           <h1

@@ -33,7 +33,7 @@ describe('GradingService', () => {
             lis_result_sourcedid: 'source-id',
             lis_outcome_service_url: 'https://example.instructure.com/grades',
           },
-        })
+        }),
       );
       assert.equal(result, await fakeAPICall.returnValues[0]);
     });
@@ -64,7 +64,7 @@ describe('GradingService', () => {
             },
           });
         });
-      }
+      },
     );
   });
 });

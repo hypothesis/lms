@@ -48,7 +48,7 @@ describe('api', () => {
           headers: {
             Authorization: 'auth',
           },
-        })
+        }),
       );
     });
 
@@ -63,14 +63,14 @@ describe('api', () => {
       assert.calledWith(
         window.fetch,
         `/api/test?a_key=some+value&encode_me=${encodeURIComponent(
-          params.encode_me
+          params.encode_me,
         )}`,
         sinon.match({
           method: 'GET',
           headers: {
             Authorization: 'auth',
           },
-        })
+        }),
       );
     });
 
@@ -88,7 +88,7 @@ describe('api', () => {
             Authorization: 'auth',
             'Content-Type': 'application/json; charset=UTF-8',
           },
-        })
+        }),
       );
     });
 
@@ -133,7 +133,7 @@ describe('api', () => {
         assert.equal(
           reason.serverMessage,
           expectedMessage,
-          '`APIError.serverMessage`'
+          '`APIError.serverMessage`',
         );
         assert.equal(reason.details, body.details, '`APIError.details`');
         assert.equal(reason.errorCode, null);
@@ -245,7 +245,7 @@ describe('api', () => {
     window.fetch.withArgs('/api/canvas/refresh').resolves(
       createResponse(400, {
         message: 'Token refresh failed',
-      })
+      }),
     );
 
     let error;
@@ -309,7 +309,7 @@ describe('api', () => {
     assert.calledWith(
       window.fetch,
       '/api/test',
-      sinon.match({ method: 'GET', signal: controller.signal })
+      sinon.match({ method: 'GET', signal: controller.signal }),
     );
 
     // Simulate request being canceled, as `fetch` would do if we called
@@ -337,7 +337,7 @@ describe('urlPath', () => {
 
     assert.equal(
       path,
-      `/api/things/${encodedThingId}/sub-things/${encodedSubThingId}`
+      `/api/things/${encodedThingId}/sub-things/${encodedSubThingId}`,
     );
   });
 
@@ -403,7 +403,7 @@ describe('useAPIFetch', () => {
             Authorization: fakeConfig.api.authToken,
           },
           signal,
-        })
+        }),
       );
     });
   });
@@ -434,7 +434,7 @@ describe('useAPIFetch', () => {
     const wrapper = mount(
       <Config.Provider value={fakeConfig}>
         <TestWidget />
-      </Config.Provider>
+      </Config.Provider>,
     );
     assert.equal(wrapper.text(), 'Loading');
 

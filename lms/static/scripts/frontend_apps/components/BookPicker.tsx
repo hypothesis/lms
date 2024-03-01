@@ -144,7 +144,7 @@ export default function BookPicker({
       }
       return nextEntry;
     },
-    [tableOfContents]
+    [tableOfContents],
   );
 
   const confirmChapter = useCallback(
@@ -180,7 +180,7 @@ export default function BookPicker({
       nextEntryAfter,
       onSelectBook,
       vsService,
-    ]
+    ],
   );
 
   const updatePageRange = (start: string, end: string) => {
@@ -230,7 +230,7 @@ export default function BookPicker({
       classes={classnames(
         // Set a fix height when selecting a chapter so the modal content
         // doesn't resize after loading.
-        { 'h-[25rem]': step === 'select-toc' }
+        { 'h-[25rem]': step === 'select-toc' },
       )}
       // Opt out of Modal's automatic focus handling; route focus manually in
       // sub-components

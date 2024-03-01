@@ -29,7 +29,7 @@ describe('AuthWindow', () => {
       assert.calledWith(
         window.open,
         'https://lms.anno.co/authorize?authorization=auth-token',
-        'Allow access to Canvas files'
+        'Allow access to Canvas files',
       );
     });
 

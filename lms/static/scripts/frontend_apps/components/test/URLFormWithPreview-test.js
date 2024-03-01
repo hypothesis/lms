@@ -12,7 +12,7 @@ describe('URLFormWithPreview', () => {
         onInput={sinon.stub()}
         inputRef={createRef()}
         {...props}
-      />
+      />,
     );
 
   it('pre-fills input with `defaultURL` prop value', () => {
@@ -21,7 +21,7 @@ describe('URLFormWithPreview', () => {
     });
     assert.equal(
       wrapper.find('input').getDOMNode().value,
-      'https://arxiv.org/pdf/1234.pdf'
+      'https://arxiv.org/pdf/1234.pdf',
     );
   });
 

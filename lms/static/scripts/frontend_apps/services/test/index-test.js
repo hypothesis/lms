@@ -17,7 +17,7 @@ describe('services/index', () => {
       mount(
         <Services.Provider value={services}>
           <Widget />
-        </Services.Provider>
+        </Services.Provider>,
       );
 
       assert.equal(dataService, services.get(DummyService));
@@ -33,7 +33,7 @@ describe('services/index', () => {
         mount(
           <Services.Provider value={new Map()}>
             <TestComponent />
-          </Services.Provider>
+          </Services.Provider>,
         );
       }, 'Service "DummyService" is not registered');
     });

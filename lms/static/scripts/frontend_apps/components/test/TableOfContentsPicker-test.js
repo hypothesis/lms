@@ -29,7 +29,7 @@ describe('TableOfContentsPicker', () => {
         onSelectEntry={noop}
         onConfirmEntry={noop}
         {...props}
-      />
+      />,
     );
 
   describe('initial focus', () => {
@@ -56,7 +56,7 @@ describe('TableOfContentsPicker', () => {
         />,
         {
           attachTo: container,
-        }
+        },
       );
 
       const focused = document.activeElement;

@@ -36,7 +36,7 @@ describe('AuthButton', () => {
         authURL={authURL}
         onAuthComplete={noop}
         {...props}
-      />
+      />,
     );
   }
 
@@ -76,7 +76,7 @@ describe('AuthButton', () => {
   it('invokes `onAuthComplete` callback when authorization completes', () => {
     let onAuthComplete;
     const authCompleteCalled = new Promise(
-      resolve => (onAuthComplete = resolve)
+      resolve => (onAuthComplete = resolve),
     );
     const wrapper = createComponent({ onAuthComplete });
 

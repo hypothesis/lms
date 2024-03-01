@@ -66,7 +66,7 @@ export type APICallOptions = {
  * Make an API call to the LMS app backend.
  */
 export async function apiCall<Result = unknown>(
-  options: APICallOptions
+  options: APICallOptions,
 ): Promise<Result> {
   const {
     authToken,
@@ -95,7 +95,7 @@ export async function apiCall<Result = unknown>(
   if (params) {
     const urlParams = new URLSearchParams();
     Object.entries(params).forEach(([name, value]) =>
-      urlParams.append(name, value)
+      urlParams.append(name, value),
     );
     query = '?' + urlParams.toString();
   }
@@ -169,7 +169,7 @@ export function urlPath(strings: TemplateStringsArray, ...params: string[]) {
  */
 export function useAPIFetch<T = unknown>(
   path: string | null,
-  params?: Record<string, string>
+  params?: Record<string, string>,
 ): FetchResult<T> {
   const {
     api: { authToken },

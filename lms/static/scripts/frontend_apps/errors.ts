@@ -100,7 +100,7 @@ export class APIError extends Error {
    */
   constructor(
     status: number,
-    data: { message?: string; error_code?: string; details?: object | string }
+    data: { message?: string; error_code?: string; details?: object | string },
   ) {
     super('API call failed');
 

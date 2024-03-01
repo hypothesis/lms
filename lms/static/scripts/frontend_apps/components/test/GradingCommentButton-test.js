@@ -24,7 +24,7 @@ describe('GradingCommentButton', () => {
         onSubmit={noop}
         onInput={noop}
         {...props}
-      />
+      />,
     );
 
   it('allows comment popover to be toggled', () => {
@@ -53,7 +53,7 @@ describe('GradingCommentButton', () => {
     assert.isTrue(commentPopoverExists(wrapper));
 
     document.body.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'Escape' })
+      new KeyboardEvent('keydown', { key: 'Escape' }),
     );
     wrapper.update();
 
@@ -105,7 +105,7 @@ describe('GradingCommentButton', () => {
           .simulate('click');
         assert.isFalse(commentPopoverExists(wrapper));
       });
-    }
+    },
   );
 
   context('when clicking internal popover submit button', () => {
@@ -161,6 +161,6 @@ describe('GradingCommentButton', () => {
           return wrapper;
         },
       },
-    ])
+    ]),
   );
 });

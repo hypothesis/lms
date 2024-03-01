@@ -49,7 +49,7 @@ export type Fetcher<T> = (signal: AbortSignal) => Promise<T>;
  */
 export function useFetch<T = unknown>(
   key: string | null,
-  fetcher?: Fetcher<T>
+  fetcher?: Fetcher<T>,
 ): FetchResult<T> {
   const [result, setResult] = useState<FetchResult<T>>({
     data: null,

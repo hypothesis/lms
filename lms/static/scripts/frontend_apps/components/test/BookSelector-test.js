@@ -32,7 +32,7 @@ describe('BookSelector', () => {
         onConfirmBook={sinon.stub()}
         onSelectBook={sinon.stub()}
         {...props}
-      />
+      />,
     );
 
   beforeEach(() => {
@@ -91,7 +91,7 @@ describe('BookSelector', () => {
         <BookSelectorWrapper onSelectBook={sinon.stub()} />,
         {
           attachTo: container,
-        }
+        },
       );
 
       const focused = document.activeElement;
@@ -116,7 +116,7 @@ describe('BookSelector', () => {
       assert.equal(
         fakeExtractBookID.callCount,
         2,
-        're-validates if entered URL value changes'
+        're-validates if entered URL value changes',
       );
       assert.calledWith(fakeExtractBookID, 'bar');
 
@@ -125,7 +125,7 @@ describe('BookSelector', () => {
       assert.equal(
         fakeExtractBookID.callCount,
         2,
-        'Does not validate URL if it has not changed from previous value'
+        'Does not validate URL if it has not changed from previous value',
       );
     });
 
@@ -198,7 +198,7 @@ describe('BookSelector', () => {
       assert.isTrue(errorMessage.exists());
       assert.include(
         errorMessage.text(),
-        "That doesn't look like a VitalSource book link"
+        "That doesn't look like a VitalSource book link",
       );
       assert.isTrue(errorMessage.find('CancelIcon').exists());
     });
@@ -230,12 +230,12 @@ describe('BookSelector', () => {
       assert.equal(
         onSelectBook.getCall(0).args[0],
         null,
-        'clears the pre-existing selected book'
+        'clears the pre-existing selected book',
       );
       assert.equal(
         onSelectBook.getCall(1).args[0],
         fakeBookData.book1,
-        'selects the newly-fetched book'
+        'selects the newly-fetched book',
       );
     });
 

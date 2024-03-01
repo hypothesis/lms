@@ -25,7 +25,7 @@ export function videoIdFromYouTubeURL(url: string): string | null {
   //  * {domain}/live/{id}[...]
   // See https://stackoverflow.com/a/9102270 for details
   const match = url.match(
-    /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|shorts\/|live\/|watch\?v=|&v=)([^#&?]*).*/
+    /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|shorts\/|live\/|watch\?v=|&v=)([^#&?]*).*/,
   );
   return match?.[2] ?? null;
 }

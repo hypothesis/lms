@@ -28,7 +28,7 @@ describe('ErrorModal', () => {
 
     assert.equal(
       wrapper.find('ModalDialog').props().title,
-      'Something went wrong'
+      'Something went wrong',
     );
   });
 

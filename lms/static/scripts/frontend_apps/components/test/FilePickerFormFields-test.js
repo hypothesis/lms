@@ -17,7 +17,7 @@ describe('FilePickerFormFields', () => {
         groupSet={null}
         title={null}
         {...props}
-      />
+      />,
     );
   }
 

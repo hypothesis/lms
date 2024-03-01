@@ -14,7 +14,7 @@ describe('ErrorDialogApp', () => {
     return mount(
       <Config.Provider value={config}>
         <ErrorDialogApp />
-      </Config.Provider>
+      </Config.Provider>,
     );
   };
 
@@ -36,7 +36,7 @@ describe('ErrorDialogApp', () => {
     const wrapper = renderApp();
     assert.include(
       wrapper.text(),
-      "This Hypothesis installation's consumer key appears to have"
+      "This Hypothesis installation's consumer key appears to have",
     );
   });
 });
