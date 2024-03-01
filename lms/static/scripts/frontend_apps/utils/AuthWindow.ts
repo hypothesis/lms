@@ -54,7 +54,7 @@ export default class AuthWindow {
     this._authWin = window.open(
       authURL.toString(),
       `Allow access to Canvas files`,
-      settings
+      settings,
     );
 
     if (!this._authWin) {

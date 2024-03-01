@@ -130,7 +130,7 @@ describe('Server', () => {
     it('calls the registered method that throws an error', () => {
       window.postMessage(
         validRequest('registeredMethodErrorName'),
-        serversOrigin
+        serversOrigin,
       );
       return Promise.race([
         new Promise(resolve => {
@@ -194,7 +194,7 @@ describe('Server', () => {
     it('logs thrown error from the registered method', async () => {
       window.postMessage(
         validNotificationRequest('errorMethod'),
-        serversOrigin
+        serversOrigin,
       );
 
       await delay(0);
@@ -202,7 +202,7 @@ describe('Server', () => {
       assert.calledOnce(console.error);
       assert.include(
         console.error.getCall(0).args[0],
-        'JSON-RPC notification method failed:'
+        'JSON-RPC notification method failed:',
       );
     });
   });
@@ -219,7 +219,7 @@ describe('Server', () => {
     it('logs if method name unrecognized', async () => {
       window.postMessage(
         validNotificationRequest('randoMethod'),
-        serversOrigin
+        serversOrigin,
       );
 
       await delay(0);
@@ -227,7 +227,7 @@ describe('Server', () => {
       assert.calledOnce(console.error);
       assert.include(
         console.error.getCall(0).args[0],
-        'Received JSON-RPC notification for unrecognized method: randoMethod'
+        'Received JSON-RPC notification for unrecognized method: randoMethod',
       );
     });
   });

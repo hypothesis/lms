@@ -311,7 +311,7 @@ export type Ensure<T, K extends keyof T> = T & Required<Pick<T, K>>;
  * is omitted, otherwise it would change all optional keys to required.
  */
 export function useConfig<R extends keyof ConfigObject = never>(
-  requiredKeys: R[] = []
+  requiredKeys: R[] = [],
 ): Ensure<ConfigObject, R> {
   const config = useContext(Config);
   for (const key of requiredKeys) {

@@ -15,7 +15,7 @@ describe('OAuth2RedirectErrorApp', () => {
     return mount(
       <Config.Provider value={config}>
         <OAuth2RedirectErrorApp location={fakeLocation} />
-      </Config.Provider>
+      </Config.Provider>,
     );
   };
 
@@ -43,10 +43,10 @@ describe('OAuth2RedirectErrorApp', () => {
     const wrapper = renderApp();
     assert.include(
       wrapper.text(),
-      "A Canvas admin needs to edit Hypothesis's developer key"
+      "A Canvas admin needs to edit Hypothesis's developer key",
     );
     fakeConfig.canvasScopes.forEach(scope =>
-      assert.include(wrapper.text(), scope)
+      assert.include(wrapper.text(), scope),
     );
   });
 

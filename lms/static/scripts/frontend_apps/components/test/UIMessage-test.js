@@ -28,6 +28,6 @@ describe('UIMessage', () => {
     'should pass a11y checks',
     checkAccessibility({
       content: () => renderComponent(),
-    })
+    }),
   );
 });

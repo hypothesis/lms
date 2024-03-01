@@ -104,7 +104,7 @@ describe('ContentSelector', () => {
     return mount(
       <Config.Provider value={fakeConfig}>
         <ContentSelector onError={noop} onSelectContent={noop} {...props} />
-      </Config.Provider>
+      </Config.Provider>,
     );
   };
 
@@ -137,7 +137,7 @@ describe('ContentSelector', () => {
         'd2l-file-button',
         'moodle-file-button',
         'onedrive-button',
-      ]
+      ],
     );
   });
 
@@ -321,7 +321,7 @@ describe('ContentSelector', () => {
         });
         assert.equal(
           wrapper.find('LMSFilePicker').prop('missingFilesHelpLink'),
-          test.missingFilesHelpLink
+          test.missingFilesHelpLink,
         );
       });
     });
@@ -342,7 +342,7 @@ describe('ContentSelector', () => {
 
       assert.equal(
         pagePicker.prop('listFilesApi'),
-        fakeConfig.filePicker.canvas.listPages
+        fakeConfig.filePicker.canvas.listPages,
       );
 
       interact(wrapper, () => {
@@ -406,7 +406,7 @@ describe('ContentSelector', () => {
       const wrapper = renderContentSelector();
 
       assert.isFalse(
-        wrapper.exists('Button[data-testid="google-drive-button"]')
+        wrapper.exists('Button[data-testid="google-drive-button"]'),
       );
     });
 
@@ -423,7 +423,7 @@ describe('ContentSelector', () => {
     it('shows "Select PDF from Google Drive" button if developer key is provided', () => {
       const wrapper = renderContentSelector();
       assert.isTrue(
-        wrapper.exists('Button[data-testid="google-drive-button"]')
+        wrapper.exists('Button[data-testid="google-drive-button"]'),
       );
     });
 
@@ -658,7 +658,7 @@ describe('ContentSelector', () => {
               },
             },
           },
-          'vitalsource://book/BOOK_ID/cfi/CFI'
+          'vitalsource://book/BOOK_ID/cfi/CFI',
         );
       });
 
@@ -696,7 +696,7 @@ describe('ContentSelector', () => {
       });
       assert.equal(
         wrapper.find('JSTORPicker').prop('defaultArticle'),
-        '10.1234/5678'
+        '10.1234/5678',
       );
     });
 
@@ -756,7 +756,7 @@ describe('ContentSelector', () => {
           .props()
           .onSelectURL(
             'https://youtu.be/EU6TDnV5osM',
-            'The video title (channel)'
+            'The video title (channel)',
           );
       });
 

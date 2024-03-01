@@ -77,7 +77,7 @@ describe('GradingControls', () => {
 
   const selectFirstStudent = wrapper =>
     act(() =>
-      wrapper.find('StudentSelector').props().onSelectStudent(fakeStudents[0])
+      wrapper.find('StudentSelector').props().onSelectStudent(fakeStudents[0]),
     );
 
   const renderGrader = (props = {}) => {
@@ -91,7 +91,7 @@ describe('GradingControls', () => {
             {...props}
           />
         </Services.Provider>
-      </Config.Provider>
+      </Config.Provider>,
     );
   };
 
@@ -134,7 +134,7 @@ describe('GradingControls', () => {
         'Student Delta',
         'Students Beta',
       ],
-      orderedStudentNames
+      orderedStudentNames,
     );
   });
 
@@ -171,7 +171,7 @@ describe('GradingControls', () => {
     assert.calledWith(
       fakeClientRPC.setFocusedUser,
       fakeStudents[0],
-      null /* groups */
+      null /* groups */,
     );
     assert.notCalled(fakeApiCall);
   });
@@ -209,7 +209,7 @@ describe('GradingControls', () => {
           authToken: 'dummyAuthToken',
           path: '/fake/path',
           data: { foo: 'bar', gradingStudentId: '123' },
-        })
+        }),
       );
       assert.notCalled(console.error);
     });
@@ -226,7 +226,7 @@ describe('GradingControls', () => {
       assert.calledWith(
         fakeClientRPC.setFocusedUser,
         fakeStudents[0],
-        studentGroups
+        studentGroups,
       );
     });
 
@@ -241,13 +241,13 @@ describe('GradingControls', () => {
       assert.calledOnce(console.error);
       assert.calledWith(
         console.error,
-        'Unable to fetch student groups from sync API'
+        'Unable to fetch student groups from sync API',
       );
       // Still set the focused user, but don't pass any groups
       assert.calledWith(
         fakeClientRPC.setFocusedUser,
         fakeStudents[0],
-        /* groups */ null
+        /* groups */ null,
       );
     });
   });
@@ -261,7 +261,7 @@ describe('GradingControls', () => {
     assert.calledWith(
       fakeClientRPC.setFocusedUser,
       null /* user */,
-      null /* groups */
+      null /* groups */,
     );
   });
 
@@ -272,7 +272,7 @@ describe('GradingControls', () => {
       wrapper.find('StudentSelector').props().selectedStudent;
     const selectStudent = (wrapper, student) =>
       act(() =>
-        wrapper.find('StudentSelector').props().onSelectStudent(student)
+        wrapper.find('StudentSelector').props().onSelectStudent(student),
       );
 
     [
@@ -331,6 +331,6 @@ describe('GradingControls', () => {
     'should pass a11y checks',
     checkAccessibility({
       content: () => renderGrader(),
-    })
+    }),
   );
 });

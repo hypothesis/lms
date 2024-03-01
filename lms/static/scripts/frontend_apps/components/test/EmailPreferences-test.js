@@ -24,7 +24,7 @@ describe('EmailPreferences', () => {
         selectedDays={initialSelectedDays}
         updateSelectedDays={fakeUpdateSelectedDays}
         {...props}
-      />
+      />,
     );
   }
 

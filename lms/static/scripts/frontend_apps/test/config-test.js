@@ -56,7 +56,7 @@ describe('useConfig', () => {
       <Config.Provider value={config}>
         <Widget />
       </Config.Provider>,
-      document.createElement('div')
+      document.createElement('div'),
     );
 
     assert.deepEqual(result, config);
@@ -72,7 +72,7 @@ describe('useConfig', () => {
         <Config.Provider value={config}>
           <Widget />
         </Config.Provider>,
-        document.createElement('div')
+        document.createElement('div'),
       );
     }, 'Required configuration key "otherApp" not set');
   });

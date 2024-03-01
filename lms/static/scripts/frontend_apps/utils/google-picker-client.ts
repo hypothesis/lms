@@ -124,8 +124,8 @@ export class GooglePickerClient {
         } else {
           rejectAccessToken(
             new Error(
-              `Getting Google access token failed: ${response.error_description}`
-            )
+              `Getting Google access token failed: ${response.error_description}`,
+            ),
           );
         }
       },
@@ -137,8 +137,8 @@ export class GooglePickerClient {
         } else {
           rejectAccessToken(
             new Error(
-              `Showing Google authorization dialog failed: ${response.type}`
-            )
+              `Showing Google authorization dialog failed: ${response.type}`,
+            ),
           );
         }
       },

@@ -62,7 +62,7 @@ async function loadGAPI(): Promise<typeof window.gapi> {
  *   libraries' entry points.
  */
 export async function loadLibraries(
-  names: string[]
+  names: string[],
 ): Promise<Record<string, any>> {
   const gapi = await loadGAPI();
 

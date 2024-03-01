@@ -26,7 +26,7 @@ describe('LMSFilePicker', () => {
         onCancel={sinon.stub()}
         missingFilesHelpLink={'https://fake_help_link'}
         {...props}
-      />
+      />,
     );
   };
 
@@ -115,13 +115,13 @@ describe('LMSFilePicker', () => {
         display_name: 'Files',
         id: '__root__',
       },
-      'The only initial breadcrumb is the top-level "Files" crumb'
+      'The only initial breadcrumb is the top-level "Files" crumb',
     );
 
     assert.equal(
       breadcrumbs.props().renderItem(fakeFolders[0]),
       'Subfolder',
-      'The `renderItem` callback passed to Breadcrumbs renders a File `display_name`'
+      'The `renderItem` callback passed to Breadcrumbs renders a File `display_name`',
     );
   });
 
@@ -199,7 +199,7 @@ describe('LMSFilePicker', () => {
     fakeApiCall.rejects(
       new APIError('Not authorized', {
         /** without serverMessage */
-      })
+      }),
     );
 
     // Wait for the initial file fetch to fail.
@@ -231,7 +231,7 @@ describe('LMSFilePicker', () => {
     fakeApiCall.rejects(
       new APIError('Not authorized', {
         /** without serverMessage */
-      })
+      }),
     );
 
     const wrapper = renderFilePicker();
@@ -310,7 +310,7 @@ describe('LMSFilePicker', () => {
       // file list should be displayed.
       assert.isTrue(
         wrapper.exists('DocumentList'),
-        'File list was not displayed'
+        'File list was not displayed',
       );
     });
   });
@@ -322,7 +322,7 @@ describe('LMSFilePicker', () => {
     const wrapper = renderFilePicker();
     const reloadButton = await waitForElement(
       wrapper,
-      'button[data-testid="reload"]'
+      'button[data-testid="reload"]',
     );
     assert.equal(reloadButton.text(), 'Reload');
     assert.isNotOk(reloadButton.prop('disabled'));
@@ -334,7 +334,7 @@ describe('LMSFilePicker', () => {
     fakeApiCall.onSecondCall().resolves(
       new Promise(resolve => {
         outsideResolve = resolve;
-      })
+      }),
     );
     // Click the button to kick off the next request, which will hang...
     act(() => {
@@ -387,7 +387,7 @@ describe('LMSFilePicker', () => {
     // The file list is empty. The continue button should have a "Reload" label.
     const reloadButton = await waitForElement(
       wrapper,
-      'button[data-testid="reload"]'
+      'button[data-testid="reload"]',
     );
     assert.equal(reloadButton.text(), 'Reload');
 
@@ -408,7 +408,7 @@ describe('LMSFilePicker', () => {
 
     const continueButton = await waitForElement(
       wrapper,
-      'button[data-testid="select"]'
+      'button[data-testid="select"]',
     );
     assert.equal(continueButton.text(), 'Select');
     // No file is selected, so the button is disabled
@@ -479,7 +479,7 @@ describe('LMSFilePicker', () => {
 
     const button = await waitForElement(
       wrapper,
-      'button[data-testid="select"]'
+      'button[data-testid="select"]',
     );
     assert.isTrue(button.prop('disabled'));
   });
@@ -493,7 +493,7 @@ describe('LMSFilePicker', () => {
 
     assert.equal(
       wrapper.find('button[data-testid="select"]').prop('disabled'),
-      false
+      false,
     );
   });
 
@@ -535,7 +535,7 @@ describe('LMSFilePicker', () => {
       });
       let fileList = await waitForElement(
         wrapper,
-        'DocumentList[isLoading=false]'
+        'DocumentList[isLoading=false]',
       );
 
       if (changeToSubfolder) {

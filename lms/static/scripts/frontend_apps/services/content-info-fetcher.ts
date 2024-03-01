@@ -62,7 +62,7 @@ export class ContentInfoFetcher {
       logo: {
         logo: new URL(
           '/static/images/jstor-logo.svg',
-          location.href
+          location.href,
         ).toString(),
         title: 'JSTOR homepage',
         link: 'https://www.jstor.org',

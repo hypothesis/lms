@@ -24,7 +24,7 @@ function localeSort<Item>(items: Item[], key: keyof Item): Item[] {
     sensitivity: 'accent',
   });
   return [...items].sort((a, b) =>
-    collator.compare(a[key] as string, b[key] as string)
+    collator.compare(a[key] as string, b[key] as string),
   );
 }
 
@@ -44,7 +44,7 @@ export default function GradingControls({
   const clientRPC = useService(ClientRPC);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<StudentInfo | null>(
-    null
+    null,
   );
   const changeSelectedStudent = useCallback(
     async (newSelectedStudent: StudentInfo | null) => {
@@ -68,12 +68,12 @@ export default function GradingControls({
         setHasUnsavedChanges(false);
       }
     },
-    [hasUnsavedChanges, selectedStudent]
+    [hasUnsavedChanges, selectedStudent],
   );
 
   const students = useMemo(
     () => localeSort(unorderedStudents, 'displayName'),
-    [unorderedStudents]
+    [unorderedStudents],
   );
 
   const changeFocusedUser = useCallback(
@@ -104,7 +104,7 @@ export default function GradingControls({
       }
       clientRPC.setFocusedUser(user, groups);
     },
-    [authToken, clientRPC, syncAPICallInfo]
+    [authToken, clientRPC, syncAPICallInfo],
   );
 
   useEffect(() => {
@@ -121,7 +121,7 @@ export default function GradingControls({
         // Default and narrower screens: controls are stacked vertically
         'flex gap-x-4 gap-y-2 flex-col',
         // Wider screens: controls are in a single row
-        'md:flex-row'
+        'md:flex-row',
       )}
     >
       <div>

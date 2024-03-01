@@ -73,7 +73,7 @@ export default function URLFormWithPreview({
           {
             'h-[200px]': orientation === 'square', // Default
             'h-[120px]': orientation === 'landscape',
-          }
+          },
         )}
       >
         <Thumbnail
@@ -86,7 +86,7 @@ export default function URLFormWithPreview({
               className={classnames(
                 // Set up object positioning to "top". Bottom of thumbnail
                 // image is "cropped" as necessary to fit container.
-                'object-top'
+                'object-top',
               )}
               alt={thumbnail.alt}
               src={thumbnail.image}

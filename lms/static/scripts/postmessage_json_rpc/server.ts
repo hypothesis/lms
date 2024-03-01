@@ -139,7 +139,7 @@ export class Server {
 
     if (!method) {
       console.error(
-        `Received JSON-RPC notification for unrecognized method: ${request.method}`
+        `Received JSON-RPC notification for unrecognized method: ${request.method}`,
       );
       return;
     }
@@ -172,7 +172,7 @@ export class Server {
    * Return a JSON-RPC response object for the given JSON-RPC request object.
    */
   private async _jsonRPCResponse(
-    request: JSONRPCRequest
+    request: JSONRPCRequest,
   ): Promise<JSONRPCResponse> {
     // Return an error response if the request id is invalid.
     // id must be a string, number or null.

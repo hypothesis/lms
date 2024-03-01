@@ -59,7 +59,7 @@ type DraftGrading = {
 /** Return true if there are unsaved changes to the grade. */
 function hasGradeChanged(
   draft: DraftGrading,
-  savedGrade?: { grade: string; comment: string | null | undefined } | null
+  savedGrade?: { grade: string; comment: string | null | undefined } | null,
 ): boolean {
   return (
     (draft.grade !== null && draft.grade !== savedGrade?.grade) ||
@@ -96,14 +96,14 @@ export default function SubmitGradeForm({
   // displayed in the UI.
   const grade = useFetch(
     student ? `grade:${student.userid}` : null,
-    student ? () => fetchGrade(student) : undefined
+    student ? () => fetchGrade(student) : undefined,
   );
 
   // The following is state for saving the grade
   //
   // If there is an error when submitting a grade?
   const [submitGradeError, setSubmitGradeError] = useState<ErrorLike | null>(
-    null
+    null,
   );
   // Is set to true when the grade is being currently posted to the service
   const [gradeSaving, setGradeSaving] = useState(false);
@@ -134,13 +134,13 @@ export default function SubmitGradeForm({
       onUnsavedChanges?.(hasGradeChanged(newDraftGrading, grade.data));
       setDraftGrading(prev => ({ ...prev, ...update }));
     },
-    [draftGrading.grade, draftGrading.comment, onUnsavedChanges, grade.data]
+    [draftGrading.grade, draftGrading.comment, onUnsavedChanges, grade.data],
   );
 
   // Track if current grade has changed compared to what was originally loaded
   const hasUnsavedChanges = useMemo(
     () => hasGradeChanged(draftGrading, grade.data),
-    [draftGrading, grade.data]
+    [draftGrading, grade.data],
   );
 
   // Make sure instructors are notified if there's a risk to lose unsaved data
@@ -206,7 +206,7 @@ export default function SubmitGradeForm({
       const newValue = (e.target as HTMLInputElement).value;
       updateDraftGrading({ [field]: newValue });
     },
-    [updateDraftGrading]
+    [updateDraftGrading],
   );
 
   return (
@@ -226,7 +226,7 @@ export default function SubmitGradeForm({
                 'border border-r-0 rounded-r-none',
                 {
                   'animate-gradeSubmitSuccess': gradeSaved,
-                }
+                },
               )}
               data-testid="grade-input"
               disabled={disabled}
@@ -264,7 +264,7 @@ export default function SubmitGradeForm({
             data-testid="submit-button"
             classes={classnames(
               'border rounded-l-none ring-inset',
-              'disabled:opacity-50'
+              'disabled:opacity-50',
             )}
             disabled={disabled}
           >

@@ -16,7 +16,7 @@ describe('LaunchErrorDialog', () => {
           onRetry={retryStub}
           {...props}
         />
-      </Config.Provider>
+      </Config.Provider>,
     );
   }
 
@@ -223,7 +223,7 @@ describe('LaunchErrorDialog', () => {
           assert.isUndefined(modalProps.error);
         }
       });
-    }
+    },
   );
 
   it('only renders back-end messaging in "error-fetching" state, if provided', () => {
@@ -241,7 +241,7 @@ describe('LaunchErrorDialog', () => {
 
     assert.notInclude(
       wrapper.text(),
-      'There was a problem fetching this Hypothesis assignment'
+      'There was a problem fetching this Hypothesis assignment',
     );
   });
 

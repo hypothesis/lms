@@ -100,7 +100,7 @@ function contentFromURL(url: string): Content {
  * the file picker app.
  */
 export async function loadFilePickerConfig(
-  config: ConfigObject
+  config: ConfigObject,
 ): Promise<ConfigObject> {
   if (!config.editing) {
     throw new Error('Assignment editing config missing');
@@ -171,7 +171,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
 
   // Currently selected content for assignment.
   const [content, setContent] = useState<Content | null>(
-    assignment ? contentFromURL(assignment.document.url) : null
+    assignment ? contentFromURL(assignment.document.url) : null,
   );
 
   // Flag indicating if we are editing content that was previously selected.
@@ -199,7 +199,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   });
 
   const [title, setTitle] = useState(
-    promptForTitle ? 'Hypothesis assignment' : null
+    promptForTitle ? 'Hypothesis assignment' : null,
   );
   const titleInputId = useUniqueId('title-input');
 
@@ -246,7 +246,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
             authToken: authToken,
             path: deepLinkingAPI.path,
             data,
-          })
+          }),
         );
       } catch (error) {
         setErrorInfo({
@@ -265,7 +265,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       groupConfig.groupSet,
       groupConfig.useGroupSet,
       title,
-    ]
+    ],
   );
 
   // Submit the form after a selection is made via one of the available
@@ -298,7 +298,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
         submit(content);
       }
     },
-    [isEditing, showDetailsScreen, submit]
+    [isEditing, showDetailsScreen, submit],
   );
 
   // Whether the Save / Continue button should be enabled. This doesn't take
@@ -319,7 +319,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
         action={formAction}
         className={classnames(
           'w-[640px] max-w-[90vw] mx-auto',
-          'flex flex-col min-h-0 h-full space-y-2'
+          'flex flex-col min-h-0 h-full space-y-2',
         )}
         method="POST"
         onSubmit={e => {
@@ -422,7 +422,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                             // Set a height on this container to give the group
                             // <select> element room when it renders (avoid
                             // changing the height of the Card later)
-                            'h-28'
+                            'h-28',
                           )}
                         >
                           <GroupConfigSelector

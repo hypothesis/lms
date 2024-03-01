@@ -31,7 +31,7 @@ describe('ErrorDisplay', () => {
     fakeFormatErrorMessage.returns('Failed to fetch files: Canvas says no');
 
     const wrapper = mount(
-      <ErrorDisplay description="Failed to fetch files" error={new Error()} />
+      <ErrorDisplay description="Failed to fetch files" error={new Error()} />,
     );
 
     const link = wrapper
@@ -43,7 +43,7 @@ describe('ErrorDisplay', () => {
     assert.equal(url.searchParams.get('product'), 'LMS_app');
     assert.equal(
       url.searchParams.get('subject'),
-      '(LMS Error) Failed to fetch files: Canvas says no'
+      '(LMS Error) Failed to fetch files: Canvas says no',
     );
 
     // No data to put into `content`
@@ -58,7 +58,7 @@ describe('ErrorDisplay', () => {
     error.errorCode = 'some_backend_error_code';
 
     const wrapper = mount(
-      <ErrorDisplay description="Failed to fetch files" error={error} />
+      <ErrorDisplay description="Failed to fetch files" error={error} />,
     );
 
     const link = wrapper
@@ -69,19 +69,19 @@ describe('ErrorDisplay', () => {
 
     assert.include(
       url.searchParams.get('content'),
-      'Error code: some_backend_error_code'
+      'Error code: some_backend_error_code',
     );
     assert.include(
       url.searchParams.get('content'),
       'foo: bar',
-      'Includes details'
+      'Includes details',
     );
   });
 
   it('omits technical details if not provided', () => {
     fakeFormatErrorDetails.returns('');
     const wrapper = mount(
-      <ErrorDisplay message="Something went wrong" error={{ message: '' }} />
+      <ErrorDisplay message="Something went wrong" error={{ message: '' }} />,
     );
 
     const details = wrapper.find('[data-testid="error-details"]');
@@ -94,7 +94,7 @@ describe('ErrorDisplay', () => {
     const error = { message: '', details };
 
     const wrapper = mount(
-      <ErrorDisplay message="Something went wrong" error={error} />
+      <ErrorDisplay message="Something went wrong" error={error} />,
     );
 
     assert.calledWith(fakeFormatErrorDetails, error);
@@ -107,7 +107,7 @@ describe('ErrorDisplay', () => {
     const error = { message: '', details: 'Note from server' };
 
     const wrapper = mount(
-      <ErrorDisplay message="Something went wrong" error={error} />
+      <ErrorDisplay message="Something went wrong" error={error} />,
     );
 
     assert.calledWith(fakeFormatErrorDetails, error);
@@ -129,12 +129,12 @@ describe('ErrorDisplay', () => {
   it('Adds a period to the error message', () => {
     fakeFormatErrorMessage.returns('Hello');
     const wrapper = mount(
-      <ErrorDisplay description="foo" error={{ message: 'whatnot' }} />
+      <ErrorDisplay description="foo" error={{ message: 'whatnot' }} />,
     );
 
     assert.equal(
       wrapper.find('[data-testid="error-message"]').text(),
-      'Hello.'
+      'Hello.',
     );
 
     assert.calledOnce(fakeFormatErrorMessage);
@@ -150,6 +150,6 @@ describe('ErrorDisplay', () => {
           error={new Error('Oh no')}
         />
       ),
-    })
+    }),
   );
 });

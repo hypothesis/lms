@@ -58,7 +58,7 @@ describe('google-api-client', () => {
       }
       assert.equal(
         err.message,
-        'Failed to load Google Identity Services client'
+        'Failed to load Google Identity Services client',
       );
     });
   });

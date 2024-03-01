@@ -20,7 +20,7 @@ describe('useWarnOnPageUnload', () => {
 
   const waitForBeforeUnloadEvent = () => {
     const promise = new Promise(resolve =>
-      fakeWindow.addEventListener('beforeunload', resolve)
+      fakeWindow.addEventListener('beforeunload', resolve),
     );
     fakeWindow.dispatchEvent(new Event('beforeunload', { cancelable: true }));
 

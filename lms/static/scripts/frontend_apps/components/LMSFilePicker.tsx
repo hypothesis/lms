@@ -242,7 +242,7 @@ export default function LMSFilePicker({
       // directory.
       for (const folder of activePathWithoutRoot) {
         const folderFound = filesForFolder.find(
-          fileOrFolder => fileOrFolder.id === folder.id
+          fileOrFolder => fileOrFolder.id === folder.id,
         );
         if (folderFound?.children) {
           filesForFolder = folderFound.children;
@@ -251,7 +251,7 @@ export default function LMSFilePicker({
 
       return filesForFolder;
     },
-    [authToken, folderPath, listFilesApi]
+    [authToken, folderPath, listFilesApi],
   );
 
   const computeFilesToDisplay = useCallback(
@@ -290,7 +290,7 @@ export default function LMSFilePicker({
       }
       setInitialFetch(false);
     },
-    [folderPath, loadFilesToDisplay]
+    [folderPath, loadFilesToDisplay],
   );
 
   // Re-compute the file list any time the path changes

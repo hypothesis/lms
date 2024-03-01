@@ -50,7 +50,7 @@ export const Services: Context<ServiceMap> = createContext(new Map());
  * @return - Registered instance which implements `class_`'s interface
  */
 export function useService<Class extends Constructor>(
-  class_: Class
+  class_: Class,
 ): InstanceType<Class> {
   const serviceMap = useContext(Services);
   const service = serviceMap.get(class_);
@@ -78,7 +78,7 @@ export function useService<Class extends Constructor>(
  */
 export function withServices(
   Component: FunctionComponent,
-  getServices: () => [class_: Constructor, instance: any][]
+  getServices: () => [class_: Constructor, instance: any][],
 ) {
   const ComponentWrapper = (props: object) => {
     const services = useMemo(() => new Map(getServices()), []);

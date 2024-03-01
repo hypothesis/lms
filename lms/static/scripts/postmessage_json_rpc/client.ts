@@ -28,7 +28,7 @@ export async function call(
   params: unknown[] = [],
   timeout = 2000,
   window_ = window,
-  id = generateHexString(10)
+  id = generateHexString(10),
 ): Promise<unknown> {
   // Send RPC request.
   const request = {
@@ -71,7 +71,7 @@ export async function call(
 
   const timeoutExpired = createTimeout(
     timeout,
-    `Request to ${origin} timed out`
+    `Request to ${origin} timed out`,
   );
 
   // Cleanup and return.
@@ -96,7 +96,7 @@ export function notify(
   frame: Window,
   origin: string,
   method: string,
-  params: unknown[]
+  params: unknown[],
 ) {
   const request = {
     jsonrpc: '2.0',

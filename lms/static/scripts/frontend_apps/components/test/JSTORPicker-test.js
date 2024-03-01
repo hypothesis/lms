@@ -30,7 +30,7 @@ describe('JSTORPicker', () => {
   function simulateMetadataFetch(
     wrapper,
     title = undefined,
-    otherMetadata = {}
+    otherMetadata = {},
   ) {
     simulateAPIFetch(wrapper, '/api/jstor/articles/1234', {
       item: {
@@ -155,7 +155,7 @@ describe('JSTORPicker', () => {
       assert.equal(
         fakeArticleIdFromUserInput.callCount,
         2,
-        're-validates if entered URL value changes'
+        're-validates if entered URL value changes',
       );
       assert.calledWith(fakeArticleIdFromUserInput, 'bar');
 
@@ -164,7 +164,7 @@ describe('JSTORPicker', () => {
       assert.equal(
         fakeArticleIdFromUserInput.callCount,
         2,
-        'Does not validate URL if it has not changed from previous value'
+        'Does not validate URL if it has not changed from previous value',
       );
     });
 
@@ -181,7 +181,7 @@ describe('JSTORPicker', () => {
       assert.calledOnce(fakeArticleIdFromUserInput);
       assert.calledWith(
         fakeArticleIdFromUserInput,
-        'https://www.jstor.org/stable/1234'
+        'https://www.jstor.org/stable/1234',
       );
     });
 
@@ -241,7 +241,7 @@ describe('JSTORPicker', () => {
       assert.isTrue(errorMessage.exists());
       assert.include(
         errorMessage.text(),
-        "That doesn't look like a JSTOR article link or ID"
+        "That doesn't look like a JSTOR article link or ID",
       );
     });
   });
@@ -266,14 +266,14 @@ describe('JSTORPicker', () => {
       wrapper,
       '/api/jstor/articles/1234',
       null,
-      new Error('No such article')
+      new Error('No such article'),
     );
 
     const errorMessage = wrapper.find('UIMessage[status="error"]');
     assert.isTrue(errorMessage.exists());
     assert.include(
       errorMessage.text(),
-      'Unable to fetch article details: No such article'
+      'Unable to fetch article details: No such article',
     );
   });
 

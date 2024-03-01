@@ -12,7 +12,7 @@ describe('AuthorizationModal', () => {
         authURL="http://https://example.com/authorize"
         onAuthComplete={fakeOnAuthComplete}
         {...props}
-      />
+      />,
     );
 
   beforeEach(() => {

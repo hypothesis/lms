@@ -96,7 +96,7 @@ describe('ClientRPC', () => {
     it('returns client config', async () => {
       createClientRPC();
       const [, callback] = fakeServerInstance.register.args.find(
-        ([method]) => method === 'requestConfig'
+        ([method]) => method === 'requestConfig',
       );
       assert.equal(await callback(), clientConfig);
     });
@@ -105,7 +105,7 @@ describe('ClientRPC', () => {
       createClientRPC();
 
       const [, callback] = fakeServerInstance.register.args.find(
-        ([method]) => method === 'requestConfig'
+        ([method]) => method === 'requestConfig',
       );
       const config = await callback();
 
@@ -117,7 +117,7 @@ describe('ClientRPC', () => {
     it('fetches and returns new grant token if it has expired', async () => {
       createClientRPC();
       const [, callback] = fakeServerInstance.register.args.find(
-        ([method]) => method === 'requestConfig'
+        ([method]) => method === 'requestConfig',
       );
 
       // Simulate initial grant token expiring. This should trigger fetching of
@@ -151,7 +151,7 @@ describe('ClientRPC', () => {
     it('reports error to client if grant token fetch fails', async () => {
       createClientRPC();
       const [, callback] = fakeServerInstance.register.args.find(
-        ([method]) => method === 'requestConfig'
+        ([method]) => method === 'requestConfig',
       );
 
       fakeJwt.hasExpired.returns(true);
@@ -162,7 +162,7 @@ describe('ClientRPC', () => {
       } catch (err) {
         assert.equal(
           err.message,
-          'Unable to fetch Hypothesis login. Please reload the assignment.'
+          'Unable to fetch Hypothesis login. Please reload the assignment.',
         );
       }
     });
@@ -173,7 +173,7 @@ describe('ClientRPC', () => {
       const clientRPC = createClientRPC();
       const callback = sinon.stub();
       const [, serverMethod] = fakeServerInstance.register.args.find(
-        ([method]) => method === 'reportActivity'
+        ([method]) => method === 'reportActivity',
       );
       clientRPC.on('annotationActivity', callback);
 
@@ -194,7 +194,7 @@ describe('ClientRPC', () => {
       clientRPC.setGroups(['groupA', 'groupB']);
 
       const [, callback] = fakeServerInstance.register.args.find(
-        ([method]) => method === 'requestGroups'
+        ([method]) => method === 'requestGroups',
       );
       const groups = await callback();
 
@@ -212,7 +212,7 @@ describe('ClientRPC', () => {
           userid: 'acct:123@lms.hypothes.is',
           displayName: 'Student A',
         },
-        studentGroups
+        studentGroups,
       );
 
       assert.calledWith(
@@ -226,7 +226,7 @@ describe('ClientRPC', () => {
             displayName: 'Student A',
             groups: studentGroups,
           },
-        ]
+        ],
       );
     });
 
@@ -246,7 +246,7 @@ describe('ClientRPC', () => {
             displayName: undefined,
             groups: undefined,
           },
-        ]
+        ],
       );
     });
   });
@@ -263,7 +263,7 @@ describe('ClientRPC', () => {
         fakeSidebarWindow.frame,
         fakeSidebarWindow.origin,
         'showContentInfo',
-        [contentInfo]
+        [contentInfo],
       );
     });
   });

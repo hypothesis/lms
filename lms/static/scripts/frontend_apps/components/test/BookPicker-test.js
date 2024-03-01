@@ -227,11 +227,11 @@ describe('BookPicker', () => {
       clickSelectButton(picker);
       assert.equal(
         picker.find('input[data-testid="start-page"]').exists(),
-        allowPageRangeSelection
+        allowPageRangeSelection,
       );
       assert.equal(
         picker.find('input[data-testid="end-page"]').exists(),
-        allowPageRangeSelection
+        allowPageRangeSelection,
       );
     });
   });
@@ -288,7 +288,7 @@ describe('BookPicker', () => {
             end: expectedEnd,
           },
         },
-        'vitalsource://books/bookID/book1/cfi//1'
+        'vitalsource://books/bookID/book1/cfi//1',
       );
     });
   });
@@ -318,7 +318,7 @@ describe('BookPicker', () => {
           end: '20',
         },
       },
-      'vitalsource://books/bookID/book1/page/10'
+      'vitalsource://books/bookID/book1/page/10',
     );
   });
 
@@ -334,7 +334,7 @@ describe('BookPicker', () => {
 
     assert.equal(
       errorDisplay.prop('description'),
-      'Unable to fetch book contents'
+      'Unable to fetch book contents',
     );
     assert.equal(errorDisplay.prop('error'), error);
     assert.isFalse(picker.exists('TableOfContentsPicker'));
@@ -358,7 +358,7 @@ describe('BookPicker', () => {
 
     assert.equal(
       errorDisplay.prop('description'),
-      'Unable to fetch book contents'
+      'Unable to fetch book contents',
     );
     assert.equal(errorDisplay.prop('error'), error);
     assert.isFalse(picker.exists('TableOfContentsPicker'));

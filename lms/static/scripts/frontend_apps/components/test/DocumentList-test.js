@@ -18,7 +18,7 @@ describe('DocumentList', () => {
 
   const renderDocumentList = (props = {}) =>
     mount(
-      <DocumentList title="File list" documents={testDocuments} {...props} />
+      <DocumentList title="File list" documents={testDocuments} {...props} />,
     );
 
   const renderDocumentListNoDocuments = (props = {}) =>
@@ -53,7 +53,7 @@ describe('DocumentList', () => {
       assert.isTrue(dataRow.find(expectedIcon).exists());
       assert.equal(
         dataRow.find('td').at(0).text(),
-        testDocuments[0].display_name
+        testDocuments[0].display_name,
       );
       assert.equal(dataRow.find('td').at(1).text(), formattedDate);
     });
@@ -78,6 +78,6 @@ describe('DocumentList', () => {
         name: 'loading',
         content: () => renderDocumentList({ isLoading: true }),
       },
-    ])
+    ]),
   );
 });

@@ -29,7 +29,7 @@ describe('EmailPreferencesApp', () => {
     return mount(
       <Config.Provider value={{ emailPreferences }}>
         <EmailPreferencesApp />
-      </Config.Provider>
+      </Config.Provider>,
     );
   }
 

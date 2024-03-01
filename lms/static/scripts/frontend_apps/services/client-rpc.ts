@@ -121,7 +121,7 @@ export class ClientRPC extends TinyEmitter {
           grantToken = new JWT(response.grant_token, issuedAt);
         } catch (err) {
           throw new Error(
-            'Unable to fetch Hypothesis login. Please reload the assignment.'
+            'Unable to fetch Hypothesis login. Please reload the assignment.',
           );
         }
       }
@@ -134,7 +134,7 @@ export class ClientRPC extends TinyEmitter {
       'reportActivity',
       (eventType: AnnotationEventType, data: AnnotationEventData) => {
         this.emit('annotationActivity', eventType, data);
-      }
+      },
     );
 
     this._resolveGroups = () => {};

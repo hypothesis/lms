@@ -51,7 +51,7 @@ export default function EmailPreferences({
         fri: enabled,
         sat: enabled,
       }),
-    [updateSelectedDays]
+    [updateSelectedDays],
   );
   const selectAll = useCallback(() => setAllTo(true), [setAllTo]);
   const selectNone = useCallback(() => setAllTo(false), [setAllTo]);
@@ -84,7 +84,7 @@ export default function EmailPreferences({
                 key={day}
                 className={classnames(
                   // The checked icon sets fill from the text color
-                  'text-grey-6'
+                  'text-grey-6',
                 )}
               >
                 <Checkbox
@@ -98,7 +98,7 @@ export default function EmailPreferences({
                   <span
                     className={classnames(
                       // Override the color set for the checkbox fill
-                      'text-grey-9'
+                      'text-grey-9',
                     )}
                   >
                     {name}

@@ -159,7 +159,7 @@ export default function BookSelector({
                 // TODO: Remove !-rule when
                 // https://github.com/hypothesis/frontend-shared/issues/842 is
                 // resolved
-                '!object-contain'
+                '!object-contain',
               )}
               src={selectedBook.cover_image}
               data-testid="cover-image"

@@ -19,13 +19,13 @@ export type YouTubePickerProps = {
 };
 
 function formatRestrictionError(
-  restrictions: YouTubeVideoRestriction[]
+  restrictions: YouTubeVideoRestriction[],
 ): ComponentChildren | undefined {
   const mainMessage = 'This video cannot be used in an assignment because';
   const restrictionMessages = restrictions.map(restriction =>
     restriction === 'age'
       ? 'it contains age-restricted content'
-      : "the video's owner does not allow this video to be embedded"
+      : "the video's owner does not allow this video to be embedded",
   );
 
   if (restrictionMessages.length === 1) {
@@ -57,10 +57,10 @@ export default function YouTubePicker({
   const [currentURL, setCurrentURL] = useState(defaultURL);
   const videoId = useMemo(
     () => (currentURL ? videoIdFromYouTubeURL(currentURL) : null),
-    [currentURL]
+    [currentURL],
   );
   const videoInfo = useAPIFetch<YouTubeVideoInfo>(
-    videoId ? urlPath`/api/youtube/videos/${videoId}` : null
+    videoId ? urlPath`/api/youtube/videos/${videoId}` : null,
   );
   const error = useMemo(() => {
     const defaultError =

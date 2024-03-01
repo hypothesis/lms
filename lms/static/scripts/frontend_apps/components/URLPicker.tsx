@@ -42,7 +42,7 @@ export default function URLPicker({
       if (!url.protocol.startsWith('http')) {
         if (url.protocol.startsWith('file')) {
           setError(
-            'URLs that start with "file" are files on your own computer. Please use a URL that starts with "http" or "https".'
+            'URLs that start with "file" are files on your own computer. Please use a URL that starts with "http" or "https".',
           );
         } else {
           setError('Please use a URL that starts with "http" or "https"');
@@ -53,7 +53,7 @@ export default function URLPicker({
         setError(
           youtubeEnabled
             ? 'To annotate a video, go back and choose the YouTube option.'
-            : 'Annotating YouTube videos has been disabled at your organisation.'
+            : 'Annotating YouTube videos has been disabled at your organisation.',
         );
       } else {
         onSelectURL(input.current!.value);

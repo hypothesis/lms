@@ -14,15 +14,15 @@ import EmailPreferences from './EmailPreferences';
 export default function EmailPreferencesApp() {
   const { emailPreferences } = useConfig(['emailPreferences']);
   const [selectedDays, setSelectedDays] = useState(
-    emailPreferences.selectedDays
+    emailPreferences.selectedDays,
   );
   const selectedDaysChanged = useCallback(
     (newSelectedDays: Partial<SelectedDays>) =>
       Object.entries(newSelectedDays).some(
         ([day, selected]) =>
-          emailPreferences.selectedDays[day as WeekDay] !== selected
+          emailPreferences.selectedDays[day as WeekDay] !== selected,
       ),
-    [emailPreferences.selectedDays]
+    [emailPreferences.selectedDays],
   );
   const [saving, setSaving] = useState(false);
   const onSave = useCallback(() => setSaving(true), []);
@@ -34,7 +34,7 @@ export default function EmailPreferencesApp() {
             type: 'success',
           },
         ]
-      : []
+      : [],
   );
   const updateSelectedDays = useCallback(
     (newSelectedDays: Partial<SelectedDays>) => {
@@ -46,7 +46,7 @@ export default function EmailPreferencesApp() {
         dismissToastMessage(toastMessages[0].id);
       }
     },
-    [dismissToastMessage, selectedDaysChanged, toastMessages]
+    [dismissToastMessage, selectedDaysChanged, toastMessages],
   );
 
   return (
@@ -54,7 +54,7 @@ export default function EmailPreferencesApp() {
       <div
         className={classnames(
           'flex justify-center p-3 w-full',
-          'bg-white border-b shadow'
+          'bg-white border-b shadow',
         )}
       >
         <img

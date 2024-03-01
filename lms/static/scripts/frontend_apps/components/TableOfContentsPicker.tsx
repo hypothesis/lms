@@ -58,7 +58,7 @@ export default function TableOfContentsPicker({
         classes: 'w-32',
       },
     ],
-    []
+    [],
   );
 
   const renderItem = useCallback(
@@ -87,7 +87,7 @@ export default function TableOfContentsPicker({
           return '';
       }
     },
-    []
+    [],
   );
 
   return (

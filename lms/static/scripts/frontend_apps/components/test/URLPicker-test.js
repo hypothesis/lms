@@ -12,7 +12,7 @@ describe('URLPicker', () => {
     });
     assert.equal(
       wrapper.find('input').getDOMNode().value,
-      'https://arxiv.org/pdf/1234.pdf'
+      'https://arxiv.org/pdf/1234.pdf',
     );
   });
 
@@ -65,7 +65,7 @@ describe('URLPicker', () => {
     assert.isTrue(errorMessage.exists());
     assert.include(
       errorMessage.text(),
-      'Please use a URL that starts with "http" or "https"'
+      'Please use a URL that starts with "http" or "https"',
     );
   });
 
@@ -86,7 +86,7 @@ describe('URLPicker', () => {
     assert.isTrue(errorMessage.exists());
     assert.include(
       errorMessage.text(),
-      'URLs that start with "file" are files on your own computer.'
+      'URLs that start with "file" are files on your own computer.',
     );
   });
 
@@ -125,6 +125,6 @@ describe('URLPicker', () => {
     'should pass a11y checks',
     checkAccessibility({
       content: () => renderUrlPicker(),
-    })
+    }),
   );
 });

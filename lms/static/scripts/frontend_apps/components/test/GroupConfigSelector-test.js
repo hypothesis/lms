@@ -135,7 +135,7 @@ describe('GroupConfigSelector', () => {
     // Once group sets are fetched, they should be rendered as `<option>`s.
     const options = await waitForElement(
       wrapper,
-      'option[data-testid="groupset-option"]'
+      'option[data-testid="groupset-option"]',
     );
     assert.equal(options.length, fakeGroupSets.length);
 
@@ -154,7 +154,7 @@ describe('GroupConfigSelector', () => {
 
     const options = await waitForElement(
       wrapper,
-      'option[data-testid="groupset-option"]'
+      'option[data-testid="groupset-option"]',
     );
     assert.equal(options.length, fakeGroupSets.length);
     assert.notCalled(onChangeGroupConfig);
@@ -194,7 +194,7 @@ describe('GroupConfigSelector', () => {
 
     const options = await waitForElement(
       wrapper,
-      'option[data-testid="groupset-option"]'
+      'option[data-testid="groupset-option"]',
     );
     assert.equal(options.length, fakeGroupSets.length);
   });
@@ -209,7 +209,7 @@ describe('GroupConfigSelector', () => {
     const errorModal = await waitForElement(wrapper, 'NoGroupsError');
     assert.include(
       errorModal.text(),
-      'we could not find any available group sets in this course'
+      'we could not find any available group sets in this course',
     );
   });
 
@@ -229,7 +229,7 @@ describe('GroupConfigSelector', () => {
 
     const options = await waitForElement(
       wrapper,
-      'option[data-testid="groupset-option"]'
+      'option[data-testid="groupset-option"]',
     );
     assert.equal(options.length, fakeGroupSets.length);
   });

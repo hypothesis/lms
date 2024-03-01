@@ -127,7 +127,7 @@ describe('formatErrorMessage', () => {
     it(`should format the error message (${idx})`, () => {
       assert.equal(
         formatErrorMessage(testCase.error, testCase.prefix),
-        testCase.expected
+        testCase.expected,
       );
     });
   });

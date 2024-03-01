@@ -101,7 +101,7 @@ export default function ContentSelector({
   const [initialType, initialValue] = useMemo(
     () =>
       initialContent ? extractContentTypeAndValue(initialContent) : [null, ''],
-    [initialContent]
+    [initialContent],
   );
 
   const [isLoadingIndicatorVisible, setLoadingIndicatorVisible] =
@@ -202,7 +202,7 @@ export default function ContentSelector({
 
   const selectVitalSourceBook = async (
     selection: unknown,
-    documentURL: string
+    documentURL: string,
   ) => {
     cancelDialog();
     onSelectContent({
