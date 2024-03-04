@@ -156,15 +156,8 @@ export default function ContentSelector({
     });
   }, [oneDriveClientId, oneDriveRedirectURI]);
 
-  const selectURL = (url: string) => {
+  const selectURL = (url: string, name?: string) => {
     cancelDialog();
-    onSelectContent({ type: 'url', url });
-  };
-
-  const selectYouTubeURL = (url: string, title?: string) => {
-    cancelDialog();
-
-    const name = title && `YouTube: ${title}`;
     onSelectContent({ type: 'url', url, name });
   };
 
@@ -173,43 +166,24 @@ export default function ContentSelector({
     onSelectContent({ type: 'file', file: file as File });
   };
 
+  const selectYouTubeURL = (url: string, title?: string) => {
+    const name = title && `YouTube: ${title}`;
+    selectURL(url, name);
+  };
+
   const selectCanvasPage = (page: File | Page) => {
-    cancelDialog();
-    onSelectContent({
-      type: 'url',
-      url: page.id,
-      name: `Canvas page: ${page.display_name}`,
-    });
+    const url = page.id;
+    const name = `Canvas page: ${page.display_name}`;
+    selectURL(url, name);
   };
 
-  const selectBlackboardFile = (file: File | Page) => {
-    cancelDialog();
-    // file.id is a URL with a `blackboard://` prefix.
-    onSelectContent({ type: 'url', url: file.id });
-  };
-
-  const selectD2LFile = (file: File | Page) => {
-    cancelDialog();
-    // file.id is a URL with a `d2l://` prefix.
-    onSelectContent({ type: 'url', url: file.id });
-  };
-
-  const selectMoodleFile = (file: File | Page) => {
-    cancelDialog();
-    // file.id is a URL with a `moodle://` prefix.
-    onSelectContent({ type: 'url', url: file.id });
-  };
+  // file.id is a URL with a `blackboard://`, `d2l://` or `moodle://` prefix.
+  const selectFileAsURL = (file: File | Page) => selectURL(file.id);
 
   const selectVitalSourceBook = async (
     selection: unknown,
     documentURL: string,
-  ) => {
-    cancelDialog();
-    onSelectContent({
-      type: 'url',
-      url: documentURL,
-    });
-  };
+  ) => selectURL(documentURL);
 
   const getDefaultValue = (type: DialogType) =>
     type === initialType ? initialValue : undefined;
@@ -255,14 +229,13 @@ export default function ContentSelector({
         />
       );
       break;
-
     case 'blackboardFile':
       dialog = (
         <LMSFilePicker
           authToken={authToken}
           listFilesApi={blackboardListFilesApi}
           onCancel={cancelDialog}
-          onSelectFile={selectBlackboardFile}
+          onSelectFile={selectFileAsURL}
           // An alias we maintain that provides multiple external documentation links for
           // different versions of Blackboard (Classic vs. Ultra)
           missingFilesHelpLink={'https://web.hypothes.is/help/bb-files'}
@@ -276,7 +249,7 @@ export default function ContentSelector({
           authToken={authToken}
           listFilesApi={d2lListFilesApi}
           onCancel={cancelDialog}
-          onSelectFile={selectD2LFile}
+          onSelectFile={selectFileAsURL}
           missingFilesHelpLink={
             'https://web.hypothes.is/help/using-hypothesis-with-d2l-course-content-files/'
           }
@@ -290,13 +263,12 @@ export default function ContentSelector({
           authToken={authToken}
           listFilesApi={moodleListFilesApi}
           onCancel={cancelDialog}
-          onSelectFile={selectMoodleFile}
+          onSelectFile={selectFileAsURL}
           missingFilesHelpLink={'https://web.hypothes.is/help/'}
           withBreadcrumbs
         />
       );
       break;
-
     case 'jstor':
       dialog = (
         <JSTORPicker
@@ -334,7 +306,7 @@ export default function ContentSelector({
       const picker: GooglePickerClient = googlePicker!;
       const { id, name, url } = await picker.showPicker();
       await picker.enablePublicViewing(id);
-      onSelectContent({ name, type: 'url', url });
+      selectURL(url, name);
     } catch (error) {
       if (!(error instanceof PickerCanceledError)) {
         console.error(error);
@@ -353,7 +325,7 @@ export default function ContentSelector({
     try {
       const picker: OneDrivePickerClient = oneDrivePicker!;
       const { name, url } = await picker.showPicker();
-      onSelectContent({ name, type: 'url', url });
+      selectURL(url, name);
     } catch (error) {
       if (!(error instanceof PickerCanceledError)) {
         console.error(error);
