@@ -134,7 +134,6 @@ class TestFactory:
         return patch("lms.services.ltia_http.LTIAHTTPService")
 
 
-@pytest.mark.usefixtures("db_session")
 @pytest.fixture
 def application_instance(application_instance):
     application_instance.lti_registration = factories.LTIRegistration()
