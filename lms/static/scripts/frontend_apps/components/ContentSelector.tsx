@@ -167,6 +167,14 @@ export default function ContentSelector({
     onSelectContent({ type: 'url', url, name });
   };
 
+  // file.id is a URL with a `blackboard://`, `d2l://` or `moodle://` prefix.
+  const selectFileAsURL = (file: File | Page) => selectURL(file.id);
+
+  const selectPageAsURL = (page: File | Page, lms: string) => {
+    const name = `${lms} page: ${page.display_name}`;
+    selectURL(page.id, name);
+  };
+
   const selectCanvasFile = (file: File | Page) => {
     cancelDialog();
     onSelectContent({ type: 'file', file: file as File });
@@ -177,23 +185,11 @@ export default function ContentSelector({
     selectURL(url, name);
   };
 
-  const selectCanvasPage = (page: File | Page) => {
-    const url = page.id;
-    const name = `Canvas page: ${page.display_name}`;
-    selectURL(url, name);
-  };
+  const selectCanvasPage = (page: File | Page) =>
+    selectPageAsURL(page, 'Canvas');
 
-  // file.id is a URL with a `blackboard://`, `d2l://` or `moodle://` prefix.
-  const selectFileAsURL = (file: File | Page) => selectURL(file.id);
-
-  const selectMoodlePage = (page: File | Page) => {
-    cancelDialog();
-    onSelectContent({
-      type: 'url',
-      url: page.id,
-      name: `Moodle page: ${page.display_name}`,
-    });
-  };
+  const selectMoodlePage = (page: File | Page) =>
+    selectPageAsURL(page, 'Moodle');
 
   const selectVitalSourceBook = async (
     selection: unknown,
