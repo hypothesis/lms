@@ -175,6 +175,7 @@ describe('ContentSelector', () => {
     assert.calledWith(onSelectContent, {
       type: 'url',
       url: 'https://example.com',
+      name: undefined,
     });
   });
 
@@ -274,6 +275,7 @@ describe('ContentSelector', () => {
         result: {
           type: 'url',
           url: 'blackboard://content-resource/123',
+          name: undefined,
         },
         missingFilesHelpLink: 'https://web.hypothes.is/help/bb-files',
       },
@@ -284,6 +286,7 @@ describe('ContentSelector', () => {
         result: {
           type: 'url',
           url: 'moodle://file/FILE',
+          name: undefined,
         },
         missingFilesHelpLink: 'https://web.hypothes.is/help/',
       },
@@ -295,6 +298,7 @@ describe('ContentSelector', () => {
         result: {
           type: 'url',
           url: 'd2l://file/course/123/file_id/456',
+          name: undefined,
         },
         missingFilesHelpLink:
           'https://web.hypothes.is/help/using-hypothesis-with-d2l-course-content-files/',
@@ -665,6 +669,7 @@ describe('ContentSelector', () => {
       assert.calledWith(onSelectContent, {
         type: 'url',
         url: 'vitalsource://book/BOOK_ID/cfi/CFI',
+        name: undefined,
       });
     });
   });
@@ -715,6 +720,7 @@ describe('ContentSelector', () => {
       assert.calledWith(onSelectContent, {
         type: 'url',
         url: 'jstor://1234',
+        name: undefined,
       });
     });
   });
