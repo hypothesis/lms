@@ -255,7 +255,6 @@ class TestDeepLinkingFieldsView:
     def LTIEvent(self, patch):
         return patch("lms.views.lti.deep_linking.LTIEvent")
 
-    @pytest.mark.usefixtures("db_session")
     @pytest.fixture
     def application_instance(self, application_instance):
         application_instance.lti_registration = factories.LTIRegistration()
