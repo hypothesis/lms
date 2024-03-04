@@ -155,6 +155,9 @@
 
                         <fieldset class="box">
                             <legend class="label has-text-centered">Content integrations</legend>
+                            {{ settings_text_field("Canvas Studio domain", "canvas_studio", "domain") }}
+                            {{ settings_text_field("Canvas Studio client ID", "canvas_studio", "client_id") }}
+                            {{ settings_secret_field("Canvas Studio client secret", "canvas_studio", "client_secret") }}
                             {{ settings_checkbox("Google Drive enabled", "google_drive", "files_enabled", default=True) }}
                             {{ settings_checkbox("Microsoft OneDrive enabled", "microsoft_onedrive", "files_enabled", default=True) }}
                             {{ settings_checkbox('VitalSource enabled', 'vitalsource', 'enabled') }}
