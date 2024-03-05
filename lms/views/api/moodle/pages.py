@@ -4,6 +4,7 @@ import re
 from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
+from lms.services.exceptions import FileNotFoundInCourse
 from lms.services.moodle import MoodleAPIClient
 from lms.validation.authentication import BearerTokenSchema
 from lms.views import helpers
@@ -14,6 +15,10 @@ LOG = logging.getLogger(__name__)
 DOCUMENT_URL_REGEX = re.compile(
     r"moodle:\/\/page\/course\/(?P<course_id>[^\/]*)\/page_id\/(?P<page_id>[^\/]*)"
 )
+
+
+class PageNotFoundInCourse(FileNotFoundInCourse):
+    pass
 
 
 @view_defaults(permission=Permissions.API, renderer="json")
@@ -30,22 +35,65 @@ class PagesAPIViews:
 
     @view_config(request_method="GET", route_name="moodle_api.pages.via_url")
     def via_url(self):
+        course_copy_plugin = self.request.product.plugin.course_copy
+        current_course_id = self.request.lti_user.lti.course_id
+
         current_course = self.request.find_service(name="course").get_by_context_id(
-            self.request.lti_user.lti.course_id, raise_on_missing=True
+            current_course_id, raise_on_missing=True
         )
         assignment = self.request.find_service(name="assignment").get_assignment(
             self.request.lti_user.application_instance.tool_consumer_instance_guid,
             self.request.lti_user.lti.assignment_id,
         )
         document_url = assignment.document_url
-        _, document_page_id = self._parse_document_url(document_url)
+        document_course_id, document_page_id = self._parse_document_url(document_url)
+        effective_page_id = None
+        if current_course_id == document_course_id:
+            # Not in a course copy scenario, use the IDs from the document_url
+            effective_page_id = document_page_id
+            LOG.debug("Via URL for page in the same course. %s", document_url)
+
+        mapped_page_id = current_course.get_mapped_page_id(document_page_id)
+        if not effective_page_id and mapped_page_id != document_page_id:
+            effective_page_id = mapped_page_id
+            LOG.debug(
+                "Via URL for page already mapped for course copy. Document: %s, course: %s, mapped page_id: %s",
+                document_url,
+                current_course_id,
+                mapped_page_id,
+            )
+
+        if not effective_page_id:
+            found_page = course_copy_plugin.find_matching_page_in_course(
+                document_page_id, current_course_id
+            )
+            if not found_page:
+                # We couldn't fix course copy, there might be something else going on
+                # or maybe teacher never launched before a student.
+                LOG.debug(
+                    "Via URL for page, couldn't find page in the new course. Document: %s, course: %s.",
+                    document_url,
+                    current_course_id,
+                )
+                raise PageNotFoundInCourse(
+                    "moodle_page_not_found_in_course", document_page_id
+                )
+
+            # Store a mapping so we don't have to re-search next time.
+            current_course.set_mapped_page_id(document_page_id, found_page.lms_id)
+            effective_page_id = found_page.lms_id
+            LOG.debug(
+                "Via URL for page, found page in the new course. Document: %s, course: %s, new page id: %s",
+                document_url,
+                current_course_id,
+                found_page.lms_id,
+            )
 
         # We build a token to authorize the view that fetches the actual
         # pages content as the user making this request.
         auth_token = BearerTokenSchema(self.request).authorization_param(
             self.request.lti_user
         )
-
         return {
             "via_url": helpers.via_url(
                 self.request,
@@ -53,7 +101,7 @@ class PagesAPIViews:
                     "moodle_api.pages.proxy",
                     _query={
                         "course_id": current_course.lms_id,
-                        "page_id": document_page_id,
+                        "page_id": effective_page_id,
                         "authorization": auth_token,
                     },
                 ),

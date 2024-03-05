@@ -65,8 +65,11 @@ class TestMoodleCourseCopyPlugin:
         assert isinstance(plugin, MoodleCourseCopyPlugin)
 
     @pytest.fixture
-    def plugin(self, moodle_api_client, course_copy_groups_helper):
+    def plugin(
+        self, moodle_api_client, course_copy_groups_helper, course_copy_files_helper
+    ):
         return MoodleCourseCopyPlugin(
             api=moodle_api_client,
             groups_helper=course_copy_groups_helper,
+            files_helper=course_copy_files_helper,
         )
