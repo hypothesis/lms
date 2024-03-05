@@ -90,8 +90,8 @@ class TestMoodleAPIClient:
                     {
                         "type": "File",
                         "display_name": "dummy.pdf",
-                        "id": "moodle://file/url/https://hypothesisuniversity.moodlecloud.com/webservice/pluginfile.php/1046/mod_resource/content/1/dummy.pdf?forcedownload=1",
-                        "lms_id": "moodle://file/url/https://hypothesisuniversity.moodlecloud.com/webservice/pluginfile.php/1046/mod_resource/content/1/dummy.pdf?forcedownload=1",
+                        "id": "moodle://file/course/COURSE_ID/url/https://hypothesisuniversity.moodlecloud.com/webservice/pluginfile.php/1046/mod_resource/content/1/dummy.pdf?forcedownload=1",
+                        "lms_id": "moodle://file/course/COURSE_ID/url/https://hypothesisuniversity.moodlecloud.com/webservice/pluginfile.php/1046/mod_resource/content/1/dummy.pdf?forcedownload=1",
                         "updated_at": 1707992547 * 1000,
                     },
                     {
@@ -103,8 +103,8 @@ class TestMoodleAPIClient:
                             {
                                 "type": "File",
                                 "display_name": "dummy.pdf",
-                                "id": "moodle://file/url/https://hypothesisuniversity.moodlecloud.com/webservice/pluginfile.php/1134/mod_folder/content/3/dummy.pdf?forcedownload=1",
-                                "lms_id": "moodle://file/url/https://hypothesisuniversity.moodlecloud.com/webservice/pluginfile.php/1134/mod_folder/content/3/dummy.pdf?forcedownload=1",
+                                "id": "moodle://file/course/COURSE_ID/url/https://hypothesisuniversity.moodlecloud.com/webservice/pluginfile.php/1134/mod_folder/content/3/dummy.pdf?forcedownload=1",
+                                "lms_id": "moodle://file/course/COURSE_ID/url/https://hypothesisuniversity.moodlecloud.com/webservice/pluginfile.php/1134/mod_folder/content/3/dummy.pdf?forcedownload=1",
                                 "updated_at": 1708513742 * 1000,
                             },
                             {
@@ -116,8 +116,8 @@ class TestMoodleAPIClient:
                                     {
                                         "type": "File",
                                         "display_name": "FILE IN NESTED.pdf",
-                                        "id": "moodle://file/url/https://hypothesisuniversity.moodlecloud.com/webservice/pluginfile.php/1134/mod_folder/content/3/Nested%20folder/FILE%20IN%20NESTED.pdf?forcedownload=1",
-                                        "lms_id": "moodle://file/url/https://hypothesisuniversity.moodlecloud.com/webservice/pluginfile.php/1134/mod_folder/content/3/Nested%20folder/FILE%20IN%20NESTED.pdf?forcedownload=1",
+                                        "id": "moodle://file/course/COURSE_ID/url/https://hypothesisuniversity.moodlecloud.com/webservice/pluginfile.php/1134/mod_folder/content/3/Nested%20folder/FILE%20IN%20NESTED.pdf?forcedownload=1",
+                                        "lms_id": "moodle://file/course/COURSE_ID/url/https://hypothesisuniversity.moodlecloud.com/webservice/pluginfile.php/1134/mod_folder/content/3/Nested%20folder/FILE%20IN%20NESTED.pdf?forcedownload=1",
                                         "updated_at": 1708513801 * 1000,
                                     }
                                 ],
