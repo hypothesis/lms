@@ -1,11 +1,11 @@
 import re
-
-from pyramid.view import view_config
 from logging import getLogger
 
+from pyramid.view import view_config
+
 from lms.security import Permissions
-from lms.services.moodle import MoodleAPIClient
 from lms.services.exceptions import FileNotFoundInCourse
+from lms.services.moodle import MoodleAPIClient
 from lms.views import helpers
 
 LOG = getLogger(__name__)
