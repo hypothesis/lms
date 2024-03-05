@@ -4,6 +4,7 @@ from lms.services.moodle import MoodleAPIClient
 
 class MoodleCourseCopyPlugin:
     file_type = "moodle_file"
+    page_type = "moodle_page"
 
     def __init__(
         self,
@@ -18,6 +19,11 @@ class MoodleCourseCopyPlugin:
     def find_matching_file_in_course(self, original_file_id, new_course_id):
         return self._files_helper.find_matching_file_in_course(
             self._api.list_files, self.file_type, original_file_id, new_course_id
+        )
+
+    def find_matching_page_in_course(self, original_page_id, new_course_id):
+        return self._files_helper.find_matching_file_in_course(
+            self._api.list_pages, self.page_type, original_page_id, new_course_id
         )
 
     def find_matching_group_set_in_course(self, course, group_set_id):

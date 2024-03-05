@@ -143,13 +143,13 @@ class TestMoodleAPIClient:
                     {
                         "type": "Page",
                         "display_name": "A Page",
-                        "lms_id": "moodle://page/course/COURSE_ID/page_id/860",
+                        "lms_id": 860,
                         "id": "moodle://page/course/COURSE_ID/page_id/860",
                     },
                     {
                         "type": "Page",
                         "display_name": "Another Page",
-                        "lms_id": "moodle://page/course/COURSE_ID/page_id/1860",
+                        "lms_id": 1860,
                         "id": "moodle://page/course/COURSE_ID/page_id/1860",
                     },
                 ],
@@ -161,6 +161,7 @@ class TestMoodleAPIClient:
         http_service,
         aes_service,
         pyramid_request,
+        file_service,
     ):
         ai = create_autospec(ApplicationInstance)
         pyramid_request.lti_user.application_instance = ai
@@ -174,6 +175,7 @@ class TestMoodleAPIClient:
         # pylint:disable=protected-access
         assert service._lms_url == ai.lms_url
         assert service._http == http_service
+        assert service._file_service == file_service
         assert service._token == ai.settings.get_secret.return_value
 
     @pytest.fixture
@@ -492,5 +494,7 @@ class TestMoodleAPIClient:
         ]
 
     @pytest.fixture
-    def svc(self, http_service):
-        return MoodleAPIClient(sentinel.lms_url, sentinel.token, http_service)
+    def svc(self, http_service, file_service):
+        return MoodleAPIClient(
+            sentinel.lms_url, sentinel.token, http_service, file_service
+        )
