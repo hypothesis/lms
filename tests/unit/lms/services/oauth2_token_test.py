@@ -7,7 +7,11 @@ from pytest import param
 
 from lms.models import OAuth2Token
 from lms.services import OAuth2TokenError
-from lms.services.oauth2_token import OAuth2TokenService, Service, oauth2_token_service_factory
+from lms.services.oauth2_token import (
+    OAuth2TokenService,
+    Service,
+    oauth2_token_service_factory,
+)
 from tests import factories
 
 

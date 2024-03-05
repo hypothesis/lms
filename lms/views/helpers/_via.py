@@ -11,6 +11,12 @@ def _common_via_params(request) -> dict:
     return {
         "via.client.requestConfigFromFrame.origin": request.host_url,
         "via.client.requestConfigFromFrame.ancestorLevel": "2",
+        # These parameters match defaults set in `h_vialib`. We reproduce them
+        # here to get consistent configuration between `via_url`,
+        # `via_video_url` etc.
+        "via.client.ignoreOtherConfiguration": "1",
+        "via.client.openSidebar": "1",
+        "via.external_link_mode": "new-tab",
     }
 
 
@@ -63,6 +69,7 @@ def via_video_url(
     :param transcript_url:
         URL of the video's transcript, in SRT or WebVTT formats.
     """
+
     via_service_url = urlparse(request.registry.settings["via_url"])
     via_url = urlunparse(
         (

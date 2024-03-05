@@ -1,26 +1,26 @@
 import pytest
 from h_matchers import Any
 
-from lms.views.helpers import via_url
+from lms.views.helpers import via_url, via_video_url
+
+DEFAULT_OPTIONS = {
+    # Default options set by h_vialib
+    "via.client.ignoreOtherConfiguration": "1",
+    "via.client.openSidebar": "1",
+    "via.external_link_mode": "new-tab",
+    # This is the `request.host_url`
+    "via.client.requestConfigFromFrame.origin": "http://example.com",
+    "via.client.requestConfigFromFrame.ancestorLevel": "2",
+}
 
 
 class TestViaURL:
-    DEFAULT_OPTIONS = {
-        # Default options set by h_vialib
-        "via.client.ignoreOtherConfiguration": "1",
-        "via.client.openSidebar": "1",
-        "via.external_link_mode": "new-tab",
-        # This is the `request.host_url`
-        "via.client.requestConfigFromFrame.origin": "http://example.com",
-        "via.client.requestConfigFromFrame.ancestorLevel": "2",
-    }
-
     def test_if_creates_the_correct_via_url(self, pyramid_request):
         url = "http://example.com"
 
         final_url = via_url(pyramid_request, url)
 
-        url_params = dict(self.DEFAULT_OPTIONS)
+        url_params = dict(DEFAULT_OPTIONS)
         url_params["url"] = url
         url_params["via.sec"] = Any.string()
         url_params["via.blocked_for"] = "lms"
@@ -33,7 +33,7 @@ class TestViaURL:
 
         final_url = via_url(pyramid_request, url, options={"new": "param"})
 
-        url_params = dict(self.DEFAULT_OPTIONS, new="param")
+        url_params = dict(DEFAULT_OPTIONS, new="param")
         url_params["url"] = url
         url_params["via.sec"] = Any.string()
         url_params["via.blocked_for"] = "lms"
@@ -78,4 +78,32 @@ class TestViaURL:
 
         assert (
             final_url == Any.url.matching("http://test_via_server.is/pdf").with_query()
+        )
+
+
+class TestViaVideoURL:
+
+    def test_it(self, pyramid_request):
+        canonical_url = "https://media.com/videos/abc"
+        download_url = "https://cdn.media.com/videos/abc.mp4"
+        transcript_url = "https://cdn.media.com/videos/abc.vtt"
+
+        url = via_video_url(
+            pyramid_request, canonical_url, download_url, transcript_url
+        )
+
+        expected_url_params = dict(DEFAULT_OPTIONS)
+        expected_url_params.update(
+            {
+                "url": canonical_url,
+                "media_url": download_url,
+                "transcript": transcript_url,
+            }
+        )
+
+        print("URL", url)
+        print("expected params", expected_url_params)
+
+        assert url == Any.url.matching("http://test_via_server.is/video").with_query(
+            expected_url_params
         )
