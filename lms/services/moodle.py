@@ -87,7 +87,16 @@ class MoodleAPIClient:
                     )
 
         file_tree = self._construct_file_tree(course_id, files)
-        self._file_service.upsert(list(self._files_for_storage(course_id, file_tree)))
+        self._file_service.upsert(
+            list(
+                self._documents_for_storage(
+                    course_id,
+                    file_tree,
+                    folder_type="moodle_folder",
+                    document_type="moodle_file",
+                )
+            )
+        )
         return file_tree
 
     def page(self, course_id, page_id) -> dict | None:
@@ -140,6 +149,16 @@ class MoodleAPIClient:
                     }
                     current_node["children"].append(file_node)
 
+        self._file_service.upsert(
+            list(
+                self._documents_for_storage(
+                    course_id,
+                    root["children"],
+                    folder_type="moodle_folder",
+                    document_type="moodle_page",
+                )
+            )
+        )
         return root["children"]
 
     @staticmethod
@@ -197,7 +216,9 @@ class MoodleAPIClient:
 
         return url + f"&wsfunction={function.value}"
 
-    def _files_for_storage(self, course_id, files, parent_id=None):
+    def _documents_for_storage(
+        self, course_id, files, folder_type, document_type, parent_id=None
+    ):
         for file in files:
             yield {
                 "type": folder_type if file["type"] == "Folder" else document_type,
@@ -207,8 +228,12 @@ class MoodleAPIClient:
                 "parent_lms_id": parent_id,
             }
 
-            yield from self._files_for_storage(
-                course_id, file.get("children", []), file["id"]
+            yield from self._documents_for_storage(
+                course_id,
+                file.get("children", []),
+                folder_type,
+                document_type,
+                file["id"],
             )
 
     @classmethod
