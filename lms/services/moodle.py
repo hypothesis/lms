@@ -17,10 +17,13 @@ class Function(str, Enum):
 class MoodleAPIClient:
     API_PATH = "webservice/rest/server.php"
 
-    def __init__(self, lms_url: str, token: str, http: HTTPService) -> None:
+    def __init__(
+        self, lms_url: str, token: str, http: HTTPService, file_service
+    ) -> None:
         self._lms_url = lms_url
         self._token = token
         self._http = http
+        self._file_service = file_service
 
     @property
     def token(self):  # pragma: no cover
@@ -83,7 +86,9 @@ class MoodleAPIClient:
                         )
                     )
 
-        return self._construct_file_tree(course_id, files)
+        file_tree = self._construct_file_tree(course_id, files)
+        self._file_service.upsert(list(self._files_for_storage(course_id, file_tree)))
+        return file_tree
 
     def page(self, course_id, page_id) -> dict | None:
         url = self._api_url(Function.GET_PAGES)
@@ -192,6 +197,20 @@ class MoodleAPIClient:
 
         return url + f"&wsfunction={function.value}"
 
+    def _files_for_storage(self, course_id, files, parent_id=None):
+        for file in files:
+            yield {
+                "type": "moodle_file" if file["type"] == "File" else "moodle_folder",
+                "course_id": course_id,
+                "lms_id": file["lms_id"],
+                "name": file["display_name"],
+                "parent_lms_id": parent_id,
+            }
+
+            yield from self._files_for_storage(
+                course_id, file.get("children", []), file["id"]
+            )
+
     @classmethod
     def factory(cls, _context, request):
         application_instance = request.lti_user.application_instance
@@ -201,4 +220,5 @@ class MoodleAPIClient:
                 request.find_service(AESService), "moodle", "api_token"
             ),
             http=request.find_service(name="http"),
+            file_service=request.find_service(name="file"),
         )
