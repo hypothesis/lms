@@ -21,7 +21,7 @@ class TestMoodleAPIClient:
     def test_group_set_groups(self, svc, http_service, groups):
         http_service.post.return_value.json.return_value = [{"groups": groups}]
 
-        api_groups = svc.group_set_groups("GROUP_SET")
+        api_groups = svc.group_set_groups(100, "GROUP_SET")
 
         http_service.post.assert_called_once_with(
             "sentinel.lms_url/webservice/rest/server.php?wstoken=sentinel.token&moodlewsrestformat=json&wsfunction=core_group_get_groupings&groupingids[0]=GROUP_SET&returngroups=1"
@@ -186,8 +186,8 @@ class TestMoodleAPIClient:
     @pytest.fixture
     def groups(self):
         return [
-            {"id": 1, "name": "1"},
-            {"id": 2, "name": "2"},
+            {"id": 1, "name": "1", "courseid": 100},
+            {"id": 2, "name": "2", "courseid": 100},
         ]
 
     @pytest.fixture

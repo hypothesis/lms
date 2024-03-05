@@ -1,3 +1,4 @@
+import random
 from unittest.mock import Mock, patch, sentinel
 
 import pytest
@@ -87,7 +88,7 @@ class TestMoodleGroupingPlugin:
         )
 
         moodle_api_client.group_set_groups.assert_called_once_with(
-            sentinel.group_set_id
+            course.lms_id, sentinel.group_set_id
         )
         assert api_groups == moodle_api_client.group_set_groups.return_value
 
@@ -146,6 +147,6 @@ class TestMoodleGroupingPlugin:
 
     @pytest.fixture
     def course(self):
-        course = factories.Course()
+        course = factories.Course(lms_id=random.randint(1, 1000))
         with patch.object(course, "set_group_sets"):
             yield course

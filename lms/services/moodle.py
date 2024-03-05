@@ -26,7 +26,7 @@ class MoodleAPIClient:
     def token(self):  # pragma: no cover
         return self._token
 
-    def group_set_groups(self, group_set_id: int) -> list[dict]:
+    def group_set_groups(self, course_id: int, group_set_id: int) -> list[dict]:
         url = self._api_url(Function.GET_GROUPINGS)
         url = f"{url}&groupingids[0]={group_set_id}&returngroups=1"
         response = self._http.post(url).json()
@@ -35,6 +35,9 @@ class MoodleAPIClient:
         return [
             {"id": g["id"], "name": g["name"], "group_set_id": group_set_id}
             for g in groups
+            # While the endpoint is not course based we filter by group on our
+            # end to avoid using groups from one course in another.
+            if g["courseid"] == course_id
         ]
 
     def groups_for_user(self, course_id, group_set_id, user_id):

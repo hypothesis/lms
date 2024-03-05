@@ -50,9 +50,9 @@ class MoodleGroupingPlugin(GroupingPlugin):
             course.lms_id, group_set_id, grading_student_id
         )
 
-    def get_groups_for_instructor(self, _svc, _course, group_set_id):
+    def get_groups_for_instructor(self, _svc, course, group_set_id):
         try:
-            groups = self._api.group_set_groups(group_set_id)
+            groups = self._api.group_set_groups(int(course.lms_id), group_set_id)
         except ExternalRequestError as exc:
             if exc.status_code == 404:
                 raise GroupError(
