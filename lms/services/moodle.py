@@ -185,7 +185,7 @@ class MoodleAPIClient:
                 "type": "File",
                 "display_name": path_components[-1],
                 "id": f"moodle://file/course/{course_id}/url/{file_data['url']}",
-                "lms_id": f"moodle://file/course/{course_id}/url/{file_data['url']}",
+                "lms_id": file_data["url"],
                 "updated_at": file_data["updated_at"],
             }
             current_node["children"].append(file_node)
@@ -200,7 +200,7 @@ class MoodleAPIClient:
     def _files_for_storage(self, course_id, files, parent_id=None):
         for file in files:
             yield {
-                "type": "moodle_file" if file["type"] == "File" else "moodle_folder",
+                "type": folder_type if file["type"] == "Folder" else document_type,
                 "course_id": course_id,
                 "lms_id": file["lms_id"],
                 "name": file["display_name"],
