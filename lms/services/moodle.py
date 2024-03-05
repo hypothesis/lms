@@ -144,7 +144,7 @@ class MoodleAPIClient:
                     file_node = {
                         "type": "Page",
                         "display_name": module["name"],
-                        "lms_id": f"moodle://page/course/{course_id}/page_id/{module['id']}",
+                        "lms_id": module["id"],
                         "id": f"moodle://page/course/{course_id}/page_id/{module['id']}",
                     }
                     current_node["children"].append(file_node)
