@@ -184,8 +184,8 @@ class MoodleAPIClient:
             file_node = {
                 "type": "File",
                 "display_name": path_components[-1],
-                "id": f"moodle://file/url/{file_data['url']}",
-                "lms_id": f"moodle://file/url/{file_data['url']}",
+                "id": f"moodle://file/course/{course_id}/url/{file_data['url']}",
+                "lms_id": f"moodle://file/course/{course_id}/url/{file_data['url']}",
                 "updated_at": file_data["updated_at"],
             }
             current_node["children"].append(file_node)
