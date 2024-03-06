@@ -221,6 +221,7 @@ class APIExceptionViews:
 
     @notfound_view_config()
     def notfound(self):
+        LOG.error("Page not found: %s", self.request.url)
         self.request.response.status_int = 404
         return ErrorBody(message=_("Endpoint not found."))
 
