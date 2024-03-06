@@ -55,7 +55,7 @@ class Product:
     use_toolbar_editing = True
     """Wether to allow assignment editing in our toolbar."""
 
-    api_service = None
+    api_service_name = None
     """Class that implements communication with the LMS proprietary API"""
 
     # Accessor for external consumption
