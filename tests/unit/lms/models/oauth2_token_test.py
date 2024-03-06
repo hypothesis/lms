@@ -11,6 +11,7 @@ class TestOAuth2Token:
     def test_persist_and_retrieve_all_attrs(self, application_instance, db_session):
         now = datetime.datetime.utcnow()
 
+        # Add a token with the default "lms" service
         db_session.add(
             OAuth2Token(
                 user_id="test_user_id",
@@ -19,7 +20,7 @@ class TestOAuth2Token:
                 refresh_token="test_refresh_token",
                 expires_in=3600,
                 received_at=now,
-                service=Service.CANVAS_STUDIO,
+                service=Service.LMS,
             )
         )
 
@@ -31,6 +32,23 @@ class TestOAuth2Token:
         assert token.refresh_token == "test_refresh_token"
         assert token.expires_in == 3600
         assert token.received_at == now
+        assert token.service == Service.LMS
+
+        # Add a second token with a non-default service
+        db_session.add(
+            OAuth2Token(
+                user_id="test_user_id",
+                application_instance_id=application_instance.id,
+                access_token="test_access_token",
+                refresh_token="test_refresh_token",
+                expires_in=3600,
+                received_at=now,
+                service=Service.CANVAS_STUDIO,
+            )
+        )
+        token = (
+            db_session.query(OAuth2Token).filter_by(service=Service.CANVAS_STUDIO).one()
+        )
         assert token.service == Service.CANVAS_STUDIO
 
     @pytest.mark.parametrize("column", ["user_id", "access_token"])

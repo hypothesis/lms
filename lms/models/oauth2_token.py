@@ -39,7 +39,9 @@ class OAuth2Token(Base):
     """
 
     __tablename__ = "oauth2_token"
-    __table_args__ = (sa.UniqueConstraint("user_id", "application_instance_id"),)
+    __table_args__ = (
+        sa.UniqueConstraint("user_id", "application_instance_id", "service"),
+    )
 
     id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
 
