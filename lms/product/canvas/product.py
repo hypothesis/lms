@@ -29,3 +29,5 @@ class Canvas(Product):
     """We use SpeedGrader in canvas instead"""
     use_toolbar_editing = False
     """Canvas allows re-deeplinking assignments. We don't support editing in our side."""
+
+    api_service_name = "canvas_api_client"
