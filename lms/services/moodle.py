@@ -1,6 +1,7 @@
 from enum import Enum
 
 from lms.services.aes import AESService
+from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService
 
 
@@ -39,7 +40,7 @@ class MoodleAPIClient:
     def group_set_groups(self, course_id: int, group_set_id: int) -> list[dict]:
         url = self._api_url(Function.GET_GROUPINGS)
         url = f"{url}&groupingids[0]={group_set_id}&returngroups=1"
-        response = self._http.post(url).json()
+        response = self._request(url)
 
         groups = response[0].get("groups", [])
         return [
@@ -53,7 +54,7 @@ class MoodleAPIClient:
     def groups_for_user(self, course_id, group_set_id, user_id):
         url = self._api_url(Function.GET_USER_GROUPS)
         url = f"{url}&groupingid={group_set_id}&userid={user_id}&courseid={course_id}"
-        response = self._http.post(url).json()
+        response = self._request(url)
 
         return [
             {"id": g["id"], "name": g["name"], "group_set_id": group_set_id}
@@ -62,13 +63,13 @@ class MoodleAPIClient:
 
     def course_group_sets(self, course_id: int) -> list[dict]:
         url = self._api_url(Function.GET_COURSE_GROUPINGS)
-        response = self._http.post(url, params={"courseid": course_id}).json()
+        response = self._request(url, params={"courseid": course_id})
 
         return [{"id": g["id"], "name": g["name"]} for g in response]
 
     def course_contents(self, course_id: int) -> list[dict]:
         url = self._api_url(Function.GET_COURSE_CONTENTS)
-        response = self._http.post(url, params={"courseid": course_id}).json()
+        response = self._request(url, params={"courseid": course_id})
         return response
 
     def list_files(self, course_id: int):
@@ -109,7 +110,7 @@ class MoodleAPIClient:
     def page(self, course_id, page_id) -> dict | None:
         url = self._api_url(Function.GET_PAGES)
         url = f"{url}&courseids[0]={course_id}"
-        pages = self._http.post(url).json()["pages"]
+        pages = self._request(url)["pages"]
         pages = [page for page in pages if int(page["coursemodule"]) == int(page_id)]
 
         if not pages:
@@ -242,6 +243,23 @@ class MoodleAPIClient:
                 document_type,
                 file["id"],
             )
+
+    def _request(self, url: str, params: dict | None = None):
+        response = self._http.post(url, params=params).json()
+
+        # Moodle's API doesn't seem to use error codes (4xx, 5xx...)
+        # so we have to inspect the response
+        if isinstance(response, dict) and response.get("errorcode"):
+            raise ExternalRequestError(
+                "Moodle API error",
+                validation_errors={
+                    "errorcode": response.get("errorcode"),
+                    "message": response.get("message"),
+                },
+                response=response,
+            )
+
+        return response
 
     @classmethod
     def factory(cls, _context, request):

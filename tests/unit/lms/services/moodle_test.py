@@ -3,10 +3,25 @@ from unittest.mock import create_autospec, sentinel
 import pytest
 
 from lms.models import ApplicationInstance
+from lms.services.exceptions import ExternalRequestError
 from lms.services.moodle import MoodleAPIClient
 
 
 class TestMoodleAPIClient:
+    def test_failed_request(self, svc, http_service):
+        http_service.post.return_value.json.return_value = {
+            "errorcode": "ERROR_CODE",
+            "message": "MESSAGE",
+        }
+
+        with pytest.raises(ExternalRequestError) as exc:
+            svc.course_group_sets("COURSE_ID")
+
+        exc.validation_errors = {
+            "errorcode": "ERROR_CODE",
+            "message": "MESSAGE",
+        }
+
     def test_course_group_sets(self, svc, http_service, group_sets):
         http_service.post.return_value.json.return_value = group_sets
 
@@ -24,7 +39,8 @@ class TestMoodleAPIClient:
         api_groups = svc.group_set_groups(100, "GROUP_SET")
 
         http_service.post.assert_called_once_with(
-            "sentinel.lms_url/webservice/rest/server.php?wstoken=sentinel.token&moodlewsrestformat=json&wsfunction=core_group_get_groupings&groupingids[0]=GROUP_SET&returngroups=1"
+            "sentinel.lms_url/webservice/rest/server.php?wstoken=sentinel.token&moodlewsrestformat=json&wsfunction=core_group_get_groupings&groupingids[0]=GROUP_SET&returngroups=1",
+            params=None,
         )
         assert api_groups == [
             {"id": g["id"], "name": g["name"], "group_set_id": "GROUP_SET"}
@@ -37,7 +53,8 @@ class TestMoodleAPIClient:
         api_groups = svc.groups_for_user("COURSE_ID", "GROUP_SET", "USER_ID")
 
         http_service.post.assert_called_once_with(
-            "sentinel.lms_url/webservice/rest/server.php?wstoken=sentinel.token&moodlewsrestformat=json&wsfunction=core_group_get_course_user_groups&groupingid=GROUP_SET&userid=USER_ID&courseid=COURSE_ID"
+            "sentinel.lms_url/webservice/rest/server.php?wstoken=sentinel.token&moodlewsrestformat=json&wsfunction=core_group_get_course_user_groups&groupingid=GROUP_SET&userid=USER_ID&courseid=COURSE_ID",
+            params=None,
         )
         assert api_groups == [
             {"id": g["id"], "name": g["name"], "group_set_id": "GROUP_SET"}
@@ -66,7 +83,8 @@ class TestMoodleAPIClient:
         page = svc.page("COURSE_ID", "1")
 
         http_service.post.assert_called_once_with(
-            "sentinel.lms_url/webservice/rest/server.php?wstoken=sentinel.token&moodlewsrestformat=json&wsfunction=mod_page_get_pages_by_courses&courseids[0]=COURSE_ID"
+            "sentinel.lms_url/webservice/rest/server.php?wstoken=sentinel.token&moodlewsrestformat=json&wsfunction=mod_page_get_pages_by_courses&courseids[0]=COURSE_ID",
+            params=None,
         )
         assert page == {
             "id": "ID 1",
