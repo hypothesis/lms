@@ -27,7 +27,7 @@ class ExceptionViews:
 
     @notfound_view_config()
     def notfound(self):
-        LOG.error("Page not found: %s", self.request.url)
+        LOG.info("Page not found: %s", self.request.url)
         return self.error_response(404, _("Page not found"))
 
     @forbidden_view_config()
