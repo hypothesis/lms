@@ -47,47 +47,17 @@ class PagesAPIViews:
         )
         document_url = assignment.document_url
         document_course_id, document_page_id = self._parse_document_url(document_url)
-        effective_page_id = None
-        if current_course_id == document_course_id:
-            # Not in a course copy scenario, use the IDs from the document_url
-            effective_page_id = document_page_id
-            LOG.debug("Via URL for page in the same course. %s", document_url)
-
-        mapped_page_id = current_course.get_mapped_page_id(document_page_id)
-        if not effective_page_id and mapped_page_id != document_page_id:
-            effective_page_id = mapped_page_id
-            LOG.debug(
-                "Via URL for page already mapped for course copy. Document: %s, course: %s, mapped page_id: %s",
-                document_url,
-                current_course_id,
-                mapped_page_id,
-            )
-
-        if not effective_page_id:
-            found_page = course_copy_plugin.find_matching_page_in_course(
-                document_page_id, current_course_id
-            )
-            if not found_page:
-                # We couldn't fix course copy, there might be something else going on
-                # or maybe teacher never launched before a student.
-                LOG.debug(
-                    "Via URL for page, couldn't find page in the new course. Document: %s, course: %s.",
-                    document_url,
-                    current_course_id,
-                )
-                raise PageNotFoundInCourse(
-                    "moodle_page_not_found_in_course", document_page_id
-                )
-
-            # Store a mapping so we don't have to re-search next time.
-            current_course.set_mapped_page_id(document_page_id, found_page.lms_id)
-            effective_page_id = found_page.lms_id
-            LOG.debug(
-                "Via URL for page, found page in the new course. Document: %s, course: %s, new page id: %s",
-                document_url,
-                current_course_id,
-                found_page.lms_id,
-            )
+        effective_page_id = course_copy_plugin.effective_document_id(
+            LOG,
+            document_url,
+            document_course_id,
+            document_page_id,
+            current_course,
+            current_course_id,
+            current_course.set_mapped_page_id,
+            current_course.get_mapped_page_id,
+            "moodle_page_not_found_in_course",
+        )
 
         # We build a token to authorize the view that fetches the actual
         # pages content as the user making this request.
