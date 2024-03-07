@@ -6,12 +6,19 @@ from lms.services.http import HTTPService
 
 class Function(str, Enum):
     GET_COURSE_GROUPINGS = "core_group_get_course_groupings"
+    """Returns all groupings in specified course."""
+
     GET_GROUPINGS = "core_group_get_groupings"
+    """Return grouping details."""
+
     GET_USER_GROUPS = "core_group_get_course_user_groups"
+    """Returns all groups in specified course for the specified user."""
 
     GET_COURSE_CONTENTS = "core_course_get_contents"
+    """Get course contents."""
 
     GET_PAGES = "mod_page_get_pages_by_courses"
+    """Returns a list of pages in a provided list of courses."""
 
 
 class MoodleAPIClient:
