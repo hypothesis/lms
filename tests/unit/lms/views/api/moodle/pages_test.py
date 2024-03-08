@@ -112,7 +112,7 @@ class TestPageAPIViews:
             "moodle://page/course/COURSE_ID/page_id/PAGE_ID"
         )
         course_service.get_by_context_id.return_value.get_mapped_page_id.return_value = (
-            None
+            "PAGE_ID"
         )
         course_copy_plugin.find_matching_page_in_course.return_value = None
 
@@ -140,7 +140,7 @@ class TestPageAPIViews:
             "moodle://page/course/COURSE_ID/page_id/PAGE_ID"
         )
         course_service.get_by_context_id.return_value.get_mapped_page_id.return_value = (
-            None
+            "PAGE_ID"
         )
         BearerTokenSchema.return_value.authorization_param.return_value = "TOKEN"
 
