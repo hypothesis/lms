@@ -66,7 +66,7 @@ class File(TypedDict):
 
 class CanvasStudioService:
     """
-        Service for authenticating with and making calls to the Canvas Studio API.
+    Service for authenticating with and making calls to the Canvas Studio API.
 
     Useful links:
 
@@ -74,9 +74,7 @@ class CanvasStudioService:
         API reference: https://tw.instructuremedia.com/api/public/docs/
     """
 
-    def __init__(self, request):
-        application_instance = request.lti_user.application_instance
-
+    def __init__(self, request, application_instance):
         self._domain = application_instance.settings.get("canvas_studio", "domain")
         self._client_id = application_instance.settings.get(
             "canvas_studio", "client_id"
@@ -218,4 +216,4 @@ class CanvasStudioService:
 
 
 def factory(_context, request):
-    return CanvasStudioService(request)
+    return CanvasStudioService(request, request.lti_user.application_instance)

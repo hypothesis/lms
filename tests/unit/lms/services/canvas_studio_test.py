@@ -83,7 +83,9 @@ class TestCanvasStudioService:
 
     @pytest.fixture
     def svc(self, pyramid_request):
-        return CanvasStudioService(pyramid_request)
+        return CanvasStudioService(
+            pyramid_request, pyramid_request.lti_user.application_instance
+        )
 
     @pytest.fixture
     def oauth_http_service(self):
@@ -165,7 +167,9 @@ class TestCanvasStudioService:
 class TestFactory:
     def test_it(self, pyramid_request, CanvasStudioService):
         result = factory(sentinel.context, pyramid_request)
-        CanvasStudioService.assert_called_once_with(pyramid_request)
+        CanvasStudioService.assert_called_once_with(
+            pyramid_request, pyramid_request.lti_user.application_instance
+        )
         assert result == CanvasStudioService.return_value
 
     @pytest.fixture(autouse=True)
