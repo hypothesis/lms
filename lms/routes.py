@@ -137,6 +137,9 @@ def includeme(config):  # pylint:disable=too-many-statements
     config.add_route(
         "canvas_studio_api.oauth.callback", "/api/canvas_studio/oauth/callback"
     )
+    config.add_route(
+        "canvas_studio_api.oauth.refresh", "/api/canvas_studio/oauth/refresh"
+    )
     config.add_route("canvas_studio_api.media.list", "/api/canvas_studio/media")
     config.add_route(
         "canvas_studio_api.collections.media.list",

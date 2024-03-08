@@ -1,9 +1,11 @@
-from unittest.mock import create_autospec, sentinel
+from unittest.mock import create_autospec, patch, sentinel
 from urllib.parse import urlencode
 
 import pytest
 
+from lms.models.oauth2_token import Service
 from lms.services.canvas_studio import CanvasStudioService, factory
+from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 from lms.services.oauth_http import OAuthHTTPService
 from tests import factories
 
@@ -19,6 +21,15 @@ class TestCanvasStudioService:
             "http://example.com/api/canvas_studio/oauth/callback",
             auth=("the_client_id", client_secret),
             authorization_code="some_code",
+        )
+
+    def test_refresh_access_token(self, svc, oauth_http_service, client_secret):
+        svc.refresh_access_token()
+
+        oauth_http_service.refresh_access_token.assert_called_with(
+            "https://hypothesis.instructuremedia.com/api/public/oauth/token",
+            "http://example.com/api/canvas_studio/oauth/callback",
+            auth=("the_client_id", client_secret),
         )
 
     def test_authorization_url(self, svc):
@@ -45,6 +56,16 @@ class TestCanvasStudioService:
             svc.redirect_uri() == "http://example.com/api/canvas_studio/oauth/callback"
         )
 
+    def test_redirect_uri_localhost_workaround(self, svc, pyramid_request):
+        localhost_callback = "http://localhost:8001/api/canvas_studio/oauth/callback"
+        with patch.object(
+            pyramid_request, "route_url", return_value=localhost_callback
+        ):
+            assert (
+                svc.redirect_uri()
+                == "https://hypothesis.local:48001/api/canvas_studio/oauth/callback"
+            )
+
     def test_list_media_library(self, svc):
         files = svc.list_media_library()
         assert files == [
@@ -69,6 +90,27 @@ class TestCanvasStudioService:
         oauth_http_service.get.side_effect = self.get_request_handler(collections=[])
         files = svc.list_media_library()
         assert files == []
+
+    def test_list_media_library_access_token_expired(self, svc, oauth_http_service):
+        response = factories.requests.Response(status_code=401)
+        oauth_http_service.get.side_effect = ExternalRequestError(response=response)
+
+        with pytest.raises(OAuth2TokenError) as exc_info:
+            svc.list_media_library()
+
+        assert exc_info.value.refreshable is True
+        assert exc_info.value.refresh_route == "canvas_studio_api.oauth.refresh"
+        assert exc_info.value.refresh_service == Service.CANVAS_STUDIO
+
+    def test_list_media_library_other_error(self, svc, oauth_http_service):
+        response = factories.requests.Response(status_code=400)
+        err = ExternalRequestError(response=response)
+        oauth_http_service.get.side_effect = err
+
+        with pytest.raises(ExternalRequestError) as exc_info:
+            svc.list_media_library()
+
+        assert exc_info.value == err
 
     def test_list_collection(self, svc):
         files = svc.list_collection("8")

@@ -1,6 +1,7 @@
 from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
+from lms.services.canvas_studio import CanvasStudioService
 from lms.services.d2l_api import D2LAPIClient
 
 
@@ -19,6 +20,10 @@ class RefreshViews:
         refresh_token = oauth2_token_service.get().refresh_token
 
         canvas_api_client.get_refreshed_token(refresh_token)
+
+    @view_config(route_name="canvas_studio_api.oauth.refresh")
+    def get_refreshed_token_from_canvas_studio(self):
+        self.request.find_service(CanvasStudioService).refresh_access_token()
 
     @view_config(route_name="blackboard_api.oauth.refresh")
     def get_refreshed_token_from_blackboard(self):

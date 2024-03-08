@@ -93,7 +93,7 @@ class OAuthHTTPService:
         :raise ExternalRequestError: if the HTTP request fails
         :raise ValidationError: if the server's access token response is invalid
         """
-        refresh_token = self._oauth2_token_service.get().refresh_token
+        refresh_token = self._oauth2_token_service.get(self.service).refresh_token
 
         try:
             return self._token_request(

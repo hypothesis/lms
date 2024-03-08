@@ -1,3 +1,8 @@
+from typing import Optional
+
+from lms.models.oauth2_token import Service
+
+
 class JWTError(Exception):
     """A problem with a JWT."""
 
@@ -17,6 +22,15 @@ class ExternalRequestError(Exception):
     :arg message: A short error message for displaying to the user
     :type message: str
 
+    :arg refreshable: True if the error can be fixed by refreshing an access token
+    :arg refresh_route:
+        If `refreshable` is True, the name of the API route that should be
+        invoked to perform the token refresh. If `None`, the default route for
+        the current LMS is used.
+    :arg refresh_service:
+        If `refreshable` is True, the API service whose token should be refreshed.
+        If `None`, the LMS's main API is assumed.
+
     :arg request: The request that was sent
     :type request: requests.PreparedRequest
 
@@ -34,6 +48,8 @@ class ExternalRequestError(Exception):
         response=None,
         validation_errors=None,
         refreshable=False,
+        refresh_route: Optional[str] = None,
+        refresh_service: Optional[Service] = None,
     ):  # pylint: disable=too-many-arguments
         super().__init__()
         self.message = message
@@ -41,6 +57,8 @@ class ExternalRequestError(Exception):
         self.response = response
         self.validation_errors = validation_errors
         self.refreshable = refreshable
+        self.refresh_route = refresh_route
+        self.refresh_service = refresh_service
 
     @property
     def url(self) -> str | None:
