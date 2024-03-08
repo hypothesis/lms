@@ -78,7 +78,9 @@ def test_via_url_copied_no_page_found(
     lti_user.lti.course_id = course_service.get_by_context_id.return_value.lms_id = (
         "OTHER_COURSE_ID"
     )
-    course_service.get_by_context_id.return_value.get_mapped_file_id.return_value = None
+    course_service.get_by_context_id.return_value.get_mapped_file_id.return_value = (
+        "URL"
+    )
     course_copy_plugin.find_matching_file_in_course.return_value = None
 
     with pytest.raises(FileNotFoundInCourse):
@@ -102,7 +104,9 @@ def test_via_url_copied_found_page(
         "OTHER_COURSE_ID"
     )
     pyramid_request.params["document_url"] = "moodle://file/course/COURSE_ID/url/URL"
-    course_service.get_by_context_id.return_value.get_mapped_file_id.return_value = None
+    course_service.get_by_context_id.return_value.get_mapped_file_id.return_value = (
+        "URL"
+    )
 
     course_copy_plugin.find_matching_file_in_course.return_value = Mock(
         lms_id="OTHER_FILE_URL"
