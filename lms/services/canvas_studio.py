@@ -5,6 +5,7 @@ from marshmallow import EXCLUDE, Schema, fields, post_load
 
 from lms.models.oauth2_token import Service
 from lms.services.aes import AESService
+from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 from lms.services.oauth_http import factory as oauth_http_factory
 from lms.validation._base import RequestsResponseSchema
 
@@ -64,6 +65,19 @@ class File(TypedDict):
     """API call to use to fetch contents of a folder."""
 
 
+def replace_localhost_in_url(url: str) -> str:
+    """
+    Replace references to the standard dev server host with `hypothesis.local`.
+
+    This is a workaround for constraints on redirect URIs in Canvas Studio's
+    OAuth implementation. See comments in `lms.views.api.canvas_studio`.
+    """
+    localhost_prefix = "http://localhost:8001/"
+    if not url.startswith(localhost_prefix):
+        return url
+    return url.replace(localhost_prefix, "https://hypothesis.local:48001/")
+
+
 class CanvasStudioService:
     """
     Service for authenticating with and making calls to the Canvas Studio API.
@@ -93,12 +107,19 @@ class CanvasStudioService:
 
         :param code: Authorization code received from OAuth callback
         """
-        token_url = self._api_url("oauth/token")
         self._oauth_http_service.get_access_token(
-            token_url,
+            self._token_url(),
             self.redirect_uri(),
             auth=(self._client_id, self._client_secret),
             authorization_code=code,
+        )
+
+    def refresh_access_token(self):
+        """Refresh the existing access token for Canvas Studio API calls."""
+        self._oauth_http_service.refresh_access_token(
+            self._token_url(),
+            self.redirect_uri(),
+            auth=(self._client_id, self._client_secret),
         )
 
     def authorization_url(self, state: str) -> str:
@@ -130,9 +151,14 @@ class CanvasStudioService:
 
         return auth_url
 
+    def _token_url(self) -> str:
+        """Return the URL of the Canvas Studio OAuth token endpoint."""
+        return self._api_url("oauth/token")
+
     def redirect_uri(self) -> str:
         """Return OAuth redirect URI for Canvas Studio."""
-        return self._request.route_url("canvas_studio_api.oauth.callback")
+        redirect_uri = self._request.route_url("canvas_studio_api.oauth.callback")
+        return replace_localhost_in_url(redirect_uri)
 
     def list_media_library(self) -> list[File]:
         """
@@ -195,7 +221,19 @@ class CanvasStudioService:
 
     def _api_request(self, path: str, schema_cls: RequestsResponseSchema) -> dict:
         """Make a request to the Canvas Studio API and parse the JSON response."""
-        response = self._oauth_http_service.get(self._api_url(path))
+        try:
+            response = self._oauth_http_service.get(self._api_url(path))
+        except ExternalRequestError as err:
+            refreshable = getattr(err.response, "status_code", None) == 401
+            if refreshable:
+                raise OAuth2TokenError(
+                    refreshable=True,
+                    refresh_route="canvas_studio_api.oauth.refresh",
+                    refresh_service=Service.CANVAS_STUDIO,
+                ) from err
+
+            raise
+
         return schema_cls(response).parse()
 
     def _api_url(self, path: str) -> str:

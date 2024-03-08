@@ -4,6 +4,7 @@ import pytest
 import requests
 from pyramid.httpexceptions import HTTPBadRequest
 
+from lms.models.oauth2_token import Service
 from lms.product.product import Routes
 from lms.services import ExternalRequestError, OAuth2TokenError, SerializableError
 from lms.validation import ValidationError
@@ -218,15 +219,31 @@ class TestErrorBody:
 
     @pytest.mark.usefixtures("with_refreshable_exception")
     def test_json_includes_refresh_info_if_the_exception_is_refreshable(
-        self, pyramid_request
+        self, pyramid_request, oauth2_token_service
     ):
         pyramid_request.product.route = Routes(oauth2_refresh="welcome")
 
         body = ErrorBody().__json__(pyramid_request)
 
+        oauth2_token_service.get.assert_called_with()
         assert body["refresh"] == {
             "method": "POST",
             "path": pyramid_request.route_path("welcome"),
+        }
+
+    @pytest.mark.usefixtures("with_refreshable_exception")
+    def test_json_includes_refresh_info_with_custom_refresh_route(
+        self, pyramid_request, oauth2_token_service
+    ):
+        pyramid_request.exception.refresh_route = "canvas_studio_api.oauth.refresh"
+        pyramid_request.exception.refresh_service = Service.CANVAS_STUDIO
+
+        body = ErrorBody().__json__(pyramid_request)
+
+        oauth2_token_service.get.assert_called_with(service=Service.CANVAS_STUDIO)
+        assert body["refresh"] == {
+            "method": "POST",
+            "path": pyramid_request.route_path("canvas_studio_api.oauth.refresh"),
         }
 
     @pytest.mark.usefixtures("with_refreshable_exception")

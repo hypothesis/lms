@@ -134,6 +134,7 @@ class TestOAuthHTTPService:
             sentinel.token_url, sentinel.redirect_uri, sentinel.auth
         )
 
+        oauth2_token_service.get.assert_called_once_with(svc.service)
         http_service.post.assert_called_once_with(
             sentinel.token_url,
             data={

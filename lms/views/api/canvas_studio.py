@@ -9,6 +9,7 @@ from pyramid.view import view_config
 
 from lms.security import Permissions
 from lms.services import CanvasStudioService
+from lms.services.canvas_studio import replace_localhost_in_url
 from lms.validation.authentication import OAuthCallbackSchema
 
 
@@ -53,11 +54,9 @@ from lms.validation.authentication import OAuthCallbackSchema
     permission=Permissions.API,
 )
 def authorize(request):
-    if request.host_url == "http://localhost:8001":
-        redirect_url = request.url.replace(
-            request.host_url, "https://hypothesis.local:48001"
-        )
-        return HTTPFound(location=redirect_url)
+    updated_url = replace_localhost_in_url(request.url)
+    if updated_url != request.url:
+        return HTTPFound(location=updated_url)
 
     canvas_studio_svc = request.find_service(CanvasStudioService)
     oauth_state = OAuthCallbackSchema(request).state_param()
