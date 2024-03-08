@@ -42,6 +42,9 @@ from lms.validation.authentication import OAuthCallbackSchema
 #    redirect to the `/api/canvas_studio/oauth/callback` URL that Canvas Studio
 #    should have used.
 #
+# To make step (3) work for local development, add `hypothesis.local` as an
+# alias for `127.0.0.1` in /etc/hosts.
+#
 # [1] https://community.canvaslms.com/t5/Canvas-Developers-Group/Canvas-Studio-OAuth-authorization-does-not-send-state-parameter/td-p/596747
 @view_config(
     request_method="GET",

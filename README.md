@@ -119,6 +119,8 @@ To upgrade **all** packages to their latest versions:
 make requirements --always-make args=--upgrade
 ```
 
+## HTTPS/SSL setup
+
 ### Using self signed certificates with HTTPS
 
 By default `make dev` runs the web application on two ports: 8001 for HTTP and 48001 for HTTPS with a self-signed certificate.
@@ -157,6 +159,14 @@ You should also see an "Insecure content blocked" icon in the top right of the l
 !["Insecure content blocked" dialog](docs/images/insecure-content-blocked.png "'Insecure content blocked' dialog")
 
 Click on the <samp>Load unsafe scripts</samp> link and the app should load successfully.
+
+
+### Localhost alias
+
+Some services that the LMS app integrates with (eg. Canvas Studio) do not allow
+the use of `localhost` in OAuth callback URLs. For this reason we use
+`https://hypothesis.local` URLs in some places. To make this work you must
+declare `hypothesis.local` as an alias for `127.0.0.1` in your `/etc/hosts` file.
 
 ## Overview and code design
 
