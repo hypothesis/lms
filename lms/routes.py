@@ -209,6 +209,8 @@ def includeme(config):  # pylint:disable=too-many-statements
     config.add_route("admin.courses", "/admin/courses")
     config.add_route("admin.course", "/admin/course/{id_}")
 
+    config.add_route("admin.assignment", "/admin/assignment/{id_}")
+
     config.add_route("admin.email", "/admin/email")
     config.add_route(
         "admin.email.preview.instructor_email_digest",

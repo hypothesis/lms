@@ -8,7 +8,7 @@ from lms.views.admin.course import AdminCourseViews
 
 
 @pytest.mark.usefixtures("course_service", "organization_service")
-class TestAdminCouseViews:
+class TestAdminCourseViews:
     def test_show(self, pyramid_request, course_service, views):
         pyramid_request.matchdict["id_"] = sentinel.id_
 

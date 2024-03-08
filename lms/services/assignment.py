@@ -188,6 +188,9 @@ class AssignmentService:
             )
         )
 
+    def get_by_id(self, id_: int) -> Assignment | None:
+        return self._db.query(Assignment).filter_by(id=id_).one_or_none()
+
 
 def factory(_context, request):
     return AssignmentService(

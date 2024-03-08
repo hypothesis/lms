@@ -205,6 +205,12 @@ class TestAssignmentService:
             ]
         )
 
+    def test_get_by_id(self, svc, db_session):
+        assignment = factories.Assignment()
+        db_session.flush()
+
+        assert assignment == svc.get_by_id(assignment.id)
+
     @pytest.fixture
     def svc(self, db_session, misc_plugin, grouping_plugin):
         return AssignmentService(db_session, misc_plugin, grouping_plugin)

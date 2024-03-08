@@ -171,6 +171,11 @@ class MoodleGroup(Grouping):
 class Course(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.COURSE}
 
+    assignments = sa.orm.relationship(
+        "Assignment", secondary="assignment_grouping", viewonly=True
+    )
+    """Assignments that belong to this course."""
+
     def set_group_sets(self, group_sets: list[dict]):
         """
         Store this course's available group sets.
