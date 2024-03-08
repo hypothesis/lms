@@ -10,6 +10,12 @@
             {{ macros.disabled_text_field("H ID", course.authority_provided_id) }}
             {{ macros.created_updated_fields(course) }}
     </fieldset>
+
+    <fieldset>
+        <legend class="label has-text-centered">Assignments</legend>
+        {{ macros.assignments_table(request, course.assignments) }}
+    </fieldset>
+
     <fieldset class="box mt-6">
       <legend class="label has-text-centered">Application Instance</legend>
       {{ macros.instance_preview(request, course.application_instance) }}

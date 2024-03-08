@@ -1,0 +1,14 @@
+{% import "lms:templates/admin/macros.html.jinja2" as macros %}
+{% extends "lms:templates/admin/base.html.jinja2" %}
+{% block header %}Assignment {{ assignment.id }}{% endblock %}
+{% block content %}
+<div>
+    <fieldset>
+        <legend class="label has-text-centered">Assignment</legend>
+            {{ macros.disabled_text_field("ID", assignment.id) }}
+            {{ macros.disabled_text_field("Title", assignment.title) }}
+            {{ macros.disabled_text_field("Document", assignment.document_url) }}
+            {{ macros.created_updated_fields(assignment) }}
+    </fieldset>
+</div>
+{% endblock %}

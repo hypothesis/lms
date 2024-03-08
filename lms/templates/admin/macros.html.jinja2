@@ -240,3 +240,10 @@
       });
     </script>
 {% endmacro %}
+{% macro assignments_table(request, assignments) %}
+    {{ object_list_table(request, 'admin.assignment', assignments,
+        fields=[
+        {"label": "Title", "name": "title"},
+        {"label": "Resource link id", "name": "resource_link_id"},
+    ]) }}
+{% endmacro %}
