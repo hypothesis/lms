@@ -44,6 +44,10 @@ def _get_family(
     if "custom_canvas_course_id" in request.lti_params:
         return Product.Family.CANVAS
 
+    # Another canvas-only fix, when the API params are not correctly set use the GUID
+    if request.lti_params.get("tool_consumer_instance_guid", "").endswith("canvas-lms"):
+        return Product.Family.CANVAS
+
     # Finally try to match using the stored family_code in the application instance
     # We use this in LTIOutcomesViews
     if application_instance:

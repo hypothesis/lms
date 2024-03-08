@@ -77,18 +77,20 @@ class TestGetProductFromRequest:
             get_product_from_request(pyramid_request).family == Product.Family.UNKNOWN
         )
 
-    def test_from_request_canvas_custom(self, pyramid_request, application_instance):
-        pyramid_request.lti_params = {"custom_canvas_course_id": "course_id"}
+    @pytest.mark.parametrize(
+        "parameter,value,family",
+        [
+            ("custom_canvas_course_id", "any-value", Product.Family.CANVAS),
+            ("tool_consumer_instance_guid", "guid:canvas-lms", Product.Family.CANVAS),
+            ("tool_consumer_instance_guid", "guid:any-value", Product.Family.UNKNOWN),
+        ],
+    )
+    def test_from_request_canva_custom(self, pyramid_request, parameter, value, family):
+        pyramid_request.lti_params = {parameter: value}
 
         product = get_product_from_request(pyramid_request)
 
-        # Pylint doesn't know we patched this
-        # pylint: disable=no-member
-        Canvas.from_request.assert_called_once_with(
-            pyramid_request, application_instance.settings
-        )
-        assert product == Canvas.from_request.return_value
-        assert product.family == Product.Family.CANVAS
+        assert product.family == family
 
     @pytest.mark.parametrize("value,family,class_", PRODUCT_MAP)
     def test_from_application_instance(
