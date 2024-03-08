@@ -194,12 +194,8 @@ export default function ContentSelector({
     selectPageAsURL(page, 'Canvas');
 
   const selectCanvasStudio = (video: File | Page) => {
-    cancelDialog();
-    onSelectContent({
-      type: 'url',
-      url: video.id,
-      name: `Canvas Studio video: ${video.display_name}`,
-    });
+    const name = `Canvas Studio video: ${video.display_name}`;
+    selectURL(video.id, name);
   };
 
   const selectMoodlePage = (page: File | Page) =>
