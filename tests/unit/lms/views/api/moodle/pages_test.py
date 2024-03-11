@@ -62,6 +62,29 @@ class TestPageAPIViews:
         assert response == {"via_url": helpers.via_url.return_value}
 
     @pytest.mark.usefixtures("course_copy_plugin")
+    def test_via_url_page_deleted(
+        self,
+        pyramid_request,
+        assignment_service,
+        lti_user,
+        course_service,
+        moodle_api_client,
+    ):
+        # Current course and document course are the same
+        lti_user.lti.course_id = (
+            course_service.get_by_context_id.return_value.lms_id
+        ) = "COURSE_ID"
+        assignment_service.get_assignment.return_value.document_url = (
+            "moodle://page/course/COURSE_ID/page_id/PAGE_ID"
+        )
+        moodle_api_client.page.return_value = None
+
+        with pytest.raises(PageNotFoundInCourse):
+            PagesAPIViews(pyramid_request).via_url()
+
+        moodle_api_client.page.assert_called_once_with("COURSE_ID", "PAGE_ID")
+
+    @pytest.mark.usefixtures("course_copy_plugin")
     def test_via_url_copied_with_mapped_id(
         self,
         helpers,
