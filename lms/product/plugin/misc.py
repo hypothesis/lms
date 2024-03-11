@@ -80,7 +80,7 @@ class MiscPlugin:
     def get_deep_linked_assignment_configuration(self, request) -> dict:
         """Get the configuration of an assignment that was original deep linked."""
         params = {}
-        possible_parameters = ["url", "group_set"]
+        possible_parameters = ["url", "group_set", "deep_linking_uuid"]
 
         for param in possible_parameters:
             # Get the value from the custom parameters set during deep linking

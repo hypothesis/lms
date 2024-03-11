@@ -213,19 +213,18 @@ class TestDeepLinkingFieldsView:
         ],
     )
     def test_get_assignment_configuration(
-        self,
-        content,
-        expected_from_content,
-        pyramid_request,
-        data,
-        expected,
+        self, content, expected_from_content, pyramid_request, data, expected, uuid
     ):
         pyramid_request.parsed_params.update({"content": content, **data})
 
         # pylint:disable=protected-access
         config = DeepLinkingFieldsViews._get_assignment_configuration(pyramid_request)
 
-        assert config == {**expected, **expected_from_content}
+        assert config == {
+            "deep_linking_uuid": uuid.uuid4().hex,
+            **expected,
+            **expected_from_content,
+        }
 
     def test_it_with_unknown_file_type(self, pyramid_request):
         pyramid_request.parsed_params.update({"content": {"type": "other"}})

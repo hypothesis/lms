@@ -241,7 +241,11 @@ class DeepLinkingFieldsViews:
         """Turn front-end content information into assignment configuration."""
         content = request.parsed_params["content"]
 
-        params = {}
+        params = {
+            # Always include a UUID in the parameters.
+            # This will identify this DL attempt uniquely.
+            "deep_linking_uuid": uuid.uuid4().hex,
+        }
 
         if group_set := request.parsed_params.get("group_set"):
             params["group_set"] = group_set
