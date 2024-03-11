@@ -29,7 +29,6 @@ class TestServiceFactory:
         ai.settings.set("vitalsource", "api_key", customer_api_key)
         if enabled:
             ai.settings.set("vitalsource", "enabled", enabled)
-        ai.settings.set("vitalsource", "page_ranges", sentinel.page_ranges_enabled)
 
         svc = service_factory(sentinel.context, pyramid_request)
 
@@ -46,7 +45,6 @@ class TestServiceFactory:
             ),
             user_lti_param=sentinel.user_lti_param,
             user_lti_pattern=sentinel.user_lti_pattern,
-            page_ranges_enabled=sentinel.page_ranges_enabled,
         )
         assert svc == VitalSourceService.return_value
 
@@ -69,7 +67,6 @@ class TestServiceFactory:
             customer_client=Any(),
             user_lti_param=Any(),
             user_lti_pattern=Any(),
-            page_ranges_enabled=Any(),
         )
 
     @pytest.fixture

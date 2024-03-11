@@ -35,10 +35,6 @@ class TestVitalSourceService:
 
         assert svc.sso_enabled == bool(enabled and customer_client and user_lti_param)
 
-    def test_page_ranges_enabled(self):
-        svc = VitalSourceService(page_ranges_enabled=sentinel.page_ranges)
-        assert svc.page_ranges_enabled == sentinel.page_ranges
-
     @pytest.mark.parametrize(
         "doc_url,reader_url",
         [
