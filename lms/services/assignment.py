@@ -133,6 +133,13 @@ class AssignmentService:
             # copied this one from. Reference this in the DB.
             assignment.copied_from = historical_assignment
 
+            # If the request contains a DL UUID keep track of it on the DB
+            assignment.deep_linking_uuid = (
+                self._misc_plugin.get_deep_linked_assignment_configuration(request).get(
+                    "deep_linking_uuid"
+                )
+            )
+
         # Always update the assignment configuration
         # It often will be the same one while launching the assignment again but
         # it might for example be an updated deep linked URL or similar.
