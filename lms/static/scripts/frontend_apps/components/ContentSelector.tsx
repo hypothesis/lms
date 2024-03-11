@@ -98,10 +98,7 @@ export default function ContentSelector({
         clientId: oneDriveClientId,
         redirectURI: oneDriveRedirectURI,
       },
-      vitalSource: {
-        enabled: vitalSourceEnabled,
-        pageRangesEnabled: vitalSourcePageRangesEnabled,
-      },
+      vitalSource: { enabled: vitalSourceEnabled },
       youtube: { enabled: youtubeEnabled },
     },
   } = useConfig(['api', 'filePicker']);
@@ -329,7 +326,7 @@ export default function ContentSelector({
     case 'vitalSourceBook':
       dialog = (
         <BookPicker
-          allowPageRangeSelection={vitalSourcePageRangesEnabled}
+          allowPageRangeSelection
           onCancel={cancelDialog}
           onSelectBook={selectVitalSourceBook}
         />

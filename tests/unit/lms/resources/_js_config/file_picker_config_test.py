@@ -190,7 +190,6 @@ class TestFilePickerConfig:
 
         assert config == {
             "enabled": vitalsource_service.enabled,
-            "pageRangesEnabled": vitalsource_service.page_ranges_enabled,
         }
 
     @pytest.mark.parametrize("enabled", (True, False))

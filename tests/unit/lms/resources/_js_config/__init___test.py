@@ -341,22 +341,13 @@ class TestAddDocumentURL:
             == vitalsource_service.get_book_reader_url.return_value
         )
 
-    @pytest.mark.parametrize(
-        "page_ranges_enabled,assignment_has_content_range",
-        [
-            (False, False),
-            (False, True),
-            (True, False),
-            (True, True),
-        ],
-    )
+    @pytest.mark.parametrize("assignment_has_content_range", [True, False])
     def test_vitalsource_sets_content_focus(
         self,
         js_config,
         vitalsource_service,
         course,
         assignment,
-        page_ranges_enabled,
         assignment_has_content_range,
     ):
         document_url = "vitalsource://book/bookID/book-id/page/20?end_page=30"
@@ -365,7 +356,6 @@ class TestAddDocumentURL:
         else:
             focus_config_from_url = None
 
-        vitalsource_service.page_ranges_enabled = page_ranges_enabled
         vitalsource_service.get_client_focus_config.return_value = focus_config_from_url
 
         # `add_document_url` fetches the content range, `enable_lti_launch_mode`
@@ -376,10 +366,7 @@ class TestAddDocumentURL:
         client_config = js_config.asdict()["hypothesisClient"]
         focus_config = client_config.get("focus", {})
 
-        if page_ranges_enabled:
-            assert "search_panel" in js_config.asdict()["hypothesisClient"]["features"]
-
-        if page_ranges_enabled and assignment_has_content_range:
+        if assignment_has_content_range:
             assert focus_config["page"] == "20-30"
         else:
             assert "page" not in focus_config

@@ -160,7 +160,6 @@ class FilePickerConfig:
         svc = request.find_service(VitalSourceService)
         return {
             "enabled": svc.enabled,
-            "pageRangesEnabled": svc.page_ranges_enabled,
         }
 
     @classmethod

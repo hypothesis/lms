@@ -41,7 +41,7 @@ class JSConfig:
     def _application_instance(self):
         return self._lti_user.application_instance
 
-    def add_document_url(  # pylint: disable=too-complex,too-many-branches
+    def add_document_url(  # pylint: disable=too-complex,too-many-branches,useless-suppression
         self, document_url
     ) -> None:
         """
@@ -137,11 +137,9 @@ class JSConfig:
                     document_url=document_url
                 )
 
-            if svc.page_ranges_enabled:
-                self.enable_client_feature("search_panel")
-                content_config = svc.get_client_focus_config(document_url)
-                if content_config:
-                    self._update_focus_config(content_config)
+            content_config = svc.get_client_focus_config(document_url)
+            if content_config:
+                self._update_focus_config(content_config)
 
         elif jstor_service.enabled and document_url.startswith("jstor://"):
             self._config["viaUrl"] = jstor_service.via_url(self._request, document_url)
