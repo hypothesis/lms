@@ -55,6 +55,12 @@ class PagesAPIViews:
             document_page_id,
         )
 
+        # Try to access the page
+        # We don't need the  result of this exact call but
+        # we can check that we have indeed access to this page.
+        if not self.api.page(current_course.lms_id, effective_page_id):
+            raise PageNotFoundInCourse("moodle_page_not_found_in_course", document_url)
+
         # We build a token to authorize the view that fetches the actual
         # pages content as the user making this request.
         auth_token = BearerTokenSchema(self.request).authorization_param(

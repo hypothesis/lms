@@ -68,6 +68,7 @@ def test_via_url_copied_with_mapped_id(
     assert response == {"via_url": helpers.via_url.return_value}
 
 
+@pytest.mark.usefixtures("moodle_api_client")
 def test_via_url_copied_no_page_found(
     pyramid_request,
     course_service,
