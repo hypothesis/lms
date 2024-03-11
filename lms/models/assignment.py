@@ -74,6 +74,9 @@ class Assignment(CreatedUpdatedMixin, Base):
     description = sa.Column(sa.Unicode, nullable=True)
     """The resource link description from LTI params."""
 
+    deep_linking_uuid = sa.Column(sa.Unicode, nullable=True)
+    """UUID that identifies the deep linking that created this assignment."""
+
     def get_canvas_mapped_file_id(self, file_id):
         return self.extra.get("canvas_file_mappings", {}).get(file_id, file_id)
 
