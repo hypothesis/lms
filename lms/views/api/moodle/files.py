@@ -35,6 +35,7 @@ def list_files(_context, request):
     permission=Permissions.API,
 )
 def via_url(_context, request):
+    api = request.find_service(MoodleAPIClient)
     course_copy_plugin = request.product.plugin.course_copy
 
     current_course_id = request.lti_user.lti.course_id
@@ -49,10 +50,13 @@ def via_url(_context, request):
         course_copy_plugin, course, document_url, document_course_id, document_file_id
     )
 
-    token = request.find_service(MoodleAPIClient).token
+    # Try to access the file, we have to check that we have indeed access to this file.
+    if not api.file_exists(effective_file_id):
+        raise FileNotFoundInCourse("moodle_file_not_found_in_course", document_url)
+
     return {
         "via_url": helpers.via_url(
-            request, effective_file_id, content_type="pdf", query={"token": token}
+            request, effective_file_id, content_type="pdf", query={"token": api.token}
         )
     }
 

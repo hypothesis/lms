@@ -41,6 +41,21 @@ def test_via_url(
 
 
 @pytest.mark.usefixtures("course_copy_plugin")
+def test_via_url_deleted_file(
+    moodle_api_client, pyramid_request, lti_user, course_service
+):
+    type(moodle_api_client).token = "TOKEN"
+    lti_user.lti.course_id = course_service.get_by_context_id.return_value.lms_id = (
+        "COURSE_ID"
+    )
+    moodle_api_client.file_exists.return_value = False
+    pyramid_request.params["document_url"] = "moodle://file/course/COURSE_ID/url/URL"
+
+    with pytest.raises(FileNotFoundInCourse):
+        via_url(sentinel.context, pyramid_request)
+
+
+@pytest.mark.usefixtures("course_copy_plugin")
 def test_via_url_copied_with_mapped_id(
     helpers,
     pyramid_request,
