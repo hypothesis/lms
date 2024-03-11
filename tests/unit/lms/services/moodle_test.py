@@ -1,4 +1,4 @@
-from unittest.mock import create_autospec, sentinel
+from unittest.mock import Mock, create_autospec, sentinel
 
 import pytest
 
@@ -145,6 +145,20 @@ class TestMoodleAPIClient:
                 ],
             }
         ]
+
+    @pytest.mark.parametrize(
+        "header,expected",
+        [
+            ("application/json", False),
+            ("application/pdf", True),
+        ],
+    )
+    def test_file_exists(self, svc, http_service, header, expected):
+        http_service.request.return_value = Mock(headers={"content-type": header})
+
+        assert svc.file_exists("URL") == expected
+
+        http_service.request.assert_called_once_with("HEAD", "URL&token=sentinel.token")
 
     def test_list_pages(self, svc, http_service, contents):
         http_service.post.return_value.json.return_value = contents
