@@ -34,7 +34,11 @@ class MoodleGroupingPlugin(GroupingPlugin):
             ):
                 return learner_groups
         except ExternalRequestError as exc:
-            if exc.status_code == 404:
+            if (
+                exc.validation_errors
+                # There are no error codes in Moodle's APIs
+                and exc.validation_errors.get("errorcode") == "invalidrecord"
+            ):
                 raise GroupError(
                     ErrorCodes.GROUP_SET_NOT_FOUND, group_set=group_set_id
                 ) from exc
@@ -54,7 +58,11 @@ class MoodleGroupingPlugin(GroupingPlugin):
         try:
             groups = self._api.group_set_groups(int(course.lms_id), group_set_id)
         except ExternalRequestError as exc:
-            if exc.status_code == 404:
+            if (
+                exc.validation_errors
+                # There are no semantic HTTP error codes in Moodle's APIs
+                and exc.validation_errors.get("errorcode") == "invalidrecord"
+            ):
                 raise GroupError(
                     ErrorCodes.GROUP_SET_NOT_FOUND, group_set=group_set_id
                 ) from exc

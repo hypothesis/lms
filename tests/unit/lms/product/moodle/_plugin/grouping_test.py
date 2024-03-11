@@ -46,7 +46,7 @@ class TestMoodleGroupingPlugin:
         self, moodle_api_client, plugin, grouping_service, course
     ):
         moodle_api_client.groups_for_user.side_effect = ExternalRequestError(
-            response=Mock(status_code=404)
+            validation_errors={"errorcode": "invalidrecord"}
         )
 
         with pytest.raises(GroupError) as err:
@@ -108,7 +108,7 @@ class TestMoodleGroupingPlugin:
         self, moodle_api_client, plugin, grouping_service, course
     ):
         moodle_api_client.group_set_groups.side_effect = ExternalRequestError(
-            response=Mock(status_code=404)
+            validation_errors={"errorcode": "invalidrecord"}
         )
 
         with pytest.raises(GroupError) as err:
