@@ -1,12 +1,14 @@
-from lms.product.plugin.misc import MiscPlugin
+from lms.models import Assignment
+from lms.product.plugin.misc import AssignmentConfig, MiscPlugin
 
 
 class MoodleMiscPlugin(MiscPlugin):
-    def get_document_url(
-        self, request, assignment, _historical_assignment
-    ) -> str | None:
-        """Get a document URL from an assignment launch."""
-
+    def get_assignment_configuration(
+        self,
+        request,
+        assignment: Assignment | None,
+        _historical_assignment: Assignment | None,
+    ) -> AssignmentConfig:
         deep_linked_config = self.get_deep_linked_assignment_configuration(request)
 
         if (
@@ -18,24 +20,24 @@ class MoodleMiscPlugin(MiscPlugin):
             and assignment.deep_linking_uuid
             != deep_linked_config.get("deep_linking_uuid")
         ):
-            # The assignment must have been re-deep-linked in Moodle our our DB record is outdated
+            # The assignment must have been re-deep-linked in Moodle and our DB record is outdated
             # Update our uuid so we can trust our DB again
             assignment.deep_linking_uuid = deep_linked_config.get("deep_linking_uuid")
-            # Get the URL from the DL
-            return deep_linked_config.get("url")
+            # Get the config from the DL
+            return self._assignment_config_from_deep_linked_config(deep_linked_config)
 
         if assignment:
             # In other cases, if we have a record of the assignment in our DB, trust that info.
-            return assignment.document_url
+            return self._assignment_config_from_assignment(assignment)
 
         # In other LMSes we'd look at historical_assignment here.
-        # Moodle doesn't support resource_link_id so we will never have an historical_assignment
+        # Moodle doesn't support resource_link_id so we will never have a historical_assignment
 
         # If we don't have an assignment in the DB this means
         # - This is the first launch of a deep linked assignment, get the info from the DL.
         # - This install doesn't use deep linking, rely on `.get`'s default to return None.
         #     That will make this an "un_configured assignment" and we'll show the file picker.
-        return deep_linked_config.get("url")
+        return self._assignment_config_from_deep_linked_config(deep_linked_config)
 
     @classmethod
     def factory(cls, _context, request):  # pragma: no cover

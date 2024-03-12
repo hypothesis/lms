@@ -128,13 +128,6 @@ class TestMoodleGroupingPlugin:
             )
         assert err.value.error_code == ErrorCodes.GROUP_SET_EMPTY
 
-    def test_get_group_set_id_when_no_assignment(
-        self, plugin, pyramid_request, misc_plugin
-    ):
-        misc_plugin.get_deep_linked_assignment_configuration.return_value = {}
-
-        assert not plugin.get_group_set_id(pyramid_request, None, None)
-
     def test_factory(self, pyramid_request, moodle_api_client):
         plugin = MoodleGroupingPlugin.factory(sentinel.context, pyramid_request)
         assert isinstance(plugin, MoodleGroupingPlugin)

@@ -191,11 +191,6 @@ class TestCanvasGroupingPlugin:
             == enabled
         )
 
-    def test_get_group_set_id(self, pyramid_request, plugin):
-        pyramid_request.params.update({"group_set": 1})
-
-        assert plugin.get_group_set_id(pyramid_request, sentinel.assignment) == 1
-
     def test_factory(self, pyramid_request, canvas_api_client):
         plugin = CanvasGroupingPlugin.factory(sentinel.context, pyramid_request)
         assert isinstance(plugin, CanvasGroupingPlugin)

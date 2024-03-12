@@ -2,7 +2,8 @@ import re
 from functools import lru_cache
 from urllib.parse import unquote, urlencode, urlparse
 
-from lms.product.plugin.misc import MiscPlugin
+from lms.models import Assignment
+from lms.product.plugin.misc import AssignmentConfig, MiscPlugin
 from lms.services.vitalsource import VSBookLocation
 
 
@@ -37,10 +38,23 @@ class CanvasMiscPlugin(MiscPlugin):
         if focused_user := request.params.get("focused_user"):
             js_config.set_focused_user(focused_user)
 
+    def get_assignment_configuration(
+        self,
+        request,
+        assignment: Assignment | None,
+        historical_assignment: Assignment | None,
+    ) -> AssignmentConfig:
+        document_url = self._get_document_url(request)
+
+        return {
+            "document_url": document_url,
+            # For canvas we add parameter to the launch URL as we don't store the
+            # assignment during deep linking.
+            "group_set_id": request.params.get("group_set"),
+        }
+
     @lru_cache(1)
-    def get_document_url(
-        self, request, assignment, historical_assignment
-    ) -> str | None:
+    def _get_document_url(self, request) -> str | None:
         """
         Get the configured document for this LTI launch.
 

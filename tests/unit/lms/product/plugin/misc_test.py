@@ -31,36 +31,47 @@ class TestMiscPlugin:
     def test_get_ltia_aud_claim(self, plugin, lti_registration):
         assert plugin.get_ltia_aud_claim(lti_registration) == lti_registration.token_url
 
-    def test_get_document_url_with_assignment_in_db_existing_assignment(
+    def test_get_assignment_configuration_with_assignment_in_db_existing_assignment(
         self, plugin, pyramid_request
     ):
         assignment = factories.Assignment(document_url=sentinel.document_url)
         pyramid_request.lti_params["resource_link_id"] = sentinel.link_id
 
-        result = plugin.get_document_url(
+        result = plugin.get_assignment_configuration(
             pyramid_request, assignment, sentinel.historical_assignment
         )
 
-        assert result == sentinel.document_url
+        assert result["document_url"] == sentinel.document_url
 
-    def test_get_document_url_with_assignment_in_db_copied_assignment(
+    def test_get_assignment_configuration_with_assignment_in_db_copied_assignment(
         self, plugin, pyramid_request
     ):
         historical_assignment = factories.Assignment(document_url=sentinel.document_url)
 
-        result = plugin.get_document_url(pyramid_request, None, historical_assignment)
+        result = plugin.get_assignment_configuration(
+            pyramid_request, None, historical_assignment
+        )
 
-        assert result == sentinel.document_url
+        assert result["document_url"] == sentinel.document_url
 
     def test_get_document_deep_linked_fallback(
         self, plugin, get_deep_linked_assignment_configuration
     ):
         get_deep_linked_assignment_configuration.return_value = {"url": sentinel.url}
 
-        assert plugin.get_document_url(sentinel.request, None, None) == sentinel.url
+        assert (
+            plugin.get_assignment_configuration(sentinel.request, None, None)[
+                "document_url"
+            ]
+            == sentinel.url
+        )
 
-    def test_get_document_url_with_no_document(self, plugin, pyramid_request):
-        assert not plugin.get_document_url(pyramid_request, None, None)
+    def test_get_assignment_configuration_with_no_document(
+        self, plugin, pyramid_request
+    ):
+        assert not plugin.get_assignment_configuration(pyramid_request, None, None)[
+            "document_url"
+        ]
 
     def test_get_deeplinking_launch_url(self, plugin, pyramid_request):
         assert (

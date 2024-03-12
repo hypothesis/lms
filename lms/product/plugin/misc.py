@@ -1,5 +1,14 @@
-from lms.models import LTIParams, LTIRegistration
+from typing import TypedDict
+
+from pyramid.request import Request
+
+from lms.models import Assignment, LTIParams, LTIRegistration
 from lms.services.html_service import strip_html_tags
+
+
+class AssignmentConfig(TypedDict):
+    document_url: str | None
+    group_set_id: str | None
 
 
 class MiscPlugin:
@@ -51,19 +60,21 @@ class MiscPlugin:
         """Get the value of the `aud` claim used in LTI advantage requests."""
         return lti_registration.token_url
 
-    def get_document_url(
-        self, request, assignment, historical_assignment
-    ) -> str | None:
-        """Get a document URL from an assignment launch."""
-
+    def get_assignment_configuration(
+        self,
+        request: Request,
+        assignment: Assignment | None,
+        historical_assignment: Assignment | None,
+    ) -> AssignmentConfig:
         if assignment:
-            return assignment.document_url
+            return self._assignment_config_from_assignment(assignment)
 
         if historical_assignment:
-            return historical_assignment.document_url
+            return self._assignment_config_from_assignment(historical_assignment)
 
         # For LMSes that support both DL and non-DL assignments fallback to the DL parameters
-        return self.get_deep_linked_assignment_configuration(request).get("url")
+        deep_linked_config = self.get_deep_linked_assignment_configuration(request)
+        return self._assignment_config_from_deep_linked_config(deep_linked_config)
 
     def get_deeplinking_launch_url(self, request, _assignment_configuration: dict):
         """
@@ -78,7 +89,7 @@ class MiscPlugin:
         return request.route_url("lti_launches")
 
     def get_deep_linked_assignment_configuration(self, request) -> dict:
-        """Get the configuration of an assignment that was original deep linked."""
+        """Get the configuration of an assignment present in the current launch deep link."""
         params = {}
         possible_parameters = ["url", "group_set", "deep_linking_uuid"]
 
@@ -88,3 +99,19 @@ class MiscPlugin:
                 params[param] = value
 
         return params
+
+    @staticmethod
+    def _assignment_config_from_assignment(assignment: Assignment) -> AssignmentConfig:
+        return {
+            "document_url": assignment.document_url,
+            "group_set_id": assignment.extra.get("group_set_id"),
+        }
+
+    @staticmethod
+    def _assignment_config_from_deep_linked_config(
+        deep_linked_config: dict,
+    ) -> AssignmentConfig:
+        return {
+            "document_url": deep_linked_config.get("url"),
+            "group_set_id": deep_linked_config.get("group_set"),
+        }
