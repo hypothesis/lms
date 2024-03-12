@@ -145,6 +145,7 @@ def includeme(config):  # pylint:disable=too-many-statements
         "canvas_studio_api.collections.media.list",
         "/api/canvas_studio/collections/{collection_id}/media",
     )
+    config.add_route("canvas_studio_api.via_url", "/api/canvas_studio/via_url")
 
     # JSTOR article IDs need a custom pattern because they may contain a slash,
     # after URL-decoding of the path.

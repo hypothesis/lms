@@ -80,6 +80,14 @@ class JSConfig:
                 "path": self._request.route_path("canvas_api.pages.via_url"),
             }
 
+        elif document_url.startswith("canvas-studio://media"):
+            self._config["api"]["viaUrl"] = {
+                "authUrl": self._request.route_url("canvas_studio_api.oauth.authorize"),
+                "path": self._request.route_path(
+                    "canvas_studio_api.via_url", _query={"document_url": document_url}
+                ),
+            }
+
         elif document_url.startswith("d2l://"):
             self._config["api"]["viaUrl"] = {
                 "authUrl": self._request.route_url(D2L.route.oauth2_authorize),
