@@ -63,6 +63,7 @@ def via_video_url(
     """
     Return the URL for annotating a video transcript through Via.
 
+    :param request: Pyramid request
     :param canonical_url: URL to save with annotations
     :param download_url:
         URL that can be used with a `<video>` element to display the video.
@@ -71,7 +72,7 @@ def via_video_url(
     """
 
     via_service_url = urlparse(request.registry.settings["via_url"])
-    via_url = urlunparse(
+    return urlunparse(
         (
             via_service_url.scheme,
             via_service_url.netloc,
@@ -83,10 +84,8 @@ def via_video_url(
                     "url": canonical_url,
                     "media_url": download_url,
                     "transcript": transcript_url,
-                    # TODO - Add `title` field
                 }
             ),
             "",
         )
     )
-    return via_url

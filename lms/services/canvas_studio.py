@@ -1,5 +1,5 @@
 from typing import Literal, TypedDict
-from urllib.parse import urlencode, urlunparse
+from urllib.parse import urlencode, urljoin, urlparse, urlunparse
 
 from marshmallow import EXCLUDE, Schema, fields, post_load
 
@@ -45,6 +45,24 @@ class CanvasStudioCollectionMediaSchema(RequestsResponseSchema):
     @post_load
     def post_load(self, data, **_kwargs):
         return data["media"]
+
+
+class CanvasStudioCaptionFilesSchema(RequestsResponseSchema):
+    """Schema for Canvas Studio /media/{id}/caption_files responses."""
+
+    class CaptionFile(Schema):
+        class Meta:
+            unknown = EXCLUDE
+
+        status = fields.Str(required=True)
+        url = fields.Str(required=False)
+        """Download URL for the transcript. Not required if `status` is not "published"."""
+
+    caption_files = fields.List(fields.Nested(CaptionFile), required=True)
+
+    @post_load
+    def post_load(self, data, **_kwargs):
+        return data["caption_files"]
 
 
 class APICallInfo(TypedDict):
@@ -218,6 +236,53 @@ class CanvasStudioService:
             )
 
         return files
+
+    @classmethod
+    def media_id_from_url(cls, url: str) -> str | None:
+        """Extract the media ID from a `canvas-studio://media/{media_id}` assignment URL."""
+        parsed = urlparse(url)
+        if parsed.scheme != "canvas-studio" or parsed.netloc != "media":
+            return None
+        return parsed.path[1:]
+
+    def get_canonical_video_url(self, media_id: str) -> str:
+        """Return the URL to associate with annotations on a Canvas Studio video."""
+        # We use the REST resource URL as a stable URL for the video.
+        # Example: "https://hypothesis.instructuremedia.com/api/public/v1/media/4"
+        return self._api_url(f"v1/media/{media_id}")
+
+    def get_video_download_url(self, media_id: str) -> str:
+        """Return temporary download URL for a video."""
+
+        download_url = self._api_url(f"v1/media/{media_id}/download")
+        download_rsp = self._oauth_http_service.get(download_url, allow_redirects=False)
+        download_redirect = download_rsp.headers.get("Location")
+
+        if download_rsp.status_code != 302 or not download_redirect:
+            raise ExternalRequestError(
+                message="Media download did not return valid redirect",
+                response=download_rsp,
+            )
+
+        return download_redirect
+
+    def get_transcript_url(self, media_id: str) -> str | None:
+        """
+        Return URL of transcript for a video, in SRT (SubRip) format.
+
+        May return `None` if no transcript has been generated for the video.
+        """
+
+        captions = self._api_request(
+            f"v1/media/{media_id}/caption_files", CanvasStudioCaptionFilesSchema
+        )
+
+        for caption in captions:
+            if caption["status"] == "published":
+                url = urljoin(self._canvas_studio_site(), caption["url"])
+                return url
+
+        return None
 
     def _api_request(self, path: str, schema_cls: RequestsResponseSchema) -> dict:
         """Make a request to the Canvas Studio API and parse the JSON response."""
