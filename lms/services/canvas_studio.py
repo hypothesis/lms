@@ -1,4 +1,4 @@
-from typing import Literal, Optional, TypedDict
+from typing import Literal, TypedDict
 from urllib.parse import urlencode, urlunparse
 
 from marshmallow import EXCLUDE, Schema, fields, post_load
@@ -61,7 +61,7 @@ class File(TypedDict):
     display_name: str
     updated_at: str
 
-    contents: Optional[APICallInfo]
+    contents: APICallInfo | None
     """API call to use to fetch contents of a folder."""
 
 

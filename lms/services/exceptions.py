@@ -1,5 +1,3 @@
-from typing import Optional
-
 from lms.models.oauth2_token import Service
 
 
@@ -48,8 +46,8 @@ class ExternalRequestError(Exception):
         response=None,
         validation_errors=None,
         refreshable=False,
-        refresh_route: Optional[str] = None,
-        refresh_service: Optional[Service] = None,
+        refresh_route: str | None = None,
+        refresh_service: Service | None = None,
     ):  # pylint: disable=too-many-arguments
         super().__init__()
         self.message = message
