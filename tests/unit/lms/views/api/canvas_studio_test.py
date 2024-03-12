@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 from h_matchers import Any
-from pyramid.httpexceptions import HTTPFound
+from pyramid.httpexceptions import HTTPBadRequest, HTTPFound
 
 import lms.views.api.canvas_studio as views
 
@@ -79,3 +79,51 @@ def test_list_collection(canvas_studio_service, pyramid_request):
 
     canvas_studio_service.list_collection.assert_called_with("42")
     assert result == canvas_studio_service.list_collection.return_value
+
+
+@pytest.mark.usefixtures("canvas_studio_service")
+class TestViaURL:
+    def test_it(self, canvas_studio_service, pyramid_request, via_video_url):
+        pyramid_request.params["document_url"] = "canvas-studio://media/42"
+
+        response = views.via_url(pyramid_request)
+
+        canvas_studio_service.get_canonical_video_url.assert_called_with("42")
+        canvas_studio_service.get_video_download_url.assert_called_with("42")
+        canvas_studio_service.get_transcript_url.assert_called_with("42")
+
+        canonical_url = canvas_studio_service.get_canonical_video_url.return_value
+        download_url = canvas_studio_service.get_video_download_url.return_value
+        transcript_url = canvas_studio_service.get_transcript_url.return_value
+        via_video_url.assert_called_with(
+            pyramid_request, canonical_url, download_url, transcript_url
+        )
+        assert response["via_url"] == via_video_url.return_value
+
+    def test_it_raises_if_transcript_not_available(
+        self, canvas_studio_service, pyramid_request
+    ):
+        pyramid_request.params["document_url"] = "canvas-studio://media/42"
+        canvas_studio_service.get_transcript_url.return_value = None
+
+        with pytest.raises(
+            HTTPBadRequest, match="This video does not have a transcript"
+        ):
+            views.via_url(pyramid_request)
+
+    def test_it_raises_if_document_url_missing(self, pyramid_request):
+        with pytest.raises(
+            HTTPBadRequest, match="Missing or invalid `document_url` param"
+        ):
+            views.via_url(pyramid_request)
+
+    def test_it_raises_if_document_url_not_valid(self, pyramid_request):
+        pyramid_request.params["document_url"] = "https://not-a-canvas-studio-url.com"
+        with pytest.raises(
+            HTTPBadRequest, match="Missing or invalid `document_url` param"
+        ):
+            views.via_url(pyramid_request)
+
+    @pytest.fixture
+    def via_video_url(self, patch):
+        yield patch("lms.views.api.canvas_studio.via_video_url")

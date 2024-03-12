@@ -4,13 +4,14 @@ Views for authorizing with Canvas Studio and listing videos.
 See `CanvasStudioService` for more details.
 """
 
-from pyramid.httpexceptions import HTTPFound
+from pyramid.httpexceptions import HTTPBadRequest, HTTPFound
 from pyramid.view import view_config
 
 from lms.security import Permissions
 from lms.services import CanvasStudioService
 from lms.services.canvas_studio import replace_localhost_in_url
 from lms.validation.authentication import OAuthCallbackSchema
+from lms.views.helpers import via_video_url
 
 
 # View for authorization popup which redirects to Canvas Studio's OAuth
@@ -118,3 +119,30 @@ def list_collection(request):
     svc = request.find_service(CanvasStudioService)
     collection_id = request.matchdict["collection_id"]
     return svc.list_collection(collection_id)
+
+
+@view_config(
+    request_method="GET",
+    route_name="canvas_studio_api.via_url",
+    renderer="json",
+    permission=Permissions.API,
+)
+def via_url(request):
+    svc = request.find_service(CanvasStudioService)
+    document_url = request.params.get("document_url")
+    media_id = (
+        CanvasStudioService.media_id_from_url(document_url) if document_url else None
+    )
+    if not media_id:
+        raise HTTPBadRequest("Missing or invalid `document_url` param")
+
+    canonical_url = svc.get_canonical_video_url(media_id)
+    download_url = svc.get_video_download_url(media_id)
+    transcript_url = svc.get_transcript_url(media_id)
+
+    if not transcript_url:
+        raise HTTPBadRequest("This video does not have a transcript")
+
+    return {
+        "via_url": via_video_url(request, canonical_url, download_url, transcript_url)
+    }

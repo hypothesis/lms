@@ -2,6 +2,7 @@ from unittest.mock import create_autospec, patch, sentinel
 from urllib.parse import urlencode
 
 import pytest
+from h_matchers import Any
 
 from lms.models.oauth2_token import Service
 from lms.services.canvas_studio import CanvasStudioService, factory
@@ -123,6 +124,31 @@ class TestCanvasStudioService:
             }
         ]
 
+    def test_get_canonical_video_url(self, svc):
+        url = svc.get_canonical_video_url("42")
+        assert url == "https://hypothesis.instructuremedia.com/api/public/v1/media/42"
+
+    def test_get_video_download_url(self, svc):
+        url = svc.get_video_download_url("42")
+        assert url == "https://videos.cdn.com/video.mp4?signature=abc"
+
+    def test_get_video_download_url_error(self, svc):
+        with pytest.raises(ExternalRequestError) as exc_info:
+            svc.get_video_download_url("123")
+
+        assert exc_info.value.message == "Media download did not return valid redirect"
+        assert Any.instance_of(exc_info.value.response).with_attrs({"status_code": 400})
+
+    def test_get_transcript_url_returns_url_if_published(self, svc):
+        transcript_url = svc.get_transcript_url("42")
+        assert (
+            transcript_url == "https://hypothesis.instructuremedia.com/captions/abc.srt"
+        )
+
+    def test_get_transcript_url_returns_None_if_not_published(self, svc):
+        transcript_url = svc.get_transcript_url("123")
+        assert transcript_url is None
+
     @pytest.fixture
     def svc(self, pyramid_request):
         return CanvasStudioService(
@@ -151,12 +177,13 @@ class TestCanvasStudioService:
                 make_collection(8, "More videos", "some_type", "2024-02-01"),
             ]
 
-        def handler(url):
+        def handler(url, allow_redirects=True):
             api_prefix = "https://hypothesis.instructuremedia.com/api/public/v1/"
             assert url.startswith(api_prefix)
 
             url_suffix = url[len(api_prefix) :]
             json_data = None
+            status_code = 200
 
             match url_suffix:
                 case "collections":
@@ -175,10 +202,38 @@ class TestCanvasStudioService:
                             make_file(6, "Another video", "2024-02-04"),
                         ]
                     }
+                case "media/42/caption_files":
+                    json_data = {
+                        "caption_files": [
+                            {"status": "published", "url": "captions/abc.srt"}
+                        ]
+                    }
+                case "media/123/caption_files":
+                    json_data = {
+                        "caption_files": [
+                            {
+                                "status": "unpublished",
+                            }
+                        ]
+                    }
+                case "media/42/download":
+                    assert allow_redirects is False
+                    return factories.requests.Response(
+                        status_code=302,
+                        headers={
+                            "Location": "https://videos.cdn.com/video.mp4?signature=abc"
+                        },
+                    )
+                case "media/123/download":
+                    status_code = 400
+                    json_data = {}
+
                 case _:  # pragma: nocover
                     raise ValueError(f"Unexpected URL {url}")
 
-            return factories.requests.Response(json_data=json_data)
+            return factories.requests.Response(
+                status_code=status_code, json_data=json_data
+            )
 
         return handler
 
