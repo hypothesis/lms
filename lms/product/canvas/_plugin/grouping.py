@@ -112,11 +112,6 @@ class CanvasGroupingPlugin(GroupingPlugin):
 
         return course.settings.get("canvas", "sections_enabled")
 
-    def get_group_set_id(self, request, _assignment, historical_assignment=None):
-        # For canvas we add parameter to the launch URL as we don't store the
-        # assignment during deep linking.
-        return request.params.get("group_set")
-
     def _custom_course_id(self, course):
         return course.extra["canvas"]["custom_canvas_course_id"]
 

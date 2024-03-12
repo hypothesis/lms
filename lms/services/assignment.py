@@ -18,10 +18,9 @@ LOG = logging.getLogger(__name__)
 class AssignmentService:
     """A service for getting and setting assignments."""
 
-    def __init__(self, db: Session, misc_plugin, grouping_plugin):
+    def __init__(self, db: Session, misc_plugin):
         self._db = db
         self._misc_plugin = misc_plugin
-        self._grouping_plugin = grouping_plugin
 
     def get_assignment(self, tool_consumer_instance_guid, resource_link_id):
         """Get an assignment by resource_link_id."""
@@ -108,12 +107,11 @@ class AssignmentService:
 
         # Get the configuration for the assignment
         # it might be based on the assignments we just queried or the request
-        document_url = self._misc_plugin.get_document_url(
+        assignment_config = self._misc_plugin.get_assignment_configuration(
             request, assignment, historical_assignment
         )
-        group_set_id = self._grouping_plugin.get_group_set_id(
-            request, assignment, historical_assignment
-        )
+        document_url = assignment_config.get("document_url")
+        group_set_id = assignment_config.get("group_set_id")
 
         if not document_url:
             # We can't find a document_url, we shouldn't try to create an
@@ -200,8 +198,4 @@ class AssignmentService:
 
 
 def factory(_context, request):
-    return AssignmentService(
-        db=request.db,
-        misc_plugin=request.product.plugin.misc,
-        grouping_plugin=request.product.plugin.grouping,
-    )
+    return AssignmentService(db=request.db, misc_plugin=request.product.plugin.misc)

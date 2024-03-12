@@ -87,22 +87,9 @@ class GroupingPlugin:
         is only relevant to get the config when creating an assignment for the
         first time.
         """
-        if not self.group_type:
-            # Groups not enabled on this product
-            return None
-
-        if assignment:
-            return assignment.extra.get("group_set_id")
-
-        if historical_assignment:
-            # When creating new assignments, take the value from the previous
-            # version of the assignment
-            return historical_assignment.extra.get("group_set_id")
-
-        # For LMS that also supports deep linking, use that as the last fallback
-        return request.product.plugin.misc.get_deep_linked_assignment_configuration(
-            request
-        ).get("group_set")
+        return request.product.plugin.misc.get_assignment_configuration(
+            request, assignment, historical_assignment
+        ).get("group_set_id")
 
 
 class GroupError(Exception):

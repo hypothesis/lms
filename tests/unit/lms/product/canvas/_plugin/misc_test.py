@@ -46,10 +46,12 @@ class TestCanvasMiscPlugin:
         else:
             js_config.set_focused_user.assert_not_called()
 
-    def test_get_document_url(self, plugin, pyramid_request):
-        assert not plugin.get_document_url(
+    def test_get_assignment_configuration(self, plugin, pyramid_request):
+        config = plugin.get_assignment_configuration(
             pyramid_request, sentinel.assignment, sentinel.historical_assignment
         )
+
+        assert config == {"document_url": None, "group_set_id": None}
 
     @pytest.mark.parametrize(
         "url,expected",
@@ -110,33 +112,34 @@ class TestCanvasMiscPlugin:
             ),
         ),
     )
-    def test_get_document_url_with_deeplinking_url(
+    def test_get_assignment_configuration_with_deeplinking_url(
         self, plugin, pyramid_request, url, expected
     ):
         if url:
             pyramid_request.params["url"] = url
 
-        assert (
-            plugin.get_document_url(
-                pyramid_request, sentinel.assignment, sentinel.historical_assignment
-            )
-            == expected
+        config = plugin.get_assignment_configuration(
+            pyramid_request, sentinel.assignment, sentinel.historical_assignment
         )
 
-    def test_get_document_url_with_canvas_files(self, plugin, pyramid_request):
+        assert config == {"document_url": expected, "group_set_id": None}
+
+    def test_get_assignment_configuration_with_canvas_files(
+        self, plugin, pyramid_request
+    ):
         pyramid_request.params["canvas_file"] = "any"
         pyramid_request.params["file_id"] = "FILE_ID"
         pyramid_request.lti_params["custom_canvas_course_id"] = "COURSE_ID"
 
         assert (
-            plugin.get_document_url(
+            plugin.get_assignment_configuration(
                 pyramid_request, sentinel.assignment, sentinel.historical_assignment
-            )
+            )["document_url"]
             == "canvas://file/course/COURSE_ID/file_id/FILE_ID"
         )
 
     @pytest.mark.parametrize("cfi", (None, sentinel.cfi))
-    def test_get_document_url_with_legacy_vitalsource_book(
+    def test_get_assignment_configuration_url_with_legacy_vitalsource_book(
         self, plugin, pyramid_request, VSBookLocation, cfi
     ):
         pyramid_request.params["vitalsource_book"] = "any"
@@ -144,9 +147,9 @@ class TestCanvasMiscPlugin:
         if cfi:
             pyramid_request.params["cfi"] = cfi
 
-        result = plugin.get_document_url(
+        result = plugin.get_assignment_configuration(
             pyramid_request, sentinel.assignment, sentinel.historical_assignment
-        )
+        )["document_url"]
 
         VSBookLocation.assert_called_once_with(book_id=sentinel.book_id, cfi=cfi)
         assert result == VSBookLocation.return_value.document_url
