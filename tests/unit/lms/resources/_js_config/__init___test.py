@@ -270,6 +270,13 @@ class TestAddDocumentURL:
                 },
             ),
             (
+                "canvas-studio://media/media_id",
+                {
+                    "authUrl": "http://example.com/api/canvas_studio/oauth/authorize",
+                    "path": "/api/canvas_studio/via_url?document_url=canvas-studio%3A%2F%2Fmedia%2Fmedia_id",
+                },
+            ),
+            (
                 "d2l://file/course/125/file_id/100",
                 {
                     "authUrl": "http://example.com/api/d2l/oauth/authorize",
