@@ -583,6 +583,11 @@ describe('LMSFilePicker', () => {
         expectedContent:
           'There are no files in this folder. Upload some files to the folder and try again.',
       },
+      {
+        options: { documentType: 'video' },
+        expectedContent:
+          'There are no videos in this course. Upload some videos to the course and try again.',
+      },
     ].forEach(({ options, expectedContent }) => {
       it('renders no-file message with expected content', async () => {
         const noFilesMessage = await getNoFilesMessage(options);

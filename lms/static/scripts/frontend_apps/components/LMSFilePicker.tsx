@@ -39,10 +39,19 @@ function NoFilesMessage({
   documentType,
 }: NoFilesMessageProps) {
   const documentContext = inSubfolder ? 'folder' : 'course';
-  const action =
-    documentType === 'file'
-      ? `Upload some files to the ${documentContext}`
-      : `Create some pages in the ${documentContext}`;
+
+  let action;
+  switch (documentType) {
+    case 'file':
+      action = `Upload some files to the ${documentContext}`;
+      break;
+    case 'page':
+      action = `Create some pages in the ${documentContext}`;
+      break;
+    case 'video':
+      action = `Upload some videos to the ${documentContext}`;
+      break;
+  }
 
   return (
     <div>
