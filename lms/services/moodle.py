@@ -83,14 +83,20 @@ class MoodleAPIClient:
                 # Files can be at the top level modules
                 if module["modname"] == "resource" and module["modplural"] == "Files":
                     files.extend(
-                        self._get_contents(module["contents"], parent=topic_name)
+                        self._get_contents(
+                            module["contents"],
+                            parent=topic_name,
+                            mime_type="application/pdf",
+                        )
                     )
 
                 # Or nested inside folders
                 elif module["modname"] == "folder":
                     files.extend(
                         self._get_contents(
-                            module["contents"], parent=topic_name + "/" + module["name"]
+                            module["contents"],
+                            parent=topic_name + "/" + module["name"],
+                            mime_type="application/pdf",
                         )
                     )
 
@@ -159,11 +165,19 @@ class MoodleAPIClient:
 
                     current_node = folders[topic_name]
 
+                    # Looks like pages have an underlying index.html file
+                    # We can use that to get other attributes like the updated_time
+                    page_index = self._get_contents(
+                        module["contents"], file_name="index.html"
+                    )
+                    updated_at = page_index[0]["updated_at"] if page_index else None
+
                     file_node = {
                         "type": "Page",
                         "display_name": module["name"],
                         "lms_id": module["id"],
                         "id": f"moodle://page/course/{course_id}/page_id/{module['id']}",
+                        "updated_at": updated_at,
                     }
                     current_node["children"].append(file_node)
 
@@ -180,11 +194,14 @@ class MoodleAPIClient:
         return root["children"]
 
     @staticmethod
-    def _get_contents(contents, parent=None):
+    def _get_contents(contents, parent=None, mime_type=None, file_name=None):
         file_paths = []
         for content in contents:
-            if content["mimetype"] != "application/pdf":
+            if mime_type and content["mimetype"] != mime_type:
                 continue
+            if file_name and content["filename"] != file_name:
+                continue
+
             file_path = f"{parent}{content['filepath']}{content['filename']}"
             file_paths.append(
                 {
