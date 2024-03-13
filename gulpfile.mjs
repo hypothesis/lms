@@ -16,6 +16,7 @@ gulp.task('build-css', () =>
   buildCSS(
     [
       './lms/static/styles/canvas_pages/canvas_pages.scss',
+      './lms/static/styles/moodle_pages/moodle_pages.scss',
       './lms/static/styles/frontend_apps.scss',
       './lms/static/styles/lms.scss',
       './lms/static/styles/ui-playground.scss',
