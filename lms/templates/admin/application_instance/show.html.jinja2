@@ -154,16 +154,20 @@
                         </fieldset>
 
                         <fieldset class="box">
+                            <legend class="label has-text-centered">VitalSource settings</legend>
+                            {{ settings_checkbox('VitalSource enabled', 'vitalsource', 'enabled') }}
+                            {{ settings_text_field('VitalSource API key', 'vitalsource', 'api_key') }}
+                            {{ settings_text_field('VitalSource SSO user ID field', 'vitalsource', 'user_lti_param') }}
+                            {{ settings_text_field('VitalSource SSO user ID regex', 'vitalsource', 'user_lti_pattern') }}
+                        </fieldset>
+
+                        <fieldset class="box">
                             <legend class="label has-text-centered">Content integrations</legend>
                             {{ settings_text_field("Canvas Studio domain", "canvas_studio", "domain") }}
                             {{ settings_text_field("Canvas Studio client ID", "canvas_studio", "client_id") }}
                             {{ settings_secret_field("Canvas Studio client secret", "canvas_studio", "client_secret") }}
                             {{ settings_checkbox("Google Drive enabled", "google_drive", "files_enabled", default=True) }}
                             {{ settings_checkbox("Microsoft OneDrive enabled", "microsoft_onedrive", "files_enabled", default=True) }}
-                            {{ settings_checkbox('VitalSource enabled', 'vitalsource', 'enabled') }}
-                            {{ settings_text_field('VitalSource API key', 'vitalsource', 'api_key') }}
-                            {{ settings_text_field('VitalSource SSO user ID field', 'vitalsource', 'user_lti_param') }}
-                            {{ settings_text_field('VitalSource SSO user ID regex', 'vitalsource', 'user_lti_pattern') }}
                             {{ settings_checkbox('JSTOR enabled', 'jstor', 'enabled') }}
                             {{ settings_text_field('JSTOR site code', 'jstor', 'site_code') }}
                             {{ settings_checkbox("YouTube enabled", "youtube", "enabled", default=True) }}
