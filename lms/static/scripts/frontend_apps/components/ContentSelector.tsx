@@ -259,6 +259,7 @@ export default function ContentSelector({
           onSelectFile={selectCanvasStudio}
           missingFilesHelpLink="https://community.canvaslms.com/t5/Canvas-Studio-Guide/How-do-I-use-Canvas-Studio/ta-p/1678"
           documentType="video"
+          withBreadcrumbs
         />
       );
       break;
