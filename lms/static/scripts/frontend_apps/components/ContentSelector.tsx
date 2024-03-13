@@ -258,7 +258,7 @@ export default function ContentSelector({
           onCancel={cancelDialog}
           onSelectFile={selectCanvasStudio}
           missingFilesHelpLink="https://community.canvaslms.com/t5/Canvas-Studio-Guide/How-do-I-use-Canvas-Studio/ta-p/1678"
-          documentType="page"
+          documentType="video"
         />
       );
       break;
@@ -421,7 +421,7 @@ export default function ContentSelector({
         {canvasStudioEnabled && (
           <OptionButton
             data-testid="canvas-studio-button"
-            details="Canvas Studio"
+            details="Video"
             onClick={() => selectDialog('canvasStudio')}
           >
             Canvas Studio
