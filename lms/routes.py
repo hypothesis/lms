@@ -228,3 +228,10 @@ def includeme(config):  # pylint:disable=too-many-statements
     config.add_route(
         "lti.v11.deep_linking.form_fields", "/lti/1.1/deep_linking/form_fields"
     )
+
+    # We could go around that implementing our own schema location `form_or_cookie`
+    # We need both to apply different security policies to them.
+    config.add_route("lti.analytics.assignment", "/analytics/lti/assignment")
+    config.add_route("analytics.assignment", "/analytics/assignment")
+    # Should this be a top level one? I mean /api/...
+    config.add_route("analytics.assignment.api", "/analytics/api/assignment/{id_}")
