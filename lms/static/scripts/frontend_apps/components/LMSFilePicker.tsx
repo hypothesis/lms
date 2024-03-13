@@ -26,7 +26,7 @@ type NoFilesMessageProps = {
    */
   inSubfolder: boolean;
 
-  documentType: 'file' | 'page';
+  documentType: 'file' | 'page' | 'video';
 };
 
 /**
@@ -91,7 +91,7 @@ type LMSFilePickerProps = {
    * The type of documents handled by the file picker, which can influence user-facing messages.
    * Defaults to 'file'
    */
-  documentType?: 'file' | 'page';
+  documentType?: 'file' | 'page' | 'video';
 };
 
 type FetchingState = {
