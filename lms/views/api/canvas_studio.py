@@ -141,7 +141,7 @@ def via_url(request):
     transcript_url = svc.get_transcript_url(media_id)
 
     if not transcript_url:
-        raise HTTPBadRequest("This video does not have a transcript")
+        raise HTTPBadRequest("This video does not have a published transcript")
 
     return {
         "via_url": via_video_url(request, canonical_url, download_url, transcript_url)

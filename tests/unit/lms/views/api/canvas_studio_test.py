@@ -107,7 +107,7 @@ class TestViaURL:
         canvas_studio_service.get_transcript_url.return_value = None
 
         with pytest.raises(
-            HTTPBadRequest, match="This video does not have a transcript"
+            HTTPBadRequest, match="This video does not have a published transcript"
         ):
             views.via_url(pyramid_request)
 
