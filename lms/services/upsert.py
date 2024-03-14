@@ -45,12 +45,12 @@ def bulk_upsert(
 
     index_elements_columns = [getattr(model_class, c) for c in index_elements]
 
-    stmt = insert(model_class).values(values)
-    stmt = stmt.on_conflict_do_update(
+    base = insert(model_class).values(values)
+    stmt = base.on_conflict_do_update(
         # The columns to use to find matching rows.
         index_elements=index_elements,
         # The columns to update.
-        set_={element: getattr(stmt.excluded, element) for element in update_columns},
+        set_={element: getattr(base.excluded, element) for element in update_columns},
     ).returning(*index_elements_columns)
 
     result = db.execute(stmt)
