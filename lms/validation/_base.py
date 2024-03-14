@@ -12,11 +12,11 @@ from lms.validation._exceptions import ValidationError
 class PlainSchema(marshmallow.Schema):
     """Base class for all schemas."""
 
-    many = None
+    many: bool = False
     """
     Whether or not this schema validates collections of objects by default.
 
-    If this is ``None`` then marshmallow's default behavior will be used -- the
+    If this is ``False`` then marshmallow's default behavior will be used -- the
     schema will expect to validate a single object rather than a collection of
     similar objects.
 
