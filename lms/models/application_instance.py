@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 import sqlalchemy as sa
 from pyramid.settings import asbool
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped
 
 from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
@@ -79,7 +80,7 @@ class ApplicationInstance(CreatedUpdatedMixin, Base):
     organization_id = sa.Column(
         sa.Integer(), sa.ForeignKey("organization.id"), nullable=True
     )
-    organization = sa.orm.relationship("Organization")
+    organization: Mapped["Organization"] = sa.orm.relationship("Organization")
     """The organization this application instance belongs to."""
 
     name = sa.Column(sa.UnicodeText(), nullable=True)
