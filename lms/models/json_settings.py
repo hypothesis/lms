@@ -100,7 +100,7 @@ class JSONSettings(MutableDict):
         # pylint:disable=unsupported-assignment-operation
         super().setdefault(group, {})[key] = value
 
-    def set_secret(self, aes_service, group, key, value: str):
+    def set_secret(self, aes_service, group, key, value: str) -> None:
         """
         Store a setting as a secret.
 
@@ -112,12 +112,14 @@ class JSONSettings(MutableDict):
         :param value: The value to set
         """
         aes_iv = aes_service.build_iv()
-        value = aes_service.encrypt(aes_iv, value)
+        encrypted_value: bytes = aes_service.encrypt(aes_iv, value)
 
         # Store both the setting and the IV
         # We can't store the bytes directly in JSON so we store it as base64
         # pylint:disable=unsupported-assignment-operation
-        super().setdefault(group, {})[key] = base64.b64encode(value).decode("utf-8")
+        super().setdefault(group, {})[key] = base64.b64encode(encrypted_value).decode(
+            "utf-8"
+        )
         super().setdefault(group, {})[f"{key}_aes_iv"] = base64.b64encode(
             aes_iv
         ).decode("utf-8")
