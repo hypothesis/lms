@@ -31,9 +31,9 @@ class Plugins:
             setattr(instance, self.plugin_name, plugin)  # Overwrite the attr
             return plugin
 
-    grouping: GroupingPlugin = _LazyPlugin()
-    course_copy: CourseCopyPlugin = _LazyPlugin()
-    misc: MiscPlugin = _LazyPlugin()
+    grouping: GroupingPlugin = _LazyPlugin()  # type: ignore
+    course_copy: CourseCopyPlugin = _LazyPlugin()  # type:ignore
+    misc: MiscPlugin = _LazyPlugin()  # type:ignore
 
     def __init__(self, request, plugin_config: PluginConfig):
         self._request = request
