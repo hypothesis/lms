@@ -56,11 +56,13 @@ class VitalSourceService:
 
     def get_book_info(self, book_id: str) -> dict:
         """Get details of a book."""
+        assert self._metadata_client
 
         return self._metadata_client.get_book_info(book_id)
 
     def get_table_of_contents(self, book_id: str) -> list[dict]:
         """Get the table of contents for a book."""
+        assert self._metadata_client
 
         return self._metadata_client.get_table_of_contents(book_id)
 
@@ -151,6 +153,7 @@ class VitalSourceService:
         :param user_reference: The user reference (you can use
             `get_user_reference()` to help you with this)
         """
+        assert self._sso_client
         return self._sso_client.get_sso_redirect(
             user_reference, self.get_book_reader_url(document_url)
         )
