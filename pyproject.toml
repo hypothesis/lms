@@ -147,7 +147,6 @@ python_version = 3.11
 
 disable_error_code = [
     "arg-type",
-    "assignment",
     "attr-defined",
     "has-type",
     "import-untyped",
