@@ -86,9 +86,9 @@ class VitalSourceService:
         url = urlparse(url)
         params = parse_qs(url.query)
         if end_page:
-            params["end_page"] = end_page
+            params["end_page"] = end_page  # type: ignore
         if end_cfi:
-            params["end_cfi"] = end_cfi
+            params["end_cfi"] = end_cfi  # type: ignore
         url = url._replace(query=urlencode(params, doseq=True))
 
         return urlunparse(url)
