@@ -3,12 +3,12 @@ from dataclasses import dataclass
 from lms.product.moodle._plugin.course_copy import MoodleCourseCopyPlugin
 from lms.product.moodle._plugin.grouping import MoodleGroupingPlugin
 from lms.product.moodle._plugin.misc import MoodleMiscPlugin
-from lms.product.product import PluginConfig, Product, Routes
+from lms.product.product import Family, PluginConfig, Product, Routes
 
 
 @dataclass
 class Moodle(Product):
-    family: Product.Family = Product.Family.MOODLE
+    family: Family = Family.MOODLE
 
     plugin_config: PluginConfig = PluginConfig(
         grouping=MoodleGroupingPlugin,
