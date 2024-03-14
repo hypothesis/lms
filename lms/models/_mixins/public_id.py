@@ -44,7 +44,7 @@ class PublicIdMixin:
     should be used instead which provides a fully qualified id.
     """
 
-    public_id_model_code = None
+    public_id_model_code: str | None = None
     """The short code which identifies this type of model."""
 
     @hybrid_property

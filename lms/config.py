@@ -39,8 +39,8 @@ class _Setting:
     """The properties of a setting and how to read it."""
 
     name: str
-    read_from: str = None
-    value_mapper: Callable = None
+    read_from: str | None = None
+    value_mapper: Callable | None = None
 
     def __post_init__(self):
         if not self.read_from:
