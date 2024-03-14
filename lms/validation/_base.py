@@ -49,7 +49,7 @@ class PlainSchema(marshmallow.Schema):
 class PyramidRequestSchema(PlainSchema):
     """Base class for schemas that validate Pyramid requests."""
 
-    location = None
+    location: str | None = None
     """
     The location where webargs should look for the parameters.
 

@@ -256,7 +256,7 @@ class SerializableError(Exception):
 
     def __init__(
         self,
-        message: str = None,
+        message: str | None = None,
         error_code: str | None = None,
         details: dict | None = None,
     ):

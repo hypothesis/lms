@@ -55,7 +55,7 @@ class LTIUser:  # pylint: disable=too-many-instance-attributes
     request.lti_session or similar with contains the user and any other relevant values.
     """
 
-    application_instance: ApplicationInstance = None
+    application_instance: ApplicationInstance | None = None
     """Application instance this user belongs to"""
 
     email: str = ""

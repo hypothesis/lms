@@ -28,7 +28,7 @@ class PublicId:
     app_code: str = "lms"
     """Code representing the product this model is in."""
 
-    instance_id: str = None
+    instance_id: str | None = None
     """Identifier for the specific model instance."""
 
     def __post_init__(self):

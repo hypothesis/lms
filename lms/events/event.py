@@ -127,7 +127,7 @@ class AuditTrailEvent(BaseEvent):
             )
 
     type: EventType.Type = EventType.Type.AUDIT_TRAIL
-    change: ModelChange = None
+    change: ModelChange | None = None
 
     def _get_data(self):
         """
