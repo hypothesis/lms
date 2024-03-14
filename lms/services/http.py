@@ -7,7 +7,7 @@ class HTTPService:
     """Send HTTP requests with `requests` and receive the responses."""
 
     # This is here mostly to let auto-spec know about it in the tests
-    session: Session = None
+    session: Session
     """The underlying requests Session."""
 
     def __init__(self):
