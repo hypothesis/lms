@@ -1,4 +1,4 @@
-from typing import Literal, TypedDict
+from typing import Literal, Type, TypedDict
 from urllib.parse import urlencode, urljoin, urlparse, urlunparse
 
 from marshmallow import EXCLUDE, Schema, fields, post_load
@@ -284,7 +284,7 @@ class CanvasStudioService:
 
         return None
 
-    def _api_request(self, path: str, schema_cls: RequestsResponseSchema) -> dict:
+    def _api_request(self, path: str, schema_cls: Type[RequestsResponseSchema]) -> dict:
         """Make a request to the Canvas Studio API and parse the JSON response."""
         try:
             response = self._oauth_http_service.get(self._api_url(path))
