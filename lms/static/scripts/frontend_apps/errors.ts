@@ -20,6 +20,9 @@ export type LTILaunchServerErrorCode =
   | 'd2l_group_set_empty'
   | 'd2l_group_set_not_found'
   | 'd2l_student_not_in_group'
+  | 'moodle_group_set_not_found'
+  | 'moodle_group_set_empty'
+  | 'moodle_student_not_in_group'
   | 'vitalsource_no_book_license'
   | 'vitalsource_user_not_found';
 
@@ -156,6 +159,9 @@ export function isLTILaunchServerError(error: ErrorLike): error is APIError {
       'canvas_student_not_in_group',
       'vitalsource_user_not_found',
       'vitalsource_no_book_license',
+      'moodle_group_set_not_found',
+      'moodle_group_set_empty',
+      'moodle_student_not_in_group',
     ].includes(error.errorCode)
   );
 }

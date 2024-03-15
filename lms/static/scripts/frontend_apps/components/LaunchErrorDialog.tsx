@@ -295,6 +295,26 @@ export default function LaunchErrorDialog({
         </ErrorModal>
       );
 
+    case 'moodle_group_set_not_found':
+      return (
+        <ErrorModal
+          {...defaultProps}
+          onRetry={undefined}
+          title="Assignment's grouping no longer exists"
+        >
+          <p>
+            Hypothesis couldn&apos;t load this assignment because the
+            assignment&apos;s grouping no longer exists.
+          </p>
+          <p>
+            <b>
+              To fix this problem, an instructor needs to edit the assignment
+              settings and select a new grouping.
+            </b>
+          </p>
+        </ErrorModal>
+      );
+
     case 'blackboard_group_set_empty':
     case 'canvas_group_set_empty':
       return (
@@ -324,6 +344,23 @@ export default function LaunchErrorDialog({
             <b>
               To fix this problem, add groups to the group category or use a
               different group category for this assignment.
+            </b>
+          </p>
+        </ErrorModal>
+      );
+
+    case 'moodle_group_set_empty':
+      return (
+        <ErrorModal
+          {...defaultProps}
+          onRetry={undefined}
+          title="Assignment's grouping is empty"
+        >
+          <p>The grouping for this Hypothesis assignment is empty. </p>
+          <p>
+            <b>
+              To fix this problem, add groups to the grouping or use a different
+              grouping for this assignment.
             </b>
           </p>
         </ErrorModal>
@@ -385,6 +422,26 @@ export default function LaunchErrorDialog({
             <b>
               To fix the problem, an instructor needs to add your D2L user
               account to one of this assignment&apos;s groups.
+            </b>
+          </p>
+        </ErrorModal>
+      );
+
+    case 'moodle_student_not_in_group':
+      return (
+        <ErrorModal
+          {...defaultProps}
+          onRetry={undefined}
+          title="You're not in any of this assignment's groups"
+        >
+          <p>
+            Hypothesis couldn&apos;t launch this assignment because you
+            aren&apos;t in any of the groups in the assignment&apos;s grouping.
+          </p>
+          <p>
+            <b>
+              To fix the problem, an instructor needs to add your Moodle user
+              account to one of this assignment&apos;s groupings.
             </b>
           </p>
         </ErrorModal>

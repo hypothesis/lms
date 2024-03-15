@@ -122,6 +122,14 @@ describe('LaunchErrorDialog', () => {
       withError: true,
     },
     {
+      errorState: 'moodle_group_set_not_found',
+      expectedText:
+        "Hypothesis couldn't load this assignment because the assignment's grouping no longer exists.To fix this problem, an instructor needs to edit the assignment settings and select a new grouping.",
+      expectedTitle: "Assignment's grouping no longer exists",
+      hasRetry: false,
+      withError: true,
+    },
+    {
       errorState: 'blackboard_group_set_empty',
       expectedText: 'The group set for this Hypothesis assignment is empty',
       expectedTitle: "Assignment's group set is empty",
@@ -144,6 +152,13 @@ describe('LaunchErrorDialog', () => {
       withError: true,
     },
     {
+      errorState: 'moodle_group_set_empty',
+      expectedText: 'The grouping for this Hypothesis assignment is empty',
+      expectedTitle: "Assignment's grouping is empty",
+      hasRetry: false,
+      withError: true,
+    },
+    {
       errorState: 'blackboard_student_not_in_group',
       expectedText: 'an instructor needs to add your Blackboard user',
       expectedTitle: "You're not in any of this assignment's groups",
@@ -162,6 +177,14 @@ describe('LaunchErrorDialog', () => {
       errorState: 'd2l_student_not_in_group',
       expectedText:
         "you aren't in any of the groups in the assignment's group category",
+      expectedTitle: "You're not in any of this assignment's groups",
+      hasRetry: false,
+      withError: true,
+    },
+    {
+      errorState: 'moodle_student_not_in_group',
+      expectedText:
+        "you aren't in any of the groups in the assignment's grouping",
       expectedTitle: "You're not in any of this assignment's groups",
       hasRetry: false,
       withError: true,
