@@ -42,7 +42,8 @@ class PagesAPIViews:
                 "id": f"canvas://page/course/{course_id}/page_id/{page.id}",
                 "lms_id": page.id,
                 "display_name": page.title,
-                "type": "Page",
+                "type": "File",
+                "mime_type": "text/html",
                 "updated_at": page.updated_at,
             }
             for page in self.canvas.api.pages.list(course_id)

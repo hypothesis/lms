@@ -132,6 +132,7 @@ class TestD2LAPIClient:
                                 "lms_id": "FILE 1",
                                 "type": "File",
                                 "updated_at": "DATE 1",
+                                "mime_type": "application/pdf",
                             },
                             {
                                 "display_name": "MODULE 2",
@@ -146,6 +147,7 @@ class TestD2LAPIClient:
                                         "lms_id": "FILE 2",
                                         "type": "File",
                                         "updated_at": "DATE 2",
+                                        "mime_type": "application/pdf",
                                     },
                                 ],
                             },

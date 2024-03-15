@@ -351,8 +351,11 @@ class TestCanvasAPIClientIntegrated:
         )
 
         response = canvas_api_client.list_files("COURSE_ID")
+        expected_response = [
+            {**file, "mime_type": "application/pdf"} for file in list_files_json
+        ]
 
-        assert response == list_files_json
+        assert response == expected_response
         self.assert_session_send(
             http_session,
             "api/v1/courses/COURSE_ID/files",
@@ -399,7 +402,9 @@ class TestCanvasAPIClientIntegrated:
 
         response = canvas_api_client.list_files("COURSE_ID")
 
-        assert response == [files[0]]
+        expected_file = files[0].copy()
+        expected_file.update({"mime_type": "application/pdf"})
+        assert response == [expected_file]
 
     def test_list_files_with_folders(
         self,
@@ -447,6 +452,7 @@ class TestCanvasAPIClientIntegrated:
                 "folder_id": 100,
                 "updated_at": "updated_at_1",
                 "type": "File",
+                "mime_type": "application/pdf",
             },
             {
                 "id": 200,
@@ -462,6 +468,7 @@ class TestCanvasAPIClientIntegrated:
                         "folder_id": 200,
                         "updated_at": "updated_at_2",
                         "type": "File",
+                        "mime_type": "application/pdf",
                     },
                     {
                         "id": 300,
@@ -477,6 +484,7 @@ class TestCanvasAPIClientIntegrated:
                                 "folder_id": 300,
                                 "updated_at": "updated_at_3",
                                 "type": "File",
+                                "mime_type": "application/pdf",
                             }
                         ],
                     },

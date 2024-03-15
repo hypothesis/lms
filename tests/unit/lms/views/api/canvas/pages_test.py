@@ -26,7 +26,8 @@ class TestPageAPIViews:
                     "id": f"canvas://page/course/{course_id}/page_id/{page.id}",
                     "lms_id": page.id,
                     "display_name": page.title,
-                    "type": "Page",
+                    "mime_type": "text/html",
+                    "type": "File",
                     "updated_at": page.updated_at,
                 }
                 for page in pages

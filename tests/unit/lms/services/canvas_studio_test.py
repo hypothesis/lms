@@ -82,6 +82,7 @@ class TestCanvasStudioService:
             {
                 "type": "File",
                 "display_name": "Test video",
+                "mime_type": "video",
                 "updated_at": "2024-02-03",
                 "id": "canvas-studio://media/5",
             },
@@ -119,6 +120,7 @@ class TestCanvasStudioService:
             {
                 "type": "File",
                 "display_name": "Another video",
+                "mime_type": "video",
                 "updated_at": "2024-02-04",
                 "id": "canvas-studio://media/6",
             }

@@ -108,6 +108,7 @@ class TestMoodleAPIClient:
                     {
                         "type": "File",
                         "display_name": "dummy.pdf",
+                        "mime_type": "application/pdf",
                         "id": "moodle://file/course/COURSE_ID/url/https://hypothesisuniversity.moodlecloud.com/webservice/pluginfile.php/1046/mod_resource/content/1/dummy.pdf?forcedownload=1",
                         "lms_id": "https://hypothesisuniversity.moodlecloud.com/webservice/pluginfile.php/1046/mod_resource/content/1/dummy.pdf?forcedownload=1",
                         "updated_at": 1707992547 * 1000,
@@ -121,6 +122,7 @@ class TestMoodleAPIClient:
                             {
                                 "type": "File",
                                 "display_name": "dummy.pdf",
+                                "mime_type": "application/pdf",
                                 "id": "moodle://file/course/COURSE_ID/url/https://hypothesisuniversity.moodlecloud.com/webservice/pluginfile.php/1134/mod_folder/content/3/dummy.pdf?forcedownload=1",
                                 "lms_id": "https://hypothesisuniversity.moodlecloud.com/webservice/pluginfile.php/1134/mod_folder/content/3/dummy.pdf?forcedownload=1",
                                 "updated_at": 1708513742 * 1000,
@@ -134,6 +136,7 @@ class TestMoodleAPIClient:
                                     {
                                         "type": "File",
                                         "display_name": "FILE IN NESTED.pdf",
+                                        "mime_type": "application/pdf",
                                         "id": "moodle://file/course/COURSE_ID/url/https://hypothesisuniversity.moodlecloud.com/webservice/pluginfile.php/1134/mod_folder/content/3/Nested%20folder/FILE%20IN%20NESTED.pdf?forcedownload=1",
                                         "lms_id": "https://hypothesisuniversity.moodlecloud.com/webservice/pluginfile.php/1134/mod_folder/content/3/Nested%20folder/FILE%20IN%20NESTED.pdf?forcedownload=1",
                                         "updated_at": 1708513801 * 1000,
@@ -173,15 +176,17 @@ class TestMoodleAPIClient:
                 "lms_id": "COURSE_ID-General",
                 "children": [
                     {
-                        "type": "Page",
+                        "type": "File",
                         "display_name": "A Page",
+                        "mime_type": "text/html",
                         "lms_id": 860,
                         "id": "moodle://page/course/COURSE_ID/page_id/860",
                         "updated_at": 1708598607 * 1000,
                     },
                     {
-                        "type": "Page",
+                        "type": "File",
                         "display_name": "Another Page",
+                        "mime_type": "text/html",
                         "lms_id": 1860,
                         "id": "moodle://page/course/COURSE_ID/page_id/1860",
                         "updated_at": 1708598607 * 1000,

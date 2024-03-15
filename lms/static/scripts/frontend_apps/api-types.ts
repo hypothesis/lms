@@ -5,10 +5,25 @@
 import type { APICallInfo } from './config';
 
 /**
- * Object representing a file, folder or document stored by the LMS
+ * MIME types which are recognized by the frontend.
+ *
+ * These are used to choose appropriate icons to represent the file.
+ */
+export type MimeType = 'text/html' | 'application/pdf' | 'video';
+
+/**
+ * Object representing a file or folder in cloud storage.
  */
 export type Document = {
-  type?: 'File' | 'Folder' | 'Page';
+  type: 'File' | 'Folder';
+
+  /**
+   * MIME type of the file.
+   *
+   * This can either be a top-level type (eg. "video", "text") or a sub-type
+   * ("text/html").
+   */
+  mime_type?: MimeType;
 
   /** Identifier for the document within the LMS. */
   id: string;
@@ -24,9 +39,6 @@ export type Document = {
  * Object representing a file or folder in the LMS's file storage.
  */
 export type File = Document & {
-  // FIXME - This ought to be present on all file objects.
-  type?: 'File' | 'Folder';
-
   /** APICallInfo for fetching a folder's content. Only present if `type` is 'Folder'. */
   contents?: APICallInfo;
 
@@ -35,13 +47,6 @@ export type File = Document & {
 
   /** Applies only when `type` is 'Folder'. A folder may contain children (files and folders). */
   children?: File[];
-};
-
-/**
- * Object representing Canvas pages or similar documents
- */
-export type Page = Document & {
-  type: 'Page';
 };
 
 /**

@@ -1,4 +1,4 @@
-from typing import Literal, Type, TypedDict
+from typing import Literal, NotRequired, Type, TypedDict
 from urllib.parse import urlencode, urljoin, urlparse, urlunparse
 
 from marshmallow import EXCLUDE, Schema, fields, post_load
@@ -74,6 +74,7 @@ class File(TypedDict):
     """Represents a file or folder in an LMS's file storage."""
 
     type: Literal["File", "Folder"]
+    mime_type: NotRequired[Literal["text/html", "application/pdf", "video"]]
 
     id: str
     display_name: str
@@ -229,6 +230,7 @@ class CanvasStudioService:
             files.append(
                 {
                     "type": "File",
+                    "mime_type": "video",
                     "id": f"canvas-studio://media/{media_id}",
                     "display_name": item["title"],
                     "updated_at": item["created_at"],

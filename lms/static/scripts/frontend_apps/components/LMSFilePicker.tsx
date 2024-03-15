@@ -6,7 +6,7 @@ import {
 import classnames from 'classnames';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
-import type { File, Page } from '../api-types';
+import type { File } from '../api-types';
 import type { APICallInfo } from '../config';
 import { isAuthorizationError } from '../errors';
 import { apiCall } from '../utils/api';
@@ -83,7 +83,7 @@ type LMSFilePickerProps = {
   /**
    * Callback invoked with the metadata of the selected document if the user makes a selection
    */
-  onSelectFile: (d: File | Page) => void;
+  onSelectFile: (file: File) => void;
 
   /**
    * A helpful URL to documentation that explains how to upload files to an LMS such as Canvas or Blackboard.
