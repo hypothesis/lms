@@ -116,20 +116,38 @@ class SecurityPolicy:
                 partial(get_lti_user_from_bearer_token, location="querystring")
             )
 
-        if path.startswith("/api") or path in {
-            "/lti/1.3/deep_linking/form_fields",
-            "/lti/1.1/deep_linking/form_fields",
-            "/lti/reconfigure",
-        }:
+        if (
+            path.startswith("/api")
+            or path
+            in {
+                "/lti/1.3/deep_linking/form_fields",
+                "/lti/1.1/deep_linking/form_fields",
+                "/lti/reconfigure",
+            }
+            # THIS ENDPOINT SHIOULD BE HERE
+            # COMMETED TO AVOID HAVING TO THE FE CALL, USING THE COOKIE FOR TESTING INSTEAD
+            # or path.startswith("/analytics/api")
+        ):
             # LTUser serialized in the headers for API calls from the frontend
             return LTIUserSecurityPolicy(
                 partial(get_lti_user_from_bearer_token, location="headers")
             )
 
-        if path in {"/assignment", "/assignment/edit"}:
+        if path in {"/assignment", "/assignment/edit", "/analytics/lti/assignment"}:
             # LTUser serialized in a from for non deep-linked assignment configuration
+            # and the anatlycis lauch - to - cookie endpoint
             return LTIUserSecurityPolicy(
                 partial(get_lti_user_from_bearer_token, location="form")
+            )
+
+        if (
+            path in {"/analytics/assignment"}
+            or
+            # This doesn't belong here, it shoudl be API based (ie header based) but this is simplere to test
+            path.startswith("/analytics/api")
+        ):
+            return LTIUserSecurityPolicy(
+                partial(get_lti_user_from_bearer_token, location="cookies")
             )
 
         if path in {"/email/preferences", "/email/unsubscribe"}:

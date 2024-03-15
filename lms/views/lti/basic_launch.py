@@ -149,7 +149,6 @@ class BasicLaunchViews:
         self.request.find_service(name="lti_h").sync(
             [self.course], self.request.lti_params
         )
-
         # Store the relationship between the assignment and the course
         self.assignment_service.upsert_assignment_membership(
             assignment=assignment,

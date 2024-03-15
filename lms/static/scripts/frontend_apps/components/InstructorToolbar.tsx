@@ -1,6 +1,7 @@
 import { Link } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { Link as RouterLink } from 'wouter-preact';
+import { useId, useRef, useState } from 'preact/hooks';
 
 import { useConfig } from '../config';
 import GradingControls from './GradingControls';
@@ -10,7 +11,7 @@ import GradingControls from './GradingControls';
  * Shows assignment information and grading controls (for gradable assignments).
  */
 export default function InstructorToolbar() {
-  const { instructorToolbar } = useConfig();
+  const { instructorToolbar, api } = useConfig();
   if (!instructorToolbar) {
     // User is not an instructor or toolbar is disabled in the current environment.
     return null;
@@ -26,7 +27,15 @@ export default function InstructorToolbar() {
     acceptGradingComments,
   } = instructorToolbar;
 
+  const form = useRef<HTMLFormElement | null>(null);
   const withGradingControls = gradingEnabled && !!students;
+
+  const submit = (event: Event) => {
+    console.log(api);
+    console.log(event);
+  };
+
+
 
   return (
     <header
@@ -63,6 +72,17 @@ export default function InstructorToolbar() {
               </Link>
             </RouterLink>
           )}
+        <form
+          action="/analytics/lti/assignment"
+          ref={form}
+          className="flex flex-row items-center space-x-2"
+          onSubmit={submit}
+          method="POST"
+        >
+ 
+          <input name="authorization" type="hidden" value={api.authToken}/>
+          <button>ANALYTICS</button>
+          </form>
         </div>
         <h2
           className="text-sm font-normal text-color-text-light leading-none"
