@@ -167,6 +167,41 @@ export default function LaunchErrorDialog({
         </ErrorModal>
       );
 
+    case 'moodle_file_not_found_in_course':
+      return (
+        <ErrorModal
+          {...defaultProps}
+          title="Hypothesis couldn't find the file in the course"
+        >
+          <p>This might have happened because:</p>
+          <ul className="px-4 list-disc">
+            <li>The file has been deleted from Moodle</li>
+            <li>
+              The course was copied and the selected file is not available in
+              the new course.
+            </li>
+          </ul>
+          <p>
+            To fix the issue an instructor needs to edit this assignment and
+            select a different file.
+          </p>
+        </ErrorModal>
+      );
+
+    case 'moodle_page_not_found_in_course':
+      return (
+        <ErrorModal
+          {...defaultProps}
+          title="Hypothesis couldn't find the page in the course"
+        >
+          <p>This might have happened because:</p>
+          <ul className="px-4 list-disc">
+            <li>The page has been deleted from Moodle</li>
+            <li>The course was copied from another course</li>
+          </ul>
+        </ErrorModal>
+      );
+
     case 'canvas_api_permission_error':
       return (
         <ErrorModal {...defaultProps} title="Couldn't get the file from Canvas">

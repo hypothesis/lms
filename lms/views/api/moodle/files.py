@@ -91,9 +91,7 @@ def _effective_file_id(
             document_url,
             course.lms_id,
         )
-        raise FileNotFoundInCourse(
-            "moodle_file_not_found_in_course_instructor", document_url
-        )
+        raise FileNotFoundInCourse("moodle_file_not_found_in_course", document_url)
     # Store a mapping so we don't have to re-search next time.
     LOG.debug(
         "Via URL for page, found page in the new course. Document: %s, course: %s, new page id: %s",
