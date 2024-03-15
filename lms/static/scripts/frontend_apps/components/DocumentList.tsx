@@ -3,12 +3,14 @@ import {
   FileGenericIcon,
   FilePdfFilledIcon,
   FolderIcon,
+  PreviewIcon,
   Scroll,
   ScrollContainer,
 } from '@hypothesis/frontend-shared';
 import type { ComponentChildren } from 'preact';
+import type { JSX } from 'preact';
 
-import type { Document } from '../api-types';
+import type { Document, MimeType } from '../api-types';
 
 export type DocumentListProps<DocumentType extends Document> = {
   /** List of document objects returned by the API */
@@ -30,8 +32,16 @@ export type DocumentListProps<DocumentType extends Document> = {
   title: string;
 };
 
+type IconComponent = (props: { className?: string }) => JSX.Element;
+
+const mimeTypeIcons: Record<MimeType, IconComponent> = {
+  'application/pdf': FilePdfFilledIcon,
+  'text/html': FileGenericIcon,
+  video: PreviewIcon,
+};
+
 /**
- * List of the documents
+ * List of files and folders in a file picker.
  */
 export default function DocumentList<DocumentType extends Document>({
   documents,
@@ -58,19 +68,22 @@ export default function DocumentList<DocumentType extends Document>({
 
   const renderItem = (document: DocumentType, field: keyof DocumentType) => {
     switch (field) {
-      case 'display_name':
+      case 'display_name': {
+        let Icon;
+        if (document.type === 'Folder') {
+          Icon = FolderIcon;
+        } else if (document.mime_type) {
+          Icon = mimeTypeIcons[document.mime_type];
+        } else {
+          Icon = FileGenericIcon;
+        }
         return (
           <div className="flex flex-row items-center gap-x-2">
-            {document.type === 'Folder' ? (
-              <FolderIcon className="w-5 h-5" />
-            ) : document.type === 'Page' ? (
-              <FileGenericIcon className="w-5 h-5" />
-            ) : (
-              <FilePdfFilledIcon className="w-5 h-5" />
-            )}
+            <Icon className="w-5 h-5" />
             {document.display_name}
           </div>
         );
+      }
       case 'updated_at':
       default:
         return document.updated_at ? formatDate(document.updated_at) : '';

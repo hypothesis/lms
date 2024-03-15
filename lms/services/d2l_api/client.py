@@ -201,6 +201,7 @@ class D2LAPIClient:
             module_files = [
                 {
                     "type": "File",
+                    "mime_type": "application/pdf",
                     "display_name": topic["display_name"],
                     "lms_id": topic["id"],
                     "id": f"d2l://file/course/{course_id}/file_id/{topic['id']}/",

@@ -246,6 +246,13 @@ class CanvasAPIClient:
             params={"content_types[]": "application/pdf", "sort": sort},
             schema=self._ListFilesSchema,
         )
+
+        # Set the mime type. We currently only list PDF files, so we know it
+        # is always application/pdf. We could use the `content-type` property
+        # from the API response if we supported other content types.
+        for file in files:
+            file["mime_type"] = "application/pdf"
+
         # Canvas' pagination is broken as it sorts by fields that allows duplicates.
         # This can lead to objects being skipped or duplicated across pages.
         # We can't detected objects that are not returned but we can detect the duplicates,

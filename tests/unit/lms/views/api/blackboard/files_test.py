@@ -20,6 +20,7 @@ class TestListFiles:
                 "updated_at": "2008-05-06T07:26:35.000z",
                 "display_name": "File_1.pdf",
                 "type": "File",
+                "mime_type": "application/pdf",
                 "parent_id": None,
             },
             {

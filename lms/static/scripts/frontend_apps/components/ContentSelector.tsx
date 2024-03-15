@@ -1,7 +1,7 @@
 import { OptionButton, SpinnerOverlay } from '@hypothesis/frontend-shared';
 import { useMemo, useState } from 'preact/hooks';
 
-import type { File, Page } from '../api-types';
+import type { File } from '../api-types';
 import { useConfig } from '../config';
 import { PickerCanceledError } from '../errors';
 import type { Content } from '../utils/content-item';
@@ -170,14 +170,14 @@ export default function ContentSelector({
   };
 
   // file.id is a URL with a `blackboard://`, `d2l://` or `moodle://` prefix.
-  const selectFileAsURL = (file: File | Page) => selectURL(file.id);
+  const selectFileAsURL = (file: File) => selectURL(file.id);
 
-  const selectPageAsURL = (page: File | Page, lms: string) => {
+  const selectPageAsURL = (page: File, lms: string) => {
     const name = `${lms} page: ${page.display_name}`;
     selectURL(page.id, name);
   };
 
-  const selectCanvasFile = (file: File | Page) => {
+  const selectCanvasFile = (file: File) => {
     cancelDialog();
     onSelectContent({ type: 'file', file: file as File });
   };
@@ -187,16 +187,14 @@ export default function ContentSelector({
     selectURL(url, name);
   };
 
-  const selectCanvasPage = (page: File | Page) =>
-    selectPageAsURL(page, 'Canvas');
+  const selectCanvasPage = (page: File) => selectPageAsURL(page, 'Canvas');
 
-  const selectCanvasStudio = (video: File | Page) => {
+  const selectCanvasStudio = (video: File) => {
     const name = `Canvas Studio video: ${video.display_name}`;
     selectURL(video.id, name);
   };
 
-  const selectMoodlePage = (page: File | Page) =>
-    selectPageAsURL(page, 'Moodle');
+  const selectMoodlePage = (page: File) => selectPageAsURL(page, 'Moodle');
 
   const selectVitalSourceBook = async (
     selection: unknown,

@@ -173,7 +173,8 @@ class MoodleAPIClient:
                     updated_at = page_index[0]["updated_at"] if page_index else None
 
                     file_node = {
-                        "type": "Page",
+                        "type": "File",
+                        "mime_type": "text/html",
                         "display_name": module["name"],
                         "lms_id": module["id"],
                         "id": f"moodle://page/course/{course_id}/page_id/{module['id']}",
@@ -237,6 +238,7 @@ class MoodleAPIClient:
 
             file_node = {
                 "type": "File",
+                "mime_type": "application/pdf",
                 "display_name": path_components[-1],
                 "id": f"moodle://file/course/{course_id}/url/{file_data['url']}",
                 "lms_id": file_data["url"],

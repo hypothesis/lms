@@ -49,6 +49,7 @@ class BlackboardFilesAPIViews:
 
             if result["type"] == "File" and result.get("mimeType") == "application/pdf":
                 response_result["id"] = f"blackboard://content-resource/{result['id']}/"
+                response_result["mime_type"] = "application/pdf"
                 response_results.append(response_result)
             elif result["type"] == "Folder":
                 response_result["id"] = result["id"]

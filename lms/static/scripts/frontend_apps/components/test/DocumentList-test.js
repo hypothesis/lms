@@ -13,6 +13,7 @@ describe('DocumentList', () => {
       display_name: 'Test.pdf',
       updated_at: '2019-05-09T17:45:21+00:00Z',
       type: 'File',
+      mime_type: 'application/pdf',
     },
   ];
 
@@ -40,17 +41,24 @@ describe('DocumentList', () => {
   });
 
   [
-    ['File', 'FilePdfFilledIcon'],
-    ['Folder', 'FolderIcon'],
-    ['Page', 'FileGenericIcon'],
-  ].forEach(([type, expectedIcon]) => {
+    // Folder
+    { type: 'Folder', icon: 'FolderIcon' },
+
+    // Files with known mime type
+    { type: 'File', mime_type: 'application/pdf', icon: 'FilePdfFilledIcon' },
+    { type: 'File', mime_type: 'text/html', icon: 'FileGenericIcon' },
+    { type: 'File', mime_type: 'video', icon: 'PreviewIcon' },
+
+    // File with unknown mime type
+    { type: 'File', icon: 'FileGenericIcon' },
+  ].forEach(({ type, mime_type, icon }) => {
     it('renders documents with an icon, document name and date', () => {
       const wrapper = renderDocumentList({
-        documents: [{ ...testDocuments[0], type }],
+        documents: [{ ...testDocuments[0], type, mime_type }],
       });
       const formattedDate = new Date(testDocuments[0]).toLocaleDateString();
       const dataRow = wrapper.find('tbody tr').at(0);
-      assert.isTrue(dataRow.find(expectedIcon).exists());
+      assert.isTrue(dataRow.find(icon).exists());
       assert.equal(
         dataRow.find('td').at(0).text(),
         testDocuments[0].display_name,
