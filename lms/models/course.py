@@ -1,5 +1,6 @@
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column
 
 from lms.db import Base
 from lms.models.json_settings import JSONSettings
@@ -27,8 +28,7 @@ class LegacyCourse(Base):
     #: settings belong to.
     authority_provided_id = sa.Column(sa.UnicodeText(), primary_key=True)
 
-    settings = sa.Column(
-        "settings",
+    settings: Mapped[JSONSettings] = mapped_column(
         JSONSettings.as_mutable(JSONB),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,

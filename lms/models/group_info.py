@@ -1,6 +1,7 @@
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
+from sqlalchemy.orm import Mapped, mapped_column
 
 from lms.db import Base
 
@@ -87,7 +88,9 @@ class GroupInfo(Base):
     custom_canvas_course_id = sa.Column(sa.UnicodeText())
 
     #: A dict of info about this group.
-    _info = sa.Column("info", MutableDict.as_mutable(JSONB))
+    _info: Mapped[MutableDict | None] = mapped_column(
+        "info", MutableDict.as_mutable(JSONB)
+    )
 
     @property
     def _safe_info(self):
