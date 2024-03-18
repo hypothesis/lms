@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import cast
 
 from lms.product.plugin.course_copy import CourseCopyPlugin
 from lms.product.plugin.grouping import GroupingPlugin
@@ -31,9 +32,9 @@ class Plugins:
             setattr(instance, self.plugin_name, plugin)  # Overwrite the attr
             return plugin
 
-    grouping: GroupingPlugin = _LazyPlugin()  # type: ignore
-    course_copy: CourseCopyPlugin = _LazyPlugin()  # type:ignore
-    misc: MiscPlugin = _LazyPlugin()  # type:ignore
+    grouping = cast(GroupingPlugin, _LazyPlugin())
+    misc = cast(MiscPlugin, _LazyPlugin())
+    course_copy = cast(CourseCopyPlugin, _LazyPlugin())
 
     def __init__(self, request, plugin_config: PluginConfig):
         self._request = request
