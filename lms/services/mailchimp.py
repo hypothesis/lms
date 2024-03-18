@@ -1,6 +1,7 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import mailchimp_transactional
 from pyramid.renderers import render
@@ -72,7 +73,7 @@ class MailchimpService:
 
         subject = render(str(template / Path("subject.jinja2")), template_vars)
 
-        params = {
+        params: dict[str, Any] = {
             "message": {
                 "subject": subject,
                 "html": "...",  # For logging only, will be replaced below.

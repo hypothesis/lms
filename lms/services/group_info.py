@@ -46,7 +46,7 @@ class GroupInfoService:
         # AI should be many:many, and we reflect that wrongness here.
         group_info.application_instance = grouping.application_instance
 
-        group_info.type = self._GROUPING_TYPES[grouping.type]
+        group_info.type = self._GROUPING_TYPES[grouping.type]  # type: ignore
 
         for field in [
             # Most (all) of these are duplicated elsewhere, we'll keep updating for now
