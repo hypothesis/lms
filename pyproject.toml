@@ -155,7 +155,6 @@ disable_error_code = [
     "no-redef",
     "no-untyped-call",
     "no-untyped-def",
-    "override",
     "return-value",
 ]
 
