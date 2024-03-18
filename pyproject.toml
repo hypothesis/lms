@@ -148,7 +148,6 @@ python_version = 3.11
 disable_error_code = [
     "arg-type",
     "attr-defined",
-    "has-type",
     "import-untyped",
     "index",
     "list-item",
@@ -158,9 +157,6 @@ disable_error_code = [
     "no-untyped-def",
     "override",
     "return-value",
-    "type-arg",
-    "union-attr",
-    "valid-type",
 ]
 
 plugins = []
