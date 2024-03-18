@@ -149,7 +149,6 @@ disable_error_code = [
     "arg-type",
     "attr-defined",
     "import-untyped",
-    "index",
     "list-item",
     "misc",
     "no-redef",
