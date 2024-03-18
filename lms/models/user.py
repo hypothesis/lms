@@ -1,4 +1,5 @@
 import sqlalchemy as sa
+from sqlalchemy.orm import mapped_column
 
 from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
@@ -40,8 +41,8 @@ class User(CreatedUpdatedMixin, Base):
     h_userid = sa.Column(sa.Unicode, nullable=False)
     """The H userid which is created from LTI provided values."""
 
-    email = sa.Column(sa.Unicode, nullable=True)
+    email = mapped_column(sa.Unicode, nullable=True)
     """Email address of the user"""
 
-    display_name = sa.Column(sa.Unicode, nullable=True)
+    display_name = mapped_column(sa.Unicode, nullable=True)
     """The user's display name."""

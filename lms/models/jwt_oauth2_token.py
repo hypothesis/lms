@@ -1,4 +1,5 @@
 import sqlalchemy as sa
+from sqlalchemy.orm import Mapped, mapped_column
 
 from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
@@ -44,7 +45,7 @@ class JWTOAuth2Token(CreatedUpdatedMixin, Base):
     scopes = sa.Column(sa.UnicodeText(), nullable=False)
 
     # The OAuth 2.0 access token, as received from the authorization server.
-    access_token = sa.Column(sa.UnicodeText(), nullable=False)
+    access_token: Mapped[str] = mapped_column(sa.UnicodeText(), nullable=False)
 
     # Time at which the toke will expire
-    expires_at = sa.Column(sa.DateTime, nullable=False)
+    expires_at = mapped_column(sa.DateTime, nullable=False)

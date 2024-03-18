@@ -163,9 +163,7 @@ disable_error_code = [
     "valid-type",
 ]
 
-plugins = [
-    "sqlalchemy.ext.mypy.plugin",
-]
+plugins = []
 
 [[tool.mypy.overrides]]
 module="tests.*"

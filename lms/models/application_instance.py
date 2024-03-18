@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 import sqlalchemy as sa
 from pyramid.settings import asbool
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import Mapped, mapped_column
 
 from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
@@ -80,7 +80,7 @@ class ApplicationInstance(CreatedUpdatedMixin, Base):
     organization_id = sa.Column(
         sa.Integer(), sa.ForeignKey("organization.id"), nullable=True
     )
-    organization: Mapped["Organization"] = sa.orm.relationship("Organization")
+    organization = sa.orm.relationship("Organization")
     """The organization this application instance belongs to."""
 
     name = sa.Column(sa.UnicodeText(), nullable=True)
@@ -97,15 +97,13 @@ class ApplicationInstance(CreatedUpdatedMixin, Base):
     developer_key = sa.Column(sa.Unicode)
     developer_secret = sa.Column(sa.LargeBinary)
     aes_cipher_iv = sa.Column(sa.LargeBinary)
-    provisioning = sa.Column(
+    provisioning: Mapped[bool] = mapped_column(
         sa.Boolean(),
         default=True,
         server_default=sa.sql.expression.true(),
         nullable=False,
     )
-
-    settings = sa.Column(
-        "settings",
+    settings: Mapped[ApplicationSettings] = mapped_column(
         ApplicationSettings.as_mutable(JSONB),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,

@@ -3,6 +3,7 @@ from enum import Enum
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
+from sqlalchemy.orm import Mapped, mapped_column
 
 from lms.db import Base, varchar_enum
 from lms.models._mixins import CreatedUpdatedMixin
@@ -113,15 +114,13 @@ class Grouping(CreatedUpdatedMixin, Base):
 
     type = varchar_enum(Type, nullable=False)
 
-    settings = sa.Column(
-        "settings",
+    settings: Mapped[JSONSettings] = mapped_column(
         JSONSettings.as_mutable(JSONB),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
     )
 
-    extra = sa.Column(
-        "extra",
+    extra: Mapped[MutableDict] = mapped_column(
         MutableDict.as_mutable(JSONB),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
