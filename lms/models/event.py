@@ -3,6 +3,7 @@ from enum import Enum
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
+from sqlalchemy.orm import Mapped, mapped_column
 
 from lms.db import Base, varchar_enum
 
@@ -127,7 +128,7 @@ class EventData(Base):
     )
     event = sa.orm.relationship("Event")
 
-    data = sa.Column(
+    data: Mapped[MutableDict] = mapped_column(
         "extra",
         MutableDict.as_mutable(JSONB),
         server_default=sa.text("'{}'::jsonb"),

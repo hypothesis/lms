@@ -1,6 +1,7 @@
 import uuid
 
 import sqlalchemy as sa
+from sqlalchemy.orm import Mapped, mapped_column
 
 from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
@@ -23,7 +24,7 @@ class RSAKey(CreatedUpdatedMixin, Base):
     aes_cipher_iv = sa.Column(sa.LargeBinary)
     """IV for the private key AES encryption"""
 
-    expired = sa.Column(
+    expired: Mapped[bool] = mapped_column(
         sa.Boolean(),
         default=False,
         server_default=sa.sql.expression.false(),

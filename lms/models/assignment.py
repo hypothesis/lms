@@ -1,6 +1,7 @@
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
+from sqlalchemy.orm import Mapped, mapped_column
 
 from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
@@ -50,17 +51,16 @@ class Assignment(CreatedUpdatedMixin, Base):
     )
     """Assignment this one was copied from."""
 
-    document_url = sa.Column(sa.Unicode, nullable=False)
+    document_url: Mapped[str] = mapped_column(sa.Unicode, nullable=False)
     """The URL of the document to be annotated for this assignment."""
 
-    extra = sa.Column(
-        "extra",
+    extra: Mapped[MutableDict] = mapped_column(
         MutableDict.as_mutable(JSONB),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
     )
 
-    is_gradable = sa.Column(
+    is_gradable: Mapped[bool] = mapped_column(
         sa.Boolean(),
         default=False,
         server_default=sa.sql.expression.false(),
@@ -74,7 +74,7 @@ class Assignment(CreatedUpdatedMixin, Base):
     description = sa.Column(sa.Unicode, nullable=True)
     """The resource link description from LTI params."""
 
-    deep_linking_uuid = sa.Column(sa.Unicode, nullable=True)
+    deep_linking_uuid: Mapped[str | None] = mapped_column(sa.Unicode, nullable=True)
     """UUID that identifies the deep linking that created this assignment."""
 
     def get_canvas_mapped_file_id(self, file_id):

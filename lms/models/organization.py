@@ -1,5 +1,6 @@
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column
 
 from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin, PublicIdMixin
@@ -19,10 +20,10 @@ class Organization(CreatedUpdatedMixin, PublicIdMixin, Base):
     name = sa.Column(sa.UnicodeText(), nullable=True)
     """Human readable name for the organization."""
 
-    enabled = sa.Column(sa.Boolean(), nullable=False, default=True)
+    enabled: Mapped[bool] = mapped_column(sa.Boolean(), nullable=False, default=True)
     """Is this organization allowed to use LMS?"""
 
-    parent_id = sa.Column(
+    parent_id: Mapped[int | None] = mapped_column(
         sa.Integer(),
         sa.ForeignKey("organization.id", ondelete="cascade"),
         nullable=True,
@@ -39,8 +40,7 @@ class Organization(CreatedUpdatedMixin, PublicIdMixin, Base):
     )
     """Get any application instances associated with this organization."""
 
-    settings = sa.Column(
-        "settings",
+    settings: Mapped[JSONSettings] = mapped_column(
         JSONSettings.as_mutable(JSONB),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
