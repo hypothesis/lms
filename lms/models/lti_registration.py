@@ -1,4 +1,5 @@
 import sqlalchemy as sa
+from sqlalchemy.orm import mapped_column
 
 from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
@@ -31,7 +32,7 @@ class LTIRegistration(CreatedUpdatedMixin, Base):
 
     key_set_url = sa.Column(sa.UnicodeText, nullable=False)
     """Location of the public keys provied by the issuer for this registration"""
-    token_url = sa.Column(sa.UnicodeText, nullable=False)
+    token_url = mapped_column(sa.UnicodeText, nullable=False)
     """Endpoint to request new oauth tokens to use with LTIA APIs"""
 
     application_instances = sa.orm.relationship(

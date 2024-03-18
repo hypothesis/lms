@@ -67,7 +67,7 @@ class CanvasStudioCaptionFilesSchema(RequestsResponseSchema):
 
 class APICallInfo(TypedDict):
     path: str
-    authUrl: str | None
+    authUrl: NotRequired[str]
 
 
 class File(TypedDict):
@@ -80,7 +80,7 @@ class File(TypedDict):
     display_name: str
     updated_at: str
 
-    contents: APICallInfo | None
+    contents: NotRequired[APICallInfo]
     """API call to use to fetch contents of a folder."""
 
 
@@ -191,7 +191,7 @@ class CanvasStudioService:
         collections = self._api_request("v1/collections", CanvasStudioCollectionsSchema)
         user_collection = None
 
-        files = []
+        files: list[File] = []
         for collection in collections:
             if collection["type"] == "user":
                 user_collection = collection
@@ -224,7 +224,7 @@ class CanvasStudioService:
             f"v1/collections/{collection_id}/media", CanvasStudioCollectionMediaSchema
         )
 
-        files = []
+        files: list[File] = []
         for item in media:
             media_id = item["id"]
             files.append(
