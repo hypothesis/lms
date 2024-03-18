@@ -150,7 +150,6 @@ disable_error_code = [
     "attr-defined",
     "import-untyped",
     "misc",
-    "no-redef",
     "return-value",
 ]
 

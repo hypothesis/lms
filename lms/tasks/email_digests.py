@@ -144,12 +144,12 @@ def send_instructor_email_digest(
     """
     # Caution: datetime.fromisoformat() doesn't support all ISO 8601 strings!
     # This only works for the subset of ISO 8601 produced by datetime.isoformat().
-    created_before: datetime = datetime.fromisoformat(created_before)
+    created_before: datetime = datetime.fromisoformat(created_before)  # type: ignore
 
     if created_after is None:
         created_after = created_before - timedelta(days=7)  # type: ignore
     else:
-        created_after: datetime = datetime.fromisoformat(created_after)
+        created_after: datetime = datetime.fromisoformat(created_after)  # type: ignore
 
     with app.request_context() as request:  # pylint:disable=no-member
         with request.tm:
