@@ -62,6 +62,6 @@ class PublicIdMixin:
             )
         )
 
-    @public_id.comparator
+    @public_id.inplace.comparator
     def public_id_comparator(self):
         return _PublicIdComparator(self._public_id)

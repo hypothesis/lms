@@ -121,7 +121,7 @@ class RSAKeyService:
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo,
         )
-        return jwk.RSAKey(
+        return jwk.RSAKey(  # type: ignore
             algorithm=constants.Algorithms.RS256, key=pem_public_key.decode("utf-8")
         ).to_dict()
 
