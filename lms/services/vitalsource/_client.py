@@ -3,7 +3,7 @@ from functools import lru_cache
 
 import xmltodict
 from marshmallow import EXCLUDE, Schema, fields
-from requests import JSONDecodeError, Request
+from requests import JSONDecodeError, PreparedRequest
 from requests.auth import AuthBase
 
 from lms.services.exceptions import ExternalRequestError, SerializableError
@@ -244,7 +244,7 @@ class _VSUserAuth(AuthBase):
         self._client = client
         self._user_reference = user_reference
 
-    def __call__(self, request: Request) -> Request:
+    def __call__(self, request: PreparedRequest) -> PreparedRequest:
         credentials = self._client.get_user_credentials(self._user_reference)
         request.headers["X-VitalSource-Access-Token"] = credentials["access_token"]
 
