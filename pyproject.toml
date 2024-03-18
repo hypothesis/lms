@@ -152,12 +152,9 @@ disable_error_code = [
     "misc",
 ]
 
-plugins = []
-
 [[tool.mypy.overrides]]
-module="tests.*"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
-module="lms.migrations.*"
+module= [
+  "tests.*",
+  "lms.migrations.*"
+]
 ignore_errors = true
