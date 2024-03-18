@@ -87,7 +87,7 @@ class LTIRole(Base):
     def value(self):
         return self._value
 
-    @value.setter
+    @value.inplace.setter
     def value_setter(self, value):
         self._value = value
         self.update_from_value()

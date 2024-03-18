@@ -170,6 +170,9 @@ class CanvasAPIClient:
     class _CourseSectionsSchema(RequestsResponseSchema, _SectionSchema):
         """Schema for the "list course sections" responses."""
 
+        class Meta:
+            unknown = EXCLUDE
+
         many = True
 
         @validates_schema(pass_many=True)
