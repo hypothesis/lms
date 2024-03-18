@@ -20,7 +20,7 @@ class EventType(Base):
         GRADE = "grade"
         ERROR_CODE = "error_code"
 
-    id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
+    id = mapped_column(sa.Integer, autoincrement=True, primary_key=True)
     type = varchar_enum(Type)
 
 
@@ -29,7 +29,7 @@ class Event(Base):
 
     __tablename__ = "event"
 
-    id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
+    id = mapped_column(sa.Integer, autoincrement=True, primary_key=True)
 
     timestamp = sa.Column(
         sa.DateTime(),
