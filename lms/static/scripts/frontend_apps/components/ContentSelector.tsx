@@ -392,7 +392,6 @@ export default function ContentSelector({
           data-testid="url-button"
           details="Web page | PDF"
           onClick={() => selectDialog('url')}
-          title="Enter a URL to a web page or PDF"
         >
           URL
         </OptionButton>
@@ -401,7 +400,6 @@ export default function ContentSelector({
             data-testid="canvas-file-button"
             details="PDF"
             onClick={() => selectDialog('canvasFile')}
-            title="Select PDF from Canvas"
           >
             Canvas File
           </OptionButton>
@@ -411,7 +409,6 @@ export default function ContentSelector({
             data-testid="canvas-page-button"
             details="Page"
             onClick={() => selectDialog('canvasPage')}
-            title="Select a Page from Canvas"
           >
             Canvas Page
           </OptionButton>
@@ -430,7 +427,6 @@ export default function ContentSelector({
             data-testid="blackboard-file-button"
             details="PDF"
             onClick={() => selectDialog('blackboardFile')}
-            title="Select PDF from Blackboard"
           >
             Blackboard
           </OptionButton>
@@ -440,7 +436,6 @@ export default function ContentSelector({
             data-testid="d2l-file-button"
             details="PDF"
             onClick={() => selectDialog('d2lFile')}
-            title="Select PDF from D2L"
           >
             D2L
           </OptionButton>
@@ -450,7 +445,6 @@ export default function ContentSelector({
             data-testid="moodle-file-button"
             details="PDF"
             onClick={() => selectDialog('moodleFile')}
-            title="Select PDF from Moodle"
           >
             Moodle File
           </OptionButton>
@@ -460,7 +454,6 @@ export default function ContentSelector({
             data-testid="moodle-page-button"
             details="Page"
             onClick={() => selectDialog('moodlePage')}
-            title="Select a Page from Moodle"
           >
             Moodle Page
           </OptionButton>
@@ -471,7 +464,6 @@ export default function ContentSelector({
             details="PDF"
             data-testid="google-drive-button"
             onClick={showGooglePicker}
-            title="Select PDF from Google Drive"
           >
             Google Drive
           </OptionButton>
@@ -481,7 +473,6 @@ export default function ContentSelector({
             data-testid="jstor-button"
             details="Article"
             onClick={() => selectDialog('jstor')}
-            title="Select JSTOR article"
           >
             JSTOR
           </OptionButton>
@@ -491,7 +482,6 @@ export default function ContentSelector({
             data-testid="onedrive-button"
             details="PDF"
             onClick={showOneDrivePicker}
-            title="Select PDF from OneDrive"
           >
             OneDrive
           </OptionButton>
@@ -501,7 +491,6 @@ export default function ContentSelector({
             data-testid="vitalsource-button"
             details="Book"
             onClick={() => selectDialog('vitalSourceBook')}
-            title="Select book from VitalSource"
           >
             VitalSource
           </OptionButton>
@@ -511,7 +500,6 @@ export default function ContentSelector({
             data-testid="youtube-button"
             details="Video"
             onClick={() => selectDialog('youtube')}
-            title="Select video from YouTube"
           >
             YouTube
           </OptionButton>
