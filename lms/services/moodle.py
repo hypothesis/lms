@@ -254,26 +254,6 @@ class MoodleAPIClient(LMSAPI):
 
         return url + f"&wsfunction={function.value}"
 
-    def _documents_for_storage(  # pylint:disable=too-many-arguments
-        self, course_id, files, folder_type, document_type, parent_id=None
-    ):
-        for file in files:
-            yield {
-                "type": folder_type if file["type"] == "Folder" else document_type,
-                "course_id": course_id,
-                "lms_id": file["lms_id"],
-                "name": file["display_name"],
-                "parent_lms_id": parent_id,
-            }
-
-            yield from self._documents_for_storage(
-                course_id,
-                file.get("children", []),
-                folder_type,
-                document_type,
-                file["id"],
-            )
-
     def _request(self, url: str, params: dict | None = None):
         response = self._http.post(url, params=params).json()
 

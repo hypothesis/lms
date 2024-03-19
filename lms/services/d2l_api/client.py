@@ -126,7 +126,13 @@ class D2LAPIClient(LMSAPI):
         """Get a nested list of files and folders for the given `org_unit`."""
         modules = self._get_course_modules(course_id)
         files = list(self._find_files(course_id, modules))
-        self._file_service.upsert(list(self._files_for_storage(course_id, files)))
+        self._file_service.upsert(
+            list(
+                self._documents_for_storage(
+                    course_id, files, folder_type="d2l_folder", document_type="d2l_file"
+                )
+            )
+        )
 
         return files
 
@@ -225,17 +231,3 @@ class D2LAPIClient(LMSAPI):
                 "updated_at": module["updated_at"],
                 "children": module_files + list(module_children),
             }
-
-    def _files_for_storage(self, course_id, files, parent_id=None):
-        for file in files:
-            yield {
-                "type": "d2l_file" if file["type"] == "File" else "d2l_folder",
-                "course_id": course_id,
-                "lms_id": file["lms_id"],
-                "name": file["display_name"],
-                "parent_lms_id": parent_id,
-            }
-
-            yield from self._files_for_storage(
-                course_id, file.get("children", []), file["id"]
-            )
