@@ -19,7 +19,7 @@ class FilePickerConfig:
             config["listFiles"] = {
                 "authUrl": request.route_url(D2L.route.oauth2_authorize),
                 "path": request.route_path(
-                    "d2l_api.courses.files.list",
+                    "api.courses.files.list",
                     course_id=request.lti_params.get("context_id"),
                 ),
             }
@@ -54,8 +54,7 @@ class FilePickerConfig:
             config["listFiles"] = {
                 "authUrl": None,
                 "path": request.route_path(
-                    "moodle_api.courses.files.list",
-                    course_id=course_id,
+                    "api.courses.files.list", course_id=course_id
                 ),
             }
 

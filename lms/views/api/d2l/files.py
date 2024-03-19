@@ -3,7 +3,6 @@ import re
 from pyramid.view import view_config
 
 from lms.security import Permissions
-from lms.services.d2l_api import D2LAPIClient
 from lms.services.exceptions import FileNotFoundInCourse
 from lms.views import helpers
 
@@ -14,24 +13,13 @@ DOCUMENT_URL_REGEX = re.compile(
 
 @view_config(
     request_method="GET",
-    route_name="d2l_api.courses.files.list",
-    renderer="json",
-    permission=Permissions.API,
-)
-def list_files(_context, request):
-    """Return the list of files in the given course."""
-    return request.find_service(D2LAPIClient).list_files(request.matchdict["course_id"])
-
-
-@view_config(
-    request_method="GET",
     route_name="d2l_api.courses.files.via_url",
     renderer="json",
     permission=Permissions.API,
 )
 def via_url(_context, request):
     course_copy_plugin = request.product.plugin.course_copy
-    api_client = request.find_service(D2LAPIClient)
+    api_client = request.find_service(name="d2l")
 
     course_id = request.matchdict["course_id"]
     document_url = request.params["document_url"]

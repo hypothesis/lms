@@ -2,7 +2,6 @@ from enum import Enum
 
 from lms.models import Course, Grouping
 from lms.product.plugin.grouping import GroupError, GroupingPlugin
-from lms.services import D2LAPIClient
 from lms.services.exceptions import ExternalRequestError
 
 
@@ -74,7 +73,7 @@ class D2LGroupingPlugin(GroupingPlugin):
 
     @classmethod
     def factory(cls, _context, request):
-        d2l_api = request.find_service(D2LAPIClient)
+        d2l_api = request.find_service(name="d2l")
         return cls(
             d2l_api=d2l_api,
             api_user_id=d2l_api.get_api_user_id(request.lti_user.user_id),

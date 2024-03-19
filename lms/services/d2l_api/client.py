@@ -1,6 +1,7 @@
 from marshmallow import EXCLUDE, Schema, ValidationError, fields, validates_schema
 
 from lms.services.exceptions import ExternalRequestError, FileNotFoundInCourse
+from lms.services.lms_api import LMSAPI, LMSDocument
 from lms.validation._base import RequestsResponseSchema
 
 
@@ -67,7 +68,7 @@ class D2LTableOfContentsSchema(RequestsResponseSchema):
     )
 
 
-class D2LAPIClient:
+class D2LAPIClient(LMSAPI):
     def __init__(self, basic_client, file_service, lti_user):
         self._api = basic_client
         self._file_service = file_service
@@ -121,11 +122,11 @@ class D2LAPIClient:
 
         return groups
 
-    def list_files(self, org_unit) -> list[dict]:
+    def list_files(self, course_id) -> list[LMSDocument]:
         """Get a nested list of files and folders for the given `org_unit`."""
-        modules = self._get_course_modules(org_unit)
-        files = list(self._find_files(org_unit, modules))
-        self._file_service.upsert(list(self._files_for_storage(org_unit, files)))
+        modules = self._get_course_modules(course_id)
+        files = list(self._find_files(course_id, modules))
+        self._file_service.upsert(list(self._files_for_storage(course_id, files)))
 
         return files
 

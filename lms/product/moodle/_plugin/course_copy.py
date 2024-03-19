@@ -34,7 +34,7 @@ class MoodleCourseCopyPlugin:
     @classmethod
     def factory(cls, _context, request):
         return cls(
-            request.find_service(MoodleAPIClient),
+            request.find_service(name="moodle"),
             files_helper=request.find_service(CourseCopyFilesHelper),
             groups_helper=request.find_service(CourseCopyGroupsHelper),
         )

@@ -11,6 +11,7 @@ from lms.models import ApplicationSettings, LTIParams
 from lms.models.lti_role import Role, RoleScope, RoleType
 from lms.product import Product
 from lms.security import Identity
+from lms.services.lms_api import LMSAPI
 from tests import factories
 from tests.conftest import TEST_SETTINGS
 from tests.unit.services import *  # pylint: disable=wildcard-import,unused-wildcard-import
@@ -136,6 +137,7 @@ def pyramid_request(db_session, application_instance, lti_v11_params):
     pyramid_request.product = Product.from_request(
         pyramid_request, dict(application_instance.settings)
     )
+    type(pyramid_request.product).api_client = mock.create_autospec(LMSAPI)
 
     # The DummyRequest request lacks a content_type property which the real
     # request has

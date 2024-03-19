@@ -5,7 +5,6 @@ from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
 from lms.services.exceptions import FileNotFoundInCourse
-from lms.services.moodle import MoodleAPIClient
 from lms.validation.authentication import BearerTokenSchema
 from lms.views import helpers
 
@@ -25,11 +24,12 @@ class PageNotFoundInCourse(FileNotFoundInCourse):
 class PagesAPIViews:
     def __init__(self, request):
         self.request = request
-        self.api = request.find_service(MoodleAPIClient)
+
+        self.api = request.find_service(name="moodle")
 
     @view_config(request_method="GET", route_name="moodle_api.courses.pages.list")
     def list_pages(self):
-        return self.request.find_service(MoodleAPIClient).list_pages(
+        return self.request.find_service(name="moodle").list_pages(
             self.request.matchdict["course_id"]
         )
 

@@ -129,7 +129,7 @@ def includeme(config):
     )
     config.register_service_factory("lms.services.region.factory", iface=RegionService)
     config.register_service_factory(
-        "lms.services.d2l_api.d2l_api_client_factory", iface=D2LAPIClient
+        "lms.services.d2l_api.d2l_api_client_factory", name="d2l"
     )
     config.register_service_factory(
         "lms.services.digest.service_factory", iface=DigestService
@@ -140,7 +140,7 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.youtube.factory", iface=YouTubeService
     )
-    config.register_service_factory(MoodleAPIClient.factory, iface=MoodleAPIClient)
+    config.register_service_factory(MoodleAPIClient.factory, name="moodle")
 
     # Plugins are not the same as top level services but we want to register them as pyramid services too
     # Importing them here to:

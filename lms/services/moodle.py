@@ -3,6 +3,7 @@ from enum import Enum
 from lms.services.aes import AESService
 from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService
+from lms.services.lms_api import LMSAPI, LMSDocument
 
 
 class Function(str, Enum):
@@ -22,7 +23,7 @@ class Function(str, Enum):
     """Returns a list of pages in a provided list of courses."""
 
 
-class MoodleAPIClient:
+class MoodleAPIClient(LMSAPI):
     API_PATH = "webservice/rest/server.php"
 
     def __init__(
@@ -72,7 +73,7 @@ class MoodleAPIClient:
         response = self._request(url, params={"courseid": course_id})
         return response
 
-    def list_files(self, course_id: int):
+    def list_files(self, course_id: int) -> list[LMSDocument]:
         contents = self.course_contents(course_id)
         files = []
 

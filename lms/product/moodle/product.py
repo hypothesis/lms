@@ -19,3 +19,5 @@ class Moodle(Product):
     route: Routes = Routes()
 
     settings_key = "moodle"
+
+    api_client_name = "moodle"

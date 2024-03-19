@@ -2,7 +2,6 @@ from pyramid.view import view_config, view_defaults
 
 from lms.security import Permissions
 from lms.services.canvas_studio import CanvasStudioService
-from lms.services.d2l_api import D2LAPIClient
 
 
 @view_defaults(request_method="POST", permission=Permissions.API, renderer="json")
@@ -32,4 +31,4 @@ class RefreshViews:
 
     @view_config(route_name="d2l_api.oauth.refresh")
     def get_refreshed_token_from_d2l(self):
-        self.request.find_service(D2LAPIClient).refresh_access_token()
+        self.request.find_service(name="d2l").refresh_access_token()
