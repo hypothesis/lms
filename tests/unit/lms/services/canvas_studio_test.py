@@ -13,7 +13,6 @@ from tests import factories
 
 @pytest.mark.usefixtures("aes_service", "canvas_studio_settings", "oauth_http_factory")
 class TestCanvasStudioService:
-
     def test_get_access_token(self, svc, oauth_http_service, client_secret):
         svc.get_access_token("some_code")
 
@@ -75,6 +74,7 @@ class TestCanvasStudioService:
                 "display_name": "More videos",
                 "updated_at": "2024-02-01",
                 "id": "8",
+                "lms_id": "8",
                 "contents": {
                     "path": "http://example.com/api/canvas_studio/collections/8/media"
                 },
@@ -85,6 +85,7 @@ class TestCanvasStudioService:
                 "mime_type": "video",
                 "updated_at": "2024-02-03",
                 "id": "canvas-studio://media/5",
+                "lms_id": "5",
             },
         ]
 
@@ -123,6 +124,7 @@ class TestCanvasStudioService:
                 "mime_type": "video",
                 "updated_at": "2024-02-04",
                 "id": "canvas-studio://media/6",
+                "lms_id": "6",
             }
         ]
 

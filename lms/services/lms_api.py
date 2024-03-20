@@ -1,17 +1,31 @@
-from typing import Literal, Protocol, Self, TypedDict
+from typing import Literal, NotRequired, Protocol, TypedDict
+
+
+class APICallInfo(TypedDict):
+    path: str
+    authUrl: NotRequired[str]
 
 
 class LMSDocument(TypedDict):
     """Represents a document or folder in an LMS's file storage."""
 
     type: Literal["File", "Folder"]
+    mime_type: NotRequired[Literal["text/html", "application/pdf", "video"]]
 
     id: str
+    """ID of the document in our sytem. Often in the form schema://DETAILS/"""
+
     lms_id: str
+    """ID of the document in the LMS itself."""
+
     display_name: str
     updated_at: str
 
-    children: list[Self]
+    children: NotRequired[list["LMSDocument"]]
+    """Children of the current folder."""
+
+    contents: NotRequired[APICallInfo]
+    """API call to use to fetch contents of a folder."""
 
 
 class LMSAPI(Protocol):
