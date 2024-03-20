@@ -253,10 +253,7 @@ class DeepLinkingFieldsViews:
         if title := request.parsed_params.get("title"):
             params["title"] = title
 
-        if content["type"] == "file":
-            params["canvas_file"] = "true"
-            params["file_id"] = content["file"]["id"]
-        elif content["type"] == "url":
+        if content["type"] == "url":
             params["url"] = content["url"]
         else:
             raise ValueError(f"Unknown content type: '{content['type']}'")

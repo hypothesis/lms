@@ -250,11 +250,13 @@ class CanvasAPIClient:
             schema=self._ListFilesSchema,
         )
 
-        # Set the mime type. We currently only list PDF files, so we know it
-        # is always application/pdf. We could use the `content-type` property
-        # from the API response if we supported other content types.
         for file in files:
+            # Set the mime type. We currently only list PDF files, so we know it
+            # is always application/pdf. We could use the `content-type` property
+            # from the API response if we supported other content types.
             file["mime_type"] = "application/pdf"
+            # Add our own internal ID for this file
+            file["id"] = f"canvas://file/course/{course_id}/file_id/{file['lms_id']}"
 
         # Canvas' pagination is broken as it sorts by fields that allows duplicates.
         # This can lead to objects being skipped or duplicated across pages.
@@ -275,7 +277,7 @@ class CanvasAPIClient:
                 {
                     "type": "canvas_file",
                     "course_id": course_id,
-                    "lms_id": file["id"],
+                    "lms_id": file["lms_id"],
                     "name": file["display_name"],
                     "size": file["size"],
                     "parent_lms_id": file["folder_id"],
@@ -346,7 +348,7 @@ class CanvasAPIClient:
         many = True
 
         display_name = fields.Str(required=True)
-        id = fields.Integer(required=True)
+        lms_id = fields.Integer(required=True, data_key="id")
         updated_at = fields.String(required=True)
         size = fields.Integer(required=True)
         folder_id = fields.Integer(required=True)

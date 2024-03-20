@@ -66,6 +66,9 @@ function formatContentURL(content: URLContent) {
   if (content.url.startsWith('canvas-studio://')) {
     return 'Video in Canvas Studio';
   }
+  if (content.url.startsWith('canvas://file')) {
+    return 'PDF file in Canvas';
+  }
   if (content.url.startsWith('d2l://')) {
     return 'PDF file in D2L';
   }
@@ -82,8 +85,6 @@ function contentDescription(content: Content) {
   switch (content.type) {
     case 'url':
       return formatContentURL(content);
-    case 'file':
-      return 'PDF file in Canvas';
     default:
       /* istanbul ignore next */
       throw new Error('Unknown content type');
