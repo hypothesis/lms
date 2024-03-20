@@ -274,10 +274,11 @@ describe('ContentSelector', () => {
       {
         name: 'canvas',
         dialogName: 'canvasFile',
-        file: { id: 123 },
+        file: { id: 'canvas://file/123' },
         result: {
-          type: 'file',
-          file: { id: 123 },
+          type: 'url',
+          url: 'canvas://file/123',
+          name: undefined,
         },
         missingFilesHelpLink:
           'https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-upload-a-file-to-a-course/ta-p/618',

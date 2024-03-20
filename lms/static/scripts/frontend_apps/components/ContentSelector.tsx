@@ -170,16 +170,15 @@ export default function ContentSelector({
   };
 
   // file.id is a URL with a `blackboard://`, `d2l://` or `moodle://` prefix.
-  const selectFileAsURL = (file: File) => selectURL(file.id);
 
+  const selectFileAsURL = (file: File) => selectURL(file.id);
   const selectPageAsURL = (page: File, lms: string) => {
     const name = `${lms} page: ${page.display_name}`;
     selectURL(page.id, name);
   };
 
   const selectCanvasFile = (file: File) => {
-    cancelDialog();
-    onSelectContent({ type: 'file', file });
+    selectURL(file.id);
   };
 
   const selectYouTubeURL = (url: string, title?: string) => {

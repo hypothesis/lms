@@ -191,10 +191,6 @@ class TestDeepLinkingFieldsView:
         "content,expected_from_content",
         [
             (
-                {"type": "file", "file": {"id": 1}},
-                {"canvas_file": "true", "file_id": 1},
-            ),
-            (
                 {"type": "url", "url": "https://example.com"},
                 {"url": "https://example.com"},
             ),

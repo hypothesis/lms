@@ -303,7 +303,7 @@ describe('FilePickerApp', () => {
         summary: 'PDF file in D2L',
       },
       {
-        content: { type: 'file', id: 'abcd' },
+        content: { type: 'url', url: 'canvas://file/ID' },
         summary: 'PDF file in Canvas',
       },
       {
