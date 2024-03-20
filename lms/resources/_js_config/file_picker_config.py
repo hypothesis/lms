@@ -2,10 +2,21 @@ from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
 from lms.product.d2l import D2L
 from lms.services import JSTORService, VitalSourceService, YouTubeService
+from lms.services.lms_api import APICallInfo
 
 
 class FilePickerConfig:
     """Config generation for specific file pickers."""
+
+    @classmethod
+    def _generic_list_files_config(cls, request, auth_url) -> APICallInfo:
+        return {
+            "authUrl": auth_url,
+            "path": request.route_path(
+                "api.courses.files.list",
+                course_id=request.lti_params.get("context_id"),
+            ),
+        }
 
     @classmethod
     def d2l_config(cls, request, _application_instance):
@@ -16,13 +27,9 @@ class FilePickerConfig:
         )
         config = {"enabled": files_enabled}
         if files_enabled:
-            config["listFiles"] = {
-                "authUrl": request.route_url(D2L.route.oauth2_authorize),
-                "path": request.route_path(
-                    "api.courses.files.list",
-                    course_id=request.lti_params.get("context_id"),
-                ),
-            }
+            config["listFiles"] = cls._generic_list_files_config(
+                request, request.route_url(D2L.route.oauth2_authorize)
+            )
 
         return config
 
@@ -51,12 +58,7 @@ class FilePickerConfig:
         config = {"enabled": files_enabled, "pagesEnabled": pages_enabled}
         course_id = request.lti_params.get("context_id")
         if files_enabled:
-            config["listFiles"] = {
-                "authUrl": None,
-                "path": request.route_path(
-                    "api.courses.files.list", course_id=course_id
-                ),
-            }
+            config["listFiles"] = cls._generic_list_files_config(request, None)
 
         if pages_enabled:
             config["listPages"] = {
