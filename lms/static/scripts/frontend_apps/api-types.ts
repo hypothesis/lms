@@ -14,8 +14,21 @@ export type MimeType = 'text/html' | 'application/pdf' | 'video';
 /**
  * Object representing a file or folder in cloud storage.
  */
-export type Document = {
+export type FileBase = {
   type: 'File' | 'Folder';
+
+  /** Identifier for the document within the LMS. */
+  id: string;
+
+  /** Name of the file or folder. */
+  display_name: string;
+
+  /** An ISO 8601 date string. */
+  updated_at?: string;
+};
+
+export type File = FileBase & {
+  type: 'File';
 
   /**
    * MIME type of the file.
@@ -24,29 +37,25 @@ export type Document = {
    * ("text/html").
    */
   mime_type?: MimeType;
-
-  /** Identifier for the document within the LMS. */
-  id: string;
-
-  /** Name of the document to present in the document picker. */
-  display_name: string;
-
-  /** An ISO 8601 date string. */
-  updated_at?: string;
 };
 
-/**
- * Object representing a file or folder in the LMS's file storage.
- */
-export type File = Document & {
-  /** APICallInfo for fetching a folder's content. Only present if `type` is 'Folder'. */
+export type Folder = FileBase & {
+  type: 'Folder';
+
+  /**
+   * Details of an API call to fetch the folder's children.
+   *
+   * Either this property or {@link FileBase.children} will be used to provide
+   * the children, depending on whether the backend decides to require a
+   * separate API call to fetch children or not.
+   */
   contents?: APICallInfo;
 
-  /** Only present if `type` is 'Folder'. A folder may have a parent folder. */
+  /** ID of the parent folder. */
   parent_id?: string | null;
 
-  /** Applies only when `type` is 'Folder'. A folder may contain children (files and folders). */
-  children?: File[];
+  /** Children of this folder. See {@link FileBase.contents}. */
+  children?: Array<File | Folder>;
 };
 
 /**

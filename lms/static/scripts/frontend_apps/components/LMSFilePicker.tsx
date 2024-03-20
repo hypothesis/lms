@@ -6,7 +6,7 @@ import {
 import classnames from 'classnames';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 
-import type { File } from '../api-types';
+import type { File, Folder } from '../api-types';
 import type { APICallInfo } from '../config';
 import { isAuthorizationError } from '../errors';
 import { apiCall } from '../utils/api';
@@ -114,7 +114,7 @@ type FetchingState = {
 
 type FetchedState = {
   state: 'fetched';
-  files: File[];
+  files: Array<File | Folder>;
 };
 
 type AuthorizingState = {
@@ -178,14 +178,14 @@ export default function LMSFilePicker({
   // Has the first attempt to fetch the list of files in the LMS completed?
   const [initialFetch, setInitialFetch] = useState(true);
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | Folder | null>(null);
 
-  // An array of File objects representing the "path" to the current
-  // list of files being displayed. This always starts at the root. The last
-  // element represents the current directory path.
-  // Every item can potentially have `children`. In that case we'll retrieve
-  // those without querying the API when the folder becomes active.
-  const [folderPath, setFolderPath] = useState<File[]>([
+  // Array of Folder objects representing the "path" to the current list of
+  // files being displayed. This always starts at the root. The last element
+  // represents the current directory path.  Every item can potentially have
+  // `children`. In that case we'll retrieve those without querying the API when
+  // the folder becomes active.
+  const [folderPath, setFolderPath] = useState<Folder[]>([
     {
       display_name: 'Files',
       type: 'Folder',
@@ -198,7 +198,7 @@ export default function LMSFilePicker({
    * Change to a new folder path. This will update the breadcrumb path history
    * and cause displayed files to be re-computed for that folder path.
    */
-  const onChangePath = (folder: File) => {
+  const onChangePath = (folder: Folder) => {
     setSelectedFile(null);
     const currentIndex = folderPath.findIndex(file => file.id === folder.id);
     if (currentIndex >= 0) {
@@ -223,7 +223,7 @@ export default function LMSFilePicker({
     async (isReload = false) => {
       const getNextAPICallInfo = () =>
         folderPath[folderPath.length - 1]?.contents || listFilesApi;
-      const loadFilesFromAPI = (): Promise<File[]> =>
+      const loadFilesFromAPI = (): Promise<Array<File | Folder>> =>
         apiCall({
           authToken,
           path: getNextAPICallInfo().path,
@@ -252,7 +252,7 @@ export default function LMSFilePicker({
       for (const folder of activePathWithoutRoot) {
         const folderFound = filesForFolder.find(
           fileOrFolder => fileOrFolder.id === folder.id,
-        );
+        ) as Folder | undefined;
         if (folderFound?.children) {
           filesForFolder = folderFound.children;
         }
@@ -308,7 +308,7 @@ export default function LMSFilePicker({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [folderPath]);
 
-  const confirmSelectedItem = (file: File | null = selectedFile) => {
+  const confirmSelectedItem = (file: File | Folder | null = selectedFile) => {
     if (!file) {
       return;
     }
