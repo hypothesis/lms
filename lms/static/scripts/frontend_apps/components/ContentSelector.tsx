@@ -179,7 +179,7 @@ export default function ContentSelector({
 
   const selectCanvasFile = (file: File) => {
     cancelDialog();
-    onSelectContent({ type: 'file', file: file as File });
+    onSelectContent({ type: 'file', file });
   };
 
   const selectYouTubeURL = (url: string, title?: string) => {

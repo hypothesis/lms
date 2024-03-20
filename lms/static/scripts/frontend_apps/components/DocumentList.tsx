@@ -10,22 +10,22 @@ import {
 import type { ComponentChildren } from 'preact';
 import type { JSX } from 'preact';
 
-import type { Document, MimeType } from '../api-types';
+import type { File, Folder, MimeType } from '../api-types';
 
-export type DocumentListProps<DocumentType extends Document> = {
+export type DocumentListProps = {
   /** List of document objects returned by the API */
-  documents: DocumentType[];
+  documents: Array<File | Folder>;
   /** Whether to show a loading indicator */
   isLoading?: boolean;
   /** The document within `documents` which is currently selected */
-  selectedDocument: DocumentType | null;
+  selectedDocument: File | Folder | null;
   /** Callback invoked when the user clicks on a document */
-  onSelectDocument: (doc: DocumentType | null) => void;
+  onSelectDocument: (doc: File | Folder | null) => void;
   /**
    * Callback invoked when the user double-clicks a document to indicate that
    * they want to use it
    */
-  onUseDocument: (d: DocumentType | null) => void;
+  onUseDocument: (d: File | Folder | null) => void;
   /** Optional message to display if there are no documents */
   noDocumentsMessage?: ComponentChildren;
   /** Component title for accessibility */
@@ -43,7 +43,7 @@ const mimeTypeIcons: Record<MimeType, IconComponent> = {
 /**
  * List of files and folders in a file picker.
  */
-export default function DocumentList<DocumentType extends Document>({
+export default function DocumentList({
   documents,
   isLoading = false,
   selectedDocument,
@@ -51,7 +51,7 @@ export default function DocumentList<DocumentType extends Document>({
   onUseDocument,
   noDocumentsMessage,
   title,
-}: DocumentListProps<DocumentType>) {
+}: DocumentListProps) {
   const formatDate = (isoString: string) =>
     new Date(isoString).toLocaleDateString();
   const columns = [
@@ -66,7 +66,10 @@ export default function DocumentList<DocumentType extends Document>({
     },
   ];
 
-  const renderItem = (document: DocumentType, field: keyof DocumentType) => {
+  const renderItem = (
+    document: File | Folder,
+    field: keyof (File | Folder),
+  ) => {
     switch (field) {
       case 'display_name': {
         let Icon;
