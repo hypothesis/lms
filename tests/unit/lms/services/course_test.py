@@ -253,8 +253,8 @@ class TestCourseService:
     def test_find_group_set(self, svc, params):
         group_set = svc.find_group_set(**params)
 
-        assert group_set.id == "ID"
-        assert group_set.name == "NAME"
+        assert group_set["id"] == "ID"
+        assert group_set["name"] == "NAME"
 
     @pytest.mark.usefixtures("course_with_group_sets")
     @pytest.mark.parametrize(

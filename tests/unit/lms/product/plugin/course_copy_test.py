@@ -121,7 +121,7 @@ class TestCourseCopyFilesHelper:
 
 class TestCourseCopyGroupsHelper:
     @pytest.mark.parametrize("raising", [True, False])
-    def test_find_matching_file_in_course(
+    def test_find_matching_group_in_course(
         self, helper, grouping_plugin, raising, course_service, course
     ):
         if raising:
@@ -136,7 +136,7 @@ class TestCourseCopyGroupsHelper:
             group_set_id=sentinel.group_set_id
         )
         course_service.find_group_set.assert_called_with(
-            name=course_service.find_group_set.return_value.name,
+            name=course_service.find_group_set.return_value["name"],
             context_id=course.lms_id,
         )
         course.set_mapped_group_set_id(
@@ -152,7 +152,7 @@ class TestCourseCopyGroupsHelper:
                 sentinel.course, sentinel.group_set_id
             )
 
-    def test_find_matching_file_in_course_no_stored_group_from_original_course(
+    def test_find_matching_group_in_course_no_stored_group_from_original_course(
         self, helper, grouping_plugin, course_service, course
     ):
         course_service.find_group_set.return_value = None
@@ -167,7 +167,7 @@ class TestCourseCopyGroupsHelper:
         )
         assert not new_group_set_id
 
-    def test_find_matching_file_in_course_no_stored_group_from_new_course(
+    def test_find_matching_group_in_course_no_stored_group_from_new_course(
         self, helper, grouping_plugin, course_service, course
     ):
         course_service.find_group_set.side_effect = [
@@ -184,7 +184,7 @@ class TestCourseCopyGroupsHelper:
             group_set_id=sentinel.group_set_id
         )
         course_service.find_group_set.assert_called_with(
-            name=course_service.find_group_set.return_value.name,
+            name=course_service.find_group_set.return_value["name"],
             context_id=course.lms_id,
         )
         assert not new_group_set_id
