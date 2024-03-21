@@ -1,5 +1,5 @@
-from typing import TypedDict
 from enum import Enum
+from typing import TypedDict
 
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
