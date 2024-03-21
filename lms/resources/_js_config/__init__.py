@@ -325,6 +325,9 @@ class JSConfig:
                 "content_item_return_url": self._request.lti_params[
                     "content_item_return_url"
                 ],
+                "lms": {
+                    "product": self._request.product.family,
+                },
                 "context_id": self._request.lti_params["context_id"],
             },
         }
@@ -508,6 +511,7 @@ class JSConfig:
         product = self._request.product
 
         product_info = {
+            "family": product.family,
             "settings": {
                 # Is the small groups feature enabled
                 "groupsEnabled": self._request.product.settings.groups_enabled,
@@ -527,6 +531,11 @@ class JSConfig:
                     "api.courses.group_sets.list",
                     course_id=self._request.lti_params["context_id"],
                 ),
+                "data": {
+                    "lms": {
+                        "product": self._request.product.family,
+                    }
+                },
             }
 
         return product_info
@@ -603,6 +612,9 @@ class JSConfig:
                 # frontend.
                 "data": {
                     "resource_link_id": assignment.resource_link_id,
+                    "lms": {
+                        "product": self._request.product.family,
+                    },
                     "context_id": self._request.lti_params["context_id"],
                     "group_set_id": self._request.product.plugin.grouping.get_group_set_id(
                         self._request, assignment, historical_assignment=None

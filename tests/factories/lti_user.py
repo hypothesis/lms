@@ -12,5 +12,7 @@ LTIUser = make_factory(
     effective_lti_roles=[],
     tool_consumer_instance_guid=TOOL_CONSUMER_INSTANCE_GUID,
     display_name=Faker("name"),
-    lti=LTI(course_id=Faker("hexify", text="^" * 40), product_family="UNKNOWN"),
+    lti=LTI(
+        course_id=Faker("hexify", text="^" * 40),
+    ),
 )
