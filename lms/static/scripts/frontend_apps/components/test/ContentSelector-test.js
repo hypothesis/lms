@@ -235,6 +235,16 @@ describe('ContentSelector', () => {
         files: () => fakeConfig.filePicker.canvas.listFiles,
       },
       {
+        name: 'Canvas Pages',
+        buttonTestId: 'canvas-page-button',
+        files: () => fakeConfig.filePicker.canvas.listPages,
+      },
+      {
+        name: 'Canvas Studio',
+        buttonTestId: 'canvas-studio-button',
+        files: () => fakeConfig.filePicker.canvasStudio.listMedia,
+      },
+      {
         name: 'Blackboard',
         buttonTestId: 'blackboard-file-button',
         files: () => fakeConfig.filePicker.blackboard.listFiles,
@@ -245,9 +255,14 @@ describe('ContentSelector', () => {
         files: () => fakeConfig.filePicker.d2l.listFiles,
       },
       {
-        name: 'Moodle',
+        name: 'Moodle Files',
         buttonTestId: 'moodle-file-button',
         files: () => fakeConfig.filePicker.moodle.listFiles,
+      },
+      {
+        name: 'Moodle Pages',
+        buttonTestId: 'moodle-page-button',
+        files: () => fakeConfig.filePicker.moodle.listPages,
       },
     ].forEach(test => {
       it(`shows LMS file dialog when "${test.name} file" is clicked`, () => {
@@ -272,47 +287,82 @@ describe('ContentSelector', () => {
 
     [
       {
-        name: 'canvas',
+        name: 'canvas files',
         dialogName: 'canvasFile',
-        file: { id: 'canvas://file/123' },
+        file: { id: 'canvas://file/123', display_name: 'Name' },
         result: {
           type: 'url',
           url: 'canvas://file/123',
-          name: undefined,
+          name: 'Canvas file: Name',
         },
         missingFilesHelpLink:
           'https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-upload-a-file-to-a-course/ta-p/618',
       },
       {
-        name: 'blackboard',
+        name: 'canvas pages',
+        dialogName: 'canvasPage',
+        file: { id: 'canvas://page/123', display_name: 'Name' },
+        result: {
+          type: 'url',
+          url: 'canvas://page/123',
+          name: 'Canvas page: Name',
+        },
+        missingFilesHelpLink:
+          'https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-create-a-new-page-in-a-course/ta-p/1031',
+      },
+      {
+        name: 'canvas studio',
+        dialogName: 'canvasStudio',
+        file: { id: 'canvas-studio://media/123', display_name: 'Name' },
+        result: {
+          type: 'url',
+          url: 'canvas-studio://media/123',
+          name: 'Canvas studio video: Name',
+        },
+        missingFilesHelpLink:
+          'https://community.canvaslms.com/t5/Canvas-Studio-Guide/How-do-I-use-Canvas-Studio/ta-p/1678',
+      },
+      {
+        name: 'blackboard files',
         dialogName: 'blackboardFile',
-        file: { id: 'blackboard://content-resource/123' },
+        file: { id: 'blackboard://content-resource/123', display_name: 'Name' },
         result: {
           type: 'url',
           url: 'blackboard://content-resource/123',
-          name: undefined,
+          name: 'BlackBoard file: Name',
         },
         missingFilesHelpLink: 'https://web.hypothes.is/help/bb-files',
       },
       {
-        name: 'moodle',
+        name: 'moodle files',
         dialogName: 'moodleFile',
-        file: { id: 'moodle://file/FILE' },
+        file: { id: 'moodle://file/FILE', display_name: 'Name' },
         result: {
           type: 'url',
           url: 'moodle://file/FILE',
-          name: undefined,
+          name: 'Moodle file: Name',
         },
         missingFilesHelpLink: 'https://web.hypothes.is/help/',
       },
       {
-        name: 'd2l',
+        dialogName: 'moodlePage',
+        name: 'moodle pages',
+        file: { id: 'moodle://page/FILE', display_name: 'Name' },
+        result: {
+          type: 'url',
+          url: 'moodle://page/FILE',
+          name: 'Moodle page: Name',
+        },
+        missingFilesHelpLink: 'https://web.hypothes.is/help/',
+      },
+      {
+        name: 'd2l files',
         dialogName: 'd2lFile',
-        file: { id: 'd2l://file/course/123/file_id/456' },
+        file: { id: 'd2l://file/course/123/file_id/456', display_name: 'Name' },
         result: {
           type: 'url',
           url: 'd2l://file/course/123/file_id/456',
-          name: undefined,
+          name: 'D2L file: Name',
         },
         missingFilesHelpLink:
           'https://web.hypothes.is/help/using-hypothesis-with-d2l-course-content-files/',
@@ -341,85 +391,6 @@ describe('ContentSelector', () => {
           wrapper.find('LMSFilePicker').prop('missingFilesHelpLink'),
           test.missingFilesHelpLink,
         );
-      });
-    });
-  });
-
-  // Tests for other content sources that use our standard file picker.
-  describe('LMS page and media pickers', () => {
-    [
-      {
-        name: 'Canvas',
-        buttonTestId: 'canvas-page-button',
-        pages: () => fakeConfig.filePicker.canvas.listPages,
-      },
-      {
-        name: 'Canvas Studio',
-        buttonTestId: 'canvas-studio-button',
-        pages: () => fakeConfig.filePicker.canvasStudio.listMedia,
-      },
-      {
-        name: 'Moodle',
-        buttonTestId: 'moodle-page-button',
-        pages: () => fakeConfig.filePicker.moodle.listPages,
-      },
-    ].forEach(test => {
-      it(`'shows LMS file dialog when "${test.name}" is clicked'`, () => {
-        const wrapper = renderContentSelector();
-
-        const btn = wrapper.find(`Button[data-testid="${test.buttonTestId}"]`);
-        interact(wrapper, () => {
-          btn.props().onClick();
-        });
-
-        const pagePicker = wrapper.find('LMSFilePicker');
-        assert.isTrue(pagePicker.exists());
-        assert.equal(pagePicker.prop('authToken'), fakeConfig.api.authToken);
-
-        assert.equal(pagePicker.prop('listFilesApi'), test.pages());
-
-        interact(wrapper, () => {
-          pagePicker.props().onCancel();
-        });
-      });
-
-      [
-        {
-          name: 'Canvas Pages',
-          dialog: 'canvasPage',
-          displayName: 'Canvas page: Item title',
-        },
-        {
-          name: 'Canvas Studio',
-          dialog: 'canvasStudio',
-          displayName: 'Canvas Studio video: Item title',
-        },
-        {
-          name: 'Moodle Pages',
-          dialog: 'moodlePage',
-          displayName: 'Moodle page: Item title',
-        },
-      ].forEach(test => {
-        it(`'supports selecting content from the ${test.name} dialog'`, () => {
-          const onSelectContent = sinon.stub();
-          const wrapper = renderContentSelector({
-            defaultActiveDialog: test.dialog,
-            onSelectContent,
-          });
-
-          const picker = wrapper.find('LMSFilePicker');
-          interact(wrapper, () => {
-            picker
-              .props()
-              .onSelectFile({ id: 123, display_name: 'Item title' });
-          });
-
-          assert.calledWith(onSelectContent, {
-            type: 'url',
-            url: 123,
-            name: test.displayName,
-          });
-        });
       });
     });
   });
