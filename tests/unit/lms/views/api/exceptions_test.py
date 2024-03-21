@@ -11,7 +11,9 @@ from lms.validation import ValidationError
 from lms.views.api.exceptions import APIExceptionViews, ErrorBody, strip_queryparams
 from tests import factories
 
-pytestmark = pytest.mark.usefixtures("oauth2_token_service")
+pytestmark = pytest.mark.usefixtures(
+    "oauth2_token_service", "course_service", "assignment_service"
+)
 
 
 class TestSchemaValidationError:
@@ -139,7 +141,7 @@ class TestHTTPBadRequest:
 
 
 class TestAPIError:
-    def test_it_with_an_APIError(self, pyramid_request, views):
+    def test_it_with_an_APIError(self, pyramid_request, views, EventService, LTIEvent):
         views.context = SerializableError(
             error_code=sentinel.error_code,
             message=sentinel.message,
@@ -154,6 +156,12 @@ class TestAPIError:
             message=sentinel.message,
             details=sentinel.details,
         )
+        LTIEvent.assert_called_once_with(
+            request=pyramid_request,
+            type=LTIEvent.Type.ERROR_CODE,
+            data={"code": sentinel.error_code},
+        )
+        EventService.queue_event.assert_called_once_with(LTIEvent.return_value)
 
     def test_it_with_a_minimal_viable_error(self, pyramid_request, views):
         class MinimalError:
@@ -178,6 +186,14 @@ class TestAPIError:
                 " notified."
             )
         )
+
+    @pytest.fixture(autouse=True)
+    def LTIEvent(self, patch):
+        return patch("lms.views.api.exceptions.LTIEvent")
+
+    @pytest.fixture(autouse=True)
+    def EventService(self, patch):
+        return patch("lms.views.api.exceptions.EventService")
 
 
 class TestErrorBody:

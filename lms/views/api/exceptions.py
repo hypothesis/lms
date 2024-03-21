@@ -15,8 +15,10 @@ from pyramid.view import (
     view_defaults,
 )
 
+from lms.events import LTIEvent
 from lms.services import (
     CanvasAPIPermissionError,
+    EventService,
     ExternalAsyncRequestError,
     ExternalRequestError,
     OAuth2TokenError,
@@ -200,6 +202,14 @@ class APIExceptionViews:
         """
 
         if hasattr(self.context, "error_code"):
+            EventService.queue_event(
+                LTIEvent(
+                    request=self.request,
+                    type=LTIEvent.Type.ERROR_CODE,
+                    data={"code": self.context.error_code},
+                )
+            )
+
             return ErrorBody(
                 error_code=self.context.error_code,
                 message=getattr(self.context, "message", None),
