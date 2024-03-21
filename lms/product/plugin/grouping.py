@@ -95,7 +95,9 @@ class GroupingPlugin:
 class GroupError(Exception):
     """Exceptions raised by plugins."""
 
-    def __init__(self, error_code: Enum, group_set):
+    def __init__(
+        self, error_code: Enum, group_set: str, group_set_name: str | None = None
+    ):
         self.error_code = error_code
-        self.details = {"group_set": group_set}
+        self.details = {"group_set_id": group_set, "group_set_name": group_set_name}
         super().__init__(self.details)

@@ -19,8 +19,9 @@ class CanvasGroupingPlugin(GroupingPlugin):
     group_type = Grouping.Type.CANVAS_GROUP
     sections_type = Grouping.Type.CANVAS_SECTION
 
-    def __init__(self, canvas_api, strict_section_membership: bool):
+    def __init__(self, canvas_api, strict_section_membership: bool, request):
         self._canvas_api = canvas_api
+        self._request = request
         self._strict_section_membership = strict_section_membership
 
     def get_sections_for_learner(self, _svc, course):
@@ -78,8 +79,16 @@ class CanvasGroupingPlugin(GroupingPlugin):
                 self._custom_course_id(course), group_set_id
             )
         except CanvasAPIError as canvas_api_error:
+            group_set_name = None
+            if group_set := self._request.find_service(name="course").find_group_set(
+                group_set_id=group_set_id
+            ):
+                group_set_name = group_set["name"]
+
             raise GroupError(
-                ErrorCodes.GROUP_SET_NOT_FOUND, group_set=group_set_id
+                ErrorCodes.GROUP_SET_NOT_FOUND,
+                group_set=group_set_id,
+                group_set_name=group_set_name,
             ) from canvas_api_error
 
         if not all_course_groups:
@@ -122,4 +131,5 @@ class CanvasGroupingPlugin(GroupingPlugin):
             strict_section_membership=request.lti_user.application_instance.settings.get(
                 "canvas", "strict_section_membership", False
             ),
+            request=request,
         )
