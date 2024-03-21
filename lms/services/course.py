@@ -193,7 +193,9 @@ class CourseService:
             query = query.filter(group_set.c.id == group_set_id)
 
         if name:
-            query = query.filter(group_set.c.name == name)
+            query = query.filter(
+                func.lower(func.trim(group_set.c.name)) == func.lower(func.trim(name))
+            )
 
         return query.first()
 
