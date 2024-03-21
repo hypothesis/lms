@@ -110,8 +110,9 @@ class TestCanvasGroupingPlugin:
         assert canvas_api_client.group_category_groups.return_value == api_groups
 
     def test_get_groups_for_instructor_group_set_not_found(
-        self, grouping_service, canvas_api_client, course, plugin
+        self, grouping_service, canvas_api_client, course, plugin, course_service
     ):
+        course_service.find_group_set.return_value = None
         canvas_api_client.group_category_groups.side_effect = CanvasAPIError()
 
         with pytest.raises(GroupError) as err:
@@ -119,7 +120,34 @@ class TestCanvasGroupingPlugin:
                 grouping_service, course, sentinel.group_set_id
             )
 
+        course_service.find_group_set.assert_called_once_with(
+            group_set_id=sentinel.group_set_id
+        )
         assert err.value.error_code == ErrorCodes.GROUP_SET_NOT_FOUND
+        assert err.value.details == {
+            "group_set_id": sentinel.group_set_id,
+            "group_set_name": None,
+        }
+
+    def test_get_groups_for_instructor_group_set_not_found_with_original_name(
+        self, grouping_service, canvas_api_client, course, plugin, course_service
+    ):
+        course_service.find_group_set.return_value = {"name": sentinel.name}
+        canvas_api_client.group_category_groups.side_effect = CanvasAPIError()
+
+        with pytest.raises(GroupError) as err:
+            plugin.get_groups_for_instructor(
+                grouping_service, course, sentinel.group_set_id
+            )
+
+        course_service.find_group_set.assert_called_once_with(
+            group_set_id=sentinel.group_set_id
+        )
+        assert err.value.error_code == ErrorCodes.GROUP_SET_NOT_FOUND
+        assert err.value.details == {
+            "group_set_name": sentinel.name,
+            "group_set_id": sentinel.group_set_id,
+        }
 
     def test_get_groups_for_instructor_group_set_empty(
         self, grouping_service, canvas_api_client, course, plugin
@@ -204,5 +232,7 @@ class TestCanvasGroupingPlugin:
         )
 
     @pytest.fixture
-    def plugin(self, canvas_api_client):
-        return CanvasGroupingPlugin(canvas_api_client, strict_section_membership=False)
+    def plugin(self, canvas_api_client, pyramid_request):
+        return CanvasGroupingPlugin(
+            canvas_api_client, strict_section_membership=False, request=pyramid_request
+        )
