@@ -287,24 +287,36 @@ export default function LaunchErrorDialog({
           title="Group set not found"
         >
           <p>
-            Hypothesis couldn&apos;t find this assignment&apos;s group set. This
+            This Hypothesis assignment was set up to use Canvas{"'"} Group Sets,
+            and we can no longer find the Group Set for this assignment. This
             could be because:
           </p>
 
           <ul className="px-4 list-disc">
             <li>The group set has been deleted from Canvas.</li>
-            <li>
-              This course was created by copying another course (Canvas
-              doesn&apos;t copy the group sets over when you copy a course).
-            </li>
+            <li>This course was created by copying another course.</li>
           </ul>
+          <p>
+            If the group set has been <b>deleted</b> from this course, an
+            instructor needs to edit the assignment settings and select a group
+            set.
+          </p>
 
           <p>
-            <b>
-              To fix this problem, an instructor needs to edit the assignment
-              settings and select a new group set.
-            </b>
+            If this is a <b>copied course</b> the instructor needs to create a
+            new group set in this course that matches the name of the group set
+            in the old course.
           </p>
+          {error?.details &&
+            typeof error.details === 'object' &&
+            'group_set_name' in error.details &&
+            typeof error.details.group_set_name === 'string' && (
+              <p>
+                {' '}
+                The group set name in the old course was:{' '}
+                <b>{error.details.group_set_name}</b>
+              </p>
+            )}
         </ErrorModal>
       );
 
