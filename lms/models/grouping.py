@@ -1,3 +1,4 @@
+from typing import TypedDict
 from enum import Enum
 
 import sqlalchemy as sa
@@ -167,6 +168,17 @@ class MoodleGroup(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.MOODLE_GROUP}
 
 
+class GroupSet(TypedDict):
+    """
+    Group sets are a collection of student groups.
+
+    We store them in Course.extra
+    """
+
+    id: str
+    name: str
+
+
 class Course(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.COURSE}
 
@@ -187,7 +199,7 @@ class Course(Grouping):
         group_sets = [{"id": str(g["id"]), "name": g["name"]} for g in group_sets]
         self.extra["group_sets"] = group_sets
 
-    def get_group_sets(self) -> list[dict]:
+    def get_group_sets(self) -> list[GroupSet]:
         """Get this course's available group sets."""
         return self.extra.get("group_sets", [])
 
