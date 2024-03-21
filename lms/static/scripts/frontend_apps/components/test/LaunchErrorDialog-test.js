@@ -116,7 +116,7 @@ describe('LaunchErrorDialog', () => {
     {
       errorState: 'canvas_group_set_not_found',
       expectedText:
-        "Hypothesis couldn't find this assignment's group set. This could be because:The group set has been deleted from Canvas.This course was created by copying another course (Canvas doesn't copy the group sets over when you copy a course).",
+        "This Hypothesis assignment was set up to use Canvas' Group Sets, and we can no longer find the Group Set for this assignment.",
       expectedTitle: 'Group set not found',
       hasRetry: false,
       withError: true,
