@@ -140,9 +140,9 @@ class TestCourseCopyGroupsHelper:
             context_id=course.lms_id,
         )
         course.set_mapped_group_set_id(
-            sentinel.group_set_id, course_service.find_group_set.return_value.id
+            sentinel.group_set_id, course_service.find_group_set.return_value["id"]
         )
-        assert new_group_set_id == course_service.find_group_set.return_value.id
+        assert new_group_set_id == course_service.find_group_set.return_value["id"]
 
     def test_find_matching_file_raises_OAuth2TokenError(self, helper, grouping_plugin):
         grouping_plugin.get_group_sets.side_effect = OAuth2TokenError

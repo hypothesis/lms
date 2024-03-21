@@ -105,8 +105,8 @@ class CourseCopyGroupsHelper:
             name=group_set["name"], context_id=course.lms_id
         ):
             # We found a match, store it to save the search for next time
-            course.set_mapped_group_set_id(group_set_id, new_group_set.id)
-            return new_group_set.id
+            course.set_mapped_group_set_id(group_set_id, new_group_set["id"])
+            return new_group_set["id"]
 
         # No match
         return None
