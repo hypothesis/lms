@@ -268,9 +268,29 @@ class TestFactory:
         )
         assert service == OAuthHTTPService.return_value
 
+    def test_with_custom_user_id(
+        self,
+        OAuthHTTPService,
+        pyramid_request,
+        http_service,
+        oauth2_token_service_factory,
+    ):
+        service = factory(sentinel.context, pyramid_request, user_id="custom_user_id")
+        oauth2_token_service_factory.assert_called_once_with(
+            sentinel.context, pyramid_request, "custom_user_id"
+        )
+        OAuthHTTPService.assert_called_once_with(
+            http_service, oauth2_token_service_factory.return_value, Service.LMS
+        )
+        assert service == OAuthHTTPService.return_value
+
     @pytest.fixture
     def OAuthHTTPService(self, patch):
         return patch("lms.services.oauth_http.OAuthHTTPService")
+
+    @pytest.fixture
+    def oauth2_token_service_factory(self, patch):
+        return patch("lms.services.oauth_http.oauth2_token_service_factory")
 
 
 @pytest.fixture(autouse=True)
