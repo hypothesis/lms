@@ -24,6 +24,7 @@ class ApplicationSettings(JSONSettings):
         JSONSetting("canvas", "folders_enabled", asbool),
         JSONSetting("canvas", "strict_section_membership", asbool),
         JSONSetting("canvas", "pages_enabled", asbool),
+        JSONSetting("canvas_studio", "admin_email"),
         JSONSetting("canvas_studio", "client_id"),
         JSONSetting("canvas_studio", "client_secret", JSONSetting.AES_SECRET),
         JSONSetting("canvas_studio", "domain"),

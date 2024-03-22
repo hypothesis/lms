@@ -164,6 +164,7 @@
 
                         <fieldset class="box">
                             <legend class="label has-text-centered">Content integrations</legend>
+                            {{ settings_text_field("Canvas Studio admin account email", "canvas_studio", "admin_email") }}
                             {{ settings_text_field("Canvas Studio domain", "canvas_studio", "domain") }}
                             {{ settings_text_field("Canvas Studio client ID", "canvas_studio", "client_id") }}
                             {{ settings_secret_field("Canvas Studio client secret", "canvas_studio", "client_secret") }}
