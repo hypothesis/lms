@@ -1,11 +1,16 @@
+from functools import lru_cache
 from typing import Literal, NotRequired, Type, TypedDict
 from urllib.parse import urlencode, urljoin, urlparse, urlunparse
 
+import requests
 from marshmallow import EXCLUDE, Schema, fields, post_load
+from pyramid.httpexceptions import HTTPBadRequest
 
 from lms.models.oauth2_token import Service
+from lms.models.user import User
 from lms.services.aes import AESService
 from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
+from lms.services.oauth_http import OAuthHTTPService
 from lms.services.oauth_http import factory as oauth_http_factory
 from lms.validation._base import RequestsResponseSchema
 
@@ -119,6 +124,7 @@ class CanvasStudioService:
             {}, request, service=Service.CANVAS_STUDIO
         )
         self._request = request
+        self._application_instance = application_instance
 
     def get_access_token(self, code: str) -> None:
         """
@@ -256,8 +262,9 @@ class CanvasStudioService:
     def get_video_download_url(self, media_id: str) -> str:
         """Return temporary download URL for a video."""
 
-        download_url = self._api_url(f"v1/media/{media_id}/download")
-        download_rsp = self._oauth_http_service.get(download_url, allow_redirects=False)
+        download_rsp = self._bare_api_request(
+            f"v1/media/{media_id}/download", as_admin=True, allow_redirects=False
+        )
         download_redirect = download_rsp.headers.get("Location")
 
         if download_rsp.status_code != 302 or not download_redirect:
@@ -276,7 +283,9 @@ class CanvasStudioService:
         """
 
         captions = self._api_request(
-            f"v1/media/{media_id}/caption_files", CanvasStudioCaptionFilesSchema
+            f"v1/media/{media_id}/caption_files",
+            CanvasStudioCaptionFilesSchema,
+            as_admin=True,
         )
 
         for caption in captions:
@@ -286,22 +295,100 @@ class CanvasStudioService:
 
         return None
 
-    def _api_request(self, path: str, schema_cls: Type[RequestsResponseSchema]) -> dict:
-        """Make a request to the Canvas Studio API and parse the JSON response."""
+    def _api_request(
+        self, path: str, schema_cls: Type[RequestsResponseSchema], as_admin=False
+    ) -> dict:
+        """
+        Make a request to the Canvas Studio API and parse the JSON response.
+
+        :param as_admin: Make the request using the admin account instead of the current user.
+        """
+        response = self._bare_api_request(path, as_admin=as_admin)
+        return schema_cls(response).parse()
+
+    def _admin_api_request(
+        self, path: str, allow_redirects=True, allow_refresh=True
+    ) -> requests.Response:
+        """
+        Make a request to the Canvas Studio API using the admin user identity.
+
+        This method should not be used if the current user _is_ the admin user.
+        In that case we want to follow the normal steps for making a request
+        using the current identity, and the corresponding error handling.
+        """
+
+        url = self._api_url(path)
         try:
-            response = self._oauth_http_service.get(self._api_url(path))
+            return self._admin_oauth_http.get(url, allow_redirects=allow_redirects)
         except ExternalRequestError as err:
             refreshable = getattr(err.response, "status_code", None) == 401
-            if refreshable:
-                raise OAuth2TokenError(
-                    refreshable=True,
-                    refresh_route="canvas_studio_api.oauth.refresh",
-                    refresh_service=Service.CANVAS_STUDIO,
-                ) from err
+            if not refreshable:
+                # Ordinarily if the access token is missing or expired, we'll
+                # return an error and the frontend will prompt to
+                # re-authenticate. That won't help for admin-authenticated
+                # requests.
+                if isinstance(err, OAuth2TokenError):
+                    raise HTTPBadRequest(
+                        "The Canvas Studio admin needs to authenticate the Hypothesis integration"
+                    ) from err
+                raise
 
-            raise
+            # If we already performed a refresh in response to the original
+            # request, `allow_refresh` will be False and we abort.
+            if not allow_refresh:
+                raise
 
-        return schema_cls(response).parse()
+            # For admin requests, we have to do the refresh here, because the
+            # refresh path involving the frontend is designed for refreshing
+            # the current LTI user's access token.
+            #
+            # Ideally it would be simpler if we could just encapsulate the
+            # entire refresh process in OAuthHTTPService.
+            try:
+                self._admin_oauth_http.refresh_access_token(
+                    self._token_url(),
+                    self.redirect_uri(),
+                    auth=(self._client_id, self._client_secret),
+                )
+            except ExternalRequestError as refresh_err:
+                raise ExternalRequestError(
+                    message="Canvas Studio admin token refresh failed. Ask the admin user to re-authenticate."
+                ) from refresh_err
+
+            # Retry the request with the new token.
+            return self._admin_api_request(
+                path,
+                allow_redirects=allow_redirects,
+                # If the request fails again, make sure we don't repeat the
+                # refresh to avoid getting stuck in a loop.
+                allow_refresh=False,
+            )
+
+    def _bare_api_request(
+        self, path: str, as_admin=False, allow_redirects=True
+    ) -> requests.Response:
+        """
+        Make a request to the Canvas Studio API and return the response.
+
+        :param as_admin: Make the request using the admin account instead of the current user.
+        """
+        url = self._api_url(path)
+
+        if as_admin and not self._is_admin():
+            return self._admin_api_request(path, allow_redirects=allow_redirects)
+
+        try:
+            return self._oauth_http_service.get(url, allow_redirects=allow_redirects)
+        except ExternalRequestError as err:
+            refreshable = getattr(err.response, "status_code", None) == 401
+            if not refreshable:
+                raise
+
+            raise OAuth2TokenError(
+                refreshable=True,
+                refresh_route="canvas_studio_api.oauth.refresh",
+                refresh_service=Service.CANVAS_STUDIO,
+            ) from err
 
     def _api_url(self, path: str) -> str:
         """
@@ -315,6 +402,56 @@ class CanvasStudioService:
 
         site = self._canvas_studio_site()
         return f"{site}/api/public/{path}"
+
+    def _admin_email(self) -> str:
+        """Return the email address of the configured Canvas Studio admin."""
+        admin_email = self._application_instance.settings.get(
+            "canvas_studio", "admin_email"
+        )
+        if not admin_email:
+            raise HTTPBadRequest(
+                "Admin account is not configured for Canvas Studio integration"
+            )
+        return admin_email
+
+    def _is_admin(self) -> bool:
+        """Return true if the current LTI user is the configure Canvas Studio admin."""
+        return self._request.lti_user.email == self._admin_email()
+
+    @property
+    @lru_cache
+    def _admin_oauth_http(self) -> OAuthHTTPService:
+        """
+        Return an OAuthHTTPService that makes calls using the admin user account.
+
+        Admin accounts have the ability to download all videos and transcripts
+        in a Canvas Studio instance, whereas videos can ordinarily only be
+        downloaded by the owner. Therefore when launching Canvas Studio
+        assignments, we use this account instead of the current user's account
+        to authenticate the API requests for downloading videos and transcripts.
+        """
+
+        # The caller should check for this condition before calling this method
+        # and use the standard `self._oauth_http_service` property instead.
+        assert not self._is_admin()
+
+        admin_email = self._admin_email()
+        admin_user = (
+            self._request.db.query(User)
+            .filter_by(
+                email=admin_email, application_instance=self._application_instance
+            )
+            .one_or_none()
+        )
+        if not admin_user:
+            raise HTTPBadRequest(
+                "The Canvas Studio admin needs to authenticate the Hypothesis integration"
+            )
+        admin_lti_user = admin_user.user_id
+
+        return oauth_http_factory(
+            {}, self._request, service=Service.CANVAS_STUDIO, user_id=admin_lti_user
+        )
 
     def _canvas_studio_site(self) -> str:
         return f"https://{self._domain}"

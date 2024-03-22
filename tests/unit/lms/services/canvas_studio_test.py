@@ -3,6 +3,8 @@ from urllib.parse import urlencode
 
 import pytest
 from h_matchers import Any
+from pyramid.httpexceptions import HTTPBadRequest
+from requests import RequestException
 
 from lms.models.oauth2_token import Service
 from lms.services.canvas_studio import CanvasStudioService, factory
@@ -11,7 +13,9 @@ from lms.services.oauth_http import OAuthHTTPService
 from tests import factories
 
 
-@pytest.mark.usefixtures("aes_service", "canvas_studio_settings", "oauth_http_factory")
+@pytest.mark.usefixtures(
+    "aes_service", "canvas_studio_settings", "oauth_http_factory", "admin_user"
+)
 class TestCanvasStudioService:
 
     def test_get_access_token(self, svc, oauth_http_service, client_secret):
@@ -134,12 +138,135 @@ class TestCanvasStudioService:
         url = svc.get_video_download_url("42")
         assert url == "https://videos.cdn.com/video.mp4?signature=abc"
 
-    def test_get_video_download_url_error(self, svc):
+    def test_get_video_download_url_as_admin(
+        self,
+        svc,
+        pyramid_request,
+        admin_user,
+        oauth_http_service,
+        admin_oauth_http_service,
+    ):
+        pyramid_request.lti_user = admin_user
+        oauth_http_service.get.side_effect = self.get_request_handler(is_admin=True)
+
+        url = svc.get_video_download_url("42")
+
+        # When the current user _is_ the admin, we use the normal/default
+        # OAuthHTTPService instead of the separate admin one.
+        oauth_http_service.get.assert_called_once()
+        admin_oauth_http_service.get.assert_not_called()
+        assert url == "https://videos.cdn.com/video.mp4?signature=abc"
+
+    def test_get_video_download_non_redirect(self, svc):
         with pytest.raises(ExternalRequestError) as exc_info:
             svc.get_video_download_url("123")
 
         assert exc_info.value.message == "Media download did not return valid redirect"
         assert Any.instance_of(exc_info.value.response).with_attrs({"status_code": 400})
+
+    def test_get_video_download_error(self, svc):
+        with pytest.raises(ExternalRequestError) as exc_info:
+            svc.get_video_download_url("456")
+        assert Any.instance_of(exc_info.value.response).with_attrs({"status_code": 404})
+
+    def test_get_video_download_url_fails_if_admin_email_not_set(
+        self, svc, pyramid_request
+    ):
+        pyramid_request.lti_user.application_instance.settings.set(
+            "canvas_studio", "admin_email", None
+        )
+        with pytest.raises(HTTPBadRequest) as exc_info:
+            svc.get_video_download_url("42")
+        assert (
+            exc_info.value.message
+            == "Admin account is not configured for Canvas Studio integration"
+        )
+
+    # Test scenario where the admin user never performed an LTI launch, and thus
+    # we cannot look up the admin email <-> LTI user ID association.
+    def test_get_video_download_url_fails_if_admin_user_not_in_db(
+        self, svc, admin_user, db_session
+    ):
+        db_session.flush()  # Ensure admin user is saved to DB
+        db_session.delete(admin_user)
+
+        with pytest.raises(HTTPBadRequest) as exc_info:
+            svc.get_video_download_url("42")
+
+        assert (
+            exc_info.value.message
+            == "The Canvas Studio admin needs to authenticate the Hypothesis integration"
+        )
+
+    # Test scenario where the admin user has performed an LTI launch, but has
+    # not authenticated with Canvas Studio or the token has clearly expired.
+    def test_get_video_download_url_fails_if_admin_not_authenticated(
+        self, svc, admin_oauth_http_service
+    ):
+        admin_oauth_http_service.get.side_effect = OAuth2TokenError()
+
+        with pytest.raises(HTTPBadRequest) as exc_info:
+            svc.get_video_download_url("42")
+
+        assert (
+            exc_info.value.message
+            == "The Canvas Studio admin needs to authenticate the Hypothesis integration"
+        )
+
+    def test_admin_token_refreshed_if_needed(
+        self, admin_oauth_http_service, svc, client_secret
+    ):
+        # Set up admin-authenticated OAuth request to fail due to expired token.
+        token_expired_response = factories.requests.Response(status_code=401)
+        original_get = admin_oauth_http_service.get.side_effect
+        admin_oauth_http_service.get.side_effect = ExternalRequestError(
+            response=token_expired_response
+        )
+
+        def refresh_ok(*_args, **_kwargs):
+            admin_oauth_http_service.get.side_effect = original_get
+
+        def refresh_fail(*_args, **_kwargs):
+            raise ExternalRequestError(message="refresh failed")
+
+        admin_oauth_http_service.refresh_access_token.side_effect = refresh_ok
+
+        # Perform a request that is admin-authenticated. This should trigger
+        # a refresh and then succeed as normal.
+        url = svc.get_video_download_url("42")
+
+        admin_oauth_http_service.refresh_access_token.assert_called_with(
+            "https://hypothesis.instructuremedia.com/api/public/oauth/token",
+            "http://example.com/api/canvas_studio/oauth/callback",
+            auth=("the_client_id", client_secret),
+        )
+        assert url == "https://videos.cdn.com/video.mp4?signature=abc"
+
+        # Set up the initial request to fail again, due to an expired token,
+        # but this time make the refresh fail.
+        admin_oauth_http_service.get.side_effect = ExternalRequestError(
+            response=token_expired_response
+        )
+        admin_oauth_http_service.refresh_access_token.side_effect = refresh_fail
+
+        with pytest.raises(ExternalRequestError) as exc_info:
+            svc.get_video_download_url("42")
+
+        assert (
+            exc_info.value.message
+            == "Canvas Studio admin token refresh failed. Ask the admin user to re-authenticate."
+        )
+
+        # Set up the initial request to fail again, due to an expired token,
+        # but this time make subsequent requests fail even though the refresh
+        # apparently succeeded.
+        admin_oauth_http_service.get.side_effect = ExternalRequestError(
+            response=token_expired_response
+        )
+        admin_oauth_http_service.refresh_access_token.side_effect = None
+
+        with pytest.raises(Exception) as exc_info:
+            svc.get_video_download_url("42")
 
     def test_get_transcript_url_returns_url_if_published(self, svc):
         transcript_url = svc.get_transcript_url("42")
@@ -163,8 +290,19 @@ class TestCanvasStudioService:
         svc.get.side_effect = self.get_request_handler()
         return svc
 
-    def get_request_handler(self, collections=None):
-        """Create a handler for `GET` requests to the Canvas Studio API."""
+    @pytest.fixture
+    def admin_oauth_http_service(self):
+        svc = create_autospec(OAuthHTTPService, spec_set=True)
+        svc.get.side_effect = self.get_request_handler(is_admin=True)
+        return svc
+
+    def get_request_handler(self, collections=None, is_admin=False):
+        """
+        Create a handler for `GET` requests to the Canvas Studio API.
+
+        :param collections: The list of collections the user can access
+        :param is_admin: Whether to simulate being the admin user
+        """
 
         def make_collection(id_, name, type_, created_at):
             return {"id": id_, "name": name, "type": type_, "created_at": created_at}
@@ -205,12 +343,14 @@ class TestCanvasStudioService:
                         ]
                     }
                 case "media/42/caption_files":
+                    assert is_admin
                     json_data = {
                         "caption_files": [
                             {"status": "published", "url": "captions/abc.srt"}
                         ]
                     }
                 case "media/123/caption_files":
+                    assert is_admin
                     json_data = {
                         "caption_files": [
                             {
@@ -219,6 +359,7 @@ class TestCanvasStudioService:
                         ]
                     }
                 case "media/42/download":
+                    assert is_admin
                     assert allow_redirects is False
                     return factories.requests.Response(
                         status_code=302,
@@ -227,22 +368,44 @@ class TestCanvasStudioService:
                         },
                     )
                 case "media/123/download":
-                    status_code = 400
+                    # This shouldn't happen, but it simulates what would happen
+                    # if we received a non-4xx/5xx status code that is not a
+                    # redirect.
+                    status_code = 200
+                    json_data = {}
+                case "media/456/download":
+                    status_code = 404
                     json_data = {}
 
                 case _:  # pragma: nocover
                     raise ValueError(f"Unexpected URL {url}")
 
-            return factories.requests.Response(
-                status_code=status_code, json_data=json_data
-            )
+            # This mirrors how HTTPService handles responses based on status code.
+            response = None
+            try:
+                response = factories.requests.Response(
+                    status_code=status_code, json_data=json_data
+                )
+                response.raise_for_status()
+                return response
+            except RequestException as err:
+                raise ExternalRequestError(
+                    request=err.request, response=response
+                ) from err
 
         return handler
 
     @pytest.fixture
-    def oauth_http_factory(self, oauth_http_service, patch):
+    def oauth_http_factory(self, oauth_http_service, admin_oauth_http_service, patch):
         factory = patch("lms.services.canvas_studio.oauth_http_factory")
-        factory.return_value = oauth_http_service
+
+        def create_oauth_http_service(_context, _request, service, user_id=None):
+            assert service is Service.CANVAS_STUDIO
+            if user_id == "admin_user_id":
+                return admin_oauth_http_service
+            return oauth_http_service
+
+        factory.side_effect = create_oauth_http_service
         return factory
 
     @pytest.fixture
@@ -254,6 +417,9 @@ class TestCanvasStudioService:
     @pytest.fixture
     def canvas_studio_settings(self, pyramid_request, aes_service):
         application_instance = pyramid_request.lti_user.application_instance
+        application_instance.settings.set(
+            "canvas_studio", "admin_email", "admin@hypothesis.edu"
+        )
         application_instance.settings.set("canvas_studio", "client_id", "the_client_id")
         application_instance.settings.set(
             "canvas_studio", "domain", "hypothesis.instructuremedia.com"
@@ -261,6 +427,16 @@ class TestCanvasStudioService:
         application_instance.settings.set_secret(
             aes_service, "canvas_studio", "client_secret", "the_client_secret"
         )
+
+    @pytest.fixture
+    def admin_user(self, db_session, pyramid_request):
+        user = factories.User(
+            email="admin@hypothesis.edu",
+            user_id="admin_user_id",
+            application_instance=pyramid_request.lti_user.application_instance,
+        )
+        db_session.add(user)
+        return user
 
 
 class TestFactory:

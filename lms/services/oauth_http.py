@@ -2,6 +2,7 @@ from marshmallow import fields
 
 from lms.models.oauth2_token import Service
 from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
+from lms.services.oauth2_token import oauth2_token_service_factory
 from lms.validation import RequestsResponseSchema
 from lms.validation.authentication import OAuthTokenResponseSchema
 
@@ -132,9 +133,26 @@ class OAuthHTTPService:
         return validated_data["access_token"]
 
 
-def factory(_context, request, service: Service = Service.LMS) -> OAuthHTTPService:
+def factory(
+    _context, request, service: Service = Service.LMS, user_id: str | None = None
+) -> OAuthHTTPService:
+    """
+    Create an `OAuthHTTPService`.
+
+    :param request: The Pyramid request
+    :param service: The API this service will communicate with
+    :param user_id:
+        The LTI user ID of the user whose API tokens should be used. Defaults
+        to the LTI user from the current request.
+    """
+    if user_id:
+        oauth2_token_svc = oauth2_token_service_factory(
+            _context, request, user_id=user_id
+        )
+    else:
+        oauth2_token_svc = request.find_service(name="oauth2_token")
     return OAuthHTTPService(
         request.find_service(name="http"),
-        request.find_service(name="oauth2_token"),
+        oauth2_token_svc,
         service=service,
     )
