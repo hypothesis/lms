@@ -5,7 +5,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from lms.models import OAuth2Token
 from lms.models.oauth2_token import Service
-from lms.services import OAuth2TokenError
+from lms.services.exceptions import OAuth2TokenError
 
 
 class OAuth2TokenService:
@@ -69,7 +69,9 @@ class OAuth2TokenService:
             ) from err
 
 
-def oauth2_token_service_factory(_context, request):
+def oauth2_token_service_factory(_context, request, user_id: str | None = None):
     return OAuth2TokenService(
-        request.db, request.lti_user.application_instance, request.lti_user.user_id
+        request.db,
+        request.lti_user.application_instance,
+        user_id or request.lti_user.user_id,
     )

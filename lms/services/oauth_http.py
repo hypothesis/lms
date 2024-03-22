@@ -2,6 +2,7 @@ from marshmallow import fields
 
 from lms.models.oauth2_token import Service
 from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
+from lms.services.oauth2_token import oauth2_token_service_factory
 from lms.validation import RequestsResponseSchema
 from lms.validation.authentication import OAuthTokenResponseSchema
 
@@ -132,9 +133,16 @@ class OAuthHTTPService:
         return validated_data["access_token"]
 
 
-def factory(_context, request, service: Service = Service.LMS) -> OAuthHTTPService:
+def factory(
+    _context, request, service: Service = Service.LMS, user_id: str | None = None
+) -> OAuthHTTPService:
+    oauth2_token_svc = request.find_service(name="oauth2_token")
+    if user_id:
+        oauth2_token_svc = oauth2_token_service_factory(
+            _context, request, user_id=user_id
+        )
     return OAuthHTTPService(
         request.find_service(name="http"),
-        request.find_service(name="oauth2_token"),
+        oauth2_token_svc,
         service=service,
     )
