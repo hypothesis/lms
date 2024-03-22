@@ -102,7 +102,7 @@ class CourseCopyGroupsHelper:
         # We might have a record of this because we just called `grouping_plugin.get_group_sets` as the current user
         # or another user might have done it before for us.
         if new_group_set := self._course_service.find_group_set(
-            name=group_set.name, context_id=course.lms_id
+            name=group_set["name"], context_id=course.lms_id
         ):
             # We found a match, store it to save the search for next time
             course.set_mapped_group_set_id(group_set_id, new_group_set.id)

@@ -288,7 +288,16 @@ export default function LaunchErrorDialog({
               settings and select a new group set.
             </b>
           </p>
-        </ErrorModal>
+          <p>
+            <b>
+              CANVAS DOESN'T COPY THE GROUPS ON COURSE COPY
+              BUT YOU COULD CREATE A NEW GROUP IN THIS GROUP
+              MATCHING THE NAME OF THE GROUP SET IN THE OLD COURSE
+              <hr></hr>
+              (OPTIONAL)THE OLD GROUP SET NAMES WAS: {error.details.group_set_name}
+            </b>
+          </p>
+        </ErrorModal >
       );
 
     case 'blackboard_group_set_not_found':

@@ -245,6 +245,8 @@ class TestCourseService:
         (
             {"context_id": "context_id", "group_set_id": "ID", "name": "NAME"},
             {"context_id": "context_id", "name": "NAME"},
+            {"context_id": "context_id", "name": "name"},
+            {"context_id": "context_id", "name": "NAME    "},
             {"context_id": "context_id", "group_set_id": "ID"},
         ),
     )

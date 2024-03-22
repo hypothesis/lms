@@ -193,9 +193,14 @@ class CourseService:
             query = query.filter(group_set.c.id == group_set_id)
 
         if name:
-            query = query.filter(group_set.c.name == name)
+            query = query.filter(
+                func.lower(func.trim(group_set.c.name)) == func.lower(func.trim(name))
+            )
 
-        return query.first()
+        if group_set := query.first():
+            return {"id": group_set.id, "name": group_set.name}
+
+        return None
 
     def _get_authority_provided_id(self, context_id):
         return self._grouping_service.get_authority_provided_id(
