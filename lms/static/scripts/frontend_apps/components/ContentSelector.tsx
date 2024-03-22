@@ -169,31 +169,16 @@ export default function ContentSelector({
     onSelectContent({ type: 'url', url, name });
   };
 
-  // file.id is a URL with a `blackboard://`, `d2l://` or `moodle://` prefix.
-
-  const selectFileAsURL = (file: File) => selectURL(file.id);
-  const selectPageAsURL = (page: File, lms: string) => {
-    const name = `${lms} page: ${page.display_name}`;
-    selectURL(page.id, name);
-  };
-
-  const selectCanvasFile = (file: File) => {
-    selectURL(file.id);
+  // file.id is a URL with a `blackboard://`, `d2l://`, `canvas://` or `moodle://` prefix.
+  const selectContent = (file: File, preffix: string) => {
+    const name = `${preffix}: ${file.display_name}`;
+    selectURL(file.id, name);
   };
 
   const selectYouTubeURL = (url: string, title?: string) => {
     const name = title && `YouTube: ${title}`;
     selectURL(url, name);
   };
-
-  const selectCanvasPage = (page: File) => selectPageAsURL(page, 'Canvas');
-
-  const selectCanvasStudio = (video: File) => {
-    const name = `Canvas Studio video: ${video.display_name}`;
-    selectURL(video.id, name);
-  };
-
-  const selectMoodlePage = (page: File) => selectPageAsURL(page, 'Moodle');
 
   const selectVitalSourceBook = async (
     selection: unknown,
@@ -226,7 +211,7 @@ export default function ContentSelector({
           authToken={authToken}
           listFilesApi={listFilesApi}
           onCancel={cancelDialog}
-          onSelectFile={selectCanvasFile}
+          onSelectFile={(file: File) => selectContent(file, 'Canvas file')}
           missingFilesHelpLink="https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-upload-a-file-to-a-course/ta-p/618"
           withBreadcrumbs={canvasWithFolders}
         />
@@ -238,7 +223,7 @@ export default function ContentSelector({
           authToken={authToken}
           listFilesApi={listPagesApi}
           onCancel={cancelDialog}
-          onSelectFile={selectCanvasPage}
+          onSelectFile={(file: File) => selectContent(file, 'Canvas page')}
           missingFilesHelpLink="https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-create-a-new-page-in-a-course/ta-p/1031"
           documentType="page"
         />
@@ -250,7 +235,9 @@ export default function ContentSelector({
           authToken={authToken}
           listFilesApi={listCanvasStudioMediaApi}
           onCancel={cancelDialog}
-          onSelectFile={selectCanvasStudio}
+          onSelectFile={(file: File) =>
+            selectContent(file, 'Canvas studio video')
+          }
           missingFilesHelpLink="https://community.canvaslms.com/t5/Canvas-Studio-Guide/How-do-I-use-Canvas-Studio/ta-p/1678"
           documentType="video"
           withBreadcrumbs
@@ -263,7 +250,7 @@ export default function ContentSelector({
           authToken={authToken}
           listFilesApi={blackboardListFilesApi}
           onCancel={cancelDialog}
-          onSelectFile={selectFileAsURL}
+          onSelectFile={(file: File) => selectContent(file, 'BlackBoard file')}
           // An alias we maintain that provides multiple external documentation links for
           // different versions of Blackboard (Classic vs. Ultra)
           missingFilesHelpLink={'https://web.hypothes.is/help/bb-files'}
@@ -277,7 +264,7 @@ export default function ContentSelector({
           authToken={authToken}
           listFilesApi={d2lListFilesApi}
           onCancel={cancelDialog}
-          onSelectFile={selectFileAsURL}
+          onSelectFile={(file: File) => selectContent(file, 'D2L file')}
           missingFilesHelpLink={
             'https://web.hypothes.is/help/using-hypothesis-with-d2l-course-content-files/'
           }
@@ -291,7 +278,7 @@ export default function ContentSelector({
           authToken={authToken}
           listFilesApi={moodleListFilesApi}
           onCancel={cancelDialog}
-          onSelectFile={selectFileAsURL}
+          onSelectFile={(file: File) => selectContent(file, 'Moodle file')}
           missingFilesHelpLink={'https://web.hypothes.is/help/'}
           withBreadcrumbs
         />
@@ -304,7 +291,7 @@ export default function ContentSelector({
           authToken={authToken}
           listFilesApi={moodleListPagesApi}
           onCancel={cancelDialog}
-          onSelectFile={selectMoodlePage}
+          onSelectFile={(file: File) => selectContent(file, 'Moodle page')}
           missingFilesHelpLink={'https://web.hypothes.is/help/'}
           documentType="page"
         />
