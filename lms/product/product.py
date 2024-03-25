@@ -1,9 +1,12 @@
 """Core models of the product."""
 
-from dataclasses import InitVar, dataclass
+from dataclasses import InitVar, dataclass, field
+
+from pyramid.request import IRequest
 
 from lms.product.family import Family  # pylint:disable=unused-import
 from lms.product.plugin import PluginConfig, Plugins
+from lms.services.lms_api import LMSAPI
 
 
 @dataclass(frozen=True)
@@ -39,8 +42,11 @@ class Settings:
 
 
 @dataclass
-class Product:
+class Product:  # pylint:disable=too-many-instance-attributes
     """The main product object which is passed around the app."""
+
+    request: IRequest
+    """Reference to the current requests"""
 
     plugin: Plugins
     settings: Settings
@@ -58,12 +64,20 @@ class Product:
     # Accessor for external consumption
     Family = Family
 
+    api_client_name: str = field(init=False)
+    """Name of the client registered to access this LMS API"""
+
+    @property
+    def api_client(self) -> LMSAPI:  # pragma: no cover
+        return self.request.find_service(name=self.api_client_name)
+
     @classmethod
     def from_request(cls, request, ai_settings: dict):
         """Create a populated product object from the provided request."""
         product_settings = ai_settings.get(cls.settings_key, {})
 
         return cls(
+            request=request,
             plugin=Plugins(request, cls.plugin_config),
             settings=Settings(product_settings=product_settings),
         )

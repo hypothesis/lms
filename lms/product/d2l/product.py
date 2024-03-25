@@ -22,3 +22,5 @@ class D2L(Product):
     )
 
     settings_key = "desire2learn"
+
+    api_client_name = "d2l"

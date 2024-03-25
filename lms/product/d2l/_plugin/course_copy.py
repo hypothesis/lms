@@ -33,7 +33,7 @@ class D2LCourseCopyPlugin:
     @classmethod
     def factory(cls, _context, request):
         return cls(
-            request.find_service(D2LAPIClient),
+            request.find_service(name="d2l"),
             files_helper=request.find_service(CourseCopyFilesHelper),
             groups_helper=request.find_service(CourseCopyGroupsHelper),
         )

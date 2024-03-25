@@ -1,4 +1,4 @@
-from typing import Literal, NotRequired, Type, TypedDict
+from typing import Type
 from urllib.parse import urlencode, urljoin, urlparse, urlunparse
 
 from marshmallow import EXCLUDE, Schema, fields, post_load
@@ -6,6 +6,7 @@ from marshmallow import EXCLUDE, Schema, fields, post_load
 from lms.models.oauth2_token import Service
 from lms.services.aes import AESService
 from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
+from lms.services.lms_api import LMSDocument
 from lms.services.oauth_http import factory as oauth_http_factory
 from lms.validation._base import RequestsResponseSchema
 
@@ -63,25 +64,6 @@ class CanvasStudioCaptionFilesSchema(RequestsResponseSchema):
     @post_load
     def post_load(self, data, **_kwargs):
         return data["caption_files"]
-
-
-class APICallInfo(TypedDict):
-    path: str
-    authUrl: NotRequired[str]
-
-
-class File(TypedDict):
-    """Represents a file or folder in an LMS's file storage."""
-
-    type: Literal["File", "Folder"]
-    mime_type: NotRequired[Literal["text/html", "application/pdf", "video"]]
-
-    id: str
-    display_name: str
-    updated_at: str
-
-    contents: NotRequired[APICallInfo]
-    """API call to use to fetch contents of a folder."""
 
 
 def replace_localhost_in_url(url: str) -> str:
@@ -179,7 +161,7 @@ class CanvasStudioService:
         redirect_uri = self._request.route_url("canvas_studio_api.oauth.callback")
         return replace_localhost_in_url(redirect_uri)
 
-    def list_media_library(self) -> list[File]:
+    def list_media_library(self) -> list[LMSDocument]:
         """
         List the videos and collections for the current user.
 
@@ -191,7 +173,7 @@ class CanvasStudioService:
         collections = self._api_request("v1/collections", CanvasStudioCollectionsSchema)
         user_collection = None
 
-        files: list[File] = []
+        files: list[LMSDocument] = []
         for collection in collections:
             if collection["type"] == "user":
                 user_collection = collection
@@ -203,6 +185,7 @@ class CanvasStudioService:
                     "display_name": collection["name"],
                     "updated_at": collection["created_at"],
                     "id": str(collection["id"]),
+                    "lms_id": str(collection["id"]),
                     "contents": {
                         "path": self._request.route_url(
                             "canvas_studio_api.collections.media.list",
@@ -217,14 +200,14 @@ class CanvasStudioService:
 
         return files
 
-    def list_collection(self, collection_id: str) -> list[File]:
+    def list_collection(self, collection_id: str) -> list[LMSDocument]:
         """List the videos in a collection."""
 
         media = self._api_request(
             f"v1/collections/{collection_id}/media", CanvasStudioCollectionMediaSchema
         )
+        files: list[LMSDocument] = []
 
-        files: list[File] = []
         for item in media:
             media_id = item["id"]
             files.append(
@@ -232,6 +215,7 @@ class CanvasStudioService:
                     "type": "File",
                     "mime_type": "video",
                     "id": f"canvas-studio://media/{media_id}",
+                    "lms_id": str(media_id),
                     "display_name": item["title"],
                     "updated_at": item["created_at"],
                 }

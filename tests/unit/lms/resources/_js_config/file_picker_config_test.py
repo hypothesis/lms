@@ -44,7 +44,7 @@ class TestFilePickerConfig:
         if files_enabled:
             expected_config["listFiles"] = {
                 "authUrl": None,
-                "path": "/api/moodle/courses/COURSE_ID/files",
+                "path": "/api/courses/COURSE_ID/files",
             }
         if pages_enabled:
             expected_config["listPages"] = {
@@ -77,7 +77,7 @@ class TestFilePickerConfig:
         if expected:
             expected_config["listFiles"] = {
                 "authUrl": "http://example.com/api/d2l/oauth/authorize",
-                "path": "/api/d2l/courses/COURSE_ID/files",
+                "path": "/api/courses/COURSE_ID/files",
             }
 
         assert config == expected_config

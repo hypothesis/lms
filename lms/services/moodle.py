@@ -3,6 +3,7 @@ from enum import Enum
 from lms.services.aes import AESService
 from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService
+from lms.services.lms_api import LMSAPI, LMSDocument
 
 
 class Function(str, Enum):
@@ -22,7 +23,7 @@ class Function(str, Enum):
     """Returns a list of pages in a provided list of courses."""
 
 
-class MoodleAPIClient:
+class MoodleAPIClient(LMSAPI):
     API_PATH = "webservice/rest/server.php"
 
     def __init__(
@@ -72,7 +73,7 @@ class MoodleAPIClient:
         response = self._request(url, params={"courseid": course_id})
         return response
 
-    def list_files(self, course_id: int):
+    def list_files(self, course_id: int) -> list[LMSDocument]:
         contents = self.course_contents(course_id)
         files = []
 
@@ -252,26 +253,6 @@ class MoodleAPIClient:
         url = f"{self._lms_url}/{self.API_PATH}?wstoken={self._token}&moodlewsrestformat=json"
 
         return url + f"&wsfunction={function.value}"
-
-    def _documents_for_storage(  # pylint:disable=too-many-arguments
-        self, course_id, files, folder_type, document_type, parent_id=None
-    ):
-        for file in files:
-            yield {
-                "type": folder_type if file["type"] == "Folder" else document_type,
-                "course_id": course_id,
-                "lms_id": file["lms_id"],
-                "name": file["display_name"],
-                "parent_lms_id": parent_id,
-            }
-
-            yield from self._documents_for_storage(
-                course_id,
-                file.get("children", []),
-                folder_type,
-                document_type,
-                file["id"],
-            )
 
     def _request(self, url: str, params: dict | None = None):
         response = self._http.post(url, params=params).json()

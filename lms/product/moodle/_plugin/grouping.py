@@ -3,7 +3,6 @@ from enum import Enum
 from lms.models import Course, Grouping
 from lms.product.plugin.grouping import GroupError, GroupingPlugin
 from lms.services.exceptions import ExternalRequestError
-from lms.services.moodle import MoodleAPIClient
 
 
 class ErrorCodes(str, Enum):
@@ -76,4 +75,4 @@ class MoodleGroupingPlugin(GroupingPlugin):
 
     @classmethod
     def factory(cls, _context, request):
-        return cls(api=request.find_service(MoodleAPIClient), lti_user=request.lti_user)
+        return cls(api=request.find_service(name="moodle"), lti_user=request.lti_user)

@@ -181,12 +181,12 @@ def course_service(mock_service):
 
 @pytest.fixture
 def d2l_api_client(mock_service):
-    return mock_service(D2LAPIClient)
+    return mock_service(D2LAPIClient, service_name="d2l")
 
 
 @pytest.fixture
 def moodle_api_client(mock_service):
-    return mock_service(MoodleAPIClient)
+    return mock_service(MoodleAPIClient, service_name="moodle")
 
 
 @pytest.fixture

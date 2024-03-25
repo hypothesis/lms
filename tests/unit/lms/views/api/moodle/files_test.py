@@ -3,16 +3,7 @@ from unittest.mock import Mock, sentinel
 import pytest
 
 from lms.services.exceptions import FileNotFoundInCourse
-from lms.views.api.moodle.files import list_files, via_url
-
-
-def test_list_files(pyramid_request, moodle_api_client):
-    pyramid_request.matchdict = {"course_id": "test_course_id"}
-
-    result = list_files(sentinel.context, pyramid_request)
-
-    moodle_api_client.list_files.assert_called_once_with("test_course_id")
-    assert result == moodle_api_client.list_files.return_value
+from lms.views.api.moodle.files import via_url
 
 
 @pytest.mark.usefixtures("course_copy_plugin")

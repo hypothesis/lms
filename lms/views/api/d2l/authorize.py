@@ -4,7 +4,6 @@ from pyramid.httpexceptions import HTTPFound
 from pyramid.view import exception_view_config, view_config
 
 from lms.security import Permissions
-from lms.services.d2l_api import D2LAPIClient
 from lms.validation.authentication import OAuthCallbackSchema
 
 GROUPS_SCOPES = ("groups:group:read",)
@@ -63,7 +62,7 @@ def authorize(request):
     schema=OAuthCallbackSchema,
 )
 def oauth2_redirect(request):
-    request.find_service(D2LAPIClient).get_token(request.params["code"])
+    request.find_service(name="d2l").get_token(request.params["code"])
     return {}
 
 
