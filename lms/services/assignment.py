@@ -1,5 +1,6 @@
 import logging
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from lms.models import (
@@ -192,6 +193,15 @@ class AssignmentService:
                 update_columns=["updated"],
             )
         )
+
+    def get_assignment_groupings(self, assignment: Assignment) -> list[Grouping]:
+        query = (
+            select(Grouping)
+            .join(AssignmentGrouping)
+            .where(AssignmentGrouping.assignment_id == assignment.id)
+        )
+
+        return self._db.scalars(query).all()
 
     def get_by_id(self, id_: int) -> Assignment | None:
         return self._db.query(Assignment).filter_by(id=id_).one_or_none()

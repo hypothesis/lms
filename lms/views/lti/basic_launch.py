@@ -19,7 +19,7 @@ from pyramid.view import view_config, view_defaults
 from lms.events import LTIEvent
 from lms.product.plugin.misc import MiscPlugin
 from lms.security import Permissions
-from lms.services import LTIGradingService
+from lms.services import LTIGradingService, HAPI
 from lms.services.assignment import AssignmentService
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
 
@@ -59,6 +59,16 @@ class BasicLaunchViews:
         if assignment := self.assignment_service.get_assignment_for_launch(
             self.request
         ):
+            assignment_groupings = self.assignment_service.get_assignment_groupings(
+                assignment
+            )
+            stats = self.request.find_service(HAPI).get_assignment_stats(
+                [g.authority_provided_id for g in assignment_groupings],
+                assignment_id=assignment.resource_link_id,
+            )
+            for row in stats:
+                print(row)
+
             self.request.override_renderer = (
                 "lms:templates/lti/basic_launch/basic_launch.html.jinja2"
             )
