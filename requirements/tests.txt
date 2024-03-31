@@ -73,9 +73,7 @@ click-repl==0.3.0
     #   -r requirements/prod.txt
     #   celery
 coverage[toml]==7.3.4
-    # via
-    #   coverage
-    #   pytest-cov
+    # via pytest-cov
 cryptography==42.0.4
     # via
     #   -r requirements/prod.txt
@@ -206,6 +204,7 @@ packaging==23.2
     #   gunicorn
     #   marshmallow
     #   pytest
+    #   pytest-factoryboy
     #   webargs
     #   zope-sqlalchemy
 pastedeploy==3.1.0
@@ -258,7 +257,6 @@ pycryptodomex==3.19.1
 pyjwt[crypto]==2.8.0
     # via
     #   -r requirements/prod.txt
-    #   pyjwt
     #   pyramid-googleauth
 pyproject-hooks==1.0.0
     # via build
@@ -293,7 +291,7 @@ pytest==8.0.2
     #   pytest-xdist
 pytest-cov==4.1.0
     # via -r requirements/tests.in
-pytest-factoryboy==2.6.0
+pytest-factoryboy==2.7.0
     # via -r requirements/tests.in
 pytest-xdist[psutil]==3.5.0
     # via -r requirements/tests.in
@@ -308,7 +306,6 @@ python-jose[crypto,cryptography]==3.3.0
     # via
     #   -r requirements/prod.txt
     #   h-vialib
-    #   python-jose
 referencing==0.32.0
     # via
     #   -r requirements/prod.txt

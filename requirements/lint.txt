@@ -120,7 +120,6 @@ click-repl==0.3.0
 coverage[toml]==7.3.4
     # via
     #   -r requirements/tests.txt
-    #   coverage
     #   pytest-cov
 cryptography==42.0.4
     # via
@@ -346,6 +345,7 @@ packaging==23.2
     #   gunicorn
     #   marshmallow
     #   pytest
+    #   pytest-factoryboy
     #   webargs
     #   zope-sqlalchemy
 parse==1.20.0
@@ -447,7 +447,6 @@ pyjwt[crypto]==2.8.0
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-    #   pyjwt
     #   pyramid-googleauth
 pylint==3.0.3
     # via -r requirements/lint.in
@@ -510,14 +509,12 @@ pytest==8.0.2
     #   pytest-xdist
 pytest-cov==4.1.0
     # via -r requirements/tests.txt
-pytest-factoryboy==2.6.0
+pytest-factoryboy==2.7.0
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
 pytest-xdist[psutil]==3.5.0
-    # via
-    #   -r requirements/tests.txt
-    #   pytest-xdist
+    # via -r requirements/tests.txt
 python-dateutil==2.8.2
     # via
     #   -r requirements/bddtests.txt
@@ -533,7 +530,6 @@ python-jose[crypto,cryptography]==3.3.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   h-vialib
-    #   python-jose
 referencing==0.32.0
     # via
     #   -r requirements/bddtests.txt
