@@ -196,6 +196,7 @@ packaging==23.2
     #   gunicorn
     #   marshmallow
     #   pytest
+    #   pytest-factoryboy
     #   webargs
     #   zope-sqlalchemy
 pastedeploy==3.1.0
@@ -246,7 +247,6 @@ pycryptodomex==3.19.1
 pyjwt[crypto]==2.8.0
     # via
     #   -r requirements/prod.txt
-    #   pyjwt
     #   pyramid-googleauth
 pyproject-hooks==1.0.0
     # via build
@@ -277,7 +277,7 @@ pytest==8.0.2
     # via
     #   -r requirements/functests.in
     #   pytest-factoryboy
-pytest-factoryboy==2.6.0
+pytest-factoryboy==2.7.0
     # via -r requirements/functests.in
 python-dateutil==2.8.2
     # via
@@ -289,7 +289,6 @@ python-jose[crypto,cryptography]==3.3.0
     # via
     #   -r requirements/prod.txt
     #   h-vialib
-    #   python-jose
 referencing==0.32.0
     # via
     #   -r requirements/prod.txt
