@@ -7,6 +7,7 @@ import {
   Scroll,
   ScrollContainer,
 } from '@hypothesis/frontend-shared';
+import type { DataTableProps } from '@hypothesis/frontend-shared';
 import type { ComponentChildren } from 'preact';
 import type { JSX } from 'preact';
 
@@ -54,7 +55,7 @@ export default function DocumentList({
 }: DocumentListProps) {
   const formatDate = (isoString: string) =>
     new Date(isoString).toLocaleDateString();
-  const columns = [
+  const columns: DataTableProps<File | Folder>['columns'] = [
     {
       label: 'Name',
       field: 'display_name',

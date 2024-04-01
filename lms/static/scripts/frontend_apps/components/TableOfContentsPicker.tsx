@@ -3,6 +3,7 @@ import {
   Scroll,
   ScrollContainer,
 } from '@hypothesis/frontend-shared';
+import type { DataTableProps } from '@hypothesis/frontend-shared';
 import { useCallback, useEffect, useMemo, useRef } from 'preact/hooks';
 
 import type { TableOfContentsEntry } from '../api-types';
@@ -46,7 +47,7 @@ export default function TableOfContentsPicker({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const columns = useMemo(
+  const columns: DataTableProps<TableOfContentsEntry>['columns'] = useMemo(
     () => [
       {
         label: 'Title',
