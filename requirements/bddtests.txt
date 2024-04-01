@@ -250,7 +250,6 @@ pycryptodomex==3.19.1
 pyjwt[crypto]==2.8.0
     # via
     #   -r requirements/prod.txt
-    #   pyjwt
     #   pyramid-googleauth
 pyproject-hooks==1.0.0
     # via build
@@ -289,7 +288,6 @@ python-jose[crypto,cryptography]==3.3.0
     # via
     #   -r requirements/prod.txt
     #   h-vialib
-    #   python-jose
 referencing==0.32.0
     # via
     #   -r requirements/prod.txt
@@ -329,7 +327,7 @@ six==1.16.0
     #   python-dateutil
 soupsieve==2.5
     # via beautifulsoup4
-sqlalchemy==2.0.24
+sqlalchemy==2.0.29
     # via
     #   -r requirements/prod.txt
     #   alembic

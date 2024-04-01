@@ -341,7 +341,7 @@ six==1.16.0
     #   ecdsa
     #   mailchimp-transactional
     #   python-dateutil
-sqlalchemy==2.0.24
+sqlalchemy==2.0.29
     # via
     #   -r requirements/prod.txt
     #   alembic
