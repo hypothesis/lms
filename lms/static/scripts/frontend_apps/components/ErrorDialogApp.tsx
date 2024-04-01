@@ -27,6 +27,10 @@ export default function ErrorDialogApp() {
     case 'reused_consumer_key':
       title = 'Consumer key registered with another site';
       break;
+    case 'vitalsource_student_pay_no_license':
+      title = 'Missing license for H';
+      break;
+
     default:
       description =
         'An error occurred when launching the Hypothesis application';
@@ -67,6 +71,13 @@ export default function ErrorDialogApp() {
               .
             </li>
           </ul>
+        </>
+      )}
+      {error.errorCode === 'vitalsource_student_pay_no_license' && (
+        <>
+          <p>
+            You {"don't"} have license from VitalSource for the Hypothesis app.
+          </p>
         </>
       )}
     </ErrorModal>

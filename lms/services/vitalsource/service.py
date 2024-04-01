@@ -7,6 +7,10 @@ from lms.services.vitalsource.exceptions import VitalSourceMalformedRegex
 from lms.services.vitalsource.model import VSBookLocation
 
 
+class VitalSourceStudentPayNoLicense(Exception):
+    pass
+
+
 class VitalSourceService:
     """A high-level interface for dealing with VitalSource."""
 
@@ -36,8 +40,7 @@ class VitalSourceService:
         :param user_lti_param: Field to lookup user details for SSO
         :param user_lti_pattern: A regex to apply to the user value to get the
             id. The first capture group will be used
-        :param enable_licence_check: Check users have a book licence before
-            launching an SSO redirect
+        :param student_pay_enabled: Is VitalSource student pay enabled for the customer?
         """
 
         self._enabled = enabled
@@ -163,8 +166,6 @@ class VitalSourceService:
         :param document_url: `vitalsource://` type URL identifying the document
         :param user_reference: The user reference (you can use
             `get_user_reference()` to help you with this)
-        :raises VitalSourceError: If the user has no licences for the material
-            or if the service is misconfigured.
         """
         assert self._sso_client
         return self._sso_client.get_sso_redirect(
@@ -187,6 +188,7 @@ class VitalSourceService:
         return value
 
     def h_license_check(self, lti_user: LTIUser, lti_params: LTIParams) -> None:
+        """Check if the user of the current launch has a license for the H LTI app."""
         if not self._student_pay_enabled or lti_user.is_instructor:
             # Not a school using student pay or the current user it's an instructor.
             return

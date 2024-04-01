@@ -26,6 +26,7 @@ class JSConfig:
     class ErrorCode(str, Enum):
         BLACKBOARD_MISSING_INTEGRATION = "blackboard_missing_integration"
         CANVAS_INVALID_SCOPE = "canvas_invalid_scope"
+        VITALSOURCE_STUDENT_PAY_NO_LICENSE = "vitalsource_student_pay_no_license"
         REUSED_CONSUMER_KEY = "reused_consumer_key"
 
     def __init__(self, _context, request):

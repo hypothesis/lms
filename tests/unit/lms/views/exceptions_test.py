@@ -136,7 +136,7 @@ class TestExceptionViews:
 
     @pytest.mark.usefixtures("js_config")
     def test_vitalsource_studentpay_no_license(self, pyramid_request):
-        exception = ReusedConsumerKey(sentinel.existing_guid, sentinel.new_guid)
+        exception = VitalSourceStudentPayNoLicense()
 
         template_data = ExceptionViews(
             exception, pyramid_request
