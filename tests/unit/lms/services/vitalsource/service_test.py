@@ -6,7 +6,10 @@ from _pytest.mark import param
 
 from lms.models import LTIParams
 from lms.services.vitalsource._client import VitalSourceClient
-from lms.services.vitalsource.exceptions import VitalSourceMalformedRegex
+from lms.services.vitalsource.exceptions import (
+    VitalSourceError,
+    VitalSourceMalformedRegex,
+)
 from lms.services.vitalsource.service import VitalSourceService
 
 

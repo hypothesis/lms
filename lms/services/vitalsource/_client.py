@@ -103,6 +103,31 @@ class VitalSourceClient:
 
         return toc
 
+    def get_user_book_license(self, user_reference, book_id) -> dict | None:
+        """
+        Get a user licence for a specific book (if any).
+
+        See: https://developer.vitalsource.com/hc/en-us/articles/204332688-GET-v3-licenses-Read
+
+        :param user_reference: String identifying the current user
+        :param book_id: Id of the book or VBID, to get the license for
+        """
+        result = self._xml_request(
+            "GET",
+            f"{self.VS_API}/v3/licenses.xml",
+            params={"sku": book_id},
+            auth=_VSUserAuth(self, user_reference),
+        )
+
+        LOG.debug("Result of license call: %s", result)
+
+        # The result is a list of active licenses that match the given book
+        # ID/SKU.
+        try:
+            return self._to_camel_case(self._pick_first(result["licenses"]["license"]))
+        except (KeyError, TypeError):
+            return None
+
     def get_sso_redirect(self, user_reference, url) -> str:
         """
         Get a URL which logs in a user then redirects to a URL.
@@ -213,17 +238,17 @@ class VitalSourceClient:
             method, url, headers={"Accept": "application/json"}
         )
 
-    def _xml_request(self, method, url, data, **kwargs) -> dict:
+    def _xml_request(self, method, url, data=None, **kwargs) -> dict:
         """
         Make a request to a VitalSource endpoint that accepts/returns XML.
 
         The VitalSource API endpoints prefixed with "v3/" use XML.
         """
-        kwargs["headers"] = {
-            "Accept": "application/xml; charset=utf-8",
-            "Content-Type": "application/xml; charset=utf-8",
-        }
-        kwargs["data"] = xmltodict.unparse(data)
+        kwargs["headers"] = {"Accept": "application/xml; charset=utf-8"}
+
+        if data:
+            kwargs["data"] = xmltodict.unparse(data)
+            kwargs["headers"]["Content-Type"] = "application/xml; charset=utf-8"
 
         response = self._http_session.request(method, url, **kwargs)
         return xmltodict.parse(response.text)
