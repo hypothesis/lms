@@ -18,6 +18,7 @@ class VitalSourceService:
         customer_client: VitalSourceClient | None = None,
         user_lti_param: str | None = None,
         user_lti_pattern: str | None = None,
+        student_pay_enabled: bool = False,
     ):
         """
         Initialise the service.
@@ -41,6 +42,7 @@ class VitalSourceService:
         self._sso_client = customer_client
         self._user_lti_param = user_lti_param
         self._user_lti_pattern = user_lti_pattern
+        self._student_pay_enabled = student_pay_enabled
 
     @property
     def enabled(self) -> bool:

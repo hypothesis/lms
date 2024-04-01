@@ -41,6 +41,7 @@ class ApplicationSettings(JSONSettings):
         JSONSetting("vitalsource", "user_lti_param"),
         JSONSetting("vitalsource", "user_lti_pattern"),
         JSONSetting("vitalsource", "api_key"),
+        JSONSetting("vitalsource", "student_pay_enabled", asbool),
         JSONSetting("jstor", "enabled", asbool),
         JSONSetting("jstor", "site_code"),
         JSONSetting("youtube", "enabled", asbool),
