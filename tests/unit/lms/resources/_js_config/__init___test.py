@@ -627,7 +627,7 @@ class TestAddDeepLinkingAPI:
 
 
 class TestEnableErrorDialogMode:
-    def test_it(self, js_config):
+    def test_it(self, js_config, LTIEvent, EventService, pyramid_request):
         js_config.enable_error_dialog_mode(
             error_code=sentinel.error_code,
             error_details=sentinel.error_details,
@@ -641,6 +641,12 @@ class TestEnableErrorDialogMode:
             "errorDetails": sentinel.error_details,
             "errorMessage": sentinel.message,
         }
+        LTIEvent.assert_called_once_with(
+            request=pyramid_request,
+            type=LTIEvent.Type.ERROR_CODE,
+            data={"code": sentinel.error_code},
+        )
+        EventService.queue_event.assert_called_once_with(LTIEvent.return_value)
 
     def test_it_omits_errorDetails_if_no_error_details_argument_is_given(
         self, js_config
@@ -653,6 +659,14 @@ class TestEnableErrorDialogMode:
     @pytest.fixture
     def context(self):
         return create_autospec(OAuth2RedirectResource, spec_set=True, instance=True)
+
+    @pytest.fixture(autouse=True)
+    def EventService(self, patch):
+        return patch("lms.resources._js_config.EventService")
+
+    @pytest.fixture(autouse=True)
+    def LTIEvent(self, patch):
+        return patch("lms.resources._js_config.LTIEvent")
 
 
 @pytest.fixture(autouse=True)
