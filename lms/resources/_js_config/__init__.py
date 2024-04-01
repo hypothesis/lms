@@ -2,14 +2,13 @@ import functools
 from enum import Enum
 from typing import Any
 
-from pyramid.httpexceptions import HTTPClientError
-
-from lms.models import Assignment, GroupInfo, Grouping, HUser
+from lms.events import LTIEvent
+from lms.models import Assignment, Grouping
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
 from lms.product.d2l import D2L
 from lms.resources._js_config.file_picker_config import FilePickerConfig
-from lms.services import HAPI, HAPIError, JSTORService, VitalSourceService
+from lms.services import HAPI, EventService, HAPIError, JSTORService, VitalSourceService
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
 
@@ -226,6 +225,14 @@ class JSConfig:
 
         if message:
             self._config["errorDialog"]["errorMessage"] = message
+
+        EventService.queue_event(
+            LTIEvent(
+                request=self._request,
+                type=LTIEvent.Type.ERROR_CODE,
+                data={"code": error_code},
+            )
+        )
 
     def enable_lti_launch_mode(self, course, assignment: Assignment):
         """
