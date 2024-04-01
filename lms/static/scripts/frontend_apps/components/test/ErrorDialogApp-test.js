@@ -39,4 +39,13 @@ describe('ErrorDialogApp', () => {
       "This Hypothesis installation's consumer key appears to have",
     );
   });
+  it('shows dialog for vital_source_student_pay_no_license', () => {
+    fakeConfig.errorCode = 'vitalsource_student_pay_no_license';
+
+    const wrapper = renderApp();
+    assert.include(
+      wrapper.text(),
+      "You don't have license from VitalSource for the Hypothesis app",
+    );
+  });
 });

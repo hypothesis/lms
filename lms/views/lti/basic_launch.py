@@ -19,10 +19,9 @@ from pyramid.view import view_config, view_defaults
 from lms.events import LTIEvent
 from lms.product.plugin.misc import MiscPlugin
 from lms.security import Permissions
-from lms.services import LTIGradingService
+from lms.services import LTIGradingService, VitalSourceService
 from lms.services.assignment import AssignmentService
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
-from lms.services import VitalSourceService
 
 LOG = logging.getLogger(__name__)
 
@@ -45,9 +44,16 @@ class BasicLaunchViews:
         self._resource_link_id = self.request.lti_params.get("resource_link_id")
 
         self.request.lti_user.application_instance.check_guid_aligns(self._guid)
+
+        # This might raise ReausedCondumerKey, preventing the launch
         self.request.find_service(name="application_instance").update_from_lti_params(
             self.request.lti_user.application_instance, self.request.lti_params
         )
+        # This might raise VitalSourceStudnetPayNoLicense, preventing the launch
+        self.request.find_service(VitalSourceService).h_license_check(
+            self.request.lti_user, self.request.lti_params
+        )
+
         self.course = self._record_course()
 
     @view_config(
@@ -60,11 +66,6 @@ class BasicLaunchViews:
         if assignment := self.assignment_service.get_assignment_for_launch(
             self.request
         ):
-            if True:
-                svc: VitalSourceService = self.request.find_service(VitalSourceService)
-                if self.request.lti_user.is_learner:
-                    svc.h_license_check(self.request.lti_user, self.request.lti_params)
-
             self.request.override_renderer = (
                 "lms:templates/lti/basic_launch/basic_launch.html.jinja2"
             )

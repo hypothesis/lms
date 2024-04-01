@@ -105,7 +105,7 @@ class TestVitalSourceService:
     @pytest.mark.parametrize("enabled", [True, False])
     @pytest.mark.parametrize("instructor", [True, False])
     def test_h_license_check_success(self, svc, enabled, pyramid_request, instructor):
-        svc._student_pay_enabled = enabled
+        svc._student_pay_enabled = enabled  # pylint:disable=protected-access
         type(pyramid_request.lti_user).is_instructor = instructor
 
         assert not svc.h_license_check(
@@ -113,7 +113,7 @@ class TestVitalSourceService:
         )
 
     def test_h_license_check_failed(self, svc, pyramid_request, customer_client):
-        svc._student_pay_enabled = True
+        svc._student_pay_enabled = True  # pylint:disable=protected-access
         type(pyramid_request.lti_user).is_instructor = False
 
         customer_client.get_user_book_license.return_value = None
