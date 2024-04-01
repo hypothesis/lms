@@ -27,6 +27,7 @@ class TestServiceFactory:
         ai.settings.set("vitalsource", "user_lti_param", sentinel.user_lti_param)
         ai.settings.set("vitalsource", "user_lti_pattern", sentinel.user_lti_pattern)
         ai.settings.set("vitalsource", "api_key", customer_api_key)
+        ai.settings.set("vitalsource", "student_pay_enabled", sentinel.student_pay)
         if enabled:
             ai.settings.set("vitalsource", "enabled", enabled)
 
@@ -45,6 +46,7 @@ class TestServiceFactory:
             ),
             user_lti_param=sentinel.user_lti_param,
             user_lti_pattern=sentinel.user_lti_pattern,
+            student_pay_enabled=sentinel.student_pay,
         )
         assert svc == VitalSourceService.return_value
 

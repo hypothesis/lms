@@ -3,7 +3,10 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from lms.models import LTIParams
 from lms.services.vitalsource._client import VitalSourceClient
-from lms.services.vitalsource.exceptions import VitalSourceMalformedRegex
+from lms.services.vitalsource.exceptions import (
+    VitalSourceError,
+    VitalSourceMalformedRegex,
+)
 from lms.services.vitalsource.model import VSBookLocation
 
 
@@ -29,6 +32,8 @@ class VitalSourceService:
         :param user_lti_param: Field to lookup user details for SSO
         :param user_lti_pattern: A regex to apply to the user value to get the
             id. The first capture group will be used
+        :param enable_licence_check: Check users have a book licence before
+            launching an SSO redirect
         """
 
         self._enabled = enabled
@@ -154,6 +159,8 @@ class VitalSourceService:
         :param document_url: `vitalsource://` type URL identifying the document
         :param user_reference: The user reference (you can use
             `get_user_reference()` to help you with this)
+        :raises VitalSourceError: If the user has no licences for the material
+            or if the service is misconfigured.
         """
         assert self._sso_client
         return self._sso_client.get_sso_redirect(
