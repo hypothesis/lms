@@ -291,7 +291,7 @@ kombu==5.3.4
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   celery
-mailchimp-transactional==1.0.50
+mailchimp-transactional==1.0.56
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
