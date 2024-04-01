@@ -20,6 +20,7 @@ from tests import factories
     "lti_role_service",
     "grouping_service",
     "misc_plugin",
+    "vitalsource_service",
 )
 class TestBasicLaunchViews:
     def test___init___(

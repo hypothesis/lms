@@ -1,17 +1,21 @@
 import re
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
-from lms.models import LTIParams
+from lms.models import LTIParams, LTIUser
 from lms.services.vitalsource._client import VitalSourceClient
-from lms.services.vitalsource.exceptions import (
-    VitalSourceError,
-    VitalSourceMalformedRegex,
-)
+from lms.services.vitalsource.exceptions import VitalSourceMalformedRegex
 from lms.services.vitalsource.model import VSBookLocation
 
 
 class VitalSourceService:
     """A high-level interface for dealing with VitalSource."""
+
+    H_SKU = "HYPOTHESISLMSAPP"
+    """
+    SKU of the H app in the VitalSource store.
+    Student pay schools will check students have a license for this SKU
+    before they can use the H LMS app.
+    """
 
     # pylint: disable=too-many-arguments
     def __init__(
@@ -181,6 +185,15 @@ class VitalSourceService:
             return match.group(1) if match else None
 
         return value
+
+    def h_license_check(self, lti_user: LTIUser, lti_params: LTIParams) -> None:
+        if not self._student_pay_enabled or lti_user.is_instructor:
+            # Not a school using student pay or the current user it's an instructor.
+            return
+
+        user_reference = self.get_user_reference(lti_params)
+        if not self._sso_client.get_user_book_license(user_reference, self.H_SKU):
+            raise VitalSourceStudentPayNoLicense()
 
     @staticmethod
     def compile_user_lti_pattern(pattern: str) -> re.Pattern | None:

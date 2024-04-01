@@ -6,11 +6,11 @@ from _pytest.mark import param
 
 from lms.models import LTIParams
 from lms.services.vitalsource._client import VitalSourceClient
-from lms.services.vitalsource.exceptions import (
-    VitalSourceError,
-    VitalSourceMalformedRegex,
+from lms.services.vitalsource.exceptions import VitalSourceMalformedRegex
+from lms.services.vitalsource.service import (
+    VitalSourceService,
+    VitalSourceStudentPayNoLicense,
 )
-from lms.services.vitalsource.service import VitalSourceService
 
 
 class TestVitalSourceService:
@@ -101,6 +101,29 @@ class TestVitalSourceService:
         result = svc.get_user_reference(LTIParams({"user_param": value}))
 
         assert result == user_reference
+
+    @pytest.mark.parametrize("enabled", [True, False])
+    @pytest.mark.parametrize("instructor", [True, False])
+    def test_h_license_check_success(self, svc, enabled, pyramid_request, instructor):
+        svc._student_pay_enabled = enabled
+        type(pyramid_request.lti_user).is_instructor = instructor
+
+        assert not svc.h_license_check(
+            pyramid_request.lti_user, pyramid_request.lti_params
+        )
+
+    def test_h_license_check_failed(self, svc, pyramid_request, customer_client):
+        svc._student_pay_enabled = True
+        type(pyramid_request.lti_user).is_instructor = False
+
+        customer_client.get_user_book_license.return_value = None
+
+        with pytest.raises(VitalSourceStudentPayNoLicense):
+            svc.h_license_check(pyramid_request.lti_user, pyramid_request.lti_params)
+
+        customer_client.get_user_book_license.assert_called_once_with(
+            svc.get_user_reference(pyramid_request.lti_params), svc.H_SKU
+        )
 
     @pytest.mark.parametrize(
         "proxy_method,args",

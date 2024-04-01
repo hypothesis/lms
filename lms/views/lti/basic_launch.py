@@ -22,6 +22,7 @@ from lms.security import Permissions
 from lms.services import LTIGradingService
 from lms.services.assignment import AssignmentService
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
+from lms.services import VitalSourceService
 
 LOG = logging.getLogger(__name__)
 
@@ -59,6 +60,11 @@ class BasicLaunchViews:
         if assignment := self.assignment_service.get_assignment_for_launch(
             self.request
         ):
+            if True:
+                svc: VitalSourceService = self.request.find_service(VitalSourceService)
+                if self.request.lti_user.is_learner:
+                    svc.h_license_check(self.request.lti_user, self.request.lti_params)
+
             self.request.override_renderer = (
                 "lms:templates/lti/basic_launch/basic_launch.html.jinja2"
             )
