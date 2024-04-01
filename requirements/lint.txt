@@ -29,7 +29,7 @@ amqp==5.2.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   kombu
-astroid==3.0.2
+astroid==3.1.0
     # via pylint
 attrs==23.1.0
     # via
@@ -448,7 +448,7 @@ pyjwt[crypto]==2.8.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid-googleauth
-pylint==3.0.3
+pylint==3.1.0
     # via -r requirements/lint.in
 pyproject-hooks==1.0.0
     # via
