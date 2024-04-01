@@ -99,6 +99,8 @@ _V11_TO_V13 = (
     # LTI 1.1 key , [LTI 1.3 path in object]
     # We use tuples instead of a dictionary to allow duplicate keys for multiple locations.
     ("user_id", ["sub"]),
+    # In case we want to access the LTI1.3 value directly using the version independent dict access
+    ("sub", ["sub"]),
     ("lis_person_name_given", ["given_name"]),
     ("lis_person_name_family", ["family_name"]),
     ("lis_person_name_full", ["name"]),
