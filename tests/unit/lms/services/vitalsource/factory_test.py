@@ -69,6 +69,7 @@ class TestServiceFactory:
             customer_client=Any(),
             user_lti_param=Any(),
             user_lti_pattern=Any(),
+            student_pay_enabled=Any(),
         )
 
     @pytest.fixture
