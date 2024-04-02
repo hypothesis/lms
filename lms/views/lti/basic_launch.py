@@ -49,11 +49,6 @@ class BasicLaunchViews:
         self.request.find_service(name="application_instance").update_from_lti_params(
             self.request.lti_user.application_instance, self.request.lti_params
         )
-        # This might raise VitalSourceStudnetPayNoLicense, preventing the launch
-        self.request.find_service(VitalSourceService).h_license_check(
-            self.request.lti_user, self.request.lti_params
-        )
-
         self.course = self._record_course()
 
     @view_config(
@@ -62,6 +57,16 @@ class BasicLaunchViews:
     )
     def lti_launch(self):
         """Handle regular LTI launches."""
+
+        if not self.request.find_service(VitalSourceService).has_h_license(
+            self.request.lti_user, self.request.lti_params
+        ):
+            self.request.override_renderer = "lms:templates/error_dialog.html.jinja2"
+            self.context.js_config.enable_error_dialog_mode(
+                self.context.js_config.ErrorCode.VITALSOURCE_STUDENT_PAY_NO_LICENSE,
+            )
+
+            return {}
 
         if assignment := self.assignment_service.get_assignment_for_launch(
             self.request

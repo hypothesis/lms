@@ -119,7 +119,7 @@ class VitalSourceClient:
             auth=_VSUserAuth(self, user_reference),
         )
 
-        LOG.debug("Result of license call: %s", result)
+        LOG.debug("Result of license call for %s: %s", user_reference, result)
 
         # The result is a list of active licenses that match the given book
         # ID/SKU.
