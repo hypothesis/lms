@@ -12,7 +12,6 @@ from pyramid.view import (
 
 from lms.models import ReusedConsumerKey
 from lms.services import HAPIError, SerializableError
-from lms.services.vitalsource import VitalSourceStudentPayNoLicense
 from lms.validation import ValidationError
 
 _ = i18n.TranslationStringFactory(__package__)
@@ -80,19 +79,6 @@ class ExceptionViews:
                 "existing_tool_consumer_instance_guid": self.exception.existing_guid,
                 "new_tool_consumer_instance_guid": self.exception.new_guid,
             },
-        )
-
-        return {}
-
-    @exception_view_config(
-        VitalSourceStudentPayNoLicense,
-        renderer="lms:templates/error_dialog.html.jinja2",
-    )
-    def vitalsource_studentpay_no_license(self):
-        self.request.response.status_int = 400
-
-        self.request.context.js_config.enable_error_dialog_mode(
-            self.request.context.js_config.ErrorCode.VITALSOURCE_STUDENT_PAY_NO_LICENSE,
         )
 
         return {}

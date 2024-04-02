@@ -7,10 +7,6 @@ from lms.services.vitalsource.exceptions import VitalSourceMalformedRegex
 from lms.services.vitalsource.model import VSBookLocation
 
 
-class VitalSourceStudentPayNoLicense(Exception):
-    pass
-
-
 class VitalSourceService:
     """A high-level interface for dealing with VitalSource."""
 
@@ -187,15 +183,15 @@ class VitalSourceService:
 
         return value
 
-    def h_license_check(self, lti_user: LTIUser, lti_params: LTIParams) -> None:
+    def has_h_license(self, lti_user: LTIUser, lti_params: LTIParams) -> bool:
         """Check if the user of the current launch has a license for the H LTI app."""
         if not self._student_pay_enabled or lti_user.is_instructor:
             # Not a school using student pay or the current user it's an instructor.
-            return
+            return True
 
         user_reference = self.get_user_reference(lti_params)
-        if not self._sso_client.get_user_book_license(user_reference, self.H_SKU):
-            raise VitalSourceStudentPayNoLicense()
+        assert self._sso_client
+        return bool(self._sso_client.get_user_book_license(user_reference, self.H_SKU))
 
     @staticmethod
     def compile_user_lti_pattern(pattern: str) -> re.Pattern | None:

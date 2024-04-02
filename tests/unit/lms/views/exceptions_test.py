@@ -8,7 +8,6 @@ from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
 from lms.security import DeniedWithException
 from lms.services import HAPIError, SerializableError
-from lms.services.vitalsource import VitalSourceStudentPayNoLicense
 from lms.validation import ValidationError
 from lms.views.exceptions import ExceptionViews
 
@@ -130,20 +129,6 @@ class TestExceptionViews:
                 "existing_tool_consumer_instance_guid": sentinel.existing_guid,
                 "new_tool_consumer_instance_guid": sentinel.new_guid,
             },
-        )
-        assert not template_data
-        assert pyramid_request.response.status_int == 400
-
-    @pytest.mark.usefixtures("js_config")
-    def test_vitalsource_studentpay_no_license(self, pyramid_request):
-        exception = VitalSourceStudentPayNoLicense()
-
-        template_data = ExceptionViews(
-            exception, pyramid_request
-        ).vitalsource_studentpay_no_license()
-
-        pyramid_request.context.js_config.enable_error_dialog_mode.assert_called_with(
-            JSConfig.ErrorCode.VITALSOURCE_STUDENT_PAY_NO_LICENSE
         )
         assert not template_data
         assert pyramid_request.response.status_int == 400
