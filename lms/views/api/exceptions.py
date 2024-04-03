@@ -203,9 +203,9 @@ class APIExceptionViews:
 
         if hasattr(self.context, "error_code"):
             EventService.queue_event(
-                LTIEvent(
+                LTIEvent.from_request(
                     request=self.request,
-                    type=LTIEvent.Type.ERROR_CODE,
+                    type_=LTIEvent.Type.ERROR_CODE,
                     data={"code": self.context.error_code},
                 )
             )

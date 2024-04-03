@@ -9,4 +9,6 @@ def insert_event(event: dict) -> None:
             # pylint:disable=import-outside-toplevel,cyclic-import
             from lms.services.event import EventService
 
-            request.find_service(EventService).insert_event(BaseEvent(**event))
+            request.find_service(EventService).insert_event(
+                BaseEvent(request=request, **event)
+            )

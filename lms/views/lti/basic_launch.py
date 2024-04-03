@@ -73,7 +73,9 @@ class BasicLaunchViews:
             )
             self._show_document(assignment)
             self.request.registry.notify(
-                LTIEvent(request=self.request, type=LTIEvent.Type.CONFIGURED_LAUNCH)
+                LTIEvent.from_request(
+                    request=self.request, type_=LTIEvent.Type.CONFIGURED_LAUNCH
+                )
             )
             return {}
 
@@ -138,9 +140,9 @@ class BasicLaunchViews:
             resource_link_id=self._resource_link_id,
         )
         self.request.registry.notify(
-            LTIEvent(
+            LTIEvent.from_request(
                 request=self.request,
-                type=LTIEvent.Type.EDITED_ASSIGNMENT,
+                type_=LTIEvent.Type.EDITED_ASSIGNMENT,
                 data={
                     "old_url": assignment.document_url,
                     "old_group_set_id": assignment.extra.get("group_set_id"),

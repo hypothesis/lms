@@ -47,8 +47,8 @@ class TestRecordCanvasSpeedgraderSubmission:
             # lti_launch_url=expected_launch_url,
             # submitted_at=datetime.datetime(2001, 1, 1, tzinfo=timezone.utc),
         )
-        LTIEvent.assert_called_once_with(
-            request=pyramid_request, type=LTIEvent.Type.SUBMISSION
+        LTIEvent.from_request.assert_called_once_with(
+            request=pyramid_request, type_=LTIEvent.Type.SUBMISSION
         )
 
     @pytest.fixture
@@ -200,9 +200,9 @@ class TestRecordResult:
         lti_grading_service.record_result.assert_called_once_with(
             "modelstudent-assignment1", score=expected, comment=comment
         )
-        LTIEvent.assert_called_once_with(
+        LTIEvent.from_request.assert_called_once_with(
             request=pyramid_request,
-            type=LTIEvent.Type.GRADE,
+            type_=LTIEvent.Type.GRADE,
             data={"student_user_id": sentinel.student_user_id, "score": expected},
         )
 

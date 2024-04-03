@@ -176,12 +176,14 @@ class TestOAuth2RedirectError:
         enable_oauth2_redirect_error_mode = js_config.enable_oauth2_redirect_error_mode
         error_code = enable_oauth2_redirect_error_mode.call_args[1].get("error_code")
         assert error_code == JSConfig.ErrorCode.CANVAS_INVALID_SCOPE
-        LTIEvent.assert_called_once_with(
+        LTIEvent.from_request.assert_called_once_with(
             request=pyramid_request,
-            type=LTIEvent.Type.ERROR_CODE,
+            type_=LTIEvent.Type.ERROR_CODE,
             data={"code": JSConfig.ErrorCode.CANVAS_INVALID_SCOPE},
         )
-        EventService.queue_event.assert_called_once_with(LTIEvent.return_value)
+        EventService.queue_event.assert_called_once_with(
+            LTIEvent.from_request.return_value
+        )
 
     def test_it_sets_the_error_details_if_theres_an_error_description(
         self, pyramid_request
