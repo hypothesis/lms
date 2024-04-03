@@ -227,10 +227,10 @@ class JSConfig:
             self._config["errorDialog"]["errorMessage"] = message
 
         EventService.queue_event(
-            LTIEvent(
+            LTIEvent.from_request(
                 request=self._request,
-                type=LTIEvent.Type.ERROR_CODE,
-                data={"code": error_code},
+                type_=LTIEvent.Type.ERROR_CODE,
+                data={"code": error_code} | (error_details or {}),
             )
         )
 

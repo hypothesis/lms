@@ -166,9 +166,9 @@ class DeepLinkingFieldsViews:
             message["https://purl.imsglobal.org/spec/lti-dl/claim/data"] = data
 
         self.request.registry.notify(
-            LTIEvent(
+            LTIEvent.from_request(
                 request=self.request,
-                type=LTIEvent.Type.DEEP_LINKING,
+                type_=LTIEvent.Type.DEEP_LINKING,
                 data=assignment_configuration,
             )
         )
@@ -192,9 +192,9 @@ class DeepLinkingFieldsViews:
         """
         assignment_configuration = self._get_assignment_configuration(self.request)
         self.request.registry.notify(
-            LTIEvent(
+            LTIEvent.from_request(
                 request=self.request,
-                type=LTIEvent.Type.DEEP_LINKING,
+                type_=LTIEvent.Type.DEEP_LINKING,
                 data=assignment_configuration,
             )
         )

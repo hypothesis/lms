@@ -10,7 +10,7 @@ from pyramid.request import Request
 from pyramid.security import Allowed, Denied
 from pyramid_googleauth import GoogleSecurityPolicy
 
-from lms.models import LTIUser
+from lms.models import LTIUser, User
 from lms.services import EmailPreferencesService, UserService
 from lms.services.email_preferences import InvalidTokenError, UnrecognisedURLError
 from lms.validation.authentication import (
@@ -334,7 +334,7 @@ def get_lti_user(request) -> LTIUser | None:
     return lti_user
 
 
-def _get_user(request):
+def _get_user(request) -> User | None:
     return request.find_service(UserService).get(
         request.lti_user.application_instance, request.lti_user.user_id
     )

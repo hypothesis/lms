@@ -5,10 +5,10 @@ import pytest
 from lms.tasks.event import insert_event
 
 
-def test_insert_event(event_service, BaseEvent):
+def test_insert_event(event_service, BaseEvent, pyramid_request):
     insert_event({"type": "value"})
 
-    BaseEvent.assert_called_once_with(type="value")
+    BaseEvent.assert_called_once_with(request=pyramid_request, type="value")
     event_service.insert_event.assert_called_once_with(BaseEvent.return_value)
 
 

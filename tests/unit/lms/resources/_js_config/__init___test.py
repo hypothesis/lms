@@ -630,7 +630,7 @@ class TestEnableErrorDialogMode:
     def test_it(self, js_config, LTIEvent, EventService, pyramid_request):
         js_config.enable_error_dialog_mode(
             error_code=sentinel.error_code,
-            error_details=sentinel.error_details,
+            error_details={"more": "details"},
             message=sentinel.message,
         )
         config = js_config.asdict()
@@ -638,15 +638,17 @@ class TestEnableErrorDialogMode:
         assert config["mode"] == JSConfig.Mode.ERROR_DIALOG
         assert config["errorDialog"] == {
             "errorCode": sentinel.error_code,
-            "errorDetails": sentinel.error_details,
+            "errorDetails": {"more": "details"},
             "errorMessage": sentinel.message,
         }
-        LTIEvent.assert_called_once_with(
+        LTIEvent.from_request.assert_called_once_with(
             request=pyramid_request,
-            type=LTIEvent.Type.ERROR_CODE,
-            data={"code": sentinel.error_code},
+            type_=LTIEvent.Type.ERROR_CODE,
+            data={"code": sentinel.error_code, "more": "details"},
         )
-        EventService.queue_event.assert_called_once_with(LTIEvent.return_value)
+        EventService.queue_event.assert_called_once_with(
+            LTIEvent.from_request.return_value
+        )
 
     def test_it_omits_errorDetails_if_no_error_details_argument_is_given(
         self, js_config

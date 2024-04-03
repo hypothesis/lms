@@ -144,9 +144,9 @@ def oauth2_redirect_error(request):
         kwargs["error_code"] = error_code
 
         EventService.queue_event(
-            LTIEvent(
+            LTIEvent.from_request(
                 request=request,
-                type=LTIEvent.Type.ERROR_CODE,
+                type_=LTIEvent.Type.ERROR_CODE,
                 data={"code": error_code},
             )
         )

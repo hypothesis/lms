@@ -105,12 +105,14 @@ class TestDeepLinkingFieldsView:
             ] = title
 
         jwt_service.encode_with_private_key.assert_called_once_with(message)
-        LTIEvent.assert_called_once_with(
+        LTIEvent.from_request.assert_called_once_with(
             request=pyramid_request,
-            type=LTIEvent.Type.DEEP_LINKING,
+            type_=LTIEvent.Type.DEEP_LINKING,
             data=_get_assignment_configuration.return_value,
         )
-        pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
+        pyramid_request.registry.notify.has_call_with(
+            LTIEvent.from_request.return_value
+        )
         assert fields["JWT"] == jwt_service.encode_with_private_key.return_value
 
     @pytest.mark.usefixtures("LTIEvent")
@@ -151,12 +153,14 @@ class TestDeepLinkingFieldsView:
 
         fields = views.file_picker_to_form_fields_v11()
 
-        LTIEvent.assert_called_once_with(
+        LTIEvent.from_request.assert_called_once_with(
             request=pyramid_request,
-            type=LTIEvent.Type.DEEP_LINKING,
+            type_=LTIEvent.Type.DEEP_LINKING,
             data=_get_assignment_configuration.return_value,
         )
-        pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
+        pyramid_request.registry.notify.has_call_with(
+            LTIEvent.from_request.return_value
+        )
 
         content_items = {
             "@context": "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",

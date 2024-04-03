@@ -156,12 +156,14 @@ class TestAPIError:
             message=sentinel.message,
             details=sentinel.details,
         )
-        LTIEvent.assert_called_once_with(
+        LTIEvent.from_request.assert_called_once_with(
             request=pyramid_request,
-            type=LTIEvent.Type.ERROR_CODE,
+            type_=LTIEvent.Type.ERROR_CODE,
             data={"code": sentinel.error_code},
         )
-        EventService.queue_event.assert_called_once_with(LTIEvent.return_value)
+        EventService.queue_event.assert_called_once_with(
+            LTIEvent.from_request.return_value
+        )
 
     def test_it_with_a_minimal_viable_error(self, pyramid_request, views):
         class MinimalError:

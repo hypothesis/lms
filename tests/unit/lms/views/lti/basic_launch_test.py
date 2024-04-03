@@ -93,9 +93,9 @@ class TestBasicLaunchViews:
             resource_link_id="TEST_RESOURCE_LINK_ID",
         )
         assignment = assignment_service.get_assignment.return_value
-        LTIEvent.assert_called_once_with(
+        LTIEvent.from_request.assert_called_once_with(
             request=pyramid_request,
-            type=LTIEvent.Type.EDITED_ASSIGNMENT,
+            type_=LTIEvent.Type.EDITED_ASSIGNMENT,
             data={
                 "old_url": assignment.document_url,
                 "old_group_set_id": assignment.extra.get.return_value,
@@ -123,9 +123,9 @@ class TestBasicLaunchViews:
         _show_document.assert_called_once_with(
             assignment_service.get_assignment_for_launch.return_value
         )
-        LTIEvent.assert_called_once_with(
+        LTIEvent.from_request.assert_called_once_with(
             request=pyramid_request,
-            type=LTIEvent.Type.CONFIGURED_LAUNCH,
+            type_=LTIEvent.Type.CONFIGURED_LAUNCH,
         )
         pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
 
