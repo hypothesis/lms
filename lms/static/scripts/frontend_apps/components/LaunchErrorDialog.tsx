@@ -43,6 +43,17 @@ function ExternalLink({ children, href }: { children: string; href: string }) {
 }
 
 /**
+ * Link to a generic KB article for Moodle error codes.
+ */
+function MoodleKBLink() {
+  return (
+    <ExternalLink href="https://web.hypothes.is/help/troubleshooting-lms-app-error-messages-in-moodle/">
+      Troubleshooting LMS App Error Messages in Moodle
+    </ExternalLink>
+  );
+}
+
+/**
  * Render an error that prevents an LTI launch from completing successfully.
  *
  * This is rendered in a non-cancelable modal.
@@ -185,6 +196,9 @@ export default function LaunchErrorDialog({
             To fix the issue an instructor needs to edit this assignment and
             select a different file.
           </p>
+          <p>
+            <MoodleKBLink />
+          </p>
         </ErrorModal>
       );
 
@@ -199,6 +213,9 @@ export default function LaunchErrorDialog({
             <li>The page has been deleted from Moodle</li>
             <li>The course was copied from another course</li>
           </ul>
+          <p>
+            <MoodleKBLink />
+          </p>
         </ErrorModal>
       );
 
@@ -347,6 +364,9 @@ export default function LaunchErrorDialog({
               settings and select a new grouping.
             </b>
           </p>
+          <p>
+            <MoodleKBLink />
+          </p>
         </ErrorModal>
       );
 
@@ -397,6 +417,9 @@ export default function LaunchErrorDialog({
               To fix this problem, add groups to the grouping or use a different
               grouping for this assignment.
             </b>
+          </p>
+          <p>
+            <MoodleKBLink />
           </p>
         </ErrorModal>
       );
@@ -478,6 +501,9 @@ export default function LaunchErrorDialog({
               To fix the problem, an instructor needs to add your Moodle user
               account to one of this assignment&apos;s groupings.
             </b>
+          </p>
+          <p>
+            <MoodleKBLink />
           </p>
         </ErrorModal>
       );
