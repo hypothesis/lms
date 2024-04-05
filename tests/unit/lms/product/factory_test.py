@@ -33,3 +33,10 @@ class TestGetProductFromRequest:
 
         assert isinstance(product, class_)
         assert product.family == family
+
+    def test_from_launch_with_no_lti_user(self, pyramid_request):
+        pyramid_request.lti_user = None
+
+        product = get_product_from_request(pyramid_request)
+
+        assert product.family == Product.Family.UNKNOWN
