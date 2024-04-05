@@ -140,15 +140,15 @@ class JWTService:
         )
 
     @staticmethod
-    @lru_cache
+    @lru_cache(maxsize=256)
     def _get_jwk_client(jwk_url: str):
         """
         Get a PyJWKClient for the given key set URL.
 
-        PyJWKClient maintains a cache of keys it has seen we want to keep
-        the clients around with `lru_cache` in case we can reuse that internal cache
+        PyJWKClient maintains a cache of keys it has seen.
+        We want to keep the clients around with `lru_cache` to reuse that internal cache.
         """
-        return _RequestsPyJWKClient(jwk_url)
+        return _RequestsPyJWKClient(jwk_url, cache_keys=True)
 
 
 class _RequestsPyJWKClient(jwt.PyJWKClient):

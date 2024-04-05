@@ -96,7 +96,7 @@ class TestJWTService:
         jwt.get_unverified_header.assert_called_once_with(sentinel.id_token)
         lti_registration_service.get.assert_called_once_with("ISS", "AUD")
         _RequestsPyJWKClient.assert_called_once_with(
-            lti_registration_service.get.return_value.key_set_url
+            lti_registration_service.get.return_value.key_set_url, cache_keys=True
         )
         jwt.decode.assert_called_with(
             sentinel.id_token,
