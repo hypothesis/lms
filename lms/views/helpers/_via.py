@@ -81,6 +81,7 @@ def via_video_url(
             urlencode(
                 {
                     **_common_via_params(request),
+                    "allow_download": "0",  # Disable download controls in UI
                     "url": canonical_url,
                     "media_url": download_url,
                     "transcript": transcript_url,
