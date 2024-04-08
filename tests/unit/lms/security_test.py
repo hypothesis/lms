@@ -270,6 +270,7 @@ class TestLTIUserSecurityPolicy:
                     Permissions.API,
                     Permissions.LTI_CONFIGURE_ASSIGNMENT,
                     Permissions.GRADE_ASSIGNMENT,
+                    Permissions.DASHBOARD_VIEW,
                 ],
             ),
             ("user_is_learner", [Permissions.LTI_LAUNCH_ASSIGNMENT, Permissions.API]),

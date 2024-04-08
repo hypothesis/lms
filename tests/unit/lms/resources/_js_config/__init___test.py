@@ -669,6 +669,42 @@ class TestEnableErrorDialogMode:
         return patch("lms.resources._js_config.LTIEvent")
 
 
+class TestEnableDashboardMode:
+    def test_it(self, js_config, db_session):
+        assignment = factories.Assignment()
+        db_session.flush()  # force assignment to have an ID
+
+        js_config.enable_dashboard_mode(assignment)
+        config = js_config.asdict()
+
+        assert config["mode"] == JSConfig.Mode.DASHBOARD
+        assert config["assignment"] == {"title": assignment.title}
+        assert config["assignmentStatsApi"] == {
+            "path": f"/api/assignment/{assignment.id}/stats",
+            "data": {},
+        }
+
+
+class TestEnableInstructorDashboardEntryPoint:
+    def test_it(self, js_config, db_session):
+        assignment = factories.Assignment()
+        db_session.flush()  # force assignment to have an ID
+
+        js_config.enable_instructor_dashboard_entry_point(assignment)
+        config = js_config.asdict()
+
+        assert config["dashboard"] == {
+            "dashboardEntryPoint": {
+                "path": f"/dashboard/launch/assignment/{assignment.id}",
+                "data": {},
+            },
+        }
+        assert config["hypothesisClient"]["dashboard"] == {
+            "showEntryPoint": True,
+            "entryPointRPCMethod": "openDashboard",
+        }
+
+
 @pytest.fixture(autouse=True)
 def BearerTokenSchema(patch):
     BearerTokenSchema = patch("lms.resources._js_config.BearerTokenSchema")
