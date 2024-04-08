@@ -253,6 +253,7 @@ class TestBasicLaunchViews:
 
     @pytest.mark.parametrize("use_toolbar_editing", [True, False])
     @pytest.mark.parametrize("use_toolbar_grading", [True, False])
+    @pytest.mark.parametrize("instructor_dashboard_enabled", [True, False])
     @pytest.mark.parametrize("is_gradable", [True, False])
     @pytest.mark.parametrize("is_instructor", [True, False])
     def test__show_document_configures_toolbar(
@@ -264,6 +265,7 @@ class TestBasicLaunchViews:
         lti_user,
         use_toolbar_editing,
         use_toolbar_grading,
+        instructor_dashboard_enabled,
         is_gradable,
         is_instructor,
         grading_info_service,
@@ -274,6 +276,9 @@ class TestBasicLaunchViews:
             request.getfixturevalue("user_is_instructor")
         pyramid_request.product.use_toolbar_grading = use_toolbar_grading
         pyramid_request.product.use_toolbar_editing = use_toolbar_editing
+        lti_user.application_instance.settings.set(
+            "hypothesis", "instructor_dashboard", instructor_dashboard_enabled
+        )
 
         # pylint: disable=protected-access
         result = svc._show_document(assignment)
@@ -283,6 +288,11 @@ class TestBasicLaunchViews:
                 context.js_config.enable_toolbar_editing.assert_called_once()
             else:
                 context.js_config.enable_toolbar_editing.assert_not_called()
+
+        if instructor_dashboard_enabled and is_instructor:
+            context.js_config.enable_instructor_dashboard_entry_point.assert_called_once()
+        else:
+            context.js_config.enable_instructor_dashboard_entry_point.assert_not_called()
 
         if use_toolbar_grading and is_gradable:
             if is_instructor:

@@ -43,6 +43,7 @@ class Permissions(Enum):
     ADMIN = "admin"
     GRADE_ASSIGNMENT = "grade_assignment"
     EMAIL_PREFERENCES = "email.preferences"
+    DASHBOARD_VIEW = "dashboard.view"
 
 
 class UnautheticatedSecurityPolicy:  # pragma: no cover
@@ -186,6 +187,7 @@ class LTIUserSecurityPolicy:
         if lti_user.is_instructor:
             permissions.append(Permissions.LTI_CONFIGURE_ASSIGNMENT)
             permissions.append(Permissions.GRADE_ASSIGNMENT)
+            permissions.append(Permissions.DASHBOARD_VIEW)
 
         return Identity(self._get_userid(lti_user), permissions, lti_user)
 

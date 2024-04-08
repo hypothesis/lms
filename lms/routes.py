@@ -35,6 +35,14 @@ def includeme(config):  # pylint:disable=too-many-statements
         "/lti/reconfigure",
         factory="lms.resources.LTILaunchResource",
     )
+    config.add_route("lti.oidc", "/lti/1.3/oidc")
+    config.add_route("lti.jwks", "/lti/1.3/jwks")
+    config.add_route(
+        "lti.v13.deep_linking.form_fields", "/lti/1.3/deep_linking/form_fields"
+    )
+    config.add_route(
+        "lti.v11.deep_linking.form_fields", "/lti/1.1/deep_linking/form_fields"
+    )
 
     config.add_route("api.sync", "/api/sync", request_method="POST")
     config.add_route(
@@ -221,11 +229,12 @@ def includeme(config):  # pylint:disable=too-many-statements
         "/admin/email/preview/instructor-email-digest",
     )
 
-    config.add_route("lti.oidc", "/lti/1.3/oidc")
-    config.add_route("lti.jwks", "/lti/1.3/jwks")
     config.add_route(
-        "lti.v13.deep_linking.form_fields", "/lti/1.3/deep_linking/form_fields"
+        "dashboard.launch.assignment", "/dashboard/launch/assignment/{id_}"
     )
     config.add_route(
-        "lti.v11.deep_linking.form_fields", "/lti/1.1/deep_linking/form_fields"
+        "dashboard.assignment",
+        "/dashboard/assignment/{id_}",
+        factory="lms.resources.dashboard.DashboardResource",
     )
+    config.add_route("api.assignment.stats", "/api/assignment/{id_}/stats")
