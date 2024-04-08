@@ -170,6 +170,25 @@ class HAPI:
                     authority_provided_id=group["authority_provided_id"]
                 )
 
+    def get_assignment_stats(self, group_authority_ids: list[str], assignment_id: int):
+        response = self._api_request(
+            "POST",
+            path="bulk/stats/assignment",
+            body=json.dumps(
+                {
+                    "filter": {
+                        "groups": group_authority_ids,
+                        "assignment_id": assignment_id,
+                    }
+                }
+            ),
+            headers={
+                "Content-Type": "application/vnd.hypothesis.v1+json",
+            },
+            stream=False,
+        )
+        return response.json()
+
     # pylint: disable=too-many-arguments
     def _api_request(self, method, path, body=None, headers=None, stream=False):
         """

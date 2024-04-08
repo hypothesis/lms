@@ -132,6 +132,31 @@ class TestHAPI:
 
         assert result == expected_result
 
+    def test_get_assignment_stats(self, h_api, http_service):
+        http_service.request.return_value = factories.requests.Response(raw="{}")
+
+        h_api.get_assignment_stats(["group_1", "group_2"], "assignment_id")
+
+        http_service.request.assert_called_once_with(
+            method="POST",
+            url="https://h.example.com/private/api/bulk/stats/assignment",
+            auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
+            headers={
+                "Content-Type": "application/vnd.hypothesis.v1+json",
+                "Hypothesis-Application": "lms",
+            },
+            data=json.dumps(
+                {
+                    "filter": {
+                        "groups": ["group_1", "group_2"],
+                        "assignment_id": "assignment_id",
+                    },
+                }
+            ),
+            timeout=(60, 60),
+            stream=False,
+        )
+
     def test_get_groups(self, h_api, http_service):
         groups = [
             {"authority_provided_id": "group_1"},
