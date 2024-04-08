@@ -1,5 +1,6 @@
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -76,6 +77,9 @@ class Assignment(CreatedUpdatedMixin, Base):
 
     deep_linking_uuid: Mapped[str | None] = mapped_column(sa.Unicode, nullable=True)
     """UUID that identifies the deep linking that created this assignment."""
+
+    groupings = association_proxy("assignment_grouping", "grouping")
+    """List of groupings this assigments is related to."""
 
     def get_canvas_mapped_file_id(self, file_id):
         return self.extra.get("canvas_file_mappings", {}).get(file_id, file_id)
