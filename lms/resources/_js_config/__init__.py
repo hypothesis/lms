@@ -575,7 +575,11 @@ class JSConfig:
                     "enableShareLinks": False,
                     "grantToken": grant_token,
                 }
-            ]
+            ],
+            "dashboard": {
+                "showEntryPoint": True,
+                "entryPointRPCMethod": "openDashboard",
+            },
         }
 
     def _configure_groups(self, course, assignment):

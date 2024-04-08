@@ -137,6 +137,10 @@ export class ClientRPC extends TinyEmitter {
       },
     );
 
+    this._server.register('openDashboard', () => {
+      console.log('Open dashboard');
+    });
+
     this._resolveGroups = () => {};
     const groups = new Promise(resolve => {
       this._resolveGroups = resolve;
