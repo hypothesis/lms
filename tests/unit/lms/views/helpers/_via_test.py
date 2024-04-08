@@ -95,6 +95,7 @@ class TestViaVideoURL:
         expected_url_params = dict(DEFAULT_OPTIONS)
         expected_url_params.update(
             {
+                "allow_download": "0",
                 "url": canonical_url,
                 "media_url": download_url,
                 "transcript": transcript_url,
