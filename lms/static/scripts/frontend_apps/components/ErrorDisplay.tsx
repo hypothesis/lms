@@ -128,7 +128,7 @@ export default function ErrorDisplay({
           <Link
             href={supportURL(message, error)}
             target="_blank"
-            underline="none"
+            underline="always"
           >
             open a support ticket
           </Link>{' '}
@@ -136,7 +136,7 @@ export default function ErrorDisplay({
           <Link
             href="https://web.hypothes.is/help/"
             target="_blank"
-            underline="none"
+            underline="always"
           >
             help documents
           </Link>
