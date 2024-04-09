@@ -114,19 +114,19 @@ disable = [
     # We use isort to sort and group our imports, so we don't need PyLint to
     # check them for us.
     "ungrouped-imports",
+    "wrong-import-order",
 
     # We use Black to format our code automatically, so we don't need PyLint to
     # check formatting for us.
     "line-too-long",
 
-    # We use isort to sort out imports so we don't need PyLint to check import
-    # ordering for us.
-    "wrong-import-order",
-
     "too-few-public-methods",
 
     # Issues to disable this for false positives, disabling it globally in the meantime https://github.com/PyCQA/pylint/issues/214
     "duplicate-code",
+
+    # False positives and flaky behaviour
+    "unsubscriptable-object",
 ]
 
 good-names = [
