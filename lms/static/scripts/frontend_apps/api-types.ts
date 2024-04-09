@@ -142,3 +142,13 @@ export type YouTubeVideoInfo = {
   image: string;
   restrictions: YouTubeVideoRestriction[];
 };
+
+/**
+ * Individual items in response for `/api/assignment/{assignment_id}/stats` call.
+ */
+export type StudentStats = {
+  display_name: string;
+  last_activity: string;
+  annotations: number;
+  replies: number;
+};

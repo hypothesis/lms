@@ -73,6 +73,11 @@ describe('AppRoot', () => {
       route: '/email/preferences',
     },
     {
+      config: { mode: 'dashboard' },
+      appComponent: 'DashboardApp',
+      route: '/dashboard/assignment/123',
+    },
+    {
       config: { mode: 'error-dialog' },
       appComponent: 'ErrorDialogApp',
     },

@@ -680,10 +680,11 @@ class TestEnableDashboardMode:
         config = js_config.asdict()
 
         assert config["mode"] == JSConfig.Mode.DASHBOARD
-        assert config["assignment"] == {"title": assignment.title}
-        assert config["assignmentStatsApi"] == {
-            "path": f"/api/assignment/{assignment.id}/stats",
-            "data": {},
+        assert config["dashboard"] == {
+            "assignment": {"title": assignment.title},
+            "assignmentStatsApi": {
+                "path": f"/api/assignment/{assignment.id}/stats",
+            },
         }
 
 
