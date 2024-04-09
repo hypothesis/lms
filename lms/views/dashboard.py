@@ -26,6 +26,7 @@ class DashboardViews:
         route_name="dashboard.assignment",
         permission=Permissions.DASHBOARD_VIEW,
         request_method="GET",
+        renderer="lms:templates/dashboard.html.jinja2",
     )
     def assignment_show(self):
         assignment = self.assignment_service.get_by_id(self.request.matchdict["id_"])
