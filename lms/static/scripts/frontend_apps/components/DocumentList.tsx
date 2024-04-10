@@ -10,6 +10,7 @@ import {
 import type { DataTableProps } from '@hypothesis/frontend-shared';
 import type { ComponentChildren } from 'preact';
 import type { JSX } from 'preact';
+import { useState } from 'preact/hooks';
 
 import type { File, Folder, MimeType } from '../api-types';
 
@@ -40,6 +41,38 @@ const mimeTypeIcons: Record<MimeType, IconComponent> = {
   'text/html': FileGenericIcon,
   video: PreviewIcon,
 };
+
+type FileThumbnailProps = {
+  src: string;
+  fallback: ComponentChildren;
+};
+
+/**
+ * Display a media thumbnail with a fallback if the content fails to load.
+ */
+function FileThumbnail({ src, fallback }: FileThumbnailProps) {
+  const [useFallback, setUseFallback] = useState(false);
+  if (useFallback) {
+    return (
+      <div
+        data-testid="thumbnail-fallback"
+        className="w-[96px] flex justify-center"
+      >
+        {fallback}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      className="w-[96px] rounded"
+      data-testid="thumbnail"
+      alt=""
+      onError={() => setUseFallback(true)}
+      src={src}
+    />
+  );
+}
 
 /**
  * List of files and folders in a file picker.
@@ -81,9 +114,18 @@ export default function DocumentList({
         } else {
           Icon = FileGenericIcon;
         }
+        const icon = <Icon data-testid="icon" className="w-5 h-5" />;
+
+        let thumbnail;
+        if (document.type === 'File' && document.thumbnail_url) {
+          thumbnail = (
+            <FileThumbnail src={document.thumbnail_url} fallback={icon} />
+          );
+        }
+
         return (
           <div className="flex flex-row items-center gap-x-2">
-            <Icon className="w-5 h-5" />
+            {thumbnail ?? icon}
             {document.display_name}
           </div>
         );

@@ -37,6 +37,9 @@ export type File = FileBase & {
    * ("text/html").
    */
   mime_type?: MimeType;
+
+  /** URL of a thumbnail for this item. */
+  thumbnail_url?: string;
 };
 
 export type Folder = FileBase & {
