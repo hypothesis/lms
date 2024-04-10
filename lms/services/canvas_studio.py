@@ -220,6 +220,9 @@ class CanvasStudioService:
                 }
             )
 
+        # Sort folders by name, then list files after.
+        files.sort(key=lambda f: f["display_name"])
+
         if user_collection:
             files += self.list_collection(str(user_collection["id"]))
 
@@ -252,6 +255,8 @@ class CanvasStudioService:
                     "thumbnail_url": item.get("thumbnail_url", None),
                 }
             )
+
+        files.sort(key=lambda f: f["display_name"])
 
         return files
 

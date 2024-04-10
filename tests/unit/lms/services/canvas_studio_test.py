@@ -76,6 +76,15 @@ class TestCanvasStudioService:
         assert files == [
             {
                 "type": "Folder",
+                "display_name": "And more videos",
+                "updated_at": "2024-02-01",
+                "id": "9",
+                "contents": {
+                    "path": "http://example.com/api/canvas_studio/collections/9/media"
+                },
+            },
+            {
+                "type": "Folder",
                 "display_name": "More videos",
                 "updated_at": "2024-02-01",
                 "id": "8",
@@ -129,7 +138,15 @@ class TestCanvasStudioService:
                 "updated_at": "2024-02-04",
                 "id": "canvas-studio://media/6",
                 "thumbnail_url": "https://videos.cdn.com/thumbnails/6.jpg",
-            }
+            },
+            {
+                "type": "File",
+                "display_name": "Some video",
+                "mime_type": "video",
+                "updated_at": "2024-02-04",
+                "id": "canvas-studio://media/7",
+                "thumbnail_url": "https://videos.cdn.com/thumbnails/7.jpg",
+            },
         ]
 
     def test_get_canonical_video_url(self, svc):
@@ -319,6 +336,7 @@ class TestCanvasStudioService:
             # Add default collections
             collections = [
                 make_collection(1, "", "user", "2024-02-01"),
+                make_collection(9, "And more videos", "some_type", "2024-02-01"),
                 make_collection(8, "More videos", "some_type", "2024-02-01"),
             ]
 
@@ -344,6 +362,9 @@ class TestCanvasStudioService:
                 case "collections/8/media":
                     json_data = {
                         "media": [
+                            make_file(
+                                7, "Some video", "2024-02-04", with_thumbnail=True
+                            ),
                             make_file(
                                 6, "Another video", "2024-02-04", with_thumbnail=True
                             ),
