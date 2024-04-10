@@ -1,6 +1,7 @@
 from unittest.mock import create_autospec, sentinel
 
 import pytest
+from freezegun import freeze_time
 from h_matchers import Any
 from pyramid.httpexceptions import HTTPFound
 
@@ -13,15 +14,26 @@ pytestmark = pytest.mark.usefixtures("h_api", "assignment_service")
 
 
 class TestDashboardViews:
-    def test_assignment_redirect_from_launch(self, views, pyramid_request):
+    @freeze_time("2024-04-01 12:00:00")
+    def test_assignment_redirect_from_launch(
+        self, views, pyramid_request, BearerTokenSchema
+    ):
         pyramid_request.matchdict["id_"] = sentinel.id
+        BearerTokenSchema.return_value.authorization_param.return_value = "Bearer TOKEN"
 
         response = views.assignment_redirect_from_launch()
 
+        BearerTokenSchema.return_value.authorization_param.assert_called_once_with(
+            pyramid_request.lti_user
+        )
         assert response == Any.instance_of(HTTPFound).with_attrs(
             {
                 "location": "http://example.com/dashboard/assignment/sentinel.id",
             }
+        )
+        assert (
+            response.headers["Set-Cookie"]
+            == "authorization=TOKEN; Max-Age=2592000; Path=/; expires=Wed, 01-May-2024 12:00:00 GMT; secure; HttpOnly"
         )
 
     def test_assignment_show(self, views, pyramid_request, assignment_service):
@@ -71,6 +83,10 @@ class TestDashboardViews:
             }
             for s in stats
         ]
+
+    @pytest.fixture
+    def BearerTokenSchema(self, patch):
+        return patch("lms.views.dashboard.BearerTokenSchema")
 
     @pytest.fixture
     def views(self, pyramid_request):

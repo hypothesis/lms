@@ -450,6 +450,8 @@ class TestSecurityPolicy:
             ("/api/canvas/files", "headers"),
             ("/api/blackboard/groups", "headers"),
             ("/assignment", "form"),
+            ("/dashboard/launch/assignment/10", "form"),
+            ("/dashboard/assignment/10", "cookies"),
         ],
     )
     def test_picks_lti_launches_with_bearer_token(

@@ -135,6 +135,11 @@ class SecurityPolicy:
                 partial(get_lti_user_from_bearer_token, location="form")
             )
 
+        if path.startswith("/dashboard/assignment/"):
+            return LTIUserSecurityPolicy(
+                partial(get_lti_user_from_bearer_token, location="cookies")
+            )
+
         if path in {"/email/preferences", "/email/unsubscribe"}:
             return EmailPreferencesSecurityPolicy(
                 secret=request.registry.settings["email_preferences_secret"],
