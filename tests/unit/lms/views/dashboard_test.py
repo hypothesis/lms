@@ -33,7 +33,7 @@ class TestDashboardViews:
         )
         assert (
             response.headers["Set-Cookie"]
-            == "authorization=TOKEN; Max-Age=2592000; Path=/; expires=Wed, 01-May-2024 12:00:00 GMT; secure; HttpOnly"
+            == "authorization=TOKEN; Max-Age=86400; Path=/; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
         )
 
     def test_assignment_show(self, views, pyramid_request, assignment_service):
