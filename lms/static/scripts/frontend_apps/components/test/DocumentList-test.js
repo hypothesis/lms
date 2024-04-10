@@ -49,6 +49,22 @@ describe('DocumentList', () => {
       type: 'File',
       mime_type: 'video',
       thumbnail_url: 'https://example.local/thumbnail.jpg',
+      duration: 75.0,
+      formattedDuration: '01:15',
+    },
+    {
+      type: 'File',
+      mime_type: 'video',
+      thumbnail_url: 'https://example.local/thumbnail.jpg',
+      duration: 5.5,
+      formattedDuration: '00:06',
+    },
+    {
+      type: 'File',
+      mime_type: 'video',
+      thumbnail_url: 'https://example.local/thumbnail.jpg',
+      duration: 71 * 60 + 5,
+      formattedDuration: '71:05',
     },
 
     // Files with known mime type
@@ -58,33 +74,43 @@ describe('DocumentList', () => {
 
     // File with unknown mime type
     { type: 'File', icon: 'FileGenericIcon' },
-  ].forEach(({ type, mime_type, icon, thumbnail_url }) => {
-    it('renders documents with an icon, document name and date', () => {
-      const wrapper = renderDocumentList({
-        documents: [{ ...testDocuments[0], type, mime_type, thumbnail_url }],
-      });
-      const formattedDate = new Date(testDocuments[0]).toLocaleDateString();
-      const dataRow = wrapper.find('tbody tr').at(0);
-      assert.equal(
-        dataRow.find('td').at(0).text(),
-        testDocuments[0].display_name,
-      );
+  ].forEach(
+    ({ type, mime_type, icon, thumbnail_url, duration, formattedDuration }) => {
+      it('renders documents with an icon or thumbnail, document name and date', () => {
+        const wrapper = renderDocumentList({
+          documents: [
+            { ...testDocuments[0], type, mime_type, thumbnail_url, duration },
+          ],
+        });
+        const formattedDate = new Date(testDocuments[0]).toLocaleDateString();
+        const dataRow = wrapper.find('tbody tr').at(0);
+        assert.equal(
+          dataRow.find('[data-testid="display-name"]').text(),
+          testDocuments[0].display_name,
+        );
 
-      if (icon) {
-        assert.isTrue(dataRow.exists(icon));
-      } else {
-        assert.isFalse(dataRow.exists('[data-testid="icon"]'));
-      }
+        if (icon) {
+          assert.isTrue(dataRow.exists(icon));
+        } else {
+          assert.isFalse(dataRow.exists('[data-testid="icon"]'));
+        }
 
-      if (thumbnail_url) {
         const thumbnail = dataRow.find('[data-testid="thumbnail"]');
-        assert.isTrue(thumbnail.exists());
-        assert.equal(thumbnail.prop('src'), thumbnail_url);
-      }
+        assert.equal(thumbnail.exists(), !!thumbnail_url);
+        if (thumbnail_url) {
+          assert.equal(thumbnail.prop('src'), thumbnail_url);
+        }
 
-      assert.equal(dataRow.find('td').at(1).text(), formattedDate);
-    });
-  });
+        const durationEl = dataRow.find('[data-testid="duration"]');
+        assert.equal(durationEl.exists(), typeof duration === 'number');
+        if (typeof duration === 'number') {
+          assert.equal(durationEl.text(), formattedDuration);
+        }
+
+        assert.equal(dataRow.find('td').at(1).text(), formattedDate);
+      });
+    },
+  );
 
   it('renders fallback if thumbnail fails to load', () => {
     const wrapper = renderDocumentList({
