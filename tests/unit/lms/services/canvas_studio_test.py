@@ -99,6 +99,7 @@ class TestCanvasStudioService:
                 "updated_at": "2024-02-03",
                 "id": "canvas-studio://media/5",
                 "thumbnail_url": None,
+                "duration": 10.5,
             },
         ]
 
@@ -138,6 +139,7 @@ class TestCanvasStudioService:
                 "updated_at": "2024-02-04",
                 "id": "canvas-studio://media/6",
                 "thumbnail_url": "https://videos.cdn.com/thumbnails/6.jpg",
+                "duration": 10.5,
             },
             {
                 "type": "File",
@@ -146,6 +148,7 @@ class TestCanvasStudioService:
                 "updated_at": "2024-02-04",
                 "id": "canvas-studio://media/7",
                 "thumbnail_url": "https://videos.cdn.com/thumbnails/7.jpg",
+                "duration": 10.5,
             },
         ]
 
@@ -327,7 +330,12 @@ class TestCanvasStudioService:
             return {"id": id_, "name": name, "type": type_, "created_at": created_at}
 
         def make_file(id_, title, created_at, with_thumbnail=False):
-            file = {"id": id_, "title": title, "created_at": created_at}
+            file = {
+                "id": id_,
+                "title": title,
+                "created_at": created_at,
+                "duration": 10.5,
+            }
             if with_thumbnail:
                 file["thumbnail_url"] = f"https://videos.cdn.com/thumbnails/{id_}.jpg"
             return file
