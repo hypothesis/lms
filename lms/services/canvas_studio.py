@@ -44,6 +44,7 @@ class CanvasStudioCollectionMediaSchema(RequestsResponseSchema):
         id = fields.Integer(required=True)
         title = fields.Str(required=True)
         created_at = fields.Str(required=False)
+        duration = fields.Float(required=False)
         thumbnail_url = fields.Str(required=False)
 
     media = fields.List(fields.Nested(MediaSchema), required=True)
@@ -84,6 +85,10 @@ class File(TypedDict):
 
     id: str
     display_name: str
+
+    duration: float | None
+    """Duration of media in seconds."""
+
     updated_at: str
     thumbnail_url: str | None
 
@@ -244,6 +249,7 @@ class CanvasStudioService:
                     "mime_type": "video",
                     "id": f"canvas-studio://media/{media_id}",
                     "display_name": item["title"],
+                    "duration": item.get("duration", None),
                     "updated_at": item["created_at"],
                     # nb. There is a known issue with thumbnails for audio files
                     # where the API returns a thumbnail URL, which redirects to
