@@ -127,7 +127,9 @@ class SecurityPolicy:
                 partial(get_lti_user_from_bearer_token, location="headers")
             )
 
-        if path in {"/assignment", "/assignment/edit"}:
+        if path in {"/assignment", "/assignment/edit"} or path.startswith(
+            "/dashboard/launch/assignment/"
+        ):
             # LTUser serialized in a from for non deep-linked assignment configuration
             return LTIUserSecurityPolicy(
                 partial(get_lti_user_from_bearer_token, location="form")
