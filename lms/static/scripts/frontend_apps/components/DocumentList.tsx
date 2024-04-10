@@ -49,6 +49,11 @@ type FileThumbnailProps = {
 
 /**
  * Display a media thumbnail with a fallback if the content fails to load.
+ *
+ * The fallback exists because the thumbnail URLs may refer to images hosted
+ * on third-party servers, so we can't be sure they will return valid images.
+ * The alternative would be to proxy all thumbnails through the LMS's server,
+ * which could serve a fallback if upstream fails to load.
  */
 function FileThumbnail({ src, fallback }: FileThumbnailProps) {
   const [useFallback, setUseFallback] = useState(false);

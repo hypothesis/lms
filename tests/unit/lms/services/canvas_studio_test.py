@@ -89,6 +89,7 @@ class TestCanvasStudioService:
                 "mime_type": "video",
                 "updated_at": "2024-02-03",
                 "id": "canvas-studio://media/5",
+                "thumbnail_url": None,
             },
         ]
 
@@ -127,6 +128,7 @@ class TestCanvasStudioService:
                 "mime_type": "video",
                 "updated_at": "2024-02-04",
                 "id": "canvas-studio://media/6",
+                "thumbnail_url": "https://videos.cdn.com/thumbnails/6.jpg",
             }
         ]
 
@@ -307,8 +309,11 @@ class TestCanvasStudioService:
         def make_collection(id_, name, type_, created_at):
             return {"id": id_, "name": name, "type": type_, "created_at": created_at}
 
-        def make_file(id_, title, created_at):
-            return {"id": id_, "title": title, "created_at": created_at}
+        def make_file(id_, title, created_at, with_thumbnail=False):
+            file = {"id": id_, "title": title, "created_at": created_at}
+            if with_thumbnail:
+                file["thumbnail_url"] = f"https://videos.cdn.com/thumbnails/{id_}.jpg"
+            return file
 
         if collections is None:
             # Add default collections
@@ -339,7 +344,9 @@ class TestCanvasStudioService:
                 case "collections/8/media":
                     json_data = {
                         "media": [
-                            make_file(6, "Another video", "2024-02-04"),
+                            make_file(
+                                6, "Another video", "2024-02-04", with_thumbnail=True
+                            ),
                         ]
                     }
                 case "media/42/caption_files":
