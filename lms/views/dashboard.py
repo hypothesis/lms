@@ -3,6 +3,7 @@ from pyramid.view import view_config
 
 from lms.security import Permissions
 from lms.services.h_api import HAPI
+from lms.validation.authentication import BearerTokenSchema
 
 
 class DashboardViews:
@@ -18,9 +19,23 @@ class DashboardViews:
     )
     def assignment_redirect_from_launch(self):
         assignment_id = self.request.matchdict["id_"]
-        return HTTPFound(
+        response = HTTPFound(
             location=self.request.route_url("dashboard.assignment", id_=assignment_id),
         )
+        # Encode the current LTIUser as a cookie
+        auth_token = (
+            BearerTokenSchema(self.request).authorization_param(self.request.lti_user)
+            # White space is not allowed as a cookie character, remove the leading part
+            .replace("Bearer ", "")
+        )
+        response.set_cookie(
+            "authorization",
+            value=auth_token,
+            secure=not self.request.registry.settings["dev"],
+            httponly=True,
+            max_age=60 * 60 * 24 * 30,  # 30 Days
+        )
+        return response
 
     @view_config(
         route_name="dashboard.assignment",

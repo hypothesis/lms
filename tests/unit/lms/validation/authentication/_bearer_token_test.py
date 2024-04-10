@@ -50,6 +50,13 @@ class TestBearerTokenSchema:
             == lti_user_service.deserialize.return_value
         )
 
+    def test_it_allows_bearer_preffix_missing(self, schema, pyramid_request):
+        pyramid_request.headers["authorization"] = pyramid_request.headers[
+            "authorization"
+        ].replace("Bearer ", "")
+
+        assert schema.lti_user(location="headers")
+
     def test_it_raises_if_theres_no_authorization_param(self, schema, pyramid_request):
         del pyramid_request.headers["authorization"]
 
