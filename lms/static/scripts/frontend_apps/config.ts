@@ -239,6 +239,10 @@ export type EmailPreferences = {
   flashMessage: string | null;
 };
 
+export type DashboardConfig = {
+  dashboardEntryPoint: APICallInfo;
+};
+
 /**
  * Data/configuration needed for frontend applications in the LMS app.
  * The `mode` property specifies which frontend application should load and
@@ -293,6 +297,9 @@ export type ConfigObject = {
 
   // Only present in "email-preferences" mode.
   emailPreferences?: EmailPreferences;
+
+  // Only present for instructors
+  dashboard?: DashboardConfig;
 };
 
 /**

@@ -1,8 +1,9 @@
 import { TinyEmitter } from 'tiny-emitter';
 
 import { Server, call as rpcCall } from '../../postmessage_json_rpc';
-import type { ClientConfig } from '../config';
+import type { ClientConfig, DashboardConfig } from '../config';
 import { apiCall } from '../utils/api';
+import { DashboardOpeningFormController } from '../utils/dashboard-opening-form-controller';
 import { JWT } from '../utils/jwt';
 
 export type User = {
@@ -79,6 +80,12 @@ export type ClientRPCOptions = {
    * https://h.readthedocs.io/projects/client/en/latest/publishers/config/.
    */
   clientConfig: ClientConfig;
+
+  /**
+   * Dashboard configuration to use when the 'openDashboard' RPC method is
+   * called
+   */
+  dashboardConfig?: DashboardConfig;
 };
 
 /**
@@ -99,7 +106,12 @@ export class ClientRPC extends TinyEmitter {
   /**
    * Setup the RPC server used to communicate with the Hypothesis client.
    */
-  constructor({ allowedOrigins, authToken, clientConfig }: ClientRPCOptions) {
+  constructor({
+    allowedOrigins,
+    authToken,
+    clientConfig,
+    dashboardConfig,
+  }: ClientRPCOptions) {
     super();
     this._server = new Server(allowedOrigins);
 
@@ -136,6 +148,12 @@ export class ClientRPC extends TinyEmitter {
         this.emit('annotationActivity', eventType, data);
       },
     );
+
+    this._server.register('openDashboard', () => {
+      if (dashboardConfig) {
+        new DashboardOpeningFormController(dashboardConfig, authToken).render();
+      }
+    });
 
     this._resolveGroups = () => {};
     const groups = new Promise(resolve => {

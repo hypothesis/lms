@@ -70,7 +70,8 @@ export function init() {
     const clientRPC = new ClientRPC({
       authToken,
       allowedOrigins: config.rpcServer.allowedOrigins,
-      clientConfig: /** @type {ClientConfig} */ config.hypothesisClient,
+      clientConfig: config.hypothesisClient,
+      dashboardConfig: config.dashboard,
     });
     const contentInfoFetcher = new ContentInfoFetcher(authToken, clientRPC);
     const gradingService = new GradingService({

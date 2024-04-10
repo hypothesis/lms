@@ -1,3 +1,5 @@
+import sinon from 'sinon';
+
 import { $imports, ClientRPC } from '../client-rpc';
 
 describe('ClientRPC', () => {
@@ -13,6 +15,9 @@ describe('ClientRPC', () => {
 
   let FakeJWT;
   let fakeJwt;
+
+  let FakeDashboardController;
+  let fakeDashboardControllerInstance;
 
   beforeEach(() => {
     clientConfig = {
@@ -54,6 +59,11 @@ describe('ClientRPC', () => {
       };
     });
 
+    fakeDashboardControllerInstance = { render: sinon.stub() };
+    FakeDashboardController = sinon
+      .stub()
+      .returns(fakeDashboardControllerInstance);
+
     authToken = 'dummy-auth-token';
 
     $imports.$mock({
@@ -67,6 +77,9 @@ describe('ClientRPC', () => {
         Server: FakeServer,
         call: fakeRpcCall,
       },
+      '../utils/dashboard-opening-form-controller': {
+        DashboardOpeningFormController: FakeDashboardController,
+      },
     });
   });
 
@@ -74,11 +87,12 @@ describe('ClientRPC', () => {
     $imports.$restore();
   });
 
-  function createClientRPC() {
+  function createClientRPC(dashboardConfig) {
     return new ClientRPC({
       allowedOrigins: ['https://client.hypothes.is'],
       authToken,
       clientConfig,
+      dashboardConfig,
     });
   }
 
@@ -180,6 +194,33 @@ describe('ClientRPC', () => {
       serverMethod('create', 'foo');
 
       assert.calledWith(callback, 'create', 'foo');
+    });
+  });
+
+  describe('"openDashboard" RPC handler', () => {
+    const callOpenDashboardRPC = async () => {
+      const [, callback] = fakeServerInstance.register.args.find(
+        ([method]) => method === 'openDashboard',
+      );
+      await callback();
+    };
+
+    it('does nothing when dashboard config is not provided', async () => {
+      createClientRPC();
+      await callOpenDashboardRPC();
+
+      assert.notCalled(fakeDashboardControllerInstance.render);
+    });
+
+    it('renders dashboard form when config is provided', async () => {
+      createClientRPC({
+        dashboardEntryPoint: {
+          path: '/open/dashboard',
+        },
+      });
+      await callOpenDashboardRPC();
+
+      assert.called(fakeDashboardControllerInstance.render);
     });
   });
 
