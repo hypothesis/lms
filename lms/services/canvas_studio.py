@@ -44,6 +44,7 @@ class CanvasStudioCollectionMediaSchema(RequestsResponseSchema):
         id = fields.Integer(required=True)
         title = fields.Str(required=True)
         created_at = fields.Str(required=False)
+        thumbnail_url = fields.Str(required=False)
 
     media = fields.List(fields.Nested(MediaSchema), required=True)
 
@@ -84,6 +85,7 @@ class File(TypedDict):
     id: str
     display_name: str
     updated_at: str
+    thumbnail_url: str | None
 
     contents: NotRequired[APICallInfo]
     """API call to use to fetch contents of a folder."""
@@ -240,6 +242,14 @@ class CanvasStudioService:
                     "id": f"canvas-studio://media/{media_id}",
                     "display_name": item["title"],
                     "updated_at": item["created_at"],
+                    # nb. There is a known issue with thumbnails for audio files
+                    # where the API returns a thumbnail URL, which redirects to
+                    # a `default_thumbnail` image when requested, but that URL
+                    # fails to load with a 403.
+                    #
+                    # We handle this on the frontend by rendering fallback
+                    # content if the thumbnail fails to load for any reason.
+                    "thumbnail_url": item.get("thumbnail_url", None),
                 }
             )
 
