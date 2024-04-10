@@ -18,6 +18,11 @@ class DashboardViews:
         request_method="POST",
     )
     def assignment_redirect_from_launch(self):
+        """
+        Entry point to the dashboards from an LTI launch.
+
+        Here we "promote" the LTILaunch token present as a form parameter to a cookie.
+        """
         assignment_id = self.request.matchdict["id_"]
         response = HTTPFound(
             location=self.request.route_url("dashboard.assignment", id_=assignment_id),
@@ -33,7 +38,7 @@ class DashboardViews:
             value=auth_token,
             secure=not self.request.registry.settings["dev"],
             httponly=True,
-            max_age=60 * 60 * 24 * 30,  # 30 Days
+            max_age=60 * 60 * 24,  # 24 hours, matches the lifetime of the auth_token
         )
         return response
 
@@ -44,6 +49,10 @@ class DashboardViews:
         renderer="lms:templates/dashboard.html.jinja2",
     )
     def assignment_show(self):
+        """Start the dashboard miniapp in the frontend.
+
+        Authenticated via the LTIUser present in a cookie making this endpoint accessible directly in the browser.
+        """
         assignment = self.assignment_service.get_by_id(self.request.matchdict["id_"])
         self.request.context.js_config.enable_dashboard_mode(assignment)
         return {}
@@ -55,6 +64,7 @@ class DashboardViews:
         permission=Permissions.DASHBOARD_VIEW,
     )
     def api_assignment_stats(self):
+        """Fetch the stats for one particular assignment."""
         assignment = self.assignment_service.get_by_id(self.request.matchdict["id_"])
         stats = self.h_api.get_assignment_stats(
             [g.authority_provided_id for g in assignment.groupings],
