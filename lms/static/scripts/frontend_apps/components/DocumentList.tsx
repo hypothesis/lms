@@ -10,7 +10,7 @@ import {
 import type { DataTableProps } from '@hypothesis/frontend-shared';
 import type { ComponentChildren } from 'preact';
 import type { JSX } from 'preact';
-import { useState } from 'preact/hooks';
+import { useMemo, useState } from 'preact/hooks';
 
 import type { File, Folder, MimeType } from '../api-types';
 
@@ -45,6 +45,7 @@ const mimeTypeIcons: Record<MimeType, IconComponent> = {
 type FileThumbnailProps = {
   src: string;
   fallback: ComponentChildren;
+  duration?: number;
 };
 
 /**
@@ -55,27 +56,43 @@ type FileThumbnailProps = {
  * The alternative would be to proxy all thumbnails through the LMS's server,
  * which could serve a fallback if upstream fails to load.
  */
-function FileThumbnail({ src, fallback }: FileThumbnailProps) {
+function FileThumbnail({ src, fallback, duration }: FileThumbnailProps) {
   const [useFallback, setUseFallback] = useState(false);
-  if (useFallback) {
-    return (
-      <div
-        data-testid="thumbnail-fallback"
-        className="w-[96px] flex justify-center"
-      >
-        {fallback}
-      </div>
-    );
-  }
+  const formattedDuration = useMemo(
+    () => (typeof duration === 'number' ? formatDuration(duration) : null),
+    [duration],
+  );
 
   return (
-    <img
-      className="w-[96px] rounded"
-      data-testid="thumbnail"
-      alt=""
-      onError={() => setUseFallback(true)}
-      src={src}
-    />
+    <div className="min-w-[96px] min-h-[54px] flex items-center justify-center relative rounded bg-grey-3 overflow-clip">
+      {!useFallback && (
+        <img
+          className="w-[96px]"
+          data-testid="thumbnail"
+          alt=""
+          onError={() => setUseFallback(true)}
+          src={src}
+        />
+      )}
+      {useFallback && <div data-testid="thumbnail-fallback">{fallback}</div>}
+      {formattedDuration && (
+        <div
+          className="absolute bottom-0 right-0 text-grey-1 bg-grey-9/75 px-1 rounded"
+          data-testid="duration"
+        >
+          {formattedDuration}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Format a duration in seconds as an `MM:SS` string. */
+function formatDuration(duration: number): string {
+  const mins = Math.floor(duration / 60);
+  const secs = Math.round(duration % 60);
+  return (
+    mins.toString().padStart(2, '0') + ':' + secs.toString().padStart(2, '0')
   );
 }
 
@@ -124,14 +141,18 @@ export default function DocumentList({
         let thumbnail;
         if (document.type === 'File' && document.thumbnail_url) {
           thumbnail = (
-            <FileThumbnail src={document.thumbnail_url} fallback={icon} />
+            <FileThumbnail
+              src={document.thumbnail_url}
+              fallback={icon}
+              duration={document.duration}
+            />
           );
         }
 
         return (
           <div className="flex flex-row items-center gap-x-2">
             {thumbnail ?? icon}
-            {document.display_name}
+            <span data-testid="display-name">{document.display_name}</span>
           </div>
         );
       }

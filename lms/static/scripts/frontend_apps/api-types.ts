@@ -40,6 +40,9 @@ export type File = FileBase & {
 
   /** URL of a thumbnail for this item. */
   thumbnail_url?: string;
+
+  /** Duration of audio or video in seconds. */
+  duration?: number;
 };
 
 export type Folder = FileBase & {
