@@ -170,7 +170,9 @@ class HAPI:
                     authority_provided_id=group["authority_provided_id"]
                 )
 
-    def get_assignment_stats(self, group_authority_ids: list[str], assignment_id: int):
+    def get_assignment_stats(
+        self, group_authority_ids: list[str], resource_link_id: str
+    ):
         response = self._api_request(
             "POST",
             path="bulk/stats/assignment",
@@ -178,7 +180,7 @@ class HAPI:
                 {
                     "filter": {
                         "groups": group_authority_ids,
-                        "assignment_id": assignment_id,
+                        "assignment_id": resource_link_id,
                     }
                 }
             ),

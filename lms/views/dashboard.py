@@ -39,5 +39,18 @@ class DashboardViews:
         renderer="json",
         permission=Permissions.DASHBOARD_VIEW,
     )
-    def api_assignment_analytics(self):  # pragma: nocover
-        return {}
+    def api_assignment_stats(self):
+        assignment = self.assignment_service.get_by_id(self.request.matchdict["id_"])
+        stats = self.h_api.get_assignment_stats(
+            [g.authority_provided_id for g in assignment.groupings],
+            assignment.resource_link_id,
+        )
+        return [
+            {
+                "display_name": s["display_name"],
+                "annotations": s["annotations"],
+                "last_activity": s["last_activity"],
+                "replies": s["replies"],
+            }
+            for s in stats
+        ]
