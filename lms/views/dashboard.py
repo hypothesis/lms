@@ -1,4 +1,4 @@
-from pyramid.httpexceptions import HTTPFound
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound, HTTPUnauthorized
 from pyramid.view import view_config
 
 from lms.security import Permissions
@@ -41,7 +41,7 @@ class DashboardViews:
 
         Authenticated via the LTIUser present in a cookie making this endpoint accessible directly in the browser.
         """
-        assignment = self.assignment_service.get_by_id(self.request.matchdict["id_"])
+        assignment = self.get_request_assignment()
         self.request.context.js_config.enable_dashboard_mode(assignment)
         self._set_lti_user_cookie(self.request.response)
         return {}
@@ -54,7 +54,7 @@ class DashboardViews:
     )
     def api_assignment_stats(self):
         """Fetch the stats for one particular assignment."""
-        assignment = self.assignment_service.get_by_id(self.request.matchdict["id_"])
+        assignment = self.get_request_assignment()
         stats = self.h_api.get_assignment_stats(
             [g.authority_provided_id for g in assignment.groupings],
             assignment.resource_link_id,
@@ -69,7 +69,7 @@ class DashboardViews:
             for s in stats
         ]
 
-    def _get_request_assignment(self):
+    def get_request_assignment(self):
         assignment = self.assignment_service.get_by_id(self.request.matchdict["id_"])
         if not assignment:
             raise HTTPNotFound()

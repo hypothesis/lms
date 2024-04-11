@@ -3,7 +3,7 @@ from unittest.mock import create_autospec, sentinel
 import pytest
 from freezegun import freeze_time
 from h_matchers import Any
-from pyramid.httpexceptions import HTTPFound
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound, HTTPUnauthorized
 
 from lms.resources._js_config import JSConfig
 from lms.resources.dashboard import DashboardResource
@@ -88,6 +88,24 @@ class TestDashboardViews:
             }
             for s in stats
         ]
+
+    def test_get_request_assignment_404(
+        self, pyramid_request, assignment_service, views
+    ):
+        pyramid_request.matchdict["id_"] = sentinel.id
+        assignment_service.get_by_id.return_value = None
+
+        with pytest.raises(HTTPNotFound):
+            views.get_request_assignment()
+
+    def test_get_request_assignment_403(
+        self, pyramid_request, assignment_service, views
+    ):
+        pyramid_request.matchdict["id_"] = sentinel.id
+        assignment_service.is_member.return_value = False
+
+        with pytest.raises(HTTPUnauthorized):
+            views.get_request_assignment()
 
     @pytest.fixture
     def BearerTokenSchema(self, patch):
