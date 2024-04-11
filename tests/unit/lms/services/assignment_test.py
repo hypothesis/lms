@@ -212,6 +212,20 @@ class TestAssignmentService:
 
         assert assignment == svc.get_by_id(assignment.id)
 
+    def test_is_member(self, svc, db_session):
+        assignment = factories.Assignment()
+        user = factories.User()
+        other_user = factories.User()
+        lti_role = factories.LTIRole()
+        factories.AssignmentMembership.create(
+            assignment=assignment, user=user, lti_role=lti_role
+        )
+
+        db_session.flush()
+
+        assert svc.is_member(assignment, user)
+        assert not svc.is_member(assignment, other_user)
+
     @pytest.fixture
     def svc(self, db_session, misc_plugin):
         return AssignmentService(db_session, misc_plugin)

@@ -196,6 +196,14 @@ class AssignmentService:
     def get_by_id(self, id_: int) -> Assignment | None:
         return self._db.query(Assignment).filter_by(id=id_).one_or_none()
 
+    def is_member(self, assignment: Assignment, user: User) -> bool:
+        """Check if a user is a member of an assignment."""
+        return bool(
+            self._db.query(AssignmentMembership)
+            .filter_by(user=user, assignment=assignment)
+            .one_or_none()
+        )
+
 
 def factory(_context, request):
     return AssignmentService(db=request.db, misc_plugin=request.product.plugin.misc)
