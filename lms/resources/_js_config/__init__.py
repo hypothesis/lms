@@ -368,11 +368,9 @@ class JSConfig:
         self._hypothesis_client["dashboard"] = {
             "showEntryPoint": True,
             "authTokenRPCMethod": "requestAuthToken",
-            "entryPoint": {
-                "path": self._request.route_path(
-                    "dashboard.launch.assignment", id_=assignment.id
-                ),
-            },
+            "entryPointURL": self._request.route_url(
+                "dashboard.launch.assignment", id_=assignment.id
+            ),
             "authFieldName": "authorization",
         }
         self._config["hypothesisClient"] = self._hypothesis_client

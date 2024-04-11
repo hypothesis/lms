@@ -696,9 +696,7 @@ class TestEnableInstructorDashboardEntryPoint:
         assert config["hypothesisClient"]["dashboard"] == {
             "showEntryPoint": True,
             "authTokenRPCMethod": "requestAuthToken",
-            "entryPoint": {
-                "path": f"/dashboard/launch/assignment/{assignment.id}",
-            },
+            "entryPointURL": f"http://example.com/dashboard/launch/assignment/{assignment.id}",
             "authFieldName": "authorization",
         }
 
