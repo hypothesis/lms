@@ -27,19 +27,7 @@ class DashboardViews:
         response = HTTPFound(
             location=self.request.route_url("dashboard.assignment", id_=assignment_id),
         )
-        # Encode the current LTIUser as a cookie
-        auth_token = (
-            BearerTokenSchema(self.request).authorization_param(self.request.lti_user)
-            # White space is not allowed as a cookie character, remove the leading part
-            .replace("Bearer ", "")
-        )
-        response.set_cookie(
-            "authorization",
-            value=auth_token,
-            secure=not self.request.registry.settings["dev"],
-            httponly=True,
-            max_age=60 * 60 * 24,  # 24 hours, matches the lifetime of the auth_token
-        )
+        self._set_lti_user_cookie(response)
         return response
 
     @view_config(
@@ -55,6 +43,7 @@ class DashboardViews:
         """
         assignment = self.assignment_service.get_by_id(self.request.matchdict["id_"])
         self.request.context.js_config.enable_dashboard_mode(assignment)
+        self._set_lti_user_cookie(self.request.response)
         return {}
 
     @view_config(
@@ -79,3 +68,28 @@ class DashboardViews:
             }
             for s in stats
         ]
+
+    def _get_request_assignment(self):
+        assignment = self.assignment_service.get_by_id(self.request.matchdict["id_"])
+        if not assignment:
+            raise HTTPNotFound()
+
+        if not self.assignment_service.is_member(assignment, self.request.user):
+            raise HTTPUnauthorized()
+
+        return assignment
+
+    def _set_lti_user_cookie(self, response):
+        auth_token = (
+            BearerTokenSchema(self.request).authorization_param(self.request.lti_user)
+            # White space is not allowed as a cookie character, remove the leading part
+            .replace("Bearer ", "")
+        )
+        response.set_cookie(
+            "authorization",
+            value=auth_token,
+            secure=not self.request.registry.settings["dev"],
+            httponly=True,
+            max_age=60 * 60 * 24,  # 24 hours, matches the lifetime of the auth_token
+        )
+        return response
