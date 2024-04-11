@@ -1,3 +1,5 @@
+import sinon from 'sinon';
+
 import { $imports, ClientRPC } from '../client-rpc';
 
 describe('ClientRPC', () => {
@@ -165,6 +167,19 @@ describe('ClientRPC', () => {
           'Unable to fetch Hypothesis login. Please reload the assignment.',
         );
       }
+    });
+  });
+
+  describe('"requestAuthToken" RPC handler', () => {
+    it('returns auth token', async () => {
+      createClientRPC();
+
+      const [, callback] = fakeServerInstance.register.args.find(
+        ([method]) => method === 'requestAuthToken',
+      );
+      const returnedAuthToken = await callback();
+
+      assert.equal(authToken, returnedAuthToken);
     });
   });
 
