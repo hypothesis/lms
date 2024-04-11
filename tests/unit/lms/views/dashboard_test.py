@@ -19,7 +19,6 @@ class TestDashboardViews:
         self, views, pyramid_request, BearerTokenSchema
     ):
         pyramid_request.matchdict["id_"] = sentinel.id
-        BearerTokenSchema.return_value.authorization_param.return_value = "Bearer TOKEN"
 
         response = views.assignment_redirect_from_launch()
 
@@ -36,6 +35,8 @@ class TestDashboardViews:
             == "authorization=TOKEN; Max-Age=86400; Path=/; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
         )
 
+    @freeze_time("2024-04-01 12:00:00")
+    @pytest.mark.usefixtures("BearerTokenSchema")
     def test_assignment_show(self, views, pyramid_request, assignment_service):
         context = DashboardResource(pyramid_request)
         context.js_config = create_autospec(JSConfig, spec_set=True, instance=True)
@@ -47,6 +48,10 @@ class TestDashboardViews:
         assignment_service.get_by_id.assert_called_once_with(sentinel.id)
         pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once_with(
             assignment_service.get_by_id.return_value
+        )
+        assert (
+            pyramid_request.response.headers["Set-Cookie"]
+            == "authorization=TOKEN; Max-Age=86400; Path=/; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
         )
 
     def test_api_assignment_stats(
@@ -86,7 +91,9 @@ class TestDashboardViews:
 
     @pytest.fixture
     def BearerTokenSchema(self, patch):
-        return patch("lms.views.dashboard.BearerTokenSchema")
+        mock = patch("lms.views.dashboard.BearerTokenSchema")
+        mock.return_value.authorization_param.return_value = "Bearer TOKEN"
+        return mock
 
     @pytest.fixture
     def views(self, pyramid_request):
