@@ -137,6 +137,9 @@ export class ClientRPC extends TinyEmitter {
       },
     );
 
+    // Expose current auth token via RPC
+    this._server.register('requestAuthToken', () => authToken);
+
     this._resolveGroups = () => {};
     const groups = new Promise(resolve => {
       this._resolveGroups = resolve;

@@ -365,19 +365,17 @@ class JSConfig:
         self._config["filePicker"]["deepLinkingAPI"] = config
 
     def enable_instructor_dashboard_entry_point(self, assignment):
-        self._config["hypothesisClient"] = self._hypothesis_client
         self._hypothesis_client["dashboard"] = {
             "showEntryPoint": True,
-            "entryPointRPCMethod": "openDashboard",
-        }
-        self._config["dashboard"] = {
-            "dashboardEntryPoint": {
+            "authTokenRPCMethod": "requestAuthToken",
+            "entryPoint": {
                 "path": self._request.route_path(
                     "dashboard.launch.assignment", id_=assignment.id
                 ),
-                "data": {},
             },
+            "authFieldName": "authorization",
         }
+        self._config["hypothesisClient"] = self._hypothesis_client
 
     def enable_toolbar_editing(self):
         toolbar_config = self._get_toolbar_config()

@@ -693,15 +693,13 @@ class TestEnableInstructorDashboardEntryPoint:
         js_config.enable_instructor_dashboard_entry_point(assignment)
         config = js_config.asdict()
 
-        assert config["dashboard"] == {
-            "dashboardEntryPoint": {
-                "path": f"/dashboard/launch/assignment/{assignment.id}",
-                "data": {},
-            },
-        }
         assert config["hypothesisClient"]["dashboard"] == {
             "showEntryPoint": True,
-            "entryPointRPCMethod": "openDashboard",
+            "authTokenRPCMethod": "requestAuthToken",
+            "entryPoint": {
+                "path": f"/dashboard/launch/assignment/{assignment.id}",
+            },
+            "authFieldName": "authorization",
         }
 
 
