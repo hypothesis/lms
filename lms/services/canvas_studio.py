@@ -281,7 +281,12 @@ class CanvasStudioService:
         return self._api_url(f"v1/media/{media_id}")
 
     def get_video_download_url(self, media_id: str) -> str:
-        """Return temporary download URL for a video."""
+        """
+        Return temporary download URL for a video.
+
+        Security: This method does not check whether the current user should
+        have access to this video. See `_admin_api_request`.
+        """
 
         download_rsp = self._bare_api_request(
             f"v1/media/{media_id}/download", as_admin=True, allow_redirects=False
@@ -301,6 +306,9 @@ class CanvasStudioService:
         Return URL of transcript for a video, in SRT (SubRip) format.
 
         May return `None` if no transcript has been generated for the video.
+
+        Security: This method does not check whether the current user should
+        have access to this video. See `_admin_api_request`.
         """
 
         captions = self._api_request(
@@ -336,6 +344,12 @@ class CanvasStudioService:
         This method should not be used if the current user _is_ the admin user.
         In that case we want to follow the normal steps for making a request
         using the current identity, and the corresponding error handling.
+
+        Security: Since this method makes requests as an admin user it does not
+        take account of whether the current user _should_ have access to a
+        particular video. Be sure to only make requests for videos where this
+        has been established some other way (eg. by its association with the
+        assignment being launched).
         """
 
         url = self._api_url(path)
