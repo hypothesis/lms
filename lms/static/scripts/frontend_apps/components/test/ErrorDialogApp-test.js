@@ -45,7 +45,7 @@ describe('ErrorDialogApp', () => {
     const wrapper = renderApp();
     assert.include(
       wrapper.text(),
-      "You don't have license from VitalSource for the Hypothesis app",
+      'Hypothesis is unable to find your VitalSource student license.',
     );
   });
 
