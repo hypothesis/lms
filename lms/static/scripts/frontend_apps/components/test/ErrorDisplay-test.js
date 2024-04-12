@@ -78,6 +78,20 @@ describe('ErrorDisplay', () => {
     );
   });
 
+  it('omits support link when displaySupportLink is false', () => {
+    const error = new Error('');
+
+    const wrapper = mount(
+      <ErrorDisplay
+        description="Failed to fetch files"
+        error={error}
+        displaySupportLink={false}
+      />,
+    );
+
+    assert.isFalse(wrapper.exists('[data-testid="error-links"]'));
+  });
+
   it('omits technical details if not provided', () => {
     fakeFormatErrorDetails.returns('');
     const wrapper = mount(

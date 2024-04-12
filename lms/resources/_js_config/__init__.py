@@ -2,6 +2,7 @@ import functools
 from enum import Enum
 from typing import Any
 
+from lms.error_code import ErrorCode
 from lms.events import LTIEvent
 from lms.models import Assignment, Grouping
 from lms.product.blackboard import Blackboard
@@ -23,11 +24,8 @@ class JSConfig:
         ERROR_DIALOG = "error-dialog"
         DASHBOARD = "dashboard"
 
-    class ErrorCode(str, Enum):
-        BLACKBOARD_MISSING_INTEGRATION = "blackboard_missing_integration"
-        CANVAS_INVALID_SCOPE = "canvas_invalid_scope"
-        VITALSOURCE_STUDENT_PAY_NO_LICENSE = "vitalsource_student_pay_no_license"
-        REUSED_CONSUMER_KEY = "reused_consumer_key"
+    ErrorCode = ErrorCode
+    """Exposing error codes here for convenience for clients."""
 
     def __init__(self, _context, request):
         self._request = request

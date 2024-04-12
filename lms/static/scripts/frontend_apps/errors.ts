@@ -1,6 +1,7 @@
 export type AppLaunchServerErrorCode =
   | 'reused_consumer_key'
-  | 'vitalsource_student_pay_no_license';
+  | 'vitalsource_student_pay_no_license'
+  | 'vitalsource_student_pay_license_launch';
 
 export type OAuthServerErrorCode =
   | 'blackboard_missing_integration'

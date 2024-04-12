@@ -98,6 +98,11 @@ export type ErrorDisplayProps = {
    * response.
    */
   error: ErrorLike;
+
+  /**
+   * Wether or not to show the standard link to our support page
+   */
+  displaySupportLink?: boolean;
 };
 
 /**
@@ -107,6 +112,7 @@ export default function ErrorDisplay({
   children,
   description = '',
   error,
+  displaySupportLink = true,
 }: ErrorDisplayProps) {
   const message = formatErrorMessage(error, /* prefix */ description);
 
@@ -123,25 +129,28 @@ export default function ErrorDisplay({
         {message && <p data-testid="error-message">{toSentence(message)}</p>}
 
         {children}
-        <p data-testid="error-links">
-          If the problem persists, you can{' '}
-          <Link
-            href={supportURL(message, error)}
-            target="_blank"
-            underline="always"
-          >
-            open a support ticket
-          </Link>{' '}
-          or visit our{' '}
-          <Link
-            href="https://web.hypothes.is/help/"
-            target="_blank"
-            underline="always"
-          >
-            help documents
-          </Link>
-          .
-        </p>
+        {displaySupportLink && (
+          <p data-testid="error-links">
+            If the problem persists, you can{' '}
+            <Link
+              href={supportURL(message, error)}
+              target="_blank"
+              underline="always"
+            >
+              open a support ticket
+            </Link>{' '}
+            or visit our{' '}
+            <Link
+              href="https://web.hypothes.is/help/"
+              target="_blank"
+              underline="always"
+            >
+              help documents
+            </Link>
+            .
+          </p>
+        )}
+
         <ErrorDetails error={error} />
       </div>
     </Scroll>

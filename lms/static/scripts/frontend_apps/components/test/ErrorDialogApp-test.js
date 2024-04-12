@@ -48,4 +48,11 @@ describe('ErrorDialogApp', () => {
       "You don't have license from VitalSource for the Hypothesis app",
     );
   });
+
+  it('shows dialog for vital_source_student_pay_license_launch', () => {
+    fakeConfig.errorCode = 'vitalsource_student_pay_license_launch';
+
+    const wrapper = renderApp();
+    assert.include(wrapper.text(), 'You now have a license for Hypothesis');
+  });
 });
