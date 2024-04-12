@@ -32,7 +32,7 @@ class TestUserService:
         assert saved_user == user
 
     @pytest.mark.usefixtures("user_is_learner")
-    def test_upsert_user_doesnt_save_personal_details_for_students(
+    def test_upsert_user_doesnt_save_email_for_students(
         self, service, lti_user, db_session
     ):
         service.upsert_user(lti_user)
@@ -40,7 +40,6 @@ class TestUserService:
         saved_user = db_session.query(User).order_by(User.id.desc()).first()
         assert saved_user.roles == lti_user.roles
         assert not saved_user.email
-        assert not saved_user.display_name
 
     @pytest.mark.usefixtures("user")
     def test_upsert_user_with_an_existing_user(self, service, lti_user, db_session):
@@ -52,7 +51,7 @@ class TestUserService:
         assert user == saved_user
 
     @pytest.mark.usefixtures("user")
-    def test_upsert_user_doesnt_save_personal_details_for_existing_students(
+    def test_upsert_user_doesnt_save_email_for_existing_students(
         self, service, lti_user, db_session
     ):
         lti_user.roles = "Student"
@@ -62,7 +61,6 @@ class TestUserService:
         saved_user = db_session.query(User).order_by(User.id.desc()).first()
         assert saved_user.roles == lti_user.roles
         assert not saved_user.email
-        assert not saved_user.display_name
 
     def test_get(self, user, service):
         db_user = service.get(user.application_instance, user.user_id)

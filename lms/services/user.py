@@ -50,10 +50,10 @@ class UserService:
         else:
             self._db.add(user)
 
+        user.display_name = lti_user.display_name
         if lti_user.is_instructor:
-            # We are only storing these personal details for teachers now.
+            # We are only storing emails for teachers now.
             user.email = lti_user.email
-            user.display_name = lti_user.display_name
 
         return user
 
