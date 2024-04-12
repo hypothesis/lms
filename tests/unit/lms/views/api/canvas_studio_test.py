@@ -81,11 +81,9 @@ def test_list_collection(canvas_studio_service, pyramid_request):
     assert result == canvas_studio_service.list_collection.return_value
 
 
-@pytest.mark.usefixtures("canvas_studio_service")
+@pytest.mark.usefixtures("canvas_studio_service", "assignment_service")
 class TestViaURL:
     def test_it(self, canvas_studio_service, pyramid_request, via_video_url):
-        pyramid_request.params["document_url"] = "canvas-studio://media/42"
-
         response = views.via_url(pyramid_request)
 
         canvas_studio_service.get_canonical_video_url.assert_called_with("42")
@@ -103,7 +101,6 @@ class TestViaURL:
     def test_it_raises_if_transcript_not_available(
         self, canvas_studio_service, pyramid_request
     ):
-        pyramid_request.params["document_url"] = "canvas-studio://media/42"
         canvas_studio_service.get_transcript_url.return_value = None
 
         with pytest.raises(
@@ -111,19 +108,24 @@ class TestViaURL:
         ):
             views.via_url(pyramid_request)
 
-    def test_it_raises_if_document_url_missing(self, pyramid_request):
+    def test_it_raises_if_document_url_not_valid(
+        self, pyramid_request, assignment_service
+    ):
+        assignment_service.get_assignment.return_value.document_url = (
+            "https://not-a-canvas-studio-url.com"
+        )
         with pytest.raises(
-            HTTPBadRequest, match="Missing or invalid `document_url` param"
-        ):
-            views.via_url(pyramid_request)
-
-    def test_it_raises_if_document_url_not_valid(self, pyramid_request):
-        pyramid_request.params["document_url"] = "https://not-a-canvas-studio-url.com"
-        with pytest.raises(
-            HTTPBadRequest, match="Missing or invalid `document_url` param"
+            HTTPBadRequest, match="Unable to get Canvas Studio media ID"
         ):
             views.via_url(pyramid_request)
 
     @pytest.fixture
     def via_video_url(self, patch):
         yield patch("lms.views.api.canvas_studio.via_video_url")
+
+    @pytest.fixture
+    def assignment_service(self, assignment_service):
+        assignment_service.get_assignment.return_value.document_url = (
+            "canvas-studio://media/42"
+        )
+        return assignment_service
