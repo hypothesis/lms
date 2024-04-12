@@ -278,8 +278,8 @@ class OrganizationService:
         parent = aliased(Grouping)
         query = (
             select(
-                func.coalesce(User.display_name, "<STUDENT>").label("name"),  # type: ignore
-                func.coalesce(User.email, "<STUDENT>").label("email"),  # type:ignore
+                User.display_name.label("name"),
+                User.email.label("email"),
                 User.h_userid.label("h_userid"),
                 Grouping.lms_name.label("course_name"),
                 func.date_trunc("day", Grouping.created)
@@ -311,8 +311,9 @@ class OrganizationService:
         )
         return [
             UsageReportRow(
-                name=row.name,
-                email=row.email,
+                # Students might have name but they never have email
+                name=row.name if row.email else "<STUDENT>",
+                email=row.email if row.email else "<STUDENT>",
                 h_userid=row.h_userid,
                 course_name=row.course_name,
                 course_created=row.course_created,
