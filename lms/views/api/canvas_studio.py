@@ -128,14 +128,16 @@ def list_collection(request):
     permission=Permissions.API,
 )
 def via_url(request):
-    svc = request.find_service(CanvasStudioService)
-    document_url = request.params.get("document_url")
-    media_id = (
-        CanvasStudioService.media_id_from_url(document_url) if document_url else None
+    assignment = request.find_service(name="assignment").get_assignment(
+        request.lti_user.application_instance.tool_consumer_instance_guid,
+        request.lti_user.lti.assignment_id,
     )
+    document_url = assignment.document_url
+    media_id = CanvasStudioService.media_id_from_url(document_url)
     if not media_id:
-        raise HTTPBadRequest("Missing or invalid `document_url` param")
+        raise HTTPBadRequest("Unable to get Canvas Studio media ID")
 
+    svc = request.find_service(CanvasStudioService)
     canonical_url = svc.get_canonical_video_url(media_id)
     download_url = svc.get_video_download_url(media_id)
     transcript_url = svc.get_transcript_url(media_id)

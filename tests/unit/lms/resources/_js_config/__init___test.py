@@ -268,7 +268,7 @@ class TestAddDocumentURL:
                 "canvas-studio://media/media_id",
                 {
                     "authUrl": "http://example.com/api/canvas_studio/oauth/authorize",
-                    "path": "/api/canvas_studio/via_url?document_url=canvas-studio%3A%2F%2Fmedia%2Fmedia_id",
+                    "path": "/api/canvas_studio/via_url",
                 },
             ),
             (
