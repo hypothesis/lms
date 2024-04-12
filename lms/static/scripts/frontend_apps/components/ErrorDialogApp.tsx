@@ -30,7 +30,7 @@ export default function ErrorDialogApp() {
       title = 'Consumer key registered with another site';
       break;
     case 'vitalsource_student_pay_no_license':
-      title = 'Missing license for H';
+      title = "Hypothesis isn't able to find your license from VitalSource";
       break;
     case 'vitalsource_student_pay_license_launch':
       title = 'Acquired Hypothesis license';
@@ -86,7 +86,13 @@ export default function ErrorDialogApp() {
       {error.errorCode === 'vitalsource_student_pay_no_license' && (
         <>
           <p>
-            You {"don't"} have license from VitalSource for the Hypothesis app.
+            Hypothesis is unable to find your VitalSource student license.{' '}
+            {"It's"} possible you need to launch the Hypothesis Publisher Tool
+            within VitalSource.
+          </p>
+          <p>
+            Visit your course materials, find the Hypothesis tool, and launch
+            it. Once {"you've"} done so launch this reading again.
           </p>
         </>
       )}
