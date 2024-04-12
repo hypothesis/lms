@@ -23,6 +23,8 @@ export default function ErrorDialogApp() {
   let description;
   let title;
 
+  let displaySupportLink = true;
+
   switch (error.errorCode) {
     case 'reused_consumer_key':
       title = 'Consumer key registered with another site';
@@ -30,7 +32,10 @@ export default function ErrorDialogApp() {
     case 'vitalsource_student_pay_no_license':
       title = 'Missing license for H';
       break;
-
+    case 'vitalsource_student_pay_license_launch':
+      title = 'Acquired Hypothesis license';
+      displaySupportLink = false;
+      break;
     default:
       description =
         'An error occurred when launching the Hypothesis application';
@@ -38,7 +43,12 @@ export default function ErrorDialogApp() {
   }
 
   return (
-    <ErrorModal description={description} error={error} title={title}>
+    <ErrorModal
+      description={description}
+      error={error}
+      title={title}
+      displaySupportLink={displaySupportLink}
+    >
       {error.errorCode === 'reused_consumer_key' && (
         <>
           <p>
@@ -78,6 +88,11 @@ export default function ErrorDialogApp() {
           <p>
             You {"don't"} have license from VitalSource for the Hypothesis app.
           </p>
+        </>
+      )}
+      {error.errorCode === 'vitalsource_student_pay_license_launch' && (
+        <>
+          <p>You now have a license for Hypothesis.</p>
         </>
       )}
     </ErrorModal>

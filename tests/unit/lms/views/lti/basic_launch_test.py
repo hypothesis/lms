@@ -20,7 +20,6 @@ from tests import factories
     "lti_role_service",
     "grouping_service",
     "misc_plugin",
-    "vitalsource_service",
 )
 class TestBasicLaunchViews:
     def test___init___(
@@ -163,14 +162,14 @@ class TestBasicLaunchViews:
         )
         assert not response
 
-    def test_lti_launch_no_h_license(
+    def test_lti_launch_check_h_license_fails(
         self, context, pyramid_request, vitalsource_service
     ):
-        vitalsource_service.has_h_license.return_value = False
+        vitalsource_service.check_h_license.return_value = sentinel.error_code
 
         response = BasicLaunchViews(context, pyramid_request).lti_launch()
 
-        vitalsource_service.has_h_license.assert_called_once_with(
+        vitalsource_service.check_h_license.assert_called_once_with(
             pyramid_request.lti_user, pyramid_request.lti_params
         )
 
@@ -178,6 +177,7 @@ class TestBasicLaunchViews:
             pyramid_request.override_renderer
             == "lms:templates/error_dialog.html.jinja2"
         )
+        context.js_config.enable_error_dialog_mode(sentinel.error_code)
         assert not response
 
     def test_reconfigure_assignment_config(
@@ -348,6 +348,11 @@ class TestBasicLaunchViews:
 
         application_instance.check_guid_aligns = mock.Mock()
         return context
+
+    @pytest.fixture(autouse=True)
+    def vitalsource_service(self, vitalsource_service):
+        vitalsource_service.check_h_license.return_value = None
+        return vitalsource_service
 
     @pytest.fixture
     def LTIEvent(self, patch):

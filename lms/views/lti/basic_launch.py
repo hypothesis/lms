@@ -58,14 +58,11 @@ class BasicLaunchViews:
     def lti_launch(self):
         """Handle regular LTI launches."""
 
-        if not self.request.find_service(VitalSourceService).has_h_license(
+        if error_code := self.request.find_service(VitalSourceService).check_h_license(
             self.request.lti_user, self.request.lti_params
         ):
             self.request.override_renderer = "lms:templates/error_dialog.html.jinja2"
-            self.context.js_config.enable_error_dialog_mode(
-                self.context.js_config.ErrorCode.VITALSOURCE_STUDENT_PAY_NO_LICENSE,
-            )
-
+            self.context.js_config.enable_error_dialog_mode(error_code)
             return {}
 
         if assignment := self.assignment_service.get_assignment_for_launch(
@@ -273,7 +270,6 @@ class BasicLaunchViews:
 
         We'll use this mode to configure new assignments and to reconfigure existing ones.
         """
-
         if not self.request.has_permission(Permissions.LTI_CONFIGURE_ASSIGNMENT):
             # Looks like the user is not an instructor, so show an error page
 

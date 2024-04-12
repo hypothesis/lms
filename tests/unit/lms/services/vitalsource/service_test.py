@@ -4,6 +4,7 @@ from unittest.mock import create_autospec, sentinel
 import pytest
 from _pytest.mark import param
 
+from lms.error_code import ErrorCode
 from lms.models import LTIParams
 from lms.services.vitalsource._client import VitalSourceClient
 from lms.services.vitalsource.exceptions import VitalSourceMalformedRegex
@@ -101,22 +102,35 @@ class TestVitalSourceService:
 
     @pytest.mark.parametrize("enabled", [True, False])
     @pytest.mark.parametrize("instructor", [True, False])
-    def test_has_h_license_success(
+    def test_check_h_license_success(
         self, request, svc, enabled, pyramid_request, instructor
     ):
         svc._student_pay_enabled = enabled  # pylint:disable=protected-access
         if instructor:
             request.getfixturevalue("user_is_instructor")
 
-        assert svc.has_h_license(pyramid_request.lti_user, pyramid_request.lti_params)
+        assert not svc.check_h_license(
+            pyramid_request.lti_user, pyramid_request.lti_params
+        )
 
-    def test_has_h_license_failure(self, svc, pyramid_request, customer_client):
+    def test_check_h_license_student_course_launch(self, svc, pyramid_request):
+        svc._student_pay_enabled = True  # pylint:disable=protected-access
+        pyramid_request.lti_params["context_id"] = "COURSE_ID"
+        pyramid_request.lti_params["resource_link_id"] = "COURSE_ID"
+
+        assert (
+            svc.check_h_license(pyramid_request.lti_user, pyramid_request.lti_params)
+            == ErrorCode.VITALSOURCE_STUDENT_PAY_LICENSE_LAUNCH
+        )
+
+    def test_check_h_license_failure(self, svc, pyramid_request, customer_client):
         svc._student_pay_enabled = True  # pylint:disable=protected-access
 
         customer_client.get_user_book_license.return_value = None
 
-        assert not svc.has_h_license(
-            pyramid_request.lti_user, pyramid_request.lti_params
+        assert (
+            svc.check_h_license(pyramid_request.lti_user, pyramid_request.lti_params)
+            == ErrorCode.VITALSOURCE_STUDENT_PAY_NO_LICENSE
         )
 
         customer_client.get_user_book_license.assert_called_once_with(

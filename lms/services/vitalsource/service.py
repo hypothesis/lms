@@ -1,6 +1,7 @@
 import re
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
+from lms.error_code import ErrorCode
 from lms.models import LTIParams, LTIUser
 from lms.services.vitalsource._client import VitalSourceClient
 from lms.services.vitalsource.exceptions import VitalSourceMalformedRegex
@@ -183,15 +184,28 @@ class VitalSourceService:
 
         return value
 
-    def has_h_license(self, lti_user: LTIUser, lti_params: LTIParams) -> bool:
+    def check_h_license(
+        self, lti_user: LTIUser, lti_params: LTIParams
+    ) -> ErrorCode | None:
         """Check if the user of the current launch has a license for the H LTI app."""
         if not self._student_pay_enabled or lti_user.is_instructor:
             # Not a school using student pay or the current user it's an instructor.
-            return True
+            return None
+
+        if lti_params["resource_link_id"] == lti_params["context_id"]:
+            # This looks like a "course launch" from a student
+            # This means that the student launch our tool from the course
+            # "course materials" placement to acquire a license for our SKU.
+            # We can't do anything else from here other than display a message
+
+            return ErrorCode.VITALSOURCE_STUDENT_PAY_LICENSE_LAUNCH
 
         user_reference = self.get_user_reference(lti_params)
         assert self._sso_client
-        return bool(self._sso_client.get_user_book_license(user_reference, self.H_SKU))
+        if not self._sso_client.get_user_book_license(user_reference, self.H_SKU):
+            return ErrorCode.VITALSOURCE_STUDENT_PAY_NO_LICENSE
+
+        return None
 
     @staticmethod
     def compile_user_lti_pattern(pattern: str) -> re.Pattern | None:

@@ -58,6 +58,11 @@ type ErrorModalBaseProps = {
   retryLabel?: string;
 
   title?: string;
+
+  /**
+   * Wether or not to show the standard link to our support page
+   */
+  displaySupportLink?: boolean;
 };
 
 /** `title` is optional for this component but required by `Modal` */
@@ -78,6 +83,7 @@ export default function ErrorModal({
   onCancel,
   onRetry,
   retryLabel = 'Try again',
+  displaySupportLink = true,
 
   // Modal props
   title = 'Something went wrong',
@@ -117,7 +123,11 @@ export default function ErrorModal({
       {...restProps}
     >
       {error && (
-        <ErrorDisplay description={description} error={error}>
+        <ErrorDisplay
+          description={description}
+          error={error}
+          displaySupportLink={displaySupportLink}
+        >
           {children}
         </ErrorDisplay>
       )}
