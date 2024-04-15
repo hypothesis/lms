@@ -1,6 +1,6 @@
 import logging
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from lms.models import (
     Assignment,
@@ -8,6 +8,8 @@ from lms.models import (
     AssignmentMembership,
     Grouping,
     LTIRole,
+    RoleScope,
+    RoleType,
     User,
 )
 from lms.services.upsert import bulk_upsert
@@ -198,11 +200,19 @@ class AssignmentService:
 
     def is_member(self, assignment: Assignment, user: User) -> bool:
         """Check if a user is a member of an assignment."""
-        return bool(
-            self._db.query(AssignmentMembership)
-            .filter_by(user=user, assignment=assignment)
-            .one_or_none()
-        )
+        return bool(assignment.membership.filter_by(user=user).one_or_none())
+
+    def get_members(
+        self, assignment, role_type: RoleType, role_scope: RoleScope
+    ) -> list[User]:
+        return [
+            member.user
+            for member in assignment.membership.options(
+                joinedload(AssignmentMembership.user)
+            )
+            .join(LTIRole)
+            .where(LTIRole.scope == role_scope, LTIRole.type == role_type)
+        ]
 
 
 def factory(_context, request):

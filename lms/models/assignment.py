@@ -81,6 +81,10 @@ class Assignment(CreatedUpdatedMixin, Base):
     groupings = association_proxy("assignment_grouping", "grouping")
     """List of groupings this assigments is related to."""
 
+    membership = sa.orm.relationship(
+        "AssignmentMembership", lazy="dynamic", viewonly=True
+    )
+
     def get_canvas_mapped_file_id(self, file_id):
         return self.extra.get("canvas_file_mappings", {}).get(file_id, file_id)
 
