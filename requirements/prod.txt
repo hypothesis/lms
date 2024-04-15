@@ -224,7 +224,7 @@ sqlalchemy==2.0.29
     #   alembic
     #   data-tasks
     #   zope-sqlalchemy
-sqlparse==0.4.4
+sqlparse==0.5.0
     # via
     #   -r prod.in
     #   data-tasks
