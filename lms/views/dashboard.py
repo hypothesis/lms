@@ -1,6 +1,7 @@
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound, HTTPUnauthorized
 from pyramid.view import view_config
 
+from lms.models import RoleScope, RoleType
 from lms.security import Permissions
 from lms.services.h_api import HAPI
 from lms.validation.authentication import BearerTokenSchema
@@ -59,15 +60,39 @@ class DashboardViews:
             [g.authority_provided_id for g in assignment.groupings],
             assignment.resource_link_id,
         )
-        return [
-            {
-                "display_name": s["display_name"],
-                "annotations": s["annotations"],
-                "last_activity": s["last_activity"],
-                "replies": s["replies"],
-            }
-            for s in stats
-        ]
+
+        # Organize the H stats by userid for quick access
+        stats_by_user = {s["userid"]: s for s in stats}
+        student_stats = []
+
+        # Iterate over all the students we have in the DB
+        for user in self.assignment_service.get_members(
+            assignment, role_scope=RoleScope.COURSE, role_type=RoleType.LEARNER
+        ):
+            if s := stats_by_user.get(user.h_userid):
+                # We seen this student in H, get all the data from there
+                student_stats.append(
+                    {
+                        "display_name": s["display_name"],
+                        "annotations": s["annotations"],
+                        "replies": s["replies"],
+                        "last_activity": s["last_activity"],
+                    }
+                )
+            else:
+                # We haven't seen this user H,
+                # use LMS DB's data and set 0s for all annotation related fields.
+                student_stats.append(
+                    {
+                        "display_name": user.display_name
+                        or f"Student {user.user_id[:10]}",
+                        "annotations": 0,
+                        "replies": 0,
+                        "last_activity": None,
+                    }
+                )
+
+        return student_stats
 
     def get_request_assignment(self):
         assignment = self.assignment_service.get_by_id(self.request.matchdict["id_"])

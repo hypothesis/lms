@@ -57,17 +57,36 @@ class TestDashboardViews:
     def test_api_assignment_stats(
         self, views, pyramid_request, assignment_service, h_api
     ):
+        # User returned by the stats endpoint
+        student = factories.User()
+        # User with no annotations
+        student_no_annos = factories.User(display_name="Homer")
+        # User with no annotations and no name
+        student_no_annos_no_name = factories.User(display_name=None)
+
         pyramid_request.matchdict["id_"] = sentinel.id
         assignment = factories.Assignment()
+        assignment_service.get_members.return_value = [
+            student,
+            student_no_annos,
+            student_no_annos_no_name,
+        ]
         assignment_service.get_by_id.return_value = assignment
         stats = [
+            {
+                "display_name": student.display_name,
+                "annotations": sentinel.annotations,
+                "replies": sentinel.replies,
+                "userid": student.h_userid,
+                "last_activity": sentinel.last_activity,
+            },
             {
                 "display_name": sentinel.display_name,
                 "annotations": sentinel.annotations,
                 "replies": sentinel.replies,
+                "userid": "TEACHER",
                 "last_activity": sentinel.last_activity,
-                "extra_data": sentinel.extra_data,
-            }
+            },
         ]
 
         h_api.get_assignment_stats.return_value = stats
@@ -81,12 +100,23 @@ class TestDashboardViews:
         )
         assert response == [
             {
-                "display_name": s["display_name"],
-                "annotations": s["annotations"],
-                "replies": s["replies"],
-                "last_activity": s["last_activity"],
-            }
-            for s in stats
+                "display_name": student.display_name,
+                "annotations": sentinel.annotations,
+                "replies": sentinel.replies,
+                "last_activity": sentinel.last_activity,
+            },
+            {
+                "display_name": student_no_annos.display_name,
+                "annotations": 0,
+                "replies": 0,
+                "last_activity": None,
+            },
+            {
+                "display_name": f"Student {student_no_annos_no_name.user_id[:10]}",
+                "annotations": 0,
+                "replies": 0,
+                "last_activity": None,
+            },
         ]
 
     def test_get_request_assignment_404(
