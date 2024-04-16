@@ -2,10 +2,11 @@
   "name": "lms",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "gulp build",
-    "checkformatting": "prettier --cache --check lms/**/*.{js,scss,ts,tsx}",
-    "format": "prettier --cache --list-different --write lms/**/*.{js,scss,ts,tsx}",
+    "checkformatting": "prettier --cache --check lms/**/*.{cjs,js,scss,ts,tsx}",
+    "format": "prettier --cache --list-different --write lms/**/*.{cjs,js,scss,ts,tsx}",
     "lint": "eslint --cache --ignore-pattern build .",
     "test": "gulp test",
     "typecheck": "tsc --build lms/static/scripts/tsconfig.json"
