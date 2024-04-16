@@ -7,10 +7,10 @@ import {
 } from '@hypothesis/frontend-build';
 import gulp from 'gulp';
 
-import tailwindConfig from './tailwind.config.mjs';
+import tailwindConfig from './tailwind.config.js';
 
-gulp.task('build-js', () => buildJS('./rollup.config.mjs'));
-gulp.task('watch-js', () => watchJS('./rollup.config.mjs'));
+gulp.task('build-js', () => buildJS('./rollup.config.js'));
+gulp.task('watch-js', () => watchJS('./rollup.config.js'));
 
 gulp.task('build-css', () =>
   buildCSS(
@@ -55,8 +55,8 @@ gulp.task(
   gulp.parallel('build-css', () =>
     runTests({
       bootstrapFile: 'lms/static/scripts/bootstrap.js',
-      karmaConfig: 'lms/static/scripts/karma.config.js',
-      rollupConfig: 'rollup-tests.config.mjs',
+      karmaConfig: 'lms/static/scripts/karma.config.cjs',
+      rollupConfig: 'rollup-tests.config.js',
       testsPattern: 'lms/static/scripts/**/*-test.js',
     })
   )

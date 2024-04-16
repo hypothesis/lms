@@ -49,9 +49,9 @@
 
     // Code that runs in Node
     {
-      "files": "*.mjs",
-      "env": { "node": true },
-      "parserOptions": { "sourceType": "module" }
+      "files": "*",
+      "excludedFiles": ["lms/**"],
+      "env": { "node": true }
     }
   ]
 }

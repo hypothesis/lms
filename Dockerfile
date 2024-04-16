@@ -2,7 +2,7 @@
 FROM node:21.7.1-alpine as frontend-build
 
 ENV NODE_ENV production
-COPY .babelrc rollup.config.mjs tailwind.config.mjs gulpfile.mjs package.json .yarnrc.yml yarn.lock /tmp/frontend-build/
+COPY .babelrc rollup.config.js tailwind.config.js gulpfile.js package.json .yarnrc.yml yarn.lock /tmp/frontend-build/
 COPY .yarn /tmp/frontend-build/.yarn
 COPY lms/static /tmp/frontend-build/lms/static
 
