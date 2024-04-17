@@ -4,6 +4,7 @@ import pytest
 from pyramid.interfaces import ISecurityPolicy
 from pyramid.security import Allowed, Denied
 
+from lms.models import ApplicationSettings
 from lms.security import (
     DeniedWithException,
     EmailPreferencesIdentity,
@@ -260,27 +261,30 @@ class TestLTIUserSecurityPolicy:
         userid = policy.identity(pyramid_request)
         assert userid == Identity(userid="", permissions=[])
 
+    @pytest.mark.usefixtures("user_has_no_roles")
+    def test_identity_when_theres_an_lti_user_with_no_roles(self, pyramid_request):
+        policy = LTIUserSecurityPolicy(
+            create_autospec(get_lti_user, return_value=pyramid_request.lti_user)
+        )
+
+        identity = policy.identity(pyramid_request)
+
+        assert not identity.permissions
+        assert identity.userid
+
     @pytest.mark.parametrize(
-        "lti_user_fixture,permissions",
-        (
-            (
-                "user_is_instructor",
-                [
-                    Permissions.LTI_LAUNCH_ASSIGNMENT,
-                    Permissions.API,
-                    Permissions.LTI_CONFIGURE_ASSIGNMENT,
-                    Permissions.GRADE_ASSIGNMENT,
-                    Permissions.DASHBOARD_VIEW,
-                ],
-            ),
-            ("user_is_learner", [Permissions.LTI_LAUNCH_ASSIGNMENT, Permissions.API]),
-            ("user_has_no_roles", []),
-        ),
+        "settings",
+        [{}, {"hypothesis": {"instructor_dashboard": True}}],
     )
+    @pytest.mark.parametrize("is_instructor", [True, False])
     def test_identity_when_theres_an_lti_user(
-        self, request, pyramid_request, lti_user_fixture, permissions
+        self, request, pyramid_request, is_instructor, application_instance, settings
     ):
-        _ = request.getfixturevalue(lti_user_fixture)
+        if is_instructor:
+            _ = request.getfixturevalue("user_is_instructor")
+        else:
+            _ = request.getfixturevalue("user_is_learner")
+        settings = application_instance.settings = ApplicationSettings(settings)
         policy = LTIUserSecurityPolicy(
             create_autospec(get_lti_user, return_value=pyramid_request.lti_user)
         )
@@ -288,7 +292,23 @@ class TestLTIUserSecurityPolicy:
         identity = policy.identity(pyramid_request)
 
         assert identity.userid
-        assert identity.permissions == permissions
+
+        expected_permissions = [
+            Permissions.LTI_LAUNCH_ASSIGNMENT,
+            Permissions.API,
+        ]
+
+        if is_instructor:
+            expected_permissions.extend(
+                [
+                    Permissions.LTI_CONFIGURE_ASSIGNMENT,
+                    Permissions.GRADE_ASSIGNMENT,
+                ]
+            )
+            if settings.get("hypothesis", "instructor_dashboard"):
+                expected_permissions.append(Permissions.DASHBOARD_VIEW)
+
+        assert identity.permissions == expected_permissions
 
     def test_remember(self, pyramid_request):
         LTIUserSecurityPolicy(sentinel.get_lti_user).remember(
