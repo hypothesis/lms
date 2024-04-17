@@ -194,7 +194,12 @@ class LTIUserSecurityPolicy:
         if lti_user.is_instructor:
             permissions.append(Permissions.LTI_CONFIGURE_ASSIGNMENT)
             permissions.append(Permissions.GRADE_ASSIGNMENT)
-            permissions.append(Permissions.DASHBOARD_VIEW)
+
+            if lti_user.application_instance.settings.get(
+                "hypothesis", "instructor_dashboard"
+            ):
+                # Only include this permission if the feature is enabled
+                permissions.append(Permissions.DASHBOARD_VIEW)
 
         return Identity(self._get_userid(lti_user), permissions, lti_user)
 
