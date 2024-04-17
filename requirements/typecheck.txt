@@ -96,7 +96,7 @@ greenlet==3.0.3
     # via
     #   -r prod.txt
     #   sqlalchemy
-gunicorn==21.2.0
+gunicorn==22.0.0
     # via -r prod.txt
 h-api==1.1.0
     # via -r prod.txt

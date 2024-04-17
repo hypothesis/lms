@@ -184,7 +184,7 @@ greenlet==3.0.3
     #   -r functests.txt
     #   -r tests.txt
     #   sqlalchemy
-gunicorn==21.2.0
+gunicorn==22.0.0
     # via
     #   -r bddtests.txt
     #   -r functests.txt
