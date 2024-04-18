@@ -89,6 +89,25 @@ class LTIUserService:
             **kwargs,
         )
 
+    def impersonate(self, request, user):
+        """Generate an LTIUser for the passed in user."""
+        lti = LTI(
+            course_id="ADMIN_PAGES",
+            assignment_id="ADMIN_PAGES",
+            product_family="ADMIN_PAGES",
+        )
+
+        return LTIUser(
+            lti=lti,
+            user_id=user.user_id,
+            display_name=request.identity.userid,
+            lti_roles=[],
+            roles=user.roles,
+            effective_lti_roles=[],
+            application_instance_id=user.application_instance.id,
+            tool_consumer_instance_guid=user.application_instance.tool_consumer_instance_guid,
+        )
+
 
 def factory(_context, request):
     return LTIUserService(
