@@ -59,7 +59,7 @@ export default function EmailPreferencesApp() {
       >
         <img
           alt="Hypothesis logo"
-          src="/static/images/email_header.png"
+          src="/static/images/hypothesis_logo.png"
           className="h-10"
         />
       </div>
