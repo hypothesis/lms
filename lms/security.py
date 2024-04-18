@@ -29,12 +29,6 @@ class DeniedWithException(Denied):
         self.exception = exception
 
 
-class Identity(NamedTuple):
-    userid: str
-    permissions: list[str]
-    lti_user: LTIUser | None = None
-
-
 class Permissions(Enum):
     LTI_LAUNCH_ASSIGNMENT = "lti_launch_assignment"
     LTI_CONFIGURE_ASSIGNMENT = "lti_configure_assignment"
@@ -44,6 +38,12 @@ class Permissions(Enum):
     GRADE_ASSIGNMENT = "grade_assignment"
     EMAIL_PREFERENCES = "email.preferences"
     DASHBOARD_VIEW = "dashboard.view"
+
+
+class Identity(NamedTuple):
+    userid: str
+    permissions: list[Permissions]
+    lti_user: LTIUser | None = None
 
 
 class UnautheticatedSecurityPolicy:  # pragma: no cover
@@ -177,7 +177,7 @@ class LTIUserSecurityPolicy:
 
         return identity.userid
 
-    def identity(self, request):
+    def identity(self, request) -> Identity:
         try:
             lti_user = self._get_lti_user(request)
         except Exception:  # pylint:disable=broad-exception-caught
@@ -221,7 +221,7 @@ class LTIUserSecurityPolicy:
 
 
 class LMSGoogleSecurityPolicy(GoogleSecurityPolicy):
-    def identity(self, request):
+    def identity(self, request) -> Identity:
         userid = self.authenticated_userid(request)
 
         if userid and userid.endswith("@hypothes.is"):
