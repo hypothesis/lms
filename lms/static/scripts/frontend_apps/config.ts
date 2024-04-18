@@ -29,6 +29,7 @@ export type APICallInfo = {
 export type AppMode =
   | 'basic-lti-launch'
   | 'content-item-selection'
+  | 'dashboard'
   | 'email-preferences'
   | 'error-dialog'
   | 'oauth2-redirect-error';
@@ -239,6 +240,13 @@ export type EmailPreferences = {
   flashMessage: string | null;
 };
 
+export type DashboardConfig = {
+  assignment: {
+    title: string;
+  };
+  assignmentStatsApi: APICallInfo;
+};
+
 /**
  * Data/configuration needed for frontend applications in the LMS app.
  * The `mode` property specifies which frontend application should load and
@@ -293,6 +301,9 @@ export type ConfigObject = {
 
   // Only present in "email-preferences" mode.
   emailPreferences?: EmailPreferences;
+
+  // Only present in "dashboard" mode
+  dashboard?: DashboardConfig;
 };
 
 /**

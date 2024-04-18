@@ -235,12 +235,13 @@ class JSConfig:
         self._config.update(
             {
                 "mode": JSConfig.Mode.DASHBOARD,
-                "assignment": {"title": assignment.title},
-                "assignmentStatsApi": {
-                    "path": self._request.route_path(
-                        "api.assignment.stats", id_=assignment.id
-                    ),
-                    "data": {},
+                "dashboard": {
+                    "assignment": {"title": assignment.title},
+                    "assignmentStatsApi": {
+                        "path": self._request.route_path(
+                            "api.assignment.stats", id_=assignment.id
+                        ),
+                    },
                 },
             }
         )
