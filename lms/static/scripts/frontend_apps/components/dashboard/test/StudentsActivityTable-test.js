@@ -11,7 +11,7 @@ describe('StudentsActivityTable', () => {
     return mount(
       <StudentsActivityTable
         students={students}
-        assignment={{ id: '123', title }}
+        assignment={{ title }}
         loading={loading}
       />,
     );

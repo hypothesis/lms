@@ -6,13 +6,11 @@ import { Config } from '../../../config';
 import DashboardApp, { $imports } from '../DashboardApp';
 
 describe('DashboardApp', () => {
-  let fakeApiCall;
+  let fakeUseAPIFetch;
   let fakeConfig;
-  let fakeUseParams;
 
   beforeEach(() => {
-    fakeApiCall = sinon.stub().resolves([]);
-    fakeUseParams = sinon.stub().returns({ assignmentId: '123' });
+    fakeUseAPIFetch = sinon.stub().returns({ data: [], isLoading: false });
     fakeConfig = {
       dashboard: {
         assignment: {
@@ -27,8 +25,7 @@ describe('DashboardApp', () => {
 
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
-      'wouter-preact': { useParams: fakeUseParams },
-      '../../utils/api': { apiCall: fakeApiCall },
+      '../../utils/api': { useAPIFetch: fakeUseAPIFetch },
     });
   });
 
@@ -45,13 +42,9 @@ describe('DashboardApp', () => {
   }
 
   it('loads assignment stats on mount, via API call', () => {
-    assert.notCalled(fakeApiCall);
+    assert.notCalled(fakeUseAPIFetch);
     createComponent();
-    assert.calledWith(fakeApiCall, {
-      authToken: 'authToken',
-      method: 'GET',
-      path: '/api/assignment/123/stats',
-    });
+    assert.calledWith(fakeUseAPIFetch, '/api/assignment/123/stats');
   });
 
   it('passes assignment info down to StudentsActivityTable', () => {
@@ -60,53 +53,32 @@ describe('DashboardApp', () => {
 
     assert.deepEqual(table.prop('assignment'), {
       title: 'The assignment',
-      id: '123',
     });
   });
 
   context('when loading students', () => {
-    const configureApiCall = () => {
-      let resolve;
-      const promise = new Promise(r => {
-        resolve = r;
+    [true, false].forEach(isLoading => {
+      it('passes loading state down to StudentsActivityTable', () => {
+        fakeUseAPIFetch.returns({ isLoading });
+        const wrapper = createComponent();
+
+        assert.equal(
+          wrapper.find('StudentsActivityTable').prop('loading'),
+          isLoading,
+        );
       });
-      fakeApiCall.returns(promise);
-
-      return async (wrapper, studentsList = []) => {
-        resolve(studentsList);
-        await promise;
-        wrapper.update();
-      };
-    };
-
-    it('passes loading state down to StudentsActivityTable', async () => {
-      const resolveApiCall = configureApiCall();
-      const wrapper = createComponent();
-
-      // Loading is initially true
-      assert.isTrue(wrapper.find('StudentsActivityTable').prop('loading'));
-
-      // Once the API call promise resolves, it transitions to "not loading"
-      await resolveApiCall(wrapper);
-      assert.isFalse(wrapper.find('StudentsActivityTable').prop('loading'));
     });
 
-    it('passes list of students down to StudentsActivityTable', async () => {
-      const resolveApiCall = configureApiCall();
-      const wrapper = createComponent();
+    [undefined, [1, 2, 3]].forEach(students => {
+      it('passes list of students down to StudentsActivityTable', () => {
+        fakeUseAPIFetch.returns({ isLoading: false, data: students });
+        const wrapper = createComponent();
 
-      // Students is an empty list initially
-      assert.deepEqual(
-        wrapper.find('StudentsActivityTable').prop('students'),
-        [],
-      );
-
-      // Once the API call promise resolves, it passes actual data
-      await resolveApiCall(wrapper, [1, 2, 3]);
-      assert.deepEqual(
-        wrapper.find('StudentsActivityTable').prop('students'),
-        [1, 2, 3],
-      );
+        assert.deepEqual(
+          wrapper.find('StudentsActivityTable').prop('students'),
+          students ?? [],
+        );
+      });
     });
   });
 });
