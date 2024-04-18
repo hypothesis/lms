@@ -1,6 +1,7 @@
-from factory import Faker, fuzzy, make_factory
+from factory import Faker, SubFactory, fuzzy, make_factory
 
 from lms.models.lti_user import LTI, LTIUser
+from tests.factories.application_instance import ApplicationInstance
 from tests.factories.attributes import TOOL_CONSUMER_INSTANCE_GUID, USER_ID
 
 LTIUser = make_factory(
@@ -13,4 +14,5 @@ LTIUser = make_factory(
     tool_consumer_instance_guid=TOOL_CONSUMER_INSTANCE_GUID,
     display_name=Faker("name"),
     lti=LTI(course_id=Faker("hexify", text="^" * 40), product_family="UNKNOWN"),
+    application_instance=SubFactory(ApplicationInstance),
 )

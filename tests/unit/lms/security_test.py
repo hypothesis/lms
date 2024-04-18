@@ -347,21 +347,26 @@ class TestLTIUserSecurityPolicy:
         assert is_allowed == DeniedWithException(validation_error)
 
     @pytest.mark.parametrize(
-        "lti_user,expected_userid",
+        "user_id,application_instance_id,expected_userid",
         [
-            (None, None),
-            (
-                factories.LTIUser(
-                    user_id="sam",
-                    application_instance_id=100,
-                ),
-                "c2Ft:100",
-            ),
+            (None, None, None),
+            ("sam", 100, "c2Ft:100"),
         ],
     )
-    def test_authenticated_userid(self, lti_user, expected_userid, pyramid_request):
+    def test_authenticated_userid(
+        self, user_id, application_instance_id, expected_userid, pyramid_request
+    ):
         policy = LTIUserSecurityPolicy(
-            create_autospec(get_lti_user, return_value=lti_user)
+            create_autospec(
+                get_lti_user,
+                return_value=(
+                    factories.LTIUser(
+                        user_id=user_id, application_instance_id=application_instance_id
+                    )
+                    if user_id
+                    else None
+                ),
+            )
         )
 
         assert policy.authenticated_userid(pyramid_request) == expected_userid
