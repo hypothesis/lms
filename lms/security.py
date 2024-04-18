@@ -29,12 +29,6 @@ class DeniedWithException(Denied):
         self.exception = exception
 
 
-class Identity(NamedTuple):
-    userid: str
-    permissions: list[str]
-    lti_user: LTIUser | None = None
-
-
 class Permissions(Enum):
     LTI_LAUNCH_ASSIGNMENT = "lti_launch_assignment"
     LTI_CONFIGURE_ASSIGNMENT = "lti_configure_assignment"
@@ -44,6 +38,12 @@ class Permissions(Enum):
     GRADE_ASSIGNMENT = "grade_assignment"
     EMAIL_PREFERENCES = "email.preferences"
     DASHBOARD_VIEW = "dashboard.view"
+
+
+class Identity(NamedTuple):
+    userid: str
+    permissions: list[Permissions]
+    lti_user: LTIUser | None = None
 
 
 class UnautheticatedSecurityPolicy:  # pragma: no cover
@@ -92,7 +92,20 @@ class SecurityPolicy:
         path = request.path
 
         if path.startswith("/admin") or path.startswith("/googleauth"):
+            # Routes that require the Google auth policy
             return LMSGoogleSecurityPolicy()
+
+        if path.startswith("/dashboard/assignment/") or path.startswith(
+            "/api/assignment/"
+        ):
+            # For certain routes we only use the google policy in case it resulted
+            # non empty identity.
+            # This is useful for routes that can be used by admin pages users on top of
+            # if we can successfully use it
+            policy = LMSGoogleSecurityPolicy()
+            identity = policy.identity(request)
+            if identity.userid and identity.permissions:
+                return policy
 
         if path in {"/lti_launches", "/content_item_selection"}:
             # Actual LTI backed authentication
@@ -177,7 +190,7 @@ class LTIUserSecurityPolicy:
 
         return identity.userid
 
-    def identity(self, request):
+    def identity(self, request) -> Identity:
         try:
             lti_user = self._get_lti_user(request)
         except Exception:  # pylint:disable=broad-exception-caught
@@ -220,7 +233,7 @@ class LMSGoogleSecurityPolicy(GoogleSecurityPolicy):
         userid = self.authenticated_userid(request)
 
         if userid and userid.endswith("@hypothes.is"):
-            permissions = [Permissions.STAFF]
+            permissions = [Permissions.STAFF, Permissions.DASHBOARD_VIEW]
             if userid in request.registry.settings["admin_users"]:
                 permissions.append(Permissions.ADMIN)
 

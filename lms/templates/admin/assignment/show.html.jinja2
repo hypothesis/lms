@@ -5,10 +5,15 @@
 <div>
     <fieldset>
         <legend class="label has-text-centered">Assignment</legend>
+            <div class="block has-text-right">
+              <a class="button is-primary" target="_blank" href="{{ request.route_url('admin.assignment.dashboard', id_=assignment.id) }}">Open instructor dashboard</a>
+            </div>
+
             {{ macros.disabled_text_field("ID", assignment.id) }}
             {{ macros.disabled_text_field("Title", assignment.title) }}
             {{ macros.disabled_text_field("Document", assignment.document_url) }}
             {{ macros.created_updated_fields(assignment) }}
     </fieldset>
+
 </div>
 {% endblock %}
