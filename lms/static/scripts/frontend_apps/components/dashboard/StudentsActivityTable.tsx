@@ -16,7 +16,7 @@ export type StudentsActivityTableProps = {
   loading?: boolean;
 };
 
-type MandatoryOrder<T> = Exclude<DataTableProps<T>['order'], undefined>;
+type MandatoryOrder<T> = NonNullable<DataTableProps<T>['order']>;
 
 function useOrderedRows<T>(rows: T[], order: MandatoryOrder<T>) {
   return useMemo(
