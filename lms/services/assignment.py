@@ -200,7 +200,7 @@ class AssignmentService:
 
     def is_member(self, assignment: Assignment, user: User) -> bool:
         """Check if a user is a member of an assignment."""
-        return bool(assignment.membership.filter_by(user=user).one_or_none())
+        return bool(assignment.membership.filter_by(user=user).first())
 
     def get_members(
         self, assignment, role_type: RoleType, role_scope: RoleScope
