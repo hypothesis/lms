@@ -216,9 +216,13 @@ class TestAssignmentService:
         assignment = factories.Assignment()
         user = factories.User()
         other_user = factories.User()
-        lti_role = factories.LTIRole()
+        lti_role_1 = factories.LTIRole()
+        lti_role_2 = factories.LTIRole()
         factories.AssignmentMembership.create(
-            assignment=assignment, user=user, lti_role=lti_role
+            assignment=assignment, user=user, lti_role=lti_role_1
+        )
+        factories.AssignmentMembership.create(
+            assignment=assignment, user=user, lti_role=lti_role_2
         )
 
         db_session.flush()
