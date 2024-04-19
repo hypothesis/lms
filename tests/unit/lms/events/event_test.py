@@ -3,7 +3,7 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.events import AuditTrailEvent, BaseEvent, LTIEvent
+from lms.events import AuditTrailEvent, BaseEvent, LTIEvent, ModelChange
 from lms.events.event import _serialize_change
 from tests import factories
 
@@ -110,9 +110,9 @@ class TestAuditTrailEvent:
         org.enabled = False
         org.parent = parent
 
-        assert AuditTrailEvent.ModelChange.from_instance(
+        assert ModelChange.from_instance(
             org, action=sentinel.action, source=sentinel.source, userid=sentinel.userid
-        ) == AuditTrailEvent.ModelChange(
+        ) == ModelChange(
             model="Organization",
             id=org.id,
             source=sentinel.source,
@@ -137,7 +137,7 @@ class TestAuditTrailEvent:
                 request=pyramid_request,
                 type=AuditTrailEvent.Type.AUDIT_TRAIL,
                 data=asdict(
-                    AuditTrailEvent.ModelChange(
+                    ModelChange(
                         id=org.id,
                         model="Organization",
                         action="update",
@@ -161,7 +161,7 @@ class TestAuditTrailEvent:
                 type=AuditTrailEvent.Type.AUDIT_TRAIL,
                 request=pyramid_request,
                 data=asdict(
-                    AuditTrailEvent.ModelChange(
+                    ModelChange(
                         id=org.id,
                         model="Organization",
                         action="delete",

@@ -53,14 +53,18 @@ class TestLMSGoogleSecurityPolicy:
                 "testuser@hypothes.is",
                 Identity(
                     userid="testuser@hypothes.is",
-                    permissions=[Permissions.STAFF],
+                    permissions=[Permissions.STAFF, Permissions.DASHBOARD_VIEW],
                 ),
             ),
             (
                 "admin@hypothes.is",
                 Identity(
                     userid="admin@hypothes.is",
-                    permissions=[Permissions.STAFF, Permissions.ADMIN],
+                    permissions=[
+                        Permissions.STAFF,
+                        Permissions.DASHBOARD_VIEW,
+                        Permissions.ADMIN,
+                    ],
                 ),
             ),
             ("testuser@example.com", None),
@@ -413,6 +417,17 @@ class TestSecurityPolicy:
         get_policy.return_value.forget.assert_called_once_with(pyramid_request)
         assert user_id == get_policy.return_value.forget.return_value
 
+    @pytest.mark.parametrize("path", ["/api/assignment/10", "/dashboard/assignment/10"])
+    def test_get_policy_google_when_available(
+        self, pyramid_request, path, LMSGoogleSecurityPolicy
+    ):
+        pyramid_request.path = path
+        LMSGoogleSecurityPolicy.return_value.identity.return_value = sentinel.identity
+
+        policy = SecurityPolicy.get_policy(pyramid_request)
+
+        assert policy == LMSGoogleSecurityPolicy.return_value
+
     @pytest.mark.parametrize(
         "path",
         ["/admin", "/admin/instance", "/googleauth"],
@@ -477,9 +492,16 @@ class TestSecurityPolicy:
         ],
     )
     def test_picks_lti_launches_with_bearer_token(
-        self, pyramid_request, path, location, LTIUserSecurityPolicy, policy
+        self,
+        pyramid_request,
+        path,
+        location,
+        LTIUserSecurityPolicy,
+        policy,
+        LMSGoogleSecurityPolicy,
     ):
         pyramid_request.path = path
+        LMSGoogleSecurityPolicy.return_value.identity.return_value = None
         policy = policy.get_policy(pyramid_request)
 
         LTIUserSecurityPolicy.assert_called_once()

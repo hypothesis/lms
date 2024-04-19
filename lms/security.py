@@ -87,12 +87,24 @@ class SecurityPolicy:
     @lru_cache(maxsize=1)
     def get_policy(request: Request):
         """Pick the right policy based the request's path."""
-        # pylint:disable=too-many-return-statements
+        # pylint:disable=too-many-return-statements,too-complex
 
         path = request.path
 
         if path.startswith("/admin") or path.startswith("/googleauth"):
+            # Routes that require the Google auth policy
             return LMSGoogleSecurityPolicy()
+
+        if path.startswith("/dashboard/assignment/") or path.startswith(
+            "/api/assignment/"
+        ):
+            # For certain routes we only use the google policy in case it resulted
+            # non empty identity.
+            # This is useful for routes that can be used by admin pages users on top of
+            # other type of access
+            policy = LMSGoogleSecurityPolicy()
+            if policy.identity(request):
+                return policy
 
         if path in {"/lti_launches", "/content_item_selection"}:
             # Actual LTI backed authentication
@@ -225,7 +237,7 @@ class LMSGoogleSecurityPolicy(GoogleSecurityPolicy):
         userid = self.authenticated_userid(request)
 
         if userid and userid.endswith("@hypothes.is"):
-            permissions = [Permissions.STAFF]
+            permissions = [Permissions.STAFF, Permissions.DASHBOARD_VIEW]
             if userid in request.registry.settings["admin_users"]:
                 permissions.append(Permissions.ADMIN)
 
