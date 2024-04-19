@@ -137,11 +137,25 @@ class TestDashboardViews:
         with pytest.raises(HTTPUnauthorized):
             views.get_request_assignment()
 
+    def test_get_request_assignment_for_staff(
+        self, pyramid_request, assignment_service, views, pyramid_config
+    ):
+        pyramid_config.testing_securitypolicy(permissive=True)
+        pyramid_request.matchdict["id_"] = sentinel.id
+        assignment_service.is_member.return_value = False
+
+        assert views.get_request_assignment()
+
     @pytest.fixture
     def BearerTokenSchema(self, patch):
         mock = patch("lms.views.dashboard.BearerTokenSchema")
         mock.return_value.authorization_param.return_value = "Bearer TOKEN"
         return mock
+
+    @pytest.fixture(autouse=True)
+    def pyramid_config(self, pyramid_config):
+        pyramid_config.testing_securitypolicy(permissive=False)
+        return pyramid_config
 
     @pytest.fixture
     def views(self, pyramid_request):

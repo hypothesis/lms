@@ -80,54 +80,55 @@ class LTIEvent(BaseEvent):
 
 
 @dataclass
-class AuditTrailEvent(BaseEvent):
-    @dataclass
-    class ModelChange:
-        action: str
-        model: str
-        id: int
-        source: str
-        # LTI users will have a FK to the User table.
-        # userid is useful for other authentication methods.
-        # For example this will be the user's email while using google oauth.
-        userid: str
-        changes: dict[str, tuple]
+class ModelChange:
+    action: str
+    model: str
+    id: int
+    source: str
+    # LTI users will have a FK to the User table.
+    # userid is useful for other authentication methods.
+    # For example this will be the user's email while using google oauth.
+    userid: str
+    changes: dict[str, tuple]
 
-        @classmethod
-        def from_instance(cls, instance, **kwargs):
-            changes = {}
-            instance_details = inspect(instance)
-            for attr in instance_details.attrs:
-                history = instance_details.get_history(attr.key, True)
+    @classmethod
+    def from_instance(cls, instance, **kwargs):
+        changes = {}
+        instance_details = inspect(instance)
+        for attr in instance_details.attrs:
+            history = instance_details.get_history(attr.key, True)
 
-                if not history.has_changes():
-                    continue
+            if not history.has_changes():
+                continue
 
-                changes[attr.key] = (
-                    _serialize_change(history.deleted[0]) if history.deleted else None,
-                    _serialize_change(history.added[0]) if history.added else None,
-                )
-
-            return cls(
-                model=instance.__class__.__name__,
-                id=instance.id,
-                changes=changes,
-                **kwargs,
+            changes[attr.key] = (
+                _serialize_change(history.deleted[0]) if history.deleted else None,
+                _serialize_change(history.added[0]) if history.added else None,
             )
 
+        return cls(
+            model=instance.__class__.__name__,
+            id=instance.id,
+            changes=changes,
+            **kwargs,
+        )
+
+
+@dataclass
+class AuditTrailEvent(BaseEvent):
     @staticmethod
     def notify(request: Request, instance: Base, source="admin_pages"):
         db = request.db
         model_changes = None
         if db.is_modified(instance):
-            model_changes = AuditTrailEvent.ModelChange.from_instance(
+            model_changes = ModelChange.from_instance(
                 instance,
                 action="insert" if instance in db.new else "update",
                 source=source,
                 userid=request.identity.userid,
             )
         elif instance in db.deleted:
-            model_changes = AuditTrailEvent.ModelChange(
+            model_changes = ModelChange(
                 model=instance.__class__.__name__,
                 id=instance.id,
                 action="delete",
