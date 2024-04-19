@@ -1,8 +1,9 @@
 import base64
+import re
 from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache, partial
-from typing import Callable, NamedTuple
+from typing import Any
 
 import sentry_sdk
 from pyramid.authentication import AuthTktCookieHelper
@@ -40,10 +41,19 @@ class Permissions(Enum):
     DASHBOARD_VIEW = "dashboard.view"
 
 
-class Identity(NamedTuple):
+@dataclass
+class Identity:
     userid: str
     permissions: list[Permissions]
     lti_user: LTIUser | None = None
+
+
+@dataclass
+class EmailPreferencesIdentity:
+    """The identity class used by EmailPreferencesSecurityPolicy."""
+
+    h_userid: str
+    tag: str | None = None
 
 
 class UnautheticatedSecurityPolicy:  # pragma: no cover
@@ -84,63 +94,57 @@ class SecurityPolicy:
         return self.get_policy(request).forget(request)
 
     @staticmethod
-    @lru_cache(maxsize=1)
+    def path_policy_map() -> dict[re.Pattern | str, Any]:
+        return {
+            re.compile(r"^/admin.*"): LMSGoogleSecurityPolicy,
+            re.compile(r"^/googleauth.*"): LMSGoogleSecurityPolicy,
+            # Actual LTI backed authentication
+            "/lti_launches": LaunchParamsLTIUserPolicy,
+            "/content_item_selection": LaunchParamsLTIUserPolicy,
+            # LTIUser serialized in the state param for the oauth flow
+            "/canvas_oauth_callback": OAuthCallbackLTIUserPolicy,
+            "/api/blackboard/oauth/callback": OAuthCallbackLTIUserPolicy,
+            "/api/canvas_studio/oauth/callback": OAuthCallbackLTIUserPolicy,
+            "/api/d2l/oauth/callback": OAuthCallbackLTIUserPolicy,
+            # LTUser serialized as query param for authorization failures
+            "/api/d2l/oauth/authorize": QueryStringBearerTokenPolicy,
+            "/api/blackboard/oauth/authorize": QueryStringBearerTokenPolicy,
+            "/api/canvas_studio/oauth/authorize": QueryStringBearerTokenPolicy,
+            "/api/canvas/oauth/authorize": QueryStringBearerTokenPolicy,
+            # To fetch pages content from LMSes' APIs
+            "/api/canvas/pages/proxy": QueryStringBearerTokenPolicy,
+            "/api/moodle/pages/proxy": QueryStringBearerTokenPolicy,
+            # LTUser serialized in the headers for API calls from the frontend
+            re.compile(r"^/api.*"): HeaderBearerTokenPolicy,
+            "/lti/1.3/deep_linking/form_fields": HeaderBearerTokenPolicy,
+            "/lti/1.1/deep_linking/form_fields": HeaderBearerTokenPolicy,
+            "/lti/reconfigure": HeaderBearerTokenPolicy,
+            # LTUser serialized in a from for non deep-linked assignment configuration
+            "/assignment": FormBearerTokenPolicy,
+            "/assignment/edit": FormBearerTokenPolicy,
+            re.compile(r"^/dashboard/launch/assignment/\d+"): FormBearerTokenPolicy,
+            # LTIUser serialized in a cookie, for dashboards
+            re.compile(r"^/dashboard/assignment/\d+"): CookiesBearerTokenPolicy,
+        }
+
+    @staticmethod
     def get_policy(request: Request):
         """Pick the right policy based the request's path."""
-        # pylint:disable=too-many-return-statements
 
-        path = request.path
+        for pattern, policy in SecurityPolicy.path_policy_map().items():
+            match pattern:
+                case str():
+                    if pattern == request.path:
+                        return policy()
 
-        if path.startswith("/admin") or path.startswith("/googleauth"):
-            return LMSGoogleSecurityPolicy()
+                case re.Pattern():
+                    if pattern.match(request.path):
+                        return policy()
 
-        if path in {"/lti_launches", "/content_item_selection"}:
-            # Actual LTI backed authentication
-            return LTIUserSecurityPolicy(get_lti_user_from_launch_params)
+                case _:  # pragma: no cover
+                    raise ValueError()
 
-        if path in {
-            "/canvas_oauth_callback",
-            "/api/blackboard/oauth/callback",
-            "/api/canvas_studio/oauth/callback",
-            "/api/d2l/oauth/callback",
-        }:
-            # LTIUser serialized in the state param for the oauth flow
-            return LTIUserSecurityPolicy(get_lti_user_from_oauth_callback)
-
-        # LTUser serialized as query param for authorization failures
-        if (path.startswith("/api") and path.endswith("authorize")) or path in {
-            # To fetch pages content from LMSes' APIs
-            "/api/canvas/pages/proxy",
-            "/api/moodle/pages/proxy",
-        }:
-            return LTIUserSecurityPolicy(
-                partial(get_lti_user_from_bearer_token, location="querystring")
-            )
-
-        if path.startswith("/api") or path in {
-            "/lti/1.3/deep_linking/form_fields",
-            "/lti/1.1/deep_linking/form_fields",
-            "/lti/reconfigure",
-        }:
-            # LTUser serialized in the headers for API calls from the frontend
-            return LTIUserSecurityPolicy(
-                partial(get_lti_user_from_bearer_token, location="headers")
-            )
-
-        if path in {"/assignment", "/assignment/edit"} or path.startswith(
-            "/dashboard/launch/assignment/"
-        ):
-            # LTUser serialized in a from for non deep-linked assignment configuration
-            return LTIUserSecurityPolicy(
-                partial(get_lti_user_from_bearer_token, location="form")
-            )
-
-        if path.startswith("/dashboard/assignment/"):
-            return LTIUserSecurityPolicy(
-                partial(get_lti_user_from_bearer_token, location="cookies")
-            )
-
-        if path in {"/email/preferences", "/email/unsubscribe"}:
+        if request.path in {"/email/preferences", "/email/unsubscribe"}:
             return EmailPreferencesSecurityPolicy(
                 secret=request.registry.settings["email_preferences_secret"],
                 domain=request.domain,
@@ -154,8 +158,13 @@ class SecurityPolicy:
 class LTIUserSecurityPolicy:
     """Security policy based on the information of an LTIUser."""
 
-    def __init__(self, get_lti_user_: Callable[[Request], LTIUser]):
-        self._get_lti_user = get_lti_user_
+    def get_lti_user(self, request: Request) -> LTIUser:  # pragma: no cover
+        """
+        Read LTIUser from the request.
+
+        Must be implemented by subclasses.
+        """
+        raise NotImplementedError()
 
     @staticmethod
     def _get_userid(lti_user):
@@ -179,7 +188,7 @@ class LTIUserSecurityPolicy:
 
     def identity(self, request) -> Identity | None:
         try:
-            lti_user = self._get_lti_user(request)
+            lti_user = self.get_lti_user(request)
         except Exception:  # pylint:disable=broad-exception-caught
             # If anything went wrong, no identity
             return None
@@ -207,17 +216,44 @@ class LTIUserSecurityPolicy:
         try:
             # Getting lti_use here again for the potential exception
             # side effect and allow us to return DeniedWithException accordingly
-            self._get_lti_user(request)
+            self.get_lti_user(request)
         except Exception as err:  # pylint:disable=broad-exception-caught
             return DeniedWithException(err)
 
         return _permits(self.identity(request), permission)
 
-    def remember(self, request, userid, **kw):
+    def remember(self, request, userid, **kw):  # pragma: no cover
         pass
 
-    def forget(self, request):
+    def forget(self, request):  # pragma: no cover
         pass
+
+
+class BearerTokenLTIUserPolicy(LTIUserSecurityPolicy):
+    def __init__(self, location: str) -> None:
+        self._location = location
+
+    def get_lti_user(self, request):
+        return BearerTokenSchema(request).lti_user(location=self._location)
+
+
+QueryStringBearerTokenPolicy = partial(BearerTokenLTIUserPolicy, location="querystring")
+HeaderBearerTokenPolicy = partial(BearerTokenLTIUserPolicy, location="headers")
+FormBearerTokenPolicy = partial(BearerTokenLTIUserPolicy, location="form")
+CookiesBearerTokenPolicy = partial(BearerTokenLTIUserPolicy, location="cookies")
+
+
+class LaunchParamsLTIUserPolicy(LTIUserSecurityPolicy):
+    def get_lti_user(self, request):
+        if "id_token" in request.params:
+            return LTI13AuthSchema(request).lti_user()
+
+        return LTI11AuthSchema(request).lti_user()
+
+
+class OAuthCallbackLTIUserPolicy(LTIUserSecurityPolicy):
+    def get_lti_user(self, request):
+        return OAuthCallbackSchema(request).lti_user()
 
 
 class LMSGoogleSecurityPolicy(GoogleSecurityPolicy):
@@ -235,14 +271,6 @@ class LMSGoogleSecurityPolicy(GoogleSecurityPolicy):
 
     def permits(self, request, _context, permission):
         return _permits(self.identity(request), permission)
-
-
-@dataclass
-class EmailPreferencesIdentity:
-    """The identity class used by EmailPreferencesSecurityPolicy."""
-
-    h_userid: str
-    tag: str | None = None
 
 
 class EmailPreferencesSecurityPolicy:
@@ -304,24 +332,6 @@ def _permits(identity, permission):
         return Allowed("allowed")
 
     return Denied("denied")
-
-
-@lru_cache(maxsize=1)
-def get_lti_user_from_launch_params(request) -> LTIUser:
-    if "id_token" in request.params:
-        return LTI13AuthSchema(request).lti_user()
-
-    return LTI11AuthSchema(request).lti_user()
-
-
-@lru_cache(maxsize=1)
-def get_lti_user_from_bearer_token(request, location) -> LTIUser:
-    return BearerTokenSchema(request).lti_user(location=location)
-
-
-@lru_cache(maxsize=1)
-def get_lti_user_from_oauth_callback(request) -> LTIUser:
-    return OAuthCallbackSchema(request).lti_user()
 
 
 @lru_cache(maxsize=1)

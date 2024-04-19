@@ -1,4 +1,4 @@
-from unittest.mock import create_autospec, patch, sentinel
+from unittest.mock import patch, sentinel
 
 import pytest
 from pyramid.interfaces import ISecurityPolicy
@@ -6,19 +6,19 @@ from pyramid.security import Allowed, Denied
 
 from lms.models import ApplicationSettings
 from lms.security import (
+    BearerTokenLTIUserPolicy,
     DeniedWithException,
     EmailPreferencesIdentity,
     EmailPreferencesSecurityPolicy,
     Identity,
+    LaunchParamsLTIUserPolicy,
     LMSGoogleSecurityPolicy,
     LTIUserSecurityPolicy,
+    OAuthCallbackLTIUserPolicy,
     Permissions,
     SecurityPolicy,
     _get_user,
     get_lti_user,
-    get_lti_user_from_bearer_token,
-    get_lti_user_from_launch_params,
-    get_lti_user_from_oauth_callback,
     includeme,
 )
 from lms.services.email_preferences import (
@@ -245,24 +245,25 @@ class TestEmailPreferencesSecurityPolicy:
 
 @pytest.mark.usefixtures("pyramid_config")
 class TestLTIUserSecurityPolicy:
-    def test_it_returns_empty_identity_if_theres_no_lti_user(self, pyramid_request):
-        policy = LTIUserSecurityPolicy(create_autospec(get_lti_user, return_value=None))
+    def test_it_returns_empty_identity_if_theres_no_lti_user(
+        self, pyramid_request, policy, get_lti_user
+    ):
+        get_lti_user.return_value = None
+
         assert not policy.identity(pyramid_request)
 
-    def test_it_returns_empty_identity_if_validation_error(self, pyramid_request):
-        get_lti_user_ = create_autospec(
-            get_lti_user, side_effect=ValidationError(sentinel.messages)
-        )
-
-        policy = LTIUserSecurityPolicy(get_lti_user_)
+    def test_it_returns_empty_identity_if_validation_error(
+        self, pyramid_request, policy, get_lti_user
+    ):
+        get_lti_user.side_effect = ValidationError(sentinel.messages)
 
         assert not policy.identity(pyramid_request)
 
     @pytest.mark.usefixtures("user_has_no_roles")
-    def test_identity_when_theres_an_lti_user_with_no_roles(self, pyramid_request):
-        policy = LTIUserSecurityPolicy(
-            create_autospec(get_lti_user, return_value=pyramid_request.lti_user)
-        )
+    def test_identity_when_theres_an_lti_user_with_no_roles(
+        self, pyramid_request, policy, get_lti_user
+    ):
+        get_lti_user.return_value = pyramid_request.lti_user
 
         identity = policy.identity(pyramid_request)
 
@@ -275,16 +276,21 @@ class TestLTIUserSecurityPolicy:
     )
     @pytest.mark.parametrize("is_instructor", [True, False])
     def test_identity_when_theres_an_lti_user(
-        self, request, pyramid_request, is_instructor, application_instance, settings
+        self,
+        request,
+        pyramid_request,
+        is_instructor,
+        application_instance,
+        settings,
+        policy,
+        get_lti_user,
     ):
         if is_instructor:
             _ = request.getfixturevalue("user_is_instructor")
         else:
             _ = request.getfixturevalue("user_is_learner")
         settings = application_instance.settings = ApplicationSettings(settings)
-        policy = LTIUserSecurityPolicy(
-            create_autospec(get_lti_user, return_value=pyramid_request.lti_user)
-        )
+        get_lti_user.return_value = pyramid_request.lti_user
 
         identity = policy.identity(pyramid_request)
 
@@ -307,18 +313,10 @@ class TestLTIUserSecurityPolicy:
 
         assert identity.permissions == expected_permissions
 
-    def test_remember(self, pyramid_request):
-        LTIUserSecurityPolicy(sentinel.get_lti_user).remember(
-            pyramid_request, "TEST_USERID", kwarg=sentinel.kwarg
-        )
-
-    def test_forget(self, pyramid_request):
-        LTIUserSecurityPolicy(sentinel.get_lti_user).forget(pyramid_request)
-
-    def test_permits_allow(self, pyramid_request, user_is_learner):
-        policy = LTIUserSecurityPolicy(
-            create_autospec(get_lti_user, return_value=user_is_learner)
-        )
+    def test_permits_allow(
+        self, pyramid_request, user_is_learner, get_lti_user, policy
+    ):
+        get_lti_user.return_value = user_is_learner
 
         is_allowed = policy.permits(
             pyramid_request, None, Permissions.LTI_LAUNCH_ASSIGNMENT
@@ -326,18 +324,18 @@ class TestLTIUserSecurityPolicy:
 
         assert is_allowed == Allowed("allowed")
 
-    def test_permits_denied(self, pyramid_request):
-        policy = LTIUserSecurityPolicy(create_autospec(get_lti_user, return_value=None))
+    def test_permits_denied(self, pyramid_request, policy, get_lti_user):
+        get_lti_user.return_value = None
 
         is_allowed = policy.permits(pyramid_request, None, "some-permission")
 
         assert is_allowed == Denied("denied")
 
-    def test_permits_denied_with_validation_error(self, pyramid_request):
+    def test_permits_denied_with_validation_error(
+        self, pyramid_request, policy, get_lti_user
+    ):
         validation_error = ValidationError(sentinel.message)
-        policy = LTIUserSecurityPolicy(
-            create_autospec(get_lti_user, side_effect=validation_error)
-        )
+        get_lti_user.side_effect = ValidationError(sentinel.message)
 
         is_allowed = policy.permits(pyramid_request, None, "some-permission")
 
@@ -351,22 +349,32 @@ class TestLTIUserSecurityPolicy:
         ],
     )
     def test_authenticated_userid(
-        self, user_id, application_instance_id, expected_userid, pyramid_request
+        self,
+        user_id,
+        application_instance_id,
+        expected_userid,
+        pyramid_request,
+        policy,
+        get_lti_user,
     ):
-        policy = LTIUserSecurityPolicy(
-            create_autospec(
-                get_lti_user,
-                return_value=(
-                    factories.LTIUser(
-                        user_id=user_id, application_instance_id=application_instance_id
-                    )
-                    if user_id
-                    else None
-                ),
+        get_lti_user.return_value = (
+            factories.LTIUser(
+                user_id=user_id, application_instance_id=application_instance_id
             )
+            if user_id
+            else None
         )
 
         assert policy.authenticated_userid(pyramid_request) == expected_userid
+
+    @pytest.fixture
+    def policy(self):
+        return LTIUserSecurityPolicy()
+
+    @pytest.fixture
+    def get_lti_user(self, policy):
+        with patch.object(policy, "get_lti_user") as get_lti_user:
+            yield get_lti_user
 
 
 class TestSecurityPolicy:
@@ -417,31 +425,30 @@ class TestSecurityPolicy:
         "path",
         ["/admin", "/admin/instance", "/googleauth"],
     )
-    def test_get_policy_google(self, pyramid_request, path, LMSGoogleSecurityPolicy):
+    def test_get_policy_google(self, pyramid_request, path):
         pyramid_request.path = path
         policy = SecurityPolicy.get_policy(pyramid_request)
 
-        assert policy == LMSGoogleSecurityPolicy.return_value
+        assert isinstance(policy, LMSGoogleSecurityPolicy)
 
     @pytest.mark.parametrize(
-        "path,lti_user_getter,",
+        "path,expected",
         [
-            ("/lti_launches", get_lti_user_from_launch_params),
-            ("/content_item_selection", get_lti_user_from_launch_params),
-            ("/canvas_oauth_callback", get_lti_user_from_oauth_callback),
-            ("/api/blackboard/oauth/callback", get_lti_user_from_oauth_callback),
-            ("/api/canvas_studio/oauth/callback", get_lti_user_from_oauth_callback),
-            ("/api/d2l/oauth/callback", get_lti_user_from_oauth_callback),
+            ("/lti_launches", LaunchParamsLTIUserPolicy),
+            ("/content_item_selection", LaunchParamsLTIUserPolicy),
+            ("/canvas_oauth_callback", OAuthCallbackLTIUserPolicy),
+            ("/api/blackboard/oauth/callback", OAuthCallbackLTIUserPolicy),
+            ("/api/canvas_studio/oauth/callback", OAuthCallbackLTIUserPolicy),
+            ("/api/d2l/oauth/callback", OAuthCallbackLTIUserPolicy),
+            ("/api/d2l/oauth/callback", OAuthCallbackLTIUserPolicy),
         ],
     )
-    def test_get_policy_lti_user(
-        self, pyramid_request, path, lti_user_getter, policy, LTIUserSecurityPolicy
-    ):
+    def test_get_policy_lti_user(self, pyramid_request, path, expected, policy):
         pyramid_request.path = path
+
         policy = policy.get_policy(pyramid_request)
 
-        LTIUserSecurityPolicy.assert_called_once_with(lti_user_getter)
-        assert policy == LTIUserSecurityPolicy.return_value
+        assert isinstance(policy, expected)
 
     @pytest.mark.parametrize("path", ["/email/preferences", "/email/unsubscribe"])
     def test_get_policy_email_preferences(
@@ -467,27 +474,31 @@ class TestSecurityPolicy:
     @pytest.mark.parametrize(
         "path,location",
         [
-            ("/api/canvas/authorize", "querystring"),
-            ("/api/d2l/authorize", "querystring"),
+            ("/api/canvas/oauth/authorize", "querystring"),
+            ("/api/canvas_studio/oauth/authorize", "querystring"),
+            ("/api/d2l/oauth/authorize", "querystring"),
+            ("/api/blackboard/oauth/authorize", "querystring"),
+            ("/api/moodle/pages/proxy", "querystring"),
+            ("/api/canvas/pages/proxy", "querystring"),
             ("/api/canvas/files", "headers"),
             ("/api/blackboard/groups", "headers"),
+            ("/lti/1.3/deep_linking/form_fields", "headers"),
+            ("/lti/1.1/deep_linking/form_fields", "headers"),
+            ("/lti/reconfigure", "headers"),
             ("/assignment", "form"),
+            ("/assignment/edit", "form"),
             ("/dashboard/launch/assignment/10", "form"),
             ("/dashboard/assignment/10", "cookies"),
         ],
     )
     def test_picks_lti_launches_with_bearer_token(
-        self, pyramid_request, path, location, LTIUserSecurityPolicy, policy
+        self, pyramid_request, path, location, BearerTokenLTIUserPolicy, policy
     ):
         pyramid_request.path = path
         policy = policy.get_policy(pyramid_request)
 
-        LTIUserSecurityPolicy.assert_called_once()
-        # Can't compare functions directly, discussion: https://bugs.python.org/issue3564
-        call_args = LTIUserSecurityPolicy.call_args_list[0].args
-        assert call_args[0].keywords == {"location": location}
-        assert call_args[0].func.__name__ == "get_lti_user_from_bearer_token"
-        assert policy == LTIUserSecurityPolicy.return_value
+        BearerTokenLTIUserPolicy.assert_called_once_with(location=location)
+        assert policy == BearerTokenLTIUserPolicy.return_value
 
     def test_unauthorized_policy(
         self, pyramid_request, UnautheticatedSecurityPolicy, policy
@@ -503,8 +514,8 @@ class TestSecurityPolicy:
         return patch("lms.security.LTIUserSecurityPolicy")
 
     @pytest.fixture(autouse=True)
-    def LMSGoogleSecurityPolicy(self, patch):
-        return patch("lms.security.LMSGoogleSecurityPolicy")
+    def BearerTokenLTIUserPolicy(self, patch):
+        return patch("lms.security.BearerTokenLTIUserPolicy")
 
     @pytest.fixture(autouse=True)
     def EmailPreferencesSecurityPolicy(self, patch):
@@ -525,16 +536,17 @@ class TestSecurityPolicy:
 
 
 @pytest.mark.usefixtures("user_service")
-class TestGetLTIUserFromLaunchParams:
+class TestLaunchParamsLTIUserPolicy:
     def test_it_with_lti11(self, LTI11AuthSchema, lti11_auth_schema, pyramid_request):
-        lti_user = get_lti_user_from_launch_params(pyramid_request)
+        lti_user = LaunchParamsLTIUserPolicy().get_lti_user(pyramid_request)
 
         LTI11AuthSchema.assert_called_once_with(pyramid_request)
         assert lti_user == lti11_auth_schema.lti_user.return_value
 
     def test_it_with_lti13(self, LTI13AuthSchema, lti13_auth_schema, pyramid_request):
         pyramid_request.params = {"id_token": sentinel.token}
-        lti_user = get_lti_user_from_launch_params(pyramid_request)
+
+        lti_user = LaunchParamsLTIUserPolicy().get_lti_user(pyramid_request)
 
         LTI13AuthSchema.assert_called_once_with(pyramid_request)
         assert lti_user == lti13_auth_schema.lti_user.return_value
@@ -557,9 +569,11 @@ class TestGetLTIUserFromLaunchParams:
 
 
 @pytest.mark.usefixtures("user_service")
-class TestGetLTIUserFromBearerToken:
+class TestBearerTokenLTIUserPolicy:
     def test_it(self, BearerTokenSchema, bearer_token_schema, pyramid_request):
-        lti_user = get_lti_user_from_bearer_token(pyramid_request, sentinel.location)
+        lti_user = BearerTokenLTIUserPolicy(sentinel.location).get_lti_user(
+            pyramid_request
+        )
 
         BearerTokenSchema.assert_called_once_with(pyramid_request)
         bearer_token_schema.lti_user.assert_called_once_with(location=sentinel.location)
@@ -575,9 +589,9 @@ class TestGetLTIUserFromBearerToken:
 
 
 @pytest.mark.usefixtures("user_service")
-class TestGetLTIUserFromOauthCallback:
+class TestOAuthCallbackLTIUserPolicy:
     def test_it(self, OAuthCallbackSchema, oauth_callback_schema, pyramid_request):
-        lti_user = get_lti_user_from_oauth_callback(pyramid_request)
+        lti_user = OAuthCallbackLTIUserPolicy().get_lti_user(pyramid_request)
 
         OAuthCallbackSchema.assert_called_once_with(pyramid_request)
         assert lti_user == oauth_callback_schema.lti_user.return_value
