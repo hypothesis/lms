@@ -63,7 +63,7 @@ class TestLMSGoogleSecurityPolicy:
                     permissions=[Permissions.STAFF, Permissions.ADMIN],
                 ),
             ),
-            ("testuser@example.com", Identity(userid="", permissions=[])),
+            ("testuser@example.com", None),
         ],
     )
     def test_identity(self, policy, pyramid_request, userid, expected_identity):
@@ -73,7 +73,7 @@ class TestLMSGoogleSecurityPolicy:
         assert policy.identity(pyramid_request) == expected_identity
 
     def test_identity_when_no_user_is_logged_in(self, policy, pyramid_request):
-        assert policy.identity(pyramid_request) == Identity(userid="", permissions=[])
+        assert not policy.identity(pyramid_request)
 
     def test_authenticated_userid(self, policy, pyramid_request):
         pyramid_request.session["googleauth.userid"] = "testuser@hypothes.is"
@@ -247,9 +247,7 @@ class TestEmailPreferencesSecurityPolicy:
 class TestLTIUserSecurityPolicy:
     def test_it_returns_empty_identity_if_theres_no_lti_user(self, pyramid_request):
         policy = LTIUserSecurityPolicy(create_autospec(get_lti_user, return_value=None))
-        userid = policy.identity(pyramid_request)
-
-        assert userid == Identity(userid="", permissions=[])
+        assert not policy.identity(pyramid_request)
 
     def test_it_returns_empty_identity_if_validation_error(self, pyramid_request):
         get_lti_user_ = create_autospec(
@@ -258,8 +256,7 @@ class TestLTIUserSecurityPolicy:
 
         policy = LTIUserSecurityPolicy(get_lti_user_)
 
-        userid = policy.identity(pyramid_request)
-        assert userid == Identity(userid="", permissions=[])
+        assert not policy.identity(pyramid_request)
 
     @pytest.mark.usefixtures("user_has_no_roles")
     def test_identity_when_theres_an_lti_user_with_no_roles(self, pyramid_request):

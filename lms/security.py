@@ -177,15 +177,15 @@ class LTIUserSecurityPolicy:
 
         return identity.userid
 
-    def identity(self, request) -> Identity:
+    def identity(self, request) -> Identity | None:
         try:
             lti_user = self._get_lti_user(request)
         except Exception:  # pylint:disable=broad-exception-caught
             # If anything went wrong, no identity
-            return Identity("", [])
+            return None
 
         if lti_user is None:
-            return Identity("", [])
+            return None
 
         permissions = []
         if lti_user.is_learner or lti_user.is_instructor or lti_user.is_admin:
@@ -221,7 +221,7 @@ class LTIUserSecurityPolicy:
 
 
 class LMSGoogleSecurityPolicy(GoogleSecurityPolicy):
-    def identity(self, request) -> Identity:
+    def identity(self, request) -> Identity | None:
         userid = self.authenticated_userid(request)
 
         if userid and userid.endswith("@hypothes.is"):
@@ -231,7 +231,7 @@ class LMSGoogleSecurityPolicy(GoogleSecurityPolicy):
 
             return Identity(userid, permissions=permissions)
 
-        return Identity("", [])
+        return None
 
     def permits(self, request, _context, permission):
         return _permits(self.identity(request), permission)
