@@ -1,3 +1,4 @@
+import { Link } from '@hypothesis/frontend-shared';
 import { mockImportedComponents } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
@@ -300,7 +301,9 @@ describe('LaunchErrorDialog', () => {
       },
     };
     const wrapper = renderDialog({}, config);
-    const editLink = wrapper.find('Link[data-testid="edit-link"]');
+    const editLink = wrapper
+      .find(Link)
+      .filterWhere(n => n.prop('data-testid') === 'edit-link');
     assert.isTrue(editLink.exists());
     assert.equal(editLink.prop('href'), '/app/content-item-selection');
   });

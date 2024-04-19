@@ -6,7 +6,6 @@ import type { StudentStats } from '../../api-types';
 import { formatDateTime } from '../../utils/date';
 
 export type AssignmentInfo = {
-  id: string;
   title: string;
 };
 

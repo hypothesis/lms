@@ -1,26 +1,14 @@
 import classnames from 'classnames';
-import { useParams } from 'wouter-preact';
 
 import type { StudentStats } from '../../api-types';
 import { useConfig } from '../../config';
-import { apiCall } from '../../utils/api';
-import { useFetch } from '../../utils/fetch';
+import { useAPIFetch } from '../../utils/api';
 import StudentsActivityTable from './StudentsActivityTable';
 
 export default function DashboardApp() {
-  const { assignmentId } = useParams<{ assignmentId: string }>();
-  const { dashboard, api } = useConfig(['dashboard', 'api']);
-  const assignment = {
-    title: dashboard.assignment.title,
-    id: assignmentId,
-  };
-  const students = useFetch<StudentStats[]>(`${assignmentId}_students`, () =>
-    apiCall({
-      authToken: api.authToken,
-      method: 'GET',
-      path: dashboard.assignmentStatsApi.path,
-    }),
-  );
+  const { dashboard } = useConfig(['dashboard']);
+  const { assignment, assignmentStatsApi } = dashboard;
+  const students = useAPIFetch<StudentStats[]>(assignmentStatsApi.path);
 
   return (
     <div className="min-h-full bg-grey-2">

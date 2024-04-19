@@ -1,3 +1,4 @@
+import { Link } from '@hypothesis/frontend-shared';
 import {
   checkAccessibility,
   mockImportedComponents,
@@ -35,7 +36,7 @@ describe('ErrorDisplay', () => {
     );
 
     const link = wrapper
-      .find('Link')
+      .find(Link)
       .filterWhere(n => n.text() === 'open a support ticket');
     assert.isTrue(link.exists());
 
@@ -62,7 +63,7 @@ describe('ErrorDisplay', () => {
     );
 
     const link = wrapper
-      .find('Link')
+      .find(Link)
       .filterWhere(n => n.text() === 'open a support ticket');
 
     const url = new URL(link.prop('href'));
