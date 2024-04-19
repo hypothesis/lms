@@ -6,7 +6,7 @@ from lms.validation._exceptions import ValidationError
 
 @forbidden_view_config(path_info="/admin/*")
 def forbidden(request):
-    if request.identity.userid:
+    if request.identity and request.identity.userid:
         # Logged in but missing permissions, go back to the admin page's index.
         request.session.flash(
             f"You don't have permissions for that: {request.path}", "errors"
