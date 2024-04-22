@@ -1,6 +1,11 @@
-import { Card, CardContent, DataTable } from '@hypothesis/frontend-shared';
+import {
+  Card,
+  CardContent,
+  DataTable,
+  useOrderedRows,
+} from '@hypothesis/frontend-shared';
 import type { DataTableProps } from '@hypothesis/frontend-shared';
-import { useMemo, useState } from 'preact/hooks';
+import { useState } from 'preact/hooks';
 
 import type { StudentStats } from '../../api-types';
 import { formatDateTime } from '../../utils/date';
@@ -16,24 +21,6 @@ export type StudentsActivityTableProps = {
 };
 
 type MandatoryOrder<T> = NonNullable<DataTableProps<T>['order']>;
-
-function useOrderedRows<T>(rows: T[], order: MandatoryOrder<T>) {
-  return useMemo(
-    () =>
-      [...rows].sort((a, b) => {
-        if (a[order.field] === b[order.field]) {
-          return 0;
-        }
-
-        if (order.direction === 'ascending') {
-          return a[order.field] > b[order.field] ? 1 : -1;
-        }
-
-        return a[order.field] > b[order.field] ? -1 : 1;
-      }),
-    [order, rows],
-  );
-}
 
 export default function StudentsActivityTable({
   assignment,
@@ -54,6 +41,8 @@ export default function StudentsActivityTable({
           {title}
         </h2>
         <DataTable
+          grid
+          striped={false}
           emptyMessage="No students found"
           title={title}
           columns={[
@@ -72,17 +61,13 @@ export default function StudentsActivityTable({
           ]}
           rows={orderedStudents}
           renderItem={(stats, field) => {
-            if (field === 'display_name') {
-              return stats[field];
+            if (['annotations', 'replies'].includes(field)) {
+              return <div className="text-right">{stats[field]}</div>;
             }
 
-            return (
-              <div className="text-right" data-testid={`${field}-col`}>
-                {field === 'last_activity' && stats[field]
-                  ? formatDateTime(new Date(stats[field]))
-                  : stats[field]}
-              </div>
-            );
+            return field === 'last_activity' && stats[field]
+              ? formatDateTime(new Date(stats[field]))
+              : stats[field];
           }}
           loading={loading}
           orderableColumns={[
