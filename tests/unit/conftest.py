@@ -263,6 +263,7 @@ def application_instance(db_session):
         developer_key="TEST_DEVELOPER_KEY",
         provisioning=True,
         settings=ApplicationSettings({}),
+        organization=factories.Organization(),
     )
 
     application_instance.settings.set("canvas", "sections_enabled", True)
@@ -271,6 +272,11 @@ def application_instance(db_session):
     # Force flush to get a non None application_instance.id
     db_session.flush()
     return application_instance
+
+
+@pytest.fixture
+def organization(application_instance):
+    return application_instance.organization
 
 
 @pytest.fixture

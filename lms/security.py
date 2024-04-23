@@ -104,7 +104,7 @@ class SecurityPolicy:
             # Routes that require the Google auth policy
             return LMSGoogleSecurityPolicy()
 
-        if path.startswith("/dashboard/assignment/") or path.startswith(
+        if path.startswith("/dashboard/organization/") or path.startswith(
             "/api/assignment/"
         ):
             # For certain routes we only use the google policy in case it resulted
@@ -156,7 +156,7 @@ class SecurityPolicy:
                 partial(get_lti_user_from_bearer_token, location="form")
             )
 
-        if path.startswith("/dashboard/assignment/"):
+        if path.startswith("/dashboard/organization/"):
             return LTIUserSecurityPolicy(
                 partial(get_lti_user_from_bearer_token, location="cookies")
             )
