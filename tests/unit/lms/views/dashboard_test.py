@@ -13,10 +13,11 @@ from tests import factories
 pytestmark = pytest.mark.usefixtures("h_api", "assignment_service")
 
 
+# pylint:disable=protected-access
 class TestDashboardViews:
     @freeze_time("2024-04-01 12:00:00")
     def test_assignment_redirect_from_launch(
-        self, views, pyramid_request, BearerTokenSchema
+        self, views, pyramid_request, BearerTokenSchema, organization
     ):
         pyramid_request.matchdict["id_"] = sentinel.id
 
@@ -27,17 +28,19 @@ class TestDashboardViews:
         )
         assert response == Any.instance_of(HTTPFound).with_attrs(
             {
-                "location": "http://example.com/dashboard/assignment/sentinel.id",
+                "location": f"http://example.com/dashboard/organization/{organization._public_id}/assignment/sentinel.id",
             }
         )
         assert (
             response.headers["Set-Cookie"]
-            == "authorization=TOKEN; Max-Age=86400; Path=/; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
+            == f"authorization=TOKEN; Max-Age=86400; Path=/dashboard/organization/{organization._public_id}; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
         )
 
     @freeze_time("2024-04-01 12:00:00")
     @pytest.mark.usefixtures("BearerTokenSchema")
-    def test_assignment_show(self, views, pyramid_request, assignment_service):
+    def test_assignment_show(
+        self, views, pyramid_request, assignment_service, organization
+    ):
         context = DashboardResource(pyramid_request)
         context.js_config = create_autospec(JSConfig, spec_set=True, instance=True)
         pyramid_request.context = context
@@ -51,7 +54,23 @@ class TestDashboardViews:
         )
         assert (
             pyramid_request.response.headers["Set-Cookie"]
-            == "authorization=TOKEN; Max-Age=86400; Path=/; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
+            == f"authorization=TOKEN; Max-Age=86400; Path=/dashboard/organization/{organization._public_id}; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
+        )
+
+    def test_assignment_show_with_no_lti_user(
+        self, views, pyramid_request, assignment_service
+    ):
+        context = DashboardResource(pyramid_request)
+        context.js_config = create_autospec(JSConfig, spec_set=True, instance=True)
+        pyramid_request.context = context
+        pyramid_request.lti_user = None
+        pyramid_request.matchdict["id_"] = sentinel.id
+
+        views.assignment_show()
+
+        assignment_service.get_by_id.assert_called_once_with(sentinel.id)
+        pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once_with(
+            assignment_service.get_by_id.return_value
         )
 
     def test_api_assignment_stats(

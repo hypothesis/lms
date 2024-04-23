@@ -40,7 +40,12 @@ class DashboardViews:
         """
         assignment_id = self.request.matchdict["id_"]
         response = HTTPFound(
-            location=self.request.route_url("dashboard.assignment", id_=assignment_id),
+            location=self.request.route_url(
+                "dashboard.assignment",
+                # pylint:disable=protected-access
+                public_id=self.request.lti_user.application_instance.organization._public_id,
+                id_=assignment_id,
+            ),
         )
         self._set_lti_user_cookie(response)
         return response
@@ -123,8 +128,12 @@ class DashboardViews:
         return assignment
 
     def _set_lti_user_cookie(self, response):
+        lti_user = self.request.lti_user
+        if not lti_user:
+            # An LTIUser might not exists if accessing from the admin pages.
+            return response
         auth_token = (
-            BearerTokenSchema(self.request).authorization_param(self.request.lti_user)
+            BearerTokenSchema(self.request).authorization_param(lti_user)
             # White space is not allowed as a cookie character, remove the leading part
             .replace("Bearer ", "")
         )
@@ -133,6 +142,9 @@ class DashboardViews:
             value=auth_token,
             secure=not self.request.registry.settings["dev"],
             httponly=True,
+            # Scope the cookie to all the org endpoints
+            # pylint:disable=protected-access
+            path=f"/dashboard/organization/{lti_user.application_instance.organization._public_id}",
             max_age=60 * 60 * 24,  # 24 hours, matches the lifetime of the auth_token
         )
         return response

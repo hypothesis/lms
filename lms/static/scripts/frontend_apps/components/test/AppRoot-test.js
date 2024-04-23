@@ -75,7 +75,7 @@ describe('AppRoot', () => {
     {
       config: { mode: 'dashboard' },
       appComponent: 'DashboardApp',
-      route: '/dashboard/assignment/123',
+      route: '/dashboard/organization/ORG_ID/assignment/123',
     },
     {
       config: { mode: 'error-dialog' },

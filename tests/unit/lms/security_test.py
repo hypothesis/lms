@@ -409,7 +409,9 @@ class TestSecurityPolicy:
         get_policy.return_value.forget.assert_called_once_with(pyramid_request)
         assert user_id == get_policy.return_value.forget.return_value
 
-    @pytest.mark.parametrize("path", ["/api/assignment/10", "/dashboard/assignment/10"])
+    @pytest.mark.parametrize(
+        "path", ["/api/assignment/10", "/dashboard/organization/ORGID"]
+    )
     def test_get_policy_google_when_available(
         self, pyramid_request, path, LMSGoogleSecurityPolicy
     ):
@@ -488,7 +490,7 @@ class TestSecurityPolicy:
             ("/assignment", "form"),
             ("/assignment/edit", "form"),
             ("/dashboard/launch/assignment/10", "form"),
-            ("/dashboard/assignment/10", "cookies"),
+            ("/dashboard/organization/ORGID/assignment/10", "cookies"),
         ],
     )
     def test_picks_lti_launches_with_bearer_token(

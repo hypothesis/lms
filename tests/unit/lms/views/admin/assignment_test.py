@@ -1,4 +1,4 @@
-from unittest.mock import Mock, sentinel
+from unittest.mock import sentinel
 
 import pytest
 from h_matchers import Any
@@ -6,8 +6,10 @@ from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 
 from lms.models import EventType
 from lms.views.admin.assignment import AdminAssignmentViews
+from tests import factories
 
 
+# pylint:disable=protected-access
 class TestAdminAssignmentViews:
     def test_show(self, pyramid_request, assignment_service, views):
         pyramid_request.matchdict["id_"] = sentinel.id
@@ -28,10 +30,16 @@ class TestAdminAssignmentViews:
             views.show()
 
     def test_assignment_dashboard(
-        self, pyramid_request, assignment_service, views, AuditTrailEvent
+        self,
+        pyramid_request,
+        assignment_service,
+        views,
+        AuditTrailEvent,
+        assignment,
+        organization,
     ):
         pyramid_request.matchdict["id_"] = sentinel.id
-        assignment_service.get_by_id.return_value = Mock(id=sentinel.id)
+        assignment_service.get_by_id.return_value = assignment
 
         response = views.assignment_dashboard()
 
@@ -41,7 +49,7 @@ class TestAdminAssignmentViews:
             data={
                 "action": "view_dashboard",
                 "model": "Assignment",
-                "id": sentinel.id,
+                "id": assignment.id,
                 "source": "admin_pages",
                 "userid": "TEST_USER_ID",
                 "changes": {},
@@ -50,9 +58,17 @@ class TestAdminAssignmentViews:
         pyramid_request.registry.notify.has_call_with(AuditTrailEvent.return_value)
         assert response == Any.instance_of(HTTPFound).with_attrs(
             {
-                "location": "http://example.com/dashboard/assignment/sentinel.id",
+                "location": f"http://example.com/dashboard/organization/{organization._public_id}/assignment/{assignment.id}",
             }
         )
+
+    @pytest.fixture
+    def assignment(self, application_instance, db_session):
+        assignment = factories.Assignment()
+        course = factories.Course(application_instance=application_instance)
+        factories.AssignmentGrouping(assignment=assignment, grouping=course)
+        db_session.flush()  # Give the DB objects IDs
+        return assignment
 
     @pytest.fixture
     def AuditTrailEvent(self, patch):

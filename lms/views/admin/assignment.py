@@ -51,7 +51,14 @@ class AdminAssignmentViews:
         )
 
         response = HTTPFound(
-            location=self.request.route_url("dashboard.assignment", id_=assignment.id),
+            location=self.request.route_url(
+                "dashboard.assignment",
+                # pylint:disable=protected-access
+                public_id=assignment.groupings[
+                    0
+                ].application_instance.organization._public_id,
+                id_=assignment.id,
+            ),
         )
         return response
 
