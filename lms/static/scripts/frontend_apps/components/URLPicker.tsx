@@ -1,4 +1,9 @@
-import { Button, ModalDialog, Input } from '@hypothesis/frontend-shared';
+import {
+  Button,
+  ModalDialog,
+  Input,
+  useValidateOnSubmit,
+} from '@hypothesis/frontend-shared';
 import { useId, useRef, useState } from 'preact/hooks';
 
 import { isYouTubeURL } from '../utils/youtube';
@@ -30,11 +35,11 @@ export default function URLPicker({
 
   // Holds an error message corresponding to client-side validation of the
   // input field
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string>();
   const errorId = useId();
+  const formId = useId();
 
-  const submit = (event: Event) => {
-    event.preventDefault();
+  const validateInput = () => {
     try {
       const rawInputValue = input.current!.value;
       const url = new URL(rawInputValue);
@@ -56,12 +61,16 @@ export default function URLPicker({
             : 'Annotating YouTube videos has been disabled at your organisation.',
         );
       } else {
-        onSelectURL(input.current!.value);
+        setError(undefined);
       }
     } catch (e) {
       setError('Please enter a URL, e.g. "https://www.example.com"');
     }
   };
+
+  const onSubmit = useValidateOnSubmit(() => {
+    onSelectURL(input.current!.value);
+  });
 
   return (
     <ModalDialog
@@ -74,9 +83,10 @@ export default function URLPicker({
         </Button>,
         <Button
           data-testid="submit-button"
+          form={formId}
           key="submit"
-          onClick={submit}
           variant="primary"
+          type="submit"
         >
           Submit
         </Button>,
@@ -88,20 +98,22 @@ export default function URLPicker({
         <form
           ref={form}
           className="flex flex-row items-center space-x-2"
-          onSubmit={submit}
+          id={formId}
+          onSubmit={onSubmit}
+          noValidate // We do our own validation
         >
           <label htmlFor="url">URL: </label>
-
           <Input
             aria-label="Enter URL to web page or PDF"
             classes="grow"
             defaultValue={defaultURL}
-            feedback={error ? 'error' : undefined}
+            error={error}
             elementRef={input}
             name="url"
             placeholder="e.g. https://example.com/article.pdf"
             required
             aria-describedby={errorId}
+            onChange={validateInput}
           />
         </form>
         {/** setting a height here "preserves space" for this error display

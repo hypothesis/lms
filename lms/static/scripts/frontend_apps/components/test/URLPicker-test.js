@@ -4,10 +4,29 @@ import { mount } from 'enzyme';
 import URLPicker from '../URLPicker';
 
 describe('URLPicker', () => {
-  const renderUrlPicker = (props = {}) => mount(<URLPicker {...props} />);
+  const renderURLPicker = (props = {}) => mount(<URLPicker {...props} />);
+
+  function changeInput(wrapper, value) {
+    const input = wrapper.find('input');
+    input.getDOMNode().value = value;
+    input.simulate('change');
+  }
+
+  function submitForm(wrapper) {
+    wrapper.find('form').simulate('submit');
+    wrapper.update();
+  }
+
+  function getError(wrapper) {
+    return wrapper.find('UIMessage[status="error"]').text();
+  }
+
+  function hasError(wrapper) {
+    return wrapper.exists('UIMessage[status="error"]');
+  }
 
   it('pre-fills input with `defaultURL` prop value', () => {
-    const wrapper = renderUrlPicker({
+    const wrapper = renderURLPicker({
       defaultURL: 'https://arxiv.org/pdf/1234.pdf',
     });
     assert.equal(
@@ -16,55 +35,57 @@ describe('URLPicker', () => {
     );
   });
 
+  it('does not display an error if the URL is valid', () => {
+    const onSelectURL = sinon.stub();
+    const wrapper = renderURLPicker({ onSelectURL });
+    changeInput(wrapper, 'https://example.com/foo');
+    assert.isFalse(hasError(wrapper));
+  });
+
   it('invokes `onSelectURL` when user submits a URL', () => {
     const onSelectURL = sinon.stub();
 
-    const wrapper = renderUrlPicker({ onSelectURL });
-    wrapper.find('input').getDOMNode().value = 'https://example.com/foo';
-
-    wrapper
-      .find('button[data-testid="submit-button"]')
-      .props()
-      .onClick(new Event('click'));
+    const wrapper = renderURLPicker({ onSelectURL });
+    changeInput(wrapper, 'https://example.com/foo');
+    submitForm(wrapper);
 
     assert.calledWith(onSelectURL, 'https://example.com/foo');
   });
 
-  it('does not invoke `onSelectURL` if URL is not valid', () => {
-    const onSelectURL = sinon.stub();
+  it('displays error if no URL is entered', () => {
+    const wrapper = renderURLPicker({ onSelectURL: sinon.stub() });
+    submitForm(wrapper);
+    assert.include(getError(wrapper), 'Please enter a URL');
+  });
 
-    const wrapper = renderUrlPicker({ onSelectURL });
-    wrapper.find('input').getDOMNode().value = 'not-a-url';
+  it('displays error if URL is not valid', () => {
+    const wrapper = renderURLPicker({ onSelectURL: sinon.stub() });
+    changeInput(wrapper, 'not-a-url');
+    assert.include(getError(wrapper), 'Please enter a URL');
+  });
 
-    wrapper
-      .find('button[data-testid="submit-button"]')
-      .props()
-      .onClick(new Event('click'));
-    wrapper.update();
+  ['', 'not-a-url'].forEach(value => {
+    it('does not invoke `onSelectURL` if URL is not valid', () => {
+      const onSelectURL = sinon.stub();
 
-    assert.notCalled(onSelectURL);
-    const errorMessage = wrapper.find('UIMessage[status="error"]');
-    assert.isTrue(errorMessage.exists());
-    assert.include(errorMessage.text(), 'Please enter a URL');
+      const wrapper = renderURLPicker({ onSelectURL });
+      changeInput(wrapper, value);
+      submitForm(wrapper);
+
+      assert.notCalled(onSelectURL);
+    });
   });
 
   it('does not invoke `onSelectURL` if URL is for a non-http(s) protocol', () => {
     const onSelectURL = sinon.stub();
 
-    const wrapper = renderUrlPicker({ onSelectURL });
-    wrapper.find('input').getDOMNode().value = 'ftp:///warez.fun';
-
-    wrapper
-      .find('button[data-testid="submit-button"]')
-      .props()
-      .onClick(new Event('click'));
-    wrapper.update();
+    const wrapper = renderURLPicker({ onSelectURL });
+    changeInput(wrapper, 'ftp:///warez.fun');
+    submitForm(wrapper);
 
     assert.notCalled(onSelectURL);
-    const errorMessage = wrapper.find('UIMessage[status="error"]');
-    assert.isTrue(errorMessage.exists());
     assert.include(
-      errorMessage.text(),
+      getError(wrapper),
       'Please use a URL that starts with "http" or "https"',
     );
   });
@@ -72,20 +93,13 @@ describe('URLPicker', () => {
   it('shows an additional error message if URL is for a local file', () => {
     const onSelectURL = sinon.stub();
 
-    const wrapper = renderUrlPicker({ onSelectURL });
-    wrapper.find('input').getDOMNode().value = 'file:///my/local.pdf';
-
-    wrapper
-      .find('button[data-testid="submit-button"]')
-      .props()
-      .onClick(new Event('click'));
-    wrapper.update();
+    const wrapper = renderURLPicker({ onSelectURL });
+    changeInput(wrapper, 'file:///my/local.pdf');
+    submitForm(wrapper);
 
     assert.notCalled(onSelectURL);
-    const errorMessage = wrapper.find('UIMessage[status="error"]');
-    assert.isTrue(errorMessage.exists());
     assert.include(
-      errorMessage.text(),
+      getError(wrapper),
       'URLs that start with "file" are files on your own computer.',
     );
   });
@@ -105,26 +119,19 @@ describe('URLPicker', () => {
     it('does not invoke `onSelectURL` if URL is for a YouTube video', () => {
       const onSelectURL = sinon.stub();
 
-      const wrapper = renderUrlPicker({ onSelectURL, youtubeEnabled });
-      wrapper.find('input').getDOMNode().value = 'https://youtu.be/EU6TDnV5osM';
-
-      wrapper
-        .find('button[data-testid="submit-button"]')
-        .props()
-        .onClick(new Event('click'));
-      wrapper.update();
+      const wrapper = renderURLPicker({ onSelectURL, youtubeEnabled });
+      changeInput(wrapper, 'https://youtu.be/EU6TDnV5osM');
+      submitForm(wrapper);
 
       assert.notCalled(onSelectURL);
-      const errorMessage = wrapper.find('UIMessage[status="error"]');
-      assert.isTrue(errorMessage.exists());
-      assert.include(errorMessage.text(), expectedError);
+      assert.include(getError(wrapper), expectedError);
     });
   });
 
   it(
     'should pass a11y checks',
     checkAccessibility({
-      content: () => renderUrlPicker(),
+      content: () => renderURLPicker(),
     }),
   );
 });
