@@ -2,7 +2,7 @@ import base64
 from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache, partial
-from typing import Callable, NamedTuple
+from typing import Callable
 
 import sentry_sdk
 from pyramid.authentication import AuthTktCookieHelper
@@ -40,10 +40,19 @@ class Permissions(Enum):
     DASHBOARD_VIEW = "dashboard.view"
 
 
-class Identity(NamedTuple):
+@dataclass
+class Identity:
     userid: str
     permissions: list[Permissions]
     lti_user: LTIUser | None = None
+
+
+@dataclass
+class EmailPreferencesIdentity:
+    """The identity class used by EmailPreferencesSecurityPolicy."""
+
+    h_userid: str
+    tag: str | None = None
 
 
 class UnautheticatedSecurityPolicy:  # pragma: no cover
@@ -247,14 +256,6 @@ class LMSGoogleSecurityPolicy(GoogleSecurityPolicy):
 
     def permits(self, request, _context, permission):
         return _permits(self.identity(request), permission)
-
-
-@dataclass
-class EmailPreferencesIdentity:
-    """The identity class used by EmailPreferencesSecurityPolicy."""
-
-    h_userid: str
-    tag: str | None = None
 
 
 class EmailPreferencesSecurityPolicy:
