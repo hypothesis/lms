@@ -27,7 +27,7 @@ export default function StudentsActivityTable({
   students,
   loading,
 }: StudentsActivityTableProps) {
-  const title = `Student activity for assignment "${assignment.title}"`;
+  const title = `Assignment: ${assignment.title}`;
   const [order, setOrder] = useState<MandatoryOrder<StudentStats>>({
     field: 'display_name',
     direction: 'ascending',

@@ -22,7 +22,7 @@ describe('StudentsActivityTable', () => {
       const wrapper = createComponent({ title });
       const titleElement = wrapper.find('[data-testid="title"]');
       const tableElement = wrapper.find('DataTable');
-      const expectedTitle = `Student activity for assignment "${title}"`;
+      const expectedTitle = `Assignment: ${title}`;
 
       assert.equal(titleElement.text(), expectedTitle);
       assert.equal(tableElement.prop('title'), expectedTitle);
