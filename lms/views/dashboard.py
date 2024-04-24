@@ -59,7 +59,7 @@ class DashboardViews:
         assignment = self.get_request_assignment()
         self.request.context.js_config.enable_dashboard_mode(assignment)
         self._set_lti_user_cookie(self.request.response)
-        return {}
+        return {"assignment": assignment}
 
     @view_config(
         route_name="api.assignment.stats",
