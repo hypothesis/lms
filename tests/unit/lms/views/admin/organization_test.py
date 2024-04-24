@@ -140,19 +140,28 @@ class TestAdminOrganizationViews:
         organization_service,
         views,
         AuditTrailEvent,
+        db_session,
     ):
+        organization = factories.Organization()
+        children = factories.Organization.create_batch(5, parent=organization)
+        db_session.flush()  # Give orgs IDs
+
         pyramid_request.matchdict["id_"] = sentinel.id_
         pyramid_request.params["enabled"] = value
-        organization_service.get_by_id.return_value = factories.Organization()
+        organization_service.get_by_id.side_effect = [organization] + children
+        organization_service.get_hierarchy_ids.return_value = [organization.id] + [
+            org.id for org in children
+        ]
 
         views.toggle_organization_enabled()
 
-        organization_service.update_organization(
-            organization_service.get_by_id.return_value, enabled=expected
-        )
-        AuditTrailEvent.notify.assert_called_once_with(
-            pyramid_request, organization_service.get_by_id.return_value
-        )
+        organization_service.get_hierarchy_ids.assert_called_once_with(sentinel.id_)
+        for org in [organization]:
+            organization_service.get_by_id.assert_any_call(org.id)
+            organization_service.update_organization.assert_any_call(
+                org, enabled=expected
+            )
+            AuditTrailEvent.notify.assert_any_call(pyramid_request, org)
 
     @pytest.fixture
     def AuditTrailEvent(self, patch):
