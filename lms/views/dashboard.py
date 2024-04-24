@@ -1,10 +1,24 @@
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound, HTTPUnauthorized
-from pyramid.view import view_config
+from pyramid.view import forbidden_view_config, view_config
 
 from lms.models import RoleScope, RoleType
 from lms.security import Permissions
 from lms.services.h_api import HAPI
 from lms.validation.authentication import BearerTokenSchema
+
+
+@forbidden_view_config(
+    route_name="dashboard.launch.assignment",
+    request_method="POST",
+    renderer="lms:templates/dashboard/forbidden.html.jinja2",
+)
+@forbidden_view_config(
+    route_name="dashboard.assignment",
+    request_method="GET",
+    renderer="lms:templates/dashboard/forbidden.html.jinja2",
+)
+def forbidden(_request):  # pragma: no cover
+    return {}
 
 
 class DashboardViews:
@@ -35,7 +49,7 @@ class DashboardViews:
         route_name="dashboard.assignment",
         permission=Permissions.DASHBOARD_VIEW,
         request_method="GET",
-        renderer="lms:templates/dashboard.html.jinja2",
+        renderer="lms:templates/dashboard/index.html.jinja2",
     )
     def assignment_show(self):
         """Start the dashboard miniapp in the frontend.
