@@ -134,18 +134,21 @@ class AdminOrganizationViews:
 
     @view_config(route_name="admin.organization.toggle", request_method="POST")
     def toggle_organization_enabled(self):
-        org = self._get_org_or_404(self.request.matchdict["id_"])
-
-        self.organization_service.update_organization(
-            org, enabled=self.request.params.get("enabled", "") == "on"
-        )
-
-        AuditTrailEvent.notify(self.request, org)
-        self.request.session.flash("Updated organization", "messages")
+        # Make sure the top level org exists, 404 otherwise
+        request_org_id = self.request.matchdict["id_"]
+        for org_id in self.organization_service.get_hierarchy_ids(request_org_id):
+            org = self.organization_service.get_by_id(org_id)
+            self.organization_service.update_organization(
+                org, enabled=self.request.params.get("enabled", "") == "on"
+            )
+            AuditTrailEvent.notify(self.request, org)
+            self.request.session.flash(
+                f"Updated organization {org.public_id}", "messages"
+            )
 
         return HTTPFound(
             location=self.request.route_url(
-                "admin.organization.section", id_=org.id, section="danger"
+                "admin.organization.section", id_=request_org_id, section="danger"
             )
         )
 
