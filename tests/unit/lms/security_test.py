@@ -311,14 +311,6 @@ class TestLTIUserSecurityPolicy:
 
         assert identity.permissions == expected_permissions
 
-    def test_remember(self, pyramid_request):
-        LTIUserSecurityPolicy(sentinel.get_lti_user).remember(
-            pyramid_request, "TEST_USERID", kwarg=sentinel.kwarg
-        )
-
-    def test_forget(self, pyramid_request):
-        LTIUserSecurityPolicy(sentinel.get_lti_user).forget(pyramid_request)
-
     def test_permits_allow(self, pyramid_request, user_is_learner):
         policy = LTIUserSecurityPolicy(
             create_autospec(get_lti_user, return_value=user_is_learner)
