@@ -234,10 +234,10 @@ class LTIUserSecurityPolicy:
 
         return _permits(self.identity(request), permission)
 
-    def remember(self, request, userid, **kw):
+    def remember(self, request, userid, **kw):  # pragma: no cover
         pass
 
-    def forget(self, request):
+    def forget(self, request):  # pragma: no cover
         pass
 
 
