@@ -21,7 +21,7 @@ export default function DashboardApp() {
       >
         <img
           alt="Hypothesis logo"
-          src="/static/images/hypothesis_wordmark_logo.png"
+          src="/static/images/hypothesis-wordmark-logo.png"
           className="h-10"
         />
       </div>
