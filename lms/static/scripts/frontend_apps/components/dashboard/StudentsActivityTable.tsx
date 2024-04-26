@@ -47,17 +47,9 @@ export default function StudentsActivityTable({
           title={title}
           columns={[
             { field: 'display_name', label: 'Name', classes: 'w-[60%]' },
-            {
-              field: 'annotations',
-              label: 'Annotations',
-              classes: 'text-right',
-            },
-            { field: 'replies', label: 'Replies', classes: 'text-right' },
-            {
-              field: 'last_activity',
-              label: 'Last Activity',
-              classes: 'text-right',
-            },
+            { field: 'annotations', label: 'Annotations' },
+            { field: 'replies', label: 'Replies' },
+            { field: 'last_activity', label: 'Last Activity' },
           ]}
           rows={orderedStudents}
           renderItem={(stats, field) => {
