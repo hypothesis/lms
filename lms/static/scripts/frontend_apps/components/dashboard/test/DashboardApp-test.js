@@ -1,4 +1,7 @@
-import { mockImportedComponents } from '@hypothesis/frontend-testing';
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 import sinon from 'sinon';
 
@@ -81,4 +84,11 @@ describe('DashboardApp', () => {
       });
     });
   });
+
+  it(
+    'should pass a11y checks',
+    checkAccessibility({
+      content: () => createComponent(),
+    }),
+  );
 });

@@ -1,8 +1,30 @@
+import { checkAccessibility } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
 import StudentsActivityTable from '../StudentsActivityTable';
 
 describe('StudentsActivityTable', () => {
+  const students = [
+    {
+      display_name: 'b',
+      last_activity: '2020-01-01T00:00:00',
+      annotations: 8,
+      replies: 0,
+    },
+    {
+      display_name: 'a',
+      last_activity: '2020-01-02T00:00:00',
+      annotations: 3,
+      replies: 20,
+    },
+    {
+      display_name: 'c',
+      last_activity: '2020-01-02T00:00:00',
+      annotations: 5,
+      replies: 100,
+    },
+  ];
+
   function createComponent({
     students = [],
     title = 'The assignment',
@@ -108,28 +130,7 @@ describe('StudentsActivityTable', () => {
     },
   ].forEach(({ orderToSet, expectedStudents }) => {
     it('orders students on order change', () => {
-      const wrapper = createComponent({
-        students: [
-          {
-            display_name: 'b',
-            last_activity: '2020-01-01T00:00:00',
-            annotations: 8,
-            replies: 0,
-          },
-          {
-            display_name: 'a',
-            last_activity: '2020-01-02T00:00:00',
-            annotations: 3,
-            replies: 20,
-          },
-          {
-            display_name: 'c',
-            last_activity: '2020-01-02T00:00:00',
-            annotations: 5,
-            replies: 100,
-          },
-        ],
-      });
+      const wrapper = createComponent({ students });
       const getRows = () => wrapper.find('DataTable').prop('rows');
       const getOrder = () => wrapper.find('DataTable').prop('order');
       const setOrder = order => {
@@ -193,4 +194,11 @@ describe('StudentsActivityTable', () => {
       assert.equal(value, expectedValue);
     });
   });
+
+  it(
+    'should pass a11y checks',
+    checkAccessibility({
+      content: () => createComponent({ students }),
+    }),
+  );
 });
