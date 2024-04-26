@@ -33,7 +33,7 @@ export default function ErrorDialogApp() {
       title = "Hypothesis isn't able to find your license from VitalSource";
       break;
     case 'vitalsource_student_pay_license_launch':
-      title = 'Acquired Hypothesis license';
+      title = 'Hypothesis license activated';
       displaySupportLink = false;
       break;
     default:
@@ -98,7 +98,11 @@ export default function ErrorDialogApp() {
       )}
       {error.errorCode === 'vitalsource_student_pay_license_launch' && (
         <>
-          <p>You now have a license for Hypothesis.</p>
+          <p>
+            You have now activated your license to use the Hypothesis tool in
+            your LMS. You will be able to launch Hypothesis assignments and
+            other readings made by your instructor.
+          </p>
         </>
       )}
     </ErrorModal>

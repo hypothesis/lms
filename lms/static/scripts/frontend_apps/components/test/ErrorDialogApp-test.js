@@ -53,6 +53,9 @@ describe('ErrorDialogApp', () => {
     fakeConfig.errorCode = 'vitalsource_student_pay_license_launch';
 
     const wrapper = renderApp();
-    assert.include(wrapper.text(), 'You now have a license for Hypothesis');
+    assert.include(
+      wrapper.text(),
+      'You have now activated your license to use the Hypothesis tool in your LMS.',
+    );
   });
 });
