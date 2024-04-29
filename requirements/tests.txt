@@ -304,7 +304,7 @@ python-dateutil==2.8.2
     #   faker
     #   freezegun
     #   mailchimp-transactional
-python-jose[crypto,cryptography]==3.3.0
+python-jose[cryptography]==3.3.0
     # via
     #   -r requirements/prod.txt
     #   h-vialib

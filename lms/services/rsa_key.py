@@ -1,10 +1,11 @@
+import base64
 import json
 from datetime import datetime, timedelta
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from jose import constants, jwk
+from cryptography.utils import int_to_bytes
 from sqlalchemy import func
 
 from lms.models import RSAKey
@@ -68,7 +69,6 @@ class RSAKeyService:
         rsa_key = rsa.generate_private_key(
             public_exponent=65537, key_size=2048, backend=default_backend()
         )
-
         # Generate an IV for the private key AES encryption
         aes_iv = self._aes_service.build_iv()
 
@@ -105,8 +105,8 @@ class RSAKeyService:
             .first()
         )
 
-    def _as_pem_private_key(self, rsa_key, aes_iv) -> bytes:
-        """Encode a `jose.jwt.RSAKey` as an AES encrypted PEM private key."""
+    def _as_pem_private_key(self, rsa_key: rsa.RSAPrivateKey, aes_iv) -> bytes:
+        """Encode a rsa key as an AES encrypted PEM private key."""
         pem_private_key = rsa_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.TraditionalOpenSSL,
@@ -115,15 +115,19 @@ class RSAKeyService:
         return self._aes_service.encrypt(aes_iv, pem_private_key)
 
     @staticmethod
-    def _as_jwk_public_key(rsa_key) -> dict:
-        """Encode a `jose.jwt.RSAKey` as a JWK public key."""
-        pem_public_key = rsa_key.public_key().public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo,
-        )
-        return jwk.RSAKey(  # type: ignore
-            algorithm=constants.Algorithms.RS256, key=pem_public_key.decode("utf-8")
-        ).to_dict()
+    def _as_jwk_public_key(rsa_key: rsa.RSAPrivateKey) -> dict:
+        """Encode a rsa key as a JWK public key."""
+        public_key_numbers = rsa_key.public_key().public_numbers()
+        return {
+            "alg": "RS256",
+            "kty": "RSA",
+            "n": RSAKeyService._number_to_base_64(public_key_numbers.n),
+            "e": RSAKeyService._number_to_base_64(public_key_numbers.e),
+        }
+
+    @staticmethod
+    def _number_to_base_64(n: int):
+        return base64.urlsafe_b64encode(int_to_bytes(n)).strip(b"=").decode("utf-8")
 
 
 def factory(_context, request):
