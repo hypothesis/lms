@@ -1,3 +1,4 @@
+import { SelectNext } from '@hypothesis/frontend-shared';
 import {
   mockImportedComponents,
   waitForElement,
@@ -124,24 +125,20 @@ describe('GroupConfigSelector', () => {
       groupConfig: { useGroupSet: true, groupConfig: null },
     });
 
-    // While groups are being fetched, the `<select>` should be visible but disabled
-    // and display a fetching status.
-    const groupSetSelect = wrapper.find('select');
+    // While groups are being fetched, the `<SelectNext>` should be visible but
+    // disabled, and display a fetching status.
+    const groupSetSelect = wrapper.find('SelectNext');
     assert.isTrue(groupSetSelect.exists());
     assert.isTrue(groupSetSelect.prop('disabled'));
-    assert.equal(groupSetSelect.find('option').length, 1);
-    assert.equal(groupSetSelect.find('option').text(), 'Fetching group sets…');
+    assert.equal(groupSetSelect.prop('buttonContent'), 'Fetching group sets…');
 
-    // Once group sets are fetched, they should be rendered as `<option>`s.
-    const options = await waitForElement(
-      wrapper,
-      'option[data-testid="groupset-option"]',
-    );
+    // Once group sets are fetched, they should be rendered as options.
+    const options = await waitForElement(wrapper, SelectNext.Option);
     assert.equal(options.length, fakeGroupSets.length);
 
     fakeGroupSets.forEach((gs, i) => {
       assert.equal(options.at(i).text(), gs.name);
-      assert.equal(options.at(i).prop('value'), gs.id);
+      assert.equal(options.at(i).prop('value'), gs);
     });
   });
 
@@ -152,20 +149,16 @@ describe('GroupConfigSelector', () => {
       onChangeGroupConfig,
     });
 
-    const options = await waitForElement(
-      wrapper,
-      'option[data-testid="groupset-option"]',
-    );
+    const options = await waitForElement(wrapper, SelectNext.Option);
     assert.equal(options.length, fakeGroupSets.length);
     assert.notCalled(onChangeGroupConfig);
 
-    const select = wrapper.find('select').getDOMNode();
+    const select = wrapper.find('SelectNext');
 
     options.forEach((option, i) => {
       onChangeGroupConfig.resetHistory();
 
-      select.value = option.prop('value');
-      select.dispatchEvent(new Event('input'));
+      select.props().onChange(option.prop('value'));
 
       assert.calledWith(onChangeGroupConfig, {
         useGroupSet: true,
@@ -192,10 +185,7 @@ describe('GroupConfigSelector', () => {
     fakeAPICall.withArgs(groupSetsAPIRequest).resolves(fakeGroupSets);
     authModal.prop('onAuthComplete')();
 
-    const options = await waitForElement(
-      wrapper,
-      'option[data-testid="groupset-option"]',
-    );
+    const options = await waitForElement(wrapper, SelectNext.Option);
     assert.equal(options.length, fakeGroupSets.length);
   });
 
@@ -227,10 +217,7 @@ describe('GroupConfigSelector', () => {
       authModal.prop('onRetry')();
     });
 
-    const options = await waitForElement(
-      wrapper,
-      'option[data-testid="groupset-option"]',
-    );
+    const options = await waitForElement(wrapper, SelectNext.Option);
     assert.equal(options.length, fakeGroupSets.length);
   });
 
