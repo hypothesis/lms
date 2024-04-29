@@ -127,7 +127,12 @@ class SecurityPolicy:
             # LTIUser serialized in the state param for the oauth flow
             return OAuthCallbackLTIUserPolicy()
 
-        if (path.startswith("/api") and path.endswith("authorize")) or path in {
+        if path in {
+            # LTUser serialized as query param for authorization failures
+            "/api/d2l/oauth/authorize",
+            "/api/blackboard/oauth/authorize",
+            "/api/canvas/oauth/authorize",
+            "/api/canvas_studio/oauth/authorize",
             # To fetch pages content from LMSes' APIs
             "/api/canvas/pages/proxy",
             "/api/moodle/pages/proxy",
