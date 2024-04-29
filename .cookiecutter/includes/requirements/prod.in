@@ -13,7 +13,6 @@ marshmallow
 oauthlib
 pycryptodomex
 PyJWT[crypto]
-python-jose[crypto]
 pyramid-exclog
 pyramid-googleauth
 pyramid-jinja2

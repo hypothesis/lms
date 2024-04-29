@@ -183,10 +183,8 @@ python-dateutil==2.8.2
     # via
     #   celery
     #   mailchimp-transactional
-python-jose[crypto,cryptography]==3.3.0
-    # via
-    #   -r requirements/prod.in
-    #   h-vialib
+python-jose[cryptography]==3.3.0
+    # via h-vialib
 referencing==0.32.0
     # via
     #   h-api
