@@ -12,4 +12,7 @@ class ErrorCode(str, Enum):
     CANVAS_INVALID_SCOPE = "canvas_invalid_scope"
     VITALSOURCE_STUDENT_PAY_NO_LICENSE = "vitalsource_student_pay_no_license"
     VITALSOURCE_STUDENT_PAY_LICENSE_LAUNCH = "vitalsource_student_pay_license_launch"
+    VITALSOURCE_STUDENT_PAY_LICENSE_LAUNCH_INSTRUCTOR = (
+        "vitalsource_student_pay_license_launch_instructor"
+    )
     REUSED_CONSUMER_KEY = "reused_consumer_key"

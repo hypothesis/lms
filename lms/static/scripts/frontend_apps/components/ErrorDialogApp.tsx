@@ -36,6 +36,10 @@ export default function ErrorDialogApp() {
       title = 'Hypothesis license activated';
       displaySupportLink = false;
       break;
+    case 'vitalsource_student_pay_license_launch_instructor':
+      title = 'This button allows students to acquire licenses';
+      displaySupportLink = false;
+      break;
     default:
       description =
         'An error occurred when launching the Hypothesis application';
@@ -102,6 +106,24 @@ export default function ErrorDialogApp() {
             You have now activated your license to use the Hypothesis tool in
             your LMS. You will be able to launch Hypothesis assignments and
             other readings made by your instructor.
+          </p>
+        </>
+      )}
+      {error.errorCode ===
+        'vitalsource_student_pay_license_launch_instructor' && (
+        <>
+          <p>
+            To create a Hypothesis-enabled reading in Canvas, create a new
+            Assignment or Module item.
+          </p>
+          <p>
+            See:{' '}
+            <Link
+              target="_blank"
+              href="https://web.hypothes.is/help/using-the-hypothesis-app-through-vitalsource/"
+            >
+              https://web.hypothes.is/help/using-the-hypothesis-app-through-vitalsource/
+            </Link>
           </p>
         </>
       )}
