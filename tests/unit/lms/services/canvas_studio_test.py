@@ -191,6 +191,9 @@ class TestCanvasStudioService:
             svc.get_video_download_url("456")
         assert Any.instance_of(exc_info.value.response).with_attrs({"status_code": 404})
 
+    def test_get_video_download_url_returns_None_if_video_not_available(self, svc):
+        assert svc.get_video_download_url("800") is None
+
     def test_get_video_download_url_fails_if_admin_email_not_set(
         self, svc, pyramid_request
     ):
@@ -411,6 +414,11 @@ class TestCanvasStudioService:
                     json_data = {}
                 case "media/456/download":
                     status_code = 404
+                    json_data = {}
+                case "media/800/download":
+                    # Simulate response in case where video is hosted on
+                    # YouTube or Vimeo, so not available for download.
+                    status_code = 422
                     json_data = {}
 
                 case _:  # pragma: nocover

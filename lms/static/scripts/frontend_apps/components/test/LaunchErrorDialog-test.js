@@ -83,6 +83,29 @@ describe('LaunchErrorDialog', () => {
       withError: true,
     },
     {
+      errorState: 'canvas_studio_download_unavailable',
+      expectedText:
+        'Only videos uploaded directly to Canvas Studio can be used. Videos hosted on YouTube or Vimeo cannot be used.',
+      expectedTitle: 'Unable to fetch Canvas Studio video',
+      hasRetry: false,
+      withError: true,
+    },
+    {
+      errorState: 'canvas_studio_media_not_found',
+      expectedText: '',
+      expectedTitle: 'Canvas Studio media not found',
+      hasRetry: false,
+      withError: true,
+    },
+    {
+      errorState: 'canvas_studio_transcript_unavailable',
+      expectedText:
+        'To use a video with Hypothesis, you must upload or generate captions in Canvas Studio and publish them.',
+      expectedTitle: 'Video does not have a published transcript',
+      hasRetry: false,
+      withError: true,
+    },
+    {
       errorState: 'd2l_file_not_found_in_course_instructor',
       expectedText:
         'To fix the issue, recreate this assignment and select a different file.',

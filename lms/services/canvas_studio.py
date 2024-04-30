@@ -280,19 +280,29 @@ class CanvasStudioService:
         # Example: "https://hypothesis.instructuremedia.com/api/public/v1/media/4"
         return self._api_url(f"v1/media/{media_id}")
 
-    def get_video_download_url(self, media_id: str) -> str:
+    def get_video_download_url(self, media_id: str) -> str | None:
         """
         Return temporary download URL for a video.
+
+        This may return `None` if the video is not available for download.
+        This can happen for videos imported into Canvas Studio from YouTube
+        or Vimeo.
 
         Security: This method does not check whether the current user should
         have access to this video. See `_admin_api_request`.
         """
 
-        download_rsp = self._bare_api_request(
-            f"v1/media/{media_id}/download", as_admin=True, allow_redirects=False
-        )
-        download_redirect = download_rsp.headers.get("Location")
+        try:
+            download_rsp = self._bare_api_request(
+                f"v1/media/{media_id}/download", as_admin=True, allow_redirects=False
+            )
+        except ExternalRequestError as err:
+            # Canvas Studio returns 422 if the video is not available for download.
+            if err.status_code == 422:
+                return None
+            raise
 
+        download_redirect = download_rsp.headers.get("Location")
         if download_rsp.status_code != 302 or not download_redirect:
             raise ExternalRequestError(
                 message="Media download did not return valid redirect",

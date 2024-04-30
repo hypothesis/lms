@@ -4,14 +4,27 @@ Views for authorizing with Canvas Studio and listing videos.
 See `CanvasStudioService` for more details.
 """
 
-from pyramid.httpexceptions import HTTPBadRequest, HTTPFound
+from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 
 from lms.security import Permissions
 from lms.services import CanvasStudioService
 from lms.services.canvas_studio import replace_localhost_in_url
+from lms.services.exceptions import SerializableError
 from lms.validation.authentication import OAuthCallbackSchema
 from lms.views.helpers import via_video_url
+
+
+class CanvasStudioLaunchError(SerializableError):
+    """
+    An error occurred while launching a Canvas Studio assignment.
+
+    This exception is used for non-authorization errors that prevent a
+    Canvas Studio assignment from being launched.
+    """
+
+    def __init__(self, error_code: str, message: str):
+        super().__init__(error_code=error_code, message=message)
 
 
 # View for authorization popup which redirects to Canvas Studio's OAuth
@@ -135,15 +148,31 @@ def via_url(request):
     document_url = assignment.document_url
     media_id = CanvasStudioService.media_id_from_url(document_url)
     if not media_id:
-        raise HTTPBadRequest("Unable to get Canvas Studio media ID")
+        raise CanvasStudioLaunchError(
+            "canvas_studio_media_not_found", "Unable to get Canvas Studio media ID"
+        )
 
     svc = request.find_service(CanvasStudioService)
     canonical_url = svc.get_canonical_video_url(media_id)
-    download_url = svc.get_video_download_url(media_id)
-    transcript_url = svc.get_transcript_url(media_id)
 
+    # Get the video download URL, then the transcript. We do things in this
+    # order because if the video cannot be used (eg. because it is a Vimeo
+    # upload), there is no point in the user uploading a transcript, if that is
+    # also missing.
+
+    download_url = svc.get_video_download_url(media_id)
+    if not download_url:
+        raise CanvasStudioLaunchError(
+            "canvas_studio_download_unavailable",
+            "Hypothesis was unable to fetch the video",
+        )
+
+    transcript_url = svc.get_transcript_url(media_id)
     if not transcript_url:
-        raise HTTPBadRequest("This video does not have a published transcript")
+        raise CanvasStudioLaunchError(
+            "canvas_studio_transcript_unavailable",
+            "This video does not have a published transcript",
+        )
 
     return {
         "via_url": via_video_url(request, canonical_url, download_url, transcript_url)
