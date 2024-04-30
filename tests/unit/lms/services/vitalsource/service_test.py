@@ -100,32 +100,39 @@ class TestVitalSourceService:
 
         assert result == user_reference
 
-    @pytest.mark.parametrize("enabled", [True, False])
-    @pytest.mark.parametrize("instructor", [True, False])
-    def test_check_h_license_success(
-        self, request, svc, enabled, pyramid_request, instructor
-    ):
-        svc._student_pay_enabled = enabled  # pylint:disable=protected-access
-        if instructor:
-            request.getfixturevalue("user_is_instructor")
+    def test_check_h_license_disabled(self, svc, pyramid_request):
+        svc._student_pay_enabled = False  # pylint:disable=protected-access
 
         assert not svc.check_h_license(
             pyramid_request.lti_user, pyramid_request.lti_params
         )
 
-    def test_check_h_license_student_course_launch(self, svc, pyramid_request):
+    @pytest.mark.parametrize(
+        "user_fixture,code",
+        [
+            (
+                "user_is_instructor",
+                ErrorCode.VITALSOURCE_STUDENT_PAY_LICENSE_LAUNCH_INSTRUCTOR,
+            ),
+            ("user_is_learner", ErrorCode.VITALSOURCE_STUDENT_PAY_LICENSE_LAUNCH),
+        ],
+    )
+    def test_check_h_license_course_launch(
+        self, request, svc, pyramid_request, user_fixture, code
+    ):
         svc._student_pay_enabled = True  # pylint:disable=protected-access
         pyramid_request.lti_params["context_id"] = "COURSE_ID"
         pyramid_request.lti_params["resource_link_id"] = "COURSE_ID"
+        _ = request.getfixturevalue(user_fixture)
 
         assert (
             svc.check_h_license(pyramid_request.lti_user, pyramid_request.lti_params)
-            == ErrorCode.VITALSOURCE_STUDENT_PAY_LICENSE_LAUNCH
+            == code
         )
 
+    @pytest.mark.usefixtures("user_is_learner")
     def test_check_h_license_failure(self, svc, pyramid_request, customer_client):
         svc._student_pay_enabled = True  # pylint:disable=protected-access
-
         customer_client.get_user_book_license.return_value = None
 
         assert (
@@ -136,6 +143,26 @@ class TestVitalSourceService:
         customer_client.get_user_book_license.assert_called_once_with(
             svc.get_user_reference(pyramid_request.lti_params), svc.H_SKU
         )
+
+    @pytest.mark.usefixtures("user_is_learner")
+    def test_check_h_license_success(self, svc, pyramid_request, customer_client):
+        svc._student_pay_enabled = True  # pylint:disable=protected-access
+        customer_client.get_user_book_license.return_value = sentinel.license
+
+        assert not (
+            svc.check_h_license(pyramid_request.lti_user, pyramid_request.lti_params)
+        )
+
+    @pytest.mark.usefixtures("user_is_instructor")
+    def test_check_h_license_no_license_check_for_instructors(
+        self, svc, pyramid_request, customer_client
+    ):
+        svc._student_pay_enabled = True  # pylint:disable=protected-access
+
+        assert not (
+            svc.check_h_license(pyramid_request.lti_user, pyramid_request.lti_params)
+        )
+        customer_client.get_user_book_license.assert_not_called()
 
     @pytest.mark.parametrize(
         "proxy_method,args",

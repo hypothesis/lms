@@ -188,22 +188,27 @@ class VitalSourceService:
         self, lti_user: LTIUser, lti_params: LTIParams
     ) -> ErrorCode | None:
         """Check if the user of the current launch has a license for the H LTI app."""
-        if not self._student_pay_enabled or lti_user.is_instructor:
-            # Not a school using student pay or the current user it's an instructor.
+        if not self._student_pay_enabled:
+            # Not a school using student pay
             return None
 
         if lti_params["resource_link_id"] == lti_params["context_id"]:
-            # This looks like a "course launch" from a student
-            # This means that the student launch our tool from the course
+            # This looks like a "course launch"
+            # This means that the user launched our tool from the course
             # "course materials" placement to acquire a license for our SKU.
             # We can't do anything else from here other than display a message
+            return (
+                ErrorCode.VITALSOURCE_STUDENT_PAY_LICENSE_LAUNCH_INSTRUCTOR
+                if lti_user.is_instructor
+                else ErrorCode.VITALSOURCE_STUDENT_PAY_LICENSE_LAUNCH
+            )
 
-            return ErrorCode.VITALSOURCE_STUDENT_PAY_LICENSE_LAUNCH
-
-        user_reference = self.get_user_reference(lti_params)
-        assert self._sso_client
-        if not self._sso_client.get_user_book_license(user_reference, self.H_SKU):
-            return ErrorCode.VITALSOURCE_STUDENT_PAY_NO_LICENSE
+        if lti_user.is_learner:
+            # Do the actual license check, only for students
+            user_reference = self.get_user_reference(lti_params)
+            assert self._sso_client
+            if not self._sso_client.get_user_book_license(user_reference, self.H_SKU):
+                return ErrorCode.VITALSOURCE_STUDENT_PAY_NO_LICENSE
 
         return None
 

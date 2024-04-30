@@ -58,4 +58,13 @@ describe('ErrorDialogApp', () => {
       'You have now activated your license to use the Hypothesis tool in your LMS.',
     );
   });
+  it('shows dialog for vital_source_student_pay_license_launch for instructors', () => {
+    fakeConfig.errorCode = 'vitalsource_student_pay_license_launch_instructor';
+
+    const wrapper = renderApp();
+    assert.include(
+      wrapper.text(),
+      'To create a Hypothesis-enabled reading in Canvas, create a new Assignment or Module item.',
+    );
+  });
 });
