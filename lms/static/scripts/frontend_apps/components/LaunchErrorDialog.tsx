@@ -320,6 +320,42 @@ export default function LaunchErrorDialog({
         </ErrorModal>
       );
 
+    case 'canvas_studio_download_unavailable':
+      return (
+        <ErrorModal
+          {...defaultProps}
+          onRetry={undefined}
+          title="Unable to fetch Canvas Studio video"
+        >
+          <p>
+            Only videos uploaded directly to Canvas Studio can be used. Videos
+            hosted on YouTube or Vimeo cannot be used.
+          </p>
+        </ErrorModal>
+      );
+
+    case 'canvas_studio_media_not_found':
+      return (
+        <ErrorModal
+          {...defaultProps}
+          onRetry={undefined}
+          title="Canvas Studio media not found"
+        />
+      );
+
+    case 'canvas_studio_transcript_unavailable':
+      return (
+        <ErrorModal
+          {...defaultProps}
+          onRetry={undefined}
+          title="Video does not have a published transcript"
+        >
+          <p>
+            To use a video with Hypothesis, you must upload or generate captions
+            in Canvas Studio <i>and</i> publish them.
+          </p>
+        </ErrorModal>
+      );
     case 'blackboard_group_set_not_found':
       return (
         <ErrorModal
