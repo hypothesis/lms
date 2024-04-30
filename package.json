@@ -52,7 +52,7 @@
     "wouter-preact": "^3.0.0"
   },
   "devDependencies": {
-    "@hypothesis/frontend-testing": "^1.2.0",
+    "@hypothesis/frontend-testing": "^1.2.2",
     "@types/gapi": "^0.0.47",
     "@types/google.accounts": "^0.0.14",
     "@types/google.picker": "^0.0.42",
