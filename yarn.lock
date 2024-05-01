@@ -7391,7 +7391,7 @@ __metadata:
     preact: 10.19.6
     prettier: 3.2.5
     rollup: ^4.17.2
-    sass: ^1.69.6
+    sass: ^1.76.0
     sinon: ^17.0.1
     tailwindcss: ^3.3.3
     tiny-emitter: ^2.1.0
@@ -9367,16 +9367,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sass@npm:^1.69.6":
-  version: 1.69.6
-  resolution: "sass@npm:1.69.6"
+"sass@npm:^1.76.0":
+  version: 1.76.0
+  resolution: "sass@npm:1.76.0"
   dependencies:
     chokidar: ">=3.0.0 <4.0.0"
     immutable: ^4.0.0
     source-map-js: ">=0.6.2 <2.0.0"
   bin:
     sass: sass.js
-  checksum: 9e98eecd283ce6ca5d75ee233e4ec193cb00706d0e119ab6843c44236d3beed2ba28d0af0b4b6bdb4da76feadf426f559d364a69ae54c010467059d130238a36
+  checksum: 5f3fa7e7a1be09b7cea842a397fb07b9413fa9903bf82ead2ea059aa56faea534c2a84ede5a140103ee18a1dec9162b2fa1413fe71bbe8f8074712bf3bd3a8c7
   languageName: node
   linkType: hard
 
