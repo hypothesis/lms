@@ -301,7 +301,7 @@ requests==2.31.0
     #   -r requirements/prod.txt
     #   mailchimp-transactional
     #   requests-oauthlib
-requests-oauthlib==1.3.1
+requests-oauthlib==2.0.0
     # via
     #   -r requirements/prod.txt
     #   google-auth-oauthlib
