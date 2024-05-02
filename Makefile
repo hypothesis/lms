@@ -48,6 +48,11 @@ $(call help,make lint,"lint the code and print any warnings")
 lint: python
 	@pyenv exec tox -qe lint
 
+.PHONY: ruff
+$(call help,make ruff,"lint the code and print any warnings (using ruff)")
+ruff: python
+	@pyenv exec tox -qe ruff
+
 .PHONY: typecheck
 $(call help,make typecheck,"type check the code and print any warnings")
 typecheck: python
@@ -107,6 +112,7 @@ requirements/dev.txt: requirements/prod.txt
 requirements/tests.txt: requirements/prod.txt
 requirements/functests.txt: requirements/prod.txt
 requirements/lint.txt: requirements/tests.txt requirements/functests.txt
+requirements/ruff.txt: requirements/tests.txt requirements/functests.txt
 
 # Add a requirements target so you can just run `make requirements` to
 # re-compile *all* the requirements files at once.
