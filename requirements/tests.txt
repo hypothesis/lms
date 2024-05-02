@@ -77,14 +77,10 @@ coverage[toml]==7.3.4
 cryptography==42.0.4
     # via
     #   -r requirements/prod.txt
+    #   joserfc
     #   pyjwt
-    #   python-jose
 data-tasks==0.0.3
     # via -r requirements/prod.txt
-ecdsa==0.18.0
-    # via
-    #   -r requirements/prod.txt
-    #   python-jose
 execnet==2.0.2
     # via pytest-xdist
 factory-boy==3.3.0
@@ -124,7 +120,7 @@ h-pyramid-sentry==1.2.4
     # via -r requirements/prod.txt
 h-testkit==1.0.1
     # via -r requirements/tests.in
-h-vialib==1.2.2
+h-vialib==1.3.0
     # via -r requirements/prod.txt
 httpretty==1.1.4
     # via -r requirements/tests.in
@@ -158,6 +154,10 @@ jinja2==3.1.3
     #   -r requirements/prod.txt
     #   data-tasks
     #   pyramid-jinja2
+joserfc==0.9.0
+    # via
+    #   -r requirements/prod.txt
+    #   h-vialib
 jsonschema==4.20.0
     # via
     #   -r requirements/prod.txt
@@ -242,7 +242,6 @@ pyasn1==0.5.1
     # via
     #   -r requirements/prod.txt
     #   pyasn1-modules
-    #   python-jose
     #   rsa
 pyasn1-modules==0.3.0
     # via
@@ -304,10 +303,6 @@ python-dateutil==2.8.2
     #   faker
     #   freezegun
     #   mailchimp-transactional
-python-jose[cryptography]==3.3.0
-    # via
-    #   -r requirements/prod.txt
-    #   h-vialib
 referencing==0.32.0
     # via
     #   -r requirements/prod.txt
@@ -332,7 +327,6 @@ rsa==4.9
     # via
     #   -r requirements/prod.txt
     #   google-auth
-    #   python-jose
 sentry-sdk==2.0.1
     # via
     #   -r requirements/prod.txt
@@ -340,7 +334,6 @@ sentry-sdk==2.0.1
 six==1.16.0
     # via
     #   -r requirements/prod.txt
-    #   ecdsa
     #   mailchimp-transactional
     #   python-dateutil
 sqlalchemy==2.0.29
