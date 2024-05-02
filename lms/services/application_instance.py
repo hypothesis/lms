@@ -196,8 +196,7 @@ class ApplicationInstanceService:
             .all()
         )
 
-    # pylint: disable=too-complex,too-many-arguments
-    def _ai_search_query(
+    def _ai_search_query(  # noqa: C901,too-many-arguments
         self,
         *,
         id_=None,
