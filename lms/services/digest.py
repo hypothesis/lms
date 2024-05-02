@@ -235,10 +235,10 @@ class DigestContext:
                         "title": assignment_info.title,
                         "num_annotations": len(assignment_learner_annotations),
                         "annotators": list(
-                            set(
+                            {
                                 annotation.userid
                                 for annotation in assignment_learner_annotations
-                            )
+                            }
                         ),
                     }
                 )
@@ -248,10 +248,10 @@ class DigestContext:
                     "title": course_info.title,
                     "num_annotations": num_annotations,
                     "annotators": list(
-                        set(
+                        {
                             annotation.userid
                             for annotation in course_info.learner_annotations
-                        )
+                        }
                     ),
                     "assignments": course_assignments,
                 }
@@ -262,11 +262,11 @@ class DigestContext:
                 course_digest["num_annotations"] for course_digest in course_digests
             ),
             "annotators": list(
-                set(
+                {
                     annotator
                     for course_digest in course_digests
                     for annotator in course_digest["annotators"]
-                )
+                }
             ),
             "courses": course_digests,
         }
@@ -347,10 +347,9 @@ class DigestContext:
         if self._course_infos is not None:
             return self._course_infos
 
-        authority_provided_ids = set(
+        authority_provided_ids = {
             annotation.authority_provided_id for annotation in self.annotations
-        )
-
+        }
         # We're going to be joining the grouping table to itself and this requires
         # us to create an alias for one side of the join, see:
         # https://docs.sqlalchemy.org/en/20/orm/self_referential.html#self-referential-query-strategies

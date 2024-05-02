@@ -30,7 +30,7 @@ class LTIRoleService:
             # rest to the application.
             role.update_from_value()
 
-        if missing := (set(role_strings) - set(role.value for role in roles)):
+        if missing := (set(role_strings) - {role.value for role in roles}):
             new_roles = [LTIRole(value=value) for value in missing]  # type: ignore
             self._db.add_all(new_roles)
 
