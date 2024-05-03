@@ -118,7 +118,8 @@ def pyramid_request(db_session, application_instance, lti_v11_params):
     pyramid_request = testing.DummyRequest(db=db_session)
     pyramid_request.POST.update(lti_v11_params)
     pyramid_request.feature = mock.create_autospec(
-        lambda feature: False, return_value=False  # pragma: no cover
+        lambda feature: False,
+        return_value=False,  # pragma: no cover
     )
     pyramid_request.lti_user = factories.LTIUser(
         application_instance_id=application_instance.id,

@@ -43,6 +43,7 @@ known_first_party = ["lms", "tests"]
 
 [tool.ruff]
 target-version = "py311"
+line-length = 88
 
 [tool.ruff.lint]
 select = ["C", "E", "F", "I", "R", "W", "D"]

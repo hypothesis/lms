@@ -82,7 +82,6 @@ class TestViaURL:
 
 
 class TestViaVideoURL:
-
     def test_it(self, pyramid_request):
         canonical_url = "https://media.com/videos/abc"
         download_url = "https://cdn.media.com/videos/abc.mp4"

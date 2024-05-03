@@ -258,7 +258,6 @@ class TestFactory:
     def test_with_custom_service(
         self, http_service, oauth2_token_service, pyramid_request, OAuthHTTPService
     ):
-
         api_service = Service.CANVAS_STUDIO
 
         service = factory(sentinel.context, pyramid_request, api_service)

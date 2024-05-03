@@ -11,9 +11,7 @@ def _get_current_region():
     return Region(code=environ["REGION_CODE"], authority=environ["H_AUTHORITY"])
 
 
-class _PublicIdComparator(
-    Comparator
-):  # pylint: disable=abstract-method, too-many-ancestors
+class _PublicIdComparator(Comparator):  # pylint: disable=abstract-method, too-many-ancestors
     """A comparator for covering over details of comparing public ids."""
 
     def __eq__(self, other):
