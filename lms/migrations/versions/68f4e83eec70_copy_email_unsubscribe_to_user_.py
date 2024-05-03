@@ -7,7 +7,7 @@ Revises: 6d72ce7efdeb
 import logging
 
 from alembic import op
-from sqlalchemy import Column, Integer, Unicode, UniqueConstraint, select, text
+from sqlalchemy import Column, Integer, Unicode, select, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import declarative_base, sessionmaker

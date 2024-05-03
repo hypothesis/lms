@@ -12,7 +12,6 @@ Revision ID: 0c52a13c6cad
 Revises: 1872d16c28a4
 """
 
-import sqlalchemy as sa
 from alembic import op
 
 revision = "0c52a13c6cad"
