@@ -32,18 +32,10 @@ precision = 2
 fail_under = 100.00
 skip_covered = true
 
-[tool.isort]
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-line_length = 88
-default_section = "THIRDPARTY"
-known_first_party = ["lms", "tests"]
-
 [tool.ruff]
 target-version = "py311"
 line-length = 88
+
 
 [tool.ruff.lint]
 select = ["C", "E", "F", "I", "R", "W", "D"]
