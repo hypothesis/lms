@@ -97,9 +97,7 @@ class TestPageAPIViews:
         lti_user.lti.course_id = (
             course_service.get_by_context_id.return_value.lms_id
         ) = "OTHER_COURSE_ID"
-        course_service.get_by_context_id.return_value.get_mapped_page_id.return_value = (
-            "OTHER_PAGE_ID"
-        )
+        course_service.get_by_context_id.return_value.get_mapped_page_id.return_value = "OTHER_PAGE_ID"
         assignment_service.get_assignment.return_value.document_url = (
             "moodle://page/course/COURSE_ID/page_id/PAGE_ID"
         )
@@ -134,9 +132,7 @@ class TestPageAPIViews:
         assignment_service.get_assignment.return_value.document_url = (
             "moodle://page/course/COURSE_ID/page_id/PAGE_ID"
         )
-        course_service.get_by_context_id.return_value.get_mapped_page_id.return_value = (
-            "PAGE_ID"
-        )
+        course_service.get_by_context_id.return_value.get_mapped_page_id.return_value = "PAGE_ID"
         course_copy_plugin.find_matching_page_in_course.return_value = None
 
         with pytest.raises(PageNotFoundInCourse):
@@ -162,9 +158,7 @@ class TestPageAPIViews:
         assignment_service.get_assignment.return_value.document_url = (
             "moodle://page/course/COURSE_ID/page_id/PAGE_ID"
         )
-        course_service.get_by_context_id.return_value.get_mapped_page_id.return_value = (
-            "PAGE_ID"
-        )
+        course_service.get_by_context_id.return_value.get_mapped_page_id.return_value = "PAGE_ID"
         BearerTokenSchema.return_value.authorization_param.return_value = "TOKEN"
 
         course_copy_plugin.find_matching_page_in_course.return_value = Mock(

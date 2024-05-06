@@ -92,9 +92,7 @@ class TestPageAPIViews:
         course_service.get_by_context_id.return_value.extra = {
             "canvas": {"custom_canvas_course_id": "OTHER_COURSE_ID"}
         }
-        course_service.get_by_context_id.return_value.get_mapped_page_id.return_value = (
-            "OTHER_PAGE_ID"
-        )
+        course_service.get_by_context_id.return_value.get_mapped_page_id.return_value = "OTHER_PAGE_ID"
         BearerTokenSchema.return_value.authorization_param.return_value = "TOKEN"
 
         response = PagesAPIViews(pyramid_request).via_url()
@@ -125,9 +123,7 @@ class TestPageAPIViews:
         course_service.get_by_context_id.return_value.extra = {
             "canvas": {"custom_canvas_course_id": "OTHER_COURSE_ID"}
         }
-        course_service.get_by_context_id.return_value.get_mapped_page_id.return_value = (
-            None
-        )
+        course_service.get_by_context_id.return_value.get_mapped_page_id.return_value = None
         course_copy_plugin.find_matching_page_in_course.return_value = None
 
         with pytest.raises(PageNotFoundInCourse):
@@ -152,9 +148,7 @@ class TestPageAPIViews:
         course_service.get_by_context_id.return_value.extra = {
             "canvas": {"custom_canvas_course_id": "OTHER_COURSE_ID"}
         }
-        course_service.get_by_context_id.return_value.get_mapped_page_id.return_value = (
-            None
-        )
+        course_service.get_by_context_id.return_value.get_mapped_page_id.return_value = None
         BearerTokenSchema.return_value.authorization_param.return_value = "TOKEN"
 
         course_copy_plugin.find_matching_page_in_course.return_value = Mock(
@@ -193,9 +187,7 @@ class TestPageAPIViews:
         course_service.get_by_context_id.return_value.extra = {
             "canvas": {"custom_canvas_course_id": "OTHER_COURSE_ID"}
         }
-        course_service.get_by_context_id.return_value.get_mapped_page_id.return_value = (
-            "OTHER_PAGE_ID"
-        )
+        course_service.get_by_context_id.return_value.get_mapped_page_id.return_value = "OTHER_PAGE_ID"
         canvas_service.api.pages.page.side_effect = CanvasAPIError
 
         with pytest.raises(PageNotFoundInCourse):
