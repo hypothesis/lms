@@ -59,15 +59,6 @@ precision = 2
 fail_under = 100.00
 skip_covered = true
 
-[tool.isort]
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-line_length = 88
-default_section = "THIRDPARTY"
-known_first_party = ["lms", "tests"]
-
 [tool.pylint.main]
 jobs = 0 # Use one process for CPU.
 
@@ -79,6 +70,7 @@ load-plugins = [
     "pylint.extensions.overlapping_exceptions",
     "pylint.extensions.redefined_variable_type",
 ]
+
 
 # Fail if there are *any* messages from PyLint.
 # The letters refer to PyLint's message categories, see
@@ -137,6 +129,11 @@ good-names = [
 [tool.pylint.reports]
 output-format = "colorized"
 score = "no"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
 
 [tool.hdev]
 project_name = "lms"

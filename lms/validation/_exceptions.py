@@ -8,9 +8,7 @@ from pyramid.httpexceptions import HTTPFound
 __all__ = ["ValidationError", "LTIToolRedirect"]
 
 
-class ValidationError(
-    httpexceptions.HTTPUnprocessableEntity
-):  # pylint: disable=too-many-ancestors
+class ValidationError(httpexceptions.HTTPUnprocessableEntity):  # pylint: disable=too-many-ancestors
     """
     A schema validation failure.
 

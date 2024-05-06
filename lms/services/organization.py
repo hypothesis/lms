@@ -70,7 +70,8 @@ class OrganizationService:
         # Get all the objects in the hierarchy, to ensure they are cached by
         # SQLAlchemy, and should be fast to access.
         hierarchy = (
-            self._db_session.query(Organization).filter(
+            self._db_session.query(Organization)
+            .filter(
                 Organization.id.in_(self.get_hierarchy_ids(id_, include_parents=True))
             )
             # Order by parent id, this will cause the root (if any) to be last.
@@ -362,7 +363,8 @@ class OrganizationService:
         # https://www.postgresql.org/docs/current/queries-with.html#QUERIES-WITH-RECURSIVE
         cols = [Organization.id, Organization.parent_id]
         base_case = (
-            self._db_session.query(*cols).filter(Organization.id == id_)
+            self._db_session.query(*cols)
+            .filter(Organization.id == id_)
             # The name of the CTE is arbitrary, but must be present
             .cte("organizations", recursive=True)
         )

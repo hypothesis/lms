@@ -616,9 +616,9 @@ class JSConfig:
         else:
             # If not using the default COURSE grouping point the FE
             # to the sync API to dynamically get the relevant groupings.
-            self._config["hypothesisClient"]["services"][0][
-                "groups"
-            ] = "$rpc:requestGroups"
+            self._config["hypothesisClient"]["services"][0]["groups"] = (
+                "$rpc:requestGroups"
+            )
 
             req = self._request
             self._config["api"]["sync"] = {
