@@ -66,9 +66,27 @@ ignore = [
   "D213",
 
   "E501", # line-too-long
-  "F401", # unused-import
   "RET",  # flake8-return 
 ] 
+
+[tool.ruff.lint.per-file-ignores]
+# We should use __all__ to declare public interface of modules 
+# but we'll have this for the pylint migration
+"__init__.py" = ["F401"] 
+
+"tests/*" = [
+  # Just disable name style checking for the tests, because we
+  # frequently use lots of argument names that don't conform.
+  # For example we frequently create pytest fixtures that aren't named in
+  # snake_case, such as a fixture that returns a mock of the FooBar class would
+  # be named FooBar in CamelCase.
+  "N",
+
+  # We are more lax about  comment formatting in the tests
+  "D",
+
+] 
+
 
 
 

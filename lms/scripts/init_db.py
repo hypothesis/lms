@@ -19,8 +19,8 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import ProgrammingError
 
-from lms import models
 from lms.db import Base, create_engine
+from lms.models import models  # noqa: F401
 
 log = logging.getLogger(__name__)
 
