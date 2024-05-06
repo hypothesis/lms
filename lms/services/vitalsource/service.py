@@ -2,7 +2,7 @@ import re
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from lms.error_code import ErrorCode
-from lms.models import LTIParams, LTIUser
+from lms.models import Assignment, LTIParams, LTIUser
 from lms.services.vitalsource._client import VitalSourceClient
 from lms.services.vitalsource.exceptions import VitalSourceMalformedRegex
 from lms.services.vitalsource.model import VSBookLocation
@@ -185,17 +185,26 @@ class VitalSourceService:
         return value
 
     def check_h_license(
-        self, lti_user: LTIUser, lti_params: LTIParams
+        self, lti_user: LTIUser, lti_params: LTIParams, assignment: Assignment | None
     ) -> ErrorCode | None:
         """Check if the user of the current launch has a license for the H LTI app."""
         if not self._student_pay_enabled:
             # Not a school using student pay
             return None
 
-        if lti_params["resource_link_id"] == lti_params["context_id"]:
-            # This looks like a "course launch"
-            # This means that the user launched our tool from the course
-            # "course materials" placement to acquire a license for our SKU.
+        if not assignment:
+            # This looks like a launch meant to acquire a license for our SKU
+            # While in Canvas that type of launch is always made from a "Course placement"
+            # the best method to detect these across all LMSes is:
+            # - A non Deep linking launch.
+            #   Students never do DL launches
+            #   We won't check here this is not a DL launch. We'll rely on the caller for that
+            #   As we don't ever check licenses for instructors there's shudn't be a need to check license in DL.
+            #
+            # - No assignment in the DB
+            #    We'd expect no assignment in DL launches but for a regular launch that means the instructor is accessing
+            #    us via the Launch Courseware VS button
+            #
             # We can't do anything else from here other than display a message
             return (
                 ErrorCode.VITALSOURCE_STUDENT_PAY_LICENSE_LAUNCH_INSTRUCTOR

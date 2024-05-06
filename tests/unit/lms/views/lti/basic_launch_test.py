@@ -163,14 +163,16 @@ class TestBasicLaunchViews:
         assert not response
 
     def test_lti_launch_check_h_license_fails(
-        self, context, pyramid_request, vitalsource_service
+        self, context, pyramid_request, vitalsource_service, assignment_service
     ):
         vitalsource_service.check_h_license.return_value = sentinel.error_code
 
         response = BasicLaunchViews(context, pyramid_request).lti_launch()
 
         vitalsource_service.check_h_license.assert_called_once_with(
-            pyramid_request.lti_user, pyramid_request.lti_params
+            pyramid_request.lti_user,
+            pyramid_request.lti_params,
+            assignment_service.get_assignment_for_launch.return_value,
         )
 
         assert (

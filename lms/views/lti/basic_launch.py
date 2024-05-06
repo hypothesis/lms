@@ -58,16 +58,16 @@ class BasicLaunchViews:
     def lti_launch(self):
         """Handle regular LTI launches."""
 
+        assignment = self.assignment_service.get_assignment_for_launch(self.request)
+
         if error_code := self.request.find_service(VitalSourceService).check_h_license(
-            self.request.lti_user, self.request.lti_params
+            self.request.lti_user, self.request.lti_params, assignment
         ):
             self.request.override_renderer = "lms:templates/error_dialog.html.jinja2"
             self.context.js_config.enable_error_dialog_mode(error_code)
             return {}
 
-        if assignment := self.assignment_service.get_assignment_for_launch(
-            self.request
-        ):
+        if assignment:
             self.request.override_renderer = (
                 "lms:templates/lti/basic_launch/basic_launch.html.jinja2"
             )

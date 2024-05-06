@@ -104,7 +104,7 @@ class TestVitalSourceService:
         svc._student_pay_enabled = False  # pylint:disable=protected-access
 
         assert not svc.check_h_license(
-            pyramid_request.lti_user, pyramid_request.lti_params
+            pyramid_request.lti_user, pyramid_request.lti_params, sentinel.assignment
         )
 
     @pytest.mark.parametrize(
@@ -121,12 +121,12 @@ class TestVitalSourceService:
         self, request, svc, pyramid_request, user_fixture, code
     ):
         svc._student_pay_enabled = True  # pylint:disable=protected-access
-        pyramid_request.lti_params["context_id"] = "COURSE_ID"
-        pyramid_request.lti_params["resource_link_id"] = "COURSE_ID"
         _ = request.getfixturevalue(user_fixture)
 
         assert (
-            svc.check_h_license(pyramid_request.lti_user, pyramid_request.lti_params)
+            svc.check_h_license(
+                pyramid_request.lti_user, pyramid_request.lti_params, None
+            )
             == code
         )
 
@@ -136,7 +136,11 @@ class TestVitalSourceService:
         customer_client.get_user_book_license.return_value = None
 
         assert (
-            svc.check_h_license(pyramid_request.lti_user, pyramid_request.lti_params)
+            svc.check_h_license(
+                pyramid_request.lti_user,
+                pyramid_request.lti_params,
+                sentinel.assignment,
+            )
             == ErrorCode.VITALSOURCE_STUDENT_PAY_NO_LICENSE
         )
 
@@ -150,7 +154,11 @@ class TestVitalSourceService:
         customer_client.get_user_book_license.return_value = sentinel.license
 
         assert not (
-            svc.check_h_license(pyramid_request.lti_user, pyramid_request.lti_params)
+            svc.check_h_license(
+                pyramid_request.lti_user,
+                pyramid_request.lti_params,
+                sentinel.assignment,
+            )
         )
 
     @pytest.mark.usefixtures("user_is_instructor")
@@ -160,7 +168,11 @@ class TestVitalSourceService:
         svc._student_pay_enabled = True  # pylint:disable=protected-access
 
         assert not (
-            svc.check_h_license(pyramid_request.lti_user, pyramid_request.lti_params)
+            svc.check_h_license(
+                pyramid_request.lti_user,
+                pyramid_request.lti_params,
+                sentinel.assignment,
+            )
         )
         customer_client.get_user_book_license.assert_not_called()
 
