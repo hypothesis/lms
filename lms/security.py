@@ -200,7 +200,7 @@ class LTIUserSecurityPolicy:
     def identity(self, request) -> Identity | None:
         try:
             lti_user = self._get_lti_user(request)
-        except Exception:  # pylint:disable=broad-exception-caught
+        except Exception:  # noqa: BLE001
             # If anything went wrong, no identity
             return None
 
@@ -228,7 +228,7 @@ class LTIUserSecurityPolicy:
             # Getting lti_use here again for the potential exception
             # side effect and allow us to return DeniedWithException accordingly
             self._get_lti_user(request)
-        except Exception as err:  # pylint:disable=broad-exception-caught
+        except Exception as err:  # noqa: BLE001
             return DeniedWithException(err)
 
         return _permits(self.identity(request), permission)
