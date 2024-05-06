@@ -41,9 +41,7 @@ class AuthenticatedClient:
         self._client_secret = client_secret
         self._redirect_uri = redirect_uri
 
-    def send(
-        self, method, path, schema, timeout=DEFAULT_TIMEOUT, params=None
-    ):  # pylint:disable=too-many-arguments
+    def send(self, method, path, schema, timeout=DEFAULT_TIMEOUT, params=None):  # pylint:disable=too-many-arguments
         """
         Send a Canvas API request, and retry it if there are OAuth problems.
 

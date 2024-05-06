@@ -208,7 +208,8 @@ class D2LAPIClient:
                     "updated_at": topic["updated_at"],
                 }
                 for topic in module.get("topics", [])
-                if topic.get("type") == "File" and not topic.get("is_broken", False)
+                if topic.get("type") == "File"
+                and not topic.get("is_broken", False)
                 # Filter out non-pdfs using the file's name.
                 # Other LMS offer the content type of the file at this level
                 # but will have to rely on the extension for D2L.

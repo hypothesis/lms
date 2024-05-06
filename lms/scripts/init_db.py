@@ -8,6 +8,7 @@ Usage:
     python3 -m lms.scripts.init_db --help
 
 """
+
 # pylint:disable=import-outside-toplevel,unused-import
 import argparse
 import logging

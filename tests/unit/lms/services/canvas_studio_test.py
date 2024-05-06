@@ -17,7 +17,6 @@ from tests import factories
     "aes_service", "canvas_studio_settings", "oauth_http_factory", "admin_user"
 )
 class TestCanvasStudioService:
-
     def test_get_access_token(self, svc, oauth_http_service, client_secret):
         svc.get_access_token("some_code")
 

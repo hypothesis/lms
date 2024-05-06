@@ -133,7 +133,8 @@ class DashboardViews:
             # An LTIUser might not exists if accessing from the admin pages.
             return response
         auth_token = (
-            BearerTokenSchema(self.request).authorization_param(lti_user)
+            BearerTokenSchema(self.request)
+            .authorization_param(lti_user)
             # White space is not allowed as a cookie character, remove the leading part
             .replace("Bearer ", "")
         )

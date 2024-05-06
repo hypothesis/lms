@@ -20,7 +20,8 @@ class FileService:
             )
             # We might have recorded the same file twice in different ApplicationInstances
             # as we query by GUID we might get more than once row, in that case we prefer the newest
-            .order_by(File.id.desc()).first()
+            .order_by(File.id.desc())
+            .first()
         )
 
     def find_copied_file(self, new_course_id, original_file: File):
@@ -39,8 +40,7 @@ class FileService:
             )
             .filter(
                 # We don't want to find the same file we are looking for
-                File.id
-                != original_file.id,
+                File.id != original_file.id,
             )
             # We might find more than one matching file, prefer the newest
             .order_by(File.id.desc())
