@@ -1,6 +1,6 @@
 import functools
 from enum import Enum
-from typing import Any
+from typing import Any, TypedDict
 
 from lms.error_code import ErrorCode
 from lms.events import LTIEvent
@@ -12,6 +12,7 @@ from lms.resources._js_config.file_picker_config import FilePickerConfig
 from lms.services import HAPI, EventService, HAPIError, JSTORService, VitalSourceService
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
+from lms.js_config_types import DashboardConfig
 
 
 class JSConfig:
@@ -231,20 +232,8 @@ class JSConfig:
             )
         )
 
-    def enable_dashboard_mode(self, assignment):
-        self._config.update(
-            {
-                "mode": JSConfig.Mode.DASHBOARD,
-                "dashboard": {
-                    "assignment": {"title": assignment.title},
-                    "assignmentStatsApi": {
-                        "path": self._request.route_path(
-                            "api.assignment.stats", id_=assignment.id
-                        ),
-                    },
-                },
-            }
-        )
+    def enable_dashboard_mode(self, config: DashboardConfig):
+        self._config.update({"mode": JSConfig.Mode.DASHBOARD, "dashboard": config})
 
     def enable_lti_launch_mode(self, course, assignment: Assignment):
         """

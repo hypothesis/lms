@@ -8,6 +8,7 @@ from pyramid.httpexceptions import HTTPBadRequest
 
 from lms.models.oauth2_token import Service
 from lms.models.user import User
+from lms.js_config_types import APICallInfo
 from lms.services.aes import AESService
 from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 from lms.services.oauth_http import OAuthHTTPService
@@ -70,11 +71,6 @@ class CanvasStudioCaptionFilesSchema(RequestsResponseSchema):
     @post_load
     def post_load(self, data, **_kwargs):
         return data["caption_files"]
-
-
-class APICallInfo(TypedDict):
-    path: str
-    authUrl: NotRequired[str]
 
 
 class File(TypedDict):
