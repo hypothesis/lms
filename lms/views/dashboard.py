@@ -5,6 +5,12 @@ from lms.models import RoleScope, RoleType
 from lms.security import Permissions
 from lms.services.h_api import HAPI
 from lms.validation.authentication import BearerTokenSchema
+from lms.js_config_types import (
+    AssignmentConfig,
+    APICallInfo,
+    AssignmentDashboardConfig,
+    CourseDashboardConfig,
+)
 
 
 @forbidden_view_config(
@@ -62,7 +68,16 @@ class DashboardViews:
         Authenticated via the LTIUser present in a cookie making this endpoint accessible directly in the browser.
         """
         assignment = self.get_request_assignment()
-        self.request.context.js_config.enable_dashboard_mode(assignment)
+        self.request.context.js_config.enable_dashboard_mode(
+            AssignmentDashboardConfig(
+                assignment=AssignmentConfig(title=assignment.title),
+                assignmentStatsApi=APICallInfo(
+                    path=self.request.route_path(
+                        "api.assignment.stats", id_=assignment.id
+                    ),
+                ),
+            ),
+        )
         self._set_lti_user_cookie(self.request.response)
         return {"assignment": assignment}
 
