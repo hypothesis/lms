@@ -7,10 +7,14 @@ import {
 import type { DataTableProps } from '@hypothesis/frontend-shared';
 import { useState } from 'preact/hooks';
 
-import type { StudentStats } from '../../api-types';
+import type { StudentStats, AssignmentStats } from '../../api-types';
 import { formatDateTime } from '../../utils/date';
 
 export type AssignmentInfo = {
+  title: string;
+};
+
+export type CourseInfo = {
   title: string;
 };
 
@@ -22,7 +26,7 @@ export type StudentsActivityTableProps = {
 
 type MandatoryOrder<T> = NonNullable<DataTableProps<T>['order']>;
 
-export default function StudentsActivityTable({
+export function StudentsActivityTable({
   assignment,
   students,
   loading,
@@ -68,6 +72,50 @@ export default function StudentsActivityTable({
             'replies',
             'last_activity',
           ]}
+          order={order}
+          onOrderChange={setOrder}
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
+export type CourseAssignmentsTableProps = {
+  course: CourseInfo;
+  assignments: AssignmentStats[];
+  loading?: boolean;
+};
+
+export function CourseAssignmentsTable({
+  course,
+  assignments,
+  loading,
+}: CourseAssignmentsTableProps) {
+  const title = `Course: ${course.title}`;
+  const [order, setOrder] = useState<MandatoryOrder<AssignmentStats>>({
+    field: 'name',
+    direction: 'ascending',
+  });
+  const orderedAssignments = useOrderedRows(assignments, order);
+
+  return (
+    <Card>
+      <CardContent>
+        <h2 className="text-brand mb-3 text-xl" data-testid="title">
+          {title}
+        </h2>
+        <DataTable
+          grid
+          striped={false}
+          emptyMessage="No assignments found"
+          title={title}
+          columns={[{ field: 'name', label: 'Name', classes: 'w-[60%]' }]}
+          rows={orderedAssignments}
+          renderItem={(stats, field) => {
+            return stats[field];
+          }}
+          loading={loading}
+          orderableColumns={['name']}
           order={order}
           onOrderChange={setOrder}
         />

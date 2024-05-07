@@ -245,6 +245,11 @@ export type DashboardConfig = {
     title: string;
   };
   assignmentStatsApi: APICallInfo;
+
+  course: {
+    title: string;
+  };
+  courseStatsApi: APICallInfo;
 };
 
 /**

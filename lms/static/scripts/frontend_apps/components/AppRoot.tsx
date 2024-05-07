@@ -11,7 +11,10 @@ import EmailPreferencesApp from './EmailPreferencesApp';
 import ErrorDialogApp from './ErrorDialogApp';
 import FilePickerApp, { loadFilePickerConfig } from './FilePickerApp';
 import OAuth2RedirectErrorApp from './OAuth2RedirectErrorApp';
-import DashboardApp from './dashboard/DashboardApp';
+import {
+  DashboardAssignmentApp,
+  DashboardCourseApp,
+} from './dashboard/DashboardApp';
 
 export type AppRootProps = {
   /** Initial route and configuration for the frontend, read from the HTML page. */
@@ -42,7 +45,10 @@ export default function AppRoot({ initialConfig, services }: AppRootProps) {
             </DataLoader>
           </Route>
           <Route path="/dashboard/organization/:organizationId/assignment/:assignmentId">
-            <DashboardApp />
+            <DashboardAssignmentApp />
+          </Route>
+          <Route path="/dashboard/organization/:organizationId/course/:courseId">
+            <DashboardCourseApp />
           </Route>
           <Route path="/email/preferences">
             <EmailPreferencesApp />
