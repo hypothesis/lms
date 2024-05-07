@@ -1,9 +1,12 @@
 from marshmallow import validate
+from dataclasses import asdict
+from lms.events import AuditTrailEvent, ModelChange
 from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config, view_defaults
 from webargs import fields
 
-from lms.models import Course
+from lms.models import Course, EventType
+from pyramid.httpexceptions import HTTPFound
 from lms.models.public_id import InvalidPublicId
 from lms.security import Permissions
 from lms.services import OrganizationService
@@ -80,6 +83,41 @@ class AdminCourseViews:
         )
 
         return {"courses": courses}
+
+    @view_config(
+        route_name="admin.course.dashboard",
+        request_method="GET",
+        permission=Permissions.STAFF,
+    )
+    def course_dashboard(self):
+        course_id = self.request.matchdict["id_"]
+        course = self._get_course_or_404(course_id)
+        self.request.registry.notify(
+            AuditTrailEvent(
+                request=self.request,
+                type=EventType.Type.AUDIT_TRAIL,
+                data=asdict(
+                    ModelChange(
+                        model=Course.__name__,
+                        id=course.id,
+                        action="view_dashboard",
+                        source="admin_pages",
+                        userid=self.request.identity.userid,
+                        changes={},
+                    )
+                ),
+            )
+        )
+
+        response = HTTPFound(
+            location=self.request.route_url(
+                "dashboard.course",
+                # pylint:disable=protected-access
+                public_id=course.application_instance.organization._public_id,
+                id=course.id,
+            ),
+        )
+        return response
 
     def _get_course_or_404(self, id_) -> Course:
         if course := self.course_service.search(id_=id_):
