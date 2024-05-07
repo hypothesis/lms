@@ -1,16 +1,16 @@
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound, HTTPUnauthorized
 from pyramid.view import forbidden_view_config, view_config
 
+from lms.js_config_types import (
+    APICallInfo,
+    AssignmentConfig,
+    AssignmentDashboardConfig,
+    CourseDashboardConfig,
+)
 from lms.models import RoleScope, RoleType
 from lms.security import Permissions
 from lms.services.h_api import HAPI
 from lms.validation.authentication import BearerTokenSchema
-from lms.js_config_types import (
-    AssignmentConfig,
-    APICallInfo,
-    AssignmentDashboardConfig,
-    CourseDashboardConfig,
-)
 
 
 @forbidden_view_config(
@@ -23,6 +23,11 @@ from lms.js_config_types import (
     request_method="GET",
     renderer="lms:templates/dashboard/forbidden.html.jinja2",
 )
+@forbidden_view_config(
+    route_name="dashboard.course",
+    request_method="GET",
+    renderer="lms:templates/dashboard/forbidden.html.jinja2",
+)
 def forbidden(_request):  # pragma: no cover
     return {}
 
@@ -32,6 +37,7 @@ class DashboardViews:
         self.request = request
         self.h_api = request.find_service(HAPI)
         self.assignment_service = request.find_service(name="assignment")
+        self.course_service = request.find_service(name="course")
 
     @view_config(
         route_name="dashboard.launch.assignment",
@@ -79,7 +85,26 @@ class DashboardViews:
             ),
         )
         self._set_lti_user_cookie(self.request.response)
-        return {"assignment": assignment}
+        return {"title": assignment.title}
+
+    @view_config(
+        route_name="dashboard.course",
+        permission=Permissions.DASHBOARD_VIEW,
+        request_method="GET",
+        renderer="lms:templates/dashboard/index.html.jinja2",
+    )
+    def course_show(self):
+        course = self.get_request_course()
+        self.request.context.js_config.enable_dashboard_mode(
+            AssignmentDashboardConfig(
+                course=CourseDashboardConfig(title=course.lms_name),
+                courseStatsApi=APICallInfo(
+                    path=self.request.route_path("api.course.stats", id_=course.id),
+                ),
+            ),
+        )
+        self._set_lti_user_cookie(self.request.response)
+        return {"title": course.lms_name}
 
     @view_config(
         route_name="api.assignment.stats",
@@ -128,6 +153,17 @@ class DashboardViews:
 
         return student_stats
 
+    @view_config(
+        route_name="api.course.stats",
+        request_method="GET",
+        renderer="json",
+        permission=Permissions.DASHBOARD_VIEW,
+    )
+    def api_course_stats(self):
+        """Fetch the stats for one particular course."""
+        course = self.get_request_course()
+        return [{"name": a.title} for a in course.assignments]
+
     def get_request_assignment(self):
         assignment = self.assignment_service.get_by_id(self.request.matchdict["id_"])
         if not assignment:
@@ -141,6 +177,20 @@ class DashboardViews:
             raise HTTPUnauthorized()
 
         return assignment
+
+    def get_request_course(self):
+        course = self.course_service.search(self.request.matchdict["id_"])
+        if not course:
+            raise HTTPNotFound()
+
+        if self.request.has_permission(Permissions.STAFF):
+            # STAFF members in our admin pages can access all assignments
+            return course[0]
+
+        if not self.course_service.is_member(course, self.request.user):
+            raise HTTPUnauthorized()
+
+        return course[0]
 
     def _set_lti_user_cookie(self, response):
         lti_user = self.request.lti_user

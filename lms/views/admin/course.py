@@ -1,12 +1,12 @@
-from marshmallow import validate
 from dataclasses import asdict
-from lms.events import AuditTrailEvent, ModelChange
-from pyramid.httpexceptions import HTTPNotFound
+
+from marshmallow import validate
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 from pyramid.view import view_config, view_defaults
 from webargs import fields
 
+from lms.events import AuditTrailEvent, ModelChange
 from lms.models import Course, EventType
-from pyramid.httpexceptions import HTTPFound
 from lms.models.public_id import InvalidPublicId
 from lms.security import Permissions
 from lms.services import OrganizationService
@@ -114,7 +114,7 @@ class AdminCourseViews:
                 "dashboard.course",
                 # pylint:disable=protected-access
                 public_id=course.application_instance.organization._public_id,
-                id=course.id,
+                id_=course.id,
             ),
         )
         return response

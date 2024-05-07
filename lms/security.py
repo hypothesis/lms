@@ -105,7 +105,7 @@ class SecurityPolicy:
             return LMSGoogleSecurityPolicy()
 
         if path.startswith("/dashboard/organization/") or path.startswith(
-            "/api/assignment/"
+            ("/api/assignment/", "/api/course/")
         ):
             # For certain routes we only use the google policy in case it resulted
             # non empty identity.

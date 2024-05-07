@@ -220,6 +220,7 @@ def includeme(config):  # pylint:disable=too-many-statements
 
     config.add_route("admin.courses", "/admin/courses")
     config.add_route("admin.course", "/admin/course/{id_}")
+    config.add_route("admin.course.dashboard", "/admin/course/{id_}/dashboard")
 
     config.add_route("admin.assignment", "/admin/assignment/{id_}")
     config.add_route("admin.assignment.dashboard", "/admin/assignment/{id_}/dashboard")
@@ -238,4 +239,11 @@ def includeme(config):  # pylint:disable=too-many-statements
         "/dashboard/organization/{public_id}/assignment/{id_}",
         factory="lms.resources.dashboard.DashboardResource",
     )
+    config.add_route(
+        "dashboard.course",
+        "/dashboard/organization/{public_id}/course/{id_}",
+        factory="lms.resources.dashboard.DashboardResource",
+    )
+
     config.add_route("api.assignment.stats", "/api/assignment/{id_}/stats")
+    config.add_route("api.course.stats", "/api/course/{id_}/stats")
