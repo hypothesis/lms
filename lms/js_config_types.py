@@ -1,3 +1,8 @@
+"""
+Types of the config exposed to the frontend and API return values.
+
+Making this a top level module to avoid circular dependency problems.
+"""
 from typing import NotRequired, TypedDict
 
 
@@ -6,11 +11,22 @@ class APICallInfo(TypedDict):
     authUrl: NotRequired[str]
 
 
-class AssignmentConfig(TypedDict):
+class APIAssignment(TypedDict):
+    id: int
     title: str
 
 
-class AssignmentDashboardConfig(TypedDict):
-    assignment: AssignmentConfig
+class APIStudentStats(TypedDict):
+    display_name: str
+    annotations: int
+    replies: int
+    last_activity: str
 
-    assignmentStatsApi: APICallInfo
+
+class DashboardLinks(TypedDict):
+    assignmentApi: str
+    assignmentStatsApi: str
+
+
+class DashboardConfig(TypedDict):
+    links: DashboardLinks
