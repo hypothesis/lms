@@ -86,11 +86,11 @@ class File(TypedDict):
     id: str
     display_name: str
 
-    duration: float | None
+    duration: NotRequired[float]
     """Duration of media in seconds."""
 
     updated_at: str
-    thumbnail_url: str | None
+    thumbnail_url: NotRequired[str]
 
     contents: NotRequired[APICallInfo]
     """API call to use to fetch contents of a folder."""
