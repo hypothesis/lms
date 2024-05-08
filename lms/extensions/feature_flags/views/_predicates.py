@@ -40,7 +40,7 @@ class FeatureFlagViewPredicate:
         """
         return self.text()
 
-    def __call__(self, context, request):
+    def __call__(self, context, request):  # noqa: ARG002
         """
         Return ``True`` if ``request`` matches this view predicate.
 

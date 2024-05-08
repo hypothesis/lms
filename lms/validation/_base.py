@@ -91,7 +91,7 @@ class PyramidRequestSchema(PlainSchema):
         return parser.parse(self, self.context["request"], *args, **kwargs)
 
     @staticmethod
-    def _handle_error(error, _req, _schema, *, error_status_code, error_headers):
+    def _handle_error(error, _req, _schema, *, error_status_code, error_headers):  # noqa: ARG004
         raise ValidationError(messages=error.messages) from error
 
 

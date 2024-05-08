@@ -149,7 +149,7 @@ class CanvasPreRecordHook:
     def __init__(self, request):
         self.request = request
 
-    def __call__(self, score=None, request_body=None) -> dict:
+    def __call__(self, score=None, request_body=None) -> dict:  # noqa: ARG002
         speedgrader_url = self.get_speedgrader_launch_url()
 
         #  A `datetime.datetime` that indicates when the submission was

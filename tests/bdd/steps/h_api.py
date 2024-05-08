@@ -25,7 +25,7 @@ class HAPIContext(StepContext):
         )
 
         # Catch URLs we aren't expecting or have failed to mock
-        def error_response(request, uri, response_headers):
+        def error_response(request, uri, response_headers):  # noqa: ARG001
             raise NotImplementedError(f"Unexpected call to URL: {request.method} {uri}")
 
         httpretty.register_uri(method=Any(), uri=re.compile(".*"), body=error_response)

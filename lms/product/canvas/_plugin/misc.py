@@ -41,8 +41,8 @@ class CanvasMiscPlugin(MiscPlugin):
     def get_assignment_configuration(
         self,
         request,
-        assignment: Assignment | None,
-        historical_assignment: Assignment | None,
+        assignment: Assignment | None,  # noqa: ARG002
+        historical_assignment: Assignment | None,  # noqa: ARG002
     ) -> AssignmentConfig:
         document_url = self._get_document_url(request)
 

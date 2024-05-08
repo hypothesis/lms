@@ -28,7 +28,9 @@ class TestDBRollbackSessionOnExceptionTween:
 
     @pytest.fixture
     def handler(self):
-        return mock.create_autospec(lambda request: None)  # pragma: nocover
+        return mock.create_autospec(
+            lambda request: None  # noqa: ARG005
+        )  # pragma: nocover  # noqa: ARG005
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):

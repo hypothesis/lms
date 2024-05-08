@@ -18,7 +18,7 @@ from lms.services.mailchimp import (
 #: A factory for course dicts as expected by the instructor_email_digest template.
 CourseDict = make_factory(
     dict,
-    title=Sequence(lambda n: "Course {n}"),
+    title=Sequence(lambda n: "Course {n}"),  # noqa: ARG005
     num_annotations=3,
     annotators=[sentinel.student_1, sentinel.student_2],
 )

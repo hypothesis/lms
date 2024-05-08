@@ -29,7 +29,7 @@ class CanvasGroupingPlugin(GroupingPlugin):
             self._custom_course_id(course)
         )
 
-    def get_sections_for_instructor(self, svc, course):
+    def get_sections_for_instructor(self, svc, course):  # noqa: ARG002
         if self._strict_section_membership:
             # Return only sections the current instructor belongs to
             return self._canvas_api.authenticated_users_sections(

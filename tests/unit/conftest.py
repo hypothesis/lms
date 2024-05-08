@@ -118,7 +118,7 @@ def pyramid_request(db_session, application_instance, lti_v11_params):
     pyramid_request = testing.DummyRequest(db=db_session)
     pyramid_request.POST.update(lti_v11_params)
     pyramid_request.feature = mock.create_autospec(
-        lambda feature: False,
+        lambda feature: False,  # noqa: ARG005
         return_value=False,  # pragma: no cover
     )
     pyramid_request.lti_user = factories.LTIUser(
@@ -183,7 +183,7 @@ def configure_jinja2_assets(config):
     jinja2_env = config.get_jinja2_environment()
     jinja2_env.globals["asset_url"] = "http://example.com"
     jinja2_env.globals["asset_urls"] = (
-        lambda bundle: "http://example.com"
+        lambda bundle: "http://example.com"  # noqa: ARG005
     )  # pragma: no cover
     jinja2_env.globals["js_config"] = {}
 

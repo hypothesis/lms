@@ -69,6 +69,9 @@ disable = [
 
     # Issues to disable this for false positives, disabling it globally in the meantime https://github.com/PyCQA/pylint/issues/214
     "duplicate-code",
+
+    # Ported to ruff
+    "unused-argument",
 ]
 
 # Just disable PyLint's name style checking for the tests, because we

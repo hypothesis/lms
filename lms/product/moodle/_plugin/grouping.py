@@ -48,7 +48,11 @@ class MoodleGroupingPlugin(GroupingPlugin):
         raise GroupError(ErrorCodes.STUDENT_NOT_IN_GROUP, group_set=group_set_id)
 
     def get_groups_for_grading(
-        self, svc, course, group_set_id, grading_student_id=None
+        self,
+        svc,  # noqa: ARG002
+        course,
+        group_set_id,
+        grading_student_id=None,  # noqa: ARG002
     ):
         return self._api.groups_for_user(
             course.lms_id, group_set_id, grading_student_id

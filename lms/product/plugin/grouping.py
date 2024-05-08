@@ -3,7 +3,6 @@ from enum import Enum
 from lms.models import Course, Grouping
 
 
-# pylint: disable=unused-argument
 class GroupingPlugin:
     """
     An abstraction between a specific LMS API and different grouping types.
@@ -24,52 +23,69 @@ class GroupingPlugin:
     """The type of sections this plugin supports. `None` disables support."""
 
     def get_sections_for_learner(
-        self, svc, course: Course
+        self,
+        svc,  # noqa: ARG002
+        course: Course,  # noqa: ARG002
     ) -> list | None:  # pragma: nocover
         """Get the sections from context when launched by a normal learner."""
 
         return None
 
     def get_sections_for_instructor(
-        self, svc, course: Course
+        self,
+        svc,  # noqa: ARG002
+        course: Course,  # noqa: ARG002
     ) -> list | None:  # pragma: nocover
         """Get the sections from context when launched by an instructor."""
 
         return None
 
     def get_sections_for_grading(
-        self, svc, course: Course, grading_student_id
+        self,
+        svc,  # noqa: ARG002
+        course: Course,  # noqa: ARG002
+        grading_student_id,  # noqa: ARG002
     ) -> list | None:  # pragma: nocover
         """Get the sections for a learner when they are being graded."""
 
         return None
 
-    def get_group_sets(self, course) -> list[dict]:  # pragma: nocover
+    def get_group_sets(self, course) -> list[dict]:  # pragma: nocover  # noqa: ARG002
         """Return the list of group sets for the given course."""
         return []
 
     def get_groups_for_learner(
-        self, svc, course: Course, group_set_id
+        self,
+        svc,  # noqa: ARG002
+        course: Course,  # noqa: ARG002
+        group_set_id,  # noqa: ARG002
     ) -> list | None:  # pragma: nocover
         """Get the sections from context when launched by a normal learner."""
 
         return None
 
     def get_groups_for_instructor(
-        self, svc, course: Course, group_set_id
+        self,
+        svc,  # noqa: ARG002
+        course: Course,  # noqa: ARG002
+        group_set_id,  # noqa: ARG002
     ) -> list | None:  # pragma: nocover
         """Get the groups from context when launched by an instructor."""
 
         return None
 
     def get_groups_for_grading(
-        self, svc, course: Course, group_set_id, grading_student_id
+        self,
+        svc,  # noqa: ARG002
+        course: Course,  # noqa: ARG002
+        group_set_id,  # noqa: ARG002
+        grading_student_id,  # noqa: ARG002
     ) -> list | None:  # pragma: nocover
         """Get the groups for a learner when they are being graded."""
 
         return None
 
-    def sections_enabled(self, request, application_instance, course) -> bool:
+    def sections_enabled(self, request, application_instance, course) -> bool:  # noqa: ARG002
         """Check if sections are enabled for this LMS, instance and course."""
         return bool(self.sections_type)
 
