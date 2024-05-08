@@ -94,7 +94,7 @@ class OAuth2Token(Base):
     received_at = sa.Column(
         sa.DateTime,
         default=datetime.datetime.utcnow,
-        server_default=sa.func.now(),  # pylint:disable=not-callable
+        server_default=sa.func.now(),
         nullable=False,
     )
 

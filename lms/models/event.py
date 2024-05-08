@@ -33,7 +33,7 @@ class Event(Base):
 
     timestamp = sa.Column(
         sa.DateTime(),
-        server_default=sa.func.now(),  # pylint:disable=not-callable
+        server_default=sa.func.now(),
         nullable=False,
         index=True,
     )

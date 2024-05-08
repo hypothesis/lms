@@ -42,8 +42,7 @@ class LTIRoleService:
         self, ai: ApplicationInstance, roles: list[LTIRole]
     ) -> list[Role]:
         self._db.flush()  # Make sure roles have IDs
-        # pylint:disable=no-member
-        overrides = self._db.execute(
+        overrides = self._db.execute(  # type: ignore
             select(
                 LTIRole.value.label("value"),
                 func.coalesce(LTIRoleOverride.type, LTIRole.type).label("type"),

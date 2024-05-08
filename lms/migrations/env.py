@@ -6,7 +6,7 @@ from sqlalchemy import MetaData, engine_from_config, pool
 
 # Import all model modules here in order to populate the metadata
 # for 'autogenerate' support
-from lms import models  # noqa
+from lms import models
 from lms.db import Base
 
 # this is the Alembic Config object, which provides

@@ -51,7 +51,7 @@ class FileService:
         """Insert or update a batch of files."""
         for value in file_dicts:
             value["application_instance_id"] = self._application_instance.id
-            value["updated"] = func.now()  # pylint:disable=not-callable
+            value["updated"] = func.now()
 
         return bulk_upsert(
             self._db,
