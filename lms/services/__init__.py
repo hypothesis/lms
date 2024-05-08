@@ -146,8 +146,8 @@ def includeme(config):
     # Importing them here to:
     # - Don't pollute the lms.services namespace
     # - Ease some circular-dependency problems
-    # pylint:disable=import-outside-toplevel
-    from lms.product.plugin.course_copy import (
+
+    from lms.product.plugin.course_copy import (  # noqa: PLC0415
         CourseCopyFilesHelper,
         CourseCopyGroupsHelper,
     )

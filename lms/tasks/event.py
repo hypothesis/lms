@@ -6,8 +6,8 @@ from lms.tasks.celery import app
 def insert_event(event: dict) -> None:
     with app.request_context() as request:  # pylint: disable=no-member
         with request.tm:
-            # pylint:disable=import-outside-toplevel,cyclic-import
-            from lms.services.event import EventService
+            # pylint:disable=cyclic-import
+            from lms.services.event import EventService  # noqa: PLC0415
 
             request.find_service(EventService).insert_event(
                 BaseEvent(request=request, **event)

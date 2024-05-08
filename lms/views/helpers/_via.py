@@ -20,7 +20,7 @@ def _common_via_params(request) -> dict:
     }
 
 
-def via_url(  # noqa: PLR0913
+def via_url(  # noqa: PLR0913, PLR0917
     request, document_url, content_type=None, options=None, headers=None, query=None
 ):
     """

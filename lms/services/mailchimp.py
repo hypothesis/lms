@@ -42,7 +42,7 @@ class MailchimpService:
         self.db = db
         self.mailchimp_client = mailchimp_transactional.Client(api_key)
 
-    def send(  # noqa: PLR0913
+    def send(  # noqa: PLR0913, PLR0917
         self,
         template: str,
         sender: EmailSender,

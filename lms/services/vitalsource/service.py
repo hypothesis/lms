@@ -18,7 +18,7 @@ class VitalSourceService:
     before they can use the H LMS app.
     """
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913, PLR0917
         self,
         enabled: bool = False,
         global_client: VitalSourceClient | None = None,
