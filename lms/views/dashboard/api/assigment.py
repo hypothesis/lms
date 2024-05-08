@@ -1,6 +1,6 @@
 from pyramid.view import view_config
 
-from lms.js_config_types import APIAssignment, APIAssignmentStats
+from lms.js_config_types import APIAssignment, APIStudentStats
 from lms.models import RoleScope, RoleType
 from lms.security import Permissions
 from lms.services.h_api import HAPI
@@ -32,7 +32,7 @@ class AssignmentViews:
         renderer="json",
         permission=Permissions.DASHBOARD_VIEW,
     )
-    def api_assignment_stats(self) -> APIAssignmentStats:
+    def api_assignment_stats(self) -> list[APIStudentStats]:
         """Fetch the stats for one particular assignment."""
         assignment = get_request_assignment(self.request, self.assignment_service)
         stats = self.h_api.get_assignment_stats(
