@@ -184,12 +184,12 @@ class _RoleParser:
                 break
 
         # No scope, default to the narrowest, COURSE
-        scope = cls._SCOPE_MAP.get(role_parts.get("scope"), RoleScope.COURSE)
+        scope = cls._SCOPE_MAP.get(role_parts.get("scope", ""), RoleScope.COURSE)
 
         # In system and institution roles the main type is "person"
         if role_parts.get("type") == "person":
             role_parts["type"] = role_parts["sub_type"]
 
-        type_ = cls._TYPE_MAP.get(role_parts.get("type"), RoleType.LEARNER)
+        type_ = cls._TYPE_MAP.get(role_parts.get("type", ""), RoleType.LEARNER)
 
         return scope, type_

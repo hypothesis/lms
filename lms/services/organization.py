@@ -378,7 +378,7 @@ class OrganizationService:
         recursive_case = self._db_session.query(*cols).join(base_case, join_condition)
 
         # This will recurse until no new rows are added
-        rows = self._db_session.query(base_case.union(recursive_case)).all()
+        rows = self._db_session.query(base_case.union(recursive_case)).all()  # type: ignore
         return [row[0] for row in rows]
 
 

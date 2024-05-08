@@ -116,13 +116,13 @@ class Grouping(CreatedUpdatedMixin, Base):
     type = varchar_enum(Type, nullable=False)
 
     settings: Mapped[JSONSettings] = mapped_column(
-        JSONSettings.as_mutable(JSONB),
+        JSONSettings.as_mutable(JSONB()),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
     )
 
     extra: Mapped[MutableDict] = mapped_column(
-        MutableDict.as_mutable(JSONB),
+        MutableDict.as_mutable(JSONB()),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
     )

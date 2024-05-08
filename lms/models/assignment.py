@@ -56,7 +56,7 @@ class Assignment(CreatedUpdatedMixin, Base):
     """The URL of the document to be annotated for this assignment."""
 
     extra: Mapped[MutableDict] = mapped_column(
-        MutableDict.as_mutable(JSONB),
+        MutableDict.as_mutable(JSONB()),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
     )

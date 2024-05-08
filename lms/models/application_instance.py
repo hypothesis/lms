@@ -107,7 +107,7 @@ class ApplicationInstance(CreatedUpdatedMixin, Base):
         nullable=False,
     )
     settings: Mapped[ApplicationSettings] = mapped_column(
-        ApplicationSettings.as_mutable(JSONB),
+        ApplicationSettings.as_mutable(JSONB()),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
     )
