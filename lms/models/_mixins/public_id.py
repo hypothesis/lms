@@ -2,6 +2,7 @@ from os import environ
 
 import sqlalchemy as sa
 from sqlalchemy.ext.hybrid import Comparator, hybrid_property
+from sqlalchemy.orm import Mapped, mapped_column
 
 from lms.models.public_id import PublicId
 from lms.models.region import Region
@@ -29,7 +30,7 @@ class _PublicIdComparator(
 
 
 class PublicIdMixin:
-    _public_id = sa.Column(
+    _public_id: Mapped[str] = mapped_column(
         "public_id",
         sa.UnicodeText(),
         nullable=False,
@@ -44,7 +45,7 @@ class PublicIdMixin:
     should be used instead which provides a fully qualified id.
     """
 
-    public_id_model_code: str | None = None
+    public_id_model_code: str
     """The short code which identifies this type of model."""
 
     @hybrid_property

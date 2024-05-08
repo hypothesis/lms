@@ -34,7 +34,7 @@ class LTIGradingService:  # pragma: no cover
     https://www.imsglobal.org/spec/lti-ags/v2p0#migrating-from-basic-outcomes-service
     """
 
-    def __init__(self, line_item_url: str, line_item_container_url: str):
+    def __init__(self, line_item_url: str, line_item_container_url: str | None):
         """
         Initialize the service.
 

@@ -41,7 +41,7 @@ class Organization(CreatedUpdatedMixin, PublicIdMixin, Base):
     """Get any application instances associated with this organization."""
 
     settings: Mapped[JSONSettings] = mapped_column(
-        JSONSettings.as_mutable(JSONB),
+        JSONSettings.as_mutable(JSONB()),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
     )

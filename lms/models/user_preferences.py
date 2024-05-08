@@ -11,9 +11,9 @@ class UserPreferences(CreatedUpdatedMixin, Base):
     __tablename__ = "user_preferences"
 
     id = Column(Integer, autoincrement=True, primary_key=True)
-    h_userid = Column(Unicode, nullable=False, unique=True)
+    h_userid: Mapped[str] = mapped_column(Unicode, nullable=False, unique=True)
     preferences: Mapped[MutableDict] = mapped_column(
-        MutableDict.as_mutable(JSONB),
+        MutableDict.as_mutable(JSONB()),
         server_default=text("'{}'::jsonb"),
         nullable=False,
     )

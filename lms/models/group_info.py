@@ -89,7 +89,7 @@ class GroupInfo(Base):
 
     #: A dict of info about this group.
     _info: Mapped[MutableDict | None] = mapped_column(
-        "info", MutableDict.as_mutable(JSONB)
+        "info", MutableDict.as_mutable(JSONB())
     )
 
     @property

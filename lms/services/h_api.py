@@ -4,7 +4,7 @@ import json
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Iterator
+from typing import Iterator, Sequence
 
 from h_api.bulk_api import BulkAPI, CommandBuilder
 
@@ -140,7 +140,7 @@ class HAPI:
 
     def get_groups(
         self,
-        groups: list[str],
+        groups: Sequence[str],
         annotations_created_after: datetime,
         annotations_created_before: datetime,
     ) -> Iterator[HAPIGroup]:

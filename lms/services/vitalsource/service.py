@@ -222,7 +222,7 @@ class VitalSourceService:
         return None
 
     @staticmethod
-    def compile_user_lti_pattern(pattern: str) -> re.Pattern | None:
+    def compile_user_lti_pattern(pattern: str | None) -> re.Pattern | None:
         """
         Compile and vet a user id pattern.
 

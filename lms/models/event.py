@@ -130,7 +130,7 @@ class EventData(Base):
 
     data: Mapped[MutableDict] = mapped_column(
         "extra",
-        MutableDict.as_mutable(JSONB),
+        MutableDict.as_mutable(JSONB()),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
     )
