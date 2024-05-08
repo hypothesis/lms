@@ -238,6 +238,7 @@ def includeme(config):  # pylint:disable=too-many-statements
         "/dashboard/organization/{public_id}/assignment/{id_}",
         factory="lms.resources.dashboard.DashboardResource",
     )
+
     config.add_route("dashboard.api.assignment", "/dashboard/api/assignment/{id_}")
     config.add_route(
         "dashboard.api.assignment.stats", "/dashboard/api/assignment/{id_}/stats"
