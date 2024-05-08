@@ -152,3 +152,8 @@ export type StudentStats = {
   annotations: number;
   replies: number;
 };
+
+export type APIAssignment = {
+  id: number;
+  title: string;
+};

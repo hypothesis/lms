@@ -240,11 +240,15 @@ export type EmailPreferences = {
   flashMessage: string | null;
 };
 
+type TemplateString = string; // Just to "annotate" which are template strings URLs
+
+type DashboardUrls = {
+  assignmentApi: TemplateString;
+  assignmentStatsApi: TemplateString;
+};
+
 export type DashboardConfig = {
-  assignment: {
-    title: string;
-  };
-  assignmentStatsApi: APICallInfo;
+  links: DashboardUrls; // TODO This should be "routes", not "links"
 };
 
 /**

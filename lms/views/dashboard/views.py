@@ -5,7 +5,6 @@ from pyramid.view import forbidden_view_config, view_config
 
 from lms.js_config_types import DashboardConfig, DashboardLinks
 from lms.security import Permissions
-from lms.validation.authentication import BearerTokenSchema
 from lms.views.dashboard.base import get_request_assignment
 
 
