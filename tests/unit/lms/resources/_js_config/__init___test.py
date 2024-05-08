@@ -682,20 +682,12 @@ class TestEnableErrorDialogMode:
 
 
 class TestEnableDashboardMode:
-    def test_it(self, js_config, db_session):
-        assignment = factories.Assignment()
-        db_session.flush()  # force assignment to have an ID
-
-        js_config.enable_dashboard_mode(assignment)
+    def test_it(self, js_config):
+        js_config.enable_dashboard_mode(sentinel.config)
         config = js_config.asdict()
 
         assert config["mode"] == JSConfig.Mode.DASHBOARD
-        assert config["dashboard"] == {
-            "assignment": {"title": assignment.title},
-            "assignmentStatsApi": {
-                "path": f"/api/assignment/{assignment.id}/stats",
-            },
-        }
+        assert config["dashboard"] == sentinel.config
 
 
 class TestEnableInstructorDashboardEntryPoint:

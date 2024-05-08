@@ -6,9 +6,9 @@ import requests
 from marshmallow import EXCLUDE, Schema, fields, post_load
 from pyramid.httpexceptions import HTTPBadRequest
 
+from lms.js_config_types import APICallInfo
 from lms.models.oauth2_token import Service
 from lms.models.user import User
-from lms.js_config_types import APICallInfo
 from lms.services.aes import AESService
 from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 from lms.services.oauth_http import OAuthHTTPService
