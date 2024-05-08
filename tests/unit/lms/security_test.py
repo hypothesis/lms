@@ -429,7 +429,7 @@ class TestSecurityPolicy:
         assert user_id == get_policy.return_value.forget.return_value
 
     @pytest.mark.parametrize(
-        "path", ["/api/assignment/10", "/dashboard/organization/ORGID"]
+        "path", ["/dashboard/api/assignment/10", "/dashboard/organization/ORGID"]
     )
     def test_get_policy_google_when_available(
         self, pyramid_request, path, LMSGoogleSecurityPolicy
