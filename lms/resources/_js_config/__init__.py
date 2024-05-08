@@ -4,6 +4,7 @@ from typing import Any, TypedDict
 
 from lms.error_code import ErrorCode
 from lms.events import LTIEvent
+from lms.js_config_types import DashboardConfig
 from lms.models import Assignment, Course, Grouping
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
@@ -12,7 +13,6 @@ from lms.resources._js_config.file_picker_config import FilePickerConfig
 from lms.services import HAPI, EventService, HAPIError, JSTORService, VitalSourceService
 from lms.validation.authentication import BearerTokenSchema
 from lms.views.helpers import via_url
-from lms.js_config_types import DashboardConfig
 
 
 class JSConfig:
