@@ -10,33 +10,6 @@ filterwarnings = [
     "ignore:^'cgi' is deprecated and slated for removal in Python 3\\.13$:DeprecationWarning:webob",
 ]
 
-[tool.pydocstyle]
-ignore = [
-    # Missing docstrings.
-    "D100","D101","D102","D103","D104","D105","D106","D107",
-
-    # "No blank lines allowed after function docstring" conflicts with the
-    # Black code formatter which insists on inserting blank lines after
-    # function docstrings.
-    "D202",
-
-    # "1 blank line required before class docstring" conflicts with another
-    # pydocstyle rule D211 "No blank lines allowed before class docstring".
-    "D203",
-
-    # "Multi-line docstring summary should start at the first line"
-    # and "Multi-line docstring summary should start at the second line".
-    # These two rules conflict with each other so you have to disable one of them.
-    # How about we disable them both? PEP 257 says either approach is okay:
-    #
-    # > The summary line may be on the same line as the opening quotes or on
-    # > the next line.
-    # >
-    # > https://peps.python.org/pep-0257/#multi-line-docstrings
-    "D212",
-    "D213",
-]
-
 [tool.coverage.run]
 branch = true
 parallel = true
@@ -134,6 +107,53 @@ score = "no"
 target-version = "py311"
 line-length = 88
 
+[tool.ruff.lint]
+select = [
+  "E", "W", #  https://docs.astral.sh/ruff/rules/#pycodestyle-e-w
+  "D", # https://docs.astral.sh/ruff/rules/#pydocstyle-d
+]
+
+ignore = [
+    # Missing docstrings.
+    "D100","D101","D102","D103","D104","D105","D106","D107",
+
+    # "No blank lines allowed after function docstring" conflicts with the
+    # Black code formatter which insists on inserting blank lines after
+    # function docstrings.
+    "D202",
+
+    # "1 blank line required before class docstring" conflicts with another
+    # pydocstyle rule D211 "No blank lines allowed before class docstring".
+    "D203",
+
+    # "Multi-line docstring summary should start at the first line"
+    # and "Multi-line docstring summary should start at the second line".
+    # These two rules conflict with each other so you have to disable one of them.
+    # How about we disable them both? PEP 257 says either approach is okay:
+    #
+    # > The summary line may be on the same line as the opening quotes or on
+    # > the next line.
+    # >
+    # > https://peps.python.org/pep-0257/#multi-line-docstrings
+    "D212",
+    "D213",
+
+    # We use Black to format our code automatically, so we don't need PyLint to
+    # check formatting for us.
+    "E501", # line-too-long
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+    # Just disable name style checking for the tests, because we
+    # frequently use lots of argument names that don't conform.
+    # For example we frequently create pytest fixtures that aren't named in
+    # snake_case, such as a fixture that returns a mock of the FooBar class would
+    # be named FooBar in CamelCase.
+    "N",
+    # We are more lax about  comment formatting in the tests
+    "D",
+] 
 
 [tool.hdev]
 project_name = "lms"

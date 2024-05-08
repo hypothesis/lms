@@ -426,8 +426,6 @@ pyasn1-modules==0.3.0
     #   -r functests.txt
     #   -r tests.txt
     #   google-auth
-pycodestyle==2.11.1
-    # via -r lint.in
 pycparser==2.21
     # via
     #   -r bddtests.txt
@@ -439,8 +437,6 @@ pycryptodomex==3.19.1
     #   -r bddtests.txt
     #   -r functests.txt
     #   -r tests.txt
-pydocstyle==6.3.0
-    # via -r lint.in
 pyjwt[crypto]==2.8.0
     # via
     #   -r bddtests.txt
@@ -558,6 +554,8 @@ rsa==4.9
     #   -r functests.txt
     #   -r tests.txt
     #   google-auth
+ruff==0.4.3
+    # via -r lint.in
 sentry-sdk==2.0.1
     # via
     #   -r bddtests.txt
@@ -573,8 +571,6 @@ six==1.16.0
     #   mailchimp-transactional
     #   parse-type
     #   python-dateutil
-snowballstemmer==2.2.0
-    # via pydocstyle
 soupsieve==2.5
     # via
     #   -r bddtests.txt
@@ -600,8 +596,6 @@ tabulate==0.9.0
     #   -r functests.txt
     #   -r tests.txt
     #   data-tasks
-toml==0.10.2
-    # via -r lint.in
 tomlkit==0.12.3
     # via pylint
 transaction==4.0
