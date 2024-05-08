@@ -103,6 +103,9 @@ disable = [
     "too-many-arguments",
     "import-outside-toplevel",
     "too-many-statements",
+    # Mostly false positives, better served by mypy
+    "not-callable",
+    "no-member",
 
 ]
 
@@ -127,6 +130,8 @@ select = [
   "BLE001", # https://docs.astral.sh/ruff/rules/blind-except/
   "R", "PLR", # https://docs.astral.sh/ruff/rules/#refactor-r
   "C", "PLC", # https://docs.astral.sh/ruff/rules/#convention-c
+
+  "RUF100", # unused-noqa
 ]
 
 ignore = [

@@ -49,7 +49,7 @@ def send_instructor_email_digest_tasks():
         year=now.year, month=now.month, day=now.day, hour=5, tzinfo=timezone.utc
     )
 
-    with app.request_context() as request:  # pylint:disable=no-member
+    with app.request_context() as request:
         with request.tm:
             candidate_courses = (
                 select(Event.course_id)
@@ -151,7 +151,7 @@ def send_instructor_email_digest(
     else:
         created_after: datetime = datetime.fromisoformat(created_after)  # type: ignore
 
-    with app.request_context() as request:  # pylint:disable=no-member
+    with app.request_context() as request:
         with request.tm:
             task_done_data = _get_task_done_data(request.db, h_userid)
 

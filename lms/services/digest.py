@@ -320,7 +320,6 @@ class DigestContext:
 
         row = self._db.execute(
             select(
-                # pylint:disable=not-callable
                 User.h_userid,
                 # The most recent email address for each h_userid.
                 func.array_agg(aggregate_order_by(User.email, User.updated.desc()))
@@ -358,7 +357,6 @@ class DigestContext:
 
         query = (
             select(
-                # pylint:disable=not-callable
                 Course.authority_provided_id,
                 # All authority_provided_id's associated with each authority_provided_id.
                 # This includes the authority_provided_id of the course group

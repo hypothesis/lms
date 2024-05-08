@@ -17,7 +17,7 @@ def send(*, sender, recipient, **kwargs) -> None:
     sender = EmailSender(**sender)
     recipient = EmailRecipient(**recipient)
 
-    with app.request_context() as request:  # pylint:disable=no-member
+    with app.request_context() as request:
         mailchimp_service = request.find_service(name="mailchimp")
         with request.tm:
             mailchimp_service.send(sender=sender, recipient=recipient, **kwargs)

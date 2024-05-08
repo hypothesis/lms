@@ -101,7 +101,7 @@ class RSAKeyService:
         return (
             self._db.query(RSAKey)
             .filter_by(expired=False)
-            .order_by(func.random())  # pylint:disable=not-callable
+            .order_by(func.random())
             .first()
         )
 

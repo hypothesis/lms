@@ -17,7 +17,7 @@ def delete_expired_rows():
 
     This is intended to be called periodically.
     """
-    with app.request_context() as request:  # pylint:disable=no-member
+    with app.request_context() as request:
         with request.tm:
             request.db.execute(
                 delete(TaskDone).where(TaskDone.expires_at < datetime.utcnow())

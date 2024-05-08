@@ -52,7 +52,7 @@ class MoodleGroupingPlugin(GroupingPlugin):
         svc,  # noqa: ARG002
         course,
         group_set_id,
-        grading_student_id=None,  # noqa: ARG002
+        grading_student_id=None,
     ):
         return self._api.groups_for_user(
             course.lms_id, group_set_id, grading_student_id

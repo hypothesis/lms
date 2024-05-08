@@ -63,7 +63,7 @@ class GroupingService:
                 "authority_provided_id": self.get_authority_provided_id(
                     grouping["lms_id"], type_, parent
                 ),
-                "updated": func.now(),  # pylint:disable=not-callable
+                "updated": func.now(),
                 # From params
                 "parent_id": parent_id,
                 "copied_from_id": copied_from_id,
@@ -103,7 +103,7 @@ class GroupingService:
                 {
                     "grouping_id": group.id,
                     "user_id": user.id,
-                    "updated": func.now(),  # pylint:disable=not-callable
+                    "updated": func.now(),
                 }
                 for group in groups
             ],

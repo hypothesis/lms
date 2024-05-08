@@ -1,4 +1,3 @@
-# noqa: PLC0415
 import os
 import sys
 from contextlib import suppress
@@ -9,7 +8,9 @@ from lms import models, services, tasks
 
 
 def setup(env):
-    from h_testkit import set_factoryboy_sqlalchemy_session  # type: ignore # noqa: PLC0415
+    from h_testkit import (  # noqa: PLC0415
+        set_factoryboy_sqlalchemy_session,  # type: ignore
+    )
 
     sys.path = ["."] + sys.path
 
