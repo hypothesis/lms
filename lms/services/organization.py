@@ -83,8 +83,7 @@ class OrganizationService:
 
         return hierarchy[-1]
 
-    # pylint:disable=too-many-arguments
-    def search(
+    def search(  # noqa: PLR0913
         self, id_=None, public_id=None, name=None, guid=None, limit=100
     ) -> list[Organization]:
         """
@@ -199,7 +198,7 @@ class OrganizationService:
 
         return org
 
-    def update_organization(
+    def update_organization(  # noqa: PLR0913
         self,
         organization: Organization,
         name=None,

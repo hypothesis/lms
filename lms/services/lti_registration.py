@@ -54,7 +54,7 @@ class LTIRegistrationService:
 
         return query
 
-    def create_registration(  # pylint:disable=too-many-arguments
+    def create_registration(  # noqa: PLR0913
         self,
         issuer: str,
         client_id: str,

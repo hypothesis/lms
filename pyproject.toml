@@ -100,6 +100,7 @@ disable = [
     # Ported to ruff
     "unused-argument",
     "broad-exception-caught",
+    "too-many-arguments",
 
 ]
 
@@ -122,6 +123,7 @@ select = [
   "D", # https://docs.astral.sh/ruff/rules/#pydocstyle-d
   "ARG", # https://docs.astral.sh/ruff/rules/#flake8-unused-arguments-arg
   "BLE001", # https://docs.astral.sh/ruff/rules/blind-except/
+  "R", "PLR", # https://docs.astral.sh/ruff/rules/#refactor-r
 ]
 
 ignore = [
@@ -152,6 +154,12 @@ ignore = [
     # We use Black to format our code automatically, so we don't need PyLint to
     # check formatting for us.
     "E501", # line-too-long
+
+    "PLR2004", # Magic values, we mostly get it on HTTP status codes
+
+    # Disabled during the pylint migration, ideally we'll enable this after we are settled in ruff
+    "RET504",
+    "RET501",
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -164,6 +172,8 @@ ignore = [
     "N",
     # We are more lax about  comment formatting in the tests
     "D",
+    
+    "PLR0913",
 ] 
 
 [tool.hdev]

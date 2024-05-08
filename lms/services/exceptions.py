@@ -39,7 +39,7 @@ class ExternalRequestError(Exception):
     :type validation_errors: JSON-serializable dict
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         message=None,
         request=None,
@@ -48,7 +48,7 @@ class ExternalRequestError(Exception):
         refreshable=False,
         refresh_route: str | None = None,
         refresh_service: Service | None = None,
-    ):  # pylint: disable=too-many-arguments
+    ):
         super().__init__()
         self.message = message
         self.request = request

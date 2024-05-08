@@ -18,8 +18,7 @@ class VitalSourceService:
     before they can use the H LMS app.
     """
 
-    # pylint: disable=too-many-arguments
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         enabled: bool = False,
         global_client: VitalSourceClient | None = None,
@@ -77,7 +76,7 @@ class VitalSourceService:
 
         return self._metadata_client.get_table_of_contents(book_id)
 
-    def get_document_url(
+    def get_document_url(  # noqa: PLR0913
         self,
         book_id: str,
         page: str | None = None,

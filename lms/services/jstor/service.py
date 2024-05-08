@@ -21,8 +21,7 @@ class JSTORService:
     DEFAULT_DOI_PREFIX = "10.2307"
     """Used when no DOI prefix can be found."""
 
-    # pylint: disable=too-many-arguments
-    def __init__(self, api_url, secret, enabled, site_code, headers=None):
+    def __init__(self, api_url, secret, enabled, site_code, headers=None):  # noqa: PLR0913
         """
         Initialise the JSTOR service.
 

@@ -275,7 +275,7 @@ class MoodleAPIClient:
 
         return url + f"&wsfunction={function.value}"
 
-    def _documents_for_storage(  # pylint:disable=too-many-arguments
+    def _documents_for_storage(  # noqa: PLR0913
         self, course_id, files, folder_type, document_type, parent_id=None
     ):
         for file in files:

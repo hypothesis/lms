@@ -1,4 +1,4 @@
-def includeme(config):  # pylint:disable=too-many-statements
+def includeme(config):  # noqa: PLR0915
     config.add_route("index", "/")
     config.add_route("welcome", "/welcome")  # Legacy view, points to "/" now
     config.add_route("feature_flags_test", "/flags/test")

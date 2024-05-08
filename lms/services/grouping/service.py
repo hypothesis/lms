@@ -172,8 +172,7 @@ class GroupingService:
 
         return self._to_groupings(user, groupings, course, self.plugin.sections_type)
 
-    # pylint:disable=too-many-arguments
-    def get_groups(
+    def get_groups(  # noqa: PLR0913
         self,
         user: User,
         lti_user: LTIUser,

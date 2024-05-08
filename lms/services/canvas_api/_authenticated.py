@@ -16,7 +16,7 @@ class AuthenticatedClient:
     :raise CanvasAPIServerError: if the request fails for any other reason
     """
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(  # noqa: PLR0913
         self,
         basic_client,
         oauth2_token_service,
@@ -41,7 +41,7 @@ class AuthenticatedClient:
         self._client_secret = client_secret
         self._redirect_uri = redirect_uri
 
-    def send(self, method, path, schema, timeout=DEFAULT_TIMEOUT, params=None):  # pylint:disable=too-many-arguments
+    def send(self, method, path, schema, timeout=DEFAULT_TIMEOUT, params=None):  # noqa: PLR0913
         """
         Send a Canvas API request, and retry it if there are OAuth problems.
 

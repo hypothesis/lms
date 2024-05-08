@@ -118,8 +118,7 @@ class _OAuthRequestValidator(RequestValidator):
 
         return True
 
-    def validate_timestamp_and_nonce(
-        # pylint: disable=too-many-arguments
+    def validate_timestamp_and_nonce(  # noqa: PLR0913
         # Not our design, we have to fit in with this API
         self,
         client_key,  # noqa: ARG002

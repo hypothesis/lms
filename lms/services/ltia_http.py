@@ -15,7 +15,7 @@ LOG = logging.getLogger(__name__)
 class LTIAHTTPService:
     """Send LTI Advantage requests and return the responses."""
 
-    def __init__(  # pylint:disable=too-many-arguments
+    def __init__(  # noqa: PLR0913
         self,
         lti_registration: LTIRegistration,
         plugin: MiscPlugin,

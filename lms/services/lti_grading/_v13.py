@@ -23,7 +23,7 @@ class LTI13GradingService(LTIGradingService):
         "https://purl.imsglobal.org/spec/lti-ags/scope/score",
     ]
 
-    def __init__(  # pylint:disable=too-many-arguments
+    def __init__(  # noqa: PLR0913
         self,
         line_item_url,
         line_item_container_url,
