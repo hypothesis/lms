@@ -96,6 +96,9 @@ disable = [
 
     # False positives and flaky behaviour
     "unsubscriptable-object",
+
+    # Ported to ruff
+    "unused-argument",
 ]
 
 good-names = [
@@ -115,6 +118,7 @@ line-length = 88
 select = [
   "E", "W", #  https://docs.astral.sh/ruff/rules/#pycodestyle-e-w
   "D", # https://docs.astral.sh/ruff/rules/#pydocstyle-d
+  "ARG", # https://docs.astral.sh/ruff/rules/#flake8-unused-arguments-arg
 ]
 
 ignore = [

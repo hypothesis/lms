@@ -108,12 +108,12 @@ class _OAuthRequestValidator(RequestValidator):
 
         self.application_instance_service = application_instance_service
 
-    def check_client_key(self, client_key):
+    def check_client_key(self, client_key):  # noqa: ARG002
         """Check that the client key only contains safe characters."""
 
         return True
 
-    def check_nonce(self, nonce):
+    def check_nonce(self, nonce):  # noqa: ARG002
         """Check that the nonce only contains only safe characters."""
 
         return True
@@ -122,18 +122,18 @@ class _OAuthRequestValidator(RequestValidator):
         # pylint: disable=too-many-arguments
         # Not our design, we have to fit in with this API
         self,
-        client_key,
-        timestamp,
-        nonce,
-        request,
-        request_token=None,
-        access_token=None,
+        client_key,  # noqa: ARG002
+        timestamp,  # noqa: ARG002
+        nonce,  # noqa: ARG002
+        request,  # noqa: ARG002
+        request_token=None,  # noqa: ARG002
+        access_token=None,  # noqa: ARG002
     ):
         """Validate that the nonce has not been used before."""
 
         return True
 
-    def validate_client_key(self, client_key, request):
+    def validate_client_key(self, client_key, request):  # noqa: ARG002
         """Validate that supplied client key is registered and valid."""
 
         # This is slightly incorrect, but we are just going to say the client
@@ -143,7 +143,7 @@ class _OAuthRequestValidator(RequestValidator):
 
         return True
 
-    def get_client_secret(self, client_key, request):
+    def get_client_secret(self, client_key, request):  # noqa: ARG002
         """Retrieve the client secret associated with the client key."""
 
         try:

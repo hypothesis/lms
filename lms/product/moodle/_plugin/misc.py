@@ -54,5 +54,5 @@ class MoodleMiscPlugin(MiscPlugin):
         return self._assignment_config_from_deep_linked_config(deep_linked_config)
 
     @classmethod
-    def factory(cls, _context, request):  # pragma: no cover
+    def factory(cls, _context, request):  # pragma: no cover  # noqa: ARG003
         return cls()

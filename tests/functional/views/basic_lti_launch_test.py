@@ -85,7 +85,7 @@ class TestBasicLTILaunch:
         )
 
     @pytest.fixture(autouse=True)
-    def application_instance(self, db_session):  # pylint:disable=unused-argument
+    def application_instance(self, db_session):  # noqa: ARG002
         return factories.ApplicationInstance(
             tool_consumer_instance_guid="IMS Testing",
             organization=factories.Organization(),

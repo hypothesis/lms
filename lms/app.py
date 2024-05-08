@@ -11,7 +11,7 @@ def configure_jinja2_assets(config):
     jinja2_env.globals["asset_urls"] = config.registry["assets_env"].urls
 
 
-def create_app(global_config, **settings):  # pylint: disable=unused-argument
+def create_app(global_config, **settings):  # noqa: ARG001
     config = configure(settings=settings)
 
     # Make sure that pyramid_exclog's tween runs under pyramid_tm's tween so

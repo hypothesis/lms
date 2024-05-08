@@ -44,7 +44,7 @@ def make_jwt(jwt_headers, jwt_private_key):
 
 
 @pytest.fixture(autouse=True)
-def lti_registration(db_session):  # pylint:disable=unused-argument
+def lti_registration(db_session):  # noqa: ARG001
     return factories.LTIRegistration(
         issuer="https://ltiadvantagevalidator.imsglobal.org",
         client_id="imstester_4ba76ab",

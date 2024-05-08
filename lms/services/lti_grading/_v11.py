@@ -43,7 +43,7 @@ class LTI11GradingService(LTIGradingService):
 
         return result
 
-    def record_result(self, grading_id, score=None, pre_record_hook=None, comment=None):
+    def record_result(self, grading_id, score=None, pre_record_hook=None, comment=None):  # noqa: ARG002
         request = {"resultRecord": {"sourcedGUID": {"sourcedId": grading_id}}}
 
         if score is not None:
