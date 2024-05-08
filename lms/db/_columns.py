@@ -1,7 +1,7 @@
 import sqlalchemy as sa
 
 
-def varchar_enum(  # noqa: PLR0913
+def varchar_enum(  # noqa: PLR0913, PLR0917
     enum,
     default=None,
     max_length=64,

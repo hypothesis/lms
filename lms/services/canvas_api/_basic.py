@@ -41,7 +41,7 @@ class BasicClient:
         self._session = session or Session()
         self._canvas_host = canvas_host
 
-    def send(  # noqa: PLR0913
+    def send(  # noqa: PLR0913, PLR0917
         self,
         method,
         path,

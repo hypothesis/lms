@@ -42,7 +42,7 @@ class JSConfig:
     def _application_instance(self):
         return self._lti_user.application_instance
 
-    def add_document_url(  # pylint: disable=too-complex,too-many-branches,useless-suppression  # noqa: PLR0912
+    def add_document_url(  # pylint: disable=too-complex,too-many-branches,useless-suppression  # noqa: C901, PLR0912
         self, document_url
     ) -> None:
         """

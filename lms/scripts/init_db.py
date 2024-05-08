@@ -9,7 +9,7 @@ Usage:
 
 """
 
-# pylint:disable=import-outside-toplevel,unused-import
+# pylint:disable=unused-import
 import argparse
 import logging
 from os import environ
@@ -43,7 +43,7 @@ def delete(engine: Engine) -> None:
     """Delete any existing DB tables."""
 
     try:
-        from lms.db import pre_delete
+        from lms.db import pre_delete  # noqa: PLC0415
     except ImportError:
         pass
     else:
@@ -52,7 +52,7 @@ def delete(engine: Engine) -> None:
     Base.metadata.drop_all(engine)
 
     try:
-        from lms.db import post_delete
+        from lms.db import post_delete  # noqa: PLC0415
     except ImportError:
         pass
     else:
@@ -63,7 +63,7 @@ def create(engine: Engine) -> None:
     """Create new DB tables from the app's models."""
 
     try:
-        from lms.db import pre_create
+        from lms.db import pre_create  # noqa: PLC0415
     except ImportError:
         pass
     else:
@@ -72,7 +72,7 @@ def create(engine: Engine) -> None:
     Base.metadata.create_all(engine)
 
     try:
-        from lms.db import post_create
+        from lms.db import post_create  # noqa: PLC0415
     except ImportError:
         pass
     else:

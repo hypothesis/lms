@@ -19,7 +19,7 @@ https://docs.valence.desire2learn.com/about.html#principal-version-table
 class BasicClient:
     """A low-level D2L API client."""
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913, PLR0917
         self,
         client_id,
         client_secret,

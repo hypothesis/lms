@@ -197,7 +197,7 @@ class ApplicationInstanceService:
         )
 
     # pylint: disable=too-complex
-    def _ai_search_query(  # noqa: PLR0913
+    def _ai_search_query(  # noqa: C901, PLR0913
         self,
         *,
         id_=None,
@@ -261,7 +261,7 @@ class ApplicationInstanceService:
 
         return query
 
-    def update_application_instance(  # noqa: PLR0913
+    def update_application_instance(  # noqa: PLR0913, PLR0917
         self,
         application_instance,
         name=None,
@@ -302,7 +302,7 @@ class ApplicationInstanceService:
                     }
                 )
 
-    def create_application_instance(  # noqa: PLR0913
+    def create_application_instance(  # noqa: PLR0913, PLR0917
         self,
         lms_url,
         email,

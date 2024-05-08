@@ -39,7 +39,7 @@ class ExternalRequestError(Exception):
     :type validation_errors: JSON-serializable dict
     """
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913, PLR0917
         self,
         message=None,
         request=None,

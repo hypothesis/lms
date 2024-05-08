@@ -1,3 +1,4 @@
+# noqa: PLC0415
 import os
 import sys
 from contextlib import suppress
@@ -8,12 +9,11 @@ from lms import models, services, tasks
 
 
 def setup(env):
-    # pylint:disable=import-outside-toplevel
-    from h_testkit import set_factoryboy_sqlalchemy_session  # type: ignore
+    from h_testkit import set_factoryboy_sqlalchemy_session  # type: ignore # noqa: PLC0415
 
     sys.path = ["."] + sys.path
 
-    from tests import factories  # pylint:disable=import-outside-toplevel
+    from tests import factories  # noqa: PLC0415
 
     sys.path = sys.path[1:]
 
