@@ -34,7 +34,7 @@ class DigestService:
         self._email_preferences_service = email_preferences_service
         self._sender = sender
 
-    def send_instructor_email_digest(  # pylint:disable=too-many-arguments
+    def send_instructor_email_digest(  # noqa: PLR0913
         self,
         h_userid,
         created_after,

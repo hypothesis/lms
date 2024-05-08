@@ -45,7 +45,7 @@ class BlackboardErrorResponseSchema(RequestsResponseSchema):
 class BasicClient:
     """A low-level Blackboard API client."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         blackboard_host,
         client_id,
@@ -53,7 +53,7 @@ class BasicClient:
         redirect_uri,
         http_service,
         oauth_http_service,
-    ):  # pylint:disable=too-many-arguments
+    ):
         self.blackboard_host = blackboard_host
         self.client_id = client_id
         self.client_secret = client_secret

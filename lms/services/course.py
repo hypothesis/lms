@@ -77,7 +77,7 @@ class CourseService:
             copied_from=historical_course,
         )
 
-    def search(  # pylint:disable=too-many-arguments
+    def search(  # noqa: PLR0913
         self,
         id_: int | None = None,
         context_id: str | None = None,
@@ -134,7 +134,7 @@ class CourseService:
 
         return query.one_or_none()
 
-    def upsert_course(  # pylint:disable=too-many-arguments
+    def upsert_course(  # noqa: PLR0913
         self,
         context_id,
         name,

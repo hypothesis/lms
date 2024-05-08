@@ -19,7 +19,7 @@ https://docs.valence.desire2learn.com/about.html#principal-version-table
 class BasicClient:
     """A low-level D2L API client."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         client_id,
         client_secret,
@@ -27,7 +27,7 @@ class BasicClient:
         redirect_uri,
         http_service,
         oauth_http_service,
-    ):  # pylint:disable=too-many-arguments
+    ):
         self.lms_host = lms_host
 
         self.client_id = client_id

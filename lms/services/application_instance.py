@@ -158,7 +158,7 @@ class ApplicationInstanceService:
         except NoResultFound as err:
             raise ApplicationInstanceNotFound() from err
 
-    def search(  # pylint:disable=too-many-arguments
+    def search(  # noqa: PLR0913
         self,
         *,
         id_=None,
@@ -196,8 +196,8 @@ class ApplicationInstanceService:
             .all()
         )
 
-    # pylint: disable=too-complex,too-many-arguments
-    def _ai_search_query(
+    # pylint: disable=too-complex
+    def _ai_search_query(  # noqa: PLR0913
         self,
         *,
         id_=None,
@@ -261,7 +261,7 @@ class ApplicationInstanceService:
 
         return query
 
-    def update_application_instance(  # pylint:disable=too-many-arguments
+    def update_application_instance(  # noqa: PLR0913
         self,
         application_instance,
         name=None,
@@ -302,7 +302,7 @@ class ApplicationInstanceService:
                     }
                 )
 
-    def create_application_instance(  # pylint:disable=too-many-arguments
+    def create_application_instance(  # noqa: PLR0913
         self,
         lms_url,
         email,

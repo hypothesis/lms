@@ -41,8 +41,7 @@ class BasicClient:
         self._session = session or Session()
         self._canvas_host = canvas_host
 
-    def send(
-        # pylint: disable=too-many-arguments
+    def send(  # noqa: PLR0913
         self,
         method,
         path,

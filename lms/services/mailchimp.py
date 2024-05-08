@@ -42,7 +42,7 @@ class MailchimpService:
         self.db = db
         self.mailchimp_client = mailchimp_transactional.Client(api_key)
 
-    def send(  # pylint:disable=too-many-arguments
+    def send(  # noqa: PLR0913
         self,
         template: str,
         sender: EmailSender,

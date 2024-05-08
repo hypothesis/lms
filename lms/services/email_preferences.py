@@ -42,7 +42,7 @@ class TokenPayload:
 
 
 class EmailPreferencesService:
-    def __init__(  # pylint:disable=too-many-arguments
+    def __init__(  # noqa: PLR0913
         self,
         db,
         secret: str,

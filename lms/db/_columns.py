@@ -1,7 +1,7 @@
 import sqlalchemy as sa
 
 
-def varchar_enum(  # pylint:disable=too-many-arguments
+def varchar_enum(  # noqa: PLR0913
     enum,
     default=None,
     max_length=64,
