@@ -3,6 +3,7 @@ Types of the config exposed to the frontend and API return values.
 
 Making this a top level module to avoid circular dependency problems.
 """
+
 from typing import NotRequired, TypedDict
 
 
