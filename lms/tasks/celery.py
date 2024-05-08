@@ -82,7 +82,7 @@ def bootstrap_worker(sender, **_kwargs):  # pragma: no cover
     try:
         lms = create_app(None, **{})
 
-    except Exception:  # pylint: disable=broad-except
+    except Exception:  # noqa: BLE001
         # If we don't bail out here ourselves, Celery just hides the error
         # and continues. This means `request_context` will not be available
         # when attempting to run tasks, which is impossible to debug.
