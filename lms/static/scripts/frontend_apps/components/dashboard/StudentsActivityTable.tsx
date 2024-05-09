@@ -6,33 +6,32 @@ import {
 } from '@hypothesis/frontend-shared';
 import type { DataTableProps } from '@hypothesis/frontend-shared';
 import { useState } from 'preact/hooks';
+import { useParams } from 'wouter-preact';
 
-import type { StudentStats } from '../../api-types';
+import type { APIAssignment, StudentStats } from '../../api-types';
+import { useConfig } from '../../config';
+import { useAPIFetch } from '../../utils/api';
 import { formatDateTime } from '../../utils/date';
-
-export type AssignmentInfo = {
-  title: string;
-};
-
-export type StudentsActivityTableProps = {
-  assignment: AssignmentInfo;
-  students: StudentStats[];
-  loading?: boolean;
-};
 
 type MandatoryOrder<T> = NonNullable<DataTableProps<T>['order']>;
 
-export default function StudentsActivityTable({
-  assignment,
-  students,
-  loading,
-}: StudentsActivityTableProps) {
-  const title = `Assignment: ${assignment.title}`;
+export default function StudentsActivityTable() {
+  const { dashboard } = useConfig(['dashboard']);
+  const { links: routes } = dashboard;
+  const { assignmentId } = useParams<{ assignmentId: string }>();
+  const assignment = useAPIFetch<APIAssignment>(
+    routes.assignmentApi.replace(':id_', assignmentId),
+  );
+  const students = useAPIFetch<StudentStats[]>(
+    routes.assignmentStatsApi.replace(':id_', assignmentId),
+  );
+
+  const title = `Assignment: ${assignment.data?.title}`;
   const [order, setOrder] = useState<MandatoryOrder<StudentStats>>({
     field: 'display_name',
     direction: 'ascending',
   });
-  const orderedStudents = useOrderedRows(students, order);
+  const orderedStudents = useOrderedRows(students.data ?? [], order);
 
   return (
     <Card>
@@ -44,7 +43,7 @@ export default function StudentsActivityTable({
           grid
           striped={false}
           emptyMessage="No students found"
-          title={title}
+          title={assignment.isLoading ? 'Loading...' : title}
           columns={[
             { field: 'display_name', label: 'Name', classes: 'w-[60%]' },
             { field: 'annotations', label: 'Annotations' },
@@ -61,7 +60,7 @@ export default function StudentsActivityTable({
               ? formatDateTime(new Date(stats[field]))
               : stats[field];
           }}
-          loading={loading}
+          loading={students.isLoading}
           orderableColumns={[
             'display_name',
             'annotations',
