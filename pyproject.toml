@@ -146,7 +146,6 @@ project_type = "application"
 python_version = 3.11
 
 disable_error_code = [
-    "attr-defined",
     "import-untyped",
 ]
 
