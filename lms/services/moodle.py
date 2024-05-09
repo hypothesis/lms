@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Literal, NotRequired, TypedDict
 
 from lms.services.aes import AESService
 from lms.services.exceptions import ExternalRequestError
@@ -20,6 +21,23 @@ class Function(str, Enum):
 
     GET_PAGES = "mod_page_get_pages_by_courses"
     """Returns a list of pages in a provided list of courses."""
+
+
+class File(TypedDict):
+    """Represents a file or folder in an LMS's file storage."""
+
+    type: Literal["File", "Folder"]
+    mime_type: NotRequired[Literal["text/html", "application/pdf", "video"]]
+
+    id: str
+    """ID in our system"""
+    lms_id: str
+    """Raw ID in the LMS"""
+
+    display_name: str
+
+    updated_at: NotRequired[str]
+    children: NotRequired[list["File"]]
 
 
 class MoodleAPIClient:
@@ -141,9 +159,13 @@ class MoodleAPIClient:
         }
 
     def list_pages(self, course_id: int):
+        root: File = {  # type:ignore
+            "type": "Folder",
+            "display_name": "",
+            "children": [],
+        }
         contents = self.course_contents(course_id)
-        root = {"type": "Folder", "display_name": "", "children": []}
-        folders = {root["display_name"]: root}
+        folders: dict[str, File] = {root["display_name"]: root}
 
         for topic in contents:
             topic_name = topic["name"]
@@ -153,7 +175,7 @@ class MoodleAPIClient:
                 # Pages can only be at the top level modules
                 if module["modname"] == "page":
                     if topic_name not in folders:
-                        new_folder = {
+                        new_folder: File = {
                             "type": "Folder",
                             "display_name": topic_name,
                             "id": f"{course_id}-{topic_name}",
@@ -172,7 +194,7 @@ class MoodleAPIClient:
                     )
                     updated_at = page_index[0]["updated_at"] if page_index else None
 
-                    file_node = {
+                    file_node: File = {
                         "type": "File",
                         "mime_type": "text/html",
                         "display_name": module["name"],
