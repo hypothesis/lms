@@ -144,6 +144,10 @@ project_type = "application"
 
 [tool.mypy]
 python_version = 3.11
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
 
 disable_error_code = [
     "import-untyped",

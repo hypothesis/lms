@@ -63,9 +63,8 @@ class LTIUserService:
             },
         }
 
-    def deserialize(self, **kwargs: dict) -> LTIUser:  # type: ignore
+    def deserialize(self, **kwargs: dict) -> LTIUser:
         """Create an LTIUser based on kwargs."""
-        # type: ignore
         application_instance = self._application_instance_service.get_for_launch(
             kwargs["application_instance_id"]  # type: ignore
         )

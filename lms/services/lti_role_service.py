@@ -31,7 +31,7 @@ class LTIRoleService:
             role.update_from_value()
 
         if missing := (set(role_strings) - set(role.value for role in roles)):
-            new_roles = [LTIRole(value=value) for value in missing]  # type: ignore
+            new_roles = [LTIRole(value=value) for value in missing]
             self._db.add_all(new_roles)
 
             roles.extend(new_roles)
@@ -43,7 +43,7 @@ class LTIRoleService:
     ) -> list[Role]:
         self._db.flush()  # Make sure roles have IDs
         # pylint:disable=no-member
-        overrides = self._db.execute(  # type: ignore
+        overrides = self._db.execute(
             select(
                 LTIRole.value.label("value"),
                 func.coalesce(LTIRoleOverride.type, LTIRole.type).label("type"),
