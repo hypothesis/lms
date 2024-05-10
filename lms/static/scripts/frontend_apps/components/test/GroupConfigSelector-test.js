@@ -21,6 +21,7 @@ describe('GroupConfigSelector', () => {
   let fakeConfig;
   let fakeGroupSets;
   let fakeIsAuthorizationError;
+  let wrappers;
 
   beforeEach(() => {
     fakeGroupSets = [
@@ -33,6 +34,7 @@ describe('GroupConfigSelector', () => {
         name: 'Group Set 2',
       },
     ];
+    wrappers = [];
 
     fakeAPICall = sinon.stub();
     fakeAPICall.withArgs(groupSetsAPIRequest).resolves(fakeGroupSets);
@@ -66,6 +68,7 @@ describe('GroupConfigSelector', () => {
 
   afterEach(() => {
     $imports.$restore();
+    wrappers.forEach(w => w.unmount());
   });
 
   // Helper that simulates GroupConfigSelector's containing component.
@@ -83,7 +86,10 @@ describe('GroupConfigSelector', () => {
   }
 
   function createComponent(props = {}) {
-    return mount(<Container {...props} />);
+    const wrapper = mount(<Container {...props} />);
+    wrappers.push(wrapper);
+
+    return wrapper;
   }
 
   function toggleCheckbox(wrapper) {

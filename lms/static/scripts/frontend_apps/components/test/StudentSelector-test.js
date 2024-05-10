@@ -8,12 +8,13 @@ import StudentSelector, { $imports } from '../StudentSelector';
 
 describe('StudentSelector', () => {
   let fakeStudents;
+  let wrappers;
 
   const renderSelector = (props = {}) => {
     const fakeOnSelectStudent = sinon.stub();
     const fakeSelectedStudentIndex = 0;
 
-    return mount(
+    const wrapper = mount(
       <StudentSelector
         onSelectStudent={fakeOnSelectStudent}
         selectedStudentIndex={fakeSelectedStudentIndex}
@@ -21,6 +22,9 @@ describe('StudentSelector', () => {
         {...props}
       />,
     );
+    wrappers.push(wrapper);
+
+    return wrapper;
   };
 
   beforeEach(() => {
@@ -33,10 +37,12 @@ describe('StudentSelector', () => {
         displayName: 'Student 2',
       },
     ];
+    wrappers = [];
   });
 
   afterEach(() => {
     $imports.$restore();
+    wrappers.forEach(w => w.unmount());
   });
 
   it('shall have "All Students" as the default option', () => {
