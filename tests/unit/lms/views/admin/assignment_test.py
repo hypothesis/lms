@@ -9,7 +9,6 @@ from lms.views.admin.assignment import AdminAssignmentViews
 from tests import factories
 
 
-# pylint:disable=protected-access
 class TestAdminAssignmentViews:
     def test_show(self, pyramid_request, assignment_service, views):
         pyramid_request.matchdict["id_"] = sentinel.id
@@ -58,7 +57,7 @@ class TestAdminAssignmentViews:
         pyramid_request.registry.notify.has_call_with(AuditTrailEvent.return_value)
         assert response == Any.instance_of(HTTPFound).with_attrs(
             {
-                "location": f"http://example.com/dashboard/organization/{organization._public_id}/assignment/{assignment.id}",
+                "location": f"http://example.com/dashboard/organization/{organization._public_id}/assignment/{assignment.id}",  # noqa: SLF001
             }
         )
 

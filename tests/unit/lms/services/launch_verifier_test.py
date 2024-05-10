@@ -198,8 +198,7 @@ class TestVerifyLaunchRequestMocked:
         oauth_endpoint = create_autospec(
             SignatureOnlyEndpoint, instance=True, spec_set=True
         )
-        # pylint: disable=protected-access
-        verifier._oauth1_endpoint = oauth_endpoint
+        verifier._oauth1_endpoint = oauth_endpoint  # noqa: SLF001
 
         return oauth_endpoint
 

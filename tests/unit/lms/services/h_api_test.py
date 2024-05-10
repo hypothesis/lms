@@ -16,7 +16,6 @@ from tests import factories
 class TestHAPI:
     # We're accessing h_api._api_request a lot in this test class, so disable
     # protected-access messages.
-    # pylint: disable=protected-access
 
     def test_bulk_action_process_commands_correctly(self, h_api, BulkAPI):
         h_api.execute_bulk([sentinel.command_1, sentinel.command_2])
@@ -224,7 +223,7 @@ class TestHAPI:
         ]
 
     def test__api_request(self, h_api, http_service):
-        h_api._api_request(sentinel.method, "dummy-path", body=sentinel.raw_body)
+        h_api._api_request(sentinel.method, "dummy-path", body=sentinel.raw_body)  # noqa: SLF001
 
         assert http_service.request.call_args_list == [
             call(
@@ -240,7 +239,7 @@ class TestHAPI:
         ]
 
     def test_if_given_custom_headers__api_request_adds_them(self, h_api, http_service):
-        h_api._api_request(
+        h_api._api_request(  # noqa: SLF001
             sentinel.method, "dummy-path", headers={"X-Header": sentinel.header}
         )
 
@@ -255,7 +254,7 @@ class TestHAPI:
         http_service.request.side_effect = exception
 
         with pytest.raises(HAPIError) as exc_info:
-            h_api._api_request(sentinel.method, "dummy-path")
+            h_api._api_request(sentinel.method, "dummy-path")  # noqa: SLF001
 
         # It records the requests exception that caused the HAPIError.
         assert exc_info.value.__cause__ == exception
@@ -264,7 +263,7 @@ class TestHAPI:
         http_service.request.side_effect = OSError()
 
         with pytest.raises(OSError):
-            h_api._api_request(sentinel.method, "dummy-path")
+            h_api._api_request(sentinel.method, "dummy-path")  # noqa: SLF001
 
     def test_get_userid(self, h_api):
         assert h_api.get_userid("username") == "acct:username@lms.hypothes.is"
@@ -293,7 +292,7 @@ class TestHAPI:
     @pytest.fixture
     def _api_request(self, h_api):
         with patch.object(h_api, "_api_request", autospec=True):
-            yield h_api._api_request
+            yield h_api._api_request  # noqa: SLF001
 
 
 class TestServiceFactory:

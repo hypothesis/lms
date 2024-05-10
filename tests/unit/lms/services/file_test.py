@@ -23,8 +23,7 @@ class TestFileService:
         db_session.flush()
 
         # Assert we an in fact querying by other AI
-        # pylint: disable=protected-access
-        assert svc._application_instance != same_guid_ai
+        assert svc._application_instance != same_guid_ai  # noqa: SLF001
         assert svc.get(file_.lms_id, file_.type) == file_
 
     def test_get_returns_None_if_theres_no_matching_file(self, svc):

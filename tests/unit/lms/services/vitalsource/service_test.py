@@ -101,7 +101,7 @@ class TestVitalSourceService:
         assert result == user_reference
 
     def test_check_h_license_disabled(self, svc, pyramid_request):
-        svc._student_pay_enabled = False  # pylint:disable=protected-access
+        svc._student_pay_enabled = False  # noqa: SLF001
 
         assert not svc.check_h_license(
             pyramid_request.lti_user, pyramid_request.lti_params, sentinel.assignment
@@ -120,7 +120,7 @@ class TestVitalSourceService:
     def test_check_h_license_course_launch(
         self, request, svc, pyramid_request, user_fixture, code
     ):
-        svc._student_pay_enabled = True  # pylint:disable=protected-access
+        svc._student_pay_enabled = True  # noqa: SLF001
         _ = request.getfixturevalue(user_fixture)
 
         assert (
@@ -132,7 +132,7 @@ class TestVitalSourceService:
 
     @pytest.mark.usefixtures("user_is_learner")
     def test_check_h_license_failure(self, svc, pyramid_request, customer_client):
-        svc._student_pay_enabled = True  # pylint:disable=protected-access
+        svc._student_pay_enabled = True  # noqa: SLF001
         customer_client.get_user_book_license.return_value = None
 
         assert (
@@ -150,7 +150,7 @@ class TestVitalSourceService:
 
     @pytest.mark.usefixtures("user_is_learner")
     def test_check_h_license_success(self, svc, pyramid_request, customer_client):
-        svc._student_pay_enabled = True  # pylint:disable=protected-access
+        svc._student_pay_enabled = True  # noqa: SLF001
         customer_client.get_user_book_license.return_value = sentinel.license
 
         assert not (
@@ -165,7 +165,7 @@ class TestVitalSourceService:
     def test_check_h_license_no_license_check_for_instructors(
         self, svc, pyramid_request, customer_client
     ):
-        svc._student_pay_enabled = True  # pylint:disable=protected-access
+        svc._student_pay_enabled = True  # noqa: SLF001
 
         assert not (
             svc.check_h_license(

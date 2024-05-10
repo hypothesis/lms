@@ -23,8 +23,7 @@ class TestVitalSourceClient:
     def test_init(self):
         client = VitalSourceClient(api_key=sentinel.api_key)
 
-        # pylint: disable=protected-access
-        assert client._http_session.session.headers == {
+        assert client._http_session.session.headers == {  # noqa: SLF001
             "X-VitalSource-API-Key": sentinel.api_key
         }
 

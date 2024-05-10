@@ -193,8 +193,6 @@ class TestListAllFiles:
         root_level_files,
         nested_files,
     ):
-        # pylint: disable=protected-access
-
         basic_client.request.side_effect = [
             # Root level first page
             factories.requests.Response(
@@ -241,16 +239,17 @@ class TestListAllFiles:
                 call("GET", "PAGE_2_PATH"),
             ]
         )
-        basic_client._api_url.assert_any_call(
+        basic_client._api_url.assert_any_call(  # noqa: SLF001
             "courses/uuid:COURSE_ID/resources/FIRST PAGE FOLDER ID/children?limit=200&fields=id%2Cname%2Ctype%2Cmodified%2CmimeType%2Csize%2CparentId"
         )
 
         async_oauth_http_service.request.assert_called_with(
-            "GET", [basic_client._api_url.return_value]
+            "GET",
+            [basic_client._api_url.return_value],  # noqa: SLF001
         )
         # Get the pages of the subfolder
         basic_client.request.assert_called_with("GET", "SUBFOLDER_PAGE_2_PATH")
-        basic_client._api_url.assert_called_with(
+        basic_client._api_url.assert_called_with(  # noqa: SLF001
             "courses/uuid:COURSE_ID/resources/FIRST SUBFOLDER FOLDER ID/children?limit=200&fields=id%2Cname%2Ctype%2Cmodified%2CmimeType%2Csize%2CparentId"
         )
 

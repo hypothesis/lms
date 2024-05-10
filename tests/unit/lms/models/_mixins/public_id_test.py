@@ -18,8 +18,7 @@ class ModelTestHost(PublicIdMixin, Base):
 @pytest.mark.xdist_group("ModelTestHost")
 class TestPublicIdMixin:
     def test_public_id_column(self, model):
-        # pylint: disable=protected-access
-        assert model._public_id == Any.string.matching(r"[A-Za-z0-9-_]{22}")
+        assert model._public_id == Any.string.matching(r"[A-Za-z0-9-_]{22}")  # noqa: SLF001
 
     def test_public_id_getter(self, model):
         assert model.public_id == Any.string.matching(
@@ -29,8 +28,7 @@ class TestPublicIdMixin:
     def test_public_id_is_not_generated_when_there_is_no_instance_id(self):
         model = ModelTestHost()
         # Note we aren't flushing, so this should not have a `_public_id`
-        # pylint: disable=protected-access
-        assert not model._public_id
+        assert not model._public_id  # noqa: SLF001
 
         assert not model.public_id
 

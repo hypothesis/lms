@@ -27,8 +27,8 @@ class Plugins:
             self.plugin_name = name
 
         def __get__(self, instance, owner):
-            plugin_class = getattr(instance._plugin_config, self.plugin_name)
-            plugin = instance._request.find_service(iface=plugin_class)
+            plugin_class = getattr(instance._plugin_config, self.plugin_name)  # noqa: SLF001
+            plugin = instance._request.find_service(iface=plugin_class)  # noqa: SLF001
             setattr(instance, self.plugin_name, plugin)  # Overwrite the attr
             return plugin
 

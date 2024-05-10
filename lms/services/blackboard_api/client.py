@@ -135,7 +135,7 @@ class BlackboardAPIClient:
                 # For the rest will have to make a HTTP request per group
                 self_enrollment_groups.append(group)
                 self_enrollment_check_urls.append(
-                    self._api._api_url(  # pylint: disable=protected-access
+                    self._api._api_url(  # noqa: SLF001
                         f"/learn/api/public/v2/courses/uuid:{course_id}/groups/{group['id']}"
                     )
                 )
@@ -223,7 +223,7 @@ class BlackboardAPIClient:
         """Get all the files in the folders included in `results` recursively."""
         # Get all the folder URLs from `results`
         folder_urls = [
-            self._api._api_url(  # pylint: disable=protected-access
+            self._api._api_url(  # noqa: SLF001
                 self._list_files_url(course_id, result["id"])
             )
             for result in results

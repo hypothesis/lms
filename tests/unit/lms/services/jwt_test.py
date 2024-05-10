@@ -179,7 +179,7 @@ class TestJWTService:
     def svc(self, lti_registration_service, rsa_key_service):
         svc = JWTService(lti_registration_service, rsa_key_service)
         # Clear the lru_cache to make tests independent
-        svc._get_jwk_client.cache_clear()  # pylint: disable=protected-access
+        svc._get_jwk_client.cache_clear()  # noqa: SLF001
         return svc
 
 

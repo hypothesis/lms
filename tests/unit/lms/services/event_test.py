@@ -72,7 +72,7 @@ class TestEventService:
         # It will create a new type
         event_type = type_query.one()
         # Clear the @lru_cache of the private method
-        svc._get_type_pk.cache_clear()  # pylint:disable=protected-access
+        svc._get_type_pk.cache_clear()  # noqa: SLF001
         # Insert the event type again
         svc.insert_event(base_event)
         # The type is the same as the first insert

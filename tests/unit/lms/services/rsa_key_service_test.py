@@ -101,8 +101,7 @@ class TestAESService:
         assert key in valid_keys
 
     def test__as_jwk_public_key(self, svc, rsa_key):
-        # pylint: disable=protected-access
-        assert svc._as_jwk_public_key(rsa_key) == {
+        assert svc._as_jwk_public_key(rsa_key) == {  # noqa: SLF001
             "alg": "RS256",
             "kty": "RSA",
             "n": "2BNk2-UPDI3ihR8MXMi11xNzaaS0NiVDTzA7MczlRh9WAqRW3onaCmNgFXmq-hHy1HKIPohMn_N9TvmtrvhTQV_skn4lADYyfxFTsKZkFPJWoOx3sbRJPZVx7HiPaHb72zpTfhwsg5HHa3Sn5Qs8Fybyo33sjbTX1sGZUCq3JGbtEgOii2j19ICS-87AXcMFmCGkaTCFwDoQ38swYDU1YjwhINxx-N5hU19vxA8ZmNexnrpKhvF9C2ejS63xJxMCInfJZFb-Yh2zrzExMLQLpTUEBd0tw1ng66xqkB2LUwr0j-Zdo5_swEepQuOtuLq9omFP345kYIk6IIl0NMcnpQ",

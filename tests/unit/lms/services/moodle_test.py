@@ -211,11 +211,10 @@ class TestMoodleAPIClient:
             aes_service, "moodle", "api_token"
         )
 
-        # pylint:disable=protected-access
-        assert service._lms_url == ai.lms_url
-        assert service._http == http_service
-        assert service._file_service == file_service
-        assert service._token == ai.settings.get_secret.return_value
+        assert service._lms_url == ai.lms_url  # noqa: SLF001
+        assert service._http == http_service  # noqa: SLF001
+        assert service._file_service == file_service  # noqa: SLF001
+        assert service._token == ai.settings.get_secret.return_value  # noqa: SLF001
 
     @pytest.fixture
     def group_sets(self):

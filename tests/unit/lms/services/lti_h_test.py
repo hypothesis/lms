@@ -30,11 +30,10 @@ class TestSync:
 
         assert "commands" in kwargs
 
-        # pylint: disable=protected-access
         assert [command.raw for command in kwargs["commands"]] == [
             CommandBuilder.user.upsert(
                 {
-                    "authority": lti_h_svc._authority,
+                    "authority": lti_h_svc._authority,  # noqa: SLF001
                     "username": h_user.username,
                     "display_name": h_user.display_name,
                     "identities": [
@@ -49,7 +48,7 @@ class TestSync:
         ] + [
             CommandBuilder.group.upsert(
                 {
-                    "authority": lti_h_svc._authority,
+                    "authority": lti_h_svc._authority,  # noqa: SLF001
                     "name": group.name,
                     "authority_provided_id": group.authority_provided_id,
                 },

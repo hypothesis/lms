@@ -106,8 +106,7 @@ class TestBlackboardGroupingPlugin:
     def test_factory(self, pyramid_request, blackboard_api_client):
         plugin = BlackboardGroupingPlugin.factory(sentinel.context, pyramid_request)
         assert isinstance(plugin, BlackboardGroupingPlugin)
-        # pylint: disable=protected-access
-        assert plugin._blackboard_api == blackboard_api_client
+        assert plugin._blackboard_api == blackboard_api_client  # noqa: SLF001
 
     @pytest.fixture
     def plugin(self, blackboard_api_client):

@@ -55,7 +55,7 @@ class TestAssignmentService:
     )
     def test__get_copied_from_assignment(self, svc, param, assignment):
         assert (
-            svc._get_copied_from_assignment(  # pylint:disable=protected-access
+            svc._get_copied_from_assignment(  # noqa: SLF001
                 {
                     param: assignment.resource_link_id,
                     "tool_consumer_instance_guid": assignment.tool_consumer_instance_guid,
@@ -65,7 +65,7 @@ class TestAssignmentService:
         )
 
     def test__get_copied_from_assignment_not_found_bad_parameter(self, svc, assignment):
-        assert not svc._get_copied_from_assignment(  # pylint:disable=protected-access
+        assert not svc._get_copied_from_assignment(  # noqa: SLF001
             {
                 "unknown_param": assignment.resource_link_id,
                 "tool_consumer_instance_guid": assignment.tool_consumer_instance_guid,
@@ -73,7 +73,7 @@ class TestAssignmentService:
         )
 
     def test__get_copied_from_assignment_not_found(self, svc, assignment):
-        assert not svc._get_copied_from_assignment(  # pylint:disable=protected-access
+        assert not svc._get_copied_from_assignment(  # noqa: SLF001
             {
                 "resource_link_id_history": "Unknown_RESOURCE_LINK_ID",
                 "tool_consumer_instance_guid": assignment.tool_consumer_instance_guid,

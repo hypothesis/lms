@@ -218,8 +218,7 @@ class TestDeepLinkingFieldsView:
     ):
         pyramid_request.parsed_params.update({"content": content, **data})
 
-        # pylint:disable=protected-access
-        config = DeepLinkingFieldsViews._get_assignment_configuration(pyramid_request)
+        config = DeepLinkingFieldsViews._get_assignment_configuration(pyramid_request)  # noqa: SLF001
 
         assert config == {
             "deep_linking_uuid": uuid.uuid4().hex,

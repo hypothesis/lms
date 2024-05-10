@@ -410,8 +410,7 @@ class TestGetGroupings:
             },
         ]
 
-        # pylint:disable=protected-access
-        groupings = svc._to_groupings(
+        groupings = svc._to_groupings(  # noqa: SLF001
             sentinel.user, grouping_dicts, sentinel.course, sentinel.grouping_type
         )
 
@@ -437,8 +436,7 @@ class TestGetGroupings:
     ):
         groupings = factories.CanvasSection.create_batch(5)
 
-        # pylint:disable=protected-access
-        svc._to_groupings(
+        svc._to_groupings(  # noqa: SLF001
             sentinel.user, groupings, sentinel.course, sentinel.grouping_type
         )
 
