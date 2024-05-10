@@ -1,6 +1,6 @@
-import { Checkbox, Link, Select } from '@hypothesis/frontend-shared';
+import { Checkbox, Link, SelectNext } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
-import { useCallback, useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
 import type { GroupSet } from '../api-types';
 import { useConfig } from '../config';
@@ -46,6 +46,10 @@ function GroupSelect({
   selectedGroupSetId,
 }: GroupSelectProps) {
   const selectId = useUniqueId('GroupSetSelector__select');
+  const selectedGroupSet = useMemo(
+    () => groupSets?.find(({ id }) => id === selectedGroupSetId),
+    [groupSets, selectedGroupSetId],
+  );
 
   return (
     <div
@@ -60,33 +64,23 @@ function GroupSelect({
       >
         Group set
       </label>
-      <Select
+      <SelectNext
+        value={selectedGroupSet}
+        onChange={newGroupSet => onInput(newGroupSet?.id ?? null)}
+        buttonId={selectId}
         disabled={loading}
-        id={selectId}
-        onInput={(e: Event) =>
-          onInput((e.target as HTMLSelectElement | null)?.value || null)
+        buttonContent={
+          loading
+            ? 'Fetching group sets…'
+            : selectedGroupSet?.name ?? 'Select group set'
         }
       >
-        {loading && <option>Fetching group sets…</option>}
-        {groupSets && (
-          <>
-            <option disabled selected={selectedGroupSetId === null}>
-              Select group set
-            </option>
-            <hr />
-            {groupSets.map(gs => (
-              <option
-                key={gs.id}
-                value={gs.id}
-                selected={gs.id === selectedGroupSetId}
-                data-testid="groupset-option"
-              >
-                {gs.name}
-              </option>
-            ))}
-          </>
-        )}
-      </Select>
+        {groupSets?.map(gs => (
+          <SelectNext.Option value={gs} key={gs.id}>
+            {gs.name}
+          </SelectNext.Option>
+        ))}
+      </SelectNext>
     </div>
   );
 }
