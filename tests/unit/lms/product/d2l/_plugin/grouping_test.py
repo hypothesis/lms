@@ -132,9 +132,8 @@ class TestD2LGroupingPlugin:
     def test_factory(self, pyramid_request, d2l_api_client, misc_plugin):
         plugin = D2LGroupingPlugin.factory(sentinel.context, pyramid_request)
         assert isinstance(plugin, D2LGroupingPlugin)
-        # pylint: disable=protected-access
-        assert plugin._d2l_api == d2l_api_client
-        assert plugin._misc_plugin == misc_plugin
+        assert plugin._d2l_api == d2l_api_client  # noqa: SLF001
+        assert plugin._misc_plugin == misc_plugin  # noqa: SLF001
 
     @pytest.fixture
     def plugin(self, d2l_api_client, misc_plugin):

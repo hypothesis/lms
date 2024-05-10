@@ -131,8 +131,7 @@ class TestMoodleGroupingPlugin:
     def test_factory(self, pyramid_request, moodle_api_client):
         plugin = MoodleGroupingPlugin.factory(sentinel.context, pyramid_request)
         assert isinstance(plugin, MoodleGroupingPlugin)
-        # pylint: disable=protected-access
-        assert plugin._api == moodle_api_client
+        assert plugin._api == moodle_api_client  # noqa: SLF001
 
     @pytest.fixture
     def plugin(self, moodle_api_client, lti_user):

@@ -230,8 +230,7 @@ class TestBasicLaunchViews:
         misc_plugin,
         assignment,
     ):
-        # pylint: disable=protected-access
-        result = svc._show_document(assignment)
+        result = svc._show_document(assignment)  # noqa: SLF001
 
         lti_h_service.sync.assert_called_once_with(
             [course_service.get_from_launch.return_value], pyramid_request.lti_params
@@ -286,8 +285,7 @@ class TestBasicLaunchViews:
             "hypothesis", "instructor_dashboard", instructor_dashboard_enabled
         )
 
-        # pylint: disable=protected-access
-        result = svc._show_document(assignment)
+        result = svc._show_document(assignment)  # noqa: SLF001
 
         if use_toolbar_editing:
             if is_instructor:

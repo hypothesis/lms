@@ -33,7 +33,7 @@ class TestCanvasGroupingPlugin:
     def test_get_sections_for_instructor_with_strict_membership(
         self, canvas_api_client, course, grouping_service, plugin
     ):
-        plugin._strict_section_membership = True  # pylint:disable=protected-access
+        plugin._strict_section_membership = True  # noqa: SLF001
 
         api_groups = plugin.get_sections_for_instructor(grouping_service, course)
 
@@ -222,8 +222,7 @@ class TestCanvasGroupingPlugin:
     def test_factory(self, pyramid_request, canvas_api_client):
         plugin = CanvasGroupingPlugin.factory(sentinel.context, pyramid_request)
         assert isinstance(plugin, CanvasGroupingPlugin)
-        # pylint: disable=protected-access
-        assert plugin._canvas_api == canvas_api_client
+        assert plugin._canvas_api == canvas_api_client  # noqa: SLF001
 
     @pytest.fixture
     def course(self):
