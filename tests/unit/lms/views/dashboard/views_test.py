@@ -1,3 +1,4 @@
+# ruff: noqa: SLF001
 from unittest.mock import create_autospec, sentinel
 
 import pytest
@@ -12,7 +13,6 @@ from lms.views.dashboard.views import DashboardViews
 pytestmark = pytest.mark.usefixtures("h_api", "assignment_service", "course_service")
 
 
-# pylint:disable=protected-access
 class TestDashboardViews:
     @freeze_time("2024-04-01 12:00:00")
     def test_assignment_redirect_from_launch(

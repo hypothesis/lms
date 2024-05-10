@@ -12,7 +12,7 @@ TARGET_KEYS = 5
 def rotate_keys():
     """Periodically (based on h-periodic) rotate RSA keys."""
 
-    with app.request_context() as request:  # pylint: disable=no-member
+    with app.request_context() as request:
         if request.registry.settings["disable_key_rotation"]:
             # Useful for environments where keys might be hardcoded on the LMS side
             # like the local environment and QA

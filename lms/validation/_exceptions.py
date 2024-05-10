@@ -3,12 +3,10 @@ from urllib.parse import parse_qs, urlencode, urlparse
 from pyramid import httpexceptions
 from pyramid.httpexceptions import HTTPFound
 
-# pylint: disable=too-many-ancestors
-
 __all__ = ["ValidationError", "LTIToolRedirect"]
 
 
-class ValidationError(httpexceptions.HTTPUnprocessableEntity):  # pylint: disable=too-many-ancestors
+class ValidationError(httpexceptions.HTTPUnprocessableEntity):
     """
     A schema validation failure.
 

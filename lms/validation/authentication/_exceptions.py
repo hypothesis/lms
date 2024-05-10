@@ -1,6 +1,5 @@
 from lms.validation._exceptions import ValidationError
 
-# pylint: disable=too-many-ancestors
 # ValidationError has a large hierarchy, but we need to inherit from it
 
 __all__ = [
