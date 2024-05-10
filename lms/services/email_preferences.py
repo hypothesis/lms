@@ -17,7 +17,7 @@ class InvalidTokenError(Exception):
 
 
 @dataclass(frozen=True)
-class EmailPrefs:  # pylint:disable=too-many-instance-attributes
+class EmailPrefs:
     DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 
     h_userid: str

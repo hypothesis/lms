@@ -18,7 +18,7 @@ class LTI:
 
 
 @dataclass
-class LTIUser:  # pylint: disable=too-many-instance-attributes
+class LTIUser:
     """An LTI user."""
 
     user_id: str

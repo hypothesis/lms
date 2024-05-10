@@ -8,7 +8,7 @@ from lms.models import EventType
 
 
 @dataclass
-class BaseEvent:  # pylint:disable=too-many-instance-attributes
+class BaseEvent:
     """Base class for generic events."""
 
     type: EventType.Type

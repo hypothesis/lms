@@ -19,7 +19,6 @@ class LTIRoleService:
         """
         role_strings = [role.strip() for role in role_description.split(",")]
 
-        # pylint: disable=no-member
         # Pylint is confused about the `in_` for some reason
         roles = self._db.query(LTIRole).filter(LTIRole.value.in_(role_strings)).all()
 

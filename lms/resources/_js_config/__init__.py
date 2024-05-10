@@ -293,7 +293,7 @@ class JSConfig:
             },
         }
 
-    def enable_file_picker_mode(  # pylint:disable=too-many-arguments
+    def enable_file_picker_mode(  # noqa: PLR0913
         self,
         form_action,
         form_fields,

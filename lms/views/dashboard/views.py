@@ -46,7 +46,6 @@ class DashboardViews:
         response = HTTPFound(
             location=self.request.route_url(
                 "dashboard.assignment",
-                # pylint:disable=protected-access
                 public_id=self.request.lti_user.application_instance.organization._public_id,  # noqa: SLF001
                 assignment_id=assignment_id,
             ),
@@ -92,7 +91,8 @@ class DashboardViews:
             # An LTIUser might not exists if accessing from the admin pages.
             return response
         auth_token = (
-            BearerTokenSchema(self.request).authorization_param(lti_user)
+            BearerTokenSchema(self.request)
+            .authorization_param(lti_user)
             # White space is not allowed as a cookie character, remove the leading part
             .replace("Bearer ", "")
         )

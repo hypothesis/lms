@@ -202,9 +202,7 @@ class HAPI:
         )
         return response.json()
 
-    def _api_request(
-        self, method, path, body=None, headers=None, stream=False
-    ):  # noqa: PLR0913
+    def _api_request(self, method, path, body=None, headers=None, stream=False):  # noqa: PLR0913
         """
         Send any kind of HTTP request to the h API and return the response.
 
