@@ -37,7 +37,7 @@ export default function StudentsActivity() {
     <Card>
       <CardContent>
         <h2 className="text-brand mb-3 text-xl" data-testid="title">
-          {title}
+          {assignment.isLoading ? 'Loading...' : title}
         </h2>
         <DataTable
           grid

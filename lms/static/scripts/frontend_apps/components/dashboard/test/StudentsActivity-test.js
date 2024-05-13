@@ -1,7 +1,12 @@
-import { checkAccessibility } from '@hypothesis/frontend-testing';
+import {
+  checkAccessibility,
+  mockImportedComponents,
+} from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
+import sinon from 'sinon';
 
-import StudentsActivity from '../StudentsActivity';
+import { Config } from '../../../config';
+import StudentsActivity, { $imports } from '../StudentsActivity';
 
 describe('StudentsActivity', () => {
   const students = [
@@ -25,37 +30,62 @@ describe('StudentsActivity', () => {
     },
   ];
 
-  function createComponent({
-    students = [],
-    title = 'The assignment',
-    loading,
-  } = {}) {
-    return mount(
-      <StudentsActivity
-        students={students}
-        assignment={{ title }}
-        loading={loading}
-      />,
-    );
-  }
+  let fakeUseAPIFetch;
+  let fakeConfig;
 
-  ['foo', 'Assignment', 'Hello World'].forEach(title => {
-    it('shows expected title', () => {
-      const wrapper = createComponent({ title });
-      const titleElement = wrapper.find('[data-testid="title"]');
-      const tableElement = wrapper.find('DataTable');
-      const expectedTitle = `Assignment: ${title}`;
+  beforeEach(() => {
+    fakeUseAPIFetch = sinon.stub().callsFake(url => ({
+      isLoading: false,
+      data: url.endsWith('stats') ? students : { title: 'The title' },
+    }));
+    fakeConfig = {
+      dashboard: {
+        links: {
+          assignmentApi: '/api/assignment/:id',
+          assignmentStatsApi: '/api/assignment/:id/stats',
+        },
+      },
+    };
 
-      assert.equal(titleElement.text(), expectedTitle);
-      assert.equal(tableElement.prop('title'), expectedTitle);
+    $imports.$mock(mockImportedComponents());
+    $imports.$mock({
+      '../../utils/api': {
+        useAPIFetch: fakeUseAPIFetch,
+      },
     });
   });
 
-  [true, false].forEach(loading => {
-    it('sets loading state in table', () => {
-      const wrapper = createComponent({ loading });
-      assert.equal(wrapper.find('DataTable').prop('loading'), loading);
-    });
+  afterEach(() => {
+    $imports.$restore();
+  });
+
+  function createComponent() {
+    return mount(
+      <Config.Provider value={fakeConfig}>
+        <StudentsActivity />
+      </Config.Provider>,
+    );
+  }
+
+  it('shows loading indicators while data is loading', () => {
+    fakeUseAPIFetch.returns({ isLoading: true });
+
+    const wrapper = createComponent();
+    const titleElement = wrapper.find('[data-testid="title"]');
+    const tableElement = wrapper.find('DataTable');
+
+    assert.equal(titleElement.text(), 'Loading...');
+    assert.isTrue(tableElement.prop('loading'));
+  });
+
+  it('shows expected title', () => {
+    const wrapper = createComponent();
+    const titleElement = wrapper.find('[data-testid="title"]');
+    const tableElement = wrapper.find('DataTable');
+    const expectedTitle = `Assignment: The title`;
+
+    assert.equal(titleElement.text(), expectedTitle);
+    assert.equal(tableElement.prop('title'), expectedTitle);
   });
 
   [
@@ -130,7 +160,7 @@ describe('StudentsActivity', () => {
     },
   ].forEach(({ orderToSet, expectedStudents }) => {
     it('orders students on order change', () => {
-      const wrapper = createComponent({ students });
+      const wrapper = createComponent();
       const getRows = () => wrapper.find('DataTable').prop('rows');
       const getOrder = () => wrapper.find('DataTable').prop('order');
       const setOrder = order => {
@@ -198,7 +228,7 @@ describe('StudentsActivity', () => {
   it(
     'should pass a11y checks',
     checkAccessibility({
-      content: () => createComponent({ students }),
+      content: () => createComponent(),
     }),
   );
 });
