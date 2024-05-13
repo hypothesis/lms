@@ -15,5 +15,9 @@
           {{ macros.created_updated_fields(assignment) }}
     </fieldset>
 
+    <fieldset class="box mt-6">
+      <legend class="label has-text-centered">Course</legend>
+      {{ macros.course_preview(request, assignment.course) }}
+    </fieldset>
 </div>
 {% endblock %}

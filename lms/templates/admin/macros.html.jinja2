@@ -161,6 +161,13 @@
         <div class="has-text-centered">No Application Instance</div>
     {% endif %}
 {% endmacro %}
+{% macro course_preview(request, course) %}
+    <div class="block has-text-right">
+        <a class="button"
+           href="{{ request.route_url("admin.course", id_=course.id) }}">View</a>
+    </div>
+    <div>{{ disabled_text_field("Name", course.lms_name) }}</div>
+{% endmacro %}
 {% macro registration_preview(request, lti_registration) %}
     {% if lti_registration %}
         <div class="block has-text-right">
@@ -244,6 +251,14 @@
     {{ object_list_table(request, 'admin.assignment', assignments,
         fields=[
         {"label": "Title", "name": "title"},
+        {"label": "Resource link id", "name": "resource_link_id"},
+    ]) }}
+{% endmacro %}
+{% macro courses_table(request, courses) %}
+    {{ object_list_table(request, 'admin.course', courses,
+        fields=[
+        {"label": "Name", "name": "lms_name"},
+        {"label": "Context ID", "name": "lms_name"},
         {"label": "Resource link id", "name": "resource_link_id"},
     ]) }}
 {% endmacro %}

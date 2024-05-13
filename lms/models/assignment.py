@@ -1,11 +1,11 @@
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import Mapped, mapped_column
 
 from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
+from lms.models.grouping import Grouping
 
 
 class Assignment(CreatedUpdatedMixin, Base):
@@ -78,12 +78,24 @@ class Assignment(CreatedUpdatedMixin, Base):
     deep_linking_uuid: Mapped[str | None] = mapped_column(sa.Unicode, nullable=True)
     """UUID that identifies the deep linking that created this assignment."""
 
-    groupings = association_proxy("assignment_grouping", "grouping")
-    """List of groupings this assigments is related to."""
+    groupings: Mapped[list[Grouping]] = sa.orm.relationship(
+        secondary="assignment_grouping", viewonly=True, lazy="dynamic"
+    )
 
     membership = sa.orm.relationship(
         "AssignmentMembership", lazy="dynamic", viewonly=True
     )
+
+    @property
+    def course(self):
+        """Course this assignment belongs to."""
+        return (
+            self.groupings.filter_by(type="course")
+            .order_by(Grouping.created.desc())
+            # While logically one assignment belongs to only one course our grouping table might have more
+            # than one row representing the same course. Return the last created one.
+            .first()
+        )
 
     def get_canvas_mapped_file_id(self, file_id):
         return self.extra.get("canvas_file_mappings", {}).get(file_id, file_id)

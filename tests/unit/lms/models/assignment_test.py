@@ -1,6 +1,9 @@
+import datetime
+
 import pytest
 
 from lms.models import Assignment
+from tests import factories
 
 
 class TestAssignment:
@@ -29,6 +32,23 @@ class TestAssignment:
         self, assignment
     ):
         assert assignment.get_canvas_mapped_file_id("file_id") == "file_id"
+
+    def test_course(self, assignment, db_session):
+        course = factories.Course(created=datetime.datetime(2024, 1, 1))
+        factories.AssignmentGrouping(
+            assignment=assignment, grouping=factories.CanvasSection()
+        )
+        factories.AssignmentGrouping(
+            assignment=assignment, grouping=factories.CanvasGroup()
+        )
+        factories.AssignmentGrouping(
+            assignment=assignment,
+            grouping=factories.Course(created=datetime.datetime(2022, 1, 1)),
+        )
+        factories.AssignmentGrouping(assignment=assignment, grouping=course)
+        db_session.flush()
+
+        assert assignment.course == course
 
     @pytest.fixture
     def assignment(self, db_session):
