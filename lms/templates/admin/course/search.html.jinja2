@@ -20,31 +20,7 @@
         <fieldset class="box mt-6">
             {% if courses %}
                 <legend class="label has-text-centered">Results</legend>
-                <div class="container">
-                    <div class="table-container">
-                        <table class="table is-fullwidth">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>Context ID</th>
-                                    <th>Name</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for course in courses %}
-                                    <tr>
-                                        <td>
-                                            <a class="button"
-                                               href="{{ request.route_url('admin.course', id_=course.id) }}">View</a>
-                                        </td>
-                                        <td>{{ course.lms_id }}</td>
-                                        <td>{{ course.name }}</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                {{ macros.courses_table(request, courses) }}
             {% else %}
                 <legend class="label has-text-centered">No results found</legend>
             {% endif %}
