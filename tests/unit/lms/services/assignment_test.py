@@ -25,7 +25,12 @@ class TestAssignmentService:
 
         assert assignment in db_session.new
 
-    def test_update_assignment(self, svc, pyramid_request):
+    @pytest.mark.parametrize("is_speed_grader", [False, True])
+    def test_update_assignment(self, svc, pyramid_request, is_speed_grader):
+        pyramid_request.GET = {}
+        if is_speed_grader:
+            pyramid_request.GET = {"learner_canvas_user_id": sentinel.speed_grader}
+
         assignment = svc.update_assignment(
             pyramid_request,
             factories.Assignment(),
@@ -33,8 +38,12 @@ class TestAssignmentService:
             sentinel.group_set_id,
         )
 
-        assert assignment.document_url == sentinel.document_url
-        assert assignment.extra["group_set_id"] == sentinel.group_set_id
+        if is_speed_grader:
+            assert assignment.extra == {}
+            assert assignment.document_url != sentinel.document_url
+        else:
+            assert assignment.document_url == sentinel.document_url
+            assert assignment.extra["group_set_id"] == sentinel.group_set_id
 
     @pytest.mark.parametrize(
         "param",
