@@ -129,7 +129,7 @@ class TestBasicLaunchViews:
         pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
 
     def test_lti_launch_unconfigured(
-        self, svc, context, pyramid_request, assignment_service
+        self, svc, context, pyramid_request, assignment_service, course_service
     ):
         assignment_service.get_assignment_for_launch.return_value = None
 
@@ -145,6 +145,8 @@ class TestBasicLaunchViews:
         context.js_config.enable_file_picker_mode.assert_called_once_with(
             form_action="http://example.com/assignment",
             form_fields=pyramid_request.lti_params.serialize.return_value,
+            course=course_service.get_from_launch.return_value,
+            assignment=None,
         )
 
     def test_lti_launch_unconfigured_launch_not_authorized(
@@ -183,7 +185,7 @@ class TestBasicLaunchViews:
         assert not response
 
     def test_reconfigure_assignment_config(
-        self, svc, context, pyramid_request, assignment_service
+        self, svc, context, pyramid_request, assignment_service, course_service
     ):
         pyramid_request.lti_params = mock.create_autospec(
             LTIParams, spec_set=True, instance=True
@@ -198,6 +200,8 @@ class TestBasicLaunchViews:
         context.js_config.enable_file_picker_mode.assert_called_once_with(
             form_action="http://example.com/assignment/edit",
             form_fields=pyramid_request.lti_params.serialize.return_value,
+            course=course_service.get_from_launch.return_value,
+            assignment=assignment,
         )
         assert response == {
             "assignment": {

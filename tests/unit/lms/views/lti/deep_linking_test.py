@@ -40,6 +40,7 @@ class TestDeepLinkingLaunch:
                 "lti_message_type": "ContentItemSelection",
                 "lti_version": "TEST_LTI_VERSION",
             },
+            course=course_service.get_from_launch.return_value,
             prompt_for_title=misc_plugin.deep_linking_prompt_for_title,
         )
         context.js_config.add_deep_linking_api.assert_called_once()

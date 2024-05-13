@@ -4,7 +4,7 @@ from typing import Any
 
 from lms.error_code import ErrorCode
 from lms.events import LTIEvent
-from lms.models import Assignment, Grouping
+from lms.models import Assignment, Course, Grouping
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
 from lms.product.d2l import D2L
@@ -271,7 +271,9 @@ class JSConfig:
         self._config["rpcServer"] = {
             "allowedOrigins": self._request.registry.settings["rpc_allowed_origins"]
         }
-        self._config["debug"]["values"] = self._get_lti_launch_debug_values()
+        self._config["debug"]["values"] = self._get_lti_launch_debug_values(
+            course, assignment
+        )
 
         self._config["editing"] = {
             # Endpoint to get any data needed to get into "editing mode"
@@ -283,7 +285,14 @@ class JSConfig:
             },
         }
 
-    def enable_file_picker_mode(self, form_action, form_fields, prompt_for_title=False):
+    def enable_file_picker_mode(  # pylint:disable=too-many-arguments
+        self,
+        form_action,
+        form_fields,
+        course: Course,
+        assignment: Assignment | None = None,
+        prompt_for_title=False,
+    ):
         """
         Put the JavaScript code into "file picker" mode.
 
@@ -294,6 +303,8 @@ class JSConfig:
             submit the user's chosen document to
         :param form_fields: the fields (keys and values) to include in the
             HTML form that we submit
+        :param course: Currently active course
+        :param assignment: Currently active assignment
         :param prompt_for_title: Whether or not to prompt for a title while configuring the assignment
         """
 
@@ -328,7 +339,9 @@ class JSConfig:
                 },
             }
         )
-        self._config["debug"]["values"] = self._get_lti_launch_debug_values()
+        self._config["debug"]["values"] = self._get_lti_launch_debug_values(
+            course, assignment
+        )
         return self._config
 
     def add_deep_linking_api(self):
@@ -667,13 +680,17 @@ class JSConfig:
                 },
             }
 
-    def _get_lti_launch_debug_values(self):
+    def _get_lti_launch_debug_values(
+        self, course: Course, assignment: Assignment | None
+    ):
         """Debug values common to different types of LTI launches."""
         ai = self._application_instance
 
         return {
             "Organization ID": ai.organization.public_id if ai.organization else None,
             "Application Instance ID": ai.id,
+            "Assignment ID": assignment.id if assignment else None,
+            "Course ID": course.id,
             "LTI version": ai.lti_version,
         }
 

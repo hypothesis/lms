@@ -25,8 +25,10 @@ pytestmark = pytest.mark.usefixtures(
 
 
 class TestFilePickerMode:
-    def test_it(self, js_config):
-        js_config.enable_file_picker_mode(sentinel.form_action, sentinel.form_fields)
+    def test_it(self, js_config, course):
+        js_config.enable_file_picker_mode(
+            sentinel.form_action, sentinel.form_fields, course
+        )
         config = js_config.asdict()
 
         assert config == Any.dict.containing(
@@ -54,9 +56,11 @@ class TestFilePickerMode:
         ),
     )
     def test_it_adds_picker_config(
-        self, js_config, pyramid_request, FilePickerConfig, config_function, key
+        self, js_config, pyramid_request, FilePickerConfig, config_function, key, course
     ):
-        js_config.enable_file_picker_mode(sentinel.form_action, sentinel.form_fields)
+        js_config.enable_file_picker_mode(
+            sentinel.form_action, sentinel.form_fields, course
+        )
         config = js_config.asdict()
 
         config_provider = getattr(FilePickerConfig, config_function)
@@ -65,19 +69,23 @@ class TestFilePickerMode:
             pyramid_request, pyramid_request.lti_user.application_instance
         )
 
-    def test_it_adds_product_info(self, js_config):
-        js_config.enable_file_picker_mode(sentinel.form_action, sentinel.form_fields)
+    def test_it_adds_product_info(self, js_config, course):
+        js_config.enable_file_picker_mode(
+            sentinel.form_action, sentinel.form_fields, course
+        )
 
         assert js_config.asdict()["product"] == {
             "api": {},
             "settings": {"groupsEnabled": False},
         }
 
-    def test_product_with_list_group_sets(self, js_config, pyramid_request):
+    def test_product_with_list_group_sets(self, js_config, pyramid_request, course):
         pyramid_request.product.route = Routes(oauth2_authorize="welcome")
         pyramid_request.product.settings.groups_enabled = True
 
-        js_config.enable_file_picker_mode(sentinel.form_action, sentinel.form_fields)
+        js_config.enable_file_picker_mode(
+            sentinel.form_action, sentinel.form_fields, course
+        )
 
         assert js_config.asdict()["product"] == {
             "api": {
@@ -124,6 +132,8 @@ class TestEnableLTILaunchMode:
                 "values": {
                     "Organization ID": "us.lms.org.PUBLIC_ID",
                     "Application Instance ID": lti_user.application_instance.id,
+                    "Assignment ID": assignment.id,
+                    "Course ID": course.id,
                     "LTI version": "LTI-1p0",
                 },
             },
@@ -495,9 +505,9 @@ class TestSetFocusedUser:
         )
 
     @pytest.fixture
-    def js_config(self, js_config, assignment):
+    def js_config(self, js_config, assignment, course):
         # `set_focused_user` needs the `hypothesisClient` section to exist
-        js_config.enable_lti_launch_mode(sentinel.course, assignment)
+        js_config.enable_lti_launch_mode(course, assignment)
 
         return js_config
 
