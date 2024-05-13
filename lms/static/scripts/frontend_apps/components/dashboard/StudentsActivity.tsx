@@ -15,7 +15,7 @@ import { formatDateTime } from '../../utils/date';
 
 type MandatoryOrder<T> = NonNullable<DataTableProps<T>['order']>;
 
-export default function StudentsActivityTable() {
+export default function StudentsActivity() {
   const { dashboard } = useConfig(['dashboard']);
   const { links: routes } = dashboard;
   const { assignmentId } = useParams<{ assignmentId: string }>();

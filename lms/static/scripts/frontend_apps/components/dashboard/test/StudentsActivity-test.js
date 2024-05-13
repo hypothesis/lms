@@ -1,9 +1,9 @@
 import { checkAccessibility } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
-import StudentsActivityTable from '../StudentsActivityTable';
+import StudentsActivity from '../StudentsActivity';
 
-describe('StudentsActivityTable', () => {
+describe('StudentsActivity', () => {
   const students = [
     {
       display_name: 'b',
@@ -31,7 +31,7 @@ describe('StudentsActivityTable', () => {
     loading,
   } = {}) {
     return mount(
-      <StudentsActivityTable
+      <StudentsActivity
         students={students}
         assignment={{ title }}
         loading={loading}

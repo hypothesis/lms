@@ -50,9 +50,9 @@ describe('DashboardApp', () => {
     assert.calledWith(fakeUseAPIFetch, '/api/assignment/123/stats');
   });
 
-  it('passes assignment info down to StudentsActivityTable', () => {
+  it('passes assignment info down to StudentsActivity', () => {
     const wrapper = createComponent();
-    const table = wrapper.find('StudentsActivityTable');
+    const table = wrapper.find('StudentsActivity');
 
     assert.deepEqual(table.prop('assignment'), {
       title: 'The assignment',
@@ -61,24 +61,24 @@ describe('DashboardApp', () => {
 
   context('when loading students', () => {
     [true, false].forEach(isLoading => {
-      it('passes loading state down to StudentsActivityTable', () => {
+      it('passes loading state down to StudentsActivity', () => {
         fakeUseAPIFetch.returns({ isLoading });
         const wrapper = createComponent();
 
         assert.equal(
-          wrapper.find('StudentsActivityTable').prop('loading'),
+          wrapper.find('StudentsActivity').prop('loading'),
           isLoading,
         );
       });
     });
 
     [undefined, [1, 2, 3]].forEach(students => {
-      it('passes list of students down to StudentsActivityTable', () => {
+      it('passes list of students down to StudentsActivity', () => {
         fakeUseAPIFetch.returns({ isLoading: false, data: students });
         const wrapper = createComponent();
 
         assert.deepEqual(
-          wrapper.find('StudentsActivityTable').prop('students'),
+          wrapper.find('StudentsActivity').prop('students'),
           students ?? [],
         );
       });
