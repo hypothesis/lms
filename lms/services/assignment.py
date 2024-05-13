@@ -50,6 +50,12 @@ class AssignmentService:
 
     def update_assignment(self, request, assignment, document_url, group_set_id):
         """Update an existing assignment."""
+        if request.GET.get("learner_canvas_user_id"):
+            # SpeedGrader has a number of issues regarding the information it sends about the assignment
+            # Don't update our DB with that nonsense.
+            # See:
+            #   https://github.com/instructure/canvas-lms/issues/1952
+            return assignment
 
         assignment.document_url = document_url
         assignment.extra["group_set_id"] = group_set_id
