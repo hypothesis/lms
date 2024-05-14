@@ -1,10 +1,11 @@
 import functools
+import re
 from enum import Enum
-from typing import Any, TypedDict
+from typing import Any
 
 from lms.error_code import ErrorCode
 from lms.events import LTIEvent
-from lms.js_config_types import DashboardConfig
+from lms.js_config_types import DashboardConfig, DashboardRoutes
 from lms.models import Assignment, Course, Grouping
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
@@ -232,8 +233,22 @@ class JSConfig:
             )
         )
 
-    def enable_dashboard_mode(self, config: DashboardConfig):
-        self._config.update({"mode": JSConfig.Mode.DASHBOARD, "dashboard": config})
+    def enable_dashboard_mode(self):
+        self._config.update(
+            {
+                "mode": JSConfig.Mode.DASHBOARD,
+                "dashboard": DashboardConfig(
+                    routes=DashboardRoutes(
+                        assignment=self._to_frontend_template(
+                            "dashboard.api.assignment"
+                        ),
+                        assignment_stats=self._to_frontend_template(
+                            "dashboard.api.assignment.stats"
+                        ),
+                    ),
+                ),
+            }
+        )
 
     def enable_lti_launch_mode(self, course, assignment: Assignment):
         """
@@ -692,3 +707,10 @@ class JSConfig:
                 },
             },
         }
+
+    def _to_frontend_template(self, route_name):
+        """Convert a route pattern like /path/path/{parameter} to /path/path/:parameter."""
+        route = self._request.registry.introspector.get("routes", route_name)
+        pattern = route["pattern"]
+
+        return re.sub(r"{([^}]+)}", r":\1", pattern)

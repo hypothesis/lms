@@ -10,7 +10,7 @@ pytestmark = pytest.mark.usefixtures("h_api", "assignment_service")
 
 class TestAssignmentViews:
     def test_assignment(self, views, pyramid_request, assignment_service):
-        pyramid_request.matchdict["id_"] = sentinel.id
+        pyramid_request.matchdict["assignment_id"] = sentinel.id
         assignment = factories.Assignment()
         assignment_service.get_by_id.return_value = assignment
 
@@ -31,7 +31,7 @@ class TestAssignmentViews:
         # User with no annotations and no name
         student_no_annos_no_name = factories.User(display_name=None)
 
-        pyramid_request.matchdict["id_"] = sentinel.id
+        pyramid_request.matchdict["assignment_id"] = sentinel.id
         assignment = factories.Assignment()
         assignment_service.get_members.return_value = [
             student,

@@ -24,10 +24,10 @@ class APIStudentStats(TypedDict):
     last_activity: str
 
 
-class DashboardLinks(TypedDict):
-    assignmentApi: str
-    assignmentStatsApi: str
+class DashboardRoutes(TypedDict):
+    assignment: str
+    assignment_stats: str
 
 
 class DashboardConfig(TypedDict):
-    links: DashboardLinks
+    routes: DashboardRoutes
