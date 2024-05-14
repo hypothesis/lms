@@ -127,7 +127,9 @@ class Grouping(CreatedUpdatedMixin, Base):
         nullable=False,
     )
 
-    memberships = sa.orm.relationship("GroupingMembership", back_populates="grouping")
+    memberships = sa.orm.relationship(
+        "GroupingMembership", lazy="dynamic", viewonly=True, back_populates="grouping"
+    )
 
     copied_from_id = sa.Column(
         sa.Integer(), sa.ForeignKey("grouping.id"), nullable=True
