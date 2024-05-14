@@ -4,7 +4,7 @@ from lms.security import Permissions
 
 
 def get_request_assignment(request, assignment_service):
-    assignment = assignment_service.get_by_id(request.matchdict["id_"])
+    assignment = assignment_service.get_by_id(request.matchdict["assignment_id"])
     if not assignment:
         raise HTTPNotFound()
 

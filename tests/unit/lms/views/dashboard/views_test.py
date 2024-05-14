@@ -18,7 +18,7 @@ class TestDashboardViews:
     def test_assignment_redirect_from_launch(
         self, views, pyramid_request, BearerTokenSchema, organization
     ):
-        pyramid_request.matchdict["id_"] = sentinel.id
+        pyramid_request.matchdict["assignment_id"] = sentinel.id
 
         response = views.assignment_redirect_from_launch()
 
@@ -38,48 +38,35 @@ class TestDashboardViews:
     @freeze_time("2024-04-01 12:00:00")
     @pytest.mark.usefixtures("BearerTokenSchema")
     def test_assignment_show(
-        self, views, pyramid_request, assignment_service, organization, config
+        self, views, pyramid_request, assignment_service, organization
     ):
         context = DashboardResource(pyramid_request)
         context.js_config = create_autospec(JSConfig, spec_set=True, instance=True)
         pyramid_request.context = context
-        pyramid_request.matchdict["id_"] = sentinel.id
+        pyramid_request.matchdict["assignment_id"] = sentinel.id
 
         views.assignment_show()
 
         assignment_service.get_by_id.assert_called_once_with(sentinel.id)
-        pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once_with(
-            config
-        )
+        pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
         assert (
             pyramid_request.response.headers["Set-Cookie"]
             == f"authorization=TOKEN; Max-Age=86400; Path=/dashboard/organization/{organization._public_id}; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
         )
 
     def test_assignment_show_with_no_lti_user(
-        self, views, pyramid_request, assignment_service, config
+        self, views, pyramid_request, assignment_service
     ):
         context = DashboardResource(pyramid_request)
         context.js_config = create_autospec(JSConfig, spec_set=True, instance=True)
         pyramid_request.context = context
         pyramid_request.lti_user = None
-        pyramid_request.matchdict["id_"] = sentinel.id
+        pyramid_request.matchdict["assignment_id"] = sentinel.id
 
         views.assignment_show()
 
         assignment_service.get_by_id.assert_called_once_with(sentinel.id)
-        pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once_with(
-            config
-        )
-
-    @pytest.fixture
-    def config(self):
-        return {
-            "links": {
-                "assignmentApi": "/dashboard/api/assignment/:id_",
-                "assignmentStatsApi": "/dashboard/api/assignment/:id_/stats",
-            }
-        }
+        pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
 
     @pytest.fixture
     def BearerTokenSchema(self, patch):
