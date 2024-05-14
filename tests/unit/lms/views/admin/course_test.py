@@ -14,15 +14,15 @@ class TestAdminCourseViews:
 
         response = views.show()
 
-        course_service.search.assert_called_once_with(id_=sentinel.id_)
+        course_service.get_by_id.assert_called_once_with(id_=sentinel.id_)
 
         assert response == {
-            "course": course_service.search.return_value[0],
+            "course": course_service.get_by_id.return_value,
         }
 
     def test_show_not_found(self, pyramid_request, course_service, views):
         pyramid_request.matchdict["id_"] = sentinel.id_
-        course_service.search.return_value = []
+        course_service.get_by_id.return_value = None
 
         with pytest.raises(HTTPNotFound):
             views.show()

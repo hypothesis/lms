@@ -82,7 +82,7 @@ class AdminCourseViews:
         return {"courses": courses}
 
     def _get_course_or_404(self, id_) -> Course:
-        if course := self.course_service.search(id_=id_):
-            return course[0]
+        if course := self.course_service.get_by_id(id_=id_):
+            return course
 
         raise HTTPNotFound()
