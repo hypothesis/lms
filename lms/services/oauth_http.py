@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from marshmallow import fields
 
 from lms.db import CouldNotAcquireLock
+from lms.models.application_instance import ApplicationInstance
 from lms.models.oauth2_token import Service
 from lms.services.exceptions import (
     ConcurrentTokenRefreshError,
@@ -170,7 +171,11 @@ class OAuthHTTPService:
 
 
 def factory(
-    _context, request, service: Service = Service.LMS, user_id: str | None = None
+    _context,
+    request,
+    service: Service = Service.LMS,
+    application_instance: ApplicationInstance | None = None,
+    user_id: str | None = None,
 ) -> OAuthHTTPService:
     """
     Create an `OAuthHTTPService`.
@@ -180,10 +185,16 @@ def factory(
     :param user_id:
         The LTI user ID of the user whose API tokens should be used. Defaults
         to the LTI user from the current request.
+    :param application_instance:
+        Use API tokens associated with this application instance. Defaults to
+        the application instance associated with the current request.
     """
-    if user_id:
+    if user_id or application_instance:
         oauth2_token_svc = oauth2_token_service_factory(
-            _context, request, user_id=user_id
+            _context,
+            request,
+            application_instance=application_instance,
+            user_id=user_id,
         )
     else:
         oauth2_token_svc = request.find_service(name="oauth2_token")

@@ -5,9 +5,11 @@ from urllib.parse import urlencode, urljoin, urlparse, urlunparse
 import requests
 from marshmallow import EXCLUDE, Schema, fields, post_load
 from pyramid.httpexceptions import HTTPBadRequest
+from sqlalchemy import and_, select
 
 from lms.js_config_types import APICallInfo
-from lms.models.oauth2_token import Service
+from lms.models.application_instance import ApplicationInstance
+from lms.models.oauth2_token import OAuth2Token, Service
 from lms.models.user import User
 from lms.services.aes import AESService
 from lms.services.exceptions import (
@@ -537,22 +539,47 @@ class CanvasStudioService:
         # and use the standard `self._oauth_http_service` property instead.
         assert not self.is_admin()
 
+        # Find the (user_id, application_instance_id) for an admin user who
+        # belongs to the same LMS as the user making the request, and has
+        # authenticated with Canvas Studio.
+        #
+        # Note that the `application_instance_id` in this key can be different
+        # than that of the user making the request, since Hypothesis can be
+        # installed multiple times at one LMS, and the admin user may have
+        # authenticated using a different AI.
+        #
+        # If there are multiple matching `User` entities, pick the one that
+        # most recently authenticated with Canvas Studio.
+        guid = self._request.lti_user.application_instance.tool_consumer_instance_guid
         admin_email = self._admin_email()
-        admin_user = (
-            self._request.db.query(User)
-            .filter_by(
-                email=admin_email, application_instance=self._application_instance
+        admin_user_query = (
+            select(User)
+            .join(ApplicationInstance)
+            .join(
+                OAuth2Token,
+                and_(
+                    OAuth2Token.user_id == User.user_id,
+                    OAuth2Token.application_instance_id == ApplicationInstance.id,
+                ),
             )
-            .one_or_none()
+            .filter(User.email == admin_email)
+            .filter(ApplicationInstance.tool_consumer_instance_guid == guid)
+            .filter(OAuth2Token.service == Service.CANVAS_STUDIO)
+            .order_by(OAuth2Token.received_at.desc())
         )
+
+        admin_user = self._request.db.scalars(admin_user_query).first()
         if not admin_user:
             raise HTTPBadRequest(
                 "The Canvas Studio admin needs to authenticate the Hypothesis integration"
             )
-        admin_lti_user = admin_user.user_id
 
         return oauth_http_factory(
-            {}, self._request, service=Service.CANVAS_STUDIO, user_id=admin_lti_user
+            {},
+            self._request,
+            service=Service.CANVAS_STUDIO,
+            application_instance=admin_user.application_instance,
+            user_id=admin_user.user_id,
         )
 
     def _canvas_studio_site(self) -> str:

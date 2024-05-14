@@ -492,7 +492,13 @@ class TestCanvasStudioService:
     def oauth_http_factory(self, oauth_http_service, admin_oauth_http_service, patch):
         factory = patch("lms.services.canvas_studio.oauth_http_factory")
 
-        def create_oauth_http_service(_context, _request, service, user_id=None):
+        def create_oauth_http_service(
+            _context,
+            _request,
+            service,
+            user_id=None,
+            application_instance=None,  # noqa: ARG001
+        ):
             assert service is Service.CANVAS_STUDIO
             if user_id == "admin_user_id":
                 return admin_oauth_http_service
@@ -523,12 +529,23 @@ class TestCanvasStudioService:
 
     @pytest.fixture
     def admin_user(self, db_session, pyramid_request):
+        application_instance = pyramid_request.lti_user.application_instance
         user = factories.User(
             email="admin@hypothesis.edu",
             user_id="admin_user_id",
-            application_instance=pyramid_request.lti_user.application_instance,
+            application_instance=application_instance,
         )
         db_session.add(user)
+
+        token = factories.OAuth2Token(
+            user_id=user.user_id,
+            application_instance=application_instance,
+            service=Service.CANVAS_STUDIO,
+        )
+        db_session.add(token)
+
+        db_session.flush()
+
         return user
 
 
