@@ -325,7 +325,6 @@ class TestCourseService:
         user = factories.User()
         other_user = factories.User()
         factories.GroupingMembership.create(grouping=course, user=user)
-        factories.AssignmentMembership.create(grouping=course, user=other_user)
 
         db_session.flush()
 

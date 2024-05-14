@@ -10,6 +10,7 @@ from lms.models import (
     CourseGroupsExportedFromH,
     Grouping,
     Organization,
+    User,
 )
 from lms.product import Product
 from lms.services.grouping import GroupingService
@@ -207,6 +208,10 @@ class CourseService:
             return courses[0]
 
         return None
+
+    def is_member(self, course: Course, user: User) -> bool:
+        """Check if a user is a member of a course."""
+        return bool(course.memberships.filter_by(user=user).first())
 
     def _get_authority_provided_id(self, context_id):
         return self._grouping_service.get_authority_provided_id(
