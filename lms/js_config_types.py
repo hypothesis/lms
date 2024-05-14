@@ -17,6 +17,11 @@ class APIAssignment(TypedDict):
     title: str
 
 
+class APICourse(TypedDict):
+    id: int
+    title: str
+
+
 class APIStudentStats(TypedDict):
     display_name: str
     annotations: int
