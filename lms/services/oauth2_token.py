@@ -4,7 +4,7 @@ from functools import lru_cache
 from sqlalchemy.orm.exc import NoResultFound
 
 from lms.db import LockType, try_advisory_transaction_lock
-from lms.models import OAuth2Token
+from lms.models import ApplicationInstance, OAuth2Token
 from lms.models.oauth2_token import Service
 from lms.services.exceptions import OAuth2TokenError
 
@@ -84,9 +84,14 @@ class OAuth2TokenService:
         try_advisory_transaction_lock(self._db, LockType.OAUTH2_TOKEN_REFRESH, token.id)
 
 
-def oauth2_token_service_factory(_context, request, user_id: str | None = None):
+def oauth2_token_service_factory(
+    _context,
+    request,
+    application_instance: ApplicationInstance | None = None,
+    user_id: str | None = None,
+):
     return OAuth2TokenService(
         request.db,
-        request.lti_user.application_instance,
+        application_instance or request.lti_user.application_instance,
         user_id or request.lti_user.user_id,
     )

@@ -339,7 +339,32 @@ class TestFactory:
     ):
         service = factory(sentinel.context, pyramid_request, user_id="custom_user_id")
         oauth2_token_service_factory.assert_called_once_with(
-            sentinel.context, pyramid_request, "custom_user_id"
+            sentinel.context,
+            pyramid_request,
+            application_instance=None,
+            user_id="custom_user_id",
+        )
+        OAuthHTTPService.assert_called_once_with(
+            http_service, oauth2_token_service_factory.return_value, Service.LMS
+        )
+        assert service == OAuthHTTPService.return_value
+
+    def test_with_custom_application_instance(
+        self,
+        OAuthHTTPService,
+        pyramid_request,
+        http_service,
+        oauth2_token_service_factory,
+    ):
+        mock_ai = sentinel.application_instance
+        service = factory(
+            sentinel.context, pyramid_request, application_instance=mock_ai
+        )
+        oauth2_token_service_factory.assert_called_once_with(
+            sentinel.context,
+            pyramid_request,
+            application_instance=mock_ai,
+            user_id=None,
         )
         OAuthHTTPService.assert_called_once_with(
             http_service, oauth2_token_service_factory.return_value, Service.LMS
