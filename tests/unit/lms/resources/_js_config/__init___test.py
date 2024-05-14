@@ -683,11 +683,16 @@ class TestEnableErrorDialogMode:
 
 class TestEnableDashboardMode:
     def test_it(self, js_config):
-        js_config.enable_dashboard_mode(sentinel.config)
+        js_config.enable_dashboard_mode()
         config = js_config.asdict()
 
         assert config["mode"] == JSConfig.Mode.DASHBOARD
-        assert config["dashboard"] == sentinel.config
+        assert config["dashboard"] == {
+            "routes": {
+                "assignment": "/dashboard/api/assignment/:assignment_id",
+                "assignment_stats": "/dashboard/api/assignment/:assignment_id/stats",
+            }
+        }
 
 
 class TestEnableInstructorDashboardEntryPoint:

@@ -14,7 +14,7 @@ class TestBase:
         pyramid_request,
         assignment_service,
     ):
-        pyramid_request.matchdict["id_"] = sentinel.id
+        pyramid_request.matchdict["assignment_id"] = sentinel.id
         assignment_service.get_by_id.return_value = None
 
         with pytest.raises(HTTPNotFound):
@@ -25,7 +25,7 @@ class TestBase:
         pyramid_request,
         assignment_service,
     ):
-        pyramid_request.matchdict["id_"] = sentinel.id
+        pyramid_request.matchdict["assignment_id"] = sentinel.id
         assignment_service.is_member.return_value = False
 
         with pytest.raises(HTTPUnauthorized):
@@ -35,7 +35,7 @@ class TestBase:
         self, pyramid_request, assignment_service, pyramid_config
     ):
         pyramid_config.testing_securitypolicy(permissive=True)
-        pyramid_request.matchdict["id_"] = sentinel.id
+        pyramid_request.matchdict["assignment_id"] = sentinel.id
         assignment_service.is_member.return_value = False
 
         assert get_request_assignment(pyramid_request, assignment_service)

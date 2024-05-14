@@ -57,7 +57,7 @@ class AdminAssignmentViews:
                 public_id=assignment.groupings[
                     0
                 ].application_instance.organization._public_id,
-                id_=assignment.id,
+                assignment_id=assignment.id,
             ),
         )
         return response
