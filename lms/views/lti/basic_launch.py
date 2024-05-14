@@ -17,6 +17,7 @@ import logging
 from pyramid.view import view_config, view_defaults
 
 from lms.events import LTIEvent
+from lms.models import Assignment
 from lms.product.plugin.misc import MiscPlugin
 from lms.security import Permissions
 from lms.services import LTIGradingService, VitalSourceService
@@ -82,7 +83,7 @@ class BasicLaunchViews:
         # Show the file-picker for the user to choose a document.
         # This happens if we cannot resolve a document URL for any reason.
         self.request.override_renderer = "lms:templates/file_picker.html.jinja2"
-        self._configure_js_for_file_picker()
+        self._configure_js_for_file_picker(assignment)
 
         return {}
 
@@ -93,7 +94,7 @@ class BasicLaunchViews:
             tool_consumer_instance_guid=self._guid,
             resource_link_id=self._resource_link_id,
         )
-        config = self._configure_js_for_file_picker(route="edit_assignment")
+        config = self._configure_js_for_file_picker(assignment, route="edit_assignment")
         return {
             # Info about the assignment's current configuration
             "assignment": {
@@ -265,7 +266,7 @@ class BasicLaunchViews:
         )
 
     def _configure_js_for_file_picker(
-        self, route: str = "configure_assignment"
+        self, assignment: Assignment, route: str = "configure_assignment"
     ) -> dict:
         """
         Show the file-picker for the user to choose a document.
@@ -285,4 +286,6 @@ class BasicLaunchViews:
             form_fields=self.request.lti_params.serialize(
                 authorization=self.context.js_config.auth_token
             ),
+            course=self.course,
+            assignment=assignment,
         )
