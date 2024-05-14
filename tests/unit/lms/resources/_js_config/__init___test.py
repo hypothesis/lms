@@ -691,6 +691,7 @@ class TestEnableDashboardMode:
             "routes": {
                 "assignment": "/dashboard/api/assignment/:assignment_id",
                 "assignment_stats": "/dashboard/api/assignment/:assignment_id/stats",
+                "course": "/dashboard/api/course/:course_id",
             }
         }
 
