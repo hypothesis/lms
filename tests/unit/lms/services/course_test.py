@@ -313,6 +313,25 @@ class TestCourseService:
         assert len(result) == 5
         assert orgs == Any.list.containing(result)
 
+    def test_get_by_id(self, svc, db_session):
+        course = factories.Course()
+        db_session.flush()
+
+        assert course == svc.get_by_id(course.id)
+        assert not svc.get_by_id(100_00)
+
+    def test_is_member(self, svc, db_session):
+        course = factories.Course()
+        user = factories.User()
+        other_user = factories.User()
+        factories.GroupingMembership.create(grouping=course, user=user)
+        factories.AssignmentMembership.create(grouping=course, user=other_user)
+
+        db_session.flush()
+
+        assert svc.is_member(course, user)
+        assert not svc.is_member(course, other_user)
+
     @pytest.fixture
     def course(self, application_instance, grouping_service):
         return factories.Course(
