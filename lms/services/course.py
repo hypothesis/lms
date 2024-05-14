@@ -202,6 +202,12 @@ class CourseService:
 
         return None
 
+    def get_by_id(self, id_: int) -> Course | None:
+        if courses := self.search(id_=id_, limit=1):
+            return courses[0]
+
+        return None
+
     def _get_authority_provided_id(self, context_id):
         return self._grouping_service.get_authority_provided_id(
             lms_id=context_id, type_=Grouping.Type.COURSE
