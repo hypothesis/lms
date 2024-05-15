@@ -75,7 +75,14 @@ def _apply_canvas_quirks(lti_params, request):
     # We add the correct resource_link_id as a query param on the launch
     # URL that we submit to Canvas and use that instead of the incorrect
     # resource_link_id that Canvas puts in the request's body.
-    is_speedgrader = request.GET.get("learner_canvas_user_id")
+
+    # This is canvas only, call the right plugin directly
+    # Importing the plugin here to avoid a circular dependency hell
+    from lms.product.canvas._plugin.misc import (  # pylint:disable=import-outside-toplevel, cyclic-import
+        CanvasMiscPlugin,
+    )
+
+    is_speedgrader = CanvasMiscPlugin().is_speed_grader_launch(request)
 
     if is_speedgrader and (resource_link_id := request.GET.get("resource_link_id")):
         lti_params["resource_link_id"] = resource_link_id

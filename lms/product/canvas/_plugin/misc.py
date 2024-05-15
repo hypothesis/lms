@@ -161,6 +161,17 @@ class CanvasMiscPlugin(MiscPlugin):
             .geturl()
         )
 
+    def is_speed_grader_launch(self, request) -> bool:
+        """Check whether the current launch is a SpeedGrader one.
+
+        SpeedGrader launches contain additional parameters that we send to canvas on student submissions.
+
+        Those URLs are launched when:
+            - An instructor selects a student in SpeedGrader itself (launched as the instructor)
+            - A students selects the "submission details" option (launched as the learner)
+        """
+        return bool(request.GET.get("learner_canvas_user_id"))
+
     @classmethod
     def factory(cls, _context, _request):
         return cls()

@@ -380,4 +380,6 @@ def grouping_plugin(mock_service):
 
 @pytest.fixture
 def misc_plugin(mock_service):
-    return mock_service(MiscPlugin)
+    plugin = mock_service(MiscPlugin)
+    plugin.is_speed_grader_launch.return_value = False
+    return plugin
