@@ -24,7 +24,7 @@ class CanvasMiscPlugin(MiscPlugin):
         # `lis_result_sourcedid` associates a specific user with an
         # assignment.
         if (
-            assignment.is_gradable
+            self.is_assignment_gradable(lti_params)
             and lti_user.is_learner
             and lti_params.get("lis_result_sourcedid")
         ):

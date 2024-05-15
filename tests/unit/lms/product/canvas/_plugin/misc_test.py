@@ -1,4 +1,4 @@
-from unittest.mock import create_autospec, sentinel
+from unittest.mock import create_autospec, patch, sentinel
 
 import pytest
 
@@ -25,16 +25,18 @@ class TestCanvasMiscPlugin:
         is_learner,
         grading_id,
         focused_user,
+        is_assignment_gradable,
     ):
-        assignment = factories.Assignment(is_gradable=is_gradable)
+        assignment = factories.Assignment()
         pyramid_request.lti_params["lis_result_sourcedid"] = grading_id
         pyramid_request.params["focused_user"] = focused_user
+        is_assignment_gradable.return_value = is_gradable
         if is_learner:
             request.getfixturevalue("user_is_learner")
 
         plugin.post_launch_assignment_hook(pyramid_request, js_config, assignment)
 
-        if assignment.is_gradable and is_learner and grading_id:
+        if is_gradable and is_learner and grading_id:
             js_config.add_canvas_speedgrader_settings.assert_called_once_with(
                 assignment.document_url
             )
@@ -179,6 +181,14 @@ class TestCanvasMiscPlugin:
         else:
             assert "url" not in result
 
+    @pytest.mark.parametrize(
+        "get,expected", [({}, False), ({"learner_canvas_user_id": "ID"}, True)]
+    )
+    def test_is_speed_grader_launch(self, get, expected, plugin, pyramid_request):
+        pyramid_request.GET = get
+
+        assert plugin.is_speed_grader_launch(pyramid_request) == expected
+
     def test_factory(self, pyramid_request):
         plugin = CanvasMiscPlugin.factory(sentinel.context, pyramid_request)
         assert isinstance(plugin, CanvasMiscPlugin)
@@ -194,3 +204,8 @@ class TestCanvasMiscPlugin:
     @pytest.fixture
     def VSBookLocation(self, patch):
         return patch("lms.product.canvas._plugin.misc.VSBookLocation")
+
+    @pytest.fixture
+    def is_assignment_gradable(self, plugin):
+        with patch.object(plugin, "is_assignment_gradable") as is_assignment_gradable:
+            yield is_assignment_gradable
