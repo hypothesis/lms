@@ -100,6 +100,10 @@ class MiscPlugin:
 
         return params
 
+    def is_speed_grader_launch(self, _request) -> bool:  # pragma: nocover
+        # SpeedGrader is a Canvas only concept
+        return False
+
     @staticmethod
     def _assignment_config_from_assignment(assignment: Assignment) -> AssignmentConfig:
         return {

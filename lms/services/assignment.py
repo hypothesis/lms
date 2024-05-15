@@ -50,7 +50,7 @@ class AssignmentService:
 
     def update_assignment(self, request, assignment, document_url, group_set_id):
         """Update an existing assignment."""
-        if request.GET.get("learner_canvas_user_id"):
+        if self._misc_plugin.is_speed_grader_launch(request):
             # SpeedGrader has a number of issues regarding the information it sends about the assignment
             # Don't update our DB with that nonsense.
             # See:

@@ -26,10 +26,10 @@ class TestAssignmentService:
         assert assignment in db_session.new
 
     @pytest.mark.parametrize("is_speed_grader", [False, True])
-    def test_update_assignment(self, svc, pyramid_request, is_speed_grader):
-        pyramid_request.GET = {}
-        if is_speed_grader:
-            pyramid_request.GET = {"learner_canvas_user_id": sentinel.speed_grader}
+    def test_update_assignment(
+        self, svc, pyramid_request, is_speed_grader, misc_plugin
+    ):
+        misc_plugin.is_speed_grader_launch.return_value = is_speed_grader
 
         assignment = svc.update_assignment(
             pyramid_request,
