@@ -31,6 +31,10 @@ show_missing = true
 precision = 2
 fail_under = 100.00
 skip_covered = true
+exclude_also = [
+    # # TYPE_CHECKING block is only executed while running mypy
+    "if TYPE_CHECKING:"
+]
 
 [tool.pylint.main]
 jobs = 0 # Use one process for CPU.
