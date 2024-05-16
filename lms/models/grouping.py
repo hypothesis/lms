@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
@@ -9,6 +9,9 @@ from sqlalchemy.orm import Mapped, mapped_column
 from lms.db import Base, varchar_enum
 from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.json_settings import JSONSettings
+
+if TYPE_CHECKING:
+    from lms.models import Assignment
 
 MAX_GROUP_NAME_LENGTH = 25
 
@@ -184,7 +187,7 @@ class GroupSet(TypedDict):
 class Course(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.COURSE}
 
-    assignments = sa.orm.relationship(
+    assignments: Mapped[list["Assignment"]] = sa.orm.relationship(
         "Assignment", secondary="assignment_grouping", viewonly=True
     )
     """Assignments that belong to this course."""

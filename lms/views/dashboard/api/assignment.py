@@ -42,7 +42,7 @@ class AssignmentViews:
 
         # Organize the H stats by userid for quick access
         stats_by_user = {s["userid"]: s for s in stats}
-        student_stats = []
+        student_stats: list[APIStudentStats] = []
 
         # Iterate over all the students we have in the DB
         for user in self.assignment_service.get_members(
