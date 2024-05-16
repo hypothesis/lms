@@ -50,7 +50,10 @@ class ExceptionViews:
                 )
                 return self.serializable_error()
 
-        return self.error_response(403, _("You're not authorized to view this page"))
+        messages = ["You're not authorized to view this page"]
+        if details := getattr(self.exception, "message"):
+            messages.append(details)
+        return self.error_response(403, _("<p>".join(messages)))
 
     @exception_view_config(context=HTTPClientError)
     def http_client_error(self):
