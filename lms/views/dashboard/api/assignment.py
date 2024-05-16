@@ -1,6 +1,6 @@
 from pyramid.view import view_config
 
-from lms.js_config_types import APIAssignment, APIStudentStats
+from lms.js_config_types import APIAssignment, APICourse, APIStudentStats
 from lms.models import RoleScope, RoleType
 from lms.security import Permissions
 from lms.services.h_api import HAPI
@@ -21,10 +21,11 @@ class AssignmentViews:
     )
     def assignment(self) -> APIAssignment:
         assignment = get_request_assignment(self.request, self.assignment_service)
-        return {
-            "id": assignment.id,
-            "title": assignment.title,
-        }
+        return APIAssignment(
+            id=assignment.id,
+            title=assignment.title,
+            course=APICourse(id=assignment.course.id, title=assignment.course.lms_name),
+        )
 
     @view_config(
         route_name="dashboard.api.assignment.stats",

@@ -61,6 +61,10 @@ class TestCourseViews:
             {
                 "id": assignment.id,
                 "title": assignment.title,
+                "course": {
+                    "id": course.id,
+                    "title": course.lms_name,
+                },
                 "stats": {
                     "annotations": sentinel.annotations,
                     "replies": sentinel.replies,
@@ -70,6 +74,10 @@ class TestCourseViews:
             {
                 "id": assignment_with_no_annos.id,
                 "title": assignment_with_no_annos.title,
+                "course": {
+                    "id": course.id,
+                    "title": course.lms_name,
+                },
                 "stats": {
                     "annotations": 0,
                     "replies": 0,
