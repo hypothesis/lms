@@ -9,9 +9,11 @@ pytestmark = pytest.mark.usefixtures("h_api", "assignment_service")
 
 
 class TestAssignmentViews:
-    def test_assignment(self, views, pyramid_request, assignment_service):
+    def test_assignment(
+        self, views, pyramid_request, assignment_service, course, assignment, db_session
+    ):
+        db_session.flush()
         pyramid_request.matchdict["assignment_id"] = sentinel.id
-        assignment = factories.Assignment()
         assignment_service.get_by_id.return_value = assignment
 
         response = views.assignment()
@@ -21,6 +23,7 @@ class TestAssignmentViews:
         assert response == {
             "id": assignment.id,
             "title": assignment.title,
+            "course": {"id": course.id, "title": course.lms_name},
         }
 
     def test_assignment_stats(self, views, pyramid_request, assignment_service, h_api):
@@ -89,3 +92,14 @@ class TestAssignmentViews:
     @pytest.fixture
     def views(self, pyramid_request):
         return AssignmentViews(pyramid_request)
+
+    @pytest.fixture
+    def course(self):
+        return factories.Course()
+
+    @pytest.fixture
+    def assignment(self, course):
+        assignment = factories.Assignment()
+        factories.AssignmentGrouping(assignment=assignment, grouping=course)
+
+        return assignment

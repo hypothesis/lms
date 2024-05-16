@@ -47,6 +47,8 @@ class CourseViews:
         stats_by_assignment = {s["assignment_id"]: s for s in stats}
         assignment_stats: list[APIAssignment] = []
 
+        # Same course for all these assignments
+        api_course = APICourse(id=course.id, title=course.lms_name)
         for assignment in course.assignments:
             if h_stats := stats_by_assignment.get(assignment.resource_link_id):
                 stats = AssignmentStats(
@@ -62,6 +64,7 @@ class CourseViews:
                 APIAssignment(
                     id=assignment.id,
                     title=assignment.title,
+                    course=api_course,
                     stats=stats,
                 )
             )

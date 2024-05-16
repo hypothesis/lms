@@ -33,6 +33,7 @@ class AssignmentStats(TypedDict):
 class APIAssignment(TypedDict):
     id: int
     title: str
+    course: APICourse
     stats: NotRequired[AssignmentStats]
 
 
