@@ -23,7 +23,12 @@
 
     <fieldset class="box mt-6">
         <legend class="label has-text-centered">Assignments</legend>
-        {{ macros.assignments_table(request, course.assignments) }}
+        {% if course.assignments %}
+            {{ macros.assignments_table(request, course.assignments) }}
+        {% else %}
+            <legend class="label has-text-centered">No assignments</legend>
+        {% endif %}
+
     </fieldset>
 </div>
 {% endblock %}
