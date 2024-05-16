@@ -175,7 +175,7 @@ class HAPI:
     ):
         response = self._api_request(
             "POST",
-            path="bulk/stats/assignment",
+            path="bulk/stats/users",
             body=json.dumps(
                 {
                     "filter": {
@@ -184,6 +184,18 @@ class HAPI:
                     }
                 }
             ),
+            headers={
+                "Content-Type": "application/vnd.hypothesis.v1+json",
+            },
+            stream=False,
+        )
+        return response.json()
+
+    def get_course_stats(self, group_authority_ids: list[str]):
+        response = self._api_request(
+            "POST",
+            path="bulk/stats/assignments",
+            body=json.dumps({"filter": {"groups": group_authority_ids}}),
             headers={
                 "Content-Type": "application/vnd.hypothesis.v1+json",
             },

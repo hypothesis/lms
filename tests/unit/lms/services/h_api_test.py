@@ -132,27 +132,44 @@ class TestHAPI:
 
         assert result == expected_result
 
-    def test_get_assignment_stats(self, h_api, http_service):
-        http_service.request.return_value = factories.requests.Response(raw="{}")
-
-        h_api.get_assignment_stats(["group_1", "group_2"], "assignment_id")
-
-        http_service.request.assert_called_once_with(
-            method="POST",
-            url="https://h.example.com/private/api/bulk/stats/assignment",
-            auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
-            headers={
-                "Content-Type": "application/vnd.hypothesis.v1+json",
-                "Hypothesis-Application": "lms",
-            },
-            data=json.dumps(
+    @pytest.mark.parametrize(
+        "method,url,args,payload",
+        [
+            (
+                "get_assignment_stats",
+                "https://h.example.com/private/api/bulk/stats/users",
+                (["group_1", "group_2"], "assignment_id"),
                 {
                     "filter": {
                         "groups": ["group_1", "group_2"],
                         "assignment_id": "assignment_id",
                     },
-                }
+                },
             ),
+            (
+                "get_course_stats",
+                "https://h.example.com/private/api/bulk/stats/assignments",
+                (["group_1", "group_2"],),
+                {
+                    "filter": {"groups": ["group_1", "group_2"]},
+                },
+            ),
+        ],
+    )
+    def test_get_stats_endpoints(self, h_api, http_service, method, url, args, payload):
+        http_service.request.return_value = factories.requests.Response(raw="{}")
+
+        getattr(h_api, method)(*args)
+
+        http_service.request.assert_called_once_with(
+            method="POST",
+            url=url,
+            auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
+            headers={
+                "Content-Type": "application/vnd.hypothesis.v1+json",
+                "Hypothesis-Application": "lms",
+            },
+            data=json.dumps(payload),
             timeout=(60, 60),
             stream=False,
         )
