@@ -240,11 +240,13 @@ export type EmailPreferences = {
   flashMessage: string | null;
 };
 
+export type DashboardRoutes = {
+  assignment: string;
+  assignment_stats: string;
+};
+
 export type DashboardConfig = {
-  assignment: {
-    title: string;
-  };
-  assignmentStatsApi: APICallInfo;
+  routes: DashboardRoutes;
 };
 
 /**
