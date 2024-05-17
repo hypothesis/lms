@@ -384,7 +384,7 @@ class JSConfig:
             "showEntryPoint": True,
             "authTokenRPCMethod": "requestAuthToken",
             "entryPointURL": self._request.route_url(
-                "dashboard.launch.assignment", id_=assignment.id
+                "dashboard.launch.assignment", assignment_id=assignment.id
             ),
             "authFieldName": "authorization",
         }
