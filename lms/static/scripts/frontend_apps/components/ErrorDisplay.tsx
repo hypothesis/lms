@@ -2,6 +2,7 @@ import { Link, Scroll } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import type { ComponentChildren } from 'preact';
 
+import { useConfig, type DebugInfo } from '../config';
 import { formatErrorDetails, formatErrorMessage } from '../errors';
 import type { ErrorLike } from '../errors';
 
@@ -57,7 +58,11 @@ function ErrorDetails({ error }: ErrorDetailsProps) {
  * Prepare a URL that will pre-fill a support form with certain details
  * about the current error.
  */
-function supportURL(errorMessage: string, error: ErrorLike): string {
+function supportURL(
+  errorMessage: string,
+  error: ErrorLike,
+  debug?: DebugInfo,
+): string {
   const supportURL = new URL('https://web.hypothes.is/get-help/');
 
   supportURL.searchParams.append('product', 'LMS_app');
@@ -69,7 +74,7 @@ function supportURL(errorMessage: string, error: ErrorLike): string {
   );
 
   const details = formatErrorDetails(error);
-  if (error.errorCode || details) {
+  if (error.errorCode || details || debug) {
     const content = `
 ----------------------
 Feel free to add additional details above about the problem you are experiencing.
@@ -77,6 +82,7 @@ The error information below helps our team pinpoint the issue faster.
 ----------------------
 Error code: ${error.errorCode ?? 'N/A'}
 Details: ${formatErrorDetails(error) || 'N/A'}
+Debug: ${(debug && JSON.stringify(debug)) || 'N/A'}
   `;
     supportURL.searchParams.append('content', content);
   }
@@ -116,6 +122,8 @@ export default function ErrorDisplay({
 }: ErrorDisplayProps) {
   const message = formatErrorMessage(error, /* prefix */ description);
 
+  const { debug } = useConfig();
+
   return (
     <Scroll
       classes={classnames(
@@ -133,7 +141,7 @@ export default function ErrorDisplay({
           <p data-testid="error-links">
             If the problem persists, you can{' '}
             <Link
-              href={supportURL(message, error)}
+              href={supportURL(message, error, debug)}
               target="_blank"
               underline="always"
             >
