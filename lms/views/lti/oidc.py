@@ -35,6 +35,7 @@ from webargs import fields
 
 from lms.services import LTIRegistrationService
 from lms.validation import PyramidRequestSchema
+from lms.validation import ValidationError
 
 
 class OIDCRequestSchema(PyramidRequestSchema):
@@ -59,8 +60,12 @@ def oidc_view(request):
 
     registration = request.find_service(LTIRegistrationService).get(issuer, client_id)
     if not registration:
-        raise HTTPForbidden(
-            f"""Registration not found. iss:'{issuer}', client_id:'{client_id}'"""
+        raise ValidationError(
+            messages={
+                "lti": {
+                    f"""Registration not found. iss:'{issuer}', client_id:'{client_id}'"""
+                }
+            }
         )
 
     params = {
