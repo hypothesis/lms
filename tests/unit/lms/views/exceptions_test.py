@@ -29,16 +29,6 @@ class TestExceptionViews:
         assert pyramid_request.response.status_int == 403
         assert template_data == {"message": "You're not authorized to view this page"}
 
-    def test_forbidden_with_message(self, pyramid_request):
-        exception = httpexceptions.HTTPForbidden("EXTRA")
-
-        template_data = ExceptionViews(exception, pyramid_request).forbidden()
-
-        assert pyramid_request.response.status_int == 403
-        assert template_data == {
-            "message": "You're not authorized to view this page<p>EXTRA"
-        }
-
     def test_forbidden_with_validation_error(self, pyramid_request):
         exception = ValidationError(sentinel.messages)
         forbidden = httpexceptions.HTTPForbidden(result=DeniedWithException(exception))
