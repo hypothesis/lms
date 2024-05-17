@@ -65,6 +65,11 @@ class ExceptionViews:
     )
     def validation_error(self):
         self.request.response.status_int = self.exception.status_int
+        LOG.info(
+            "Validation error: %s. Parameters: %s",
+            self.exception.messages,
+            self.request.params,
+        )
         return {"error": self.exception}
 
     @exception_view_config(

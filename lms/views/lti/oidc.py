@@ -29,13 +29,12 @@ The actual LTI launch with an JWT token.
 import uuid
 from urllib.parse import urlencode
 
-from pyramid.httpexceptions import HTTPForbidden, HTTPFound
+from pyramid.httpexceptions import HTTPFound
 from pyramid.view import view_config
 from webargs import fields
 
 from lms.services import LTIRegistrationService
-from lms.validation import PyramidRequestSchema
-from lms.validation import ValidationError
+from lms.validation import PyramidRequestSchema, ValidationError
 
 
 class OIDCRequestSchema(PyramidRequestSchema):

@@ -1,7 +1,8 @@
 import pytest
 from h_matchers import Any
-from pyramid.httpexceptions import HTTPForbidden, HTTPFound
+from pyramid.httpexceptions import HTTPFound
 
+from lms.validation import ValidationError
 from lms.views.lti.oidc import oidc_view
 
 
@@ -9,7 +10,7 @@ class TestOIDC:
     def test_missing_registration(self, lti_registration_service, pyramid_request):
         lti_registration_service.get.return_value = None
 
-        with pytest.raises(HTTPForbidden):
+        with pytest.raises(ValidationError):
             oidc_view(pyramid_request)
 
     def test_it(self, lti_registration_service, pyramid_request):

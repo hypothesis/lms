@@ -25,6 +25,7 @@ def create_app(global_config, **settings):  # pylint: disable=unused-argument
             "exclog.extra_info": True,
             "exclog.ignore": [
                 "lms.services.exceptions.OAuth2TokenError",
+                "lms.validation.ValidationError",
                 "pyramid.httpexceptions.HTTPNotFound",
             ],
         }
