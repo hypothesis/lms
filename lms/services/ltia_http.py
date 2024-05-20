@@ -77,7 +77,7 @@ class LTIAHTTPService:
                 "client_assertion": signed_jwt,
                 "scope": " ".join(scopes),
             },
-            timeout=(20, 20),
+            timeout=(30, 30),
         )
 
         try:
