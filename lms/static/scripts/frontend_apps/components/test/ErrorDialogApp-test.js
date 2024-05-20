@@ -64,7 +64,7 @@ describe('ErrorDialogApp', () => {
     const wrapper = renderApp();
     assert.include(
       wrapper.text(),
-      'To create a Hypothesis-enabled reading in Canvas, create a new Assignment or Module item.',
+      'The button in the VitalSource app labeled "Launch Courseware" allows students to acquire a license',
     );
   });
 });

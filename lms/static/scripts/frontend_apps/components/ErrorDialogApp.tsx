@@ -37,7 +37,8 @@ export default function ErrorDialogApp() {
       displaySupportLink = false;
       break;
     case 'vitalsource_student_pay_license_launch_instructor':
-      title = 'This button allows students to acquire licenses';
+      title =
+        'The "Launch Courseware" button allows students to acquire licenses';
       displaySupportLink = false;
       break;
     default:
@@ -113,11 +114,13 @@ export default function ErrorDialogApp() {
         'vitalsource_student_pay_license_launch_instructor' && (
         <>
           <p>
-            To create a Hypothesis-enabled reading in Canvas, create a new
-            Assignment or Module item.
+            The button in the VitalSource app labeled &quot;Launch
+            Courseware&quot; allows students to acquire a license to Hypothesis
+            if they need to. Because you are an instructor you do not require a
+            license to use Hypothesis.
           </p>
           <p>
-            See:{' '}
+            To create a Hypothesis-enabled reading, please see::{' '}
             <Link
               target="_blank"
               href="https://web.hypothes.is/help/using-the-hypothesis-app-through-vitalsource/"
