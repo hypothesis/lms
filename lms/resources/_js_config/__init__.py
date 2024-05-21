@@ -5,7 +5,7 @@ from typing import Any
 
 from lms.error_code import ErrorCode
 from lms.events import LTIEvent
-from lms.js_config_types import DashboardConfig, DashboardRoutes
+from lms.js_config_types import DashboardConfig, DashboardLinks, DashboardRoutes
 from lms.models import Assignment, Course, Grouping
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
@@ -249,6 +249,10 @@ class JSConfig:
                         course_assignment_stats=self._to_frontend_template(
                             "dashboard.api.course.assignments.stats"
                         ),
+                    ),
+                    links=DashboardLinks(
+                        assignment=self._to_frontend_template("dashboard.assignment"),
+                        course=self._to_frontend_template("dashboard.course"),
                     ),
                 ),
             }

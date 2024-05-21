@@ -4,7 +4,14 @@ Types of the config exposed to the frontend and API return values.
 Making this a top level module to avoid circular dependency problems.
 """
 
-from typing import NotRequired, TypedDict
+from typing import NotRequired, TypeAlias, TypedDict
+
+URLTemplate: TypeAlias = str
+"""Templates are string that containt templated URL with parameter names like:
+
+    /course/:course_id/
+    /course/:course_id/assignment/:assignment
+"""
 
 
 class APICallInfo(TypedDict):
@@ -37,13 +44,23 @@ class APIAssignment(TypedDict):
     stats: NotRequired[AssignmentStats]
 
 
-class DashboardRoutes(TypedDict):
-    assignment: str
-    assignment_stats: str
+class DashboardLinks(TypedDict):
+    """Expose the URL of different top level dashboards."""
 
-    course: str
-    course_assignment_stats: str
+    assignment: URLTemplate
+    course: URLTemplate
+
+
+class DashboardRoutes(TypedDict):
+    """Expose routes of the available API endpoints."""
+
+    assignment: URLTemplate
+    assignment_stats: URLTemplate
+
+    course: URLTemplate
+    course_assignment_stats: URLTemplate
 
 
 class DashboardConfig(TypedDict):
     routes: DashboardRoutes
+    links: DashboardLinks
