@@ -3,7 +3,7 @@ from pyramid.view import forbidden_view_config, view_config
 
 from lms.security import Permissions
 from lms.validation.authentication import BearerTokenSchema
-from lms.views.dashboard.base import get_request_assignment
+from lms.views.dashboard.base import get_request_assignment, get_request_course
 
 
 @forbidden_view_config(
@@ -16,6 +16,11 @@ from lms.views.dashboard.base import get_request_assignment
     request_method="GET",
     renderer="lms:templates/dashboard/forbidden.html.jinja2",
 )
+@forbidden_view_config(
+    route_name="dashboard.course",
+    request_method="GET",
+    renderer="lms:templates/dashboard/forbidden.html.jinja2",
+)
 def forbidden(_request):  # pragma: no cover
     return {}
 
@@ -24,6 +29,7 @@ class DashboardViews:
     def __init__(self, request) -> None:
         self.request = request
         self.assignment_service = request.find_service(name="assignment")
+        self.course_service = request.find_service(name="course")
 
     @view_config(
         route_name="dashboard.launch.assignment",
@@ -32,7 +38,7 @@ class DashboardViews:
     )
     def assignment_redirect_from_launch(self):
         """
-        Entry point to the dashboards from an LTI launch.
+        Entry point to the single assignment view from an LTI launch.
 
         Here we "promote" the LTILaunch token present as a form parameter to a cookie.
         """
@@ -62,7 +68,23 @@ class DashboardViews:
         assignment = get_request_assignment(self.request, self.assignment_service)
         self.request.context.js_config.enable_dashboard_mode()
         self._set_lti_user_cookie(self.request.response)
-        return {"assignment": assignment}
+        return {"title": assignment.title}
+
+    @view_config(
+        route_name="dashboard.course",
+        permission=Permissions.DASHBOARD_VIEW,
+        request_method="GET",
+        renderer="lms:templates/dashboard/index.html.jinja2",
+    )
+    def course_show(self):
+        """Start the dashboard miniapp in the frontend.
+
+        Authenticated via the LTIUser present in a cookie making this endpoint accessible directly in the browser.
+        """
+        course = get_request_course(self.request, self.course_service)
+        self.request.context.js_config.enable_dashboard_mode()
+        self._set_lti_user_cookie(self.request.response)
+        return {"title": course.lms_name}
 
     def _set_lti_user_cookie(self, response):
         lti_user = self.request.lti_user

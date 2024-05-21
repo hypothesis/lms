@@ -9,7 +9,7 @@ from lms.resources._js_config import JSConfig
 from lms.resources.dashboard import DashboardResource
 from lms.views.dashboard.views import DashboardViews
 
-pytestmark = pytest.mark.usefixtures("h_api", "assignment_service")
+pytestmark = pytest.mark.usefixtures("h_api", "assignment_service", "course_service")
 
 
 # pylint:disable=protected-access
@@ -48,6 +48,23 @@ class TestDashboardViews:
         views.assignment_show()
 
         assignment_service.get_by_id.assert_called_once_with(sentinel.id)
+        pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
+        assert (
+            pyramid_request.response.headers["Set-Cookie"]
+            == f"authorization=TOKEN; Max-Age=86400; Path=/dashboard/organization/{organization._public_id}; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
+        )
+
+    @freeze_time("2024-04-01 12:00:00")
+    @pytest.mark.usefixtures("BearerTokenSchema")
+    def test_course_show(self, views, pyramid_request, course_service, organization):
+        context = DashboardResource(pyramid_request)
+        context.js_config = create_autospec(JSConfig, spec_set=True, instance=True)
+        pyramid_request.context = context
+        pyramid_request.matchdict["course_id"] = sentinel.id
+
+        views.course_show()
+
+        course_service.get_by_id.assert_called_once_with(sentinel.id)
         pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
         assert (
             pyramid_request.response.headers["Set-Cookie"]
