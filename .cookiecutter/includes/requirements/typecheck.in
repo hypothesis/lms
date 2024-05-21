@@ -1,9 +1,3 @@
--r prod.txt
-
-pip-tools
-pip-sync-faster
-
-mypy
 types-requests
 types-xmltodict
 types-oauthlib

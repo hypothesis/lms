@@ -60,6 +60,23 @@ jobs:
             lint-${{ runner.os }}-tox-
       - run: python -m pip install 'tox<4'
       - run: tox -e lint
+  Typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Cache the .tox dir
+        uses: actions/cache@v3
+        with:
+          path: .tox
+          key: typecheck-${{ runner.os }}-tox-${{ hashFiles('tox.ini') }}-${{ hashFiles('requirements/*') }}
+          restore-keys: |
+            typecheck-${{ runner.os }}-tox-
+      - run: python -m pip install 'tox<4'
+      - run: tox -e typecheck
   Tests:
     runs-on: ubuntu-latest-32-cores
     services:
