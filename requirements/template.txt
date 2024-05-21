@@ -54,7 +54,7 @@ python-slugify==8.0.1
     # via cookiecutter
 pyyaml==6.0.1
     # via cookiecutter
-requests==2.31.0
+requests==2.32.0
     # via cookiecutter
 rich==13.7.0
     # via cookiecutter
