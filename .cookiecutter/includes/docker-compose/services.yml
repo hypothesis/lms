@@ -1,5 +1,5 @@
 rabbit:
- image: rabbitmq:3.6-management-alpine
+ image: rabbitmq:3.12-management-alpine
  ports:
    - '127.0.0.1:5674:5672'
    - '127.0.0.1:15674:15672'

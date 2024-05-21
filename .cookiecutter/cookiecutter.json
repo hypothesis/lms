@@ -33,7 +33,7 @@
     "postgres": "yes",
     "docker": "yes",
     "__postgres_port": "5433",
-    "__postgres_version": "11.5-alpine",
+    "__postgres_version": "15.6-alpine",
     "__docker_namespace": "hypothesis",
     "__docker_network": "lms_default",
     "__github_url": "https://github.com/hypothesis/lms",

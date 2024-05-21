@@ -3,9 +3,16 @@ BDD_Tests:
   runs-on: ubuntu-latest
   services:
     postgres:
-      image: postgres:11.5-alpine
+      image: postgres:15.6-alpine
       ports:
       - 5433:5432
+      env:
+        POSTGRES_HOST_AUTH_METHOD: trust
+      options: >-
+        --health-cmd pg_isready
+        --health-interval 10s
+        --health-timeout 5s
+        --health-retries 5
   steps:
     - uses: actions/checkout@v3
     - name: Install Python
