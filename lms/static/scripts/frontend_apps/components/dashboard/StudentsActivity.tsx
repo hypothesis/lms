@@ -12,6 +12,7 @@ import type { Assignment, StudentStats } from '../../api-types';
 import { useConfig } from '../../config';
 import { useAPIFetch } from '../../utils/api';
 import { formatDateTime } from '../../utils/date';
+import { replaceURLParams } from '../../utils/url';
 
 type MandatoryOrder<T> = NonNullable<DataTableProps<T>['order']>;
 
@@ -20,10 +21,10 @@ export default function StudentsActivity() {
   const { routes } = dashboard;
   const { assignmentId } = useParams<{ assignmentId: string }>();
   const assignment = useAPIFetch<Assignment>(
-    routes.assignment.replace(':assignment_id', assignmentId),
+    replaceURLParams(routes.assignment, { assignment_id: assignmentId }),
   );
   const students = useAPIFetch<StudentStats[]>(
-    routes.assignment_stats.replace(':assignment_id', assignmentId),
+    replaceURLParams(routes.assignment_stats, { assignment_id: assignmentId }),
   );
 
   const title = `Assignment: ${assignment.data?.title}`;
