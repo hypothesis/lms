@@ -147,7 +147,7 @@ class SecurityPolicy:
             return HeadersBearerTokenLTIUserPolicy()
 
         if path in {"/assignment", "/assignment/edit"} or path.startswith(
-            "/dashboard/launch/assignment/"
+            "/dashboard/launch/"
         ):
             # LTUser serialized in a from for non deep-linked assignment configuration
             return FormBearerTokenLTIUserPolicy()
