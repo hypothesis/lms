@@ -3,13 +3,11 @@ import {
   mockImportedComponents,
 } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
-import sinon from 'sinon';
 
-import { Config } from '../../../config';
 import StudentsActivity, { $imports } from '../StudentsActivity';
 
 describe('StudentsActivity', () => {
-  const students = [
+  const defaultStudents = [
     {
       display_name: 'b',
       last_activity: '2020-01-01T00:00:00',
@@ -30,77 +28,41 @@ describe('StudentsActivity', () => {
     },
   ];
 
-  let fakeUseAPIFetch;
-  let fakeConfig;
-
   beforeEach(() => {
-    fakeUseAPIFetch = sinon.stub().callsFake(url => ({
-      isLoading: false,
-      data: url.endsWith('stats') ? students : { title: 'The title' },
-    }));
-    fakeConfig = {
-      dashboard: {
-        routes: {
-          assignment: '/api/assignment/:assignment_id',
-          assignment_stats: '/api/assignment/:assignment_id/stats',
-        },
-      },
-    };
-
     $imports.$mock(mockImportedComponents());
-    $imports.$mock({
-      '../../utils/api': {
-        useAPIFetch: fakeUseAPIFetch,
-      },
-    });
   });
 
   afterEach(() => {
     $imports.$restore();
   });
 
-  function createComponent() {
+  function createComponent(props = {}) {
     return mount(
-      <Config.Provider value={fakeConfig}>
-        <StudentsActivity />
-      </Config.Provider>,
+      <StudentsActivity
+        assignment={props.assignment ?? { title: 'The title' }}
+        students={props.students ?? defaultStudents}
+      />,
     );
   }
 
-  it('shows loading indicators while data is loading', () => {
-    fakeUseAPIFetch.returns({ isLoading: true });
+  ['some title', 'foo bar'].forEach(title => {
+    it('shows expected title', () => {
+      const wrapper = createComponent({
+        assignment: { title },
+      });
+      const titleElement = wrapper.find('[data-testid="title"]');
+      const tableElement = wrapper.find('DataTable');
+      const expectedTitle = `Assignment: ${title}`;
 
-    const wrapper = createComponent();
-    const titleElement = wrapper.find('[data-testid="title"]');
-    const tableElement = wrapper.find('DataTable');
-
-    assert.equal(titleElement.text(), 'Loading...');
-    assert.isTrue(tableElement.prop('loading'));
-  });
-
-  it('shows error if loading data fails', () => {
-    fakeUseAPIFetch.returns({ error: new Error('Something failed') });
-
-    const wrapper = createComponent();
-    const titleElement = wrapper.find('[data-testid="title"]');
-    const tableElement = wrapper.find('DataTable');
-
-    assert.equal(titleElement.text(), 'Could not load assignment title');
-    assert.equal(tableElement.prop('emptyMessage'), 'Could not load students');
-  });
-
-  it('shows expected title', () => {
-    const wrapper = createComponent();
-    const titleElement = wrapper.find('[data-testid="title"]');
-    const tableElement = wrapper.find('DataTable');
-    const expectedTitle = `Assignment: The title`;
-
-    assert.equal(titleElement.text(), expectedTitle);
-    assert.equal(tableElement.prop('title'), expectedTitle);
+      assert.equal(titleElement.text(), expectedTitle);
+      assert.equal(tableElement.prop('title'), expectedTitle);
+    });
   });
 
   it('shows empty students message', () => {
-    const wrapper = createComponent();
+    const wrapper = createComponent({
+      students: [],
+    });
     const tableElement = wrapper.find('DataTable');
 
     assert.equal(tableElement.prop('emptyMessage'), 'No students found');

@@ -2,7 +2,7 @@ import classnames from 'classnames';
 import { Route } from 'wouter-preact';
 
 import DashboardFooter from './DashboardFooter';
-import StudentsActivity from './StudentsActivity';
+import StudentsActivityLoader from './StudentsActivityLoader';
 
 export default function DashboardApp() {
   return (
@@ -22,7 +22,7 @@ export default function DashboardApp() {
       <div className="flex-grow px-3">
         <div className="mx-auto max-w-6xl">
           <Route path="/assignment/:assignmentId">
-            <StudentsActivity />
+            <StudentsActivityLoader />
           </Route>
         </div>
       </div>
