@@ -1,12 +1,15 @@
 import datetime
 import logging
+import re
 from datetime import timezone
 
 from pyramid.view import view_config, view_defaults
 
+from lms.error_code import ErrorCode
 from lms.events import LTIEvent
 from lms.security import Permissions
 from lms.services import LTIGradingService
+from lms.services.exceptions import ExternalRequestError, SerializableError
 from lms.validation import (
     APIReadResultSchema,
     APIRecordResultSchema,
@@ -101,18 +104,35 @@ class GradingViews:
         # theory require a grade).
 
         lis_result_sourcedid = self.parsed_params["lis_result_sourcedid"]
+        try:
+            # If we already have a score, then we've already recorded this info
+            if self.lti_grading_service.read_result(lis_result_sourcedid).score:
+                LOG.debug(
+                    "Grade already present, not recording submission. User ID: %s",
+                    self.request.user.id,
+                )
+                return None
 
-        # If we already have a score, then we've already recorded this info
-        if self.lti_grading_service.read_result(lis_result_sourcedid).score:
-            LOG.debug(
-                "Grade already present, not recording submission. User ID: %s",
-                self.request.user.id,
+            self.lti_grading_service.record_result(
+                lis_result_sourcedid, pre_record_hook=CanvasPreRecordHook(self.request)
             )
-            return None
 
-        self.lti_grading_service.record_result(
-            lis_result_sourcedid, pre_record_hook=CanvasPreRecordHook(self.request)
-        )
+        except ExternalRequestError as err:
+            # This is Canvas only, we do the error handling here instead of the view to avoid
+            # conflicting different, more general use cases.
+            # This is what we get with the Course Participation end date has passed.
+            if re.search(
+                # LTI1.1 and LTI 1.3 strings respectively.
+                # The LTI1.3 can happen in both reading and record operations.
+                r"Course not available for student|This course has concluded",
+                getattr(getattr(err, "response", None), "text", ""),
+            ):
+                raise SerializableError(
+                    error_code=ErrorCode.CANVAS_SUBMISSION_COURSE_NOT_AVAILABLE
+                ) from err
+
+            raise err
+
         self.request.registry.notify(
             LTIEvent.from_request(request=self.request, type_=LTIEvent.Type.SUBMISSION)
         )
