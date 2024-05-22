@@ -59,4 +59,19 @@ describe('DataLoader', () => {
     assert.isFalse(wrapper.exists('[data-testid="content"]'));
     assert.isFalse(wrapper.exists('SpinnerOverlay'));
   });
+
+  it('aborts loading when DataLoader is unmounted', () => {
+    const onAbort = sinon.stub();
+    const wrapper = mount(
+      <TestContainer
+        load={async signal => {
+          signal.onabort = onAbort;
+          return 'Hello world';
+        }}
+      />,
+    );
+
+    wrapper.unmount();
+    assert.called(onAbort);
+  });
 });
