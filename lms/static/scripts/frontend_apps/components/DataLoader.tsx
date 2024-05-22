@@ -13,8 +13,12 @@ export type DataLoaderProps<Data> = {
    */
   children: ComponentChildren;
 
-  /** Function that fetches data if {@link loaded} is false. */
-  load: () => Promise<Data>;
+  /**
+   * Function that fetches data if {@link loaded} is false.
+   * It provides an abort signal that gets aborted when the DataLoader is
+   * unmounted or the `load` or `onLoad` props change.
+   */
+  load: (signal: AbortSignal) => Promise<Data>;
 
   /**
    * Callback to invoke with the results of {@link load}.
@@ -46,13 +50,17 @@ export default function DataLoader<Data>({
 
   useEffect(() => {
     if (loaded) {
-      return;
+      return () => {};
     }
-    load()
+
+    const controller = new AbortController();
+    load(controller.signal)
       .then(onLoad)
       .catch(err => {
         setError(err);
       });
+
+    return () => controller.abort();
   }, [loaded, load, onLoad]);
 
   if (error) {
