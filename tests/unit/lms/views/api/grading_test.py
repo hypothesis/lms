@@ -1,10 +1,11 @@
 import datetime
 from datetime import timezone
-from unittest.mock import patch, sentinel
+from unittest.mock import Mock, patch, sentinel
 
 import pytest
 from h_matchers import Any
 
+from lms.services.exceptions import ExternalRequestError, SerializableError
 from lms.services.lti_grading.interface import GradingResult
 from lms.views.api.grading import CanvasPreRecordHook, GradingViews
 
@@ -14,12 +15,21 @@ pytestmark = pytest.mark.usefixtures("lti_grading_service")
 class TestRecordCanvasSpeedgraderSubmission:
     GRADING_ID = "lis_result_sourcedid"
 
-    def test_it_passes_correct_params_to_read_current_score(
-        self, pyramid_request, lti_grading_service
-    ):
+    def test_it(self, pyramid_request, lti_grading_service, LTIEvent):
+        lti_grading_service.read_result.return_value = GradingResult(
+            score=None, comment=None
+        )
+
         GradingViews(pyramid_request).record_canvas_speedgrader_submission()
 
         lti_grading_service.read_result.assert_called_once_with(self.GRADING_ID)
+        lti_grading_service.record_result.assert_called_once_with(
+            self.GRADING_ID,
+            pre_record_hook=Any.instance_of(CanvasPreRecordHook),
+        )
+        LTIEvent.from_request.assert_called_once_with(
+            request=pyramid_request, type_=LTIEvent.Type.SUBMISSION
+        )
 
     def test_it_does_not_record_result_if_score_already_exists(
         self, pyramid_request, lti_grading_service
@@ -32,24 +42,47 @@ class TestRecordCanvasSpeedgraderSubmission:
 
         lti_grading_service.record_result.assert_not_called()
 
-    def test_it_passes_the_callback_if_there_is_no_score(
-        self, pyramid_request, lti_grading_service, LTIEvent
+    @pytest.mark.parametrize(
+        "error_message",
+        ["Course not available for students", "This course has concluded"],
+    )
+    def test_it_course_has_concluded_reading(
+        self, pyramid_request, lti_grading_service, error_message
+    ):
+        lti_grading_service.read_result.side_effect = ExternalRequestError(
+            response=Mock(text=error_message)
+        )
+
+        with pytest.raises(SerializableError):
+            GradingViews(pyramid_request).record_canvas_speedgrader_submission()
+
+    @pytest.mark.parametrize(
+        "error_message",
+        ["Course not available for students", "This course has concluded"],
+    )
+    def test_it_course_has_concluded_recording(
+        self, pyramid_request, lti_grading_service, error_message
     ):
         lti_grading_service.read_result.return_value = GradingResult(
             score=None, comment=None
         )
-
-        GradingViews(pyramid_request).record_canvas_speedgrader_submission()
-
-        lti_grading_service.record_result.assert_called_once_with(
-            self.GRADING_ID,
-            pre_record_hook=Any.instance_of(CanvasPreRecordHook),
-            # lti_launch_url=expected_launch_url,
-            # submitted_at=datetime.datetime(2001, 1, 1, tzinfo=timezone.utc),
+        lti_grading_service.record_result.side_effect = ExternalRequestError(
+            response=Mock(text=error_message)
         )
-        LTIEvent.from_request.assert_called_once_with(
-            request=pyramid_request, type_=LTIEvent.Type.SUBMISSION
+
+        with pytest.raises(SerializableError):
+            GradingViews(pyramid_request).record_canvas_speedgrader_submission()
+
+    def test_it_raises_unhandled_external_request_error(
+        self, pyramid_request, lti_grading_service
+    ):
+        lti_grading_service.read_result.return_value = GradingResult(
+            score=None, comment=None
         )
+        lti_grading_service.record_result.side_effect = ExternalRequestError()
+
+        with pytest.raises(ExternalRequestError):
+            GradingViews(pyramid_request).record_canvas_speedgrader_submission()
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):

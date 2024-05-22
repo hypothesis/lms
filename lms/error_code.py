@@ -16,3 +16,4 @@ class ErrorCode(str, Enum):
         "vitalsource_student_pay_license_launch_instructor"
     )
     REUSED_CONSUMER_KEY = "reused_consumer_key"
+    CANVAS_SUBMISSION_COURSE_NOT_AVAILABLE = "canvas_submission_course_not_available"
