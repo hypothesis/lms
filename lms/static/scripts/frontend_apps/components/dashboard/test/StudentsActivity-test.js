@@ -41,8 +41,8 @@ describe('StudentsActivity', () => {
     fakeConfig = {
       dashboard: {
         routes: {
-          assignment: '/api/assignment/:id',
-          assignment_stats: '/api/assignment/:id/stats',
+          assignment: '/api/assignment/:assignment_id',
+          assignment_stats: '/api/assignment/:assignment_id/stats',
         },
       },
     };
