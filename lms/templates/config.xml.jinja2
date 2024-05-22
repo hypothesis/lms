@@ -5,7 +5,7 @@
   xmlns:lticm="http://www.imsglobal.org/xsd/imslticm_v1p0"
   xmlns:lticp="http://www.imsglobal.org/xsd/imslticp_v1p0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemalocation="http://www.imsglobal.org/xsd/imslticc_v1p0
+  xsi:schemalocation="http://www.imsglobal.org/xsd/imslticc_v1p0
 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd
 http://www.imsglobal.org/xsd/imsbasiclti_v1p0
 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0p1.xsd
@@ -19,21 +19,31 @@ http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd">
     <lticm:property name="custom_canvas_course_id">$Canvas.course.id</lticm:property>
     <lticm:property name="custom_canvas_api_domain">$Canvas.api.domain</lticm:property>
     <lticm:property name="custom_display_name">$Person.name.display</lticm:property>
+    <lticm:property name="custom_canvas_user_id">$Canvas.user.id</lticm:property>
+    <lticm:property name="custom_context_id_history">$Context.id.history</lticm:property>
+    <lticm:property name="custom_course_starts">$Canvas.course.startAt</lticm:property>
+    <lticm:property name="custom_course_ends">$Canvas.course.endAt</lticm:property>
+    <lticm:property name="custom_term_name">$Canvas.term.name</lticm:property>
+    <lticm:property name="custom_term_start">$Canvas.term.startAt</lticm:property>
+    <lticm:property name="custom_term_end">$Canvas.term.endAt</lticm:property>
+    <lticm:property name="custom_assignment_id">$Canvas.assignment.id</lticm:property>
+    <lticm:property name="custom_allowed_attempts">$Canvas.assignment.allowedAttempts</lticm:property>
+    <lticm:property name="custom_submitted_attempts">$Canvas.assignment.submission.studentAttempts</lticm:property>
   </blti:custom>
   <blti:extensions platform="canvas.instructure.com">
     <lticm:options name="link_selection">
       <lticm:property
-name="message_type">ContentItemSelectionRequest</lticm:property>
+        name="message_type">ContentItemSelectionRequest</lticm:property>
       <lticm:property name="text">Hypothesis</lticm:property>
       <lticm:property
-name="url">{{ content_item_url }}</lticm:property>
+        name="url">{{ content_item_url }}</lticm:property>
     </lticm:options>
     <lticm:options name="assignment_selection">
       <lticm:property
-name="message_type">ContentItemSelectionRequest</lticm:property>
+        name="message_type">ContentItemSelectionRequest</lticm:property>
       <lticm:property name="text">Hypothesis</lticm:property>
       <lticm:property
-name="url">{{ content_item_url }}</lticm:property>
+        name="url">{{ content_item_url }}</lticm:property>
     </lticm:options>
     <lticm:property name="privacy_level">public</lticm:property>
   </blti:extensions>
