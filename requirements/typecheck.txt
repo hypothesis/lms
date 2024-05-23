@@ -102,6 +102,8 @@ h-pyramid-sentry==1.2.4
     # via -r prod.txt
 h-vialib==1.3.0
     # via -r prod.txt
+hubspot==0.1.14.dev0
+    # via -r prod.txt
 hupper==1.12
     # via
     #   -r prod.txt

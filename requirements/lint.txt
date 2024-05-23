@@ -218,6 +218,11 @@ httpretty==1.1.4
     #   -r bddtests.txt
     #   -r functests.txt
     #   -r tests.txt
+hubspot==0.1.14.dev0
+    # via
+    #   -r bddtests.txt
+    #   -r functests.txt
+    #   -r tests.txt
 hupper==1.12
     # via
     #   -r bddtests.txt
