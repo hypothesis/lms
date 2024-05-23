@@ -25,6 +25,7 @@ celery==5.3.6
     # via -r prod.in
 certifi==2023.11.17
     # via
+    #   hubspot-api-client
     #   mailchimp-transactional
     #   requests
     #   sentry-sdk
@@ -70,7 +71,7 @@ h-pyramid-sentry==1.2.4
     # via -r prod.in
 h-vialib==1.3.0
     # via -r prod.in
-hubspot==0.1.14.dev0
+hubspot-api-client==9.0.0
     # via -r prod.in
 hupper==1.12
     # via pyramid
@@ -183,6 +184,7 @@ pyramid-tm==2.5
 python-dateutil==2.8.2
     # via
     #   celery
+    #   hubspot-api-client
     #   mailchimp-transactional
 referencing==0.32.0
     # via
@@ -210,6 +212,7 @@ sentry-sdk==2.0.1
     #   h-pyramid-sentry
 six==1.16.0
     # via
+    #   hubspot-api-client
     #   mailchimp-transactional
     #   python-dateutil
 sqlalchemy==2.0.29
@@ -240,6 +243,7 @@ tzdata==2023.3
     # via celery
 urllib3==2.1.0
     # via
+    #   hubspot-api-client
     #   mailchimp-transactional
     #   requests
     #   sentry-sdk

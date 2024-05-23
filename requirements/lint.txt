@@ -74,6 +74,7 @@ certifi==2023.11.17
     #   -r bddtests.txt
     #   -r functests.txt
     #   -r tests.txt
+    #   hubspot-api-client
     #   mailchimp-transactional
     #   requests
     #   sentry-sdk
@@ -218,7 +219,7 @@ httpretty==1.1.4
     #   -r bddtests.txt
     #   -r functests.txt
     #   -r tests.txt
-hubspot==0.1.14.dev0
+hubspot-api-client==9.0.0
     # via
     #   -r bddtests.txt
     #   -r functests.txt
@@ -524,6 +525,7 @@ python-dateutil==2.8.2
     #   celery
     #   faker
     #   freezegun
+    #   hubspot-api-client
     #   mailchimp-transactional
 referencing==0.32.0
     # via
@@ -573,6 +575,7 @@ six==1.16.0
     #   -r functests.txt
     #   -r tests.txt
     #   behave
+    #   hubspot-api-client
     #   mailchimp-transactional
     #   parse-type
     #   python-dateutil
@@ -635,6 +638,7 @@ urllib3==2.1.0
     #   -r bddtests.txt
     #   -r functests.txt
     #   -r tests.txt
+    #   hubspot-api-client
     #   mailchimp-transactional
     #   requests
     #   sentry-sdk
