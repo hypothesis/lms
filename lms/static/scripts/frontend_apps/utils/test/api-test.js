@@ -324,6 +324,35 @@ describe('api', () => {
     assert.instanceOf(error, Error);
     assert.equal(error.name, 'AbortError');
   });
+
+  it('retries if an HTTP 409 response is received', async () => {
+    const conflictResponse = createResponse(409, {});
+    const okResponse = createResponse(200, { ok: true });
+
+    window.fetch.withArgs('/api/test').onCall(0).resolves(conflictResponse);
+    window.fetch.withArgs('/api/test').onCall(1).resolves(conflictResponse);
+    window.fetch.withArgs('/api/test').onCall(2).resolves(okResponse);
+
+    // An HTTP 409 response should trigger an automatic retry.
+    const result = await apiCall({
+      path: '/api/test',
+      authToken: 'auth',
+    });
+
+    assert.deepEqual(result, { ok: true });
+
+    // Automatic retries should stop after we hit the retry limit.
+    window.fetch.resetHistory();
+    let error;
+    try {
+      await apiCall({ path: '/api/test', authToken: 'auth', maxRetries: 1 });
+    } catch (err) {
+      error = err;
+    }
+
+    assert.instanceOf(error, APIError);
+    assert.equal(error.status, 409);
+  });
 });
 
 describe('urlPath', () => {

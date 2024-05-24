@@ -58,6 +58,15 @@ export type APICallOptions = {
    */
   allowRefresh?: boolean;
 
+  /**
+   * Maximum number of times this request can be retried automatically due to
+   * eg. HTTP 409 (Conflict) responses.
+   */
+  maxRetries?: number;
+
+  /** Internal. Counts the number of times this request has been retried. */
+  retryCount?: number;
+
   /** Signal that can be used to cancel the request. */
   signal?: AbortSignal;
 };
@@ -75,8 +84,10 @@ export async function apiCall<Result = unknown>(
     // Optional fields.
     allowRefresh = true,
     data,
+    maxRetries = 10,
     method,
     params,
+    retryCount = 0,
     signal,
   } = options;
 
@@ -110,6 +121,10 @@ export async function apiCall<Result = unknown>(
   const resultJSON = await result.json();
 
   if (result.status >= 400 && result.status < 600) {
+    if (result.status === 409 && retryCount < maxRetries) {
+      return apiCall({ ...options, retryCount: retryCount + 1 });
+    }
+
     // Refresh expired access tokens for external APIs, if required. Only one
     // such request should be issued by the frontend for a given API at a time.
     if (allowRefresh && result.status === 400 && isRefreshError(resultJSON)) {
