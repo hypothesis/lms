@@ -106,6 +106,14 @@ describe('LaunchErrorDialog', () => {
       withError: true,
     },
     {
+      errorState: 'canvas_studio_admin_token_refresh_failed',
+      expectedText:
+        'Your Canvas LMS administrator needs to re-authorize the integration between Hypothesis and Canvas Studio',
+      expectedTitle: 'Unable to access Canvas Studio video',
+      hasRetry: false,
+      withError: true,
+    },
+    {
       errorState: 'd2l_file_not_found_in_course_instructor',
       expectedText:
         'To fix the issue, recreate this assignment and select a different file.',

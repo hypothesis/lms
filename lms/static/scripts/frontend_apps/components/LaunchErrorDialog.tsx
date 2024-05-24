@@ -356,6 +356,21 @@ export default function LaunchErrorDialog({
           </p>
         </ErrorModal>
       );
+
+    case 'canvas_studio_admin_token_refresh_failed':
+      return (
+        <ErrorModal
+          {...defaultProps}
+          onRetry={undefined}
+          title="Unable to access Canvas Studio video"
+        >
+          <p>
+            Your Canvas LMS administrator needs to re-authorize the integration
+            between Hypothesis and Canvas Studio.
+          </p>
+        </ErrorModal>
+      );
+
     case 'blackboard_group_set_not_found':
       return (
         <ErrorModal

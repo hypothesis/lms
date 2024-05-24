@@ -8,7 +8,11 @@ from requests import RequestException
 
 from lms.models.oauth2_token import Service
 from lms.services.canvas_studio import CanvasStudioService, factory
-from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
+from lms.services.exceptions import (
+    ExternalRequestError,
+    OAuth2TokenError,
+    SerializableError,
+)
 from lms.services.oauth_http import OAuthHTTPService
 from tests import factories
 
@@ -35,6 +39,29 @@ class TestCanvasStudioService:
             "http://example.com/api/canvas_studio/oauth/callback",
             auth=("the_client_id", client_secret),
         )
+
+    def test_refresh_admin_access_token(
+        self, svc, admin_oauth_http_service, client_secret
+    ):
+        svc.refresh_admin_access_token()
+
+        admin_oauth_http_service.refresh_access_token.assert_called_with(
+            "https://hypothesis.instructuremedia.com/api/public/oauth/token",
+            "http://example.com/api/canvas_studio/oauth/callback",
+            auth=("the_client_id", client_secret),
+        )
+
+    def test_refresh_admin_access_token_error(self, svc, admin_oauth_http_service):
+        response = factories.requests.Response(status_code=403)
+        admin_oauth_http_service.refresh_access_token.side_effect = (
+            ExternalRequestError(response=response)
+        )
+
+        with pytest.raises(SerializableError) as exc_info:
+            svc.refresh_admin_access_token()
+
+        assert exc_info.value.error_code == "canvas_studio_admin_token_refresh_failed"
+        assert exc_info.value.message == "Canvas Studio admin token refresh failed."
 
     def test_authorization_url(self, svc):
         state = "the_callback_state"
@@ -237,60 +264,20 @@ class TestCanvasStudioService:
             == "The Canvas Studio admin needs to authenticate the Hypothesis integration"
         )
 
-    def test_admin_token_refreshed_if_needed(
-        self, admin_oauth_http_service, svc, client_secret
+    def test_get_video_download_url_when_admin_token_expired(
+        self, admin_oauth_http_service, svc
     ):
-        # Set up admin-authenticated OAuth request to fail due to expired token.
-        token_expired_response = factories.requests.Response(status_code=401)
-        original_get = admin_oauth_http_service.get.side_effect
+        response = factories.requests.Response(status_code=401)
         admin_oauth_http_service.get.side_effect = ExternalRequestError(
-            response=token_expired_response
+            response=response
         )
 
-        def refresh_ok(*_args, **_kwargs):
-            admin_oauth_http_service.get.side_effect = original_get
-
-        def refresh_fail(*_args, **_kwargs):
-            raise ExternalRequestError(message="refresh failed")
-
-        admin_oauth_http_service.refresh_access_token.side_effect = refresh_ok
-
-        # Perform a request that is admin-authenticated. This should trigger
-        # a refresh and then succeed as normal.
-        url = svc.get_video_download_url("42")
-
-        admin_oauth_http_service.refresh_access_token.assert_called_with(
-            "https://hypothesis.instructuremedia.com/api/public/oauth/token",
-            "http://example.com/api/canvas_studio/oauth/callback",
-            auth=("the_client_id", client_secret),
-        )
-        assert url == "https://videos.cdn.com/video.mp4?signature=abc"
-
-        # Set up the initial request to fail again, due to an expired token,
-        # but this time make the refresh fail.
-        admin_oauth_http_service.get.side_effect = ExternalRequestError(
-            response=token_expired_response
-        )
-        admin_oauth_http_service.refresh_access_token.side_effect = refresh_fail
-
-        with pytest.raises(ExternalRequestError) as exc_info:
+        with pytest.raises(OAuth2TokenError) as exc_info:
             svc.get_video_download_url("42")
 
-        assert (
-            exc_info.value.message
-            == "Canvas Studio admin token refresh failed. Ask the admin user to re-authenticate."
-        )
-
-        # Set up the initial request to fail again, due to an expired token,
-        # but this time make subsequent requests fail even though the refresh
-        # apparently succeeded.
-        admin_oauth_http_service.get.side_effect = ExternalRequestError(
-            response=token_expired_response
-        )
-        admin_oauth_http_service.refresh_access_token.side_effect = None
-
-        with pytest.raises(Exception) as exc_info:
-            svc.get_video_download_url("42")
+        assert exc_info.value.refreshable is True
+        assert exc_info.value.refresh_route == "canvas_studio_api.oauth.refresh_admin"
+        assert exc_info.value.refresh_service == Service.CANVAS_STUDIO
 
     def test_get_transcript_url_returns_url_if_published(self, svc):
         transcript_url = svc.get_transcript_url("42")
