@@ -158,6 +158,10 @@ class OAuth2TokenError(ExternalRequestError):
     """
 
 
+class ConflictError(Exception):
+    """A request failed due to a conflicting operation."""
+
+
 class CanvasAPIError(ExternalRequestError):
     """A problem with a Canvas API request."""
 

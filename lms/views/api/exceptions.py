@@ -23,7 +23,7 @@ from lms.services import (
     ExternalRequestError,
     OAuth2TokenError,
 )
-from lms.services.exceptions import SerializableError
+from lms.services.exceptions import ConflictError, SerializableError
 from lms.validation import ValidationError
 
 _ = i18n.TranslationStringFactory(__package__)
@@ -109,6 +109,11 @@ class APIExceptionViews:
         # 400 is the default status for error responses.
         # Some of the views below override this.
         self.request.response.status_int = 400
+
+    @exception_view_config(context=ConflictError)
+    def conflict_error(self):
+        self.request.response.status_int = 409
+        return ErrorBody(message="Operation failed due to a conflicting update")
 
     @exception_view_config(context=ValidationError)
     def validation_error(self):
