@@ -3,6 +3,7 @@ from functools import lru_cache
 
 from sqlalchemy.orm.exc import NoResultFound
 
+from lms.db import LockType, try_advisory_transaction_lock
 from lms.models import OAuth2Token
 from lms.models.oauth2_token import Service
 from lms.services.exceptions import OAuth2TokenError
@@ -47,7 +48,7 @@ class OAuth2TokenService:
         oauth2_token.received_at = datetime.datetime.utcnow()
 
     @lru_cache(maxsize=1)
-    def get(self, service=Service.LMS):
+    def get(self, service=Service.LMS) -> OAuth2Token:
         """
         Return the user's saved OAuth 2 token from the DB.
 
@@ -67,6 +68,17 @@ class OAuth2TokenService:
             raise OAuth2TokenError(
                 "We don't have an OAuth 2 token for this user"
             ) from err
+
+    def try_lock_for_refresh(self, service=Service.LMS):
+        """
+        Attempt to acquire an advisory lock before a token refresh.
+
+        The lock is released at the end of the current transaction.
+
+        :raise TryLockError: if the lock cannot be immediately acquired
+        """
+        token = self.get(service)
+        try_advisory_transaction_lock(self._db, LockType.OAUTH2_TOKEN_REFRESH, token.id)
 
 
 def oauth2_token_service_factory(_context, request, user_id: str | None = None):

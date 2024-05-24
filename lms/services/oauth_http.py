@@ -1,8 +1,15 @@
+from datetime import datetime, timedelta
+
 from marshmallow import fields
 
+from lms.db import TryLockError
 from lms.models.oauth2_token import Service
-from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
-from lms.services.oauth2_token import oauth2_token_service_factory
+from lms.services.exceptions import (
+    ConflictError,
+    ExternalRequestError,
+    OAuth2TokenError,
+)
+from lms.services.oauth2_token import OAuth2TokenService, oauth2_token_service_factory
 from lms.validation import RequestsResponseSchema
 from lms.validation.authentication import OAuthTokenResponseSchema
 
@@ -17,7 +24,10 @@ class OAuthHTTPService:
     """Send OAuth 2.0 requests and return the responses."""
 
     def __init__(
-        self, http_service, oauth2_token_service, service: Service = Service.LMS
+        self,
+        http_service,
+        oauth2_token_service: OAuth2TokenService,
+        service: Service = Service.LMS,
     ):
         self._http_service = http_service
         self._oauth2_token_service = oauth2_token_service
@@ -90,11 +100,27 @@ class OAuthHTTPService:
         (https://datatracker.ietf.org/doc/html/rfc6749#section-6) to get a new
         access token for the current user and save it to the DB.
 
+        :raise ConflictError: if this token is being refreshed concurrently by another request
         :raise OAuth2TokenError: if we don't have a refresh token for the user
         :raise ExternalRequestError: if the HTTP request fails
         :raise ValidationError: if the server's access token response is invalid
         """
-        refresh_token = self._oauth2_token_service.get(self.service).refresh_token
+        old_token = self._oauth2_token_service.get(self.service)
+
+        # If the "old" token is already current, just return immediately.
+        if (
+            old_token.access_token
+            and datetime.utcnow() - old_token.received_at < timedelta(seconds=30)
+        ):
+            return old_token.access_token
+
+        # Prevent concurrent refresh attempts. If the client gets this, it
+        # should wait briefly and try again, at which point it should find the
+        # refreshed token already available and skip the refresh.
+        try:
+            self._oauth2_token_service.try_lock_for_refresh(self.service)
+        except TryLockError as exc:
+            raise ConflictError() from exc
 
         try:
             return self._token_request(
@@ -103,7 +129,7 @@ class OAuthHTTPService:
                 data={
                     "redirect_uri": redirect_uri,
                     "grant_type": "refresh_token",
-                    "refresh_token": refresh_token,
+                    "refresh_token": old_token.refresh_token,
                 },
             )
         except ExternalRequestError as err:
