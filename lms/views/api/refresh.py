@@ -25,6 +25,10 @@ class RefreshViews:
     def get_refreshed_token_from_canvas_studio(self):
         self.request.find_service(CanvasStudioService).refresh_access_token()
 
+    @view_config(route_name="canvas_studio_api.oauth.refresh_admin")
+    def get_refreshed_admin_token_from_canvas_studio(self):
+        self.request.find_service(CanvasStudioService).refresh_admin_access_token()
+
     @view_config(route_name="blackboard_api.oauth.refresh")
     def get_refreshed_token_from_blackboard(self):
         blackboard_api_client = self.request.find_service(name="blackboard_api_client")

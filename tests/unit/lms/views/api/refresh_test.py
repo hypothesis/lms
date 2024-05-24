@@ -25,6 +25,13 @@ class TestRefreshViews:
 
         canvas_studio_service.refresh_access_token.assert_called_once_with()
 
+    def test_get_refreshed_admin_token_from_canvas_studio(
+        self, canvas_studio_service, views
+    ):
+        views.get_refreshed_admin_token_from_canvas_studio()
+
+        canvas_studio_service.refresh_admin_access_token.assert_called_once_with()
+
     def test_get_refreshed_token_from_d2l(self, d2l_api_client, views):
         views.get_refreshed_token_from_d2l()
 

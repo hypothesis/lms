@@ -148,6 +148,10 @@ def includeme(config):  # noqa: PLR0915
     config.add_route(
         "canvas_studio_api.oauth.refresh", "/api/canvas_studio/oauth/refresh"
     )
+    config.add_route(
+        "canvas_studio_api.oauth.refresh_admin",
+        "/api/canvas_studio/oauth/refresh_admin",
+    )
     config.add_route("canvas_studio_api.media.list", "/api/canvas_studio/media")
     config.add_route(
         "canvas_studio_api.collections.media.list",

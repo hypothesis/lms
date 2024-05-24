@@ -10,7 +10,11 @@ from lms.js_config_types import APICallInfo
 from lms.models.oauth2_token import Service
 from lms.models.user import User
 from lms.services.aes import AESService
-from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
+from lms.services.exceptions import (
+    ExternalRequestError,
+    OAuth2TokenError,
+    SerializableError,
+)
 from lms.services.oauth_http import OAuthHTTPService
 from lms.services.oauth_http import factory as oauth_http_factory
 from lms.validation._base import RequestsResponseSchema
@@ -149,6 +153,21 @@ class CanvasStudioService:
             self.redirect_uri(),
             auth=(self._client_id, self._client_secret),
         )
+
+    def refresh_admin_access_token(self):
+        """Refresh the existing admin access token for Canvas Studio API calls."""
+
+        try:
+            self._admin_oauth_http.refresh_access_token(
+                self._token_url(),
+                self.redirect_uri(),
+                auth=(self._client_id, self._client_secret),
+            )
+        except ExternalRequestError as refresh_err:
+            raise SerializableError(
+                error_code="canvas_studio_admin_token_refresh_failed",
+                message="Canvas Studio admin token refresh failed.",
+            ) from refresh_err
 
     def authorization_url(self, state: str) -> str:
         """
@@ -341,9 +360,7 @@ class CanvasStudioService:
         response = self._bare_api_request(path, as_admin=as_admin)
         return schema_cls(response).parse()
 
-    def _admin_api_request(
-        self, path: str, allow_redirects=True, allow_refresh=True
-    ) -> requests.Response:
+    def _admin_api_request(self, path: str, allow_redirects=True) -> requests.Response:
         """
         Make a request to the Canvas Studio API using the admin user identity.
 
@@ -374,36 +391,11 @@ class CanvasStudioService:
                     ) from err
                 raise
 
-            # If we already performed a refresh in response to the original
-            # request, `allow_refresh` will be False and we abort.
-            if not allow_refresh:
-                raise
-
-            # For admin requests, we have to do the refresh here, because the
-            # refresh path involving the frontend is designed for refreshing
-            # the current LTI user's access token.
-            #
-            # Ideally it would be simpler if we could just encapsulate the
-            # entire refresh process in OAuthHTTPService.
-            try:
-                self._admin_oauth_http.refresh_access_token(
-                    self._token_url(),
-                    self.redirect_uri(),
-                    auth=(self._client_id, self._client_secret),
-                )
-            except ExternalRequestError as refresh_err:
-                raise ExternalRequestError(
-                    message="Canvas Studio admin token refresh failed. Ask the admin user to re-authenticate."
-                ) from refresh_err
-
-            # Retry the request with the new token.
-            return self._admin_api_request(
-                path,
-                allow_redirects=allow_redirects,
-                # If the request fails again, make sure we don't repeat the
-                # refresh to avoid getting stuck in a loop.
-                allow_refresh=False,
-            )
+            raise OAuth2TokenError(
+                refreshable=True,
+                refresh_route="canvas_studio_api.oauth.refresh_admin",
+                refresh_service=Service.CANVAS_STUDIO,
+            ) from err
 
     def _bare_api_request(
         self, path: str, as_admin=False, allow_redirects=True
