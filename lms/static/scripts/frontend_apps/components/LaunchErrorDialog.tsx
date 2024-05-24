@@ -18,6 +18,9 @@ export type LaunchErrorDialogProps = {
   error: ErrorLike | null;
   /** Callback invoked when user clicks the "Try again" button */
   onRetry: () => void;
+
+  /** Callback invoked when user clicks the "Try again" button */
+  onCancel: () => void;
 };
 
 /**
@@ -63,6 +66,7 @@ export default function LaunchErrorDialog({
   error,
   errorState,
   onRetry,
+  onCancel,
 }: LaunchErrorDialogProps) {
   const { instructorToolbar } = useConfig();
   const canEdit = Boolean(instructorToolbar?.editingEnabled);
@@ -611,17 +615,51 @@ export default function LaunchErrorDialog({
       );
 
     case 'error-reporting-submission':
-      // nb. There is no retry action here as we just suggest reloading the entire
-      // page.
       return (
         <ErrorModal
           {...defaultProps}
           onRetry={undefined}
-          title="Something went wrong"
+          onCancel={onCancel}
+          cancelLabel="Close"
+          title="We were unable to create a submission in this Assignment"
         >
           <p>
-            There was a problem submitting this Hypothesis assignment.{' '}
-            <b>To fix this problem, try reloading the page.</b>
+            {' '}
+            Hypothesis saved your annotation, but was unable to generate a
+            submission.
+          </p>
+
+          <p>
+            {' '}
+            <b>
+              Your instructor is not aware you have saved an annotation;
+            </b>{' '}
+            you might need to reach out to them.
+          </p>
+        </ErrorModal>
+      );
+
+    case 'canvas_submission_course_not_available':
+      return (
+        <ErrorModal
+          {...defaultProps}
+          onRetry={undefined}
+          onCancel={onCancel}
+          cancelLabel="Close"
+          title="We were unable to create a submission in this Assignment"
+        >
+          <p>
+            Hypothesis saved your annotation, but was unable to generate a
+            submission. This may be because the course has ended and we are no
+            longer allowed to create submissions
+          </p>
+
+          <p>
+            {' '}
+            <b>
+              Your instructor is not aware you have saved an annotation;
+            </b>{' '}
+            you might need to reach out to them.
           </p>
         </ErrorModal>
       );

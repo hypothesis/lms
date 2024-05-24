@@ -327,6 +327,11 @@ export default function BasicLTILaunchApp() {
           errorState={errorState}
           error={error}
           onRetry={authorizeAndFetchURL}
+          /* istanbul ignore next */
+          onCancel={() =>
+            /* istanbul ignore next */
+            setErrorState(null)
+          }
         />
       )}
       <div

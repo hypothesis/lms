@@ -53,6 +53,7 @@ describe('LaunchErrorDialog', () => {
       hasRetry: true,
       retryAction: 'Authorize',
       withError: false,
+      cancelLabel: null,
     },
     {
       errorState: 'blackboard_file_not_found_in_course',
@@ -251,10 +252,21 @@ describe('LaunchErrorDialog', () => {
     },
     {
       errorState: 'error-reporting-submission',
-      expectedText: 'There was a problem submitting this Hypothesis assignment',
-      expectedTitle: 'Something went wrong',
+      expectedText:
+        'Hypothesis saved your annotation, but was unable to generate a submission.',
+      expectedTitle: 'We were unable to create a submission in this Assignment',
       hasRetry: false,
       withError: true,
+      cancelLabel: 'Close',
+    },
+    {
+      errorState: 'canvas_submission_course_not_available',
+      expectedText:
+        'This may be because the course has ended and we are no longer allowed to create submissions',
+      expectedTitle: 'We were unable to create a submission in this Assignment',
+      hasRetry: false,
+      withError: true,
+      cancelLabel: 'Close',
     },
   ].forEach(
     ({
@@ -263,6 +275,7 @@ describe('LaunchErrorDialog', () => {
       expectedTitle,
       hasRetry = false,
       withError = true,
+      cancelLabel = null,
       retryAction,
     }) => {
       it(`displays expected error for "${errorState}" error state`, () => {
@@ -280,6 +293,9 @@ describe('LaunchErrorDialog', () => {
         }
         if (retryAction) {
           assert.equal(modalProps.retryLabel, retryAction);
+        }
+        if (cancelLabel) {
+          assert.equal(modalProps.cancelLabel, cancelLabel);
         }
         if (!withError) {
           assert.isUndefined(modalProps.error);
