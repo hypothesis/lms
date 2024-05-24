@@ -1,9 +1,15 @@
+import datetime
 from unittest.mock import sentinel
 
 import pytest
 
+from lms.db import TryLockError
 from lms.models.oauth2_token import Service
-from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
+from lms.services.exceptions import (
+    ConflictError,
+    ExternalRequestError,
+    OAuth2TokenError,
+)
 from lms.services.oauth_http import OAuthHTTPService, factory
 from lms.validation import ValidationError
 from tests import factories
@@ -135,6 +141,7 @@ class TestOAuthHTTPService:
         )
 
         oauth2_token_service.get.assert_called_once_with(svc.service)
+        oauth2_token_service.try_lock_for_refresh.assert_called_once_with(svc.service)
         http_service.post.assert_called_once_with(
             sentinel.token_url,
             data={
@@ -224,6 +231,33 @@ class TestOAuthHTTPService:
             svc.refresh_access_token(
                 sentinel.token_url, sentinel.redirect_uri, sentinel.auth
             )
+
+    def test_refresh_access_token_raises_ConflictError_on_concurrent_refresh(
+        self,
+        svc,
+        oauth2_token_service,
+    ):
+        oauth2_token_service.try_lock_for_refresh.side_effect = TryLockError()
+
+        with pytest.raises(ConflictError):
+            svc.refresh_access_token(
+                sentinel.token_url, sentinel.redirect_uri, sentinel.auth
+            )
+
+    def test_refresh_token_skips_if_token_is_current(
+        self,
+        svc,
+        oauth2_token_service,
+        http_service,
+    ):
+        token = oauth2_token_service.get(Service.LMS)
+        token.received_at = datetime.datetime.utcnow()
+
+        svc.refresh_access_token(
+            sentinel.token_url, sentinel.redirect_uri, sentinel.auth
+        )
+
+        http_service.post.assert_not_called()
 
     # nb. We don't list every API service here, just two to ensure that all
     # methods pass the right `service` when reading/saving tokens from the DB.

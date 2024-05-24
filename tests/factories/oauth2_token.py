@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from factory import SubFactory, make_factory
 from factory.alchemy import SQLAlchemyModelFactory
 
@@ -11,5 +13,6 @@ OAuth2Token = make_factory(
     user_id=USER_ID,
     application_instance=SubFactory(ApplicationInstance),
     access_token=ACCESS_TOKEN,
+    received_at=datetime(2023, 12, 1),
     refresh_token=REFRESH_TOKEN,
 )
