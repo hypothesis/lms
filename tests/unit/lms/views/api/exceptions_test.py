@@ -16,6 +16,16 @@ pytestmark = pytest.mark.usefixtures(
 )
 
 
+class TestConflictError:
+    def test_it(self, pyramid_request, views):
+        error_body = views.conflict_error()
+
+        assert pyramid_request.response.status_code == 409
+        assert error_body == ErrorBody(
+            message="Operation failed due to a conflicting update"
+        )
+
+
 class TestSchemaValidationError:
     def test_it(self, pyramid_request, views):
         error_body = views.validation_error()
