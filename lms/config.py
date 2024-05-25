@@ -117,6 +117,7 @@ SETTINGS = (
     _Setting("mailchimp_digests_email"),
     _Setting("mailchimp_digests_name"),
     _Setting("email_preferences_secret"),
+    _Setting("hubspot_api_key"),
 )
 
 
