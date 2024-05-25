@@ -1,48 +1,44 @@
-from sqlalchemy.orm import mapped_column, Mapped
-from sqlalchemy import ForeignKey
-
-from lms.db import Base
 from datetime import date
 
+from sqlalchemy import BigInteger, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column
 
-class HubSpotCompaniesRaw(Base):
+from lms.db import Base
+
+
+class HubSpotCompany(Base):
     """Raw companies data imported from HS"""
 
-    __tablename__ = "hubspot_companies_raw"
+    __tablename__ = "hubspot_company"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    hs_object_id: Mapped[int] = mapped_column(BigInteger, unique=True)
+
     name: Mapped[str | None]
     lms_organization_id: Mapped[str | None]
-    life_cycle_stage: Mapped[str | None]
 
-    # Owners
-    company_owner_id: Mapped[int | None]
-    success_owner_id: Mapped[int | None]
-
-    # Cohort
-    cohort_pilot_first_date: Mapped[date | None]
-    cohort_subscription_first_date: Mapped[date | None]
-
-    # Deals
     current_deal_services_start: Mapped[date | None]
     current_deal_services_end: Mapped[date | None]
-    current_deal_amount: Mapped[float | None]
-    deals_last_update: Mapped[date | None]
 
 
 class HubSpotDeal(Base):
-    """Raw companies data imported from HS"""
-
-    __tablename__ = "hubspot_deals"
+    __tablename__ = "hubspot_deal"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    hs_object_id: Mapped[int] = mapped_column(BigInteger, unique=True)
+
     name: Mapped[str | None]
 
     services_start: Mapped[date | None]
     services_end: Mapped[date | None]
 
-    amount: Mapped[float | None]
+
+class HubSpotCompanyDeal(Base):
+    __tablename__ = "hubspot_company_deal"
 
     company_id: Mapped[int] = mapped_column(
-        ForeignKey("hubspot_companies_raw.id", ondelete="cascade")
+        ForeignKey("hubspot_company.id", ondelete="cascade"), primary_key=True
+    )
+    deal_id: Mapped[int] = mapped_column(
+        ForeignKey("hubspot_deal.id", ondelete="cascade"), primary_key=True
     )
