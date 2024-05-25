@@ -4,7 +4,7 @@ from typing import Callable, Generator, Iterable, List, Optional, Set
 
 from hubspot import HubSpot
 from hubspot.crm.associations import BatchInputPublicObjectId
-from hubspot.crm.objects.exceptions import ApiException
+from hubspot.crm.companies import PublicObjectSearchRequest
 
 
 # From: https://developers.hubspot.com/docs/api/crm/associations/v3
@@ -13,7 +13,6 @@ class AssociationObjectType(Enum):
     COMPANY = "Companies"
     DEAL = "Deals"
     TICKET = "Tickets"
-    # There are more, but I don't think we'll ever use them
 
 
 class HubSpotClient:
@@ -21,22 +20,6 @@ class HubSpotClient:
 
     def __init__(self, api_client: HubSpot):
         self._api_client = api_client
-
-    # From: https://developers.hubspot.com/docs/api/crm/imports
-    class ObjectType:  # pylint: disable=too-few-public-methods
-        """Hubspot codes for different entity types."""
-
-        CONTACT = "0-1"
-        COMPANY = "0-2"
-        DEAL = "0-3"
-        NOTES = "0-4"
-        TICKET = "0-5"
-
-    class IDType:  # pylint: disable=too-few-public-methods
-        """Hubspot codes for different field types."""
-
-        PRIMARY_KEY = "HUBSPOT_OBJECT_ID"
-        REGULAR_FIELD = None
 
     ASSOCIATIONS_BATCH_SIZE = 11000
 
@@ -82,28 +65,25 @@ class HubSpotClient:
         ]
         yield from self._get_objects(self._api_client.crm.companies, fields)
 
-    def get_deals(self, fields) -> Generator:
-        """Get deals from Hubspot.
+    def get_deals(self) -> Generator:
+        """Get deals from Hubspot."""
+        fields = [
+            "hs_object_id",
+            "dealname",
+            "services_start",
+            "services_end",
+        ]
+        yield from self._get_objects(self._api_client.crm.deals, fields)
 
-        :param fields: A list of fields to get from Hubspot
-        """
-
-        yield from self._get_objects(self.api_client.crm.deals, fields)
-
-    def get_properties(self, object_type):
-        """
-        Get the properties for a given object type.
-
-        This is useful for trying to work out what a property you want is
-        called by Hubspot internally.
-        """
-
-        return (
-            prop.to_dict()
-            for prop in self.api_client.crm.properties.core_api.get_all(
-                object_type
-            ).results
-        )
+    def get_company_deals(self, companies):
+        return [
+            {"company_id": company_id, "deal_id": deal_id}
+            for company_id, deal_id in self.get_associations(
+                from_type=AssociationObjectType.COMPANY,
+                to_type=AssociationObjectType.DEAL,
+                object_ids=[company["id"] for company in companies],
+            )
+        ]
 
     @classmethod
     def _get_objects(cls, accessor, fields: list[str]) -> list[dict]:
