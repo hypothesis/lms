@@ -161,6 +161,24 @@
         <div class="has-text-centered">No Application Instance</div>
     {% endif %}
 {% endmacro %}
+{% macro company_preview(request, company) %}
+    {% if company %}
+        <div class="block has-text-right">
+            <a class="button" target="_blank"
+               href="NOPE">Open in HubSpot</a>
+        </div>
+        <div class="columns">
+            <div class="column is-full">{{ disabled_text_field("Name", company.name) }}</div>
+        </div>
+        <div class="columns">
+            <div class="column is-half">{{ disabled_text_field("Deal start", company.current_deal_services_start) }}</div>
+            <div class="column is-half">{{ disabled_text_field("Deal end", company.current_deal_services_end) }}</div>
+        </div>
+    {% else %}
+        <div class="has-text-centered">No company in HubSpot</div>
+    {% endif %}
+{% endmacro %}
+
 {% macro course_preview(request, course) %}
     <div class="block has-text-right">
         <a class="button"
