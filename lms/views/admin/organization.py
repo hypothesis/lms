@@ -9,7 +9,7 @@ from lms.events import AuditTrailEvent
 from lms.models import Organization
 from lms.models.public_id import InvalidPublicId
 from lms.security import Permissions
-from lms.services import OrganizationService
+from lms.services import HubSpotService, OrganizationService
 from lms.services.organization import InvalidOrganizationParent
 from lms.validation._base import PyramidRequestSchema
 from lms.views.admin import flash_validation
@@ -39,6 +39,7 @@ class AdminOrganizationViews:
         self.organization_service: OrganizationService = request.find_service(
             OrganizationService
         )
+        self.hubspot_service: HubSpotService = request.find_service(HubSpotService)
 
     @view_config(
         route_name="admin.organizations",
@@ -87,11 +88,12 @@ class AdminOrganizationViews:
         permission=Permissions.STAFF,
     )
     def show_organization(self):
-        org_id = self.request.matchdict["id_"]
+        org = self._get_org_or_404(self.request.matchdict["id_"])
 
         return {
-            "org": self._get_org_or_404(org_id),
-            "hierarchy_root": self.organization_service.get_hierarchy_root(org_id),
+            "org": org,
+            "company": self.hubspot_service.get_commpany(org.public_id),
+            "hierarchy_root": self.organization_service.get_hierarchy_root(org.id),
             "sort_by_name": lambda items: sorted(
                 items, key=lambda value: value.name or ""
             ),
