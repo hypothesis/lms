@@ -20,6 +20,7 @@ TEST_SETTINGS = {
     "h_jwt_client_id": "TEST_JWT_CLIENT_ID",
     "h_jwt_client_secret": "TEST_JWT_CLIENT_SECRET",
     "h_authority": "lms.hypothes.is",
+    "hubspot_api_key": "HUBSPOT_API_KEY",
     "region_code": "us",
     "h_api_url_public": "https://h.example.com/api/",
     "h_api_url_private": "https://h.example.com/private/api/",
