@@ -118,6 +118,16 @@ class GradingViews:
             )
 
         except ExternalRequestError as err:
+            if (
+                err.status_code == 422
+                # This is LTI1.3 only. In LTI1.1 canvas behaves differently and allows this type of submissions.
+                and "maximum number of allowed attempts has been reached"
+                in err.response.text
+            ):
+                raise SerializableError(
+                    error_code=ErrorCode.CANVAS_SUBMISSION_MAX_ATTEMPTS
+                ) from err
+
             # This is Canvas only, we do the error handling here instead of the view to avoid
             # conflicting different, more general use cases.
             # This is what we get with the Course Participation end date has passed.

@@ -17,3 +17,4 @@ class ErrorCode(str, Enum):
     )
     REUSED_CONSUMER_KEY = "reused_consumer_key"
     CANVAS_SUBMISSION_COURSE_NOT_AVAILABLE = "canvas_submission_course_not_available"
+    CANVAS_SUBMISSION_MAX_ATTEMPTS = "canvas_submission_max_attempts"

@@ -42,6 +42,17 @@ class TestRecordCanvasSpeedgraderSubmission:
 
         lti_grading_service.record_result.assert_not_called()
 
+    def test_it_max_attempts(self, pyramid_request, lti_grading_service):
+        lti_grading_service.read_result.side_effect = ExternalRequestError(
+            response=Mock(
+                status_code=422,
+                text="maximum number of allowed attempts has been reached",
+            )
+        )
+
+        with pytest.raises(SerializableError):
+            GradingViews(pyramid_request).record_canvas_speedgrader_submission()
+
     @pytest.mark.parametrize(
         "error_message",
         ["Course not available for students", "This course has concluded"],
