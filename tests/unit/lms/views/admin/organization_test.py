@@ -12,7 +12,7 @@ from tests import factories
 from tests.matchers import temporary_redirect_to
 
 
-@pytest.mark.usefixtures("organization_service")
+@pytest.mark.usefixtures("organization_service", "hubspot_service")
 class TestAdminOrganizationViews:
     def test_new_organization_callback(
         self, pyramid_request, organization_service, views
@@ -32,17 +32,22 @@ class TestAdminOrganizationViews:
     def test_new_organization_callback_invalid_payload(self, views):
         assert not views.new_organization_callback()
 
-    def test_show_organization(self, pyramid_request, organization_service, views):
+    def test_show_organization(
+        self, pyramid_request, organization_service, views, hubspot_service
+    ):
         pyramid_request.matchdict["id_"] = sentinel.id_
 
         response = views.show_organization()
 
         organization_service.get_by_id.assert_called_once_with(sentinel.id_)
-        organization_service.get_hierarchy_root.assert_called_once_with(sentinel.id_)
+        organization_service.get_hierarchy_root.assert_called_once_with(
+            organization_service.get_by_id.return_value.id
+        )
 
         assert response == {
             "org": organization_service.get_by_id.return_value,
             "hierarchy_root": organization_service.get_hierarchy_root.return_value,
+            "company": hubspot_service.get_company.return_value,
             "sort_by_name": Any.callable(),
         }
 
@@ -237,7 +242,9 @@ class TestAdminOrganizationViews:
         organization_service.usage_report.assert_not_called()
 
     @pytest.mark.usefixtures("with_valid_params_for_usage")
-    def test_usage_flashes_if_service_raises(self, views, organization_service):
+    def test_usage_flashes_if_service_raises(
+        self, views, organization_service, hubspot_service
+    ):
         organization_service.usage_report.side_effect = ValueError
         since = datetime(2023, 1, 1)
         until = datetime(2023, 12, 31)
@@ -247,13 +254,14 @@ class TestAdminOrganizationViews:
         org = organization_service.get_by_id.return_value
         assert result == {
             "org": org,
+            "company": hubspot_service.get_company.return_value,
             "since": since,
             "until": until,
             "report": [],
         }
 
     @pytest.mark.usefixtures("with_valid_params_for_usage")
-    def test_usage(self, organization_service, views):
+    def test_usage(self, organization_service, views, hubspot_service):
         since = datetime(2023, 1, 1)
         until = datetime(2023, 12, 31)
 
@@ -264,6 +272,7 @@ class TestAdminOrganizationViews:
         organization_service.usage_report.assert_called_once_with(org, since, until)
         assert result == {
             "org": org,
+            "company": hubspot_service.get_company.return_value,
             "since": since,
             "until": until,
             "report": organization_service.usage_report.return_value,

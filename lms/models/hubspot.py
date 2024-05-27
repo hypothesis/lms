@@ -12,10 +12,10 @@ class HubSpotCompany(Base):
     __tablename__ = "hubspot_company"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    hs_object_id: Mapped[int] = mapped_column(BigInteger, unique=True)
+    hubspot_id: Mapped[int] = mapped_column(BigInteger, unique=True)
 
     name: Mapped[str | None]
-    lms_organization_id: Mapped[str | None]
 
+    lms_organization_id: Mapped[str | None]
     current_deal_services_start: Mapped[date | None]
     current_deal_services_end: Mapped[date | None]

@@ -44,7 +44,7 @@ class TestHubSpotService:
 
         company = db_session.query(HubSpotCompany).one()
         assert company.name == "COMPANY"
-        assert company.hs_object_id == 100
+        assert company.hubspot_id == 100
 
     def test_factory(self, pyramid_request, db_session, HubSpotClient, HubSpot):
         svc = HubSpotService.factory(sentinel.context, pyramid_request)
