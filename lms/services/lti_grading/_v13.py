@@ -106,15 +106,6 @@ class LTI13GradingService(LTIGradingService):
             )
 
         except ExternalRequestError as err:
-            if (
-                err.status_code == 422
-                and "maximum number of allowed attempts has been reached"
-                in err.response.text
-            ):
-                LOG.error("record_result: maximum number of allowed attempts")
-                # We silently shallow this type of error
-                return None
-
             for expected_code, expected_text in [
                 # Blackboard
                 (400, "User could not be found:"),

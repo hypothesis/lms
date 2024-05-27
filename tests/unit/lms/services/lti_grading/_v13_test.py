@@ -182,18 +182,6 @@ class TestLTI13GradingService:
         with pytest.raises(StudentNotInCourse):
             svc.record_result(sentinel.user_id, sentinel.score)
 
-    def test_record_result_doesnt_raise_max_submissions(self, svc, ltia_http_service):
-        ltia_http_service.request.side_effect = ExternalRequestError(
-            response=Mock(
-                status_code=422,
-                text="maximum number of allowed attempts has been reached",
-            )
-        )
-
-        response = svc.record_result(sentinel.user_id, sentinel.score)
-
-        assert not response
-
     def test_create_line_item(self, svc, ltia_http_service):
         response = svc.create_line_item(
             sentinel.resource_link_id,
