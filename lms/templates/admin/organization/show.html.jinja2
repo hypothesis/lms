@@ -78,6 +78,11 @@
                     </div>
                 </li>
                 <li class="tab-panel" data-section-id="usage">
+                    <fieldset class="box mt-6">
+                      <legend class="label has-text-centered">Company</legend>
+                      {{ macros.company_preview(request, company) }}
+                    </fieldset>
+
                     <fieldset class="box">
                         <legend class="label has-text-centered">Usage report</legend>
                         <form method="POST"

@@ -36,7 +36,7 @@ class HubSpotService:
             HubSpotCompany,
             [
                 {
-                    "hs_object_id": int(company.properties["hs_object_id"]),
+                    "hubspot_id": int(company.properties["hs_object_id"]),
                     "name": company.properties["name"],
                     "lms_organization_id": company.properties["lms_organization_id"],
                     "current_deal_services_start": date_or_timestamp(
@@ -54,7 +54,7 @@ class HubSpotService:
                     self._region_code
                 )
             ],
-            index_elements=["hs_object_id"],
+            index_elements=["hubspot_id"],
             update_columns=[
                 "name",
                 "lms_organization_id",
