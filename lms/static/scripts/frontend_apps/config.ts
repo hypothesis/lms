@@ -243,6 +243,8 @@ export type EmailPreferences = {
 export type DashboardRoutes = {
   assignment: string;
   assignment_stats: string;
+  course: string;
+  course_assignment_stats: string;
 };
 
 export type DashboardConfig = {
