@@ -19,6 +19,7 @@ from lms.models.grouping import (
     GroupingMembership,
 )
 from lms.models.h_user import HUser
+from lms.models.hubspot import HubSpotCompany
 from lms.models.json_settings import JSONSettings
 from lms.models.jwt_oauth2_token import JWTOAuth2Token
 from lms.models.lti_params import CLAIM_PREFIX, LTIParams
