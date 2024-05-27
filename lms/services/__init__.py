@@ -16,6 +16,7 @@ from lms.services.exceptions import (
     SerializableError,
 )
 from lms.services.h_api import HAPI, HAPIError
+from lms.services.hubspot import HubSpotService
 from lms.services.jstor import JSTORService
 from lms.services.jwt import JWTService
 from lms.services.jwt_oauth2_token import JWTOAuth2TokenService
@@ -119,6 +120,7 @@ def includeme(config):
         "lms.services.jwt_oauth2_token.factory", iface=JWTOAuth2TokenService
     )
     config.register_service_factory("lms.services.rsa_key.factory", iface=RSAKeyService)
+    config.register_service_factory(HubSpotService.factory, iface=HubSpotService)
     config.register_service_factory(
         "lms.services.ltia_http.factory", iface=LTIAHTTPService
     )
@@ -146,7 +148,6 @@ def includeme(config):
     # Importing them here to:
     # - Don't pollute the lms.services namespace
     # - Ease some circular-dependency problems
-
     from lms.product.plugin.course_copy import (  # noqa: PLC0415
         CourseCopyFilesHelper,
         CourseCopyGroupsHelper,

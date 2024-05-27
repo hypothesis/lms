@@ -29,6 +29,7 @@ from lms.services.group_info import GroupInfoService
 from lms.services.grouping import GroupingService
 from lms.services.h_api import HAPI
 from lms.services.http import HTTPService
+from lms.services.hubspot import HubSpotService
 from lms.services.jstor import JSTORService
 from lms.services.jwt import JWTService
 from lms.services.jwt_oauth2_token import JWTOAuth2TokenService
@@ -73,6 +74,7 @@ __all__ = (
     "grouping_service",
     "h_api",
     "http_service",
+    "hubspot_service",
     "jstor_service",
     "jwt_service",
     "jwt_oauth2_token_service",
@@ -238,6 +240,11 @@ def http_service(mock_service):
     http_service.request.return_value = factories.requests.Response()
 
     return http_service
+
+
+@pytest.fixture
+def hubspot_service(mock_service):
+    return mock_service(HubSpotService)
 
 
 @pytest.fixture
