@@ -9,7 +9,7 @@ from tests import factories
 from tests.matchers import temporary_redirect_to
 
 REDIRECT_TO_UPGRADE_AI = Any.instance_of(HTTPFound).with_attrs(
-    {"location": Any.string.containing("/admin/instance/upgrade")}
+    {"location": Any.string.containing("/admin/instances/upgrade")}
 )
 
 
