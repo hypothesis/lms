@@ -102,7 +102,7 @@ class DashboardViews:
             secure=not self.request.registry.settings["dev"],
             httponly=True,
             # Scope the cookie to all the org endpoints
-            path=f"/dashboard/organization/{lti_user.application_instance.organization._public_id}",  # noqa: SLF001
+            path=f"/dashboard/organizations/{lti_user.application_instance.organization._public_id}",  # noqa: SLF001
             max_age=60 * 60 * 24,  # 24 hours, matches the lifetime of the auth_token
         )
         return response

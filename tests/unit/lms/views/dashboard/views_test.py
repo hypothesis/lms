@@ -27,12 +27,12 @@ class TestDashboardViews:
         )
         assert response == Any.instance_of(HTTPFound).with_attrs(
             {
-                "location": f"http://example.com/dashboard/organization/{organization._public_id}/assignment/sentinel.id",
+                "location": f"http://example.com/dashboard/organizations/{organization._public_id}/assignments/sentinel.id",
             }
         )
         assert (
             response.headers["Set-Cookie"]
-            == f"authorization=TOKEN; Max-Age=86400; Path=/dashboard/organization/{organization._public_id}; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
+            == f"authorization=TOKEN; Max-Age=86400; Path=/dashboard/organizations/{organization._public_id}; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
         )
 
     @freeze_time("2024-04-01 12:00:00")
@@ -51,7 +51,7 @@ class TestDashboardViews:
         pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
         assert (
             pyramid_request.response.headers["Set-Cookie"]
-            == f"authorization=TOKEN; Max-Age=86400; Path=/dashboard/organization/{organization._public_id}; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
+            == f"authorization=TOKEN; Max-Age=86400; Path=/dashboard/organizations/{organization._public_id}; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
         )
 
     @freeze_time("2024-04-01 12:00:00")
@@ -68,7 +68,7 @@ class TestDashboardViews:
         pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
         assert (
             pyramid_request.response.headers["Set-Cookie"]
-            == f"authorization=TOKEN; Max-Age=86400; Path=/dashboard/organization/{organization._public_id}; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
+            == f"authorization=TOKEN; Max-Age=86400; Path=/dashboard/organizations/{organization._public_id}; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
         )
 
     def test_assignment_show_with_no_lti_user(

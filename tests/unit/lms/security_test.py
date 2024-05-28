@@ -429,7 +429,7 @@ class TestSecurityPolicy:
         assert user_id == get_policy.return_value.forget.return_value
 
     @pytest.mark.parametrize(
-        "path", ["/dashboard/api/assignment/10", "/dashboard/organization/ORGID"]
+        "path", ["/dashboard/api/assignments/10", "/dashboard/organizations/ORGID"]
     )
     def test_get_policy_google_when_available(
         self, pyramid_request, path, LMSGoogleSecurityPolicy
@@ -468,18 +468,21 @@ class TestSecurityPolicy:
             ("/api/canvas/pages/proxy", QueryStringBearerTokenLTIUserPolicy),
             ("/api/canvas/files", HeadersBearerTokenLTIUserPolicy),
             ("/api/blackboard/groups", HeadersBearerTokenLTIUserPolicy),
-            ("/dashboard/api/assignment/X", HeadersBearerTokenLTIUserPolicy),
-            ("/dashboard/api/assignment/X/stats", HeadersBearerTokenLTIUserPolicy),
-            ("/dashboard/api/course/X", HeadersBearerTokenLTIUserPolicy),
-            ("/dashboard/api/course/X/stats", HeadersBearerTokenLTIUserPolicy),
+            ("/dashboard/api/assignments/X", HeadersBearerTokenLTIUserPolicy),
+            ("/dashboard/api/assignments/X/stats", HeadersBearerTokenLTIUserPolicy),
+            ("/dashboard/api/courses/X", HeadersBearerTokenLTIUserPolicy),
+            (
+                "/dashboard/api/courses/X/assignments/stats",
+                HeadersBearerTokenLTIUserPolicy,
+            ),
             ("/lti/1.3/deep_linking/form_fields", HeadersBearerTokenLTIUserPolicy),
             ("/lti/1.1/deep_linking/form_fields", HeadersBearerTokenLTIUserPolicy),
             ("/lti/reconfigure", HeadersBearerTokenLTIUserPolicy),
             ("/assignment", FormBearerTokenLTIUserPolicy),
             ("/assignment/edit", FormBearerTokenLTIUserPolicy),
-            ("/dashboard/launch/assignment/10", FormBearerTokenLTIUserPolicy),
+            ("/dashboard/launch/assignments/10", FormBearerTokenLTIUserPolicy),
             (
-                "/dashboard/organization/ORGID/assignment/10",
+                "/dashboard/organizations/ORGID/assignments/10",
                 CookiesBearerTokenLTIUserPolicy,
             ),
         ],
