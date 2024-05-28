@@ -187,47 +187,49 @@ def includeme(config):  # noqa: PLR0915
     config.add_route("admin.index", "/admin/")
 
     config.add_route("admin.instance.search", "/admin/instances/")
-    config.add_route("admin.instance.create", "/admin/instance/create")
-    config.add_route("admin.instance.upgrade", "/admin/instance/upgrade")
-    config.add_route("admin.instance", "/admin/instance/{id_}/")
-    config.add_route("admin.instance.downgrade", "/admin/instance/{id_}/downgrade")
-    config.add_route("admin.instance.move_org", "/admin/instance/{id_}/move_org")
+    config.add_route("admin.instance.create", "/admin/instances/create")
+    config.add_route("admin.instance.upgrade", "/admin/instances/upgrade")
+    config.add_route("admin.instance", "/admin/instances/{id_}/")
+    config.add_route("admin.instance.downgrade", "/admin/instances/{id_}/downgrade")
+    config.add_route("admin.instance.move_org", "/admin/instances/{id_}/move_org")
     config.add_route(
         "admin.instance.section",
-        "/admin/instance/{id_}/{section:info|settings|role-overrides|danger}",
+        "/admin/instances/{id_}/{section:info|settings|role-overrides|danger}",
     )
 
     config.add_route(
-        "admin.role.override.new", "/admin/instance/{id_}/role/overrides/new"
+        "admin.role.override.new", "/admin/instances/{id_}/role/overrides/new"
     )
-    config.add_route("admin.role.override", "/admin/role/overrides/{id_}")
-    config.add_route("admin.role.override.delete", "/admin/role/overrides/{id_}/delete")
+    config.add_route("admin.role.override", "/admin/roles/overrides/{id_}")
+    config.add_route(
+        "admin.role.override.delete", "/admin/roles/overrides/{id_}/delete"
+    )
 
-    config.add_route("admin.organization", "/admin/org/{id_}")
+    config.add_route("admin.organization", "/admin/orgs/{id_}")
     config.add_route(
         "admin.organization.section",
-        "/admin/org/{id_}/{section:info|usage|danger}",
+        "/admin/orgs/{id_}/{section:info|usage|danger}",
     )
-    config.add_route("admin.organization.toggle", "/admin/org/{id_}/toggle")
+    config.add_route("admin.organization.toggle", "/admin/orgs/{id_}/toggle")
     config.add_route("admin.organizations", "/admin/orgs")
-    config.add_route("admin.organization.move_org", "/admin/org/{id_}/move_org")
-    config.add_route("admin.organization.new", "/admin/org")
+    config.add_route("admin.organization.move_org", "/admin/orgs/{id_}/move_org")
+    config.add_route("admin.organization.new", "/admin/orgs")
 
     config.add_route("admin.registrations", "/admin/registrations/")
     config.add_route("admin.registrations.search", "/admin/registrations/search")
-    config.add_route("admin.registration.id", "/admin/registration/id/{id_}/")
+    config.add_route("admin.registration.id", "/admin/registrations/id/{id_}/")
     config.add_route(
-        "admin.registration.new.instance", "/admin/registration/id/{id_}/new/instance"
+        "admin.registration.new.instance", "/admin/registrations/id/{id_}/new/instance"
     )
-    config.add_route("admin.registration.new", "/admin/registration")
-    config.add_route("admin.registration.suggest_urls", "/admin/registration/urls")
+    config.add_route("admin.registration.new", "/admin/registrations")
+    config.add_route("admin.registration.suggest_urls", "/admin/registrations/urls")
 
     config.add_route("admin.courses", "/admin/courses")
-    config.add_route("admin.course", "/admin/course/{id_}")
+    config.add_route("admin.course", "/admin/courses/{id_}")
     config.add_route("admin.courses.dashboard", "/admin/courses/{id_}/dashboard")
 
-    config.add_route("admin.assignment", "/admin/assignment/{id_}")
-    config.add_route("admin.assignment.dashboard", "/admin/assignment/{id_}/dashboard")
+    config.add_route("admin.assignment", "/admin/assignments/{id_}")
+    config.add_route("admin.assignment.dashboard", "/admin/assignments/{id_}/dashboard")
 
     config.add_route("admin.email", "/admin/email")
     config.add_route(

@@ -5,22 +5,22 @@ import pytest
     "method,path",
     (
         # Create
-        ("get", "/admin/instance/create"),
-        ("post", "/admin/instance/create"),
+        ("get", "/admin/instances/create"),
+        ("post", "/admin/instances/create"),
         # Downgrade
-        ("post", "/admin/instance/1234/downgrade"),
+        ("post", "/admin/instances/1234/downgrade"),
         # Move org
-        ("post", "/admin/instance/1234/move_org"),
+        ("post", "/admin/instances/1234/move_org"),
         # Search
         ("get", "/admin/instances/"),
         ("post", "/admin/instances/"),
         # Show
-        ("get", "/admin/instance/1234/"),
+        ("get", "/admin/instances/1234/"),
         # Update
-        ("post", "/admin/instance/1234/"),
+        ("post", "/admin/instances/1234/"),
         # Upgrade
-        ("get", "/admin/instance/upgrade"),
-        ("post", "/admin/instance/upgrade"),
+        ("get", "/admin/instances/upgrade"),
+        ("post", "/admin/instances/upgrade"),
     ),
 )
 def test_admin_authentication_redirects_to_google(app, method, path):

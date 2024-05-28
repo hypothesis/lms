@@ -7,7 +7,7 @@ from lms.models.public_id import InvalidPublicId
 from lms.views.admin.application_instance.create import CreateApplicationInstanceViews
 
 REDIRECT_TO_CREATE_AI = Any.instance_of(HTTPFound).with_attrs(
-    {"location": Any.string.containing("/admin/instance/create")}
+    {"location": Any.string.containing("/admin/instances/create")}
 )
 
 
@@ -55,7 +55,7 @@ class TestCreateApplicationInstanceViews:
             lti_registration_id=54321,
         )
         assert response == Any.instance_of(HTTPFound).with_attrs(
-            {"location": Any.string.containing("/admin/instance/12345")}
+            {"location": Any.string.containing("/admin/instances/12345")}
         )
 
     @pytest.mark.usefixtures("create_ai_params_v11")
@@ -63,7 +63,7 @@ class TestCreateApplicationInstanceViews:
         response = views.create_callback()
 
         assert response == Any.instance_of(HTTPFound).with_attrs(
-            {"location": Any.string.containing("/admin/instance/")}
+            {"location": Any.string.containing("/admin/instances/")}
         )
 
     @pytest.mark.usefixtures("create_ai_params_v13")
