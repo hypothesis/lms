@@ -71,8 +71,8 @@ describe('StudentsActivity', () => {
     fakeUseAPIFetch.returns({ isLoading: true });
 
     const wrapper = createComponent();
-    const titleElement = wrapper.find('[data-testid="title"]');
-    const tableElement = wrapper.find('DataTable');
+    const titleElement = wrapper.find('CardTitle[data-testid="title"]');
+    const tableElement = wrapper.find('OrderableActivityTable');
 
     assert.equal(titleElement.text(), 'Loading...');
     assert.isTrue(tableElement.prop('loading'));
@@ -82,8 +82,8 @@ describe('StudentsActivity', () => {
     fakeUseAPIFetch.returns({ error: new Error('Something failed') });
 
     const wrapper = createComponent();
-    const titleElement = wrapper.find('[data-testid="title"]');
-    const tableElement = wrapper.find('DataTable');
+    const titleElement = wrapper.find('CardTitle[data-testid="title"]');
+    const tableElement = wrapper.find('OrderableActivityTable');
 
     assert.equal(titleElement.text(), 'Could not load assignment title');
     assert.equal(tableElement.prop('emptyMessage'), 'Could not load students');
@@ -91,8 +91,8 @@ describe('StudentsActivity', () => {
 
   it('shows expected title', () => {
     const wrapper = createComponent();
-    const titleElement = wrapper.find('[data-testid="title"]');
-    const tableElement = wrapper.find('DataTable');
+    const titleElement = wrapper.find('CardTitle[data-testid="title"]');
+    const tableElement = wrapper.find('OrderableActivityTable');
     const expectedTitle = `Assignment: The title`;
 
     assert.equal(titleElement.text(), expectedTitle);
@@ -101,121 +101,9 @@ describe('StudentsActivity', () => {
 
   it('shows empty students message', () => {
     const wrapper = createComponent();
-    const tableElement = wrapper.find('DataTable');
+    const tableElement = wrapper.find('OrderableActivityTable');
 
     assert.equal(tableElement.prop('emptyMessage'), 'No students found');
-  });
-
-  [
-    {
-      orderToSet: { field: 'annotations', direction: 'descending' },
-      expectedStudents: [
-        {
-          display_name: 'b',
-          last_activity: '2020-01-01T00:00:00',
-          annotations: 8,
-          replies: 0,
-        },
-        {
-          display_name: 'c',
-          last_activity: '2020-01-02T00:00:00',
-          annotations: 5,
-          replies: 100,
-        },
-        {
-          display_name: 'a',
-          last_activity: '2020-01-02T00:00:00',
-          annotations: 3,
-          replies: 20,
-        },
-      ],
-    },
-    {
-      orderToSet: { field: 'replies', direction: 'ascending' },
-      expectedStudents: [
-        {
-          display_name: 'b',
-          last_activity: '2020-01-01T00:00:00',
-          annotations: 8,
-          replies: 0,
-        },
-        {
-          display_name: 'a',
-          last_activity: '2020-01-02T00:00:00',
-          annotations: 3,
-          replies: 20,
-        },
-        {
-          display_name: 'c',
-          last_activity: '2020-01-02T00:00:00',
-          annotations: 5,
-          replies: 100,
-        },
-      ],
-    },
-    {
-      orderToSet: { field: 'last_activity', direction: 'descending' },
-      expectedStudents: [
-        {
-          display_name: 'a',
-          last_activity: '2020-01-02T00:00:00',
-          annotations: 3,
-          replies: 20,
-        },
-        {
-          display_name: 'c',
-          last_activity: '2020-01-02T00:00:00',
-          annotations: 5,
-          replies: 100,
-        },
-        {
-          display_name: 'b',
-          last_activity: '2020-01-01T00:00:00',
-          annotations: 8,
-          replies: 0,
-        },
-      ],
-    },
-  ].forEach(({ orderToSet, expectedStudents }) => {
-    it('orders students on order change', () => {
-      const wrapper = createComponent();
-      const getRows = () => wrapper.find('DataTable').prop('rows');
-      const getOrder = () => wrapper.find('DataTable').prop('order');
-      const setOrder = order => {
-        wrapper.find('DataTable').props().onOrderChange(order);
-        wrapper.update();
-      };
-
-      // Initially, students are ordered by name
-      assert.deepEqual(getOrder(), {
-        field: 'display_name',
-        direction: 'ascending',
-      });
-      assert.deepEqual(getRows(), [
-        {
-          display_name: 'a',
-          last_activity: '2020-01-02T00:00:00',
-          annotations: 3,
-          replies: 20,
-        },
-        {
-          display_name: 'b',
-          last_activity: '2020-01-01T00:00:00',
-          annotations: 8,
-          replies: 0,
-        },
-        {
-          display_name: 'c',
-          last_activity: '2020-01-02T00:00:00',
-          annotations: 5,
-          replies: 100,
-        },
-      ]);
-
-      setOrder(orderToSet);
-      assert.deepEqual(getOrder(), orderToSet);
-      assert.deepEqual(getRows(), expectedStudents);
-    });
   });
 
   [
@@ -234,7 +122,7 @@ describe('StudentsActivity', () => {
       const wrapper = createComponent();
 
       const item = wrapper
-        .find('DataTable')
+        .find('OrderableActivityTable')
         .props()
         .renderItem(studentStats, fieldName);
       const value = typeof item === 'string' ? item : mount(item).text();

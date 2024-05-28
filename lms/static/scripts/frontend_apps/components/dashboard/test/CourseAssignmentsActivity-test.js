@@ -82,8 +82,8 @@ describe('CourseAssignmentsActivity', () => {
     fakeUseAPIFetch.returns({ isLoading: true });
 
     const wrapper = createComponent();
-    const titleElement = wrapper.find('[data-testid="title"]');
-    const tableElement = wrapper.find('DataTable');
+    const titleElement = wrapper.find('CardTitle[data-testid="title"]');
+    const tableElement = wrapper.find('OrderableActivityTable');
 
     assert.equal(titleElement.text(), 'Loading...');
     assert.isTrue(tableElement.prop('loading'));
@@ -93,8 +93,8 @@ describe('CourseAssignmentsActivity', () => {
     fakeUseAPIFetch.returns({ error: new Error('Something failed') });
 
     const wrapper = createComponent();
-    const titleElement = wrapper.find('[data-testid="title"]');
-    const tableElement = wrapper.find('DataTable');
+    const titleElement = wrapper.find('CardTitle[data-testid="title"]');
+    const tableElement = wrapper.find('OrderableActivityTable');
 
     assert.equal(titleElement.text(), 'Could not load course title');
     assert.equal(
@@ -105,8 +105,8 @@ describe('CourseAssignmentsActivity', () => {
 
   it('shows expected title', () => {
     const wrapper = createComponent();
-    const titleElement = wrapper.find('[data-testid="title"]');
-    const tableElement = wrapper.find('DataTable');
+    const titleElement = wrapper.find('CardTitle[data-testid="title"]');
+    const tableElement = wrapper.find('OrderableActivityTable');
     const expectedTitle = 'The title';
 
     assert.equal(titleElement.text(), expectedTitle);
@@ -115,133 +115,38 @@ describe('CourseAssignmentsActivity', () => {
 
   it('shows empty assignments message', () => {
     const wrapper = createComponent();
-    const tableElement = wrapper.find('DataTable');
+    const tableElement = wrapper.find('OrderableActivityTable');
 
     assert.equal(tableElement.prop('emptyMessage'), 'No assignments found');
   });
 
-  [
-    {
-      orderToSet: { field: 'annotations', direction: 'descending' },
-      expectedAssignments: [
-        {
-          id: 2,
-          title: 'b',
-          last_activity: '2020-01-01T00:00:00',
-          annotations: 8,
-          replies: 0,
-        },
-        {
-          id: 3,
-          title: 'c',
-          last_activity: '2020-01-02T00:00:00',
-          annotations: 5,
-          replies: 100,
-        },
-        {
-          id: 1,
-          title: 'a',
-          last_activity: '2020-01-02T00:00:00',
-          annotations: 3,
-          replies: 20,
-        },
-      ],
-    },
-    {
-      orderToSet: { field: 'replies', direction: 'ascending' },
-      expectedAssignments: [
-        {
-          id: 2,
-          title: 'b',
-          last_activity: '2020-01-01T00:00:00',
-          annotations: 8,
-          replies: 0,
-        },
-        {
-          id: 1,
-          title: 'a',
-          last_activity: '2020-01-02T00:00:00',
-          annotations: 3,
-          replies: 20,
-        },
-        {
-          id: 3,
-          title: 'c',
-          last_activity: '2020-01-02T00:00:00',
-          annotations: 5,
-          replies: 100,
-        },
-      ],
-    },
-    {
-      orderToSet: { field: 'last_activity', direction: 'descending' },
-      expectedAssignments: [
-        {
-          id: 1,
-          title: 'a',
-          last_activity: '2020-01-02T00:00:00',
-          annotations: 3,
-          replies: 20,
-        },
-        {
-          id: 3,
-          title: 'c',
-          last_activity: '2020-01-02T00:00:00',
-          annotations: 5,
-          replies: 100,
-        },
-        {
-          id: 2,
-          title: 'b',
-          last_activity: '2020-01-01T00:00:00',
-          annotations: 8,
-          replies: 0,
-        },
-      ],
-    },
-  ].forEach(({ orderToSet, expectedAssignments }) => {
-    it('orders assignments on order change', () => {
-      const wrapper = createComponent();
-      const getRows = () => wrapper.find('DataTable').prop('rows');
-      const getOrder = () => wrapper.find('DataTable').prop('order');
-      const setOrder = order => {
-        wrapper.find('DataTable').props().onOrderChange(order);
-        wrapper.update();
-      };
+  it('flattens assignments to table rows', () => {
+    const wrapper = createComponent();
+    const tableElement = wrapper.find('OrderableActivityTable');
 
-      // Initially, assignments are ordered by title
-      assert.deepEqual(getOrder(), {
-        field: 'title',
-        direction: 'ascending',
-      });
-      assert.deepEqual(getRows(), [
-        {
-          id: 1,
-          title: 'a',
-          last_activity: '2020-01-02T00:00:00',
-          annotations: 3,
-          replies: 20,
-        },
-        {
-          id: 2,
-          title: 'b',
-          last_activity: '2020-01-01T00:00:00',
-          annotations: 8,
-          replies: 0,
-        },
-        {
-          id: 3,
-          title: 'c',
-          last_activity: '2020-01-02T00:00:00',
-          annotations: 5,
-          replies: 100,
-        },
-      ]);
-
-      setOrder(orderToSet);
-      assert.deepEqual(getOrder(), orderToSet);
-      assert.deepEqual(getRows(), expectedAssignments);
-    });
+    assert.deepEqual(tableElement.prop('rows'), [
+      {
+        id: 2,
+        title: 'b',
+        last_activity: '2020-01-01T00:00:00',
+        annotations: 8,
+        replies: 0,
+      },
+      {
+        id: 1,
+        title: 'a',
+        last_activity: '2020-01-02T00:00:00',
+        annotations: 3,
+        replies: 20,
+      },
+      {
+        id: 3,
+        title: 'c',
+        last_activity: '2020-01-02T00:00:00',
+        annotations: 5,
+        replies: 100,
+      },
+    ]);
   });
 
   [
@@ -261,7 +166,7 @@ describe('CourseAssignmentsActivity', () => {
       const wrapper = createComponent();
 
       const item = wrapper
-        .find('DataTable')
+        .find('OrderableActivityTable')
         .props()
         .renderItem(assignmentStats, fieldName);
 
