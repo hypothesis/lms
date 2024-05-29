@@ -50,8 +50,8 @@ describe('CourseActivity', () => {
     fakeConfig = {
       dashboard: {
         routes: {
-          course: '/dashboard/api/course/:course_id',
-          course_assignment_stats: '/dashboard/api/course/:course_id/stats',
+          course: '/api/dashboard/course/:course_id',
+          course_assignment_stats: '/api/dashboard/course/:course_id/stats',
         },
       },
     };

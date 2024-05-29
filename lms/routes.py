@@ -250,14 +250,14 @@ def includeme(config):  # noqa: PLR0915
     )
 
     config.add_route(
-        "dashboard.api.assignment", "/dashboard/api/assignments/{assignment_id}"
+        "api.dashboard.assignment", "/api/dashboard/assignments/{assignment_id}"
     )
     config.add_route(
-        "dashboard.api.assignment.stats",
-        "/dashboard/api/assignments/{assignment_id}/stats",
+        "api.dashboard.assignment.stats",
+        "/api/dashboard/assignments/{assignment_id}/stats",
     )
-    config.add_route("dashboard.api.course", "/dashboard/api/courses/{course_id}")
+    config.add_route("api.dashboard.course", "/api/dashboard/courses/{course_id}")
     config.add_route(
-        "dashboard.api.course.assignments.stats",
-        "/dashboard/api/courses/{course_id}/assignments/stats",
+        "api.dashboard.course.assignments.stats",
+        "/api/dashboard/courses/{course_id}/assignments/stats",
     )

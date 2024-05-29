@@ -429,7 +429,7 @@ class TestSecurityPolicy:
         assert user_id == get_policy.return_value.forget.return_value
 
     @pytest.mark.parametrize(
-        "path", ["/dashboard/api/assignments/10", "/dashboard/organizations/ORGID"]
+        "path", ["/api/dashboard/assignments/10", "/dashboard/organizations/ORGID"]
     )
     def test_get_policy_google_when_available(
         self, pyramid_request, path, LMSGoogleSecurityPolicy
@@ -468,11 +468,11 @@ class TestSecurityPolicy:
             ("/api/canvas/pages/proxy", QueryStringBearerTokenLTIUserPolicy),
             ("/api/canvas/files", HeadersBearerTokenLTIUserPolicy),
             ("/api/blackboard/groups", HeadersBearerTokenLTIUserPolicy),
-            ("/dashboard/api/assignments/X", HeadersBearerTokenLTIUserPolicy),
-            ("/dashboard/api/assignments/X/stats", HeadersBearerTokenLTIUserPolicy),
-            ("/dashboard/api/courses/X", HeadersBearerTokenLTIUserPolicy),
+            ("/api/dashboard/assignments/X", HeadersBearerTokenLTIUserPolicy),
+            ("/api/dashboard/assignments/X/stats", HeadersBearerTokenLTIUserPolicy),
+            ("/api/dashboard/courses/X", HeadersBearerTokenLTIUserPolicy),
             (
-                "/dashboard/api/courses/X/assignments/stats",
+                "/api/dashboard/courses/X/assignments/stats",
                 HeadersBearerTokenLTIUserPolicy,
             ),
             ("/lti/1.3/deep_linking/form_fields", HeadersBearerTokenLTIUserPolicy),

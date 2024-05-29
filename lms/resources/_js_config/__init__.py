@@ -240,14 +240,14 @@ class JSConfig:
                 "dashboard": DashboardConfig(
                     routes=DashboardRoutes(
                         assignment=self._to_frontend_template(
-                            "dashboard.api.assignment"
+                            "api.dashboard.assignment"
                         ),
                         assignment_stats=self._to_frontend_template(
-                            "dashboard.api.assignment.stats"
+                            "api.dashboard.assignment.stats"
                         ),
-                        course=self._to_frontend_template("dashboard.api.course"),
+                        course=self._to_frontend_template("api.dashboard.course"),
                         course_assignment_stats=self._to_frontend_template(
-                            "dashboard.api.course.assignments.stats"
+                            "api.dashboard.course.assignments.stats"
                         ),
                     ),
                 ),

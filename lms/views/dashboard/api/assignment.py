@@ -14,7 +14,7 @@ class AssignmentViews:
         self.assignment_service = request.find_service(name="assignment")
 
     @view_config(
-        route_name="dashboard.api.assignment",
+        route_name="api.dashboard.assignment",
         request_method="GET",
         renderer="json",
         permission=Permissions.DASHBOARD_VIEW,
@@ -28,7 +28,7 @@ class AssignmentViews:
         )
 
     @view_config(
-        route_name="dashboard.api.assignment.stats",
+        route_name="api.dashboard.assignment.stats",
         request_method="GET",
         renderer="json",
         permission=Permissions.DASHBOARD_VIEW,
