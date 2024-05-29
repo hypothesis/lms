@@ -67,9 +67,16 @@ export type APICallOptions = {
   /** Internal. Counts the number of times this request has been retried. */
   retryCount?: number;
 
+  /** Internal. Amount of time to wait between retries. */
+  retryDelay?: number;
+
   /** Signal that can be used to cancel the request. */
   signal?: AbortSignal;
 };
+
+function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 /**
  * Make an API call to the LMS app backend.
@@ -88,6 +95,7 @@ export async function apiCall<Result = unknown>(
     method,
     params,
     retryCount = 0,
+    retryDelay = 1000,
     signal,
   } = options;
 
@@ -122,6 +130,7 @@ export async function apiCall<Result = unknown>(
 
   if (result.status >= 400 && result.status < 600) {
     if (result.status === 409 && retryCount < maxRetries) {
+      await delay(retryDelay);
       return apiCall({ ...options, retryCount: retryCount + 1 });
     }
 
