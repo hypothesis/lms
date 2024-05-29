@@ -1,9 +1,9 @@
 import classnames from 'classnames';
 import { Route, Switch } from 'wouter-preact';
 
+import AssignmentActivity from './AssignmentActivity';
 import CourseAssignmentsActivity from './CourseAssignmentsActivity';
 import DashboardFooter from './DashboardFooter';
-import StudentsActivity from './StudentsActivity';
 
 export default function DashboardApp() {
   return (
@@ -24,7 +24,7 @@ export default function DashboardApp() {
         <div className="mx-auto max-w-6xl">
           <Switch>
             <Route path="/assignment/:assignmentId">
-              <StudentsActivity />
+              <AssignmentActivity />
             </Route>
             <Route path="/course/:courseId">
               <CourseAssignmentsActivity />

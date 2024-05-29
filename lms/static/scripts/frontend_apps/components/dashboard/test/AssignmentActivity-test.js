@@ -6,9 +6,9 @@ import { mount } from 'enzyme';
 import sinon from 'sinon';
 
 import { Config } from '../../../config';
-import StudentsActivity, { $imports } from '../StudentsActivity';
+import AssignmentActivity, { $imports } from '../AssignmentActivity';
 
-describe('StudentsActivity', () => {
+describe('AssignmentActivity', () => {
   const students = [
     {
       display_name: 'b',
@@ -62,7 +62,7 @@ describe('StudentsActivity', () => {
   function createComponent() {
     return mount(
       <Config.Provider value={fakeConfig}>
-        <StudentsActivity />
+        <AssignmentActivity />
       </Config.Provider>,
     );
   }
