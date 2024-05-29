@@ -2,7 +2,7 @@ import classnames from 'classnames';
 import { Route, Switch } from 'wouter-preact';
 
 import AssignmentActivity from './AssignmentActivity';
-import CourseAssignmentsActivity from './CourseAssignmentsActivity';
+import CourseActivity from './CourseActivity';
 import DashboardFooter from './DashboardFooter';
 
 export default function DashboardApp() {
@@ -27,7 +27,7 @@ export default function DashboardApp() {
               <AssignmentActivity />
             </Route>
             <Route path="/course/:courseId">
-              <CourseAssignmentsActivity />
+              <CourseActivity />
             </Route>
           </Switch>
         </div>

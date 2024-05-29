@@ -6,11 +6,9 @@ import { mount } from 'enzyme';
 import sinon from 'sinon';
 
 import { Config } from '../../../config';
-import CourseAssignmentsActivity, {
-  $imports,
-} from '../CourseAssignmentsActivity';
+import CourseActivity, { $imports } from '../CourseActivity';
 
-describe('CourseAssignmentsActivity', () => {
+describe('CourseActivity', () => {
   const assignments = [
     {
       id: 2,
@@ -73,7 +71,7 @@ describe('CourseAssignmentsActivity', () => {
   function createComponent() {
     return mount(
       <Config.Provider value={fakeConfig}>
-        <CourseAssignmentsActivity />
+        <CourseActivity />
       </Config.Provider>,
     );
   }
