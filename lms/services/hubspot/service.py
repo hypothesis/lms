@@ -87,4 +87,4 @@ def date_or_timestamp(value: str | int | None) -> str | None:
         return datetime.fromtimestamp(int(value) / 1000).strftime("%Y-%m-%d")
     except ValueError:
         # Date is already formatted, return it verbatim
-        return value
+        return str(value)

@@ -1,3 +1,4 @@
+# type: ignore
 import os
 import sys
 from contextlib import suppress
