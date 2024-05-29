@@ -6,6 +6,7 @@ import { mount } from 'enzyme';
 import sinon from 'sinon';
 
 import { Config } from '../../../config';
+import { formatDateTime } from '../../../utils/date';
 import CourseActivity, { $imports } from '../CourseActivity';
 
 describe('CourseActivity', () => {
@@ -151,7 +152,10 @@ describe('CourseActivity', () => {
     { fieldName: 'title', expectedValue: 'Frog dissection' },
     { fieldName: 'annotations', expectedValue: '37' },
     { fieldName: 'replies', expectedValue: '25' },
-    { fieldName: 'last_activity', expectedValue: '2024-01-01 10:35' },
+    {
+      fieldName: 'last_activity',
+      expectedValue: formatDateTime(new Date('2024-01-01T10:35:18')),
+    },
   ].forEach(({ fieldName, expectedValue }) => {
     it('renders every field as expected', () => {
       const assignmentStats = {
