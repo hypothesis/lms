@@ -16,7 +16,7 @@ import OrderableActivityTable from './OrderableActivityTable';
 /**
  * Activity in a list of students that are part of a specific assignment
  */
-export default function StudentsActivity() {
+export default function AssignmentActivity() {
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
   const { assignmentId } = useParams<{ assignmentId: string }>();

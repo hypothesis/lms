@@ -26,7 +26,7 @@ type AssignmentsTableRow = {
 /**
  * Activity in a list of assignments that are part of a specific course
  */
-export default function CourseAssignmentsActivity() {
+export default function CourseActivity() {
   const { courseId } = useParams<{ courseId: string }>();
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
