@@ -1,14 +1,17 @@
 import json
 from copy import deepcopy
 
-from sqlalchemy import Text, column, func
+from sqlalchemy import Text, column, func, select
 
 from lms.db import full_text_match
 from lms.models import (
     ApplicationInstance,
+    Assignment,
+    AssignmentGrouping,
     Course,
     CourseGroupsExportedFromH,
     Grouping,
+    GroupingMembership,
     Organization,
     User,
 )
@@ -208,6 +211,39 @@ class CourseService:
             return courses[0]
 
         return None
+
+    def get_user_courses(self, user: User) -> list[Course]:
+        query = (
+            select(Course)
+            .distinct(Course.authority_provided_id)
+            .join(GroupingMembership)
+            .join(User)
+            .where(User.h_userid == user.h_userid)
+            .order_by(Course.authority_provided_id, Course.created.desc())
+        )
+        return list(self._db.execute(query).scalars())
+
+    def get_organization_courses(self, organization: Organization) -> list[Course]:
+        query = (
+            select(Course)
+            .distinct(Course.authority_provided_id)
+            .join(GroupingMembership)
+            .join(ApplicationInstance)
+            .where(ApplicationInstance.organization == organization)
+            .order_by(Course.authority_provided_id, Course.created.desc())
+        )
+        return list(self._db.execute(query).scalars())
+
+    def get_assignment_counts(self, courses: list[Course]) -> dict[int, int]:
+        course_ids = [course.id for course in courses]
+        # For each course, calculate the assignment counts in one single query
+        rr = self._db.execute(
+            select(AssignmentGrouping.grouping_id, func.count(Assignment.id))
+            .join(AssignmentGrouping)
+            .group_by(AssignmentGrouping.grouping_id)
+            .where(AssignmentGrouping.grouping_id.in_(course_ids))
+        )
+        return {row.grouping_id: row.count for row in rr}
 
     def is_member(self, course: Course, user: User) -> bool:
         """Check if a user is a member of a course."""

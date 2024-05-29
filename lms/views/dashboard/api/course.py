@@ -7,13 +7,15 @@ from lms.js_config_types import (
 )
 from lms.security import Permissions
 from lms.services.h_api import HAPI
-from lms.views.dashboard.base import get_request_course
+from lms.services.organization import OrganizationService
+from lms.views.dashboard.base import get_request_course, get_request_organization
 
 
 class CourseViews:
     def __init__(self, request) -> None:
         self.request = request
         self.course_service = request.find_service(name="course")
+        self.organization_service = request.find_service(OrganizationService)
         self.h_api = request.find_service(HAPI)
 
     @view_config(
@@ -28,6 +30,44 @@ class CourseViews:
             "id": course.id,
             "title": course.lms_name,
         }
+
+    @view_config(
+        route_name="dashboard.api.courses",
+        request_method="GET",
+        renderer="json",
+        permission=Permissions.DASHBOARD_VIEW,
+    )
+    def current_user_courses(self):
+        courses = self.course_service.get_user_courses(self.request.user)
+        course_assignment_counts = self.course_service.get_assignment_counts(courses)
+        return [
+            {
+                "id": course.id,
+                "title": course.lms_name,
+                "assignments": course_assignment_counts.get(course.id, 0),
+            }
+            for course in courses
+        ]
+
+    @view_config(
+        route_name="dashboard.api.organizations.courses",
+        request_method="GET",
+        renderer="json",
+        permission=Permissions.DASHBOARD_VIEW,
+    )
+    def get_organization_courses(self):
+        org = get_request_organization(self.request, self.organization_service)
+        courses = self.course_service.get_organization_courses(org)
+
+        course_assignment_counts = self.course_service.get_assignment_counts(courses)
+        return [
+            {
+                "id": course.id,
+                "title": course.lms_name,
+                "assignments": course_assignment_counts.get(course.id, 0),
+            }
+            for course in courses
+        ]
 
     @view_config(
         route_name="dashboard.api.course.assignments.stats",

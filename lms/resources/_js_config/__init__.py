@@ -249,6 +249,17 @@ class JSConfig:
                         course_assignment_stats=self._to_frontend_template(
                             "dashboard.api.course.assignments.stats"
                         ),
+                        current_user_courses=self._to_frontend_template(
+                            "dashboard.api.courses"
+                            if self._request.lti_user
+                            else self._request.route_url(
+                                "dashboard.api.organizations.courses",
+                                public_id=self._request.matchdict["public_id"],
+                            )
+                        ),
+                        organization_courses=self._to_frontend_template(
+                            "dashboard.api.organizations.courses"
+                        ),
                     ),
                 ),
             }

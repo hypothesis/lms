@@ -44,6 +44,10 @@ class DashboardRoutes(TypedDict):
     course: str
     course_assignment_stats: str
 
+    current_user_courses: str
+
+    organization_courses: str
+
 
 class DashboardConfig(TypedDict):
     routes: DashboardRoutes
