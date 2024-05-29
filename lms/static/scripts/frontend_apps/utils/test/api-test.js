@@ -333,10 +333,13 @@ describe('api', () => {
     window.fetch.withArgs('/api/test').onCall(1).resolves(conflictResponse);
     window.fetch.withArgs('/api/test').onCall(2).resolves(okResponse);
 
+    const retryDelay = 1;
+
     // An HTTP 409 response should trigger an automatic retry.
     const result = await apiCall({
       path: '/api/test',
       authToken: 'auth',
+      retryDelay,
     });
 
     assert.deepEqual(result, { ok: true });
@@ -345,7 +348,12 @@ describe('api', () => {
     window.fetch.resetHistory();
     let error;
     try {
-      await apiCall({ path: '/api/test', authToken: 'auth', maxRetries: 1 });
+      await apiCall({
+        path: '/api/test',
+        authToken: 'auth',
+        maxRetries: 1,
+        retryDelay,
+      });
     } catch (err) {
       error = err;
     }
