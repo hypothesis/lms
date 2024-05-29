@@ -689,10 +689,10 @@ class TestEnableDashboardMode:
         assert config["mode"] == JSConfig.Mode.DASHBOARD
         assert config["dashboard"] == {
             "routes": {
-                "assignment": "/dashboard/api/assignment/:assignment_id",
-                "assignment_stats": "/dashboard/api/assignment/:assignment_id/stats",
-                "course": "/dashboard/api/course/:course_id",
-                "course_assignment_stats": "/dashboard/api/course/:course_id/assignments/stats",
+                "assignment": "/dashboard/api/assignments/:assignment_id",
+                "assignment_stats": "/dashboard/api/assignments/:assignment_id/stats",
+                "course": "/dashboard/api/courses/:course_id",
+                "course_assignment_stats": "/dashboard/api/courses/:course_id/assignments/stats",
             }
         }
 
@@ -708,7 +708,7 @@ class TestEnableInstructorDashboardEntryPoint:
         assert config["hypothesisClient"]["dashboard"] == {
             "showEntryPoint": True,
             "authTokenRPCMethod": "requestAuthToken",
-            "entryPointURL": f"http://example.com/dashboard/launch/assignment/{assignment.id}",
+            "entryPointURL": f"http://example.com/dashboard/launch/assignments/{assignment.id}",
             "authFieldName": "authorization",
         }
 

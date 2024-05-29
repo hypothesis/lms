@@ -231,29 +231,29 @@ def includeme(config):  # noqa: PLR0915
     )
 
     config.add_route(
-        "dashboard.launch.assignment", "/dashboard/launch/assignment/{assignment_id}"
+        "dashboard.launch.assignment", "/dashboard/launch/assignments/{assignment_id}"
     )
 
     config.add_route(
         "dashboard.assignment",
-        "/dashboard/organization/{public_id}/assignment/{assignment_id}",
+        "/dashboard/organizations/{public_id}/assignments/{assignment_id}",
         factory="lms.resources.dashboard.DashboardResource",
     )
     config.add_route(
         "dashboard.course",
-        "/dashboard/organization/{public_id}/course/{course_id}",
+        "/dashboard/organizations/{public_id}/courses/{course_id}",
         factory="lms.resources.dashboard.DashboardResource",
     )
 
     config.add_route(
-        "dashboard.api.assignment", "/dashboard/api/assignment/{assignment_id}"
+        "dashboard.api.assignment", "/dashboard/api/assignments/{assignment_id}"
     )
     config.add_route(
         "dashboard.api.assignment.stats",
-        "/dashboard/api/assignment/{assignment_id}/stats",
+        "/dashboard/api/assignments/{assignment_id}/stats",
     )
-    config.add_route("dashboard.api.course", "/dashboard/api/course/{course_id}")
+    config.add_route("dashboard.api.course", "/dashboard/api/courses/{course_id}")
     config.add_route(
         "dashboard.api.course.assignments.stats",
-        "/dashboard/api/course/{course_id}/assignments/stats",
+        "/dashboard/api/courses/{course_id}/assignments/stats",
     )

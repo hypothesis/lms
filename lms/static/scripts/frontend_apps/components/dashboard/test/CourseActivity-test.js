@@ -177,7 +177,7 @@ describe('CourseActivity', () => {
       assert.equal(itemWrapper.text(), expectedValue);
 
       if (fieldName === 'title') {
-        assert.equal(itemWrapper.prop('href'), '/assignment/123');
+        assert.equal(itemWrapper.prop('href'), '/assignments/123');
       }
     });
   });

@@ -80,7 +80,7 @@ export default function CourseActivity() {
               return <div className="text-right">{stats[field]}</div>;
             } else if (field === 'title') {
               return (
-                <RouterLink href={`/assignment/${stats.id}`} asChild>
+                <RouterLink href={`/assignments/${stats.id}`} asChild>
                   <Link>{stats.title}</Link>
                 </RouterLink>
               );
