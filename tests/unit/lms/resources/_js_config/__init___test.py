@@ -689,10 +689,10 @@ class TestEnableDashboardMode:
         assert config["mode"] == JSConfig.Mode.DASHBOARD
         assert config["dashboard"] == {
             "routes": {
-                "assignment": "/dashboard/api/assignments/:assignment_id",
-                "assignment_stats": "/dashboard/api/assignments/:assignment_id/stats",
-                "course": "/dashboard/api/courses/:course_id",
-                "course_assignment_stats": "/dashboard/api/courses/:course_id/assignments/stats",
+                "assignment": "/api/dashboard/assignments/:assignment_id",
+                "assignment_stats": "/api/dashboard/assignments/:assignment_id/stats",
+                "course": "/api/dashboard/courses/:course_id",
+                "course_assignment_stats": "/api/dashboard/courses/:course_id/assignments/stats",
             }
         }
 

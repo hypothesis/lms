@@ -17,7 +17,7 @@ class CourseViews:
         self.h_api = request.find_service(HAPI)
 
     @view_config(
-        route_name="dashboard.api.course",
+        route_name="api.dashboard.course",
         request_method="GET",
         renderer="json",
         permission=Permissions.DASHBOARD_VIEW,
@@ -30,7 +30,7 @@ class CourseViews:
         }
 
     @view_config(
-        route_name="dashboard.api.course.assignments.stats",
+        route_name="api.dashboard.course.assignments.stats",
         request_method="GET",
         renderer="json",
         permission=Permissions.DASHBOARD_VIEW,

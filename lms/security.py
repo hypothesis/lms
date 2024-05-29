@@ -103,7 +103,7 @@ class SecurityPolicy:
             # Routes that require the Google auth policy
             return LMSGoogleSecurityPolicy()
 
-        if path.startswith(("/dashboard/organization", "/dashboard/api")):
+        if path.startswith(("/dashboard/organization", "/api/dashboard")):
             # For certain routes we only use the google policy in case it resulted
             # non empty identity.
             # This is useful for routes that can be used by admin pages users on top of
@@ -138,7 +138,7 @@ class SecurityPolicy:
             # LTUser serialized as query param for authorization failures
             return QueryStringBearerTokenLTIUserPolicy()
 
-        if path.startswith(("/api", "/dashboard/api/")) or path in {
+        if path.startswith("/api") or path in {
             "/lti/1.3/deep_linking/form_fields",
             "/lti/1.1/deep_linking/form_fields",
             "/lti/reconfigure",
