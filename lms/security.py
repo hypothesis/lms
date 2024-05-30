@@ -374,6 +374,9 @@ def get_lti_user(request) -> LTIUser | None:
 
 
 def _get_user(request) -> User | None:
+    if not request.lti_user:
+        return None
+
     return request.find_service(UserService).get(
         request.lti_user.application_instance, request.lti_user.user_id
     )

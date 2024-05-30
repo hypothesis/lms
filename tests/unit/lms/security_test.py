@@ -676,6 +676,11 @@ class TestGetUser:
         )
         assert user == user_service.get.return_value
 
+    def test_it_when_no_lti_user(self, pyramid_request):
+        pyramid_request.lti_user = None
+
+        assert not _get_user(pyramid_request)
+
 
 @pytest.fixture(autouse=True)
 def AuthTktCookieHelper(patch):
