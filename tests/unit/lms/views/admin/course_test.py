@@ -1,4 +1,4 @@
-from unittest.mock import sentinel
+from unittest.mock import Mock, sentinel
 
 import pytest
 from h_matchers import Any
@@ -76,7 +76,7 @@ class TestAdminCourseViews:
             name="NAME",
             context_id="PUBLIC_ID",
             h_id="H_ID",
-            organization=None,
+            organization_ids=[],
         )
         assert result == {"courses": course_service.search.return_value}
 
@@ -84,16 +84,19 @@ class TestAdminCourseViews:
         self, pyramid_request, views, organization_service, course_service
     ):
         pyramid_request.params["org_public_id"] = " PUBLIC_ID "
-        organization_service.get_by_public_id.return_value = sentinel.org
+        organization_service.get_by_public_id.return_value = Mock(id=sentinel.id)
 
         views.search()
 
+        organization_service.get_hierarchy_ids.assert_called_once_with(
+            sentinel.id, include_parents=False
+        )
         course_service.search.assert_called_once_with(
             id_="",
             name="",
             context_id="DUMMY-CONTEXT-ID",
             h_id="",
-            organization=sentinel.org,
+            organization_ids=organization_service.get_hierarchy_ids.return_value,
         )
 
     def test_search_invalid_public_id(
@@ -116,7 +119,7 @@ class TestAdminCourseViews:
         views.search()
 
         course_service.search.assert_called_once_with(
-            id_="", name="", context_id="DUMMY-CONTEXT-ID", h_id="", organization=None
+            id_="", name="", context_id="DUMMY-CONTEXT-ID", h_id="", organization_ids=[]
         )
 
     @pytest.fixture

@@ -289,19 +289,14 @@ class TestCourseService:
 
         assert svc.search(**{param: getattr(course, field)}) == [course]
 
-    def test_search_by_organization(self, svc, organization_service, db_session):
+    def test_search_by_organization(self, svc, db_session):
         org = factories.Organization()
         ai = factories.ApplicationInstance(organization=org)
         course = factories.Course(application_instance=ai)
         # Ensure ids are written
         db_session.flush()
-        organization_service.get_hierarchy_ids.return_value = [org.id]
 
-        result = svc.search(organization=org)
-
-        organization_service.get_hierarchy_ids.assert_called_once_with(
-            org.id, include_parents=False
-        )
+        result = svc.search(organization_ids=[org.id])
 
         assert result == [course]
 
@@ -369,14 +364,11 @@ class TestCourseService:
         return grouping_service
 
     @pytest.fixture
-    def svc(
-        self, db_session, application_instance, grouping_service, organization_service
-    ):
+    def svc(self, db_session, application_instance, grouping_service):
         return CourseService(
             db=db_session,
             application_instance=application_instance,
             grouping_service=grouping_service,
-            organization_service=organization_service,
         )
 
     @pytest.fixture
@@ -391,16 +383,13 @@ class TestCourseService:
 
 
 class TestCourseServiceFactory:
-    def test_it(
-        self, pyramid_request, grouping_service, CourseService, organization_service
-    ):
+    def test_it(self, pyramid_request, grouping_service, CourseService):
         svc = course_service_factory(sentinel.context, pyramid_request)
 
         CourseService.assert_called_once_with(
             db=pyramid_request.db,
             application_instance=pyramid_request.lti_user.application_instance,
             grouping_service=grouping_service,
-            organization_service=organization_service,
         )
 
         assert svc == CourseService.return_value
