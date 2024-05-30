@@ -224,6 +224,7 @@ def includeme(config):  # noqa: PLR0915
 
     config.add_route("admin.courses", "/admin/courses")
     config.add_route("admin.course", "/admin/course/{id_}")
+    config.add_route("admin.courses.dashboard", "/admin/courses/{id_}/dashboard")
 
     config.add_route("admin.assignment", "/admin/assignment/{id_}")
     config.add_route("admin.assignment.dashboard", "/admin/assignment/{id_}/dashboard")

@@ -4,6 +4,10 @@
 {% block content %}
 <div>
     <fieldset>
+          <div class="block has-text-right">
+            <a class="button is-primary" target="_blank" href="{{ request.route_url('admin.courses.dashboard', id_=course.id) }}">Open instructor dashboard</a>
+          </div>
+
           {{ macros.disabled_text_field("ID", course.id) }}
           {{ macros.disabled_text_field("Name", course.name) }}
           {{ macros.disabled_text_field("H ID", course.authority_provided_id) }}

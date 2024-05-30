@@ -1,10 +1,13 @@
 from unittest.mock import sentinel
 
 import pytest
-from pyramid.httpexceptions import HTTPNotFound
+from h_matchers import Any
+from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 
+from lms.models import EventType
 from lms.models.public_id import InvalidPublicId
 from lms.views.admin.course import AdminCourseViews
+from tests import factories
 
 
 @pytest.mark.usefixtures("course_service", "organization_service")
@@ -26,6 +29,39 @@ class TestAdminCourseViews:
 
         with pytest.raises(HTTPNotFound):
             views.show()
+
+    def test_course_dashboard(
+        self,
+        pyramid_request,
+        course_service,
+        views,
+        AuditTrailEvent,
+        organization,
+        course,
+    ):
+        pyramid_request.matchdict["id_"] = sentinel.id
+        course_service.get_by_id.return_value = course
+
+        response = views.course_dashboard()
+
+        AuditTrailEvent.assert_called_once_with(
+            request=pyramid_request,
+            type=EventType.Type.AUDIT_TRAIL,
+            data={
+                "action": "view_dashboard",
+                "id": course.id,
+                "model": "Course",
+                "source": "admin_pages",
+                "userid": "TEST_USER_ID",
+                "changes": {},
+            },
+        )
+        pyramid_request.registry.notify.has_call_with(AuditTrailEvent.return_value)
+        assert response == Any.instance_of(HTTPFound).with_attrs(
+            {
+                "location": f"http://example.com/dashboard/organizations/{organization._public_id}/courses/{course.id}",  # noqa: SLF001
+            }
+        )
 
     def test_search(self, pyramid_request, course_service, views):
         pyramid_request.params["context_id"] = " PUBLIC_ID "
@@ -82,6 +118,16 @@ class TestAdminCourseViews:
         course_service.search.assert_called_once_with(
             id_="", name="", context_id="DUMMY-CONTEXT-ID", h_id="", organization=None
         )
+
+    @pytest.fixture
+    def course(self, application_instance, db_session):
+        course = factories.Course(application_instance=application_instance)
+        db_session.flush()  # Give the DB objects IDs
+        return course
+
+    @pytest.fixture
+    def AuditTrailEvent(self, patch):
+        return patch("lms.views.admin.course.AuditTrailEvent")
 
     @pytest.fixture
     def views(self, pyramid_request):
