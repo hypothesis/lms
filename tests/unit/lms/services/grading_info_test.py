@@ -46,6 +46,36 @@ class TestGetStudentsForGrading:
             expected_students, key=lambda x: x["userid"]
         )
 
+    @pytest.mark.parametrize("use_sourced_id", [True, False])
+    def test_it_uses_sourced_id_when_setting_is_enabled(
+        self, svc, matching_grading_infos, lti_v13_application_instance, use_sourced_id
+    ):
+        lti_v13_application_instance.settings.set(
+            "hypothesis", "lti_13_sourcedid_for_grading", use_sourced_id
+        )
+        students = svc.get_students_for_grading(
+            lti_v13_application_instance,
+            "matching_context_id",
+            "matching_resource_link_id",
+            mock.sentinel.grading_url,
+        )
+
+        expected_students = [
+            {
+                "userid": f"acct:{grading_info.h_username}@lms.hypothes.is",
+                "displayName": grading_info.h_display_name,
+                "lmsId": grading_info.user_id,
+                "LISResultSourcedId": grading_info.lis_result_sourcedid
+                if use_sourced_id
+                else grading_info.user_id,
+                "LISOutcomeServiceUrl": mock.sentinel.grading_url,
+            }
+            for grading_info in matching_grading_infos
+        ]
+        assert sorted(students, key=lambda x: x["userid"]) == sorted(
+            expected_students, key=lambda x: x["userid"]
+        )
+
     @pytest.mark.parametrize(
         "filter_application_instance,context_id,resource_link_id",
         [

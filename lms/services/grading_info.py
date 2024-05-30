@@ -44,22 +44,32 @@ class GradingInfoService:
                 display_name=grading_info.h_display_name,
             )
 
-            lis_result_sourced_id = grading_info.lis_result_sourcedid
+            lis_result_sourcedid = grading_info.lis_result_sourcedid
             if application_instance.lti_version == "1.3.0":
                 # In LTI 1.3 lis_result_sourcedid == user_id
                 # or rather the concept of lis_result_sourcedid doesn't really exists and the LTI1.3 grading API is based on the user id.
                 # We take the user id value instead here for LTI1.3.
-                # This is important in the case of upgrades that happen midterm, wih grading_infos from before the upgrade:
+                # This is important in the case of upgrades that happen midterm, with grading_infos from before the upgrade:
                 # we might have only the LTI1.1 value for lis_result_sourcedid but if we pick the user id instead
                 # we are guaranteed to get the right value for the LTI1.3 API
-                lis_result_sourced_id = grading_info.user_id
+                lis_result_sourcedid = grading_info.user_id
+                if application_instance.settings.get(
+                    "hypothesis", "lti_13_sourcedid_for_grading", False
+                ):
+                    # While all the above is true the situation gets further complicated by the  lti1p1 claim that provides
+                    # the old values of some IDs in LTI1.3
+                    # In this scenario, for students that have launched after the upgrade we'll get:
+                    #  grading_info.user_id to be the old  LTI user ID, the LTI1.1 one via lti1p1 in LTIParams
+                    #  grading_info.lis_result_sourcedid will be the "sub" parameter via LTIParams.
+                    # In that case grading_info.lis_result_sourcedid is the right value to use to talk to the LTI1.3 grading API
+                    lis_result_sourcedid = grading_info.lis_result_sourcedid
 
             students.append(
                 {
                     "userid": h_user.userid(self._authority),
                     "displayName": h_user.display_name,
                     "lmsId": grading_info.user_id,
-                    "LISResultSourcedId": lis_result_sourced_id,
+                    "LISResultSourcedId": lis_result_sourcedid,
                     # We are using the value from the request instead of the one stored in GradingInfo.
                     # This allows us to still read and submit grades when something in the LMS changes.
                     # For example in LTI version upgrades, the endpoint is likely to change as we move from
