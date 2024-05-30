@@ -173,7 +173,7 @@ describe('BasicLTILaunchApp', () => {
       );
     });
 
-    it('displays authorization prompt if content URL fetch fails with an `APIError`', async () => {
+    it('displays authorization prompt if content URL fetch fails and we can re-authorize', async () => {
       // Make the initial URL fetch request reject with an unspecified `APIError`.
       fakeApiCall.rejects(new APIError(400, {}));
 
@@ -235,29 +235,48 @@ describe('BasicLTILaunchApp', () => {
       {
         description: 'a specific server error',
         error: new APIError(400, { message: 'Server error' }),
+        authUrl,
+      },
+      {
+        description: 'a specific server error',
+        error: new APIError(409, { message: 'Something went wrong' }),
+        authUrl: null,
       },
       {
         description: 'a network or other generic error',
         error: new Error('Failed to fetch'),
+        authUrl,
       },
-    ].forEach(({ description, error }) => {
-      it(`displays error details if content URL fetch fails with ${description}`, async () => {
+    ].forEach(({ description, error, authUrl }) => {
+      it(`displays error details and allows retry if content URL fetch fails (${description})`, async () => {
         // Make the initial URL fetch request reject with the given error.
         fakeApiCall.rejects(error);
+        fakeConfig.api.viaUrl.authUrl = authUrl;
 
         const wrapper = renderLTILaunchApp();
         await spinnerVisible(wrapper);
 
         // Verify that an "Try again" prompt is shown.
-        const errorDialog = await waitForElement(wrapper, 'LaunchErrorDialog');
+        let errorDialog = await waitForElement(wrapper, 'LaunchErrorDialog');
 
-        // Click the "Try again" button and verify that authorization is attempted.
+        // Click the "Try again" button. If re-authorization is available /
+        // appropriate we should re-launch the auth flow. Otherwise we should
+        // just retry fetching the content URL.
         fakeApiCall.reset();
         fakeApiCall.resolves({ via_url: 'https://via.hypothes.is/123' });
         act(() => {
           errorDialog.prop('onRetry')();
         });
-        assert.called(FakeAuthWindow);
+        wrapper.update();
+        errorDialog = wrapper.find('LaunchErrorDialog');
+
+        if (authUrl) {
+          assert.equal(errorDialog.prop('errorState'), 'error-authorizing');
+          assert.called(FakeAuthWindow);
+        } else {
+          assert.notEqual(errorDialog.prop('errorState'), 'error-authorizing');
+          assert.notCalled(FakeAuthWindow);
+        }
 
         // Check that files are fetched after authorization completes.
         await contentVisible(wrapper);
