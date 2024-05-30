@@ -55,6 +55,7 @@ class ApplicationSettings(JSONSettings):
         ),
         JSONSetting("hypothesis", "instructor_email_digests_enabled", asbool),
         JSONSetting("hypothesis", "instructor_dashboard", asbool),
+        JSONSetting("hypothesis", "lti_13_sourcedid_for_grading", asbool),
     )
 
 
