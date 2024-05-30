@@ -31,3 +31,19 @@ def get_request_course(request, course_service):
         raise HTTPUnauthorized()
 
     return course
+
+
+def get_request_organization(request, organization_service):
+    public_id = f"{request.registry.settings['region_code']}.lms.org.{request.matchdict['organization_public_id']}"
+    organization = organization_service.get_by_public_id(public_id)
+    if not organization:
+        raise HTTPNotFound()
+
+    if request.has_permission(Permissions.STAFF):
+        # STAFF members in our admin pages can access all organizations
+        return organization
+
+    if not organization_service.is_member(organization, request.user):
+        raise HTTPUnauthorized()
+
+    return organization

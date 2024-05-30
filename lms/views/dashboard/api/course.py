@@ -26,7 +26,6 @@ class CourseViews:
     )
     def get_organization_courses(self) -> list[APICourse]:
         org = get_request_organization(self.request, self.organization_service)
-        print(self.request.user)
         courses = self.course_service.search(
             limit=None, organization_ids=[org.id], user=self.request.user
         )

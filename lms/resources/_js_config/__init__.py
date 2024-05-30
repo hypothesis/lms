@@ -266,6 +266,9 @@ class JSConfig:
                         course_assignment_stats=self._to_frontend_template(
                             "api.dashboard.course.assignments.stats"
                         ),
+                        organization_courses=self._to_frontend_template(
+                            "api.dashboard.organizations.courses"
+                        ),
                     ),
                 ),
             }

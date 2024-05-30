@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, aliased
 from lms.db import full_text_match
 from lms.models import (
     ApplicationInstance,
+    Course,
     GroupInfo,
     Grouping,
     GroupingMembership,
@@ -70,7 +71,8 @@ class OrganizationService:
         # Get all the objects in the hierarchy, to ensure they are cached by
         # SQLAlchemy, and should be fast to access.
         hierarchy = (
-            self._db_session.query(Organization).filter(
+            self._db_session.query(Organization)
+            .filter(
                 Organization.id.in_(self.get_hierarchy_ids(id_, include_parents=True))
             )
             # Order by parent id, this will cause the root (if any) to be last.
@@ -361,7 +363,8 @@ class OrganizationService:
         # https://www.postgresql.org/docs/current/queries-with.html#QUERIES-WITH-RECURSIVE
         cols = [Organization.id, Organization.parent_id]
         base_case = (
-            self._db_session.query(*cols).filter(Organization.id == id_)
+            self._db_session.query(*cols)
+            .filter(Organization.id == id_)
             # The name of the CTE is arbitrary, but must be present
             .cte("organizations", recursive=True)
         )
@@ -380,6 +383,24 @@ class OrganizationService:
         # This will recurse until no new rows are added
         rows = self._db_session.query(base_case.union(recursive_case)).all()  # type: ignore
         return [row[0] for row in rows]
+
+    def is_member(self, organization: Organization, user: User) -> bool:
+        """
+        Check if user is a member organization.
+
+        We define "member" here as belonging to any of the organization's courses.
+        """
+        query = (
+            select(GroupingMembership)
+            .join(Course)
+            .join(ApplicationInstance)
+            .where(
+                GroupingMembership.user == user,
+                ApplicationInstance.organization == organization,
+            )
+            .limit(1)
+        )
+        return bool(self._db_session.execute(query).scalar())
 
 
 def service_factory(_context, request) -> OrganizationService:
