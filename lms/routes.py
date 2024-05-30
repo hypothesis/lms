@@ -251,6 +251,11 @@ def includeme(config):  # noqa: PLR0915
     )
 
     config.add_route(
+        "api.dashboard.organizations.courses",
+        "/api/dashboard/organizations/{public_id}/courses",
+    )
+
+    config.add_route(
         "api.dashboard.assignment", "/api/dashboard/assignments/{assignment_id}"
     )
     config.add_route(

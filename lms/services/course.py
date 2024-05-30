@@ -7,9 +7,9 @@ from lms.db import full_text_match
 from lms.models import (
     ApplicationInstance,
     Course,
-    GroupingMembership,
     CourseGroupsExportedFromH,
     Grouping,
+    GroupingMembership,
     Organization,
     User,
 )
