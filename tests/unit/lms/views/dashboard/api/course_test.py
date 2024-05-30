@@ -9,6 +9,29 @@ pytestmark = pytest.mark.usefixtures("course_service", "h_api", "organization_se
 
 
 class TestCourseViews:
+    def test_get_organization_courses(
+        self, course_service, organization_service, pyramid_request, views, db_session
+    ):
+        org = factories.Organization()
+        courses = factories.Course.create_batch(5)
+        organization_service.get_by_public_id.return_value = org
+        course_service.search.return_value = courses
+        pyramid_request.matchdict["public_id"] = sentinel.id_
+        db_session.flush()
+
+        response = views.get_organization_courses()
+
+        organization_service.get_by_public_id.assert_called_once_with(
+            "us.lms.org.sentinel.id_"
+        )
+        course_service.search.assert_called_once_with(
+            limit=None,
+            organization_ids=[org.id],
+            user=pyramid_request.user,
+        )
+
+        assert response == [{"id": c.id, "title": c.lms_name} for c in courses]
+
     def test_course(self, views, pyramid_request, course_service):
         pyramid_request.matchdict["course_id"] = sentinel.id
         course = factories.Course()

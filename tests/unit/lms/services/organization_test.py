@@ -314,6 +314,18 @@ class TestOrganizationService:
 
         assert "no courses with activity" in str(error.value).lower()
 
+    def test_is_member(self, svc, db_session):
+        org = factories.Organization()
+        ai = factories.ApplicationInstance(organization=org)
+        user = factories.User()
+        other_user = factories.User()
+        course = factories.Course(application_instance=ai)
+        factories.GroupingMembership(user=user, grouping=course)
+        db_session.flush()
+
+        assert svc.is_member(org, user)
+        assert not svc.is_member(org, other_user)
+
     @pytest.fixture
     def org_with_parent(self, db_session):
         org_with_parent = factories.Organization.create(
