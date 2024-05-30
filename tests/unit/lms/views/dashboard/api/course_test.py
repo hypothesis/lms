@@ -5,7 +5,7 @@ import pytest
 from lms.views.dashboard.api.course import CourseViews
 from tests import factories
 
-pytestmark = pytest.mark.usefixtures("course_service", "h_api")
+pytestmark = pytest.mark.usefixtures("course_service", "h_api", "organization_service")
 
 
 class TestCourseViews:
