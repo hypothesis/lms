@@ -141,7 +141,6 @@ class TestOAuthHTTPService:
         )
 
         oauth2_token_service.get.assert_called_once_with(svc.service)
-        oauth2_token_service.try_lock_for_refresh.assert_called_once_with(svc.service)
         http_service.post.assert_called_once_with(
             sentinel.token_url,
             data={
@@ -232,6 +231,21 @@ class TestOAuthHTTPService:
                 sentinel.token_url, sentinel.redirect_uri, sentinel.auth
             )
 
+    @pytest.mark.parametrize("prevent_concurrent_refreshes", (False, True))
+    def test_refresh_access_token_acquires_refresh_lock(
+        self, svc, oauth2_token_service, prevent_concurrent_refreshes
+    ):
+        svc.refresh_access_token(
+            sentinel.token_url,
+            sentinel.redirect_uri,
+            sentinel.auth,
+            prevent_concurrent_refreshes=prevent_concurrent_refreshes,
+        )
+        if prevent_concurrent_refreshes:
+            oauth2_token_service.try_lock_for_refresh.assert_called_once()
+        else:
+            oauth2_token_service.try_lock_for_refresh.assert_not_called()
+
     def test_refresh_access_token_raises_ConcurrentTokenRefreshError_on_concurrent_refresh(
         self,
         svc,
@@ -241,7 +255,10 @@ class TestOAuthHTTPService:
 
         with pytest.raises(ConcurrentTokenRefreshError):
             svc.refresh_access_token(
-                sentinel.token_url, sentinel.redirect_uri, sentinel.auth
+                sentinel.token_url,
+                sentinel.redirect_uri,
+                sentinel.auth,
+                prevent_concurrent_refreshes=True,
             )
 
     def test_refresh_token_skips_if_token_is_current(

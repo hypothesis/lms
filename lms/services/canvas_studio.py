@@ -152,6 +152,7 @@ class CanvasStudioService:
             self._token_url(),
             self.redirect_uri(),
             auth=(self._client_id, self._client_secret),
+            prevent_concurrent_refreshes=True,
         )
 
     def refresh_admin_access_token(self):
@@ -162,6 +163,7 @@ class CanvasStudioService:
                 self._token_url(),
                 self.redirect_uri(),
                 auth=(self._client_id, self._client_secret),
+                prevent_concurrent_refreshes=True,
             )
         except ExternalRequestError as refresh_err:
             raise SerializableError(
