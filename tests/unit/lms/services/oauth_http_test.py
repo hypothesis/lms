@@ -3,10 +3,10 @@ from unittest.mock import sentinel
 
 import pytest
 
-from lms.db import TryLockError
+from lms.db import CouldNotAcquireLock
 from lms.models.oauth2_token import Service
 from lms.services.exceptions import (
-    ConflictError,
+    ConcurrentTokenRefreshError,
     ExternalRequestError,
     OAuth2TokenError,
 )
@@ -232,14 +232,14 @@ class TestOAuthHTTPService:
                 sentinel.token_url, sentinel.redirect_uri, sentinel.auth
             )
 
-    def test_refresh_access_token_raises_ConflictError_on_concurrent_refresh(
+    def test_refresh_access_token_raises_ConcurrentTokenRefreshError_on_concurrent_refresh(
         self,
         svc,
         oauth2_token_service,
     ):
-        oauth2_token_service.try_lock_for_refresh.side_effect = TryLockError()
+        oauth2_token_service.try_lock_for_refresh.side_effect = CouldNotAcquireLock()
 
-        with pytest.raises(ConflictError):
+        with pytest.raises(ConcurrentTokenRefreshError):
             svc.refresh_access_token(
                 sentinel.token_url, sentinel.redirect_uri, sentinel.auth
             )

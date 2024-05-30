@@ -23,7 +23,7 @@ from lms.services import (
     ExternalRequestError,
     OAuth2TokenError,
 )
-from lms.services.exceptions import ConflictError, SerializableError
+from lms.services.exceptions import ConcurrentTokenRefreshError, SerializableError
 from lms.validation import ValidationError
 
 _ = i18n.TranslationStringFactory(__package__)
@@ -110,10 +110,13 @@ class APIExceptionViews:
         # Some of the views below override this.
         self.request.response.status_int = 400
 
-    @exception_view_config(context=ConflictError)
-    def conflict_error(self):
+    @exception_view_config(context=ConcurrentTokenRefreshError)
+    def concurrent_token_refresh_error(self):
         self.request.response.status_int = 409
-        return ErrorBody(message="Operation failed due to a conflicting update")
+        return ErrorBody(
+            error_code="concurrent_token_refresh",
+            message="API token is already being refreshed",
+        )
 
     @exception_view_config(context=ValidationError)
     def validation_error(self):

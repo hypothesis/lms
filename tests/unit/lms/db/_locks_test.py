@@ -1,6 +1,6 @@
 import pytest
 
-from lms.db import LockType, TryLockError, try_advisory_transaction_lock
+from lms.db import CouldNotAcquireLock, LockType, try_advisory_transaction_lock
 
 
 class TestTryAdvisoryTransactionLock:
@@ -9,10 +9,10 @@ class TestTryAdvisoryTransactionLock:
         try_advisory_transaction_lock(db_session, LockType.OAUTH2_TOKEN_REFRESH, 123)
 
         # Another session attempting a conflicting lock should fail
-        with pytest.raises(TryLockError):
-            try_advisory_transaction_lock(
-                other_db_session, LockType.OAUTH2_TOKEN_REFRESH, 123
-            )
+        lock_type = LockType.OAUTH2_TOKEN_REFRESH
+        with pytest.raises(CouldNotAcquireLock) as exc_info:
+            try_advisory_transaction_lock(other_db_session, lock_type, 123)
+        assert exc_info.value.args == (lock_type, 123)
 
         # Another session attempting a non-conflicting lock should succeed
         try_advisory_transaction_lock(

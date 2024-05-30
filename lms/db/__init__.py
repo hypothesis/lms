@@ -10,7 +10,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.orm.properties import ColumnProperty
 
 from lms.db._columns import varchar_enum
-from lms.db._locks import LockType, TryLockError, try_advisory_transaction_lock
+from lms.db._locks import CouldNotAcquireLock, LockType, try_advisory_transaction_lock
 from lms.db._text_search import full_text_match
 
 __all__ = ("Base", "create_engine", "varchar_enum")

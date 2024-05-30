@@ -2,10 +2,10 @@ from datetime import datetime, timedelta
 
 from marshmallow import fields
 
-from lms.db import TryLockError
+from lms.db import CouldNotAcquireLock
 from lms.models.oauth2_token import Service
 from lms.services.exceptions import (
-    ConflictError,
+    ConcurrentTokenRefreshError,
     ExternalRequestError,
     OAuth2TokenError,
 )
@@ -100,7 +100,7 @@ class OAuthHTTPService:
         (https://datatracker.ietf.org/doc/html/rfc6749#section-6) to get a new
         access token for the current user and save it to the DB.
 
-        :raise ConflictError: if this token is being refreshed concurrently by another request
+        :raise ConcurrentTokenRefreshError: if this token is being refreshed concurrently by another request
         :raise OAuth2TokenError: if we don't have a refresh token for the user
         :raise ExternalRequestError: if the HTTP request fails
         :raise ValidationError: if the server's access token response is invalid
@@ -119,8 +119,8 @@ class OAuthHTTPService:
         # refreshed token already available and skip the refresh.
         try:
             self._oauth2_token_service.try_lock_for_refresh(self.service)
-        except TryLockError as exc:
-            raise ConflictError() from exc
+        except CouldNotAcquireLock as exc:
+            raise ConcurrentTokenRefreshError() from exc
 
         try:
             return self._token_request(
