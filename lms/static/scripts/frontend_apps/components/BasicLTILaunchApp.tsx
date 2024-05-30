@@ -293,15 +293,15 @@ export default function BasicLTILaunchApp() {
    * the content URL and groups again.
    */
   const authorizeAndFetchURL = useCallback(async () => {
-    setErrorState('error-authorizing');
-
     if (authWindow.current) {
+      setErrorState('error-authorizing');
       authWindow.current.focus();
       return;
     }
 
     try {
       if (authURL) {
+        setErrorState('error-authorizing');
         authWindow.current = new AuthWindow({ authToken, authUrl: authURL });
         await authWindow.current.authorize();
         setAuthURL(null);
