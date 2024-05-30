@@ -275,13 +275,6 @@ class TestAddDocumentURL:
                 },
             ),
             (
-                "canvas-studio://media/media_id",
-                {
-                    "authUrl": "http://example.com/api/canvas_studio/oauth/authorize",
-                    "path": "/api/canvas_studio/via_url",
-                },
-            ),
-            (
                 "d2l://file/course/125/file_id/100",
                 {
                     "authUrl": "http://example.com/api/d2l/oauth/authorize",
@@ -308,6 +301,24 @@ class TestAddDocumentURL:
         js_config.add_document_url(url)
 
         assert js_config.asdict()["api"]["viaUrl"] == via_url
+
+    @pytest.mark.parametrize("is_admin", (True, False))
+    def test_canvas_studio_adds_config(
+        self, js_config, canvas_studio_service, is_admin
+    ):
+        canvas_studio_service.is_admin.return_value = is_admin
+
+        document_url = "canvas-studio://media/media_id"
+        js_config.add_document_url(document_url)
+
+        expected_auth_url = None
+        if is_admin:
+            expected_auth_url = "http://example.com/api/canvas_studio/oauth/authorize"
+
+        assert js_config.asdict()["api"]["viaUrl"] == {
+            "authUrl": expected_auth_url,
+            "path": "/api/canvas_studio/via_url",
+        }
 
     def test_vitalsource_sets_config_with_sso(
         self, js_config, pyramid_request, vitalsource_service

@@ -407,7 +407,7 @@ class CanvasStudioService:
         """
         url = self._api_url(path)
 
-        if as_admin and not self._is_admin():
+        if as_admin and not self.is_admin():
             return self._admin_api_request(path, allow_redirects=allow_redirects)
 
         try:
@@ -447,7 +447,7 @@ class CanvasStudioService:
             )
         return admin_email
 
-    def _is_admin(self) -> bool:
+    def is_admin(self) -> bool:
         """Return true if the current LTI user is the configure Canvas Studio admin."""
         return self._request.lti_user.email == self._admin_email()
 
@@ -466,7 +466,7 @@ class CanvasStudioService:
 
         # The caller should check for this condition before calling this method
         # and use the standard `self._oauth_http_service` property instead.
-        assert not self._is_admin()
+        assert not self.is_admin()
 
         admin_email = self._admin_email()
         admin_user = (
