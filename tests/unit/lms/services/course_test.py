@@ -300,6 +300,18 @@ class TestCourseService:
 
         assert result == [course]
 
+    def test_search_by_user(self, svc, db_session):
+        user = factories.User()
+        course = factories.Course()
+        factories.Course.create_batch(10)
+        factories.GroupingMembership(grouping=course, user=user)
+        # Ensure ids are written
+        db_session.flush()
+
+        result = svc.search(user=user)
+
+        assert result == [course]
+
     def test_search_limit(self, svc):
         orgs = factories.Course.create_batch(10)
 

@@ -7,6 +7,7 @@ from lms.db import full_text_match
 from lms.models import (
     ApplicationInstance,
     Course,
+    GroupingMembership,
     CourseGroupsExportedFromH,
     Grouping,
     Organization,
@@ -77,6 +78,7 @@ class CourseService:
         name: str | None = None,
         limit: int = 100,
         organization_ids: list[int] | None = None,
+        user: User | None = None,
     ) -> list[Course]:
         query = self._db.query(Course)
 
@@ -100,6 +102,14 @@ class CourseService:
                 )
                 .join(Organization)
                 .filter(Organization.id.in_(organization_ids))
+            )
+
+        if user:
+            # Only courses `user` belongs to
+            query = (
+                query.join(GroupingMembership)
+                .join(User)
+                .filter(User.h_userid == user.h_userid)
             )
 
         return query.limit(limit).all()
