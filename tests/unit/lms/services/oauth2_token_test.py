@@ -5,7 +5,7 @@ import pytest
 from h_matchers import Any
 from pytest import param
 
-from lms.db import LockType, TryLockError
+from lms.db import CouldNotAcquireLock, LockType
 from lms.models import OAuth2Token
 from lms.services import OAuth2TokenError
 from lms.services.oauth2_token import (
@@ -105,8 +105,8 @@ class TestOAuth2TokenService:
         )
 
         # If locking fails, the service should propagate the exception
-        try_advisory_transaction_lock.side_effect = TryLockError()
-        with pytest.raises(TryLockError):
+        try_advisory_transaction_lock.side_effect = CouldNotAcquireLock()
+        with pytest.raises(CouldNotAcquireLock):
             svc.try_lock_for_refresh(Service.LMS)
 
     @pytest.fixture

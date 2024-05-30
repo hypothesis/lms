@@ -4,7 +4,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
 
-class TryLockError(Exception):
+class CouldNotAcquireLock(Exception):
     """Exception raised if a lock cannot be immediately acquired."""
 
 
@@ -31,11 +31,11 @@ def try_advisory_transaction_lock(db: Session, lock_type: LockType, id_: int):
 
     The lock is released when the transaction is closed.
 
-    :param db: Database session
-    :param lock_type: The type of entity for the lock
-    :param id_: A type-specific ID for the entity being locked
-    :raise TryLockError: if the lock cannot be acquired immediately
+    :param db: database session
+    :param lock_type: the type of entity for the lock
+    :param id_: a type-specific ID for the entity being locked
+    :raise CouldNotAcquireLock: if the lock cannot be acquired immediately
     """
     query = sa.text("SELECT pg_try_advisory_xact_lock(:key1, :key2)")
     if not db.execute(query, {"key1": lock_type, "key2": id_}).scalar():
-        raise TryLockError()
+        raise CouldNotAcquireLock(lock_type, id_)

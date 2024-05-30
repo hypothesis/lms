@@ -16,13 +16,14 @@ pytestmark = pytest.mark.usefixtures(
 )
 
 
-class TestConflictError:
+class TestConcurrentTokenRefreshError:
     def test_it(self, pyramid_request, views):
-        error_body = views.conflict_error()
+        error_body = views.concurrent_token_refresh_error()
 
         assert pyramid_request.response.status_code == 409
         assert error_body == ErrorBody(
-            message="Operation failed due to a conflicting update"
+            error_code="concurrent_token_refresh",
+            message="API token is already being refreshed",
         )
 
 

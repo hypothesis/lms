@@ -73,9 +73,12 @@ class OAuth2TokenService:
         """
         Attempt to acquire an advisory lock before a token refresh.
 
+        This does not block if the lock is already held. Instead it raises an
+        error.
+
         The lock is released at the end of the current transaction.
 
-        :raise TryLockError: if the lock cannot be immediately acquired
+        :raise CouldNotAcquireLock: if the lock cannot be immediately acquired
         """
         token = self.get(service)
         try_advisory_transaction_lock(self._db, LockType.OAUTH2_TOKEN_REFRESH, token.id)

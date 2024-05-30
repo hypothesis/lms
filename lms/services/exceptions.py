@@ -158,8 +158,8 @@ class OAuth2TokenError(ExternalRequestError):
     """
 
 
-class ConflictError(Exception):
-    """A request failed due to a conflicting operation."""
+class ConcurrentTokenRefreshError(Exception):
+    """Another process is attempting to refresh the same OAuth token."""
 
 
 class CanvasAPIError(ExternalRequestError):
