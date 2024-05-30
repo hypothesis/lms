@@ -14,21 +14,13 @@ from lms.models import (
 )
 from lms.product import Product
 from lms.services.grouping import GroupingService
-from lms.services.organization import OrganizationService
 
 
 class CourseService:
-    def __init__(
-        self,
-        db,
-        application_instance,
-        grouping_service: GroupingService,
-        organization_service: OrganizationService,
-    ):
+    def __init__(self, db, application_instance, grouping_service: GroupingService):
         self._db = db
         self._application_instance = application_instance
         self._grouping_service = grouping_service
-        self._organization_service = organization_service
 
     def any_with_setting(self, group, key, value=True) -> bool:
         """
@@ -84,7 +76,7 @@ class CourseService:
         h_id: str | None = None,
         name: str | None = None,
         limit: int = 100,
-        organization: Organization | None = None,
+        organization_ids: list[int] | None = None,
     ) -> list[Course]:
         query = self._db.query(Course)
 
@@ -100,10 +92,7 @@ class CourseService:
         if name:
             query = query.filter(full_text_match(Course.lms_name, name))
 
-        if organization:
-            organization_ids = self._organization_service.get_hierarchy_ids(
-                organization.id, include_parents=False
-            )
+        if organization_ids:
             query = (
                 query.join(
                     ApplicationInstance,
@@ -264,5 +253,4 @@ def course_service_factory(_context, request):
             request.lti_user.application_instance if request.lti_user else None
         ),
         grouping_service=request.find_service(name="grouping"),
-        organization_service=request.find_service(OrganizationService),
     )

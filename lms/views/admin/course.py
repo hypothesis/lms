@@ -63,10 +63,14 @@ class AdminCourseViews:
         if flash_validation(self.request, SearchCourseSchema):
             return {}
 
-        organization = None
+        organization_ids = []
         if org_public_id := self.request.params.get("org_public_id", "").strip():
             try:
                 organization = self.organization_service.get_by_public_id(org_public_id)
+                organization_ids = self.organization_service.get_hierarchy_ids(
+                    organization.id, include_parents=False
+                )
+
             except InvalidPublicId as err:
                 self.request.session.flash(str(err), "errors")
                 return {}
@@ -76,7 +80,7 @@ class AdminCourseViews:
             name=self.request.params.get("name", "").strip(),
             context_id=self.request.params.get("context_id", "").strip(),
             h_id=self.request.params.get("h_id", "").strip(),
-            organization=organization,
+            organization_ids=organization_ids,
         )
 
         return {"courses": courses}
