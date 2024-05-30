@@ -7,7 +7,8 @@ from lms.js_config_types import (
 )
 from lms.security import Permissions
 from lms.services.h_api import HAPI
-from lms.views.dashboard.base import get_request_course
+from lms.services.organization import OrganizationService
+from lms.views.dashboard.base import get_request_course, get_request_organization
 
 
 class CourseViews:
@@ -15,6 +16,21 @@ class CourseViews:
         self.request = request
         self.course_service = request.find_service(name="course")
         self.h_api = request.find_service(HAPI)
+        self.organization_service = request.find_service(OrganizationService)
+
+    @view_config(
+        route_name="api.dashboard.organizations.courses",
+        request_method="GET",
+        renderer="json",
+        permission=Permissions.DASHBOARD_VIEW,
+    )
+    def get_organization_courses(self) -> list[APICourse]:
+        org = get_request_organization(self.request, self.organization_service)
+        print(self.request.user)
+        courses = self.course_service.search(
+            limit=None, organization_ids=[org.id], user=self.request.user
+        )
+        return [APICourse(id=course.id, title=course.lms_name) for course in courses]
 
     @view_config(
         route_name="api.dashboard.course",
