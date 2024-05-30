@@ -38,6 +38,7 @@ class TestCanvasStudioService:
             "https://hypothesis.instructuremedia.com/api/public/oauth/token",
             "http://example.com/api/canvas_studio/oauth/callback",
             auth=("the_client_id", client_secret),
+            prevent_concurrent_refreshes=True,
         )
 
     def test_refresh_admin_access_token(
@@ -49,6 +50,7 @@ class TestCanvasStudioService:
             "https://hypothesis.instructuremedia.com/api/public/oauth/token",
             "http://example.com/api/canvas_studio/oauth/callback",
             auth=("the_client_id", client_secret),
+            prevent_concurrent_refreshes=True,
         )
 
     def test_refresh_admin_access_token_error(self, svc, admin_oauth_http_service):

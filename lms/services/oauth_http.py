@@ -92,7 +92,9 @@ class OAuthHTTPService:
             },
         )
 
-    def refresh_access_token(self, token_url, redirect_uri, auth):
+    def refresh_access_token(
+        self, token_url, redirect_uri, auth, prevent_concurrent_refreshes=False
+    ):
         """
         Make a refresh token request and save the new token in the DB.
 
@@ -114,13 +116,14 @@ class OAuthHTTPService:
         ):
             return old_token.access_token
 
-        # Prevent concurrent refresh attempts. If the client gets this, it
-        # should wait briefly and try again, at which point it should find the
-        # refreshed token already available and skip the refresh.
-        try:
-            self._oauth2_token_service.try_lock_for_refresh(self.service)
-        except CouldNotAcquireLock as exc:
-            raise ConcurrentTokenRefreshError() from exc
+        if prevent_concurrent_refreshes:
+            # Prevent concurrent refresh attempts. If the client gets this, it
+            # should wait briefly and try again, at which point it should find the
+            # refreshed token already available and skip the refresh.
+            try:
+                self._oauth2_token_service.try_lock_for_refresh(self.service)
+            except CouldNotAcquireLock as exc:
+                raise ConcurrentTokenRefreshError() from exc
 
         try:
             return self._token_request(
