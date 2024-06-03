@@ -32,6 +32,7 @@ from tests.factories.lti_role import LTIRole, LTIRoleOverride
 from tests.factories.lti_user import LTIUser
 from tests.factories.oauth2_token import OAuth2Token
 from tests.factories.organization import Organization
+from tests.factories.organization_usage import OrganizationUsageReport
 from tests.factories.rsa_key import RSAKey
 from tests.factories.task_done import TaskDone
 from tests.factories.user import User
