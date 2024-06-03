@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from unittest.mock import sentinel
+from unittest.mock import patch, sentinel
 
 import pytest
 from h_matchers import Any
@@ -217,6 +217,52 @@ class TestOrganizationService:
 
         assert org_with_parent.parent
 
+    def test_generate_usage_report(self, svc, org_with_parent, usage_report):
+        usage_report.return_value = [
+            UsageReportRow(
+                name="<STUDENT>",
+                email="<STUDENT>",
+                h_userid=sentinel.h_userid,
+                course_name=sentinel.lms_name,
+                course_created="2020-01-01",
+                authority_provided_id=sentinel.authority_provided_id,
+            ),
+            UsageReportRow(
+                name="<STUDENT>",
+                email="<STUDENT>",
+                h_userid=sentinel.h_userid,
+                course_name=sentinel.lms_name,
+                course_created="2020-01-01",
+                authority_provided_id=sentinel.authority_provided_id,
+            ),
+        ]
+
+        report = svc.generate_usage_report(
+            org_with_parent.id, "test", "2020-01-01", "2020-02-02"
+        )
+
+        usage_report.assert_called_once_with(
+            org_with_parent, "2020-01-01", "2020-02-02"
+        )
+
+        assert report.organization == org_with_parent
+        assert report.unique_users == 1
+        assert len(report.report) == 2
+
+    def test_generate_usage_report_existing_report(self, svc, org_with_parent):
+        report = factories.OrganizationUsageReport(
+            organization=org_with_parent,
+            key=f"{org_with_parent.public_id}-test-2020-01-01-2020-02-02",
+            tag="test",
+        )
+
+        assert (
+            svc.generate_usage_report(
+                org_with_parent.id, "test", "2020-01-01", "2020-02-02"
+            )
+            == report
+        )
+
     def test_usage_report(self, svc, org_with_parent, h_api):
         since = datetime(2023, 1, 1)
         until = datetime(2023, 12, 31)
@@ -276,7 +322,7 @@ class TestOrganizationService:
                 email=user_1.email,
                 h_userid=user_1.h_userid,
                 course_name=course_child.lms_name,
-                course_created=course_child.created.date(),
+                course_created=course_child.created.date().isoformat(),
                 authority_provided_id=course_child.authority_provided_id,
             ),
             UsageReportRow(
@@ -284,7 +330,7 @@ class TestOrganizationService:
                 email="<STUDENT>",
                 h_userid=user_2.h_userid,
                 course_name=course_root.lms_name,
-                course_created=course_root.created.date(),
+                course_created=course_root.created.date().isoformat(),
                 authority_provided_id=course_root.authority_provided_id,
             ),
         ]
@@ -339,6 +385,11 @@ class TestOrganizationService:
         return factories.ApplicationInstance(
             tool_consumer_instance_guid="guid", tool_consumer_instance_name="ai_name"
         )
+
+    @pytest.fixture
+    def usage_report(self, svc):
+        with patch.object(svc, "usage_report") as usage_report:
+            yield usage_report
 
 
 class TestServiceFactory:

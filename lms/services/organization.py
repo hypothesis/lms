@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from logging import getLogger
 
@@ -13,6 +13,7 @@ from lms.models import (
     Grouping,
     GroupingMembership,
     Organization,
+    OrganizationUsageReport,
     User,
 )
 from lms.services.h_api import HAPI
@@ -238,6 +239,40 @@ class OrganizationService:
 
         return organization
 
+    def generate_usage_report(
+        self, organization_id: int, tag: str, since: datetime, until: datetime
+    ):
+        """Generate and store an usage report for one organization."""
+        organization = self.get_by_id(organization_id)
+        assert organization
+        report_key = OrganizationUsageReport.generate_key(
+            organization, tag, since, until
+        )
+
+        if (
+            report := self._db_session.query(OrganizationUsageReport)
+            .filter_by(key=report_key)
+            .one_or_none()
+        ):
+            LOG.debug("Report already exists, skipping generation. %s", report_key)
+            return report
+
+        report = OrganizationUsageReport(
+            organization=organization,
+            key=report_key,
+            since=since,
+            until=since,
+            tag=tag,
+        )
+        self._db_session.add(report)
+
+        report_rows = self.usage_report(organization, since, until)
+
+        report.unique_users = len({r.h_userid for r in report_rows})
+        report.report = [asdict(r) for r in report_rows]
+
+        return report
+
     def usage_report(
         self,
         organization: Organization,
@@ -316,7 +351,7 @@ class OrganizationService:
                 email=row.email if row.email else "<STUDENT>",
                 h_userid=row.h_userid,
                 course_name=row.course_name,
-                course_created=row.course_created,
+                course_created=row.course_created.isoformat(),
                 authority_provided_id=row.authority_provided_id,
             )
             for row in self._db_session.execute(query).all()
