@@ -241,12 +241,25 @@ class TestOAuthHTTPService:
             sentinel.auth,
             prevent_concurrent_refreshes=prevent_concurrent_refreshes,
         )
-        if prevent_concurrent_refreshes:
-            oauth2_token_service.try_lock_for_refresh.assert_called_once()
-        else:
-            oauth2_token_service.try_lock_for_refresh.assert_not_called()
 
-    def test_refresh_access_token_raises_ConcurrentTokenRefreshError_on_concurrent_refresh(
+        # We acquire the lock whether or not concurrent refreshes are allowed,
+        # but only raise if not allowed.
+        oauth2_token_service.try_lock_for_refresh.assert_called_once()
+
+    def test_refresh_access_does_not_raise_if_concurrent_refreshes_allowed(
+        self,
+        svc,
+        oauth2_token_service,
+    ):
+        oauth2_token_service.try_lock_for_refresh.side_effect = CouldNotAcquireLock()
+        svc.refresh_access_token(
+            sentinel.token_url,
+            sentinel.redirect_uri,
+            sentinel.auth,
+            prevent_concurrent_refreshes=False,
+        )
+
+    def test_refresh_access_token_raises_if_concurrent_refreshes_prevented(
         self,
         svc,
         oauth2_token_service,
