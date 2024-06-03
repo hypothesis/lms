@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from hubspot import HubSpot
 from sqlalchemy import select
@@ -74,7 +74,7 @@ class HubSpotService:
         )
 
 
-def date_or_timestamp(value: str | int | None) -> str | None:
+def date_or_timestamp(value: str | int | None) -> date | None:
     """
     Format either timestamp or already formatted dates as YYYY-MM-DD.
 
@@ -84,7 +84,7 @@ def date_or_timestamp(value: str | int | None) -> str | None:
     if not value:
         return None
     try:
-        return datetime.fromtimestamp(int(value) / 1000).strftime("%Y-%m-%d")
+        return date.fromtimestamp(int(value) / 1000)
     except ValueError:
-        # Date is already formatted, return it verbatim
-        return str(value)
+        # Date is already formatted, return it as a date object
+        return datetime.strptime(str(value), "%Y-%m-%d").date()
