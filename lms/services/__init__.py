@@ -33,6 +33,7 @@ from lms.services.lti_user import LTIUserService
 from lms.services.ltia_http import LTIAHTTPService
 from lms.services.moodle import MoodleAPIClient
 from lms.services.organization import InvalidPublicId, OrganizationService
+from lms.services.organization_usage_report import OrganizationUsageReportService
 from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
 from lms.services.user_preferences import UserPreferencesService
@@ -127,6 +128,10 @@ def includeme(config):
     config.register_service_factory("lms.services.event.factory", iface=EventService)
     config.register_service_factory(
         "lms.services.organization.service_factory", iface=OrganizationService
+    )
+    config.register_service_factory(
+        "lms.services.organization_usage_report.service_factory",
+        iface=OrganizationUsageReportService,
     )
     config.register_service_factory(
         "lms.services.d2l_api.d2l_api_client_factory", iface=D2LAPIClient

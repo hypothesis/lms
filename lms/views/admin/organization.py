@@ -8,7 +8,12 @@ from webargs import fields
 from lms.events import AuditTrailEvent
 from lms.models import Organization
 from lms.security import Permissions
-from lms.services import HubSpotService, InvalidPublicId, OrganizationService
+from lms.services import (
+    HubSpotService,
+    InvalidPublicId,
+    OrganizationService,
+    OrganizationUsageReportService,
+)
 from lms.services.organization import InvalidOrganizationParent
 from lms.validation._base import PyramidRequestSchema
 from lms.views.admin import flash_validation
@@ -38,6 +43,10 @@ class AdminOrganizationViews:
         self.organization_service: OrganizationService = request.find_service(
             OrganizationService
         )
+        self.organization_usage_report_service: OrganizationService = (
+            request.find_service(OrganizationUsageReportService)
+        )
+
         self.hubspot_service: HubSpotService = request.find_service(HubSpotService)
 
     @view_config(
@@ -202,7 +211,9 @@ class AdminOrganizationViews:
             raise HTTPBadRequest("Usage reports can only be generated since 2023")
 
         try:
-            report = self.organization_service.usage_report(org, since, until)
+            report = self.organization_usage_report_service.usage_report(
+                org, since, until
+            )
         except ValueError as exc:
             self.request.session.flash(
                 f"There was a problem generating the report: {exc}", "errors"

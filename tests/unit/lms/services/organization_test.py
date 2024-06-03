@@ -1,16 +1,13 @@
-from datetime import datetime, timedelta
-from unittest.mock import patch, sentinel
+from unittest.mock import sentinel
 
 import pytest
 from h_matchers import Any
 
 from lms.models import Organization
-from lms.services.h_api import HAPI
 from lms.services.organization import (
     InvalidOrganizationParent,
     InvalidPublicId,
     OrganizationService,
-    UsageReportRow,
     service_factory,
 )
 from tests import factories
@@ -222,151 +219,6 @@ class TestOrganizationService:
 
         assert org_with_parent.parent
 
-    def test_generate_usage_report(self, svc, org_with_parent, usage_report):
-        usage_report.return_value = [
-            UsageReportRow(
-                name="<STUDENT>",
-                email="<STUDENT>",
-                h_userid=sentinel.h_userid,
-                course_name=sentinel.lms_name,
-                course_created="2020-01-01",
-                authority_provided_id=sentinel.authority_provided_id,
-            ),
-            UsageReportRow(
-                name="<STUDENT>",
-                email="<STUDENT>",
-                h_userid=sentinel.h_userid,
-                course_name=sentinel.lms_name,
-                course_created="2020-01-01",
-                authority_provided_id=sentinel.authority_provided_id,
-            ),
-        ]
-
-        report = svc.generate_usage_report(
-            org_with_parent.id, "test", "2020-01-01", "2020-02-02"
-        )
-
-        usage_report.assert_called_once_with(
-            org_with_parent, "2020-01-01", "2020-02-02"
-        )
-
-        assert report.organization == org_with_parent
-        assert report.unique_users == 1
-        assert report.since == "2020-01-01"
-        assert report.until == "2020-02-02"
-        assert len(report.report) == 2
-
-    def test_generate_usage_report_existing_report(self, svc, org_with_parent):
-        report = factories.OrganizationUsageReport(
-            organization=org_with_parent,
-            key=f"{org_with_parent.public_id}-test-2020-01-01-2020-02-02",
-            tag="test",
-        )
-
-        assert (
-            svc.generate_usage_report(
-                org_with_parent.id, "test", "2020-01-01", "2020-02-02"
-            )
-            == report
-        )
-
-    def test_usage_report(self, svc, org_with_parent, h_api):
-        since = datetime(2023, 1, 1)
-        until = datetime(2023, 12, 31)
-
-        ai_root_org = factories.ApplicationInstance(organization=org_with_parent.parent)
-        ai_child_org = factories.ApplicationInstance(organization=org_with_parent)
-        course_root = factories.Course(
-            application_instance=ai_root_org,
-            created=since + timedelta(days=1),
-        )
-        section = factories.CanvasSection(
-            application_instance=ai_root_org,
-            parent=course_root,
-            created=since + timedelta(days=1),
-        )
-        course_child = factories.Course(
-            application_instance=ai_child_org, created=since + timedelta(days=1)
-        )
-        # Course created after the until date
-        factories.Course(
-            application_instance=ai_child_org,
-            created=until + timedelta(days=1),
-        )
-        # Annotations in one section and in the other course
-        h_api.get_groups.return_value = [
-            HAPI.HAPIGroup(authority_provided_id=group.authority_provided_id)
-            for group in [section, course_child]
-        ]
-        # Users that belong to the course
-        user_1 = factories.User(display_name="NAME", email="EMAIL")
-        user_2 = factories.User()
-        factories.GroupingMembership(
-            user=user_1, grouping=course_child, created=since + timedelta(days=1)
-        )
-        factories.GroupingMembership(
-            user=user_2, grouping=course_root, created=since + timedelta(days=1)
-        )
-
-        report = svc.usage_report(org_with_parent.parent, since, until)
-
-        h_api.get_groups.assert_called_once_with(
-            Any.list.containing(
-                [
-                    course_root.authority_provided_id,
-                    course_child.authority_provided_id,
-                    section.authority_provided_id,
-                ]
-            ),
-            since,
-            until,
-        )
-
-        # We expect to get both users belonging to each course
-        expected = [
-            UsageReportRow(
-                name=user_1.display_name,
-                email=user_1.email,
-                h_userid=user_1.h_userid,
-                course_name=course_child.lms_name,
-                course_created=course_child.created.date().isoformat(),
-                authority_provided_id=course_child.authority_provided_id,
-            ),
-            UsageReportRow(
-                name="<STUDENT>",
-                email="<STUDENT>",
-                h_userid=user_2.h_userid,
-                course_name=course_root.lms_name,
-                course_created=course_root.created.date().isoformat(),
-                authority_provided_id=course_root.authority_provided_id,
-            ),
-        ]
-        assert report == Any.list.containing(expected)
-
-    def test_usage_report_with_no_courses(self, svc, org_with_parent):
-        since = datetime(2023, 1, 1)
-        until = datetime(2023, 12, 31)
-
-        with pytest.raises(ValueError) as error:
-            svc.usage_report(org_with_parent.parent, since, until)
-
-        assert "no courses found" in str(error.value).lower()
-
-    def test_usage_report_with_no_activity(self, svc, org_with_parent, h_api):
-        since = datetime(2023, 1, 1)
-        until = datetime(2023, 12, 31)
-
-        ai_root_org = factories.ApplicationInstance(organization=org_with_parent.parent)
-        factories.Course(
-            application_instance=ai_root_org, created=since + timedelta(days=1)
-        )
-        h_api.get_groups.return_value = []
-
-        with pytest.raises(ValueError) as error:
-            svc.usage_report(org_with_parent.parent, since, until)
-
-        assert "no courses with activity" in str(error.value).lower()
-
     def test_is_member(self, svc, db_session):
         org = factories.Organization()
         ai = factories.ApplicationInstance(organization=org)
@@ -396,8 +248,8 @@ class TestOrganizationService:
         )
 
     @pytest.fixture
-    def svc(self, db_session, h_api):
-        return OrganizationService(db_session=db_session, h_api=h_api, region_code="us")
+    def svc(self, db_session):
+        return OrganizationService(db_session=db_session, region_code="us")
 
     @pytest.fixture
     def application_instance(self):
@@ -405,18 +257,13 @@ class TestOrganizationService:
             tool_consumer_instance_guid="guid", tool_consumer_instance_name="ai_name"
         )
 
-    @pytest.fixture
-    def usage_report(self, svc):
-        with patch.object(svc, "usage_report") as usage_report:
-            yield usage_report
-
 
 class TestServiceFactory:
-    def test_it(self, pyramid_request, OrganizationService, h_api):
+    def test_it(self, pyramid_request, OrganizationService):
         svc = service_factory(sentinel.context, pyramid_request)
 
         OrganizationService.assert_called_once_with(
-            db_session=pyramid_request.db, h_api=h_api, region_code="us"
+            db_session=pyramid_request.db, region_code="us"
         )
         assert svc == OrganizationService.return_value
 
