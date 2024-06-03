@@ -251,6 +251,12 @@ def includeme(config):  # noqa: PLR0915
     )
 
     config.add_route(
+        "dashboard.organization",
+        "/dashboard/organizations/{organization_public_id}",
+        factory="lms.resources.dashboard.DashboardResource",
+    )
+
+    config.add_route(
         "api.dashboard.organizations.courses",
         "/api/dashboard/organizations/{organization_public_id}/courses",
     )
