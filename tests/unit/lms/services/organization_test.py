@@ -1,4 +1,4 @@
-from unittest.mock import patch, sentinel
+from unittest.mock import sentinel
 
 import pytest
 from h_matchers import Any
