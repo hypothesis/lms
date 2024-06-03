@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from unittest.mock import Mock, create_autospec, sentinel
 
 import pytest
@@ -5,6 +6,7 @@ import pytest
 from lms.models import HubSpotCompany
 from lms.services.hubspot import HubSpotService
 from lms.services.hubspot._client import HubSpotClient
+from lms.services.hubspot.service import date_or_timestamp
 from tests import factories
 
 
@@ -45,6 +47,17 @@ class TestHubSpotService:
         company = db_session.query(HubSpotCompany).one()
         assert company.name == "COMPANY"
         assert company.hubspot_id == 100
+
+    @pytest.mark.parametrize(
+        "value,expected",
+        [
+            (None, None),
+            ("2024-12-31", date(2024, 12, 31)),
+            (datetime(2024, 12, 31).timestamp() * 1000, date(2024, 12, 31)),
+        ],
+    )
+    def test_date_or_timestamp(self, expected, value):
+        assert expected == date_or_timestamp(value)
 
     def test_factory(self, pyramid_request, db_session, HubSpotClient, HubSpot):
         svc = HubSpotService.factory(sentinel.context, pyramid_request)
