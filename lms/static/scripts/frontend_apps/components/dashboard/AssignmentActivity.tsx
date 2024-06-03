@@ -1,16 +1,13 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@hypothesis/frontend-shared';
+import { Card, CardContent, CardHeader } from '@hypothesis/frontend-shared';
+import classnames from 'classnames';
 import { useParams } from 'wouter-preact';
 
 import type { Assignment, StudentsStats } from '../../api-types';
 import { useConfig } from '../../config';
-import { useAPIFetch } from '../../utils/api';
+import { urlPath, useAPIFetch } from '../../utils/api';
 import { formatDateTime } from '../../utils/date';
 import { replaceURLParams } from '../../utils/url';
+import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import OrderableActivityTable from './OrderableActivityTable';
 
 /**
@@ -31,12 +28,30 @@ export default function AssignmentActivity() {
 
   return (
     <Card>
-      <CardHeader fullWidth>
-        <CardTitle tagName="h2" data-testid="title">
+      <CardHeader
+        fullWidth
+        classes={classnames(
+          // Overwriting gap-x-2 and items-center from CardHeader
+          'flex-col !gap-x-0 !items-start',
+        )}
+      >
+        {assignment.data && (
+          <div className="mb-3 mt-1 w-full">
+            <DashboardBreadcrumbs
+              links={[
+                {
+                  title: assignment.data.course.title,
+                  href: urlPath`/courses/${String(assignment.data.course.id)}`,
+                },
+              ]}
+            />
+          </div>
+        )}
+        <h2 data-testid="title" className="text-lg text-brand font-semibold">
           {assignment.isLoading && 'Loading...'}
           {assignment.error && 'Could not load assignment title'}
           {assignment.data && title}
-        </CardTitle>
+        </h2>
       </CardHeader>
       <CardContent>
         <OrderableActivityTable
