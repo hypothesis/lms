@@ -5,14 +5,16 @@ import {
   CardTitle,
   Link,
 } from '@hypothesis/frontend-shared';
+import classnames from 'classnames';
 import { useMemo } from 'preact/hooks';
 import { useParams, Link as RouterLink } from 'wouter-preact';
 
 import type { AssignmentsStats, Course } from '../../api-types';
 import { useConfig } from '../../config';
-import { useAPIFetch } from '../../utils/api';
+import { urlPath, useAPIFetch } from '../../utils/api';
 import { formatDateTime } from '../../utils/date';
 import { replaceURLParams } from '../../utils/url';
+import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import OrderableActivityTable from './OrderableActivityTable';
 
 type AssignmentsTableRow = {
@@ -51,7 +53,16 @@ export default function CourseActivity() {
 
   return (
     <Card>
-      <CardHeader fullWidth>
+      <CardHeader
+        fullWidth
+        classes={classnames(
+          // Overwrite gap-x-2 and items-center from CardHeader
+          'flex-col !gap-x-0 !items-start',
+        )}
+      >
+        <div className="mb-3 mt-1 w-full">
+          <DashboardBreadcrumbs />
+        </div>
         <CardTitle tagName="h2" data-testid="title">
           {course.isLoading && 'Loading...'}
           {course.error && 'Could not load course title'}
@@ -80,7 +91,10 @@ export default function CourseActivity() {
               return <div className="text-right">{stats[field]}</div>;
             } else if (field === 'title') {
               return (
-                <RouterLink href={`/assignments/${stats.id}`} asChild>
+                <RouterLink
+                  href={urlPath`/assignments/${String(stats.id)}`}
+                  asChild
+                >
                   <Link>{stats.title}</Link>
                 </RouterLink>
               );

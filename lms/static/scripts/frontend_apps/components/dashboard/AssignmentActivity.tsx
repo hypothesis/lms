@@ -1,4 +1,9 @@
-import { Card, CardContent, CardHeader } from '@hypothesis/frontend-shared';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useParams } from 'wouter-preact';
 
@@ -31,7 +36,7 @@ export default function AssignmentActivity() {
       <CardHeader
         fullWidth
         classes={classnames(
-          // Overwriting gap-x-2 and items-center from CardHeader
+          // Overwrite gap-x-2 and items-center from CardHeader
           'flex-col !gap-x-0 !items-start',
         )}
       >
@@ -47,11 +52,11 @@ export default function AssignmentActivity() {
             />
           </div>
         )}
-        <h2 data-testid="title" className="text-lg text-brand font-semibold">
+        <CardTitle tagName="h2" data-testid="title">
           {assignment.isLoading && 'Loading...'}
           {assignment.error && 'Could not load assignment title'}
           {assignment.data && title}
-        </h2>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <OrderableActivityTable

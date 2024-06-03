@@ -1,11 +1,16 @@
 import classnames from 'classnames';
-import { Route, Switch } from 'wouter-preact';
+import { Route, Switch, useParams } from 'wouter-preact';
 
 import AssignmentActivity from './AssignmentActivity';
 import CourseActivity from './CourseActivity';
 import DashboardFooter from './DashboardFooter';
+import OrganizationActivity from './OrganizationActivity';
 
 export default function DashboardApp() {
+  const { organizationPublicId } = useParams<{
+    organizationPublicId: string;
+  }>();
+
   return (
     <div className="flex flex-col min-h-screen gap-5 bg-grey-2">
       <div
@@ -28,6 +33,11 @@ export default function DashboardApp() {
             </Route>
             <Route path="/courses/:courseId">
               <CourseActivity />
+            </Route>
+            <Route path="">
+              <OrganizationActivity
+                organizationPublicId={organizationPublicId}
+              />
             </Route>
           </Switch>
         </div>

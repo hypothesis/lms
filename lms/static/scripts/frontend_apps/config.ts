@@ -245,6 +245,7 @@ export type DashboardRoutes = {
   assignment_stats: string;
   course: string;
   course_assignment_stats: string;
+  organization_courses: string;
 };
 
 export type DashboardConfig = {

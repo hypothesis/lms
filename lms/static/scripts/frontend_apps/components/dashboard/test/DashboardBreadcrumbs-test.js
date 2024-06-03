@@ -14,7 +14,8 @@ describe('DashboardBreadcrumbs', () => {
         links: links.map(title => ({ title, href: `/${title}` })),
       });
 
-      assert.equal(wrapper.find('BreadcrumbLink').length, links.length);
+      // Breadcrumbs always renders a static extra link for the home page
+      assert.equal(wrapper.find('BreadcrumbLink').length, links.length + 1);
     });
   });
 

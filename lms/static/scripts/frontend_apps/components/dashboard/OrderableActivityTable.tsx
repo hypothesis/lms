@@ -4,9 +4,7 @@ import { useOrderedRows } from '@hypothesis/frontend-shared';
 import type { OrderDirection } from '@hypothesis/frontend-shared/lib/types';
 import { useMemo, useState } from 'preact/hooks';
 
-import type { BaseDashboardStats } from '../../api-types';
-
-export type OrderableActivityTableProps<T extends BaseDashboardStats> = Pick<
+export type OrderableActivityTableProps<T> = Pick<
   DataTableProps<T>,
   'emptyMessage' | 'rows' | 'renderItem' | 'loading' | 'title'
 > & {
@@ -32,7 +30,7 @@ const descendingOrderColumns: readonly string[] = [
  * Annotation activity table for dashboard views. Includes built-in support for
  * sorting columns.
  */
-export default function OrderableActivityTable<T extends BaseDashboardStats>({
+export default function OrderableActivityTable<T>({
   defaultOrderField,
   rows,
   columnNames,
