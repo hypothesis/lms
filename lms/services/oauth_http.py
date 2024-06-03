@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 
 from marshmallow import fields
@@ -12,6 +13,8 @@ from lms.services.exceptions import (
 from lms.services.oauth2_token import OAuth2TokenService, oauth2_token_service_factory
 from lms.validation import RequestsResponseSchema
 from lms.validation.authentication import OAuthTokenResponseSchema
+
+LOG = logging.getLogger(__name__)
 
 
 class _OAuthAccessTokenErrorResponseSchema(RequestsResponseSchema):
@@ -117,14 +120,16 @@ class OAuthHTTPService:
         ):
             return old_token.access_token
 
-        if prevent_concurrent_refreshes:
-            # Prevent concurrent refresh attempts. If acquiring the lock fails,
-            # the client should wait briefly and try again, at which point it
-            # should find the refreshed token already available and skip the
-            # refresh.
-            try:
-                self._oauth2_token_service.try_lock_for_refresh(self.service)
-            except CouldNotAcquireLock as exc:
+        # Check for concurrent refresh attempts.
+        try:
+            self._oauth2_token_service.try_lock_for_refresh(self.service)
+        except CouldNotAcquireLock as exc:
+            LOG.debug('Concurrent OAuth token refresh with token URL "%s"', token_url)
+            if prevent_concurrent_refreshes:
+                # Prevent concurrent refresh attempts. If acquiring the lock
+                # fails, the client should wait briefly and try again, at which
+                # point it should find the refreshed token already available and
+                # skip the refresh.
                 raise ConcurrentTokenRefreshError() from exc
 
         try:
