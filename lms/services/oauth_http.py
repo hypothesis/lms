@@ -102,7 +102,8 @@ class OAuthHTTPService:
         (https://datatracker.ietf.org/doc/html/rfc6749#section-6) to get a new
         access token for the current user and save it to the DB.
 
-        :raise ConcurrentTokenRefreshError: if this token is being refreshed concurrently by another request
+        :raise ConcurrentTokenRefreshError: if the token could not be refreshed
+            because another request is already refreshing it
         :raise OAuth2TokenError: if we don't have a refresh token for the user
         :raise ExternalRequestError: if the HTTP request fails
         :raise ValidationError: if the server's access token response is invalid
@@ -117,9 +118,10 @@ class OAuthHTTPService:
             return old_token.access_token
 
         if prevent_concurrent_refreshes:
-            # Prevent concurrent refresh attempts. If the client gets this, it
-            # should wait briefly and try again, at which point it should find the
-            # refreshed token already available and skip the refresh.
+            # Prevent concurrent refresh attempts. If acquiring the lock fails,
+            # the client should wait briefly and try again, at which point it
+            # should find the refreshed token already available and skip the
+            # refresh.
             try:
                 self._oauth2_token_service.try_lock_for_refresh(self.service)
             except CouldNotAcquireLock as exc:

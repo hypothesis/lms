@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 
 class CouldNotAcquireLock(Exception):
-    """Exception raised if a lock cannot be immediately acquired."""
+    """A lock could not be immediately acquired."""
 
 
 class LockType(IntEnum):
