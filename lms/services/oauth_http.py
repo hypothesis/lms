@@ -96,7 +96,7 @@ class OAuthHTTPService:
         )
 
     def refresh_access_token(
-        self, token_url, redirect_uri, auth, prevent_concurrent_refreshes=False
+        self, token_url, redirect_uri, auth, prevent_concurrent_refreshes=True
     ):
         """
         Make a refresh token request and save the new token in the DB.
