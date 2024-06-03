@@ -28,6 +28,7 @@ from lms.models.lti_role import LTIRole, LTIRoleOverride, RoleScope, RoleType
 from lms.models.lti_user import LTIUser, display_name
 from lms.models.oauth2_token import OAuth2Token
 from lms.models.organization import Organization
+from lms.models.organization_usage import OrganizationUsageReport
 from lms.models.region import Region
 from lms.models.rsa_key import RSAKey
 from lms.models.task_done import TaskDone
