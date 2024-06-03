@@ -7,7 +7,7 @@ import pytest
 from lms.tasks.organization import generate_usage_report
 
 
-def test_delete_expired_rows(organization_service):
+def test_generate_usage_report(organization_usage_report_service):
     generate_usage_report(
         sentinel.id,
         sentinel.tag,
@@ -15,7 +15,7 @@ def test_delete_expired_rows(organization_service):
         "2024-02-02:00:00:00",
     )
 
-    organization_service.generate_usage_report.assert_called_once_with(
+    organization_usage_report_service.generate_usage_report.assert_called_once_with(
         sentinel.id,
         sentinel.tag,
         datetime(2024, 1, 1, 0, 0, 0),

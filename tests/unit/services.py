@@ -44,6 +44,7 @@ from lms.services.moodle import MoodleAPIClient
 from lms.services.oauth1 import OAuth1Service
 from lms.services.oauth2_token import OAuth2TokenService
 from lms.services.oauth_http import OAuthHTTPService
+from lms.services.organization_usage_report import OrganizationUsageReportService
 from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
 from lms.services.user_preferences import UserPreferencesService
@@ -91,6 +92,7 @@ __all__ = (
     "oauth2_token_service",
     "oauth_http_service",
     "organization_service",
+    "organization_usage_report_service",
     "rsa_key_service",
     "user_service",
     "user_preferences_service",
@@ -285,6 +287,11 @@ def async_oauth_http_service(mock_service):
 @pytest.fixture
 def organization_service(mock_service):
     return mock_service(OrganizationService)
+
+
+@pytest.fixture
+def organization_usage_report_service(mock_service):
+    return mock_service(OrganizationUsageReportService)
 
 
 @pytest.fixture

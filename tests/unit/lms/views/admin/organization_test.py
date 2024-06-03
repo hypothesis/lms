@@ -12,7 +12,9 @@ from tests import factories
 from tests.matchers import temporary_redirect_to
 
 
-@pytest.mark.usefixtures("organization_service", "hubspot_service")
+@pytest.mark.usefixtures(
+    "organization_service", "hubspot_service", "organization_usage_report_service"
+)
 class TestAdminOrganizationViews:
     def test_new_organization_callback(
         self, pyramid_request, organization_service, views
@@ -229,7 +231,7 @@ class TestAdminOrganizationViews:
         self,
         views,
         pyramid_request,
-        organization_service,
+        organization_usage_report_service,
         form,
         expected_error_message,
     ):
@@ -239,11 +241,13 @@ class TestAdminOrganizationViews:
         with pytest.raises(HTTPBadRequest, match=expected_error_message):
             views.usage()
 
-        organization_service.usage_report.assert_not_called()
+        organization_usage_report_service.usage_report.assert_not_called()
 
     @pytest.mark.usefixtures("with_valid_params_for_usage")
-    def test_usage_flashes_if_service_raises(self, views, organization_service):
-        organization_service.usage_report.side_effect = ValueError
+    def test_usage_flashes_if_service_raises(
+        self, views, organization_service, organization_usage_report_service
+    ):
+        organization_usage_report_service.usage_report.side_effect = ValueError
         since = datetime(2023, 1, 1)
         until = datetime(2023, 12, 31)
 
@@ -253,7 +257,9 @@ class TestAdminOrganizationViews:
         assert result == {"org": org, "since": since, "until": until, "report": []}
 
     @pytest.mark.usefixtures("with_valid_params_for_usage")
-    def test_usage(self, organization_service, views):
+    def test_usage(
+        self, organization_service, views, organization_usage_report_service
+    ):
         since = datetime(2023, 1, 1)
         until = datetime(2023, 12, 31)
 
@@ -261,12 +267,14 @@ class TestAdminOrganizationViews:
 
         organization_service.get_by_id.assert_called_once_with(sentinel.id_)
         org = organization_service.get_by_id.return_value
-        organization_service.usage_report.assert_called_once_with(org, since, until)
+        organization_usage_report_service.usage_report.assert_called_once_with(
+            org, since, until
+        )
         assert result == {
             "org": org,
             "since": since,
             "until": until,
-            "report": organization_service.usage_report.return_value,
+            "report": organization_usage_report_service.usage_report.return_value,
         }
 
     @pytest.fixture
