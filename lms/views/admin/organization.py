@@ -210,13 +210,7 @@ class AdminOrganizationViews:
             )
             report = []
 
-        return {
-            "org": org,
-            "since": since,
-            "until": until,
-            "report": report,
-            "company": self.hubspot_service.get_company(org.public_id),
-        }
+        return {"org": org, "since": since, "until": until, "report": report}
 
     def _get_org_or_404(self, id_) -> Organization:
         if org := self.organization_service.get_by_id(id_):

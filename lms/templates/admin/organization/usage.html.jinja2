@@ -8,11 +8,6 @@
     </fieldset>
 
     <fieldset class="box mt-6">
-      <legend class="label has-text-centered">Company</legend>
-      {{ macros.organization_preview(request, company) }}
-    </fieldset>
-
-    <fieldset class="box mt-6">
         <div class="columns">
             <div class="column is-half">{{ macros.disabled_text_field("Since", since.strftime("%Y-%m-%d") ) }}</div>
             <div class="column is-half">{{ macros.disabled_text_field("Until", until.strftime("%Y-%m-%d") ) }}</div>
