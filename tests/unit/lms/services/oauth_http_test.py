@@ -271,7 +271,6 @@ class TestOAuthHTTPService:
                 sentinel.token_url,
                 sentinel.redirect_uri,
                 sentinel.auth,
-                prevent_concurrent_refreshes=True,
             )
 
     def test_refresh_token_skips_if_token_is_current(
