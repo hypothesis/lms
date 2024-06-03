@@ -2,8 +2,13 @@ from pyramid.httpexceptions import HTTPFound
 from pyramid.view import forbidden_view_config, view_config
 
 from lms.security import Permissions
+from lms.services import OrganizationService
 from lms.validation.authentication import BearerTokenSchema
-from lms.views.dashboard.base import get_request_assignment, get_request_course
+from lms.views.dashboard.base import (
+    get_request_assignment,
+    get_request_course,
+    get_request_organization,
+)
 
 
 @forbidden_view_config(
@@ -21,6 +26,11 @@ from lms.views.dashboard.base import get_request_assignment, get_request_course
     request_method="GET",
     renderer="lms:templates/dashboard/forbidden.html.jinja2",
 )
+@forbidden_view_config(
+    route_name="dashboard.organization",
+    request_method="GET",
+    renderer="lms:templates/dashboard/forbidden.html.jinja2",
+)
 def forbidden(_request):  # pragma: no cover
     return {}
 
@@ -30,6 +40,9 @@ class DashboardViews:
         self.request = request
         self.assignment_service = request.find_service(name="assignment")
         self.course_service = request.find_service(name="course")
+        self.organization_service: OrganizationService = request.find_service(
+            OrganizationService
+        )
 
     @view_config(
         route_name="dashboard.launch.assignment",
@@ -84,6 +97,24 @@ class DashboardViews:
         self.request.context.js_config.enable_dashboard_mode()
         self._set_lti_user_cookie(self.request.response)
         return {"title": course.lms_name}
+
+    @view_config(
+        route_name="dashboard.organization",
+        permission=Permissions.DASHBOARD_VIEW,
+        request_method="GET",
+        renderer="lms:templates/dashboard/index.html.jinja2",
+    )
+    def organization_show(self):
+        """Start the dashboard miniapp in the frontend scoped to an organization.
+
+        Authenticated via the LTIUser present in a cookie making this endpoint accessible directly in the browser.
+        """
+        # Just get the org for the side effect of checking permissions.
+        _ = get_request_organization(self.request, self.organization_service)
+        self.request.context.js_config.enable_dashboard_mode()
+        self._set_lti_user_cookie(self.request.response)
+        # Org names are not 100% ready for public consumption, let's hardcode a title for now.
+        return {"title": "Courses - Hypothesis"}
 
     def _set_lti_user_cookie(self, response):
         lti_user = self.request.lti_user

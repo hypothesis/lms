@@ -395,8 +395,8 @@ class OrganizationService:
             .join(Course)
             .join(ApplicationInstance)
             .where(
-                GroupingMembership.user == user,
-                ApplicationInstance.organization == organization,
+                GroupingMembership.user_id == user.id,
+                ApplicationInstance.organization_id == organization.id,
             )
             .limit(1)
         )
