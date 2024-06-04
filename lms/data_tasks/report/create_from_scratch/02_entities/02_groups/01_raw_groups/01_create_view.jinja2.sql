@@ -61,7 +61,6 @@ CREATE VIEW report.raw_groups AS (
     LEFT OUTER JOIN group_types ON
         groups.authority_provided_id = group_types.authority_provided_id
     WHERE
-        groups.authority = '{{ region.authority }}'
-        -- groups.authority = 'lms.hypothes.is'
+        groups.authority = '{{ h_authority }}'
     ORDER BY groups.created
 );

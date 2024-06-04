@@ -33,8 +33,7 @@ CREATE MATERIALIZED VIEW report.group_activity AS (
             FROM h.annotation_counts
             JOIN h.authorities ON
                 annotation_counts.authority_id = authorities.id
-                AND authorities.authority = '{{ region.authority }}'
-                -- AND authorities.authority = 'lms.hypothes.is'
+                AND authorities.authority = '{{ h_authority }}'
             GROUP BY created_week, group_id
         )
 

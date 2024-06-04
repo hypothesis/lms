@@ -12,7 +12,6 @@ CREATE MATERIALIZED VIEW report.user_annotation_counts AS (
     FROM h.annotation_counts
     JOIN h.authorities ON
         annotation_counts.authority_id = authorities.id
-        AND authorities.authority = '{{ region.authority }}'
-        -- AND authorities.authority = 'lms.hypothes.is'
+        AND authorities.authority = '{{ h_authority }}'
     ORDER BY created_week, user_id, group_id, count DESC
 ) WITH NO DATA;

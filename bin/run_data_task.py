@@ -55,7 +55,7 @@ def main():
             task_dir=TASK_ROOT / args.task,
             template_vars={
                 "db_user": parse_dsn(settings["database_url"].strip())["user"],
-                "region_code": settings["region_code"],
+                "h_authority": settings["h_authority"],
                 "h_fdw": parse_dsn(settings["h_fdw_database_url"]),
                 "fdw_users": settings["fdw_users"],
             },

@@ -1,6 +1,6 @@
 from unittest.mock import sentinel
-import pytest
 
+import pytest
 
 from lms.views.dashboard.api.course import CourseViews
 from tests import factories

@@ -9,7 +9,6 @@ CREATE MATERIALIZED VIEW report.raw_users AS (
          registered_date::date
     FROM h.users
     WHERE
-        users.authority = '{{ region.authority }}'
-        -- users.authority = 'lms.hypothes.is'
+        users.authority = '{{ h_authority }}'
     ORDER BY registered_date
 ) WITH NO DATA;
