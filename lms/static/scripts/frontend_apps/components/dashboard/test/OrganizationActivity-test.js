@@ -24,7 +24,7 @@ describe('OrganizationActivity', () => {
   let fakeConfig;
 
   beforeEach(() => {
-    fakeUseAPIFetch = sinon.stub().resolves(courses);
+    fakeUseAPIFetch = sinon.stub().resolves({ courses });
     fakeConfig = {
       dashboard: {
         routes: {

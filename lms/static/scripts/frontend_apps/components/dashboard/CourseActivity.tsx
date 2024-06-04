@@ -9,7 +9,7 @@ import classnames from 'classnames';
 import { useMemo } from 'preact/hooks';
 import { useParams, Link as RouterLink } from 'wouter-preact';
 
-import type { AssignmentsStats, Course } from '../../api-types';
+import type { AssignmentsResponse, Course } from '../../api-types';
 import { useConfig } from '../../config';
 import { urlPath, useAPIFetch } from '../../utils/api';
 import { formatDateTime } from '../../utils/date';
@@ -35,7 +35,7 @@ export default function CourseActivity() {
   const course = useAPIFetch<Course>(
     replaceURLParams(routes.course, { course_id: courseId }),
   );
-  const assignments = useAPIFetch<AssignmentsStats>(
+  const assignments = useAPIFetch<AssignmentsResponse>(
     replaceURLParams(routes.course_assignment_stats, {
       course_id: courseId,
     }),
@@ -43,7 +43,7 @@ export default function CourseActivity() {
 
   const rows: AssignmentsTableRow[] = useMemo(
     () =>
-      (assignments.data ?? []).map(({ id, title, stats }) => ({
+      (assignments.data?.assignments ?? []).map(({ id, title, stats }) => ({
         id,
         title,
         ...stats,

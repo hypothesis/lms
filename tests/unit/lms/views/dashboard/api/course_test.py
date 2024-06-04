@@ -30,7 +30,9 @@ class TestCourseViews:
             user=pyramid_request.user,
         )
 
-        assert response == [{"id": c.id, "title": c.lms_name} for c in courses]
+        assert response == {
+            "courses": [{"id": c.id, "title": c.lms_name} for c in courses]
+        }
 
     def test_course(self, views, pyramid_request, course_service):
         pyramid_request.matchdict["course_id"] = sentinel.id
@@ -80,34 +82,36 @@ class TestCourseViews:
         h_api.get_course_stats.assert_called_once_with(
             [course.authority_provided_id, section.authority_provided_id]
         )
-        assert response == [
-            {
-                "id": assignment.id,
-                "title": assignment.title,
-                "course": {
-                    "id": course.id,
-                    "title": course.lms_name,
+        assert response == {
+            "assignments": [
+                {
+                    "id": assignment.id,
+                    "title": assignment.title,
+                    "course": {
+                        "id": course.id,
+                        "title": course.lms_name,
+                    },
+                    "stats": {
+                        "annotations": sentinel.annotations,
+                        "replies": sentinel.replies,
+                        "last_activity": sentinel.last_activity,
+                    },
                 },
-                "stats": {
-                    "annotations": sentinel.annotations,
-                    "replies": sentinel.replies,
-                    "last_activity": sentinel.last_activity,
+                {
+                    "id": assignment_with_no_annos.id,
+                    "title": assignment_with_no_annos.title,
+                    "course": {
+                        "id": course.id,
+                        "title": course.lms_name,
+                    },
+                    "stats": {
+                        "annotations": 0,
+                        "replies": 0,
+                        "last_activity": None,
+                    },
                 },
-            },
-            {
-                "id": assignment_with_no_annos.id,
-                "title": assignment_with_no_annos.title,
-                "course": {
-                    "id": course.id,
-                    "title": course.lms_name,
-                },
-                "stats": {
-                    "annotations": 0,
-                    "replies": 0,
-                    "last_activity": None,
-                },
-            },
-        ]
+            ]
+        }
 
     @pytest.fixture
     def views(self, pyramid_request):

@@ -164,7 +164,9 @@ export type Course = {
 /**
  * Response for `/api/dashboard/organizations/{organization_public_id}` call.
  */
-export type Courses = Course[];
+export type CoursesResponse = {
+  courses: Course[];
+};
 
 /**
  * Response for `/api/dashboard/assignments/{assignment_id}` call.
@@ -182,7 +184,9 @@ export type StudentStats = BaseDashboardStats & {
   display_name: string;
 };
 
-export type StudentsStats = StudentStats[];
+export type StudentsResponse = {
+  students: StudentStats[];
+};
 
 /**
  * Response for `/api/dashboard/courses/{course_id}/assignments/stats` call.
@@ -191,4 +195,6 @@ export type AssignmentStats = Assignment & {
   stats: BaseDashboardStats;
 };
 
-export type AssignmentsStats = AssignmentStats[];
+export type AssignmentsResponse = {
+  assignments: AssignmentStats[];
+};

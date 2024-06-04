@@ -2,7 +2,9 @@ from pyramid.view import view_config
 
 from lms.js_config_types import (
     APIAssignment,
+    APIAssignments,
     APICourse,
+    APICourses,
     AssignmentStats,
 )
 from lms.security import Permissions
@@ -24,12 +26,16 @@ class CourseViews:
         renderer="json",
         permission=Permissions.DASHBOARD_VIEW,
     )
-    def get_organization_courses(self) -> list[APICourse]:
+    def get_organization_courses(self) -> APICourses:
         org = get_request_organization(self.request, self.organization_service)
         courses = self.course_service.search(
             limit=None, organization_ids=[org.id], user=self.request.user
         )
-        return [APICourse(id=course.id, title=course.lms_name) for course in courses]
+        return {
+            "courses": [
+                APICourse(id=course.id, title=course.lms_name) for course in courses
+            ]
+        }
 
     @view_config(
         route_name="api.dashboard.course",
@@ -50,7 +56,7 @@ class CourseViews:
         renderer="json",
         permission=Permissions.DASHBOARD_VIEW,
     )
-    def course_stats(self) -> list[APIAssignment]:
+    def course_stats(self) -> APIAssignments:
         course = get_request_course(self.request, self.course_service)
 
         stats = self.h_api.get_course_stats(
@@ -84,4 +90,4 @@ class CourseViews:
                 )
             )
 
-        return assignment_stats
+        return {"assignments": assignment_stats}
