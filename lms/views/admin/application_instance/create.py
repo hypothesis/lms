@@ -3,9 +3,8 @@ from pyramid.view import view_config, view_defaults
 from sqlalchemy.exc import IntegrityError
 from webargs import fields
 
-from lms.models.public_id import InvalidPublicId
 from lms.security import Permissions
-from lms.services import LTIRegistrationService
+from lms.services import InvalidPublicId, LTIRegistrationService
 from lms.validation._base import PyramidRequestSchema
 from lms.views.admin import flash_validation
 from lms.views.admin.application_instance._core import BaseApplicationInstanceView

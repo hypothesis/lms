@@ -8,6 +8,7 @@ from lms.models import Organization
 from lms.services.h_api import HAPI
 from lms.services.organization import (
     InvalidOrganizationParent,
+    InvalidPublicId,
     OrganizationService,
     UsageReportRow,
     service_factory,
@@ -31,6 +32,10 @@ class TestOrganizationService:
         result = svc.get_by_public_id(orgs[1].public_id)
 
         assert result == orgs[1]
+
+    def test_get_by_public_id_raises_for_malformed_ids(self, svc):
+        with pytest.raises(InvalidPublicId):
+            svc.get_by_public_id("MISSING_PARTS")
 
     def test_get_hierarchy_root(self, svc, org_with_parent):
         root = svc.get_hierarchy_root(org_with_parent.id)
@@ -344,7 +349,7 @@ class TestOrganizationService:
 
     @pytest.fixture
     def svc(self, db_session, h_api):
-        return OrganizationService(db_session=db_session, h_api=h_api)
+        return OrganizationService(db_session=db_session, h_api=h_api, region_code="us")
 
     @pytest.fixture
     def application_instance(self):
@@ -358,7 +363,7 @@ class TestServiceFactory:
         svc = service_factory(sentinel.context, pyramid_request)
 
         OrganizationService.assert_called_once_with(
-            db_session=pyramid_request.db, h_api=h_api
+            db_session=pyramid_request.db, h_api=h_api, region_code="us"
         )
         assert svc == OrganizationService.return_value
 

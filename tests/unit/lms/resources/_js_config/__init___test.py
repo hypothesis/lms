@@ -114,7 +114,7 @@ class TestEnableLTILaunchMode:
         lti_user,
     ):
         lti_user.application_instance.organization = factories.Organization(
-            _public_id="PUBLIC_ID"
+            public_id="us.lms.org.PUBLIC_ID"
         )
         db_session.flush()
 

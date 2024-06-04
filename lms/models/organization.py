@@ -3,19 +3,18 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from lms.db import Base
-from lms.models._mixins import CreatedUpdatedMixin, PublicIdMixin
+from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.json_settings import JSONSettings
 
 
-class Organization(CreatedUpdatedMixin, PublicIdMixin, Base):
+class Organization(CreatedUpdatedMixin, Base):
     """Model for Organizations comprised of application instances."""
 
     __tablename__ = "organization"
 
-    public_id_model_code = "org"
-    """The short code which identifies this type of model in PublicIdMixin."""
-
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
+
+    public_id: Mapped[str] = mapped_column(sa.TEXT(), unique=True)
 
     name = sa.Column(sa.UnicodeText(), nullable=True)
     """Human readable name for the organization."""

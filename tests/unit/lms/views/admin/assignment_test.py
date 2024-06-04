@@ -57,7 +57,7 @@ class TestAdminAssignmentViews:
         pyramid_request.registry.notify.has_call_with(AuditTrailEvent.return_value)
         assert response == Any.instance_of(HTTPFound).with_attrs(
             {
-                "location": f"http://example.com/dashboard/organizations/{organization._public_id}/assignments/{assignment.id}",  # noqa: SLF001
+                "location": f"http://example.com/dashboard/organizations/{organization.public_id}/assignments/{assignment.id}",
             }
         )
 

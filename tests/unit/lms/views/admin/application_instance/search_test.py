@@ -2,7 +2,7 @@ import pytest
 from h_matchers import Any
 
 from lms.models.json_settings import JSONSetting
-from lms.models.public_id import InvalidPublicId
+from lms.services import InvalidPublicId
 from lms.views.admin.application_instance.search import (
     SETTINGS_BY_FIELD,
     SearchApplicationInstanceViews,
