@@ -2,8 +2,10 @@ from unittest.mock import create_autospec, sentinel
 
 import pytest
 
+from lms.db import CouldNotAcquireLock
 from lms.services import CanvasAPIServerError, OAuth2TokenError
 from lms.services.canvas_api._basic import BasicClient
+from lms.services.exceptions import ConcurrentTokenRefreshError
 from lms.validation.authentication import OAuthTokenResponseSchema
 from tests import factories
 
@@ -84,6 +86,8 @@ class TestAuthenticatedClient:
 
         assert token == "new_access_token"
 
+        oauth2_token_service.try_lock_for_refresh.assert_called_once()
+
         basic_client.send.assert_called_once_with(
             "POST",
             "login/oauth2/token",
@@ -103,6 +107,14 @@ class TestAuthenticatedClient:
             token_response["refresh_token"],
             token_response["expires_in"],
         )
+
+    def test_get_refreshed_token_raises_if_lock_not_acquired(
+        self, authenticated_client, oauth2_token_service
+    ):
+        oauth2_token_service.try_lock_for_refresh.side_effect = CouldNotAcquireLock()
+
+        with pytest.raises(ConcurrentTokenRefreshError):
+            authenticated_client.get_refreshed_token("refresh_token")
 
     @pytest.fixture
     def basic_client(self, token_response):

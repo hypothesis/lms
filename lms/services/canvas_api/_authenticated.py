@@ -1,5 +1,7 @@
 """Access to the authenticated parts of the Canvas API."""
 
+from lms.db import CouldNotAcquireLock
+from lms.services.exceptions import ConcurrentTokenRefreshError
 from lms.validation.authentication import OAuthTokenResponseSchema
 
 DEFAULT_TIMEOUT = (10, 10)
@@ -87,6 +89,12 @@ class AuthenticatedClient:
             previous token call
         :return: A new access token string
         """
+
+        try:
+            self._oauth2_token_service.try_lock_for_refresh()
+        except CouldNotAcquireLock as exc:
+            raise ConcurrentTokenRefreshError() from exc
+
         return self._send_token_request(
             grant_type="refresh_token", refresh_token=refresh_token
         )
