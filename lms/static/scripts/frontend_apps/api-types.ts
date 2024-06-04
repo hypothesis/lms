@@ -162,6 +162,11 @@ export type Course = {
 };
 
 /**
+ * Response for `/api/dashboard/organizations/{organization_public_id}` call.
+ */
+export type Courses = Course[];
+
+/**
  * Response for `/api/dashboard/assignments/{assignment_id}` call.
  */
 export type Assignment = {

@@ -4,6 +4,7 @@ import {
   Link,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
+import { useMemo } from 'preact/hooks';
 import { Link as RouterLink } from 'wouter-preact';
 
 export type BreadcrumbLink = {
@@ -12,7 +13,7 @@ export type BreadcrumbLink = {
 };
 
 export type DashboardBreadcrumbsProps = {
-  links: BreadcrumbLink[];
+  links?: BreadcrumbLink[];
 };
 
 function BreadcrumbLink({ title, href }: BreadcrumbLink) {
@@ -30,15 +31,20 @@ function BreadcrumbLink({ title, href }: BreadcrumbLink) {
  * Navigation breadcrumbs showing a list of links
  */
 export default function DashboardBreadcrumbs({
-  links,
+  links = [],
 }: DashboardBreadcrumbsProps) {
+  const linksWithHome = useMemo(
+    (): BreadcrumbLink[] => [{ title: 'Home', href: '' }, ...links],
+    [links],
+  );
+
   return (
     <div
       className="flex flex-row gap-0.5 w-full font-semibold"
       data-testid="breadcrumbs-container"
     >
-      {links.map(({ title, href }, index) => {
-        const isLastLink = index === links.length - 1;
+      {linksWithHome.map(({ title, href }, index) => {
+        const isLastLink = index === linksWithHome.length - 1;
         return (
           <span
             key={`${index}${href}`}
@@ -49,10 +55,10 @@ export default function DashboardBreadcrumbs({
               // Distribute max width for every link as evenly as possible.
               // These must be static values for Tailwind to detect them.
               // See https://tailwindcss.com/docs/content-configuration#dynamic-class-names
-              'md:max-w-[50%]': links.length === 2,
-              'md:max-w-[33.333333%]': links.length === 3,
-              'md:max-w-[25%]': links.length === 4,
-              'md:max-w-[230px]': links.length > 4,
+              'md:max-w-[50%]': linksWithHome.length === 2,
+              'md:max-w-[33%]': linksWithHome.length === 3,
+              'md:max-w-[25%]': linksWithHome.length === 4,
+              'md:max-w-[230px]': linksWithHome.length > 4,
             })}
           >
             <BreadcrumbLink href={href} title={title} />
