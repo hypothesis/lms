@@ -29,7 +29,7 @@ CREATE MATERIALIZED VIEW report.users AS (
                 FROM h.annotation_counts
                 JOIN h.authorities ON
                     annotation_counts.authority_id = authorities.id
-                    AND authorities.authority = '{{ region.authority }}'
+                    AND authorities.authority = '{{ h_authority }}'
 
                 UNION ALL
 

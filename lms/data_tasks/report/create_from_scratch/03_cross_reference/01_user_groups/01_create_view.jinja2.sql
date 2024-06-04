@@ -9,7 +9,6 @@ CREATE MATERIALIZED VIEW report.user_groups AS (
     FROM h.user_group
     JOIN h.users ON
         users.id = user_group.user_id
-        AND users.authority = '{{ region.authority }}'
-        -- AND users.authority = 'lms.hypothes.is'
+        AND users.authority = '{{ h_authority }}'
     ORDER BY registered_date
 ) WITH NO DATA;
