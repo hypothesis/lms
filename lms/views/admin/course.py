@@ -7,9 +7,8 @@ from webargs import fields
 
 from lms.events import AuditTrailEvent, ModelChange
 from lms.models import Course, EventType
-from lms.models.public_id import InvalidPublicId
 from lms.security import Permissions
-from lms.services import OrganizationService
+from lms.services import InvalidPublicId, OrganizationService
 from lms.validation._base import PyramidRequestSchema
 from lms.views.admin import flash_validation
 from lms.views.admin._schemas import EmptyStringInt
@@ -84,7 +83,7 @@ class AdminCourseViews:
         response = HTTPFound(
             location=self.request.route_url(
                 "dashboard.course",
-                public_id=course.application_instance.organization._public_id,  # noqa: SLF001
+                public_id=course.application_instance.organization.public_id,
                 course_id=course.id,
             ),
         )

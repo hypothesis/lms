@@ -3,7 +3,7 @@ from h_matchers import Any
 from pyramid.httpexceptions import HTTPFound
 from sqlalchemy.exc import IntegrityError
 
-from lms.models.public_id import InvalidPublicId
+from lms.services import InvalidPublicId
 from lms.views.admin.application_instance.create import CreateApplicationInstanceViews
 
 REDIRECT_TO_CREATE_AI = Any.instance_of(HTTPFound).with_attrs(

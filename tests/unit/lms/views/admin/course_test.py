@@ -5,7 +5,7 @@ from h_matchers import Any
 from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 
 from lms.models import EventType
-from lms.models.public_id import InvalidPublicId
+from lms.services import InvalidPublicId
 from lms.views.admin.course import AdminCourseViews
 from tests import factories
 
@@ -59,7 +59,7 @@ class TestAdminCourseViews:
         pyramid_request.registry.notify.has_call_with(AuditTrailEvent.return_value)
         assert response == Any.instance_of(HTTPFound).with_attrs(
             {
-                "location": f"http://example.com/dashboard/organizations/{organization._public_id}/courses/{course.id}",  # noqa: SLF001
+                "location": f"http://example.com/dashboard/organizations/{organization.public_id}/courses/{course.id}",
             }
         )
 

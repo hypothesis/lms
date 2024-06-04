@@ -4,8 +4,8 @@ from webargs import fields
 
 from lms.models import ApplicationSettings
 from lms.models.json_settings import JSONSetting
-from lms.models.public_id import InvalidPublicId
 from lms.security import Permissions
+from lms.services import InvalidPublicId
 from lms.validation import PyramidRequestSchema
 from lms.views.admin import flash_validation
 from lms.views.admin._schemas import EmptyStringInt

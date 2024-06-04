@@ -1,6 +1,6 @@
 from unittest.mock import sentinel
-
 import pytest
+
 
 from lms.views.dashboard.api.course import CourseViews
 from tests import factories
@@ -16,13 +16,13 @@ class TestCourseViews:
         courses = factories.Course.create_batch(5)
         organization_service.get_by_public_id.return_value = org
         course_service.get_organization_courses.return_value = courses
-        pyramid_request.matchdict["organization_public_id"] = sentinel.id_
+        pyramid_request.matchdict["organization_public_id"] = sentinel.public_id
         db_session.flush()
 
         response = views.get_organization_courses()
 
         organization_service.get_by_public_id.assert_called_once_with(
-            "us.lms.org.sentinel.id_"
+            sentinel.public_id
         )
         course_service.get_organization_courses.assert_called_once_with(
             organization=org,

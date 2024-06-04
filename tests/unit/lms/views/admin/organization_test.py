@@ -5,8 +5,7 @@ import pytest
 from h_matchers import Any
 from pyramid.httpexceptions import HTTPBadRequest, HTTPFound, HTTPNotFound
 
-from lms.models.public_id import InvalidPublicId
-from lms.services.organization import InvalidOrganizationParent
+from lms.services.organization import InvalidOrganizationParent, InvalidPublicId
 from lms.views.admin.organization import AdminOrganizationViews
 from tests import factories
 from tests.matchers import temporary_redirect_to

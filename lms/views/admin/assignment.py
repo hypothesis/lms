@@ -53,9 +53,9 @@ class AdminAssignmentViews:
         response = HTTPFound(
             location=self.request.route_url(
                 "dashboard.assignment",
-                public_id=assignment.groupings[  # noqa: SLF001
+                public_id=assignment.groupings[
                     0
-                ].application_instance.organization._public_id,
+                ].application_instance.organization.public_id,
                 assignment_id=assignment.id,
             ),
         )

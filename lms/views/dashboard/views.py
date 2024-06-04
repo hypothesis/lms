@@ -59,7 +59,7 @@ class DashboardViews:
         response = HTTPFound(
             location=self.request.route_url(
                 "dashboard.assignment",
-                public_id=self.request.lti_user.application_instance.organization._public_id,  # noqa: SLF001
+                public_id=self.request.lti_user.application_instance.organization.public_id,
                 assignment_id=assignment_id,
             ),
         )
@@ -133,7 +133,7 @@ class DashboardViews:
             secure=not self.request.registry.settings["dev"],
             httponly=True,
             # Scope the cookie to all the org endpoints
-            path=f"/dashboard/organizations/{lti_user.application_instance.organization._public_id}",  # noqa: SLF001
+            path=f"/dashboard/organizations/{lti_user.application_instance.organization.public_id}",
             max_age=60 * 60 * 24,  # 24 hours, matches the lifetime of the auth_token
         )
         return response

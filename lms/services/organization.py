@@ -1,3 +1,5 @@
+import base64
+import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from logging import getLogger
@@ -36,12 +38,17 @@ class InvalidOrganizationParent(Exception):
     """The requested Organization wasn't found or isn't an eligible parent."""
 
 
+class InvalidPublicId(Exception):
+    """Indicate an error with the specified public id."""
+
+
 class OrganizationService:
     """A service for dealing with organization actions."""
 
-    def __init__(self, db_session: Session, h_api: HAPI):
+    def __init__(self, db_session: Session, h_api: HAPI, region_code: str):
         self._db_session = db_session
         self._h_api = h_api
+        self._region_code = region_code
 
     def get_by_id(self, id_: int) -> Organization | None:
         """
@@ -58,6 +65,12 @@ class OrganizationService:
 
         :param public_id: Fully qualified public id
         """
+        parts = public_id.split(".")
+
+        if not len(parts) == 4:
+            raise InvalidPublicId(
+                f"Malformed public id: '{public_id}'. Expected 4 dot separated parts."
+            )
 
         return self._organization_search_query(public_id=public_id).one_or_none()
 
@@ -192,12 +205,22 @@ class OrganizationService:
 
     def create_organization(self, name=None) -> Organization:
         """Create new organizations."""
-        org = Organization(name=name)
+        org = Organization(name=name, public_id=self._generate_public_id())
         self._db_session.add(org)
         # Ensure we have ids
         self._db_session.flush()
 
         return org
+
+    def _generate_public_id(self):
+        # We don't use a standard UUID-4 format here as they are common in Tool
+        # Consumer Instance GUIDs, and might be confused for them. These also
+        # happen to be shorter and guaranteed URL safe.
+        id_ = base64.urlsafe_b64encode(uuid.uuid4().bytes).decode("ascii").rstrip("=")
+
+        # We use '.' as the separator here because it's not in base64, but it
+        # is URL safe. The other option is '~'.
+        return f"{self._region_code}.lms.org.{id_}"
 
     def update_organization(  # noqa: PLR0913
         self,
@@ -409,4 +432,5 @@ def service_factory(_context, request) -> OrganizationService:
     return OrganizationService(
         db_session=request.db,
         h_api=request.find_service(HAPI),
+        region_code=request.registry.settings["region_code"],
     )
