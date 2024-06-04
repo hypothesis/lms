@@ -37,7 +37,14 @@ describe('AssignmentActivity', () => {
   beforeEach(() => {
     fakeUseAPIFetch = sinon.stub().callsFake(url => ({
       isLoading: false,
-      data: url.endsWith('stats') ? students : { title: 'The title' },
+      data: url.endsWith('stats')
+        ? students
+        : {
+            title: 'The title',
+            course: {
+              title: 'The course',
+            },
+          },
     }));
     fakeConfig = {
       dashboard: {
@@ -72,7 +79,7 @@ describe('AssignmentActivity', () => {
     fakeUseAPIFetch.returns({ isLoading: true });
 
     const wrapper = createComponent();
-    const titleElement = wrapper.find('CardTitle[data-testid="title"]');
+    const titleElement = wrapper.find('[data-testid="title"]');
     const tableElement = wrapper.find('OrderableActivityTable');
 
     assert.equal(titleElement.text(), 'Loading...');
@@ -83,7 +90,7 @@ describe('AssignmentActivity', () => {
     fakeUseAPIFetch.returns({ error: new Error('Something failed') });
 
     const wrapper = createComponent();
-    const titleElement = wrapper.find('CardTitle[data-testid="title"]');
+    const titleElement = wrapper.find('[data-testid="title"]');
     const tableElement = wrapper.find('OrderableActivityTable');
 
     assert.equal(titleElement.text(), 'Could not load assignment title');
@@ -92,9 +99,9 @@ describe('AssignmentActivity', () => {
 
   it('shows expected title', () => {
     const wrapper = createComponent();
-    const titleElement = wrapper.find('CardTitle[data-testid="title"]');
+    const titleElement = wrapper.find('[data-testid="title"]');
     const tableElement = wrapper.find('OrderableActivityTable');
-    const expectedTitle = `Assignment: The title`;
+    const expectedTitle = 'Assignment: The title';
 
     assert.equal(titleElement.text(), expectedTitle);
     assert.equal(tableElement.prop('title'), expectedTitle);
