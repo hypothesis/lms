@@ -68,26 +68,28 @@ class TestAssignmentViews:
             [g.authority_provided_id for g in assignment.groupings],
             assignment.resource_link_id,
         )
-        assert response == [
-            {
-                "display_name": student.display_name,
-                "annotations": sentinel.annotations,
-                "replies": sentinel.replies,
-                "last_activity": sentinel.last_activity,
-            },
-            {
-                "display_name": student_no_annos.display_name,
-                "annotations": 0,
-                "replies": 0,
-                "last_activity": None,
-            },
-            {
-                "display_name": f"Student {student_no_annos_no_name.user_id[:10]}",
-                "annotations": 0,
-                "replies": 0,
-                "last_activity": None,
-            },
-        ]
+        assert response == {
+            "students": [
+                {
+                    "display_name": student.display_name,
+                    "annotations": sentinel.annotations,
+                    "replies": sentinel.replies,
+                    "last_activity": sentinel.last_activity,
+                },
+                {
+                    "display_name": student_no_annos.display_name,
+                    "annotations": 0,
+                    "replies": 0,
+                    "last_activity": None,
+                },
+                {
+                    "display_name": f"Student {student_no_annos_no_name.user_id[:10]}",
+                    "annotations": 0,
+                    "replies": 0,
+                    "last_activity": None,
+                },
+            ]
+        }
 
     @pytest.fixture
     def views(self, pyramid_request):

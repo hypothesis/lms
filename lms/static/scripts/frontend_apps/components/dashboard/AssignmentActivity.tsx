@@ -7,7 +7,7 @@ import {
 import classnames from 'classnames';
 import { useParams } from 'wouter-preact';
 
-import type { Assignment, StudentsStats } from '../../api-types';
+import type { Assignment, StudentsResponse } from '../../api-types';
 import { useConfig } from '../../config';
 import { urlPath, useAPIFetch } from '../../utils/api';
 import { formatDateTime } from '../../utils/date';
@@ -25,7 +25,7 @@ export default function AssignmentActivity() {
   const assignment = useAPIFetch<Assignment>(
     replaceURLParams(routes.assignment, { assignment_id: assignmentId }),
   );
-  const students = useAPIFetch<StudentsStats>(
+  const students = useAPIFetch<StudentsResponse>(
     replaceURLParams(routes.assignment_stats, { assignment_id: assignmentId }),
   );
 
@@ -65,7 +65,7 @@ export default function AssignmentActivity() {
           emptyMessage={
             students.error ? 'Could not load students' : 'No students found'
           }
-          rows={students.data ?? []}
+          rows={students.data?.students ?? []}
           columnNames={{
             display_name: 'Student',
             annotations: 'Annotations',

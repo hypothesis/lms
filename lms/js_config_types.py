@@ -17,11 +17,19 @@ class APICourse(TypedDict):
     title: str
 
 
+class APICourses(TypedDict):
+    courses: list[APICourse]
+
+
 class APIStudentStats(TypedDict):
     display_name: str
     annotations: int
     replies: int
     last_activity: str | None
+
+
+class APIStudents(TypedDict):
+    students: list[APIStudentStats]
 
 
 class AssignmentStats(TypedDict):
@@ -35,6 +43,10 @@ class APIAssignment(TypedDict):
     title: str
     course: APICourse
     stats: NotRequired[AssignmentStats]
+
+
+class APIAssignments(TypedDict):
+    assignments: list[APIAssignment]
 
 
 class DashboardRoutes(TypedDict):

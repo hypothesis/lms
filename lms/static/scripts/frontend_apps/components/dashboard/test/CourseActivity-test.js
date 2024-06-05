@@ -46,7 +46,7 @@ describe('CourseActivity', () => {
   beforeEach(() => {
     fakeUseAPIFetch = sinon.stub().callsFake(url => ({
       isLoading: false,
-      data: url.endsWith('stats') ? assignments : { title: 'The title' },
+      data: url.endsWith('stats') ? { assignments } : { title: 'The title' },
     }));
     fakeConfig = {
       dashboard: {

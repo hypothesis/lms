@@ -38,7 +38,7 @@ describe('AssignmentActivity', () => {
     fakeUseAPIFetch = sinon.stub().callsFake(url => ({
       isLoading: false,
       data: url.endsWith('stats')
-        ? students
+        ? { students }
         : {
             title: 'The title',
             course: {

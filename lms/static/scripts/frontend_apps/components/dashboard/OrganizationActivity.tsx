@@ -6,7 +6,7 @@ import {
 } from '@hypothesis/frontend-shared';
 import { Link as RouterLink } from 'wouter-preact';
 
-import type { Courses } from '../../api-types';
+import type { CoursesResponse } from '../../api-types';
 import { useConfig } from '../../config';
 import { urlPath, useAPIFetch } from '../../utils/api';
 import { replaceURLParams } from '../../utils/url';
@@ -24,7 +24,7 @@ export default function OrganizationActivity({
 }: OrganizationActivityProps) {
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
-  const courses = useAPIFetch<Courses>(
+  const courses = useAPIFetch<CoursesResponse>(
     replaceURLParams(routes.organization_courses, {
       organization_public_id: organizationPublicId,
     }),
@@ -40,7 +40,7 @@ export default function OrganizationActivity({
           emptyMessage={
             courses.error ? 'Could not load courses' : 'No courses found'
           }
-          rows={courses.data ?? []}
+          rows={courses.data?.courses ?? []}
           columnNames={{ title: 'Course Title' }}
           defaultOrderField="title"
           renderItem={stats => (
