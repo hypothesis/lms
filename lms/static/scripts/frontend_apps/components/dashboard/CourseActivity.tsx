@@ -39,6 +39,7 @@ export default function CourseActivity() {
     replaceURLParams(routes.course_assignment_stats, {
       course_id: courseId,
     }),
+    { reportToInitialLoading: true },
   );
 
   const rows: AssignmentsTableRow[] = useMemo(

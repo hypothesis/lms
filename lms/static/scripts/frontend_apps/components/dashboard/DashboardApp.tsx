@@ -1,6 +1,7 @@
 import classnames from 'classnames';
 import { Route, Switch, useParams } from 'wouter-preact';
 
+import HideUntilLoad from '../HideUntilLoad';
 import AssignmentActivity from './AssignmentActivity';
 import CourseActivity from './CourseActivity';
 import DashboardFooter from './DashboardFooter';
@@ -12,8 +13,8 @@ export default function DashboardApp() {
   }>();
 
   return (
-    <div className="flex flex-col min-h-screen gap-5 bg-grey-2">
-      <div
+    <div className="flex flex-col min-h-screen bg-grey-2">
+      <header
         className={classnames(
           'flex justify-center p-3 w-full',
           'bg-white border-b shadow',
@@ -24,25 +25,20 @@ export default function DashboardApp() {
           src="/static/images/hypothesis-wordmark-logo.png"
           className="h-10"
         />
-      </div>
-      <div className="flex-grow px-3">
-        <div className="mx-auto max-w-6xl">
-          <Switch>
-            <Route path="/assignments/:assignmentId">
-              <AssignmentActivity />
-            </Route>
-            <Route path="/courses/:courseId">
-              <CourseActivity />
-            </Route>
-            <Route path="">
-              <OrganizationActivity
-                organizationPublicId={organizationPublicId}
-              />
-            </Route>
-          </Switch>
-        </div>
-      </div>
-      <DashboardFooter />
+      </header>
+      <HideUntilLoad classes="flex-grow" footer={<DashboardFooter />}>
+        <Switch>
+          <Route path="/assignments/:assignmentId">
+            <AssignmentActivity />
+          </Route>
+          <Route path="/courses/:courseId">
+            <CourseActivity />
+          </Route>
+          <Route path="">
+            <OrganizationActivity organizationPublicId={organizationPublicId} />
+          </Route>
+        </Switch>
+      </HideUntilLoad>
     </div>
   );
 }

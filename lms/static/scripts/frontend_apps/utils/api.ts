@@ -1,5 +1,6 @@
 import { useConfig } from '../config';
 import { APIError } from '../errors';
+import type { UseFetchOptions } from './fetch';
 import { useFetch } from './fetch';
 import type { FetchResult, Fetcher } from './fetch';
 
@@ -185,6 +186,10 @@ export function urlPath(strings: TemplateStringsArray, ...params: string[]) {
   return result + strings[strings.length - 1];
 }
 
+export type UseAPIFetchOptions = UseFetchOptions & {
+  params?: Record<string, string>;
+};
+
 /**
  * Hook that fetches data using authenticated API requests.
  *
@@ -193,7 +198,7 @@ export function urlPath(strings: TemplateStringsArray, ...params: string[]) {
  */
 export function useAPIFetch<T = unknown>(
   path: string | null,
-  params?: Record<string, string>,
+  { params, ...fetchOptions }: UseAPIFetchOptions = {},
 ): FetchResult<T> {
   const {
     api: { authToken },
@@ -214,5 +219,5 @@ export function useAPIFetch<T = unknown>(
   // token is not included in the key, as we assume currently that it does not
   // change the result.
   const paramStr = params ? '?' + new URLSearchParams(params).toString() : '';
-  return useFetch(path ? `${path}${paramStr}` : null, fetcher);
+  return useFetch(path ? `${path}${paramStr}` : null, fetcher, fetchOptions);
 }

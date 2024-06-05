@@ -1,14 +1,17 @@
 import { delay } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
+import sinon from 'sinon';
 
+import { APIError } from '../../errors';
 import { useFetch } from '../fetch';
+import { InitialLoadingContext } from '../initial-loading-context';
 
 describe('useFetch', () => {
   let wrappers;
 
-  function TestWidget({ fetchKey, fetcher }) {
-    const thing = useFetch(fetchKey, fetcher);
+  function TestWidget({ fetchKey, fetcher, reportToInitialLoading }) {
+    const thing = useFetch(fetchKey, fetcher, { reportToInitialLoading });
 
     // This could be simplified to `isIdle = fetchKey === null`, but we want
     // to check the `useFetch` result matches expectations in the idle case.
@@ -34,6 +37,23 @@ describe('useFetch', () => {
 
   function renderWidget(key, fetcher) {
     const widget = mount(<TestWidget fetchKey={key} fetcher={fetcher} />);
+    wrappers.push(widget);
+    return widget;
+  }
+
+  function renderWithInitialLoading(
+    initialLoading,
+    { reportToInitialLoading = false, fetcher = async () => 'Some data' } = {},
+  ) {
+    const widget = mount(
+      <InitialLoadingContext.Provider value={initialLoading}>
+        <TestWidget
+          fetchKey="some-key"
+          fetcher={fetcher}
+          reportToInitialLoading={reportToInitialLoading}
+        />
+      </InitialLoadingContext.Provider>,
+    );
     wrappers.push(widget);
     return widget;
   }
@@ -206,6 +226,64 @@ describe('useFetch', () => {
 
       await waitForFetch(wrapper);
       assert.equal(getResultText(wrapper), 'Data: OK');
+    });
+  });
+
+  context('when initial loading context is present', () => {
+    let fakeInitialLoading;
+
+    beforeEach(() => {
+      fakeInitialLoading = {
+        startLoading: sinon.stub(),
+        finishLoading: sinon.stub(),
+        reportFatalError: sinon.stub(),
+      };
+    });
+
+    it('does not invoke initial loading callbacks if reportToInitialLoading is disabled', async () => {
+      const wrapper = renderWithInitialLoading(fakeInitialLoading);
+      await waitForFetch(wrapper);
+
+      assert.notCalled(fakeInitialLoading.startLoading);
+      assert.notCalled(fakeInitialLoading.finishLoading);
+      assert.notCalled(fakeInitialLoading.reportFatalError);
+    });
+
+    it('reports start and finish loading', async () => {
+      const wrapper = renderWithInitialLoading(fakeInitialLoading, {
+        reportToInitialLoading: true,
+      });
+      await waitForFetch(wrapper);
+
+      assert.called(fakeInitialLoading.startLoading);
+      assert.called(fakeInitialLoading.finishLoading);
+      assert.notCalled(fakeInitialLoading.reportFatalError);
+    });
+
+    [new APIError(401, {}), new APIError(403, {})].forEach(error => {
+      it('reports fatal error when an unauthorized/forbidden API error occurs', async () => {
+        const fetcher = sinon.stub().rejects(error);
+        const wrapper = renderWithInitialLoading(fakeInitialLoading, {
+          fetcher,
+          reportToInitialLoading: true,
+        });
+        await waitForFetch(wrapper);
+
+        assert.called(fakeInitialLoading.startLoading);
+        assert.called(fakeInitialLoading.finishLoading);
+        assert.calledWith(fakeInitialLoading.reportFatalError, error);
+      });
+
+      it('does not report errors if reportToInitialLoading is disabled', async () => {
+        const fetcher = sinon.stub().rejects(error);
+        const wrapper = renderWithInitialLoading(fakeInitialLoading, {
+          fetcher,
+          reportToInitialLoading: false,
+        });
+        await waitForFetch(wrapper);
+
+        assert.notCalled(fakeInitialLoading.reportFatalError);
+      });
     });
   });
 });

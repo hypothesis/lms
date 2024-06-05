@@ -424,7 +424,7 @@ describe('useAPIFetch', () => {
     },
   ].forEach(({ path, params, expectedURL }) => {
     it('fetches data from API if a path is provided', async () => {
-      const result = useAPIFetch(path, params);
+      const result = useAPIFetch(path, { params });
       assert.equal(result, fakeFetchResult);
       assert.calledWith(fakeUseFetch, expectedURL, sinon.match.func);
 

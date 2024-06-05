@@ -28,6 +28,7 @@ export default function OrganizationActivity({
     replaceURLParams(routes.organization_courses, {
       organization_public_id: organizationPublicId,
     }),
+    { reportToInitialLoading: true },
   );
 
   return (
