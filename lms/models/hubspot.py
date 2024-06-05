@@ -1,9 +1,10 @@
 from datetime import date
 
 from sqlalchemy import BigInteger
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, foreign, mapped_column, relationship
 
 from lms.db import Base
+from lms.models.organization import Organization
 
 
 class HubSpotCompany(Base):
@@ -19,3 +20,9 @@ class HubSpotCompany(Base):
     lms_organization_id: Mapped[str | None]
     current_deal_services_start: Mapped[date | None]
     current_deal_services_end: Mapped[date | None]
+
+    organization: Mapped[Organization] = relationship(
+        "Organization",
+        primaryjoin=lambda: foreign(Organization.public_id)
+        == HubSpotCompany.lms_organization_id,
+    )

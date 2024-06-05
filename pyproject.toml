@@ -104,6 +104,7 @@ disable = [
     "import-outside-toplevel",
     "too-many-statements",
     "protected-access",
+    "singleton-comparison",
 
     # Not supported by ruff
     "too-many-ancestors",

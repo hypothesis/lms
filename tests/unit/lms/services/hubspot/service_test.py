@@ -17,6 +17,25 @@ class TestHubSpotService:
 
         assert svc.get_company(org.public_id)
 
+    def test_get_companies_with_active_deals(self, svc):
+        # Companies that map to the same org, they should be ignored
+        org = factories.Organization()
+        factories.HubSpotCompany(lms_organization_id=org.public_id)
+        factories.HubSpotCompany(lms_organization_id=org.public_id)
+        # Company with deal outside the time period
+        factories.HubSpotCompany(
+            lms_organization_id=factories.Organization().public_id,
+            current_deal_services_start=date(2022, 1, 1),
+            current_deal_services_end=date(2022, 12, 31),
+        )
+        company = factories.HubSpotCompany(
+            lms_organization_id=factories.Organization().public_id,
+            current_deal_services_start=date(2023, 1, 1),
+            current_deal_services_end=date(2023, 12, 31),
+        )
+
+        assert svc.get_companies_with_active_deals(date(2023, 2, 1)) == [company]
+
     def test_get_company_multiple_mapping(self, svc):
         org = factories.Organization()
         factories.HubSpotCompany(lms_organization_id=org.public_id)

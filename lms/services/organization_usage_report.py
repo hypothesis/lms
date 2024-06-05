@@ -1,7 +1,8 @@
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import date, datetime
 from logging import getLogger
 
+from dateutil.relativedelta import relativedelta
 from sqlalchemy import Date, func, select
 from sqlalchemy.orm import Session, aliased
 
@@ -33,16 +34,61 @@ class UsageReportRow:
 class OrganizationUsageReportService:
     def __init__(
         self,
-        db_session: Session,
+        db: Session,
         h_api: HAPI,
         organization_service: OrganizationService,
     ):
-        self._db_session = db_session
+        self._db = db
         self._organization_service = organization_service
         self._h_api = h_api
 
+    def get(
+        self, organization, tag, since: date, until: date
+    ) -> OrganizationUsageReport | None:
+        key = OrganizationUsageReport.generate_key(organization, tag, since, until)
+        return self.get_by_key(key)
+
+    @staticmethod
+    def monthly_report_dates(
+        deal_start: date, deal_end: date, reports: int = 1
+    ) -> list[tuple[date, date]]:
+        """Get a list of dates for which we should generate report.
+
+        Get tuples of dates (since, until) from the end of last month (or deal_end if already finished)
+        until deal_start month by month.
+
+        Generate at most `reports` reports.
+        """
+        if deal_start < date(2023, 1, 1):
+            # We only generate this type of report from 2023
+            return []
+
+        reports_dates = []
+
+        # First report, based on current date
+        until = date.today()
+
+        for _ in range(reports):
+            # Always calculate until the start of the previous month
+            # day=31 does the right thing for every month
+            until = (until - relativedelta(months=1)) + relativedelta(day=31)
+            # Never go over the deal's end
+            until = min(until, deal_end)
+
+            if until <= deal_start:
+                # Don't go over the deal start date
+                break
+
+            reports_dates.append((deal_start, until))
+
+        return reports_dates
+
+    def get_by_key(self, key: str) -> OrganizationUsageReport | None:
+        """Get a report by its unique key."""
+        return self._db.query(OrganizationUsageReport).filter_by(key=key).one_or_none()
+
     def generate_usage_report(
-        self, organization_id: int, tag: str, since: datetime, until: datetime
+        self, organization_id: int, tag: str, since: date, until: date
     ):
         """Generate and store an usage report for one organization."""
         organization = self._organization_service.get_by_id(organization_id)
@@ -51,11 +97,7 @@ class OrganizationUsageReportService:
             organization, tag, since, until
         )
 
-        if (
-            report := self._db_session.query(OrganizationUsageReport)
-            .filter_by(key=report_key)
-            .one_or_none()
-        ):
+        if report := self.get_by_key(report_key):
             LOG.debug("Report already exists, skipping generation. %s", report_key)
             return report
 
@@ -66,28 +108,28 @@ class OrganizationUsageReportService:
             until=until,
             tag=tag,
         )
-        self._db_session.add(report)
+        self._db.add(report)
 
-        report_rows = self.usage_report(organization, since, until)
+        try:
+            report_rows = self.usage_report(organization, since, until)
+        except ValueError:
+            # We raise ValueError for empty reports
+            # That's useful for an user facing UI but here just store the result
+            report_rows = []
 
         report.unique_users = len({r.h_userid for r in report_rows})
         report.report = [asdict(r) for r in report_rows]
 
         return report
 
-    def usage_report(
-        self,
-        organization: Organization,
-        since: datetime,
-        until: datetime,
-    ):
+    def usage_report(self, organization: Organization, since: date, until: date):
         # Organizations that are children of the current one.
         # It includes the current org ID.
         organization_children = self._organization_service.get_hierarchy_ids(
             organization.id, include_parents=False
         )
         # All the groups that can hold annotations (courses and segments) from this org
-        groups_from_org = self._db_session.scalars(
+        groups_from_org = self._db.scalars(
             select(Grouping.authority_provided_id)
             .join(ApplicationInstance)
             .where(
@@ -103,7 +145,11 @@ class OrganizationUsageReportService:
         # Of those groups, get the ones that do have annotations in the time period
         groups_with_annos = [
             group.authority_provided_id
-            for group in self._h_api.get_groups(groups_from_org, since, until)
+            for group in self._h_api.get_groups(
+                groups_from_org,
+                datetime.combine(since, datetime.min.time()),  # Start of since date
+                datetime.combine(until, datetime.max.time()),  # End of until date
+            )
         ]
         if not groups_with_annos:
             raise ValueError(
@@ -156,13 +202,13 @@ class OrganizationUsageReportService:
                 course_created=row.course_created.isoformat(),
                 authority_provided_id=row.authority_provided_id,
             )
-            for row in self._db_session.execute(query).all()
+            for row in self._db.execute(query).all()
         ]
 
 
 def service_factory(_context, request) -> OrganizationUsageReportService:
     return OrganizationUsageReportService(
-        db_session=request.db,
+        db=request.db,
         h_api=request.find_service(HAPI),
         organization_service=request.find_service(OrganizationService),
     )
