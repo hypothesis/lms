@@ -33,5 +33,5 @@ class OrganizationUsageReport(CreatedUpdatedMixin, Base):
     """Actual report, in JSON format."""
 
     @classmethod
-    def generate_key(cls, organization, tag, report_start, report_end):
+    def generate_key(cls, organization, tag: str, report_start: date, report_end: date):
         return f"{organization.public_id}-{tag}-{report_start}-{report_end}"
