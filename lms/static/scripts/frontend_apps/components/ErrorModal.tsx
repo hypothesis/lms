@@ -124,6 +124,7 @@ export default function ErrorModal({
     >
       {error && (
         <ErrorDisplay
+          classes="pt-4"
           description={description}
           error={error}
           displaySupportLink={displaySupportLink}

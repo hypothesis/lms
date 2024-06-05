@@ -311,6 +311,7 @@ export default function BookPicker({
       )}
       {error && (
         <ErrorDisplay
+          classes="pt-4"
           description={
             step === 'select-book'
               ? 'Unable to fetch books'

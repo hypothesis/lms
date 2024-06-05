@@ -435,6 +435,7 @@ export default function LMSFilePicker({
 
       {dialogState.state === 'error' && (
         <ErrorDisplay
+          classes="pt-4"
           description={`There was a problem fetching ${documentType}s`}
           error={dialogState.error}
         />
