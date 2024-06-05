@@ -109,6 +109,9 @@ export type ErrorDisplayProps = {
    * Wether or not to show the standard link to our support page
    */
   displaySupportLink?: boolean;
+
+  /** Extra CSS classes to append to the error display wrapper */
+  classes?: string | string[];
 };
 
 /**
@@ -119,21 +122,15 @@ export default function ErrorDisplay({
   description = '',
   error,
   displaySupportLink = true,
+  classes,
 }: ErrorDisplayProps) {
   const message = formatErrorMessage(error, /* prefix */ description);
 
   const { debug } = useConfig();
 
   return (
-    <Scroll
-      classes={classnames(
-        // FIXME This class can be removed once the Modal in LMSFilePicker
-        // has been updated to latest frontend-shared components.
-        // Now it is needed to overwrite a style set on the modal itself.
-        '!mt-0',
-      )}
-    >
-      <div className="pt-4 space-y-4">
+    <Scroll classes={classes}>
+      <div className="space-y-4">
         {message && <p data-testid="error-message">{toSentence(message)}</p>}
 
         {children}
