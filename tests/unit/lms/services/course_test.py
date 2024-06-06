@@ -338,13 +338,37 @@ class TestCourseService:
         assert svc.is_member(course, user.h_userid)
         assert not svc.is_member(course, other_user.h_userid)
 
+    def test_get_organization_courses_deduplicates(self, db_session, svc):
+        org = factories.Organization()
+
+        ai = factories.ApplicationInstance(organization=org)
+        other_ai = factories.ApplicationInstance(organization=org)
+
+        older_course = factories.Course(
+            application_instance=other_ai,
+            updated=date(2020, 2, 1),
+            authority_provided_id="COURSE",
+        )
+        # Most recent group, same authority_provided_id, more recent update date
+        course = factories.Course(
+            application_instance=ai,
+            updated=date(2022, 1, 1),
+            authority_provided_id="COURSE",
+        )
+        db_session.flush()
+        # Check that effectively there are two courses in the organization
+        assert set(svc.search(organization_ids=[org.id])) == {course, older_course}
+
+        # But organization deduplicate, We only get the most recent course
+        assert svc.get_organization_courses(org, None) == [course]
+
     def test_get_assignments(self, db_session, svc):
         course = factories.Course()
         other_course = factories.Course()
 
         assignment = factories.Assignment()
 
-        # other course only has an assigment that `course` has stolen
+        # other course only has an assignment that `course` has stolen
         factories.AssignmentGrouping(
             grouping=other_course, assignment=assignment, updated=date(2020, 1, 1)
         )
