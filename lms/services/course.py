@@ -78,7 +78,7 @@ class CourseService:
         name: str | None = None,
         limit: int = 100,
         organization_ids: list[int] | None = None,
-        user: User | None = None,
+        h_userid: str | None = None,
     ) -> list[Course]:
         query = self._db.query(Course)
 
@@ -104,12 +104,12 @@ class CourseService:
                 .filter(Organization.id.in_(organization_ids))
             )
 
-        if user:
-            # Only courses `user` belongs to
+        if h_userid:
+            # Only courses where the H's h_userid belongs to
             query = (
                 query.join(GroupingMembership)
                 .join(User)
-                .filter(User.h_userid == user.h_userid)
+                .filter(User.h_userid == h_userid)
             )
 
         return query.limit(limit).all()
@@ -208,9 +208,11 @@ class CourseService:
 
         return None
 
-    def is_member(self, course: Course, user: User) -> bool:
-        """Check if a user is a member of a course."""
-        return bool(course.memberships.filter_by(user=user).first())
+    def is_member(self, course: Course, h_userid: str) -> bool:
+        """Check if an H user is a member of a course."""
+        return bool(
+            course.memberships.join(User).filter(User.h_userid == h_userid).first()
+        )
 
     def _get_authority_provided_id(self, context_id):
         return self._grouping_service.get_authority_provided_id(

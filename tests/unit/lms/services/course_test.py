@@ -300,7 +300,7 @@ class TestCourseService:
 
         assert result == [course]
 
-    def test_search_by_user(self, svc, db_session):
+    def test_search_by_h_userid(self, svc, db_session):
         user = factories.User()
         course = factories.Course()
         factories.Course.create_batch(10)
@@ -308,7 +308,7 @@ class TestCourseService:
         # Ensure ids are written
         db_session.flush()
 
-        result = svc.search(user=user)
+        result = svc.search(h_userid=user.h_userid)
 
         assert result == [course]
 
@@ -335,8 +335,8 @@ class TestCourseService:
 
         db_session.flush()
 
-        assert svc.is_member(course, user)
-        assert not svc.is_member(course, other_user)
+        assert svc.is_member(course, user.h_userid)
+        assert not svc.is_member(course, other_user.h_userid)
 
     @pytest.fixture
     def course(self, application_instance, grouping_service):

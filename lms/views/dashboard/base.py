@@ -27,7 +27,7 @@ def get_request_course(request, course_service):
         # STAFF members in our admin pages can access all courses
         return course
 
-    if not course_service.is_member(course, request.user):
+    if not course_service.is_member(course, request.user.h_userid):
         raise HTTPUnauthorized()
 
     return course
