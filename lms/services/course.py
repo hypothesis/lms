@@ -72,16 +72,16 @@ class CourseService:
             copied_from=historical_course,
         )
 
-    def search(  # noqa: PLR0913, PLR0917
+    def _search_query(  # noqa: PLR0913, PLR0917
         self,
         id_: int | None = None,
         context_id: str | None = None,
         h_id: str | None = None,
         name: str | None = None,
-        limit: int = 100,
+        limit: int | None = 100,
         organization_ids: list[int] | None = None,
         h_userid: str | None = None,
-    ) -> list[Course]:
+    ):
         query = self._db.query(Course)
 
         if id_:
@@ -114,7 +114,42 @@ class CourseService:
                 .filter(User.h_userid == h_userid)
             )
 
-        return query.limit(limit).all()
+        return query.limit(limit)
+
+    def search(  # noqa: PLR0913, PLR0917
+        self,
+        id_: int | None = None,
+        context_id: str | None = None,
+        h_id: str | None = None,
+        name: str | None = None,
+        limit: int | None = 100,
+        organization_ids: list[int] | None = None,
+        h_userid: str | None = None,
+    ) -> list[Course]:
+        return self._search_query(
+            id_=id_,
+            context_id=context_id,
+            h_id=h_id,
+            name=name,
+            limit=limit,
+            organization_ids=organization_ids,
+            h_userid=h_userid,
+        ).all()
+
+    def get_organization_courses(
+        self, organization: Organization, h_userid: str | None
+    ):
+        courses_query = self._search_query(
+            organization_ids=[organization.id],
+            h_userid=h_userid,
+            limit=None,
+        )
+        return (
+            # Deduplicate courses by authority_provided_id, take the last updated one
+            courses_query.distinct(Course.authority_provided_id)
+            .order_by(Course.authority_provided_id, Course.updated.desc())
+            .all()
+        )
 
     def get_by_context_id(self, context_id, raise_on_missing=False) -> Course | None:
         """
@@ -205,10 +240,7 @@ class CourseService:
         return None
 
     def get_by_id(self, id_: int) -> Course | None:
-        if courses := self.search(id_=id_, limit=1):
-            return courses[0]
-
-        return None
+        return self._search_query(id_=id_).one_or_none()
 
     def is_member(self, course: Course, h_userid: str) -> bool:
         """Check if an H user is a member of a course."""

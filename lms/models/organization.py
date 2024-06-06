@@ -15,7 +15,7 @@ class Organization(CreatedUpdatedMixin, PublicIdMixin, Base):
     public_id_model_code = "org"
     """The short code which identifies this type of model in PublicIdMixin."""
 
-    id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
+    id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
 
     name = sa.Column(sa.UnicodeText(), nullable=True)
     """Human readable name for the organization."""

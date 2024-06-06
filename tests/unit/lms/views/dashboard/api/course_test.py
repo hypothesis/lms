@@ -15,7 +15,7 @@ class TestCourseViews:
         org = factories.Organization()
         courses = factories.Course.create_batch(5)
         organization_service.get_by_public_id.return_value = org
-        course_service.search.return_value = courses
+        course_service.get_organization_courses.return_value = courses
         pyramid_request.matchdict["organization_public_id"] = sentinel.id_
         db_session.flush()
 
@@ -24,9 +24,8 @@ class TestCourseViews:
         organization_service.get_by_public_id.assert_called_once_with(
             "us.lms.org.sentinel.id_"
         )
-        course_service.search.assert_called_once_with(
-            limit=None,
-            organization_ids=[org.id],
+        course_service.get_organization_courses.assert_called_once_with(
+            organization=org,
             h_userid=pyramid_request.user.h_userid,
         )
 

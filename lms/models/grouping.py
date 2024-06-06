@@ -73,7 +73,7 @@ class Grouping(CreatedUpdatedMixin, Base):
         ),
     )
 
-    id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
+    id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
 
     application_instance_id = sa.Column(
         sa.Integer(),

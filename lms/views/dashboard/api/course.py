@@ -28,10 +28,8 @@ class CourseViews:
     )
     def get_organization_courses(self) -> APICourses:
         org = get_request_organization(self.request, self.organization_service)
-        courses = self.course_service.search(
-            limit=None,
-            organization_ids=[org.id],
-            h_userid=self.request.user.h_userid if self.request.user else None,
+        courses = self.course_service.get_organization_courses(
+            org, h_userid=self.request.user.h_userid if self.request.user else None
         )
         return {
             "courses": [
