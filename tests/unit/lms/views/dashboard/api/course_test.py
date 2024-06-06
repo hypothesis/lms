@@ -27,7 +27,7 @@ class TestCourseViews:
         course_service.search.assert_called_once_with(
             limit=None,
             organization_ids=[org.id],
-            user=pyramid_request.user,
+            h_userid=pyramid_request.user.h_userid,
         )
 
         assert response == {
