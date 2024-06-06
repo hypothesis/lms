@@ -1,4 +1,4 @@
-import datetime
+from datetime import date, datetime
 from unittest.mock import patch, sentinel
 
 import pytest
@@ -219,7 +219,7 @@ class TestCourseService:
         db_session.add(
             CourseGroupsExportedFromH(
                 authority_provided_id=grouping_service.get_authority_provided_id.return_value,
-                created=datetime.datetime.utcnow(),
+                created=datetime.utcnow(),
             )
         )
         application_instance.settings = ApplicationSettings({})
@@ -337,6 +337,25 @@ class TestCourseService:
 
         assert svc.is_member(course, user)
         assert not svc.is_member(course, other_user)
+
+    def test_get_assignments(self, db_session, svc):
+        course = factories.Course()
+        other_course = factories.Course()
+
+        assignment = factories.Assignment()
+
+        # other course only has an assigment that `course` has stolen
+        factories.AssignmentGrouping(
+            grouping=other_course, assignment=assignment, updated=date(2020, 1, 1)
+        )
+        factories.AssignmentGrouping(
+            grouping=course, assignment=assignment, updated=date(2022, 1, 1)
+        )
+        db_session.flush()
+
+        assert svc.get_assignments(course) == [assignment]
+        # While we don't expect to get the other one at all, now the assigment belons to the most recent course
+        assert not svc.get_assignments(other_course)
 
     @pytest.fixture
     def course(self, application_instance, grouping_service):

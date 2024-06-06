@@ -59,10 +59,11 @@ class TestCourseViews:
         assignment = factories.Assignment()
         assignment_with_no_annos = factories.Assignment()
 
-        factories.AssignmentGrouping(assignment=assignment, grouping=course)
-        factories.AssignmentGrouping(
-            assignment=assignment_with_no_annos, grouping=course
-        )
+        course_service.get_assignments.return_value = [
+            assignment,
+            assignment_with_no_annos,
+        ]
+
         db_session.flush()
 
         stats = [

@@ -187,8 +187,8 @@ class GroupSet(TypedDict):
 class Course(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.COURSE}
 
-    assignments: Mapped[list["Assignment"]] = sa.orm.relationship(
-        "Assignment", secondary="assignment_grouping", viewonly=True
+    _assignments: Mapped[list["Assignment"]] = sa.orm.relationship(
+        secondary="assignment_grouping", viewonly=True
     )
     """Assignments that belong to this course."""
 

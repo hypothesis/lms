@@ -70,7 +70,7 @@ class CourseViews:
 
         # Same course for all these assignments
         api_course = APICourse(id=course.id, title=course.lms_name)
-        for assignment in course.assignments:
+        for assignment in self.course_service.get_assignments(course):
             if h_stats := stats_by_assignment.get(assignment.resource_link_id):
                 stats = AssignmentStats(
                     annotations=h_stats["annotations"],

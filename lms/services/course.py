@@ -1,11 +1,13 @@
 import json
 from copy import deepcopy
 
-from sqlalchemy import Text, column, func
+from sqlalchemy import Text, column, func, select
 
 from lms.db import full_text_match
 from lms.models import (
     ApplicationInstance,
+    Assignment,
+    AssignmentGrouping,
     Course,
     CourseGroupsExportedFromH,
     Grouping,
@@ -211,6 +213,44 @@ class CourseService:
     def is_member(self, course: Course, user: User) -> bool:
         """Check if a user is a member of a course."""
         return bool(course.memberships.filter_by(user=user).first())
+
+    def get_assignments(self, course: Course) -> list[Assignment]:
+        """
+        Get a list of assignments that belong to `course`.
+
+        Use course.assignments to get the full view of the data, this method deduplicates assignments.
+        """
+        # Get all assignment IDs we recorded from this course
+        raw_course_assignemnts = select(AssignmentGrouping.assignment_id).where(
+            AssignmentGrouping.grouping_id == course.id
+        )
+
+        # Get a list of deduplicated assignments based on raw_course_assignments,
+        # this will contain assignments that belong (now) to other courses
+        deduplicated_course_assignments = (
+            select(AssignmentGrouping.assignment_id, AssignmentGrouping.grouping_id)
+            .distinct(AssignmentGrouping.assignment_id)
+            .join(Grouping)
+            .where(
+                # Only look at courses, otherwise courses and sections will deduplicate each other
+                Grouping.type == "course",
+                # Use the previous query to look only at the potential candidates
+                AssignmentGrouping.assignment_id.in_(raw_course_assignemnts),
+            )
+            # Deduplicate them based on the updated column, take the last one (together with the distinct clause)
+            .order_by(
+                AssignmentGrouping.assignment_id, AssignmentGrouping.updated.desc()
+            )
+        ).subquery()
+
+        # Put everything together and get the assignments
+        assignments_query = select(Assignment).where(
+            # Get only assignment from the candidates above
+            Assignment.id == deduplicated_course_assignments.c.assignment_id,
+            # Only those that belong to the course we are interested in
+            deduplicated_course_assignments.c.grouping_id == course.id,
+        )
+        return self._db.scalars(assignments_query).all()
 
     def _get_authority_provided_id(self, context_id):
         return self._grouping_service.get_authority_provided_id(
