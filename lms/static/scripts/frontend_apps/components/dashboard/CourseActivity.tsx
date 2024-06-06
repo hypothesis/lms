@@ -95,7 +95,9 @@ export default function CourseActivity() {
                   href={urlPath`/assignments/${String(stats.id)}`}
                   asChild
                 >
-                  <Link>{stats.title}</Link>
+                  <Link underline="always" variant="text">
+                    {stats.title}
+                  </Link>
                 </RouterLink>
               );
             }
@@ -105,6 +107,7 @@ export default function CourseActivity() {
               formatDateTime(new Date(stats.last_activity))
             );
           }}
+          navigateTo={stats => urlPath`/assignments/${String(stats.id)}`}
         />
       </CardContent>
     </Card>

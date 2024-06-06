@@ -45,9 +45,12 @@ export default function OrganizationActivity({
           defaultOrderField="title"
           renderItem={stats => (
             <RouterLink href={urlPath`/courses/${String(stats.id)}`} asChild>
-              <Link>{stats.title}</Link>
+              <Link underline="always" variant="text">
+                {stats.title}
+              </Link>
             </RouterLink>
           )}
+          navigateTo={stats => urlPath`/courses/${String(stats.id)}`}
         />
       </CardContent>
     </Card>

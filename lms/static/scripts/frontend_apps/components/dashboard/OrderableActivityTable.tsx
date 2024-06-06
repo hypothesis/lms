@@ -3,6 +3,7 @@ import { DataTable } from '@hypothesis/frontend-shared';
 import { useOrderedRows } from '@hypothesis/frontend-shared';
 import type { OrderDirection } from '@hypothesis/frontend-shared/lib/types';
 import { useMemo, useState } from 'preact/hooks';
+import { useLocation } from 'wouter-preact';
 
 export type OrderableActivityTableProps<T> = Pick<
   DataTableProps<T>,
@@ -10,6 +11,12 @@ export type OrderableActivityTableProps<T> = Pick<
 > & {
   columnNames: Partial<Record<keyof T, string>>;
   defaultOrderField: keyof T;
+
+  /**
+   * Allows to define a URL to navigate to when a row is clicked or confirmed
+   * via Enter key.
+   */
+  navigateTo?: (row: T) => string;
 };
 
 /**
@@ -34,6 +41,7 @@ export default function OrderableActivityTable<T>({
   defaultOrderField,
   rows,
   columnNames,
+  navigateTo,
   ...restOfTableProps
 }: OrderableActivityTableProps<T>) {
   const [order, setOrder] = useState<Order<keyof T>>({
@@ -65,6 +73,7 @@ export default function OrderableActivityTable<T>({
       }, {}),
     [columnNames],
   );
+  const [, navigate] = useLocation();
 
   return (
     <DataTable
@@ -75,6 +84,8 @@ export default function OrderableActivityTable<T>({
       orderableColumns={orderableColumns}
       order={order}
       onOrderChange={setOrder}
+      onConfirmRow={navigateTo ? row => navigate(navigateTo(row)) : undefined}
+      onSelectRow={navigateTo ? row => navigate(navigateTo(row)) : undefined}
       {...restOfTableProps}
     />
   );
