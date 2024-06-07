@@ -186,6 +186,18 @@ describe('CourseActivity', () => {
     });
   });
 
+  [12, 35, 1, 500].forEach(id => {
+    it('builds expected href for row confirmation', () => {
+      const wrapper = createComponent();
+      const href = wrapper
+        .find('OrderableActivityTable')
+        .props()
+        .navigateOnConfirmRow({ id });
+
+      assert.equal(href, `/assignments/${id}`);
+    });
+  });
+
   it(
     'should pass a11y checks',
     checkAccessibility({

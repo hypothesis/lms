@@ -16,6 +16,8 @@ export type OrganizationActivityProps = {
   organizationPublicId: string;
 };
 
+const courseURL = (id: number) => urlPath`/courses/${String(id)}`;
+
 /**
  * List of courses that belong to a specific organization
  */
@@ -44,12 +46,13 @@ export default function OrganizationActivity({
           columnNames={{ title: 'Course Title' }}
           defaultOrderField="title"
           renderItem={stats => (
-            <RouterLink href={urlPath`/courses/${String(stats.id)}`} asChild>
+            <RouterLink href={courseURL(stats.id)} asChild>
               <Link underline="always" variant="text">
                 {stats.title}
               </Link>
             </RouterLink>
           )}
+          navigateOnConfirmRow={stats => courseURL(stats.id)}
         />
       </CardContent>
     </Card>
