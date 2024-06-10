@@ -44,13 +44,14 @@ class AssignmentViews:
         # Organize the H stats by userid for quick access
         stats_by_user = {s["userid"]: s for s in stats}
         student_stats: list[APIStudentStats] = []
+        anonymous_users_count = 0
 
         # Iterate over all the students we have in the DB
         for user in self.assignment_service.get_members(
             assignment, role_scope=RoleScope.COURSE, role_type=RoleType.LEARNER
         ):
             if s := stats_by_user.get(user.h_userid):
-                # We seen this student in H, get all the data from there
+                # We've seen this student in H, get all the data from there
                 student_stats.append(
                     {
                         "display_name": s["display_name"],
@@ -59,17 +60,21 @@ class AssignmentViews:
                         "last_activity": s["last_activity"],
                     }
                 )
-            else:
-                # We haven't seen this user H,
-                # use LMS DB's data and set 0s for all annotation related fields.
+            elif user.display_name:
+                # We haven't seen this user in H,
+                # use LMS DB's name and set 0s for all annotation related fields.
                 student_stats.append(
                     {
-                        "display_name": user.display_name
-                        or f"Student {user.user_id[:10]}",
+                        "display_name": user.display_name,
                         "annotations": 0,
                         "last_activity": None,
                         "replies": 0,
                     }
                 )
+            else:
+                anonymous_users_count += 1
 
-        return {"students": student_stats}
+        return {
+            "students": student_stats,
+            "anonymous_users_count": anonymous_users_count,
+        }

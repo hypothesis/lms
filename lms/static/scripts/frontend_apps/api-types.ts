@@ -186,6 +186,7 @@ export type StudentStats = BaseDashboardStats & {
 
 export type StudentsResponse = {
   students: StudentStats[];
+  anonymous_users_count: number;
 };
 
 /**

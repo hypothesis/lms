@@ -30,6 +30,8 @@ class APIStudentStats(TypedDict):
 
 class APIStudents(TypedDict):
     students: list[APIStudentStats]
+    anonymous_users_count: int
+    """Users without a display name, who launched the assignment but didn't annotate"""
 
 
 class AssignmentStats(TypedDict):
