@@ -1,7 +1,7 @@
 """Create the usage_report table.
 
 Revision ID: 73f0011260e4
-Revises: 329313b38de1
+Revises: b512a5cf64ed
 """
 
 import sqlalchemy as sa
@@ -9,7 +9,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision = "73f0011260e4"
-down_revision = "329313b38de1"
+down_revision = "b512a5cf64ed"
 
 
 def upgrade() -> None:
