@@ -26,6 +26,8 @@ class APIStudentStats(TypedDict):
     annotations: int
     replies: int
     last_activity: str | None
+    has_h_account: bool
+    """Indicates this user has annotated at least once, and therefore, has an associated H account"""
 
 
 class APIStudents(TypedDict):

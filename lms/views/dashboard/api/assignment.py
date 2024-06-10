@@ -50,17 +50,18 @@ class AssignmentViews:
             assignment, role_scope=RoleScope.COURSE, role_type=RoleType.LEARNER
         ):
             if s := stats_by_user.get(user.h_userid):
-                # We seen this student in H, get all the data from there
+                # We've seen this student in H, get all the data from there
                 student_stats.append(
                     {
                         "display_name": s["display_name"],
                         "annotations": s["annotations"],
                         "replies": s["replies"],
                         "last_activity": s["last_activity"],
+                        "has_h_account": True,
                     }
                 )
             else:
-                # We haven't seen this user H,
+                # We haven't seen this user in H,
                 # use LMS DB's data and set 0s for all annotation related fields.
                 student_stats.append(
                     {
@@ -69,6 +70,7 @@ class AssignmentViews:
                         "annotations": 0,
                         "last_activity": None,
                         "replies": 0,
+                        "has_h_account": False,
                     }
                 )
 
