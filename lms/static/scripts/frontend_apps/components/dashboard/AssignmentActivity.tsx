@@ -9,12 +9,54 @@ import { useMemo } from 'preact/hooks';
 import { useParams } from 'wouter-preact';
 
 import type { Assignment, StudentsResponse } from '../../api-types';
+import type { ConfigObject } from '../../config';
 import { useConfig } from '../../config';
-import { urlPath, useAPIFetch } from '../../utils/api';
+import { apiCall, urlPath } from '../../utils/api';
 import { formatDateTime } from '../../utils/date';
+import { useFetch } from '../../utils/fetch';
 import { replaceURLParams } from '../../utils/url';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import OrderableActivityTable from './OrderableActivityTable';
+
+export function loader({
+  config: { dashboard, api },
+  params: { assignmentId },
+  signal,
+}: {
+  config: ConfigObject;
+  params: Record<string, string>;
+  signal?: AbortSignal;
+}) {
+  if (!dashboard || !api) {
+    throw new Error('Missing config!'); // TODO Handle this
+  }
+
+  const { routes } = dashboard;
+  const { authToken } = api;
+
+  return Promise.all([
+    apiCall<Assignment>({
+      path: replaceURLParams(routes.assignment, {
+        assignment_id: assignmentId,
+      }),
+      authToken,
+      signal,
+    }),
+    apiCall<StudentsResponse>({
+      path: replaceURLParams(routes.assignment_stats, {
+        assignment_id: assignmentId,
+      }),
+      authToken,
+      signal,
+    }),
+  ]).then(([assignment, students]) => ({ assignment, students }));
+}
+
+export type AssignmentActivityLoadResult = Awaited<ReturnType<typeof loader>>;
+
+export type AssignmentActivityProps = {
+  loadResult?: AssignmentActivityLoadResult;
+};
 
 type StudentsTableRow = {
   id: string;
@@ -27,28 +69,34 @@ type StudentsTableRow = {
 /**
  * Activity in a list of students that are part of a specific assignment
  */
-export default function AssignmentActivity() {
-  const { dashboard } = useConfig(['dashboard']);
-  const { routes } = dashboard;
-  const { assignmentId } = useParams<{ assignmentId: string }>();
-  const assignment = useAPIFetch<Assignment>(
-    replaceURLParams(routes.assignment, { assignment_id: assignmentId }),
-  );
-  const students = useAPIFetch<StudentsResponse>(
-    replaceURLParams(routes.assignment_stats, { assignment_id: assignmentId }),
+export default function AssignmentActivity({
+  loadResult,
+}: AssignmentActivityProps) {
+  const config = useConfig(['dashboard', 'api']);
+  const params = useParams<{ assignmentId: string }>();
+
+  const loaderResult = useFetch<AssignmentActivityLoadResult>(
+    'assignment',
+    async signal => {
+      if (loadResult) {
+        return loadResult;
+      }
+
+      return loader({ config, params, signal });
+    },
   );
 
-  const title = `Assignment: ${assignment.data?.title}`;
+  const title = `Assignment: ${loaderResult.data?.assignment.title}`;
   const rows: StudentsTableRow[] = useMemo(
     () =>
-      (students.data?.students ?? []).map(
+      (loaderResult.data?.students.students ?? []).map(
         ({ id, display_name, annotation_metrics }) => ({
           id,
           display_name,
           ...annotation_metrics,
         }),
       ),
-    [students.data],
+    [loaderResult.data],
   );
 
   return (
@@ -60,30 +108,30 @@ export default function AssignmentActivity() {
           'flex-col !gap-x-0 !items-start',
         )}
       >
-        {assignment.data && (
+        {loaderResult.data && (
           <div className="mb-3 mt-1 w-full">
             <DashboardBreadcrumbs
               links={[
                 {
-                  title: assignment.data.course.title,
-                  href: urlPath`/courses/${String(assignment.data.course.id)}`,
+                  title: loaderResult.data.assignment.course.title,
+                  href: urlPath`/courses/${String(loaderResult.data.assignment.course.id)}`,
                 },
               ]}
             />
           </div>
         )}
         <CardTitle tagName="h2" data-testid="title">
-          {assignment.isLoading && 'Loading...'}
-          {assignment.error && 'Could not load assignment title'}
-          {assignment.data && title}
+          {loaderResult.isLoading && 'Loading...'}
+          {loaderResult.error && 'Could not load assignment title'}
+          {loaderResult.data && title}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <OrderableActivityTable
-          loading={students.isLoading}
-          title={assignment.isLoading ? 'Loading...' : title}
+          loading={loaderResult.isLoading}
+          title={loaderResult.isLoading ? 'Loading...' : title}
           emptyMessage={
-            students.error ? 'Could not load students' : 'No students found'
+            loaderResult.error ? 'Could not load students' : 'No students found'
           }
           rows={rows}
           columnNames={{

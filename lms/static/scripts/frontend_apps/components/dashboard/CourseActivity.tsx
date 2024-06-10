@@ -17,6 +17,10 @@ import { replaceURLParams } from '../../utils/url';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import OrderableActivityTable from './OrderableActivityTable';
 
+export function loader() {
+  return undefined;
+}
+
 type AssignmentsTableRow = {
   id: number;
   title: string;

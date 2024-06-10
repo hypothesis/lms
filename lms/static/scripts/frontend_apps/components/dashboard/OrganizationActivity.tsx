@@ -12,6 +12,10 @@ import { urlPath, useAPIFetch } from '../../utils/api';
 import { replaceURLParams } from '../../utils/url';
 import OrderableActivityTable from './OrderableActivityTable';
 
+export function loader() {
+  return undefined;
+}
+
 export type OrganizationActivityProps = {
   organizationPublicId: string;
 };
