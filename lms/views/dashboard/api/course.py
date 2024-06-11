@@ -6,6 +6,7 @@ from lms.js_config_types import (
     APIAssignments,
     APICourse,
     APICourses,
+    CourseMetrics,
 )
 from lms.security import Permissions
 from lms.services.h_api import HAPI
@@ -31,9 +32,21 @@ class CourseViews:
         courses = self.course_service.get_organization_courses(
             org, h_userid=self.request.user.h_userid if self.request.user else None
         )
+        courses_assignment_counts = self.course_service.get_courses_assignments_count(
+            courses
+        )
+
         return {
             "courses": [
-                APICourse(id=course.id, title=course.lms_name) for course in courses
+                APICourse(
+                    id=course.id,
+                    title=course.lms_name,
+                    course_metrics=CourseMetrics(
+                        assignments=courses_assignment_counts.get(course.id, 0),
+                        last_launched=course.updated.isoformat(),
+                    ),
+                )
+                for course in courses
             ]
         }
 
