@@ -130,6 +130,10 @@ score = "no"
 [tool.ruff]
 target-version = "py311"
 line-length = 88
+exclude = [
+    "tests/bdd/steps/_compiled_feature_steps.py",
+]
+
 
 [tool.ruff.lint]
 select = [
