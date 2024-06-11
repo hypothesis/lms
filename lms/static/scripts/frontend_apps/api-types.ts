@@ -147,7 +147,7 @@ export type YouTubeVideoInfo = {
  * Dashboard-related API types
  */
 
-export type BaseDashboardStats = {
+export type AnnotationMetrics = {
   last_activity: string | null;
   annotations: number;
   replies: number;
@@ -180,8 +180,10 @@ export type Assignment = {
 /**
  * Response for `/api/dashboard/assignments/{assignment_id}/stats` call.
  */
-export type StudentStats = BaseDashboardStats & {
-  display_name: string;
+export type StudentStats = {
+  id: string;
+  display_name: string | null;
+  annotation_metrics: AnnotationMetrics;
 };
 
 export type StudentsResponse = {
@@ -192,7 +194,7 @@ export type StudentsResponse = {
  * Response for `/api/dashboard/courses/{course_id}/assignments/stats` call.
  */
 export type AssignmentStats = Assignment & {
-  stats: BaseDashboardStats;
+  annotation_metrics: AnnotationMetrics;
 };
 
 export type AssignmentsResponse = {
