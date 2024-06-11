@@ -378,8 +378,27 @@ class TestCourseService:
         db_session.flush()
 
         assert svc.get_assignments(course) == [assignment]
-        # While we don't expect to get the other one at all, now the assigment belons to the most recent course
+        # While we don't expect to get the other one at all, now the assignment belongs to the most recent course
         assert not svc.get_assignments(other_course)
+
+    def test_get_courses_assignments_count(self, svc, db_session):
+        course = factories.Course()
+        other_course = factories.Course()
+
+        assignment = factories.Assignment()
+
+        # other course only has an assignment that `course` has stolen
+        factories.AssignmentGrouping(
+            grouping=other_course, assignment=assignment, updated=date(2020, 1, 1)
+        )
+        factories.AssignmentGrouping(
+            grouping=course, assignment=assignment, updated=date(2022, 1, 1)
+        )
+        db_session.flush()
+
+        assert svc.get_courses_assignments_count([course, other_course]) == {
+            course.id: 1
+        }
 
     @pytest.fixture
     def course(self, application_instance, grouping_service):

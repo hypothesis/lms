@@ -13,6 +13,11 @@ class AnnotationMetrics(TypedDict):
     last_activity: str | None
 
 
+class CourseMetrics(TypedDict):
+    assignments: int
+    last_launched: str | None
+
+
 class APICallInfo(TypedDict):
     path: str
     authUrl: NotRequired[str]
@@ -21,6 +26,8 @@ class APICallInfo(TypedDict):
 class APICourse(TypedDict):
     id: int
     title: str
+
+    course_metrics: NotRequired[CourseMetrics]
 
 
 class APIStudent(TypedDict):

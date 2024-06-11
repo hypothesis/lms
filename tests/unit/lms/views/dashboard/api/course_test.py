@@ -28,9 +28,22 @@ class TestCourseViews:
             organization=org,
             h_userid=pyramid_request.user.h_userid,
         )
+        course_service.get_courses_assignments_count.assert_called_once_with(
+            course_service.get_organization_courses.return_value
+        )
 
         assert response == {
-            "courses": [{"id": c.id, "title": c.lms_name} for c in courses]
+            "courses": [
+                {
+                    "id": c.id,
+                    "title": c.lms_name,
+                    "course_metrics": {
+                        "assignments": course_service.get_courses_assignments_count.return_value.get.return_value,
+                        "last_launched": c.updated.isoformat(),
+                    },
+                }
+                for c in courses
+            ]
         }
 
     def test_course(self, views, pyramid_request, course_service):
