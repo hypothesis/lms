@@ -91,7 +91,7 @@ class TestCourseViews:
                         "id": course.id,
                         "title": course.lms_name,
                     },
-                    "stats": {
+                    "annotation_metrics": {
                         "annotations": sentinel.annotations,
                         "replies": sentinel.replies,
                         "last_activity": sentinel.last_activity,
@@ -104,7 +104,7 @@ class TestCourseViews:
                         "id": course.id,
                         "title": course.lms_name,
                     },
-                    "stats": {
+                    "annotation_metrics": {
                         "annotations": 0,
                         "replies": 0,
                         "last_activity": None,
