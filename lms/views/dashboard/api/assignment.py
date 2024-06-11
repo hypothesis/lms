@@ -1,6 +1,12 @@
 from pyramid.view import view_config
 
-from lms.js_config_types import APIAssignment, APICourse, APIStudents, APIStudentStats
+from lms.js_config_types import (
+    AnnotationMetrics,
+    APIAssignment,
+    APICourse,
+    APIStudent,
+    APIStudents,
+)
 from lms.models import RoleScope, RoleType
 from lms.security import Permissions
 from lms.services.h_api import HAPI
@@ -43,7 +49,7 @@ class AssignmentViews:
 
         # Organize the H stats by userid for quick access
         stats_by_user = {s["userid"]: s for s in stats}
-        student_stats: list[APIStudentStats] = []
+        students: list[APIStudent] = []
 
         # Iterate over all the students we have in the DB
         for user in self.assignment_service.get_members(
@@ -51,25 +57,28 @@ class AssignmentViews:
         ):
             if s := stats_by_user.get(user.h_userid):
                 # We seen this student in H, get all the data from there
-                student_stats.append(
-                    {
-                        "display_name": s["display_name"],
-                        "annotations": s["annotations"],
-                        "replies": s["replies"],
-                        "last_activity": s["last_activity"],
-                    }
+                students.append(
+                    APIStudent(
+                        id=user.user_id,
+                        display_name=s["display_name"],
+                        annotation_metrics=AnnotationMetrics(
+                            annotations=s["annotations"],
+                            replies=s["replies"],
+                            last_activity=s["last_activity"],
+                        ),
+                    )
                 )
             else:
                 # We haven't seen this user H,
                 # use LMS DB's data and set 0s for all annotation related fields.
-                student_stats.append(
-                    {
-                        "display_name": user.display_name
-                        or f"Student {user.user_id[:10]}",
-                        "annotations": 0,
-                        "last_activity": None,
-                        "replies": 0,
-                    }
+                students.append(
+                    APIStudent(
+                        id=user.user_id,
+                        display_name=user.display_name,
+                        annotation_metrics=AnnotationMetrics(
+                            annotations=0, replies=0, last_activity=None
+                        ),
+                    )
                 )
 
-        return {"students": student_stats}
+        return {"students": students}

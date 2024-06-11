@@ -1,11 +1,11 @@
 from pyramid.view import view_config
 
 from lms.js_config_types import (
+    AnnotationMetrics,
     APIAssignment,
     APIAssignments,
     APICourse,
     APICourses,
-    AssignmentStats,
 )
 from lms.security import Permissions
 from lms.services.h_api import HAPI
@@ -66,28 +66,30 @@ class CourseViews:
         )
         # Organize the H stats by assignment ID for quick access
         stats_by_assignment = {s["assignment_id"]: s for s in stats}
-        assignment_stats: list[APIAssignment] = []
+        assignments: list[APIAssignment] = []
 
         # Same course for all these assignments
         api_course = APICourse(id=course.id, title=course.lms_name)
         for assignment in self.course_service.get_assignments(course):
             if h_stats := stats_by_assignment.get(assignment.resource_link_id):
-                stats = AssignmentStats(
+                metrics = AnnotationMetrics(
                     annotations=h_stats["annotations"],
                     replies=h_stats["replies"],
                     last_activity=h_stats["last_activity"],
                 )
             else:
                 # Assignment with no annos, zeroing the stats
-                stats = AssignmentStats(annotations=0, replies=0, last_activity=None)
+                metrics = AnnotationMetrics(
+                    annotations=0, replies=0, last_activity=None
+                )
 
-            assignment_stats.append(
+            assignments.append(
                 APIAssignment(
                     id=assignment.id,
                     title=assignment.title,
                     course=api_course,
-                    stats=stats,
+                    annotation_metrics=metrics,
                 )
             )
 
-        return {"assignments": assignment_stats}
+        return {"assignments": assignments}
