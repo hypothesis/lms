@@ -19,7 +19,7 @@
     "package_name": "lms",
     "slug": "lms",
     "short_description": "An app for integrating Hypothesis with Learning Management Systems (LMS's).",
-    "python_version": "3.11.7",
+    "python_version": "3.11.9",
     "port": "8001",
     "github_owner": "hypothesis",
     "visibility": "public",
