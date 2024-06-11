@@ -7,17 +7,33 @@ import {
 import { Link as RouterLink } from 'wouter-preact';
 
 import type { CoursesResponse } from '../../api-types';
-import { useConfig } from '../../config';
-import { urlPath, useAPIFetch } from '../../utils/api';
+import { apiCall, urlPath } from '../../utils/api';
 import { replaceURLParams } from '../../utils/url';
+import type { LoaderOptions } from '../ComponentWithLoaderWrapper';
 import OrderableActivityTable from './OrderableActivityTable';
 
-export function loader() {
-  return undefined;
+export function loader({
+  config: { dashboard, api },
+  params: { organizationId },
+  signal,
+}: LoaderOptions) {
+  const { routes } = dashboard;
+  const { authToken } = api;
+
+  return apiCall<CoursesResponse>({
+    path: replaceURLParams(routes.organization_courses, {
+      organization_public_id: organizationId,
+    }),
+    authToken,
+    signal,
+  });
 }
 
+export type OrganizationActivityLoadResult = Awaited<ReturnType<typeof loader>>;
+
 export type OrganizationActivityProps = {
-  organizationPublicId: string;
+  loaderResult: OrganizationActivityLoadResult;
+  params: { organizationId: string };
 };
 
 const courseURL = (id: number) => urlPath`/courses/${String(id)}`;
@@ -26,27 +42,16 @@ const courseURL = (id: number) => urlPath`/courses/${String(id)}`;
  * List of courses that belong to a specific organization
  */
 export default function OrganizationActivity({
-  organizationPublicId,
+  loaderResult,
 }: OrganizationActivityProps) {
-  const { dashboard } = useConfig(['dashboard']);
-  const { routes } = dashboard;
-  const courses = useAPIFetch<CoursesResponse>(
-    replaceURLParams(routes.organization_courses, {
-      organization_public_id: organizationPublicId,
-    }),
-  );
-
   return (
     <Card>
       <CardHeader title="Home" fullWidth />
       <CardContent>
         <OrderableActivityTable
-          loading={courses.isLoading}
           title="Courses"
-          emptyMessage={
-            courses.error ? 'Could not load courses' : 'No courses found'
-          }
-          rows={courses.data?.courses ?? []}
+          emptyMessage="No courses found"
+          rows={loaderResult.courses}
           columnNames={{ title: 'Course Title' }}
           defaultOrderField="title"
           renderItem={stats => (

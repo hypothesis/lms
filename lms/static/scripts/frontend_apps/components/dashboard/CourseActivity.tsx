@@ -7,19 +7,45 @@ import {
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useMemo } from 'preact/hooks';
-import { useParams, Link as RouterLink } from 'wouter-preact';
+import { Link as RouterLink } from 'wouter-preact';
 
 import type { AssignmentsResponse, Course } from '../../api-types';
-import { useConfig } from '../../config';
-import { urlPath, useAPIFetch } from '../../utils/api';
+import { apiCall, urlPath } from '../../utils/api';
 import { formatDateTime } from '../../utils/date';
 import { replaceURLParams } from '../../utils/url';
+import type { LoaderOptions } from '../ComponentWithLoaderWrapper';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import OrderableActivityTable from './OrderableActivityTable';
 
-export function loader() {
-  return undefined;
+export function loader({
+  config: { dashboard, api },
+  params: { courseId },
+  signal,
+}: LoaderOptions) {
+  const { routes } = dashboard;
+  const { authToken } = api;
+
+  return Promise.all([
+    apiCall<Course>({
+      path: replaceURLParams(routes.course, { course_id: courseId }),
+      authToken,
+      signal,
+    }),
+    apiCall<AssignmentsResponse>({
+      path: replaceURLParams(routes.course_assignment_stats, {
+        course_id: courseId,
+      }),
+      authToken,
+      signal,
+    }),
+  ]).then(([course, assignments]) => ({ course, assignments }));
 }
+
+export type CourseActivityLoadResult = Awaited<ReturnType<typeof loader>>;
+
+export type CourseActivityProps = {
+  loaderResult: CourseActivityLoadResult;
+};
 
 type AssignmentsTableRow = {
   id: number;
@@ -34,29 +60,17 @@ const assignmentURL = (id: number) => urlPath`/assignments/${String(id)}`;
 /**
  * Activity in a list of assignments that are part of a specific course
  */
-export default function CourseActivity() {
-  const { courseId } = useParams<{ courseId: string }>();
-  const { dashboard } = useConfig(['dashboard']);
-  const { routes } = dashboard;
-  const course = useAPIFetch<Course>(
-    replaceURLParams(routes.course, { course_id: courseId }),
-  );
-  const assignments = useAPIFetch<AssignmentsResponse>(
-    replaceURLParams(routes.course_assignment_stats, {
-      course_id: courseId,
-    }),
-  );
-
+export default function CourseActivity({ loaderResult }: CourseActivityProps) {
   const rows: AssignmentsTableRow[] = useMemo(
     () =>
-      (assignments.data?.assignments ?? []).map(
+      loaderResult.assignments.assignments.map(
         ({ id, title, annotation_metrics }) => ({
           id,
           title,
           ...annotation_metrics,
         }),
       ),
-    [assignments.data],
+    [loaderResult.assignments.assignments],
   );
 
   return (
@@ -72,20 +86,13 @@ export default function CourseActivity() {
           <DashboardBreadcrumbs />
         </div>
         <CardTitle tagName="h2" data-testid="title">
-          {course.isLoading && 'Loading...'}
-          {course.error && 'Could not load course title'}
-          {course.data && course.data.title}
+          {loaderResult.course.title}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <OrderableActivityTable
-          loading={assignments.isLoading}
-          title={course.data?.title ?? 'Loading...'}
-          emptyMessage={
-            assignments.error
-              ? 'Could not load assignments'
-              : 'No assignments found'
-          }
+          title={loaderResult.course.title}
+          emptyMessage="No assignments found"
           rows={rows}
           columnNames={{
             title: 'Assignment',
