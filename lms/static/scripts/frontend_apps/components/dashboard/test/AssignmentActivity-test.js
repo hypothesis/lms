@@ -13,21 +13,27 @@ describe('AssignmentActivity', () => {
   const students = [
     {
       display_name: 'b',
-      last_activity: '2020-01-01T00:00:00',
-      annotations: 8,
-      replies: 0,
+      annotation_metrics: {
+        last_activity: '2020-01-01T00:00:00',
+        annotations: 8,
+        replies: 0,
+      },
     },
     {
       display_name: 'a',
-      last_activity: '2020-01-02T00:00:00',
-      annotations: 3,
-      replies: 20,
+      annotation_metrics: {
+        last_activity: '2020-01-02T00:00:00',
+        annotations: 3,
+        replies: 20,
+      },
     },
     {
       display_name: 'c',
-      last_activity: '2020-01-02T00:00:00',
-      annotations: 5,
-      replies: 100,
+      annotation_metrics: {
+        last_activity: '2020-01-02T00:00:00',
+        annotations: 5,
+        replies: 100,
+      },
     },
   ];
 
@@ -140,6 +146,26 @@ describe('AssignmentActivity', () => {
 
       assert.equal(value, expectedValue);
     });
+  });
+
+  it('renders fallback for students without display_name', () => {
+    const student = {
+      id: 'e4ca30ee27eda1169d00b83f2a86e3494ffd9b12',
+      display_name: null,
+      annotation_metrics: {
+        last_activity: null,
+        annotations: 0,
+        replies: 0,
+      },
+    };
+    const wrapper = createComponent();
+
+    const item = wrapper
+      .find('OrderableActivityTable')
+      .props()
+      .renderItem(student, 'display_name');
+
+    assert.equal(item, 'Student e4ca30ee27');
   });
 
   it(

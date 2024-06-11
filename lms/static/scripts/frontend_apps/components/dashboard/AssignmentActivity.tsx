@@ -5,6 +5,7 @@ import {
   CardTitle,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
+import { useMemo } from 'preact/hooks';
 import { useParams } from 'wouter-preact';
 
 import type { Assignment, StudentsResponse } from '../../api-types';
@@ -14,6 +15,14 @@ import { formatDateTime } from '../../utils/date';
 import { replaceURLParams } from '../../utils/url';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import OrderableActivityTable from './OrderableActivityTable';
+
+type StudentsTableRow = {
+  id: string;
+  display_name: string | null;
+  last_activity: string | null;
+  annotations: number;
+  replies: number;
+};
 
 /**
  * Activity in a list of students that are part of a specific assignment
@@ -30,6 +39,17 @@ export default function AssignmentActivity() {
   );
 
   const title = `Assignment: ${assignment.data?.title}`;
+  const rows: StudentsTableRow[] = useMemo(
+    () =>
+      (students.data?.students ?? []).map(
+        ({ id, display_name, annotation_metrics }) => ({
+          id,
+          display_name,
+          ...annotation_metrics,
+        }),
+      ),
+    [students.data],
+  );
 
   return (
     <Card>
@@ -65,7 +85,7 @@ export default function AssignmentActivity() {
           emptyMessage={
             students.error ? 'Could not load students' : 'No students found'
           }
-          rows={students.data?.students ?? []}
+          rows={rows}
           columnNames={{
             display_name: 'Student',
             annotations: 'Annotations',
@@ -80,7 +100,7 @@ export default function AssignmentActivity() {
 
             return field === 'last_activity' && stats.last_activity
               ? formatDateTime(new Date(stats.last_activity))
-              : stats[field];
+              : stats[field] ?? `Student ${stats.id.substring(0, 10)}`;
           }}
         />
       </CardContent>

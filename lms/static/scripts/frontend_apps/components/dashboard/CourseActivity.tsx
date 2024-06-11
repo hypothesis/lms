@@ -43,11 +43,13 @@ export default function CourseActivity() {
 
   const rows: AssignmentsTableRow[] = useMemo(
     () =>
-      (assignments.data?.assignments ?? []).map(({ id, title, stats }) => ({
-        id,
-        title,
-        ...stats,
-      })),
+      (assignments.data?.assignments ?? []).map(
+        ({ id, title, annotation_metrics }) => ({
+          id,
+          title,
+          ...annotation_metrics,
+        }),
+      ),
     [assignments.data],
   );
 

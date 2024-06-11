@@ -14,7 +14,7 @@ describe('CourseActivity', () => {
     {
       id: 2,
       title: 'b',
-      stats: {
+      annotation_metrics: {
         last_activity: '2020-01-01T00:00:00',
         annotations: 8,
         replies: 0,
@@ -23,7 +23,7 @@ describe('CourseActivity', () => {
     {
       id: 1,
       title: 'a',
-      stats: {
+      annotation_metrics: {
         last_activity: '2020-01-02T00:00:00',
         annotations: 3,
         replies: 20,
@@ -32,7 +32,7 @@ describe('CourseActivity', () => {
     {
       id: 3,
       title: 'c',
-      stats: {
+      annotation_metrics: {
         last_activity: '2020-01-02T00:00:00',
         annotations: 5,
         replies: 100,
