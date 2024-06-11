@@ -28,7 +28,7 @@ class TestAssignmentViews:
 
     def test_assignment_stats(self, views, pyramid_request, assignment_service, h_api):
         # User returned by the stats endpoint
-        student = factories.User()
+        student = factories.User(display_name="Bart")
         # User with no annotations
         student_no_annos = factories.User(display_name="Homer")
         # User with no annotations and no name
@@ -68,28 +68,38 @@ class TestAssignmentViews:
             [g.authority_provided_id for g in assignment.groupings],
             assignment.resource_link_id,
         )
-        assert response == {
+        expected = {
             "students": [
                 {
+                    "id": student.user_id,
                     "display_name": student.display_name,
-                    "annotations": sentinel.annotations,
-                    "replies": sentinel.replies,
-                    "last_activity": sentinel.last_activity,
+                    "annotation_metrics": {
+                        "annotations": sentinel.annotations,
+                        "replies": sentinel.replies,
+                        "last_activity": sentinel.last_activity,
+                    },
                 },
                 {
+                    "id": student_no_annos.user_id,
                     "display_name": student_no_annos.display_name,
-                    "annotations": 0,
-                    "replies": 0,
-                    "last_activity": None,
+                    "annotation_metrics": {
+                        "annotations": 0,
+                        "replies": 0,
+                        "last_activity": None,
+                    },
                 },
                 {
-                    "display_name": f"Student {student_no_annos_no_name.user_id[:10]}",
-                    "annotations": 0,
-                    "replies": 0,
-                    "last_activity": None,
+                    "id": student_no_annos_no_name.user_id,
+                    "display_name": None,
+                    "annotation_metrics": {
+                        "annotations": 0,
+                        "replies": 0,
+                        "last_activity": None,
+                    },
                 },
             ]
         }
+        assert response == expected
 
     @pytest.fixture
     def views(self, pyramid_request):

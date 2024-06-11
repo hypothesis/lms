@@ -7,6 +7,12 @@ Making this a top level module to avoid circular dependency problems.
 from typing import NotRequired, TypedDict
 
 
+class AnnotationMetrics(TypedDict):
+    annotations: int
+    replies: int
+    last_activity: str | None
+
+
 class APICallInfo(TypedDict):
     path: str
     authUrl: NotRequired[str]
@@ -17,36 +23,30 @@ class APICourse(TypedDict):
     title: str
 
 
+class APIStudent(TypedDict):
+    id: int
+    display_name: str | None
+
+    annotation_metrics: NotRequired[AnnotationMetrics]
+
+
 class APICourses(TypedDict):
     courses: list[APICourse]
-
-
-class APIStudentStats(TypedDict):
-    display_name: str
-    annotations: int
-    replies: int
-    last_activity: str | None
-
-
-class APIStudents(TypedDict):
-    students: list[APIStudentStats]
-
-
-class AssignmentStats(TypedDict):
-    annotations: int
-    replies: int
-    last_activity: str | None
 
 
 class APIAssignment(TypedDict):
     id: int
     title: str
     course: APICourse
-    stats: NotRequired[AssignmentStats]
+    annotation_metrics: NotRequired[AnnotationMetrics]
 
 
 class APIAssignments(TypedDict):
     assignments: list[APIAssignment]
+
+
+class APIStudents(TypedDict):
+    students: list[APIStudent]
 
 
 class DashboardRoutes(TypedDict):
