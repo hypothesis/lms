@@ -24,7 +24,7 @@ class APICourse(TypedDict):
 
 
 class APIStudent(TypedDict):
-    id: int
+    id: str
     display_name: str | None
 
     annotation_metrics: NotRequired[AnnotationMetrics]
