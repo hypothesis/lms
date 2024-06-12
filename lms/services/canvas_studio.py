@@ -28,7 +28,7 @@ class CanvasStudioCollectionsSchema(RequestsResponseSchema):
             unknown = EXCLUDE
 
         id = fields.Integer(required=True)
-        name = fields.Str(required=True)
+        name = fields.Str(required=True, allow_none=True)
         type = fields.Str(required=True)
         created_at = fields.Str(required=False)
 
@@ -227,12 +227,13 @@ class CanvasStudioService:
                 user_collection = collection
                 continue
 
+            collection_id = collection["id"]
             files.append(
                 {
                     "type": "Folder",
-                    "display_name": collection["name"],
+                    "display_name": collection["name"] or f"Collection {collection_id}",
                     "updated_at": collection["created_at"],
-                    "id": str(collection["id"]),
+                    "id": str(collection_id),
                     "contents": {
                         "path": self._request.route_url(
                             "canvas_studio_api.collections.media.list",
