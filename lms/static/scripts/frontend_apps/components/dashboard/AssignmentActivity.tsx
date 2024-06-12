@@ -96,11 +96,13 @@ export default function AssignmentActivity() {
           renderItem={(stats, field) => {
             if (['annotations', 'replies'].includes(field)) {
               return <div className="text-right">{stats[field]}</div>;
+            } else if (field === 'last_activity') {
+              return stats.last_activity
+                ? formatDateTime(new Date(stats.last_activity))
+                : '';
             }
 
-            return field === 'last_activity' && stats.last_activity
-              ? formatDateTime(new Date(stats.last_activity))
-              : stats[field] ?? `Student ${stats.id.substring(0, 10)}`;
+            return stats[field] ?? `Student ${stats.id.substring(0, 10)}`;
           }}
         />
       </CardContent>
