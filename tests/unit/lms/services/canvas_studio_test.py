@@ -113,6 +113,15 @@ class TestCanvasStudioService:
             },
             {
                 "type": "Folder",
+                "display_name": "Collection 10",
+                "updated_at": "2024-03-01",
+                "id": "10",
+                "contents": {
+                    "path": "http://example.com/api/canvas_studio/collections/10/media"
+                },
+            },
+            {
+                "type": "Folder",
                 "display_name": "More videos",
                 "updated_at": "2024-02-01",
                 "id": "8",
@@ -337,6 +346,8 @@ class TestCanvasStudioService:
                 make_collection(1, "", "user", "2024-02-01"),
                 make_collection(9, "And more videos", "some_type", "2024-02-01"),
                 make_collection(8, "More videos", "some_type", "2024-02-01"),
+                # See https://github.com/hypothesis/lms/issues/6352.
+                make_collection(10, None, "course_wide", "2024-03-01"),
             ]
 
         def handler(url, allow_redirects=True):
