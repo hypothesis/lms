@@ -27,7 +27,7 @@ class CourseViews:
         renderer="json",
         permission=Permissions.DASHBOARD_VIEW,
     )
-    def get_organization_courses(self) -> APICourses:
+    def organization_courses(self) -> APICourses:
         org = get_request_organization(self.request, self.organization_service)
         courses = self.course_service.get_organization_courses(
             org, h_userid=self.request.user.h_userid if self.request.user else None
@@ -69,7 +69,7 @@ class CourseViews:
         renderer="json",
         permission=Permissions.DASHBOARD_VIEW,
     )
-    def course_stats(self) -> APIAssignments:
+    def course_assignments(self) -> APIAssignments:
         course = get_request_course(self.request, self.course_service)
 
         stats = self.h_api.get_course_stats(
@@ -83,7 +83,9 @@ class CourseViews:
 
         # Same course for all these assignments
         api_course = APICourse(id=course.id, title=course.lms_name)
-        for assignment in self.course_service.get_assignments(course):
+        for assignment in self.course_service.get_assignments(
+            course, h_userid=self.request.user.h_userid if self.request.user else None
+        ):
             if h_stats := stats_by_assignment.get(assignment.resource_link_id):
                 metrics = AnnotationMetrics(
                     annotations=h_stats["annotations"],

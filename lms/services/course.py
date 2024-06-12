@@ -8,6 +8,7 @@ from lms.models import (
     ApplicationInstance,
     Assignment,
     AssignmentGrouping,
+    AssignmentMembership,
     Course,
     CourseGroupsExportedFromH,
     Grouping,
@@ -297,11 +298,16 @@ class CourseService:
             course.memberships.join(User).filter(User.h_userid == h_userid).first()
         )
 
-    def get_assignments(self, course: Course) -> list[Assignment]:
+    def get_assignments(
+        self, course: Course, h_userid: str | None = None
+    ) -> list[Assignment]:
         """
         Get a list of assignments that belong to `course`.
 
         Use course.assignments to get the full view of the data, this method deduplicates assignments.
+
+        :param course: course for which list assignments.
+        :param h_userid: return only assignments h_userid is a member of.
         """
         deduplicated_course_assignments = self._deduplicated_course_assigments_query(
             [course]
@@ -313,6 +319,14 @@ class CourseService:
             # Only those that belong to the course we are interested in
             deduplicated_course_assignments.c.grouping_id == course.id,
         )
+
+        if h_userid:
+            assignments_query = (
+                assignments_query.join(AssignmentMembership)
+                .join(User)
+                .where(User.h_userid == h_userid)
+            )
+
         return self._db.scalars(assignments_query).all()
 
     def _get_authority_provided_id(self, context_id):
