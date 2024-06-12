@@ -55,7 +55,7 @@ def schedule_monthly_deal_report(limit: int, backfill: int = 0) -> None:
                             since,
                             until,
                         )
-                        return
+                        continue
 
                     generate_usage_report.delay(
                         organization.id,
