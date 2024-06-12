@@ -7,7 +7,13 @@ from lms.tasks.celery import app
 LOG = logging.getLogger(__name__)
 
 
-@app.task
+@app.task(
+    acks_late=True,
+    autoretry_for=(Exception,),
+    max_retries=2,
+    retry_backoff=3600,
+    retry_backoff_max=7200,
+)
 def generate_usage_report(
     organization_id: int, tag: str, since: str, until: str
 ) -> None:
