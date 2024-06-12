@@ -19,7 +19,7 @@ class TestCourseViews:
         pyramid_request.matchdict["organization_public_id"] = sentinel.public_id
         db_session.flush()
 
-        response = views.get_organization_courses()
+        response = views.organization_courses()
 
         organization_service.get_by_public_id.assert_called_once_with(
             sentinel.public_id
@@ -60,7 +60,7 @@ class TestCourseViews:
             "title": course.lms_name,
         }
 
-    def test_course_stats(
+    def test_course_assignments(
         self, views, pyramid_request, course_service, h_api, db_session
     ):
         pyramid_request.matchdict["course_id"] = sentinel.id
@@ -90,7 +90,7 @@ class TestCourseViews:
 
         h_api.get_course_stats.return_value = stats
 
-        response = views.course_stats()
+        response = views.course_assignments()
 
         h_api.get_course_stats.assert_called_once_with(
             [course.authority_provided_id, section.authority_provided_id]

@@ -381,6 +381,24 @@ class TestCourseService:
         # While we don't expect to get the other one at all, now the assignment belongs to the most recent course
         assert not svc.get_assignments(other_course)
 
+    def test_get_assignments_filter_by_h_userid(self, db_session, svc):
+        user = factories.User(h_userid="H_USERID")
+        course = factories.Course()
+
+        assignment = factories.Assignment()
+        other_assignment = factories.Assignment()
+
+        factories.AssignmentGrouping(grouping=course, assignment=assignment)
+        factories.AssignmentMembership(
+            assignment=assignment, user=user, lti_role=factories.LTIRole()
+        )
+        # Assignment user doesn't belong to
+        factories.AssignmentGrouping(grouping=course, assignment=other_assignment)
+        db_session.flush()
+
+        assert not svc.get_assignments(course, "SOME_OTHER_H_USERID")
+        assert svc.get_assignments(course, user.h_userid) == [assignment]
+
     def test_get_courses_assignments_count(self, svc, db_session):
         course = factories.Course()
         other_course = factories.Course()
