@@ -93,9 +93,15 @@ class TestScheduleMonthlyDealReport:
                 current_deal_services_end=date(2022, 12, 31),
             ),
         ]
-        organization_usage_report_service.get.return_value = None
+        organization_usage_report_service.get.side_effect = [
+            factories.OrganizationUsageReport(),  # First report already exists, it should not have an effect on limit
+            None,  # Second needs to be generated, limit will stop here
+            None,  # Third won't be generated
+        ]
         organization_usage_report_service.monthly_report_dates.return_value = [
-            (date(2022, 1, 1), date(2022, 12, 31))
+            (date(2022, 1, 1), date(2022, 12, 31)),
+            (date(2022, 1, 1), date(2022, 11, 30)),
+            (date(2022, 1, 1), date(2022, 10, 31)),
         ]
 
         schedule_monthly_deal_report(limit=1)
