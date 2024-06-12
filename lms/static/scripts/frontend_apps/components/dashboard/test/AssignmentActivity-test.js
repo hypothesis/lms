@@ -128,9 +128,24 @@ describe('AssignmentActivity', () => {
       fieldName: 'last_activity',
       expectedValue: formatDateTime(new Date('2024-01-01T10:35:18')),
     },
-  ].forEach(({ fieldName, expectedValue }) => {
+    // Render last_activity when it's null
+    {
+      fieldName: 'last_activity',
+      expectedValue: '',
+      studentStats: { last_activity: null },
+    },
+    // Render display_name when it's null
+    {
+      fieldName: 'display_name',
+      expectedValue: 'Student e4ca30ee27',
+      studentStats: {
+        id: 'e4ca30ee27eda1169d00b83f2a86e3494ffd9b12',
+        display_name: null,
+      },
+    },
+  ].forEach(({ fieldName, expectedValue, studentStats }) => {
     it('renders every field as expected', () => {
-      const studentStats = {
+      const fallbackStudentStats = {
         display_name: 'Jane Doe',
         last_activity: '2024-01-01T10:35:18',
         annotations: 37,
@@ -141,31 +156,11 @@ describe('AssignmentActivity', () => {
       const item = wrapper
         .find('OrderableActivityTable')
         .props()
-        .renderItem(studentStats, fieldName);
+        .renderItem(studentStats ?? fallbackStudentStats, fieldName);
       const value = typeof item === 'string' ? item : mount(item).text();
 
       assert.equal(value, expectedValue);
     });
-  });
-
-  it('renders fallback for students without display_name', () => {
-    const student = {
-      id: 'e4ca30ee27eda1169d00b83f2a86e3494ffd9b12',
-      display_name: null,
-      annotation_metrics: {
-        last_activity: null,
-        annotations: 0,
-        replies: 0,
-      },
-    };
-    const wrapper = createComponent();
-
-    const item = wrapper
-      .find('OrderableActivityTable')
-      .props()
-      .renderItem(student, 'display_name');
-
-    assert.equal(item, 'Student e4ca30ee27');
   });
 
   it(
