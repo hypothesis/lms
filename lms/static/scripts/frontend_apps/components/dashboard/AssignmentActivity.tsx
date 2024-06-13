@@ -6,13 +6,10 @@ import {
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useMemo } from 'preact/hooks';
-import { useParams } from 'wouter-preact';
 
 import type { Assignment, StudentsResponse } from '../../api-types';
-import { useConfig } from '../../config';
 import { apiCall, urlPath } from '../../utils/api';
 import { formatDateTime } from '../../utils/date';
-import { useFetch } from '../../utils/fetch';
 import { replaceURLParams } from '../../utils/url';
 import type { LoaderOptions } from '../ComponentWithLoaderWrapper';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
