@@ -1,5 +1,6 @@
+import math
 from unittest.mock import create_autospec, patch, sentinel
-from urllib.parse import urlencode
+from urllib.parse import parse_qs, urlencode, urlparse
 
 import pytest
 from h_matchers import Any
@@ -99,8 +100,19 @@ class TestCanvasStudioService:
                 == "https://hypothesis.local:48001/api/canvas_studio/oauth/callback"
             )
 
-    def test_list_media_library(self, svc):
+    @pytest.mark.parametrize(
+        "page_size",
+        (
+            None,  # Default, one page will be enough
+            3,  # Multiple pages will be needed
+        ),
+    )
+    def test_list_media_library(self, svc, page_size):
+        if page_size is not None:
+            svc.page_size = page_size
+
         files = svc.list_media_library()
+
         assert files == [
             {
                 "type": "Folder",
@@ -166,8 +178,19 @@ class TestCanvasStudioService:
 
         assert exc_info.value == err
 
-    def test_list_collection(self, svc):
+    @pytest.mark.parametrize(
+        "page_size",
+        (
+            None,  # Default. One page will be enough
+            1,  # Multiple pages will be needed
+        ),
+    )
+    def test_list_collection(self, svc, page_size):
+        if page_size is not None:
+            svc.page_size = page_size
+
         files = svc.list_collection("8")
+
         assert files == [
             {
                 "type": "File",
@@ -318,7 +341,7 @@ class TestCanvasStudioService:
         svc.get.side_effect = self.get_request_handler(is_admin=True)
         return svc
 
-    def get_request_handler(self, collections=None, is_admin=False):
+    def get_request_handler(self, collections=None, is_admin=False):  # noqa: PLR0915 pylint:disable=too-complex
         """
         Create a handler for `GET` requests to the Canvas Studio API.
 
@@ -350,36 +373,63 @@ class TestCanvasStudioService:
                 make_collection(10, None, "course_wide", "2024-03-01"),
             ]
 
-        def handler(url, allow_redirects=True):
-            api_prefix = "https://hypothesis.instructuremedia.com/api/public/v1/"
-            assert url.startswith(api_prefix)
+        def handler(url, allow_redirects=True):  # noqa: PLR0912, PLR0915
+            api_prefix = "/api/public/v1/"
 
-            url_suffix = url[len(api_prefix) :]
+            parsed_url = urlparse(url)
+            assert parsed_url.scheme == "https"
+            assert parsed_url.netloc == "hypothesis.instructuremedia.com"
+            assert parsed_url.path.startswith(api_prefix)
+
             json_data = None
             status_code = 200
+            per_page = 20
+            page = 1
 
-            match url_suffix:
+            params = parse_qs(parsed_url.query)
+            if "per_page" in params:
+                per_page = int(params["per_page"][0])
+            if "page" in params:
+                page = int(params["page"][0])
+
+            def collection_data(items_field, items):
+                n_pages = max(math.ceil(len(items) / per_page), 1)
+                assert 1 <= page <= n_pages
+
+                start = (page - 1) * per_page
+                end = start + per_page
+
+                return {
+                    items_field: items[start:end],
+                    "meta": {
+                        "current_page": page,
+                        "last_page": n_pages,
+                    },
+                }
+
+            resource_path = parsed_url.path[len(api_prefix) :]
+            match resource_path:
                 case "collections":
-                    json_data = {
-                        "collections": collections.copy(),
-                    }
+                    json_data = collection_data("collections", collections.copy())
                 case "collections/1/media":
-                    json_data = {
-                        "media": [
+                    json_data = collection_data(
+                        "media",
+                        [
                             make_file(5, "Test video", "2024-02-03"),
-                        ]
-                    }
+                        ],
+                    )
                 case "collections/8/media":
-                    json_data = {
-                        "media": [
+                    json_data = collection_data(
+                        "media",
+                        [
                             make_file(
                                 7, "Some video", "2024-02-04", with_thumbnail=True
                             ),
                             make_file(
                                 6, "Another video", "2024-02-04", with_thumbnail=True
                             ),
-                        ]
-                    }
+                        ],
+                    )
                 case "media/42/caption_files":
                     assert is_admin
                     json_data = {
