@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Literal, NotRequired, Type, TypedDict
+from typing import Literal, Mapping, NotRequired, Type, TypedDict
 from urllib.parse import urlencode, urljoin, urlparse, urlunparse
 
 import requests
@@ -20,6 +20,27 @@ from lms.services.oauth_http import factory as oauth_http_factory
 from lms.validation._base import RequestsResponseSchema
 
 
+class PaginationSchema(Schema):
+    """
+    Schema for `meta` field in paginated Canvas Studio responses.
+
+    See `PaginationMeta` on https://tw.instructuremedia.com/api/public/docs/.
+    """
+
+    class Meta:
+        unknown = EXCLUDE
+
+    current_page = fields.Integer()
+    """1-based page number."""
+
+    last_page = fields.Integer()
+    """1-based number of last page."""
+
+
+MAX_PAGE_SIZE = 50
+"""Maximum value for `per_page` argument to paginated API calls."""
+
+
 class CanvasStudioCollectionsSchema(RequestsResponseSchema):
     """Schema for Canvas Studio /collections responses."""
 
@@ -33,10 +54,7 @@ class CanvasStudioCollectionsSchema(RequestsResponseSchema):
         created_at = fields.Str(required=False)
 
     collections = fields.List(fields.Nested(CollectionSchema), required=True)
-
-    @post_load
-    def post_load(self, data, **_kwargs):
-        return data["collections"]
+    meta = fields.Nested(PaginationSchema, required=True)
 
 
 class CanvasStudioCollectionMediaSchema(RequestsResponseSchema):
@@ -53,10 +71,7 @@ class CanvasStudioCollectionMediaSchema(RequestsResponseSchema):
         thumbnail_url = fields.Str(required=False)
 
     media = fields.List(fields.Nested(MediaSchema), required=True)
-
-    @post_load
-    def post_load(self, data, **_kwargs):
-        return data["media"]
+    meta = fields.Nested(PaginationSchema, required=True)
 
 
 class CanvasStudioCaptionFilesSchema(RequestsResponseSchema):
@@ -119,7 +134,10 @@ class CanvasStudioService:
         API reference: https://tw.instructuremedia.com/api/public/docs/
     """
 
-    def __init__(self, request, application_instance):
+    page_size: int
+    """Number of items to fetch per page."""
+
+    def __init__(self, request, application_instance, page_size=MAX_PAGE_SIZE):
         self._domain = application_instance.settings.get("canvas_studio", "domain")
         self._client_id = application_instance.settings.get(
             "canvas_studio", "client_id"
@@ -132,6 +150,7 @@ class CanvasStudioService:
         )
         self._request = request
         self._application_instance = application_instance
+        self.page_size = page_size
 
     def get_access_token(self, code: str) -> None:
         """
@@ -218,7 +237,9 @@ class CanvasStudioService:
         picker when creating a Page.
         """
 
-        collections = self._api_request("v1/collections", CanvasStudioCollectionsSchema)
+        collections = self._paginated_api_request(
+            "v1/collections", CanvasStudioCollectionsSchema, field="collections"
+        )
         user_collection = None
 
         files: list[File] = []
@@ -254,8 +275,10 @@ class CanvasStudioService:
     def list_collection(self, collection_id: str) -> list[File]:
         """List the videos in a collection."""
 
-        media = self._api_request(
-            f"v1/collections/{collection_id}/media", CanvasStudioCollectionMediaSchema
+        media = self._paginated_api_request(
+            f"v1/collections/{collection_id}/media",
+            CanvasStudioCollectionMediaSchema,
+            field="media",
         )
 
         files: list[File] = []
@@ -353,15 +376,50 @@ class CanvasStudioService:
         return None
 
     def _api_request(
-        self, path: str, schema_cls: Type[RequestsResponseSchema], as_admin=False
+        self,
+        path: str,
+        schema_cls: Type[RequestsResponseSchema],
+        as_admin=False,
     ) -> dict:
         """
         Make a request to the Canvas Studio API and parse the JSON response.
 
+        :param path: Request path, relative to the API root
+        :param schema_cls: Schema to parse the JSON response
         :param as_admin: Make the request using the admin account instead of the current user.
         """
         response = self._bare_api_request(path, as_admin=as_admin)
         return schema_cls(response).parse()
+
+    def _paginated_api_request(
+        self,
+        path: str,
+        schema_cls: Type[RequestsResponseSchema],
+        field: str,
+        as_admin=False,
+    ) -> list:
+        """
+        Fetch a paginated collection via the Canvas Studio API.
+
+        :param path: Request path, relative to the API root
+        :param schema_cls: Schema to parse the JSON response
+        :param field: Response field containing items from each page
+        :param as_admin: Make the request using the admin account instead of the current user.
+        """
+        max_pages = 100
+        next_page = 1
+        last_page = None
+        collated = []
+
+        while last_page is None or next_page <= last_page:
+            params = {"page": next_page, "per_page": self.page_size}
+            response = self._bare_api_request(path, as_admin=as_admin, params=params)
+            parsed = schema_cls(response).parse()
+            collated += parsed[field]
+            last_page = min(parsed["meta"]["last_page"], max_pages)
+            next_page += 1
+
+        return collated
 
     def _admin_api_request(self, path: str, allow_redirects=True) -> requests.Response:
         """
@@ -401,14 +459,18 @@ class CanvasStudioService:
             ) from err
 
     def _bare_api_request(
-        self, path: str, as_admin=False, allow_redirects=True
+        self,
+        path: str,
+        as_admin=False,
+        allow_redirects=True,
+        params: Mapping[str, str | int] | None = None,
     ) -> requests.Response:
         """
         Make a request to the Canvas Studio API and return the response.
 
         :param as_admin: Make the request using the admin account instead of the current user.
         """
-        url = self._api_url(path)
+        url = self._api_url(path, params)
 
         if as_admin and not self.is_admin():
             return self._admin_api_request(path, allow_redirects=allow_redirects)
@@ -426,7 +488,7 @@ class CanvasStudioService:
                 refresh_service=Service.CANVAS_STUDIO,
             ) from err
 
-    def _api_url(self, path: str) -> str:
+    def _api_url(self, path: str, params: Mapping[str, str | int] | None = None) -> str:
         """
         Return the URL of a Canvas Studio API endpoint.
 
@@ -434,10 +496,14 @@ class CanvasStudioService:
         endpoints.
 
         :param path: Path of endpoint relative to the API root
+        :param params: Query parameters
         """
 
         site = self._canvas_studio_site()
-        return f"{site}/api/public/{path}"
+        url = f"{site}/api/public/{path}"
+        if params:
+            url = url + "?" + urlencode(params)
+        return url
 
     def _admin_email(self) -> str:
         """Return the email address of the configured Canvas Studio admin."""
