@@ -15,7 +15,6 @@ h-assets
 sentry-sdk
 h-pyramid-sentry
 h-vialib
-hubspot-api-client
 importlib_resources
 mailchimp-transactional
 marshmallow
