@@ -1,13 +1,6 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Link,
-} from '@hypothesis/frontend-shared';
-import classnames from 'classnames';
+import { Link } from '@hypothesis/frontend-shared';
 import { useMemo } from 'preact/hooks';
-import { useParams, Link as RouterLink } from 'wouter-preact';
+import { Link as RouterLink, useParams } from 'wouter-preact';
 
 import type { AssignmentsResponse, Course } from '../../api-types';
 import { useConfig } from '../../config';
@@ -56,61 +49,52 @@ export default function CourseActivity() {
   );
 
   return (
-    <Card>
-      <CardHeader
-        fullWidth
-        classes={classnames(
-          // Overwrite gap-x-2 and items-center from CardHeader
-          'flex-col !gap-x-0 !items-start',
-        )}
-      >
+    <div className="flex flex-col gap-y-5">
+      <div>
         <div className="mb-3 mt-1 w-full">
           <DashboardBreadcrumbs />
         </div>
-        <CardTitle tagName="h2" data-testid="title">
+        <h2 className="text-lg text-brand font-semibold" data-testid="title">
           {course.isLoading && 'Loading...'}
           {course.error && 'Could not load course title'}
           {course.data && course.data.title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <OrderableActivityTable
-          loading={assignments.isLoading}
-          title={course.data?.title ?? 'Loading...'}
-          emptyMessage={
-            assignments.error
-              ? 'Could not load assignments'
-              : 'No assignments found'
-          }
-          rows={rows}
-          columnNames={{
-            title: 'Assignment',
-            annotations: 'Annotations',
-            replies: 'Replies',
-            last_activity: 'Last Activity',
-          }}
-          defaultOrderField="title"
-          renderItem={(stats, field) => {
-            if (['annotations', 'replies'].includes(field)) {
-              return <div className="text-right">{stats[field]}</div>;
-            } else if (field === 'title') {
-              return (
-                <RouterLink href={assignmentURL(stats.id)} asChild>
-                  <Link underline="always" variant="text">
-                    {stats.title}
-                  </Link>
-                </RouterLink>
-              );
-            }
-
+        </h2>
+      </div>
+      <OrderableActivityTable
+        loading={assignments.isLoading}
+        title={course.data?.title ?? 'Loading...'}
+        emptyMessage={
+          assignments.error
+            ? 'Could not load assignments'
+            : 'No assignments found'
+        }
+        rows={rows}
+        columnNames={{
+          title: 'Assignment',
+          annotations: 'Annotations',
+          replies: 'Replies',
+          last_activity: 'Last Activity',
+        }}
+        defaultOrderField="title"
+        renderItem={(stats, field) => {
+          if (['annotations', 'replies'].includes(field)) {
+            return <div className="text-right">{stats[field]}</div>;
+          } else if (field === 'title') {
             return (
-              stats.last_activity &&
-              formatDateTime(new Date(stats.last_activity))
+              <RouterLink href={assignmentURL(stats.id)} asChild>
+                <Link underline="always" variant="text">
+                  {stats.title}
+                </Link>
+              </RouterLink>
             );
-          }}
-          navigateOnConfirmRow={stats => assignmentURL(stats.id)}
-        />
-      </CardContent>
-    </Card>
+          }
+
+          return (
+            stats.last_activity && formatDateTime(new Date(stats.last_activity))
+          );
+        }}
+        navigateOnConfirmRow={stats => assignmentURL(stats.id)}
+      />
+    </div>
   );
 }

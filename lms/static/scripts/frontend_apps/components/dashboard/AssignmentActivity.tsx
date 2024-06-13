@@ -1,10 +1,3 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@hypothesis/frontend-shared';
-import classnames from 'classnames';
 import { useMemo } from 'preact/hooks';
 import { useParams } from 'wouter-preact';
 
@@ -52,14 +45,8 @@ export default function AssignmentActivity() {
   );
 
   return (
-    <Card>
-      <CardHeader
-        fullWidth
-        classes={classnames(
-          // Overwrite gap-x-2 and items-center from CardHeader
-          'flex-col !gap-x-0 !items-start',
-        )}
-      >
+    <div className="flex flex-col gap-y-5">
+      <div>
         {assignment.data && (
           <div className="mb-3 mt-1 w-full">
             <DashboardBreadcrumbs
@@ -72,40 +59,38 @@ export default function AssignmentActivity() {
             />
           </div>
         )}
-        <CardTitle tagName="h2" data-testid="title">
+        <h2 className="text-lg text-brand font-semibold" data-testid="title">
           {assignment.isLoading && 'Loading...'}
           {assignment.error && 'Could not load assignment title'}
           {assignment.data && title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <OrderableActivityTable
-          loading={students.isLoading}
-          title={assignment.isLoading ? 'Loading...' : title}
-          emptyMessage={
-            students.error ? 'Could not load students' : 'No students found'
+        </h2>
+      </div>
+      <OrderableActivityTable
+        loading={students.isLoading}
+        title={assignment.isLoading ? 'Loading...' : title}
+        emptyMessage={
+          students.error ? 'Could not load students' : 'No students found'
+        }
+        rows={rows}
+        columnNames={{
+          display_name: 'Student',
+          annotations: 'Annotations',
+          replies: 'Replies',
+          last_activity: 'Last Activity',
+        }}
+        defaultOrderField="display_name"
+        renderItem={(stats, field) => {
+          if (['annotations', 'replies'].includes(field)) {
+            return <div className="text-right">{stats[field]}</div>;
+          } else if (field === 'last_activity') {
+            return stats.last_activity
+              ? formatDateTime(new Date(stats.last_activity))
+              : '';
           }
-          rows={rows}
-          columnNames={{
-            display_name: 'Student',
-            annotations: 'Annotations',
-            replies: 'Replies',
-            last_activity: 'Last Activity',
-          }}
-          defaultOrderField="display_name"
-          renderItem={(stats, field) => {
-            if (['annotations', 'replies'].includes(field)) {
-              return <div className="text-right">{stats[field]}</div>;
-            } else if (field === 'last_activity') {
-              return stats.last_activity
-                ? formatDateTime(new Date(stats.last_activity))
-                : '';
-            }
 
-            return stats[field] ?? `Student ${stats.id.substring(0, 10)}`;
-          }}
-        />
-      </CardContent>
-    </Card>
+          return stats[field] ?? `Student ${stats.id.substring(0, 10)}`;
+        }}
+      />
+    </div>
   );
 }
