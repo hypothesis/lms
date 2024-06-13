@@ -161,11 +161,20 @@ export type Course = {
   title: string;
 };
 
+export type CourseMetrics = {
+  assignments: number;
+  last_launched: string | null;
+};
+
+export type CourseWithMetrics = Course & {
+  course_metrics: CourseMetrics;
+};
+
 /**
  * Response for `/api/dashboard/organizations/{organization_public_id}` call.
  */
 export type CoursesResponse = {
-  courses: Course[];
+  courses: CourseWithMetrics[];
 };
 
 /**
@@ -190,13 +199,13 @@ export type StudentsResponse = {
   students: StudentStats[];
 };
 
-/**
- * Response for `/api/dashboard/courses/{course_id}/assignments/stats` call.
- */
-export type AssignmentStats = Assignment & {
+export type AssignmentWithMetrics = Assignment & {
   annotation_metrics: AnnotationMetrics;
 };
 
+/**
+ * Response for `/api/dashboard/courses/{course_id}/assignments/stats` call.
+ */
 export type AssignmentsResponse = {
-  assignments: AssignmentStats[];
+  assignments: AssignmentWithMetrics[];
 };

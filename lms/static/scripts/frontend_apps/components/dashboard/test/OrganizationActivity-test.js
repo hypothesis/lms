@@ -6,6 +6,7 @@ import { mount } from 'enzyme';
 import sinon from 'sinon';
 
 import { Config } from '../../../config';
+import { formatDateTime } from '../../../utils/date';
 import OrganizationActivity, { $imports } from '../OrganizationActivity';
 
 describe('OrganizationActivity', () => {
@@ -13,10 +14,18 @@ describe('OrganizationActivity', () => {
     {
       id: 1,
       title: 'Course A',
+      course_metrics: {
+        assignments: 10,
+        last_launched: '2020-01-02T00:00:00',
+      },
     },
     {
       id: 2,
       title: 'Course B',
+      course_metrics: {
+        assignments: 0,
+        last_launched: null,
+      },
     },
   ];
 
@@ -24,7 +33,10 @@ describe('OrganizationActivity', () => {
   let fakeConfig;
 
   beforeEach(() => {
-    fakeUseAPIFetch = sinon.stub().resolves({ courses });
+    fakeUseAPIFetch = sinon.stub().returns({
+      isLoading: false,
+      data: { courses },
+    });
     fakeConfig = {
       dashboard: {
         routes: {
@@ -79,17 +91,45 @@ describe('OrganizationActivity', () => {
     assert.equal(tableElement.prop('emptyMessage'), 'No courses found');
   });
 
-  courses.forEach(course => {
-    it('renders course links', () => {
-      const wrapper = createComponent();
-      const item = wrapper
+  courses.forEach(({ id, title, course_metrics }) => {
+    const courseRow = {
+      id,
+      title,
+      ...course_metrics,
+    };
+    const renderItem = (wrapper, field) =>
+      wrapper
         .find('OrderableActivityTable')
         .props()
-        .renderItem(course);
+        .renderItem(courseRow, field);
+
+    it('renders course links', () => {
+      const wrapper = createComponent();
+      const item = renderItem(wrapper, 'title');
       const itemWrapper = mount(item);
 
-      assert.equal(itemWrapper.text(), course.title);
-      assert.equal(itemWrapper.prop('href'), `/courses/${course.id}`);
+      assert.equal(itemWrapper.text(), title);
+      assert.equal(itemWrapper.prop('href'), `/courses/${id}`);
+    });
+
+    it('renders last launched date', () => {
+      const wrapper = createComponent();
+      const item = renderItem(wrapper, 'last_launched');
+      const { last_launched } = courseRow;
+
+      assert.equal(
+        item,
+        last_launched ? formatDateTime(new Date(last_launched)) : '',
+      );
+    });
+
+    it('renders assignments', () => {
+      const wrapper = createComponent();
+      const item = renderItem(wrapper, 'assignments');
+      const itemWrapper = mount(item);
+      const { assignments } = courseRow;
+
+      assert.equal(itemWrapper.text(), `${assignments}`);
     });
   });
 

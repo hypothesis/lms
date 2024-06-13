@@ -28,9 +28,14 @@ export type OrderableActivityTableProps<T> = Pick<
  * recent values first.
  */
 const descendingOrderColumns: readonly string[] = [
+  // Annotation metrics
   'last_activity',
   'annotations',
   'replies',
+
+  // Course metrics
+  'last_launched',
+  'assignments',
 ];
 
 /**
