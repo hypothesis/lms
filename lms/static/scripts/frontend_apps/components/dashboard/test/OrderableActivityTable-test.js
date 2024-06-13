@@ -1,6 +1,6 @@
 import { mount } from 'enzyme';
 
-import OrderableActivityTable from '../OrderableActivityTable';
+import OrderableActivityTable, { $imports } from '../OrderableActivityTable';
 
 describe('OrderableActivityTable', () => {
   const rows = [
@@ -23,8 +23,23 @@ describe('OrderableActivityTable', () => {
       replies: 100,
     },
   ];
+  let fakeNavigate;
 
-  function createComponent(defaultOrderField = 'display_name') {
+  beforeEach(() => {
+    fakeNavigate = sinon.stub();
+
+    $imports.$mock({
+      'wouter-preact': {
+        useLocation: sinon.stub().returns(['', fakeNavigate]),
+      },
+    });
+  });
+
+  afterEach(() => {
+    $imports.$restore();
+  });
+
+  function createComponent({ navigateOnConfirmRow } = {}) {
     return mount(
       <OrderableActivityTable
         rows={rows}
@@ -34,7 +49,8 @@ describe('OrderableActivityTable', () => {
           annotations: 'Annotations',
           replies: 'Replies',
         }}
-        defaultOrderField={defaultOrderField}
+        defaultOrderField="display_name"
+        navigateOnConfirmRow={navigateOnConfirmRow}
       />,
     );
   }
@@ -149,5 +165,15 @@ describe('OrderableActivityTable', () => {
       assert.deepEqual(getOrder(), orderToSet);
       assert.deepEqual(getRows(), expectedStudents);
     });
+  });
+
+  it('navigates when a row is confirmed', () => {
+    const navigateOnConfirmRow = sinon.stub().returns('/foo/bar');
+    const wrapper = createComponent({ navigateOnConfirmRow });
+
+    wrapper.find('DataTable').props().onConfirmRow();
+
+    assert.called(navigateOnConfirmRow);
+    assert.calledWith(fakeNavigate, '/foo/bar');
   });
 });

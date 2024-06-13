@@ -25,6 +25,8 @@ type AssignmentsTableRow = {
   replies: number;
 };
 
+const assignmentURL = (id: number) => urlPath`/assignments/${String(id)}`;
+
 /**
  * Activity in a list of assignments that are part of a specific course
  */
@@ -93,10 +95,7 @@ export default function CourseActivity() {
               return <div className="text-right">{stats[field]}</div>;
             } else if (field === 'title') {
               return (
-                <RouterLink
-                  href={urlPath`/assignments/${String(stats.id)}`}
-                  asChild
-                >
+                <RouterLink href={assignmentURL(stats.id)} asChild>
                   <Link underline="always" variant="text">
                     {stats.title}
                   </Link>
@@ -109,6 +108,7 @@ export default function CourseActivity() {
               formatDateTime(new Date(stats.last_activity))
             );
           }}
+          navigateOnConfirmRow={stats => assignmentURL(stats.id)}
         />
       </CardContent>
     </Card>
