@@ -132,13 +132,16 @@ class TestHAPI:
         assert result == expected_result
 
     @pytest.mark.parametrize(
-        "method,url,args,payload",
+        "kwargs,payload",
         [
             (
-                "get_assignment_stats",
-                "https://h.example.com/private/api/bulk/stats/users",
-                (["group_1", "group_2"], "assignment_id"),
                 {
+                    "group_authority_ids": ["group_1", "group_2"],
+                    "group_by": "user",
+                    "resource_link_id": "assignment_id",
+                },
+                {
+                    "group_by": "user",
                     "filter": {
                         "groups": ["group_1", "group_2"],
                         "assignment_id": "assignment_id",
@@ -146,23 +149,31 @@ class TestHAPI:
                 },
             ),
             (
-                "get_course_stats",
-                "https://h.example.com/private/api/bulk/stats/assignments",
-                (["group_1", "group_2"],),
                 {
-                    "filter": {"groups": ["group_1", "group_2"]},
+                    "group_authority_ids": ["group_1", "group_2"],
+                    "group_by": "user",
+                    "resource_link_id": "assignment_id",
+                    "h_userids": ["user_1", "user_2"],
+                },
+                {
+                    "group_by": "user",
+                    "filter": {
+                        "groups": ["group_1", "group_2"],
+                        "assignment_id": "assignment_id",
+                        "h_userids": ["user_1", "user_2"],
+                    },
                 },
             ),
         ],
     )
-    def test_get_stats_endpoints(self, h_api, http_service, method, url, args, payload):
+    def test_get_annotation_counts(self, h_api, http_service, kwargs, payload):
         http_service.request.return_value = factories.requests.Response(raw="{}")
 
-        getattr(h_api, method)(*args)
+        h_api.get_annotation_counts(**kwargs)
 
         http_service.request.assert_called_once_with(
             method="POST",
-            url=url,
+            url="https://h.example.com/private/api/bulk/lms/annotations",
             auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
             headers={
                 "Content-Type": "application/vnd.hypothesis.v1+json",

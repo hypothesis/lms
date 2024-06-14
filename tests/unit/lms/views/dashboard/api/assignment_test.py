@@ -59,14 +59,15 @@ class TestAssignmentViews:
             },
         ]
 
-        h_api.get_assignment_stats.return_value = stats
+        h_api.get_annotation_counts.return_value = stats
 
         response = views.assignment_stats()
 
         assignment_service.get_by_id.assert_called_once_with(sentinel.id)
-        h_api.get_assignment_stats.assert_called_once_with(
+        h_api.get_annotation_counts.assert_called_once_with(
             [g.authority_provided_id for g in assignment.groupings],
-            assignment.resource_link_id,
+            group_by="user",
+            resource_link_id=assignment.resource_link_id,
         )
         expected = {
             "students": [

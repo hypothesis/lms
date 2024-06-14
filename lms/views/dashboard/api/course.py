@@ -8,6 +8,7 @@ from lms.js_config_types import (
     APICourses,
     CourseMetrics,
 )
+from lms.models import RoleScope, RoleType
 from lms.security import Permissions
 from lms.services.h_api import HAPI
 from lms.services.organization import OrganizationService
@@ -71,11 +72,16 @@ class CourseViews:
     )
     def course_assignments(self) -> APIAssignments:
         course = get_request_course(self.request, self.course_service)
+        course_students = self.course_service.get_members(
+            course, role_scope=RoleScope.COURSE, role_type=RoleType.LEARNER
+        )
 
-        stats = self.h_api.get_course_stats(
-            # Annotations in the course group an any children
+        stats = self.h_api.get_annotation_counts(
+            # Annotations in the course group and any children
             [course.authority_provided_id]
-            + [child.authority_provided_id for child in course.children]
+            + [child.authority_provided_id for child in course.children],
+            group_by="assignment",
+            h_userids=[s.h_userid for s in course_students],
         )
         # Organize the H stats by assignment ID for quick access
         stats_by_assignment = {s["assignment_id"]: s for s in stats}

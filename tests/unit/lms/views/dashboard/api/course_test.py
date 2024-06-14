@@ -75,6 +75,7 @@ class TestCourseViews:
             assignment,
             assignment_with_no_annos,
         ]
+        course_service.get_members.return_value = factories.User.create_batch(5)
 
         db_session.flush()
 
@@ -88,12 +89,14 @@ class TestCourseViews:
             },
         ]
 
-        h_api.get_course_stats.return_value = stats
+        h_api.get_annotation_counts.return_value = stats
 
         response = views.course_assignments()
 
-        h_api.get_course_stats.assert_called_once_with(
-            [course.authority_provided_id, section.authority_provided_id]
+        h_api.get_annotation_counts.assert_called_once_with(
+            [course.authority_provided_id, section.authority_provided_id],
+            group_by="assignment",
+            h_userids=[u.h_userid for u in course_service.get_members.return_value],
         )
         assert response == {
             "assignments": [
