@@ -42,11 +42,11 @@ class AssignmentViews:
     def assignment_stats(self) -> APIStudents:
         """Fetch the stats for one particular assignment."""
         assignment = get_request_assignment(self.request, self.assignment_service)
-        stats = self.h_api.get_assignment_stats(
+        stats = self.h_api.get_annotation_counts(
             [g.authority_provided_id for g in assignment.groupings],
-            assignment.resource_link_id,
+            group_by="user",
+            resource_link_id=assignment.resource_link_id,
         )
-
         # Organize the H stats by userid for quick access
         stats_by_user = {s["userid"]: s for s in stats}
         students: list[APIStudent] = []

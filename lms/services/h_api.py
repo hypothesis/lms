@@ -169,32 +169,24 @@ class HAPI:
                     authority_provided_id=group["authority_provided_id"]
                 )
 
-    def get_assignment_stats(
-        self, group_authority_ids: list[str], resource_link_id: str
+    def get_annotation_counts(
+        self,
+        group_authority_ids: list[str],
+        group_by: str,
+        h_userids: list[str] | None = None,
+        resource_link_id: str | None = None,
     ):
-        response = self._api_request(
-            "POST",
-            path="bulk/stats/users",
-            body=json.dumps(
-                {
-                    "filter": {
-                        "groups": group_authority_ids,
-                        "assignment_id": resource_link_id,
-                    }
-                }
-            ),
-            headers={
-                "Content-Type": "application/vnd.hypothesis.v1+json",
-            },
-            stream=False,
-        )
-        return response.json()
+        filters = {
+            "groups": group_authority_ids,
+            "assignment_id": resource_link_id,
+        }
+        if h_userids:
+            filters["h_userids"] = h_userids
 
-    def get_course_stats(self, group_authority_ids: list[str]):
         response = self._api_request(
             "POST",
-            path="bulk/stats/assignments",
-            body=json.dumps({"filter": {"groups": group_authority_ids}}),
+            path="bulk/lms/annotations",
+            body=json.dumps({"group_by": group_by, "filter": filters}),
             headers={
                 "Content-Type": "application/vnd.hypothesis.v1+json",
             },
