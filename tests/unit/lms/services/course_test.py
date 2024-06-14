@@ -5,7 +5,12 @@ import pytest
 from h_matchers import Any
 from sqlalchemy.exc import NoResultFound
 
-from lms.models import ApplicationSettings, CourseGroupsExportedFromH, Grouping
+from lms.models import (
+    ApplicationSettings,
+    CourseGroupsExportedFromH,
+    Grouping,
+    RoleScope,
+)
 from lms.product.product import Product
 from lms.services.course import CourseService, course_service_factory
 from tests import factories
@@ -337,6 +342,29 @@ class TestCourseService:
 
         assert svc.is_member(course, user.h_userid)
         assert not svc.is_member(course, other_user.h_userid)
+
+    def test_get_members(self, svc, db_session):
+        factories.User()  # User not in assignment
+        assignment = factories.Assignment()
+        user = factories.User()
+        course = factories.Course()
+        lti_role = factories.LTIRole(scope=RoleScope.COURSE)
+        factories.AssignmentMembership.create(
+            assignment=assignment, user=user, lti_role=lti_role
+        )
+        # User in assignment with other role
+        factories.AssignmentMembership.create(
+            assignment=assignment,
+            user=factories.User(),
+            lti_role=factories.LTIRole(scope=RoleScope.SYSTEM),
+        )
+        factories.AssignmentGrouping(grouping=course, assignment=assignment)
+
+        db_session.flush()
+
+        assert svc.get_members(
+            course, role_scope=lti_role.scope, role_type=lti_role.type
+        ) == [user]
 
     def test_get_organization_courses_deduplicates(self, db_session, svc):
         org = factories.Organization()
