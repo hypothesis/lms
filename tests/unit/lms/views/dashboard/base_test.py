@@ -44,6 +44,16 @@ class TestBase:
 
         assert get_request_assignment(pyramid_request, assignment_service)
 
+    def test_get_request_assignment(self, pyramid_request, assignment_service):
+        pyramid_request.matchdict["assignment_id"] = sentinel.id
+        assignment_service.is_member.return_value = True
+
+        assert get_request_assignment(pyramid_request, assignment_service)
+
+        assignment_service.is_member.assert_called_once_with(
+            assignment_service.get_by_id.return_value, pyramid_request.user.h_userid
+        )
+
     def test_get_request_course_404(
         self,
         pyramid_request,

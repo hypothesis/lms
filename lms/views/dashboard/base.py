@@ -12,7 +12,7 @@ def get_request_assignment(request, assignment_service):
         # STAFF members in our admin pages can access all assignments
         return assignment
 
-    if not assignment_service.is_member(assignment, request.user):
+    if not assignment_service.is_member(assignment, request.user.h_userid):
         raise HTTPUnauthorized()
 
     return assignment
