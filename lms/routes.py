@@ -213,7 +213,7 @@ def includeme(config):  # noqa: PLR0915
     config.add_route("admin.organization.toggle", "/admin/orgs/{id_}/toggle")
     config.add_route("admin.organizations", "/admin/orgs")
     config.add_route("admin.organization.move_org", "/admin/orgs/{id_}/move_org")
-    config.add_route("admin.organization.new", "/admin/orgs")
+    config.add_route("admin.organization.new", "/admin/org/new")
 
     config.add_route("admin.registrations", "/admin/registrations/")
     config.add_route("admin.registrations.search", "/admin/registrations/search")
