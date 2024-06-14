@@ -342,7 +342,7 @@ describe('GooglePickerClient', () => {
 
     beforeEach(() => {
       createPermission = fakeGoogleLibs.client.drive.permissions.create;
-      const apiRequest = { execute: resolve => resolve() };
+      const apiRequest = { then: resolve => resolve() };
       createPermission.returns(apiRequest);
     });
 
@@ -394,8 +394,14 @@ describe('GooglePickerClient', () => {
       const client = createClient();
       await client.requestAuthorization();
       createPermission.returns({
-        execute: (_, reject) =>
-          reject(new Error('Changing permissions failed')),
+        then: (_, reject) =>
+          reject({
+            result: {
+              error: {
+                message: 'Changing permissions failed',
+              },
+            },
+          }),
       });
       let err;
       try {

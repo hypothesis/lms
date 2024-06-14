@@ -247,9 +247,21 @@ export class GooglePickerClient {
       fileId: docId,
       resource: body,
     });
-    return new Promise((resolve, reject) => {
-      // @ts-expect-error - We're missing types for this.
-      request.execute(resolve, reject);
+    const result = new Promise((resolve, reject) => {
+      // @ts-expect-error - We're missing types for this, but see
+      // https://github.com/google/google-api-javascript-client/blob/96cf6057f03c5e56179e83869828a06c47ce571b/docs/reference.md.
+      //
+      // For the types of arguments passed to resolve/reject, see
+      // https://github.com/google/google-api-javascript-client/blob/96cf6057f03c5e56179e83869828a06c47ce571b/docs/promises.md#using-promises-1.
+      request.then(resolve, reject);
     });
+
+    try {
+      await result;
+    } catch (response) {
+      throw new Error(
+        response.result?.error?.message ?? 'Unable to make file public',
+      );
+    }
   }
 }
