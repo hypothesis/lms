@@ -24,9 +24,18 @@ export type LoaderOptions = {
   signal: AbortSignal;
 };
 
-type RouteModule = {
-  loader: (opts: LoaderOptions) => Promise<unknown>;
-  Component: FunctionalComponent;
+export type RouteModule = {
+  loader: (opts: LoaderOptions) => {
+    /** This promise needs to be awaited before rendering the component */
+    awaitable: Promise<unknown>;
+
+    /**
+     * These are extra promises that can be passed down the component, and let
+     * it handle errors and loading state
+     */
+    rest?: Record<string, Promise<unknown>>;
+  };
+  Component: FunctionalComponent<{ loaderResult: unknown }>;
 };
 
 const matchRoute = (parser: Parser, route: string, path: string) => {
@@ -108,31 +117,32 @@ export default function ComponentWithLoaderWrapper() {
   const [loading, setLoading] = useState(true);
   const [fatalError, setFatalError] = useState<ErrorLike>();
   const { organizationId } = useParams<{ organizationId: string }>();
-  const routeModule = useRouteModule(routesMap);
+  const moduleMatch = useRouteModule(routesMap);
 
   useEffect(() => {
-    if (!routeModule) {
+    if (!moduleMatch) {
       return () => {};
     }
 
     const abortController = new AbortController();
-    const { module, params } = routeModule;
+    const { module, params } = moduleMatch;
     const { loader, Component } = module;
 
     setLoading(true);
-    loader({
+    const { awaitable, rest = [] } = loader({
       config,
       params: { ...params, organizationId },
       signal: abortController.signal,
-    })
-      .then(loaderResult =>
-        setComponent(<Component loaderResult={loaderResult} />),
-      )
+    });
+    awaitable
+      .then(loaderResult => {
+        setComponent(<Component {...rest} loaderResult={loaderResult} />);
+      })
       .catch(e => setFatalError(e))
       .finally(() => setLoading(false));
 
     return () => abortController.abort();
-  }, [config, organizationId, routeModule]);
+  }, [config, organizationId, moduleMatch]);
 
   if (fatalError) {
     return (

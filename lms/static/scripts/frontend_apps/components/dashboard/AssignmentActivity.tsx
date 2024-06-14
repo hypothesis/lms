@@ -10,41 +10,43 @@ import { useMemo } from 'preact/hooks';
 import type { Assignment, StudentsResponse } from '../../api-types';
 import { apiCall, urlPath } from '../../utils/api';
 import { formatDateTime } from '../../utils/date';
+import { useFetch } from '../../utils/fetch';
 import { replaceURLParams } from '../../utils/url';
-import type { LoaderOptions } from '../ComponentWithLoaderWrapper';
+import type { RouteModule } from '../ComponentWithLoaderWrapper';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import OrderableActivityTable from './OrderableActivityTable';
 
-export function loader({
+export const loader: RouteModule['loader'] = ({
   config: { dashboard, api },
   params: { assignmentId },
   signal,
-}: LoaderOptions) {
+}) => {
   const { routes } = dashboard;
   const { authToken } = api;
 
-  return Promise.all([
-    apiCall<Assignment>({
-      path: replaceURLParams(routes.assignment, {
-        assignment_id: assignmentId,
-      }),
-      authToken,
-      signal,
-    }),
-    apiCall<StudentsResponse>({
+  return {
+    awaitable: apiCall<StudentsResponse>({
       path: replaceURLParams(routes.assignment_stats, {
         assignment_id: assignmentId,
       }),
       authToken,
       signal,
     }),
-  ]).then(([assignment, students]) => ({ assignment, students }));
-}
-
-export type AssignmentActivityLoadResult = Awaited<ReturnType<typeof loader>>;
+    rest: {
+      assignment: apiCall<Assignment>({
+        path: replaceURLParams(routes.assignment, {
+          assignment_id: assignmentId,
+        }),
+        authToken,
+        signal,
+      }),
+    },
+  };
+};
 
 export type AssignmentActivityProps = {
-  loaderResult: AssignmentActivityLoadResult;
+  loaderResult: StudentsResponse;
+  assignment: Promise<Assignment>;
 };
 
 type StudentsTableRow = {
@@ -60,18 +62,18 @@ type StudentsTableRow = {
  */
 export default function AssignmentActivity({
   loaderResult,
+  assignment,
 }: AssignmentActivityProps) {
-  const title = `Assignment: ${loaderResult.assignment.title}`;
+  const assignmentLoader = useFetch('assignment', () => assignment);
+  const title = `Assignment: ${assignmentLoader.data?.title}`;
   const rows: StudentsTableRow[] = useMemo(
     () =>
-      loaderResult.students.students.map(
-        ({ id, display_name, annotation_metrics }) => ({
-          id,
-          display_name,
-          ...annotation_metrics,
-        }),
-      ),
-    [loaderResult.students.students],
+      loaderResult.students.map(({ id, display_name, annotation_metrics }) => ({
+        id,
+        display_name,
+        ...annotation_metrics,
+      })),
+    [loaderResult.students],
   );
 
   return (
@@ -83,18 +85,22 @@ export default function AssignmentActivity({
           'flex-col !gap-x-0 !items-start',
         )}
       >
-        <div className="mb-3 mt-1 w-full">
-          <DashboardBreadcrumbs
-            links={[
-              {
-                title: loaderResult.assignment.course.title,
-                href: urlPath`/courses/${String(loaderResult.assignment.course.id)}`,
-              },
-            ]}
-          />
-        </div>
+        {assignmentLoader.data && (
+          <div className="mb-3 mt-1 w-full">
+            <DashboardBreadcrumbs
+              links={[
+                {
+                  title: assignmentLoader.data.course.title,
+                  href: urlPath`/courses/${String(assignmentLoader.data.course.id)}`,
+                },
+              ]}
+            />
+          </div>
+        )}
         <CardTitle tagName="h2" data-testid="title">
-          title
+          {assignmentLoader.isLoading && 'Loading...'}
+          {assignmentLoader.error && 'Could not load assignment title'}
+          {assignmentLoader.data && title}
         </CardTitle>
       </CardHeader>
       <CardContent>
