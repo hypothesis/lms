@@ -236,8 +236,8 @@ class TestAssignmentService:
 
         db_session.flush()
 
-        assert svc.is_member(assignment, user)
-        assert not svc.is_member(assignment, other_user)
+        assert svc.is_member(assignment, user.h_userid)
+        assert not svc.is_member(assignment, other_user.h_userid)
 
     def test_get_members(self, svc, db_session):
         factories.User()  # User not in assignment
