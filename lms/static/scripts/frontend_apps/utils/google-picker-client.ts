@@ -4,7 +4,7 @@ import {
   loadIdentityServicesLibrary,
 } from './google-api-client';
 
-export const GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
+export const GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 
 /**
  * Convert a domain (example.com) into a valid web origin (https://example.com).
@@ -199,6 +199,7 @@ export class GooglePickerClient {
     const picker = new pickerLib.PickerBuilder()
       .addView(view)
       .addView(new pickerLib.DocsUploadView())
+      .setAppId(this._clientId)
       .setCallback(pickerCallback)
       .setDeveloperKey(this._developerKey)
       .setMaxItems(1)

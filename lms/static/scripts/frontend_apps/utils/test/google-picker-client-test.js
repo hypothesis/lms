@@ -15,6 +15,7 @@ function createGoogleLibFakes() {
   const pickerBuilder = {
     addView: sinon.stub().returnsThis(),
     build: sinon.stub().returnsThis(),
+    setAppId: sinon.stub().returnsThis(),
     setCallback: sinon.stub().returnsThis(),
     setDeveloperKey: sinon.stub().returnsThis(),
     setMaxItems: sinon.stub().returnsThis(),
@@ -182,7 +183,7 @@ describe('GooglePickerClient', () => {
   });
 
   describe('#showPicker', () => {
-    it('requests authorization and sets token used by picker', async () => {
+    it('requests authorization and sets credentials used by picker', async () => {
       const client = createClient();
       client.showPicker();
 
@@ -190,6 +191,7 @@ describe('GooglePickerClient', () => {
 
       assert.ok(fakeTokenClient);
       const builder = fakeGoogleLibs.picker.api.PickerBuilder();
+      assert.calledWith(builder.setAppId, '12345');
       assert.calledWith(builder.setOAuthToken, 'the-access-token');
     });
 
