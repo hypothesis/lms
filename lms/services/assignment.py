@@ -204,9 +204,11 @@ class AssignmentService:
     def get_by_id(self, id_: int) -> Assignment | None:
         return self._db.query(Assignment).filter_by(id=id_).one_or_none()
 
-    def is_member(self, assignment: Assignment, user: User) -> bool:
+    def is_member(self, assignment: Assignment, h_userid: str) -> bool:
         """Check if a user is a member of an assignment."""
-        return bool(assignment.membership.filter_by(user=user).first())
+        return bool(
+            assignment.membership.join(User).filter(User.h_userid == h_userid).first()
+        )
 
     def get_members(
         self, assignment, role_type: RoleType, role_scope: RoleScope
