@@ -308,12 +308,35 @@ class TestCourseService:
     def test_search_by_h_userid(self, svc, db_session):
         user = factories.User()
         course = factories.Course()
+        assignment = factories.Assignment()
         factories.Course.create_batch(10)
-        factories.GroupingMembership(grouping=course, user=user)
+        factories.AssignmentGrouping(grouping=course, assignment=assignment)
+        factories.AssignmentMembership(
+            assignment=assignment, user=user, lti_role=factories.LTIRole()
+        )
         # Ensure ids are written
         db_session.flush()
 
         result = svc.search(h_userid=user.h_userid)
+
+        assert result == [course]
+
+    def test_search_by_h_userid_and_role(self, svc, db_session):
+        user = factories.User()
+        course = factories.Course()
+        lti_role = factories.LTIRole()
+        assignment = factories.Assignment()
+        factories.Course.create_batch(10)
+        factories.AssignmentGrouping(grouping=course, assignment=assignment)
+        factories.AssignmentMembership(
+            assignment=assignment, user=user, lti_role=lti_role
+        )
+        # Ensure ids are written
+        db_session.flush()
+
+        result = svc.search(
+            h_userid=user.h_userid, role_scope=lti_role.scope, role_type=lti_role.type
+        )
 
         assert result == [course]
 

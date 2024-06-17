@@ -2,6 +2,7 @@ from unittest.mock import sentinel
 
 import pytest
 
+from lms.models import RoleScope, RoleType
 from lms.views.dashboard.api.course import CourseViews
 from tests import factories
 
@@ -27,6 +28,8 @@ class TestCourseViews:
         course_service.get_organization_courses.assert_called_once_with(
             organization=org,
             h_userid=pyramid_request.user.h_userid,
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.INSTRUCTOR,
         )
         course_service.get_courses_assignments_count.assert_called_once_with(
             course_service.get_organization_courses.return_value
