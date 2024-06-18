@@ -276,6 +276,11 @@ export type ConfigObject = {
   debug?: DebugInfo;
   product: Product;
 
+  // Only present when an LTI user is logged-in
+  user?: {
+    display_name: string;
+  };
+
   // Only present in "basic-lti-launch" mode.
   canvas: {
     // Only present in Canvas.
