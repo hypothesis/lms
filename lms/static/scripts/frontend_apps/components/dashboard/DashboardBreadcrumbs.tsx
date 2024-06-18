@@ -19,7 +19,11 @@ export type DashboardBreadcrumbsProps = {
 function BreadcrumbLink({ title, href }: BreadcrumbLink) {
   return (
     <RouterLink href={href} asChild>
-      <Link underline="hover" variant="text-light" classes="truncate">
+      <Link
+        underline="always"
+        variant="text-light"
+        classes="truncate font-normal"
+      >
         <ArrowLeftIcon className="inline-block md:hidden mr-1 align-sub" />
         {title}
       </Link>
@@ -34,7 +38,7 @@ export default function DashboardBreadcrumbs({
   links = [],
 }: DashboardBreadcrumbsProps) {
   const linksWithHome = useMemo(
-    (): BreadcrumbLink[] => [{ title: 'Home', href: '' }, ...links],
+    (): BreadcrumbLink[] => [{ title: 'All courses', href: '' }, ...links],
     [links],
   );
 
@@ -62,7 +66,9 @@ export default function DashboardBreadcrumbs({
             })}
           >
             <BreadcrumbLink href={href} title={title} />
-            {!isLastLink && <CaretRightIcon />}
+            {!isLastLink && (
+              <CaretRightIcon className="text-color-text-light" />
+            )}
           </span>
         );
       })}

@@ -12,7 +12,7 @@ export default function DashboardApp() {
   }>();
 
   return (
-    <div className="flex flex-col min-h-screen gap-5 bg-grey-2">
+    <div className="flex flex-col min-h-screen gap-5">
       <div
         className={classnames(
           'flex justify-center p-3 w-full',
