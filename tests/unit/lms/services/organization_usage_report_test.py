@@ -56,6 +56,14 @@ class TestOrganizationUsageReportService:
                 course_created="2020-01-01",
                 authority_provided_id=sentinel.authority_provided_id,
             ),
+            UsageReportRow(
+                name="Mr Teacher",
+                email="teacher@example.com",
+                h_userid=sentinel.h_userid_teacher,
+                course_name=sentinel.lms_name,
+                course_created="2020-01-01",
+                authority_provided_id=sentinel.authority_provided_id,
+            ),
         ]
 
         report = svc.generate_usage_report(
@@ -67,10 +75,11 @@ class TestOrganizationUsageReportService:
         )
 
         assert report.organization == org_with_parent
-        assert report.unique_users == 1
+        assert report.unique_users == 2
+        assert report.unique_teachers == 1
         assert report.since == "2020-01-01"
         assert report.until == "2020-02-02"
-        assert len(report.report) == 2
+        assert len(report.report) == 3
 
     def test_generate_usage_report_empty_report_for_ValueError(
         self, svc, usage_report, org_with_parent, organization_service

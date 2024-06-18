@@ -30,6 +30,12 @@ class UsageReportRow:
     course_created: datetime
     authority_provided_id: str
 
+    @property
+    def is_teacher(self):
+        """Wether this row refers to a teacher."""
+        # Consider anyone for which we have an email a teacher
+        return self.email != "<STUDENT>"
+
 
 class OrganizationUsageReportService:
     def __init__(
@@ -118,6 +124,7 @@ class OrganizationUsageReportService:
             report_rows = []
 
         report.unique_users = len({r.h_userid for r in report_rows})
+        report.unique_teachers = len({r.h_userid for r in report_rows if r.is_teacher})
         report.report = [asdict(r) for r in report_rows]
 
         return report
