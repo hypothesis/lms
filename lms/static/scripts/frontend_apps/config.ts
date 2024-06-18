@@ -248,8 +248,14 @@ export type DashboardRoutes = {
   organization_courses: string;
 };
 
+export type DashboardUser = {
+  is_staff: boolean;
+  display_name: string;
+};
+
 export type DashboardConfig = {
   routes: DashboardRoutes;
+  user: DashboardUser;
 };
 
 /**
@@ -275,11 +281,6 @@ export type ConfigObject = {
   dev: boolean;
   debug?: DebugInfo;
   product: Product;
-
-  // Only present when an LTI user is logged-in
-  user?: {
-    display_name: string;
-  };
 
   // Only present in "basic-lti-launch" mode.
   canvas: {
