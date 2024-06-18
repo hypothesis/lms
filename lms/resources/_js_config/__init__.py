@@ -572,6 +572,9 @@ class JSConfig:
             config["debug"]["tags"].append(
                 "role:instructor" if self._lti_user.is_instructor else "role:learner"
             )
+            config["user"] = {
+                "display_name": self._lti_user.display_name,
+            }
 
         return config
 

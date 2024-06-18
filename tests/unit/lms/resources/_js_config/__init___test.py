@@ -173,6 +173,9 @@ class TestEnableLTILaunchMode:
             },
             "mode": "basic-lti-launch",
             "rpcServer": {"allowedOrigins": ["http://localhost:5000"]},
+            "user": {
+                "display_name": lti_user.display_name,
+            },
         }
 
     @pytest.mark.usefixtures("grouping_plugin")
