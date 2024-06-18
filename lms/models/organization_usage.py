@@ -28,6 +28,7 @@ class OrganizationUsageReport(CreatedUpdatedMixin, Base):
     until: Mapped[date | None]
 
     unique_users: Mapped[int | None] = mapped_column()
+    unique_teachers: Mapped[int | None] = mapped_column()
 
     report: Mapped[list[dict] | None] = mapped_column(JSONB())
     """Actual report, in JSON format."""
