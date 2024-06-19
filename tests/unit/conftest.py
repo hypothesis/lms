@@ -10,7 +10,7 @@ from pyramid.request import apply_request_extensions
 from lms.models import ApplicationSettings, LTIParams
 from lms.models.lti_role import Role, RoleScope, RoleType
 from lms.product import Product
-from lms.security import Identity
+from lms.security import Identity, Permissions
 from tests import factories
 from tests.conftest import TEST_SETTINGS
 from tests.unit.services import *  # pylint: disable=wildcard-import,unused-wildcard-import
@@ -182,9 +182,7 @@ def user_has_no_roles(lti_user):
 def configure_jinja2_assets(config):
     jinja2_env = config.get_jinja2_environment()
     jinja2_env.globals["asset_url"] = "http://example.com"
-    jinja2_env.globals["asset_urls"] = (
-        lambda bundle: "http://example.com"  # noqa: ARG005
-    )  # pragma: no cover
+    jinja2_env.globals["asset_urls"] = lambda bundle: "http://example.com"  # noqa: ARG005  # pragma: no cover
     jinja2_env.globals["js_config"] = {}
 
 
@@ -202,7 +200,11 @@ def pyramid_config(pyramid_request, lti_v11_params):
         # Align request.identity with request.lti_user
         config.testing_securitypolicy(
             userid=lti_v11_params["user_id"],
-            identity=Identity(lti_v11_params["user_id"], permissions=[]),
+            identity=Identity(
+                lti_v11_params["user_id"],
+                permissions=[Permissions.LTI_LAUNCH_ASSIGNMENT],
+            ),
+            permissive=False,
         )
 
         config.include("pyramid_jinja2")

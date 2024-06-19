@@ -129,8 +129,15 @@ class TestBasicLaunchViews:
         pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
 
     def test_lti_launch_unconfigured(
-        self, svc, context, pyramid_request, assignment_service, course_service
+        self,
+        svc,
+        context,
+        pyramid_request,
+        assignment_service,
+        course_service,
+        has_permission,
     ):
+        has_permission.return_value = True
         assignment_service.get_assignment_for_launch.return_value = None
 
         pyramid_request.lti_params = mock.create_autospec(
@@ -185,8 +192,15 @@ class TestBasicLaunchViews:
         assert not response
 
     def test_reconfigure_assignment_config(
-        self, svc, context, pyramid_request, assignment_service, course_service
+        self,
+        svc,
+        context,
+        pyramid_request,
+        assignment_service,
+        course_service,
+        has_permission,
     ):
+        has_permission.return_value = True
         pyramid_request.lti_params = mock.create_autospec(
             LTIParams, spec_set=True, instance=True
         )
