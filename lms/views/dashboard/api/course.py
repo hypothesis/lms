@@ -12,7 +12,6 @@ from lms.models import RoleScope, RoleType
 from lms.security import Permissions
 from lms.services.h_api import HAPI
 from lms.services.organization import OrganizationService
-from lms.views.dashboard.base import get_request_course, get_request_organization
 
 
 class CourseViews:
@@ -21,6 +20,7 @@ class CourseViews:
         self.course_service = request.find_service(name="course")
         self.h_api = request.find_service(HAPI)
         self.organization_service = request.find_service(OrganizationService)
+        self.dashboard_service = request.find_service(name="dashboard")
 
     @view_config(
         route_name="api.dashboard.organizations.courses",
@@ -29,7 +29,7 @@ class CourseViews:
         permission=Permissions.DASHBOARD_VIEW,
     )
     def organization_courses(self) -> APICourses:
-        org = get_request_organization(self.request, self.organization_service)
+        org = self.dashboard_service.get_request_organization(self.request)
         courses = self.course_service.get_organization_courses(
             org, h_userid=self.request.user.h_userid if self.request.user else None
         )
@@ -58,7 +58,7 @@ class CourseViews:
         permission=Permissions.DASHBOARD_VIEW,
     )
     def course(self) -> APICourse:
-        course = get_request_course(self.request, self.course_service)
+        course = self.dashboard_service.get_request_course(self.request)
         return {
             "id": course.id,
             "title": course.lms_name,
@@ -71,7 +71,7 @@ class CourseViews:
         permission=Permissions.DASHBOARD_VIEW,
     )
     def course_assignments(self) -> APIAssignments:
-        course = get_request_course(self.request, self.course_service)
+        course = self.dashboard_service.get_request_course(self.request)
         course_students = self.course_service.get_members(
             course, role_scope=RoleScope.COURSE, role_type=RoleType.LEARNER
         )
