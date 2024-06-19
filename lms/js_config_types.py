@@ -64,5 +64,11 @@ class DashboardRoutes(TypedDict):
     course_assignment_stats: str
 
 
+class User(TypedDict):
+    is_staff: bool
+    display_name: str
+
+
 class DashboardConfig(TypedDict):
+    user: User
     routes: DashboardRoutes

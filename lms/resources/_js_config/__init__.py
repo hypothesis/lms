@@ -11,6 +11,7 @@ from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
 from lms.product.d2l import D2L
 from lms.resources._js_config.file_picker_config import FilePickerConfig
+from lms.security import Permissions
 from lms.services import (
     HAPI,
     CanvasStudioService,
@@ -273,6 +274,8 @@ class JSConfig:
                 ),
             }
         )
+        if user_info := self._get_user_info():
+            self._config["dashboard"]["user"] = user_info
 
     def enable_lti_launch_mode(self, course, assignment: Assignment):
         """
@@ -572,11 +575,23 @@ class JSConfig:
             config["debug"]["tags"].append(
                 "role:instructor" if self._lti_user.is_instructor else "role:learner"
             )
-            config["user"] = {
-                "display_name": self._lti_user.display_name,
-            }
 
         return config
+
+    def _get_user_info(self) -> dict | None:
+        if self._lti_user:
+            return {
+                "display_name": self._lti_user.display_name,
+                "is_staff": False,
+            }
+
+        if self._request.has_permission(Permissions.STAFF):
+            return {
+                "display_name": self._request.identity.userid,
+                "is_staff": True,
+            }
+
+        return None
 
     def _get_product_info(self):
         """Return product (Canvas, BB, D2L..) configuration."""

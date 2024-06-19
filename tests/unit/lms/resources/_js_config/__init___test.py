@@ -7,6 +7,7 @@ from lms.models import Grouping, LTIParams
 from lms.product.product import Routes
 from lms.resources import LTILaunchResource, OAuth2RedirectResource
 from lms.resources._js_config import JSConfig
+from lms.security import Identity, Permissions
 from lms.services import HAPIError
 from lms.views.api.sync import APISyncSchema
 from tests import factories
@@ -173,9 +174,6 @@ class TestEnableLTILaunchMode:
             },
             "mode": "basic-lti-launch",
             "rpcServer": {"allowedOrigins": ["http://localhost:5000"]},
-            "user": {
-                "display_name": lti_user.display_name,
-            },
         }
 
     @pytest.mark.usefixtures("grouping_plugin")
@@ -696,20 +694,40 @@ class TestEnableErrorDialogMode:
 
 
 class TestEnableDashboardMode:
-    def test_it(self, js_config):
+    def test_it(self, js_config, lti_user):
         js_config.enable_dashboard_mode()
         config = js_config.asdict()
 
         assert config["mode"] == JSConfig.Mode.DASHBOARD
         assert config["dashboard"] == {
+            "user": {"display_name": lti_user.display_name, "is_staff": False},
             "routes": {
                 "assignment": "/api/dashboard/assignments/:assignment_id",
                 "assignment_stats": "/api/dashboard/assignments/:assignment_id/stats",
                 "course": "/api/dashboard/courses/:course_id",
                 "course_assignment_stats": "/api/dashboard/courses/:course_id/assignments/stats",
                 "organization_courses": "/api/dashboard/organizations/:organization_public_id/courses",
-            }
+            },
         }
+
+    def test_user_when_staff(self, js_config, pyramid_request_staff_member, context):
+        js_config = JSConfig(context, pyramid_request_staff_member)
+        js_config.enable_dashboard_mode()
+        config = js_config.asdict()
+
+        assert config["dashboard"]["user"] == {
+            "is_staff": True,
+            "display_name": "staff@example.com",
+        }
+
+    @pytest.fixture
+    def pyramid_request_staff_member(self, pyramid_config, pyramid_request):
+        pyramid_config.testing_securitypolicy(
+            userid="staff@example.com",
+            identity=Identity("staff@example.com", [Permissions.STAFF]),
+        )
+        pyramid_request.lti_user = None
+        return pyramid_request
 
 
 class TestEnableInstructorDashboardEntryPoint:
