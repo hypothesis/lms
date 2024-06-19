@@ -63,6 +63,8 @@ class DashboardRoutes(TypedDict):
     course: str
     course_assignment_stats: str
 
+    organization_courses: str
+
 
 class User(TypedDict):
     is_staff: bool
