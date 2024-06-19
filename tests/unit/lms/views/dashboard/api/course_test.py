@@ -7,7 +7,9 @@ from lms.models import Course
 from lms.views.dashboard.api.course import CourseViews
 from tests import factories
 
-pytestmark = pytest.mark.usefixtures("course_service", "h_api", "organization_service")
+pytestmark = pytest.mark.usefixtures(
+    "course_service", "h_api", "organization_service", "dashboard_service"
+)
 
 
 class TestCourseViews:
@@ -31,19 +33,19 @@ class TestCourseViews:
         }
 
     def test_get_organization_courses(
-        self, course_service, organization_service, pyramid_request, views, db_session
+        self, course_service, pyramid_request, views, db_session, dashboard_service
     ):
         org = factories.Organization()
         courses = factories.Course.create_batch(5)
-        organization_service.get_by_public_id.return_value = org
+        dashboard_service.get_request_organization.return_value = org
         course_service.get_courses.return_value = select(Course)
         pyramid_request.matchdict["organization_public_id"] = sentinel.public_id
         db_session.flush()
 
         response = views.organization_courses()
 
-        organization_service.get_by_public_id.assert_called_once_with(
-            sentinel.public_id
+        dashboard_service.get_request_organization.assert_called_once_with(
+            pyramid_request
         )
         course_service.get_courses.assert_called_once_with(
             organization=org,
@@ -65,14 +67,14 @@ class TestCourseViews:
             ]
         }
 
-    def test_course(self, views, pyramid_request, course_service):
+    def test_course(self, views, pyramid_request, dashboard_service):
         pyramid_request.matchdict["course_id"] = sentinel.id
         course = factories.Course()
-        course_service.get_by_id.return_value = course
+        dashboard_service.get_request_course.return_value = course
 
         response = views.course()
 
-        course_service.get_by_id.assert_called_once_with(sentinel.id)
+        dashboard_service.get_request_course.assert_called_once_with(pyramid_request)
 
         assert response == {
             "id": course.id,
@@ -80,12 +82,18 @@ class TestCourseViews:
         }
 
     def test_course_assignments(
-        self, views, pyramid_request, course_service, h_api, db_session
+        self,
+        views,
+        pyramid_request,
+        course_service,
+        h_api,
+        db_session,
+        dashboard_service,
     ):
         pyramid_request.matchdict["course_id"] = sentinel.id
         course = factories.Course()
         section = factories.CanvasSection(parent=course)
-        course_service.get_by_id.return_value = course
+        dashboard_service.get_request_course.return_value = course
 
         assignment = factories.Assignment()
         assignment_with_no_annos = factories.Assignment()

@@ -12,7 +12,6 @@ from lms.js_config_types import (
 from lms.models import Assignment, RoleScope, RoleType
 from lms.security import Permissions
 from lms.services.h_api import HAPI
-from lms.views.dashboard.base import get_request_assignment
 from lms.views.dashboard.pagination import PaginationParametersMixin, get_page
 
 
@@ -28,6 +27,7 @@ class AssignmentViews:
         self.request = request
         self.h_api = request.find_service(HAPI)
         self.assignment_service = request.find_service(name="assignment")
+        self.dashboard_service = request.find_service(name="dashboard")
 
     @view_config(
         route_name="api.dashboard.assignments",
@@ -59,7 +59,7 @@ class AssignmentViews:
         permission=Permissions.DASHBOARD_VIEW,
     )
     def assignment(self) -> APIAssignment:
-        assignment = get_request_assignment(self.request, self.assignment_service)
+        assignment = self.dashboard_service.get_request_assignment(self.request)
         return APIAssignment(
             id=assignment.id,
             title=assignment.title,
@@ -74,7 +74,7 @@ class AssignmentViews:
     )
     def assignment_stats(self) -> APIStudents:
         """Fetch the stats for one particular assignment."""
-        assignment = get_request_assignment(self.request, self.assignment_service)
+        assignment = self.dashboard_service.get_request_assignment(self.request)
         stats = self.h_api.get_annotation_counts(
             [g.authority_provided_id for g in assignment.groupings],
             group_by="user",

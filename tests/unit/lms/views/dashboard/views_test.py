@@ -10,7 +10,11 @@ from lms.resources.dashboard import DashboardResource
 from lms.views.dashboard.views import DashboardViews
 
 pytestmark = pytest.mark.usefixtures(
-    "h_api", "assignment_service", "course_service", "organization_service"
+    "h_api",
+    "assignment_service",
+    "course_service",
+    "organization_service",
+    "dashboard_service",
 )
 
 
@@ -39,7 +43,11 @@ class TestDashboardViews:
     @freeze_time("2024-04-01 12:00:00")
     @pytest.mark.usefixtures("BearerTokenSchema")
     def test_assignment_show(
-        self, views, pyramid_request, assignment_service, organization
+        self,
+        views,
+        pyramid_request,
+        organization,
+        dashboard_service,
     ):
         context = DashboardResource(pyramid_request)
         context.js_config = create_autospec(JSConfig, spec_set=True, instance=True)
@@ -48,7 +56,9 @@ class TestDashboardViews:
 
         views.assignment_show()
 
-        assignment_service.get_by_id.assert_called_once_with(sentinel.id)
+        dashboard_service.get_request_assignment.assert_called_once_with(
+            pyramid_request
+        )
         pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
         assert (
             pyramid_request.response.headers["Set-Cookie"]
@@ -57,7 +67,7 @@ class TestDashboardViews:
 
     @freeze_time("2024-04-01 12:00:00")
     @pytest.mark.usefixtures("BearerTokenSchema")
-    def test_course_show(self, views, pyramid_request, course_service, organization):
+    def test_course_show(self, views, pyramid_request, organization, dashboard_service):
         context = DashboardResource(pyramid_request)
         context.js_config = create_autospec(JSConfig, spec_set=True, instance=True)
         pyramid_request.context = context
@@ -65,7 +75,7 @@ class TestDashboardViews:
 
         views.course_show()
 
-        course_service.get_by_id.assert_called_once_with(sentinel.id)
+        dashboard_service.get_request_course.assert_called_once_with(pyramid_request)
         pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
         assert (
             pyramid_request.response.headers["Set-Cookie"]
@@ -75,12 +85,7 @@ class TestDashboardViews:
     @freeze_time("2024-04-01 12:00:00")
     @pytest.mark.usefixtures("BearerTokenSchema")
     def test_organization_show(
-        self,
-        views,
-        pyramid_request,
-        organization_service,
-        organization,
-        get_request_organization,
+        self, views, pyramid_request, organization, dashboard_service
     ):
         context = DashboardResource(pyramid_request)
         context.js_config = create_autospec(JSConfig, spec_set=True, instance=True)
@@ -88,8 +93,8 @@ class TestDashboardViews:
 
         views.organization_show()
 
-        get_request_organization.assert_called_once_with(
-            pyramid_request, organization_service
+        dashboard_service.get_request_organization.assert_called_once_with(
+            pyramid_request
         )
         pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
         assert (
@@ -98,7 +103,7 @@ class TestDashboardViews:
         )
 
     def test_assignment_show_with_no_lti_user(
-        self, views, pyramid_request, assignment_service
+        self, views, pyramid_request, dashboard_service
     ):
         context = DashboardResource(pyramid_request)
         context.js_config = create_autospec(JSConfig, spec_set=True, instance=True)
@@ -108,7 +113,9 @@ class TestDashboardViews:
 
         views.assignment_show()
 
-        assignment_service.get_by_id.assert_called_once_with(sentinel.id)
+        dashboard_service.get_request_assignment.assert_called_once_with(
+            pyramid_request
+        )
         pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
 
     @pytest.fixture
@@ -116,10 +123,6 @@ class TestDashboardViews:
         mock = patch("lms.views.dashboard.views.BearerTokenSchema")
         mock.return_value.authorization_param.return_value = "Bearer TOKEN"
         return mock
-
-    @pytest.fixture
-    def get_request_organization(self, patch):
-        return patch("lms.views.dashboard.views.get_request_organization")
 
     @pytest.fixture(autouse=True)
     def pyramid_config(self, pyramid_config):

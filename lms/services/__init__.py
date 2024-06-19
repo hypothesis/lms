@@ -1,5 +1,6 @@
 from lms.services.aes import AESService
 from lms.services.application_instance import ApplicationInstanceNotFound
+from lms.services.assignment import AssignmentService
 from lms.services.canvas import CanvasService
 from lms.services.canvas_studio import CanvasStudioService
 from lms.services.d2l_api.client import D2LAPIClient
@@ -136,6 +137,8 @@ def includeme(config):
     config.register_service_factory(
         "lms.services.d2l_api.d2l_api_client_factory", iface=D2LAPIClient
     )
+    config.register_service_factory("lms.services.dashboard.factory", name="dashboard")
+
     config.register_service_factory(
         "lms.services.digest.service_factory", iface=DigestService
     )
