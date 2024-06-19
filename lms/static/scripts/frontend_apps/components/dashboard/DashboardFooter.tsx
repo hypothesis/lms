@@ -1,5 +1,5 @@
 import type { LinkProps } from '@hypothesis/frontend-shared';
-import { Link } from '@hypothesis/frontend-shared';
+import { Link, LogoIcon } from '@hypothesis/frontend-shared';
 
 function FooterLink(
   props: Omit<LinkProps, 'underline' | 'variant' | 'target' | 'rel'>,
@@ -23,11 +23,7 @@ export default function DashboardFooter() {
       <div className="mx-auto max-w-6xl flex justify-between items-center">
         <div className="flex gap-3">
           <FooterLink href="https://web.hypothes.is" classes="font-bold">
-            <img
-              alt="Hypothesis logo"
-              src="/static/images/hypothesis-logo.svg"
-              className="mr-2 inline"
-            />
+            <LogoIcon className="mr-2 inline text-brand" />
             hypothes.is
           </FooterLink>
         </div>
