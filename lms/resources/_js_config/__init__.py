@@ -5,7 +5,7 @@ from typing import Any
 
 from lms.error_code import ErrorCode
 from lms.events import LTIEvent
-from lms.js_config_types import DashboardConfig, DashboardRoutes
+from lms.js_config_types import DashboardConfig, DashboardRoutes, User
 from lms.models import Assignment, Course, Grouping
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
@@ -251,11 +251,12 @@ class JSConfig:
             )
         )
 
-    def enable_dashboard_mode(self):
+    def enable_dashboard_mode(self) -> None:
         self._config.update(
             {
                 "mode": JSConfig.Mode.DASHBOARD,
                 "dashboard": DashboardConfig(
+                    user=self._get_user_info(),
                     routes=DashboardRoutes(
                         assignment=self._to_frontend_template(
                             "api.dashboard.assignment"
@@ -274,8 +275,6 @@ class JSConfig:
                 ),
             }
         )
-        if user_info := self._get_user_info():
-            self._config["dashboard"]["user"] = user_info
 
     def enable_lti_launch_mode(self, course, assignment: Assignment):
         """
@@ -578,21 +577,6 @@ class JSConfig:
 
         return config
 
-    def _get_user_info(self) -> dict | None:
-        if self._lti_user:
-            return {
-                "display_name": self._lti_user.display_name,
-                "is_staff": False,
-            }
-
-        if self._request.has_permission(Permissions.STAFF):
-            return {
-                "display_name": self._request.identity.userid,
-                "is_staff": True,
-            }
-
-        return None
-
     def _get_product_info(self):
         """Return product (Canvas, BB, D2L..) configuration."""
         product = self._request.product
@@ -725,6 +709,18 @@ class JSConfig:
                     "gradingStudentId": req.params.get("learner_canvas_user_id"),
                 },
             }
+
+    def _get_user_info(self) -> User:
+        if self._request.has_permission(Permissions.STAFF):
+            return {
+                "display_name": self._request.identity.userid,
+                "is_staff": True,
+            }
+
+        return {
+            "display_name": self._lti_user.display_name,
+            "is_staff": False,
+        }
 
     def _get_lti_launch_debug_values(
         self, course: Course, assignment: Assignment | None
