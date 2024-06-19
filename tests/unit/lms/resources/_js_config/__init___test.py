@@ -788,7 +788,6 @@ def pyramid_request(pyramid_request):
     )
     pyramid_request.lti_params = LTIParams.from_request(pyramid_request)
     pyramid_request.product.route = Routes(oauth2_authorize="welcome")
-
     return pyramid_request
 
 
