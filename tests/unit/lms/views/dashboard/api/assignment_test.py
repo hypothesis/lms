@@ -6,7 +6,7 @@ from lms.models import Assignment
 from lms.views.dashboard.api.assignment import AssignmentViews
 from tests import factories
 
-pytestmark = pytest.mark.usefixtures("h_api", "assignment_service")
+pytestmark = pytest.mark.usefixtures("h_api", "assignment_service", "dashboard_service")
 
 
 class TestAssignmentViews:
@@ -33,15 +33,17 @@ class TestAssignmentViews:
         }
 
     def test_assignment(
-        self, views, pyramid_request, assignment_service, course, assignment, db_session
+        self, views, pyramid_request, course, assignment, db_session, dashboard_service
     ):
         db_session.flush()
         pyramid_request.matchdict["assignment_id"] = sentinel.id
-        assignment_service.get_by_id.return_value = assignment
+        dashboard_service.get_request_assignment.return_value = assignment
 
         response = views.assignment()
 
-        assignment_service.get_by_id.assert_called_once_with(sentinel.id)
+        dashboard_service.get_request_assignment.assert_called_once_with(
+            pyramid_request
+        )
 
         assert response == {
             "id": assignment.id,
@@ -49,7 +51,9 @@ class TestAssignmentViews:
             "course": {"id": course.id, "title": course.lms_name},
         }
 
-    def test_assignment_stats(self, views, pyramid_request, assignment_service, h_api):
+    def test_assignment_stats(
+        self, views, pyramid_request, assignment_service, h_api, dashboard_service
+    ):
         # User returned by the stats endpoint
         student = factories.User(display_name="Bart")
         # User with no annotations
@@ -64,7 +68,7 @@ class TestAssignmentViews:
             student_no_annos,
             student_no_annos_no_name,
         ]
-        assignment_service.get_by_id.return_value = assignment
+        dashboard_service.get_request_assignment.return_value = assignment
         stats = [
             {
                 "display_name": student.display_name,
@@ -86,7 +90,9 @@ class TestAssignmentViews:
 
         response = views.assignment_stats()
 
-        assignment_service.get_by_id.assert_called_once_with(sentinel.id)
+        dashboard_service.get_request_assignment.assert_called_once_with(
+            pyramid_request
+        )
         h_api.get_annotation_counts.assert_called_once_with(
             [g.authority_provided_id for g in assignment.groupings],
             group_by="user",
