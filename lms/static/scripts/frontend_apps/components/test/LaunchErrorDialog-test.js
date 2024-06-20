@@ -259,10 +259,16 @@ describe('LaunchErrorDialog', () => {
     },
     {
       errorState: 'error-reporting-submission',
-      expectedText: 'There was a problem submitting this Hypothesis assignment',
-      expectedTitle: 'Something went wrong',
+      expectedText:
+        'Your annotation was saved, but Hypothesis could not record a submission for grading.',
+      expectedTitle: 'Grading submission failed',
       hasRetry: false,
       withError: true,
+    },
+    {
+      errorState: 'canvas_submission_course_not_available',
+      expectedText: 'This may be because the course has ended',
+      expectedTitle: 'Grading submission failed',
     },
   ].forEach(
     ({
@@ -337,5 +343,23 @@ describe('LaunchErrorDialog', () => {
       .filterWhere(n => n.prop('data-testid') === 'edit-link');
     assert.isTrue(editLink.exists());
     assert.equal(editLink.prop('href'), '/app/content-item-selection');
+  });
+
+  it('does not allow dismissing error if `onDismiss` callback is not provided', () => {
+    const wrapper = renderDialog();
+    const errorModal = wrapper.find('ErrorModal');
+    assert.isUndefined(errorModal.prop('onCancel'));
+    assert.isUndefined(errorModal.prop('cancelLabel'));
+  });
+
+  it('allows dismissing error if `onDismiss` callback is provided', () => {
+    const onDismiss = sinon.stub();
+    const wrapper = renderDialog({ onDismiss });
+    const errorModal = wrapper.find('ErrorModal');
+
+    errorModal.prop('onCancel')();
+
+    assert.equal(errorModal.prop('cancelLabel'), 'Dismiss');
+    assert.calledOnce(onDismiss);
   });
 });

@@ -5,6 +5,7 @@ import { useConfig } from '../config';
 import type { ErrorLike } from '../errors';
 import type { ErrorState } from './BasicLTILaunchApp';
 import ErrorModal from './ErrorModal';
+import type { ErrorModalProps } from './ErrorModal';
 
 export type LaunchErrorDialogProps = {
   /**
@@ -18,6 +19,9 @@ export type LaunchErrorDialogProps = {
   error: ErrorLike | null;
   /** Callback invoked when user clicks the "Try again" button */
   onRetry: () => void;
+
+  /** Callback invoked when user clicks the "Dismiss" button */
+  onDismiss?: () => void;
 };
 
 /**
@@ -62,6 +66,7 @@ export default function LaunchErrorDialog({
   busy,
   error,
   errorState,
+  onDismiss,
   onRetry,
 }: LaunchErrorDialogProps) {
   const { instructorToolbar } = useConfig();
@@ -79,7 +84,7 @@ export default function LaunchErrorDialog({
   }
 
   // Common properties for error dialog.
-  const defaultProps = {
+  const defaultProps: ErrorModalProps = {
     busy,
     extraActions,
     error,
@@ -89,6 +94,11 @@ export default function LaunchErrorDialog({
     // in future by always providing this option?
     onRetry,
   };
+
+  if (onDismiss) {
+    defaultProps.onCancel = onDismiss;
+    defaultProps.cancelLabel = 'Dismiss';
+  }
 
   switch (errorState) {
     case 'error-authorizing':
@@ -625,18 +635,42 @@ export default function LaunchErrorDialog({
         </ErrorModal>
       );
 
-    case 'error-reporting-submission':
-      // nb. There is no retry action here as we just suggest reloading the entire
-      // page.
+    case 'canvas_submission_course_not_available':
       return (
         <ErrorModal
           {...defaultProps}
           onRetry={undefined}
-          title="Something went wrong"
+          title="Grading submission failed"
         >
           <p>
-            There was a problem submitting this Hypothesis assignment.{' '}
-            <b>To fix this problem, try reloading the page.</b>
+            Your annotation was saved, but Hypothesis could not record a
+            submission for grading.
+          </p>
+          <p>
+            This may be because the course has ended and we are no longer
+            allowed to create submissions.
+          </p>
+          <p>
+            Your instructor is not aware you have saved an annotation. You may
+            need to reach out to them.
+          </p>
+        </ErrorModal>
+      );
+
+    case 'error-reporting-submission':
+      return (
+        <ErrorModal
+          {...defaultProps}
+          onRetry={undefined}
+          title="Grading submission failed"
+        >
+          <p>
+            Your annotation was saved, but Hypothesis could not record a
+            submission for grading.
+          </p>
+          <p>
+            Your instructor is not aware you have saved an annotation. You may
+            need to reach out to them.
           </p>
         </ErrorModal>
       );

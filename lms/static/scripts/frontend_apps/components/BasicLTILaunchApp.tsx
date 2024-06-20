@@ -31,6 +31,19 @@ export type ErrorState =
   | LTILaunchServerErrorCode;
 
 /**
+ * Return true if the user can dimiss an error.
+ *
+ * This is true for errors which are important, but don't completely prevent
+ * the user from participating in the assignment.
+ */
+function canDismissError(e: ErrorState) {
+  return [
+    'error-reporting-submission',
+    'canvas_submission_course_not_available',
+  ].includes(e);
+}
+
+/**
  * Application displayed when an assignment is launched if the LMS backend
  * is unable to directly render the content in an iframe. This happens when
  * the content URL needs to be fetched from a remote source (eg. the LMS's
@@ -88,8 +101,6 @@ export default function BasicLTILaunchApp() {
   const authWindow = useRef<AuthWindow | null>(null);
 
   const contentReady = !!contentURL;
-  const showContent = contentReady && !errorState;
-  const showSpinner = fetchCount > 0 && !errorState;
 
   const incFetchCount = () => {
     setFetchCount(count => count + 1);
@@ -244,7 +255,9 @@ export default function BasicLTILaunchApp() {
           data: submissionParams,
         });
       } catch (e) {
-        // If reporting the submission failed, replace the content with an error.
+        // If reporting the submission failed, show a modal error dialog above
+        // the content.
+        //
         // This avoids the student trying to complete the assignment without
         // knowing that there was a problem, and the teacher then not seeing a
         // submission.
@@ -318,27 +331,32 @@ export default function BasicLTILaunchApp() {
     }
   }, [authToken, authURL, fetchContentURL, fetchGroups]);
 
+  const showSpinner = fetchCount > 0 && !errorState;
+
   return (
     <div className="h-full">
       {showSpinner && <SpinnerOverlay />}
-      {errorState && (
-        <LaunchErrorDialog
-          busy={fetchCount > 0}
-          errorState={errorState}
-          error={error}
-          onRetry={authorizeAndFetchURL}
-        />
-      )}
       <div
         className={classnames('flex flex-col h-full', {
-          invisible: !showContent,
-          visible: showContent,
+          invisible: !contentReady,
+          visible: contentReady,
         })}
         data-testid="content-wrapper"
       >
         <InstructorToolbar />
         <ContentFrame url={contentURL ?? ''} />
       </div>
+      {errorState && (
+        <LaunchErrorDialog
+          busy={fetchCount > 0}
+          errorState={errorState}
+          error={error}
+          onDismiss={
+            canDismissError(errorState) ? () => setErrorState(null) : undefined
+          }
+          onRetry={authorizeAndFetchURL}
+        />
+      )}
     </div>
   );
 }
