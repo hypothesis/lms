@@ -88,7 +88,14 @@ export default function OrderableActivityTable<T>({
       rows={orderedRows}
       orderableColumns={orderableColumns}
       order={order}
-      onOrderChange={setOrder}
+      onOrderChange={order =>
+        setOrder({
+          ...order,
+          // Every column should start with nulls last, and move them first
+          // when order direction changes
+          nullsLast: order.direction === orderableColumns[order.field],
+        })
+      }
       onConfirmRow={
         navigateOnConfirmRow
           ? row => navigate(navigateOnConfirmRow(row))
