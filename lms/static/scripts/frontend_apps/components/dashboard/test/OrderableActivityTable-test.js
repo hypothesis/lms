@@ -1,4 +1,5 @@
 import { mount } from 'enzyme';
+import sinon from 'sinon';
 
 import OrderableActivityTable, { $imports } from '../OrderableActivityTable';
 
@@ -43,12 +44,24 @@ describe('OrderableActivityTable', () => {
     return mount(
       <OrderableActivityTable
         rows={rows}
-        columnNames={{
-          display_name: 'Name',
-          last_activity: 'Last activity',
-          annotations: 'Annotations',
-          replies: 'Replies',
-        }}
+        columns={[
+          {
+            field: 'display_name',
+            label: 'Name',
+          },
+          {
+            field: 'last_activity',
+            label: 'Last activity',
+          },
+          {
+            field: 'annotations',
+            label: 'Annotations',
+          },
+          {
+            field: 'replies',
+            label: 'Replies',
+          },
+        ]}
         defaultOrderField="display_name"
         navigateOnConfirmRow={navigateOnConfirmRow}
       />,
@@ -58,6 +71,7 @@ describe('OrderableActivityTable', () => {
   [
     {
       orderToSet: { field: 'annotations', direction: 'descending' },
+      expectedNullsLast: false,
       expectedStudents: [
         {
           display_name: 'b',
@@ -81,6 +95,7 @@ describe('OrderableActivityTable', () => {
     },
     {
       orderToSet: { field: 'replies', direction: 'ascending' },
+      expectedNullsLast: true,
       expectedStudents: [
         {
           display_name: 'b',
@@ -104,6 +119,7 @@ describe('OrderableActivityTable', () => {
     },
     {
       orderToSet: { field: 'last_activity', direction: 'descending' },
+      expectedNullsLast: false,
       expectedStudents: [
         {
           display_name: 'a',
@@ -125,7 +141,7 @@ describe('OrderableActivityTable', () => {
         },
       ],
     },
-  ].forEach(({ orderToSet, expectedStudents }) => {
+  ].forEach(({ orderToSet, expectedNullsLast, expectedStudents }) => {
     it('reorders students on order change', () => {
       const wrapper = createComponent();
       const getRows = () => wrapper.find('DataTable').prop('rows');
@@ -162,7 +178,10 @@ describe('OrderableActivityTable', () => {
       ]);
 
       setOrder(orderToSet);
-      assert.deepEqual(getOrder(), orderToSet);
+      assert.deepEqual(getOrder(), {
+        ...orderToSet,
+        nullsLast: expectedNullsLast,
+      });
       assert.deepEqual(getRows(), expectedStudents);
     });
   });

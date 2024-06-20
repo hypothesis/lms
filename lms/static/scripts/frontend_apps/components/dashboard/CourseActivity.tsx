@@ -69,12 +69,27 @@ export default function CourseActivity() {
             : 'No assignments found'
         }
         rows={rows}
-        columnNames={{
-          title: 'Assignment',
-          annotations: 'Annotations',
-          replies: 'Replies',
-          last_activity: 'Last Activity',
-        }}
+        columns={[
+          {
+            field: 'title',
+            label: 'Assignment',
+          },
+          {
+            field: 'annotations',
+            label: 'Annotations',
+            initialOrderDirection: 'descending',
+          },
+          {
+            field: 'replies',
+            label: 'Replies',
+            initialOrderDirection: 'descending',
+          },
+          {
+            field: 'last_activity',
+            label: 'Last Activity',
+            initialOrderDirection: 'descending',
+          },
+        ]}
         defaultOrderField="title"
         renderItem={(stats, field) => {
           if (['annotations', 'replies'].includes(field)) {
