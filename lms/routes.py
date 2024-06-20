@@ -208,12 +208,16 @@ def includeme(config):  # noqa: PLR0915
     config.add_route("admin.organization", "/admin/orgs/{id_}")
     config.add_route(
         "admin.organization.section",
-        "/admin/orgs/{id_}/{section:info|usage|danger}",
+        "/admin/orgs/{id_}/{section:info|usage|danger|dashboard-admins}",
     )
     config.add_route("admin.organization.toggle", "/admin/orgs/{id_}/toggle")
     config.add_route("admin.organizations", "/admin/orgs")
     config.add_route("admin.organization.move_org", "/admin/orgs/{id_}/move_org")
     config.add_route("admin.organization.new", "/admin/org/new")
+    config.add_route(
+        "admin.organization.dashboard_admins.delete",
+        "/admin/org{id_}/dashboard-admins/{dashboard_admin_id}/delete",
+    )
 
     config.add_route("admin.registrations", "/admin/registrations/")
     config.add_route("admin.registrations.search", "/admin/registrations/search")

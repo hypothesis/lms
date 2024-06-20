@@ -36,6 +36,12 @@ class NewOrganizationSchema(PyramidRequestSchema):
     name = fields.Str(required=True, validate=validate.Length(min=1))
 
 
+class NewDashboardAdminSchema(PyramidRequestSchema):
+    location = "form"
+
+    email = fields.Email(required=True)
+
+
 @view_defaults(request_method="GET", permission=Permissions.ADMIN)
 class AdminOrganizationViews:
     def __init__(self, request) -> None:
@@ -221,6 +227,48 @@ class AdminOrganizationViews:
             report = []
 
         return {"org": org, "since": since, "until": until, "report": report}
+
+    @view_config(
+        route_name="admin.organization.section",
+        match_param="section=dashboard-admins",
+        request_method="POST",
+        permission=Permissions.STAFF,
+    )
+    def new_organization_dashboard_admin(self):
+        org = self._get_org_or_404(self.request.matchdict["id_"])
+
+        if flash_validation(self.request, NewDashboardAdminSchema):
+            return HTTPFound(
+                location=self.request.route_url(
+                    "admin.organization.section", id_=org.id, section="dashboard-admins"
+                )
+            )
+
+        self.request.find_service(name="dashboard").add_dashboard_admin(
+            org, self.request.params["email"], self.request.identity.userid
+        )
+
+        return HTTPFound(
+            location=self.request.route_url(
+                "admin.organization.section", id_=org.id, section="dashboard-admins"
+            )
+        )
+
+    @view_config(
+        route_name="admin.organization.dashboard_admins.delete",
+        request_method="POST",
+        permission=Permissions.STAFF,
+    )
+    def delete_organization_dashboard_admin(self):
+        org = self._get_org_or_404(self.request.matchdict["id_"])
+        self.request.find_service(name="dashboard").delete_dashboard_admin(
+            self.request.matchdict["dashboard_admin_id"]
+        )
+        return HTTPFound(
+            location=self.request.route_url(
+                "admin.organization.section", id_=org.id, section="dashboard-admins"
+            )
+        )
 
     def _get_org_or_404(self, id_) -> Organization:
         if org := self.organization_service.get_by_id(id_):
