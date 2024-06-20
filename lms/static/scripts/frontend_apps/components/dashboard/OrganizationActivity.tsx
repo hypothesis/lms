@@ -55,11 +55,22 @@ export default function OrganizationActivity({
           courses.error ? 'Could not load courses' : 'No courses found'
         }
         rows={rows}
-        columnNames={{
-          title: 'Course Title',
-          assignments: 'Assignments',
-          last_launched: 'Last launched',
-        }}
+        columns={[
+          {
+            field: 'title',
+            label: 'Course title',
+          },
+          {
+            field: 'assignments',
+            label: 'Assignments',
+            initialOrderDirection: 'descending',
+          },
+          {
+            field: 'last_launched',
+            label: 'Last launched',
+            initialOrderDirection: 'descending',
+          },
+        ]}
         defaultOrderField="title"
         renderItem={(stats, field) => {
           if (field === 'assignments') {

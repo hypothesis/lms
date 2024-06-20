@@ -72,12 +72,27 @@ export default function AssignmentActivity() {
           students.error ? 'Could not load students' : 'No students found'
         }
         rows={rows}
-        columnNames={{
-          display_name: 'Student',
-          annotations: 'Annotations',
-          replies: 'Replies',
-          last_activity: 'Last Activity',
-        }}
+        columns={[
+          {
+            field: 'display_name',
+            label: 'Student',
+          },
+          {
+            field: 'annotations',
+            label: 'Annotations',
+            initialOrderDirection: 'descending',
+          },
+          {
+            field: 'replies',
+            label: 'Replies',
+            initialOrderDirection: 'descending',
+          },
+          {
+            field: 'last_activity',
+            label: 'Last Activity',
+            initialOrderDirection: 'descending',
+          },
+        ]}
         defaultOrderField="display_name"
         renderItem={(stats, field) => {
           if (['annotations', 'replies'].includes(field)) {

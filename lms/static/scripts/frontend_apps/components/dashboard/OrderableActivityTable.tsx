@@ -5,11 +5,17 @@ import type { OrderDirection } from '@hypothesis/frontend-shared/lib/types';
 import { useMemo, useState } from 'preact/hooks';
 import { useLocation } from 'wouter-preact';
 
+export type OrderableActivityTableColumn<T> = {
+  field: keyof T;
+  label: string;
+  initialOrderDirection?: OrderDirection;
+};
+
 export type OrderableActivityTableProps<T> = Pick<
   DataTableProps<T>,
   'emptyMessage' | 'rows' | 'renderItem' | 'loading' | 'title'
 > & {
-  columnNames: Partial<Record<keyof T, string>>;
+  columns: OrderableActivityTableColumn<T>[];
   defaultOrderField: keyof T;
 
   /**
@@ -20,32 +26,13 @@ export type OrderableActivityTableProps<T> = Pick<
 };
 
 /**
- * List of columns which should start sorted in descending order.
- *
- * This is because for numeric columns ("annotations" and "replies") users will
- * usually want to see the higher values first.
- * Similarly, for date columns ("last_activity") users will want to see most
- * recent values first.
- */
-const descendingOrderColumns: readonly string[] = [
-  // Annotation metrics
-  'last_activity',
-  'annotations',
-  'replies',
-
-  // Course metrics
-  'last_launched',
-  'assignments',
-];
-
-/**
  * Annotation activity table for dashboard views. Includes built-in support for
  * sorting columns.
  */
 export default function OrderableActivityTable<T>({
   defaultOrderField,
   rows,
-  columnNames,
+  columns,
   navigateOnConfirmRow,
   ...restOfTableProps
 }: OrderableActivityTableProps<T>) {
@@ -54,29 +41,26 @@ export default function OrderableActivityTable<T>({
     direction: 'ascending',
   });
   const orderedRows = useOrderedRows(rows, order);
-  const columns = useMemo(
+  const dataTableColumns = useMemo(
     () =>
-      Object.entries(columnNames).map(([field, label], index) => ({
-        field: field as keyof T,
-        label: label as string,
+      columns.map(({ field, label }, index) => ({
+        field,
+        label,
         classes: index === 0 ? 'w-[60%]' : undefined,
       })),
-    [columnNames],
+    [columns],
   );
   // Map of column name to initial sort order
   const orderableColumns = useMemo(
     () =>
-      (Object.keys(columnNames) as Array<keyof T>).reduce<
-        Partial<Record<keyof T, OrderDirection>>
-      >((acc, columnName) => {
-        acc[columnName] =
-          typeof columnName === 'string' &&
-          descendingOrderColumns.includes(columnName)
-            ? 'descending'
-            : 'ascending';
-        return acc;
-      }, {}),
-    [columnNames],
+      columns.reduce<Partial<Record<keyof T, OrderDirection>>>(
+        (acc, { field, initialOrderDirection = 'ascending' }) => {
+          acc[field] = initialOrderDirection;
+          return acc;
+        },
+        {},
+      ),
+    [columns],
   );
   const [, navigate] = useLocation();
 
@@ -84,7 +68,7 @@ export default function OrderableActivityTable<T>({
     <DataTable
       grid
       striped={false}
-      columns={columns}
+      columns={dataTableColumns}
       rows={orderedRows}
       orderableColumns={orderableColumns}
       order={order}
