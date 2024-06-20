@@ -3,7 +3,9 @@ from unittest.mock import sentinel
 import pytest
 from pyramid.httpexceptions import HTTPNotFound, HTTPUnauthorized
 
+from lms.models.dashboard_admin import DashboardAdmin
 from lms.services.dashboard import DashboardService, factory
+from tests import factories
 
 pytestmark = pytest.mark.usefixtures("h_api", "assignment_service")
 
@@ -122,10 +124,27 @@ class TestDashboardService:
 
         assert svc.get_request_organization(pyramid_request)
 
+    def test_add_dashboard_admin(self, svc, db_session):
+        admin = svc.add_dashboard_admin(
+            factories.Organization(), "testing@example.com", "creator"
+        )
+
+        assert db_session.query(DashboardAdmin).one() == admin
+
+    def test_delete_dashboard_admin(self, svc, db_session):
+        admin = svc.add_dashboard_admin(
+            factories.Organization(), "testing@example.com", "creator"
+        )
+        db_session.flush()
+
+        svc.delete_dashboard_admin(admin.id)
+
+        assert not db_session.query(DashboardAdmin).filter_by(id=admin.id).first()
+
     @pytest.fixture()
-    def svc(self, assignment_service, course_service, organization_service):
+    def svc(self, assignment_service, course_service, organization_service, db_session):
         return DashboardService(
-            assignment_service, course_service, organization_service
+            db_session, assignment_service, course_service, organization_service
         )
 
     @pytest.fixture(autouse=True)
@@ -142,10 +161,12 @@ class TestFactory:
         DashboardService,
         course_service,
         organization_service,
+        db_session,
     ):
         service = factory(sentinel.context, pyramid_request)
 
         DashboardService.assert_called_once_with(
+            db=db_session,
             assignment_service=assignment_service,
             course_service=course_service,
             organization_service=organization_service,

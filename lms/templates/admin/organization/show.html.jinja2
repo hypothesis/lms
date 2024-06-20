@@ -26,6 +26,9 @@
                 <li data-section-id="usage">
                     <a>Usage report</a>
                 </li>
+                <li data-section-id="dashboard-admins">
+                    <a>Dashboard admins</a>
+                </li>
                 <li data-section-id="danger">
                     <a>Danger Zone</a>
                 </li>
@@ -94,6 +97,55 @@
                                 <input type="submit" class="button is-primary" value="Generate" />
                             </div>
                         </form>
+                    </fieldset>
+                </li>
+                <li class="tab-panel" data-section-id="dashboard-admins">
+                    <fieldset class="box">
+                        <legend class="label has-text-centered">Dashboard admins</legend>
+                        <form method="POST"
+                              action="{{ request.route_url("admin.organization.section", id_=org.id, section="dashboard-admins") }}">
+                            <div class="columns">
+                                <div class="column">{{ macros.form_text_field(request, "Email", "email") }}</div>
+                            </div>
+                            <div class="has-text-right mb-6">
+                                <input type="submit" class="button is-primary" value="Add admin" />
+                            </div>
+                        </form>
+                    </fieldset>
+                    <fieldset class="box">
+                      {% if org.dashboard_admins %}
+                      <form method="POST">
+                      <div class="container">
+                          <div class="table-container">
+                              <table class="table is-fullwidth">
+                                  <thead>
+                                      <tr>
+                                          <th>Email</th>
+                                          <th>Created by</th>
+                                          <th></th>
+                                      </tr>
+                                  </thead>
+                                  <tbody>
+                                      {% for admin in org.dashboard_admins %}
+                                          <tr>
+                                              <td><b>{{admin.email}}</b></td>
+                                              <td>{{admin.created_by}}</td>
+                                              <td>
+                                                <input type="submit"
+                                                     formaction="{{ request.route_url("admin.organization.dashboard_admins.delete", id_=org.id, dashboard_admin_id=admin.id) }}"
+                                                     class="button is-danger"
+                                                     value="Delete" />
+                                              </td>
+                                          </tr>
+                                      {% endfor %}
+                                  </tbody>
+                              </table>
+                          </div>
+                      </div>
+                      </form>
+                      {% else %}
+                      <div class="has-text-centered">No dashboard admins</div>
+                      {% endif %}
                     </fieldset>
                 </li>
                 <li class="tab-panel" data-section-id="danger">
