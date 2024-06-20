@@ -2,6 +2,7 @@ from datetime import datetime
 from unittest.mock import sentinel
 
 import pytest
+import sqlalchemy
 from h_matchers import Any
 from pyramid.httpexceptions import HTTPBadRequest, HTTPFound, HTTPNotFound
 
@@ -275,6 +276,56 @@ class TestAdminOrganizationViews:
             "until": until,
             "report": organization_usage_report_service.usage_report.return_value,
         }
+
+    def test_new_organization_dashboard_admin(
+        self, views, dashboard_service, organization_service, pyramid_request
+    ):
+        pyramid_request.matchdict["id_"] = sentinel.id_
+        pyramid_request.POST["email"] = "test@example.com"
+
+        views.new_organization_dashboard_admin()
+
+        dashboard_service.add_dashboard_admin.assert_called_once_with(
+            organization_service.get_by_id.return_value,
+            "test@example.com",
+            pyramid_request.identity.userid,
+        )
+
+    def test_new_organization_dashboard_handles_duplicates(
+        self, views, dashboard_service, pyramid_request
+    ):
+        pyramid_request.matchdict["id_"] = sentinel.id_
+        pyramid_request.POST["email"] = "test@example.com"
+        dashboard_service.add_dashboard_admin.side_effect = (
+            sqlalchemy.exc.IntegrityError(Any(), Any(), Any())
+        )
+
+        views.new_organization_dashboard_admin()
+
+        assert pyramid_request.session.peek_flash("errors")
+
+    def test_new_organization_dashboard_admin_validates_email(
+        self, views, dashboard_service, pyramid_request
+    ):
+        pyramid_request.matchdict["id_"] = sentinel.id_
+        pyramid_request.POST["email"] = "NOT AN EMAIL"
+
+        views.new_organization_dashboard_admin()
+
+        dashboard_service.add_dashboard_admin.assert_not_called()
+        assert pyramid_request.session.peek_flash("validation")
+
+    def test_delete_organization_dashboard_admin(
+        self, views, dashboard_service, pyramid_request
+    ):
+        pyramid_request.matchdict["id_"] = sentinel.id_
+        pyramid_request.matchdict["dashboard_admin_id"] = sentinel.dashboard_admin_id
+
+        views.delete_organization_dashboard_admin()
+
+        dashboard_service.delete_dashboard_admin.assert_called_once_with(
+            sentinel.dashboard_admin_id
+        )
 
     @pytest.fixture
     def with_valid_params_for_usage(self, pyramid_request):

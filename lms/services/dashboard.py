@@ -1,11 +1,15 @@
 from pyramid.httpexceptions import HTTPNotFound, HTTPUnauthorized
 
+from lms.models.dashboard_admin import DashboardAdmin
+from lms.models.organization import Organization
 from lms.security import Permissions
 from lms.services.organization import OrganizationService
 
 
 class DashboardService:
-    def __init__(self, assignment_service, course_service, organization_service):
+    def __init__(self, db, assignment_service, course_service, organization_service):
+        self._db = db
+
         self._assignment_service = assignment_service
         self._course_service = course_service
         self._organization_service = organization_service
@@ -59,9 +63,24 @@ class DashboardService:
 
         return organization
 
+    def add_dashboard_admin(
+        self, organization: Organization, email: str, created_by: str
+    ) -> DashboardAdmin:
+        """Create a new dashboard admin for `organization`."""
+        admin = DashboardAdmin(
+            organization=organization, created_by=created_by, email=email
+        )
+        self._db.add(admin)
+        return admin
+
+    def delete_dashboard_admin(self, dashboard_admin_id: int) -> None:
+        """Delete an existing dashboard admin."""
+        self._db.query(DashboardAdmin).filter_by(id=dashboard_admin_id).delete()
+
 
 def factory(_context, request):
     return DashboardService(
+        db=request.db,
         assignment_service=request.find_service(name="assignment"),
         course_service=request.find_service(name="course"),
         organization_service=request.find_service(OrganizationService),
