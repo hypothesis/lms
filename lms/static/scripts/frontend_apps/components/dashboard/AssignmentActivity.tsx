@@ -95,15 +95,29 @@ export default function AssignmentActivity() {
         ]}
         defaultOrderField="display_name"
         renderItem={(stats, field) => {
-          if (['annotations', 'replies'].includes(field)) {
-            return <div className="text-right">{stats[field]}</div>;
-          } else if (field === 'last_activity') {
-            return stats.last_activity
-              ? formatDateTime(new Date(stats.last_activity))
-              : '';
+          switch (field) {
+            case 'annotations':
+            case 'replies':
+              return <div className="text-right">{stats[field]}</div>;
+            case 'last_activity':
+              return stats.last_activity
+                ? formatDateTime(new Date(stats.last_activity))
+                : '';
+            case 'display_name':
+              return (
+                stats.display_name ?? (
+                  <span className="flex flex-col gap-1.5">
+                    <span className="italic">Unknown</span>
+                    <span className="text-xs text-grey-7">
+                      This student launched the assignment but didn{"'"}t
+                      annotate yet
+                    </span>
+                  </span>
+                )
+              );
+            default:
+              return '';
           }
-
-          return stats[field] ?? `Student ${stats.id.substring(0, 10)}`;
         }}
       />
     </div>
