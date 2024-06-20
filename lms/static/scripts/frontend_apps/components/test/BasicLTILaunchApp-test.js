@@ -465,14 +465,16 @@ describe('BasicLTILaunchApp', () => {
       assert.isTrue(wrapper.exists('iframe'));
     });
 
-    it('displays an error if reporting the submission fails', async () => {
+    // Make the grading submission API call fail.
+    function makeSubmissionFail() {
       const error = new APIError(400, {});
       fakeApiCall
         .withArgs(sinon.match({ path: '/api/lti/submissions' }))
         .rejects(error);
+      return error;
+    }
 
-      const wrapper = renderLTILaunchApp();
-
+    async function waitForErrorDialog(wrapper) {
       // Wait for the API call to fail and check that an error is displayed.
       // There should be no "Try again" button in this context, instead we just
       // ask the user to reload the page.
@@ -480,7 +482,25 @@ describe('BasicLTILaunchApp', () => {
         wrapper,
         'LaunchErrorDialog[errorState="error-reporting-submission"]',
       );
+      return errorDialog;
+    }
+
+    it('displays an error if reporting the submission fails', async () => {
+      const error = makeSubmissionFail();
+      const wrapper = renderLTILaunchApp();
+      const errorDialog = await waitForErrorDialog(wrapper);
       assert.equal(errorDialog.prop('error'), error);
+    });
+
+    it('allows user to dismiss error', async () => {
+      makeSubmissionFail();
+      const wrapper = renderLTILaunchApp();
+      const errorDialog = await waitForErrorDialog(wrapper);
+
+      errorDialog.prop('onDismiss')();
+      wrapper.update();
+
+      assert.isFalse(wrapper.exists('LaunchErrorDialog'));
     });
 
     it('does not report a submission if grading is not enabled for the current user', async () => {
@@ -544,22 +564,28 @@ describe('BasicLTILaunchApp', () => {
           assert.isFunction(annotationActivityCalls[0].args[1]);
         });
 
+        // Simulate annotation activity being reported from the client to the
+        // LMS frontend.
+        async function reportActivity() {
+          const annotationActivityCalls = getOnActivityCalls(fakeRpcServer.on);
+          const callback = annotationActivityCalls[0].callback;
+          callback('create', { annotation: { isShared: true } });
+          await delay(0);
+          return callback;
+        }
+
         context(
           '`annotationActivity` event that qualifies for submission',
           () => {
-            it('submits a submission', async () => {
+            it('creates submission', async () => {
               renderLTILaunchApp();
               assert.isFalse(
                 fakeApiCall.calledWith(
                   sinon.match({ path: '/api/lti/submissions' }),
                 ),
               );
-              const annotationActivityCalls = getOnActivityCalls(
-                fakeRpcServer.on,
-              );
-              const callback = annotationActivityCalls[0].callback;
-              callback('create', { annotation: { isShared: true } });
-              await delay(0);
+
+              await reportActivity();
 
               assert.calledOnce(fakeApiCall);
               assert.calledWith(
@@ -581,12 +607,7 @@ describe('BasicLTILaunchApp', () => {
             it('deregisters callback after submission is made', async () => {
               renderLTILaunchApp();
 
-              const annotationActivityCalls = getOnActivityCalls(
-                fakeRpcServer.on,
-              );
-              const callback = annotationActivityCalls[0].args[1];
-              callback('create', { annotation: { isShared: true } });
-              await delay(0);
+              const callback = await reportActivity();
 
               assert.calledOnce(fakeApiCall);
               assert.calledWith(
@@ -803,7 +824,6 @@ describe('BasicLTILaunchApp', () => {
         wrapper,
         'LaunchErrorDialog[errorState="error-authorizing"]',
       );
-      await contentHidden(wrapper);
     });
 
     context('when auth fails multiple times in a row', () => {
