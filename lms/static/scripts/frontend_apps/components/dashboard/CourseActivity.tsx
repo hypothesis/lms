@@ -5,9 +5,9 @@ import { Link as RouterLink, useParams } from 'wouter-preact';
 import type { AssignmentsResponse, Course } from '../../api-types';
 import { useConfig } from '../../config';
 import { urlPath, useAPIFetch } from '../../utils/api';
-import { formatDateTime } from '../../utils/date';
 import { replaceURLParams } from '../../utils/url';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
+import FormattedDate from './FormattedDate';
 import OrderableActivityTable from './OrderableActivityTable';
 
 type AssignmentsTableRow = {
@@ -105,7 +105,7 @@ export default function CourseActivity() {
           }
 
           return (
-            stats.last_activity && formatDateTime(new Date(stats.last_activity))
+            stats.last_activity && <FormattedDate date={stats.last_activity} />
           );
         }}
         navigateOnConfirmRow={stats => assignmentURL(stats.id)}

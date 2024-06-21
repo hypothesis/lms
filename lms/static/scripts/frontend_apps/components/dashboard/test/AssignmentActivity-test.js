@@ -62,6 +62,11 @@ describe('AssignmentActivity', () => {
     };
 
     $imports.$mock(mockImportedComponents());
+    $imports.$restore({
+      // Do not mock FormattedDate, for consistency when checking
+      // rendered values in different columns
+      './FormattedDate': true,
+    });
     $imports.$mock({
       '../../utils/api': {
         useAPIFetch: fakeUseAPIFetch,

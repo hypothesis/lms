@@ -4,9 +4,9 @@ import { useParams } from 'wouter-preact';
 import type { Assignment, StudentsResponse } from '../../api-types';
 import { useConfig } from '../../config';
 import { urlPath, useAPIFetch } from '../../utils/api';
-import { formatDateTime } from '../../utils/date';
 import { replaceURLParams } from '../../utils/url';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
+import FormattedDate from './FormattedDate';
 import OrderableActivityTable from './OrderableActivityTable';
 
 type StudentsTableRow = {
@@ -100,9 +100,11 @@ export default function AssignmentActivity() {
             case 'replies':
               return <div className="text-right">{stats[field]}</div>;
             case 'last_activity':
-              return stats.last_activity
-                ? formatDateTime(new Date(stats.last_activity))
-                : '';
+              return stats.last_activity ? (
+                <FormattedDate date={stats.last_activity} />
+              ) : (
+                ''
+              );
             case 'display_name':
               return (
                 stats.display_name ?? (
