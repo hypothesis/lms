@@ -46,7 +46,7 @@ export default function OrderableActivityTable<T>({
       columns.map(({ field, label }, index) => ({
         field,
         label,
-        classes: index === 0 ? 'w-[60%]' : undefined,
+        classes: index === 0 ? 'lg:w-[60%] md:w-[45%]' : undefined,
       })),
     [columns],
   );

@@ -47,6 +47,11 @@ describe('OrganizationActivity', () => {
     };
 
     $imports.$mock(mockImportedComponents());
+    $imports.$restore({
+      // Do not mock FormattedDate, for consistency when checking
+      // rendered values in different columns
+      './FormattedDate': true,
+    });
     $imports.$mock({
       '../../utils/api': {
         useAPIFetch: fakeUseAPIFetch,
@@ -114,11 +119,12 @@ describe('OrganizationActivity', () => {
 
     it('renders last launched date', () => {
       const wrapper = createComponent();
-      const item = renderItem(wrapper, 'last_launched');
       const { last_launched } = courseRow;
+      const item = renderItem(wrapper, 'last_launched');
+      const itemText = last_launched ? mount(item).text() : '';
 
       assert.equal(
-        item,
+        itemText,
         last_launched ? formatDateTime(new Date(last_launched)) : '',
       );
     });

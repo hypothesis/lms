@@ -6,7 +6,6 @@ import { mount } from 'enzyme';
 import sinon from 'sinon';
 
 import { Config } from '../../../config';
-import { formatDateTime } from '../../../utils/date';
 import CourseActivity, { $imports } from '../CourseActivity';
 
 describe('CourseActivity', () => {
@@ -154,7 +153,7 @@ describe('CourseActivity', () => {
     { fieldName: 'replies', expectedValue: '25' },
     {
       fieldName: 'last_activity',
-      expectedValue: formatDateTime(new Date('2024-01-01T10:35:18')),
+      expectedValue: '2024-01-01T10:35:18',
     },
   ].forEach(({ fieldName, expectedValue }) => {
     it('renders every field as expected', () => {
@@ -172,12 +171,13 @@ describe('CourseActivity', () => {
         .props()
         .renderItem(assignmentStats, fieldName);
 
+      const itemWrapper = mount(item);
+
       if (fieldName === 'last_activity') {
-        assert.equal(item, expectedValue);
+        assert.equal(itemWrapper.prop('date'), expectedValue);
         return;
       }
 
-      const itemWrapper = mount(item);
       assert.equal(itemWrapper.text(), expectedValue);
 
       if (fieldName === 'title') {

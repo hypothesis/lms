@@ -5,8 +5,8 @@ import { Link as RouterLink } from 'wouter-preact';
 import type { CoursesResponse } from '../../api-types';
 import { useConfig } from '../../config';
 import { urlPath, useAPIFetch } from '../../utils/api';
-import { formatDateTime } from '../../utils/date';
 import { replaceURLParams } from '../../utils/url';
+import FormattedDate from './FormattedDate';
 import OrderableActivityTable from './OrderableActivityTable';
 
 export type OrganizationActivityProps = {
@@ -76,9 +76,11 @@ export default function OrganizationActivity({
           if (field === 'assignments') {
             return <div className="text-right">{stats[field]}</div>;
           } else if (field === 'last_launched') {
-            return stats.last_launched
-              ? formatDateTime(new Date(stats.last_launched))
-              : '';
+            return stats.last_launched ? (
+              <FormattedDate date={stats.last_launched} />
+            ) : (
+              ''
+            );
           }
 
           return (
