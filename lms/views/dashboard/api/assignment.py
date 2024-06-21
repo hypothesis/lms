@@ -1,3 +1,5 @@
+import logging
+
 from pyramid.view import view_config
 
 from lms.js_config_types import (
@@ -11,6 +13,8 @@ from lms.models import RoleScope, RoleType
 from lms.security import Permissions
 from lms.services.h_api import HAPI
 from lms.views.dashboard.base import get_request_assignment
+
+LOG = logging.getLogger(__name__)
 
 
 class AssignmentViews:
@@ -42,11 +46,18 @@ class AssignmentViews:
     def assignment_stats(self) -> APIStudents:
         """Fetch the stats for one particular assignment."""
         assignment = get_request_assignment(self.request, self.assignment_service)
+        LOG.debug(
+            "Fetching stats from H for groups: %s and assignemnt %s",
+            [g.authority_provided_id for g in assignment.groupings],
+            assignment.resource_link_id,
+        )
         stats = self.h_api.get_annotation_counts(
             [g.authority_provided_id for g in assignment.groupings],
             group_by="user",
             resource_link_id=assignment.resource_link_id,
         )
+        LOG.debug("Recieved stats from H %s", stats)
+
         # Organize the H stats by userid for quick access
         stats_by_user = {s["userid"]: s for s in stats}
         students: list[APIStudent] = []
