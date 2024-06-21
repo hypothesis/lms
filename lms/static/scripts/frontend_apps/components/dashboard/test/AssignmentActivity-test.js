@@ -128,6 +128,8 @@ describe('AssignmentActivity', () => {
       fieldName: 'last_activity',
       expectedValue: formatDateTime(new Date('2024-01-01T10:35:18')),
     },
+    // Render "unknown" field name
+    { fieldName: 'id', expectedValue: '' },
     // Render last_activity when it's null
     {
       fieldName: 'last_activity',
@@ -137,7 +139,8 @@ describe('AssignmentActivity', () => {
     // Render display_name when it's null
     {
       fieldName: 'display_name',
-      expectedValue: 'Student e4ca30ee27',
+      expectedValue:
+        "UnknownThis student launched the assignment but didn't annotate yet",
       studentStats: {
         id: 'e4ca30ee27eda1169d00b83f2a86e3494ffd9b12',
         display_name: null,
