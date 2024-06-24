@@ -2,6 +2,7 @@ import json
 from copy import deepcopy
 
 from sqlalchemy import Text, column, func, select
+from sqlalchemy.orm import Query
 
 from lms.db import full_text_match
 from lms.models import (
@@ -140,19 +141,33 @@ class CourseService:
             h_userid=h_userid,
         ).all()
 
-    def get_organization_courses(
-        self, organization: Organization, h_userid: str | None
-    ):
-        courses_query = self._search_query(
-            organization_ids=[organization.id],
-            h_userid=h_userid,
-            limit=None,
-        )
-        return (
+    def get_courses(
+        self,
+        h_userid: str | None,
+        organization: Organization | None = None,
+    ) -> Query:
+        """Get a list of unique courses.
+
+        :param organization: organization the courses belong to.
+        :param h_userid: only courses this user has access to.
+        """
+        courses_query = (
+            self._search_query(
+                organization_ids=[organization.id] if organization else None,
+                h_userid=h_userid,
+                limit=None,
+            )
             # Deduplicate courses by authority_provided_id, take the last updated one
-            courses_query.distinct(Course.authority_provided_id)
+            .distinct(Course.authority_provided_id)
             .order_by(Course.authority_provided_id, Course.updated.desc())
-            .all()
+            # Only select the ID of the deduplicated courses
+        ).with_entities(Course.id)
+
+        return (
+            self._db.query(Course)
+            .filter(Course.id.in_(courses_query))
+            # We can sort these again without affecting deduplication
+            .order_by(Course.lms_name, Course.id)
         )
 
     def _deduplicated_course_assigments_query(self, courses: list[Course]):

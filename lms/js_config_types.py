@@ -7,6 +7,11 @@ Making this a top level module to avoid circular dependency problems.
 from typing import NotRequired, TypedDict
 
 
+class Pagination(TypedDict):
+    next: str | None
+    """URL to fetch the next page of results."""
+
+
 class AnnotationMetrics(TypedDict):
     annotations: int
     replies: int
@@ -39,6 +44,8 @@ class APIStudent(TypedDict):
 
 class APICourses(TypedDict):
     courses: list[APICourse]
+
+    pagination: NotRequired[Pagination]
 
 
 class APIAssignment(TypedDict):

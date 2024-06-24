@@ -366,7 +366,7 @@ class TestCourseService:
             course, role_scope=lti_role.scope, role_type=lti_role.type
         ) == [user]
 
-    def test_get_organization_courses_deduplicates(self, db_session, svc):
+    def test_get_courses_deduplicates(self, db_session, svc):
         org = factories.Organization()
 
         ai = factories.ApplicationInstance(organization=org)
@@ -388,7 +388,7 @@ class TestCourseService:
         assert set(svc.search(organization_ids=[org.id])) == {course, older_course}
 
         # But organization deduplicate, We only get the most recent course
-        assert svc.get_organization_courses(org, None) == [course]
+        assert svc.get_courses(organization=org, h_userid=None).all() == [course]
 
     def test_get_assignments(self, db_session, svc):
         course = factories.Course()
