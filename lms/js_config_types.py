@@ -9,7 +9,7 @@ from typing import NotRequired, TypedDict
 
 class Pagination(TypedDict):
     next: str | None
-    """URL to fetch the next page of results."""
+    """URL to fetch the next set of results."""
 
 
 class AnnotationMetrics(TypedDict):
