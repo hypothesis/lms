@@ -5,7 +5,7 @@ from lms.services.d2l_api import D2LAPIClient
 class D2LCourseCopyPlugin:
     """Handle course copy for D2L."""
 
-    file_type = "d2l_file"
+    file_type: str = "d2l_file"
 
     def __init__(
         self,

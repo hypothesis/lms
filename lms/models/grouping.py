@@ -124,7 +124,7 @@ class Grouping(CreatedUpdatedMixin, Base):
         nullable=False,
     )
 
-    extra: Mapped[MutableDict] = mapped_column(
+    extra: Mapped[dict] = mapped_column(
         MutableDict.as_mutable(JSONB()),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,

@@ -5,6 +5,7 @@ from enum import Enum, unique
 
 import sqlalchemy as sa
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lms.db import Base, varchar_enum
 
@@ -39,27 +40,22 @@ class LTIRoleOverride(Base):
 
     id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
 
-    lti_role_id = sa.Column(
-        sa.Integer(),
-        sa.ForeignKey("lti_role.id", ondelete="cascade"),
-        nullable=True,
-        index=True,
+    lti_role_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("lti_role.id", ondelete="cascade"), index=True
     )
-    lti_role = sa.orm.relationship("LTIRole")
+    lti_role = relationship("LTIRole")
 
-    application_instance_id = sa.Column(
-        sa.Integer(),
-        sa.ForeignKey("application_instances.id", ondelete="cascade"),
-        nullable=False,
+    application_instance_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("application_instances.id", ondelete="cascade")
     )
-    application_instance = sa.orm.relationship(
+    application_instance = relationship(
         "ApplicationInstance", back_populates="role_overrides"
     )
 
-    type = varchar_enum(RoleType)
+    type: Mapped[RoleScope] = varchar_enum(RoleType)
     """Our interpretation of the value."""
 
-    scope = varchar_enum(RoleScope, nullable=True)
+    scope: Mapped[RoleType] = varchar_enum(RoleScope, nullable=True)
     """Scope where this role applies"""
 
     @property

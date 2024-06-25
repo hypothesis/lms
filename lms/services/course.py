@@ -49,7 +49,7 @@ class CourseService:
             .count()
         )
 
-    def get_from_launch(self, product, lti_params):
+    def get_from_launch(self, product, lti_params) -> Course:
         """Get the course this LTI launch based on the request's params."""
         historical_course = None
 

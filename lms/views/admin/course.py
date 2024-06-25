@@ -103,6 +103,7 @@ class AdminCourseViews:
         if org_public_id := self.request.params.get("org_public_id", "").strip():
             try:
                 organization = self.organization_service.get_by_public_id(org_public_id)
+                assert organization
                 organization_ids = self.organization_service.get_hierarchy_ids(
                     organization.id, include_parents=False
                 )

@@ -4,9 +4,9 @@ from copy import deepcopy
 from urllib.parse import urlencode
 
 import requests
-from requests import RequestException, Session
+from requests import RequestException, Response, Session
 
-from lms.services import CanvasAPIError, ExternalRequestError
+from lms.services.exceptions import CanvasAPIError, ExternalRequestError
 
 
 class BasicClient:
@@ -50,7 +50,7 @@ class BasicClient:
         params=None,
         headers=None,
         url_stub="/api/v1",
-    ):
+    ) -> list:
         """
         Make a request to the Canvas API and apply a schema to the response.
 
@@ -97,8 +97,8 @@ class BasicClient:
             "?" + urlencode(params) if params else ""
         )
 
-    def _send_prepared(self, request, schema, timeout, request_depth=1):
-        response = None
+    def _send_prepared(self, request, schema, timeout, request_depth=1) -> list:
+        response: Response = None  # type:ignore
 
         try:
             response = self._session.send(request, timeout=timeout)
@@ -106,7 +106,7 @@ class BasicClient:
         except RequestException as err:
             CanvasAPIError.raise_from(err, request, response)
 
-        result = None
+        result: list = None  # type: ignore
         try:
             result = schema(response).parse()
         except ExternalRequestError as err:
