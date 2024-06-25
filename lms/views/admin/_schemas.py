@@ -19,7 +19,7 @@ class EmptyStringNoneMixin:
         # pylint:disable=compare-to-empty-string
         if value == missing or value.strip() == "":
             return None
-        return super().deserialize(value, attr, data, **kwargs)  # type:ignore
+        return super().deserialize(value, attr, data, **kwargs)
 
 
 class EmptyStringInt(EmptyStringNoneMixin, fields.Int):  # type: ignore

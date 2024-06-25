@@ -132,7 +132,7 @@ class BasicLTILaunchSchema(_CommonLTILaunchSchema):
             # ``err.messages``, but without overwriting any of the existing
             # error messages already present in ``messages``.
             for field in err.messages:
-                messages.setdefault(field, []).extend(err.messages[field])  # type:ignore
+                messages.setdefault(field, []).extend(err.messages[field])
             return_url = None
 
         if return_url:
