@@ -24,6 +24,7 @@ export type LTILaunchServerErrorCode =
   | 'canvas_studio_media_not_found'
   | 'canvas_studio_admin_token_refresh_failed'
   | 'canvas_submission_course_not_available'
+  | 'canvas_submission_max_attempts'
   | 'd2l_file_not_found_in_course_instructor'
   | 'd2l_file_not_found_in_course_student'
   | 'd2l_group_set_empty'
@@ -173,6 +174,7 @@ export function isLTILaunchServerError(error: ErrorLike): error is APIError {
       'canvas_studio_media_not_found',
       'canvas_studio_admin_token_refresh_failed',
       'canvas_submission_course_not_available',
+      'canvas_submission_max_attempts',
       'vitalsource_user_not_found',
       'vitalsource_no_book_license',
       'moodle_page_not_found_in_course',

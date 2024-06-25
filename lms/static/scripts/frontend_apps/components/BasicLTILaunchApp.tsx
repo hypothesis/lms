@@ -40,6 +40,7 @@ function canDismissError(e: ErrorState) {
   return [
     'error-reporting-submission',
     'canvas_submission_course_not_available',
+    'canvas_submission_max_attempts',
   ].includes(e);
 }
 

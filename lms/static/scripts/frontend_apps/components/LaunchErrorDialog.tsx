@@ -657,6 +657,28 @@ export default function LaunchErrorDialog({
         </ErrorModal>
       );
 
+    case 'canvas_submission_max_attempts':
+      return (
+        <ErrorModal
+          {...defaultProps}
+          onRetry={undefined}
+          title="Grading submission failed"
+        >
+          <p>
+            Your annotation was saved, but Hypothesis could not record a new
+            submission for grading. Hypothesis has already recorded the maximum
+            number of allowed submissions for this assignment.
+          </p>
+          <p>
+            See{' '}
+            <ExternalLink href="https://web.hypothes.is/help/grading-student-annotations-in-canvas/#when-does-canvas-report-a-student-hypothesis-submission-for-grading">
+              this article
+            </ExternalLink>{' '}
+            for an explanation of when Hypothesis creates submissions.
+          </p>
+        </ErrorModal>
+      );
+
     case 'error-reporting-submission':
       return (
         <ErrorModal
