@@ -270,6 +270,11 @@ describe('LaunchErrorDialog', () => {
       expectedText: 'This may be because the course has ended',
       expectedTitle: 'Grading submission failed',
     },
+    {
+      errorState: 'canvas_submission_max_attempts',
+      expectedText: 'maximum number of allowed submissions',
+      expectedTitle: 'Grading submission failed',
+    },
   ].forEach(
     ({
       errorState,
