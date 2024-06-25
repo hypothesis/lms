@@ -15,7 +15,7 @@ class TestCourseViews:
         org = factories.Organization()
         courses = factories.Course.create_batch(5)
         organization_service.get_by_public_id.return_value = org
-        course_service.get_organization_courses.return_value = courses
+        course_service.get_organization_courses_for_instructor.return_value = courses
         pyramid_request.matchdict["organization_public_id"] = sentinel.public_id
         db_session.flush()
 
@@ -24,12 +24,11 @@ class TestCourseViews:
         organization_service.get_by_public_id.assert_called_once_with(
             sentinel.public_id
         )
-        course_service.get_organization_courses.assert_called_once_with(
-            organization=org,
-            h_userid=pyramid_request.user.h_userid,
+        course_service.get_organization_courses_for_instructor.assert_called_once_with(
+            organization=org, h_userid=pyramid_request.user.h_userid
         )
         course_service.get_courses_assignments_count.assert_called_once_with(
-            course_service.get_organization_courses.return_value
+            course_service.get_organization_courses_for_instructor.return_value
         )
 
         assert response == {

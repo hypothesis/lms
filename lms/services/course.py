@@ -1,7 +1,7 @@
 import json
 from copy import deepcopy
 
-from sqlalchemy import Text, column, func, select
+from sqlalchemy import Text, column, func, select, union
 
 from lms.db import full_text_match
 from lms.models import (
@@ -12,7 +12,6 @@ from lms.models import (
     Course,
     CourseGroupsExportedFromH,
     Grouping,
-    GroupingMembership,
     LTIRole,
     Organization,
     RoleScope,
@@ -84,7 +83,10 @@ class CourseService:
         name: str | None = None,
         limit: int | None = 100,
         organization_ids: list[int] | None = None,
+        instance_ids: list[int] | None = None,
         h_userid: str | None = None,
+        role_scope: RoleScope | None = None,
+        role_type: RoleType | None = None,
     ):
         query = self._db.query(Course)
 
@@ -110,13 +112,28 @@ class CourseService:
                 .filter(Organization.id.in_(organization_ids))
             )
 
+        if instance_ids:
+            query = query.filter(Course.application_instance_id.in_(instance_ids))
+
         if h_userid:
             # Only courses where the H's h_userid belongs to
             query = (
-                query.join(GroupingMembership)
-                .join(User)
+                query.join(AssignmentGrouping)
+                .join(
+                    AssignmentMembership,
+                    AssignmentGrouping.assignment_id
+                    == AssignmentMembership.assignment_id,
+                )
+                .join(LTIRole, LTIRole.id == AssignmentMembership.lti_role_id)
+                .join(User, User.id == AssignmentMembership.user_id)
                 .filter(User.h_userid == h_userid)
             )
+
+            # If filtering by one user, only one this role applies
+            if role_scope:
+                query = query.where(LTIRole.scope == role_scope)
+            if role_type:
+                query = query.where(LTIRole.type == role_type)
 
         return query.limit(limit)
 
@@ -129,6 +146,8 @@ class CourseService:
         limit: int | None = 100,
         organization_ids: list[int] | None = None,
         h_userid: str | None = None,
+        role_scope: RoleScope | None = None,
+        role_type: RoleType | None = None,
     ) -> list[Course]:
         return self._search_query(
             id_=id_,
@@ -138,22 +157,70 @@ class CourseService:
             limit=limit,
             organization_ids=organization_ids,
             h_userid=h_userid,
+            role_scope=role_scope,
+            role_type=role_type,
         ).all()
 
-    def get_organization_courses(
+    def get_organization_courses_for_instructor(
         self, organization: Organization, h_userid: str | None
     ):
-        courses_query = self._search_query(
+        """
+        Get a list of courses that belong to organization.
+
+        This method deduplicates courses so it only return the most recent row for duplicates by authority_provided_id.
+        Use .search() for accessing the raw data.
+
+        :param organization: organization the returned courses belong too.
+        :param h_userid: only return courses h_userid is a member of
+        """
+        # Courses where h_userid belongs as a teacher
+        courses_as_instructor = self._search_query(
             organization_ids=[organization.id],
             h_userid=h_userid,
             limit=None,
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.INSTRUCTOR,
         )
-        return (
+
+        # On top of that add any courses from install where the user is an admin
+
+        # Get the instances in which this user is an admin
+        instances_where_admin = self._db.scalars(
+            select(ApplicationInstance.id)
+            .join(Course, ApplicationInstance.id == Course.application_instance_id)
+            .join(AssignmentGrouping, Course.id == AssignmentGrouping.grouping_id)
+            .join(
+                AssignmentMembership,
+                AssignmentGrouping.assignment_id == AssignmentMembership.assignment_id,
+            )
+            .join(LTIRole, AssignmentMembership.lti_role_id == LTIRole.id)
+            .join(User, User.id == AssignmentMembership.user_id)
+            .filter(
+                ApplicationInstance.organization_id == organization.id,
+                LTIRole.scope == RoleScope.SYSTEM,
+                LTIRole.type == RoleType.ADMIN,
+                User.h_userid == h_userid,
+            )
+        )
+
+        # Find all the courses that belong to those instances
+        courses_as_admin = self._search_query(
+            organization_ids=[organization.id],
+            instance_ids=instances_where_admin,
+            limit=None,
+        )
+        # Get the result of both queries
+        all_courses = union(courses_as_instructor, courses_as_admin).cte(
+            "courses_for_instructor"
+        )
+
+        return self._db.scalars(
+            select(Course)
+            .join(all_courses, Course.id == all_courses.c.grouping_id)
             # Deduplicate courses by authority_provided_id, take the last updated one
-            courses_query.distinct(Course.authority_provided_id)
+            .distinct(Course.authority_provided_id)
             .order_by(Course.authority_provided_id, Course.updated.desc())
-            .all()
-        )
+        ).all()
 
     def _deduplicated_course_assigments_query(self, courses: list[Course]):
         # Get all assignment IDs we recorded from this course
@@ -335,8 +402,13 @@ class CourseService:
     def get_members(
         self, course: Course, role_type: RoleType, role_scope: RoleScope
     ) -> list[User]:
+        """Return members of a given course."""
         return self._db.scalars(
             select(User)
+            # We don't currently store role in GroupingMembership so we have to go
+            # via AssignmentMembership to check that information
+            # LTIRoles are concept that applies to the course so while it might be useful
+            # to store that information at the assigment level as weel we ought to store it at the course level first.
             .join(AssignmentMembership, User.id == AssignmentMembership.user_id)
             .join(LTIRole)
             .join(
