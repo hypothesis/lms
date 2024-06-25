@@ -8,35 +8,43 @@ export type OAuthServerErrorCode =
   | 'blackboard_missing_integration'
   | 'canvas_invalid_scope';
 
+/**
+ * Server errors codes that the frontend recognizes in LTI launches.
+ */
+const ltiLaunchServerErrorCodes = [
+  'blackboard_file_not_found_in_course',
+  'blackboard_group_set_empty',
+  'blackboard_group_set_not_found',
+  'blackboard_student_not_in_group',
+  'canvas_api_permission_error',
+  'canvas_file_not_found_in_course',
+  'canvas_group_set_empty',
+  'canvas_group_set_not_found',
+  'canvas_page_not_found_in_course',
+  'canvas_student_not_in_group',
+  'canvas_studio_admin_token_refresh_failed',
+  'canvas_studio_download_unavailable',
+  'canvas_studio_media_not_found',
+  'canvas_studio_transcript_unavailable',
+  'canvas_submission_course_not_available',
+  'canvas_submission_max_attempts',
+  'd2l_file_not_found_in_course_instructor',
+  'd2l_file_not_found_in_course_student',
+  'd2l_group_set_empty',
+  'd2l_group_set_not_found',
+  'd2l_student_not_in_group',
+  'moodle_file_not_found_in_course',
+  'moodle_group_set_empty',
+  'moodle_group_set_not_found',
+  'moodle_page_not_found_in_course',
+  'moodle_student_not_in_group',
+  'vitalsource_no_book_license',
+  'vitalsource_user_not_found',
+] as const;
+
+/** Union of recognized error codes in LTI launches. */
 export type LTILaunchServerErrorCode =
-  | 'blackboard_file_not_found_in_course'
-  | 'blackboard_group_set_empty'
-  | 'blackboard_group_set_not_found'
-  | 'blackboard_student_not_in_group'
-  | 'canvas_api_permission_error'
-  | 'canvas_file_not_found_in_course'
-  | 'canvas_group_set_empty'
-  | 'canvas_group_set_not_found'
-  | 'canvas_page_not_found_in_course'
-  | 'canvas_student_not_in_group'
-  | 'canvas_studio_download_unavailable'
-  | 'canvas_studio_transcript_unavailable'
-  | 'canvas_studio_media_not_found'
-  | 'canvas_studio_admin_token_refresh_failed'
-  | 'canvas_submission_course_not_available'
-  | 'canvas_submission_max_attempts'
-  | 'd2l_file_not_found_in_course_instructor'
-  | 'd2l_file_not_found_in_course_student'
-  | 'd2l_group_set_empty'
-  | 'd2l_group_set_not_found'
-  | 'd2l_student_not_in_group'
-  | 'moodle_page_not_found_in_course'
-  | 'moodle_file_not_found_in_course'
-  | 'moodle_group_set_not_found'
-  | 'moodle_group_set_empty'
-  | 'moodle_student_not_in_group'
-  | 'vitalsource_no_book_license'
-  | 'vitalsource_user_not_found';
+  (typeof ltiLaunchServerErrorCodes)[number];
 
 /**
  * An `Error` or error-like object. This allows components in the application
@@ -153,36 +161,7 @@ export function isLTILaunchServerError(error: ErrorLike): error is APIError {
   return (
     isAPIError(error) &&
     !!error.errorCode &&
-    [
-      'blackboard_file_not_found_in_course',
-      'blackboard_group_set_empty',
-      'blackboard_group_set_not_found',
-      'blackboard_student_not_in_group',
-      'd2l_file_not_found_in_course_instructor',
-      'd2l_file_not_found_in_course_student',
-      'd2l_group_set_not_found',
-      'd2l_group_set_empty',
-      'd2l_student_not_in_group',
-      'canvas_api_permission_error',
-      'canvas_file_not_found_in_course',
-      'canvas_page_not_found_in_course',
-      'canvas_group_set_not_found',
-      'canvas_group_set_empty',
-      'canvas_student_not_in_group',
-      'canvas_studio_download_unavailable',
-      'canvas_studio_transcript_unavailable',
-      'canvas_studio_media_not_found',
-      'canvas_studio_admin_token_refresh_failed',
-      'canvas_submission_course_not_available',
-      'canvas_submission_max_attempts',
-      'vitalsource_user_not_found',
-      'vitalsource_no_book_license',
-      'moodle_page_not_found_in_course',
-      'moodle_file_not_found_in_course',
-      'moodle_group_set_not_found',
-      'moodle_group_set_empty',
-      'moodle_student_not_in_group',
-    ].includes(error.errorCode)
+    (ltiLaunchServerErrorCodes as readonly string[]).includes(error.errorCode)
   );
 }
 
