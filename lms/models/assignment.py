@@ -29,7 +29,7 @@ class Assignment(CreatedUpdatedMixin, Base):
         sa.UniqueConstraint("resource_link_id", "tool_consumer_instance_guid"),
     )
 
-    id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
+    id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
 
     resource_link_id = sa.Column(sa.Unicode, nullable=False)
     """The resource_link_id launch param of the assignment."""

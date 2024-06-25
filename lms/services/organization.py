@@ -43,7 +43,7 @@ class OrganizationService:
 
         return self._organization_search_query(id_=id_).one_or_none()
 
-    def get_by_public_id(self, public_id: str) -> list | None:
+    def get_by_public_id(self, public_id: str) -> Organization | None:
         """
         Get an organization by its public_id.
 

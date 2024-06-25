@@ -577,7 +577,7 @@ class JSConfig:
 
         return config
 
-    def _get_product_info(self):
+    def _get_product_info(self) -> dict:
         """Return product (Canvas, BB, D2L..) configuration."""
         product = self._request.product
 
@@ -591,7 +591,7 @@ class JSConfig:
         }
 
         if self._request.product.settings.groups_enabled:
-            product_info["api"]["listGroupSets"] = {
+            product_info["api"]["listGroupSets"] = {  # type: ignore
                 "authUrl": (
                     self._request.route_url(product.route.oauth2_authorize)
                     if product.route.oauth2_authorize

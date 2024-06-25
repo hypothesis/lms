@@ -92,7 +92,7 @@ class ApplicationInstance(CreatedUpdatedMixin, Base):
 
     consumer_key = sa.Column(sa.Unicode, unique=True, nullable=True)
     shared_secret = sa.Column(sa.Unicode, nullable=False)
-    lms_url = sa.Column(sa.Unicode(2048), nullable=False)
+    lms_url: Mapped[str] = mapped_column(sa.Unicode(2048))
     requesters_email = sa.Column(sa.Unicode(2048), nullable=False)
 
     last_launched = sa.Column(sa.DateTime(), nullable=True)
@@ -165,10 +165,8 @@ class ApplicationInstance(CreatedUpdatedMixin, Base):
     files = sa.orm.relationship("File", back_populates="application_instance")
 
     # LTIRegistration this instance belong to
-    lti_registration_id = sa.Column(
-        sa.Integer(),
-        sa.ForeignKey("lti_registration.id", ondelete="cascade"),
-        nullable=True,
+    lti_registration_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("lti_registration.id", ondelete="cascade")
     )
 
     lti_registration = sa.orm.relationship(
@@ -176,7 +174,7 @@ class ApplicationInstance(CreatedUpdatedMixin, Base):
     )
 
     # Unique identifier of this instance per LTIRegistration
-    deployment_id = sa.Column(sa.UnicodeText, nullable=True)
+    deployment_id: Mapped[str | None] = mapped_column(sa.UnicodeText)
 
     role_overrides = sa.orm.relationship(
         "LTIRoleOverride", back_populates="application_instance"

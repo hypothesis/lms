@@ -121,7 +121,7 @@ class D2LAPIClient:
 
         return groups
 
-    def list_files(self, org_unit) -> list[dict]:
+    def list_files(self, org_unit: str) -> list[dict]:
         """Get a nested list of files and folders for the given `org_unit`."""
         modules = self._get_course_modules(org_unit)
         files = list(self._find_files(org_unit, modules))

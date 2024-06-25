@@ -516,7 +516,7 @@ class CanvasAPIClient:
         course_id = fields.Integer(required=True)
 
     @classmethod
-    def _ensure_sections_unique(cls, sections):
+    def _ensure_sections_unique(cls, sections) -> list:
         """
         Ensure that sections returned by Canvas are unique.
 
@@ -528,7 +528,7 @@ class CanvasAPIClient:
         :return: A list of unique sections
         :raise CanvasAPIError: When duplicate sections have different names
         """
-        sections_by_id = {}
+        sections_by_id: dict[int, dict] = {}
 
         for section in sections:
             duplicate = sections_by_id.get(section["id"])

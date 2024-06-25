@@ -1,4 +1,5 @@
 import sqlalchemy as sa
+from sqlalchemy.orm import Mapped, mapped_column
 
 
 def varchar_enum(  # noqa: PLR0913, PLR0917
@@ -8,9 +9,9 @@ def varchar_enum(  # noqa: PLR0913, PLR0917
     nullable=False,
     server_default=None,
     unique=False,
-) -> sa.Column:
+) -> Mapped:
     """Return a SA column type to store the python enum.Enum as a varchar in a table."""
-    return sa.Column(
+    return mapped_column(
         sa.Enum(
             enum,
             # In order to maintain maximum flexibility we will only enforce the

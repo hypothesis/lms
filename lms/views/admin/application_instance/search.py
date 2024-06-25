@@ -52,9 +52,7 @@ class SearchApplicationInstanceViews(BaseApplicationInstanceView):
         settings = None
         if settings_key := self.request.params.get("settings_key"):
             if settings_value := self.request.params.get("settings_value"):
-                settings_value = SETTINGS_BY_FIELD.get(settings_key).format(
-                    settings_value
-                )
+                settings_value = SETTINGS_BY_FIELD[settings_key].format(settings_value)
             else:
                 settings_value = ...
 

@@ -1,10 +1,11 @@
+from lms.services.canvas_api.client import CanvasAPIClient
 from lms.services.exceptions import CanvasAPIPermissionError, FileNotFoundInCourse
 
 
 class CanvasService:
     """A high level Canvas service."""
 
-    api = None
+    api: CanvasAPIClient = None  # type:ignore
 
     def __init__(self, canvas_api, course_copy_plugin):
         self.api = canvas_api
