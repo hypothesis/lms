@@ -176,7 +176,7 @@ def includeme(config):
 
     def add_feature_flag_providers(_config, *providers):
         """Adapt feature_flags.add_providers()."""
-        providers = [config.maybe_dotted(provider) for provider in providers]
+        providers = [config.maybe_dotted(provider) for provider in providers]  # type:ignore
         return feature_flags.add_providers(*providers)
 
     # Register the Pyramid request method and config directive. These are this
