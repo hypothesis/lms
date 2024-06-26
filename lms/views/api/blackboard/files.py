@@ -76,7 +76,7 @@ class BlackboardFilesAPIViews:
 
         document_url = self.request.params["document_url"]
         file_id = course.get_mapped_file_id(
-            DOCUMENT_URL_REGEX.search(document_url)["file_id"]
+            DOCUMENT_URL_REGEX.search(document_url)["file_id"]  # type: ignore
         )
         try:
             if self.request.lti_user.is_instructor:
