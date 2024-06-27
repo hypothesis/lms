@@ -51,12 +51,14 @@ class APICourses(TypedDict):
 class APIAssignment(TypedDict):
     id: int
     title: str
-    course: APICourse
+    course: NotRequired[APICourse]
     annotation_metrics: NotRequired[AnnotationMetrics]
 
 
 class APIAssignments(TypedDict):
     assignments: list[APIAssignment]
+
+    pagination: NotRequired[Pagination]
 
 
 class APIStudents(TypedDict):

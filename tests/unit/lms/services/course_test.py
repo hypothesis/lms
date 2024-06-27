@@ -388,7 +388,9 @@ class TestCourseService:
         assert set(svc.search(organization_ids=[org.id])) == {course, older_course}
 
         # But organization deduplicate, We only get the most recent course
-        assert svc.get_courses(organization=org, h_userid=None).all() == [course]
+        assert db_session.scalars(
+            svc.get_courses(organization=org, h_userid=None)
+        ).all() == [course]
 
     def test_get_assignments(self, db_session, svc):
         course = factories.Course()

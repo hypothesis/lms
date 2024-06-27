@@ -1,8 +1,7 @@
 import json
 from copy import deepcopy
 
-from sqlalchemy import Text, column, func, select
-from sqlalchemy.orm import Query
+from sqlalchemy import Select, Text, column, func, select
 
 from lms.db import full_text_match
 from lms.models import (
@@ -145,7 +144,7 @@ class CourseService:
         self,
         h_userid: str | None,
         organization: Organization | None = None,
-    ) -> Query:
+    ) -> Select[tuple[Course]]:
         """Get a list of unique courses.
 
         :param organization: organization the courses belong to.
@@ -164,9 +163,11 @@ class CourseService:
         ).with_entities(Course.id)
 
         return (
-            self._db.query(Course)
-            .filter(Course.id.in_(courses_query))
-            # We can sort these again without affecting deduplication
+            select(Course)
+            .where(
+                Course.id.in_(courses_query)
+                # We can sort these again without affecting deduplication
+            )
             .order_by(Course.lms_name, Course.id)
         )
 
