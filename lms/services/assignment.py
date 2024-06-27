@@ -1,5 +1,6 @@
 import logging
 
+from sqlalchemy import Select, select
 from sqlalchemy.orm import Session, joinedload
 
 from lms.models import (
@@ -221,6 +222,23 @@ class AssignmentService:
             .join(LTIRole)
             .where(LTIRole.scope == role_scope, LTIRole.type == role_type)
         ]
+
+    def get_assignments(self, h_userid: str | None = None) -> Select[tuple[Assignment]]:
+        """Get a query to fetch assignments.
+
+        :params: h_userid only return assignments the users is a member of.
+        """
+
+        assignments_query = select(Assignment)
+
+        if h_userid:
+            assignments_query = (
+                assignments_query.join(AssignmentMembership)
+                .join(User)
+                .where(User.h_userid == h_userid)
+            )
+
+        return assignments_query.order_by(Assignment.title, Assignment.id)
 
 
 def factory(_context, request):

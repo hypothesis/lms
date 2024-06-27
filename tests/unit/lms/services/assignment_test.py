@@ -260,6 +260,23 @@ class TestAssignmentService:
             assignment, role_scope=lti_role.scope, role_type=lti_role.type
         ) == [user]
 
+    def test_get_assignments(self, svc, db_session):
+        assert db_session.scalars(svc.get_assignments()).all()
+
+    def test_get_assignments_with_h_userid(self, svc, db_session):
+        factories.User()  # User not in assignment
+        assignment = factories.Assignment()
+        user = factories.User()
+        lti_role = factories.LTIRole(scope=RoleScope.COURSE)
+        factories.AssignmentMembership.create(
+            assignment=assignment, user=user, lti_role=lti_role
+        )
+        db_session.flush()
+
+        assert (
+            db_session.scalars(svc.get_assignments(user.h_userid)).one() == assignment
+        )
+
     @pytest.fixture
     def svc(self, db_session, misc_plugin):
         return AssignmentService(db_session, misc_plugin)
