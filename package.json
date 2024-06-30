@@ -58,7 +58,7 @@
     "@types/google.picker": "^0.0.42",
     "@typescript-eslint/eslint-plugin": "^7.4.0",
     "@typescript-eslint/parser": "^7.4.0",
-    "axe-core": "^4.8.3",
+    "axe-core": "^4.9.1",
     "babel-plugin-istanbul": "^6.1.1",
     "babel-plugin-mockable-imports": "^2.0.1",
     "chai": "^4.3.10",
