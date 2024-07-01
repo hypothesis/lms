@@ -278,3 +278,4 @@ def includeme(config):  # noqa: PLR0915
         "/api/dashboard/courses/{course_id}/assignments/stats",
     )
     config.add_route("api.dashboard.assignments", "/api/dashboard/assignments")
+    config.add_route("api.dashboard.students", "/api/dashboard/students")
