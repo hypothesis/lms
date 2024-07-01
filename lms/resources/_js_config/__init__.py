@@ -591,7 +591,7 @@ class JSConfig:
         }
 
         if self._request.product.settings.groups_enabled:
-            product_info["api"]["listGroupSets"] = {  # type: ignore
+            product_info["api"]["listGroupSets"] = {
                 "authUrl": (
                     self._request.route_url(product.route.oauth2_authorize)
                     if product.route.oauth2_authorize
