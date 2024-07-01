@@ -64,6 +64,8 @@ class APIAssignments(TypedDict):
 class APIStudents(TypedDict):
     students: list[APIStudent]
 
+    pagination: NotRequired[Pagination]
+
 
 class DashboardRoutes(TypedDict):
     assignment: str

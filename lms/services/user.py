@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from sqlalchemy import Select, select
+from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.sql import Select
 
@@ -99,12 +99,12 @@ class UserService:
         role_scope: RoleScope,
         role_type: RoleType,
         instructor_h_userid: str | None = None,
-    ) -> Select[User]:
+    ) -> Select[tuple[User]]:
         """
         Get a query to fetch users.
 
         :param role_scope: return only users with this LTI role scope.
-        :param role_scope: return only users with this LTI role type.
+        :param role_type: return only users with this LTI role type.
         :param instructor_h_userid: return only users that belongs to courses/assignments where the user instructor_h_userid is an instructor.
         """
         query = (

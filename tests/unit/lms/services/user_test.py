@@ -74,6 +74,7 @@ class TestUserService:
     def test_get_users(self, service, db_session):
         assignment = factories.Assignment()
         student = factories.User()
+        factories.User(h_userid=student.h_userid)  # Duplicated student
         teacher = factories.User()
         factories.AssignmentMembership.create(
             assignment=assignment,

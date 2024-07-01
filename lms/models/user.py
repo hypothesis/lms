@@ -1,5 +1,5 @@
 import sqlalchemy as sa
-from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
 from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
@@ -32,7 +32,7 @@ class User(CreatedUpdatedMixin, Base):
     )
     application_instance = sa.orm.relationship("ApplicationInstance")
 
-    user_id = sa.Column(sa.Unicode, nullable=False)
+    user_id: Mapped[str] = mapped_column(sa.Unicode, nullable=False)
     """The user id provided by the LTI parameters."""
 
     roles = sa.Column(sa.Unicode, nullable=True)
