@@ -1,3 +1,4 @@
+import logging
 from functools import lru_cache
 from typing import Literal, Mapping, NotRequired, Type, TypedDict
 from urllib.parse import urlencode, urljoin, urlparse, urlunparse
@@ -20,6 +21,8 @@ from lms.services.exceptions import (
 from lms.services.oauth_http import OAuthHTTPService
 from lms.services.oauth_http import factory as oauth_http_factory
 from lms.validation._base import RequestsResponseSchema
+
+LOG = logging.getLogger(__name__)
 
 
 class PaginationSchema(Schema):
@@ -570,6 +573,13 @@ class CanvasStudioService:
 
         admin_user = self._request.db.scalars(admin_user_query).first()
         if not admin_user:
+            ai_id = self._request.lti_user.application_instance.id
+            LOG.debug(
+                "Canvas Studio admin auth missing. application instance: %s, admin email: %s, guid: %s",
+                ai_id,
+                admin_email,
+                guid,
+            )
             raise HTTPBadRequest(
                 "The Canvas Studio admin needs to authenticate the Hypothesis integration"
             )
