@@ -1,10 +1,10 @@
 from functools import lru_cache
 
-from sqlalchemy import select
+from sqlalchemy import Select, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.sql import Select
 
-from lms.models import LTIUser, User
+from lms.models import AssignmentMembership, LTIRole, LTIUser, RoleScope, RoleType, User
 
 
 class UserNotFound(Exception):
@@ -93,6 +93,54 @@ class UserService:
         query = query.where(User.user_id == user_id)
 
         return query
+
+    def get_users(
+        self,
+        role_scope: RoleScope,
+        role_type: RoleType,
+        instructor_h_userid: str | None = None,
+    ) -> Select[User]:
+        """
+        Get a query to fetch users.
+
+        :param role_scope: return only users with this LTI role scope.
+        :param role_scope: return only users with this LTI role type.
+        :param instructor_h_userid: return only users that belongs to courses/assignments where the user instructor_h_userid is an instructor.
+        """
+        query = (
+            select(User.id)
+            .join(AssignmentMembership)
+            .join(LTIRole)
+            .where(LTIRole.scope == role_scope, LTIRole.type == role_type)
+        )
+
+        if instructor_h_userid:
+            query = query.where(
+                AssignmentMembership.assignment_id.in_(
+                    select(AssignmentMembership.assignment_id)
+                    .join(User)
+                    .join(LTIRole)
+                    .where(
+                        User.h_userid == instructor_h_userid,
+                        LTIRole.scope == RoleScope.COURSE,
+                        LTIRole.type == RoleType.INSTRUCTOR,
+                    )
+                )
+            )
+
+        # Deduplicate based on the row's h_userid taking the last updated one
+        query = query.distinct(User.h_userid).order_by(
+            User.h_userid, User.updated.desc()
+        )
+
+        return (
+            select(User)
+            .where(
+                User.id.in_(query)
+                # We can sort these again without affecting deduplication
+            )
+            .order_by(User.display_name, User.id)
+        )
 
 
 def factory(_context, request):

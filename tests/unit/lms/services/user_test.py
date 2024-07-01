@@ -4,7 +4,7 @@ from unittest.mock import sentinel
 import pytest
 from h_matchers import Any
 
-from lms.models import User
+from lms.models import RoleScope, RoleType, User
 from lms.services import UserService
 from lms.services.user import UserNotFound, factory
 from tests import factories
@@ -70,6 +70,63 @@ class TestUserService:
     def test_get_not_found(self, user, service):
         with pytest.raises(UserNotFound):
             service.get(user.application_instance, "some-other-id")
+
+    def test_get_users(self, service, db_session):
+        assignment = factories.Assignment()
+        student = factories.User()
+        teacher = factories.User()
+        factories.AssignmentMembership.create(
+            assignment=assignment,
+            user=student,
+            lti_role=factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
+        )
+        factories.AssignmentMembership.create(
+            assignment=assignment,
+            user=teacher,
+            lti_role=factories.LTIRole(
+                scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR
+            ),
+        )
+
+        query = service.get_users(
+            role_scope=RoleScope.COURSE, role_type=RoleType.LEARNER
+        )
+
+        assert db_session.scalars(query).all() == [student]
+
+    def test_get_users_by_h_userid(self, service, db_session):
+        # Assignment the h_userid belongs to as a teacher
+        assignment = factories.Assignment()
+        student = factories.User()
+        teacher = factories.User()
+        factories.AssignmentMembership.create(
+            assignment=assignment,
+            user=student,
+            lti_role=factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
+        )
+        factories.AssignmentMembership.create(
+            assignment=assignment,
+            user=teacher,
+            lti_role=factories.LTIRole(
+                scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR
+            ),
+        )
+        # Assignment the h_userid does not belong to
+        other_assignment = factories.Assignment()
+        other_student = factories.User()
+        factories.AssignmentMembership.create(
+            assignment=other_assignment,
+            user=other_student,
+            lti_role=factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
+        )
+
+        query = service.get_users(
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            instructor_h_userid=teacher.h_userid,
+        )
+
+        assert db_session.scalars(query).all() == [student]
 
     @pytest.fixture
     def user(self, lti_user, application_instance):
