@@ -13,13 +13,14 @@ class TestAssignmentViews:
     def test_get_assignments(
         self, assignment_service, pyramid_request, views, get_page
     ):
+        pyramid_request.parsed_params = {"course_id": sentinel.course_id}
         assignments = factories.Assignment.create_batch(5)
         get_page.return_value = assignments, sentinel.pagination
 
         response = views.assignments()
 
         assignment_service.get_assignments.assert_called_once_with(
-            pyramid_request.user.h_userid
+            pyramid_request.user.h_userid, course_id=sentinel.course_id
         )
         get_page.assert_called_once_with(
             pyramid_request,

@@ -263,6 +263,15 @@ class TestAssignmentService:
     def test_get_assignments(self, svc, db_session):
         assert db_session.scalars(svc.get_assignments()).all()
 
+    def test_get_assignments_by_course(self, svc, db_session, assignment):
+        course = factories.Course()
+        factories.AssignmentGrouping.create(assignment=assignment, grouping=course)
+        db_session.flush()
+
+        assert db_session.scalars(svc.get_assignments(course_id=course.id)).all() == [
+            assignment
+        ]
+
     def test_get_assignments_with_h_userid(self, svc, db_session):
         factories.User()  # User not in assignment
         assignment = factories.Assignment()
