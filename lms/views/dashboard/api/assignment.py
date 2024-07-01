@@ -24,7 +24,7 @@ class ListAssignmentsSchema(PaginationParametersMixin):
     """Query parameters to fetch a list of assignments."""
 
     course_id = fields.Integer(required=False, validate=validate.Range(min=1))
-    """Return assignments that belong to the course with this ID."""
+    """Filter assignments that belong to the course with this ID."""
 
 
 class AssignmentViews:
