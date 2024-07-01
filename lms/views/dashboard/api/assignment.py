@@ -1,5 +1,6 @@
 import logging
 
+from marshmallow import fields, validate
 from pyramid.view import view_config
 
 from lms.js_config_types import (
@@ -20,10 +21,10 @@ LOG = logging.getLogger(__name__)
 
 
 class ListAssignmentsSchema(PaginationParametersMixin):
-    """Query parameters to fetch a list of assignments.
+    """Query parameters to fetch a list of assignments."""
 
-    Only the pagination related ones from the mixin.
-    """
+    course_id = fields.Integer(required=False, validate=validate.Range(min=1))
+    """Return assignments that belong to the course with this ID."""
 
 
 class AssignmentViews:
@@ -42,6 +43,7 @@ class AssignmentViews:
     def assignments(self) -> APIAssignments:
         assignments = self.assignment_service.get_assignments(
             h_userid=self.request.user.h_userid if self.request.user else None,
+            course_id=self.request.parsed_params.get("course_id"),
         )
         assignments, pagination = get_page(
             self.request, assignments, [Assignment.title, Assignment.id]

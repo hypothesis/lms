@@ -223,10 +223,13 @@ class AssignmentService:
             .where(LTIRole.scope == role_scope, LTIRole.type == role_type)
         ]
 
-    def get_assignments(self, h_userid: str | None = None) -> Select[tuple[Assignment]]:
+    def get_assignments(
+        self, h_userid: str | None = None, course_id: int | None = None
+    ) -> Select[tuple[Assignment]]:
         """Get a query to fetch assignments.
 
         :params: h_userid only return assignments the users is a member of.
+        :params: course_id only return assignments that belong to this course.
         """
 
         assignments_query = select(Assignment)
@@ -236,6 +239,11 @@ class AssignmentService:
                 assignments_query.join(AssignmentMembership)
                 .join(User)
                 .where(User.h_userid == h_userid)
+            )
+
+        if course_id:
+            assignments_query = assignments_query.join(AssignmentGrouping).where(
+                AssignmentGrouping.grouping_id == course_id
             )
 
         return assignments_query.order_by(Assignment.title, Assignment.id)
