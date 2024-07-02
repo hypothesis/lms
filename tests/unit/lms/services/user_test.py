@@ -95,6 +95,60 @@ class TestUserService:
 
         assert db_session.scalars(query).all() == [student]
 
+    def test_get_users_by_course_id(self, service, db_session):
+        assignment = factories.Assignment()
+        course = factories.Course()
+        student = factories.User()
+        factories.User(h_userid=student.h_userid)  # Duplicated student
+        teacher = factories.User()
+        factories.AssignmentMembership.create(
+            assignment=assignment,
+            user=student,
+            lti_role=factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
+        )
+        factories.AssignmentMembership.create(
+            assignment=assignment,
+            user=teacher,
+            lti_role=factories.LTIRole(
+                scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR
+            ),
+        )
+        factories.AssignmentGrouping(assignment=assignment, grouping=course)
+        db_session.flush()
+
+        query = service.get_users(
+            role_scope=RoleScope.COURSE, role_type=RoleType.LEARNER, course_id=course.id
+        )
+
+        assert db_session.scalars(query).all() == [student]
+
+    def test_get_users_by_assigment_id(self, service, db_session):
+        assignment = factories.Assignment()
+        student = factories.User()
+        factories.User(h_userid=student.h_userid)  # Duplicated student
+        teacher = factories.User()
+        factories.AssignmentMembership.create(
+            assignment=assignment,
+            user=student,
+            lti_role=factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
+        )
+        factories.AssignmentMembership.create(
+            assignment=assignment,
+            user=teacher,
+            lti_role=factories.LTIRole(
+                scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR
+            ),
+        )
+        db_session.flush()
+
+        query = service.get_users(
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            assignment_id=assignment.id,
+        )
+
+        assert db_session.scalars(query).all() == [student]
+
     def test_get_users_by_h_userid(self, service, db_session):
         # Assignment the h_userid belongs to as a teacher
         assignment = factories.Assignment()

@@ -10,6 +10,10 @@ from tests import factories
 
 class TestUserViews:
     def test_get_students(self, user_service, pyramid_request, views, get_page):
+        pyramid_request.parsed_params = {
+            "course_id": sentinel.course_id,
+            "assignment_id": sentinel.assignment_id,
+        }
         students = factories.User.create_batch(5)
         get_page.return_value = students, sentinel.pagination
 
@@ -19,6 +23,8 @@ class TestUserViews:
             role_scope=RoleScope.COURSE,
             role_type=RoleType.LEARNER,
             instructor_h_userid=pyramid_request.user.h_userid,
+            course_id=sentinel.course_id,
+            assignment_id=sentinel.assignment_id,
         )
         get_page.assert_called_once_with(
             pyramid_request,
