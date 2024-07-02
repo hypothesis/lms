@@ -74,12 +74,23 @@ class APIStudents(TypedDict):
 
 class DashboardRoutes(TypedDict):
     assignment: str
+    """Fetch a single assigment by ID"""
+
     assignment_stats: str
 
     course: str
+    """Fetch a single course by ID"""
+
     course_assignment_stats: str
 
     organization_courses: str
+
+    courses: str
+    """Paginated endpoint to fetch courses"""
+    assignments: str
+    """Paginated endpoint to fetch assigments"""
+    students: str
+    """Paginated endpoint to fetch students"""
 
 
 class User(TypedDict):
