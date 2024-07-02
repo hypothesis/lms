@@ -707,6 +707,9 @@ class TestEnableDashboardMode:
                 "course": "/api/dashboard/courses/:course_id",
                 "course_assignment_stats": "/api/dashboard/courses/:course_id/assignments/stats",
                 "organization_courses": "/api/dashboard/organizations/:organization_public_id/courses",
+                "courses": "/api/dashboard/courses",
+                "assignments": "/api/dashboard/assignments",
+                "students": "/api/dashboard/students",
             },
         }
 
