@@ -4,11 +4,6 @@ from pyramid.view import forbidden_view_config, view_config
 from lms.security import Permissions
 from lms.services import OrganizationService
 from lms.validation.authentication import BearerTokenSchema
-from lms.views.dashboard.base import (
-    get_request_assignment,
-    get_request_course,
-    get_request_organization,
-)
 
 
 @forbidden_view_config(
@@ -43,6 +38,7 @@ class DashboardViews:
         self.organization_service: OrganizationService = request.find_service(
             OrganizationService
         )
+        self.dashboard_service = request.find_service(name="dashboard")
 
     @view_config(
         route_name="dashboard.launch.assignment",
@@ -77,7 +73,7 @@ class DashboardViews:
 
         Authenticated via the LTIUser present in a cookie making this endpoint accessible directly in the browser.
         """
-        assignment = get_request_assignment(self.request, self.assignment_service)
+        assignment = self.dashboard_service.get_request_assignment(self.request)
         self.request.context.js_config.enable_dashboard_mode()
         self._set_lti_user_cookie(self.request.response)
         return {"title": assignment.title}
@@ -93,7 +89,7 @@ class DashboardViews:
 
         Authenticated via the LTIUser present in a cookie making this endpoint accessible directly in the browser.
         """
-        course = get_request_course(self.request, self.course_service)
+        course = self.dashboard_service.get_request_course(self.request)
         self.request.context.js_config.enable_dashboard_mode()
         self._set_lti_user_cookie(self.request.response)
         return {"title": course.lms_name}
@@ -110,7 +106,7 @@ class DashboardViews:
         Authenticated via the LTIUser present in a cookie making this endpoint accessible directly in the browser.
         """
         # Just get the org for the side effect of checking permissions.
-        _ = get_request_organization(self.request, self.organization_service)
+        _ = self.dashboard_service.get_request_organization(self.request)
         self.request.context.js_config.enable_dashboard_mode()
         self._set_lti_user_cookie(self.request.response)
         # Org names are not 100% ready for public consumption, let's hardcode a title for now.
