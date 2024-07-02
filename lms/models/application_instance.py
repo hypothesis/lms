@@ -114,7 +114,9 @@ class ApplicationInstance(CreatedUpdatedMixin, Base):
     )
 
     # A unique identifier for the LMS instance
-    tool_consumer_instance_guid = sa.Column(sa.UnicodeText, nullable=True)
+    tool_consumer_instance_guid: Mapped[str | None] = mapped_column(
+        sa.UnicodeText, index=True
+    )
 
     # The LMS product name, e.g. "canvas" or "moodle"
     tool_consumer_info_product_family_code = sa.Column(sa.UnicodeText, nullable=True)
