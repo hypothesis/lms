@@ -271,6 +271,11 @@ class JSConfig:
                         organization_courses=self._to_frontend_template(
                             "api.dashboard.organizations.courses"
                         ),
+                        courses=self._to_frontend_template("api.dashboard.courses"),
+                        assignments=self._to_frontend_template(
+                            "api.dashboard.assignments"
+                        ),
+                        students=self._to_frontend_template("api.dashboard.students"),
                     ),
                 ),
             }
