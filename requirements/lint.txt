@@ -369,7 +369,7 @@ pastedeploy==3.1.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   plaster-pastedeploy
-pip-sync-faster==0.0.3
+pip-sync-faster==0.0.4
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
