@@ -535,7 +535,7 @@ referencing==0.32.0
     #   h-api
     #   jsonschema
     #   jsonschema-specifications
-requests==2.32.0
+requests==2.32.3
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt

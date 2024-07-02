@@ -313,7 +313,7 @@ referencing==0.32.0
     #   h-api
     #   jsonschema
     #   jsonschema-specifications
-requests==2.32.0
+requests==2.32.3
     # via
     #   -r requirements/prod.txt
     #   mailchimp-transactional
