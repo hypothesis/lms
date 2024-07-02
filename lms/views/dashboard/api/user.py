@@ -1,5 +1,6 @@
 import logging
 
+from marshmallow import fields, validate
 from pyramid.view import view_config
 
 from lms.js_config_types import APIStudent, APIStudents
@@ -13,6 +14,12 @@ LOG = logging.getLogger(__name__)
 
 class ListUsersSchema(PaginationParametersMixin):
     """Query parameters to fetch a list of users."""
+
+    course_id = fields.Integer(required=False, validate=validate.Range(min=1))
+    """Return users that belong to the course with this ID."""
+
+    assignment_id = fields.Integer(required=False, validate=validate.Range(min=1))
+    """Return users that belong to the assignment with this ID."""
 
 
 class UserViews:
@@ -34,6 +41,8 @@ class UserViews:
             instructor_h_userid=self.request.user.h_userid
             if self.request.user
             else None,
+            course_id=self.request.parsed_params.get("course_id"),
+            assignment_id=self.request.parsed_params.get("assignment_id"),
         )
         students, pagination = get_page(
             self.request, students_query, [User.display_name, User.id]
