@@ -1,5 +1,6 @@
 import json
 import logging
+from types import NoneType
 from typing import TypeVar
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
@@ -41,9 +42,22 @@ def get_page(
     request, items_query: Select[tuple[T]], cursor_columns: list
 ) -> tuple[list[T], Pagination]:
     """Return the first page and pagination metadata from a query."""
+
+    # If we have a cursor only fetch the elements that follow
     if cursor_values := request.parsed_params.get("cursor"):
-        # If we have a cursor only fetch the elements that follow
-        items_query = items_query.where(tuple(cursor_columns) > tuple(cursor_values))  # type: ignore
+        if cursor_values[0] is None:
+            # We allow nullable column on the first column of the cursor, usually a (student, assignment...) name
+            # Tweak the query as sorting/comparing by null doesn't behave nicely
+            items_query = items_query.where(
+                # We explicitly check for null in the first column and sort by the second
+                cursor_columns[0].is_(None),
+                cursor_columns[1] > cursor_values[1],
+            )
+        else:
+            # In the non-null case we can sort by both columns
+            items_query = items_query.where(
+                tuple(cursor_columns) > tuple(cursor_values)  # type: ignore
+            )
 
     limit = min(MAX_ITEMS_PER_PAGE, request.parsed_params["limit"])
     # Over fetch one element to check if need to calculate the next cursor
@@ -83,9 +97,10 @@ class PaginationParametersMixin(PyramidRequestSchema):
             raise ValidationError(
                 "Invalid value for pagination cursor. Cursor must be a list of at least two values."
             )
-        if [type(v) for v in in_data["cursor"]] != [str, int]:
+        if [type(v) for v in in_data["cursor"]] not in [[str, int], [NoneType, int]]:
+            print([type(v) for v in in_data["cursor"]])
             raise ValidationError(
-                "Invalid value for pagination cursor. Cursor must be a [str,int] list."
+                "Invalid value for pagination cursor. Cursor must be a [str | None, int] list."
             )
 
         return in_data

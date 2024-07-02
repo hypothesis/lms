@@ -5,7 +5,7 @@ from h_matchers import Any
 from sqlalchemy import select
 
 from lms.js_config_types import Pagination
-from lms.models import Course
+from lms.models import Course, User
 from lms.validation import ValidationError
 from lms.views.dashboard.pagination import PaginationParametersMixin, get_page
 from tests import factories
@@ -57,6 +57,19 @@ class TestGetPage:
         items, _ = get_page(pyramid_request, query, (Course.id, Course.lms_name))
 
         assert items == courses[1:2]
+
+    def test_it_filters_by_cursor_allows_nullable(self, pyramid_request, db_session):
+        students = factories.User.create_batch(5)
+        students[0].display_name = None
+        query = select(User)
+        db_session.flush()
+        pyramid_request.parsed_params = {
+            "cursor": [None, students[0].id],
+            "limit": 1,
+        }
+        items, _ = get_page(pyramid_request, query, (User.display_name, User.id))
+
+        assert items == students[1:2]
 
 
 class TestPaginationParametersMixin:
