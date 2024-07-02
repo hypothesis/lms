@@ -95,7 +95,8 @@ class TestAssignmentViews:
         expected = {
             "students": [
                 {
-                    "id": student.user_id,
+                    "h_userid": student.h_userid,
+                    "lms_id": student.user_id,
                     "display_name": student.display_name,
                     "annotation_metrics": {
                         "annotations": sentinel.annotations,
@@ -104,7 +105,8 @@ class TestAssignmentViews:
                     },
                 },
                 {
-                    "id": student_no_annos.user_id,
+                    "h_userid": student_no_annos.h_userid,
+                    "lms_id": student_no_annos.user_id,
                     "display_name": student_no_annos.display_name,
                     "annotation_metrics": {
                         "annotations": 0,
@@ -113,7 +115,8 @@ class TestAssignmentViews:
                     },
                 },
                 {
-                    "id": student_no_annos_no_name.user_id,
+                    "h_userid": student_no_annos_no_name.h_userid,
+                    "lms_id": student_no_annos_no_name.user_id,
                     "display_name": None,
                     "annotation_metrics": {
                         "annotations": 0,

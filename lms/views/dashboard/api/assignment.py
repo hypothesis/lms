@@ -24,7 +24,7 @@ class ListAssignmentsSchema(PaginationParametersMixin):
     """Query parameters to fetch a list of assignments."""
 
     course_id = fields.Integer(required=False, validate=validate.Range(min=1))
-    """Filter assignments that belong to the course with this ID."""
+    """Return assignments that belong to the course with this ID."""
 
 
 class AssignmentViews:
@@ -103,7 +103,8 @@ class AssignmentViews:
                 # We seen this student in H, get all the data from there
                 students.append(
                     APIStudent(
-                        id=user.user_id,
+                        h_userid=user.h_userid,
+                        lms_id=user.user_id,
                         display_name=s["display_name"],
                         annotation_metrics=AnnotationMetrics(
                             annotations=s["annotations"],
@@ -117,7 +118,8 @@ class AssignmentViews:
                 # use LMS DB's data and set 0s for all annotation related fields.
                 students.append(
                     APIStudent(
-                        id=user.user_id,
+                        h_userid=user.h_userid,
+                        lms_id=user.user_id,
                         display_name=user.display_name,
                         annotation_metrics=AnnotationMetrics(
                             annotations=0, replies=0, last_activity=None

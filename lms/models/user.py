@@ -38,11 +38,11 @@ class User(CreatedUpdatedMixin, Base):
     roles = sa.Column(sa.Unicode, nullable=True)
     """The roles provided by the LTI parameters."""
 
-    h_userid = sa.Column(sa.Unicode, nullable=False)
+    h_userid: Mapped[str] = mapped_column(sa.Unicode)
     """The H userid which is created from LTI provided values."""
 
-    email = mapped_column(sa.Unicode, nullable=True)
+    email: Mapped[str | None] = mapped_column(sa.Unicode)
     """Email address of the user"""
 
-    display_name = mapped_column(sa.Unicode, nullable=True)
+    display_name: Mapped[str | None] = mapped_column(sa.Unicode)
     """The user's display name."""
