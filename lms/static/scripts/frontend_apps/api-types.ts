@@ -190,7 +190,8 @@ export type Assignment = {
  * Response for `/api/dashboard/assignments/{assignment_id}/stats` call.
  */
 export type StudentStats = {
-  id: string;
+  h_userid: string;
+  lms_id: string;
   display_name: string | null;
   annotation_metrics: AnnotationMetrics;
 };

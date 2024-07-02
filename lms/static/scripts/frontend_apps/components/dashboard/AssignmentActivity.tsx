@@ -10,7 +10,7 @@ import FormattedDate from './FormattedDate';
 import OrderableActivityTable from './OrderableActivityTable';
 
 type StudentsTableRow = {
-  id: string;
+  lms_id: string;
   display_name: string | null;
   last_activity: string | null;
   annotations: number;
@@ -35,8 +35,8 @@ export default function AssignmentActivity() {
   const rows: StudentsTableRow[] = useMemo(
     () =>
       (students.data?.students ?? []).map(
-        ({ id, display_name, annotation_metrics }) => ({
-          id,
+        ({ lms_id, display_name, annotation_metrics }) => ({
+          lms_id,
           display_name,
           ...annotation_metrics,
         }),

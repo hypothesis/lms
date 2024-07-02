@@ -41,7 +41,10 @@ class UserViews:
 
         return {
             "students": [
-                APIStudent(id=s.user_id, display_name=s.display_name) for s in students
+                APIStudent(
+                    h_userid=s.h_userid, lms_id=s.user_id, display_name=s.display_name
+                )
+                for s in students
             ],
             "pagination": pagination,
         }

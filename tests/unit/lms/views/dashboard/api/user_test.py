@@ -27,7 +27,13 @@ class TestUserViews:
         )
         assert response == {
             "students": [
-                APIStudent({"id": c.user_id, "display_name": c.display_name})
+                APIStudent(
+                    {
+                        "h_userid": c.h_userid,
+                        "lms_id": c.user_id,
+                        "display_name": c.display_name,
+                    }
+                )
                 for c in students
             ],
             "pagination": sentinel.pagination,

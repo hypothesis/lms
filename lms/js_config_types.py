@@ -36,7 +36,12 @@ class APICourse(TypedDict):
 
 
 class APIStudent(TypedDict):
-    id: str
+    h_userid: str
+    """ID of the student in H."""
+
+    lms_id: str
+    """ID of the student in the LMS."""
+
     display_name: str | None
 
     annotation_metrics: NotRequired[AnnotationMetrics]
