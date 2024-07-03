@@ -95,24 +95,32 @@ class TestUserService:
 
         assert db_session.scalars(query).all() == [student]
 
-    def test_get_users_by_course_id(self, service, db_session):
-        assignment = factories.Assignment()
-        course = factories.Course()
-        student = factories.User()
-        factories.User(h_userid=student.h_userid)  # Duplicated student
-        teacher = factories.User()
+    def test_get_users_by_h_userids(
+        self, service, db_session, student_in_assigment, assignment
+    ):
+        other_student = factories.User()
         factories.AssignmentMembership.create(
             assignment=assignment,
-            user=student,
+            user=other_student,
             lti_role=factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
         )
-        factories.AssignmentMembership.create(
-            assignment=assignment,
-            user=teacher,
-            lti_role=factories.LTIRole(
-                scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR
-            ),
+        # Make sure we have in fact two users
+        assert db_session.scalars(
+            service.get_users(role_scope=RoleScope.COURSE, role_type=RoleType.LEARNER)
+        ).all() == [student_in_assigment, other_student]
+
+        query = service.get_users(
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            h_userids=[other_student.h_userid],
         )
+
+        assert db_session.scalars(query).all() == [other_student]
+
+    def test_get_users_by_course_id(
+        self, service, db_session, student_in_assigment, assignment
+    ):
+        course = factories.Course()
         factories.AssignmentGrouping(assignment=assignment, grouping=course)
         db_session.flush()
 
@@ -120,7 +128,7 @@ class TestUserService:
             role_scope=RoleScope.COURSE, role_type=RoleType.LEARNER, course_id=course.id
         )
 
-        assert db_session.scalars(query).all() == [student]
+        assert db_session.scalars(query).all() == [student_in_assigment]
 
     def test_get_users_by_assigment_id(self, service, db_session):
         assignment = factories.Assignment()
@@ -149,23 +157,13 @@ class TestUserService:
 
         assert db_session.scalars(query).all() == [student]
 
-    def test_get_users_by_h_userid(self, service, db_session):
-        # Assignment the h_userid belongs to as a teacher
-        assignment = factories.Assignment()
-        student = factories.User()
-        teacher = factories.User()
-        factories.AssignmentMembership.create(
-            assignment=assignment,
-            user=student,
-            lti_role=factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
-        )
-        factories.AssignmentMembership.create(
-            assignment=assignment,
-            user=teacher,
-            lti_role=factories.LTIRole(
-                scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR
-            ),
-        )
+    def test_get_users_by_instructor_h_userid(
+        self,
+        service,
+        db_session,
+        student_in_assigment,
+        teacher_in_assigment,
+    ):
         # Assignment the h_userid does not belong to
         other_assignment = factories.Assignment()
         other_student = factories.User()
@@ -178,10 +176,36 @@ class TestUserService:
         query = service.get_users(
             role_scope=RoleScope.COURSE,
             role_type=RoleType.LEARNER,
-            instructor_h_userid=teacher.h_userid,
+            instructor_h_userid=teacher_in_assigment.h_userid,
         )
 
-        assert db_session.scalars(query).all() == [student]
+        assert db_session.scalars(query).all() == [student_in_assigment]
+
+    @pytest.fixture
+    def assignment(self):
+        return factories.Assignment()
+
+    @pytest.fixture
+    def student_in_assigment(self, assignment):
+        student = factories.User()
+        factories.AssignmentMembership.create(
+            assignment=assignment,
+            user=student,
+            lti_role=factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
+        )
+        return student
+
+    @pytest.fixture
+    def teacher_in_assigment(self, assignment):
+        teacher = factories.User()
+        factories.AssignmentMembership.create(
+            assignment=assignment,
+            user=teacher,
+            lti_role=factories.LTIRole(
+                scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR
+            ),
+        )
+        return teacher
 
     @pytest.fixture
     def user(self, lti_user, application_instance):

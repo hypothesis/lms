@@ -239,27 +239,6 @@ class TestAssignmentService:
         assert svc.is_member(assignment, user.h_userid)
         assert not svc.is_member(assignment, other_user.h_userid)
 
-    def test_get_members(self, svc, db_session):
-        factories.User()  # User not in assignment
-        assignment = factories.Assignment()
-        user = factories.User()
-        lti_role = factories.LTIRole(scope=RoleScope.COURSE)
-        factories.AssignmentMembership.create(
-            assignment=assignment, user=user, lti_role=lti_role
-        )
-        # User in assignment with other role
-        factories.AssignmentMembership.create(
-            assignment=assignment,
-            user=factories.User(),
-            lti_role=factories.LTIRole(scope=RoleScope.SYSTEM),
-        )
-
-        db_session.flush()
-
-        assert svc.get_members(
-            assignment, role_scope=lti_role.scope, role_type=lti_role.type
-        ) == [user]
-
     def test_get_assignments(self, svc, db_session):
         assert db_session.scalars(svc.get_assignments()).all()
 

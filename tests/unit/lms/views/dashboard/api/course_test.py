@@ -38,7 +38,7 @@ class TestCourseViews:
         org = factories.Organization()
         courses = factories.Course.create_batch(5)
         dashboard_service.get_request_organization.return_value = org
-        course_service.get_courses.return_value = select(Course)
+        course_service.get_courses.return_value = select(Course).order_by(Course.id)
         pyramid_request.matchdict["organization_public_id"] = sentinel.public_id
         db_session.flush()
 
