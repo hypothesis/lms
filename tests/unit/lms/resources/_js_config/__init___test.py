@@ -703,7 +703,7 @@ class TestEnableDashboardMode:
             "user": {"display_name": lti_user.display_name, "is_staff": False},
             "routes": {
                 "assignment": "/api/dashboard/assignments/:assignment_id",
-                "assignment_stats": "/api/dashboard/assignments/:assignment_id/stats",
+                "students_metrics": "/api/dashboard/students/:assignment_id/metrics",
                 "course": "/api/dashboard/courses/:course_id",
                 "course_assignment_stats": "/api/dashboard/courses/:course_id/assignments/stats",
                 "organization_courses": "/api/dashboard/organizations/:organization_public_id/courses",

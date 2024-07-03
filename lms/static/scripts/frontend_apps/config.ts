@@ -251,8 +251,8 @@ export type EmailPreferences = {
 export type DashboardRoutes = {
   /** Fetch a single assignment by ID */
   assignment: string;
-  /** Fetch students stats for a single assignment by ID */
-  assignment_stats: string;
+  /** Fetch students metrics for a single assignment by ID */
+  students_metrics: string;
 
   /** Fetch a single course by ID */
   course: string;

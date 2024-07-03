@@ -76,7 +76,7 @@ class DashboardRoutes(TypedDict):
     assignment: str
     """Fetch a single assigment by ID"""
 
-    assignment_stats: str
+    students_metrics: str
 
     course: str
     """Fetch a single course by ID"""

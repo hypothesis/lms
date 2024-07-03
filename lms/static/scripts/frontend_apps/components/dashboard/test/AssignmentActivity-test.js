@@ -43,7 +43,7 @@ describe('AssignmentActivity', () => {
   beforeEach(() => {
     fakeUseAPIFetch = sinon.stub().callsFake(url => ({
       isLoading: false,
-      data: url.endsWith('stats')
+      data: url.endsWith('metrics')
         ? { students }
         : {
             title: 'The title',
@@ -56,7 +56,7 @@ describe('AssignmentActivity', () => {
       dashboard: {
         routes: {
           assignment: '/api/assignments/:assignment_id',
-          assignment_stats: '/api/assignments/:assignment_id/stats',
+          students_metrics: '/api/students/:assignment_id/metrics',
         },
       },
     };
