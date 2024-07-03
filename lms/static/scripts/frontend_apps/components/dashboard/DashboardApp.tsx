@@ -5,7 +5,7 @@ import {
   SettingsIcon,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
-import { Link as RouterLink, Route, Switch, useParams } from 'wouter-preact';
+import { Link as RouterLink, Route, Switch } from 'wouter-preact';
 
 import { useConfig } from '../../config';
 import AssignmentActivity from './AssignmentActivity';
@@ -15,9 +15,6 @@ import OrganizationActivity from './OrganizationActivity';
 
 export default function DashboardApp() {
   const { dashboard } = useConfig(['dashboard']);
-  const { organizationPublicId } = useParams<{
-    organizationPublicId: string;
-  }>();
 
   return (
     <div className="flex flex-col min-h-screen gap-5">
@@ -71,9 +68,7 @@ export default function DashboardApp() {
               <CourseActivity />
             </Route>
             <Route path="">
-              <OrganizationActivity
-                organizationPublicId={organizationPublicId}
-              />
+              <OrganizationActivity />
             </Route>
           </Switch>
         </div>
