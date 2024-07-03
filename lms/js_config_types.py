@@ -81,7 +81,7 @@ class DashboardRoutes(TypedDict):
     course: str
     """Fetch a single course by ID"""
 
-    course_assignment_stats: str
+    course_assignments_metrics: str
 
     organization_courses: str
 

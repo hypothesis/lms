@@ -6,7 +6,9 @@ from lms.models import Assignment
 from lms.views.dashboard.api.assignment import AssignmentViews
 from tests import factories
 
-pytestmark = pytest.mark.usefixtures("h_api", "assignment_service", "dashboard_service")
+pytestmark = pytest.mark.usefixtures(
+    "h_api", "assignment_service", "dashboard_service", "course_service"
+)
 
 
 class TestAssignmentViews:
@@ -49,6 +51,81 @@ class TestAssignmentViews:
             "id": assignment.id,
             "title": assignment.title,
             "course": {"id": course.id, "title": course.lms_name},
+        }
+
+    def test_course_assignments(
+        self,
+        views,
+        pyramid_request,
+        course_service,
+        h_api,
+        db_session,
+        dashboard_service,
+    ):
+        pyramid_request.matchdict["course_id"] = sentinel.id
+        course = factories.Course()
+        section = factories.CanvasSection(parent=course)
+        dashboard_service.get_request_course.return_value = course
+
+        assignment = factories.Assignment()
+        assignment_with_no_annos = factories.Assignment()
+
+        course_service.get_assignments.return_value = [
+            assignment,
+            assignment_with_no_annos,
+        ]
+        course_service.get_members.return_value = factories.User.create_batch(5)
+
+        db_session.flush()
+
+        stats = [
+            {
+                "assignment_id": assignment.resource_link_id,
+                "annotations": sentinel.annotations,
+                "replies": sentinel.replies,
+                "userid": "TEACHER",
+                "last_activity": sentinel.last_activity,
+            },
+        ]
+
+        h_api.get_annotation_counts.return_value = stats
+
+        response = views.course_assignments_metrics()
+
+        h_api.get_annotation_counts.assert_called_once_with(
+            [course.authority_provided_id, section.authority_provided_id],
+            group_by="assignment",
+            h_userids=[u.h_userid for u in course_service.get_members.return_value],
+        )
+        assert response == {
+            "assignments": [
+                {
+                    "id": assignment.id,
+                    "title": assignment.title,
+                    "course": {
+                        "id": course.id,
+                        "title": course.lms_name,
+                    },
+                    "annotation_metrics": {
+                        "annotations": sentinel.annotations,
+                        "replies": sentinel.replies,
+                        "last_activity": sentinel.last_activity,
+                    },
+                },
+                {
+                    "id": assignment_with_no_annos.id,
+                    "title": assignment_with_no_annos.title,
+                    "course": {
+                        "id": course.id,
+                        "title": course.lms_name,
+                    },
+                    "annotation_metrics": {
+                        "annotations": 0,
+                        "replies": 0,
+                        "last_activity": None,
+                    },
+                },
+            ]
         }
 
     @pytest.fixture

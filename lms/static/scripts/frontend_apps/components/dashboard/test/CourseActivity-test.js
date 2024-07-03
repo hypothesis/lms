@@ -51,7 +51,7 @@ describe('CourseActivity', () => {
       dashboard: {
         routes: {
           course: '/api/dashboard/course/:course_id',
-          course_assignment_stats: '/api/dashboard/course/:course_id/stats',
+          course_assignments_metrics: '/api/dashboard/course/:course_id/stats',
         },
       },
     };

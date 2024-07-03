@@ -257,7 +257,7 @@ export type DashboardRoutes = {
   /** Fetch a single course by ID */
   course: string;
   /** Fetch assignments stats for a single course by ID */
-  course_assignment_stats: string;
+  course_assignments_metrics: string;
 
   /** Fetch courses stats */
   organization_courses: string;
