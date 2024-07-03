@@ -183,24 +183,27 @@ export type CoursesResponse = {
 export type Assignment = {
   id: number;
   title: string;
-  course: Course;
+};
+
+export type Student = {
+  h_userid: string;
+  lms_id: string;
+  display_name: string | null;
+};
+
+export type StudentWithMetrics = Student & {
+  annotation_metrics: AnnotationMetrics;
 };
 
 /**
  * Response for `/api/dashboard/assignments/{assignment_id}/stats` call.
  */
-export type StudentStats = {
-  h_userid: string;
-  lms_id: string;
-  display_name: string | null;
-  annotation_metrics: AnnotationMetrics;
-};
-
 export type StudentsResponse = {
-  students: StudentStats[];
+  students: StudentWithMetrics[];
 };
 
 export type AssignmentWithMetrics = Assignment & {
+  course: Course;
   annotation_metrics: AnnotationMetrics;
 };
 
