@@ -31,7 +31,7 @@ export default function CourseActivity() {
     replaceURLParams(routes.course, { course_id: courseId }),
   );
   const assignments = useAPIFetch<AssignmentsResponse>(
-    replaceURLParams(routes.course_assignment_stats, {
+    replaceURLParams(routes.course_assignments_metrics, {
       course_id: courseId,
     }),
   );
