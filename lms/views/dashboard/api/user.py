@@ -23,6 +23,13 @@ class ListUsersSchema(PaginationParametersMixin):
     """Return users that belong to the assignment with this ID."""
 
 
+class UsersMetricsSchema(PaginationParametersMixin):
+    """Query parameters to fetch metrics for users."""
+
+    h_userids = fields.List(fields.Str())
+    """Return metrics for these users only."""
+
+
 class UserViews:
     def __init__(self, request) -> None:
         self.request = request
@@ -67,14 +74,17 @@ class UserViews:
         request_method="GET",
         renderer="json",
         permission=Permissions.DASHBOARD_VIEW,
+        schema=UsersMetricsSchema,
     )
     def students_metrics(self) -> APIStudents:
         """Fetch the stats for one particular assignment."""
+        request_h_userids = self.request.parsed_params.get("h_userids")
         assignment = self.dashboard_service.get_request_assignment(self.request)
         stats = self.h_api.get_annotation_counts(
             [g.authority_provided_id for g in assignment.groupings],
             group_by="user",
             resource_link_id=assignment.resource_link_id,
+            h_userids=request_h_userids,
         )
         # Organize the H stats by userid for quick access
         stats_by_user = {s["userid"]: s for s in stats}
@@ -82,7 +92,10 @@ class UserViews:
 
         # Iterate over all the students we have in the DB
         for user in self.assignment_service.get_members(
-            assignment, role_scope=RoleScope.COURSE, role_type=RoleType.LEARNER
+            assignment,
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            h_userids=request_h_userids,
         ):
             if s := stats_by_user.get(user.h_userid):
                 # We seen this student in H, get all the data from there
