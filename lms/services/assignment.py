@@ -212,16 +212,29 @@ class AssignmentService:
         )
 
     def get_members(
-        self, assignment, role_type: RoleType, role_scope: RoleScope
+        self,
+        assignment,
+        role_type: RoleType,
+        role_scope: RoleScope,
+        h_userids: list[str] | None = None,
     ) -> list[User]:
-        return [
-            member.user
-            for member in assignment.membership.options(
-                joinedload(AssignmentMembership.user)
-            )
+        """Get a list of users that are member of assignment.
+
+        :params: assignment to get members of.
+        :params: role_scope: only return members with this role scope.
+        :params: role_type: only return members with this role type.
+        :params: h_userids only return users whose h_userid is in this list.
+        """
+        query = (
+            assignment.membership.options(joinedload(AssignmentMembership.user))
             .join(LTIRole)
             .where(LTIRole.scope == role_scope, LTIRole.type == role_type)
-        ]
+        )
+
+        if h_userids:
+            query = query.join(User).where(User.h_userid._in(h_userids))
+
+        return [member.user for member in query]
 
     def get_assignments(
         self, h_userid: str | None = None, course_id: int | None = None
