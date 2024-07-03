@@ -1,6 +1,7 @@
 from unittest.mock import sentinel
 
 import pytest
+from sqlalchemy import select
 
 from lms.models import Course
 from lms.views.dashboard.api.course import CourseViews
@@ -35,7 +36,7 @@ class TestCourseViews:
         org = factories.Organization()
         courses = factories.Course.create_batch(5)
         organization_service.get_by_public_id.return_value = org
-        course_service.get_courses.return_value = courses
+        course_service.get_courses.return_value = select(Course)
         pyramid_request.matchdict["organization_public_id"] = sentinel.public_id
         db_session.flush()
 
@@ -48,9 +49,7 @@ class TestCourseViews:
             organization=org,
             h_userid=pyramid_request.user.h_userid,
         )
-        course_service.get_courses_assignments_count.assert_called_once_with(
-            course_service.get_courses.return_value
-        )
+        course_service.get_courses_assignments_count.assert_called_once_with(courses)
 
         assert response == {
             "courses": [

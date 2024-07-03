@@ -62,10 +62,12 @@ class CourseViews:
     )
     def organization_courses(self) -> APICourses:
         org = get_request_organization(self.request, self.organization_service)
-        courses = self.course_service.get_courses(
-            organization=org,
-            h_userid=self.request.user.h_userid if self.request.user else None,
-        )
+        courses = self.request.db.scalars(
+            self.course_service.get_courses(
+                organization=org,
+                h_userid=self.request.user.h_userid if self.request.user else None,
+            )
+        ).all()
         courses_assignment_counts = self.course_service.get_courses_assignments_count(
             courses
         )
