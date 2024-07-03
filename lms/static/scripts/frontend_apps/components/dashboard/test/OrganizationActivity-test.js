@@ -66,7 +66,7 @@ describe('OrganizationActivity', () => {
   function createComponent() {
     return mount(
       <Config.Provider value={fakeConfig}>
-        <OrganizationActivity organizationPublicId="abc" />
+        <OrganizationActivity />
       </Config.Provider>,
     );
   }
