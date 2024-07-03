@@ -59,7 +59,10 @@ class TestUserViews:
         # User with no annotations and no name
         student_no_annos_no_name = factories.User(display_name=None)
 
-        pyramid_request.matchdict["assignment_id"] = sentinel.id
+        pyramid_request.parsed_params = {
+            "assignment_id": sentinel.id,
+            "h_userids": sentinel.h_userids,
+        }
         assignment = factories.Assignment()
         assignment_service.get_members.return_value = [
             student,
@@ -95,6 +98,7 @@ class TestUserViews:
             [g.authority_provided_id for g in assignment.groupings],
             group_by="user",
             resource_link_id=assignment.resource_link_id,
+            h_userids=sentinel.h_userids,
         )
         expected = {
             "students": [

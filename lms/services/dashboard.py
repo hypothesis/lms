@@ -12,9 +12,10 @@ class DashboardService:
 
     def get_request_assignment(self, request):
         """Get and authorize an assignment for the given request."""
-        assignment = self._assignment_service.get_by_id(
-            request.matchdict["assignment_id"]
-        )
+        assigment_id = request.matchdict.get(
+            "assignment_id"
+        ) or request.parsed_params.get("assigment_id")
+        assignment = self._assignment_service.get_by_id(assigment_id)
         if not assignment:
             raise HTTPNotFound()
 
