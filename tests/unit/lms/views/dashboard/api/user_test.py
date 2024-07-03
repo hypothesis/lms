@@ -7,6 +7,10 @@ from lms.models import RoleScope, RoleType, User
 from lms.views.dashboard.api.user import UserViews
 from tests import factories
 
+pytestmark = pytest.mark.usefixtures(
+    "h_api", "assignment_service", "dashboard_service", "user_service"
+)
+
 
 class TestUserViews:
     def test_get_students(self, user_service, pyramid_request, views, get_page):
@@ -44,6 +48,89 @@ class TestUserViews:
             ],
             "pagination": sentinel.pagination,
         }
+
+    def test_students_metrics(
+        self, views, pyramid_request, assignment_service, h_api, dashboard_service
+    ):
+        # User returned by the stats endpoint
+        student = factories.User(display_name="Bart")
+        # User with no annotations
+        student_no_annos = factories.User(display_name="Homer")
+        # User with no annotations and no name
+        student_no_annos_no_name = factories.User(display_name=None)
+
+        pyramid_request.matchdict["assignment_id"] = sentinel.id
+        assignment = factories.Assignment()
+        assignment_service.get_members.return_value = [
+            student,
+            student_no_annos,
+            student_no_annos_no_name,
+        ]
+        dashboard_service.get_request_assignment.return_value = assignment
+        stats = [
+            {
+                "display_name": student.display_name,
+                "annotations": sentinel.annotations,
+                "replies": sentinel.replies,
+                "userid": student.h_userid,
+                "last_activity": sentinel.last_activity,
+            },
+            {
+                "display_name": sentinel.display_name,
+                "annotations": sentinel.annotations,
+                "replies": sentinel.replies,
+                "userid": "TEACHER",
+                "last_activity": sentinel.last_activity,
+            },
+        ]
+
+        h_api.get_annotation_counts.return_value = stats
+
+        response = views.students_metrics()
+
+        dashboard_service.get_request_assignment.assert_called_once_with(
+            pyramid_request
+        )
+        h_api.get_annotation_counts.assert_called_once_with(
+            [g.authority_provided_id for g in assignment.groupings],
+            group_by="user",
+            resource_link_id=assignment.resource_link_id,
+        )
+        expected = {
+            "students": [
+                {
+                    "h_userid": student.h_userid,
+                    "lms_id": student.user_id,
+                    "display_name": student.display_name,
+                    "annotation_metrics": {
+                        "annotations": sentinel.annotations,
+                        "replies": sentinel.replies,
+                        "last_activity": sentinel.last_activity,
+                    },
+                },
+                {
+                    "h_userid": student_no_annos.h_userid,
+                    "lms_id": student_no_annos.user_id,
+                    "display_name": student_no_annos.display_name,
+                    "annotation_metrics": {
+                        "annotations": 0,
+                        "replies": 0,
+                        "last_activity": None,
+                    },
+                },
+                {
+                    "h_userid": student_no_annos_no_name.h_userid,
+                    "lms_id": student_no_annos_no_name.user_id,
+                    "display_name": None,
+                    "annotation_metrics": {
+                        "annotations": 0,
+                        "replies": 0,
+                        "last_activity": None,
+                    },
+                },
+            ]
+        }
+        assert response == expected
 
     @pytest.fixture
     def views(self, pyramid_request):

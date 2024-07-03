@@ -28,7 +28,7 @@ export default function AssignmentActivity() {
     replaceURLParams(routes.assignment, { assignment_id: assignmentId }),
   );
   const students = useAPIFetch<StudentsResponse>(
-    replaceURLParams(routes.assignment_stats, { assignment_id: assignmentId }),
+    replaceURLParams(routes.students_metrics, { assignment_id: assignmentId }),
   );
 
   const title = `Assignment: ${assignment.data?.title}`;
