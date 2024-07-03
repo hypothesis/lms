@@ -240,12 +240,34 @@ export type EmailPreferences = {
   flashMessage: string | null;
 };
 
+/**
+ * API endpoints from which to get information for the dashboard.
+ * Each entry here is a relative URL which can potentially include parameter
+ * placeholders in curly braces that should be replaced at runtime with proper
+ * values.
+ *
+ * Example: `/api/dashboard/assignments/{assignment_id}/stats`
+ */
 export type DashboardRoutes = {
+  /** Fetch a single assignment by ID */
   assignment: string;
+  /** Fetch students stats for a single assignment by ID */
   assignment_stats: string;
+
+  /** Fetch a single course by ID */
   course: string;
+  /** Fetch assignments stats for a single course by ID */
   course_assignment_stats: string;
+
+  /** Fetch courses stats */
   organization_courses: string;
+
+  /** Fetch list of courses */
+  courses: string;
+  /** Fetch list of assignments */
+  assignments: string;
+  /** Fetch list of students */
+  students: string;
 };
 
 export type DashboardUser = {
