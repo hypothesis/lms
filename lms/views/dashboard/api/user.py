@@ -26,6 +26,9 @@ class ListUsersSchema(PaginationParametersMixin):
 class UsersMetricsSchema(PaginationParametersMixin):
     """Query parameters to fetch metrics for users."""
 
+    assignment_id = fields.Integer(required=True, validate=validate.Range(min=1))
+    """Return users that belong to the assignment with this ID."""
+
     h_userids = fields.List(fields.Str())
     """Return metrics for these users only."""
 
