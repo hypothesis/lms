@@ -280,11 +280,16 @@ class TestAssignmentService:
         factories.AssignmentMembership.create(
             assignment=assignment, user=user, lti_role=lti_role
         )
+        # Other membership record, with a different role
+        factories.AssignmentMembership.create(
+            assignment=assignment, user=user, lti_role=factories.LTIRole()
+        )
+
         db_session.flush()
 
-        assert (
-            db_session.scalars(svc.get_assignments(user.h_userid)).one() == assignment
-        )
+        assert db_session.scalars(svc.get_assignments(user.h_userid)).all() == [
+            assignment
+        ]
 
     @pytest.fixture
     def svc(self, db_session, misc_plugin):

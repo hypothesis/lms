@@ -246,7 +246,7 @@ class AssignmentService:
                 AssignmentGrouping.grouping_id == course_id
             )
 
-        return assignments_query.order_by(Assignment.title, Assignment.id)
+        return assignments_query.order_by(Assignment.title, Assignment.id).distinct()
 
 
 def factory(_context, request):
