@@ -102,12 +102,13 @@ class UserService:
 
         return query
 
-    def get_users(  # noqa: PLR0913
+    def get_users(  # noqa: PLR0913, PLR0917
         self,
         role_scope: RoleScope,
         role_type: RoleType,
         instructor_h_userid: str | None = None,
         course_id: str | None = None,
+        h_userids: list[str] | None = None,
         assignment_id: str | None = None,
     ) -> Select[tuple[User]]:
         """
@@ -116,6 +117,7 @@ class UserService:
         :param role_scope: return only users with this LTI role scope.
         :param role_type: return only users with this LTI role type.
         :param instructor_h_userid: return only users that belongs to courses/assignments where the user instructor_h_userid is an instructor.
+        :param h_userids: return only users with a h_userid in this list.
         :param course_id: return only users that belong to course_id.
         :param assignment_id: return only users that belong to assignment_id.
         """
@@ -139,6 +141,9 @@ class UserService:
                     )
                 )
             )
+
+        if h_userids:
+            query = query.where(User.h_userid.in_(h_userids))
 
         if course_id:
             query = query.join(

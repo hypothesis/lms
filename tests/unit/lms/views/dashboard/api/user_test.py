@@ -1,6 +1,7 @@
 from unittest.mock import sentinel
 
 import pytest
+from sqlalchemy import select
 
 from lms.js_config_types import APIStudent
 from lms.models import RoleScope, RoleType, User
@@ -50,7 +51,7 @@ class TestUserViews:
         }
 
     def test_students_metrics(
-        self, views, pyramid_request, assignment_service, h_api, dashboard_service
+        self, views, pyramid_request, user_service, h_api, dashboard_service, db_session
     ):
         # User returned by the stats endpoint
         student = factories.User(display_name="Bart")
@@ -64,11 +65,12 @@ class TestUserViews:
             "h_userids": sentinel.h_userids,
         }
         assignment = factories.Assignment()
-        assignment_service.get_members.return_value = [
-            student,
-            student_no_annos,
-            student_no_annos_no_name,
-        ]
+        db_session.flush()
+        user_service.get_users.return_value = select(User).where(
+            User.id.in_(
+                [u.id for u in [student, student_no_annos, student_no_annos_no_name]]
+            )
+        )
         dashboard_service.get_request_assignment.return_value = assignment
         stats = [
             {

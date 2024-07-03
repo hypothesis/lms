@@ -8,6 +8,7 @@ from lms.models import RoleScope, RoleType, User
 from lms.security import Permissions
 from lms.services import UserService
 from lms.services.h_api import HAPI
+from lms.validation._base import PyramidRequestSchema
 from lms.views.dashboard.pagination import PaginationParametersMixin, get_page
 
 LOG = logging.getLogger(__name__)
@@ -23,7 +24,7 @@ class ListUsersSchema(PaginationParametersMixin):
     """Return users that belong to the assignment with this ID."""
 
 
-class UsersMetricsSchema(PaginationParametersMixin):
+class UsersMetricsSchema(PyramidRequestSchema):
     """Query parameters to fetch metrics for users."""
 
     assignment_id = fields.Integer(required=True, validate=validate.Range(min=1))
@@ -93,13 +94,19 @@ class UserViews:
         stats_by_user = {s["userid"]: s for s in stats}
         students: list[APIStudent] = []
 
-        # Iterate over all the students we have in the DB
-        for user in self.assignment_service.get_members(
-            assignment,
+        users_query = self.user_service.get_users(
             role_scope=RoleScope.COURSE,
             role_type=RoleType.LEARNER,
+            assignment_id=assignment.id,
+            # Users the current user has access to see
+            instructor_h_userid=self.request.user.h_userid
+            if self.request.user
+            else None,
+            # Users the current user requested
             h_userids=request_h_userids,
-        ):
+        )
+        # Iterate over all the students we have in the DB
+        for user in self.request.db.scalars(users_query).all():
             if s := stats_by_user.get(user.h_userid):
                 # We seen this student in H, get all the data from there
                 students.append(
