@@ -183,21 +183,21 @@ export type CoursesResponse = {
 export type Assignment = {
   id: number;
   title: string;
-  course: Course;
+  course: Course; // TODO Optional?
 };
 
 /**
  * Response for `/api/dashboard/assignments/{assignment_id}/stats` call.
  */
-export type StudentStats = {
+export type Student = {
   h_userid: string;
   lms_id: string;
   display_name: string | null;
-  annotation_metrics: AnnotationMetrics;
+  annotation_metrics: AnnotationMetrics; // TODO Optional?
 };
 
 export type StudentsResponse = {
-  students: StudentStats[];
+  students: Student[];
 };
 
 export type AssignmentWithMetrics = Assignment & {

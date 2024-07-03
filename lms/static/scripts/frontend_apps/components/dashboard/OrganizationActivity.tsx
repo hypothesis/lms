@@ -6,6 +6,7 @@ import type { CoursesResponse } from '../../api-types';
 import { useConfig } from '../../config';
 import { urlPath, useAPIFetch } from '../../utils/api';
 import { replaceURLParams } from '../../utils/url';
+import DashboardFilters from './DashboardFilters';
 import FormattedDate from './FormattedDate';
 import OrderableActivityTable from './OrderableActivityTable';
 
@@ -46,6 +47,7 @@ export default function OrganizationActivity() {
   return (
     <div className="flex flex-col gap-y-5">
       <h2 className="text-lg text-brand font-semibold">All courses</h2>
+      <DashboardFilters />
       <OrderableActivityTable
         loading={courses.isLoading}
         title="Courses"
