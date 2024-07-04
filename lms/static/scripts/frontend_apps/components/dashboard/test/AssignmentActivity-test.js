@@ -56,7 +56,7 @@ describe('AssignmentActivity', () => {
       dashboard: {
         routes: {
           assignment: '/api/assignments/:assignment_id',
-          students_metrics: '/api/students/:assignment_id/metrics',
+          students_metrics: '/api/students/metrics',
         },
       },
     };

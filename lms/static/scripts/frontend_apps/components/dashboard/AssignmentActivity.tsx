@@ -27,9 +27,9 @@ export default function AssignmentActivity() {
   const assignment = useAPIFetch<Assignment>(
     replaceURLParams(routes.assignment, { assignment_id: assignmentId }),
   );
-  const students = useAPIFetch<StudentsResponse>(
-    replaceURLParams(routes.students_metrics, { assignment_id: assignmentId }),
-  );
+  const students = useAPIFetch<StudentsResponse>(routes.students_metrics, {
+    assignment_id: assignmentId,
+  });
 
   const title = `Assignment: ${assignment.data?.title}`;
   const rows: StudentsTableRow[] = useMemo(
