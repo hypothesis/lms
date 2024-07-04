@@ -13,10 +13,7 @@ from lms.models import (
     CourseGroupsExportedFromH,
     Grouping,
     GroupingMembership,
-    LTIRole,
     Organization,
-    RoleScope,
-    RoleType,
     User,
 )
 from lms.product import Product
@@ -347,24 +344,6 @@ class CourseService:
             )
 
         return self._db.scalars(assignments_query).all()
-
-    def get_members(
-        self, course: Course, role_type: RoleType, role_scope: RoleScope
-    ) -> list[User]:
-        return self._db.scalars(
-            select(User)
-            .join(AssignmentMembership, User.id == AssignmentMembership.user_id)
-            .join(LTIRole)
-            .join(
-                AssignmentGrouping,
-                AssignmentMembership.assignment_id == AssignmentGrouping.assignment_id,
-            )
-            .where(
-                AssignmentGrouping.grouping_id == course.id,
-                LTIRole.scope == role_scope,
-                LTIRole.type == role_type,
-            )
-        ).all()
 
     def _get_authority_provided_id(self, context_id):
         return self._grouping_service.get_authority_provided_id(

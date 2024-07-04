@@ -1,13 +1,14 @@
 from unittest.mock import sentinel
 
 import pytest
+from sqlalchemy import select
 
-from lms.models import Assignment
+from lms.models import Assignment, RoleScope, RoleType, User
 from lms.views.dashboard.api.assignment import AssignmentViews
 from tests import factories
 
 pytestmark = pytest.mark.usefixtures(
-    "h_api", "assignment_service", "dashboard_service", "course_service"
+    "h_api", "assignment_service", "dashboard_service", "course_service", "user_service"
 )
 
 
@@ -61,6 +62,7 @@ class TestAssignmentViews:
         h_api,
         db_session,
         dashboard_service,
+        user_service,
     ):
         pyramid_request.matchdict["course_id"] = sentinel.id
         course = factories.Course()
@@ -74,9 +76,11 @@ class TestAssignmentViews:
             assignment,
             assignment_with_no_annos,
         ]
-        course_service.get_members.return_value = factories.User.create_batch(5)
-
+        users = factories.User.create_batch(5)
         db_session.flush()
+        user_service.get_users.return_value = (
+            select(User).where(User.id.in_([u.id for u in users])).order_by(User.id)
+        )
 
         stats = [
             {
@@ -92,10 +96,16 @@ class TestAssignmentViews:
 
         response = views.course_assignments_metrics()
 
+        user_service.get_users.assert_called_once_with(
+            course_id=course.id,
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            instructor_h_userid=pyramid_request.user.h_userid,
+        )
         h_api.get_annotation_counts.assert_called_once_with(
             [course.authority_provided_id, section.authority_provided_id],
             group_by="assignment",
-            h_userids=[u.h_userid for u in course_service.get_members.return_value],
+            h_userids=[u.h_userid for u in users],
         )
         assert response == {
             "assignments": [

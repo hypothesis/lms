@@ -9,6 +9,7 @@ from lms.js_config_types import (
 )
 from lms.models import Assignment, RoleScope, RoleType
 from lms.security import Permissions
+from lms.services import UserService
 from lms.services.h_api import HAPI
 from lms.views.dashboard.pagination import PaginationParametersMixin, get_page
 
@@ -27,6 +28,7 @@ class AssignmentViews:
         self.assignment_service = request.find_service(name="assignment")
         self.dashboard_service = request.find_service(name="dashboard")
         self.course_service = request.find_service(name="course")
+        self.user_service: UserService = request.find_service(UserService)
 
     @view_config(
         route_name="api.dashboard.assignments",
@@ -72,10 +74,16 @@ class AssignmentViews:
         permission=Permissions.DASHBOARD_VIEW,
     )
     def course_assignments_metrics(self) -> APIAssignments:
+        current_h_userid = self.request.user.h_userid if self.request.user else None
         course = self.dashboard_service.get_request_course(self.request)
-        course_students = self.course_service.get_members(
-            course, role_scope=RoleScope.COURSE, role_type=RoleType.LEARNER
-        )
+        course_students = self.request.db.scalars(
+            self.user_service.get_users(
+                course_id=course.id,
+                role_scope=RoleScope.COURSE,
+                role_type=RoleType.LEARNER,
+                instructor_h_userid=current_h_userid,
+            )
+        ).all()
 
         stats = self.h_api.get_annotation_counts(
             # Annotations in the course group and any children
