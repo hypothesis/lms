@@ -8,7 +8,11 @@ from lms.views.dashboard.api.course import CourseViews
 from tests import factories
 
 pytestmark = pytest.mark.usefixtures(
-    "course_service", "h_api", "organization_service", "dashboard_service"
+    "course_service",
+    "h_api",
+    "organization_service",
+    "dashboard_service",
+    "assignment_service",
 )
 
 
@@ -33,7 +37,13 @@ class TestCourseViews:
         }
 
     def test_get_organization_courses(
-        self, course_service, pyramid_request, views, db_session, dashboard_service
+        self,
+        course_service,
+        pyramid_request,
+        views,
+        db_session,
+        dashboard_service,
+        assignment_service,
     ):
         org = factories.Organization()
         courses = factories.Course.create_batch(5)
@@ -51,7 +61,9 @@ class TestCourseViews:
             organization=org,
             h_userid=pyramid_request.user.h_userid,
         )
-        course_service.get_courses_assignments_count.assert_called_once_with(courses)
+        assignment_service.get_courses_assignments_count.assert_called_once_with(
+            [c.id for c in courses]
+        )
 
         assert response == {
             "courses": [
@@ -59,7 +71,7 @@ class TestCourseViews:
                     "id": c.id,
                     "title": c.lms_name,
                     "course_metrics": {
-                        "assignments": course_service.get_courses_assignments_count.return_value.get.return_value,
+                        "assignments": assignment_service.get_courses_assignments_count.return_value.get.return_value,
                         "last_launched": c.updated.isoformat(),
                     },
                 }

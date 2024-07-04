@@ -364,62 +364,6 @@ class TestCourseService:
             svc.get_courses(organization=org, h_userid=None)
         ).all() == [course]
 
-    def test_get_assignments(self, db_session, svc):
-        course = factories.Course()
-        other_course = factories.Course()
-
-        assignment = factories.Assignment()
-
-        # other course only has an assignment that `course` has stolen
-        factories.AssignmentGrouping(
-            grouping=other_course, assignment=assignment, updated=date(2020, 1, 1)
-        )
-        factories.AssignmentGrouping(
-            grouping=course, assignment=assignment, updated=date(2022, 1, 1)
-        )
-        db_session.flush()
-
-        assert svc.get_assignments(course) == [assignment]
-        # While we don't expect to get the other one at all, now the assignment belongs to the most recent course
-        assert not svc.get_assignments(other_course)
-
-    def test_get_assignments_filter_by_h_userid(self, db_session, svc):
-        user = factories.User(h_userid="H_USERID")
-        course = factories.Course()
-
-        assignment = factories.Assignment()
-        other_assignment = factories.Assignment()
-
-        factories.AssignmentGrouping(grouping=course, assignment=assignment)
-        factories.AssignmentMembership(
-            assignment=assignment, user=user, lti_role=factories.LTIRole()
-        )
-        # Assignment user doesn't belong to
-        factories.AssignmentGrouping(grouping=course, assignment=other_assignment)
-        db_session.flush()
-
-        assert not svc.get_assignments(course, "SOME_OTHER_H_USERID")
-        assert svc.get_assignments(course, user.h_userid) == [assignment]
-
-    def test_get_courses_assignments_count(self, svc, db_session):
-        course = factories.Course()
-        other_course = factories.Course()
-
-        assignment = factories.Assignment()
-
-        # other course only has an assignment that `course` has stolen
-        factories.AssignmentGrouping(
-            grouping=other_course, assignment=assignment, updated=date(2020, 1, 1)
-        )
-        factories.AssignmentGrouping(
-            grouping=course, assignment=assignment, updated=date(2022, 1, 1)
-        )
-        db_session.flush()
-
-        assert svc.get_courses_assignments_count([course, other_course]) == {
-            course.id: 1
-        }
-
     @pytest.fixture
     def course(self, application_instance, grouping_service):
         return factories.Course(

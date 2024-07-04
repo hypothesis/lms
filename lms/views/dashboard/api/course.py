@@ -25,6 +25,7 @@ class CourseViews:
         self.h_api = request.find_service(HAPI)
         self.organization_service = request.find_service(OrganizationService)
         self.dashboard_service = request.find_service(name="dashboard")
+        self.assignment_service = request.find_service(name="assignment")
 
     @view_config(
         route_name="api.dashboard.courses",
@@ -61,8 +62,10 @@ class CourseViews:
                 h_userid=self.request.user.h_userid if self.request.user else None,
             )
         ).all()
-        courses_assignment_counts = self.course_service.get_courses_assignments_count(
-            courses
+        courses_assignment_counts = (
+            self.assignment_service.get_courses_assignments_count(
+                [c.id for c in courses]
+            )
         )
 
         return {
