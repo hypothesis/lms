@@ -14,7 +14,6 @@
   },
   "include": ["**/*.js", "**/*.ts", "**/*.tsx"],
   "exclude": [
-    "new-application-instance.js",
     "ui-playground/**/*.js",
 
     // Tests and test infrastructure
