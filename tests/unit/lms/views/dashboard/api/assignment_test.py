@@ -58,7 +58,7 @@ class TestAssignmentViews:
         self,
         views,
         pyramid_request,
-        course_service,
+        assignment_service,
         h_api,
         db_session,
         dashboard_service,
@@ -71,13 +71,12 @@ class TestAssignmentViews:
 
         assignment = factories.Assignment()
         assignment_with_no_annos = factories.Assignment()
-
-        course_service.get_assignments.return_value = [
-            assignment,
-            assignment_with_no_annos,
-        ]
         users = factories.User.create_batch(5)
         db_session.flush()
+
+        assignment_service.get_assignments.return_value = select(Assignment).where(
+            Assignment.id.in_([assignment.id, assignment_with_no_annos.id])
+        )
         user_service.get_users.return_value = (
             select(User).where(User.id.in_([u.id for u in users])).order_by(User.id)
         )

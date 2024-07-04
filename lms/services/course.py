@@ -6,9 +6,6 @@ from sqlalchemy import Select, Text, column, func, select
 from lms.db import full_text_match
 from lms.models import (
     ApplicationInstance,
-    Assignment,
-    AssignmentGrouping,
-    AssignmentMembership,
     Course,
     CourseGroupsExportedFromH,
     Grouping,
@@ -168,55 +165,6 @@ class CourseService:
             .order_by(Course.lms_name, Course.id)
         )
 
-    def _deduplicated_course_assigments_query(self, courses: list[Course]):
-        # Get all assignment IDs we recorded from this course
-        raw_course_assignemnts = select(AssignmentGrouping.assignment_id).where(
-            AssignmentGrouping.grouping_id.in_([c.id for c in courses])
-        )
-
-        # Get a list of deduplicated assignments based on raw_course_assignments,
-        # this will contain assignments that belong (now) to other courses
-        return (
-            select(AssignmentGrouping.assignment_id, AssignmentGrouping.grouping_id)
-            .distinct(AssignmentGrouping.assignment_id)
-            .join(Grouping)
-            .where(
-                # Only look at courses, otherwise courses and sections will deduplicate each other
-                Grouping.type == "course",
-                # Use the previous query to look only at the potential candidates
-                AssignmentGrouping.assignment_id.in_(raw_course_assignemnts),
-            )
-            # Deduplicate them based on the updated column, take the last one (together with the distinct clause)
-            .order_by(
-                AssignmentGrouping.assignment_id, AssignmentGrouping.updated.desc()
-            )
-        )
-
-    def get_courses_assignments_count(self, courses: list[Course]) -> dict[int, int]:
-        """Get the number of assignments a given list of courses has.
-
-        This tries to be efficient making just one DB query.
-        """
-        deduplicated_course_assignments = self._deduplicated_course_assigments_query(
-            courses
-        ).subquery()
-
-        # For each course, calculate the assignment counts in one single query
-        rr = self._db.execute(
-            select(
-                AssignmentGrouping.grouping_id,
-                func.count(deduplicated_course_assignments.c.assignment_id),
-            )
-            .where(
-                AssignmentGrouping.assignment_id
-                == deduplicated_course_assignments.c.assignment_id,
-                AssignmentGrouping.grouping_id
-                == deduplicated_course_assignments.c.grouping_id,
-            )
-            .group_by(AssignmentGrouping.grouping_id)
-        )
-        return {row.grouping_id: row.count for row in rr}
-
     def get_by_context_id(self, context_id, raise_on_missing=False) -> Course | None:
         """
         Get a course (if one exists) by the GUID and context id.
@@ -313,37 +261,6 @@ class CourseService:
         return bool(
             course.memberships.join(User).filter(User.h_userid == h_userid).first()
         )
-
-    def get_assignments(
-        self, course: Course, h_userid: str | None = None
-    ) -> list[Assignment]:
-        """
-        Get a list of assignments that belong to `course`.
-
-        Use course.assignments to get the full view of the data, this method deduplicates assignments.
-
-        :param course: course for which list assignments.
-        :param h_userid: return only assignments h_userid is a member of.
-        """
-        deduplicated_course_assignments = self._deduplicated_course_assigments_query(
-            [course]
-        ).subquery()
-
-        assignments_query = select(Assignment).where(
-            # Get only assignment from the candidates above
-            Assignment.id == deduplicated_course_assignments.c.assignment_id,
-            # Only those that belong to the course we are interested in
-            deduplicated_course_assignments.c.grouping_id == course.id,
-        )
-
-        if h_userid:
-            assignments_query = (
-                assignments_query.join(AssignmentMembership)
-                .join(User)
-                .where(User.h_userid == h_userid)
-            )
-
-        return self._db.scalars(assignments_query).all()
 
     def _get_authority_provided_id(self, context_id):
         return self._grouping_service.get_authority_provided_id(

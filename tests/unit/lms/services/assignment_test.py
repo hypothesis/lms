@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from unittest.mock import patch, sentinel
 
 import pytest
@@ -269,6 +269,48 @@ class TestAssignmentService:
         assert db_session.scalars(svc.get_assignments(user.h_userid)).all() == [
             assignment
         ]
+
+    def test_get_assignments_by_course_id_with_duplicate(self, db_session, svc):
+        course = factories.Course()
+        other_course = factories.Course()
+
+        assignment = factories.Assignment()
+
+        # other course only has an assignment that `course` has stolen
+        factories.AssignmentGrouping(
+            grouping=other_course, assignment=assignment, updated=date(2020, 1, 1)
+        )
+        factories.AssignmentGrouping(
+            grouping=course, assignment=assignment, updated=date(2022, 1, 1)
+        )
+        db_session.flush()
+
+        assert db_session.scalars(svc.get_assignments(course_id=course.id)).all() == [
+            assignment
+        ]
+        # We don't expect to get the other one at all, now the assignment belongs to the most recent course
+        assert not db_session.scalars(
+            svc.get_assignments(course_id=other_course.id)
+        ).all()
+
+    def test_get_courses_assignments_count(self, svc, db_session):
+        course = factories.Course()
+        other_course = factories.Course()
+
+        assignment = factories.Assignment()
+
+        # other course only has an assignment that `course` has stolen
+        factories.AssignmentGrouping(
+            grouping=other_course, assignment=assignment, updated=date(2020, 1, 1)
+        )
+        factories.AssignmentGrouping(
+            grouping=course, assignment=assignment, updated=date(2022, 1, 1)
+        )
+        db_session.flush()
+
+        assert svc.get_courses_assignments_count([course.id, other_course.id]) == {
+            course.id: 1
+        }
 
     @pytest.fixture
     def svc(self, db_session, misc_plugin):

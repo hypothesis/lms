@@ -84,6 +84,12 @@ class AssignmentViews:
                 instructor_h_userid=current_h_userid,
             )
         ).all()
+        assignments = self.request.db.scalars(
+            self.assignment_service.get_assignments(
+                course_id=course.id,
+                h_userid=self.request.user.h_userid if self.request.user else None,
+            )
+        ).all()
 
         stats = self.h_api.get_annotation_counts(
             # Annotations in the course group and any children
@@ -94,13 +100,11 @@ class AssignmentViews:
         )
         # Organize the H stats by assignment ID for quick access
         stats_by_assignment = {s["assignment_id"]: s for s in stats}
-        assignments: list[APIAssignment] = []
+        response_assignments: list[APIAssignment] = []
 
         # Same course for all these assignments
         api_course = APICourse(id=course.id, title=course.lms_name)
-        for assignment in self.course_service.get_assignments(
-            course, h_userid=self.request.user.h_userid if self.request.user else None
-        ):
+        for assignment in assignments:
             if h_stats := stats_by_assignment.get(assignment.resource_link_id):
                 metrics = AnnotationMetrics(
                     annotations=h_stats["annotations"],
@@ -113,7 +117,7 @@ class AssignmentViews:
                     annotations=0, replies=0, last_activity=None
                 )
 
-            assignments.append(
+            response_assignments.append(
                 APIAssignment(
                     id=assignment.id,
                     title=assignment.title,
@@ -122,4 +126,4 @@ class AssignmentViews:
                 )
             )
 
-        return {"assignments": assignments}
+        return {"assignments": response_assignments}
