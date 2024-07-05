@@ -10,7 +10,7 @@ binaryornot==0.4.4
     # via cookiecutter
 build==1.0.3
     # via pip-tools
-certifi==2023.11.17
+certifi==2024.7.4
     # via requests
 chardet==5.2.0
     # via binaryornot
@@ -21,7 +21,7 @@ click==8.1.7
     #   cookiecutter
     #   pip-tools
 cookiecutter==2.6.0
-    # via -r requirements/template.in
+    # via -r template.in
 idna==3.7
     # via requests
 importlib-metadata==7.0.1
@@ -37,10 +37,10 @@ mdurl==0.1.2
 packaging==23.2
     # via build
 pip-sync-faster==0.0.4
-    # via -r requirements/template.in
+    # via -r template.in
 pip-tools==7.4.1
     # via
-    #   -r requirements/template.in
+    #   -r template.in
     #   pip-sync-faster
 pygments==2.17.2
     # via rich
