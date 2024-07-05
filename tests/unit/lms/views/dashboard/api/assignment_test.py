@@ -140,6 +140,77 @@ class TestAssignmentViews:
             ]
         }
 
+    def test_course_assignments_filtered_by_assignment_ids(
+        self,
+        views,
+        pyramid_request,
+        assignment_service,
+        h_api,
+        db_session,
+        dashboard_service,
+        user_service,
+    ):
+        pyramid_request.matchdict["course_id"] = sentinel.id
+        course = factories.Course()
+        section = factories.CanvasSection(parent=course)
+        dashboard_service.get_request_course.return_value = course
+
+        assignment = factories.Assignment()
+        assignment_with_no_annos = factories.Assignment()
+        users = factories.User.create_batch(5)
+        db_session.flush()
+
+        assignment_service.get_assignments.return_value = select(Assignment).where(
+            Assignment.id.in_([assignment.id, assignment_with_no_annos.id])
+        )
+        user_service.get_users.return_value = (
+            select(User).where(User.id.in_([u.id for u in users])).order_by(User.id)
+        )
+        stats = [
+            {
+                "assignment_id": assignment.resource_link_id,
+                "annotations": sentinel.annotations,
+                "replies": sentinel.replies,
+                "userid": "TEACHER",
+                "last_activity": sentinel.last_activity,
+            },
+        ]
+
+        h_api.get_annotation_counts.return_value = stats
+        pyramid_request.parsed_params = {"assignment_ids": [assignment.id]}
+
+        response = views.course_assignments_metrics()
+
+        user_service.get_users.assert_called_once_with(
+            course_id=course.id,
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            instructor_h_userid=pyramid_request.user.h_userid,
+            h_userids=None,
+        )
+        h_api.get_annotation_counts.assert_called_once_with(
+            [course.authority_provided_id, section.authority_provided_id],
+            group_by="assignment",
+            h_userids=[u.h_userid for u in users],
+        )
+        assert response == {
+            "assignments": [
+                {
+                    "id": assignment.id,
+                    "title": assignment.title,
+                    "course": {
+                        "id": course.id,
+                        "title": course.lms_name,
+                    },
+                    "annotation_metrics": {
+                        "annotations": sentinel.annotations,
+                        "replies": sentinel.replies,
+                        "last_activity": sentinel.last_activity,
+                    },
+                },
+            ]
+        }
+
     @pytest.fixture
     def views(self, pyramid_request):
         return AssignmentViews(pyramid_request)
