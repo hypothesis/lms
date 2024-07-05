@@ -89,7 +89,7 @@ class UserViews:
         stats = self.h_api.get_annotation_counts(
             [g.authority_provided_id for g in assignment.groupings],
             group_by="user",
-            resource_link_id=assignment.resource_link_id,
+            resource_link_ids=[assignment.resource_link_id],
             h_userids=request_h_userids,
         )
         # Organize the H stats by userid for quick access
