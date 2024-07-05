@@ -251,7 +251,7 @@ class TestAssignmentService:
             assignment
         ]
 
-    def test_get_assignments_with_h_userid(self, svc, db_session):
+    def test_get_assignments_with_instructor_h_userid(self, svc, db_session):
         factories.User()  # User not in assignment
         assignment = factories.Assignment()
         user = factories.User()
@@ -269,6 +269,25 @@ class TestAssignmentService:
         assert db_session.scalars(svc.get_assignments(user.h_userid)).all() == [
             assignment
         ]
+
+    def test_get_assignments_with_h_userids(self, svc, db_session):
+        factories.User()  # User not in assignment
+        assignment = factories.Assignment()
+        user = factories.User()
+        lti_role = factories.LTIRole(scope=RoleScope.COURSE)
+        factories.AssignmentMembership.create(
+            assignment=assignment, user=user, lti_role=lti_role
+        )
+        # Other membership record, with a different role
+        factories.AssignmentMembership.create(
+            assignment=assignment, user=user, lti_role=factories.LTIRole()
+        )
+
+        db_session.flush()
+
+        assert db_session.scalars(
+            svc.get_assignments(h_userids=[user.h_userid])
+        ).all() == [assignment]
 
     def test_get_assignments_by_course_id_with_duplicate(self, db_session, svc):
         course = factories.Course()

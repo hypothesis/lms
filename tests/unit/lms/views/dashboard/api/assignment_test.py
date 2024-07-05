@@ -23,7 +23,8 @@ class TestAssignmentViews:
         response = views.assignments()
 
         assignment_service.get_assignments.assert_called_once_with(
-            pyramid_request.user.h_userid, course_id=sentinel.course_id
+            instructor_h_userid=pyramid_request.user.h_userid,
+            course_id=sentinel.course_id,
         )
         get_page.assert_called_once_with(
             pyramid_request,
@@ -65,6 +66,7 @@ class TestAssignmentViews:
         user_service,
     ):
         pyramid_request.matchdict["course_id"] = sentinel.id
+        pyramid_request.parsed_params = {"h_userids": sentinel.h_userids}
         course = factories.Course()
         section = factories.CanvasSection(parent=course)
         dashboard_service.get_request_course.return_value = course
@@ -100,6 +102,7 @@ class TestAssignmentViews:
             role_scope=RoleScope.COURSE,
             role_type=RoleType.LEARNER,
             instructor_h_userid=pyramid_request.user.h_userid,
+            h_userids=sentinel.h_userids,
         )
         h_api.get_annotation_counts.assert_called_once_with(
             [course.authority_provided_id, section.authority_provided_id],
