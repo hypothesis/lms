@@ -11,6 +11,7 @@ from lms.models import Assignment, RoleScope, RoleType
 from lms.security import Permissions
 from lms.services import UserService
 from lms.services.h_api import HAPI
+from lms.validation import PyramidRequestSchema
 from lms.views.dashboard.pagination import PaginationParametersMixin, get_page
 
 
@@ -19,6 +20,15 @@ class ListAssignmentsSchema(PaginationParametersMixin):
 
     course_id = fields.Integer(required=False, validate=validate.Range(min=1))
     """Return assignments that belong to the course with this ID."""
+
+
+class AssignmentsMetricsSchema(PyramidRequestSchema):
+    """Query parameters to fetch metrics for assignments."""
+
+    location = "querystring"
+
+    h_userids = fields.List(fields.Str())
+    """Return metrics for these users only."""
 
 
 class AssignmentViews:
@@ -39,7 +49,9 @@ class AssignmentViews:
     )
     def assignments(self) -> APIAssignments:
         assignments = self.assignment_service.get_assignments(
-            h_userid=self.request.user.h_userid if self.request.user else None,
+            instructor_h_userid=self.request.user.h_userid
+            if self.request.user
+            else None,
             course_id=self.request.parsed_params.get("course_id"),
         )
         assignments, pagination = get_page(
@@ -72,9 +84,11 @@ class AssignmentViews:
         request_method="GET",
         renderer="json",
         permission=Permissions.DASHBOARD_VIEW,
+        schema=AssignmentsMetricsSchema,
     )
     def course_assignments_metrics(self) -> APIAssignments:
         current_h_userid = self.request.user.h_userid if self.request.user else None
+        filter_by_h_userids = self.request.parsed_params.get("h_userids")
         course = self.dashboard_service.get_request_course(self.request)
         course_students = self.request.db.scalars(
             self.user_service.get_users(
@@ -82,12 +96,14 @@ class AssignmentViews:
                 role_scope=RoleScope.COURSE,
                 role_type=RoleType.LEARNER,
                 instructor_h_userid=current_h_userid,
+                h_userids=filter_by_h_userids,
             )
         ).all()
         assignments = self.request.db.scalars(
             self.assignment_service.get_assignments(
                 course_id=course.id,
-                h_userid=self.request.user.h_userid if self.request.user else None,
+                instructor_h_userid=current_h_userid,
+                h_userids=filter_by_h_userids,
             )
         ).all()
 

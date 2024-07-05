@@ -9,6 +9,8 @@ from lms.models import (
     AssignmentMembership,
     Grouping,
     LTIRole,
+    RoleScope,
+    RoleType,
     User,
 )
 from lms.services.upsert import bulk_upsert
@@ -210,21 +212,39 @@ class AssignmentService:
         )
 
     def get_assignments(
-        self, h_userid: str | None = None, course_id: int | None = None
+        self,
+        instructor_h_userid: str | None = None,
+        course_id: int | None = None,
+        h_userids: list[str] | None = None,
     ) -> Select[tuple[Assignment]]:
         """Get a query to fetch assignments.
 
-        :params: h_userid only return assignments the users is a member of.
-        :params: course_id only return assignments that belong to this course.
+        :param instructor_h_userid: return only assignments where instructor_h_userid is an instructor.
+        :param course_id: only return assignments that belong to this course.
+        :param h_userids: return only assignments where these users are members.
         """
 
-        assignments_query = select(Assignment)
+        query = select(Assignment)
 
-        if h_userid:
-            assignments_query = (
-                assignments_query.join(AssignmentMembership)
+        if instructor_h_userid:
+            query = query.where(
+                Assignment.id.in_(
+                    select(AssignmentMembership.assignment_id)
+                    .join(User)
+                    .join(LTIRole)
+                    .where(
+                        User.h_userid == instructor_h_userid,
+                        LTIRole.scope == RoleScope.COURSE,
+                        LTIRole.type == RoleType.INSTRUCTOR,
+                    )
+                )
+            )
+
+        if h_userids:
+            query = (
+                query.join(AssignmentMembership)
                 .join(User)
-                .where(User.h_userid == h_userid)
+                .where(User.h_userid.in_(h_userids))
             )
 
         if course_id:
@@ -232,13 +252,13 @@ class AssignmentService:
                 self._deduplicated_course_assigments_query([course_id]).subquery()
             )
 
-            assignments_query = assignments_query.where(
+            query = query.where(
                 # Get only assignment from the candidates above
                 Assignment.id == deduplicated_course_assignments.c.assignment_id,
                 deduplicated_course_assignments.c.grouping_id == course_id,
             )
 
-        return assignments_query.order_by(Assignment.title, Assignment.id).distinct()
+        return query.order_by(Assignment.title, Assignment.id).distinct()
 
     def _deduplicated_course_assigments_query(self, course_ids: list[int]):
         # Get all assignment IDs we recorded from this course
