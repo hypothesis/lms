@@ -30,6 +30,9 @@ class AssignmentsMetricsSchema(PyramidRequestSchema):
     h_userids = fields.List(fields.Str())
     """Return metrics for these users only."""
 
+    assignment_ids = fields.List(fields.Integer())
+    """Return metrics for these assignments only."""
+
 
 class AssignmentViews:
     def __init__(self, request) -> None:
@@ -89,6 +92,7 @@ class AssignmentViews:
     def course_assignments_metrics(self) -> APIAssignments:
         current_h_userid = self.request.user.h_userid if self.request.user else None
         filter_by_h_userids = self.request.parsed_params.get("h_userids")
+        filter_by_assignment_ids = self.request.parsed_params.get("assignment_ids")
         course = self.dashboard_service.get_request_course(self.request)
         course_students = self.request.db.scalars(
             self.user_service.get_users(
@@ -99,13 +103,16 @@ class AssignmentViews:
                 h_userids=filter_by_h_userids,
             )
         ).all()
-        assignments = self.request.db.scalars(
-            self.assignment_service.get_assignments(
-                course_id=course.id,
-                instructor_h_userid=current_h_userid,
-                h_userids=filter_by_h_userids,
+        assignments_query = self.assignment_service.get_assignments(
+            course_id=course.id,
+            instructor_h_userid=current_h_userid,
+            h_userids=filter_by_h_userids,
+        )
+        if filter_by_assignment_ids:
+            assignments_query = assignments_query.where(
+                Assignment.id.in_(filter_by_assignment_ids)
             )
-        ).all()
+        assignments = self.request.db.scalars(assignments_query).all()
 
         stats = self.h_api.get_annotation_counts(
             # Annotations in the course group and any children
