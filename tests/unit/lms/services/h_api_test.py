@@ -138,13 +138,13 @@ class TestHAPI:
                 {
                     "group_authority_ids": ["group_1", "group_2"],
                     "group_by": "user",
-                    "resource_link_id": "assignment_id",
+                    "resource_link_ids": ["assignment_id"],
                 },
                 {
                     "group_by": "user",
                     "filter": {
                         "groups": ["group_1", "group_2"],
-                        "assignment_id": "assignment_id",
+                        "assignment_ids": ["assignment_id"],
                     },
                 },
             ),
@@ -152,14 +152,14 @@ class TestHAPI:
                 {
                     "group_authority_ids": ["group_1", "group_2"],
                     "group_by": "user",
-                    "resource_link_id": "assignment_id",
+                    "resource_link_ids": ["assignment_id"],
                     "h_userids": ["user_1", "user_2"],
                 },
                 {
                     "group_by": "user",
                     "filter": {
                         "groups": ["group_1", "group_2"],
-                        "assignment_id": "assignment_id",
+                        "assignment_ids": ["assignment_id"],
                         "h_userids": ["user_1", "user_2"],
                     },
                 },

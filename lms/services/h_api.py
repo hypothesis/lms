@@ -174,11 +174,11 @@ class HAPI:
         group_authority_ids: list[str],
         group_by: str,
         h_userids: list[str] | None = None,
-        resource_link_id: str | None = None,
+        resource_link_ids: list[str] | None = None,
     ):
         filters = {
             "groups": group_authority_ids,
-            "assignment_id": resource_link_id,
+            "assignment_ids": resource_link_ids,
         }
         if h_userids:
             filters["h_userids"] = h_userids
