@@ -43,6 +43,7 @@ class TestAssignmentAndGradingSerices:
         from lms.services.lti_grading._v13 import LTI13GradingService
         from lms.services import *
         from lms.product.plugin import MiscPlugin
+        from lms.product import Product
 
         application_instance = (
             db.query(models.ApplicationInstance)
@@ -57,7 +58,7 @@ class TestAssignmentAndGradingSerices:
             request.find_service(name="http"),
             request.find_service(JWTOAuth2TokenService),
         )
-        grading_service = LTI13GradingService(LINE_ITEM, LINE_ITEMS, ltia_service)
+        grading_service = LTI13GradingService(LINE_ITEM, LINE_ITEMS, ltia_service, product_family=Product.family.UNKNOWN, misc_plugin=MiscPlugin())
 
 
         # Create the line item here to hold the scores
