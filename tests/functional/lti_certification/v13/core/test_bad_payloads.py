@@ -21,7 +21,7 @@ class TestBadPayloads:
 
         do_lti_launch({"id_token": make_jwt(test_payload, jwt_headers)}, status=403)
 
-        assert "Missing 'kid' value in JWT header" in caplog.messages
+        assert "Missing 'kid' value in JWT header" in "".join(caplog.messages)
 
     def test_incorrect_kid_in_jwt_header(
         self, jwt_headers, test_payload, do_lti_launch, make_jwt, caplog
@@ -29,12 +29,10 @@ class TestBadPayloads:
         jwt_headers["kid"] = "imstester_66067"
 
         do_lti_launch({"id_token": make_jwt(test_payload, jwt_headers)}, status=403)
-        assert (
-            Any.string.matching(
-                "^Invalid JWT for:.* Unable to find a signing key that matches:.*$"
-            )
-            in caplog.messages
-        )
+
+        assert Any.string.matching(
+            ".*Invalid JWT for:.* Unable to find a signing key that matches:.*$"
+        ) == "".join(caplog.messages)
 
     def test_wrong_lti_version(self, make_jwt, test_payload, do_lti_launch):
         """The LTI version claim contains the wrong version"""

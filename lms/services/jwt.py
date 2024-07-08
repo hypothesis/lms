@@ -92,11 +92,9 @@ class JWTService:
                 id_token, options={"verify_signature": False}
             )
         except PyJWTError as err:
-            LOG.debug("Invalid JWT. %s", str(err))
             raise ValidationError(messages={"jwt": [f"Invalid JWT. {err}"]}) from err
 
         if not unverified_header.get("kid"):
-            LOG.debug("Missing 'kid' value in JWT header")
             raise ValidationError(
                 messages={"jwt": ["Missing 'kid' value in JWT header"]}
             )
@@ -105,7 +103,6 @@ class JWTService:
         # Find the registration based on the token's claimed issuer & audience
         registration = self._registration_service.get(iss, aud)
         if not registration:
-            LOG.debug("Unknown registration for lti_token. iss:%s aud:%s.", iss, aud)
             raise ValidationError(
                 messages={
                     "jwt": [f"Unknown registration for JWT. iss:{iss} aud:{aud}."]
@@ -125,7 +122,6 @@ class JWTService:
                 leeway=self.LEEWAY,
             )
         except PyJWTError as err:
-            LOG.debug("Invalid JWT for: %s, %s. %s", iss, aud, str(err))
             raise ValidationError(
                 messages={"jwt": [f"Invalid JWT for: {iss}, {aud}. {err}"]}
             ) from err
