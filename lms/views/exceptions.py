@@ -39,6 +39,7 @@ class ExceptionViews:
                 self.exception = exception
                 raise exception
             except ValidationError:
+                LOG.debug("Validation error: %s", exception.messages)
                 self.request.override_renderer = (
                     "lms:templates/validation_error.html.jinja2"
                 )
