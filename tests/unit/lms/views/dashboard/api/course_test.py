@@ -85,6 +85,52 @@ class TestCourseViews:
             ]
         }
 
+    def test_get_organization_courses_filter_by_courses(
+        self,
+        course_service,
+        pyramid_request,
+        views,
+        db_session,
+        dashboard_service,
+        assignment_service,
+    ):
+        org = factories.Organization()
+        courses = factories.Course.create_batch(5)
+        dashboard_service.get_request_organization.return_value = org
+        course_service.get_courses.return_value = select(Course).order_by(Course.id)
+        pyramid_request.matchdict["organization_public_id"] = sentinel.public_id
+        db_session.flush()
+        pyramid_request.parsed_params = {"course_ids": [courses[0].id]}
+
+        response = views.organization_courses()
+
+        dashboard_service.get_request_organization.assert_called_once_with(
+            pyramid_request
+        )
+        course_service.get_courses.assert_called_once_with(
+            organization=org,
+            instructor_h_userid=pyramid_request.user.h_userid,
+            h_userids=None,
+            assignment_ids=None,
+        )
+        assignment_service.get_courses_assignments_count.assert_called_once_with(
+            [courses[0].id]
+        )
+
+        assert response == {
+            "courses": [
+                {
+                    "id": c.id,
+                    "title": c.lms_name,
+                    "course_metrics": {
+                        "assignments": assignment_service.get_courses_assignments_count.return_value.get.return_value,
+                        "last_launched": c.updated.isoformat(),
+                    },
+                }
+                for c in courses[0:1]
+            ]
+        }
+
     def test_course(self, views, pyramid_request, dashboard_service):
         pyramid_request.matchdict["course_id"] = sentinel.id
         course = factories.Course()
