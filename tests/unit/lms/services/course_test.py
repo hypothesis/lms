@@ -5,7 +5,13 @@ import pytest
 from h_matchers import Any
 from sqlalchemy.exc import NoResultFound
 
-from lms.models import ApplicationSettings, CourseGroupsExportedFromH, Grouping
+from lms.models import (
+    ApplicationSettings,
+    CourseGroupsExportedFromH,
+    Grouping,
+    RoleScope,
+    RoleType,
+)
 from lms.product.product import Product
 from lms.services.course import CourseService, course_service_factory
 from tests import factories
@@ -300,7 +306,7 @@ class TestCourseService:
 
         assert result == [course]
 
-    def test_search_by_h_userid(self, svc, db_session):
+    def test_search_by_h_userids(self, svc, db_session):
         user = factories.User()
         course = factories.Course()
         factories.Course.create_batch(10)
@@ -308,7 +314,7 @@ class TestCourseService:
         # Ensure ids are written
         db_session.flush()
 
-        result = svc.search(h_userid=user.h_userid)
+        result = svc.search(h_userids=[user.h_userid])
 
         assert result == [course]
 
@@ -361,7 +367,28 @@ class TestCourseService:
 
         # But organization deduplicate, We only get the most recent course
         assert db_session.scalars(
-            svc.get_courses(organization=org, h_userid=None)
+            svc.get_courses(organization=org, instructor_h_userid=None)
+        ).all() == [course]
+
+    def test_get_courses_by_instructor_h_userid(self, svc, db_session):
+        factories.User()  # User not in course
+        course = factories.Course()
+        assignment = factories.Assignment()
+        user = factories.User()
+        lti_role = factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR)
+        factories.AssignmentMembership.create(
+            assignment=assignment, user=user, lti_role=lti_role
+        )
+        # Other membership record, with a different role
+        factories.AssignmentMembership.create(
+            assignment=assignment, user=user, lti_role=factories.LTIRole()
+        )
+        factories.AssignmentGrouping(grouping=course, assignment=assignment)
+
+        db_session.flush()
+
+        assert db_session.scalars(
+            svc.get_courses(instructor_h_userid=user.h_userid)
         ).all() == [course]
 
     @pytest.fixture

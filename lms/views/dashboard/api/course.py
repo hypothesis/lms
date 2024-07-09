@@ -1,3 +1,4 @@
+from marshmallow import fields
 from pyramid.view import view_config
 
 from lms.js_config_types import APICourse, APICourses, CourseMetrics
@@ -5,10 +6,8 @@ from lms.models import Course
 from lms.security import Permissions
 from lms.services.h_api import HAPI
 from lms.services.organization import OrganizationService
+from lms.validation._base import PyramidRequestSchema
 from lms.views.dashboard.pagination import PaginationParametersMixin, get_page
-
-MAX_ITEMS_PER_PAGE = 100
-"""Maximum number of items to return in paginated endpoints"""
 
 
 class ListCoursesSchema(PaginationParametersMixin):
@@ -16,6 +15,15 @@ class ListCoursesSchema(PaginationParametersMixin):
 
     Only the pagination related ones from the mixin.
     """
+
+
+class CoursesMetricsSchema(PyramidRequestSchema):
+    """Query parameters to fetch metrics for courses."""
+
+    location = "querystring"
+
+    h_userids = fields.List(fields.Str())
+    """Return metrics for these users only."""
 
 
 class CourseViews:
@@ -36,7 +44,9 @@ class CourseViews:
     )
     def courses(self) -> APICourses:
         courses = self.course_service.get_courses(
-            h_userid=self.request.user.h_userid if self.request.user else None,
+            instructor_h_userid=self.request.user.h_userid
+            if self.request.user
+            else None,
         )
         courses, pagination = get_page(
             self.request, courses, [Course.lms_name, Course.id]
@@ -53,13 +63,18 @@ class CourseViews:
         request_method="GET",
         renderer="json",
         permission=Permissions.DASHBOARD_VIEW,
+        schema=CoursesMetricsSchema,
     )
     def organization_courses(self) -> APICourses:
+        filter_by_h_userids = self.request.parsed_params.get("h_userids")
         org = self.dashboard_service.get_request_organization(self.request)
         courses = self.request.db.scalars(
             self.course_service.get_courses(
                 organization=org,
-                h_userid=self.request.user.h_userid if self.request.user else None,
+                instructor_h_userid=self.request.user.h_userid
+                if self.request.user
+                else None,
+                h_userids=filter_by_h_userids,
             )
         ).all()
         courses_assignment_counts = (
