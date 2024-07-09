@@ -6,11 +6,16 @@ from sqlalchemy import Select, Text, column, func, select
 from lms.db import full_text_match
 from lms.models import (
     ApplicationInstance,
+    AssignmentGrouping,
+    AssignmentMembership,
     Course,
     CourseGroupsExportedFromH,
     Grouping,
     GroupingMembership,
+    LTIRole,
     Organization,
+    RoleScope,
+    RoleType,
     User,
 )
 from lms.product import Product
@@ -78,7 +83,7 @@ class CourseService:
         name: str | None = None,
         limit: int | None = 100,
         organization_ids: list[int] | None = None,
-        h_userid: str | None = None,
+        h_userids: list[str] | None = None,
     ):
         query = self._db.query(Course)
 
@@ -104,12 +109,12 @@ class CourseService:
                 .filter(Organization.id.in_(organization_ids))
             )
 
-        if h_userid:
-            # Only courses where the H's h_userid belongs to
+        if h_userids:
+            # Only courses where these H's h_userids belongs to
             query = (
                 query.join(GroupingMembership)
                 .join(User)
-                .filter(User.h_userid == h_userid)
+                .filter(User.h_userid.in_(h_userids))
             )
 
         return query.limit(limit)
@@ -122,7 +127,7 @@ class CourseService:
         name: str | None = None,
         limit: int | None = 100,
         organization_ids: list[int] | None = None,
-        h_userid: str | None = None,
+        h_userids: list[str] | None = None,
     ) -> list[Course]:
         return self._search_query(
             id_=id_,
@@ -131,23 +136,25 @@ class CourseService:
             name=name,
             limit=limit,
             organization_ids=organization_ids,
-            h_userid=h_userid,
+            h_userids=h_userids,
         ).all()
 
     def get_courses(
         self,
-        h_userid: str | None,
+        instructor_h_userid: str | None,
         organization: Organization | None = None,
+        h_userids: list[str] | None = None,
     ) -> Select[tuple[Course]]:
         """Get a list of unique courses.
 
         :param organization: organization the courses belong to.
-        :param h_userid: only courses this user has access to.
+        :param instructor_h_userid: return only courses where instructor_h_userid is an instructor.
+        :param h_userids: return only courses where these users are members.
         """
         courses_query = (
             self._search_query(
                 organization_ids=[organization.id] if organization else None,
-                h_userid=h_userid,
+                h_userids=h_userids,
                 limit=None,
             )
             # Deduplicate courses by authority_provided_id, take the last updated one
@@ -155,6 +162,25 @@ class CourseService:
             .order_by(Course.authority_provided_id, Course.updated.desc())
             # Only select the ID of the deduplicated courses
         ).with_entities(Course.id)
+
+        if instructor_h_userid:
+            courses_query = courses_query.where(
+                Course.id.in_(
+                    select(AssignmentGrouping.grouping_id)
+                    .join(
+                        AssignmentMembership,
+                        AssignmentMembership.assignment_id
+                        == AssignmentGrouping.assignment_id,
+                    )
+                    .join(User)
+                    .join(LTIRole)
+                    .where(
+                        User.h_userid == instructor_h_userid,
+                        LTIRole.scope == RoleScope.COURSE,
+                        LTIRole.type == RoleType.INSTRUCTOR,
+                    )
+                )
+            )
 
         return (
             select(Course)

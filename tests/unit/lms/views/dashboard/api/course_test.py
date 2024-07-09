@@ -50,6 +50,7 @@ class TestCourseViews:
         dashboard_service.get_request_organization.return_value = org
         course_service.get_courses.return_value = select(Course).order_by(Course.id)
         pyramid_request.matchdict["organization_public_id"] = sentinel.public_id
+        pyramid_request.parsed_params = {"h_userids": sentinel.h_userids}
         db_session.flush()
 
         response = views.organization_courses()
@@ -59,7 +60,8 @@ class TestCourseViews:
         )
         course_service.get_courses.assert_called_once_with(
             organization=org,
-            h_userid=pyramid_request.user.h_userid,
+            instructor_h_userid=pyramid_request.user.h_userid,
+            h_userids=sentinel.h_userids,
         )
         assignment_service.get_courses_assignments_count.assert_called_once_with(
             [c.id for c in courses]
