@@ -28,6 +28,9 @@ class CoursesMetricsSchema(PyramidRequestSchema):
     assignment_ids = fields.List(fields.Integer())
     """Return metrics for these assignments only."""
 
+    courses_ids = fields.List(fields.Integer())
+    """Return metrics for these courses only."""
+
 
 class CourseViews:
     def __init__(self, request) -> None:
@@ -71,17 +74,20 @@ class CourseViews:
     def organization_courses(self) -> APICourses:
         filter_by_h_userids = self.request.parsed_params.get("h_userids")
         filter_by_assignment_ids = self.request.parsed_params.get("assignment_ids")
+        filter_by_course_ids = self.request.parsed_params.get("course_ids")
         org = self.dashboard_service.get_request_organization(self.request)
-        courses = self.request.db.scalars(
-            self.course_service.get_courses(
-                organization=org,
-                instructor_h_userid=self.request.user.h_userid
-                if self.request.user
-                else None,
-                h_userids=filter_by_h_userids,
-                assignment_ids=filter_by_assignment_ids,
-            )
-        ).all()
+        courses_query = self.course_service.get_courses(
+            organization=org,
+            instructor_h_userid=self.request.user.h_userid
+            if self.request.user
+            else None,
+            h_userids=filter_by_h_userids,
+            assignment_ids=filter_by_assignment_ids,
+        )
+        if filter_by_course_ids:
+            courses_query = courses_query.where(Course.id.in_(filter_by_course_ids))
+        courses = self.request.db.scalars(courses_query).all()
+
         courses_assignment_counts = (
             self.assignment_service.get_courses_assignments_count(
                 [c.id for c in courses]
