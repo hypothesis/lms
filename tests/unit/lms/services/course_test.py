@@ -391,6 +391,21 @@ class TestCourseService:
             svc.get_courses(instructor_h_userid=user.h_userid)
         ).all() == [course]
 
+    def test_get_courses_by_assignment_ids(self, svc, db_session):
+        course = factories.Course()
+        assignment = factories.Assignment()
+        user = factories.User()
+        factories.AssignmentMembership.create(
+            assignment=assignment, user=user, lti_role=factories.LTIRole()
+        )
+        factories.AssignmentGrouping(grouping=course, assignment=assignment)
+
+        db_session.flush()
+
+        assert db_session.scalars(
+            svc.get_courses(assignment_ids=[assignment.id])
+        ).all() == [course]
+
     @pytest.fixture
     def course(self, application_instance, grouping_service):
         return factories.Course(

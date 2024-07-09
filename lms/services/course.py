@@ -110,7 +110,7 @@ class CourseService:
             )
 
         if h_userids:
-            # Only courses where these H's h_userids belongs to
+            # Only courses these h_userids belong to
             query = (
                 query.join(GroupingMembership)
                 .join(User)
@@ -141,15 +141,17 @@ class CourseService:
 
     def get_courses(
         self,
-        instructor_h_userid: str | None,
+        instructor_h_userid: str | None = None,
         organization: Organization | None = None,
         h_userids: list[str] | None = None,
+        assignment_ids: list[str] | None = None,
     ) -> Select[tuple[Course]]:
         """Get a list of unique courses.
 
         :param organization: organization the courses belong to.
         :param instructor_h_userid: return only courses where instructor_h_userid is an instructor.
         :param h_userids: return only courses where these users are members.
+        :param assignment_ids: return only the courses these assignments belong to.
         """
         courses_query = (
             self._search_query(
@@ -178,6 +180,15 @@ class CourseService:
                         User.h_userid == instructor_h_userid,
                         LTIRole.scope == RoleScope.COURSE,
                         LTIRole.type == RoleType.INSTRUCTOR,
+                    )
+                )
+            )
+
+        if assignment_ids:
+            courses_query = courses_query.where(
+                Course.id.in_(
+                    select(AssignmentGrouping.grouping_id).where(
+                        AssignmentGrouping.assignment_id.in_(assignment_ids)
                     )
                 )
             )
