@@ -4,7 +4,7 @@ from hubspot import HubSpot
 from sqlalchemy import func, select
 from sqlalchemy.exc import MultipleResultsFound
 
-from lms.models.hubspot import HubSpotCompany
+from lms.models import HubSpotCompany, Organization, OrganizationUsageReport
 from lms.services.hubspot._client import HubSpotClient
 from lms.services.upsert import bulk_upsert
 
@@ -27,7 +27,7 @@ class HubSpotService:
             # More than one company pointing to the same org is a data entry error, ignore them.
             return None
 
-    def get_companies_with_active_deals(self, date_: date):
+    def _companies_with_active_deals_query(self, date_: date):
         # Exclude companies that map to the same Organization.
         # We allow these on the DB to be able to report on the situation to prompt a human to fix it.
         non_duplicated_companies = (
@@ -35,18 +35,18 @@ class HubSpotService:
             .group_by(HubSpotCompany.lms_organization_id)
             .having(func.count(HubSpotCompany.lms_organization_id) == 1)
         )
-        return (
-            self._db.query(HubSpotCompany)
-            .where(
-                # Exclude duplicates
-                HubSpotCompany.lms_organization_id.in_(non_duplicated_companies),
-                # Only companies link to an organization
-                HubSpotCompany.organization != None,  # noqa: E711
-                HubSpotCompany.current_deal_services_start <= date_,
-                HubSpotCompany.current_deal_services_end >= date_,
-            )
-            .all()
+        return select(HubSpotCompany).where(
+            # Exclude duplicates
+            HubSpotCompany.lms_organization_id.in_(non_duplicated_companies),
+            # Only companies with a link to an organization
+            HubSpotCompany.organization != None,  # noqa: E711
+            HubSpotCompany.current_deal_services_start <= date_,
+            HubSpotCompany.current_deal_services_end >= date_,
         )
+
+    def get_companies_with_active_deals(self, date_: date) -> list[HubSpotCompany]:
+        """Get all HubSpotCompany that have active deals in `date`."""
+        return self._db.scalars(self._companies_with_active_deals_query(date_)).all()
 
     def refresh_companies(self) -> None:
         """Refresh all companies in the DB upserting accordingly."""
@@ -83,6 +83,29 @@ class HubSpotService:
                 "current_deal_services_end",
             ],
         )
+
+    def export_companies_contract_billables(self, date_: date):
+        """Export the contract billable numbers to HubSpot."""
+        query = (
+            self._companies_with_active_deals_query(date_)
+            .join(
+                Organization,
+                Organization.public_id == HubSpotCompany.lms_organization_id,
+            )
+            .join(OrganizationUsageReport)
+            .distinct(OrganizationUsageReport.organization_id)
+            .order_by(
+                OrganizationUsageReport.organization_id,
+                OrganizationUsageReport.until.desc(),
+            )
+        ).with_only_columns(
+            HubSpotCompany.hubspot_id,
+            OrganizationUsageReport.unique_teachers,
+            OrganizationUsageReport.unique_users,
+        )
+
+        # From the point of view of HubSpot we are creating an import
+        self._client.import_billables(self._db.execute(query).all(), date_=date_)
 
     @classmethod
     def factory(cls, _context, request):

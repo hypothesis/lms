@@ -67,6 +67,40 @@ class TestHubSpotService:
         assert company.name == "COMPANY"
         assert company.hubspot_id == 100
 
+    def test_export_companies_contract_billables(
+        self, svc, hubspot_api_client, db_session
+    ):
+        organization = factories.Organization(public_id="TEST_ORG")
+        company = factories.HubSpotCompany(
+            lms_organization_id=organization.public_id,
+            current_deal_services_start=date(2020, 1, 1),
+            current_deal_services_end=date(2025, 1, 1),
+        )
+        # Two reports for the same org, we'd expect to get the numbers from the most recent one
+        factories.OrganizationUsageReport(
+            organization=organization,
+            tag="test",
+            key="test-older-report",
+            until=date(2022, 1, 1),
+            unique_users=10,
+            unique_teachers=10,
+        )
+        factories.OrganizationUsageReport(
+            organization=organization,
+            tag="test",
+            key="test-recent-report",
+            until=date(2023, 1, 1),
+            unique_users=100,
+            unique_teachers=100,
+        )
+        db_session.flush()
+
+        svc.export_companies_contract_billables(date(2024, 1, 1))
+
+        hubspot_api_client.import_billables.assert_called_once_with(
+            [(company.hubspot_id, 100, 100)], date_=date(2024, 1, 1)
+        )
+
     @pytest.mark.parametrize(
         "value,expected",
         [
