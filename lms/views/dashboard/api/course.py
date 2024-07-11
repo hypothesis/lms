@@ -22,13 +22,13 @@ class CoursesMetricsSchema(PyramidRequestSchema):
 
     location = "querystring"
 
-    h_userids = fields.List(fields.Str())
+    h_userids = fields.List(fields.Str(), data_key="h_userid")
     """Return metrics for these users only."""
 
-    assignment_ids = fields.List(fields.Integer())
+    assignment_ids = fields.List(fields.Integer(), data_key="assignment_id")
     """Return metrics for these assignments only."""
 
-    courses_ids = fields.List(fields.Integer())
+    courses_ids = fields.List(fields.Integer(), data_key="course_id")
     """Return metrics for these courses only."""
 
 
