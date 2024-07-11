@@ -71,112 +71,44 @@ class TestUserService:
         with pytest.raises(UserNotFound):
             service.get(user.application_instance, "some-other-id")
 
-    def test_get_users(self, service, db_session):
-        assignment = factories.Assignment()
-        student = factories.User()
-        factories.User(h_userid=student.h_userid)  # Duplicated student
-        teacher = factories.User()
-        factories.AssignmentMembership.create(
-            assignment=assignment,
-            user=student,
-            lti_role=factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
-        )
-        factories.AssignmentMembership.create(
-            assignment=assignment,
-            user=teacher,
-            lti_role=factories.LTIRole(
-                scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR
-            ),
-        )
-
-        query = service.get_users(
-            role_scope=RoleScope.COURSE, role_type=RoleType.LEARNER
-        )
-
-        assert db_session.scalars(query).all() == [student]
-
-    def test_get_users_by_h_userids(
-        self, service, db_session, student_in_assigment, assignment
-    ):
-        other_student = factories.User()
-        factories.AssignmentMembership.create(
-            assignment=assignment,
-            user=other_student,
-            lti_role=factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
-        )
-        # Make sure we have in fact two users
-        assert db_session.scalars(
-            service.get_users(role_scope=RoleScope.COURSE, role_type=RoleType.LEARNER)
-        ).all() == [student_in_assigment, other_student]
-
-        query = service.get_users(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
-            h_userids=[other_student.h_userid],
-        )
-
-        assert db_session.scalars(query).all() == [other_student]
-
-    def test_get_users_by_course_id(
-        self, service, db_session, student_in_assigment, assignment
-    ):
-        course = factories.Course()
-        factories.AssignmentGrouping(assignment=assignment, grouping=course)
-        db_session.flush()
-
-        query = service.get_users(
-            role_scope=RoleScope.COURSE, role_type=RoleType.LEARNER, course_id=course.id
-        )
-
-        assert db_session.scalars(query).all() == [student_in_assigment]
-
-    def test_get_users_by_assigment_id(self, service, db_session):
-        assignment = factories.Assignment()
-        student = factories.User()
-        factories.User(h_userid=student.h_userid)  # Duplicated student
-        teacher = factories.User()
-        factories.AssignmentMembership.create(
-            assignment=assignment,
-            user=student,
-            lti_role=factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
-        )
-        factories.AssignmentMembership.create(
-            assignment=assignment,
-            user=teacher,
-            lti_role=factories.LTIRole(
-                scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR
-            ),
-        )
-        db_session.flush()
-
-        query = service.get_users(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
-            assignment_id=assignment.id,
-        )
-
-        assert db_session.scalars(query).all() == [student]
-
-    def test_get_users_by_instructor_h_userid(
+    @pytest.mark.parametrize("instructor_h_userid", [True, False])
+    @pytest.mark.parametrize("h_userids", [True, False])
+    @pytest.mark.parametrize("course_id", [True, False])
+    @pytest.mark.parametrize("assignment_id", [True, False])
+    def test_get_users(
         self,
         service,
         db_session,
+        h_userids,
+        course_id,
+        assignment_id,
+        instructor_h_userid,
+        assignment,
         student_in_assigment,
         teacher_in_assigment,
     ):
-        # Assignment the h_userid does not belong to
-        other_assignment = factories.Assignment()
-        other_student = factories.User()
-        factories.AssignmentMembership.create(
-            assignment=other_assignment,
-            user=other_student,
-            lti_role=factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
-        )
+        factories.Assignment()
+        course = factories.Course()
+        factories.User(h_userid=student_in_assigment.h_userid)  # Duplicated student
+        factories.AssignmentGrouping(assignment=assignment, grouping=course)
+        db_session.flush()
+
+        query_parameters = {}
+
+        if instructor_h_userid:
+            query_parameters["instructor_h_userid"] = teacher_in_assigment.h_userid
+
+        if course_id:
+            query_parameters["course_id"] = course.id
+
+        if h_userids:
+            query_parameters["h_userids"] = [student_in_assigment.h_userid]
+
+        if assignment_id:
+            query_parameters["assignment_id"] = assignment.id
 
         query = service.get_users(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
-            instructor_h_userid=teacher_in_assigment.h_userid,
+            role_scope=RoleScope.COURSE, role_type=RoleType.LEARNER, **query_parameters
         )
 
         assert db_session.scalars(query).all() == [student_in_assigment]

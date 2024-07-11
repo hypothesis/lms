@@ -370,41 +370,44 @@ class TestCourseService:
             svc.get_courses(organization=org, instructor_h_userid=None)
         ).all() == [course]
 
-    def test_get_courses_by_instructor_h_userid(self, svc, db_session):
+    @pytest.mark.parametrize("instructor_h_userid", [True, False])
+    @pytest.mark.parametrize("h_userids", [True, False])
+    @pytest.mark.parametrize("assignment_ids", [True, False])
+    def test_get_courses(
+        self, svc, db_session, instructor_h_userid, course, assignment_ids, h_userids
+    ):
         factories.User()  # User not in course
-        course = factories.Course()
         assignment = factories.Assignment()
-        user = factories.User()
-        lti_role = factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR)
+        student = factories.User()
+        teacher = factories.User()
         factories.AssignmentMembership.create(
-            assignment=assignment, user=user, lti_role=lti_role
+            assignment=assignment,
+            user=teacher,
+            lti_role=factories.LTIRole(
+                scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR
+            ),
         )
         # Other membership record, with a different role
         factories.AssignmentMembership.create(
-            assignment=assignment, user=user, lti_role=factories.LTIRole()
+            assignment=assignment, user=teacher, lti_role=factories.LTIRole()
         )
+        factories.GroupingMembership(grouping=course, user=student)
         factories.AssignmentGrouping(grouping=course, assignment=assignment)
 
         db_session.flush()
 
-        assert db_session.scalars(
-            svc.get_courses(instructor_h_userid=user.h_userid)
-        ).all() == [course]
+        query_parameters = {}
 
-    def test_get_courses_by_assignment_ids(self, svc, db_session):
-        course = factories.Course()
-        assignment = factories.Assignment()
-        user = factories.User()
-        factories.AssignmentMembership.create(
-            assignment=assignment, user=user, lti_role=factories.LTIRole()
-        )
-        factories.AssignmentGrouping(grouping=course, assignment=assignment)
+        if instructor_h_userid:
+            query_parameters["instructor_h_userid"] = teacher.h_userid
 
-        db_session.flush()
+        if h_userids:
+            query_parameters["h_userids"] = [student.h_userid]
 
-        assert db_session.scalars(
-            svc.get_courses(assignment_ids=[assignment.id])
-        ).all() == [course]
+        if assignment_ids:
+            query_parameters["assignment_ids"] = [assignment.id]
+
+        assert db_session.scalars(svc.get_courses(**query_parameters)).all() == [course]
 
     @pytest.fixture
     def course(self, application_instance, grouping_service):
