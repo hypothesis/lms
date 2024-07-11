@@ -20,6 +20,10 @@ class ExternalRequestError(Exception):
     :arg message: A short error message for displaying to the user
     :type message: str
 
+    :arg error_code:
+        A code that identifies the error. Used by the frontend to display richer
+        error messages.
+
     :arg refreshable: True if the error can be fixed by refreshing an access token
     :arg refresh_route:
         If `refreshable` is True, the name of the API route that should be
@@ -48,8 +52,10 @@ class ExternalRequestError(Exception):
         refreshable=False,
         refresh_route: str | None = None,
         refresh_service: Service | None = None,
+        error_code: str | None = None,
     ):
         super().__init__()
+        self.error_code = error_code
         self.message = message
         self.request = request
         self.response = response

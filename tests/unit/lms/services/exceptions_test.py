@@ -36,6 +36,10 @@ class TestExternalRequestError:
         assert err.reason is None
         assert err.response_body is None
 
+    def test_custom_error_code(self):
+        err = ExternalRequestError(error_code="something_went_wrong")
+        assert err.error_code == "something_went_wrong"
+
     @pytest.mark.parametrize(
         "message,request_,response,validation_errors,cause,expected",
         [
