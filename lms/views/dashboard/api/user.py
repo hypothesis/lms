@@ -32,7 +32,7 @@ class UsersMetricsSchema(PyramidRequestSchema):
     assignment_id = fields.Integer(required=True, validate=validate.Range(min=1))
     """Return users that belong to the assignment with this ID."""
 
-    h_userids = fields.List(fields.Str())
+    h_userids = fields.List(fields.Str(), data_key="h_userid")
     """Return metrics for these users only."""
 
 
