@@ -16,7 +16,6 @@ from lms.services.aes import AESService
 from lms.services.exceptions import (
     ExternalRequestError,
     OAuth2TokenError,
-    SerializableError,
 )
 from lms.services.oauth_http import OAuthHTTPService
 from lms.services.oauth_http import factory as oauth_http_factory
@@ -190,9 +189,11 @@ class CanvasStudioService:
                 prevent_concurrent_refreshes=True,
             )
         except ExternalRequestError as refresh_err:
-            raise SerializableError(
+            raise ExternalRequestError(
                 error_code="canvas_studio_admin_token_refresh_failed",
                 message="Canvas Studio admin token refresh failed.",
+                request=refresh_err.request,
+                response=refresh_err.response,
             ) from refresh_err
 
     def authorization_url(self, state: str) -> str:
@@ -452,8 +453,10 @@ class CanvasStudioService:
                 # re-authenticate. That won't help for admin-authenticated
                 # requests.
                 if isinstance(err, OAuth2TokenError):
-                    raise HTTPBadRequest(
-                        "The Canvas Studio admin needs to authenticate the Hypothesis integration"
+                    raise ExternalRequestError(
+                        message="The Canvas Studio admin needs to authenticate the Hypothesis integration",
+                        request=err.request,
+                        response=err.response,
                     ) from err
                 raise
 
@@ -516,6 +519,10 @@ class CanvasStudioService:
             "canvas_studio", "admin_email"
         )
         if not admin_email:
+            LOG.debug(
+                "Canvas Studio admin email not configured. application instance: %s",
+                self._application_instance.id,
+            )
             raise HTTPBadRequest(
                 "Admin account is not configured for Canvas Studio integration"
             )
@@ -553,7 +560,8 @@ class CanvasStudioService:
         #
         # If there are multiple matching `User` entities, pick the one that
         # most recently authenticated with Canvas Studio.
-        guid = self._request.lti_user.application_instance.tool_consumer_instance_guid
+        application_instance = self._application_instance
+        guid = application_instance.tool_consumer_instance_guid
         admin_email = self._admin_email()
         admin_user_query = (
             select(User)
@@ -573,12 +581,9 @@ class CanvasStudioService:
 
         admin_user = self._request.db.scalars(admin_user_query).first()
         if not admin_user:
-            ai_id = self._request.lti_user.application_instance.id
             LOG.debug(
-                "Canvas Studio admin auth missing. application instance: %s, admin email: %s, guid: %s",
-                ai_id,
-                admin_email,
-                guid,
+                "Canvas Studio admin auth missing. application instance: %s",
+                application_instance.id,
             )
             raise HTTPBadRequest(
                 "The Canvas Studio admin needs to authenticate the Hypothesis integration"

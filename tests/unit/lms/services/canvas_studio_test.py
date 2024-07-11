@@ -12,7 +12,6 @@ from lms.services.canvas_studio import CanvasStudioService, factory
 from lms.services.exceptions import (
     ExternalRequestError,
     OAuth2TokenError,
-    SerializableError,
 )
 from lms.services.oauth_http import OAuthHTTPService
 from tests import factories
@@ -60,7 +59,7 @@ class TestCanvasStudioService:
             ExternalRequestError(response=response)
         )
 
-        with pytest.raises(SerializableError) as exc_info:
+        with pytest.raises(ExternalRequestError) as exc_info:
             svc.refresh_admin_access_token()
 
         assert exc_info.value.error_code == "canvas_studio_admin_token_refresh_failed"
@@ -290,7 +289,7 @@ class TestCanvasStudioService:
     ):
         admin_oauth_http_service.get.side_effect = OAuth2TokenError()
 
-        with pytest.raises(HTTPBadRequest) as exc_info:
+        with pytest.raises(ExternalRequestError) as exc_info:
             svc.get_video_download_url("42")
 
         assert (
