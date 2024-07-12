@@ -400,7 +400,7 @@ class DigestContext:
 
         for row in self._db.execute(query):
             # SQLAlchemy returns None instead of [].
-            authority_provided_ids = row.authority_provided_ids or []
+            row_authority_provided_ids = row.authority_provided_ids or []
             instructor_h_userids = row.instructor_h_userids or []
 
             self._course_infos.append(
@@ -411,7 +411,8 @@ class DigestContext:
                     learner_annotations=tuple(
                         annotation
                         for annotation in self.annotations
-                        if annotation.authority_provided_id in authority_provided_ids
+                        if annotation.authority_provided_id
+                        in row_authority_provided_ids
                         and annotation.userid not in instructor_h_userids
                     ),
                 )

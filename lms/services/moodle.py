@@ -255,7 +255,7 @@ class MoodleAPIClient:
                         "children": [],
                     }
                     folders[component] = new_folder
-                    current_node["children"].append(new_folder)
+                    current_node["children"].append(new_folder)  # type: ignore
                 current_node = folders[component]
 
             file_node = {
@@ -266,7 +266,7 @@ class MoodleAPIClient:
                 "lms_id": file_data["url"],
                 "updated_at": file_data["updated_at"],
             }
-            current_node["children"].append(file_node)
+            current_node["children"].append(file_node)  # type: ignore
 
         return root["children"]
 

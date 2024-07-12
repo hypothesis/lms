@@ -113,6 +113,7 @@ class PagesAPIViews:
     @staticmethod
     def _parse_document_url(document_url):
         document_url_match = DOCUMENT_URL_REGEX.search(document_url)
+        assert document_url_match
         course_id = document_url_match["course_id"]
         page_id = document_url_match["page_id"]
 

@@ -152,7 +152,7 @@ def oauth2_redirect_error(request):
         )
 
     if error_description := request.params.get("error_description"):
-        kwargs["error_details"] = {"error_description": error_description}
+        kwargs["error_details"] = {"error_description": error_description}  # type: ignore
 
     request.context.js_config.enable_oauth2_redirect_error_mode(**kwargs)
 

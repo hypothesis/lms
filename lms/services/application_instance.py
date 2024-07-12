@@ -52,14 +52,14 @@ class ProvisioningDisabled(SerializableError):
         )
 
 
-def _email_or_domain_match(columns, email):
+def _email_or_domain_match(columns, email: str):
     """
     Get an SQL comparator for matching emails.
 
     This will match the full email if it contains '@' or interpret the text
     as a domain if not. This will search over all the provided fields.
     """
-    return sa.or_(
+    return sa.or_(  # type: ignore
         (
             sa.func.lower(column) == email.lower()
             if "@" in email

@@ -40,9 +40,9 @@ def via_url(_context, request):
         course_id, raise_on_missing=True
     )
 
-    file_id = course.get_mapped_file_id(
-        DOCUMENT_URL_REGEX.search(document_url)["file_id"]
-    )
+    document_url_match = DOCUMENT_URL_REGEX.search(document_url)
+    assert document_url_match
+    file_id = course.get_mapped_file_id(document_url_match["file_id"])
     try:
         if request.lti_user.is_instructor:
             if not course_copy_plugin.is_file_in_course(course_id, file_id):

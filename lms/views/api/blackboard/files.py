@@ -75,9 +75,9 @@ class BlackboardFilesAPIViews:
         )
 
         document_url = self.request.params["document_url"]
-        file_id = course.get_mapped_file_id(
-            DOCUMENT_URL_REGEX.search(document_url)["file_id"]  # type: ignore
-        )
+        document_url_match = DOCUMENT_URL_REGEX.search(document_url)
+        assert document_url_match
+        file_id = course.get_mapped_file_id(document_url_match["file_id"])
         try:
             if self.request.lti_user.is_instructor:
                 if not self.course_copy_plugin.is_file_in_course(course_id, file_id):
