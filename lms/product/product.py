@@ -3,7 +3,7 @@
 from dataclasses import InitVar, dataclass
 
 from lms.product.family import Family  # pylint:disable=unused-import
-from lms.product.plugin import PluginConfig, Plugins
+from lms.product.plugin import PluginConfig, Plugins  # type: ignore
 
 
 @dataclass(frozen=True)

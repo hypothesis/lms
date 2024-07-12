@@ -50,7 +50,7 @@ class AdminOrganizationViews:
         self.organization_service: OrganizationService = request.find_service(
             OrganizationService
         )
-        self.organization_usage_report_service: OrganizationService = (
+        self.organization_usage_report_service: OrganizationUsageReportService = (
             request.find_service(OrganizationUsageReportService)
         )
 
@@ -155,6 +155,7 @@ class AdminOrganizationViews:
         request_org_id = self.request.matchdict["id_"]
         for org_id in self.organization_service.get_hierarchy_ids(request_org_id):
             org = self.organization_service.get_by_id(org_id)
+            assert org, "Organization {org_id} not found"
             self.organization_service.update_organization(
                 org, enabled=self.request.params.get("enabled", "") == "on"
             )

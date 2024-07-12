@@ -266,7 +266,7 @@ class BasicLaunchViews:
         )
 
     def _configure_js_for_file_picker(
-        self, assignment: Assignment, route: str = "configure_assignment"
+        self, assignment: Assignment | None, route: str = "configure_assignment"
     ) -> dict:
         """
         Show the file-picker for the user to choose a document.

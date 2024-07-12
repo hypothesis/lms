@@ -44,8 +44,10 @@ def via_url(_context, request):
     )
 
     document_url = request.params["document_url"]
-    document_course_id = DOCUMENT_URL_REGEX.search(document_url)["course_id"]
-    document_file_id = DOCUMENT_URL_REGEX.search(document_url)["url"]
+    document_url_match = DOCUMENT_URL_REGEX.search(document_url)
+    assert document_url_match
+    document_course_id = document_url_match["course_id"]
+    document_file_id = document_url_match["url"]
     effective_file_id = _effective_file_id(
         course_copy_plugin, course, document_url, document_course_id, document_file_id
     )

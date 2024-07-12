@@ -17,7 +17,7 @@ FILES_SCOPES = ("content:toc:read", "content:topics:read", "content:file:read")
     permission=Permissions.API,
 )
 def authorize(request):
-    scopes = []
+    scopes: list[str] = []
 
     if request.product.settings.files_enabled:
         scopes += FILES_SCOPES

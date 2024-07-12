@@ -97,5 +97,5 @@ def _validated_view(view, info):
 
 
 def includeme(config):
-    _validated_view.options = ["schema"]
+    _validated_view.options = ["schema"]  # type: ignore
     config.add_view_deriver(_validated_view)

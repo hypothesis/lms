@@ -4,6 +4,7 @@ import datetime
 from enum import Enum, unique
 
 import sqlalchemy as sa
+from sqlalchemy.orm import Mapped, mapped_column
 
 from lms.db import Base, varchar_enum
 
@@ -43,7 +44,7 @@ class OAuth2Token(Base):
         sa.UniqueConstraint("user_id", "application_instance_id", "service"),
     )
 
-    id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
+    id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
 
     #: The LTI user_id of the LMS user who this access token belongs to.
     user_id = sa.Column(sa.UnicodeText(), nullable=False)
@@ -91,11 +92,8 @@ class OAuth2Token(Base):
     #: inserting new rows) then whenever `access_token` and `expires_in`
     #: are updated with new values from the authorization server, `received_at`
     #: should also be updated to the current time.
-    received_at = sa.Column(
-        sa.DateTime,
-        default=datetime.datetime.utcnow,
-        server_default=sa.func.now(),
-        nullable=False,
+    received_at: Mapped[datetime.datetime] = mapped_column(
+        default=datetime.datetime.utcnow, server_default=sa.func.now()
     )
 
     #: The API that this token is used with. In OAuth 2.0 parlance, this

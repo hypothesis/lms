@@ -55,7 +55,7 @@ class AdminAssignmentViews:
                 "dashboard.assignment",
                 public_id=assignment.groupings[
                     0
-                ].application_instance.organization.public_id,
+                ].application_instance.organization.public_id,  # type: ignore
                 assignment_id=assignment.id,
             ),
         )

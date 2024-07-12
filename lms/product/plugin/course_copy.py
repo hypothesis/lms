@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Any, Callable
 
 from lms.models import File
 from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
@@ -20,7 +20,7 @@ class CourseCopyFilesHelper:
 
     def find_matching_file_in_course(
         self,
-        store_new_course_files: Callable[[str], None],
+        store_new_course_files: Callable[[str], Any] | Callable[[int], Any],
         file_type: str,
         original_file_id,
         new_course_id,

@@ -1,7 +1,7 @@
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import DynamicMapped, Mapped, mapped_column
 
 from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
@@ -78,7 +78,7 @@ class Assignment(CreatedUpdatedMixin, Base):
     deep_linking_uuid: Mapped[str | None] = mapped_column(sa.Unicode, nullable=True)
     """UUID that identifies the deep linking that created this assignment."""
 
-    groupings: Mapped[list[Grouping]] = sa.orm.relationship(
+    groupings: DynamicMapped[Grouping] = sa.orm.relationship(
         secondary="assignment_grouping", viewonly=True, lazy="dynamic"
     )
 
