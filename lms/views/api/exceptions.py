@@ -267,26 +267,32 @@ class ErrorBody:
         if getattr(request.exception, "refreshable", False):
             oauth2_token_service = request.find_service(name="oauth2_token")
 
-            try:
-                kwargs = {}
-                if service := getattr(request.exception, "refresh_service", None):
-                    kwargs["service"] = service
-                oauth2_token_service.get(**kwargs)
-            except OAuth2TokenError:
-                # If we don't have an access token we can't refresh it.
-                pass
-            else:
-                refresh_route = getattr(request.exception, "refresh_route", None)
-                if refresh_route is None:
-                    refresh_route = request.product.route.oauth2_refresh
+            refresh_route = getattr(request.exception, "refresh_route", None)
+            if refresh_route is None:
+                refresh_route = request.product.route.oauth2_refresh
 
+            # Test if this user has an existing access token that we can refresh.
+            if refresh_route == "canvas_studio_api.oauth.refresh_admin":
+                # This refresh is for a user that is different than the current
+                # user, so don't try to look up an access token for them.
+                can_refresh = True
+            else:
+                try:
+                    kwargs = {}
+                    if service := getattr(request.exception, "refresh_service", None):
+                        kwargs["service"] = service
+                    oauth2_token_service.get(**kwargs)
+                    can_refresh = True
+                except OAuth2TokenError:
+                    can_refresh = False
+
+            if can_refresh:
                 if refresh_route:
                     path = request.route_path(refresh_route)
                 else:
                     raise ValueError(
                         f"No OAuth 2 refresh API for {request.product.family}"
                     )
-
                 body["refresh"] = {"method": "POST", "path": path}
 
         return body

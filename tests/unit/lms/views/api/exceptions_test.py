@@ -292,6 +292,22 @@ class TestErrorBody:
 
         assert "refresh" not in body
 
+    @pytest.mark.usefixtures("with_refreshable_exception")
+    def test_json_includes_refresh_info_for_canvas_studio_admin_refresh(
+        self, pyramid_request, oauth2_token_service
+    ):
+        pyramid_request.exception.refresh_service = Service.CANVAS_STUDIO
+        pyramid_request.exception.refresh_route = (
+            "canvas_studio_api.oauth.refresh_admin"
+        )
+
+        body = ErrorBody().__json__(pyramid_request)
+
+        # As a special case, we don't check for an existing access token for
+        # this refresh route.
+        oauth2_token_service.get.assert_not_called()
+        assert "refresh" in body
+
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
         # When Pyramid calls an exception view it sets request.exception to the
