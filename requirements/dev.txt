@@ -433,7 +433,7 @@ zope-sqlalchemy==3.1
 # The following packages are considered to be unsafe in a requirements file:
 pip==23.3.2
     # via pip-tools
-setuptools==69.0.3
+setuptools==70.0.0
     # via
     #   -r prod.txt
     #   pip-tools
