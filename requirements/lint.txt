@@ -744,7 +744,7 @@ pip==23.3.2
     #   -r functests.txt
     #   -r tests.txt
     #   pip-tools
-setuptools==69.0.3
+setuptools==70.0.0
     # via
     #   -r bddtests.txt
     #   -r functests.txt
