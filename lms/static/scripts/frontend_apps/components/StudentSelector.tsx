@@ -3,7 +3,7 @@ import {
   ArrowRightIcon,
   IconButton,
   InputGroup,
-  SelectNext,
+  Select,
 } from '@hypothesis/frontend-shared';
 
 import type { StudentInfo } from '../config';
@@ -77,7 +77,7 @@ export default function StudentSelector<Student extends StudentOption>({
             title="Previous student"
             variant="dark"
           />
-          <SelectNext
+          <Select
             aria-label="Select student"
             value={selectedStudent}
             onChange={onSelectStudent}
@@ -85,13 +85,13 @@ export default function StudentSelector<Student extends StudentOption>({
             buttonContent={selectedStudent?.displayName ?? 'All Students'}
             buttonClasses="md:w-[12rem] lg:w-[16rem] xl:w-[20rem]"
           >
-            <SelectNext.Option value={null}>All Students</SelectNext.Option>
+            <Select.Option value={null}>All Students</Select.Option>
             {students.map((studentOption, idx) => (
-              <SelectNext.Option value={studentOption} key={`student-${idx}`}>
+              <Select.Option value={studentOption} key={`student-${idx}`}>
                 {studentOption.displayName}
-              </SelectNext.Option>
+              </Select.Option>
             ))}
-          </SelectNext>
+          </Select>
           <IconButton
             data-testid="next-student-button"
             disabled={selectedIndex >= students.length - 1}

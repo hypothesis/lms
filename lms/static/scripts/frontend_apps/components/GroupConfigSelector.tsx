@@ -1,4 +1,4 @@
-import { Checkbox, Link, SelectNext } from '@hypothesis/frontend-shared';
+import { Checkbox, Link, Select } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
@@ -64,7 +64,7 @@ function GroupSelect({
       >
         Group set
       </label>
-      <SelectNext
+      <Select
         value={selectedGroupSet}
         onChange={newGroupSet => onInput(newGroupSet?.id ?? null)}
         buttonId={selectId}
@@ -76,11 +76,11 @@ function GroupSelect({
         }
       >
         {groupSets?.map(gs => (
-          <SelectNext.Option value={gs} key={gs.id}>
+          <Select.Option value={gs} key={gs.id}>
             {gs.name}
-          </SelectNext.Option>
+          </Select.Option>
         ))}
-      </SelectNext>
+      </Select>
     </div>
   );
 }

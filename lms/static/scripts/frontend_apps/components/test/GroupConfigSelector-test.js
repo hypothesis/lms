@@ -1,4 +1,4 @@
-import { SelectNext } from '@hypothesis/frontend-shared';
+import { Select } from '@hypothesis/frontend-shared';
 import {
   mockImportedComponents,
   waitForElement,
@@ -131,15 +131,15 @@ describe('GroupConfigSelector', () => {
       groupConfig: { useGroupSet: true, groupConfig: null },
     });
 
-    // While groups are being fetched, the `<SelectNext>` should be visible but
+    // While groups are being fetched, the `<Select>` should be visible but
     // disabled, and display a fetching status.
-    const groupSetSelect = wrapper.find('SelectNext');
+    const groupSetSelect = wrapper.find('Select');
     assert.isTrue(groupSetSelect.exists());
     assert.isTrue(groupSetSelect.prop('disabled'));
     assert.equal(groupSetSelect.prop('buttonContent'), 'Fetching group sets…');
 
     // Once group sets are fetched, they should be rendered as options.
-    const options = await waitForElement(wrapper, SelectNext.Option);
+    const options = await waitForElement(wrapper, Select.Option);
     assert.equal(options.length, fakeGroupSets.length);
 
     fakeGroupSets.forEach((gs, i) => {
@@ -155,11 +155,11 @@ describe('GroupConfigSelector', () => {
       onChangeGroupConfig,
     });
 
-    const options = await waitForElement(wrapper, SelectNext.Option);
+    const options = await waitForElement(wrapper, Select.Option);
     assert.equal(options.length, fakeGroupSets.length);
     assert.notCalled(onChangeGroupConfig);
 
-    const select = wrapper.find('SelectNext');
+    const select = wrapper.find('Select');
 
     options.forEach((option, i) => {
       onChangeGroupConfig.resetHistory();
@@ -191,7 +191,7 @@ describe('GroupConfigSelector', () => {
     fakeAPICall.withArgs(groupSetsAPIRequest).resolves(fakeGroupSets);
     authModal.prop('onAuthComplete')();
 
-    const options = await waitForElement(wrapper, SelectNext.Option);
+    const options = await waitForElement(wrapper, Select.Option);
     assert.equal(options.length, fakeGroupSets.length);
   });
 
@@ -223,7 +223,7 @@ describe('GroupConfigSelector', () => {
       authModal.prop('onRetry')();
     });
 
-    const options = await waitForElement(wrapper, SelectNext.Option);
+    const options = await waitForElement(wrapper, Select.Option);
     assert.equal(options.length, fakeGroupSets.length);
   });
 
