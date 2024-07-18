@@ -47,10 +47,7 @@ describe('StudentSelector', () => {
 
   it('shall have "All Students" as the default option', () => {
     const wrapper = renderSelector({ selectedStudent: null });
-    assert.equal(
-      wrapper.find('SelectNext').prop('buttonContent'),
-      'All Students',
-    );
+    assert.equal(wrapper.find('Select').prop('buttonContent'), 'All Students');
     assert.equal(
       wrapper.find('[data-testid="student-selector-label"]').text(),
       '2 Students',
@@ -59,7 +56,7 @@ describe('StudentSelector', () => {
 
   it('sets the selected option to the reflect the selected student', () => {
     const wrapper = renderSelector({ selectedStudent: fakeStudents[1] });
-    assert.equal(wrapper.find('SelectNext').prop('buttonContent'), 'Student 2');
+    assert.equal(wrapper.find('Select').prop('buttonContent'), 'Student 2');
     assert.equal(
       wrapper.find('[data-testid="student-selector-label"]').text(),
       'Student 2 of 2',
@@ -72,7 +69,7 @@ describe('StudentSelector', () => {
       onSelectStudent: onChange,
       selectedStudent: fakeStudents[0],
     });
-    wrapper.find('SelectNext').props().onChange(fakeStudents[1]);
+    wrapper.find('Select').props().onChange(fakeStudents[1]);
     assert.calledWith(onChange, fakeStudents[1]);
   });
 
@@ -83,7 +80,7 @@ describe('StudentSelector', () => {
       selectedStudent: fakeStudents[0],
     });
     // No student is selected
-    wrapper.find('SelectNext').props().onChange(null);
+    wrapper.find('Select').props().onChange(null);
     assert.calledWith(onChange, null);
   });
 
