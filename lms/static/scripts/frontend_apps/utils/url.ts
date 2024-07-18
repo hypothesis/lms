@@ -28,3 +28,22 @@ export function replaceURLParams<Param>(
 
   return url;
 }
+
+/**
+ * Converts a record into a URLSearchParams object.
+ * Any param which is an array will be appended for every one of its values.
+ */
+export function recordToSearchParams(
+  params: Record<string, string | string[]>,
+): URLSearchParams {
+  const queryParams = new URLSearchParams();
+  Object.entries(params).forEach(([name, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach(v => queryParams.append(name, v));
+    } else {
+      queryParams.append(name, value);
+    }
+  });
+
+  return queryParams;
+}
