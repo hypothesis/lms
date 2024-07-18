@@ -563,7 +563,7 @@ rsa==4.9
     #   google-auth
 ruff==0.4.7
     # via -r lint.in
-sentry-sdk==2.3.1
+sentry-sdk==2.8.0
     # via
     #   -r bddtests.txt
     #   -r functests.txt
