@@ -28,7 +28,7 @@ class CoursesMetricsSchema(PyramidRequestSchema):
     assignment_ids = fields.List(fields.Integer(), data_key="assignment_id")
     """Return metrics for these assignments only."""
 
-    courses_ids = fields.List(fields.Integer(), data_key="course_id")
+    course_ids = fields.List(fields.Integer(), data_key="course_id")
     """Return metrics for these courses only."""
 
 
