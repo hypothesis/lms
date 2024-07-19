@@ -2,6 +2,7 @@ import { useConfig } from '../config';
 import { APIError } from '../errors';
 import { useFetch } from './fetch';
 import type { FetchResult, Fetcher } from './fetch';
+import { recordToSearchParams } from './url';
 
 /**
  * Parameters for an API call that will refresh an expired access token.
@@ -44,7 +45,7 @@ export type APICallOptions = {
   path: string;
 
   /** Query parameters. */
-  params?: Record<string, string>;
+  params?: Record<string, string | string[]>;
 
   /** JSON-serializable body of request. */
   data?: object;
@@ -112,10 +113,7 @@ export async function apiCall<Result = unknown>(
 
   let query = '';
   if (params) {
-    const urlParams = new URLSearchParams();
-    Object.entries(params).forEach(([name, value]) =>
-      urlParams.append(name, value),
-    );
+    const urlParams = recordToSearchParams(params);
     query = '?' + urlParams.toString();
   }
 
@@ -193,7 +191,7 @@ export function urlPath(strings: TemplateStringsArray, ...params: string[]) {
  */
 export function useAPIFetch<T = unknown>(
   path: string | null,
-  params?: Record<string, string>,
+  params?: Record<string, string | string[]>,
 ): FetchResult<T> {
   const {
     api: { authToken },
@@ -213,6 +211,6 @@ export function useAPIFetch<T = unknown>(
   // something simpler, as long as it encodes the same information. The auth
   // token is not included in the key, as we assume currently that it does not
   // change the result.
-  const paramStr = params ? '?' + new URLSearchParams(params).toString() : '';
+  const paramStr = params ? '?' + recordToSearchParams(params).toString() : '';
   return useFetch(path ? `${path}${paramStr}` : null, fetcher);
 }

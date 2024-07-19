@@ -1,4 +1,4 @@
-import { replaceURLParams } from '../url';
+import { recordToSearchParams, replaceURLParams } from '../url';
 
 describe('replaceURLParams', () => {
   it('should replace params in URLs', () => {
@@ -34,5 +34,16 @@ describe('replaceURLParams', () => {
         }),
       'Parameter "q" not found in "https://foo.com/:id" URL template',
     );
+  });
+});
+
+describe('recordToSearchParams', () => {
+  it('parses provided record and appends entries', () => {
+    const result = recordToSearchParams({
+      foo: 'bar',
+      baz: ['1', '2', '3'],
+    });
+
+    assert.equal(result.toString(), 'foo=bar&baz=1&baz=2&baz=3');
   });
 });
