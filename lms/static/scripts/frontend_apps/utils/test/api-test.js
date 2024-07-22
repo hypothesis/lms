@@ -419,8 +419,23 @@ describe('useAPIFetch', () => {
     },
     {
       path: '/api/some/path',
+      params: {},
+      expectedURL: '/api/some/path',
+    },
+    {
+      path: '/api/some/path',
+      params: { ignored: [] },
+      expectedURL: '/api/some/path',
+    },
+    {
+      path: '/api/some/path',
       params: { foo: 'bar', baz: 'meep' },
       expectedURL: '/api/some/path?foo=bar&baz=meep',
+    },
+    {
+      path: '/api/some/path',
+      params: { foo: 'bar', array: ['hello', 'world'] },
+      expectedURL: '/api/some/path?foo=bar&array=hello&array=world',
     },
   ].forEach(({ path, params, expectedURL }) => {
     it('fetches data from API if a path is provided', async () => {

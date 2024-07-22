@@ -111,11 +111,8 @@ export async function apiCall<Result = unknown>(
     headers['Content-Type'] = 'application/json; charset=UTF-8';
   }
 
-  let query = '';
-  if (params) {
-    const urlParams = recordToSearchParams(params);
-    query = '?' + urlParams.toString();
-  }
+  const queryString = recordToSearchParams(params ?? {}).toString();
+  const query = queryString.length > 0 ? `?${queryString}` : '';
 
   const defaultMethod = data === undefined ? 'GET' : 'POST';
   const result = await fetch(path + query, {
@@ -211,6 +208,7 @@ export function useAPIFetch<T = unknown>(
   // something simpler, as long as it encodes the same information. The auth
   // token is not included in the key, as we assume currently that it does not
   // change the result.
-  const paramStr = params ? '?' + recordToSearchParams(params).toString() : '';
+  const queryString = recordToSearchParams(params ?? {}).toString();
+  const paramStr = queryString.length > 0 ? `?${queryString}` : '';
   return useFetch(path ? `${path}${paramStr}` : null, fetcher);
 }
