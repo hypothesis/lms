@@ -32,7 +32,7 @@ describe('OrganizationActivityFilters', () => {
       title: 'Assignment 2',
     },
   ];
-  const students = [
+  const studentsWithName = [
     {
       lms_id: '1',
       display_name: 'First student',
@@ -40,6 +40,13 @@ describe('OrganizationActivityFilters', () => {
     {
       lms_id: '2',
       display_name: 'Second student',
+    },
+  ];
+  const students = [
+    ...studentsWithName,
+    {
+      lms_id: '3',
+      display_name: '', // Student with an empty name won't be displayed
     },
   ];
 
@@ -176,7 +183,10 @@ describe('OrganizationActivityFilters', () => {
     },
     {
       id: 'students-select',
-      expectedOptions: ['All students', ...students.map(s => s.display_name)],
+      expectedOptions: [
+        'All students',
+        ...studentsWithName.map(s => s.display_name),
+      ],
     },
   ].forEach(({ id, expectedOptions }) => {
     it('renders corresponding options', () => {
@@ -242,7 +252,7 @@ describe('OrganizationActivityFilters', () => {
       const wrapper = createComponent({
         selectedCourses: [...courses],
         selectedAssignments: [...assignments],
-        selectedStudents: [...students],
+        selectedStudents: [...studentsWithName],
       });
 
       assert.equal(getSelectContent(wrapper, 'courses-select'), '2 courses');
