@@ -1,4 +1,5 @@
 import { MultiSelect } from '@hypothesis/frontend-shared';
+import { useMemo } from 'preact/hooks';
 
 import type { Assignment, Course, Student } from '../../api-types';
 import { useConfig } from '../../config';
@@ -33,6 +34,10 @@ export default function OrganizationActivityFilters({
     routes.assignments,
   );
   const students = useAPIFetch<{ students: Student[] }>(routes.students);
+  const studentsWithName = useMemo(
+    () => students.data?.students.filter(s => !!s.display_name),
+    [students.data?.students],
+  );
 
   return (
     <div className="flex gap-2 md:w-1/2">
@@ -107,7 +112,7 @@ export default function OrganizationActivityFilters({
         data-testid="students-select"
       >
         <MultiSelect.Option value={undefined}>All students</MultiSelect.Option>
-        {students.data?.students.map(student => (
+        {studentsWithName?.map(student => (
           <MultiSelect.Option key={student.lms_id} value={student}>
             {student.display_name}
           </MultiSelect.Option>
