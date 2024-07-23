@@ -1,13 +1,19 @@
 import { Link } from '@hypothesis/frontend-shared';
-import { useMemo } from 'preact/hooks';
+import { useMemo, useState } from 'preact/hooks';
 import { Link as RouterLink, useParams } from 'wouter-preact';
 
-import type { CoursesResponse } from '../../api-types';
+import type {
+  Assignment,
+  Course,
+  CoursesResponse,
+  Student,
+} from '../../api-types';
 import { useConfig } from '../../config';
 import { urlPath, useAPIFetch } from '../../utils/api';
 import { replaceURLParams } from '../../utils/url';
 import FormattedDate from './FormattedDate';
 import OrderableActivityTable from './OrderableActivityTable';
+import OrganizationActivityFilters from './OrganizationActivityFilters';
 
 type CoursesTableRow = {
   id: number;
@@ -28,10 +34,33 @@ export default function OrganizationActivity() {
     organizationPublicId: string;
   }>();
 
+  const [selectedStudents, setSelectedStudents] = useState<Student[]>([]);
+  const [selectedAssignments, setSelectedAssignments] = useState<Assignment[]>(
+    [],
+  );
+  const [selectedCourses, setSelectedCourses] = useState<Course[]>([]);
+  const studentIds = useMemo(
+    () => selectedStudents.map(s => s.h_userid),
+    [selectedStudents],
+  );
+  const assignmentIds = useMemo(
+    () => selectedAssignments.map(a => `${a.id}`),
+    [selectedAssignments],
+  );
+  const courseIds = useMemo(
+    () => selectedCourses.map(c => `${c.id}`),
+    [selectedCourses],
+  );
+
   const courses = useAPIFetch<CoursesResponse>(
     replaceURLParams(routes.organization_courses, {
       organization_public_id: organizationPublicId,
     }),
+    {
+      h_userid: studentIds,
+      assignment_id: assignmentIds,
+      course_id: courseIds,
+    },
   );
   const rows: CoursesTableRow[] = useMemo(
     () =>
@@ -46,6 +75,14 @@ export default function OrganizationActivity() {
   return (
     <div className="flex flex-col gap-y-5">
       <h2 className="text-lg text-brand font-semibold">All courses</h2>
+      <OrganizationActivityFilters
+        selectedStudents={selectedStudents}
+        onStudentsChange={setSelectedStudents}
+        selectedAssignments={selectedAssignments}
+        onAssignmentsChange={setSelectedAssignments}
+        selectedCourses={selectedCourses}
+        onCoursesChange={setSelectedCourses}
+      />
       <OrderableActivityTable
         loading={courses.isLoading}
         title="Courses"

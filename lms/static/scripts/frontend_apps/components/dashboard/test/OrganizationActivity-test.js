@@ -3,6 +3,7 @@ import {
   mockImportedComponents,
 } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
+import { act } from 'preact/test-utils';
 import sinon from 'sinon';
 
 import { Config } from '../../../config';
@@ -148,6 +149,43 @@ describe('OrganizationActivity', () => {
         .navigateOnConfirmRow({ id });
 
       assert.equal(href, `/courses/${id}`);
+    });
+  });
+
+  it('allows metrics to be filtered', () => {
+    const wrapper = createComponent();
+    const filters = wrapper.find('OrganizationActivityFilters');
+    const updateFilter = (changeCallback, arg) => {
+      act(() => filters.prop(changeCallback)(arg));
+      wrapper.update();
+    };
+    const assertCoursesFetched = query =>
+      assert.calledWith(fakeUseAPIFetch.lastCall, sinon.match.string, query);
+
+    // Every time the filters callbacks are invoked, the component will
+    // re-render and re-fetch metrics with updated query.
+    updateFilter('onStudentsChange', [
+      { h_userid: '123' },
+      { h_userid: '456' },
+    ]);
+    assertCoursesFetched({
+      h_userid: ['123', '456'],
+      assignment_id: [],
+      course_id: [],
+    });
+
+    updateFilter('onAssignmentsChange', [{ id: 1 }, { id: 2 }]);
+    assertCoursesFetched({
+      h_userid: ['123', '456'],
+      assignment_id: ['1', '2'],
+      course_id: [],
+    });
+
+    updateFilter('onCoursesChange', [{ id: 3 }, { id: 8 }, { id: 9 }]);
+    assertCoursesFetched({
+      h_userid: ['123', '456'],
+      assignment_id: ['1', '2'],
+      course_id: ['3', '8', '9'],
     });
   });
 
