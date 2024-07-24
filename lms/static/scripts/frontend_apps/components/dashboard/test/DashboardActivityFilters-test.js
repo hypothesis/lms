@@ -2,11 +2,13 @@ import { MultiSelect } from '@hypothesis/frontend-shared';
 import {
   checkAccessibility,
   mockImportedComponents,
+  waitFor,
 } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 import sinon from 'sinon';
 
 import { Config } from '../../../config';
+import { urlPath } from '../../../utils/api';
 import DashboardActivityFilters, {
   $imports,
 } from '../DashboardActivityFilters';
@@ -35,10 +37,12 @@ describe('DashboardActivityFilters', () => {
   const studentsWithName = [
     {
       lms_id: '1',
+      h_userid: 'acct:1@lms.hypothes.is',
       display_name: 'First student',
     },
     {
       lms_id: '2',
+      h_userid: 'acct:2@lms.hypothes.is',
       display_name: 'Second student',
     },
   ];
@@ -46,6 +50,7 @@ describe('DashboardActivityFilters', () => {
     ...studentsWithName,
     {
       lms_id: '3',
+      h_userid: 'acct:3@lms.hypothes.is',
       display_name: '', // Student with an empty name won't be displayed
     },
   ];
@@ -204,25 +209,83 @@ describe('DashboardActivityFilters', () => {
   [
     {
       id: 'courses-select',
+      selection: [...courses],
       getExpectedCallback: () => onCoursesChange,
+      expectedQueryString: `course_id=${courses[0].id}&course_id=${courses[1].id}`,
     },
     {
       id: 'assignments-select',
+      selection: [...assignments],
       getExpectedCallback: () => onAssignmentsChange,
+      expectedQueryString: `assignment_id=${assignments[0].id}&assignment_id=${assignments[1].id}`,
     },
     {
       id: 'students-select',
+      selection: [...studentsWithName],
       getExpectedCallback: () => onStudentsChange,
+      expectedQueryString: urlPath`h_userid=${studentsWithName[0].h_userid}&h_userid=${studentsWithName[1].h_userid}`,
     },
-  ].forEach(({ id, getExpectedCallback }) => {
+  ].forEach(({ id, selection, getExpectedCallback, expectedQueryString }) => {
     it('invokes corresponding change callback', () => {
       const wrapper = createComponent();
       const select = getSelect(wrapper, id);
 
-      select.props().onChange();
-      assert.called(getExpectedCallback());
+      select.props().onChange(selection);
+      assert.calledWith(getExpectedCallback(), selection);
+
+      // The query string should reflect the new selection
+      assert.include(location.search, expectedQueryString);
     });
   });
+
+  [
+    {
+      initialQueryString: `?course_id=${courses[0].id}&assignment_id=${assignments[0].id}`,
+      expectedCourses: [courses[0]],
+      expectedAssignments: [assignments[0]],
+      expectedStudents: [],
+    },
+    {
+      initialQueryString: `?course_id=${courses[0].id}&course_id=${courses[1].id}`,
+      expectedCourses: [...courses],
+      expectedAssignments: [],
+      expectedStudents: [],
+    },
+    {
+      initialQueryString: urlPath`?h_userid=${studentsWithName[0].h_userid}&h_userid=${studentsWithName[1].h_userid}&assignment_id=${assignments[1].id}`,
+      expectedCourses: [],
+      expectedAssignments: [assignments[1]],
+      expectedStudents: [...studentsWithName],
+    },
+    {
+      initialQueryString: urlPath`?h_userid=${studentsWithName[1].h_userid}`,
+      expectedCourses: [],
+      expectedAssignments: [],
+      expectedStudents: [studentsWithName[1]],
+    },
+  ].forEach(
+    ({
+      initialQueryString,
+      expectedCourses,
+      expectedAssignments,
+      expectedStudents,
+    }) => {
+      it('should initialize selection based on query string', async () => {
+        history.replaceState(null, '', initialQueryString);
+
+        createComponent();
+
+        // Callbacks will be invoked only after corresponding courses,
+        // assignments and students have been asynchronously loaded via
+        // useAPIFetch, so we need to wait for it.
+        await waitFor(() => onCoursesChange.called);
+
+        assert.calledWith(onCoursesChange, expectedCourses);
+        assert.calledWith(onAssignmentsChange, expectedAssignments);
+        assert.calledWith(onStudentsChange, expectedStudents);
+      });
+    },
+  );
 
   context('when items are selected', () => {
     [0, 1].forEach(index => {

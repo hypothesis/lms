@@ -1,9 +1,14 @@
 import { MultiSelect } from '@hypothesis/frontend-shared';
-import { useMemo } from 'preact/hooks';
+import { useCallback, useEffect, useMemo } from 'preact/hooks';
+import { useLocation, useSearch } from 'wouter-preact';
 
 import type { Assignment, Course, Student } from '../../api-types';
 import { useConfig } from '../../config';
 import { useAPIFetch } from '../../utils/api';
+import {
+  queryStringToRecord,
+  recordToQueryStringFragment,
+} from '../../utils/url';
 
 export type DashboardActivityFiltersProps = {
   selectedCourses: Course[];
@@ -26,8 +31,22 @@ export default function DashboardActivityFilters({
   selectedStudents,
   onStudentsChange,
 }: DashboardActivityFiltersProps) {
+  const search = useSearch();
+  const queryParams = useMemo(() => queryStringToRecord(search), [search]);
+  const [, navigate] = useLocation();
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
+
+  /**
+   * Used to persist selected filters in the query string
+   */
+  const updateQueryString = useCallback(
+    (paramsToUpdate: Record<string, string[]>) => {
+      const newQueryParams = { ...queryParams, ...paramsToUpdate };
+      navigate(recordToQueryStringFragment(newQueryParams));
+    },
+    [navigate, queryParams],
+  );
 
   const courses = useAPIFetch<{ courses: Course[] }>(routes.courses);
   const assignments = useAPIFetch<{ assignments: Assignment[] }>(
@@ -39,12 +58,51 @@ export default function DashboardActivityFilters({
     [students.data?.students],
   );
 
+  // Try to initialize selection based on query parameters
+  useEffect(() => {
+    const { course_id = [] } = queryParams;
+    const courseIds = Array.isArray(course_id) ? course_id : [course_id];
+
+    if (courses.data) {
+      onCoursesChange(
+        courses.data.courses.filter(c => courseIds.includes(`${c.id}`)),
+      );
+    }
+  }, [courses.data, onCoursesChange, queryParams]);
+  useEffect(() => {
+    const { assignment_id = [] } = queryParams;
+    const assignmentIds = Array.isArray(assignment_id)
+      ? assignment_id
+      : [assignment_id];
+
+    if (assignments.data) {
+      onAssignmentsChange(
+        assignments.data.assignments.filter(a =>
+          assignmentIds.includes(`${a.id}`),
+        ),
+      );
+    }
+  }, [assignments.data, onAssignmentsChange, queryParams]);
+  useEffect(() => {
+    const { h_userid = [] } = queryParams;
+    const studentIds = Array.isArray(h_userid) ? h_userid : [h_userid];
+
+    if (students.data) {
+      onStudentsChange(
+        students.data.students.filter(s => studentIds.includes(s.h_userid)),
+      );
+    }
+  }, [onStudentsChange, queryParams, students.data]);
+
   return (
     <div className="flex gap-2 md:w-1/2">
       <MultiSelect
         disabled={courses.isLoading}
         value={selectedCourses}
-        onChange={onCoursesChange}
+        onChange={newCourses => {
+          updateQueryString({ course_id: newCourses.map(c => `${c.id}`) });
+          onCoursesChange(newCourses);
+        }}
         aria-label="Select courses"
         buttonContent={
           courses.isLoading ? (
@@ -69,7 +127,12 @@ export default function DashboardActivityFilters({
       <MultiSelect
         disabled={assignments.isLoading}
         value={selectedAssignments}
-        onChange={onAssignmentsChange}
+        onChange={newAssignments => {
+          updateQueryString({
+            assignment_id: newAssignments.map(a => `${a.id}`),
+          });
+          onAssignmentsChange(newAssignments);
+        }}
         aria-label="Select assignments"
         buttonContent={
           assignments.isLoading ? (
@@ -96,7 +159,10 @@ export default function DashboardActivityFilters({
       <MultiSelect
         disabled={students.isLoading}
         value={selectedStudents}
-        onChange={onStudentsChange}
+        onChange={newStudents => {
+          updateQueryString({ h_userid: newStudents.map(s => s.h_userid) });
+          onStudentsChange(newStudents);
+        }}
         aria-label="Select students"
         buttonContent={
           students.isLoading ? (
