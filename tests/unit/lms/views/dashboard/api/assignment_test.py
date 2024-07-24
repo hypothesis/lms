@@ -88,7 +88,7 @@ class TestAssignmentViews:
         response = views.course_assignments_metrics()
 
         user_service.get_users.assert_called_once_with(
-            course_id=course.id,
+            course_ids=[course.id],
             role_scope=RoleScope.COURSE,
             role_type=RoleType.LEARNER,
             instructor_h_userid=pyramid_request.user.h_userid,

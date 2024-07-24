@@ -96,7 +96,7 @@ class AssignmentViews:
         course = self.dashboard_service.get_request_course(self.request)
         course_students = self.request.db.scalars(
             self.user_service.get_users(
-                course_id=course.id,
+                course_ids=[course.id],
                 role_scope=RoleScope.COURSE,
                 role_type=RoleType.LEARNER,
                 instructor_h_userid=current_h_userid,
