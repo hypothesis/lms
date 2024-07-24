@@ -10,6 +10,7 @@ import type {
 } from '../../api-types';
 import { useConfig } from '../../config';
 import { urlPath, useAPIFetch } from '../../utils/api';
+import { courseURL } from '../../utils/dashboard/navigation';
 import { replaceURLParams } from '../../utils/url';
 import DashboardActivityFilters from './DashboardActivityFilters';
 import FormattedDate from './FormattedDate';
@@ -21,8 +22,6 @@ type CoursesTableRow = {
   assignments: number;
   last_launched: string | null;
 };
-
-const courseURL = (id: number) => urlPath`/courses/${String(id)}`;
 
 /**
  * List of courses that belong to a specific organization
