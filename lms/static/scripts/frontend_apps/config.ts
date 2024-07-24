@@ -260,7 +260,7 @@ export type DashboardRoutes = {
   course_assignments_metrics: string;
 
   /** Fetch courses stats */
-  organization_courses: string;
+  courses_metrics: string;
 
   /** Fetch list of courses */
   courses: string;

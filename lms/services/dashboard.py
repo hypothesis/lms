@@ -1,4 +1,5 @@
 from pyramid.httpexceptions import HTTPNotFound, HTTPUnauthorized
+from sqlalchemy import select
 
 from lms.models.dashboard_admin import DashboardAdmin
 from lms.models.organization import Organization
@@ -47,22 +48,39 @@ class DashboardService:
 
         return course
 
-    def get_request_organization(self, request):
-        """Get and authorize an organization for the given request."""
-        organization = self._organization_service.get_by_public_id(
-            public_id=request.matchdict["organization_public_id"]
+    def get_request_organizations(self, request) -> list[Organization]:
+        """Get the relevant organizations for the current requests."""
+        organizations = []
+
+        # If we have an user, include the organization it belongs to
+        if request.lti_user:
+            lti_user_organization = request.lti_user.application_instance.organization
+
+            if not self._organization_service.is_member(
+                lti_user_organization, request.user
+            ):
+                raise HTTPUnauthorized()
+
+            organizations.append(lti_user_organization)
+
+        # Include any other organizations we are an admin in
+        admin_organizations = self.get_organizations_by_admin_email(
+            request.lti_user.email if request.lti_user else request.identity.userid
         )
-        if not organization:
-            raise HTTPNotFound()
+        organizations.extend(admin_organizations)
 
-        if request.has_permission(Permissions.STAFF):
-            # STAFF members in our admin pages can access all organizations
-            return organization
-
-        if not self._organization_service.is_member(organization, request.user):
+        if not organizations:
             raise HTTPUnauthorized()
 
-        return organization
+        return organizations
+
+    def get_organizations_by_admin_email(self, email: str) -> list[Organization]:
+        return self._db.scalars(
+            select(Organization)
+            .join(DashboardAdmin)
+            .where(DashboardAdmin.email == email)
+            .distinct()
+        ).all()
 
     def add_dashboard_admin(
         self, organization: Organization, email: str, created_by: str

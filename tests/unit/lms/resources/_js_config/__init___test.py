@@ -706,7 +706,7 @@ class TestEnableDashboardMode:
                 "students_metrics": "/api/dashboard/students/metrics",
                 "course": "/api/dashboard/courses/:course_id",
                 "course_assignments_metrics": "/api/dashboard/courses/:course_id/assignments/metrics",
-                "organization_courses": "/api/dashboard/organizations/:organization_public_id/courses",
+                "courses_metrics": "/api/dashboard/courses/metrics",
                 "courses": "/api/dashboard/courses",
                 "assignments": "/api/dashboard/assignments",
                 "students": "/api/dashboard/students",

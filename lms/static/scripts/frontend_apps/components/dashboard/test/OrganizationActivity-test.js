@@ -41,8 +41,7 @@ describe('OrganizationActivity', () => {
     fakeConfig = {
       dashboard: {
         routes: {
-          organization_courses:
-            '/api/dashboard/organizations/:organization_public_id',
+          courses_metrics: '/api/courses/metrics',
         },
       },
     };
