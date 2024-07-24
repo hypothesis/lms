@@ -240,7 +240,7 @@ class TestAssignmentService:
         assert not svc.is_member(assignment, other_user.h_userid)
 
     @pytest.mark.parametrize("instructor_h_userid", [True, False])
-    @pytest.mark.parametrize("course_id", [True, False])
+    @pytest.mark.parametrize("course_ids", [True, False])
     @pytest.mark.parametrize("h_userids", [True, False])
     def test_get_assignments(
         self,
@@ -249,7 +249,7 @@ class TestAssignmentService:
         instructor_h_userid,
         assignment,
         with_assignment_noise,
-        course_id,
+        course_ids,
         h_userids,
     ):
         factories.User()
@@ -270,8 +270,8 @@ class TestAssignmentService:
         if instructor_h_userid:
             query_parameters["instructor_h_userid"] = user.h_userid
 
-        if course_id:
-            query_parameters["course_id"] = course.id
+        if course_ids:
+            query_parameters["course_ids"] = [course.id]
 
         if h_userids:
             query_parameters["h_userids"] = [user.h_userid]
@@ -301,12 +301,12 @@ class TestAssignmentService:
         )
         db_session.flush()
 
-        assert db_session.scalars(svc.get_assignments(course_id=course.id)).all() == [
-            assignment
-        ]
+        assert db_session.scalars(
+            svc.get_assignments(course_ids=[course.id])
+        ).all() == [assignment]
         # We don't expect to get the other one at all, now the assignment belongs to the most recent course
         assert not db_session.scalars(
-            svc.get_assignments(course_id=other_course.id)
+            svc.get_assignments(course_ids=[other_course.id])
         ).all()
 
     def test_get_courses_assignments_count(self, svc, db_session):

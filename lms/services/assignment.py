@@ -214,13 +214,13 @@ class AssignmentService:
     def get_assignments(
         self,
         instructor_h_userid: str | None = None,
-        course_id: int | None = None,
+        course_ids: list[int] | None = None,
         h_userids: list[str] | None = None,
     ) -> Select[tuple[Assignment]]:
         """Get a query to fetch assignments.
 
         :param instructor_h_userid: return only assignments where instructor_h_userid is an instructor.
-        :param course_id: only return assignments that belong to this course.
+        :param course_ids: only return assignments that belong to this course.
         :param h_userids: return only assignments where these users are members.
         """
 
@@ -247,15 +247,15 @@ class AssignmentService:
                 .where(User.h_userid.in_(h_userids))
             )
 
-        if course_id:
+        if course_ids:
             deduplicated_course_assignments = (
-                self._deduplicated_course_assigments_query([course_id]).subquery()
+                self._deduplicated_course_assigments_query(course_ids).subquery()
             )
 
             query = query.where(
                 # Get only assignment from the candidates above
                 Assignment.id == deduplicated_course_assignments.c.assignment_id,
-                deduplicated_course_assignments.c.grouping_id == course_id,
+                deduplicated_course_assignments.c.grouping_id.in_(course_ids),
             )
 
         return query.order_by(Assignment.title, Assignment.id).distinct()

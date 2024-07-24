@@ -18,8 +18,13 @@ from lms.views.dashboard.pagination import PaginationParametersMixin, get_page
 class ListAssignmentsSchema(PaginationParametersMixin):
     """Query parameters to fetch a list of assignments."""
 
-    course_id = fields.Integer(required=False, validate=validate.Range(min=1))
-    """Return assignments that belong to the course with this ID."""
+    course_ids = fields.List(
+        fields.Integer(validate=validate.Range(min=1)), data_key="course_id"
+    )
+    """Return users that belong to these course IDs."""
+
+    h_userids = fields.List(fields.Str(), data_key="h_userid")
+    """Return metrics for these users only."""
 
 
 class AssignmentsMetricsSchema(PyramidRequestSchema):
@@ -51,11 +56,13 @@ class AssignmentViews:
         schema=ListAssignmentsSchema,
     )
     def assignments(self) -> APIAssignments:
+        filter_by_h_userids = self.request.parsed_params.get("h_userids")
         assignments = self.assignment_service.get_assignments(
             instructor_h_userid=self.request.user.h_userid
             if self.request.user
             else None,
-            course_id=self.request.parsed_params.get("course_id"),
+            course_ids=self.request.parsed_params.get("course_ids"),
+            h_userids=filter_by_h_userids,
         )
         assignments, pagination = get_page(
             self.request, assignments, [Assignment.title, Assignment.id]
@@ -104,7 +111,7 @@ class AssignmentViews:
             )
         ).all()
         assignments_query = self.assignment_service.get_assignments(
-            course_id=course.id,
+            course_ids=[course.id],
             instructor_h_userid=current_h_userid,
             h_userids=filter_by_h_userids,
         )
