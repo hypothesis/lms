@@ -109,7 +109,7 @@ class UserService:
         instructor_h_userid: str | None = None,
         course_id: str | None = None,
         h_userids: list[str] | None = None,
-        assignment_id: str | None = None,
+        assignment_ids: list[int] | None = None,
     ) -> Select[tuple[User]]:
         """
         Get a query to fetch users.
@@ -151,8 +151,8 @@ class UserService:
                 AssignmentGrouping.assignment_id == AssignmentMembership.assignment_id,
             ).where(AssignmentGrouping.grouping_id == course_id)
 
-        if assignment_id:
-            query = query.where(AssignmentMembership.assignment_id == assignment_id)
+        if assignment_ids:
+            query = query.where(AssignmentMembership.assignment_id.in_(assignment_ids))
 
         # Deduplicate based on the row's h_userid taking the last updated one
         query = query.distinct(User.h_userid).order_by(

@@ -20,8 +20,10 @@ class ListUsersSchema(PaginationParametersMixin):
     course_id = fields.Integer(required=False, validate=validate.Range(min=1))
     """Return users that belong to the course with this ID."""
 
-    assignment_id = fields.Integer(required=False, validate=validate.Range(min=1))
-    """Return users that belong to the assignment with this ID."""
+    assignment_ids = fields.List(
+        fields.Integer(validate=validate.Range(min=1)), data_key="assignment_id"
+    )
+    """Return users that belong to the assignment with these IDs."""
 
 
 class UsersMetricsSchema(PyramidRequestSchema):
@@ -59,7 +61,7 @@ class UserViews:
             if self.request.user
             else None,
             course_id=self.request.parsed_params.get("course_id"),
-            assignment_id=self.request.parsed_params.get("assignment_id"),
+            assignment_ids=self.request.parsed_params.get("assignment_ids"),
         )
         students, pagination = get_page(
             self.request, students_query, [User.display_name, User.id]
@@ -99,7 +101,7 @@ class UserViews:
         users_query = self.user_service.get_users(
             role_scope=RoleScope.COURSE,
             role_type=RoleType.LEARNER,
-            assignment_id=assignment.id,
+            assignment_ids=[assignment.id],
             # Users the current user has access to see
             instructor_h_userid=self.request.user.h_userid
             if self.request.user
