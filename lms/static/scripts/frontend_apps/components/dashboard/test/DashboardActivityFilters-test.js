@@ -35,10 +35,12 @@ describe('DashboardActivityFilters', () => {
   const studentsWithName = [
     {
       lms_id: '1',
+      h_userid: 'acct:1@lms.hypothes.is',
       display_name: 'First student',
     },
     {
       lms_id: '2',
+      h_userid: 'acct:2@lms.hypothes.is',
       display_name: 'Second student',
     },
   ];
@@ -46,6 +48,7 @@ describe('DashboardActivityFilters', () => {
     ...studentsWithName,
     {
       lms_id: '3',
+      h_userid: 'acct:3@lms.hypothes.is',
       display_name: '', // Student with an empty name won't be displayed
     },
   ];
@@ -112,25 +115,25 @@ describe('DashboardActivityFilters', () => {
 
   /**
    @param {Object} [selection]
-   @param {Object[]} [selection.selectedStudents]
-   @param {Object[]} [selection.selectedAssignments]
-   @param {Object[]} [selection.selectedCourses]
+   @param {Object[]} [selection.selectedStudentIds]
+   @param {Object[]} [selection.selectedAssignmentIds]
+   @param {Object[]} [selection.selectedCourseIds]
    */
   function createComponent(selection = {}) {
     const {
-      selectedStudents = [],
-      selectedAssignments = [],
-      selectedCourses = [],
+      selectedStudentIds = [],
+      selectedAssignmentIds = [],
+      selectedCourseIds = [],
     } = selection;
 
     const wrapper = mount(
       <Config.Provider value={fakeConfig}>
         <DashboardActivityFilters
-          selectedCourses={selectedCourses}
+          selectedCourseIds={selectedCourseIds}
           onCoursesChange={onCoursesChange}
-          selectedAssignments={selectedAssignments}
+          selectedAssignmentIds={selectedAssignmentIds}
           onAssignmentsChange={onAssignmentsChange}
-          selectedStudents={selectedStudents}
+          selectedStudentIds={selectedStudentIds}
           onStudentsChange={onStudentsChange}
         />
       </Config.Provider>,
@@ -204,23 +207,26 @@ describe('DashboardActivityFilters', () => {
   [
     {
       id: 'courses-select',
+      selection: courses.map(c => `${c.id}`),
       getExpectedCallback: () => onCoursesChange,
     },
     {
       id: 'assignments-select',
+      selection: assignments.map(a => `${a.id}`),
       getExpectedCallback: () => onAssignmentsChange,
     },
     {
       id: 'students-select',
+      selection: studentsWithName.map(s => s.h_userid),
       getExpectedCallback: () => onStudentsChange,
     },
-  ].forEach(({ id, getExpectedCallback }) => {
+  ].forEach(({ id, selection, getExpectedCallback }) => {
     it('invokes corresponding change callback', () => {
       const wrapper = createComponent();
       const select = getSelect(wrapper, id);
 
-      select.props().onChange();
-      assert.called(getExpectedCallback());
+      select.props().onChange(selection);
+      assert.calledWith(getExpectedCallback(), selection);
     });
   });
 
@@ -228,9 +234,9 @@ describe('DashboardActivityFilters', () => {
     [0, 1].forEach(index => {
       it('shows item name when only one is selected', () => {
         const wrapper = createComponent({
-          selectedCourses: [courses[index]],
-          selectedAssignments: [assignments[index]],
-          selectedStudents: [students[index]],
+          selectedCourseIds: [`${courses[index].id}`],
+          selectedAssignmentIds: [`${assignments[index].id}`],
+          selectedStudentIds: [students[index].h_userid],
         });
 
         assert.equal(
@@ -250,9 +256,9 @@ describe('DashboardActivityFilters', () => {
 
     it('shows amount of selected items when more than one is selected', () => {
       const wrapper = createComponent({
-        selectedCourses: [...courses],
-        selectedAssignments: [...assignments],
-        selectedStudents: [...studentsWithName],
+        selectedCourseIds: [...courses],
+        selectedAssignmentIds: [...assignments],
+        selectedStudentIds: [...studentsWithName],
       });
 
       assert.equal(getSelectContent(wrapper, 'courses-select'), '2 courses');

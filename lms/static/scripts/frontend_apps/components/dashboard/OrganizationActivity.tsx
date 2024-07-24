@@ -1,15 +1,11 @@
 import { Link } from '@hypothesis/frontend-shared';
-import { useMemo, useState } from 'preact/hooks';
+import { useMemo } from 'preact/hooks';
 import { Link as RouterLink, useParams } from 'wouter-preact';
 
-import type {
-  Assignment,
-  Course,
-  CoursesResponse,
-  Student,
-} from '../../api-types';
+import type { CoursesResponse } from '../../api-types';
 import { useConfig } from '../../config';
 import { urlPath, useAPIFetch } from '../../utils/api';
+import { useDashboardFilters } from '../../utils/dashboard/hooks';
 import { useDocumentTitle } from '../../utils/hooks';
 import { replaceURLParams } from '../../utils/url';
 import DashboardActivityFilters from './DashboardActivityFilters';
@@ -37,23 +33,8 @@ export default function OrganizationActivity() {
 
   useDocumentTitle('All courses');
 
-  const [selectedStudents, setSelectedStudents] = useState<Student[]>([]);
-  const [selectedAssignments, setSelectedAssignments] = useState<Assignment[]>(
-    [],
-  );
-  const [selectedCourses, setSelectedCourses] = useState<Course[]>([]);
-  const studentIds = useMemo(
-    () => selectedStudents.map(s => s.h_userid),
-    [selectedStudents],
-  );
-  const assignmentIds = useMemo(
-    () => selectedAssignments.map(a => `${a.id}`),
-    [selectedAssignments],
-  );
-  const courseIds = useMemo(
-    () => selectedCourses.map(c => `${c.id}`),
-    [selectedCourses],
-  );
+  const { filters, updateFilters } = useDashboardFilters();
+  const { courseIds, assignmentIds, studentIds } = filters;
 
   const courses = useAPIFetch<CoursesResponse>(
     replaceURLParams(routes.organization_courses, {
@@ -79,12 +60,12 @@ export default function OrganizationActivity() {
     <div className="flex flex-col gap-y-5">
       <h2 className="text-lg text-brand font-semibold">All courses</h2>
       <DashboardActivityFilters
-        selectedStudents={selectedStudents}
-        onStudentsChange={setSelectedStudents}
-        selectedAssignments={selectedAssignments}
-        onAssignmentsChange={setSelectedAssignments}
-        selectedCourses={selectedCourses}
-        onCoursesChange={setSelectedCourses}
+        selectedStudentIds={studentIds}
+        onStudentsChange={studentIds => updateFilters({ studentIds })}
+        selectedAssignmentIds={assignmentIds}
+        onAssignmentsChange={assignmentIds => updateFilters({ assignmentIds })}
+        selectedCourseIds={courseIds}
+        onCoursesChange={courseIds => updateFilters({ courseIds })}
       />
       <OrderableActivityTable
         loading={courses.isLoading}

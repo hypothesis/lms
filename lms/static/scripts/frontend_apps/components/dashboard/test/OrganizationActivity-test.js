@@ -29,11 +29,14 @@ describe('OrganizationActivity', () => {
       },
     },
   ];
+  let wrappers;
 
   let fakeUseAPIFetch;
   let fakeConfig;
 
   beforeEach(() => {
+    wrappers = [];
+
     fakeUseAPIFetch = sinon.stub().returns({
       isLoading: false,
       data: { courses },
@@ -61,15 +64,19 @@ describe('OrganizationActivity', () => {
   });
 
   afterEach(() => {
+    wrappers.forEach(wrapper => wrapper.unmount());
     $imports.$restore();
   });
 
   function createComponent() {
-    return mount(
+    const wrapper = mount(
       <Config.Provider value={fakeConfig}>
         <OrganizationActivity />
       </Config.Provider>,
     );
+    wrappers.push(wrapper);
+
+    return wrapper;
   }
 
   it('sets loading state in table while data is loading', () => {
@@ -164,27 +171,24 @@ describe('OrganizationActivity', () => {
 
     // Every time the filters callbacks are invoked, the component will
     // re-render and re-fetch metrics with updated query.
-    updateFilter('onStudentsChange', [
-      { h_userid: '123' },
-      { h_userid: '456' },
-    ]);
+    updateFilter('onStudentsChange', ['123', '456']);
     assertCoursesFetched({
       h_userid: ['123', '456'],
       assignment_id: [],
       course_id: [],
     });
 
-    updateFilter('onAssignmentsChange', [{ id: 1 }, { id: 2 }]);
+    updateFilter('onAssignmentsChange', ['1', '2']);
     assertCoursesFetched({
-      h_userid: ['123', '456'],
+      h_userid: [],
       assignment_id: ['1', '2'],
       course_id: [],
     });
 
-    updateFilter('onCoursesChange', [{ id: 3 }, { id: 8 }, { id: 9 }]);
+    updateFilter('onCoursesChange', ['3', '8', '9']);
     assertCoursesFetched({
-      h_userid: ['123', '456'],
-      assignment_id: ['1', '2'],
+      h_userid: [],
+      assignment_id: [],
       course_id: ['3', '8', '9'],
     });
   });
