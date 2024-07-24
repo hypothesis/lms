@@ -105,7 +105,7 @@ describe('CourseActivity', () => {
     const wrapper = createComponent();
     const titleElement = wrapper.find('[data-testid="title"]');
     const tableElement = wrapper.find('OrderableActivityTable');
-    const expectedTitle = 'The title';
+    const expectedTitle = 'Course: The title';
 
     assert.equal(titleElement.text(), expectedTitle);
     assert.equal(tableElement.prop('title'), expectedTitle);

@@ -37,6 +37,7 @@ export default function CourseActivity() {
     }),
   );
 
+  const title = `Course: ${course.data?.title}`;
   const rows: AssignmentsTableRow[] = useMemo(
     () =>
       (assignments.data?.assignments ?? []).map(
@@ -60,12 +61,12 @@ export default function CourseActivity() {
         <h2 className="text-lg text-brand font-semibold" data-testid="title">
           {course.isLoading && 'Loading...'}
           {course.error && 'Could not load course title'}
-          {course.data && course.data.title}
+          {course.data && title}
         </h2>
       </div>
       <OrderableActivityTable
         loading={assignments.isLoading}
-        title={course.data?.title ?? 'Loading...'}
+        title={course.isLoading ? 'Loading...' : title}
         emptyMessage={
           assignments.error
             ? 'Could not load assignments'
