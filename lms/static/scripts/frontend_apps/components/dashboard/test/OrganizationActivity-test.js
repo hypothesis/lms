@@ -154,7 +154,7 @@ describe('OrganizationActivity', () => {
 
   it('allows metrics to be filtered', () => {
     const wrapper = createComponent();
-    const filters = wrapper.find('OrganizationActivityFilters');
+    const filters = wrapper.find('DashboardActivityFilters');
     const updateFilter = (changeCallback, arg) => {
       act(() => filters.prop(changeCallback)(arg));
       wrapper.update();

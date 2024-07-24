@@ -5,7 +5,7 @@ import type { Assignment, Course, Student } from '../../api-types';
 import { useConfig } from '../../config';
 import { useAPIFetch } from '../../utils/api';
 
-export type OrganizationActivityFiltersProps = {
+export type DashboardActivityFiltersProps = {
   selectedCourses: Course[];
   onCoursesChange: (newCourses: Course[]) => void;
   selectedAssignments: Assignment[];
@@ -16,16 +16,16 @@ export type OrganizationActivityFiltersProps = {
 
 /**
  * Renders drop-downs to select courses, assignments and/or students, used to
- * filter organization metrics.
+ * filter dashboard activity metrics.
  */
-export default function OrganizationActivityFilters({
+export default function DashboardActivityFilters({
   selectedCourses,
   onCoursesChange,
   selectedAssignments,
   onAssignmentsChange,
   selectedStudents,
   onStudentsChange,
-}: OrganizationActivityFiltersProps) {
+}: DashboardActivityFiltersProps) {
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
 
