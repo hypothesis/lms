@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 
 // Global counter used to create a unique ids
 let idCounter = 0;
@@ -13,4 +13,13 @@ export function useUniqueId(prefix: string): string {
     return idCounter;
   });
   return `${prefix}${localId}`;
+}
+
+/**
+ * Updates page title with provided one
+ */
+export function usePageTitle(pageTitle: string) {
+  useEffect(() => {
+    document.title = pageTitle;
+  }, [pageTitle]);
 }

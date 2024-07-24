@@ -110,12 +110,12 @@ class DashboardViews:
         self.request.context.js_config.enable_dashboard_mode()
         self._set_lti_user_cookie(self.request.response)
         # Org names are not 100% ready for public consumption, let's hardcode a title for now.
-        return {"title": "Courses - Hypothesis"}
+        return {"title": "All courses"}
 
     def _set_lti_user_cookie(self, response):
         lti_user = self.request.lti_user
         if not lti_user:
-            # An LTIUser might not exists if accessing from the admin pages.
+            # An LTIUser might not exist if accessing from the admin pages.
             return response
         auth_token = (
             BearerTokenSchema(self.request)

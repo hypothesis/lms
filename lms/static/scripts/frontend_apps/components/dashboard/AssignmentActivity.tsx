@@ -4,6 +4,7 @@ import { useParams } from 'wouter-preact';
 import type { AssignmentWithMetrics, StudentsResponse } from '../../api-types';
 import { useConfig } from '../../config';
 import { urlPath, useAPIFetch } from '../../utils/api';
+import { usePageTitle } from '../../utils/hooks';
 import { replaceURLParams } from '../../utils/url';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import FormattedDate from './FormattedDate';
@@ -43,6 +44,8 @@ export default function AssignmentActivity() {
       ),
     [students.data],
   );
+
+  usePageTitle(`${assignment.data?.title ?? ''} - Hypothesis`);
 
   return (
     <div className="flex flex-col gap-y-5">

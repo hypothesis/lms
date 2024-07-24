@@ -10,6 +10,7 @@ import type {
 } from '../../api-types';
 import { useConfig } from '../../config';
 import { urlPath, useAPIFetch } from '../../utils/api';
+import { usePageTitle } from '../../utils/hooks';
 import { replaceURLParams } from '../../utils/url';
 import DashboardActivityFilters from './DashboardActivityFilters';
 import FormattedDate from './FormattedDate';
@@ -33,6 +34,8 @@ export default function OrganizationActivity() {
   const { organizationPublicId } = useParams<{
     organizationPublicId: string;
   }>();
+
+  usePageTitle('All courses - Hypothesis');
 
   const [selectedStudents, setSelectedStudents] = useState<Student[]>([]);
   const [selectedAssignments, setSelectedAssignments] = useState<Assignment[]>(

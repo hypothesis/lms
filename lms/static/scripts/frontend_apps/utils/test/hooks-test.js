@@ -1,8 +1,9 @@
+import { mount } from 'enzyme';
 import { render } from 'preact';
 
-import { useUniqueId } from '../hooks';
+import { useUniqueId, usePageTitle } from '../hooks';
 
-describe('hooks', () => {
+describe('useUniqueId', () => {
   it('generates unique ids each time useUniqueId is called', () => {
     let id1;
     let id2;
@@ -19,5 +20,31 @@ describe('hooks', () => {
     assert.isTrue(id1.startsWith('prefix:'));
     assert.isTrue(id2.startsWith('prefix:'));
     assert.notEqual(id1, id2);
+  });
+});
+
+describe('usePageTitle', () => {
+  let initialPageTitle;
+
+  beforeEach(() => {
+    initialPageTitle = document.title;
+  });
+
+  afterEach(() => {
+    // Reset document title back to its initial state to avoid side effects in
+    // other tests
+    document.title = initialPageTitle;
+  });
+
+  function FakeComponent({ pageTitle }) {
+    usePageTitle(pageTitle);
+    return <div />;
+  }
+
+  ['foo bar', 'something', 'hello world'].forEach(pageTitle => {
+    it('updates page title', () => {
+      mount(<FakeComponent pageTitle={pageTitle} />);
+      assert.equal(document.title, pageTitle);
+    });
   });
 });
