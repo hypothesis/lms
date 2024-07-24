@@ -268,8 +268,8 @@ class JSConfig:
                         course_assignments_metrics=self._to_frontend_template(
                             "api.dashboard.course.assignments.metrics"
                         ),
-                        organization_courses=self._to_frontend_template(
-                            "api.dashboard.organizations.courses"
+                        courses_metrics=self._to_frontend_template(
+                            "api.dashboard.courses.metrics"
                         ),
                         courses=self._to_frontend_template("api.dashboard.courses"),
                         assignments=self._to_frontend_template(

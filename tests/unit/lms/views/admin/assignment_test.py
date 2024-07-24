@@ -29,13 +29,7 @@ class TestAdminAssignmentViews:
             views.show()
 
     def test_assignment_dashboard(
-        self,
-        pyramid_request,
-        assignment_service,
-        views,
-        AuditTrailEvent,
-        assignment,
-        organization,
+        self, pyramid_request, assignment_service, views, AuditTrailEvent, assignment
     ):
         pyramid_request.matchdict["id_"] = sentinel.id
         assignment_service.get_by_id.return_value = assignment
@@ -57,7 +51,7 @@ class TestAdminAssignmentViews:
         pyramid_request.registry.notify.has_call_with(AuditTrailEvent.return_value)
         assert response == Any.instance_of(HTTPFound).with_attrs(
             {
-                "location": f"http://example.com/dashboard/organizations/{organization.public_id}/assignments/{assignment.id}",
+                "location": f"http://example.com/dashboard/assignments/{assignment.id}",
             }
         )
 

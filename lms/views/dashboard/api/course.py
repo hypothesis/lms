@@ -55,7 +55,10 @@ class CourseViews:
         filter_by_h_userids = self.request.parsed_params.get("h_userids")
         filter_by_assignment_ids = self.request.parsed_params.get("assignment_ids")
 
+        organizations = self.dashboard_service.get_request_organizations(self.request)
+
         courses = self.course_service.get_courses(
+            organization_ids=[org.id for org in organizations],
             instructor_h_userid=self.request.user.h_userid
             if self.request.user
             else None,
@@ -73,19 +76,19 @@ class CourseViews:
         }
 
     @view_config(
-        route_name="api.dashboard.organizations.courses",
+        route_name="api.dashboard.courses.metrics",
         request_method="GET",
         renderer="json",
         permission=Permissions.DASHBOARD_VIEW,
         schema=CoursesMetricsSchema,
     )
-    def organization_courses(self) -> APICourses:
+    def courses_metrics(self) -> APICourses:
         filter_by_h_userids = self.request.parsed_params.get("h_userids")
         filter_by_assignment_ids = self.request.parsed_params.get("assignment_ids")
         filter_by_course_ids = self.request.parsed_params.get("course_ids")
-        org = self.dashboard_service.get_request_organization(self.request)
+        organizations = self.dashboard_service.get_request_organizations(self.request)
         courses_query = self.course_service.get_courses(
-            organization=org,
+            organization_ids=[org.id for org in organizations],
             instructor_h_userid=self.request.user.h_userid
             if self.request.user
             else None,

@@ -171,7 +171,7 @@ export type CourseWithMetrics = Course & {
 };
 
 /**
- * Response for `/api/dashboard/organizations/{organization_public_id}` call.
+ * Response for `/api/dashboard/course/metrics` call.
  */
 export type CoursesResponse = {
   courses: CourseWithMetrics[];

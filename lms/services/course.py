@@ -141,21 +141,21 @@ class CourseService:
 
     def get_courses(
         self,
+        organization_ids: list[int],
         instructor_h_userid: str | None = None,
-        organization: Organization | None = None,
         h_userids: list[str] | None = None,
         assignment_ids: list[str] | None = None,
     ) -> Select[tuple[Course]]:
         """Get a list of unique courses.
 
-        :param organization: organization the courses belong to.
+        :param organization_ids: organizations the courses belong to.
         :param instructor_h_userid: return only courses where instructor_h_userid is an instructor.
         :param h_userids: return only courses where these users are members.
         :param assignment_ids: return only the courses these assignments belong to.
         """
         courses_query = (
             self._search_query(
-                organization_ids=[organization.id] if organization else None,
+                organization_ids=organization_ids,
                 h_userids=h_userids,
                 limit=None,
             )

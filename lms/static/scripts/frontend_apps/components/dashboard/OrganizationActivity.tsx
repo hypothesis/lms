@@ -1,13 +1,12 @@
 import { Link } from '@hypothesis/frontend-shared';
 import { useMemo } from 'preact/hooks';
-import { Link as RouterLink, useParams } from 'wouter-preact';
+import { Link as RouterLink } from 'wouter-preact';
 
 import type { CoursesResponse } from '../../api-types';
 import { useConfig } from '../../config';
 import { urlPath, useAPIFetch } from '../../utils/api';
 import { useDashboardFilters } from '../../utils/dashboard/hooks';
 import { useDocumentTitle } from '../../utils/hooks';
-import { replaceURLParams } from '../../utils/url';
 import DashboardActivityFilters from './DashboardActivityFilters';
 import FormattedDate from './FormattedDate';
 import OrderableActivityTable from './OrderableActivityTable';
@@ -27,25 +26,17 @@ const courseURL = (id: number) => urlPath`/courses/${String(id)}`;
 export default function OrganizationActivity() {
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
-  const { organizationPublicId } = useParams<{
-    organizationPublicId: string;
-  }>();
 
   useDocumentTitle('All courses');
 
   const { filters, updateFilters } = useDashboardFilters();
   const { courseIds, assignmentIds, studentIds } = filters;
 
-  const courses = useAPIFetch<CoursesResponse>(
-    replaceURLParams(routes.organization_courses, {
-      organization_public_id: organizationPublicId,
-    }),
-    {
-      h_userid: studentIds,
-      assignment_id: assignmentIds,
-      course_id: courseIds,
-    },
-  );
+  const courses = useAPIFetch<CoursesResponse>(routes.courses_metrics, {
+    h_userid: studentIds,
+    assignment_id: assignmentIds,
+    course_id: courseIds,
+  });
   const rows: CoursesTableRow[] = useMemo(
     () =>
       courses.data?.courses.map(({ id, title, course_metrics }) => ({
