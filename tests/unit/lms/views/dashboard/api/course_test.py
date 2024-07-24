@@ -20,11 +20,17 @@ class TestCourseViews:
     def test_get_courses(self, course_service, pyramid_request, views, get_page):
         courses = factories.Course.create_batch(5)
         get_page.return_value = courses, sentinel.pagination
+        pyramid_request.parsed_params = {
+            "h_userids": sentinel.h_userids,
+            "assignment_ids": sentinel.assignment_ids,
+        }
 
         response = views.courses()
 
         course_service.get_courses.assert_called_once_with(
-            pyramid_request.user.h_userid
+            instructor_h_userid=pyramid_request.user.h_userid,
+            h_userids=sentinel.h_userids,
+            assignment_ids=sentinel.assignment_ids,
         )
         get_page.assert_called_once_with(
             pyramid_request,

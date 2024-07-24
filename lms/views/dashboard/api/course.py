@@ -11,10 +11,13 @@ from lms.views.dashboard.pagination import PaginationParametersMixin, get_page
 
 
 class ListCoursesSchema(PaginationParametersMixin):
-    """Query parameters to fetch a list of courses.
+    """Query parameters to fetch a list of courses."""
 
-    Only the pagination related ones from the mixin.
-    """
+    h_userids = fields.List(fields.Str(), data_key="h_userid")
+    """Return courses for these users only."""
+
+    assignment_ids = fields.List(fields.Integer(), data_key="assignment_id")
+    """Return only the courses to which these assigments belong."""
 
 
 class CoursesMetricsSchema(PyramidRequestSchema):
@@ -49,10 +52,15 @@ class CourseViews:
         schema=ListCoursesSchema,
     )
     def courses(self) -> APICourses:
+        filter_by_h_userids = self.request.parsed_params.get("h_userids")
+        filter_by_assignment_ids = self.request.parsed_params.get("assignment_ids")
+
         courses = self.course_service.get_courses(
             instructor_h_userid=self.request.user.h_userid
             if self.request.user
             else None,
+            h_userids=filter_by_h_userids,
+            assignment_ids=filter_by_assignment_ids,
         )
         courses, pagination = get_page(
             self.request, courses, [Course.lms_name, Course.id]
