@@ -7257,6 +7257,7 @@ __metadata:
     karma-sinon: ^1.0.5
     karma-source-map-support: ^1.4.0
     mocha: ^10.2.0
+    navigation-api-types: ^0.5.1
     normalize.css: ^8.0.1
     postcss: ^8.4.38
     preact: 10.19.6
@@ -7829,6 +7830,13 @@ __metadata:
   version: 1.4.0
   resolution: "natural-compare@npm:1.4.0"
   checksum: 23ad088b08f898fc9b53011d7bb78ec48e79de7627e01ab5518e806033861bef68d5b0cd0e2205c2f36690ac9571ff6bcb05eb777ced2eeda8d4ac5b44592c3d
+  languageName: node
+  linkType: hard
+
+"navigation-api-types@npm:^0.5.1":
+  version: 0.5.1
+  resolution: "navigation-api-types@npm:0.5.1"
+  checksum: 42783a2546e0af948c65f1c4a47effe8257e5155626ae42df8d06ad2b1f3404f7e32816edc09c0e8acefb723ea5a6f6314ab2ae84efc51e0e4f9a8d144cd4208
   languageName: node
   linkType: hard
 
