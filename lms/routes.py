@@ -247,37 +247,30 @@ def includeme(config):  # noqa: PLR0915
 
     config.add_route(
         "dashboard.assignment",
-        "/dashboard/organizations/{public_id}/assignments/{assignment_id}",
+        "/dashboard/assignments/{assignment_id}",
         factory="lms.resources.dashboard.DashboardResource",
     )
     config.add_route(
         "dashboard.course",
-        "/dashboard/organizations/{public_id}/courses/{course_id}",
+        "/dashboard/courses/{course_id}",
         factory="lms.resources.dashboard.DashboardResource",
     )
 
     config.add_route(
-        "dashboard.organization",
-        "/dashboard/organizations/{organization_public_id}",
-        factory="lms.resources.dashboard.DashboardResource",
+        "dashboard", "/dashboard", factory="lms.resources.dashboard.DashboardResource"
     )
 
+    config.add_route("api.dashboard.courses.metrics", "/api/dashboard/courses/metrics")
     config.add_route("api.dashboard.courses", "/api/dashboard/courses")
+    config.add_route("api.dashboard.course", r"/api/dashboard/courses/{course_id}")
 
     config.add_route(
-        "api.dashboard.organizations.courses",
-        "/api/dashboard/organizations/{organization_public_id}/courses",
+        "api.dashboard.assignment", r"/api/dashboard/assignments/{assignment_id}"
     )
-
-    config.add_route(
-        "api.dashboard.assignment", "/api/dashboard/assignments/{assignment_id}"
-    )
-    config.add_route("api.dashboard.course", "/api/dashboard/courses/{course_id}")
-
     config.add_route("api.dashboard.assignments", "/api/dashboard/assignments")
     config.add_route(
         "api.dashboard.course.assignments.metrics",
-        "/api/dashboard/courses/{course_id}/assignments/metrics",
+        r"/api/dashboard/courses/{course_id}/assignments/metrics",
     )
 
     config.add_route("api.dashboard.students", "/api/dashboard/students")

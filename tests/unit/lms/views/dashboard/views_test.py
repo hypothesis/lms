@@ -21,7 +21,7 @@ pytestmark = pytest.mark.usefixtures(
 class TestDashboardViews:
     @freeze_time("2024-04-01 12:00:00")
     def test_assignment_redirect_from_launch(
-        self, views, pyramid_request, BearerTokenSchema, organization
+        self, views, pyramid_request, BearerTokenSchema
     ):
         pyramid_request.matchdict["assignment_id"] = sentinel.id
 
@@ -31,24 +31,16 @@ class TestDashboardViews:
             pyramid_request.lti_user
         )
         assert response == Any.instance_of(HTTPFound).with_attrs(
-            {
-                "location": f"http://example.com/dashboard/organizations/{organization.public_id}/assignments/sentinel.id",
-            }
+            {"location": "http://example.com/dashboard/assignments/sentinel.id"}
         )
         assert (
             response.headers["Set-Cookie"]
-            == f"authorization=TOKEN; Max-Age=86400; Path=/dashboard/organizations/{organization.public_id}; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
+            == "authorization=TOKEN; Max-Age=86400; Path=/dashboard; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
         )
 
     @freeze_time("2024-04-01 12:00:00")
     @pytest.mark.usefixtures("BearerTokenSchema")
-    def test_assignment_show(
-        self,
-        views,
-        pyramid_request,
-        organization,
-        dashboard_service,
-    ):
+    def test_assignment_show(self, views, pyramid_request, dashboard_service):
         context = DashboardResource(pyramid_request)
         context.js_config = create_autospec(JSConfig, spec_set=True, instance=True)
         pyramid_request.context = context
@@ -62,12 +54,12 @@ class TestDashboardViews:
         pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
         assert (
             pyramid_request.response.headers["Set-Cookie"]
-            == f"authorization=TOKEN; Max-Age=86400; Path=/dashboard/organizations/{organization.public_id}; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
+            == "authorization=TOKEN; Max-Age=86400; Path=/dashboard; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
         )
 
     @freeze_time("2024-04-01 12:00:00")
     @pytest.mark.usefixtures("BearerTokenSchema")
-    def test_course_show(self, views, pyramid_request, organization, dashboard_service):
+    def test_course_show(self, views, pyramid_request, dashboard_service):
         context = DashboardResource(pyramid_request)
         context.js_config = create_autospec(JSConfig, spec_set=True, instance=True)
         pyramid_request.context = context
@@ -79,27 +71,25 @@ class TestDashboardViews:
         pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
         assert (
             pyramid_request.response.headers["Set-Cookie"]
-            == f"authorization=TOKEN; Max-Age=86400; Path=/dashboard/organizations/{organization.public_id}; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
+            == "authorization=TOKEN; Max-Age=86400; Path=/dashboard; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
         )
 
     @freeze_time("2024-04-01 12:00:00")
     @pytest.mark.usefixtures("BearerTokenSchema")
-    def test_organization_show(
-        self, views, pyramid_request, organization, dashboard_service
-    ):
+    def test_organization_show(self, views, pyramid_request, dashboard_service):
         context = DashboardResource(pyramid_request)
         context.js_config = create_autospec(JSConfig, spec_set=True, instance=True)
         pyramid_request.context = context
 
-        views.organization_show()
+        views.courses()
 
-        dashboard_service.get_request_organization.assert_called_once_with(
+        dashboard_service.get_request_organizations.assert_called_once_with(
             pyramid_request
         )
         pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
         assert (
             pyramid_request.response.headers["Set-Cookie"]
-            == f"authorization=TOKEN; Max-Age=86400; Path=/dashboard/organizations/{organization.public_id}; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
+            == "authorization=TOKEN; Max-Age=86400; Path=/dashboard; expires=Tue, 02-Apr-2024 12:00:00 GMT; secure; HttpOnly"
         )
 
     def test_assignment_show_with_no_lti_user(

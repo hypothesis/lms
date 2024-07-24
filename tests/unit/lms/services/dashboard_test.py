@@ -4,6 +4,7 @@ import pytest
 from pyramid.httpexceptions import HTTPNotFound, HTTPUnauthorized
 
 from lms.models.dashboard_admin import DashboardAdmin
+from lms.security import Identity
 from lms.services.dashboard import DashboardService, factory
 from tests import factories
 
@@ -88,41 +89,39 @@ class TestDashboardService:
 
         assert svc.get_request_course(pyramid_request)
 
-    def test_get_request_organization_404(
-        self, pyramid_request, organization_service, svc
-    ):
-        pyramid_request.matchdict["organization_public_id"] = sentinel.id
-        organization_service.get_by_public_id.return_value = None
-
-        with pytest.raises(HTTPNotFound):
-            svc.get_request_organization(pyramid_request)
-
-    def test_get_request_organization_403(
+    def test_get_request_organizations_403(
         self,
         pyramid_request,
         organization_service,
         svc,
     ):
-        pyramid_request.matchdict["organization_public_id"] = sentinel.id
         organization_service.is_member.return_value = False
 
         with pytest.raises(HTTPUnauthorized):
-            svc.get_request_organization(pyramid_request)
+            svc.get_request_organizations(pyramid_request)
 
-    def test_get_request_organization_for_staff(
-        self, pyramid_request, organization_service, pyramid_config, svc
+    def test_get_request_organizations_for_staff(
+        self, pyramid_request, pyramid_config, svc, db_session
     ):
-        pyramid_config.testing_securitypolicy(permissive=True)
-        pyramid_request.matchdict["organization_public_id"] = sentinel.id
-        organization_service.is_member.return_value = False
+        org = factories.Organization()
+        svc.add_dashboard_admin(org, "test@example.com", "creator")
+        db_session.flush()
+        pyramid_request.lti_user = None
+        pyramid_config.testing_securitypolicy(
+            permissive=False,
+            identity=Identity(userid="test@example.com", permissions=[]),
+        )
+        assert svc.get_request_organizations(pyramid_request) == [org]
 
-        assert svc.get_request_organization(pyramid_request)
-
-    def test_get_request_organization(self, pyramid_request, organization_service, svc):
-        pyramid_request.matchdict["organization_public_id"] = sentinel.id
+    def test_get_request_organizations(
+        self, pyramid_request, organization_service, svc, lti_user
+    ):
+        pyramid_request.lti_user = lti_user
         organization_service.is_member.return_value = True
 
-        assert svc.get_request_organization(pyramid_request)
+        assert svc.get_request_organizations(pyramid_request) == [
+            pyramid_request.lti_user.application_instance.organization
+        ]
 
     def test_add_dashboard_admin(self, svc, db_session):
         admin = svc.add_dashboard_admin(

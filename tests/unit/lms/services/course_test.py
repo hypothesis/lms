@@ -344,10 +344,8 @@ class TestCourseService:
         assert svc.is_member(course, user.h_userid)
         assert not svc.is_member(course, other_user.h_userid)
 
-    def test_get_courses_deduplicates(self, db_session, svc):
-        org = factories.Organization()
-
-        ai = factories.ApplicationInstance(organization=org)
+    def test_get_courses_deduplicates(self, db_session, svc, application_instance):
+        org = application_instance.organization
         other_ai = factories.ApplicationInstance(organization=org)
 
         older_course = factories.Course(
@@ -357,7 +355,7 @@ class TestCourseService:
         )
         # Most recent group, same authority_provided_id, more recent update date
         course = factories.Course(
-            application_instance=ai,
+            application_instance=application_instance,
             updated=date(2022, 1, 1),
             authority_provided_id="COURSE",
         )
@@ -367,12 +365,14 @@ class TestCourseService:
 
         # But organization deduplicate, We only get the most recent course
         assert db_session.scalars(
-            svc.get_courses(organization=org, instructor_h_userid=None)
+            svc.get_courses(organization_ids=[org.id], instructor_h_userid=None)
         ).all() == [course]
 
-    def test_get_courses_by_instructor_h_userid(self, svc, db_session):
+    def test_get_courses_by_instructor_h_userid(
+        self, svc, db_session, application_instance
+    ):
         factories.User()  # User not in course
-        course = factories.Course()
+        course = factories.Course(application_instance=application_instance)
         assignment = factories.Assignment()
         user = factories.User()
         lti_role = factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR)
@@ -388,11 +388,14 @@ class TestCourseService:
         db_session.flush()
 
         assert db_session.scalars(
-            svc.get_courses(instructor_h_userid=user.h_userid)
+            svc.get_courses(
+                organization_ids=[application_instance.organization.id],
+                instructor_h_userid=user.h_userid,
+            )
         ).all() == [course]
 
-    def test_get_courses_by_assignment_ids(self, svc, db_session):
-        course = factories.Course()
+    def test_get_courses_by_assignment_ids(self, svc, db_session, application_instance):
+        course = factories.Course(application_instance=application_instance)
         assignment = factories.Assignment()
         user = factories.User()
         factories.AssignmentMembership.create(
@@ -403,7 +406,10 @@ class TestCourseService:
         db_session.flush()
 
         assert db_session.scalars(
-            svc.get_courses(assignment_ids=[assignment.id])
+            svc.get_courses(
+                organization_ids=[application_instance.organization.id],
+                assignment_ids=[assignment.id],
+            )
         ).all() == [course]
 
     @pytest.fixture

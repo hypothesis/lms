@@ -22,7 +22,7 @@ from lms.validation.authentication import BearerTokenSchema
     renderer="lms:templates/dashboard/forbidden.html.jinja2",
 )
 @forbidden_view_config(
-    route_name="dashboard.organization",
+    route_name="dashboard",
     request_method="GET",
     renderer="lms:templates/dashboard/forbidden.html.jinja2",
 )
@@ -54,9 +54,7 @@ class DashboardViews:
         assignment_id = self.request.matchdict["assignment_id"]
         response = HTTPFound(
             location=self.request.route_url(
-                "dashboard.assignment",
-                public_id=self.request.lti_user.application_instance.organization.public_id,
-                assignment_id=assignment_id,
+                "dashboard.assignment", assignment_id=assignment_id
             ),
         )
         self._set_lti_user_cookie(response)
@@ -95,18 +93,18 @@ class DashboardViews:
         return {"title": course.lms_name}
 
     @view_config(
-        route_name="dashboard.organization",
+        route_name="dashboard",
         permission=Permissions.DASHBOARD_VIEW,
         request_method="GET",
         renderer="lms:templates/dashboard/index.html.jinja2",
     )
-    def organization_show(self):
+    def courses(self):
         """Start the dashboard miniapp in the frontend scoped to an organization.
 
         Authenticated via the LTIUser present in a cookie making this endpoint accessible directly in the browser.
         """
         # Just get the org for the side effect of checking permissions.
-        _ = self.dashboard_service.get_request_organization(self.request)
+        _ = self.dashboard_service.get_request_organizations(self.request)
         self.request.context.js_config.enable_dashboard_mode()
         self._set_lti_user_cookie(self.request.response)
         # Org names are not 100% ready for public consumption, let's hardcode a title for now.
@@ -128,8 +126,8 @@ class DashboardViews:
             value=auth_token,
             secure=not self.request.registry.settings["dev"],
             httponly=True,
-            # Scope the cookie to all the org endpoints
-            path=f"/dashboard/organizations/{lti_user.application_instance.organization.public_id}",
+            # Scope the cookie to all dashboard views
+            path="/dashboard",
             max_age=60 * 60 * 24,  # 24 hours, matches the lifetime of the auth_token
         )
         return response

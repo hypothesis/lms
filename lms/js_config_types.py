@@ -83,7 +83,7 @@ class DashboardRoutes(TypedDict):
 
     course_assignments_metrics: str
 
-    organization_courses: str
+    courses_metrics: str
 
     courses: str
     """Paginated endpoint to fetch courses"""
