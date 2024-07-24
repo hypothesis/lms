@@ -107,7 +107,7 @@ class UserService:
         role_scope: RoleScope,
         role_type: RoleType,
         instructor_h_userid: str | None = None,
-        course_id: str | None = None,
+        course_ids: list[int] | None = None,
         h_userids: list[str] | None = None,
         assignment_ids: list[int] | None = None,
     ) -> Select[tuple[User]]:
@@ -118,8 +118,8 @@ class UserService:
         :param role_type: return only users with this LTI role type.
         :param instructor_h_userid: return only users that belongs to courses/assignments where the user instructor_h_userid is an instructor.
         :param h_userids: return only users with a h_userid in this list.
-        :param course_id: return only users that belong to course_id.
-        :param assignment_id: return only users that belong to assignment_id.
+        :param course_ids: return only users that belong to these courses.
+        :param assignment_ids: return only users that belong these assignments.
         """
         query = (
             select(User.id)
@@ -145,11 +145,11 @@ class UserService:
         if h_userids:
             query = query.where(User.h_userid.in_(h_userids))
 
-        if course_id:
+        if course_ids:
             query = query.join(
                 AssignmentGrouping,
                 AssignmentGrouping.assignment_id == AssignmentMembership.assignment_id,
-            ).where(AssignmentGrouping.grouping_id == course_id)
+            ).where(AssignmentGrouping.grouping_id.in_(course_ids))
 
         if assignment_ids:
             query = query.where(AssignmentMembership.assignment_id.in_(assignment_ids))

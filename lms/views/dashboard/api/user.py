@@ -17,8 +17,10 @@ LOG = logging.getLogger(__name__)
 class ListUsersSchema(PaginationParametersMixin):
     """Query parameters to fetch a list of users."""
 
-    course_id = fields.Integer(required=False, validate=validate.Range(min=1))
-    """Return users that belong to the course with this ID."""
+    course_ids = fields.List(
+        fields.Integer(validate=validate.Range(min=1)), data_key="course_id"
+    )
+    """Return users that belong to these course IDs."""
 
     assignment_ids = fields.List(
         fields.Integer(validate=validate.Range(min=1)), data_key="assignment_id"
@@ -60,7 +62,7 @@ class UserViews:
             instructor_h_userid=self.request.user.h_userid
             if self.request.user
             else None,
-            course_id=self.request.parsed_params.get("course_id"),
+            course_ids=self.request.parsed_params.get("course_ids"),
             assignment_ids=self.request.parsed_params.get("assignment_ids"),
         )
         students, pagination = get_page(

@@ -125,7 +125,9 @@ class TestUserService:
         db_session.flush()
 
         query = service.get_users(
-            role_scope=RoleScope.COURSE, role_type=RoleType.LEARNER, course_id=course.id
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            course_ids=[course.id],
         )
 
         assert db_session.scalars(query).all() == [student_in_assigment]
