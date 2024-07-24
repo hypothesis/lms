@@ -11,9 +11,9 @@ import type {
 import { useConfig } from '../../config';
 import { urlPath, useAPIFetch } from '../../utils/api';
 import { replaceURLParams } from '../../utils/url';
+import DashboardActivityFilters from './DashboardActivityFilters';
 import FormattedDate from './FormattedDate';
 import OrderableActivityTable from './OrderableActivityTable';
-import OrganizationActivityFilters from './OrganizationActivityFilters';
 
 type CoursesTableRow = {
   id: number;
@@ -75,7 +75,7 @@ export default function OrganizationActivity() {
   return (
     <div className="flex flex-col gap-y-5">
       <h2 className="text-lg text-brand font-semibold">All courses</h2>
-      <OrganizationActivityFilters
+      <DashboardActivityFilters
         selectedStudents={selectedStudents}
         onStudentsChange={setSelectedStudents}
         selectedAssignments={selectedAssignments}

@@ -7,11 +7,11 @@ import { mount } from 'enzyme';
 import sinon from 'sinon';
 
 import { Config } from '../../../config';
-import OrganizationActivityFilters, {
+import DashboardActivityFilters, {
   $imports,
-} from '../OrganizationActivityFilters';
+} from '../DashboardActivityFilters';
 
-describe('OrganizationActivityFilters', () => {
+describe('DashboardActivityFilters', () => {
   const courses = [
     {
       id: 1,
@@ -125,7 +125,7 @@ describe('OrganizationActivityFilters', () => {
 
     const wrapper = mount(
       <Config.Provider value={fakeConfig}>
-        <OrganizationActivityFilters
+        <DashboardActivityFilters
           selectedCourses={selectedCourses}
           onCoursesChange={onCoursesChange}
           selectedAssignments={selectedAssignments}
