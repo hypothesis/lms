@@ -4,7 +4,6 @@ import pytest
 from pyramid.httpexceptions import HTTPNotFound, HTTPUnauthorized
 
 from lms.models.dashboard_admin import DashboardAdmin
-from lms.security import Identity
 from lms.services.dashboard import DashboardService, factory
 from tests import factories
 
@@ -89,40 +88,6 @@ class TestDashboardService:
 
         assert svc.get_request_course(pyramid_request)
 
-    def test_get_request_organizations_403(
-        self,
-        pyramid_request,
-        organization_service,
-        svc,
-    ):
-        organization_service.is_member.return_value = False
-
-        with pytest.raises(HTTPUnauthorized):
-            svc.get_request_organizations(pyramid_request)
-
-    def test_get_request_organizations_for_staff(
-        self, pyramid_request, pyramid_config, svc, db_session
-    ):
-        org = factories.Organization()
-        svc.add_dashboard_admin(org, "test@example.com", "creator")
-        db_session.flush()
-        pyramid_request.lti_user = None
-        pyramid_config.testing_securitypolicy(
-            permissive=False,
-            identity=Identity(userid="test@example.com", permissions=[]),
-        )
-        assert svc.get_request_organizations(pyramid_request) == [org]
-
-    def test_get_request_organizations(
-        self, pyramid_request, organization_service, svc, lti_user
-    ):
-        pyramid_request.lti_user = lti_user
-        organization_service.is_member.return_value = True
-
-        assert svc.get_request_organizations(pyramid_request) == [
-            pyramid_request.lti_user.application_instance.organization
-        ]
-
     def test_add_dashboard_admin(self, svc, db_session):
         admin = svc.add_dashboard_admin(
             factories.Organization(), "testing@example.com", "creator"
@@ -130,15 +95,23 @@ class TestDashboardService:
 
         assert db_session.query(DashboardAdmin).one() == admin
 
-    def test_delete_dashboard_admin(self, svc, db_session):
-        admin = svc.add_dashboard_admin(
-            factories.Organization(), "testing@example.com", "creator"
+    def test_delete_dashboard_admin(self, svc, db_session, organization):
+        admin = factories.DashboardAdmin(
+            organization=organization, email="testing@example.com", created_by="creator"
         )
         db_session.flush()
 
         svc.delete_dashboard_admin(admin.id)
 
         assert not db_session.query(DashboardAdmin).filter_by(id=admin.id).first()
+
+    def test_get_organizations_by_admin_email(self, svc, db_session, organization):
+        admin = factories.DashboardAdmin(
+            organization=organization, email="testing@example.com", created_by="creator"
+        )
+        db_session.flush()
+
+        assert svc.get_organizations_by_admin_email(admin.email) == [organization]
 
     @pytest.fixture()
     def svc(self, assignment_service, course_service, organization_service, db_session):

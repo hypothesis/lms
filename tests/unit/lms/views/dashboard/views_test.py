@@ -76,16 +76,13 @@ class TestDashboardViews:
 
     @freeze_time("2024-04-01 12:00:00")
     @pytest.mark.usefixtures("BearerTokenSchema")
-    def test_organization_show(self, views, pyramid_request, dashboard_service):
+    def test_organization_show(self, views, pyramid_request):
         context = DashboardResource(pyramid_request)
         context.js_config = create_autospec(JSConfig, spec_set=True, instance=True)
         pyramid_request.context = context
 
         views.courses()
 
-        dashboard_service.get_request_organizations.assert_called_once_with(
-            pyramid_request
-        )
         pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
         assert (
             pyramid_request.response.headers["Set-Cookie"]

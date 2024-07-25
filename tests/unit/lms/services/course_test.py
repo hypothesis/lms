@@ -344,9 +344,10 @@ class TestCourseService:
         assert svc.is_member(course, user.h_userid)
         assert not svc.is_member(course, other_user.h_userid)
 
-    def test_get_courses_deduplicates(self, db_session, svc, application_instance):
-        org = application_instance.organization
-        other_ai = factories.ApplicationInstance(organization=org)
+    def test_get_courses_deduplicates(
+        self, db_session, svc, organization, application_instance
+    ):
+        other_ai = factories.ApplicationInstance(organization=organization)
 
         older_course = factories.Course(
             application_instance=other_ai,
@@ -361,11 +362,16 @@ class TestCourseService:
         )
         db_session.flush()
         # Check that effectively there are two courses in the organization
-        assert set(svc.search(organization_ids=[org.id])) == {course, older_course}
+        assert set(svc.search(organization_ids=[organization.id])) == {
+            course,
+            older_course,
+        }
 
         # But organization deduplicate, We only get the most recent course
         assert db_session.scalars(
-            svc.get_courses(organization_ids=[org.id], instructor_h_userid=None)
+            svc.get_courses(
+                admin_organization_ids=[organization.id], instructor_h_userid=None
+            )
         ).all() == [course]
 
     def test_get_courses_by_instructor_h_userid(
@@ -388,13 +394,12 @@ class TestCourseService:
         db_session.flush()
 
         assert db_session.scalars(
-            svc.get_courses(
-                organization_ids=[application_instance.organization.id],
-                instructor_h_userid=user.h_userid,
-            )
+            svc.get_courses(instructor_h_userid=user.h_userid)
         ).all() == [course]
 
-    def test_get_courses_by_assignment_ids(self, svc, db_session, application_instance):
+    def test_get_courses_by_assignment_ids(
+        self, svc, db_session, application_instance, organization
+    ):
         course = factories.Course(application_instance=application_instance)
         assignment = factories.Assignment()
         user = factories.User()
@@ -407,7 +412,7 @@ class TestCourseService:
 
         assert db_session.scalars(
             svc.get_courses(
-                organization_ids=[application_instance.organization.id],
+                admin_organization_ids=[organization.id],
                 assignment_ids=[assignment.id],
             )
         ).all() == [course]
