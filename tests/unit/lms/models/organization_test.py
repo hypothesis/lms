@@ -19,7 +19,10 @@ class TestOrganization:
     ):
         db_session.flush()
 
-        assert organization.application_instances == application_instances
+        by_id = lambda x: x.id  # noqa: E731
+        assert sorted(organization.application_instances, key=by_id) == sorted(
+            application_instances, key=by_id
+        )
         for application_instance in application_instances:
             assert application_instance.organization == organization
 

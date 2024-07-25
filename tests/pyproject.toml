@@ -73,6 +73,7 @@ disable = [
     # Ported to ruff
     "unused-argument",
     "protected-access",
+    "unnecessary-lambda-assignment",
 ]
 
 # Just disable PyLint's name style checking for the tests, because we
