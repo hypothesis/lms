@@ -2,8 +2,8 @@ import { babel } from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
-import virtual from '@rollup/plugin-virtual';
 import terser from '@rollup/plugin-terser';
+import virtual from '@rollup/plugin-virtual';
 
 const isProd = process.env.NODE_ENV === 'production';
 const prodPlugins = [];
@@ -14,7 +14,7 @@ if (isProd) {
   prodPlugins.push(
     virtual({
       'preact/debug': '',
-    })
+    }),
   );
 }
 
@@ -38,7 +38,7 @@ function bundleConfig(name, entryFile) {
       replace({
         preventAssignment: true,
         values: {
-          'process.env.NODE_ENV': process.env.NODE_ENV,
+          'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
         },
       }),
       babel({
