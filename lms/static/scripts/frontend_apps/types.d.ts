@@ -1,3 +1,5 @@
+import 'navigation-api-types';
+
 export {};
 
 declare global {
