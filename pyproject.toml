@@ -105,6 +105,7 @@ disable = [
     "too-many-statements",
     "protected-access",
     "singleton-comparison",
+    "unnecessary-lambda-assignment",
 
     # Not supported by ruff
     "too-many-ancestors",
