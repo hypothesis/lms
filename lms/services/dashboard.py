@@ -48,33 +48,8 @@ class DashboardService:
 
         return course
 
-    def get_request_organizations(self, request) -> list[Organization]:
-        """Get the relevant organizations for the current requests."""
-        organizations = []
-
-        # If we have an user, include the organization it belongs to
-        if request.lti_user:
-            lti_user_organization = request.lti_user.application_instance.organization
-
-            if not self._organization_service.is_member(
-                lti_user_organization, request.user
-            ):
-                raise HTTPUnauthorized()
-
-            organizations.append(lti_user_organization)
-
-        # Include any other organizations we are an admin in
-        admin_organizations = self.get_organizations_by_admin_email(
-            request.lti_user.email if request.lti_user else request.identity.userid
-        )
-        organizations.extend(admin_organizations)
-
-        if not organizations:
-            raise HTTPUnauthorized()
-
-        return organizations
-
     def get_organizations_by_admin_email(self, email: str) -> list[Organization]:
+        """Get a list of organizations where the user with email `email` is an admin in."""
         return self._db.scalars(
             select(Organization)
             .join(DashboardAdmin)

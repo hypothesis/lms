@@ -27,12 +27,12 @@ class TestCourseViews:
             "h_userids": sentinel.h_userids,
             "assignment_ids": sentinel.assignment_ids,
         }
-        dashboard_service.get_request_organizations.return_value = [org]
+        dashboard_service.get_organizations_by_admin_email.return_value = [org]
 
         response = views.courses()
 
         course_service.get_courses.assert_called_once_with(
-            organization_ids=[org.id],
+            admin_organization_ids=[org.id],
             instructor_h_userid=pyramid_request.user.h_userid,
             h_userids=sentinel.h_userids,
             assignment_ids=sentinel.assignment_ids,
@@ -58,7 +58,6 @@ class TestCourseViews:
     ):
         org = factories.Organization()
         courses = factories.Course.create_batch(5)
-        dashboard_service.get_request_organizations.return_value = [org]
         course_service.get_courses.return_value = select(Course).order_by(Course.id)
         pyramid_request.matchdict["organization_public_id"] = sentinel.public_id
         pyramid_request.parsed_params = {
@@ -66,14 +65,12 @@ class TestCourseViews:
             "assignment_ids": sentinel.assignment_ids,
         }
         db_session.flush()
+        dashboard_service.get_organizations_by_admin_email.return_value = [org]
 
         response = views.courses_metrics()
 
-        dashboard_service.get_request_organizations.assert_called_once_with(
-            pyramid_request
-        )
         course_service.get_courses.assert_called_once_with(
-            organization_ids=[org.id],
+            admin_organization_ids=[org.id],
             instructor_h_userid=pyramid_request.user.h_userid,
             h_userids=sentinel.h_userids,
             assignment_ids=sentinel.assignment_ids,
@@ -107,19 +104,16 @@ class TestCourseViews:
     ):
         org = factories.Organization()
         courses = factories.Course.create_batch(5)
-        dashboard_service.get_request_organizations.return_value = [org]
         course_service.get_courses.return_value = select(Course).order_by(Course.id)
         pyramid_request.matchdict["organization_public_id"] = sentinel.public_id
+        dashboard_service.get_organizations_by_admin_email.return_value = [org]
         db_session.flush()
         pyramid_request.parsed_params = {"course_ids": [courses[0].id]}
 
         response = views.courses_metrics()
 
-        dashboard_service.get_request_organizations.assert_called_once_with(
-            pyramid_request
-        )
         course_service.get_courses.assert_called_once_with(
-            organization_ids=[org.id],
+            admin_organization_ids=[org.id],
             instructor_h_userid=pyramid_request.user.h_userid,
             h_userids=None,
             assignment_ids=None,

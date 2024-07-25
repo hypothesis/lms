@@ -152,7 +152,7 @@ class SecurityPolicy:
             # LTUser serialized in a from for non deep-linked assignment configuration
             return FormBearerTokenLTIUserPolicy()
 
-        if path.startswith("/dashboard/organizations/"):
+        if path.startswith("/dashboard"):
             return CookiesBearerTokenLTIUserPolicy()
 
         if path in {"/email/preferences", "/email/unsubscribe"}:
