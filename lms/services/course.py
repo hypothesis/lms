@@ -1,7 +1,8 @@
 import json
 from copy import deepcopy
+from typing import cast
 
-from sqlalchemy import Select, Text, column, func, select
+from sqlalchemy import BinaryExpression, Select, Text, column, false, func, or_, select
 
 from lms.db import full_text_match
 from lms.models import (
@@ -141,48 +142,56 @@ class CourseService:
 
     def get_courses(
         self,
-        organization_ids: list[int],
         instructor_h_userid: str | None = None,
+        admin_organization_ids: list[int] | None = None,
         h_userids: list[str] | None = None,
         assignment_ids: list[str] | None = None,
     ) -> Select[tuple[Course]]:
         """Get a list of unique courses.
 
-        :param organization_ids: organizations the courses belong to.
+        :param admin_organization_ids: organizations where the current user is an admin.
         :param instructor_h_userid: return only courses where instructor_h_userid is an instructor.
         :param h_userids: return only courses where these users are members.
         :param assignment_ids: return only the courses these assignments belong to.
         """
         courses_query = (
-            self._search_query(
-                organization_ids=organization_ids,
-                h_userids=h_userids,
-                limit=None,
-            )
+            self._search_query(h_userids=h_userids, limit=None)
             # Deduplicate courses by authority_provided_id, take the last updated one
             .distinct(Course.authority_provided_id)
             .order_by(Course.authority_provided_id, Course.updated.desc())
             # Only select the ID of the deduplicated courses
         ).with_entities(Course.id)
 
+        # Let's crate no op clauses by default to avoid having to check the presence of these filters
+        instructor_h_userid_clause = cast(BinaryExpression, false())
+        admin_organization_ids_clause = cast(BinaryExpression, false())
         if instructor_h_userid:
-            courses_query = courses_query.where(
-                Course.id.in_(
-                    select(AssignmentGrouping.grouping_id)
-                    .join(
-                        AssignmentMembership,
-                        AssignmentMembership.assignment_id
-                        == AssignmentGrouping.assignment_id,
-                    )
-                    .join(User)
-                    .join(LTIRole)
-                    .where(
-                        User.h_userid == instructor_h_userid,
-                        LTIRole.scope == RoleScope.COURSE,
-                        LTIRole.type == RoleType.INSTRUCTOR,
-                    )
+            instructor_h_userid_clause = Course.id.in_(
+                select(AssignmentGrouping.grouping_id)
+                .join(
+                    AssignmentMembership,
+                    AssignmentMembership.assignment_id
+                    == AssignmentGrouping.assignment_id,
+                )
+                .join(User)
+                .join(LTIRole)
+                .where(
+                    User.h_userid == instructor_h_userid,
+                    LTIRole.scope == RoleScope.COURSE,
+                    LTIRole.type == RoleType.INSTRUCTOR,
                 )
             )
+        if admin_organization_ids:
+            admin_organization_ids_clause = Course.application_instance_id.in_(
+                select(ApplicationInstance.id)
+                .join(Organization)
+                .where(Organization.id.in_(admin_organization_ids))
+            )
+        # instructor_h_userid and admin_organization_ids are about access rather than filtering.
+        # we apply them both as an or to fetch courses where the users is either an instructor or an admin
+        courses_query = courses_query.where(
+            or_(instructor_h_userid_clause, admin_organization_ids_clause)
+        )
 
         if assignment_ids:
             courses_query = courses_query.where(

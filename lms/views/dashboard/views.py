@@ -103,8 +103,6 @@ class DashboardViews:
 
         Authenticated via the LTIUser present in a cookie making this endpoint accessible directly in the browser.
         """
-        # Just get the org for the side effect of checking permissions.
-        _ = self.dashboard_service.get_request_organizations(self.request)
         self.request.context.js_config.enable_dashboard_mode()
         self._set_lti_user_cookie(self.request.response)
         # Org names are not 100% ready for public consumption, let's hardcode a title for now.
