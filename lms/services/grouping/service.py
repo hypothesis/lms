@@ -70,7 +70,7 @@ class GroupingService:
                 "type": type_,
                 # Things the caller provides
                 "lms_id": grouping["lms_id"],
-                "lms_name": grouping["lms_name"],
+                "lms_name": grouping["lms_name"].strip(),
                 "extra": grouping.get("extra"),
                 "settings": grouping.get("settings"),
             }
@@ -229,7 +229,7 @@ class GroupingService:
             groupings = [
                 {
                     "lms_id": grouping["id"],
-                    "lms_name": grouping["name"],
+                    "lms_name": grouping["name"].strip(),
                     # This product specific stuff should really be removed
                     "extra": {
                         "group_set_id": grouping.get("group_set_id")  # Standard format
