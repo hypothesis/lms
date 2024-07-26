@@ -17,6 +17,14 @@ export type DashboardActivityFiltersProps = {
   selectedStudentIds: string[];
   onStudentsChange: (newStudentIds: string[]) => void;
   onClearSelection?: () => void;
+
+  /**
+   * Consumers can use this to indicate that there are filters selected.
+   * If this is not provided, it will be computed based on the presence of
+   * items in either one of `selectedCourseIds`, `selectedAssignmentIds` or
+   * `selectedStudentIds`.
+   */
+  hasSelection?: boolean;
 };
 
 /**
@@ -31,11 +39,13 @@ export default function DashboardActivityFilters({
   selectedStudentIds,
   onStudentsChange,
   onClearSelection,
+  hasSelection,
 }: DashboardActivityFiltersProps) {
-  const hasSelection =
-    selectedStudentIds.length > 0 ||
-    selectedAssignmentIds.length > 0 ||
-    selectedCourseIds.length > 0;
+  const hasFiltersSelected =
+    hasSelection ??
+    (selectedStudentIds.length > 0 ||
+      selectedAssignmentIds.length > 0 ||
+      selectedCourseIds.length > 0);
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
 
@@ -149,7 +159,7 @@ export default function DashboardActivityFilters({
           </MultiSelect.Option>
         ))}
       </MultiSelect>
-      {hasSelection && onClearSelection && (
+      {hasFiltersSelected && onClearSelection && (
         <IconButton
           title="Clear filters"
           icon={CancelIcon}
