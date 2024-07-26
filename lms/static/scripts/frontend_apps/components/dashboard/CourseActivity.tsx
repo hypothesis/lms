@@ -75,6 +75,10 @@ export default function CourseActivity() {
   const title = course.data?.title ?? 'Untitled course';
   useDocumentTitle(title);
 
+  const { filters, updateFilters } = useDashboardFilters();
+  const { assignmentIds, studentIds } = filters;
+  const search = useSearch();
+
   return (
     <div className="flex flex-col gap-y-5">
       <div>
