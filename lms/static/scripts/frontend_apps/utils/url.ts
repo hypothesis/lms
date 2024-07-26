@@ -47,3 +47,43 @@ export function recordToSearchParams(
 
   return queryParams;
 }
+
+/**
+ * Converts a record into a query string.
+ * The result is prefixed with a question mark (`?`) if it's not empty.
+ *
+ * Examples:
+ *    {} -> ''
+ *    { foo: [] } -> ''
+ *    { foo: 'bar' } -> '?foo=bar'
+ *    { foo: 'bar', something: ['hello', 'world'] } -> '?foo=bar&something=hello&something=world'
+ */
+export function recordToQueryString(
+  params: Record<string, string | string[]>,
+): string {
+  const queryString = recordToSearchParams(params).toString();
+  return queryString.length > 0 ? `?${queryString}` : '';
+}
+
+/**
+ * Converts provided query string into a record.
+ * Parameters that appear more than once will be converted to an array.
+ */
+export function queryStringToRecord(
+  queryString: string,
+): Record<string, string | string[]> {
+  const queryParams = new URLSearchParams(queryString);
+  const params: Record<string, string | string[]> = {};
+
+  queryParams.forEach((value, name) => {
+    if (!params[name]) {
+      params[name] = value;
+    } else if (Array.isArray(params[name])) {
+      (params[name] as string[]).push(value);
+    } else {
+      params[name] = [params[name] as string, value];
+    }
+  });
+
+  return params;
+}

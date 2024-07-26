@@ -2,7 +2,7 @@ import { useConfig } from '../config';
 import { APIError } from '../errors';
 import { useFetch } from './fetch';
 import type { FetchResult, Fetcher } from './fetch';
-import { recordToSearchParams } from './url';
+import { recordToQueryString } from './url';
 
 /**
  * Parameters for an API call that will refresh an expired access token.
@@ -111,9 +111,7 @@ export async function apiCall<Result = unknown>(
     headers['Content-Type'] = 'application/json; charset=UTF-8';
   }
 
-  const queryString = recordToSearchParams(params ?? {}).toString();
-  const query = queryString.length > 0 ? `?${queryString}` : '';
-
+  const query = recordToQueryString(params ?? {});
   const defaultMethod = data === undefined ? 'GET' : 'POST';
   const result = await fetch(path + query, {
     method: method ?? defaultMethod,
@@ -208,7 +206,6 @@ export function useAPIFetch<T = unknown>(
   // something simpler, as long as it encodes the same information. The auth
   // token is not included in the key, as we assume currently that it does not
   // change the result.
-  const queryString = recordToSearchParams(params ?? {}).toString();
-  const paramStr = queryString.length > 0 ? `?${queryString}` : '';
+  const paramStr = recordToQueryString(params ?? {});
   return useFetch(path ? `${path}${paramStr}` : null, fetcher);
 }

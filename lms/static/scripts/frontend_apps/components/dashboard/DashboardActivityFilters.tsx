@@ -6,12 +6,12 @@ import { useConfig } from '../../config';
 import { useAPIFetch } from '../../utils/api';
 
 export type DashboardActivityFiltersProps = {
-  selectedCourses: Course[];
-  onCoursesChange: (newCourses: Course[]) => void;
-  selectedAssignments: Assignment[];
-  onAssignmentsChange: (newAssignments: Assignment[]) => void;
-  selectedStudents: Student[];
-  onStudentsChange: (newStudents: Student[]) => void;
+  selectedCourseIds: string[];
+  onCoursesChange: (newCourseIds: string[]) => void;
+  selectedAssignmentIds: string[];
+  onAssignmentsChange: (newAssignmentIds: string[]) => void;
+  selectedStudentIds: string[];
+  onStudentsChange: (newStudentIds: string[]) => void;
 };
 
 /**
@@ -19,11 +19,11 @@ export type DashboardActivityFiltersProps = {
  * filter dashboard activity metrics.
  */
 export default function DashboardActivityFilters({
-  selectedCourses,
+  selectedCourseIds,
   onCoursesChange,
-  selectedAssignments,
+  selectedAssignmentIds,
   onAssignmentsChange,
-  selectedStudents,
+  selectedStudentIds,
   onStudentsChange,
 }: DashboardActivityFiltersProps) {
   const { dashboard } = useConfig(['dashboard']);
@@ -43,43 +43,46 @@ export default function DashboardActivityFilters({
     <div className="flex gap-2 md:w-1/2">
       <MultiSelect
         disabled={courses.isLoading}
-        value={selectedCourses}
+        value={selectedCourseIds}
         onChange={onCoursesChange}
         aria-label="Select courses"
         buttonContent={
           courses.isLoading ? (
             <>...</>
-          ) : selectedCourses.length === 0 ? (
+          ) : selectedCourseIds.length === 0 ? (
             <>All courses</>
-          ) : selectedCourses.length === 1 ? (
-            selectedCourses[0].title
+          ) : selectedCourseIds.length === 1 ? (
+            courses.data?.courses.find(c => `${c.id}` === selectedCourseIds[0])
+              ?.title
           ) : (
-            <>{selectedCourses.length} courses</>
+            <>{selectedCourseIds.length} courses</>
           )
         }
         data-testid="courses-select"
       >
         <MultiSelect.Option value={undefined}>All courses</MultiSelect.Option>
         {courses.data?.courses.map(course => (
-          <MultiSelect.Option key={course.id} value={course}>
+          <MultiSelect.Option key={course.id} value={`${course.id}`}>
             {course.title}
           </MultiSelect.Option>
         ))}
       </MultiSelect>
       <MultiSelect
         disabled={assignments.isLoading}
-        value={selectedAssignments}
+        value={selectedAssignmentIds}
         onChange={onAssignmentsChange}
         aria-label="Select assignments"
         buttonContent={
           assignments.isLoading ? (
             <>...</>
-          ) : selectedAssignments.length === 0 ? (
+          ) : selectedAssignmentIds.length === 0 ? (
             <>All assignments</>
-          ) : selectedAssignments.length === 1 ? (
-            selectedAssignments[0].title
+          ) : selectedAssignmentIds.length === 1 ? (
+            assignments.data?.assignments.find(
+              a => `${a.id}` === selectedAssignmentIds[0],
+            )?.title
           ) : (
-            <>{selectedAssignments.length} assignments</>
+            <>{selectedAssignmentIds.length} assignments</>
           )
         }
         data-testid="assignments-select"
@@ -88,32 +91,34 @@ export default function DashboardActivityFilters({
           All assignments
         </MultiSelect.Option>
         {assignments.data?.assignments.map(assignment => (
-          <MultiSelect.Option key={assignment.id} value={assignment}>
+          <MultiSelect.Option key={assignment.id} value={`${assignment.id}`}>
             {assignment.title}
           </MultiSelect.Option>
         ))}
       </MultiSelect>
       <MultiSelect
         disabled={students.isLoading}
-        value={selectedStudents}
+        value={selectedStudentIds}
         onChange={onStudentsChange}
         aria-label="Select students"
         buttonContent={
           students.isLoading ? (
             <>...</>
-          ) : selectedStudents.length === 0 ? (
+          ) : selectedStudentIds.length === 0 ? (
             <>All students</>
-          ) : selectedStudents.length === 1 ? (
-            selectedStudents[0].display_name
+          ) : selectedStudentIds.length === 1 ? (
+            students.data?.students.find(
+              s => s.h_userid === selectedStudentIds[0],
+            )?.display_name
           ) : (
-            <>{selectedStudents.length} students</>
+            <>{selectedStudentIds.length} students</>
           )
         }
         data-testid="students-select"
       >
         <MultiSelect.Option value={undefined}>All students</MultiSelect.Option>
         {studentsWithName?.map(student => (
-          <MultiSelect.Option key={student.lms_id} value={student}>
+          <MultiSelect.Option key={student.lms_id} value={student.h_userid}>
             {student.display_name}
           </MultiSelect.Option>
         ))}

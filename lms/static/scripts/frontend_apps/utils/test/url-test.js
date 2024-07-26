@@ -1,4 +1,9 @@
-import { recordToSearchParams, replaceURLParams } from '../url';
+import {
+  queryStringToRecord,
+  recordToQueryString,
+  recordToSearchParams,
+  replaceURLParams,
+} from '../url';
 
 describe('replaceURLParams', () => {
   it('should replace params in URLs', () => {
@@ -45,5 +50,55 @@ describe('recordToSearchParams', () => {
     });
 
     assert.equal(result.toString(), 'foo=bar&baz=1&baz=2&baz=3');
+  });
+});
+
+describe('recordToQueryString', () => {
+  [
+    {
+      params: {
+        foo: 'bar',
+        baz: ['1', '2', '3'],
+      },
+      expectedResult: '?foo=bar&baz=1&baz=2&baz=3',
+    },
+    {
+      params: {},
+      expectedResult: '',
+    },
+    {
+      params: { foo: [], bar: [] },
+      expectedResult: '',
+    },
+  ].forEach(({ params, expectedResult }) => {
+    it('parses provided record and appends entries', () => {
+      const result = recordToQueryString(params);
+      assert.equal(result, expectedResult);
+    });
+  });
+});
+
+describe('queryStringToRecord', () => {
+  [
+    {
+      queryString: '?foo=bar&baz=1&baz=2&baz=3',
+      expectedResult: {
+        foo: 'bar',
+        baz: ['1', '2', '3'],
+      },
+    },
+    {
+      queryString: '',
+      expectedResult: {},
+    },
+    {
+      queryString: '?',
+      expectedResult: {},
+    },
+  ].forEach(({ queryString, expectedResult }) => {
+    it('parses provided record and appends entries', () => {
+      const result = queryStringToRecord(queryString);
+      assert.deepEqual(result, expectedResult);
+    });
   });
 });
