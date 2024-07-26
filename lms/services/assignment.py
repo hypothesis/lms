@@ -62,8 +62,12 @@ class AssignmentService:
         assignment.extra["group_set_id"] = group_set_id
 
         # Metadata based on the launch
-        assignment.title = request.lti_params.get("resource_link_title")
-        assignment.description = request.lti_params.get("resource_link_description")
+        assignment.title = (
+            request.lti_params.get("resource_link_title", "").strip() or None
+        )
+        assignment.description = (
+            request.lti_params.get("resource_link_description", "") or None
+        )
         assignment.is_gradable = self._misc_plugin.is_assignment_gradable(
             request.lti_params
         )

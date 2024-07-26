@@ -149,7 +149,7 @@ class TestUpsertGroupings:
 
         attrs = {
             "lms_id": parent_course.lms_id,
-            "lms_name": "new_name",
+            "lms_name": " new_name ",
             "extra": {"updated": "extra"},
         }
 
@@ -160,7 +160,9 @@ class TestUpsertGroupings:
         # Load the changes we made in SQLAlchemy
         db_session.refresh(parent_course)
         assert courses == [parent_course]
-        assert parent_course == Any.object.with_attrs(attrs)
+        assert courses[0].lms_id == parent_course.lms_id
+        assert courses[0].lms_name == "new_name"
+        assert courses[0].extra == {"updated": "extra"}
 
     @pytest.fixture
     def parent_course(self, svc):
@@ -404,7 +406,7 @@ class TestGetGroupings:
         grouping_dicts = [
             {
                 "id": sentinel.id,
-                "name": sentinel.name,
+                "name": "   name   ",
                 "settings": sentinel.settings,
                 group_set_key: sentinel.group_set_id,
             },
@@ -418,7 +420,7 @@ class TestGetGroupings:
             [
                 {
                     "lms_id": sentinel.id,
-                    "lms_name": sentinel.name,
+                    "lms_name": "name",
                     "extra": {"group_set_id": sentinel.group_set_id},
                     "settings": sentinel.settings,
                 }

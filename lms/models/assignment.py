@@ -69,7 +69,7 @@ class Assignment(CreatedUpdatedMixin, Base):
     )
     """Whether this assignment is gradable or not."""
 
-    title = sa.Column(sa.Unicode, nullable=True)
+    title: Mapped[str | None] = mapped_column(sa.Unicode)
     """The resource link title from LTI params."""
 
     description = sa.Column(sa.Unicode, nullable=True)

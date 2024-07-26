@@ -26,9 +26,20 @@ class TestAssignmentService:
         assert assignment in db_session.new
 
     @pytest.mark.parametrize("is_speed_grader", [False, True])
+    @pytest.mark.parametrize(
+        "resource_link_title, title",
+        [("", None), ("    ", None), (" title  ", "title")],
+    )
     def test_update_assignment(
-        self, svc, pyramid_request, is_speed_grader, misc_plugin
+        self,
+        svc,
+        pyramid_request,
+        is_speed_grader,
+        misc_plugin,
+        resource_link_title,
+        title,
     ):
+        pyramid_request.lti_params["resource_link_title"] = resource_link_title
         misc_plugin.is_speed_grader_launch.return_value = is_speed_grader
 
         assignment = svc.update_assignment(
@@ -38,6 +49,7 @@ class TestAssignmentService:
             sentinel.group_set_id,
         )
 
+        assignment.title = title
         if is_speed_grader:
             assert assignment.extra == {}
             assert assignment.document_url != sentinel.document_url
