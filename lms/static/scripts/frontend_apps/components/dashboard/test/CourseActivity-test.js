@@ -3,6 +3,7 @@ import {
   mockImportedComponents,
 } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
+import { act } from 'preact/test-utils';
 import sinon from 'sinon';
 
 import { Config } from '../../../config';
@@ -41,6 +42,8 @@ describe('CourseActivity', () => {
 
   let fakeUseAPIFetch;
   let fakeConfig;
+  let fakeNavigate;
+  let wrappers;
 
   beforeEach(() => {
     fakeUseAPIFetch = sinon.stub().callsFake(url => ({
@@ -55,25 +58,36 @@ describe('CourseActivity', () => {
         },
       },
     };
+    fakeNavigate = sinon.stub();
+    wrappers = [];
 
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
       '../../utils/api': {
         useAPIFetch: fakeUseAPIFetch,
       },
+      'wouter-preact': {
+        useParams: sinon.stub().returns({ courseId: '123' }),
+        useSearch: sinon.stub().returns('current=query'),
+        useLocation: sinon.stub().returns(['', fakeNavigate]),
+      },
     });
   });
 
   afterEach(() => {
+    wrappers.forEach(wrapper => wrapper.unmount());
     $imports.$restore();
   });
 
   function createComponent() {
-    return mount(
+    const wrapper = mount(
       <Config.Provider value={fakeConfig}>
         <CourseActivity />
       </Config.Provider>,
     );
+    wrappers.push(wrapper);
+
+    return wrapper;
   }
 
   it('shows loading indicators while data is loading', () => {
@@ -195,6 +209,105 @@ describe('CourseActivity', () => {
         .navigateOnConfirmRow({ id });
 
       assert.equal(href, `/assignments/${id}`);
+    });
+  });
+
+  context('when filters are set', () => {
+    function setCurrentURL(url) {
+      history.replaceState(null, '', url);
+    }
+
+    beforeEach(() => {
+      setCurrentURL('?');
+    });
+
+    it('initializes expected filters', () => {
+      setCurrentURL('?assignment_id=1&assignment_id=2&student_id=3');
+
+      const wrapper = createComponent();
+      const filters = wrapper.find('DashboardActivityFilters');
+
+      // Course ID is set from the route
+      assert.deepEqual(filters.prop('selectedCourseIds'), ['123']);
+      // Assignments and students are set from the query
+      assert.deepEqual(filters.prop('selectedAssignmentIds'), ['1', '2']);
+      assert.deepEqual(filters.prop('selectedStudentIds'), ['3']);
+
+      // Selected filters are propagated when loading assignment metrics
+      assert.calledWith(fakeUseAPIFetch.lastCall, sinon.match.string, {
+        assignment_id: ['1', '2'],
+        h_userid: ['3'],
+        public_id: undefined,
+      });
+    });
+
+    [
+      { query: '', expectedHasSelection: false },
+      { query: '?foo=bar', expectedHasSelection: false },
+      { query: '?assignment_id=1', expectedHasSelection: true },
+      { query: '?student_id=3', expectedHasSelection: true },
+      { query: '?assignment_id=1&student_id=3', expectedHasSelection: true },
+    ].forEach(({ query, expectedHasSelection }) => {
+      it('has `onClearSelection` if one student or one assignment is selected', () => {
+        setCurrentURL(query);
+
+        const wrapper = createComponent();
+        const filters = wrapper.find('DashboardActivityFilters');
+
+        assert.equal(!!filters.prop('onClearSelection'), expectedHasSelection);
+      });
+    });
+
+    it('updates query when selected assignments change', () => {
+      const wrapper = createComponent();
+      const filters = wrapper.find('DashboardActivityFilters');
+
+      act(() => filters.props().onAssignmentsChange(['3', '7']));
+
+      assert.equal(location.search, '?assignment_id=3&assignment_id=7');
+    });
+
+    it('updates query when selected students change', () => {
+      const wrapper = createComponent();
+      const filters = wrapper.find('DashboardActivityFilters');
+
+      act(() => filters.props().onStudentsChange(['8', '20', '32']));
+
+      assert.equal(
+        location.search,
+        '?student_id=8&student_id=20&student_id=32',
+      );
+    });
+
+    it('clears selected students and assignments on clear selection', () => {
+      setCurrentURL(
+        '?foo=bar&assignment_id=3&assignment_id=7&student_id=8&student_id=20&student_id=32',
+      );
+
+      const wrapper = createComponent();
+      const filters = wrapper.find('DashboardActivityFilters');
+
+      act(() => filters.props().onClearSelection());
+
+      assert.equal(location.search, '?foo=bar');
+    });
+
+    it('navigates to home preserving current query when no course is selected', () => {
+      const wrapper = createComponent();
+      const filters = wrapper.find('DashboardActivityFilters');
+
+      act(() => filters.props().onCoursesChange([]));
+
+      assert.calledWith(fakeNavigate, '?current=query');
+    });
+
+    it('navigates to the first selected course which is not the active one', () => {
+      const wrapper = createComponent();
+      const filters = wrapper.find('DashboardActivityFilters');
+
+      act(() => filters.props().onCoursesChange(['123', '789']));
+
+      assert.calledWith(fakeNavigate, '/courses/789?current=query');
     });
   });
 

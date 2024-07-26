@@ -6,6 +6,7 @@ import type { CoursesResponse } from '../../api-types';
 import { useConfig } from '../../config';
 import { urlPath, useAPIFetch } from '../../utils/api';
 import { useDashboardFilters } from '../../utils/dashboard/hooks';
+import { courseURL } from '../../utils/dashboard/navigation';
 import { useDocumentTitle } from '../../utils/hooks';
 import DashboardActivityFilters from './DashboardActivityFilters';
 import FormattedDate from './FormattedDate';
@@ -17,8 +18,6 @@ type CoursesTableRow = {
   assignments: number;
   last_launched: string | null;
 };
-
-const courseURL = (id: number) => urlPath`/courses/${String(id)}`;
 
 /**
  * List of courses that current user has access to in the dashboard
