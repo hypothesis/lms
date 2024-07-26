@@ -44,8 +44,10 @@ class CourseViews:
         self.dashboard_service = request.find_service(name="dashboard")
         self.assignment_service = request.find_service(name="assignment")
 
-        self.current_user_email = (
-            self.request.lti_user.email if request.lti_user else request.identity.userid
+        self.admin_organizations = (
+            self.dashboard_service.get_organizations_by_admin_email(
+                request.lti_user.email if request.lti_user else request.identity.userid
+            )
         )
 
     @view_config(
@@ -58,11 +60,8 @@ class CourseViews:
     def courses(self) -> APICourses:
         filter_by_h_userids = self.request.parsed_params.get("h_userids")
         filter_by_assignment_ids = self.request.parsed_params.get("assignment_ids")
-        admin_organizations = self.dashboard_service.get_organizations_by_admin_email(
-            self.current_user_email
-        )
         courses = self.course_service.get_courses(
-            admin_organization_ids=[org.id for org in admin_organizations],
+            admin_organization_ids=[org.id for org in self.admin_organizations],
             instructor_h_userid=self.request.user.h_userid
             if self.request.user
             else None,
@@ -90,11 +89,8 @@ class CourseViews:
         filter_by_h_userids = self.request.parsed_params.get("h_userids")
         filter_by_assignment_ids = self.request.parsed_params.get("assignment_ids")
         filter_by_course_ids = self.request.parsed_params.get("course_ids")
-        admin_organizations = self.dashboard_service.get_organizations_by_admin_email(
-            self.current_user_email
-        )
         courses_query = self.course_service.get_courses(
-            admin_organization_ids=[org.id for org in admin_organizations],
+            admin_organization_ids=[org.id for org in self.admin_organizations],
             instructor_h_userid=self.request.user.h_userid
             if self.request.user
             else None,
@@ -132,7 +128,9 @@ class CourseViews:
         permission=Permissions.DASHBOARD_VIEW,
     )
     def course(self) -> APICourse:
-        course = self.dashboard_service.get_request_course(self.request)
+        course = self.dashboard_service.get_request_course(
+            self.request, self.admin_organizations
+        )
         return {
             "id": course.id,
             "title": course.lms_name,

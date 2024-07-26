@@ -248,12 +248,13 @@ class TestAssignmentService:
         db_session,
         instructor_h_userid,
         assignment,
-        with_assignment_noise,
         course_ids,
         h_userids,
+        organization,
+        application_instance,
     ):
         factories.User()
-        course = factories.Course()
+        course = factories.Course(application_instance=application_instance)
         user = factories.User()
         lti_role = factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR)
         factories.AssignmentMembership.create(
@@ -269,26 +270,23 @@ class TestAssignmentService:
 
         if instructor_h_userid:
             query_parameters["instructor_h_userid"] = user.h_userid
+        else:
+            query_parameters["admin_organization_ids"] = [organization.id]
 
         if course_ids:
             query_parameters["course_ids"] = [course.id]
 
         if h_userids:
             query_parameters["h_userids"] = [user.h_userid]
-
         query = svc.get_assignments(**query_parameters)
 
-        if not query_parameters:
-            assert set(db_session.scalars(query).all()) == set(
-                [assignment] + with_assignment_noise
-            )
+        assert db_session.scalars(query).all() == [assignment]
 
-        else:
-            assert db_session.scalars(query).all() == [assignment]
-
-    def test_get_assignments_by_course_id_with_duplicate(self, db_session, svc):
-        course = factories.Course()
-        other_course = factories.Course()
+    def test_get_assignments_by_course_id_with_duplicate(
+        self, db_session, svc, application_instance, organization
+    ):
+        course = factories.Course(application_instance=application_instance)
+        other_course = factories.Course(application_instance=application_instance)
 
         assignment = factories.Assignment()
 
@@ -302,11 +300,15 @@ class TestAssignmentService:
         db_session.flush()
 
         assert db_session.scalars(
-            svc.get_assignments(course_ids=[course.id])
+            svc.get_assignments(
+                course_ids=[course.id], admin_organization_ids=[organization.id]
+            )
         ).all() == [assignment]
         # We don't expect to get the other one at all, now the assignment belongs to the most recent course
         assert not db_session.scalars(
-            svc.get_assignments(course_ids=[other_course.id])
+            svc.get_assignments(
+                course_ids=[other_course.id], admin_organization_ids=[organization.id]
+            )
         ).all()
 
     def test_get_courses_assignments_count(self, svc, db_session):

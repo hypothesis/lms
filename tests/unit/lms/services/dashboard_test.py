@@ -21,7 +21,7 @@ class TestDashboardService:
         assignment_service.get_by_id.return_value = None
 
         with pytest.raises(HTTPNotFound):
-            svc.get_request_assignment(pyramid_request)
+            svc.get_request_assignment(pyramid_request, [])
 
     def test_get_request_assignment_403(
         self,
@@ -33,7 +33,7 @@ class TestDashboardService:
         assignment_service.is_member.return_value = False
 
         with pytest.raises(HTTPUnauthorized):
-            svc.get_request_assignment(pyramid_request)
+            svc.get_request_assignment(pyramid_request, [])
 
     def test_get_request_assignment_for_staff(
         self, pyramid_request, assignment_service, pyramid_config, svc
@@ -42,17 +42,36 @@ class TestDashboardService:
         pyramid_request.matchdict["assignment_id"] = sentinel.id
         assignment_service.is_member.return_value = False
 
-        assert svc.get_request_assignment(pyramid_request)
+        assert svc.get_request_assignment(pyramid_request, [])
 
     def test_get_request_assignment(self, pyramid_request, assignment_service, svc):
         pyramid_request.matchdict["assignment_id"] = sentinel.id
         assignment_service.is_member.return_value = True
 
-        assert svc.get_request_assignment(pyramid_request)
+        assert svc.get_request_assignment(pyramid_request, [])
 
         assignment_service.is_member.assert_called_once_with(
             assignment_service.get_by_id.return_value, pyramid_request.user.h_userid
         )
+
+    def test_get_request_assignment_for_admin(
+        self,
+        pyramid_request,
+        assignment_service,
+        svc,
+        organization,
+        db_session,
+        application_instance,
+    ):
+        assignment = factories.Assignment()
+        course = factories.Course(application_instance=application_instance)
+        factories.AssignmentGrouping(assignment=assignment, grouping=course)
+        assignment_service.get_by_id.return_value = assignment
+        db_session.flush()
+
+        pyramid_request.matchdict["assignment_id"] = sentinel.id
+
+        assert svc.get_request_assignment(pyramid_request, [organization])
 
     def test_get_request_course_404(
         self,
@@ -64,14 +83,14 @@ class TestDashboardService:
         course_service.get_by_id.return_value = None
 
         with pytest.raises(HTTPNotFound):
-            svc.get_request_course(pyramid_request)
+            svc.get_request_course(pyramid_request, [])
 
     def test_get_request_course_403(self, pyramid_request, course_service, svc):
         pyramid_request.matchdict["course_id"] = sentinel.id
         course_service.is_member.return_value = False
 
         with pytest.raises(HTTPUnauthorized):
-            svc.get_request_course(pyramid_request)
+            svc.get_request_course(pyramid_request, [])
 
     def test_get_request_course_for_staff(
         self, pyramid_request, course_service, pyramid_config, svc
@@ -80,13 +99,23 @@ class TestDashboardService:
         pyramid_request.matchdict["course_id"] = sentinel.id
         course_service.is_member.return_value = False
 
-        assert svc.get_request_course(pyramid_request)
+        assert svc.get_request_course(pyramid_request, [])
+
+    def test_get_request_course_for_admin(
+        self, pyramid_request, course_service, svc, application_instance, organization
+    ):
+        course_service.get_by_id.return_value = factories.Course(
+            application_instance=application_instance
+        )
+        pyramid_request.matchdict["course_id"] = sentinel.id
+
+        assert svc.get_request_course(pyramid_request, [organization])
 
     def test_get_request_course(self, pyramid_request, course_service, svc):
         pyramid_request.matchdict["course_id"] = sentinel.id
         course_service.is_member.return_value = True
 
-        assert svc.get_request_course(pyramid_request)
+        assert svc.get_request_course(pyramid_request, [])
 
     def test_add_dashboard_admin(self, svc, db_session):
         admin = svc.add_dashboard_admin(
@@ -114,9 +143,11 @@ class TestDashboardService:
         assert svc.get_organizations_by_admin_email(admin.email) == [organization]
 
     @pytest.fixture()
-    def svc(self, assignment_service, course_service, organization_service, db_session):
+    def svc(
+        self, assignment_service, course_service, organization_service, pyramid_request
+    ):
         return DashboardService(
-            db_session, assignment_service, course_service, organization_service
+            pyramid_request, assignment_service, course_service, organization_service
         )
 
     @pytest.fixture(autouse=True)
@@ -133,12 +164,11 @@ class TestFactory:
         DashboardService,
         course_service,
         organization_service,
-        db_session,
     ):
         service = factory(sentinel.context, pyramid_request)
 
         DashboardService.assert_called_once_with(
-            db=db_session,
+            request=pyramid_request,
             assignment_service=assignment_service,
             course_service=course_service,
             organization_service=organization_service,

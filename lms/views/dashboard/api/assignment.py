@@ -48,6 +48,12 @@ class AssignmentViews:
         self.course_service = request.find_service(name="course")
         self.user_service: UserService = request.find_service(UserService)
 
+        self.admin_organizations = (
+            self.dashboard_service.get_organizations_by_admin_email(
+                request.lti_user.email if request.lti_user else request.identity.userid
+            )
+        )
+
     @view_config(
         route_name="api.dashboard.assignments",
         request_method="GET",
@@ -58,6 +64,7 @@ class AssignmentViews:
     def assignments(self) -> APIAssignments:
         filter_by_h_userids = self.request.parsed_params.get("h_userids")
         assignments = self.assignment_service.get_assignments(
+            admin_organization_ids=[org.id for org in self.admin_organizations],
             instructor_h_userid=self.request.user.h_userid
             if self.request.user
             else None,
@@ -82,7 +89,9 @@ class AssignmentViews:
         permission=Permissions.DASHBOARD_VIEW,
     )
     def assignment(self) -> APIAssignment:
-        assignment = self.dashboard_service.get_request_assignment(self.request)
+        assignment = self.dashboard_service.get_request_assignment(
+            self.request, self.admin_organizations
+        )
         return APIAssignment(
             id=assignment.id,
             title=assignment.title,
@@ -100,17 +109,21 @@ class AssignmentViews:
         current_h_userid = self.request.user.h_userid if self.request.user else None
         filter_by_h_userids = self.request.parsed_params.get("h_userids")
         filter_by_assignment_ids = self.request.parsed_params.get("assignment_ids")
-        course = self.dashboard_service.get_request_course(self.request)
+        course = self.dashboard_service.get_request_course(
+            self.request, self.admin_organizations
+        )
         course_students = self.request.db.scalars(
             self.user_service.get_users(
                 course_ids=[course.id],
                 role_scope=RoleScope.COURSE,
                 role_type=RoleType.LEARNER,
                 instructor_h_userid=current_h_userid,
+                admin_organization_ids=[org.id for org in self.admin_organizations],
                 h_userids=filter_by_h_userids,
             )
         ).all()
         assignments_query = self.assignment_service.get_assignments(
+            admin_organization_ids=[org.id for org in self.admin_organizations],
             course_ids=[course.id],
             instructor_h_userid=current_h_userid,
             h_userids=filter_by_h_userids,

@@ -1,14 +1,17 @@
 from functools import lru_cache
+from typing import cast
 
-from sqlalchemy import select
+from sqlalchemy import BinaryExpression, false, or_, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.sql import Select
 
 from lms.models import (
+    ApplicationInstance,
     AssignmentGrouping,
     AssignmentMembership,
     LTIRole,
     LTIUser,
+    Organization,
     RoleScope,
     RoleType,
     User,
@@ -107,6 +110,7 @@ class UserService:
         role_scope: RoleScope,
         role_type: RoleType,
         instructor_h_userid: str | None = None,
+        admin_organization_ids: list[int] | None = None,
         course_ids: list[int] | None = None,
         h_userids: list[str] | None = None,
         assignment_ids: list[int] | None = None,
@@ -117,6 +121,7 @@ class UserService:
         :param role_scope: return only users with this LTI role scope.
         :param role_type: return only users with this LTI role type.
         :param instructor_h_userid: return only users that belongs to courses/assignments where the user instructor_h_userid is an instructor.
+        :param admin_organization_ids: organizations where the current user is an admin.
         :param h_userids: return only users with a h_userid in this list.
         :param course_ids: return only users that belong to these courses.
         :param assignment_ids: return only users that belong these assignments.
@@ -128,19 +133,35 @@ class UserService:
             .where(LTIRole.scope == role_scope, LTIRole.type == role_type)
         )
 
+        # Let's crate no op clauses by default to avoid having to check the presence of these filters
+        instructor_h_userid_clause = cast(BinaryExpression, false())
+        admin_organization_ids_clause = cast(BinaryExpression, false())
+
         if instructor_h_userid:
-            query = query.where(
-                AssignmentMembership.assignment_id.in_(
-                    select(AssignmentMembership.assignment_id)
-                    .join(User)
-                    .join(LTIRole)
-                    .where(
-                        User.h_userid == instructor_h_userid,
-                        LTIRole.scope == RoleScope.COURSE,
-                        LTIRole.type == RoleType.INSTRUCTOR,
-                    )
+            instructor_h_userid_clause = AssignmentMembership.assignment_id.in_(
+                select(AssignmentMembership.assignment_id)
+                .join(User)
+                .join(LTIRole)
+                .where(
+                    User.h_userid == instructor_h_userid,
+                    LTIRole.scope == RoleScope.COURSE,
+                    LTIRole.type == RoleType.INSTRUCTOR,
                 )
             )
+
+        if admin_organization_ids:
+            admin_organization_ids_clause = User.id.in_(
+                select(User.id)
+                .join(ApplicationInstance)
+                .join(Organization)
+                .where(Organization.id.in_(admin_organization_ids))
+            )
+
+        # instructor_h_userid and admin_organization_ids are about access rather than filtering.
+        # we apply them both as an or to fetch users where the users is either an instructor or an admin
+        query = query.where(
+            or_(instructor_h_userid_clause, admin_organization_ids_clause)
+        )
 
         if h_userids:
             query = query.where(User.h_userid.in_(h_userids))
