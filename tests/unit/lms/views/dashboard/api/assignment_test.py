@@ -29,6 +29,7 @@ class TestAssignmentViews:
             instructor_h_userid=pyramid_request.user.h_userid,
             course_ids=sentinel.course_ids,
             h_userids=sentinel.h_userids,
+            admin_organization_ids=[],
         )
         get_page.assert_called_once_with(
             pyramid_request,
@@ -50,7 +51,8 @@ class TestAssignmentViews:
         response = views.assignment()
 
         dashboard_service.get_request_assignment.assert_called_once_with(
-            pyramid_request
+            pyramid_request,
+            dashboard_service.get_organizations_by_admin_email.return_value,
         )
 
         assert response == {
@@ -97,6 +99,7 @@ class TestAssignmentViews:
             role_type=RoleType.LEARNER,
             instructor_h_userid=pyramid_request.user.h_userid,
             h_userids=sentinel.h_userids,
+            admin_organization_ids=[],
         )
         h_api.get_annotation_counts.assert_called_once_with(
             [course.authority_provided_id, section.authority_provided_id],

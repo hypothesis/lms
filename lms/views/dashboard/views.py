@@ -40,6 +40,12 @@ class DashboardViews:
         )
         self.dashboard_service = request.find_service(name="dashboard")
 
+        self.admin_organizations = (
+            self.dashboard_service.get_organizations_by_admin_email(
+                request.lti_user.email if request.lti_user else request.identity.userid
+            )
+        )
+
     @view_config(
         route_name="dashboard.launch.assignment",
         permission=Permissions.DASHBOARD_VIEW,
@@ -71,7 +77,9 @@ class DashboardViews:
 
         Authenticated via the LTIUser present in a cookie making this endpoint accessible directly in the browser.
         """
-        assignment = self.dashboard_service.get_request_assignment(self.request)
+        assignment = self.dashboard_service.get_request_assignment(
+            self.request, self.admin_organizations
+        )
         self.request.context.js_config.enable_dashboard_mode()
         self._set_lti_user_cookie(self.request.response)
         return {"title": assignment.title}
@@ -87,7 +95,9 @@ class DashboardViews:
 
         Authenticated via the LTIUser present in a cookie making this endpoint accessible directly in the browser.
         """
-        course = self.dashboard_service.get_request_course(self.request)
+        course = self.dashboard_service.get_request_course(
+            self.request, self.admin_organizations
+        )
         self.request.context.js_config.enable_dashboard_mode()
         self._set_lti_user_cookie(self.request.response)
         return {"title": course.lms_name}

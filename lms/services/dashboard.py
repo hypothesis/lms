@@ -8,14 +8,16 @@ from lms.services.organization import OrganizationService
 
 
 class DashboardService:
-    def __init__(self, db, assignment_service, course_service, organization_service):
-        self._db = db
+    def __init__(
+        self, request, assignment_service, course_service, organization_service
+    ):
+        self._db = request.db
 
         self._assignment_service = assignment_service
         self._course_service = course_service
         self._organization_service = organization_service
 
-    def get_request_assignment(self, request):
+    def get_request_assignment(self, request, admin_organizations: list[Organization]):
         """Get and authorize an assignment for the given request."""
         assigment_id = request.matchdict.get(
             "assignment_id"
@@ -28,12 +30,20 @@ class DashboardService:
             # STAFF members in our admin pages can access all assignments
             return assignment
 
+        if (
+            admin_organizations
+            and assignment.course.application_instance.organization
+            in admin_organizations
+        ):
+            # Organization admins have access to all the assignments in their organizations
+            return assignment
+
         if not self._assignment_service.is_member(assignment, request.user.h_userid):
             raise HTTPUnauthorized()
 
         return assignment
 
-    def get_request_course(self, request):
+    def get_request_course(self, request, admin_organizations: list[Organization]):
         """Get and authorize a course for the given request."""
         course = self._course_service.get_by_id(request.matchdict["course_id"])
         if not course:
@@ -41,6 +51,13 @@ class DashboardService:
 
         if request.has_permission(Permissions.STAFF):
             # STAFF members in our admin pages can access all courses
+            return course
+
+        if (
+            admin_organizations
+            and course.application_instance.organization in admin_organizations
+        ):
+            # Organization admins have access to all the courses in their organizations
             return course
 
         if not self._course_service.is_member(course, request.user.h_userid):
@@ -74,7 +91,7 @@ class DashboardService:
 
 def factory(_context, request):
     return DashboardService(
-        db=request.db,
+        request=request,
         assignment_service=request.find_service(name="assignment"),
         course_service=request.find_service(name="course"),
         organization_service=request.find_service(OrganizationService),
