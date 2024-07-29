@@ -694,13 +694,17 @@ class TestEnableErrorDialogMode:
 
 
 class TestEnableDashboardMode:
-    def test_it(self, js_config, lti_user):
+    @pytest.mark.parametrize("public_id", ["PUBLIC_ID", None])
+    def test_it(self, js_config, lti_user, pyramid_request, public_id):
+        pyramid_request.params["public_id"] = public_id
+
         js_config.enable_dashboard_mode()
         config = js_config.asdict()
 
         assert config["mode"] == JSConfig.Mode.DASHBOARD
         assert config["dashboard"] == {
             "user": {"display_name": lti_user.display_name, "is_staff": False},
+            "organization_public_id": public_id,
             "routes": {
                 "assignment": "/api/dashboard/assignments/:assignment_id",
                 "students_metrics": "/api/dashboard/students/metrics",
