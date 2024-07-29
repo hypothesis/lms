@@ -232,8 +232,7 @@ class AssignmentService:
         :param course_ids: only return assignments that belong to this course.
         :param h_userids: return only assignments where these users are members.
         """
-
-        query = select(Assignment)
+        query = select(Assignment).where(Assignment.title.is_not(None))
 
         # Let's crate no op clauses by default to avoid having to check the presence of these filters
         instructor_h_userid_clause = cast(BinaryExpression, false())

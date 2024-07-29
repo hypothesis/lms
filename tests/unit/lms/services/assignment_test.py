@@ -294,6 +294,18 @@ class TestAssignmentService:
 
         assert db_session.scalars(query).all() == [assignment]
 
+    def test_get_assignments_excludes_empty_titles(self, db_session, svc):
+        course = factories.Course()
+        assignment = factories.Assignment(title=None)
+        factories.AssignmentGrouping(
+            grouping=course, assignment=assignment, updated=date(2022, 1, 1)
+        )
+        db_session.flush()
+
+        assert not db_session.scalars(
+            svc.get_assignments(course_ids=[course.id])
+        ).all() == [assignment]
+
     def test_get_assignments_by_course_id_with_duplicate(
         self, db_session, svc, application_instance, organization
     ):
