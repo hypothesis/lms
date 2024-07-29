@@ -6,6 +6,7 @@ import sqlalchemy
 from h_matchers import Any
 from pyramid.httpexceptions import HTTPBadRequest, HTTPFound, HTTPNotFound
 
+from lms.models import EventType
 from lms.services.organization import InvalidOrganizationParent, InvalidPublicId
 from lms.views.admin.organization import AdminOrganizationViews
 from tests import factories
@@ -325,6 +326,38 @@ class TestAdminOrganizationViews:
 
         dashboard_service.delete_dashboard_admin.assert_called_once_with(
             sentinel.dashboard_admin_id
+        )
+
+    def test_course_dashboard(
+        self,
+        pyramid_request,
+        organization_service,
+        views,
+        AuditTrailEvent,
+        organization,
+    ):
+        pyramid_request.matchdict["id_"] = sentinel.id
+        organization_service.get_by_id.return_value = organization
+
+        response = views.org_dashboard()
+
+        AuditTrailEvent.assert_called_once_with(
+            request=pyramid_request,
+            type=EventType.Type.AUDIT_TRAIL,
+            data={
+                "action": "view_dashboard",
+                "id": organization.id,
+                "model": "Organization",
+                "source": "admin_pages",
+                "userid": "TEST_USER_ID",
+                "changes": {},
+            },
+        )
+        pyramid_request.registry.notify.has_call_with(AuditTrailEvent.return_value)
+        assert response == Any.instance_of(HTTPFound).with_attrs(
+            {
+                "location": f"http://example.com/dashboard?public_id={organization.public_id}",
+            }
         )
 
     @pytest.fixture
