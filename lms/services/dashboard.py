@@ -65,6 +65,23 @@ class DashboardService:
 
         return course
 
+    def get_request_organization(self, request) -> Organization | None:
+        """Get and authorize an organization."""
+        if not request.has_permission(Permissions.STAFF):
+            # For now only staff request are scoped to an organization
+            return None
+
+        request_public_id = request.parsed_params.get("public_id")
+        if not request_public_id:
+            # Only relevant for request that include the query parameter
+            return None
+
+        organization = self._organization_service.get_by_public_id(request_public_id)
+        if not organization:
+            raise HTTPNotFound()
+
+        return organization
+
     def get_organizations_by_admin_email(self, email: str) -> list[Organization]:
         """Get a list of organizations where the user with email `email` is an admin in."""
         return self._db.scalars(

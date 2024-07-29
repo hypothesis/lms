@@ -19,6 +19,9 @@ class ListCoursesSchema(PaginationParametersMixin):
     assignment_ids = fields.List(fields.Integer(), data_key="assignment_id")
     """Return only the courses to which these assigments belong."""
 
+    public_id = fields.Str()
+    """Return only the courses which belong to this organization."""
+
 
 class CoursesMetricsSchema(PyramidRequestSchema):
     """Query parameters to fetch metrics for courses."""
@@ -34,6 +37,9 @@ class CoursesMetricsSchema(PyramidRequestSchema):
     course_ids = fields.List(fields.Integer(), data_key="course_id")
     """Return metrics for these courses only."""
 
+    public_id = fields.Str()
+    """Return only the courses which belong to this organization."""
+
 
 class CourseViews:
     def __init__(self, request) -> None:
@@ -43,12 +49,6 @@ class CourseViews:
         self.organization_service = request.find_service(OrganizationService)
         self.dashboard_service = request.find_service(name="dashboard")
         self.assignment_service = request.find_service(name="assignment")
-
-        self.admin_organizations = (
-            self.dashboard_service.get_organizations_by_admin_email(
-                request.lti_user.email if request.lti_user else request.identity.userid
-            )
-        )
 
     @view_config(
         route_name="api.dashboard.courses",
@@ -60,8 +60,9 @@ class CourseViews:
     def courses(self) -> APICourses:
         filter_by_h_userids = self.request.parsed_params.get("h_userids")
         filter_by_assignment_ids = self.request.parsed_params.get("assignment_ids")
+
         courses = self.course_service.get_courses(
-            admin_organization_ids=[org.id for org in self.admin_organizations],
+            admin_organization_ids=[org.id for org in self._admin_organizations],
             instructor_h_userid=self.request.user.h_userid
             if self.request.user
             else None,
@@ -89,8 +90,9 @@ class CourseViews:
         filter_by_h_userids = self.request.parsed_params.get("h_userids")
         filter_by_assignment_ids = self.request.parsed_params.get("assignment_ids")
         filter_by_course_ids = self.request.parsed_params.get("course_ids")
+
         courses_query = self.course_service.get_courses(
-            admin_organization_ids=[org.id for org in self.admin_organizations],
+            admin_organization_ids=[org.id for org in self._admin_organizations],
             instructor_h_userid=self.request.user.h_userid
             if self.request.user
             else None,
@@ -129,9 +131,26 @@ class CourseViews:
     )
     def course(self) -> APICourse:
         course = self.dashboard_service.get_request_course(
-            self.request, self.admin_organizations
+            self.request, self._admin_organizations
         )
         return {
             "id": course.id,
             "title": course.lms_name,
         }
+
+    @property
+    def _admin_organizations(self):
+        request_organization = self.dashboard_service.get_request_organization(
+            self.request
+        )
+        if request_organization and self.request.has_permission(Permissions.STAFF):
+            # We special case permissions/filtering for staff members
+            # If the requests contains a filter for one organization will act as if the staff member
+            # is an admin in that organization. That will give access to its data and filter by it
+            return [request_organization]
+
+        return self.dashboard_service.get_organizations_by_admin_email(
+            self.request.lti_user.email
+            if self.request.lti_user
+            else self.request.identity.userid
+        )
