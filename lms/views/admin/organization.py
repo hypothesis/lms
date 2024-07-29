@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from datetime import datetime
 
 import sqlalchemy
@@ -6,8 +7,8 @@ from pyramid.httpexceptions import HTTPBadRequest, HTTPFound, HTTPNotFound
 from pyramid.view import view_config, view_defaults
 from webargs import fields
 
-from lms.events import AuditTrailEvent
-from lms.models import Organization
+from lms.events import AuditTrailEvent, ModelChange
+from lms.models import EventType, Organization
 from lms.security import Permissions
 from lms.services import (
     HubSpotService,
@@ -278,6 +279,36 @@ class AdminOrganizationViews:
             location=self.request.route_url(
                 "admin.organization.section", id_=org.id, section="dashboard-admins"
             )
+        )
+
+    @view_config(
+        route_name="admin.organization.dashboard",
+        request_method="GET",
+        permission=Permissions.STAFF,
+    )
+    def org_dashboard(self):
+        org = self._get_org_or_404(self.request.matchdict["id_"])
+        self.request.registry.notify(
+            AuditTrailEvent(
+                request=self.request,
+                type=EventType.Type.AUDIT_TRAIL,
+                data=asdict(
+                    ModelChange(
+                        model=Organization.__name__,
+                        id=org.id,
+                        action="view_dashboard",
+                        source="admin_pages",
+                        userid=self.request.identity.userid,
+                        changes={},
+                    )
+                ),
+            )
+        )
+
+        return HTTPFound(
+            location=self.request.route_url(
+                "dashboard", _query={"public_id": org.public_id}
+            ),
         )
 
     def _get_org_or_404(self, id_) -> Organization:

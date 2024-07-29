@@ -41,6 +41,9 @@
                         <legend class="label has-text-centered">Organization</legend>
                         <form method="POST"
                               action="{{ request.route_url("admin.organization", id_=org.id) }}">
+                            <div class="block has-text-right">
+                              <a class="button is-primary" target="_blank" href="{{ request.route_url('admin.organization.dashboard', id_=org.id) }}">Open instructor dashboard</a>
+                            </div>
                             <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
                             {{ macros.disabled_text_field("ID", org.public_id) }}
                             {{ macros.form_text_field(request, "Name", "name", org.name) }}
