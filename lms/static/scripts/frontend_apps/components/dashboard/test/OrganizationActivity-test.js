@@ -193,6 +193,20 @@ describe('OrganizationActivity', () => {
     });
   });
 
+  it('allows filters to be cleared', () => {
+    const wrapper = createComponent();
+    const filters = wrapper.find('DashboardActivityFilters');
+
+    act(() => filters.props().onClearSelection());
+    wrapper.update();
+
+    assert.calledWith(fakeUseAPIFetch.lastCall, sinon.match.string, {
+      h_userid: [],
+      assignment_id: [],
+      course_id: [],
+    });
+  });
+
   it(
     'should pass a11y checks',
     checkAccessibility({

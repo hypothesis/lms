@@ -113,28 +113,17 @@ describe('DashboardActivityFilters', () => {
     $imports.$restore();
   });
 
-  /**
-   @param {Object} [selection]
-   @param {Object[]} [selection.selectedStudentIds]
-   @param {Object[]} [selection.selectedAssignmentIds]
-   @param {Object[]} [selection.selectedCourseIds]
-   */
-  function createComponent(selection = {}) {
-    const {
-      selectedStudentIds = [],
-      selectedAssignmentIds = [],
-      selectedCourseIds = [],
-    } = selection;
-
+  function createComponent(props = {}) {
     const wrapper = mount(
       <Config.Provider value={fakeConfig}>
         <DashboardActivityFilters
-          selectedCourseIds={selectedCourseIds}
+          selectedCourseIds={[]}
           onCoursesChange={onCoursesChange}
-          selectedAssignmentIds={selectedAssignmentIds}
+          selectedAssignmentIds={[]}
           onAssignmentsChange={onAssignmentsChange}
-          selectedStudentIds={selectedStudentIds}
+          selectedStudentIds={[]}
           onStudentsChange={onStudentsChange}
+          {...props}
         />
       </Config.Provider>,
     );
@@ -267,6 +256,52 @@ describe('DashboardActivityFilters', () => {
         '2 assignments',
       );
       assert.equal(getSelectContent(wrapper, 'students-select'), '2 students');
+    });
+  });
+
+  describe('clear filters', () => {
+    [
+      // Callback provided, but no items selected
+      {
+        props: { onClearSelection: sinon.stub() },
+        shouldRenderClearButton: false,
+      },
+      // Callback not provided
+      {
+        props: {
+          selectedAssignmentIds: [...assignments],
+          selectedStudentIds: [...studentsWithName],
+        },
+        shouldRenderClearButton: false,
+      },
+      // Callback provided and items selected
+      {
+        props: {
+          onClearSelection: sinon.stub(),
+          selectedCourseIds: [...courses],
+        },
+        shouldRenderClearButton: true,
+      },
+    ].forEach(({ props, shouldRenderClearButton }) => {
+      it('shows clear button if `onClearSelection` callback was provided and some items are selected', () => {
+        const wrapper = createComponent(props);
+        assert.equal(
+          shouldRenderClearButton,
+          wrapper.exists('[data-testid="clear-button"]'),
+        );
+      });
+    });
+
+    it('invokes `onClearSelection` when clear button is clicked', () => {
+      const onClearSelection = sinon.stub();
+      const wrapper = createComponent({
+        onClearSelection,
+        selectedCourseIds: [...courses],
+      });
+
+      wrapper.find('button[data-testid="clear-button"]').simulate('click');
+
+      assert.called(onClearSelection);
     });
   });
 
