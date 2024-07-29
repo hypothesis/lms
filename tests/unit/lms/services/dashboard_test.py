@@ -11,6 +11,41 @@ pytestmark = pytest.mark.usefixtures("h_api", "assignment_service")
 
 
 class TestDashboardService:
+    def test_get_request_organization_for_non_staff(self, pyramid_request, svc):
+        pyramid_request.parsed_params = {"public_id": sentinel.public_id}
+
+        assert not svc.get_request_organization(pyramid_request)
+
+    def test_get_request_organization_no_parameter(
+        self, pyramid_request, svc, pyramid_config
+    ):
+        pyramid_request.parsed_params = {}
+        pyramid_config.testing_securitypolicy(permissive=True)
+
+        assert not svc.get_request_organization(pyramid_request)
+
+    def test_get_request_organization_no_organization(
+        self, pyramid_request, svc, pyramid_config, organization_service
+    ):
+        pyramid_config.testing_securitypolicy(permissive=True)
+        organization_service.get_by_public_id.return_value = None
+        pyramid_request.parsed_params = {"public_id": sentinel.public_id}
+
+        with pytest.raises(HTTPNotFound):
+            svc.get_request_organization(pyramid_request)
+
+    def test_get_request_organization(
+        self, pyramid_request, svc, pyramid_config, organization_service, organization
+    ):
+        pyramid_config.testing_securitypolicy(permissive=True)
+        organization_service.get_by_public_id.return_value = organization
+        pyramid_request.parsed_params = {"public_id": sentinel.public_id}
+
+        assert svc.get_request_organization(pyramid_request) == organization
+        organization_service.get_by_public_id.assert_called_once_with(
+            sentinel.public_id
+        )
+
     def test_get_request_assignment_404(
         self,
         pyramid_request,
