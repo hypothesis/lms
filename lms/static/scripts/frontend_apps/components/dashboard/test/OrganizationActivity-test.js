@@ -35,6 +35,9 @@ describe('OrganizationActivity', () => {
   let fakeConfig;
 
   beforeEach(() => {
+    // Reset query string before every test
+    history.replaceState(null, '', '?');
+
     wrappers = [];
 
     fakeUseAPIFetch = sinon.stub().returns({
@@ -189,6 +192,20 @@ describe('OrganizationActivity', () => {
       h_userid: [],
       assignment_id: [],
       course_id: ['3', '8', '9'],
+    });
+  });
+
+  it('allows filters to be cleared', () => {
+    const wrapper = createComponent();
+    const filters = wrapper.find('DashboardActivityFilters');
+
+    act(() => filters.props().onClearSelection());
+    wrapper.update();
+
+    assert.calledWith(fakeUseAPIFetch.lastCall, sinon.match.string, {
+      h_userid: [],
+      assignment_id: [],
+      course_id: [],
     });
   });
 

@@ -57,6 +57,9 @@ export default function OrganizationActivity() {
         onAssignmentsChange={assignmentIds => updateFilters({ assignmentIds })}
         selectedCourseIds={courseIds}
         onCoursesChange={courseIds => updateFilters({ courseIds })}
+        onClearSelection={() =>
+          updateFilters({ studentIds: [], assignmentIds: [], courseIds: [] })
+        }
       />
       <OrderableActivityTable
         loading={courses.isLoading}

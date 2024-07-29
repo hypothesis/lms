@@ -1,4 +1,8 @@
-import { MultiSelect } from '@hypothesis/frontend-shared';
+import {
+  CancelIcon,
+  IconButton,
+  MultiSelect,
+} from '@hypothesis/frontend-shared';
 import { useMemo } from 'preact/hooks';
 
 import type { Assignment, Course, Student } from '../../api-types';
@@ -12,6 +16,7 @@ export type DashboardActivityFiltersProps = {
   onAssignmentsChange: (newAssignmentIds: string[]) => void;
   selectedStudentIds: string[];
   onStudentsChange: (newStudentIds: string[]) => void;
+  onClearSelection?: () => void;
 };
 
 /**
@@ -25,7 +30,12 @@ export default function DashboardActivityFilters({
   onAssignmentsChange,
   selectedStudentIds,
   onStudentsChange,
+  onClearSelection,
 }: DashboardActivityFiltersProps) {
+  const hasSelection =
+    selectedStudentIds.length > 0 ||
+    selectedAssignmentIds.length > 0 ||
+    selectedCourseIds.length > 0;
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
 
@@ -123,6 +133,15 @@ export default function DashboardActivityFilters({
           </MultiSelect.Option>
         ))}
       </MultiSelect>
+      {hasSelection && onClearSelection && (
+        <IconButton
+          title="Clear filters"
+          icon={CancelIcon}
+          classes="text-grey-7"
+          onClick={() => onClearSelection()}
+          data-testid="clear-button"
+        />
+      )}
     </div>
   );
 }
