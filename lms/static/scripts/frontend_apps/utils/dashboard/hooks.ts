@@ -33,7 +33,7 @@ export function useDashboardFilters(): UseDashboardFilters {
     return { courseIds, assignmentIds, studentIds };
   }, [queryParams]);
 
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const updateFilters = useCallback(
     ({ courseIds, assignmentIds, studentIds }: Partial<DashboardFilters>) => {
       const newQueryParams = { ...queryParams };
@@ -47,9 +47,16 @@ export function useDashboardFilters(): UseDashboardFilters {
         newQueryParams.student_id = studentIds;
       }
 
-      navigate(recordToQueryString(newQueryParams), { replace: true });
+      // The base URL is represented by '/', but that adds a trailing slash to
+      // the URL which is not recognized by the server router. To work around
+      // that, we replace it with an "empty" path.
+      const normalizedLocation = location === '/' ? '' : location;
+
+      navigate(`${normalizedLocation}${recordToQueryString(newQueryParams)}`, {
+        replace: true,
+      });
     },
-    [navigate, queryParams],
+    [location, navigate, queryParams],
   );
 
   return { filters, updateFilters };
