@@ -29,7 +29,7 @@ export function useDocumentTitle(documentTitle: string) {
 
 /**
  * In development environments, set a placeholder document title at the start
- * of a navigation.
+ * of a navigation to a different path.
  *
  * Navigations are detected using the `navigate` event of the Navigation API.
  * https://developer.mozilla.org/en-US/docs/Web/API/Navigation_API
@@ -44,8 +44,13 @@ export function usePlaceholderDocumentTitleInDev() {
       return () => {};
     }
 
-    const listener = () => {
-      document.title = 'PLACEHOLDER DOCUMENT TITLE';
+    const listener = (e: NavigateEvent) => {
+      const { pathname: newPath } = new URL(e.destination.url);
+      const currentPath = location.pathname;
+
+      if (currentPath !== newPath) {
+        document.title = 'PLACEHOLDER DOCUMENT TITLE';
+      }
     };
     window.navigation.addEventListener('navigate', listener);
 
