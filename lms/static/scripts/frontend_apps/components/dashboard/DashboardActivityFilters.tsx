@@ -60,12 +60,13 @@ export default function DashboardActivityFilters({
   );
 
   return (
-    <div className="flex gap-2 md:w-1/2">
+    <div className="flex gap-2 flex-wrap">
       <MultiSelect
         disabled={courses.isLoading}
         value={selectedCourseIds}
         onChange={onCoursesChange}
         aria-label="Select courses"
+        containerClasses="!w-auto min-w-[180px]"
         buttonContent={
           courses.isLoading ? (
             <>...</>
@@ -92,6 +93,7 @@ export default function DashboardActivityFilters({
         value={selectedAssignmentIds}
         onChange={onAssignmentsChange}
         aria-label="Select assignments"
+        containerClasses="!w-auto min-w-[180px]"
         buttonContent={
           assignments.isLoading ? (
             <>...</>
@@ -121,6 +123,7 @@ export default function DashboardActivityFilters({
         value={selectedStudentIds}
         onChange={onStudentsChange}
         aria-label="Select students"
+        containerClasses="!w-auto min-w-[180px]"
         buttonContent={
           students.isLoading ? (
             <>...</>
