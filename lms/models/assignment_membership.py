@@ -24,7 +24,10 @@ class AssignmentMembership(CreatedUpdatedMixin, Base):
     """The user who is a member."""
 
     lti_role_id = sa.Column(
-        sa.Integer(), sa.ForeignKey("lti_role.id", ondelete="cascade"), primary_key=True
+        sa.Integer(),
+        sa.ForeignKey("lti_role.id", ondelete="cascade"),
+        primary_key=True,
+        index=True,
     )
     lti_role = sa.orm.relationship("LTIRole", foreign_keys=[lti_role_id])
     """What role the user plays in the assignment."""
