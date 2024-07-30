@@ -95,8 +95,7 @@ class TestUserViews:
         response = views.students_metrics()
 
         dashboard_service.get_request_assignment.assert_called_once_with(
-            pyramid_request,
-            dashboard_service.get_organizations_by_admin_email.return_value,
+            pyramid_request
         )
         h_api.get_annotation_counts.assert_called_once_with(
             [g.authority_provided_id for g in assignment.groupings],

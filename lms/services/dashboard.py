@@ -17,7 +17,7 @@ class DashboardService:
         self._course_service = course_service
         self._organization_service = organization_service
 
-    def get_request_assignment(self, request, admin_organizations: list[Organization]):
+    def get_request_assignment(self, request):
         """Get and authorize an assignment for the given request."""
         assigment_id = request.matchdict.get(
             "assignment_id"
@@ -30,6 +30,7 @@ class DashboardService:
             # STAFF members in our admin pages can access all assignments
             return assignment
 
+        admin_organizations = self.get_request_admin_organizations(request)
         if (
             admin_organizations
             and assignment.course.application_instance.organization
@@ -43,7 +44,7 @@ class DashboardService:
 
         return assignment
 
-    def get_request_course(self, request, admin_organizations: list[Organization]):
+    def get_request_course(self, request):
         """Get and authorize a course for the given request."""
         course = self._course_service.get_by_id(request.matchdict["course_id"])
         if not course:
@@ -53,6 +54,7 @@ class DashboardService:
             # STAFF members in our admin pages can access all courses
             return course
 
+        admin_organizations = self.get_request_admin_organizations(request)
         if (
             admin_organizations
             and course.application_instance.organization in admin_organizations
@@ -64,23 +66,6 @@ class DashboardService:
             raise HTTPUnauthorized()
 
         return course
-
-    def get_request_organization(self, request) -> Organization | None:
-        """Get and authorize an organization."""
-        if not request.has_permission(Permissions.STAFF):
-            # For now only staff request are scoped to an organization
-            return None
-
-        request_public_id = request.parsed_params.get("public_id")
-        if not request_public_id:
-            # Only relevant for request that include the query parameter
-            return None
-
-        organization = self._organization_service.get_by_public_id(request_public_id)
-        if not organization:
-            raise HTTPNotFound()
-
-        return organization
 
     def get_organizations_by_admin_email(self, email: str) -> list[Organization]:
         """Get a list of organizations where the user with email `email` is an admin in."""
@@ -104,6 +89,26 @@ class DashboardService:
     def delete_dashboard_admin(self, dashboard_admin_id: int) -> None:
         """Delete an existing dashboard admin."""
         self._db.query(DashboardAdmin).filter_by(id=dashboard_admin_id).delete()
+
+    def get_request_admin_organizations(self, request) -> list[Organization]:
+        """Get the organization the current user is an admin in."""
+        if request.has_permission(Permissions.STAFF) and (
+            request_public_id := request.params.get("public_id")
+        ):
+            # We handle permissions and filtering specially for staff members
+            # If the request contains a filter for one organization, we will proceed as if the staff member
+            # is an admin in that organization. That will provide access to its data and filter by it
+            organization = self._organization_service.get_by_public_id(
+                request_public_id
+            )
+            if not organization:
+                raise HTTPNotFound()
+
+            return [organization]
+
+        return self.get_organizations_by_admin_email(
+            request.lti_user.email if request.lti_user else request.identity.userid
+        )
 
 
 def factory(_context, request):

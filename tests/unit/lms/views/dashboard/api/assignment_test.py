@@ -51,8 +51,7 @@ class TestAssignmentViews:
         response = views.assignment()
 
         dashboard_service.get_request_assignment.assert_called_once_with(
-            pyramid_request,
-            dashboard_service.get_organizations_by_admin_email.return_value,
+            pyramid_request
         )
 
         assert response == {
