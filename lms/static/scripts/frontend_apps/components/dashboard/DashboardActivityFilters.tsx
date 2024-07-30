@@ -29,11 +29,16 @@ export default function DashboardActivityFilters({
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
 
-  const courses = useAPIFetch<{ courses: Course[] }>(routes.courses);
+  const courses = useAPIFetch<{ courses: Course[] }>(routes.courses, {
+    public_id: dashboard.organization_public_id || [],
+  });
   const assignments = useAPIFetch<{ assignments: Assignment[] }>(
     routes.assignments,
+    { public_id: dashboard.organization_public_id || [] },
   );
-  const students = useAPIFetch<{ students: Student[] }>(routes.students);
+  const students = useAPIFetch<{ students: Student[] }>(routes.students, {
+    public_id: dashboard.organization_public_id || [],
+  });
   const studentsWithName = useMemo(
     () => students.data?.students.filter(s => !!s.display_name),
     [students.data?.students],

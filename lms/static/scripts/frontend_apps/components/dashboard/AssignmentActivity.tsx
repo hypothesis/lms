@@ -30,6 +30,7 @@ export default function AssignmentActivity() {
   );
   const students = useAPIFetch<StudentsResponse>(routes.students_metrics, {
     assignment_id: assignmentId,
+    public_id: dashboard.organization_public_id || [],
   });
 
   const title = `Assignment: ${assignment.data?.title}`;

@@ -36,6 +36,7 @@ export default function OrganizationActivity() {
     h_userid: studentIds,
     assignment_id: assignmentIds,
     course_id: courseIds,
+    public_id: dashboard.organization_public_id || [],
   });
   const rows: CoursesTableRow[] = useMemo(
     () =>

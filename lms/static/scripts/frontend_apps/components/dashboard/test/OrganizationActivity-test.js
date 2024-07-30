@@ -175,6 +175,7 @@ describe('OrganizationActivity', () => {
       h_userid: ['123', '456'],
       assignment_id: [],
       course_id: [],
+      public_id: [],
     });
 
     updateFilter('onAssignmentsChange', ['1', '2']);
@@ -182,6 +183,7 @@ describe('OrganizationActivity', () => {
       h_userid: [],
       assignment_id: ['1', '2'],
       course_id: [],
+      public_id: [],
     });
 
     updateFilter('onCoursesChange', ['3', '8', '9']);
@@ -189,6 +191,7 @@ describe('OrganizationActivity', () => {
       h_userid: [],
       assignment_id: [],
       course_id: ['3', '8', '9'],
+      public_id: [],
     });
   });
 
