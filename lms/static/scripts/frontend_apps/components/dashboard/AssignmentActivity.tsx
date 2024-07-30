@@ -32,7 +32,6 @@ export default function AssignmentActivity() {
     assignment_id: assignmentId,
   });
 
-  const title = `Assignment: ${assignment.data?.title}`;
   const rows: StudentsTableRow[] = useMemo(
     () =>
       (students.data?.students ?? []).map(
@@ -65,12 +64,12 @@ export default function AssignmentActivity() {
         <h2 className="text-lg text-brand font-semibold" data-testid="title">
           {assignment.isLoading && 'Loading...'}
           {assignment.error && 'Could not load assignment title'}
-          {assignment.data && title}
+          {assignment.data && assignment.data.title}
         </h2>
       </div>
       <OrderableActivityTable
         loading={students.isLoading}
-        title={assignment.isLoading ? 'Loading...' : title}
+        title={assignment.data?.title ?? 'Loading...'}
         emptyMessage={
           students.error ? 'Could not load students' : 'No students found'
         }
