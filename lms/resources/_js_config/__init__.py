@@ -257,6 +257,7 @@ class JSConfig:
                 "mode": JSConfig.Mode.DASHBOARD,
                 "dashboard": DashboardConfig(
                     user=self._get_user_info(),
+                    organization_public_id=self._request.params.get("public_id"),
                     routes=DashboardRoutes(
                         assignment=self._to_frontend_template(
                             "api.dashboard.assignment"

@@ -272,6 +272,7 @@ describe('DashboardActivityFilters', () => {
       assert.calledWith(fakeUseAPIFetch.getCall(0), '/api/dashboard/courses', {
         h_userid: selectedStudentIds,
         assignment_id: selectedAssignmentIds,
+        public_id: undefined,
       });
       assert.calledWith(
         fakeUseAPIFetch.getCall(1),
@@ -279,11 +280,13 @@ describe('DashboardActivityFilters', () => {
         {
           h_userid: selectedStudentIds,
           course_id: selectedCourseIds,
+          public_id: undefined,
         },
       );
       assert.calledWith(fakeUseAPIFetch.getCall(2), '/api/dashboard/students', {
         assignment_id: selectedAssignmentIds,
         course_id: selectedCourseIds,
+        public_id: undefined,
       });
     });
   });
