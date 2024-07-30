@@ -35,6 +35,7 @@ export default function CourseActivity() {
     replaceURLParams(routes.course_assignments_metrics, {
       course_id: courseId,
     }),
+    { public_id: dashboard.organization_public_id },
   );
 
   const rows: AssignmentsTableRow[] = useMemo(
