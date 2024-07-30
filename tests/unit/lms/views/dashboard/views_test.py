@@ -49,8 +49,7 @@ class TestDashboardViews:
         views.assignment_show()
 
         dashboard_service.get_request_assignment.assert_called_once_with(
-            pyramid_request,
-            dashboard_service.get_organizations_by_admin_email.return_value,
+            pyramid_request
         )
         pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
         assert (
@@ -68,10 +67,7 @@ class TestDashboardViews:
 
         views.course_show()
 
-        dashboard_service.get_request_course.assert_called_once_with(
-            pyramid_request,
-            dashboard_service.get_organizations_by_admin_email.return_value,
-        )
+        dashboard_service.get_request_course.assert_called_once_with(pyramid_request)
         pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
         assert (
             pyramid_request.response.headers["Set-Cookie"]
@@ -105,8 +101,7 @@ class TestDashboardViews:
         views.assignment_show()
 
         dashboard_service.get_request_assignment.assert_called_once_with(
-            pyramid_request,
-            dashboard_service.get_organizations_by_admin_email.return_value,
+            pyramid_request
         )
         pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
 

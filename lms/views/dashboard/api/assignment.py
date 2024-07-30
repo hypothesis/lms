@@ -26,6 +26,9 @@ class ListAssignmentsSchema(PaginationParametersMixin):
     h_userids = fields.List(fields.Str(), data_key="h_userid")
     """Return metrics for these users only."""
 
+    public_id = fields.Str()
+    """Return only the assignments which belong to this organization. For staff member only."""
+
 
 class AssignmentsMetricsSchema(PyramidRequestSchema):
     """Query parameters to fetch metrics for assignments."""
@@ -38,6 +41,9 @@ class AssignmentsMetricsSchema(PyramidRequestSchema):
     assignment_ids = fields.List(fields.Integer(), data_key="assignment_id")
     """Return metrics for these assignments only."""
 
+    public_id = fields.Str()
+    """Return only the assignments which belong to this organization. For staff member only."""
+
 
 class AssignmentViews:
     def __init__(self, request) -> None:
@@ -48,12 +54,6 @@ class AssignmentViews:
         self.course_service = request.find_service(name="course")
         self.user_service: UserService = request.find_service(UserService)
 
-        self.admin_organizations = (
-            self.dashboard_service.get_organizations_by_admin_email(
-                request.lti_user.email if request.lti_user else request.identity.userid
-            )
-        )
-
     @view_config(
         route_name="api.dashboard.assignments",
         request_method="GET",
@@ -63,8 +63,12 @@ class AssignmentViews:
     )
     def assignments(self) -> APIAssignments:
         filter_by_h_userids = self.request.parsed_params.get("h_userids")
+        admin_organizations = self.dashboard_service.get_request_admin_organizations(
+            self.request
+        )
+
         assignments = self.assignment_service.get_assignments(
-            admin_organization_ids=[org.id for org in self.admin_organizations],
+            admin_organization_ids=[org.id for org in admin_organizations],
             instructor_h_userid=self.request.user.h_userid
             if self.request.user
             else None,
@@ -89,9 +93,7 @@ class AssignmentViews:
         permission=Permissions.DASHBOARD_VIEW,
     )
     def assignment(self) -> APIAssignment:
-        assignment = self.dashboard_service.get_request_assignment(
-            self.request, self.admin_organizations
-        )
+        assignment = self.dashboard_service.get_request_assignment(self.request)
         return APIAssignment(
             id=assignment.id,
             title=assignment.title,
@@ -106,24 +108,27 @@ class AssignmentViews:
         schema=AssignmentsMetricsSchema,
     )
     def course_assignments_metrics(self) -> APIAssignments:
+        # pylint:disable=too-many-locals
         current_h_userid = self.request.user.h_userid if self.request.user else None
         filter_by_h_userids = self.request.parsed_params.get("h_userids")
         filter_by_assignment_ids = self.request.parsed_params.get("assignment_ids")
-        course = self.dashboard_service.get_request_course(
-            self.request, self.admin_organizations
+        admin_organizations = self.dashboard_service.get_request_admin_organizations(
+            self.request
         )
+
+        course = self.dashboard_service.get_request_course(self.request)
         course_students = self.request.db.scalars(
             self.user_service.get_users(
                 course_ids=[course.id],
                 role_scope=RoleScope.COURSE,
                 role_type=RoleType.LEARNER,
                 instructor_h_userid=current_h_userid,
-                admin_organization_ids=[org.id for org in self.admin_organizations],
+                admin_organization_ids=[org.id for org in admin_organizations],
                 h_userids=filter_by_h_userids,
             )
         ).all()
         assignments_query = self.assignment_service.get_assignments(
-            admin_organization_ids=[org.id for org in self.admin_organizations],
+            admin_organization_ids=[org.id for org in admin_organizations],
             course_ids=[course.id],
             instructor_h_userid=current_h_userid,
             h_userids=filter_by_h_userids,

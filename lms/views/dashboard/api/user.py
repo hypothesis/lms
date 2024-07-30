@@ -27,6 +27,9 @@ class ListUsersSchema(PaginationParametersMixin):
     )
     """Return users that belong to the assignment with these IDs."""
 
+    public_id = fields.Str()
+    """Return only the users which belong to this organization. For staff member only."""
+
 
 class UsersMetricsSchema(PyramidRequestSchema):
     """Query parameters to fetch metrics for users."""
@@ -39,6 +42,9 @@ class UsersMetricsSchema(PyramidRequestSchema):
     h_userids = fields.List(fields.Str(), data_key="h_userid")
     """Return metrics for these users only."""
 
+    public_id = fields.Str()
+    """Return only the users which belong to this organization. For staff member only."""
+
 
 class UserViews:
     def __init__(self, request) -> None:
@@ -48,12 +54,6 @@ class UserViews:
         self.h_api = request.find_service(HAPI)
         self.user_service: UserService = request.find_service(UserService)
 
-        self.admin_organizations = (
-            self.dashboard_service.get_organizations_by_admin_email(
-                request.lti_user.email if request.lti_user else request.identity.userid
-            )
-        )
-
     @view_config(
         route_name="api.dashboard.students",
         request_method="GET",
@@ -62,13 +62,17 @@ class UserViews:
         schema=ListUsersSchema,
     )
     def students(self) -> APIStudents:
+        admin_organizations = self.dashboard_service.get_request_admin_organizations(
+            self.request
+        )
+
         students_query = self.user_service.get_users(
             role_scope=RoleScope.COURSE,
             role_type=RoleType.LEARNER,
             instructor_h_userid=self.request.user.h_userid
             if self.request.user
             else None,
-            admin_organization_ids=[org.id for org in self.admin_organizations],
+            admin_organization_ids=[org.id for org in admin_organizations],
             course_ids=self.request.parsed_params.get("course_ids"),
             assignment_ids=self.request.parsed_params.get("assignment_ids"),
         )
@@ -96,9 +100,7 @@ class UserViews:
     def students_metrics(self) -> APIStudents:
         """Fetch the stats for one particular assignment."""
         request_h_userids = self.request.parsed_params.get("h_userids")
-        assignment = self.dashboard_service.get_request_assignment(
-            self.request, self.admin_organizations
-        )
+        assignment = self.dashboard_service.get_request_assignment(self.request)
         stats = self.h_api.get_annotation_counts(
             [g.authority_provided_id for g in assignment.groupings],
             group_by="user",
@@ -109,6 +111,10 @@ class UserViews:
         stats_by_user = {s["userid"]: s for s in stats}
         students: list[APIStudent] = []
 
+        admin_organizations = self.dashboard_service.get_request_admin_organizations(
+            self.request
+        )
+
         users_query = self.user_service.get_users(
             role_scope=RoleScope.COURSE,
             role_type=RoleType.LEARNER,
@@ -117,7 +123,7 @@ class UserViews:
             instructor_h_userid=self.request.user.h_userid
             if self.request.user
             else None,
-            admin_organization_ids=[org.id for org in self.admin_organizations],
+            admin_organization_ids=[org.id for org in admin_organizations],
             # Users the current user requested
             h_userids=request_h_userids,
         )
