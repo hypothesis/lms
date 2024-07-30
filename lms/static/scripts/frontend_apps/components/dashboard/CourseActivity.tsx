@@ -49,7 +49,8 @@ export default function CourseActivity() {
     [assignments.data],
   );
 
-  useDocumentTitle(course.data?.title ?? 'Untitled course');
+  const title = course.data?.title ?? 'Untitled course';
+  useDocumentTitle(title);
 
   return (
     <div className="flex flex-col gap-y-5">
@@ -60,12 +61,12 @@ export default function CourseActivity() {
         <h2 className="text-lg text-brand font-semibold" data-testid="title">
           {course.isLoading && 'Loading...'}
           {course.error && 'Could not load course title'}
-          {course.data && course.data.title}
+          {course.data && title}
         </h2>
       </div>
       <OrderableActivityTable
         loading={assignments.isLoading}
-        title={course.data?.title ?? 'Loading...'}
+        title={course.isLoading ? 'Loading...' : title}
         emptyMessage={
           assignments.error
             ? 'Could not load assignments'
