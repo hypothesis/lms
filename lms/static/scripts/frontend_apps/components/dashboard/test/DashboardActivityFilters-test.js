@@ -245,9 +245,9 @@ describe('DashboardActivityFilters', () => {
 
     it('shows amount of selected items when more than one is selected', () => {
       const wrapper = createComponent({
-        selectedCourseIds: [...courses],
-        selectedAssignmentIds: [...assignments],
-        selectedStudentIds: [...studentsWithName],
+        selectedCourseIds: courses.map(c => `${c.id}`),
+        selectedAssignmentIds: assignments.map(a => `${a.id}`),
+        selectedStudentIds: studentsWithName.map(s => s.h_userid),
       });
 
       assert.equal(getSelectContent(wrapper, 'courses-select'), '2 courses');
@@ -256,6 +256,35 @@ describe('DashboardActivityFilters', () => {
         '2 assignments',
       );
       assert.equal(getSelectContent(wrapper, 'students-select'), '2 students');
+    });
+
+    it('filters each dropdown by the values selected in the other dropdowns', () => {
+      const selectedCourseIds = [`${courses[0].id}`];
+      const selectedAssignmentIds = [`${assignments[1].id}`];
+      const selectedStudentIds = studentsWithName.map(s => s.h_userid);
+
+      createComponent({
+        selectedCourseIds,
+        selectedAssignmentIds,
+        selectedStudentIds,
+      });
+
+      assert.calledWith(fakeUseAPIFetch.getCall(0), '/api/dashboard/courses', {
+        h_userid: selectedStudentIds,
+        assignment_id: selectedAssignmentIds,
+      });
+      assert.calledWith(
+        fakeUseAPIFetch.getCall(1),
+        '/api/dashboard/assignments',
+        {
+          h_userid: selectedStudentIds,
+          course_id: selectedCourseIds,
+        },
+      );
+      assert.calledWith(fakeUseAPIFetch.getCall(2), '/api/dashboard/students', {
+        assignment_id: selectedAssignmentIds,
+        course_id: selectedCourseIds,
+      });
     });
   });
 
