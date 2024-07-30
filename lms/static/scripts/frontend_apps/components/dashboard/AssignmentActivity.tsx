@@ -32,7 +32,6 @@ export default function AssignmentActivity() {
     assignment_id: assignmentId,
   });
 
-  const title = `Assignment: ${assignment.data?.title}`;
   const rows: StudentsTableRow[] = useMemo(
     () =>
       (students.data?.students ?? []).map(
@@ -45,7 +44,8 @@ export default function AssignmentActivity() {
     [students.data],
   );
 
-  useDocumentTitle(assignment.data?.title ?? 'Untitled assignment');
+  const title = assignment.data?.title ?? 'Untitled assignment';
+  useDocumentTitle(title);
 
   return (
     <div className="flex flex-col gap-y-5">
