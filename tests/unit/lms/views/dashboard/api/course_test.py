@@ -43,30 +43,6 @@ class TestCourseViews:
             "pagination": sentinel.pagination,
         }
 
-    def test_get_courses_for_staff(
-        self,
-        course_service,
-        pyramid_request,
-        views,
-        dashboard_service,
-        get_page,
-        pyramid_config,
-    ):
-        pyramid_request.parsed_params = {}
-        get_page.return_value = [], sentinel.pagination
-        pyramid_config.testing_securitypolicy(permissive=True)
-
-        views.courses()
-
-        course_service.get_courses.assert_called_once_with(
-            admin_organization_ids=[
-                dashboard_service.get_request_organization.return_value.id
-            ],
-            instructor_h_userid=pyramid_request.user.h_userid,
-            h_userids=None,
-            assignment_ids=None,
-        )
-
     def test_course_metrics(
         self, course_service, pyramid_request, views, db_session, assignment_service
     ):
@@ -147,10 +123,7 @@ class TestCourseViews:
 
         response = views.course()
 
-        dashboard_service.get_request_course.assert_called_once_with(
-            pyramid_request,
-            dashboard_service.get_organizations_by_admin_email.return_value,
-        )
+        dashboard_service.get_request_course.assert_called_once_with(pyramid_request)
 
         assert response == {
             "id": course.id,
