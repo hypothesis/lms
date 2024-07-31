@@ -136,56 +136,6 @@ class TestAssignmentViews:
             ]
         }
 
-    def test_course_assignments_filtered_by_assignment_ids(
-        self,
-        views,
-        pyramid_request,
-        assignment_service,
-        h_api,
-        db_session,
-        dashboard_service,
-        user_service,
-        assignment,
-        assignments_metrics_response,
-    ):
-        pyramid_request.matchdict["course_id"] = sentinel.id
-        course = factories.Course()
-        dashboard_service.get_request_course.return_value = course
-
-        assignment_with_no_annos = factories.Assignment()
-        users = factories.User.create_batch(5)
-        db_session.flush()
-
-        assignment_service.get_assignments.return_value = select(Assignment).where(
-            Assignment.id.in_([assignment.id, assignment_with_no_annos.id])
-        )
-        user_service.get_users.return_value = (
-            select(User).where(User.id.in_([u.id for u in users])).order_by(User.id)
-        )
-
-        h_api.get_annotation_counts.return_value = assignments_metrics_response
-        pyramid_request.parsed_params = {"assignment_ids": [assignment.id]}
-
-        response = views.course_assignments_metrics()
-
-        assert response == {
-            "assignments": [
-                {
-                    "id": assignment.id,
-                    "title": assignment.title,
-                    "course": {
-                        "id": course.id,
-                        "title": course.lms_name,
-                    },
-                    "annotation_metrics": {
-                        "annotations": sentinel.annotations,
-                        "replies": sentinel.replies,
-                        "last_activity": sentinel.last_activity,
-                    },
-                },
-            ]
-        }
-
     @pytest.fixture
     def assignments_metrics_response(self, assignment):
         return [

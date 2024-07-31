@@ -52,6 +52,7 @@ class TestCourseViews:
         pyramid_request.parsed_params = {
             "h_userids": sentinel.h_userids,
             "assignment_ids": sentinel.assignment_ids,
+            "course_ids": sentinel.course_ids,
         }
         db_session.flush()
 
@@ -62,9 +63,14 @@ class TestCourseViews:
             instructor_h_userid=pyramid_request.user.h_userid,
             h_userids=sentinel.h_userids,
             assignment_ids=sentinel.assignment_ids,
+            course_ids=sentinel.course_ids,
         )
         assignment_service.get_courses_assignments_count.assert_called_once_with(
-            [c.id for c in courses]
+            course_ids=[c.id for c in courses],
+            admin_organization_ids=[],
+            instructor_h_userid=pyramid_request.user.h_userid,
+            h_userids=sentinel.h_userids,
+            assignment_ids=sentinel.assignment_ids,
         )
 
         assert response == {
@@ -78,41 +84,6 @@ class TestCourseViews:
                     },
                 }
                 for c in courses
-            ]
-        }
-
-    def test_courses_metrics_by_courses(
-        self, course_service, pyramid_request, views, db_session, assignment_service
-    ):
-        courses = factories.Course.create_batch(5)
-        course_service.get_courses.return_value = select(Course).order_by(Course.id)
-        pyramid_request.matchdict["organization_public_id"] = sentinel.public_id
-        db_session.flush()
-        pyramid_request.parsed_params = {"course_ids": [courses[0].id]}
-
-        response = views.courses_metrics()
-
-        course_service.get_courses.assert_called_once_with(
-            admin_organization_ids=[],
-            instructor_h_userid=pyramid_request.user.h_userid,
-            h_userids=None,
-            assignment_ids=None,
-        )
-        assignment_service.get_courses_assignments_count.assert_called_once_with(
-            [courses[0].id]
-        )
-
-        assert response == {
-            "courses": [
-                {
-                    "id": c.id,
-                    "title": c.lms_name,
-                    "course_metrics": {
-                        "assignments": assignment_service.get_courses_assignments_count.return_value.get.return_value,
-                        "last_launched": c.updated.isoformat(),
-                    },
-                }
-                for c in courses[0:1]
             ]
         }
 

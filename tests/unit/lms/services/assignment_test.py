@@ -254,6 +254,7 @@ class TestAssignmentService:
     @pytest.mark.parametrize("instructor_h_userid", [True, False])
     @pytest.mark.parametrize("course_ids", [True, False])
     @pytest.mark.parametrize("h_userids", [True, False])
+    @pytest.mark.parametrize("assignment_ids", [True, False])
     def test_get_assignments(
         self,
         svc,
@@ -262,6 +263,7 @@ class TestAssignmentService:
         assignment,
         course_ids,
         h_userids,
+        assignment_ids,
         organization,
         application_instance,
     ):
@@ -290,6 +292,9 @@ class TestAssignmentService:
 
         if h_userids:
             query_parameters["h_userids"] = [user.h_userid]
+        if assignment_ids:
+            query_parameters["assignment_ids"] = [assignment.id]
+
         query = svc.get_assignments(**query_parameters)
 
         assert db_session.scalars(query).all() == [assignment]
