@@ -132,11 +132,8 @@ class AssignmentViews:
             course_ids=[course.id],
             instructor_h_userid=current_h_userid,
             h_userids=filter_by_h_userids,
+            assignment_ids=filter_by_assignment_ids,
         )
-        if filter_by_assignment_ids:
-            assignments_query = assignments_query.where(
-                Assignment.id.in_(filter_by_assignment_ids)
-            )
         assignments = self.request.db.scalars(assignments_query).all()
 
         stats = self.h_api.get_annotation_counts(
