@@ -224,6 +224,7 @@ class AssignmentService:
         admin_organization_ids: list[int] | None = None,
         course_ids: list[int] | None = None,
         h_userids: list[str] | None = None,
+        assignment_ids: list[int] | None = None,
     ) -> Select[tuple[Assignment]]:
         """Get a query to fetch assignments.
 
@@ -231,8 +232,12 @@ class AssignmentService:
         :param admin_organization_ids: organizations where the current user is an admin.
         :param course_ids: only return assignments that belong to this course.
         :param h_userids: return only assignments where these users are members.
+        :param h_userids: return only assignments with this IDs.
         """
         query = select(Assignment).where(Assignment.title.is_not(None))
+
+        if assignment_ids:
+            query = query.where(Assignment.id.in_(assignment_ids))
 
         # Let's crate no op clauses by default to avoid having to check the presence of these filters
         instructor_h_userid_clause = cast(BinaryExpression, false())
