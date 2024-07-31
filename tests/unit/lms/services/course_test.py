@@ -417,6 +417,18 @@ class TestCourseService:
             )
         ).all() == [course]
 
+    def test_get_courses_by_course_ids(
+        self, svc, db_session, application_instance, organization
+    ):
+        course = factories.Course(application_instance=application_instance)
+        db_session.flush()
+
+        assert db_session.scalars(
+            svc.get_courses(
+                admin_organization_ids=[organization.id], course_ids=[course.id]
+            )
+        ).all() == [course]
+
     @pytest.fixture
     def course(self, application_instance, grouping_service):
         return factories.Course(

@@ -104,9 +104,8 @@ class CourseViews:
             else None,
             h_userids=filter_by_h_userids,
             assignment_ids=filter_by_assignment_ids,
+            course_ids=filter_by_course_ids,
         )
-        if filter_by_course_ids:
-            courses_query = courses_query.where(Course.id.in_(filter_by_course_ids))
         courses = self.request.db.scalars(courses_query).all()
 
         courses_assignment_counts = (

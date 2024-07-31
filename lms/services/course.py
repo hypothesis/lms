@@ -140,12 +140,13 @@ class CourseService:
             h_userids=h_userids,
         ).all()
 
-    def get_courses(
+    def get_courses(  # noqa: PLR0913
         self,
         instructor_h_userid: str | None = None,
         admin_organization_ids: list[int] | None = None,
         h_userids: list[str] | None = None,
-        assignment_ids: list[str] | None = None,
+        assignment_ids: list[int] | None = None,
+        course_ids: list[int] | None = None,
     ) -> Select[tuple[Course]]:
         """Get a list of unique courses.
 
@@ -153,6 +154,7 @@ class CourseService:
         :param instructor_h_userid: return only courses where instructor_h_userid is an instructor.
         :param h_userids: return only courses where these users are members.
         :param assignment_ids: return only the courses these assignments belong to.
+        :param course_ids: return only courses with these IDs.
         """
         courses_query = (
             self._search_query(h_userids=h_userids, limit=None)
@@ -161,6 +163,9 @@ class CourseService:
             .order_by(Course.authority_provided_id, Course.updated.desc())
             # Only select the ID of the deduplicated courses
         ).with_entities(Course.id)
+
+        if course_ids:
+            courses_query = courses_query.where(Course.id.in_(course_ids))
 
         # Let's crate no op clauses by default to avoid having to check the presence of these filters
         instructor_h_userid_clause = cast(BinaryExpression, false())

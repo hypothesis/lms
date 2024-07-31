@@ -218,7 +218,7 @@ class AssignmentService:
             assignment.membership.join(User).filter(User.h_userid == h_userid).first()
         )
 
-    def get_assignments(
+    def get_assignments(  # noqa: PLR0913
         self,
         instructor_h_userid: str | None = None,
         admin_organization_ids: list[int] | None = None,
@@ -232,7 +232,7 @@ class AssignmentService:
         :param admin_organization_ids: organizations where the current user is an admin.
         :param course_ids: only return assignments that belong to this course.
         :param h_userids: return only assignments where these users are members.
-        :param h_userids: return only assignments with this IDs.
+        :param assignment_ids: return only assignments with these IDs.
         """
         query = select(Assignment).where(Assignment.title.is_not(None))
 
