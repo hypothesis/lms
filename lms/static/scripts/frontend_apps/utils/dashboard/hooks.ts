@@ -33,7 +33,7 @@ export function useDashboardFilters(): UseDashboardFilters {
     return { courseIds, assignmentIds, studentIds };
   }, [queryParams]);
 
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const updateFilters = useCallback(
     ({ courseIds, assignmentIds, studentIds }: Partial<DashboardFilters>) => {
       const newQueryParams = { ...queryParams };
@@ -47,9 +47,16 @@ export function useDashboardFilters(): UseDashboardFilters {
         newQueryParams.student_id = studentIds;
       }
 
-      navigate(recordToQueryString(newQueryParams), { replace: true });
+      // The router's base URL is represented in `location` as '/', even if
+      // that URL does not actually end with `/` (eg. `/dashboard`).
+      // When we update the query string, we want to avoid modifying the path.
+      const normalizedLocation = location === '/' ? '' : location;
+
+      navigate(`${normalizedLocation}${recordToQueryString(newQueryParams)}`, {
+        replace: true,
+      });
     },
-    [navigate, queryParams],
+    [location, navigate, queryParams],
   );
 
   return { filters, updateFilters };

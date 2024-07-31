@@ -38,13 +38,13 @@ describe('useDashboardFilters', () => {
     );
   }
 
-  function setQueryString(queryString) {
+  function setCurrentURL(queryString) {
     history.replaceState(null, '', queryString);
   }
 
   beforeEach(() => {
     // Reset query string
-    setQueryString('?');
+    setCurrentURL('?');
   });
 
   function createComponent() {
@@ -96,7 +96,7 @@ describe('useDashboardFilters', () => {
       expectedStudents,
     }) => {
       it('reads params from the query', () => {
-        setQueryString(initialQueryString);
+        setCurrentURL(initialQueryString);
 
         const wrapper = createComponent();
 
@@ -139,7 +139,7 @@ describe('useDashboardFilters', () => {
   });
 
   it('preserves unknown query params', () => {
-    setQueryString('?foo=bar&something=else');
+    setCurrentURL('?foo=bar&something=else');
 
     const wrapper = createComponent();
     wrapper.find('[data-testid="update-courses"]').simulate('click');
@@ -148,5 +148,15 @@ describe('useDashboardFilters', () => {
       '?foo=bar&something=else&course_id=111&course_id=222&course_id=333',
       location.search,
     );
+  });
+
+  it('preserves path', () => {
+    setCurrentURL('/foo/bar');
+
+    const wrapper = createComponent();
+    wrapper.find('[data-testid="update-courses"]').simulate('click');
+
+    assert.equal('?course_id=111&course_id=222&course_id=333', location.search);
+    assert.equal('/foo/bar', location.pathname);
   });
 });
