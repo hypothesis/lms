@@ -47,6 +47,7 @@ describe('recordToSearchParams', () => {
     const result = recordToSearchParams({
       foo: 'bar',
       baz: ['1', '2', '3'],
+      ignored: undefined,
     });
 
     assert.equal(result.toString(), 'foo=bar&baz=1&baz=2&baz=3');

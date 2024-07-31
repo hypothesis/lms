@@ -45,7 +45,7 @@ export type APICallOptions = {
   path: string;
 
   /** Query parameters. */
-  params?: Record<string, string | string[]>;
+  params?: Record<string, string | string[] | undefined>;
 
   /** JSON-serializable body of request. */
   data?: object;
@@ -186,7 +186,7 @@ export function urlPath(strings: TemplateStringsArray, ...params: string[]) {
  */
 export function useAPIFetch<T = unknown>(
   path: string | null,
-  params?: Record<string, string | string[]>,
+  params?: Record<string, string | string[] | undefined>,
 ): FetchResult<T> {
   const {
     api: { authToken },
