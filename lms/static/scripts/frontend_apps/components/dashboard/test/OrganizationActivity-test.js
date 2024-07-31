@@ -195,6 +195,24 @@ describe('OrganizationActivity', () => {
     });
   });
 
+  context('when `organization_public_id` is present in config', () => {
+    beforeEach(() => {
+      fakeConfig.dashboard.organization_public_id = 'the-org-public-id';
+    });
+
+    it('propagates public_id to API calls', () => {
+      createComponent();
+
+      assert.calledWith(
+        fakeUseAPIFetch.lastCall,
+        sinon.match.string,
+        sinon.match({
+          public_id: 'the-org-public-id',
+        }),
+      );
+    });
+  });
+
   it(
     'should pass a11y checks',
     checkAccessibility({
