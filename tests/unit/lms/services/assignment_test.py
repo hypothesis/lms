@@ -340,10 +340,11 @@ class TestAssignmentService:
             )
         ).all()
 
-    def test_get_courses_assignments_count(self, svc, db_session):
-        course = factories.Course()
-        other_course = factories.Course()
-
+    def test_get_courses_assignments_count(
+        self, svc, db_session, organization, application_instance
+    ):
+        course = factories.Course(application_instance=application_instance)
+        other_course = factories.Course(application_instance=application_instance)
         assignment = factories.Assignment()
 
         # other course only has an assignment that `course` has stolen
@@ -355,9 +356,10 @@ class TestAssignmentService:
         )
         db_session.flush()
 
-        assert svc.get_courses_assignments_count([course.id, other_course.id]) == {
-            course.id: 1
-        }
+        assert svc.get_courses_assignments_count(
+            course_ids=[course.id, other_course.id],
+            admin_organization_ids=[organization.id],
+        ) == {course.id: 1}
 
     @pytest.fixture
     def svc(self, db_session, misc_plugin):

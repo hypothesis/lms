@@ -314,30 +314,42 @@ class AssignmentService:
             )
         )
 
-    def get_courses_assignments_count(self, course_ids: list[int]) -> dict[int, int]:
-        """Get the number of assignments a given list of courses has.
+    def get_courses_assignments_count(
+        self, course_ids: list[int], **kwargs
+    ) -> dict[int, int]:
+        """Get the number of assignments a given list of courses has."""
 
-        This tries to be efficient making just one DB query.
-        """
+        assignments_query = (
+            # Query assignments
+            self.get_assignments(**kwargs)
+            # Only select their IDs
+            .with_only_columns(Assignment.id)
+            # Remove any sorting options, we are going to avoid having to worry about sorted columns
+            .order_by(None)
+        )
+
+        # We didn't pass course_ids to get_assigments because we need to deduplicate when we count, not before
         deduplicated_course_assignments = self._deduplicated_course_assigments_query(
             course_ids
         ).subquery()
 
-        # For each course, calculate the assignment counts in one single query
-        rr = self._db.execute(
+        counts_query = (
             select(
                 AssignmentGrouping.grouping_id,
-                func.count(deduplicated_course_assignments.c.assignment_id),
+                func.count(AssignmentGrouping.assignment_id),
             )
             .where(
+                AssignmentGrouping.assignment_id.in_(assignments_query),
+                AssignmentGrouping.grouping_id.in_(course_ids),
+                deduplicated_course_assignments.c.grouping_id
+                == AssignmentGrouping.grouping_id,
                 AssignmentGrouping.assignment_id
                 == deduplicated_course_assignments.c.assignment_id,
-                AssignmentGrouping.grouping_id
-                == deduplicated_course_assignments.c.grouping_id,
             )
             .group_by(AssignmentGrouping.grouping_id)
         )
-        return {row.grouping_id: row.count for row in rr}  # type: ignore
+
+        return {x.grouping_id: x.count for x in self._db.execute(counts_query)}  # type: ignore
 
 
 def factory(_context, request):

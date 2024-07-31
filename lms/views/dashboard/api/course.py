@@ -108,9 +108,15 @@ class CourseViews:
         )
         courses = self.request.db.scalars(courses_query).all()
 
-        courses_assignment_counts = (
+        courses_assignments_counts = (
             self.assignment_service.get_courses_assignments_count(
-                [c.id for c in courses]
+                admin_organization_ids=[org.id for org in admin_organizations],
+                instructor_h_userid=self.request.user.h_userid
+                if self.request.user
+                else None,
+                h_userids=filter_by_h_userids,
+                assignment_ids=filter_by_assignment_ids,
+                course_ids=[c.id for c in courses],
             )
         )
 
@@ -120,7 +126,7 @@ class CourseViews:
                     id=course.id,
                     title=course.lms_name,
                     course_metrics=CourseMetrics(
-                        assignments=courses_assignment_counts.get(course.id, 0),
+                        assignments=courses_assignments_counts.get(course.id, 0),
                         last_launched=course.updated.isoformat(),
                     ),
                 )
