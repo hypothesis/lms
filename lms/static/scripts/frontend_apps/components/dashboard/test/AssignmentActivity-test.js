@@ -3,6 +3,7 @@ import {
   mockImportedComponents,
 } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
+import { act } from 'preact/test-utils';
 import sinon from 'sinon';
 
 import { Config } from '../../../config';
@@ -39,6 +40,8 @@ describe('AssignmentActivity', () => {
 
   let fakeUseAPIFetch;
   let fakeConfig;
+  let fakeNavigate;
+  let wrappers;
 
   beforeEach(() => {
     fakeUseAPIFetch = sinon.stub().callsFake(url => ({
@@ -48,6 +51,7 @@ describe('AssignmentActivity', () => {
         : {
             title: 'The title',
             course: {
+              id: '357',
               title: 'The course',
             },
           },
@@ -60,6 +64,8 @@ describe('AssignmentActivity', () => {
         },
       },
     };
+    fakeNavigate = sinon.stub();
+    wrappers = [];
 
     $imports.$mock(mockImportedComponents());
     $imports.$restore({
@@ -71,19 +77,28 @@ describe('AssignmentActivity', () => {
       '../../utils/api': {
         useAPIFetch: fakeUseAPIFetch,
       },
+      'wouter-preact': {
+        useParams: sinon.stub().returns({ assignmentId: '777' }),
+        useSearch: sinon.stub().returns('current=query'),
+        useLocation: sinon.stub().returns(['', fakeNavigate]),
+      },
     });
   });
 
   afterEach(() => {
+    wrappers.forEach(wrapper => wrapper.unmount());
     $imports.$restore();
   });
 
   function createComponent() {
-    return mount(
+    const wrapper = mount(
       <Config.Provider value={fakeConfig}>
         <AssignmentActivity />
       </Config.Provider>,
     );
+    wrappers.push(wrapper);
+
+    return wrapper;
   }
 
   it('shows loading indicators while data is loading', () => {
@@ -168,6 +183,115 @@ describe('AssignmentActivity', () => {
       const value = typeof item === 'string' ? item : mount(item).text();
 
       assert.equal(value, expectedValue);
+    });
+  });
+
+  context('when filters are set', () => {
+    function setCurrentURL(url) {
+      history.replaceState(null, '', url);
+    }
+
+    beforeEach(() => {
+      setCurrentURL('?');
+    });
+
+    it('initializes expected filters', () => {
+      setCurrentURL('?student_id=123&student_id=456');
+
+      const wrapper = createComponent();
+      const filters = wrapper.find('DashboardActivityFilters');
+
+      // Course ID is set from the assignment data
+      assert.deepEqual(filters.prop('selectedCourseIds'), ['357']);
+      // Assignment ID is set from the route
+      assert.deepEqual(filters.prop('selectedAssignmentIds'), ['777']);
+      // Students are set from the query
+      assert.deepEqual(filters.prop('selectedStudentIds'), ['123', '456']);
+
+      // Selected filters are propagated when loading assignment metrics
+      assert.calledWith(fakeUseAPIFetch.lastCall, sinon.match.string, {
+        assignment_id: '777',
+        h_userid: ['123', '456'],
+        public_id: undefined,
+      });
+    });
+
+    [
+      { query: '', expectedHasSelection: false },
+      { query: '?foo=bar', expectedHasSelection: false },
+      { query: '?student_id=3', expectedHasSelection: true },
+      { query: '?student_id=3&student_id=4', expectedHasSelection: true },
+    ].forEach(({ query, expectedHasSelection }) => {
+      it('has `onClearSelection` if one student is selected', () => {
+        setCurrentURL(query);
+
+        const wrapper = createComponent();
+        const filters = wrapper.find('DashboardActivityFilters');
+
+        assert.equal(!!filters.prop('onClearSelection'), expectedHasSelection);
+      });
+    });
+
+    it('updates query when selected students change', () => {
+      const wrapper = createComponent();
+      const filters = wrapper.find('DashboardActivityFilters');
+
+      act(() => filters.props().onStudentsChange(['8', '20', '32']));
+
+      assert.equal(
+        location.search,
+        '?student_id=8&student_id=20&student_id=32',
+      );
+    });
+
+    it('clears selected students on clear selection', () => {
+      setCurrentURL('?bar=foo&student_id=8&student_id=20&student_id=32');
+
+      const wrapper = createComponent();
+      const filters = wrapper.find('DashboardActivityFilters');
+
+      act(() => filters.props().onClearSelection());
+
+      assert.equal(location.search, '?bar=foo');
+    });
+
+    it('navigates to home preserving current query when no course is selected', () => {
+      const wrapper = createComponent();
+      const filters = wrapper.find('DashboardActivityFilters');
+
+      act(() => filters.props().onCoursesChange([]));
+
+      assert.calledWith(fakeNavigate, '?current=query&assignment_id=777');
+    });
+
+    it('navigates to the first selected course which is not active one', () => {
+      const wrapper = createComponent();
+      const filters = wrapper.find('DashboardActivityFilters');
+
+      act(() => filters.props().onCoursesChange(['357', '123', '789']));
+
+      assert.calledWith(
+        fakeNavigate,
+        '/courses/123?current=query&assignment_id=777',
+      );
+    });
+
+    it("navigates to active assignment's course preserving current query when no assignment is selected", () => {
+      const wrapper = createComponent();
+      const filters = wrapper.find('DashboardActivityFilters');
+
+      act(() => filters.props().onAssignmentsChange([]));
+
+      assert.calledWith(fakeNavigate, '/courses/357?current=query');
+    });
+
+    it('navigates to the first selected assignment which is not active one', () => {
+      const wrapper = createComponent();
+      const filters = wrapper.find('DashboardActivityFilters');
+
+      act(() => filters.props().onAssignmentsChange(['777', '888']));
+
+      assert.calledWith(fakeNavigate, '/assignments/888?current=query');
     });
   });
 

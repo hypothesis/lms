@@ -1,6 +1,6 @@
 import { urlPath } from '../api';
 
-export function assignmentURL(id: number) {
+export function assignmentURL(id: number | string) {
   return urlPath`/assignments/${String(id)}`;
 }
 

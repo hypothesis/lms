@@ -1,11 +1,14 @@
-import { useMemo } from 'preact/hooks';
-import { useParams } from 'wouter-preact';
+import { useCallback, useMemo } from 'preact/hooks';
+import { useLocation, useParams, useSearch } from 'wouter-preact';
 
 import type { AssignmentWithMetrics, StudentsResponse } from '../../api-types';
 import { useConfig } from '../../config';
-import { urlPath, useAPIFetch } from '../../utils/api';
+import { useAPIFetch } from '../../utils/api';
+import { useDashboardFilters } from '../../utils/dashboard/hooks';
+import { assignmentURL, courseURL } from '../../utils/dashboard/navigation';
 import { useDocumentTitle } from '../../utils/hooks';
 import { replaceURLParams } from '../../utils/url';
+import DashboardActivityFilters from './DashboardActivityFilters';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import FormattedDate from './FormattedDate';
 import OrderableActivityTable from './OrderableActivityTable';
@@ -25,13 +28,26 @@ export default function AssignmentActivity() {
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
   const { assignmentId } = useParams<{ assignmentId: string }>();
+  const [, navigate] = useLocation();
+
+  const { filters, updateFilters } = useDashboardFilters();
+  const { studentIds } = filters;
+  const search = useSearch();
+  const onClearSelection = useCallback(
+    // Clear student filters
+    () => updateFilters({ studentIds: [] }),
+    [updateFilters],
+  );
+
   const assignment = useAPIFetch<AssignmentWithMetrics>(
     replaceURLParams(routes.assignment, { assignment_id: assignmentId }),
   );
   const students = useAPIFetch<StudentsResponse>(routes.students_metrics, {
     assignment_id: assignmentId,
+    h_userid: studentIds,
     public_id: dashboard.organization_public_id,
   });
+  const courseId = assignment.data && `${assignment.data.course.id}`;
 
   const rows: StudentsTableRow[] = useMemo(
     () =>
@@ -57,7 +73,7 @@ export default function AssignmentActivity() {
               links={[
                 {
                   title: assignment.data.course.title,
-                  href: urlPath`/courses/${String(assignment.data.course.id)}`,
+                  href: courseURL(assignment.data.course.id),
                 },
               ]}
             />
@@ -69,6 +85,54 @@ export default function AssignmentActivity() {
           {assignment.data && title}
         </h2>
       </div>
+      <DashboardActivityFilters
+        selectedCourseIds={courseId ? [courseId] : []}
+        onCoursesChange={newCourseIds => {
+          // When no courses are selected (which happens if either "All courses" is
+          // selected or the active course is deselected), navigate to "All courses"
+          // section and propagate the rest of the filters.
+          if (newCourseIds.length === 0) {
+            navigate(
+              search
+                ? `?${search}&assignment_id=${assignmentId}`
+                : `?assignment_id=${assignmentId}`,
+            );
+          }
+
+          // When a course other than the "active" one (the one represented
+          // in the URL) is selected, navigate to that course and propagate
+          // the rest of the filters.
+          const firstDifferentCourse = newCourseIds.find(c => c !== courseId);
+          if (firstDifferentCourse) {
+            navigate(
+              `${courseURL(firstDifferentCourse)}?${search}&assignment_id=${assignmentId}`,
+            );
+          }
+        }}
+        selectedAssignmentIds={[assignmentId]}
+        onAssignmentsChange={newAssignmentIds => {
+          // When no assignments are selected (which happens if either "All
+          // assignments" is selected or the active assignment is deselected),
+          // navigate to "The assignment's course" section and propagate the
+          // rest of the filters.
+          if (newAssignmentIds.length === 0 && courseId) {
+            navigate(`${courseURL(courseId)}?${search}`);
+          }
+
+          // When an assignment other than the "active" one (the one represented
+          // in the URL) is selected, navigate to that assignment and propagate
+          // the rest of the filters.
+          const firstDifferentAssignment = newAssignmentIds.find(
+            a => a !== assignmentId,
+          );
+          if (firstDifferentAssignment) {
+            navigate(`${assignmentURL(firstDifferentAssignment)}?${search}`);
+          }
+        }}
+        selectedStudentIds={studentIds}
+        onStudentsChange={studentIds => updateFilters({ studentIds })}
+        onClearSelection={studentIds.length > 0 ? onClearSelection : undefined}
+      />
       <OrderableActivityTable
         loading={students.isLoading}
         title={assignment.isLoading ? 'Loading...' : title}

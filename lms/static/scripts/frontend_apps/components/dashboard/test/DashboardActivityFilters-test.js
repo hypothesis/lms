@@ -314,14 +314,6 @@ describe('DashboardActivityFilters', () => {
         },
         shouldRenderClearButton: true,
       },
-      // Callback and hasSelection provided
-      {
-        props: {
-          onClearSelection: sinon.stub(),
-          hasSelection: true,
-        },
-        shouldRenderClearButton: true,
-      },
     ].forEach(({ props, shouldRenderClearButton }) => {
       it('shows clear button if `onClearSelection` callback was provided and some items are selected', () => {
         const wrapper = createComponent(props);
