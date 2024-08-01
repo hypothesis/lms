@@ -80,7 +80,7 @@ cryptography==42.0.4
     #   -r requirements/prod.txt
     #   joserfc
     #   pyjwt
-data-tasks==0.0.3
+data-tasks==0.0.4
     # via -r requirements/prod.txt
 factory-boy==3.3.0
     # via
@@ -135,7 +135,6 @@ idna==3.7
 importlib-metadata==7.0.1
     # via
     #   -r requirements/prod.txt
-    #   data-tasks
     #   h-api
     #   h-assets
     #   pip-sync-faster
