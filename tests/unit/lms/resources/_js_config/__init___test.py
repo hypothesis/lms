@@ -694,17 +694,13 @@ class TestEnableErrorDialogMode:
 
 
 class TestEnableDashboardMode:
-    @pytest.mark.parametrize("public_id", ["PUBLIC_ID", None])
-    def test_it(self, js_config, lti_user, pyramid_request, public_id):
-        pyramid_request.params["public_id"] = public_id
-
+    def test_it(self, js_config, lti_user):
         js_config.enable_dashboard_mode()
         config = js_config.asdict()
 
         assert config["mode"] == JSConfig.Mode.DASHBOARD
         assert config["dashboard"] == {
             "user": {"display_name": lti_user.display_name, "is_staff": False},
-            "organization_public_id": public_id,
             "routes": {
                 "assignment": "/api/dashboard/assignments/:assignment_id",
                 "students_metrics": "/api/dashboard/students/metrics",
@@ -716,6 +712,14 @@ class TestEnableDashboardMode:
                 "students": "/api/dashboard/students",
             },
         }
+
+    def test_it_when_organizataion_public_id_present(self, js_config, pyramid_request):
+        pyramid_request.params["public_id"] = sentinel.public_id
+
+        js_config.enable_dashboard_mode()
+        config = js_config.asdict()
+
+        assert config["dashboard"]["organization_public_id"] == sentinel.public_id
 
     def test_user_when_staff(self, js_config, pyramid_request_staff_member, context):
         js_config = JSConfig(context, pyramid_request_staff_member)

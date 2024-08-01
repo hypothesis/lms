@@ -257,7 +257,6 @@ class JSConfig:
                 "mode": JSConfig.Mode.DASHBOARD,
                 "dashboard": DashboardConfig(
                     user=self._get_user_info(),
-                    organization_public_id=self._request.params.get("public_id"),
                     routes=DashboardRoutes(
                         assignment=self._to_frontend_template(
                             "api.dashboard.assignment"
@@ -281,6 +280,8 @@ class JSConfig:
                 ),
             }
         )
+        if organization_public_id := self._request.params.get("public_id"):
+            self._config["dashboard"]["organization_public_id"] = organization_public_id
 
     def enable_lti_launch_mode(self, course, assignment: Assignment):
         """

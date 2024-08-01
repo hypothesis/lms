@@ -101,7 +101,7 @@ class User(TypedDict):
 class DashboardConfig(TypedDict):
     user: User
 
-    organization_public_id: str
+    organization_public_id: NotRequired[str]
     """
     Filtering by organization is not like other filters:
     - It's only available to staff members
