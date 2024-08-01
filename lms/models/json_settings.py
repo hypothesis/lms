@@ -72,7 +72,7 @@ class JSONSettings(MutableDict):
     An optional spec for the acceptable fields and types.
     """
 
-    def get(self, group, key, default=None):
+    def get(self, group, key, default=None):  # type: ignore
         """
         Return the requested setting or None.
 
