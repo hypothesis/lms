@@ -51,7 +51,7 @@ cryptography==42.0.4
     # via
     #   joserfc
     #   pyjwt
-data-tasks==0.0.3
+data-tasks==0.0.4
     # via -r requirements/prod.in
 frozenlist==1.4.1
     # via
@@ -83,7 +83,6 @@ idna==3.7
     #   yarl
 importlib-metadata==7.0.1
     # via
-    #   data-tasks
     #   h-api
     #   h-assets
 importlib-resources==6.1.2

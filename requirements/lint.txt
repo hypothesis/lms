@@ -135,7 +135,7 @@ cryptography==42.0.4
     #   -r requirements/tests.txt
     #   joserfc
     #   pyjwt
-data-tasks==0.0.3
+data-tasks==0.0.4
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -248,7 +248,6 @@ importlib-metadata==7.0.1
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-    #   data-tasks
     #   h-api
     #   h-assets
     #   pip-sync-faster

@@ -84,7 +84,7 @@ cryptography==42.0.4
     #   -r requirements/prod.txt
     #   joserfc
     #   pyjwt
-data-tasks==0.0.3
+data-tasks==0.0.4
     # via -r requirements/prod.txt
 execnet==2.0.2
     # via pytest-xdist
@@ -143,7 +143,6 @@ idna==3.7
 importlib-metadata==7.0.1
     # via
     #   -r requirements/prod.txt
-    #   data-tasks
     #   h-api
     #   h-assets
     #   pip-sync-faster
