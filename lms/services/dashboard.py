@@ -9,7 +9,11 @@ from lms.services.organization import OrganizationService
 
 class DashboardService:
     def __init__(
-        self, request, assignment_service, course_service, organization_service
+        self,
+        request,
+        assignment_service,
+        course_service,
+        organization_service: OrganizationService,
     ):
         self._db = request.db
 
@@ -69,11 +73,19 @@ class DashboardService:
 
     def get_organizations_by_admin_email(self, email: str) -> list[Organization]:
         """Get a list of organizations where the user with email `email` is an admin in."""
-        return self._db.scalars(
-            select(Organization)
-            .join(DashboardAdmin)
+        organization_ids = []
+
+        for org_id in self._db.scalars(
+            select(DashboardAdmin.organization_id)
             .where(DashboardAdmin.email == email)
             .distinct()
+        ).all():
+            organization_ids.extend(
+                self._organization_service.get_hierarchy_ids(org_id)
+            )
+
+        return self._db.scalars(
+            select(Organization).where(Organization.id.in_(organization_ids))
         ).all()
 
     def add_dashboard_admin(
@@ -104,7 +116,13 @@ class DashboardService:
             if not organization:
                 raise HTTPNotFound()
 
-            return [organization]
+            return self._db.scalars(
+                select(Organization).where(
+                    Organization.id.in_(
+                        self._organization_service.get_hierarchy_ids(organization.id)
+                    )
+                )
+            ).all()
 
         return self.get_organizations_by_admin_email(
             request.lti_user.email if request.lti_user else request.identity.userid
