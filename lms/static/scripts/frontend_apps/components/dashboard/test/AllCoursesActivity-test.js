@@ -8,9 +8,9 @@ import sinon from 'sinon';
 
 import { Config } from '../../../config';
 import { formatDateTime } from '../../../utils/date';
-import OrganizationActivity, { $imports } from '../OrganizationActivity';
+import AllCoursesActivity, { $imports } from '../AllCoursesActivity';
 
-describe('OrganizationActivity', () => {
+describe('AllCoursesActivity', () => {
   const courses = [
     {
       id: 1,
@@ -73,7 +73,7 @@ describe('OrganizationActivity', () => {
   function createComponent() {
     const wrapper = mount(
       <Config.Provider value={fakeConfig}>
-        <OrganizationActivity />
+        <AllCoursesActivity />
       </Config.Provider>,
     );
     wrappers.push(wrapper);

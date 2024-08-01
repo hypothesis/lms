@@ -9,10 +9,10 @@ import { Link as RouterLink, Route, Switch } from 'wouter-preact';
 
 import { useConfig } from '../../config';
 import { usePlaceholderDocumentTitleInDev } from '../../utils/hooks';
+import AllCoursesActivity from './AllCoursesActivity';
 import AssignmentActivity from './AssignmentActivity';
 import CourseActivity from './CourseActivity';
 import DashboardFooter from './DashboardFooter';
-import OrganizationActivity from './OrganizationActivity';
 
 export default function DashboardApp() {
   const { dashboard } = useConfig(['dashboard']);
@@ -71,7 +71,7 @@ export default function DashboardApp() {
               <CourseActivity />
             </Route>
             <Route path="">
-              <OrganizationActivity />
+              <AllCoursesActivity />
             </Route>
           </Switch>
         </div>

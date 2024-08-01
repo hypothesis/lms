@@ -21,9 +21,9 @@ type CoursesTableRow = {
 const courseURL = (id: number) => urlPath`/courses/${String(id)}`;
 
 /**
- * List of courses that belong to a specific organization
+ * List of courses that current user has access to in the dashboard
  */
-export default function OrganizationActivity() {
+export default function AllCoursesActivity() {
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
 
