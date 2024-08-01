@@ -85,6 +85,9 @@ class AdminCourseViews:
                 "dashboard.course",
                 public_id=course.application_instance.organization.public_id,
                 course_id=course.id,
+                _query={
+                    "public_id": course.application_instance.organization.public_id
+                },
             ),
         )
         return response
