@@ -11,24 +11,14 @@ pytestmark = pytest.mark.usefixtures("h_api", "assignment_service")
 
 
 class TestDashboardService:
-    def test_get_request_assignment_404(
-        self,
-        pyramid_request,
-        assignment_service,
-        svc,
-    ):
+    def test_get_request_assignment_404(self, pyramid_request, assignment_service, svc):
         pyramid_request.matchdict["assignment_id"] = sentinel.id
         assignment_service.get_by_id.return_value = None
 
         with pytest.raises(HTTPNotFound):
             svc.get_request_assignment(pyramid_request)
 
-    def test_get_request_assignment_403(
-        self,
-        pyramid_request,
-        assignment_service,
-        svc,
-    ):
+    def test_get_request_assignment_403(self, pyramid_request, assignment_service, svc):
         pyramid_request.matchdict["assignment_id"] = sentinel.id
         assignment_service.is_member.return_value = False
 
@@ -143,13 +133,23 @@ class TestDashboardService:
 
         assert not db_session.query(DashboardAdmin).filter_by(id=admin.id).first()
 
-    def test_get_organizations_by_admin_email(self, svc, db_session, organization):
+    def test_get_organizations_by_admin_email(
+        self, svc, db_session, organization, organization_service
+    ):
+        child_organization = factories.Organization(parent=organization)
         admin = factories.DashboardAdmin(
             organization=organization, email="testing@example.com", created_by="creator"
         )
         db_session.flush()
+        organization_service.get_hierarchy_ids.return_value = [
+            organization.id,
+            child_organization.id,
+        ]
 
-        assert svc.get_organizations_by_admin_email(admin.email) == [organization]
+        assert set(svc.get_organizations_by_admin_email(admin.email)) == {
+            organization,
+            child_organization,
+        }
 
     def test_get_request_admin_organizations_for_non_staff(self, pyramid_request, svc):
         pyramid_request.params = {"public_id": sentinel.public_id}
@@ -178,6 +178,7 @@ class TestDashboardService:
     ):
         pyramid_config.testing_securitypolicy(permissive=True)
         organization_service.get_by_public_id.return_value = organization
+        organization_service.get_hierarchy_ids.return_value = [organization.id]
         pyramid_request.params = {"public_id": sentinel.public_id}
 
         assert svc.get_request_admin_organizations(pyramid_request) == [organization]
@@ -191,6 +192,7 @@ class TestDashboardService:
         pyramid_config.testing_securitypolicy(permissive=True)
         pyramid_request.params = {"public_id": sentinel.id}
         organization_service.get_by_public_id.return_value = organization
+        organization_service.get_hierarchy_ids.return_value = [organization.id]
 
         assert svc.get_request_admin_organizations(pyramid_request) == [organization]
 
@@ -202,7 +204,13 @@ class TestDashboardService:
             pyramid_request, assignment_service, course_service, organization_service
         )
 
-    @pytest.fixture()
+    @pytest.fixture(autouse=True)
+    def organization_service(self, organization_service, organization):
+        organization_service.get_by_public_id.return_value = organization
+        organization_service.get_hierarchy_ids.return_value = []
+        return organization_service
+
+    @pytest.fixture
     def get_request_admin_organizations(self, svc):
         with patch.object(
             svc, "get_request_admin_organizations"
