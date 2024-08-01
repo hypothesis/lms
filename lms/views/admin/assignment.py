@@ -52,7 +52,11 @@ class AdminAssignmentViews:
 
         response = HTTPFound(
             location=self.request.route_url(
-                "dashboard.assignment", assignment_id=assignment.id
+                "dashboard.assignment",
+                assignment_id=assignment.id,
+                _query={
+                    "public_id": assignment.course.application_instance.organization.public_id
+                },
             ),
         )
         return response
