@@ -2,7 +2,7 @@ import { Link } from '@hypothesis/frontend-shared';
 import { useMemo } from 'preact/hooks';
 import { Link as RouterLink } from 'wouter-preact';
 
-import type { CoursesResponse } from '../../api-types';
+import type { CoursesMetricsResponse } from '../../api-types';
 import { useConfig } from '../../config';
 import { urlPath, useAPIFetch } from '../../utils/api';
 import { useDashboardFilters } from '../../utils/dashboard/hooks';
@@ -31,7 +31,7 @@ export default function AllCoursesActivity() {
   const { filters, updateFilters } = useDashboardFilters();
   const { courseIds, assignmentIds, studentIds } = filters;
 
-  const courses = useAPIFetch<CoursesResponse>(routes.courses_metrics, {
+  const courses = useAPIFetch<CoursesMetricsResponse>(routes.courses_metrics, {
     h_userid: studentIds,
     assignment_id: assignmentIds,
     course_id: courseIds,

@@ -173,7 +173,7 @@ export type CourseWithMetrics = Course & {
 /**
  * Response for `/api/dashboard/course/metrics` call.
  */
-export type CoursesResponse = {
+export type CoursesMetricsResponse = {
   courses: CourseWithMetrics[];
 };
 
@@ -196,9 +196,9 @@ export type StudentWithMetrics = Student & {
 };
 
 /**
- * Response for `/api/dashboard/assignments/{assignment_id}/stats` call.
+ * Response for `/api/dashboard/assignments/{assignment_id}/metrics` call.
  */
-export type StudentsResponse = {
+export type StudentsMetricsResponse = {
   students: StudentWithMetrics[];
 };
 
@@ -208,8 +208,36 @@ export type AssignmentWithMetrics = Assignment & {
 };
 
 /**
- * Response for `/api/dashboard/courses/{course_id}/assignments/stats` call.
+ * Response for `/api/dashboard/courses/{course_id}/assignments/metrics` call.
+ */
+export type AssignmentsMetricsResponse = {
+  assignments: AssignmentWithMetrics[];
+};
+
+export type Pagination = {
+  next: string | null;
+};
+
+/**
+ * Response for `/api/dashboard/courses` call.
+ */
+export type CoursesResponse = {
+  courses: Course[];
+  pagination: Pagination;
+};
+
+/**
+ * Response for `/api/dashboard/assignments` call.
  */
 export type AssignmentsResponse = {
-  assignments: AssignmentWithMetrics[];
+  assignments: Assignment[];
+  pagination: Pagination;
+};
+
+/**
+ * Response for `/api/dashboard/students` call.
+ */
+export type StudentsResponse = {
+  students: Student[];
+  pagination: Pagination;
 };

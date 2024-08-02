@@ -1,7 +1,10 @@
 import { useMemo } from 'preact/hooks';
 import { useParams } from 'wouter-preact';
 
-import type { AssignmentWithMetrics, StudentsResponse } from '../../api-types';
+import type {
+  AssignmentWithMetrics,
+  StudentsMetricsResponse,
+} from '../../api-types';
 import { useConfig } from '../../config';
 import { urlPath, useAPIFetch } from '../../utils/api';
 import { useDocumentTitle } from '../../utils/hooks';
@@ -28,10 +31,13 @@ export default function AssignmentActivity() {
   const assignment = useAPIFetch<AssignmentWithMetrics>(
     replaceURLParams(routes.assignment, { assignment_id: assignmentId }),
   );
-  const students = useAPIFetch<StudentsResponse>(routes.students_metrics, {
-    assignment_id: assignmentId,
-    public_id: dashboard.organization_public_id,
-  });
+  const students = useAPIFetch<StudentsMetricsResponse>(
+    routes.students_metrics,
+    {
+      assignment_id: assignmentId,
+      public_id: dashboard.organization_public_id,
+    },
+  );
 
   const rows: StudentsTableRow[] = useMemo(
     () =>

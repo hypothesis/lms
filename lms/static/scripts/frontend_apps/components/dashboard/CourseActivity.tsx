@@ -7,7 +7,7 @@ import {
   useSearch,
 } from 'wouter-preact';
 
-import type { AssignmentsResponse, Course } from '../../api-types';
+import type { AssignmentsMetricsResponse, Course } from '../../api-types';
 import { useConfig } from '../../config';
 import { useAPIFetch } from '../../utils/api';
 import { useDashboardFilters } from '../../utils/dashboard/hooks';
@@ -49,7 +49,7 @@ export default function CourseActivity() {
   const course = useAPIFetch<Course>(
     replaceURLParams(routes.course, { course_id: courseId }),
   );
-  const assignments = useAPIFetch<AssignmentsResponse>(
+  const assignments = useAPIFetch<AssignmentsMetricsResponse>(
     replaceURLParams(routes.course_assignments_metrics, {
       course_id: courseId,
     }),
