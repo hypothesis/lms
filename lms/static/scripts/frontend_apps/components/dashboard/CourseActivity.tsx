@@ -1,12 +1,20 @@
 import { Link } from '@hypothesis/frontend-shared';
-import { useMemo } from 'preact/hooks';
-import { Link as RouterLink, useParams } from 'wouter-preact';
+import { useCallback, useMemo } from 'preact/hooks';
+import {
+  Link as RouterLink,
+  useLocation,
+  useParams,
+  useSearch,
+} from 'wouter-preact';
 
 import type { AssignmentsResponse, Course } from '../../api-types';
 import { useConfig } from '../../config';
-import { urlPath, useAPIFetch } from '../../utils/api';
+import { useAPIFetch } from '../../utils/api';
+import { useDashboardFilters } from '../../utils/dashboard/hooks';
+import { assignmentURL, courseURL } from '../../utils/dashboard/navigation';
 import { useDocumentTitle } from '../../utils/hooks';
 import { replaceURLParams } from '../../utils/url';
+import DashboardActivityFilters from './DashboardActivityFilters';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import FormattedDate from './FormattedDate';
 import OrderableActivityTable from './OrderableActivityTable';
@@ -19,15 +27,25 @@ type AssignmentsTableRow = {
   replies: number;
 };
 
-const assignmentURL = (id: number) => urlPath`/assignments/${String(id)}`;
-
 /**
  * Activity in a list of assignments that are part of a specific course
  */
 export default function CourseActivity() {
   const { courseId } = useParams<{ courseId: string }>();
+  const [, navigate] = useLocation();
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
+
+  const { filters, updateFilters } = useDashboardFilters();
+  const { assignmentIds, studentIds } = filters;
+  const search = useSearch();
+  const hasSelection = assignmentIds.length > 0 || studentIds.length > 0;
+  const onClearSelection = useCallback(
+    // Clear every filter but courses
+    () => updateFilters({ studentIds: [], assignmentIds: [] }),
+    [updateFilters],
+  );
+
   const course = useAPIFetch<Course>(
     replaceURLParams(routes.course, { course_id: courseId }),
   );
@@ -35,7 +53,11 @@ export default function CourseActivity() {
     replaceURLParams(routes.course_assignments_metrics, {
       course_id: courseId,
     }),
-    { public_id: dashboard.organization_public_id },
+    {
+      assignment_id: assignmentIds,
+      h_userid: studentIds,
+      public_id: dashboard.organization_public_id,
+    },
   );
 
   const rows: AssignmentsTableRow[] = useMemo(
@@ -65,6 +87,30 @@ export default function CourseActivity() {
           {course.data && title}
         </h2>
       </div>
+      <DashboardActivityFilters
+        selectedCourseIds={[courseId]}
+        onCoursesChange={newCourseIds => {
+          // When no courses are selected (which happens if either "All courses" is
+          // selected or the active course is deselected), navigate to "All courses"
+          // section and propagate the rest of the filters.
+          if (newCourseIds.length === 0) {
+            navigate(`?${search}`);
+          }
+
+          // When a course other than the "active" one (the one represented
+          // in the URL) is selected, navigate to that course and propagate
+          // the rest of the filters.
+          const firstDifferentCourse = newCourseIds.find(c => c !== courseId);
+          if (firstDifferentCourse) {
+            navigate(`${courseURL(firstDifferentCourse)}?${search}`);
+          }
+        }}
+        selectedAssignmentIds={assignmentIds}
+        onAssignmentsChange={assignmentIds => updateFilters({ assignmentIds })}
+        selectedStudentIds={studentIds}
+        onStudentsChange={studentIds => updateFilters({ studentIds })}
+        onClearSelection={hasSelection ? onClearSelection : undefined}
+      />
       <OrderableActivityTable
         loading={assignments.isLoading}
         title={course.isLoading ? 'Loading...' : title}
