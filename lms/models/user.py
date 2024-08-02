@@ -44,5 +44,5 @@ class User(CreatedUpdatedMixin, Base):
     email: Mapped[str | None] = mapped_column(sa.Unicode)
     """Email address of the user"""
 
-    display_name: Mapped[str | None] = mapped_column(sa.Unicode)
+    display_name: Mapped[str | None] = mapped_column(sa.Unicode, index=True)
     """The user's display name."""
