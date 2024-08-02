@@ -1,16 +1,14 @@
 import { Link } from '@hypothesis/frontend-shared';
 import { useCallback, useMemo } from 'preact/hooks';
-import {
-  Link as RouterLink,
-  useLocation,
-  useParams,
-  useSearch,
-} from 'wouter-preact';
+import { Link as RouterLink, useParams, useSearch } from 'wouter-preact';
 
 import type { AssignmentsResponse, Course } from '../../api-types';
 import { useConfig } from '../../config';
 import { useAPIFetch } from '../../utils/api';
-import { useDashboardFilters } from '../../utils/dashboard/hooks';
+import {
+  useDashboardFilters,
+  useDashboardLocation,
+} from '../../utils/dashboard/hooks';
 import { assignmentURL, courseURL } from '../../utils/dashboard/navigation';
 import { useDocumentTitle } from '../../utils/hooks';
 import { replaceURLParams } from '../../utils/url';
@@ -32,7 +30,7 @@ type AssignmentsTableRow = {
  */
 export default function CourseActivity() {
   const { courseId } = useParams<{ courseId: string }>();
-  const [, navigate] = useLocation();
+  const [, navigate] = useDashboardLocation();
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
 

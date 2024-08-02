@@ -33,7 +33,7 @@ export function useDashboardFilters(): UseDashboardFilters {
     return { courseIds, assignmentIds, studentIds };
   }, [queryParams]);
 
-  const [location, navigate] = useLocation();
+  const [location, navigate] = useDashboardLocation();
   const updateFilters = useCallback(
     ({ courseIds, assignmentIds, studentIds }: Partial<DashboardFilters>) => {
       const newQueryParams = { ...queryParams };
@@ -60,4 +60,46 @@ export function useDashboardFilters(): UseDashboardFilters {
   );
 
   return { filters, updateFilters };
+}
+
+/**
+ * Given a new and current query strings, this checks if current one has
+ * organization_public_id, and propagates it to the new one
+ */
+export function urlWithOrgPublicId(
+  destinationURL: string | URL,
+  currentQuery: string,
+): URL {
+  const url =
+    typeof destinationURL === 'string'
+      ? new URL(destinationURL)
+      : destinationURL;
+  const newQueryAsRecord = queryStringToRecord(url.search);
+  const { public_id } = queryStringToRecord(currentQuery);
+
+  // If there's an organization public ID in the query, make sure it is preserved
+  // by merging it with provided URL's query
+  // TODO Do not override public id if provided in new query
+  url.search = recordToQueryString({
+    ...newQueryAsRecord,
+    public_id, // TODO Rename to organization_public_id
+  });
+
+  return url;
+}
+
+/**
+ * A drop-in replacement for wouter's useLocation, except that the `navigate`
+ * callback will always preserve the organization_public_id query param if
+ * present
+ */
+export function useDashboardLocation(): ReturnType<typeof useLocation> {
+  const [location, navigate] = useLocation();
+  const query = useSearch();
+  const enhancedNavigate: typeof navigate = useCallback(
+    (to, options) => navigate(urlWithOrgPublicId(to, query), options),
+    [navigate, query],
+  );
+
+  return [location, enhancedNavigate];
 }

@@ -5,6 +5,8 @@ import type { OrderDirection } from '@hypothesis/frontend-shared/lib/types';
 import { useMemo, useState } from 'preact/hooks';
 import { useLocation } from 'wouter-preact';
 
+import { useDashboardLocation } from '../../utils/dashboard/hooks';
+
 export type OrderableActivityTableColumn<T> = {
   field: keyof T;
   label: string;
@@ -62,7 +64,7 @@ export default function OrderableActivityTable<T>({
       ),
     [columns],
   );
-  const [, navigate] = useLocation();
+  const [, navigate] = useDashboardLocation();
 
   return (
     <DataTable
