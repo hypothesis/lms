@@ -5,7 +5,11 @@ import {
 } from '@hypothesis/frontend-shared';
 import { useMemo } from 'preact/hooks';
 
-import type { Assignment, Course, Student } from '../../api-types';
+import type {
+  AssignmentsResponse,
+  CoursesResponse,
+  StudentsResponse,
+} from '../../api-types';
 import { useConfig } from '../../config';
 import { useAPIFetch } from '../../utils/api';
 
@@ -39,20 +43,17 @@ export default function DashboardActivityFilters({
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
 
-  const courses = useAPIFetch<{ courses: Course[] }>(routes.courses, {
+  const courses = useAPIFetch<CoursesResponse>(routes.courses, {
     h_userid: selectedStudentIds,
     assignment_id: selectedAssignmentIds,
     public_id: dashboard.organization_public_id,
   });
-  const assignments = useAPIFetch<{ assignments: Assignment[] }>(
-    routes.assignments,
-    {
-      h_userid: selectedStudentIds,
-      course_id: selectedCourseIds,
-      public_id: dashboard.organization_public_id,
-    },
-  );
-  const students = useAPIFetch<{ students: Student[] }>(routes.students, {
+  const assignments = useAPIFetch<AssignmentsResponse>(routes.assignments, {
+    h_userid: selectedStudentIds,
+    course_id: selectedCourseIds,
+    public_id: dashboard.organization_public_id,
+  });
+  const students = useAPIFetch<StudentsResponse>(routes.students, {
     assignment_id: selectedAssignmentIds,
     course_id: selectedCourseIds,
     public_id: dashboard.organization_public_id,
