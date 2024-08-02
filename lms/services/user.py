@@ -1,8 +1,9 @@
 from functools import lru_cache
 from typing import cast
 
-from sqlalchemy import BinaryExpression, false, or_, select
+from sqlalchemy import BinaryExpression, false, func, or_, select
 from sqlalchemy.exc import NoResultFound
+from sqlalchemy.orm import aliased, with_expression
 from sqlalchemy.sql import Select
 
 from lms.models import (
@@ -179,6 +180,7 @@ class UserService:
         query = query.distinct(User.h_userid).order_by(
             User.h_userid, User.updated.desc()
         )
+        users_for_name = aliased(User)
 
         return (
             select(User)
@@ -187,10 +189,28 @@ class UserService:
                 # We can sort these again without affecting deduplication
             )
             .order_by(User.display_name, User.id)
+            .options(
+                # We want to find a not null display_name if we have it in the DB
+                # We do it with `with_expression` to replace the model's display_name value
+                # so callers of this method can access display_name directly
+                with_expression(
+                    User.display_name,
+                    func.coalesce(
+                        User.display_name,
+                        select(users_for_name.display_name)
+                        .where(
+                            users_for_name.display_name.is_not(None),
+                            users_for_name.h_userid == User.h_userid,
+                        )
+                        .limit(1)
+                        .scalar_subquery(),
+                        None,
+                    ).label("display_name"),
+                )
+            )
         )
 
 
 def factory(_context, request):
     """Service factory for the UserService."""
-
     return UserService(request.db, request.registry.settings["h_authority"])
