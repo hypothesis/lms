@@ -114,7 +114,7 @@ class Grouping(CreatedUpdatedMixin, Base):
     lms_id = sa.Column(sa.Unicode(), nullable=False)
 
     #: Full name given on the LMS (e.g. "A course name 101")
-    lms_name: Mapped[str] = mapped_column(sa.UnicodeText())
+    lms_name: Mapped[str] = mapped_column(sa.UnicodeText(), index=True)
 
     type = varchar_enum(Type, nullable=False)
 
