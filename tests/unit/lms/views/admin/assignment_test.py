@@ -63,8 +63,8 @@ class TestAdminAssignmentViews:
 
     @pytest.fixture
     def assignment(self, application_instance, db_session):
-        assignment = factories.Assignment()
         course = factories.Course(application_instance=application_instance)
+        assignment = factories.Assignment(course=course)
         factories.AssignmentGrouping(assignment=assignment, grouping=course)
         db_session.flush()  # Give the DB objects IDs
         return assignment

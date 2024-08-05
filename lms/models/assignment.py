@@ -1,7 +1,7 @@
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
-from sqlalchemy.orm import DynamicMapped, Mapped, mapped_column
+from sqlalchemy.orm import DynamicMapped, Mapped, mapped_column, relationship
 
 from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
@@ -81,6 +81,7 @@ class Assignment(CreatedUpdatedMixin, Base):
     groupings: DynamicMapped[Grouping] = sa.orm.relationship(
         secondary="assignment_grouping", viewonly=True, lazy="dynamic"
     )
+    """Any groupings (courses, sections, groups) we have seen this assignment in during a launch"""
 
     membership = sa.orm.relationship(
         "AssignmentMembership", lazy="dynamic", viewonly=True
@@ -88,16 +89,7 @@ class Assignment(CreatedUpdatedMixin, Base):
 
     course_id: Mapped[int | None] = mapped_column(sa.ForeignKey(Course.id))
 
-    @property
-    def course(self):
-        """Course this assignment belongs to."""
-        return (
-            self.groupings.filter_by(type="course")
-            .order_by(Grouping.created.desc())
-            # While logically one assignment belongs to only one course our grouping table might have more
-            # than one row representing the same course. Return the last created one.
-            .first()
-        )
+    course: Mapped[Course | None] = relationship(Course)
 
     def get_canvas_mapped_file_id(self, file_id):
         return self.extra.get("canvas_file_mappings", {}).get(file_id, file_id)
