@@ -4,6 +4,7 @@ import {
   MultiSelect,
 } from '@hypothesis/frontend-shared';
 import { useMemo } from 'preact/hooks';
+import { useParams } from 'wouter-preact';
 
 import type {
   Assignment,
@@ -58,19 +59,16 @@ export default function DashboardActivityFilters({
     selectedAssignmentIds.length > 0 ||
     selectedCourseIds.length > 0;
   const { dashboard } = useConfig(['dashboard']);
+  const { organizationPublicId } = useParams();
   const { routes } = dashboard;
 
   const coursesFilters = useMemo(
     () => ({
       h_userid: selectedStudentIds,
       assignment_id: selectedAssignmentIds,
-      public_id: dashboard.organization_public_id,
+      public_id: organizationPublicId,
     }),
-    [
-      dashboard.organization_public_id,
-      selectedAssignmentIds,
-      selectedStudentIds,
-    ],
+    [organizationPublicId, selectedAssignmentIds, selectedStudentIds],
   );
   const coursesResult = usePaginatedAPIFetch<
     'courses',
@@ -82,9 +80,9 @@ export default function DashboardActivityFilters({
     () => ({
       h_userid: selectedStudentIds,
       course_id: selectedCourseIds,
-      public_id: dashboard.organization_public_id,
+      public_id: organizationPublicId,
     }),
-    [dashboard.organization_public_id, selectedCourseIds, selectedStudentIds],
+    [organizationPublicId, selectedCourseIds, selectedStudentIds],
   );
   const assignmentsResults = usePaginatedAPIFetch<
     'assignments',
@@ -96,13 +94,9 @@ export default function DashboardActivityFilters({
     () => ({
       assignment_id: selectedAssignmentIds,
       course_id: selectedCourseIds,
-      public_id: dashboard.organization_public_id,
+      public_id: organizationPublicId,
     }),
-    [
-      dashboard.organization_public_id,
-      selectedAssignmentIds,
-      selectedCourseIds,
-    ],
+    [organizationPublicId, selectedAssignmentIds, selectedCourseIds],
   );
   const studentsResult = usePaginatedAPIFetch<
     'students',

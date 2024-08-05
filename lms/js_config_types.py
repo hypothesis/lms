@@ -100,13 +100,4 @@ class User(TypedDict):
 
 class DashboardConfig(TypedDict):
     user: User
-
-    organization_public_id: NotRequired[str]
-    """
-    Filtering by organization is not like other filters:
-    - It's only available to staff members
-    - It doesn't only filter but also authorized access to that orgnaiztion's data
-    For those resason we include it on the config instead of handling it like other query string parameters.
-    """
-
     routes: DashboardRoutes

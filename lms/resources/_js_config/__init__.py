@@ -280,8 +280,6 @@ class JSConfig:
                 ),
             }
         )
-        if organization_public_id := self._request.params.get("public_id"):
-            self._config["dashboard"]["organization_public_id"] = organization_public_id
 
     def enable_lti_launch_mode(self, course, assignment: Assignment):
         """

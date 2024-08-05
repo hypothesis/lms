@@ -54,11 +54,9 @@ class AdminAssignmentViews:
         assert assignment.course
         response = HTTPFound(
             location=self.request.route_url(
-                "dashboard.assignment",
+                "dashboard.organization.assignment",
                 assignment_id=assignment.id,
-                _query={
-                    "public_id": assignment.course.application_instance.organization.public_id
-                },
+                public_id=assignment.course.application_instance.organization.public_id,
             ),
         )
         return response
