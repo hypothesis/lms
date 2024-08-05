@@ -1,3 +1,6 @@
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+
+import type { Pagination } from '../api-types';
 import { useConfig } from '../config';
 import { APIError } from '../errors';
 import { useFetch } from './fetch';
@@ -208,4 +211,78 @@ export function useAPIFetch<T = unknown>(
   // change the result.
   const paramStr = recordToQueryString(params ?? {});
   return useFetch(path ? `${path}${paramStr}` : null, fetcher);
+}
+
+export type PaginatedFetchResult<T> = Omit<FetchResult<T>, 'mutate'> & {
+  /** Determines if currently loading the first page */
+  isLoadingFirstPage: boolean;
+  loadNextPage: () => void;
+};
+
+/**
+ * Hook that fetches paginated data using authenticated API requests.
+ * It expects the result to include pagination info in a `pagination` prop.
+ * Resulting object will allow further pages to be loaded, while `error` and
+ * `retry` will apply only to the last attempted page load.
+ *
+ * @param prop - Property of responses containing a page of results
+ * @param path - Path for API call, or null if there is nothing to fetch
+ * @param [params] - Query params for API call
+ */
+export function usePaginatedAPIFetch<
+  Prop extends string,
+  ListType extends any[],
+  FetchType extends { [P in Prop]: ListType } & { pagination: Pagination },
+>(
+  prop: Prop,
+  path: string | null,
+  params?: Record<string, string | string[] | undefined>,
+): PaginatedFetchResult<ListType> {
+  const [nextPageURL, setNextPageURL] = useState<string>();
+  const [currentList, setCurrentList] = useState<ListType>();
+
+  const fetchResult = useAPIFetch<FetchType>(
+    nextPageURL ?? path,
+    !nextPageURL ? params : undefined,
+  );
+
+  const loadNextPage = useCallback(() => {
+    if (!fetchResult.isLoading && fetchResult.data?.pagination.next) {
+      setNextPageURL(fetchResult.data.pagination.next);
+    }
+  }, [fetchResult.data?.pagination.next, fetchResult.isLoading]);
+
+  // Every time data is loaded, append the result to the list
+  useEffect(() => {
+    setCurrentList(prev => {
+      if (!fetchResult.data) {
+        return prev;
+      }
+
+      return [...(prev ?? []), ...fetchResult.data[prop]] as ListType;
+    });
+  }, [prop, fetchResult.data]);
+
+  // Every time params change, discard previous pages and start from scratch
+  const prevParamsRef = useRef<typeof params>(params);
+  useEffect(() => {
+    const prevParams = JSON.stringify(prevParamsRef.current);
+    const newParams = JSON.stringify(params);
+
+    if (prevParams !== newParams) {
+      setCurrentList(undefined);
+      setNextPageURL(undefined);
+    }
+
+    prevParamsRef.current = params;
+  }, [params]);
+
+  return {
+    isLoading: fetchResult.isLoading,
+    isLoadingFirstPage: fetchResult.isLoading && currentList === undefined,
+    data: currentList ?? null,
+    error: fetchResult.error,
+    retry: fetchResult.retry,
+    loadNextPage,
+  };
 }

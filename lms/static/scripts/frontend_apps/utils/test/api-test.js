@@ -3,7 +3,13 @@ import { mount } from 'enzyme';
 
 import { Config } from '../../config';
 import { APIError } from '../../errors';
-import { apiCall, urlPath, useAPIFetch, $imports } from '../api';
+import {
+  apiCall,
+  urlPath,
+  useAPIFetch,
+  $imports,
+  usePaginatedAPIFetch,
+} from '../api';
 
 function createResponse(status, body) {
   return {
@@ -491,5 +497,157 @@ describe('useAPIFetch', () => {
     assert.equal(wrapper.text(), 'Loading');
 
     await waitFor(() => wrapper.text() === 'Some title');
+  });
+});
+
+describe('usePaginatedAPIFetch', () => {
+  let fakeUseFetch;
+  const pageResults = [
+    {
+      items: [1, 2, 3],
+      next: 'page-2',
+    },
+    {
+      items: [4, 5, 6],
+      next: 'page-3',
+    },
+    {
+      items: [7],
+      next: null,
+    },
+  ];
+
+  function mockFetchResult({ items, next }) {
+    fakeUseFetch.returns({
+      data: {
+        items,
+        pagination: { next },
+      },
+      isLoading: false,
+    });
+  }
+
+  function mockLoadingState() {
+    fakeUseFetch.returns({
+      data: null,
+      isLoading: true,
+    });
+  }
+
+  beforeEach(() => {
+    fakeUseFetch = sinon.stub();
+    mockFetchResult(pageResults[0]);
+
+    const fakeUseConfig = sinon.stub();
+    fakeUseConfig.returns({
+      api: { authToken: 'some-token' },
+    });
+
+    $imports.$mock({
+      '../config': { useConfig: fakeUseConfig },
+      './fetch': { useFetch: fakeUseFetch },
+    });
+  });
+
+  afterEach(() => {
+    $imports.$restore();
+  });
+
+  function TestWidget({ params = {} }) {
+    const result = usePaginatedAPIFetch('items', '/api/some/path', params);
+    return (
+      <div>
+        <div data-testid="main-content">
+          {result.isLoadingFirstPage
+            ? 'Initial load'
+            : result.isLoading && 'Loading'}
+          {!result.isLoading &&
+            (result.data ? result.data.join(',') : 'No content')}
+        </div>
+
+        <button
+          onClick={() => result.loadNextPage()}
+          data-testid="load-next-button"
+        >
+          Load next
+        </button>
+      </div>
+    );
+  }
+
+  function createComponent() {
+    return mount(<TestWidget />);
+  }
+
+  function loadNextPage(wrapper) {
+    wrapper.find('[data-testid="load-next-button"]').simulate('click');
+  }
+
+  function getMainContent(wrapper) {
+    return wrapper.find('[data-testid="main-content"]').text();
+  }
+
+  function reRender(wrapper) {
+    // Setting the same props again will force the component to re-render
+    wrapper.setProps(wrapper.props());
+  }
+
+  it('loads first page initially', () => {
+    const wrapper = createComponent();
+    assert.equal(getMainContent(wrapper), '1,2,3');
+  });
+
+  it('loads next pages when requested', () => {
+    const wrapper = createComponent();
+    assert.equal(getMainContent(wrapper), '1,2,3');
+
+    // Click and load second page
+    mockFetchResult(pageResults[1]);
+    loadNextPage(wrapper);
+    assert.equal(getMainContent(wrapper), '1,2,3,4,5,6');
+
+    // Click and load third page
+    mockFetchResult(pageResults[2]);
+    loadNextPage(wrapper);
+    assert.equal(getMainContent(wrapper), '1,2,3,4,5,6,7');
+
+    // After third page, no more results will be appended
+    loadNextPage(wrapper);
+    assert.equal(getMainContent(wrapper), '1,2,3,4,5,6,7');
+  });
+
+  it('is initially loading when no data is set yet', () => {
+    mockLoadingState();
+
+    const wrapper = createComponent();
+    assert.equal(getMainContent(wrapper), 'Initial load');
+  });
+
+  it('is loading when further pages are loaded after first one', () => {
+    // Load first page by default
+    const wrapper = createComponent();
+    assert.equal(getMainContent(wrapper), '1,2,3');
+
+    // When loading again, we no longer consider it's the first load
+    mockLoadingState();
+    reRender(wrapper);
+    assert.equal(getMainContent(wrapper), 'Loading');
+  });
+
+  it('resets to first page when params change', () => {
+    // Load first page by default
+    const wrapper = createComponent();
+    assert.equal(getMainContent(wrapper), '1,2,3');
+
+    // Click and load second page
+    mockFetchResult(pageResults[1]);
+    loadNextPage(wrapper);
+    assert.equal(getMainContent(wrapper), '1,2,3,4,5,6');
+
+    // After updating params, content should be reset
+    wrapper.setProps({
+      params: { foo: 'bar' },
+    });
+    assert.equal(getMainContent(wrapper), 'No content');
   });
 });
