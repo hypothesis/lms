@@ -18,7 +18,10 @@ class AssignmentMembership(CreatedUpdatedMixin, Base):
     """The assignment the user is a member of."""
 
     user_id = sa.Column(
-        sa.Integer(), sa.ForeignKey("user.id", ondelete="cascade"), primary_key=True
+        sa.Integer(),
+        sa.ForeignKey("user.id", ondelete="cascade"),
+        primary_key=True,
+        index=True,
     )
     user = sa.orm.relationship("User", foreign_keys=[user_id])
     """The user who is a member."""
