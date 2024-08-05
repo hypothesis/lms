@@ -1,11 +1,11 @@
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
-from sqlalchemy.orm import DynamicMapped, Mapped, mapped_column
+from sqlalchemy.orm import DynamicMapped, Mapped, mapped_column, relationship
 
 from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
-from lms.models.grouping import Grouping
+from lms.models.grouping import Course, Grouping
 
 
 class Assignment(CreatedUpdatedMixin, Base):
@@ -72,10 +72,10 @@ class Assignment(CreatedUpdatedMixin, Base):
     title: Mapped[str | None] = mapped_column(sa.Unicode, index=True)
     """The resource link title from LTI params."""
 
-    description = sa.Column(sa.Unicode, nullable=True)
+    description: Mapped[str | None] = mapped_column(sa.Unicode)
     """The resource link description from LTI params."""
 
-    deep_linking_uuid: Mapped[str | None] = mapped_column(sa.Unicode, nullable=True)
+    deep_linking_uuid: Mapped[str | None] = mapped_column(sa.Unicode)
     """UUID that identifies the deep linking that created this assignment."""
 
     groupings: DynamicMapped[Grouping] = sa.orm.relationship(
@@ -85,6 +85,11 @@ class Assignment(CreatedUpdatedMixin, Base):
     membership = sa.orm.relationship(
         "AssignmentMembership", lazy="dynamic", viewonly=True
     )
+
+    course_id: Mapped[int | None] = mapped_column(sa.ForeignKey(Course.id))
+    course: Mapped[Course | None] = relationship(Course)
+    """
+    Last course we have seen this assigment belonging to.
 
     @property
     def course(self):
