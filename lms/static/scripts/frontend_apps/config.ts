@@ -277,7 +277,6 @@ export type DashboardUser = {
 
 export type DashboardConfig = {
   routes: DashboardRoutes;
-  organization_public_id?: string;
   user: DashboardUser;
 };
 

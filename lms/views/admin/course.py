@@ -82,12 +82,9 @@ class AdminCourseViews:
 
         response = HTTPFound(
             location=self.request.route_url(
-                "dashboard.course",
+                "dashboard.organization.course",
                 public_id=course.application_instance.organization.public_id,
                 course_id=course.id,
-                _query={
-                    "public_id": course.application_instance.organization.public_id
-                },
             ),
         )
         return response
