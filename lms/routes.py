@@ -258,9 +258,23 @@ def includeme(config):  # noqa: PLR0915
         "/dashboard/courses/{course_id}",
         factory="lms.resources.dashboard.DashboardResource",
     )
-
     config.add_route(
         "dashboard", "/dashboard", factory="lms.resources.dashboard.DashboardResource"
+    )
+    config.add_route(
+        "dashboard.organization",
+        "/dashboard/orgs/{public_id}",
+        factory="lms.resources.dashboard.DashboardResource",
+    )
+    config.add_route(
+        "dashboard.organization.assignment",
+        "/dashboard/orgs/{public_id}/assignments/{assignment_id}",
+        factory="lms.resources.dashboard.DashboardResource",
+    )
+    config.add_route(
+        "dashboard.organization.course",
+        "/dashboard/orgs/{public_id}/courses/{course_id}",
+        factory="lms.resources.dashboard.DashboardResource",
     )
 
     config.add_route("api.dashboard.courses.metrics", "/api/dashboard/courses/metrics")

@@ -307,7 +307,7 @@ class AdminOrganizationViews:
 
         return HTTPFound(
             location=self.request.route_url(
-                "dashboard", _query={"public_id": org.public_id}
+                "dashboard.organization", public_id=org.public_id
             ),
         )
 

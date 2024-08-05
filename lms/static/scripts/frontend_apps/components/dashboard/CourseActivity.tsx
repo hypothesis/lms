@@ -31,7 +31,10 @@ type AssignmentsTableRow = {
  * Activity in a list of assignments that are part of a specific course
  */
 export default function CourseActivity() {
-  const { courseId } = useParams<{ courseId: string }>();
+  const { courseId, organizationPublicId } = useParams<{
+    courseId: string;
+    organizationPublicId?: string;
+  }>();
   const [, navigate] = useLocation();
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
@@ -56,7 +59,7 @@ export default function CourseActivity() {
     {
       assignment_id: assignmentIds,
       h_userid: studentIds,
-      public_id: dashboard.organization_public_id,
+      public_id: organizationPublicId,
     },
   );
 

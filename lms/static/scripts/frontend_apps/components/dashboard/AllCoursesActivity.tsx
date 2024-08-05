@@ -1,6 +1,7 @@
 import { Link } from '@hypothesis/frontend-shared';
 import { useMemo } from 'preact/hooks';
 import { Link as RouterLink } from 'wouter-preact';
+import { useParams } from 'wouter-preact';
 
 import type { CoursesMetricsResponse } from '../../api-types';
 import { useConfig } from '../../config';
@@ -28,6 +29,7 @@ export default function AllCoursesActivity() {
 
   useDocumentTitle('All courses');
 
+  const { organizationPublicId } = useParams();
   const { filters, updateFilters } = useDashboardFilters();
   const { courseIds, assignmentIds, studentIds } = filters;
 
@@ -35,7 +37,7 @@ export default function AllCoursesActivity() {
     h_userid: studentIds,
     assignment_id: assignmentIds,
     course_id: courseIds,
-    public_id: dashboard.organization_public_id,
+    public_id: organizationPublicId,
   });
   const rows: CoursesTableRow[] = useMemo(
     () =>
