@@ -59,7 +59,9 @@ class BasicLaunchViews:
     def lti_launch(self):
         """Handle regular LTI launches."""
 
-        assignment = self.assignment_service.get_assignment_for_launch(self.request)
+        assignment = self.assignment_service.get_assignment_for_launch(
+            self.request, self.course
+        )
 
         if error_code := self.request.find_service(VitalSourceService).check_h_license(
             self.request.lti_user, self.request.lti_params, assignment
@@ -263,6 +265,7 @@ class BasicLaunchViews:
             assignment,
             document_url=self.request.parsed_params["document_url"],
             group_set_id=self.request.parsed_params.get("group_set"),
+            course=self.course,
         )
 
     def _configure_js_for_file_picker(

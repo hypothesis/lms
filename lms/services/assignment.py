@@ -9,6 +9,7 @@ from lms.models import (
     Assignment,
     AssignmentGrouping,
     AssignmentMembership,
+    Course,
     Grouping,
     LTIRole,
     Organization,
@@ -52,7 +53,14 @@ class AssignmentService:
 
         return assignment
 
-    def update_assignment(self, request, assignment, document_url, group_set_id):
+    def update_assignment(  # noqa: PLR0913
+        self,
+        request,
+        assignment: Assignment,
+        document_url: str,
+        group_set_id,
+        course: Course,
+    ):
         """Update an existing assignment."""
         if self._misc_plugin.is_speed_grader_launch(request):
             # SpeedGrader has a number of issues regarding the information it sends about the assignment
@@ -74,6 +82,7 @@ class AssignmentService:
         assignment.is_gradable = self._misc_plugin.is_assignment_gradable(
             request.lti_params
         )
+        assignment.course = course
 
         return assignment
 
@@ -101,7 +110,7 @@ class AssignmentService:
 
         return None
 
-    def get_assignment_for_launch(self, request) -> Assignment | None:
+    def get_assignment_for_launch(self, request, course: Course) -> Assignment | None:
         """
         Get or create an assignment for the current launch.
 
@@ -157,7 +166,9 @@ class AssignmentService:
         # Always update the assignment configuration
         # It often will be the same one while launching the assignment again but
         # it might for example be an updated deep linked URL or similar.
-        return self.update_assignment(request, assignment, document_url, group_set_id)
+        return self.update_assignment(
+            request, assignment, document_url, group_set_id, course
+        )
 
     def upsert_assignment_membership(
         self, assignment: Assignment, user: User, lti_roles: list[LTIRole]

@@ -39,6 +39,7 @@ class TestAssignmentService:
         resource_link_title,
         title,
     ):
+        course = factories.Course()
         pyramid_request.lti_params["resource_link_title"] = resource_link_title
         misc_plugin.is_speed_grader_launch.return_value = is_speed_grader
 
@@ -47,9 +48,11 @@ class TestAssignmentService:
             factories.Assignment(),
             sentinel.document_url,
             sentinel.group_set_id,
+            course,
         )
 
         assignment.title = title
+        assignment.course = course
         if is_speed_grader:
             assert assignment.extra == {}
             assert assignment.document_url != sentinel.document_url
@@ -100,13 +103,14 @@ class TestAssignmentService:
         get_assignment,
         _get_copied_from_assignment,
     ):
+        course = factories.Course()
         misc_plugin.get_assignment_configuration.return_value = {
             "document_url": sentinel.document_url,
             "group_set_id": sentinel.group_set_id,
         }
         get_assignment.return_value = factories.Assignment()
 
-        assignment = svc.get_assignment_for_launch(pyramid_request)
+        assignment = svc.get_assignment_for_launch(pyramid_request, course)
 
         _get_copied_from_assignment.assert_not_called()
         misc_plugin.get_assignment_configuration.assert_called_once_with(
@@ -123,13 +127,14 @@ class TestAssignmentService:
             "resource_link_description"
         )
         assert assignment.is_gradable == misc_plugin.is_assignment_gradable.return_value
+        assert assignment.course == course
 
     def test_get_assignment_returns_None_with_when_no_document(
         self, pyramid_request, svc, misc_plugin
     ):
         misc_plugin.get_assignment_configuration.return_value = {"document_url": None}
 
-        assert not svc.get_assignment_for_launch(pyramid_request)
+        assert not svc.get_assignment_for_launch(pyramid_request, factories.Course())
 
     @pytest.mark.parametrize("group_set_id", [None, "1"])
     def test_get_assignment_creates_assignment(
@@ -142,6 +147,7 @@ class TestAssignmentService:
         create_assignment,
         group_set_id,
     ):
+        course = factories.Course()
         misc_plugin.get_assignment_configuration.return_value = {
             "document_url": sentinel.document_url,
             "group_set_id": group_set_id,
@@ -150,13 +156,14 @@ class TestAssignmentService:
         get_assignment.return_value = None
         _get_copied_from_assignment.return_value = None
 
-        assignment = svc.get_assignment_for_launch(pyramid_request)
+        assignment = svc.get_assignment_for_launch(pyramid_request, course)
 
         _get_copied_from_assignment.assert_called_once_with(pyramid_request.lti_params)
         create_assignment.assert_called_once_with(
             "TEST_TOOL_CONSUMER_INSTANCE_GUID", "TEST_RESOURCE_LINK_ID"
         )
         assert assignment.document_url == sentinel.document_url
+        assert assignment.course == course
         if group_set_id:
             assignment.extra["group_set_id"] = group_set_id
         assert not assignment.copied_from
@@ -176,7 +183,7 @@ class TestAssignmentService:
         get_assignment.return_value = None
         _get_copied_from_assignment.return_value = sentinel.original_assignment
 
-        assignment = svc.get_assignment_for_launch(pyramid_request)
+        assignment = svc.get_assignment_for_launch(pyramid_request, factories.Course())
 
         _get_copied_from_assignment.assert_called_once_with(pyramid_request.lti_params)
         create_assignment.assert_called_once_with(

@@ -49,7 +49,7 @@ class TestBasicLaunchViews:
         )
 
     def test_configure_assignment_callback(
-        self, svc, pyramid_request, _show_document, assignment_service
+        self, svc, pyramid_request, _show_document, assignment_service, course_service
     ):
         pyramid_request.parsed_params = {
             "document_url": sentinel.document_url,
@@ -67,6 +67,7 @@ class TestBasicLaunchViews:
             assignment_service.create_assignment.return_value,
             document_url=sentinel.document_url,
             group_set_id=sentinel.group_set,
+            course=course_service.get_from_launch.return_value,
         )
         _show_document.assert_called_once_with(
             assignment_service.create_assignment.return_value,
@@ -112,11 +113,12 @@ class TestBasicLaunchViews:
         pyramid_request,
         _show_document,
         LTIEvent,
+        course_service,
     ):
         svc.lti_launch()
 
         assignment_service.get_assignment_for_launch.assert_called_once_with(
-            pyramid_request
+            pyramid_request, course_service.get_from_launch.return_value
         )
 
         _show_document.assert_called_once_with(
