@@ -42,7 +42,7 @@ class TestAssignmentViews:
         }
 
     def test_assignment(
-        self, views, pyramid_request, course, assignment, db_session, dashboard_service
+        self, views, pyramid_request, assignment, db_session, dashboard_service
     ):
         db_session.flush()
         pyramid_request.matchdict["assignment_id"] = sentinel.id
@@ -57,7 +57,7 @@ class TestAssignmentViews:
         assert response == {
             "id": assignment.id,
             "title": assignment.title,
-            "course": {"id": course.id, "title": course.lms_name},
+            "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
         }
 
     def test_course_assignments(
@@ -212,7 +212,7 @@ class TestAssignmentViews:
 
     @pytest.fixture
     def assignment(self, course):
-        assignment = factories.Assignment()
+        assignment = factories.Assignment(course=course)
         factories.AssignmentGrouping(assignment=assignment, grouping=course)
 
         return assignment

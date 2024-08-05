@@ -81,6 +81,7 @@ class Assignment(CreatedUpdatedMixin, Base):
     groupings: DynamicMapped[Grouping] = sa.orm.relationship(
         secondary="assignment_grouping", viewonly=True, lazy="dynamic"
     )
+    """Any groupings (courses, sections, groups) we have seen this assignment during a launch"""
 
     membership = sa.orm.relationship(
         "AssignmentMembership", lazy="dynamic", viewonly=True
@@ -91,16 +92,11 @@ class Assignment(CreatedUpdatedMixin, Base):
     """
     Last course we have seen this assigment belonging to.
 
-    @property
-    def course(self):
-        """Course this assignment belongs to."""
-        return (
-            self.groupings.filter_by(type="course")
-            .order_by(Grouping.created.desc())
-            # While logically one assignment belongs to only one course our grouping table might have more
-            # than one row representing the same course. Return the last created one.
-            .first()
-        )
+    Logically one assigment belongs to only one course but this might change from one launch to the next as
+    we record a new course in the DB for the same LMS one because we seen it on a new install.
+
+    We can use AssigmentGrouping for more detailed queries.
+    """
 
     def get_canvas_mapped_file_id(self, file_id):
         return self.extra.get("canvas_file_mappings", {}).get(file_id, file_id)
