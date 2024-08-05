@@ -4,6 +4,7 @@ import {
   MultiSelect,
 } from '@hypothesis/frontend-shared';
 import { useMemo } from 'preact/hooks';
+import { useParams } from 'wouter-preact';
 
 import type {
   AssignmentsResponse,
@@ -43,20 +44,22 @@ export default function DashboardActivityFilters({
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
 
+  const { organizationPublicId } = useParams();
+
   const courses = useAPIFetch<CoursesResponse>(routes.courses, {
     h_userid: selectedStudentIds,
     assignment_id: selectedAssignmentIds,
-    public_id: dashboard.organization_public_id,
+    public_id: organizationPublicId,
   });
   const assignments = useAPIFetch<AssignmentsResponse>(routes.assignments, {
     h_userid: selectedStudentIds,
     course_id: selectedCourseIds,
-    public_id: dashboard.organization_public_id,
+    public_id: organizationPublicId,
   });
   const students = useAPIFetch<StudentsResponse>(routes.students, {
     assignment_id: selectedAssignmentIds,
     course_id: selectedCourseIds,
-    public_id: dashboard.organization_public_id,
+    public_id: organizationPublicId,
   });
   const studentsWithName = useMemo(
     () => students.data?.students.filter(s => !!s.display_name),

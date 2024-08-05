@@ -72,6 +72,12 @@ class DashboardViews:
         request_method="GET",
         renderer="lms:templates/dashboard/index.html.jinja2",
     )
+    @view_config(
+        route_name="dashboard.organization.assignment",
+        permission=Permissions.DASHBOARD_VIEW,
+        request_method="GET",
+        renderer="lms:templates/dashboard/index.html.jinja2",
+    )
     def assignment_show(self):
         """Start the dashboard miniapp in the frontend.
 
@@ -88,6 +94,12 @@ class DashboardViews:
         request_method="GET",
         renderer="lms:templates/dashboard/index.html.jinja2",
     )
+    @view_config(
+        route_name="dashboard.organization.course",
+        permission=Permissions.DASHBOARD_VIEW,
+        request_method="GET",
+        renderer="lms:templates/dashboard/index.html.jinja2",
+    )
     def course_show(self):
         """Start the dashboard miniapp in the frontend.
 
@@ -100,6 +112,12 @@ class DashboardViews:
 
     @view_config(
         route_name="dashboard",
+        permission=Permissions.DASHBOARD_VIEW,
+        request_method="GET",
+        renderer="lms:templates/dashboard/index.html.jinja2",
+    )
+    @view_config(
+        route_name="dashboard.organization",
         permission=Permissions.DASHBOARD_VIEW,
         request_method="GET",
         renderer="lms:templates/dashboard/index.html.jinja2",

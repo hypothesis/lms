@@ -32,6 +32,7 @@ type AssignmentsTableRow = {
  */
 export default function CourseActivity() {
   const { courseId } = useParams<{ courseId: string }>();
+  const { organizationPublicId } = useParams();
   const [, navigate] = useLocation();
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
@@ -56,7 +57,7 @@ export default function CourseActivity() {
     {
       assignment_id: assignmentIds,
       h_userid: studentIds,
-      public_id: dashboard.organization_public_id,
+      public_id: organizationPublicId,
     },
   );
 

@@ -41,6 +41,9 @@ export default function AppRoot({ initialConfig, services }: AppRootProps) {
               <FilePickerApp />
             </DataLoader>
           </Route>
+          <Route path="/dashboard/orgs/:organizationPublicId" nest>
+            <DashboardApp />
+          </Route>
           <Route path="/dashboard" nest>
             <DashboardApp />
           </Route>

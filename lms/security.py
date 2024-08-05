@@ -99,11 +99,11 @@ class SecurityPolicy:
 
         path = request.path
 
-        if path.startswith("/admin") or path.startswith("/googleauth"):
+        if path.startswith(("/admin", "/googleauth", "/dashboard/org")):
             # Routes that require the Google auth policy
             return LMSGoogleSecurityPolicy()
 
-        if path.startswith(("/dashboard", "/api/dashboard")):
+        if path.startswith(("/api/dashboard")):
             # For certain routes we only use the google policy in case it resulted
             # non empty identity.
             # This is useful for routes that can be used by admin pages users on top of

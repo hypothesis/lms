@@ -713,14 +713,6 @@ class TestEnableDashboardMode:
             },
         }
 
-    def test_it_when_organizataion_public_id_present(self, js_config, pyramid_request):
-        pyramid_request.params["public_id"] = sentinel.public_id
-
-        js_config.enable_dashboard_mode()
-        config = js_config.asdict()
-
-        assert config["dashboard"]["organization_public_id"] == sentinel.public_id
-
     def test_user_when_staff(self, js_config, pyramid_request_staff_member, context):
         js_config = JSConfig(context, pyramid_request_staff_member)
         js_config.enable_dashboard_mode()

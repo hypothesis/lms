@@ -481,10 +481,8 @@ class TestSecurityPolicy:
             ("/assignment", FormBearerTokenLTIUserPolicy),
             ("/assignment/edit", FormBearerTokenLTIUserPolicy),
             ("/dashboard/launch/assignments/10", FormBearerTokenLTIUserPolicy),
-            (
-                "/dashboard/organizations/ORGID/assignments/10",
-                CookiesBearerTokenLTIUserPolicy,
-            ),
+            ("/dashboard/assignments/10", CookiesBearerTokenLTIUserPolicy),
+            ("/dashboard/orgs/ORGID/assignments/10", LMSGoogleSecurityPolicy),
         ],
     )
     def test_get_policy_lti_user(

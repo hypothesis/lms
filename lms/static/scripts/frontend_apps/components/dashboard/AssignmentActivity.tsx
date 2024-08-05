@@ -27,6 +27,7 @@ type StudentsTableRow = {
 export default function AssignmentActivity() {
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
+  const { organizationPublicId } = useParams();
   const { assignmentId } = useParams<{ assignmentId: string }>();
   const assignment = useAPIFetch<AssignmentWithMetrics>(
     replaceURLParams(routes.assignment, { assignment_id: assignmentId }),
@@ -35,7 +36,7 @@ export default function AssignmentActivity() {
     routes.students_metrics,
     {
       assignment_id: assignmentId,
-      public_id: dashboard.organization_public_id,
+      public_id: organizationPublicId,
     },
   );
 
