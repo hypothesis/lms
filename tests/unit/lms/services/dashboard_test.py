@@ -51,15 +51,13 @@ class TestDashboardService:
         svc,
         organization,
         db_session,
-        application_instance,
+        course,
         get_request_admin_organizations,
     ):
-        assignment = factories.Assignment()
-        course = factories.Course(application_instance=application_instance)
-        factories.AssignmentGrouping(assignment=assignment, grouping=course)
+        assignment = factories.Assignment(course_id=course.id)
+        db_session.flush()
         assignment_service.get_by_id.return_value = assignment
         get_request_admin_organizations.return_value = [organization]
-        db_session.flush()
 
         pyramid_request.matchdict["assignment_id"] = sentinel.id
 
@@ -98,13 +96,11 @@ class TestDashboardService:
         pyramid_request,
         course_service,
         svc,
-        application_instance,
         organization,
         get_request_admin_organizations,
+        course,
     ):
-        course_service.get_by_id.return_value = factories.Course(
-            application_instance=application_instance
-        )
+        course_service.get_by_id.return_value = course
         get_request_admin_organizations.return_value = [organization]
         pyramid_request.matchdict["course_id"] = sentinel.id
 
@@ -210,7 +206,13 @@ class TestDashboardService:
         organization_service.get_hierarchy_ids.return_value = []
         return organization_service
 
-    @pytest.fixture
+    @pytest.fixture()
+    def course(self, db_session, application_instance):
+        course = factories.Course(application_instance=application_instance)
+        db_session.flush()
+        return course
+
+    @pytest.fixture()
     def get_request_admin_organizations(self, svc):
         with patch.object(
             svc, "get_request_admin_organizations"

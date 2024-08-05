@@ -50,6 +50,8 @@ class AdminAssignmentViews:
             )
         )
 
+        # We can only navigate to assignments via their course, assigmentl.course won't be null
+        assert assignment.course
         response = HTTPFound(
             location=self.request.route_url(
                 "dashboard.assignment",
