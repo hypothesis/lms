@@ -104,13 +104,16 @@ class SecurityPolicy:
             return LMSGoogleSecurityPolicy()
 
         if path.startswith(("/api/dashboard")):
-            # For certain routes we only use the google policy in case it resulted
-            # non empty identity.
-            # This is useful for routes that can be used by admin pages users on top of
-            # other type of access
-            policy = LMSGoogleSecurityPolicy()
-            if policy.identity(request):
-                return policy
+            # For the dashboard API we prefer, in this order:
+            # - HeadersBearerTokenLTIUserPolicy()
+            #   For requests authorized via an API token, this applies to LMS users
+            #
+            # - LMSGoogleSecurityPolicy()
+            #   If the header token policy didn't succeed we try the google auth cookie, for staff users
+            policies = [HeadersBearerTokenLTIUserPolicy(), LMSGoogleSecurityPolicy()]
+            for policy in policies:
+                if policy.identity(request):  # type: ignore
+                    return policy
 
         if path in {"/lti_launches", "/content_item_selection"}:
             # Actual LTI backed authentication
