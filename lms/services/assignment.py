@@ -269,8 +269,7 @@ class AssignmentService:
         if admin_organization_ids:
             admin_organization_ids_clause = Assignment.id.in_(
                 select(Assignment.id)
-                .join(AssignmentGrouping)
-                .join(Grouping)
+                .join(Course)
                 .join(ApplicationInstance)
                 .join(Organization)
                 .where(Organization.id.in_(admin_organization_ids))
@@ -289,78 +288,27 @@ class AssignmentService:
             )
 
         if course_ids:
-            deduplicated_course_assignments = (
-                self._deduplicated_course_assigments_query(course_ids).subquery()
-            )
-
-            query = query.where(
-                # Get only assignment from the candidates above
-                Assignment.id == deduplicated_course_assignments.c.assignment_id,
-                deduplicated_course_assignments.c.grouping_id.in_(course_ids),
-            )
+            query = query.where(Assignment.course_id.in_(course_ids))
 
         return query.order_by(Assignment.title, Assignment.id).distinct()
 
-    def _deduplicated_course_assigments_query(self, course_ids: list[int]):
-        # Get all assignment IDs we recorded from this course
-        raw_course_assignments = select(AssignmentGrouping.assignment_id).where(
-            AssignmentGrouping.grouping_id.in_(course_ids)
-        )
-
-        # Get a list of deduplicated assignments based on raw_course_assignments,
-        # this will contain assignments that belong (now) to other courses
-        return (
-            select(AssignmentGrouping.assignment_id, AssignmentGrouping.grouping_id)
-            .distinct(AssignmentGrouping.assignment_id)
-            .join(Grouping)
-            .where(
-                # Only look at courses, otherwise courses and sections will deduplicate each other
-                Grouping.type == "course",
-                # Use the previous query to look only at the potential candidates
-                AssignmentGrouping.assignment_id.in_(raw_course_assignments),
-            )
-            # Deduplicate them based on the updated column, take the last one (together with the distinct clause)
-            .order_by(
-                AssignmentGrouping.assignment_id, AssignmentGrouping.updated.desc()
-            )
-        )
-
-    def get_courses_assignments_count(
-        self, course_ids: list[int], **kwargs
-    ) -> dict[int, int]:
+    def get_courses_assignments_count(self, **kwargs) -> dict[int, int]:
         """Get the number of assignments a given list of courses has."""
-
-        assignments_query = (
+        query = (
             # Query assignments
             self.get_assignments(**kwargs)
-            # Only select their IDs
-            .with_only_columns(Assignment.id)
-            # Remove any sorting options, we are going to avoid having to worry about sorted columns
+            # Change the selected columns
+            .with_only_columns(
+                Assignment.course_id,
+                func.count(Assignment.id),
+            )
+            # Remove any sorting options, to avoid having to worry about sorted columns being or not in the select
             .order_by(None)
+            # Group by course to get the counts
+            .group_by(Assignment.course_id)
         )
 
-        # We didn't pass course_ids to get_assigments because we need to deduplicate when we count, not before
-        deduplicated_course_assignments = self._deduplicated_course_assigments_query(
-            course_ids
-        ).subquery()
-
-        counts_query = (
-            select(
-                AssignmentGrouping.grouping_id,
-                func.count(AssignmentGrouping.assignment_id),
-            )
-            .where(
-                AssignmentGrouping.assignment_id.in_(assignments_query),
-                AssignmentGrouping.grouping_id.in_(course_ids),
-                deduplicated_course_assignments.c.grouping_id
-                == AssignmentGrouping.grouping_id,
-                AssignmentGrouping.assignment_id
-                == deduplicated_course_assignments.c.assignment_id,
-            )
-            .group_by(AssignmentGrouping.grouping_id)
-        )
-
-        return {x.grouping_id: x.count for x in self._db.execute(counts_query)}  # type: ignore
+        return {x.course_id: x.count for x in self._db.execute(query)}  # type: ignore
 
 
 def factory(_context, request):
