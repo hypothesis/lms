@@ -32,6 +32,7 @@ describe('AllCoursesActivity', () => {
   let wrappers;
 
   let fakeUseAPIFetch;
+  let fakeUseParams;
   let fakeConfig;
 
   beforeEach(() => {
@@ -44,6 +45,7 @@ describe('AllCoursesActivity', () => {
       isLoading: false,
       data: { courses },
     });
+    fakeUseParams = sinon.stub().returns({});
     fakeConfig = {
       dashboard: {
         routes: {
@@ -61,6 +63,9 @@ describe('AllCoursesActivity', () => {
     $imports.$mock({
       '../../utils/api': {
         useAPIFetch: fakeUseAPIFetch,
+      },
+      'wouter-preact': {
+        useParams: fakeUseParams,
       },
     });
   });
@@ -198,9 +203,9 @@ describe('AllCoursesActivity', () => {
     });
   });
 
-  context('when `organization_public_id` is present in config', () => {
+  context('when `organizationPublicId` is present in URL params', () => {
     beforeEach(() => {
-      fakeConfig.dashboard.organization_public_id = 'the-org-public-id';
+      fakeUseParams.returns({ organizationPublicId: 'the-org-public-id' });
     });
 
     it('propagates public_id to API calls', () => {
