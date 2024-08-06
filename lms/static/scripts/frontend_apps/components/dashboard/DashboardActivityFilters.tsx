@@ -8,6 +8,7 @@ import { useMemo } from 'preact/hooks';
 import type {
   AssignmentsResponse,
   CoursesResponse,
+  Student,
   StudentsResponse,
 } from '../../api-types';
 import { useConfig } from '../../config';
@@ -22,6 +23,8 @@ export type DashboardActivityFiltersProps = {
   onStudentsChange: (newStudentIds: string[]) => void;
   onClearSelection?: () => void;
 };
+
+type FiltersStudent = Student & { has_display_name: boolean };
 
 /**
  * Renders drop-downs to select courses, assignments and/or students, used to
@@ -58,8 +61,15 @@ export default function DashboardActivityFilters({
     course_id: selectedCourseIds,
     public_id: dashboard.organization_public_id,
   });
-  const studentsWithName = useMemo(
-    () => students.data?.students.filter(s => !!s.display_name),
+  const studentsWithFallbackName: FiltersStudent[] | undefined = useMemo(
+    () =>
+      students.data?.students.map(({ display_name, ...s }) => ({
+        ...s,
+        display_name:
+          display_name ??
+          `Student name unavailable (ID: ${s.lms_id.substring(0, 5)})`,
+        has_display_name: !!display_name,
+      })),
     [students.data?.students],
   );
 
@@ -134,7 +144,7 @@ export default function DashboardActivityFilters({
           ) : selectedStudentIds.length === 0 ? (
             <>All students</>
           ) : selectedStudentIds.length === 1 ? (
-            students.data?.students.find(
+            studentsWithFallbackName?.find(
               s => s.h_userid === selectedStudentIds[0],
             )?.display_name
           ) : (
@@ -144,9 +154,19 @@ export default function DashboardActivityFilters({
         data-testid="students-select"
       >
         <MultiSelect.Option value={undefined}>All students</MultiSelect.Option>
-        {studentsWithName?.map(student => (
+        {studentsWithFallbackName?.map(student => (
           <MultiSelect.Option key={student.lms_id} value={student.h_userid}>
-            {student.display_name}
+            <span
+              className={student.has_display_name ? undefined : 'italic'}
+              title={
+                student.has_display_name
+                  ? undefined
+                  : `User ID: ${student.lms_id}`
+              }
+              data-testid="option-content-wrapper"
+            >
+              {student.display_name}
+            </span>
           </MultiSelect.Option>
         ))}
       </MultiSelect>
