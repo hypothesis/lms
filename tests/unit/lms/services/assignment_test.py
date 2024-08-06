@@ -38,8 +38,8 @@ class TestAssignmentService:
         misc_plugin,
         resource_link_title,
         title,
+        course,
     ):
-        course = factories.Course()
         pyramid_request.lti_params["resource_link_title"] = resource_link_title
         misc_plugin.is_speed_grader_launch.return_value = is_speed_grader
 
@@ -51,14 +51,14 @@ class TestAssignmentService:
             course,
         )
 
-        assignment.title = title
-        assignment.course_id = course.id
         if is_speed_grader:
             assert assignment.extra == {}
             assert assignment.document_url != sentinel.document_url
         else:
             assert assignment.document_url == sentinel.document_url
             assert assignment.extra["group_set_id"] == sentinel.group_set_id
+            assert assignment.title == title
+            assert assignment.course_id == course.id
 
     @pytest.mark.parametrize(
         "param",
@@ -102,8 +102,8 @@ class TestAssignmentService:
         misc_plugin,
         get_assignment,
         _get_copied_from_assignment,
+        course,
     ):
-        course = factories.Course()
         misc_plugin.get_assignment_configuration.return_value = {
             "document_url": sentinel.document_url,
             "group_set_id": sentinel.group_set_id,
@@ -130,11 +130,11 @@ class TestAssignmentService:
         assert assignment.course_id == course.id
 
     def test_get_assignment_returns_None_with_when_no_document(
-        self, pyramid_request, svc, misc_plugin
+        self, pyramid_request, svc, misc_plugin, course
     ):
         misc_plugin.get_assignment_configuration.return_value = {"document_url": None}
 
-        assert not svc.get_assignment_for_launch(pyramid_request, factories.Course())
+        assert not svc.get_assignment_for_launch(pyramid_request, course)
 
     @pytest.mark.parametrize("group_set_id", [None, "1"])
     def test_get_assignment_creates_assignment(
@@ -146,8 +146,8 @@ class TestAssignmentService:
         _get_copied_from_assignment,
         create_assignment,
         group_set_id,
+        course,
     ):
-        course = factories.Course()
         misc_plugin.get_assignment_configuration.return_value = {
             "document_url": sentinel.document_url,
             "group_set_id": group_set_id,
@@ -176,6 +176,7 @@ class TestAssignmentService:
         get_assignment,
         _get_copied_from_assignment,
         create_assignment,
+        course,
     ):
         misc_plugin.get_assignment_configuration.return_value = {
             "document_url": sentinel.document_url
@@ -183,7 +184,7 @@ class TestAssignmentService:
         get_assignment.return_value = None
         _get_copied_from_assignment.return_value = sentinel.original_assignment
 
-        assignment = svc.get_assignment_for_launch(pyramid_request, factories.Course())
+        assignment = svc.get_assignment_for_launch(pyramid_request, course)
 
         _get_copied_from_assignment.assert_called_once_with(pyramid_request.lti_params)
         create_assignment.assert_called_once_with(
@@ -272,10 +273,9 @@ class TestAssignmentService:
         h_userids,
         assignment_ids,
         organization,
-        application_instance,
+        course,
     ):
         factories.User()
-        course = factories.Course(application_instance=application_instance)
         user = factories.User()
         lti_role = factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR)
         factories.AssignmentMembership.create(
@@ -284,7 +284,7 @@ class TestAssignmentService:
         factories.AssignmentMembership.create(
             assignment=assignment, user=user, lti_role=factories.LTIRole()
         )
-        factories.AssignmentGrouping.create(assignment=assignment, grouping=course)
+        assignment.course = course
         db_session.flush()
 
         query_parameters = {}
@@ -306,8 +306,7 @@ class TestAssignmentService:
 
         assert db_session.scalars(query).all() == [assignment]
 
-    def test_get_assignments_excludes_empty_titles(self, db_session, svc):
-        course = factories.Course()
+    def test_get_assignments_excludes_empty_titles(self, db_session, svc, course):
         assignment = factories.Assignment(title=None)
         factories.AssignmentGrouping(
             grouping=course, assignment=assignment, updated=date(2022, 1, 1)
@@ -318,55 +317,22 @@ class TestAssignmentService:
             svc.get_assignments(course_ids=[course.id])
         ).all() == [assignment]
 
-    def test_get_assignments_by_course_id_with_duplicate(
-        self, db_session, svc, application_instance, organization
-    ):
-        course = factories.Course(application_instance=application_instance)
-        other_course = factories.Course(application_instance=application_instance)
-
-        assignment = factories.Assignment()
-
-        # other course only has an assignment that `course` has stolen
-        factories.AssignmentGrouping(
-            grouping=other_course, assignment=assignment, updated=date(2020, 1, 1)
-        )
-        factories.AssignmentGrouping(
-            grouping=course, assignment=assignment, updated=date(2022, 1, 1)
-        )
-        db_session.flush()
-
-        assert db_session.scalars(
-            svc.get_assignments(
-                course_ids=[course.id], admin_organization_ids=[organization.id]
-            )
-        ).all() == [assignment]
-        # We don't expect to get the other one at all, now the assignment belongs to the most recent course
-        assert not db_session.scalars(
-            svc.get_assignments(
-                course_ids=[other_course.id], admin_organization_ids=[organization.id]
-            )
-        ).all()
-
     def test_get_courses_assignments_count(
-        self, svc, db_session, organization, application_instance
+        self, svc, db_session, organization, course, application_instance
     ):
-        course = factories.Course(application_instance=application_instance)
-        other_course = factories.Course(application_instance=application_instance)
-        assignment = factories.Assignment()
+        factories.Assignment(course=course)
+        factories.Assignment(course=course)
+        factories.Assignment(course=course)
 
-        # other course only has an assignment that `course` has stolen
-        factories.AssignmentGrouping(
-            grouping=other_course, assignment=assignment, updated=date(2020, 1, 1)
-        )
-        factories.AssignmentGrouping(
-            grouping=course, assignment=assignment, updated=date(2022, 1, 1)
-        )
+        other_course = factories.Course(application_instance=application_instance)
+        factories.Assignment(course=other_course)
+
         db_session.flush()
 
         assert svc.get_courses_assignments_count(
             course_ids=[course.id, other_course.id],
             admin_organization_ids=[organization.id],
-        ) == {course.id: 1}
+        ) == {course.id: 3, other_course.id: 1}
 
     @pytest.fixture
     def svc(self, db_session, misc_plugin):
@@ -377,6 +343,12 @@ class TestAssignmentService:
         return factories.Assignment(
             created=datetime(2000, 1, 1), updated=datetime(2000, 1, 1)
         )
+
+    @pytest.fixture()
+    def course(self, db_session, application_instance):
+        course = factories.Course(application_instance=application_instance)
+        db_session.flush()
+        return course
 
     @pytest.fixture
     def matching_params(self, assignment):
