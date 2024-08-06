@@ -429,17 +429,32 @@ class TestSecurityPolicy:
         assert user_id == get_policy.return_value.forget.return_value
 
     @pytest.mark.parametrize(
-        "path", ["/api/dashboard/assignments/10", "/dashboard/orgs/ORGID"]
+        "header_value,google_value,expected_policy",
+        [
+            (sentinel.ok, None, HeadersBearerTokenLTIUserPolicy),
+            (None, sentinel.ok, LMSGoogleSecurityPolicy),
+            (sentinel.ok, sentinel.ok, HeadersBearerTokenLTIUserPolicy),
+            (None, None, HeadersBearerTokenLTIUserPolicy),
+        ],
     )
-    def test_get_policy_google_when_available(
-        self, pyramid_request, path, LMSGoogleSecurityPolicy
+    def test_api_dashboard_policy(
+        self,
+        pyramid_request,
+        header_value,
+        google_value,
+        expected_policy,
+        HeadersBearerTokenLTIUserPolicy,
+        LMSGoogleSecurityPolicy,
     ):
-        pyramid_request.path = path
-        LMSGoogleSecurityPolicy.return_value.identity.return_value = sentinel.identity
+        pyramid_request.path = "/api/dashboard/assignments/10"
+        HeadersBearerTokenLTIUserPolicy.return_value.identity.return_value = (
+            header_value
+        )
+        LMSGoogleSecurityPolicy.return_value.identity.return_value = google_value
 
         policy = SecurityPolicy.get_policy(pyramid_request)
 
-        assert policy == LMSGoogleSecurityPolicy.return_value
+        assert policy.__class__ == expected_policy
 
     @pytest.mark.parametrize(
         "path",
@@ -532,6 +547,10 @@ class TestSecurityPolicy:
     @pytest.fixture(autouse=True)
     def LMSGoogleSecurityPolicy(self, patch):
         return patch("lms.security.LMSGoogleSecurityPolicy")
+
+    @pytest.fixture(autouse=True)
+    def HeadersBearerTokenLTIUserPolicy(self, patch):
+        return patch("lms.security.HeadersBearerTokenLTIUserPolicy")
 
     @pytest.fixture(autouse=True)
     def EmailPreferencesSecurityPolicy(self, patch):
