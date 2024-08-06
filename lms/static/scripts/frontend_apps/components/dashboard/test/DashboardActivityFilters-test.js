@@ -47,9 +47,9 @@ describe('DashboardActivityFilters', () => {
   const students = [
     ...studentsWithName,
     {
-      lms_id: '3',
+      lms_id: '123456789',
       h_userid: 'acct:3@lms.hypothes.is',
-      display_name: '', // Student with an empty name won't be displayed
+      display_name: null, // Student with an empty name won't be displayed
     },
   ];
 
@@ -178,9 +178,11 @@ describe('DashboardActivityFilters', () => {
       expectedOptions: [
         'All students',
         ...studentsWithName.map(s => s.display_name),
+        'Student name unavailable (ID: 12345)',
       ],
+      expectedTitles: [undefined, undefined, undefined, 'User ID: 123456789'],
     },
-  ].forEach(({ id, expectedOptions }) => {
+  ].forEach(({ id, expectedOptions, expectedTitles = [] }) => {
     it('renders corresponding options', () => {
       const wrapper = createComponent();
       const select = getSelect(wrapper, id);
@@ -189,6 +191,13 @@ describe('DashboardActivityFilters', () => {
       assert.equal(options.length, expectedOptions.length);
       options.forEach((option, index) => {
         assert.equal(option.text(), expectedOptions[index]);
+
+        if (expectedTitles[index]) {
+          assert.equal(
+            option.find('[data-testid="option-content-wrapper"]').prop('title'),
+            expectedTitles[index],
+          );
+        }
       });
     });
   });
@@ -302,7 +311,7 @@ describe('DashboardActivityFilters', () => {
       {
         props: {
           selectedAssignmentIds: [...assignments],
-          selectedStudentIds: [...studentsWithName],
+          selectedStudentIds: [...students],
         },
         shouldRenderClearButton: false,
       },
