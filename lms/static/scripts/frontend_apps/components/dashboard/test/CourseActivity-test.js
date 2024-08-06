@@ -228,10 +228,10 @@ describe('CourseActivity', () => {
       const filters = wrapper.find('DashboardActivityFilters');
 
       // Course ID is set from the route
-      assert.deepEqual(filters.prop('selectedCourseIds'), ['123']);
+      assert.deepEqual(filters.prop('courses').selectedIds, ['123']);
       // Assignments and students are set from the query
-      assert.deepEqual(filters.prop('selectedAssignmentIds'), ['1', '2']);
-      assert.deepEqual(filters.prop('selectedStudentIds'), ['3']);
+      assert.deepEqual(filters.prop('assignments').selectedIds, ['1', '2']);
+      assert.deepEqual(filters.prop('students').selectedIds, ['3']);
 
       // Selected filters are propagated when loading assignment metrics
       assert.calledWith(fakeUseAPIFetch.lastCall, sinon.match.string, {
@@ -262,7 +262,7 @@ describe('CourseActivity', () => {
       const wrapper = createComponent();
       const filters = wrapper.find('DashboardActivityFilters');
 
-      act(() => filters.props().onAssignmentsChange(['3', '7']));
+      act(() => filters.prop('assignments').onChange(['3', '7']));
 
       assert.equal(location.search, '?assignment_id=3&assignment_id=7');
     });
@@ -271,7 +271,7 @@ describe('CourseActivity', () => {
       const wrapper = createComponent();
       const filters = wrapper.find('DashboardActivityFilters');
 
-      act(() => filters.props().onStudentsChange(['8', '20', '32']));
+      act(() => filters.prop('students').onChange(['8', '20', '32']));
 
       assert.equal(
         location.search,
@@ -296,7 +296,7 @@ describe('CourseActivity', () => {
       const wrapper = createComponent();
       const filters = wrapper.find('DashboardActivityFilters');
 
-      act(() => filters.props().onCoursesChange([]));
+      act(() => filters.prop('courses').onChange([]));
 
       assert.calledWith(fakeNavigate, '?current=query');
     });
@@ -305,7 +305,7 @@ describe('CourseActivity', () => {
       const wrapper = createComponent();
       const filters = wrapper.find('DashboardActivityFilters');
 
-      act(() => filters.props().onCoursesChange(['123', '789']));
+      act(() => filters.prop('courses').onChange(['123', '789']));
 
       assert.calledWith(fakeNavigate, '/courses/789?current=query');
     });

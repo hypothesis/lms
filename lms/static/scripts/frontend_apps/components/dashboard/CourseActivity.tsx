@@ -88,27 +88,33 @@ export default function CourseActivity() {
         </h2>
       </div>
       <DashboardActivityFilters
-        selectedCourseIds={[courseId]}
-        onCoursesChange={newCourseIds => {
-          // When no courses are selected (which happens if either "All courses" is
-          // selected or the active course is deselected), navigate to "All courses"
-          // section and propagate the rest of the filters.
-          if (newCourseIds.length === 0) {
-            navigate(`?${search}`);
-          }
+        courses={{
+          selectedIds: [courseId],
+          onChange: newCourseIds => {
+            // When no courses are selected (which happens if either "All courses" is
+            // selected or the active course is deselected), navigate to "All courses"
+            // section and propagate the rest of the filters.
+            if (newCourseIds.length === 0) {
+              navigate(`?${search}`);
+            }
 
-          // When a course other than the "active" one (the one represented
-          // in the URL) is selected, navigate to that course and propagate
-          // the rest of the filters.
-          const firstDifferentCourse = newCourseIds.find(c => c !== courseId);
-          if (firstDifferentCourse) {
-            navigate(`${courseURL(firstDifferentCourse)}?${search}`);
-          }
+            // When a course other than the "active" one (the one represented
+            // in the URL) is selected, navigate to that course and propagate
+            // the rest of the filters.
+            const firstDifferentCourse = newCourseIds.find(c => c !== courseId);
+            if (firstDifferentCourse) {
+              navigate(`${courseURL(firstDifferentCourse)}?${search}`);
+            }
+          },
         }}
-        selectedAssignmentIds={assignmentIds}
-        onAssignmentsChange={assignmentIds => updateFilters({ assignmentIds })}
-        selectedStudentIds={studentIds}
-        onStudentsChange={studentIds => updateFilters({ studentIds })}
+        assignments={{
+          selectedIds: assignmentIds,
+          onChange: assignmentIds => updateFilters({ assignmentIds }),
+        }}
+        students={{
+          selectedIds: studentIds,
+          onChange: studentIds => updateFilters({ studentIds }),
+        }}
         onClearSelection={hasSelection ? onClearSelection : undefined}
       />
       <OrderableActivityTable

@@ -14,13 +14,23 @@ import type {
 import { useConfig } from '../../config';
 import { useAPIFetch } from '../../utils/api';
 
+export type ActivityFilters = {
+  selectedIds: string[];
+  onChange: (newSelectedIds: string[]) => void;
+};
+
 export type DashboardActivityFiltersProps = {
-  selectedCourseIds: string[];
-  onCoursesChange: (newCourseIds: string[]) => void;
-  selectedAssignmentIds: string[];
-  onAssignmentsChange: (newAssignmentIds: string[]) => void;
-  selectedStudentIds: string[];
-  onStudentsChange: (newStudentIds: string[]) => void;
+  /** Controls courses dropdown. The control will be hidden if not provided */
+  courses?: ActivityFilters;
+  /** Controls assignments dropdown. The control will be hidden if not provided */
+  assignments?: ActivityFilters;
+  /** Controls students dropdown. The control will be hidden if not provided */
+  students?: ActivityFilters;
+
+  /**
+   * Invoked when clear button is clicked.
+   * The button won't be shown if this is not provided.
+   */
   onClearSelection?: () => void;
 };
 
@@ -31,145 +41,160 @@ type FiltersStudent = Student & { has_display_name: boolean };
  * filter dashboard activity metrics.
  */
 export default function DashboardActivityFilters({
-  selectedCourseIds,
-  onCoursesChange,
-  selectedAssignmentIds,
-  onAssignmentsChange,
-  selectedStudentIds,
-  onStudentsChange,
+  courses,
+  assignments,
+  students,
   onClearSelection,
 }: DashboardActivityFiltersProps) {
   const hasSelection =
-    selectedStudentIds.length > 0 ||
-    selectedAssignmentIds.length > 0 ||
-    selectedCourseIds.length > 0;
+    (courses && courses.selectedIds.length > 0) ||
+    (assignments && assignments.selectedIds.length > 0) ||
+    (students && students.selectedIds.length > 0);
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
 
-  const courses = useAPIFetch<CoursesResponse>(routes.courses, {
-    h_userid: selectedStudentIds,
-    assignment_id: selectedAssignmentIds,
-    public_id: dashboard.organization_public_id,
-  });
-  const assignments = useAPIFetch<AssignmentsResponse>(routes.assignments, {
-    h_userid: selectedStudentIds,
-    course_id: selectedCourseIds,
-    public_id: dashboard.organization_public_id,
-  });
-  const students = useAPIFetch<StudentsResponse>(routes.students, {
-    assignment_id: selectedAssignmentIds,
-    course_id: selectedCourseIds,
-    public_id: dashboard.organization_public_id,
-  });
+  const coursesResult = useAPIFetch<CoursesResponse>(
+    courses ? routes.courses : null,
+    {
+      h_userid: students?.selectedIds,
+      assignment_id: assignments?.selectedIds,
+      public_id: dashboard.organization_public_id,
+    },
+  );
+  const assignmentsResult = useAPIFetch<AssignmentsResponse>(
+    assignments ? routes.assignments : null,
+    {
+      h_userid: students?.selectedIds,
+      course_id: courses?.selectedIds,
+      public_id: dashboard.organization_public_id,
+    },
+  );
+  const studentsResult = useAPIFetch<StudentsResponse>(
+    students ? routes.students : null,
+    {
+      assignment_id: assignments?.selectedIds,
+      course_id: courses?.selectedIds,
+      public_id: dashboard.organization_public_id,
+    },
+  );
   const studentsWithFallbackName: FiltersStudent[] | undefined = useMemo(
     () =>
-      students.data?.students.map(({ display_name, ...s }) => ({
+      studentsResult.data?.students.map(({ display_name, ...s }) => ({
         ...s,
         display_name:
           display_name ??
           `Student name unavailable (ID: ${s.lms_id.substring(0, 5)})`,
         has_display_name: !!display_name,
       })),
-    [students.data?.students],
+    [studentsResult.data?.students],
   );
 
   return (
     <div className="flex gap-2 flex-wrap">
-      <MultiSelect
-        disabled={courses.isLoading}
-        value={selectedCourseIds}
-        onChange={onCoursesChange}
-        aria-label="Select courses"
-        containerClasses="!w-auto min-w-[180px]"
-        buttonContent={
-          courses.isLoading ? (
-            <>...</>
-          ) : selectedCourseIds.length === 0 ? (
-            <>All courses</>
-          ) : selectedCourseIds.length === 1 ? (
-            courses.data?.courses.find(c => `${c.id}` === selectedCourseIds[0])
-              ?.title
-          ) : (
-            <>{selectedCourseIds.length} courses</>
-          )
-        }
-        data-testid="courses-select"
-      >
-        <MultiSelect.Option value={undefined}>All courses</MultiSelect.Option>
-        {courses.data?.courses.map(course => (
-          <MultiSelect.Option key={course.id} value={`${course.id}`}>
-            {course.title}
+      {courses && (
+        <MultiSelect
+          disabled={coursesResult.isLoading}
+          value={courses.selectedIds}
+          onChange={courses.onChange}
+          aria-label="Select courses"
+          containerClasses="!w-auto min-w-[180px]"
+          buttonContent={
+            coursesResult.isLoading ? (
+              <>...</>
+            ) : courses.selectedIds.length === 0 ? (
+              <>All courses</>
+            ) : courses.selectedIds.length === 1 ? (
+              coursesResult.data?.courses.find(
+                c => `${c.id}` === courses.selectedIds[0],
+              )?.title
+            ) : (
+              <>{courses.selectedIds.length} courses</>
+            )
+          }
+          data-testid="courses-select"
+        >
+          <MultiSelect.Option value={undefined}>All courses</MultiSelect.Option>
+          {coursesResult.data?.courses.map(course => (
+            <MultiSelect.Option key={course.id} value={`${course.id}`}>
+              {course.title}
+            </MultiSelect.Option>
+          ))}
+        </MultiSelect>
+      )}
+      {assignments && (
+        <MultiSelect
+          disabled={assignmentsResult.isLoading}
+          value={assignments.selectedIds}
+          onChange={assignments.onChange}
+          aria-label="Select assignments"
+          containerClasses="!w-auto min-w-[180px]"
+          buttonContent={
+            assignmentsResult.isLoading ? (
+              <>...</>
+            ) : assignments.selectedIds.length === 0 ? (
+              <>All assignments</>
+            ) : assignments.selectedIds.length === 1 ? (
+              assignmentsResult.data?.assignments.find(
+                a => `${a.id}` === assignments.selectedIds[0],
+              )?.title
+            ) : (
+              <>{assignments.selectedIds.length} assignments</>
+            )
+          }
+          data-testid="assignments-select"
+        >
+          <MultiSelect.Option value={undefined}>
+            All assignments
           </MultiSelect.Option>
-        ))}
-      </MultiSelect>
-      <MultiSelect
-        disabled={assignments.isLoading}
-        value={selectedAssignmentIds}
-        onChange={onAssignmentsChange}
-        aria-label="Select assignments"
-        containerClasses="!w-auto min-w-[180px]"
-        buttonContent={
-          assignments.isLoading ? (
-            <>...</>
-          ) : selectedAssignmentIds.length === 0 ? (
-            <>All assignments</>
-          ) : selectedAssignmentIds.length === 1 ? (
-            assignments.data?.assignments.find(
-              a => `${a.id}` === selectedAssignmentIds[0],
-            )?.title
-          ) : (
-            <>{selectedAssignmentIds.length} assignments</>
-          )
-        }
-        data-testid="assignments-select"
-      >
-        <MultiSelect.Option value={undefined}>
-          All assignments
-        </MultiSelect.Option>
-        {assignments.data?.assignments.map(assignment => (
-          <MultiSelect.Option key={assignment.id} value={`${assignment.id}`}>
-            {assignment.title}
+          {assignmentsResult.data?.assignments.map(assignment => (
+            <MultiSelect.Option key={assignment.id} value={`${assignment.id}`}>
+              {assignment.title}
+            </MultiSelect.Option>
+          ))}
+        </MultiSelect>
+      )}
+      {students && (
+        <MultiSelect
+          disabled={studentsResult.isLoading}
+          value={students.selectedIds}
+          onChange={students.onChange}
+          aria-label="Select students"
+          containerClasses="!w-auto min-w-[180px]"
+          buttonContent={
+            studentsResult.isLoading ? (
+              <>...</>
+            ) : students.selectedIds.length === 0 ? (
+              <>All students</>
+            ) : students.selectedIds.length === 1 ? (
+              studentsWithFallbackName?.find(
+                s => s.h_userid === students.selectedIds[0],
+              )?.display_name
+            ) : (
+              <>{students.selectedIds.length} students</>
+            )
+          }
+          data-testid="students-select"
+        >
+          <MultiSelect.Option value={undefined}>
+            All students
           </MultiSelect.Option>
-        ))}
-      </MultiSelect>
-      <MultiSelect
-        disabled={students.isLoading}
-        value={selectedStudentIds}
-        onChange={onStudentsChange}
-        aria-label="Select students"
-        containerClasses="!w-auto min-w-[180px]"
-        buttonContent={
-          students.isLoading ? (
-            <>...</>
-          ) : selectedStudentIds.length === 0 ? (
-            <>All students</>
-          ) : selectedStudentIds.length === 1 ? (
-            studentsWithFallbackName?.find(
-              s => s.h_userid === selectedStudentIds[0],
-            )?.display_name
-          ) : (
-            <>{selectedStudentIds.length} students</>
-          )
-        }
-        data-testid="students-select"
-      >
-        <MultiSelect.Option value={undefined}>All students</MultiSelect.Option>
-        {studentsWithFallbackName?.map(student => (
-          <MultiSelect.Option key={student.lms_id} value={student.h_userid}>
-            <span
-              className={student.has_display_name ? undefined : 'italic'}
-              title={
-                student.has_display_name
-                  ? undefined
-                  : `User ID: ${student.lms_id}`
-              }
-              data-testid="option-content-wrapper"
-            >
-              {student.display_name}
-            </span>
-          </MultiSelect.Option>
-        ))}
-      </MultiSelect>
+          {studentsWithFallbackName?.map(student => (
+            <MultiSelect.Option key={student.lms_id} value={student.h_userid}>
+              <span
+                className={student.has_display_name ? undefined : 'italic'}
+                title={
+                  student.has_display_name
+                    ? undefined
+                    : `User ID: ${student.lms_id}`
+                }
+                data-testid="option-content-wrapper"
+              >
+                {student.display_name}
+              </span>
+            </MultiSelect.Option>
+          ))}
+        </MultiSelect>
+      )}
       {hasSelection && onClearSelection && (
         <IconButton
           title="Clear filters"

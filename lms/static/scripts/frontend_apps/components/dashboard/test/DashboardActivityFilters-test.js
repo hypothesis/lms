@@ -113,23 +113,33 @@ describe('DashboardActivityFilters', () => {
     $imports.$restore();
   });
 
-  function createComponent(props = {}) {
+  function createComponentWithProps(props) {
     const wrapper = mount(
       <Config.Provider value={fakeConfig}>
-        <DashboardActivityFilters
-          selectedCourseIds={[]}
-          onCoursesChange={onCoursesChange}
-          selectedAssignmentIds={[]}
-          onAssignmentsChange={onAssignmentsChange}
-          selectedStudentIds={[]}
-          onStudentsChange={onStudentsChange}
-          {...props}
-        />
+        <DashboardActivityFilters {...props} />
       </Config.Provider>,
     );
     wrappers.push(wrapper);
 
     return wrapper;
+  }
+
+  function createComponent(options = {}) {
+    return createComponentWithProps({
+      courses: {
+        selectedIds: options.selectedCourseIds ?? [],
+        onChange: onCoursesChange,
+      },
+      assignments: {
+        selectedIds: options.selectedAssignmentIds ?? [],
+        onChange: onAssignmentsChange,
+      },
+      students: {
+        selectedIds: options.selectedStudentIds ?? [],
+        onChange: onStudentsChange,
+      },
+      onClearSelection: options.onClearSelection,
+    });
   }
 
   function getSelect(wrapper, id) {
@@ -345,6 +355,72 @@ describe('DashboardActivityFilters', () => {
       assert.called(onClearSelection);
     });
   });
+
+  const emptyFilters = {
+    selectedIds: [],
+    onChange: sinon.stub(),
+  };
+
+  [
+    {
+      props: {},
+      coursesSelectShouldExist: false,
+      assignmentsSelectShouldExist: false,
+      studentsSelectShouldExist: false,
+    },
+    {
+      props: { courses: emptyFilters },
+      coursesSelectShouldExist: true,
+      assignmentsSelectShouldExist: false,
+      studentsSelectShouldExist: false,
+    },
+    {
+      props: { assignments: emptyFilters },
+      coursesSelectShouldExist: false,
+      assignmentsSelectShouldExist: true,
+      studentsSelectShouldExist: false,
+    },
+    {
+      props: { assignments: emptyFilters, students: emptyFilters },
+      coursesSelectShouldExist: false,
+      assignmentsSelectShouldExist: true,
+      studentsSelectShouldExist: true,
+    },
+    {
+      props: {
+        courses: emptyFilters,
+        assignments: emptyFilters,
+        students: emptyFilters,
+      },
+      coursesSelectShouldExist: true,
+      assignmentsSelectShouldExist: true,
+      studentsSelectShouldExist: true,
+    },
+  ].forEach(
+    ({
+      props,
+      coursesSelectShouldExist,
+      assignmentsSelectShouldExist,
+      studentsSelectShouldExist,
+    }) => {
+      it('does not render controls for which config is not provided', () => {
+        const wrapper = createComponentWithProps(props);
+
+        assert.equal(
+          wrapper.exists('[data-testid="courses-select"]'),
+          coursesSelectShouldExist,
+        );
+        assert.equal(
+          wrapper.exists('[data-testid="assignments-select"]'),
+          assignmentsSelectShouldExist,
+        );
+        assert.equal(
+          wrapper.exists('[data-testid="students-select"]'),
+          studentsSelectShouldExist,
+        );
+      });
+    },
+  );
 
   it(
     'should pass a11y checks',

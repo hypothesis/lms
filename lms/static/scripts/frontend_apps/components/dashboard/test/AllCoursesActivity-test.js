@@ -164,8 +164,8 @@ describe('AllCoursesActivity', () => {
   it('allows metrics to be filtered', () => {
     const wrapper = createComponent();
     const filters = wrapper.find('DashboardActivityFilters');
-    const updateFilter = (changeCallback, arg) => {
-      act(() => filters.prop(changeCallback)(arg));
+    const updateFilter = (prop, arg) => {
+      act(() => filters.prop(prop).onChange(arg));
       wrapper.update();
     };
     const assertCoursesFetched = query =>
@@ -173,7 +173,7 @@ describe('AllCoursesActivity', () => {
 
     // Every time the filters callbacks are invoked, the component will
     // re-render and re-fetch metrics with updated query.
-    updateFilter('onStudentsChange', ['123', '456']);
+    updateFilter('students', ['123', '456']);
     assertCoursesFetched({
       h_userid: ['123', '456'],
       assignment_id: [],
@@ -181,7 +181,7 @@ describe('AllCoursesActivity', () => {
       public_id: undefined,
     });
 
-    updateFilter('onAssignmentsChange', ['1', '2']);
+    updateFilter('assignments', ['1', '2']);
     assertCoursesFetched({
       h_userid: [],
       assignment_id: ['1', '2'],
@@ -189,7 +189,7 @@ describe('AllCoursesActivity', () => {
       public_id: undefined,
     });
 
-    updateFilter('onCoursesChange', ['3', '8', '9']);
+    updateFilter('courses', ['3', '8', '9']);
     assertCoursesFetched({
       h_userid: [],
       assignment_id: [],

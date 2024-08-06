@@ -51,12 +51,18 @@ export default function AllCoursesActivity() {
     <div className="flex flex-col gap-y-5">
       <h2 className="text-lg text-brand font-semibold">All courses</h2>
       <DashboardActivityFilters
-        selectedStudentIds={studentIds}
-        onStudentsChange={studentIds => updateFilters({ studentIds })}
-        selectedAssignmentIds={assignmentIds}
-        onAssignmentsChange={assignmentIds => updateFilters({ assignmentIds })}
-        selectedCourseIds={courseIds}
-        onCoursesChange={courseIds => updateFilters({ courseIds })}
+        students={{
+          selectedIds: studentIds,
+          onChange: studentIds => updateFilters({ studentIds }),
+        }}
+        assignments={{
+          selectedIds: assignmentIds,
+          onChange: assignmentIds => updateFilters({ assignmentIds }),
+        }}
+        courses={{
+          selectedIds: courseIds,
+          onChange: courseIds => updateFilters({ courseIds }),
+        }}
         onClearSelection={() =>
           updateFilters({ studentIds: [], assignmentIds: [], courseIds: [] })
         }
