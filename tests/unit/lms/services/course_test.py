@@ -106,13 +106,12 @@ class TestCourseService:
         assert course == upsert_course.return_value
 
     def test_get_from_launch_when_new_and_canvas(
-        self, svc, upsert_course, get_by_context_id, product
+        self, svc, upsert_course, get_by_context_id
     ):
         get_by_context_id.return_value = None
-        product.family = Product.Family.CANVAS
 
         course = svc.get_from_launch(
-            product,
+            Product.Family.CANVAS,
             lti_params={
                 "context_id": sentinel.context_id,
                 "context_title": sentinel.context_title,
