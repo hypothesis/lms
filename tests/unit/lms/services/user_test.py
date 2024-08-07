@@ -118,13 +118,10 @@ class TestUserService:
 
         assert db_session.scalars(query).all() == [other_student]
 
+    @pytest.mark.usefixtures("assignment")
     def test_get_users_by_course_id(
-        self, service, db_session, student_in_assigment, assignment, organization
+        self, service, db_session, student_in_assigment, course, organization
     ):
-        course = factories.Course()
-        factories.AssignmentGrouping(assignment=assignment, grouping=course)
-        db_session.flush()
-
         query = service.get_users(
             role_scope=RoleScope.COURSE,
             role_type=RoleType.LEARNER,
@@ -150,21 +147,19 @@ class TestUserService:
 
         assert db_session.scalars(query).all() == [student_in_assigment]
 
+    @pytest.mark.usefixtures("assignment", "course")
     def test_get_users_by_instructor_h_userid(
-        self,
-        service,
-        db_session,
-        student_in_assigment,
-        teacher_in_assigment,
+        self, service, db_session, student_in_assigment, teacher_in_assigment
     ):
-        # Assignment the h_userid does not belong to
-        other_assignment = factories.Assignment()
+        # Assignment in another course
+        other_assignment = factories.Assignment(course=factories.Course())
         other_student = factories.User()
         factories.AssignmentMembership.create(
             assignment=other_assignment,
             user=other_student,
             lti_role=factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
         )
+        db_session.flush()
 
         query = service.get_users(
             role_scope=RoleScope.COURSE,
@@ -175,8 +170,18 @@ class TestUserService:
         assert db_session.scalars(query).all() == [student_in_assigment]
 
     @pytest.fixture
-    def assignment(self):
-        return factories.Assignment()
+    def course(self, application_instance, db_session):
+        course = factories.Course(application_instance=application_instance)
+        db_session.flush()
+
+        return course
+
+    @pytest.fixture
+    def assignment(self, course):
+        assignment = factories.Assignment(course=course)
+        factories.AssignmentGrouping(assignment=assignment, grouping=course)
+
+        return assignment
 
     @pytest.fixture
     def student_in_assigment(self, assignment, application_instance):
