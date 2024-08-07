@@ -17,6 +17,7 @@ from lms.models import (
     RoleType,
     User,
 )
+from lms.services.course import CourseService
 from lms.services.upsert import bulk_upsert
 
 LOG = logging.getLogger(__name__)
@@ -239,7 +240,7 @@ class AssignmentService:
     ) -> Select[tuple[Assignment]]:
         """Get a query to fetch assignments.
 
-        :param instructor_h_userid: return only assignments where instructor_h_userid is an instructor.
+        :param instructor_h_userid: return only assignments that belong to courses where instructor_h_userid is an instructor.
         :param admin_organization_ids: organizations where the current user is an admin.
         :param course_ids: only return assignments that belong to this course.
         :param h_userids: return only assignments where these users are members.
@@ -255,14 +256,9 @@ class AssignmentService:
         admin_organization_ids_clause = cast(BinaryExpression, false())
 
         if instructor_h_userid:
-            instructor_h_userid_clause = Assignment.id.in_(
-                select(AssignmentMembership.assignment_id)
-                .join(User)
-                .join(LTIRole)
-                .where(
-                    User.h_userid == instructor_h_userid,
-                    LTIRole.scope == RoleScope.COURSE,
-                    LTIRole.type == RoleType.INSTRUCTOR,
+            instructor_h_userid_clause = Assignment.course_id.in_(
+                CourseService.course_ids_with_role_query(
+                    instructor_h_userid, RoleScope.COURSE, RoleType.INSTRUCTOR
                 )
             )
 

@@ -29,7 +29,7 @@ class TestDeepLinkingLaunch:
             pyramid_request.lti_user.application_instance, pyramid_request.lti_params
         )
         course_service.get_from_launch.assert_called_once_with(
-            pyramid_request.product, pyramid_request.lti_params
+            pyramid_request.product.family, pyramid_request.lti_params
         )
         lti_h_service.sync.assert_called_once_with(
             [course_service.get_from_launch.return_value], pyramid_request.params

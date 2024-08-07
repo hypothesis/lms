@@ -34,7 +34,7 @@ class TestBasicLaunchViews:
         BasicLaunchViews(context, pyramid_request)
 
         course_service.get_from_launch.assert_called_once_with(
-            pyramid_request.product, pyramid_request.lti_params
+            pyramid_request.product.family, pyramid_request.lti_params
         )
         grouping_service.upsert_grouping_memberships.assert_called_once_with(
             user=pyramid_request.user,

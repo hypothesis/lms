@@ -172,18 +172,8 @@ class CourseService:
         admin_organization_ids_clause = cast(BinaryExpression, false())
         if instructor_h_userid:
             instructor_h_userid_clause = Course.id.in_(
-                select(AssignmentGrouping.grouping_id)
-                .join(
-                    AssignmentMembership,
-                    AssignmentMembership.assignment_id
-                    == AssignmentGrouping.assignment_id,
-                )
-                .join(User)
-                .join(LTIRole)
-                .where(
-                    User.h_userid == instructor_h_userid,
-                    LTIRole.scope == RoleScope.COURSE,
-                    LTIRole.type == RoleType.INSTRUCTOR,
+                self.course_ids_with_role_query(
+                    instructor_h_userid, RoleScope.COURSE, RoleType.INSTRUCTOR
                 )
             )
         if admin_organization_ids:
@@ -214,6 +204,29 @@ class CourseService:
                 # We can sort these again without affecting deduplication
             )
             .order_by(Course.lms_name, Course.id)
+        )
+
+    @staticmethod
+    def course_ids_with_role_query(
+        h_userid: str, role_scope, role_type
+    ) -> Select[tuple[int]]:
+        """Return a query that returns all the Course.id where h_userid belongs as (role_scope, role_type)."""
+        return (
+            select(AssignmentGrouping.grouping_id)
+            .join(
+                # GroupingMembership doesn't contain role information.
+                # We only record membership information with roles in AssignmentMembership even if that
+                # information is scoped to the Course in the LTI context.
+                AssignmentMembership,
+                AssignmentMembership.assignment_id == AssignmentGrouping.assignment_id,
+            )
+            .join(User)
+            .join(LTIRole)
+            .where(
+                User.h_userid == h_userid,
+                LTIRole.scope == role_scope,
+                LTIRole.type == role_type,
+            )
         )
 
     def get_by_context_id(self, context_id, raise_on_missing=False) -> Course | None:

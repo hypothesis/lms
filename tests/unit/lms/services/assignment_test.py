@@ -274,23 +274,17 @@ class TestAssignmentService:
         assignment_ids,
         organization,
         course,
+        instructor_in_assignment,
     ):
         factories.User()
-        user = factories.User()
-        lti_role = factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR)
-        factories.AssignmentMembership.create(
-            assignment=assignment, user=user, lti_role=lti_role
-        )
-        factories.AssignmentMembership.create(
-            assignment=assignment, user=user, lti_role=factories.LTIRole()
-        )
         assignment.course = course
+        factories.AssignmentGrouping(grouping=course, assignment=assignment)
         db_session.flush()
 
         query_parameters = {}
 
         if instructor_h_userid:
-            query_parameters["instructor_h_userid"] = user.h_userid
+            query_parameters["instructor_h_userid"] = instructor_in_assignment.h_userid
         else:
             query_parameters["admin_organization_ids"] = [organization.id]
 
@@ -298,13 +292,30 @@ class TestAssignmentService:
             query_parameters["course_ids"] = [course.id]
 
         if h_userids:
-            query_parameters["h_userids"] = [user.h_userid]
+            query_parameters["h_userids"] = [instructor_in_assignment.h_userid]
         if assignment_ids:
             query_parameters["assignment_ids"] = [assignment.id]
 
         query = svc.get_assignments(**query_parameters)
 
         assert db_session.scalars(query).all() == [assignment]
+
+    def test_get_assignments_all_assignments_for_instructor(
+        self, db_session, svc, assignment, instructor_in_assignment, course
+    ):
+        # assignment belongs to course and we have membership via `instructor_in_assignment`
+        assignment.course = course
+        factories.AssignmentGrouping(assignment=assignment, grouping=course)
+
+        # Assignment that belongs to the same course but for which we don't have a AssignmentMembership row
+        assignment_not_launched_by_instructor = factories.Assignment(
+            course=assignment.course
+        )
+        db_session.flush()
+
+        assert db_session.scalars(
+            svc.get_assignments(instructor_h_userid=instructor_in_assignment.h_userid)
+        ).all() == [assignment, assignment_not_launched_by_instructor]
 
     def test_get_assignments_excludes_empty_titles(self, db_session, svc, course):
         assignment = factories.Assignment(title=None)
@@ -343,6 +354,16 @@ class TestAssignmentService:
         return factories.Assignment(
             created=datetime(2000, 1, 1), updated=datetime(2000, 1, 1)
         )
+
+    @pytest.fixture()
+    def instructor_in_assignment(self, assignment):
+        user = factories.User()
+        lti_role = factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR)
+        factories.AssignmentMembership.create(
+            assignment=assignment, user=user, lti_role=lti_role
+        )
+
+        return user
 
     @pytest.fixture()
     def course(self, db_session, application_instance):
