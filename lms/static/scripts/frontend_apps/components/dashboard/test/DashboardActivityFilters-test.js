@@ -126,18 +126,28 @@ describe('DashboardActivityFilters', () => {
     $imports.$restore();
   });
 
-  function createComponent(props = {}) {
+  function createComponent(options = {}) {
+    return createComponentWithProps({
+      courses: {
+        selectedIds: options.selectedCourseIds ?? [],
+        onChange: onCoursesChange,
+      },
+      assignments: {
+        selectedIds: options.selectedAssignmentIds ?? [],
+        onChange: onAssignmentsChange,
+      },
+      students: {
+        selectedIds: options.selectedStudentIds ?? [],
+        onChange: onStudentsChange,
+      },
+      onClearSelection: options.onClearSelection,
+    });
+  }
+
+  function createComponentWithProps(props) {
     const wrapper = mount(
       <Config.Provider value={fakeConfig}>
-        <DashboardActivityFilters
-          selectedCourseIds={[]}
-          onCoursesChange={onCoursesChange}
-          selectedAssignmentIds={[]}
-          onAssignmentsChange={onAssignmentsChange}
-          selectedStudentIds={[]}
-          onStudentsChange={onStudentsChange}
-          {...props}
-        />
+        <DashboardActivityFilters {...props} />
       </Config.Provider>,
     );
     wrappers.push(wrapper);
@@ -448,6 +458,71 @@ describe('DashboardActivityFilters', () => {
       wrapper.find('button[data-testid="clear-button"]').simulate('click');
 
       assert.called(onClearSelection);
+    });
+  });
+
+  context('when an active item is provided', () => {
+    const emptySelection = {
+      selectedIds: [],
+      onChange: sinon.stub(),
+    };
+    const activeItem = {
+      activeItem: {
+        id: 123,
+        title: 'The active title',
+      },
+      onClear: sinon.stub(),
+    };
+
+    [
+      {
+        props: {
+          courses: activeItem,
+          assignments: emptySelection,
+          students: emptySelection,
+        },
+        selectId: 'courses-select',
+        allOption: 'All courses',
+        skippedAPIFetchIndex: 0,
+      },
+      {
+        props: {
+          courses: emptySelection,
+          assignments: activeItem,
+          students: emptySelection,
+        },
+        selectId: 'assignments-select',
+        allOption: 'All assignments',
+        skippedAPIFetchIndex: 1,
+      },
+    ].forEach(({ props, selectId, allOption, skippedAPIFetchIndex }) => {
+      it('displays active item', () => {
+        const wrapper = createComponentWithProps(props);
+        const select = getSelectContent(wrapper, selectId);
+
+        assert.equal(select, 'The active title');
+      });
+
+      it('displays only two options in select', () => {
+        const wrapper = createComponentWithProps(props);
+        const select = getSelect(wrapper, selectId);
+        const options = select.find(MultiSelect.Option);
+
+        assert.equal(options.length, 2);
+        assert.equal(options.at(0).text(), allOption);
+        assert.equal(options.at(1).text(), 'The active title');
+      });
+
+      it('does not load list of items', () => {
+        createComponentWithProps(props);
+
+        assert.calledWith(
+          fakeUsePaginatedAPIFetch.getCall(skippedAPIFetchIndex),
+          sinon.match.string,
+          null, // The path should be null
+          sinon.match.any,
+        );
+      });
     });
   });
 
