@@ -43,7 +43,8 @@ class DashboardService:
             # Organization admins have access to all the assignments in their organizations
             return assignment
 
-        if not self._assignment_service.is_member(assignment, request.user.h_userid):
+        # Access to the assignment is determined by access to its course.
+        if not self._course_service.is_member(assignment.course, request.user.h_userid):
             raise HTTPUnauthorized()
 
         return assignment
