@@ -19,7 +19,7 @@ from lms.models import (
     RoleType,
     User,
 )
-from lms.product import Product
+from lms.product.family import Family
 from lms.services.grouping import GroupingService
 
 
@@ -49,7 +49,7 @@ class CourseService:
             .count()
         )
 
-    def get_from_launch(self, product, lti_params) -> Course:
+    def get_from_launch(self, product_family: Family, lti_params) -> Course:
         """Get the course this LTI launch based on the request's params."""
         historical_course = None
 
@@ -58,7 +58,7 @@ class CourseService:
             extra = existing_course.extra
         else:
             extra = {}
-            if product.family == Product.Family.CANVAS:
+            if product_family == Family.CANVAS:
                 extra = {
                     "canvas": {
                         "custom_canvas_course_id": lti_params.get(

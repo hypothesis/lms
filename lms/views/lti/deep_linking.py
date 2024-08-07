@@ -67,7 +67,7 @@ def deep_linking_launch(context, request):
         request.lti_user.application_instance, request.lti_params
     )
     course = request.find_service(name="course").get_from_launch(
-        request.product, request.lti_params
+        request.product.family, request.lti_params
     )
     request.find_service(name="lti_h").sync([course], request.params)
 

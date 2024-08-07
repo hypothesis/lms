@@ -246,7 +246,7 @@ class BasicLaunchViews:
 
     def _record_course(self):
         course = self.request.find_service(name="course").get_from_launch(
-            self.request.product, self.request.lti_params
+            self.request.product.family, self.request.lti_params
         )
         self.request.find_service(name="grouping").upsert_grouping_memberships(
             user=self.request.user, groups=[course]
