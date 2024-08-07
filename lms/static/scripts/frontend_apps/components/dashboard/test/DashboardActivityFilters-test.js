@@ -53,37 +53,50 @@ describe('DashboardActivityFilters', () => {
     },
   ];
 
-  let fakeUseAPIFetch;
+  let fakeUsePaginatedAPIFetch;
   let fakeConfig;
   let onCoursesChange;
   let onAssignmentsChange;
   let onStudentsChange;
+  let fakeLoadNextCoursesPage;
+  let fakeLoadNextAssignmentsPage;
+  let fakeLoadNextStudentsPage;
   let wrappers = [];
 
   /**
    * @param {object} options
    * @param {boolean} options.isLoading
+   * @param {boolean} [options.isLoadingFirstPage] - Defaults to isLoading
    */
-  function configureFakeAPIFetch(fakeUseAPIFetch, options) {
-    const { isLoading } = options;
+  function configureFakeAPIFetch(options) {
+    const { isLoading, isLoadingFirstPage = isLoading } = options;
 
-    fakeUseAPIFetch.onCall(0).returns({
+    fakeUsePaginatedAPIFetch.onCall(0).returns({
       isLoading,
-      data: isLoading ? null : { courses },
+      isLoadingFirstPage,
+      data: isLoading ? null : courses,
+      loadNextPage: fakeLoadNextCoursesPage,
     });
-    fakeUseAPIFetch.onCall(1).returns({
+    fakeUsePaginatedAPIFetch.onCall(1).returns({
       isLoading,
-      data: isLoading ? null : { assignments },
+      isLoadingFirstPage,
+      data: isLoading ? null : assignments,
+      loadNextPage: fakeLoadNextAssignmentsPage,
     });
-    fakeUseAPIFetch.onCall(2).returns({
+    fakeUsePaginatedAPIFetch.onCall(2).returns({
       isLoading,
-      data: isLoading ? null : { students },
+      isLoadingFirstPage,
+      data: isLoading ? null : students,
+      loadNextPage: fakeLoadNextStudentsPage,
     });
   }
 
   beforeEach(() => {
-    fakeUseAPIFetch = sinon.stub();
-    configureFakeAPIFetch(fakeUseAPIFetch, { isLoading: false });
+    fakeLoadNextCoursesPage = sinon.stub();
+    fakeLoadNextAssignmentsPage = sinon.stub();
+    fakeLoadNextStudentsPage = sinon.stub();
+    fakeUsePaginatedAPIFetch = sinon.stub();
+    configureFakeAPIFetch({ isLoading: false });
 
     onCoursesChange = sinon.stub();
     onAssignmentsChange = sinon.stub();
@@ -103,7 +116,7 @@ describe('DashboardActivityFilters', () => {
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
       '../../utils/api': {
-        useAPIFetch: fakeUseAPIFetch,
+        usePaginatedAPIFetch: fakeUsePaginatedAPIFetch,
       },
     });
   });
@@ -144,7 +157,7 @@ describe('DashboardActivityFilters', () => {
   }
 
   it('shows loading indicators while loading', () => {
-    configureFakeAPIFetch(fakeUseAPIFetch, { isLoading: true });
+    configureFakeAPIFetch({ isLoading: true });
 
     const wrapper = createComponent();
 
@@ -228,6 +241,72 @@ describe('DashboardActivityFilters', () => {
     });
   });
 
+  [true, false].forEach(isLoadingFirstPage => {
+    it('shows page loading indicators when loading but not initially loading', () => {
+      configureFakeAPIFetch({ isLoading: true, isLoadingFirstPage });
+
+      const wrapper = createComponent();
+
+      assert.equal(
+        wrapper.exists('[data-testid="loading-more-courses"]'),
+        !isLoadingFirstPage,
+      );
+      assert.equal(
+        wrapper.exists('[data-testid="loading-more-assignments"]'),
+        !isLoadingFirstPage,
+      );
+      assert.equal(
+        wrapper.exists('[data-testid="loading-more-students"]'),
+        !isLoadingFirstPage,
+      );
+    });
+  });
+
+  context('when scrolling listboxes down', () => {
+    [
+      {
+        id: 'courses-select',
+        getExpectedCallback: () => fakeLoadNextCoursesPage,
+      },
+      {
+        id: 'assignments-select',
+        getExpectedCallback: () => fakeLoadNextAssignmentsPage,
+      },
+      {
+        id: 'students-select',
+        getExpectedCallback: () => fakeLoadNextStudentsPage,
+      },
+    ].forEach(({ id, getExpectedCallback }) => {
+      it('loads next page when scroll is at the bottom', () => {
+        const wrapper = createComponent();
+        const select = getSelect(wrapper, id);
+
+        select.props().onListboxScroll({
+          target: {
+            scrollTop: 100,
+            clientHeight: 50,
+            scrollHeight: 160,
+          },
+        });
+        assert.called(getExpectedCallback());
+      });
+
+      it('does nothing when scroll is not at the bottom', () => {
+        const wrapper = createComponent();
+        const select = getSelect(wrapper, id);
+
+        select.props().onListboxScroll({
+          target: {
+            scrollTop: 100,
+            clientHeight: 50,
+            scrollHeight: 250,
+          },
+        });
+        assert.notCalled(getExpectedCallback());
+      });
+    });
+  });
+
   context('when items are selected', () => {
     [0, 1].forEach(index => {
       it('shows item name when only one is selected', () => {
@@ -250,6 +329,21 @@ describe('DashboardActivityFilters', () => {
           students[index].display_name,
         );
       });
+    });
+
+    it('shows 1 selected item when a single unknown one is selected', () => {
+      const wrapper = createComponent({
+        selectedCourseIds: ['999'],
+        selectedAssignmentIds: ['999'],
+        selectedStudentIds: ['999'],
+      });
+
+      assert.equal(getSelectContent(wrapper, 'courses-select'), '1 course');
+      assert.equal(
+        getSelectContent(wrapper, 'assignments-select'),
+        '1 assignment',
+      );
+      assert.equal(getSelectContent(wrapper, 'students-select'), '1 student');
     });
 
     it('shows amount of selected items when more than one is selected', () => {
@@ -278,13 +372,19 @@ describe('DashboardActivityFilters', () => {
         selectedStudentIds,
       });
 
-      assert.calledWith(fakeUseAPIFetch.getCall(0), '/api/dashboard/courses', {
-        h_userid: selectedStudentIds,
-        assignment_id: selectedAssignmentIds,
-        public_id: undefined,
-      });
       assert.calledWith(
-        fakeUseAPIFetch.getCall(1),
+        fakeUsePaginatedAPIFetch.getCall(0),
+        'courses',
+        '/api/dashboard/courses',
+        {
+          h_userid: selectedStudentIds,
+          assignment_id: selectedAssignmentIds,
+          public_id: undefined,
+        },
+      );
+      assert.calledWith(
+        fakeUsePaginatedAPIFetch.getCall(1),
+        'assignments',
         '/api/dashboard/assignments',
         {
           h_userid: selectedStudentIds,
@@ -292,11 +392,16 @@ describe('DashboardActivityFilters', () => {
           public_id: undefined,
         },
       );
-      assert.calledWith(fakeUseAPIFetch.getCall(2), '/api/dashboard/students', {
-        assignment_id: selectedAssignmentIds,
-        course_id: selectedCourseIds,
-        public_id: undefined,
-      });
+      assert.calledWith(
+        fakeUsePaginatedAPIFetch.getCall(2),
+        'students',
+        '/api/dashboard/students',
+        {
+          assignment_id: selectedAssignmentIds,
+          course_id: selectedCourseIds,
+          public_id: undefined,
+        },
+      );
     });
   });
 
