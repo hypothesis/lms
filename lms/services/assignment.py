@@ -12,7 +12,6 @@ from lms.models import (
     Course,
     Grouping,
     LTIRole,
-    Organization,
     RoleScope,
     RoleType,
     User,
@@ -267,8 +266,7 @@ class AssignmentService:
                 select(Assignment.id)
                 .join(Course)
                 .join(ApplicationInstance)
-                .join(Organization)
-                .where(Organization.id.in_(admin_organization_ids))
+                .where(ApplicationInstance.organization_id.in_(admin_organization_ids))
             )
         # instructor_h_userid and admin_organization_ids are about access rather than filtering.
         # we apply them both as an or to fetch assignments where the users is either an instructor or an admin
