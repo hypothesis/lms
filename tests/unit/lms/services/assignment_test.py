@@ -300,7 +300,7 @@ class TestAssignmentService:
 
         assert db_session.scalars(query).all() == [assignment]
 
-    def test_get_assignments_all_assignments_for_instructor(
+    def test_get_assignments_returns_all_assignments_for_instructor(
         self, db_session, svc, assignment, instructor_in_assignment, course
     ):
         # assignment belongs to course and we have membership via `instructor_in_assignment`
