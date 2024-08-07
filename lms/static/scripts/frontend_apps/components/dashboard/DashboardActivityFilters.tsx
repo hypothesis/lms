@@ -17,13 +17,29 @@ import type {
 import { useConfig } from '../../config';
 import { usePaginatedAPIFetch } from '../../utils/api';
 
+/**
+ * Allow the user to select items from a paginated list of all items matching
+ * the current filters.
+ * The set of currently selected items are maintained by the parent component.
+ */
+export type ActivityFilterSelection = {
+  selectedIds: string[];
+  onChange: (newSelectedIds: string[]) => void;
+};
+
+/**
+ * Display two items in the dropdown, one for an active / selected item and one
+ * to clear the selection.
+ */
+export type ActivityFilterItem<T extends Course | Assignment> = {
+  activeItem: T;
+  onClear: () => void;
+};
+
 export type DashboardActivityFiltersProps = {
-  selectedCourseIds: string[];
-  onCoursesChange: (newCourseIds: string[]) => void;
-  selectedAssignmentIds: string[];
-  onAssignmentsChange: (newAssignmentIds: string[]) => void;
-  selectedStudentIds: string[];
-  onStudentsChange: (newStudentIds: string[]) => void;
+  courses: ActivityFilterSelection | ActivityFilterItem<Course>;
+  assignments: ActivityFilterSelection | ActivityFilterItem<Assignment>;
+  students: ActivityFilterSelection;
   onClearSelection?: () => void;
 };
 
@@ -46,49 +62,71 @@ function elementScrollIsAtBottom(element: HTMLElement, offset = 20): boolean {
  * filter dashboard activity metrics.
  */
 export default function DashboardActivityFilters({
-  selectedCourseIds,
-  onCoursesChange,
-  selectedAssignmentIds,
-  onAssignmentsChange,
-  selectedStudentIds,
-  onStudentsChange,
+  courses,
+  assignments,
+  students,
   onClearSelection,
 }: DashboardActivityFiltersProps) {
-  const hasSelection =
-    selectedStudentIds.length > 0 ||
-    selectedAssignmentIds.length > 0 ||
-    selectedCourseIds.length > 0;
   const { dashboard } = useConfig(['dashboard']);
   const { organizationPublicId } = useParams();
   const { routes } = dashboard;
 
+  const [selectedCourseIds, activeCourse] = useMemo(() => {
+    const isSelection = 'selectedIds' in courses;
+
+    return isSelection
+      ? [courses.selectedIds, null]
+      : [[`${courses.activeItem.id}`], courses.activeItem];
+  }, [courses]);
+  const [selectedAssignmentIds, activeAssignment] = useMemo(() => {
+    const isSelection = 'selectedIds' in assignments;
+    return isSelection
+      ? [assignments.selectedIds, null]
+      : [[`${assignments.activeItem.id}`], assignments.activeItem];
+  }, [assignments]);
+
+  const hasSelection =
+    students.selectedIds.length > 0 ||
+    selectedAssignmentIds.length > 0 ||
+    selectedCourseIds.length > 0;
+
   const coursesFilters = useMemo(
     () => ({
-      h_userid: selectedStudentIds,
+      h_userid: students.selectedIds,
       assignment_id: selectedAssignmentIds,
       public_id: organizationPublicId,
     }),
-    [organizationPublicId, selectedAssignmentIds, selectedStudentIds],
+    [organizationPublicId, selectedAssignmentIds, students.selectedIds],
   );
   const coursesResult = usePaginatedAPIFetch<
     'courses',
     Course[],
     CoursesResponse
-  >('courses', routes.courses, coursesFilters);
+  >(
+    'courses',
+    // If an active course was provided, do not load list of courses
+    activeCourse ? null : routes.courses,
+    coursesFilters,
+  );
 
   const assignmentFilters = useMemo(
     () => ({
-      h_userid: selectedStudentIds,
+      h_userid: students.selectedIds,
       course_id: selectedCourseIds,
       public_id: organizationPublicId,
     }),
-    [organizationPublicId, selectedCourseIds, selectedStudentIds],
+    [organizationPublicId, selectedCourseIds, students.selectedIds],
   );
   const assignmentsResults = usePaginatedAPIFetch<
     'assignments',
     Assignment[],
     AssignmentsResponse
-  >('assignments', routes.assignments, assignmentFilters);
+  >(
+    'assignments',
+    // If an active assignment was provided, do not load list of assignments
+    activeAssignment ? null : routes.assignments,
+    assignmentFilters,
+  );
 
   const studentsFilters = useMemo(
     () => ({
@@ -120,11 +158,17 @@ export default function DashboardActivityFilters({
       <MultiSelect
         disabled={coursesResult.isLoadingFirstPage}
         value={selectedCourseIds}
-        onChange={onCoursesChange}
+        onChange={newCourseIds =>
+          'onChange' in courses
+            ? courses.onChange(newCourseIds)
+            : courses.onClear()
+        }
         aria-label="Select courses"
         containerClasses="!w-auto min-w-[180px]"
         buttonContent={
-          coursesResult.isLoadingFirstPage ? (
+          activeCourse ? (
+            activeCourse.title
+          ) : coursesResult.isLoadingFirstPage ? (
             <>...</>
           ) : selectedCourseIds.length === 0 ? (
             <>All courses</>
@@ -143,27 +187,44 @@ export default function DashboardActivityFilters({
         }}
       >
         <MultiSelect.Option value={undefined}>All courses</MultiSelect.Option>
-        {coursesResult.data?.map(course => (
-          <MultiSelect.Option key={course.id} value={`${course.id}`}>
-            {course.title}
+        {activeCourse ? (
+          <MultiSelect.Option
+            key={activeCourse.id}
+            value={`${activeCourse.id}`}
+          >
+            {activeCourse.title}
           </MultiSelect.Option>
-        ))}
-        {coursesResult.isLoading && !coursesResult.isLoadingFirstPage && (
-          <MultiSelect.Option disabled value={undefined}>
-            <span className="italic" data-testid="loading-more-courses">
-              Loading more courses...
-            </span>
-          </MultiSelect.Option>
+        ) : (
+          <>
+            {coursesResult.data?.map(course => (
+              <MultiSelect.Option key={course.id} value={`${course.id}`}>
+                {course.title}
+              </MultiSelect.Option>
+            ))}
+            {coursesResult.isLoading && !coursesResult.isLoadingFirstPage && (
+              <MultiSelect.Option disabled value={undefined}>
+                <span className="italic" data-testid="loading-more-courses">
+                  Loading more courses...
+                </span>
+              </MultiSelect.Option>
+            )}
+          </>
         )}
       </MultiSelect>
       <MultiSelect
         disabled={assignmentsResults.isLoadingFirstPage}
         value={selectedAssignmentIds}
-        onChange={onAssignmentsChange}
+        onChange={newAssignmentIds =>
+          'onChange' in assignments
+            ? assignments.onChange(newAssignmentIds)
+            : assignments.onClear()
+        }
         aria-label="Select assignments"
         containerClasses="!w-auto min-w-[180px]"
         buttonContent={
-          assignmentsResults.isLoadingFirstPage ? (
+          activeAssignment ? (
+            activeAssignment.title
+          ) : assignmentsResults.isLoadingFirstPage ? (
             <>...</>
           ) : selectedAssignmentIds.length === 0 ? (
             <>All assignments</>
@@ -185,37 +246,54 @@ export default function DashboardActivityFilters({
         <MultiSelect.Option value={undefined}>
           All assignments
         </MultiSelect.Option>
-        {assignmentsResults.data?.map(assignment => (
-          <MultiSelect.Option key={assignment.id} value={`${assignment.id}`}>
-            {assignment.title}
+        {activeAssignment ? (
+          <MultiSelect.Option
+            key={activeAssignment.id}
+            value={`${activeAssignment.id}`}
+          >
+            {activeAssignment.title}
           </MultiSelect.Option>
-        ))}
-        {assignmentsResults.isLoading &&
-          !assignmentsResults.isLoadingFirstPage && (
-            <MultiSelect.Option disabled value={undefined}>
-              <span className="italic" data-testid="loading-more-assignments">
-                Loading more assignments...
-              </span>
-            </MultiSelect.Option>
-          )}
+        ) : (
+          <>
+            {assignmentsResults.data?.map(assignment => (
+              <MultiSelect.Option
+                key={assignment.id}
+                value={`${assignment.id}`}
+              >
+                {assignment.title}
+              </MultiSelect.Option>
+            ))}
+            {assignmentsResults.isLoading &&
+              !assignmentsResults.isLoadingFirstPage && (
+                <MultiSelect.Option disabled value={undefined}>
+                  <span
+                    className="italic"
+                    data-testid="loading-more-assignments"
+                  >
+                    Loading more assignments...
+                  </span>
+                </MultiSelect.Option>
+              )}
+          </>
+        )}
       </MultiSelect>
       <MultiSelect
         disabled={studentsResult.isLoadingFirstPage}
-        value={selectedStudentIds}
-        onChange={onStudentsChange}
+        value={students.selectedIds}
+        onChange={students.onChange}
         aria-label="Select students"
         containerClasses="!w-auto min-w-[180px]"
         buttonContent={
           studentsResult.isLoadingFirstPage ? (
             <>...</>
-          ) : selectedStudentIds.length === 0 ? (
+          ) : students.selectedIds.length === 0 ? (
             <>All students</>
-          ) : selectedStudentIds.length === 1 ? (
+          ) : students.selectedIds.length === 1 ? (
             studentsWithFallbackName?.find(
-              s => s.h_userid === selectedStudentIds[0],
+              s => s.h_userid === students.selectedIds[0],
             )?.display_name ?? '1 student'
           ) : (
-            <>{selectedStudentIds.length} students</>
+            <>{students.selectedIds.length} students</>
           )
         }
         data-testid="students-select"

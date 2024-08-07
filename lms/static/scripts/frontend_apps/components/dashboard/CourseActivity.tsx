@@ -11,7 +11,7 @@ import type { AssignmentsMetricsResponse, Course } from '../../api-types';
 import { useConfig } from '../../config';
 import { useAPIFetch } from '../../utils/api';
 import { useDashboardFilters } from '../../utils/dashboard/hooks';
-import { assignmentURL, courseURL } from '../../utils/dashboard/navigation';
+import { assignmentURL } from '../../utils/dashboard/navigation';
 import { useDocumentTitle } from '../../utils/hooks';
 import { replaceURLParams } from '../../utils/url';
 import DashboardActivityFilters from './DashboardActivityFilters';
@@ -90,30 +90,25 @@ export default function CourseActivity() {
           {course.data && title}
         </h2>
       </div>
-      <DashboardActivityFilters
-        selectedCourseIds={[courseId]}
-        onCoursesChange={newCourseIds => {
-          // When no courses are selected (which happens if either "All courses" is
-          // selected or the active course is deselected), navigate to "All courses"
-          // section and propagate the rest of the filters.
-          if (newCourseIds.length === 0) {
-            navigate(`?${search}`);
-          }
-
-          // When a course other than the "active" one (the one represented
-          // in the URL) is selected, navigate to that course and propagate
-          // the rest of the filters.
-          const firstDifferentCourse = newCourseIds.find(c => c !== courseId);
-          if (firstDifferentCourse) {
-            navigate(`${courseURL(firstDifferentCourse)}?${search}`);
-          }
-        }}
-        selectedAssignmentIds={assignmentIds}
-        onAssignmentsChange={assignmentIds => updateFilters({ assignmentIds })}
-        selectedStudentIds={studentIds}
-        onStudentsChange={studentIds => updateFilters({ studentIds })}
-        onClearSelection={hasSelection ? onClearSelection : undefined}
-      />
+      {course.data && (
+        <DashboardActivityFilters
+          courses={{
+            activeItem: course.data,
+            // When selected course is cleared, navigate to the home page,
+            // AKA "All courses"
+            onClear: () => navigate(search.length > 0 ? `?${search}` : ''),
+          }}
+          assignments={{
+            selectedIds: assignmentIds,
+            onChange: assignmentIds => updateFilters({ assignmentIds }),
+          }}
+          students={{
+            selectedIds: studentIds,
+            onChange: studentIds => updateFilters({ studentIds }),
+          }}
+          onClearSelection={hasSelection ? onClearSelection : undefined}
+        />
+      )}
       <OrderableActivityTable
         loading={assignments.isLoading}
         title={course.isLoading ? 'Loading...' : title}
