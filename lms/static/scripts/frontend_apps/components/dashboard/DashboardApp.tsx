@@ -1,9 +1,4 @@
-import {
-  Link,
-  LogoIcon,
-  ProfileIcon,
-  SettingsIcon,
-} from '@hypothesis/frontend-shared';
+import { LogoIcon, ProfileIcon } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { Link as RouterLink, Route, Switch } from 'wouter-preact';
 
@@ -38,26 +33,6 @@ export default function DashboardApp() {
               <ProfileIcon />
               {dashboard.user.display_name}
             </span>
-            <Link
-              underline="hover"
-              variant="text"
-              href="/email/preferences"
-              target="_blank"
-              classes={classnames(
-                'flex gap-2 items-center',
-                'font-semibold text-color-text-light',
-              )}
-              onClick={
-                /* istanbul ignore next - Temporary until settings link works */
-                e => {
-                  e.preventDefault();
-                  alert('This is not implemented yet');
-                }
-              }
-            >
-              <SettingsIcon />
-              Settings
-            </Link>
           </div>
         </div>
       </div>
