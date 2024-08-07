@@ -202,8 +202,11 @@ export type StudentsMetricsResponse = {
   students: StudentWithMetrics[];
 };
 
-export type AssignmentWithMetrics = Assignment & {
+export type AssignmentWithCourse = Assignment & {
   course: Course;
+};
+
+export type AssignmentWithMetrics = AssignmentWithCourse & {
   annotation_metrics: AnnotationMetrics;
 };
 

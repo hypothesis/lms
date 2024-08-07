@@ -1,14 +1,17 @@
 import { useMemo } from 'preact/hooks';
-import { useParams } from 'wouter-preact';
+import { useLocation, useParams, useSearch } from 'wouter-preact';
 
 import type {
-  AssignmentWithMetrics,
+  AssignmentWithCourse,
   StudentsMetricsResponse,
 } from '../../api-types';
 import { useConfig } from '../../config';
 import { urlPath, useAPIFetch } from '../../utils/api';
+import { useDashboardFilters } from '../../utils/dashboard/hooks';
+import { courseURL } from '../../utils/dashboard/navigation';
 import { useDocumentTitle } from '../../utils/hooks';
-import { replaceURLParams } from '../../utils/url';
+import { recordToQueryString, replaceURLParams } from '../../utils/url';
+import DashboardActivityFilters from './DashboardActivityFilters';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import FormattedDate from './FormattedDate';
 import OrderableActivityTable from './OrderableActivityTable';
@@ -31,12 +34,20 @@ export default function AssignmentActivity() {
     assignmentId: string;
     organizationPublicId?: string;
   }>();
-  const assignment = useAPIFetch<AssignmentWithMetrics>(
+
+  const { filters, updateFilters } = useDashboardFilters();
+  const { studentIds } = filters;
+  const search = useSearch();
+  const [, navigate] = useLocation();
+
+  const assignment = useAPIFetch<AssignmentWithCourse>(
     replaceURLParams(routes.assignment, { assignment_id: assignmentId }),
   );
+
   const students = useAPIFetch<StudentsMetricsResponse>(
     routes.students_metrics,
     {
+      h_userid: studentIds,
       assignment_id: assignmentId,
       public_id: organizationPublicId,
     },
@@ -78,6 +89,40 @@ export default function AssignmentActivity() {
           {assignment.data && title}
         </h2>
       </div>
+      {assignment.data && (
+        <DashboardActivityFilters
+          courses={{
+            activeItem: assignment.data.course,
+            // When the active course is cleared, navigate to home, but keep
+            // active assignment and students
+            onClear: () =>
+              navigate(
+                recordToQueryString({
+                  student_id: studentIds,
+                  assignment_id: assignmentId,
+                }),
+              ),
+          }}
+          assignments={{
+            activeItem: assignment.data,
+            // When active assignment is cleared, navigate to its course page,
+            // but keep other query params intact
+            onClear: () => {
+              const query = search.length === 0 ? '' : `?${search}`;
+              navigate(`${courseURL(assignment.data!.course.id)}${query}`);
+            },
+          }}
+          students={{
+            selectedIds: studentIds,
+            onChange: studentIds => updateFilters({ studentIds }),
+          }}
+          onClearSelection={
+            studentIds.length > 0
+              ? () => updateFilters({ studentIds: [] })
+              : undefined
+          }
+        />
+      )}
       <OrderableActivityTable
         loading={students.isLoading}
         title={assignment.isLoading ? 'Loading...' : title}
