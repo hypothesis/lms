@@ -7,7 +7,7 @@ from sqlalchemy.sql import Select
 
 from lms.models import (
     ApplicationInstance,
-    AssignmentGrouping,
+    Assignment,
     AssignmentMembership,
     LTIRole,
     LTIUser,
@@ -16,6 +16,7 @@ from lms.models import (
     RoleType,
     User,
 )
+from lms.services.course import CourseService
 
 
 class UserNotFound(Exception):
@@ -120,7 +121,7 @@ class UserService:
 
         :param role_scope: return only users with this LTI role scope.
         :param role_type: return only users with this LTI role type.
-        :param instructor_h_userid: return only users that belongs to courses/assignments where the user instructor_h_userid is an instructor.
+        :param instructor_h_userid: return only users that belong to courses where the user instructor_h_userid is an instructor.
         :param admin_organization_ids: organizations where the current user is an admin.
         :param h_userids: return only users with a h_userid in this list.
         :param course_ids: return only users that belong to these courses.
@@ -138,14 +139,15 @@ class UserService:
         admin_organization_ids_clause = cast(BinaryExpression, false())
 
         if instructor_h_userid:
-            instructor_h_userid_clause = AssignmentMembership.assignment_id.in_(
-                select(AssignmentMembership.assignment_id)
-                .join(User)
-                .join(LTIRole)
+            instructor_h_userid_clause = User.id.in_(
+                select(AssignmentMembership.user_id)
+                .join(Assignment)
                 .where(
-                    User.h_userid == instructor_h_userid,
-                    LTIRole.scope == RoleScope.COURSE,
-                    LTIRole.type == RoleType.INSTRUCTOR,
+                    Assignment.course_id.in_(
+                        CourseService.course_ids_with_role_query(
+                            instructor_h_userid, RoleScope.COURSE, RoleType.INSTRUCTOR
+                        )
+                    )
                 )
             )
 
@@ -167,10 +169,13 @@ class UserService:
             query = query.where(User.h_userid.in_(h_userids))
 
         if course_ids:
-            query = query.join(
-                AssignmentGrouping,
-                AssignmentGrouping.assignment_id == AssignmentMembership.assignment_id,
-            ).where(AssignmentGrouping.grouping_id.in_(course_ids))
+            query = query.where(
+                User.id.in_(
+                    select(AssignmentMembership.user_id)
+                    .join(Assignment)
+                    .where(Assignment.course_id.in_(course_ids))
+                )
+            )
 
         if assignment_ids:
             query = query.where(AssignmentMembership.assignment_id.in_(assignment_ids))
