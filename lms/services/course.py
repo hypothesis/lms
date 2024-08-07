@@ -178,9 +178,9 @@ class CourseService:
             )
         if admin_organization_ids:
             admin_organization_ids_clause = Course.application_instance_id.in_(
-                select(ApplicationInstance.id)
-                .join(Organization)
-                .where(Organization.id.in_(admin_organization_ids))
+                select(ApplicationInstance.id).where(
+                    ApplicationInstance.organization_id.in_(admin_organization_ids)
+                )
             )
         # instructor_h_userid and admin_organization_ids are about access rather than filtering.
         # we apply them both as an or to fetch courses where the users is either an instructor or an admin

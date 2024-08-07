@@ -11,7 +11,6 @@ from lms.models import (
     AssignmentMembership,
     LTIRole,
     LTIUser,
-    Organization,
     RoleScope,
     RoleType,
     User,
@@ -152,11 +151,10 @@ class UserService:
             )
 
         if admin_organization_ids:
-            admin_organization_ids_clause = User.id.in_(
-                select(User.id)
-                .join(ApplicationInstance)
-                .join(Organization)
-                .where(Organization.id.in_(admin_organization_ids))
+            admin_organization_ids_clause = User.application_instance_id.in_(
+                select(ApplicationInstance.id).where(
+                    ApplicationInstance.organization_id.in_(admin_organization_ids)
+                )
             )
 
         # instructor_h_userid and admin_organization_ids are about access rather than filtering.
