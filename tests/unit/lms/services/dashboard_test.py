@@ -18,9 +18,9 @@ class TestDashboardService:
         with pytest.raises(HTTPNotFound):
             svc.get_request_assignment(pyramid_request)
 
-    def test_get_request_assignment_403(self, pyramid_request, assignment_service, svc):
+    def test_get_request_assignment_403(self, pyramid_request, course_service, svc):
         pyramid_request.matchdict["assignment_id"] = sentinel.id
-        assignment_service.is_member.return_value = False
+        course_service.is_member.return_value = False
 
         with pytest.raises(HTTPUnauthorized):
             svc.get_request_assignment(pyramid_request)
@@ -34,14 +34,17 @@ class TestDashboardService:
 
         assert svc.get_request_assignment(pyramid_request)
 
-    def test_get_request_assignment(self, pyramid_request, assignment_service, svc):
+    def test_get_request_assignment(
+        self, pyramid_request, course_service, svc, assignment_service
+    ):
         pyramid_request.matchdict["assignment_id"] = sentinel.id
-        assignment_service.is_member.return_value = True
+        course_service.is_member.return_value = True
 
         assert svc.get_request_assignment(pyramid_request)
 
-        assignment_service.is_member.assert_called_once_with(
-            assignment_service.get_by_id.return_value, pyramid_request.user.h_userid
+        course_service.is_member.assert_called_once_with(
+            assignment_service.get_by_id.return_value.course,
+            pyramid_request.user.h_userid,
         )
 
     def test_get_request_assignment_for_admin(
