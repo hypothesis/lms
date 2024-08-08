@@ -20,6 +20,7 @@ class User(CreatedUpdatedMixin, Base):
             "h_userid",
             name="uq__user__application_instance_id__h_userid",
         ),
+        sa.Index("ix__user_h_user_updated", "h_userid", sa.desc("updated")),
     )
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
