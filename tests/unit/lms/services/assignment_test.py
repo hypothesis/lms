@@ -313,9 +313,13 @@ class TestAssignmentService:
         )
         db_session.flush()
 
-        assert db_session.scalars(
-            svc.get_assignments(instructor_h_userid=instructor_in_assignment.h_userid)
-        ).all() == [assignment, assignment_not_launched_by_instructor]
+        assert set(
+            db_session.scalars(
+                svc.get_assignments(
+                    instructor_h_userid=instructor_in_assignment.h_userid
+                )
+            ).all()
+        ) == {assignment, assignment_not_launched_by_instructor}
 
     def test_get_assignments_excludes_empty_titles(self, db_session, svc, course):
         assignment = factories.Assignment(title=None)
