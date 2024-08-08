@@ -126,11 +126,17 @@ class UserService:
         :param course_ids: return only users that belong to these courses.
         :param assignment_ids: return only users that belong these assignments.
         """
-        query = (
-            select(User.id)
-            .join(AssignmentMembership)
-            .join(LTIRole)
-            .where(LTIRole.scope == role_scope, LTIRole.type == role_type)
+        query = select(User.id)
+
+        # A few of the filters need to join with assignment_membership.
+        # Avoid joins and/or multiple subqueries by building a subquery and filtering the main query
+        # by it at the end
+        assignment_membership_subquery = select(AssignmentMembership.user_id).where(
+            AssignmentMembership.lti_role_id.in_(
+                select(LTIRole.id).where(
+                    LTIRole.scope == role_scope, LTIRole.type == role_type
+                )
+            )
         )
 
         # Let's crate no op clauses by default to avoid having to check the presence of these filters
@@ -167,16 +173,16 @@ class UserService:
             query = query.where(User.h_userid.in_(h_userids))
 
         if course_ids:
-            query = query.where(
-                User.id.in_(
-                    select(AssignmentMembership.user_id)
-                    .join(Assignment)
-                    .where(Assignment.course_id.in_(course_ids))
-                )
-            )
+            assignment_membership_subquery = assignment_membership_subquery.join(
+                Assignment
+            ).where(Assignment.course_id.in_(course_ids))
 
         if assignment_ids:
-            query = query.where(AssignmentMembership.assignment_id.in_(assignment_ids))
+            assignment_membership_subquery = assignment_membership_subquery.where(
+                AssignmentMembership.assignment_id.in_(assignment_ids)
+            )
+
+        query = query.where(User.id.in_(assignment_membership_subquery))
 
         # Deduplicate based on the row's h_userid taking the last updated one
         query = query.distinct(User.h_userid).order_by(
