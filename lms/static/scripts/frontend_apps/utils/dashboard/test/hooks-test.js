@@ -4,7 +4,7 @@ import { useDashboardFilters } from '../hooks';
 
 describe('useDashboardFilters', () => {
   function FakeComponent() {
-    const { filters, updateFilters } = useDashboardFilters();
+    const { filters, updateFilters, urlWithFilters } = useDashboardFilters();
 
     return (
       <div>
@@ -34,12 +34,16 @@ describe('useDashboardFilters', () => {
         >
           Update students
         </button>
+
+        <div data-testid="url-with-filters">
+          {urlWithFilters(filters, { path: '/hello/world' })}
+        </div>
       </div>
     );
   }
 
-  function setCurrentURL(queryString) {
-    history.replaceState(null, '', queryString);
+  function setCurrentURL(url) {
+    history.replaceState(null, '', url);
   }
 
   beforeEach(() => {
@@ -61,6 +65,10 @@ describe('useDashboardFilters', () => {
 
   function getCurrentStudents(wrapper) {
     return wrapper.find('[data-testid="student-ids"]').text();
+  }
+
+  function getURLWithFilters(wrapper) {
+    return wrapper.find('[data-testid="url-with-filters"]').text();
   }
 
   [
@@ -158,5 +166,33 @@ describe('useDashboardFilters', () => {
 
     assert.equal('?course_id=111&course_id=222&course_id=333', location.search);
     assert.equal('/foo/bar', location.pathname);
+  });
+
+  [
+    {
+      buttonId: 'update-courses',
+      expectedURL: '/hello/world?course_id=111&course_id=222&course_id=333',
+    },
+    {
+      buttonId: 'update-assignments',
+      expectedURL:
+        '/hello/world?assignment_id=123&assignment_id=456&assignment_id=789',
+    },
+    {
+      buttonId: 'update-students',
+      expectedURL: '/hello/world?student_id=abc&student_id=def',
+    },
+  ].forEach(({ buttonId, expectedURL }) => {
+    it('builds URLs with filters', () => {
+      // Current URL should be ignored
+      setCurrentURL('/foo/bar');
+
+      const wrapper = createComponent();
+
+      assert.equal(getURLWithFilters(wrapper), '/hello/world');
+
+      wrapper.find(`[data-testid="${buttonId}"]`).simulate('click');
+      assert.equal(getURLWithFilters(wrapper), expectedURL);
+    });
   });
 });
