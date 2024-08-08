@@ -39,7 +39,7 @@ export default function CourseActivity() {
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
 
-  const { filters, updateFilters } = useDashboardFilters();
+  const { filters, updateFilters, urlWithFilters } = useDashboardFilters();
   const { assignmentIds, studentIds } = filters;
   const search = useSearch();
   const hasSelection = assignmentIds.length > 0 || studentIds.length > 0;
@@ -82,7 +82,12 @@ export default function CourseActivity() {
     <div className="flex flex-col gap-y-5">
       <div>
         <div className="mb-3 mt-1 w-full">
-          <DashboardBreadcrumbs />
+          <DashboardBreadcrumbs
+            allCoursesLink={urlWithFilters(
+              { assignmentIds, studentIds },
+              { path: '' },
+            )}
+          />
         </div>
         <h2 className="text-lg text-brand font-semibold" data-testid="title">
           {course.isLoading && 'Loading...'}
@@ -145,7 +150,13 @@ export default function CourseActivity() {
             return <div className="text-right">{stats[field]}</div>;
           } else if (field === 'title') {
             return (
-              <RouterLink href={assignmentURL(stats.id)} asChild>
+              <RouterLink
+                href={urlWithFilters(
+                  { studentIds },
+                  { path: assignmentURL(stats.id) },
+                )}
+                asChild
+              >
                 <Link underline="always" variant="text">
                   {stats.title}
                 </Link>
@@ -157,7 +168,9 @@ export default function CourseActivity() {
             stats.last_activity && <FormattedDate date={stats.last_activity} />
           );
         }}
-        navigateOnConfirmRow={stats => assignmentURL(stats.id)}
+        navigateOnConfirmRow={stats =>
+          urlWithFilters({ studentIds }, { path: assignmentURL(stats.id) })
+        }
       />
     </div>
   );

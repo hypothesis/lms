@@ -6,11 +6,11 @@ import type {
   StudentsMetricsResponse,
 } from '../../api-types';
 import { useConfig } from '../../config';
-import { urlPath, useAPIFetch } from '../../utils/api';
+import { useAPIFetch } from '../../utils/api';
 import { useDashboardFilters } from '../../utils/dashboard/hooks';
 import { courseURL } from '../../utils/dashboard/navigation';
 import { useDocumentTitle } from '../../utils/hooks';
-import { recordToQueryString, replaceURLParams } from '../../utils/url';
+import { replaceURLParams } from '../../utils/url';
 import DashboardActivityFilters from './DashboardActivityFilters';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import FormattedDate from './FormattedDate';
@@ -35,7 +35,7 @@ export default function AssignmentActivity() {
     organizationPublicId?: string;
   }>();
 
-  const { filters, updateFilters } = useDashboardFilters();
+  const { filters, updateFilters, urlWithFilters } = useDashboardFilters();
   const { studentIds } = filters;
   const search = useSearch();
   const [, navigate] = useLocation();
@@ -74,10 +74,14 @@ export default function AssignmentActivity() {
         {assignment.data && (
           <div className="mb-3 mt-1 w-full">
             <DashboardBreadcrumbs
+              allCoursesLink={urlWithFilters({ studentIds }, { path: '' })}
               links={[
                 {
                   title: assignment.data.course.title,
-                  href: urlPath`/courses/${String(assignment.data.course.id)}`,
+                  href: urlWithFilters(
+                    { studentIds },
+                    { path: courseURL(assignment.data.course.id) },
+                  ),
                 },
               ]}
             />
@@ -97,10 +101,10 @@ export default function AssignmentActivity() {
             // active assignment and students
             onClear: () =>
               navigate(
-                recordToQueryString({
-                  student_id: studentIds,
-                  assignment_id: assignmentId,
-                }),
+                urlWithFilters(
+                  { studentIds, assignmentIds: [assignmentId] },
+                  { path: '' },
+                ),
               ),
           }}
           assignments={{

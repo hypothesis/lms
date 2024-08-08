@@ -9,9 +9,27 @@ export type DashboardFilters = {
   courseIds: string[];
 };
 
+export type URLWithFiltersOptions = {
+  /** The path to navigate to. Defaults to current path */
+  path?: string;
+
+  /**
+   * Whether provided filters should extend existing ones.
+   * Defaults to false.
+   */
+  extend?: boolean;
+};
+
 export type UseDashboardFilters = {
+  /** Current filters */
   filters: DashboardFilters;
+  /** Navigate to current URL with provided filters */
   updateFilters: (filtersToUpdate: Partial<DashboardFilters>) => void;
+  /** Generate a URL with provided filters */
+  urlWithFilters: (
+    filtersToUpdate: Partial<DashboardFilters>,
+    options?: URLWithFiltersOptions,
+  ) => string;
 };
 
 /**
@@ -34,9 +52,12 @@ export function useDashboardFilters(): UseDashboardFilters {
   }, [queryParams]);
 
   const [location, navigate] = useLocation();
-  const updateFilters = useCallback(
-    ({ courseIds, assignmentIds, studentIds }: Partial<DashboardFilters>) => {
-      const newQueryParams = { ...queryParams };
+  const urlWithFilters = useCallback(
+    (
+      { courseIds, assignmentIds, studentIds }: Partial<DashboardFilters>,
+      { path = location, extend = false }: URLWithFiltersOptions = {},
+    ): string => {
+      const newQueryParams = extend ? { ...queryParams } : {};
       if (courseIds) {
         newQueryParams.course_id = courseIds;
       }
@@ -49,15 +70,20 @@ export function useDashboardFilters(): UseDashboardFilters {
 
       // The router's base URL is represented in `location` as '/', even if
       // that URL does not actually end with `/` (eg. `/dashboard`).
-      // When we update the query string, we want to avoid modifying the path.
-      const normalizedLocation = location === '/' ? '' : location;
+      // When we update the query string, we want to avoid modifying the path
+      // unless a path was explicitly provided.
+      const normalizedPath = path === '/' ? '' : path;
 
-      navigate(`${normalizedLocation}${recordToQueryString(newQueryParams)}`, {
-        replace: true,
-      });
+      return `${normalizedPath}${recordToQueryString(newQueryParams)}`;
     },
-    [location, navigate, queryParams],
+    [location, queryParams],
   );
 
-  return { filters, updateFilters };
+  const updateFilters = useCallback(
+    (filters: Partial<DashboardFilters>) =>
+      navigate(urlWithFilters(filters, { extend: true }), { replace: true }),
+    [navigate, urlWithFilters],
+  );
+
+  return { filters, updateFilters, urlWithFilters };
 }

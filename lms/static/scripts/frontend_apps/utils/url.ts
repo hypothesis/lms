@@ -29,13 +29,13 @@ export function replaceURLParams<Param>(
   return url;
 }
 
+export type QueryParams = Record<string, string | string[] | undefined>;
+
 /**
  * Converts a record into a URLSearchParams object.
  * Any param which is an array will be appended for every one of its values.
  */
-export function recordToSearchParams(
-  params: Record<string, string | string[] | undefined>,
-): URLSearchParams {
+export function recordToSearchParams(params: QueryParams): URLSearchParams {
   const queryParams = new URLSearchParams();
   Object.entries(params).forEach(([name, value]) => {
     // Skip params if their value is undefined
@@ -63,9 +63,7 @@ export function recordToSearchParams(
  *    { foo: 'bar' } -> '?foo=bar'
  *    { foo: 'bar', something: ['hello', 'world'] } -> '?foo=bar&something=hello&something=world'
  */
-export function recordToQueryString(
-  params: Record<string, string | string[] | undefined>,
-): string {
+export function recordToQueryString(params: QueryParams): string {
   const queryString = recordToSearchParams(params).toString();
   return queryString.length > 0 ? `?${queryString}` : '';
 }

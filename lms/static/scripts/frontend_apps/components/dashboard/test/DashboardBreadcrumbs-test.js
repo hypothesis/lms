@@ -19,6 +19,15 @@ describe('DashboardBreadcrumbs', () => {
     });
   });
 
+  [undefined, '/foo', '/home?foo=bar'].forEach(allCoursesLink => {
+    it('uses all courses link if provided', () => {
+      const wrapper = createComponent({ allCoursesLink, links: [] });
+      const firstLink = wrapper.find('BreadcrumbLink').first();
+
+      assert.equal(firstLink.prop('href'), allCoursesLink ?? '');
+    });
+  });
+
   it(
     'should pass a11y checks',
     checkAccessibility({

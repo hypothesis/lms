@@ -5,6 +5,7 @@ import { useConfig } from '../config';
 import { APIError } from '../errors';
 import { useFetch } from './fetch';
 import type { FetchResult, Fetcher } from './fetch';
+import type { QueryParams } from './url';
 import { recordToQueryString } from './url';
 
 /**
@@ -48,7 +49,7 @@ export type APICallOptions = {
   path: string;
 
   /** Query parameters. */
-  params?: Record<string, string | string[] | undefined>;
+  params?: QueryParams;
 
   /** JSON-serializable body of request. */
   data?: object;
@@ -189,7 +190,7 @@ export function urlPath(strings: TemplateStringsArray, ...params: string[]) {
  */
 export function useAPIFetch<T = unknown>(
   path: string | null,
-  params?: Record<string, string | string[] | undefined>,
+  params?: QueryParams,
 ): FetchResult<T> {
   const {
     api: { authToken },
@@ -236,7 +237,7 @@ export function usePaginatedAPIFetch<
 >(
   prop: Prop,
   path: string | null,
-  params?: Record<string, string | string[] | undefined>,
+  params?: QueryParams,
 ): PaginatedFetchResult<ListType> {
   const [nextPageURL, setNextPageURL] = useState<string>();
   const [currentList, setCurrentList] = useState<ListType>();
