@@ -71,6 +71,29 @@ class TestUserService:
         with pytest.raises(UserNotFound):
             service.get(user.application_instance, "some-other-id")
 
+    def test_get_users_fetches_display_name(
+        self,
+        service,
+        db_session,
+        organization,
+        student_in_assigment,
+    ):
+        student_in_assigment.display_name = None
+        # Duplicated student with a display name
+        factories.User(h_userid=student_in_assigment.h_userid, display_name="NAME")
+        db_session.flush()
+        # We remove the object from the session to force SQLA to retrieve all attributes from the queiry
+        db_session.expunge(student_in_assigment)
+
+        query = service.get_users(
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            admin_organization_ids=[organization.id],
+        )
+
+        result_user = db_session.scalars(query).all()[0]
+        assert result_user.display_name == "NAME"
+
     def test_get_users(
         self,
         service,
