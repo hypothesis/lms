@@ -120,11 +120,7 @@ export default function AssignmentActivity() {
             selectedIds: studentIds,
             onChange: studentIds => updateFilters({ studentIds }),
           }}
-          onClearSelection={
-            studentIds.length > 0
-              ? () => updateFilters({ studentIds: [] })
-              : undefined
-          }
+          onClearSelection={() => navigate('')}
         />
       )}
       <OrderableActivityTable

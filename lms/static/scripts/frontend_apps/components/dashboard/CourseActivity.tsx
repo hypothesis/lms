@@ -1,5 +1,5 @@
 import { Link } from '@hypothesis/frontend-shared';
-import { useCallback, useMemo } from 'preact/hooks';
+import { useMemo } from 'preact/hooks';
 import {
   Link as RouterLink,
   useLocation,
@@ -42,12 +42,6 @@ export default function CourseActivity() {
   const { filters, updateFilters, urlWithFilters } = useDashboardFilters();
   const { assignmentIds, studentIds } = filters;
   const search = useSearch();
-  const hasSelection = assignmentIds.length > 0 || studentIds.length > 0;
-  const onClearSelection = useCallback(
-    // Clear every filter but courses
-    () => updateFilters({ studentIds: [], assignmentIds: [] }),
-    [updateFilters],
-  );
 
   const course = useAPIFetch<Course>(
     replaceURLParams(routes.course, { course_id: courseId }),
@@ -111,7 +105,7 @@ export default function CourseActivity() {
             selectedIds: studentIds,
             onChange: studentIds => updateFilters({ studentIds }),
           }}
-          onClearSelection={hasSelection ? onClearSelection : undefined}
+          onClearSelection={() => navigate('')}
         />
       )}
       <OrderableActivityTable
