@@ -267,7 +267,10 @@ class GroupingMembership(CreatedUpdatedMixin, Base):
     grouping = sa.orm.relationship("Grouping", back_populates="memberships")
 
     user_id = sa.Column(
-        sa.Integer(), sa.ForeignKey("user.id", ondelete="cascade"), primary_key=True
+        sa.Integer(),
+        sa.ForeignKey("user.id", ondelete="cascade"),
+        primary_key=True,
+        index=True,
     )
 
     user = sa.orm.relationship("User")
