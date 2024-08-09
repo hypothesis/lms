@@ -45,7 +45,9 @@ class BearerTokenSchema(PyramidRequestSchema):
         self._lti_user_service = request.find_service(iface=LTIUserService)
         self._secret = request.registry.settings["jwt_secret"]
 
-    def authorization_param(self, lti_user: LTIUser) -> str:
+    def authorization_param(
+        self, lti_user: LTIUser, lifetime: timedelta = timedelta(hours=24)
+    ) -> str:
         """
         Return ``lti_user`` serialized into an authorization param.
 
@@ -57,7 +59,7 @@ class BearerTokenSchema(PyramidRequestSchema):
         token = self._jwt_service.encode_with_secret(
             self._lti_user_service.serialize(lti_user) if lti_user else {},
             self._secret,
-            lifetime=timedelta(hours=24),
+            lifetime=lifetime,
         )
 
         return f"Bearer {token}"

@@ -5,6 +5,8 @@ from lms.security import Permissions
 from lms.services import OrganizationService
 from lms.validation.authentication import BearerTokenSchema
 
+AUTHORIZATION_DURATION_SECONDS = max_age = 60 * 60 * 24  # 24 hours
+
 
 @forbidden_view_config(
     route_name="dashboard.launch.assignment",
@@ -84,7 +86,9 @@ class DashboardViews:
         Authenticated via the LTIUser present in a cookie making this endpoint accessible directly in the browser.
         """
         assignment = self.dashboard_service.get_request_assignment(self.request)
-        self.request.context.js_config.enable_dashboard_mode()
+        self.request.context.js_config.enable_dashboard_mode(
+            AUTHORIZATION_DURATION_SECONDS
+        )
         self._set_lti_user_cookie(self.request.response)
         return {"title": assignment.title}
 
@@ -106,7 +110,9 @@ class DashboardViews:
         Authenticated via the LTIUser present in a cookie making this endpoint accessible directly in the browser.
         """
         course = self.dashboard_service.get_request_course(self.request)
-        self.request.context.js_config.enable_dashboard_mode()
+        self.request.context.js_config.enable_dashboard_mode(
+            AUTHORIZATION_DURATION_SECONDS
+        )
         self._set_lti_user_cookie(self.request.response)
         return {"title": course.lms_name}
 
@@ -127,7 +133,9 @@ class DashboardViews:
 
         Authenticated via the LTIUser present in a cookie making this endpoint accessible directly in the browser.
         """
-        self.request.context.js_config.enable_dashboard_mode()
+        self.request.context.js_config.enable_dashboard_mode(
+            AUTHORIZATION_DURATION_SECONDS
+        )
         self._set_lti_user_cookie(self.request.response)
         # Org names are not 100% ready for public consumption, let's hardcode a title for now.
         return {"title": "All courses"}
@@ -150,6 +158,6 @@ class DashboardViews:
             httponly=True,
             # Scope the cookie to all dashboard views
             path="/dashboard",
-            max_age=60 * 60 * 24,  # 24 hours, matches the lifetime of the auth_token
+            max_age=AUTHORIZATION_DURATION_SECONDS,
         )
         return response
