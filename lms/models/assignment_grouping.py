@@ -13,6 +13,7 @@ class AssignmentGrouping(CreatedUpdatedMixin, Base):
         sa.Integer(),
         sa.ForeignKey("assignment.id", ondelete="cascade"),
         primary_key=True,
+        index=True,
     )
     assignment = sa.orm.relationship(
         "Assignment", foreign_keys=[assignment_id], backref="assignment_grouping"
@@ -20,7 +21,10 @@ class AssignmentGrouping(CreatedUpdatedMixin, Base):
     """The assignment."""
 
     grouping_id = sa.Column(
-        sa.Integer(), sa.ForeignKey("grouping.id", ondelete="cascade"), primary_key=True
+        sa.Integer(),
+        sa.ForeignKey("grouping.id", ondelete="cascade"),
+        primary_key=True,
+        index=True,
     )
     grouping = sa.orm.relationship(
         "Grouping", foreign_keys=[grouping_id], backref="groupings"
