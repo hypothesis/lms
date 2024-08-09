@@ -389,7 +389,7 @@ describe('DashboardActivityFilters', () => {
         {
           h_userid: selectedStudentIds,
           assignment_id: selectedAssignmentIds,
-          public_id: undefined,
+          org_public_id: undefined,
         },
       );
       assert.calledWith(
@@ -399,7 +399,7 @@ describe('DashboardActivityFilters', () => {
         {
           h_userid: selectedStudentIds,
           course_id: selectedCourseIds,
-          public_id: undefined,
+          org_public_id: undefined,
         },
       );
       assert.calledWith(
@@ -409,7 +409,7 @@ describe('DashboardActivityFilters', () => {
         {
           assignment_id: selectedAssignmentIds,
           course_id: selectedCourseIds,
-          public_id: undefined,
+          org_public_id: undefined,
         },
       );
     });

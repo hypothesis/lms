@@ -220,7 +220,7 @@ describe('AssignmentActivity', () => {
       assert.calledWith(fakeUseAPIFetch.lastCall, sinon.match.string, {
         h_userid: ['1', '2'],
         assignment_id: '123',
-        public_id: undefined,
+        org_public_id: undefined,
       });
     });
 

@@ -94,7 +94,7 @@ export default function DashboardActivityFilters({
     () => ({
       h_userid: students.selectedIds,
       assignment_id: selectedAssignmentIds,
-      public_id: organizationPublicId,
+      org_public_id: organizationPublicId,
     }),
     [organizationPublicId, selectedAssignmentIds, students.selectedIds],
   );
@@ -113,7 +113,7 @@ export default function DashboardActivityFilters({
     () => ({
       h_userid: students.selectedIds,
       course_id: selectedCourseIds,
-      public_id: organizationPublicId,
+      org_public_id: organizationPublicId,
     }),
     [organizationPublicId, selectedCourseIds, students.selectedIds],
   );
@@ -132,7 +132,7 @@ export default function DashboardActivityFilters({
     () => ({
       assignment_id: selectedAssignmentIds,
       course_id: selectedCourseIds,
-      public_id: organizationPublicId,
+      org_public_id: organizationPublicId,
     }),
     [organizationPublicId, selectedAssignmentIds, selectedCourseIds],
   );
