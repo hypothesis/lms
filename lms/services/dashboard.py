@@ -106,7 +106,7 @@ class DashboardService:
     def get_request_admin_organizations(self, request) -> list[Organization]:
         """Get the organization the current user is an admin in."""
         if request.has_permission(Permissions.STAFF) and (
-            request_public_id := request.params.get("public_id")
+            request_public_id := request.params.get("org_public_id")
         ):
             # We handle permissions and filtering specially for staff members
             # If the request contains a filter for one organization, we will proceed as if the staff member

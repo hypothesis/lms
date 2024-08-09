@@ -183,7 +183,7 @@ describe('AllCoursesActivity', () => {
       h_userid: ['123', '456'],
       assignment_id: [],
       course_id: [],
-      public_id: undefined,
+      org_public_id: undefined,
     });
 
     updateFilter('assignments', ['1', '2']);
@@ -191,7 +191,7 @@ describe('AllCoursesActivity', () => {
       h_userid: [],
       assignment_id: ['1', '2'],
       course_id: [],
-      public_id: undefined,
+      org_public_id: undefined,
     });
 
     updateFilter('courses', ['3', '8', '9']);
@@ -199,7 +199,7 @@ describe('AllCoursesActivity', () => {
       h_userid: [],
       assignment_id: [],
       course_id: ['3', '8', '9'],
-      public_id: undefined,
+      org_public_id: undefined,
     });
   });
 
@@ -208,15 +208,13 @@ describe('AllCoursesActivity', () => {
       fakeUseParams.returns({ organizationPublicId: 'the-org-public-id' });
     });
 
-    it('propagates public_id to API calls', () => {
+    it('propagates org_public_id to API calls', () => {
       createComponent();
 
       assert.calledWith(
         fakeUseAPIFetch.lastCall,
         sinon.match.string,
-        sinon.match({
-          public_id: 'the-org-public-id',
-        }),
+        sinon.match({ org_public_id: 'the-org-public-id' }),
       );
     });
   });
@@ -232,7 +230,7 @@ describe('AllCoursesActivity', () => {
       h_userid: [],
       assignment_id: [],
       course_id: [],
-      public_id: undefined,
+      org_public_id: undefined,
     });
   });
 

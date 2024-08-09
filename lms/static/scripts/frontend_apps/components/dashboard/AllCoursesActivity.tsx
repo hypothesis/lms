@@ -37,7 +37,7 @@ export default function AllCoursesActivity() {
     h_userid: studentIds,
     assignment_id: assignmentIds,
     course_id: courseIds,
-    public_id: organizationPublicId,
+    org_public_id: organizationPublicId,
   });
   const rows: CoursesTableRow[] = useMemo(
     () =>

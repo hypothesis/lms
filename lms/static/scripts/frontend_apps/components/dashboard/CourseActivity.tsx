@@ -59,7 +59,7 @@ export default function CourseActivity() {
     {
       assignment_id: assignmentIds,
       h_userid: studentIds,
-      public_id: organizationPublicId,
+      org_public_id: organizationPublicId,
     },
   );
 
