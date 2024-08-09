@@ -49,7 +49,7 @@ export default function AssignmentActivity() {
     {
       h_userid: studentIds,
       assignment_id: assignmentId,
-      public_id: organizationPublicId,
+      org_public_id: organizationPublicId,
     },
   );
 

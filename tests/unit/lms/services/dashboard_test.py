@@ -151,7 +151,7 @@ class TestDashboardService:
         }
 
     def test_get_request_admin_organizations_for_non_staff(self, pyramid_request, svc):
-        pyramid_request.params = {"public_id": sentinel.public_id}
+        pyramid_request.params = {"org_public_id": sentinel.public_id}
 
         assert not svc.get_request_admin_organizations(pyramid_request)
 
@@ -167,7 +167,7 @@ class TestDashboardService:
     ):
         pyramid_config.testing_securitypolicy(permissive=True)
         organization_service.get_by_public_id.return_value = None
-        pyramid_request.params = {"public_id": sentinel.public_id}
+        pyramid_request.params = {"org_public_id": sentinel.public_id}
 
         with pytest.raises(HTTPNotFound):
             svc.get_request_admin_organizations(pyramid_request)
@@ -178,7 +178,7 @@ class TestDashboardService:
         pyramid_config.testing_securitypolicy(permissive=True)
         organization_service.get_by_public_id.return_value = organization
         organization_service.get_hierarchy_ids.return_value = [organization.id]
-        pyramid_request.params = {"public_id": sentinel.public_id}
+        pyramid_request.params = {"org_public_id": sentinel.public_id}
 
         assert svc.get_request_admin_organizations(pyramid_request) == [organization]
         organization_service.get_by_public_id.assert_called_once_with(
@@ -189,7 +189,7 @@ class TestDashboardService:
         self, svc, pyramid_config, pyramid_request, organization, organization_service
     ):
         pyramid_config.testing_securitypolicy(permissive=True)
-        pyramid_request.params = {"public_id": sentinel.id}
+        pyramid_request.params = {"org_public_id": sentinel.id}
         organization_service.get_by_public_id.return_value = organization
         organization_service.get_hierarchy_ids.return_value = [organization.id]
 
