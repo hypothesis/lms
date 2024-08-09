@@ -47,7 +47,13 @@ describe('CourseActivity', () => {
   let fakeUseSearch;
   let wrappers;
 
+  function setCurrentURL(url) {
+    history.replaceState(null, '', url);
+  }
+
   beforeEach(() => {
+    setCurrentURL('?');
+
     fakeUseAPIFetch = sinon.stub().callsFake(url => ({
       isLoading: false,
       data: url.endsWith('stats') ? { assignments } : activeCourse,
@@ -91,6 +97,15 @@ describe('CourseActivity', () => {
     wrappers.push(wrapper);
 
     return wrapper;
+  }
+
+  /**
+   * @param {'students' | 'assignments'} prop
+   */
+  function updateFilter(wrapper, prop, arg) {
+    const filters = wrapper.find('DashboardActivityFilters');
+    act(() => filters.prop(prop).onChange(arg));
+    wrapper.update();
   }
 
   it('shows loading indicators while data is loading', () => {
@@ -203,27 +218,43 @@ describe('CourseActivity', () => {
     });
   });
 
-  [12, 35, 1, 500].forEach(id => {
-    it('builds expected href for row confirmation', () => {
-      const wrapper = createComponent();
-      const href = wrapper
+  context('when building row confirmation links', () => {
+    function getLinkForID(wrapper, id) {
+      return wrapper
         .find('OrderableActivityTable')
         .props()
         .navigateOnConfirmRow({ id });
+    }
 
-      assert.equal(href, `/assignments/${id}`);
+    [12, 35, 1, 500].forEach(id => {
+      it('builds expected link for row confirmation', () => {
+        const wrapper = createComponent();
+        assert.equal(getLinkForID(wrapper, id), `/assignments/${id}`);
+      });
+    });
+
+    [
+      {
+        prop: 'students',
+        arg: ['123', '456'],
+        expectedLink: '/assignments/123?student_id=123&student_id=456',
+      },
+      {
+        prop: 'assignments',
+        arg: ['999'],
+        expectedLink: '/assignments/123', // Selected assignments are not propagated
+      },
+    ].forEach(({ prop, arg, expectedLink }) => {
+      it('takes filters into consideration', () => {
+        const wrapper = createComponent();
+        updateFilter(wrapper, prop, arg);
+
+        assert.equal(getLinkForID(wrapper, '123'), expectedLink);
+      });
     });
   });
 
   context('when filters are set', () => {
-    function setCurrentURL(url) {
-      history.replaceState(null, '', url);
-    }
-
-    beforeEach(() => {
-      setCurrentURL('?');
-    });
-
     it('initializes expected filters', () => {
       setCurrentURL('?assignment_id=1&assignment_id=2&student_id=3');
 
@@ -263,18 +294,16 @@ describe('CourseActivity', () => {
 
     it('updates query when selected assignments change', () => {
       const wrapper = createComponent();
-      const filters = wrapper.find('DashboardActivityFilters');
 
-      act(() => filters.prop('assignments').onChange(['3', '7']));
+      updateFilter(wrapper, 'assignments', ['3', '7']);
 
       assert.equal(location.search, '?assignment_id=3&assignment_id=7');
     });
 
     it('updates query when selected students change', () => {
       const wrapper = createComponent();
-      const filters = wrapper.find('DashboardActivityFilters');
 
-      act(() => filters.prop('students').onChange(['8', '20', '32']));
+      updateFilter(wrapper, 'students', ['8', '20', '32']);
 
       assert.equal(
         location.search,
