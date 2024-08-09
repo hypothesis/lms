@@ -87,7 +87,7 @@ class Assignment(CreatedUpdatedMixin, Base):
         "AssignmentMembership", lazy="dynamic", viewonly=True
     )
 
-    course_id: Mapped[int | None] = mapped_column(sa.ForeignKey(Course.id))
+    course_id: Mapped[int | None] = mapped_column(sa.ForeignKey(Course.id), index=True)
 
     course: Mapped[Course | None] = relationship(Course)
 
