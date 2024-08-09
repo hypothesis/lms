@@ -1,3 +1,4 @@
+from datetime import timedelta
 from unittest.mock import create_autospec, sentinel
 
 import pytest
@@ -694,10 +695,16 @@ class TestEnableErrorDialogMode:
 
 
 class TestEnableDashboardMode:
-    def test_it(self, js_config, lti_user):
-        js_config.enable_dashboard_mode()
+    def test_it(self, js_config, lti_user, bearer_token_schema):
+        js_config.enable_dashboard_mode(token_lifetime_seconds=100)
         config = js_config.asdict()
 
+        bearer_token_schema.authorization_param.assert_called_with(
+            lti_user, timedelta(seconds=100)
+        )
+        assert config["api"] == {
+            "authToken": bearer_token_schema.authorization_param.return_value
+        }
         assert config["mode"] == JSConfig.Mode.DASHBOARD
         assert config["dashboard"] == {
             "user": {"display_name": lti_user.display_name, "is_staff": False},
@@ -715,7 +722,7 @@ class TestEnableDashboardMode:
 
     def test_user_when_staff(self, js_config, pyramid_request_staff_member, context):
         js_config = JSConfig(context, pyramid_request_staff_member)
-        js_config.enable_dashboard_mode()
+        js_config.enable_dashboard_mode(token_lifetime_seconds=100)
         config = js_config.asdict()
 
         assert config["dashboard"]["user"] == {

@@ -1,5 +1,6 @@
 import functools
 import re
+from datetime import timedelta
 from enum import Enum
 from typing import Any
 
@@ -251,9 +252,15 @@ class JSConfig:
             )
         )
 
-    def enable_dashboard_mode(self) -> None:
+    def enable_dashboard_mode(self, token_lifetime_seconds: int) -> None:
         self._config.update(
             {
+                "api": {
+                    # We use a different lifetime for the token on the dashboards (that matches the cookies max_age)
+                    "authToken": BearerTokenSchema(self._request).authorization_param(
+                        self._lti_user, timedelta(seconds=token_lifetime_seconds)
+                    )
+                },
                 "mode": JSConfig.Mode.DASHBOARD,
                 "dashboard": DashboardConfig(
                     user=self._get_user_info(),
