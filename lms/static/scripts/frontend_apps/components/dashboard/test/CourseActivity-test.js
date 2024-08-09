@@ -244,23 +244,6 @@ describe('CourseActivity', () => {
       });
     });
 
-    [
-      { query: '', expectedHasSelection: false },
-      { query: '?foo=bar', expectedHasSelection: false },
-      { query: '?assignment_id=1', expectedHasSelection: true },
-      { query: '?student_id=3', expectedHasSelection: true },
-      { query: '?assignment_id=1&student_id=3', expectedHasSelection: true },
-    ].forEach(({ query, expectedHasSelection }) => {
-      it('has `onClearSelection` if one student or one assignment is selected', () => {
-        setCurrentURL(query);
-
-        const wrapper = createComponent();
-        const filters = wrapper.find('DashboardActivityFilters');
-
-        assert.equal(!!filters.prop('onClearSelection'), expectedHasSelection);
-      });
-    });
-
     it('updates query when selected assignments change', () => {
       const wrapper = createComponent();
       const filters = wrapper.find('DashboardActivityFilters');
@@ -282,7 +265,7 @@ describe('CourseActivity', () => {
       );
     });
 
-    it('clears selected students and assignments on clear selection', () => {
+    it('redirects to home with no filters when selection is cleared', () => {
       setCurrentURL(
         '?foo=bar&assignment_id=3&assignment_id=7&student_id=8&student_id=20&student_id=32',
       );
@@ -292,7 +275,7 @@ describe('CourseActivity', () => {
 
       act(() => filters.props().onClearSelection());
 
-      assert.equal(location.search, '?foo=bar');
+      assert.calledWith(fakeNavigate, '');
     });
 
     [
