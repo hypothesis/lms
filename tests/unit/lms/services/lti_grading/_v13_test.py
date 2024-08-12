@@ -12,13 +12,14 @@ from lms.services.lti_grading._v13 import LTI13GradingService
 
 class TestLTI13GradingService:
     @freeze_time("2022-04-04")
-    def test_read_lti_result(self, svc, response, ltia_http_service):
+    def test_read_lti_result(self, svc, response, ltia_http_service, lti_registration):
         ltia_http_service.request.return_value.json.return_value = response
         svc.line_item_url = "https://lms.com/lineitems?param=1"
 
         result = svc.read_result(sentinel.user_id)
 
         ltia_http_service.request.assert_called_once_with(
+            lti_registration,
             "GET",
             "https://lms.com/lineitems/results?param=1",
             scopes=svc.LTIA_SCOPES,
@@ -73,7 +74,12 @@ class TestLTI13GradingService:
         assert not result.comment
 
     def test_read_result_blackboard(
-        self, blackboard_svc, ltia_http_service, blackboard_response, misc_plugin
+        self,
+        blackboard_svc,
+        ltia_http_service,
+        blackboard_response,
+        misc_plugin,
+        lti_registration,
     ):
         ltia_http_service.request.return_value.json.return_value = blackboard_response
         blackboard_svc.line_item_url = "https://lms.com/lineitems?param=1"
@@ -81,6 +87,7 @@ class TestLTI13GradingService:
         result = blackboard_svc.read_result(sentinel.user_id)
 
         ltia_http_service.request.assert_called_once_with(
+            lti_registration,
             "GET",
             "https://lms.com/lineitems/results?param=1",
             scopes=blackboard_svc.LTIA_SCOPES,
@@ -97,7 +104,7 @@ class TestLTI13GradingService:
         )
         assert result.comment == misc_plugin.clean_lms_grading_comment.return_value
 
-    def test_get_score_maximum(self, svc, ltia_http_service):
+    def test_get_score_maximum(self, svc, ltia_http_service, lti_registration):
         ltia_http_service.request.return_value.json.return_value = [
             {"scoreMaximum": sentinel.score_max, "id": svc.line_item_url},
             {"scoreMaximum": 1, "id": sentinel.other_lineitem},
@@ -106,6 +113,7 @@ class TestLTI13GradingService:
         score = svc.get_score_maximum(sentinel.resource_link_id)
 
         ltia_http_service.request.assert_called_once_with(
+            lti_registration,
             "GET",
             "http://example.com/lineitems",
             scopes=svc.LTIA_SCOPES,
@@ -130,7 +138,9 @@ class TestLTI13GradingService:
 
     @freeze_time("2022-04-04")
     @pytest.mark.parametrize("comment", [sentinel.comment, None])
-    def test_record_result(self, svc, ltia_http_service, comment, misc_plugin):
+    def test_record_result(
+        self, svc, ltia_http_service, comment, misc_plugin, lti_registration
+    ):
         svc.line_item_url = "https://lms.com/lineitems?param=1"
 
         response = svc.record_result(sentinel.user_id, sentinel.score, comment=comment)
@@ -148,6 +158,7 @@ class TestLTI13GradingService:
             payload["comment"] = misc_plugin.format_grading_comment_for_lms.return_value
 
         ltia_http_service.request.assert_called_once_with(
+            lti_registration,
             "POST",
             "https://lms.com/lineitems/scores?param=1",
             scopes=svc.LTIA_SCOPES,
@@ -182,7 +193,7 @@ class TestLTI13GradingService:
         with pytest.raises(StudentNotInCourse):
             svc.record_result(sentinel.user_id, sentinel.score)
 
-    def test_create_line_item(self, svc, ltia_http_service):
+    def test_create_line_item(self, svc, ltia_http_service, lti_registration):
         response = svc.create_line_item(
             sentinel.resource_link_id,
             sentinel.label,
@@ -190,6 +201,7 @@ class TestLTI13GradingService:
         )
 
         ltia_http_service.request.assert_called_once_with(
+            lti_registration,
             "POST",
             svc.line_item_container_url,
             scopes=svc.LTIA_SCOPES,
@@ -202,13 +214,14 @@ class TestLTI13GradingService:
         )
         assert response == ltia_http_service.request.return_value.json.return_value
 
-    def test_record_result_calls_hook(self, svc, ltia_http_service):
+    def test_record_result_calls_hook(self, svc, ltia_http_service, lti_registration):
         my_hook = Mock(return_value={"my_dict": 1})
 
         svc.record_result(sentinel.user_id, score=1.5, pre_record_hook=my_hook)
 
         my_hook.assert_called_once_with(request_body=Any.dict(), score=1.5)
         ltia_http_service.request.assert_called_once_with(
+            lti_registration,
             "POST",
             "http://example.com/lineitem/scores",
             scopes=svc.LTIA_SCOPES,
@@ -251,21 +264,23 @@ class TestLTI13GradingService:
         ]
 
     @pytest.fixture
-    def svc(self, ltia_http_service, misc_plugin):
+    def svc(self, ltia_http_service, misc_plugin, lti_registration):
         return LTI13GradingService(
             "http://example.com/lineitem",
             "http://example.com/lineitems",
             ltia_http_service,
             product_family=Family.CANVAS,
             misc_plugin=misc_plugin,
+            lti_registration=lti_registration,
         )
 
     @pytest.fixture
-    def blackboard_svc(self, ltia_http_service, misc_plugin):
+    def blackboard_svc(self, ltia_http_service, misc_plugin, lti_registration):
         return LTI13GradingService(
             "http://example.com/lineitem",
             "http://example.com/lineitems",
             ltia_http_service,
             product_family=Family.BLACKBOARD,
             misc_plugin=misc_plugin,
+            lti_registration=lti_registration,
         )

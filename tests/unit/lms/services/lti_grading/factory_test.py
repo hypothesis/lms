@@ -31,6 +31,7 @@ class TestFactory:
             ltia_http_service,
             pyramid_request.product.family,
             misc_plugin,
+            pyramid_request.lti_user.application_instance.lti_registration,
         )
         assert svc == LTI13GradingService.return_value
 
@@ -48,6 +49,7 @@ class TestFactory:
             ltia_http_service,
             pyramid_request.product.family,
             misc_plugin,
+            pyramid_request.lti_user.application_instance.lti_registration,
         )
         assert svc == LTI13GradingService.return_value
 
