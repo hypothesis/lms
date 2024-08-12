@@ -66,14 +66,29 @@ class CourseService:
                         )
                     }
                 }
+
             # Only make the query for the original course for new courses
             historical_course = self._get_copied_from_course(lti_params)
+
+        lti_context_membership_url = None
+        if lti_params.v13:
+            print(
+                lti_params.v13.get(
+                    "https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice",
+                    {},
+                ).get("context_memberships_url")
+            )
+
+            lti_context_membership_url = lti_params.v13.get(
+                "https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice", {}
+            ).get("context_memberships_url")
 
         return self.upsert_course(
             context_id=lti_params["context_id"],
             name=lti_params["context_title"],
             extra=extra,
             copied_from=historical_course,
+            lti_context_membership_url=lti_context_membership_url,
         )
 
     def _search_query(  # noqa: PLR0913, PLR0917
@@ -248,13 +263,14 @@ class CourseService:
 
         return query.one_or_none()
 
-    def upsert_course(  # noqa: PLR0913
+    def upsert_course(  # noqa: PLR0913, PLR0917
         self,
         context_id,
         name,
         extra,
         settings=None,
         copied_from: Grouping | None = None,
+        lti_context_membership_url: str | None = None,
     ) -> Course:
         """
         Create or update a course based on the provided values.
@@ -272,6 +288,7 @@ class CourseService:
                     "lms_id": context_id,
                     "lms_name": name,
                     "extra": extra,
+                    "lti_context_membership_url": lti_context_membership_url,
                     "settings": settings or self._new_course_settings(context_id),
                 }
             ],

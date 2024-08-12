@@ -139,6 +139,9 @@ class Grouping(CreatedUpdatedMixin, Base):
     )
     """ID of the course grouping this one was copied from using the course copy feature in the LMS."""
 
+    lti_context_memberships_url: Mapped[str | None] = mapped_column(sa.UnicodeText())
+    """URL of the context_membership_urls LTIA endpoint for this course."""
+
     @property
     def name(self):
         """Return an h-compatible group name."""

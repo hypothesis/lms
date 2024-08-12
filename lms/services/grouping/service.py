@@ -73,6 +73,9 @@ class GroupingService:
                 "lms_name": grouping["lms_name"].strip(),
                 "extra": grouping.get("extra"),
                 "settings": grouping.get("settings"),
+                "lti_context_memberships_url": grouping.get(
+                    "lti_context_membership_url"
+                ),
             }
             for grouping in grouping_dicts
         ]
@@ -82,7 +85,12 @@ class GroupingService:
             Grouping,
             values,
             index_elements=["application_instance_id", "authority_provided_id"],
-            update_columns=["lms_name", "extra", "updated"],
+            update_columns=[
+                "lms_name",
+                "extra",
+                "updated",
+                "lti_context_memberships_url",
+            ],
         ).all()
 
     def upsert_grouping_memberships(self, user: User, groups: list[Grouping]):
