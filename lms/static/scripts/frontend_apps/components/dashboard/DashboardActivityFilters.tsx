@@ -1,8 +1,11 @@
 import {
+  Button,
   CancelIcon,
   IconButton,
   MultiSelect,
+  RefreshIcon,
 } from '@hypothesis/frontend-shared';
+import classnames from 'classnames';
 import { useMemo } from 'preact/hooks';
 import { useParams } from 'wouter-preact';
 
@@ -55,6 +58,37 @@ function elementScrollIsAtBottom(element: HTMLElement, offset = 20): boolean {
   const distanceToTop = element.scrollTop + element.clientHeight;
   const triggerPoint = element.scrollHeight - offset;
   return distanceToTop >= triggerPoint;
+}
+
+type ErrorRetryOptionProps = {
+  entity: 'courses' | 'assignments' | 'students';
+  retry: () => void;
+};
+
+function ErrorRetryOption({ entity, retry }: ErrorRetryOptionProps) {
+  return (
+    <div
+      className={classnames(
+        'flex gap-2 items-center p-1.5 border-t',
+        // Mimic Select.Option left border to properly align text
+        'border-l-4 border-l-transparent',
+      )}
+    >
+      <span className="italic text-red-error">Error loading more {entity}</span>
+      <Button
+        classes="text-red-error"
+        icon={RefreshIcon}
+        onClick={e => {
+          e.preventDefault();
+          e.stopPropagation();
+          retry();
+        }}
+        size="xs"
+      >
+        Retry
+      </Button>
+    </div>
+  );
 }
 
 /**
@@ -155,178 +189,220 @@ export default function DashboardActivityFilters({
 
   return (
     <div className="flex gap-2 flex-wrap">
-      <MultiSelect
-        disabled={coursesResult.isLoadingFirstPage}
-        value={selectedCourseIds}
-        onChange={newCourseIds =>
-          'onChange' in courses
-            ? courses.onChange(newCourseIds)
-            : courses.onClear()
-        }
-        aria-label="Select courses"
-        containerClasses="!w-auto min-w-[180px]"
-        buttonContent={
-          activeCourse ? (
-            activeCourse.title
-          ) : coursesResult.isLoadingFirstPage ? (
-            <>...</>
-          ) : selectedCourseIds.length === 0 ? (
-            <>All courses</>
-          ) : selectedCourseIds.length === 1 ? (
-            coursesResult.data?.find(c => `${c.id}` === selectedCourseIds[0])
-              ?.title ?? '1 course'
-          ) : (
-            <>{selectedCourseIds.length} courses</>
-          )
-        }
-        data-testid="courses-select"
-        onListboxScroll={e => {
-          if (elementScrollIsAtBottom(e.target as HTMLUListElement)) {
-            coursesResult.loadNextPage();
+      {coursesResult.error && !coursesResult.data ? (
+        <Button classes="text-red-error" onClick={() => coursesResult.retry()}>
+          Error loading courses. Click to retry
+        </Button>
+      ) : (
+        <MultiSelect
+          disabled={coursesResult.isLoadingFirstPage}
+          value={selectedCourseIds}
+          onChange={newCourseIds =>
+            'onChange' in courses
+              ? courses.onChange(newCourseIds)
+              : courses.onClear()
           }
-        }}
-      >
-        <MultiSelect.Option value={undefined}>All courses</MultiSelect.Option>
-        {activeCourse ? (
-          <MultiSelect.Option
-            key={activeCourse.id}
-            value={`${activeCourse.id}`}
-          >
-            {activeCourse.title}
-          </MultiSelect.Option>
-        ) : (
-          <>
-            {coursesResult.data?.map(course => (
-              <MultiSelect.Option key={course.id} value={`${course.id}`}>
-                {course.title}
-              </MultiSelect.Option>
-            ))}
-            {coursesResult.isLoading && !coursesResult.isLoadingFirstPage && (
-              <MultiSelect.Option disabled value={undefined}>
-                <span className="italic" data-testid="loading-more-courses">
-                  Loading more courses...
-                </span>
-              </MultiSelect.Option>
-            )}
-          </>
-        )}
-      </MultiSelect>
-      <MultiSelect
-        disabled={assignmentsResults.isLoadingFirstPage}
-        value={selectedAssignmentIds}
-        onChange={newAssignmentIds =>
-          'onChange' in assignments
-            ? assignments.onChange(newAssignmentIds)
-            : assignments.onClear()
-        }
-        aria-label="Select assignments"
-        containerClasses="!w-auto min-w-[180px]"
-        buttonContent={
-          activeAssignment ? (
-            activeAssignment.title
-          ) : assignmentsResults.isLoadingFirstPage ? (
-            <>...</>
-          ) : selectedAssignmentIds.length === 0 ? (
-            <>All assignments</>
-          ) : selectedAssignmentIds.length === 1 ? (
-            assignmentsResults.data?.find(
-              a => `${a.id}` === selectedAssignmentIds[0],
-            )?.title ?? '1 assignment'
-          ) : (
-            <>{selectedAssignmentIds.length} assignments</>
-          )
-        }
-        data-testid="assignments-select"
-        onListboxScroll={e => {
-          if (elementScrollIsAtBottom(e.target as HTMLUListElement)) {
-            assignmentsResults.loadNextPage();
+          aria-label="Select courses"
+          containerClasses="!w-auto min-w-[180px]"
+          buttonContent={
+            activeCourse ? (
+              activeCourse.title
+            ) : coursesResult.isLoadingFirstPage ? (
+              <>...</>
+            ) : selectedCourseIds.length === 0 ? (
+              <>All courses</>
+            ) : selectedCourseIds.length === 1 ? (
+              coursesResult.data?.find(c => `${c.id}` === selectedCourseIds[0])
+                ?.title ?? '1 course'
+            ) : (
+              <>{selectedCourseIds.length} courses</>
+            )
           }
-        }}
-      >
-        <MultiSelect.Option value={undefined}>
-          All assignments
-        </MultiSelect.Option>
-        {activeAssignment ? (
-          <MultiSelect.Option
-            key={activeAssignment.id}
-            value={`${activeAssignment.id}`}
-          >
-            {activeAssignment.title}
-          </MultiSelect.Option>
-        ) : (
-          <>
-            {assignmentsResults.data?.map(assignment => (
-              <MultiSelect.Option
-                key={assignment.id}
-                value={`${assignment.id}`}
-              >
-                {assignment.title}
-              </MultiSelect.Option>
-            ))}
-            {assignmentsResults.isLoading &&
-              !assignmentsResults.isLoadingFirstPage && (
+          data-testid="courses-select"
+          onListboxScroll={e => {
+            if (elementScrollIsAtBottom(e.target as HTMLUListElement)) {
+              coursesResult.loadNextPage();
+            }
+          }}
+        >
+          <MultiSelect.Option value={undefined}>All courses</MultiSelect.Option>
+          {activeCourse ? (
+            <MultiSelect.Option
+              key={activeCourse.id}
+              value={`${activeCourse.id}`}
+            >
+              {activeCourse.title}
+            </MultiSelect.Option>
+          ) : (
+            <>
+              {coursesResult.data?.map(course => (
+                <MultiSelect.Option key={course.id} value={`${course.id}`}>
+                  {course.title}
+                </MultiSelect.Option>
+              ))}
+              {coursesResult.isLoading && !coursesResult.isLoadingFirstPage && (
                 <MultiSelect.Option disabled value={undefined}>
-                  <span
-                    className="italic"
-                    data-testid="loading-more-assignments"
-                  >
-                    Loading more assignments...
+                  <span className="italic" data-testid="loading-more-courses">
+                    Loading more courses...
                   </span>
                 </MultiSelect.Option>
               )}
-          </>
-        )}
-      </MultiSelect>
-      <MultiSelect
-        disabled={studentsResult.isLoadingFirstPage}
-        value={students.selectedIds}
-        onChange={students.onChange}
-        aria-label="Select students"
-        containerClasses="!w-auto min-w-[180px]"
-        buttonContent={
-          studentsResult.isLoadingFirstPage ? (
-            <>...</>
-          ) : students.selectedIds.length === 0 ? (
-            <>All students</>
-          ) : students.selectedIds.length === 1 ? (
-            studentsWithFallbackName?.find(
-              s => s.h_userid === students.selectedIds[0],
-            )?.display_name ?? '1 student'
-          ) : (
-            <>{students.selectedIds.length} students</>
-          )
-        }
-        data-testid="students-select"
-        onListboxScroll={e => {
-          if (elementScrollIsAtBottom(e.target as HTMLUListElement)) {
-            studentsResult.loadNextPage();
+              {coursesResult.error && (
+                <ErrorRetryOption
+                  entity="courses"
+                  retry={() => coursesResult.retry()}
+                />
+              )}
+            </>
+          )}
+        </MultiSelect>
+      )}
+      {assignmentsResults.error && !assignmentsResults.data ? (
+        <Button
+          classes="text-red-error"
+          onClick={() => assignmentsResults.retry()}
+        >
+          Error loading assignments. Click to retry
+        </Button>
+      ) : (
+        <MultiSelect
+          disabled={assignmentsResults.isLoadingFirstPage}
+          value={selectedAssignmentIds}
+          onChange={newAssignmentIds =>
+            'onChange' in assignments
+              ? assignments.onChange(newAssignmentIds)
+              : assignments.onClear()
           }
-        }}
-      >
-        <MultiSelect.Option value={undefined}>All students</MultiSelect.Option>
-        {studentsWithFallbackName?.map(student => (
-          <MultiSelect.Option key={student.lms_id} value={student.h_userid}>
-            <span
-              className={student.has_display_name ? undefined : 'italic'}
-              title={
-                student.has_display_name
-                  ? undefined
-                  : `User ID: ${student.lms_id}`
-              }
-              data-testid="option-content-wrapper"
+          aria-label="Select assignments"
+          containerClasses="!w-auto min-w-[180px]"
+          buttonContent={
+            activeAssignment ? (
+              activeAssignment.title
+            ) : assignmentsResults.isLoadingFirstPage ? (
+              <>...</>
+            ) : selectedAssignmentIds.length === 0 ? (
+              <>All assignments</>
+            ) : selectedAssignmentIds.length === 1 ? (
+              assignmentsResults.data?.find(
+                a => `${a.id}` === selectedAssignmentIds[0],
+              )?.title ?? '1 assignment'
+            ) : (
+              <>{selectedAssignmentIds.length} assignments</>
+            )
+          }
+          data-testid="assignments-select"
+          onListboxScroll={e => {
+            if (elementScrollIsAtBottom(e.target as HTMLUListElement)) {
+              assignmentsResults.loadNextPage();
+            }
+          }}
+        >
+          <MultiSelect.Option value={undefined}>
+            All assignments
+          </MultiSelect.Option>
+          {activeAssignment ? (
+            <MultiSelect.Option
+              key={activeAssignment.id}
+              value={`${activeAssignment.id}`}
             >
-              {student.display_name}
-            </span>
+              {activeAssignment.title}
+            </MultiSelect.Option>
+          ) : (
+            <>
+              {assignmentsResults.data?.map(assignment => (
+                <MultiSelect.Option
+                  key={assignment.id}
+                  value={`${assignment.id}`}
+                >
+                  {assignment.title}
+                </MultiSelect.Option>
+              ))}
+              {assignmentsResults.isLoading &&
+                !assignmentsResults.isLoadingFirstPage && (
+                  <MultiSelect.Option disabled value={undefined}>
+                    <span
+                      className="italic"
+                      data-testid="loading-more-assignments"
+                    >
+                      Loading more assignments...
+                    </span>
+                  </MultiSelect.Option>
+                )}
+              {assignmentsResults.error && (
+                <ErrorRetryOption
+                  entity="assignments"
+                  retry={() => assignmentsResults.retry()}
+                />
+              )}
+            </>
+          )}
+        </MultiSelect>
+      )}
+
+      {studentsResult.error && !studentsResult.data ? (
+        <Button classes="text-red-error" onClick={() => studentsResult.retry()}>
+          Error loading students. Click to retry
+        </Button>
+      ) : (
+        <MultiSelect
+          disabled={studentsResult.isLoadingFirstPage}
+          value={students.selectedIds}
+          onChange={students.onChange}
+          aria-label="Select students"
+          containerClasses="!w-auto min-w-[180px]"
+          buttonContent={
+            studentsResult.isLoadingFirstPage ? (
+              <>...</>
+            ) : students.selectedIds.length === 0 ? (
+              <>All students</>
+            ) : students.selectedIds.length === 1 ? (
+              studentsWithFallbackName?.find(
+                s => s.h_userid === students.selectedIds[0],
+              )?.display_name ?? '1 student'
+            ) : (
+              <>{students.selectedIds.length} students</>
+            )
+          }
+          data-testid="students-select"
+          onListboxScroll={e => {
+            if (elementScrollIsAtBottom(e.target as HTMLUListElement)) {
+              studentsResult.loadNextPage();
+            }
+          }}
+        >
+          <MultiSelect.Option value={undefined}>
+            All students
           </MultiSelect.Option>
-        ))}
-        {studentsResult.isLoading && !studentsResult.isLoadingFirstPage && (
-          <MultiSelect.Option disabled value={undefined}>
-            <span className="italic" data-testid="loading-more-students">
-              Loading more students...
-            </span>
-          </MultiSelect.Option>
-        )}
-      </MultiSelect>
+          {studentsWithFallbackName?.map(student => (
+            <MultiSelect.Option key={student.lms_id} value={student.h_userid}>
+              <span
+                className={student.has_display_name ? undefined : 'italic'}
+                title={
+                  student.has_display_name
+                    ? undefined
+                    : `User ID: ${student.lms_id}`
+                }
+                data-testid="option-content-wrapper"
+              >
+                {student.display_name}
+              </span>
+            </MultiSelect.Option>
+          ))}
+          {studentsResult.isLoading && !studentsResult.isLoadingFirstPage && (
+            <MultiSelect.Option disabled value={undefined}>
+              <span className="italic" data-testid="loading-more-students">
+                Loading more students...
+              </span>
+            </MultiSelect.Option>
+          )}
+          {studentsResult.error && (
+            <ErrorRetryOption
+              entity="students"
+              retry={() => studentsResult.retry()}
+            />
+          )}
+        </MultiSelect>
+      )}
       {hasSelection && onClearSelection && (
         <IconButton
           title="Clear filters"
