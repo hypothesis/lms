@@ -11,15 +11,17 @@ class LTIRoleService:
     def __init__(self, db_session: Session):
         self._db = db_session
 
-    def get_roles(self, role_description: str) -> list[LTIRole]:
+    def get_roles(self, role_description: str | list[str]) -> list[LTIRole]:
         """
         Get a list of role objects for the provided strings.
 
-        :param role_description: A comma delimited set of role strings
+        :param role_description: A comma delimited set of role strings for LTI1.1 or a list of string for LTI1.3
         """
-        role_strings = [role.strip() for role in role_description.split(",")]
+        if isinstance(role_description, str):
+            role_strings = [role.strip() for role in role_description.split(",")]
+        else:
+            role_strings = role_description
 
-        # Pylint is confused about the `in_` for some reason
         roles = self._db.query(LTIRole).filter(LTIRole.value.in_(role_strings)).all()
 
         for role in roles:

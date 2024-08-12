@@ -10,7 +10,8 @@ from tests import factories
 
 
 class TestLTIRoleService:
-    def test_get_roles(self, svc, existing_roles):
+    @pytest.mark.parametrize("roles_as_string", [True, False])
+    def test_get_roles(self, svc, existing_roles, roles_as_string):
         existing_role_strings = [role.value for role in existing_roles]
         new_roles = [
             "http://purl.imsglobal.org/vocab/lis/v2/system/person#SysSupport",
@@ -22,7 +23,10 @@ class TestLTIRoleService:
         role_descriptions.append(existing_roles[0].value)
         role_descriptions.extend(new_roles)
 
-        roles = svc.get_roles(", ".join(role_descriptions))
+        if roles_as_string:
+            # pylint:  disable=redefined-variable-type
+            role_descriptions = ", ".join(role_descriptions)
+        roles = svc.get_roles(role_descriptions)
 
         expected_new_roles = [
             Any.instance_of(LTIRole).with_attrs({"value": value}) for value in new_roles
