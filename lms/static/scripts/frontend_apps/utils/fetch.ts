@@ -69,13 +69,15 @@ export function useFetch<T = unknown>(
       controller.abort();
       setResult(r => ({ ...r, error: null, isLoading: false, data: newValue }));
     };
-    setResult({
-      data: null,
-      error: null,
-      isLoading: key !== null,
-      mutate,
-      retry: () => null,
-    });
+    const resetResult = () =>
+      setResult({
+        data: null,
+        error: null,
+        isLoading: key !== null,
+        mutate,
+        retry: () => null,
+      });
+    resetResult();
 
     if (!key) {
       return undefined;
@@ -87,6 +89,7 @@ export function useFetch<T = unknown>(
 
     const fetcher = lastFetcher.current;
     const doFetch = () => {
+      resetResult();
       fetcher(controller.signal)
         .then(data => {
           if (!controller.signal.aborted) {
