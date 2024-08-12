@@ -204,6 +204,7 @@ describe('useFetch', () => {
       fail = false;
       retry(wrapper);
 
+      assert.equal(getResultText(wrapper), 'Loading');
       await waitForFetch(wrapper);
       assert.equal(getResultText(wrapper), 'Data: OK');
     });
