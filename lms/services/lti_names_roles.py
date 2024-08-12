@@ -10,6 +10,7 @@ https://www.imsglobal.org/ltiadvantage
 
 from typing import TypedDict
 
+from lms.models import LTIRegistration
 from lms.services.ltia_http import LTIAHTTPService
 
 
@@ -31,11 +32,12 @@ class LTINamesRolesService:
         "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
     ]
 
-    def __init__(self, service_url: str, ltia_http_service: LTIAHTTPService):
-        self._service_url = service_url
+    def __init__(self, ltia_http_service: LTIAHTTPService):
         self._ltia_service = ltia_http_service
 
-    def get_context_memberships(self) -> list[Member]:
+    def get_context_memberships(
+        self, lti_registration: LTIRegistration, service_url: str
+    ) -> list[Member]:
         """
         Get all the memberships of a context (a course).
 
@@ -43,8 +45,9 @@ class LTINamesRolesService:
         from a LTI launch parameter and is always linked to an specific context.
         """
         response = self._ltia_service.request(
+            lti_registration,
             "GET",
-            self._service_url,
+            service_url,
             scopes=self.LTIA_SCOPES,
             headers={
                 "Accept": "application/vnd.ims.lti-nrps.v2.membershipcontainer+json"
@@ -55,9 +58,4 @@ class LTINamesRolesService:
 
 
 def factory(_context, request):
-    return LTINamesRolesService(
-        service_url=request.lti_jwt.get(
-            "https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice", {}
-        ).get("context_memberships_url"),
-        ltia_http_service=request.find_service(LTIAHTTPService),
-    )
+    return LTINamesRolesService(ltia_http_service=request.find_service(LTIAHTTPService))

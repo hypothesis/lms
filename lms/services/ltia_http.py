@@ -15,42 +15,52 @@ LOG = logging.getLogger(__name__)
 class LTIAHTTPService:
     """Send LTI Advantage requests and return the responses."""
 
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
-        lti_registration: LTIRegistration,
         plugin: MiscPlugin,
         jwt_service: JWTService,
         http,
         jwt_oauth2_token_service: JWTOAuth2TokenService,
     ):
-        self._lti_registration = lti_registration
         self._jwt_service = jwt_service
         self._http = http
         self._plugin = plugin
         self._jwt_oauth2_token_service = jwt_oauth2_token_service
 
-    def request(self, method, url, scopes, headers=None, **kwargs):
+    def request(  # noqa: PLR0913
+        self,
+        lti_registration: LTIRegistration,
+        method,
+        url,
+        scopes,
+        headers=None,
+        **kwargs,
+    ):
         headers = headers or {}
 
         assert "Authorization" not in headers
 
-        access_token = self._get_access_token(scopes)
+        access_token = self._get_access_token(lti_registration, scopes)
         headers["Authorization"] = f"Bearer {access_token}"
 
         return self._http.request(method, url, headers=headers, **kwargs)
 
-    def _get_access_token(self, scopes: list[str]) -> str:
+    def _get_access_token(
+        self, lti_registration: LTIRegistration, scopes: list[str]
+    ) -> str:
         """Get a valid access token from the DB or get a new one from the LMS."""
-        token = self._jwt_oauth2_token_service.get_token(self._lti_registration, scopes)
+        token = self._jwt_oauth2_token_service.get_token(lti_registration, scopes)
         if not token:
             LOG.debug("Requesting new LTIA JWT token")
-            token = self._get_new_access_token(scopes)
+            token = self._get_new_access_token(lti_registration, scopes)
         else:
             LOG.debug("Using cached LTIA JWT token")
 
         return token.access_token
 
-    def _get_new_access_token(self, scopes: list[str]) -> JWTOAuth2Token:
+    def _get_new_access_token(
+        self, lti_registration: LTIRegistration, scopes: list[str]
+    ) -> JWTOAuth2Token:
         """
         Get an access token from the LMS to use in LTA services.
 
@@ -62,15 +72,15 @@ class LTIAHTTPService:
             {
                 "exp": now + timedelta(hours=1),
                 "iat": now,
-                "iss": self._lti_registration.client_id,
-                "sub": self._lti_registration.client_id,
-                "aud": self._plugin.get_ltia_aud_claim(self._lti_registration),
+                "iss": lti_registration.client_id,
+                "sub": lti_registration.client_id,
+                "aud": self._plugin.get_ltia_aud_claim(lti_registration),
                 "jti": uuid.uuid4().hex,
             }
         )
 
         response = self._http.post(
-            self._lti_registration.token_url,
+            lti_registration.token_url,
             data={
                 "grant_type": "client_credentials",
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
@@ -87,7 +97,7 @@ class LTIAHTTPService:
             raise
 
         token = self._jwt_oauth2_token_service.save_token(
-            lti_registration=self._lti_registration,
+            lti_registration=lti_registration,
             scopes=scopes,
             access_token=token_data["access_token"],
             expires_in=token_data["expires_in"],
@@ -97,7 +107,6 @@ class LTIAHTTPService:
 
 def factory(_context, request):
     return LTIAHTTPService(
-        request.lti_user.application_instance.lti_registration,
         request.product.plugin.misc,
         request.find_service(JWTService),
         request.find_service(name="http"),
