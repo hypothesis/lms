@@ -3,6 +3,14 @@ from typing import NamedTuple
 from lms.models._hashed_id import hashed_id
 
 
+def get_h_username(guid: str, lms_user_id: str):
+    return hashed_id(guid, lms_user_id)[:30]
+
+
+def get_h_userid(authority: str, h_username: str):
+    return f"acct:{h_username}@{authority}"
+
+
 class HUser(NamedTuple):
     """
     An 'h' user.
@@ -29,7 +37,7 @@ class HUser(NamedTuple):
     """The "provider_unique_id" string to pass to the h API for this user."""
 
     def userid(self, authority):
-        return f"acct:{self.username}@{authority}"
+        return get_h_userid(authority, self.username)
 
     @classmethod
     def from_lti_user(cls, lti_user):
@@ -37,7 +45,7 @@ class HUser(NamedTuple):
         provider_unique_id = lti_user.user_id
 
         return cls(
-            username=hashed_id(provider, provider_unique_id)[:30],
+            username=get_h_username(provider, provider_unique_id),
             display_name=lti_user.display_name,
             provider=provider,
             provider_unique_id=provider_unique_id,
