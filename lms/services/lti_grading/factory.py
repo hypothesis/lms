@@ -16,6 +16,7 @@ def service_factory(_context, request):
             ltia_service=request.find_service(LTIAHTTPService),
             product_family=request.product.family,
             misc_plugin=request.product.plugin.misc,
+            lti_registration=request.lti_user.application_instance.lti_registration,
         )
 
     return LTI11GradingService(

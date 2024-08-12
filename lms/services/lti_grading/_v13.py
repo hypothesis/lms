@@ -2,6 +2,7 @@ import logging
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
+from lms.models import LTIRegistration
 from lms.product.family import Family
 from lms.product.plugin.misc import MiscPlugin
 from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
@@ -23,18 +24,20 @@ class LTI13GradingService(LTIGradingService):
         "https://purl.imsglobal.org/spec/lti-ags/scope/score",
     ]
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913, PLR0917
         self,
         line_item_url,
         line_item_container_url,
         ltia_service: LTIAHTTPService,
         product_family: Family,
         misc_plugin: MiscPlugin,
+        lti_registration: LTIRegistration,
     ):
         super().__init__(line_item_url, line_item_container_url)
         self._ltia_service = ltia_service
         self._product_family = product_family
         self._misc_plugin = misc_plugin
+        self._lti_registration = lti_registration
 
     def read_result(self, grading_id) -> GradingResult:
         result = GradingResult(score=None, comment=None)
@@ -47,6 +50,7 @@ class LTI13GradingService(LTIGradingService):
 
         try:
             response = self._ltia_service.request(
+                self._lti_registration,
                 "GET",
                 self._service_url(self.line_item_url, "/results"),
                 scopes=self.LTIA_SCOPES,
@@ -98,6 +102,7 @@ class LTI13GradingService(LTIGradingService):
 
         try:
             return self._ltia_service.request(
+                self._lti_registration,
                 "POST",
                 self._service_url(self.line_item_url, "/scores"),
                 scopes=self.LTIA_SCOPES,
@@ -138,6 +143,7 @@ class LTI13GradingService(LTIGradingService):
             "resourceLinkId": resource_link_id,
         }
         return self._ltia_service.request(
+            self._lti_registration,
             "POST",
             self.line_item_container_url,
             scopes=self.LTIA_SCOPES,
@@ -155,6 +161,7 @@ class LTI13GradingService(LTIGradingService):
         containers = []
         try:
             containers = self._ltia_service.request(
+                self._lti_registration,
                 "GET",
                 self.line_item_container_url,
                 scopes=self.LTIA_SCOPES,

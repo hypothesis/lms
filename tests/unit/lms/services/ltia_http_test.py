@@ -14,7 +14,7 @@ class TestLTIAHTTPService:
         self,
         svc,
         jwt_service,
-        application_instance,
+        lti_registration,
         uuid,
         http_service,
         misc_plugin,
@@ -23,23 +23,21 @@ class TestLTIAHTTPService:
     ):
         jwt_oauth2_token_service.get_token.return_value = None
 
-        response = svc.request("POST", "https://example.com", scopes)
+        response = svc.request(lti_registration, "POST", "https://example.com", scopes)
 
-        misc_plugin.get_ltia_aud_claim.assert_called_once_with(
-            application_instance.lti_registration
-        )
+        misc_plugin.get_ltia_aud_claim.assert_called_once_with(lti_registration)
         jwt_service.encode_with_private_key.assert_called_once_with(
             {
                 "aud": misc_plugin.get_ltia_aud_claim.return_value,
                 "exp": datetime(2022, 4, 4, 1, 0),
                 "iat": datetime(2022, 4, 4, 0, 0),
-                "iss": application_instance.lti_registration.client_id,
-                "sub": application_instance.lti_registration.client_id,
+                "iss": lti_registration.client_id,
+                "sub": lti_registration.client_id,
                 "jti": uuid.uuid4.return_value.hex,
             }
         )
         http_service.post.assert_called_once_with(
-            application_instance.lti_registration.token_url,
+            lti_registration.token_url,
             data={
                 "grant_type": "client_credentials",
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
@@ -57,7 +55,7 @@ class TestLTIAHTTPService:
         )
         assert response == http_service.request.return_value
         jwt_oauth2_token_service.save_token.assert_called_once_with(
-            application_instance.lti_registration,
+            lti_registration,
             scopes,
             http_service.post.return_value.json.return_value["access_token"],
             http_service.post.return_value.json.return_value["expires_in"],
@@ -65,12 +63,12 @@ class TestLTIAHTTPService:
 
     @freeze_time("2022-04-04")
     def test_request_with_existing_token(
-        self, svc, http_service, jwt_oauth2_token_service, scopes
+        self, svc, http_service, jwt_oauth2_token_service, scopes, lti_registration
     ):
         token = factories.JWTOAuth2Token()
         jwt_oauth2_token_service.get_token.return_value = token
 
-        response = svc.request("POST", "https://example.com", scopes)
+        response = svc.request(lti_registration, "POST", "https://example.com", scopes)
 
         http_service.request.assert_called_once_with(
             "POST",
@@ -81,16 +79,8 @@ class TestLTIAHTTPService:
         jwt_oauth2_token_service.save_token.assert_not_called()
 
     @pytest.fixture
-    def svc(
-        self,
-        application_instance,
-        jwt_service,
-        http_service,
-        misc_plugin,
-        jwt_oauth2_token_service,
-    ):
+    def svc(self, jwt_service, http_service, misc_plugin, jwt_oauth2_token_service):
         return LTIAHTTPService(
-            application_instance.lti_registration,
             misc_plugin,
             jwt_service,
             http_service,
@@ -112,7 +102,6 @@ class TestFactory:
         self,
         pyramid_request,
         LTIAHTTPService,
-        application_instance,
         http_service,
         jwt_service,
         misc_plugin,
@@ -121,7 +110,6 @@ class TestFactory:
         ltia_http_service = factory(sentinel.context, pyramid_request)
 
         LTIAHTTPService.assert_called_once_with(
-            application_instance.lti_registration,
             misc_plugin,
             jwt_service,
             http_service,
@@ -132,9 +120,3 @@ class TestFactory:
     @pytest.fixture
     def LTIAHTTPService(self, patch):
         return patch("lms.services.ltia_http.LTIAHTTPService")
-
-
-@pytest.fixture
-def application_instance(application_instance):
-    application_instance.lti_registration = factories.LTIRegistration()
-    return application_instance
