@@ -1,9 +1,6 @@
 """
 Service to talk to the Name and Roles LTIA API.
 
-We only implement this now as a way to obtain the LTI Advantage Complete
-certification and it's not used anywhere in the codebase yet.
-
 https://www.imsglobal.org/spec/lti-nrps/v2p0
 https://www.imsglobal.org/ltiadvantage
 """
