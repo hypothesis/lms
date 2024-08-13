@@ -44,7 +44,6 @@ class UserService:
         user = User(
             application_instance_id=lti_user.application_instance_id,
             user_id=lti_user.user_id,
-            roles=lti_user.roles,
             h_userid=lti_user.h_user.userid(self._h_authority),
         )
 
@@ -56,7 +55,6 @@ class UserService:
         ).scalar_one_or_none():
             # Update the existing user from the fields which can change on a
             # new one
-            existing_user.roles = user.roles
             user = existing_user
         else:
             self._db.add(user)

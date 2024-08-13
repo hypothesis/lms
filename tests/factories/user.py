@@ -1,4 +1,4 @@
-from factory import Faker, SubFactory, make_factory
+from factory import SubFactory, make_factory
 from factory.alchemy import SQLAlchemyModelFactory
 
 from lms import models
@@ -10,6 +10,5 @@ User = make_factory(
     FACTORY_CLASS=SQLAlchemyModelFactory,
     application_instance=SubFactory(ApplicationInstance),
     user_id=USER_ID,
-    roles=Faker("random_element", elements=["Learner", "Instructor"]),
     h_userid=H_USERID,
 )

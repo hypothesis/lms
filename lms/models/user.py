@@ -36,8 +36,8 @@ class User(CreatedUpdatedMixin, Base):
     user_id: Mapped[str] = mapped_column(sa.Unicode, nullable=False)
     """The user id provided by the LTI parameters."""
 
-    roles = sa.Column(sa.Unicode, nullable=True)
-    """The roles provided by the LTI parameters."""
+    legacy_roles = sa.Column(sa.Unicode, nullable=True)
+    """Legacy value, this doesn't mean anything without the context of a course."""
 
     h_userid: Mapped[str] = mapped_column(sa.Unicode, index=True)
     """The H userid which is created from LTI provided values."""

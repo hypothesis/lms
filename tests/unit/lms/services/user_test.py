@@ -23,7 +23,6 @@ class TestUserService:
                 "created": Any.instance_of(datetime),
                 "updated": Any.instance_of(datetime),
                 "user_id": lti_user.user_id,
-                "roles": lti_user.roles,
                 "h_userid": lti_user.h_user.userid("authority.example.com"),
                 "email": lti_user.email,
                 "display_name": lti_user.display_name,
@@ -38,7 +37,6 @@ class TestUserService:
         service.upsert_user(lti_user)
 
         saved_user = db_session.query(User).order_by(User.id.desc()).first()
-        assert saved_user.roles == lti_user.roles
         assert not saved_user.email
 
     @pytest.mark.usefixtures("user")
@@ -47,7 +45,6 @@ class TestUserService:
 
         saved_user = db_session.get(User, user.id)
         assert saved_user.id == user.id
-        assert saved_user.roles == lti_user.roles
         assert user == saved_user
 
     @pytest.mark.usefixtures("user")
@@ -59,7 +56,6 @@ class TestUserService:
         service.upsert_user(lti_user)
 
         saved_user = db_session.query(User).order_by(User.id.desc()).first()
-        assert saved_user.roles == lti_user.roles
         assert not saved_user.email
 
     def test_get(self, user, service):
@@ -211,7 +207,6 @@ class TestUserService:
             application_instance=application_instance,
             user_id=lti_user.user_id,
             h_userid=lti_user.h_user.userid("authority.example.com"),
-            roles="old_roles",
         )
 
     @pytest.fixture
