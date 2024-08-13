@@ -52,6 +52,7 @@ class CourseService:
     def get_from_launch(self, product_family: Family, lti_params) -> Course:
         """Get the course this LTI launch based on the request's params."""
         historical_course = None
+        api_id = None
 
         if existing_course := self.get_by_context_id(lti_params["context_id"]):
             # Keep existing `extra` instead of replacing it with the default
@@ -59,21 +60,18 @@ class CourseService:
         else:
             extra = {}
             if product_family == Family.CANVAS:
-                extra = {
-                    "canvas": {
-                        "custom_canvas_course_id": lti_params.get(
-                            "custom_canvas_course_id"
-                        )
-                    }
-                }
+                api_id = lti_params.get("custom_canvas_course_id")
+                extra = {"canvas": {"custom_canvas_course_id": api_id}}
+
             # Only make the query for the original course for new courses
             historical_course = self._get_copied_from_course(lti_params)
 
-        return self.upsert_course(
+        return self._upsert_course(
             context_id=lti_params["context_id"],
             name=lti_params["context_title"],
             extra=extra,
             copied_from=historical_course,
+            api_id=api_id,
         )
 
     def _search_query(  # noqa: PLR0913, PLR0917
@@ -248,13 +246,14 @@ class CourseService:
 
         return query.one_or_none()
 
-    def upsert_course(  # noqa: PLR0913
+    def _upsert_course(  # noqa: PLR0913
         self,
         context_id,
         name,
         extra,
         settings=None,
         copied_from: Grouping | None = None,
+        api_id: str | None = None,
     ) -> Course:
         """
         Create or update a course based on the provided values.
@@ -266,7 +265,7 @@ class CourseService:
         :param copied_from: A reference to the course this one was copied from
         """
 
-        return self._grouping_service.upsert_groupings(
+        course = self._grouping_service.upsert_groupings(
             [
                 {
                     "lms_id": context_id,
@@ -278,6 +277,8 @@ class CourseService:
             type_=Grouping.Type.COURSE,
             copied_from=copied_from,
         )[0]
+        course.api_id = api_id
+        return course
 
     def find_group_set(self, group_set_id=None, name=None, context_id=None):
         """

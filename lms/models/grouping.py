@@ -192,6 +192,9 @@ class Course(Grouping):
     )
     """Assignments that belong to this course."""
 
+    api_id: Mapped[str | None] = mapped_column(sa.UnicodeText())
+    """ID of this course in the LMS API, as apposed to the LTI context. None for courses in LMS that don't make that distinction"""
+
     def set_group_sets(self, group_sets: list[dict]):
         """
         Store this course's available group sets.

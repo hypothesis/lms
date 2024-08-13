@@ -56,9 +56,7 @@ class PagesAPIViews:
         current_course = self.request.find_service(name="course").get_by_context_id(
             self.request.lti_user.lti.course_id, raise_on_missing=True
         )
-        current_course_id = str(
-            current_course.extra["canvas"]["custom_canvas_course_id"]
-        )
+        current_course_id = str(current_course.api_id)
         assignment = self.request.find_service(name="assignment").get_assignment(
             self.request.lti_user.application_instance.tool_consumer_instance_guid,
             self.request.lti_user.lti.assignment_id,
