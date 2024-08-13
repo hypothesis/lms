@@ -86,6 +86,16 @@ describe('AllCoursesActivity', () => {
     return wrapper;
   }
 
+  /**
+   *
+   * @param {'students' | 'assignments' | 'courses'} filterProp
+   */
+  function updateFilter(wrapper, filterProp, ids) {
+    const filters = wrapper.find('DashboardActivityFilters');
+    act(() => filters.prop(filterProp).onChange(ids));
+    wrapper.update();
+  }
+
   it('sets loading state in table while data is loading', () => {
     fakeUseAPIFetch.returns({ isLoading: true });
 
@@ -154,31 +164,55 @@ describe('AllCoursesActivity', () => {
     });
   });
 
-  [12, 35, 1, 500].forEach(id => {
-    it('builds expected href for row confirmation', () => {
-      const wrapper = createComponent();
-      const href = wrapper
+  context('when building row confirmation links', () => {
+    function getLinkForId(wrapper, id) {
+      return wrapper
         .find('OrderableActivityTable')
         .props()
         .navigateOnConfirmRow({ id });
+    }
 
-      assert.equal(href, `/courses/${id}`);
+    [12, 35, 1, 500].forEach(courseId => {
+      it('builds expected links for row confirmation', () => {
+        const wrapper = createComponent();
+        assert.equal(getLinkForId(wrapper, courseId), `/courses/${courseId}`);
+      });
+    });
+
+    [
+      {
+        prop: 'students',
+        arg: ['123', '456'],
+        expectedLink: '/courses/123?student_id=123&student_id=456',
+      },
+      {
+        prop: 'assignments',
+        arg: ['123'],
+        expectedLink: '/courses/123?assignment_id=123',
+      },
+      {
+        prop: 'courses',
+        arg: ['11', '33', '88'],
+        expectedLink: '/courses/123', // Selected courses are not propagated
+      },
+    ].forEach(({ prop, arg, expectedLink }) => {
+      it('preserves filters', () => {
+        const wrapper = createComponent();
+        updateFilter(wrapper, prop, arg);
+
+        assert.equal(getLinkForId(wrapper, '123'), expectedLink);
+      });
     });
   });
 
   it('allows metrics to be filtered', () => {
     const wrapper = createComponent();
-    const filters = wrapper.find('DashboardActivityFilters');
-    const updateFilter = (prop, arg) => {
-      act(() => filters.prop(prop).onChange(arg));
-      wrapper.update();
-    };
     const assertCoursesFetched = query =>
       assert.calledWith(fakeUseAPIFetch.lastCall, sinon.match.string, query);
 
     // Every time the filters callbacks are invoked, the component will
     // re-render and re-fetch metrics with updated query.
-    updateFilter('students', ['123', '456']);
+    updateFilter(wrapper, 'students', ['123', '456']);
     assertCoursesFetched({
       h_userid: ['123', '456'],
       assignment_id: [],
@@ -186,18 +220,18 @@ describe('AllCoursesActivity', () => {
       org_public_id: undefined,
     });
 
-    updateFilter('assignments', ['1', '2']);
+    updateFilter(wrapper, 'assignments', ['1', '2']);
     assertCoursesFetched({
-      h_userid: [],
+      h_userid: ['123', '456'],
       assignment_id: ['1', '2'],
       course_id: [],
       org_public_id: undefined,
     });
 
-    updateFilter('courses', ['3', '8', '9']);
+    updateFilter(wrapper, 'courses', ['3', '8', '9']);
     assertCoursesFetched({
-      h_userid: [],
-      assignment_id: [],
+      h_userid: ['123', '456'],
+      assignment_id: ['1', '2'],
       course_id: ['3', '8', '9'],
       org_public_id: undefined,
     });

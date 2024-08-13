@@ -5,7 +5,7 @@ import { useParams } from 'wouter-preact';
 
 import type { CoursesMetricsResponse } from '../../api-types';
 import { useConfig } from '../../config';
-import { urlPath, useAPIFetch } from '../../utils/api';
+import { useAPIFetch } from '../../utils/api';
 import { useDashboardFilters } from '../../utils/dashboard/hooks';
 import { courseURL } from '../../utils/dashboard/navigation';
 import { useDocumentTitle } from '../../utils/hooks';
@@ -30,7 +30,7 @@ export default function AllCoursesActivity() {
   useDocumentTitle('All courses');
 
   const { organizationPublicId } = useParams();
-  const { filters, updateFilters } = useDashboardFilters();
+  const { filters, updateFilters, urlWithFilters } = useDashboardFilters();
   const { courseIds, assignmentIds, studentIds } = filters;
 
   const courses = useAPIFetch<CoursesMetricsResponse>(routes.courses_metrics, {
@@ -105,14 +105,25 @@ export default function AllCoursesActivity() {
           }
 
           return (
-            <RouterLink href={urlPath`/courses/${String(stats.id)}`} asChild>
+            <RouterLink
+              href={urlWithFilters(
+                { assignmentIds, studentIds },
+                { path: courseURL(stats.id) },
+              )}
+              asChild
+            >
               <Link underline="always" variant="text">
                 {stats.title}
               </Link>
             </RouterLink>
           );
         }}
-        navigateOnConfirmRow={stats => courseURL(stats.id)}
+        navigateOnConfirmRow={stats =>
+          urlWithFilters(
+            { assignmentIds, studentIds },
+            { path: courseURL(stats.id) },
+          )
+        }
       />
     </div>
   );
