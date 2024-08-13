@@ -56,6 +56,7 @@ class APICourses(TypedDict):
 class APIAssignment(TypedDict):
     id: int
     title: str
+    created: str
     course: NotRequired[APICourse]
     annotation_metrics: NotRequired[AnnotationMetrics]
 

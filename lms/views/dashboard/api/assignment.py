@@ -80,7 +80,11 @@ class AssignmentViews:
         )
         return {
             "assignments": [
-                APIAssignment(id=assignment.id, title=assignment.title)
+                APIAssignment(
+                    id=assignment.id,
+                    title=assignment.title,
+                    created=assignment.created.isoformat(),
+                )
                 for assignment in assignments
             ],
             "pagination": pagination,
@@ -97,7 +101,11 @@ class AssignmentViews:
         return APIAssignment(
             id=assignment.id,
             title=assignment.title,
-            course=APICourse(id=assignment.course.id, title=assignment.course.lms_name),
+            created=assignment.created.isoformat(),
+            course=APICourse(
+                id=assignment.course.id,
+                title=assignment.course.lms_name,
+            ),
         )
 
     @view_config(
@@ -166,6 +174,7 @@ class AssignmentViews:
                 APIAssignment(
                     id=assignment.id,
                     title=assignment.title,
+                    created=assignment.created.isoformat(),
                     course=api_course,
                     annotation_metrics=metrics,
                 )
