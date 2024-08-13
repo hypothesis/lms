@@ -13,7 +13,7 @@ export type BreadcrumbLink = {
 };
 
 export type DashboardBreadcrumbsProps = {
-  /** Link to the "All courses" view. Defaults to '' */
+  /** Link to the "All courses" view. Defaults to '/' */
   allCoursesLink?: string;
   /** More links to append to the breadcrumb after the "All courses" one */
   links?: BreadcrumbLink[];
@@ -38,7 +38,7 @@ function BreadcrumbLink({ title, href }: BreadcrumbLink) {
  * Navigation breadcrumbs showing a list of links
  */
 export default function DashboardBreadcrumbs({
-  allCoursesLink = '',
+  allCoursesLink = '/',
   links = [],
 }: DashboardBreadcrumbsProps) {
   const linksWithHome = useMemo(

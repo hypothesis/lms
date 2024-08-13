@@ -139,7 +139,7 @@ describe('AllCoursesActivity', () => {
       const itemWrapper = mount(item);
 
       assert.equal(itemWrapper.text(), title);
-      assert.equal(itemWrapper.prop('href'), `/courses/${id}`);
+      assert.equal(itemWrapper.prop('href'), `/courses/${id}/`);
     });
 
     it('renders last launched date', () => {
@@ -175,7 +175,7 @@ describe('AllCoursesActivity', () => {
     [12, 35, 1, 500].forEach(courseId => {
       it('builds expected links for row confirmation', () => {
         const wrapper = createComponent();
-        assert.equal(getLinkForId(wrapper, courseId), `/courses/${courseId}`);
+        assert.equal(getLinkForId(wrapper, courseId), `/courses/${courseId}/`);
       });
     });
 
@@ -183,17 +183,17 @@ describe('AllCoursesActivity', () => {
       {
         prop: 'students',
         arg: ['123', '456'],
-        expectedLink: '/courses/123?student_id=123&student_id=456',
+        expectedLink: '/courses/123/?student_id=123&student_id=456',
       },
       {
         prop: 'assignments',
         arg: ['123'],
-        expectedLink: '/courses/123?assignment_id=123',
+        expectedLink: '/courses/123/?assignment_id=123',
       },
       {
         prop: 'courses',
         arg: ['11', '33', '88'],
-        expectedLink: '/courses/123', // Selected courses are not propagated
+        expectedLink: '/courses/123/', // Selected courses are not propagated
       },
     ].forEach(({ prop, arg, expectedLink }) => {
       it('preserves filters', () => {

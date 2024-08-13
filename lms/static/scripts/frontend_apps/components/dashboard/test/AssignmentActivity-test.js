@@ -270,18 +270,18 @@ describe('AssignmentActivity', () => {
 
       assert.calledWith(
         fakeNavigate,
-        '?assignment_id=123&student_id=8&student_id=20&student_id=32',
+        '/?assignment_id=123&student_id=8&student_id=20&student_id=32',
       );
     });
 
     [
       {
         currentSearch: 'current=query',
-        expectedDestination: '/courses/12?current=query',
+        expectedDestination: '/courses/12/?current=query',
       },
       {
         currentSearch: '',
-        expectedDestination: '/courses/12',
+        expectedDestination: '/courses/12/',
       },
     ].forEach(({ currentSearch, expectedDestination }) => {
       it('navigates to course preserving current query when selected assignment is cleared', () => {

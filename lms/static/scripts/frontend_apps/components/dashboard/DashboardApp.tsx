@@ -39,13 +39,13 @@ export default function DashboardApp() {
       <div className="flex-grow px-3">
         <div className="mx-auto max-w-6xl">
           <Switch>
-            <Route path="/assignments/:assignmentId">
+            <Route path="/assignments/:assignmentId/">
               <AssignmentActivity />
             </Route>
-            <Route path="/courses/:courseId">
+            <Route path="/courses/:courseId/">
               <CourseActivity />
             </Route>
-            <Route path="">
+            <Route path="/">
               <AllCoursesActivity />
             </Route>
           </Switch>
