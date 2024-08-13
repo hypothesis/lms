@@ -49,20 +49,17 @@ class CourseService:
             .count()
         )
 
-    def get_from_launch(self, product_family: Family, lti_params) -> Course:
+    def get_from_launch(self, lti_params) -> Course:
         """Get the course this LTI launch based on the request's params."""
+        extra = {}
         historical_course = None
-        api_id = None
+        # API ID only exists in Canvas
+        api_id = lti_params.get("custom_canvas_course_id")
 
         if existing_course := self.get_by_context_id(lti_params["context_id"]):
             # Keep existing `extra` instead of replacing it with the default
             extra = existing_course.extra
         else:
-            extra = {}
-            if product_family == Family.CANVAS:
-                api_id = lti_params.get("custom_canvas_course_id")
-                extra = {"canvas": {"custom_canvas_course_id": api_id}}
-
             # Only make the query for the original course for new courses
             historical_course = self._get_copied_from_course(lti_params)
 
@@ -157,8 +154,9 @@ class CourseService:
         courses_query = (
             self._search_query(h_userids=h_userids, limit=None)
             # Deduplicate courses by authority_provided_id, take the last updated one
-            .distinct(Course.authority_provided_id)
-            .order_by(Course.authority_provided_id, Course.updated.desc())
+            .distinct(Course.authority_provided_id).order_by(
+                Course.authority_provided_id, Course.updated.desc()
+            )
             # Only select the ID of the deduplicated courses
         ).with_entities(Course.id)
 
