@@ -160,7 +160,7 @@ class AssignmentViews:
         for assignment in assignments:
             if h_stats := stats_by_assignment.get(assignment.resource_link_id):
                 metrics = AnnotationMetrics(
-                    annotations=h_stats["annotations"],
+                    annotations=h_stats["annotations"] + h_stats["page_notes"],
                     replies=h_stats["replies"],
                     last_activity=h_stats["last_activity"],
                 )

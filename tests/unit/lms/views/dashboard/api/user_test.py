@@ -76,7 +76,8 @@ class TestUserViews:
         stats = [
             {
                 "display_name": student.display_name,
-                "annotations": sentinel.annotations,
+                "annotations": 2,
+                "page_notes": 2,
                 "replies": sentinel.replies,
                 "userid": student.h_userid,
                 "last_activity": sentinel.last_activity,
@@ -84,6 +85,7 @@ class TestUserViews:
             {
                 "display_name": sentinel.display_name,
                 "annotations": sentinel.annotations,
+                "page_notes": sentinel.page_notes,
                 "replies": sentinel.replies,
                 "userid": "TEACHER",
                 "last_activity": sentinel.last_activity,
@@ -110,7 +112,7 @@ class TestUserViews:
                     "lms_id": student.user_id,
                     "display_name": student.display_name,
                     "annotation_metrics": {
-                        "annotations": sentinel.annotations,
+                        "annotations": 4,
                         "replies": sentinel.replies,
                         "last_activity": sentinel.last_activity,
                     },

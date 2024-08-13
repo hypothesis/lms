@@ -137,7 +137,7 @@ class UserViews:
                         lms_id=user.user_id,
                         display_name=s["display_name"],
                         annotation_metrics=AnnotationMetrics(
-                            annotations=s["annotations"],
+                            annotations=s["annotations"] + s["page_notes"],
                             replies=s["replies"],
                             last_activity=s["last_activity"],
                         ),
