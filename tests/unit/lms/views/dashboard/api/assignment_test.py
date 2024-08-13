@@ -14,13 +14,14 @@ pytestmark = pytest.mark.usefixtures(
 
 class TestAssignmentViews:
     def test_get_assignments(
-        self, assignment_service, pyramid_request, views, get_page
+        self, assignment_service, pyramid_request, views, get_page, db_session
     ):
         pyramid_request.parsed_params = {
             "course_ids": sentinel.course_ids,
             "h_userids": sentinel.h_userids,
         }
         assignments = factories.Assignment.create_batch(5)
+        db_session.flush()  # Get IDs and create dates
         get_page.return_value = assignments, sentinel.pagination
 
         response = views.assignments()
@@ -37,7 +38,10 @@ class TestAssignmentViews:
             [Assignment.title, Assignment.id],
         )
         assert response == {
-            "assignments": [{"id": a.id, "title": a.title} for a in assignments],
+            "assignments": [
+                {"id": a.id, "title": a.title, "created": a.created.isoformat()}
+                for a in assignments
+            ],
             "pagination": sentinel.pagination,
         }
 
@@ -57,6 +61,7 @@ class TestAssignmentViews:
         assert response == {
             "id": assignment.id,
             "title": assignment.title,
+            "created": assignment.created.isoformat(),
             "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
         }
 
@@ -110,6 +115,7 @@ class TestAssignmentViews:
                 {
                     "id": assignment.id,
                     "title": assignment.title,
+                    "created": assignment.created.isoformat(),
                     "course": {
                         "id": course.id,
                         "title": course.lms_name,
@@ -123,6 +129,7 @@ class TestAssignmentViews:
                 {
                     "id": assignment_with_no_annos.id,
                     "title": assignment_with_no_annos.title,
+                    "created": assignment_with_no_annos.created.isoformat(),
                     "course": {
                         "id": course.id,
                         "title": course.lms_name,
@@ -161,8 +168,9 @@ class TestAssignmentViews:
         return patch("lms.views.dashboard.api.assignment.get_page")
 
     @pytest.fixture
-    def assignment(self, course):
+    def assignment(self, course, db_session):
         assignment = factories.Assignment(course=course)
         factories.AssignmentGrouping(assignment=assignment, grouping=course)
+        db_session.flush()  # Get an ID and creation dates
 
         return assignment
