@@ -7,6 +7,7 @@ import { mount } from 'enzyme';
 import sinon from 'sinon';
 
 import { Config } from '../../../config';
+import { formatDateTime } from '../../../utils/date';
 import DashboardActivityFilters, {
   $imports,
 } from '../DashboardActivityFilters';
@@ -26,10 +27,12 @@ describe('DashboardActivityFilters', () => {
     {
       id: 1,
       title: 'Assignment 1',
+      created: '2024-08-05T09:55:46.523343',
     },
     {
       id: 2,
       title: 'Assignment 2',
+      created: '2024-06-10T09:55:44.701550',
     },
   ];
   const studentsWithName = [
@@ -194,7 +197,10 @@ describe('DashboardActivityFilters', () => {
     },
     {
       id: 'assignments-select',
-      expectedOptions: ['All assignments', ...assignments.map(a => a.title)],
+      expectedOptions: [
+        'All assignments',
+        ...assignments.map(a => `${a.title}${formatDateTime(a.created)}`),
+      ],
     },
     {
       id: 'students-select',

@@ -16,6 +16,7 @@ import type {
 } from '../../api-types';
 import { useConfig } from '../../config';
 import { usePaginatedAPIFetch } from '../../utils/api';
+import { formatDateTime } from '../../utils/date';
 
 /**
  * Allow the user to select items from a paginated list of all items matching
@@ -260,7 +261,12 @@ export default function DashboardActivityFilters({
                 key={assignment.id}
                 value={`${assignment.id}`}
               >
-                {assignment.title}
+                <div className="flex flex-col gap-0.5">
+                  {assignment.title}
+                  <div className="text-grey-6 text-xs">
+                    {formatDateTime(assignment.created)}
+                  </div>
+                </div>
               </MultiSelect.Option>
             ))}
             {assignmentsResults.isLoading &&

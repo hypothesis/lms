@@ -12,6 +12,6 @@ export type FormattedDateProps = {
  * container
  */
 export default function FormattedDate({ date }: FormattedDateProps) {
-  const formattedDate = useMemo(() => formatDateTime(new Date(date)), [date]);
+  const formattedDate = useMemo(() => formatDateTime(date), [date]);
   return <div className="whitespace-nowrap">{formattedDate}</div>;
 }

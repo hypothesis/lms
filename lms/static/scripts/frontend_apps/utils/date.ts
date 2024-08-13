@@ -45,9 +45,9 @@ function format(
  *
  * @param Intl - Test seam. JS `Intl` API implementation.
  */
-export function formatDateTime(date: Date, Intl?: IntlType): string {
+export function formatDateTime(date: Date | string, Intl?: IntlType): string {
   return format(
-    date,
+    typeof date === 'string' ? new Date(date) : date,
     {
       year: 'numeric',
       month: 'short',
