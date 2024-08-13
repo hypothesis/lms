@@ -175,7 +175,7 @@ class HAPI:
         group_by: str,
         h_userids: list[str] | None = None,
         resource_link_ids: list[str] | None = None,
-    ):
+    ) -> dict:
         filters = {
             "groups": group_authority_ids,
             "assignment_ids": resource_link_ids,

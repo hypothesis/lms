@@ -115,7 +115,7 @@ class TestAssignmentViews:
                         "title": course.lms_name,
                     },
                     "annotation_metrics": {
-                        "annotations": sentinel.annotations,
+                        "annotations": 4,
                         "replies": sentinel.replies,
                         "last_activity": sentinel.last_activity,
                     },
@@ -141,7 +141,8 @@ class TestAssignmentViews:
         return [
             {
                 "assignment_id": assignment.resource_link_id,
-                "annotations": sentinel.annotations,
+                "annotations": 2,
+                "page_notes": 2,
                 "replies": sentinel.replies,
                 "userid": "TEACHER",
                 "last_activity": sentinel.last_activity,
