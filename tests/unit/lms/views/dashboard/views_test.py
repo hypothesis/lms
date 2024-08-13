@@ -33,7 +33,7 @@ class TestDashboardViews:
             lifetime=timedelta(seconds=AUTHORIZATION_DURATION_SECONDS),
         )
         assert response == Any.instance_of(HTTPFound).with_attrs(
-            {"location": "http://example.com/dashboard/assignments/sentinel.id"}
+            {"location": "http://example.com/dashboard/assignments/sentinel.id/"}
         )
         self.assert_cookie_value(response)
 

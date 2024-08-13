@@ -25,7 +25,7 @@ class ExceptionViews:
         self.exception = exception
         self.request = request
 
-    @notfound_view_config()
+    @notfound_view_config(append_slash=True)
     def notfound(self):
         LOG.info("Page not found: %s", self.request.url)
         return self.error_response(404, _("Page not found"))

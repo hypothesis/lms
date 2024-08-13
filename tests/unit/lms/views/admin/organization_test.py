@@ -356,7 +356,7 @@ class TestAdminOrganizationViews:
         pyramid_request.registry.notify.has_call_with(AuditTrailEvent.return_value)
         assert response == Any.instance_of(HTTPFound).with_attrs(
             {
-                "location": f"http://example.com/dashboard/orgs/{organization.public_id}",
+                "location": f"http://example.com/dashboard/orgs/{organization.public_id}/",
             }
         )
 

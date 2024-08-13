@@ -245,35 +245,35 @@ def includeme(config):  # noqa: PLR0915
     )
 
     config.add_route(
-        "dashboard.launch.assignment", "/dashboard/launch/assignments/{assignment_id}"
+        "dashboard.launch.assignment", "/dashboard/launch/assignments/{assignment_id}/"
     )
 
     config.add_route(
         "dashboard.assignment",
-        "/dashboard/assignments/{assignment_id}",
+        "/dashboard/assignments/{assignment_id}/",
         factory="lms.resources.dashboard.DashboardResource",
     )
     config.add_route(
         "dashboard.course",
-        "/dashboard/courses/{course_id}",
+        "/dashboard/courses/{course_id}/",
         factory="lms.resources.dashboard.DashboardResource",
     )
     config.add_route(
-        "dashboard", "/dashboard", factory="lms.resources.dashboard.DashboardResource"
+        "dashboard", "/dashboard/", factory="lms.resources.dashboard.DashboardResource"
     )
     config.add_route(
         "dashboard.organization",
-        "/dashboard/orgs/{public_id}",
+        "/dashboard/orgs/{public_id}/",
         factory="lms.resources.dashboard.DashboardResource",
     )
     config.add_route(
         "dashboard.organization.assignment",
-        "/dashboard/orgs/{public_id}/assignments/{assignment_id}",
+        "/dashboard/orgs/{public_id}/assignments/{assignment_id}/",
         factory="lms.resources.dashboard.DashboardResource",
     )
     config.add_route(
         "dashboard.organization.course",
-        "/dashboard/orgs/{public_id}/courses/{course_id}",
+        "/dashboard/orgs/{public_id}/courses/{course_id}/",
         factory="lms.resources.dashboard.DashboardResource",
     )
 
