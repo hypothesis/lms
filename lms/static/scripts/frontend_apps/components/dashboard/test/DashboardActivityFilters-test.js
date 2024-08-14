@@ -251,9 +251,21 @@ describe('DashboardActivityFilters', () => {
     it('invokes corresponding change callback', () => {
       const wrapper = createComponent();
       const select = getSelect(wrapper, id);
+      const triggerShiftKeyEvent = event =>
+        wrapper
+          .find('[data-testid="filters-container"]')
+          .getDOMNode()
+          .dispatchEvent(new KeyboardEvent(event, { key: 'Shift' }));
 
+      // Multiple selection is supported while pressing Shift key
+      triggerShiftKeyEvent('keydown');
       select.props().onChange(selection);
       assert.calledWith(getExpectedCallback(), selection);
+
+      // Only first item is taken into consideration when Shift is not pressed
+      triggerShiftKeyEvent('keyup');
+      select.props().onChange(selection);
+      assert.calledWith(getExpectedCallback(), [selection[0]]);
     });
   });
 
@@ -529,6 +541,19 @@ describe('DashboardActivityFilters', () => {
           sinon.match.any,
         );
       });
+    });
+
+    it('calls onClear when onChange is invoked', () => {
+      const wrapper = createComponentWithProps({
+        courses: activeItem,
+        assignments: emptySelection,
+        students: emptySelection,
+      });
+      const select = getSelect(wrapper, 'courses-select');
+
+      select.props().onChange([]);
+
+      assert.called(activeItem.onClear);
     });
   });
 

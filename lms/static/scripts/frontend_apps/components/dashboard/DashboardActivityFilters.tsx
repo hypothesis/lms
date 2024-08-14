@@ -3,7 +3,8 @@ import {
   IconButton,
   MultiSelect,
 } from '@hypothesis/frontend-shared';
-import { useMemo } from 'preact/hooks';
+import { ListenerCollection } from '@hypothesis/frontend-shared/lib/util/listener-collection';
+import { useCallback, useEffect, useMemo, useRef } from 'preact/hooks';
 import { useParams } from 'wouter-preact';
 
 import type {
@@ -154,16 +155,66 @@ export default function DashboardActivityFilters({
     [studentsResult.data],
   );
 
+  const isShiftPressed = useRef(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    /* istanbul ignore next */
+    if (!containerRef.current) {
+      return () => {};
+    }
+
+    const collection = new ListenerCollection();
+
+    collection.add(containerRef.current, 'keydown', e => {
+      if (e.key === 'Shift') {
+        isShiftPressed.current = true;
+      }
+    });
+    collection.add(containerRef.current, 'keyup', e => {
+      if (e.key === 'Shift') {
+        isShiftPressed.current = false;
+      }
+    });
+
+    return () => collection.removeAll();
+  }, []);
+
+  const changeSelection = useCallback(
+    <T extends Course | Assignment>(
+      entity: ActivityFilterSelection | ActivityFilterItem<T>,
+      newSelectedIds: string[],
+    ) => {
+      if ('onClear' in entity) {
+        entity.onClear();
+        return;
+      }
+
+      // When Shift is pressed, allow multiple selection
+      if (isShiftPressed.current) {
+        entity.onChange(newSelectedIds);
+        return;
+      }
+
+      // When Shift is not pressed, replace selection and keep only one
+      // item, mimicking single-selection
+      const newSelectedItem = newSelectedIds.find(
+        i => !entity.selectedIds.includes(i),
+      );
+      entity.onChange(newSelectedItem ? [newSelectedItem] : []);
+    },
+    [],
+  );
+
   return (
-    <div className="flex gap-2 flex-wrap">
+    <div
+      className="flex gap-2 flex-wrap"
+      ref={containerRef}
+      data-testid="filters-container"
+    >
       <MultiSelect
         disabled={coursesResult.isLoadingFirstPage}
         value={selectedCourseIds}
-        onChange={newCourseIds =>
-          'onChange' in courses
-            ? courses.onChange(newCourseIds)
-            : courses.onClear()
-        }
+        onChange={newCourseIds => changeSelection(courses, newCourseIds)}
         aria-label="Select courses"
         containerClasses="!w-auto min-w-[180px]"
         buttonContent={
@@ -216,9 +267,7 @@ export default function DashboardActivityFilters({
         disabled={assignmentsResults.isLoadingFirstPage}
         value={selectedAssignmentIds}
         onChange={newAssignmentIds =>
-          'onChange' in assignments
-            ? assignments.onChange(newAssignmentIds)
-            : assignments.onClear()
+          changeSelection(assignments, newAssignmentIds)
         }
         aria-label="Select assignments"
         containerClasses="!w-auto min-w-[180px]"
@@ -286,7 +335,7 @@ export default function DashboardActivityFilters({
       <MultiSelect
         disabled={studentsResult.isLoadingFirstPage}
         value={students.selectedIds}
-        onChange={students.onChange}
+        onChange={newStudentIds => changeSelection(students, newStudentIds)}
         aria-label="Select students"
         containerClasses="!w-auto min-w-[180px]"
         buttonContent={
