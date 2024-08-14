@@ -1,8 +1,4 @@
-import {
-  CancelIcon,
-  IconButton,
-  MultiSelect,
-} from '@hypothesis/frontend-shared';
+import { CancelIcon, IconButton, Select } from '@hypothesis/frontend-shared';
 import { useMemo } from 'preact/hooks';
 import { useParams } from 'wouter-preact';
 
@@ -24,7 +20,18 @@ import { formatDateTime } from '../../utils/date';
  * The set of currently selected items are maintained by the parent component.
  */
 export type ActivityFilterSelection = {
+  /**
+   * Currently, only the first item here is taken into consideration.
+   * This will change as soon as we support multi-selection, without having to
+   * change the component's props API.
+   */
   selectedIds: string[];
+
+  /**
+   * Invoked when selected items change.
+   * It will be called with an array of 1 or 0 items, indicating either one item
+   * or no items are selected.
+   */
   onChange: (newSelectedIds: string[]) => void;
 };
 
@@ -57,6 +64,9 @@ function elementScrollIsAtBottom(element: HTMLElement, offset = 20): boolean {
   const triggerPoint = element.scrollHeight - offset;
   return distanceToTop >= triggerPoint;
 }
+
+/** Get first item from an array, if any */
+const firstItem = <T,>(array: T[]) => array[0] as T | undefined;
 
 /**
  * Renders drop-downs to select courses, assignments and/or students, used to
@@ -156,12 +166,12 @@ export default function DashboardActivityFilters({
 
   return (
     <div className="flex gap-2 flex-wrap">
-      <MultiSelect
+      <Select
         disabled={coursesResult.isLoadingFirstPage}
-        value={selectedCourseIds}
-        onChange={newCourseIds =>
+        value={firstItem(selectedCourseIds)}
+        onChange={newCourseId =>
           'onChange' in courses
-            ? courses.onChange(newCourseIds)
+            ? courses.onChange(newCourseId ? [newCourseId] : [])
             : courses.onClear()
         }
         aria-label="Select courses"
@@ -187,37 +197,34 @@ export default function DashboardActivityFilters({
           }
         }}
       >
-        <MultiSelect.Option value={undefined}>All courses</MultiSelect.Option>
+        <Select.Option value={undefined}>All courses</Select.Option>
         {activeCourse ? (
-          <MultiSelect.Option
-            key={activeCourse.id}
-            value={`${activeCourse.id}`}
-          >
+          <Select.Option key={activeCourse.id} value={`${activeCourse.id}`}>
             {activeCourse.title}
-          </MultiSelect.Option>
+          </Select.Option>
         ) : (
           <>
             {coursesResult.data?.map(course => (
-              <MultiSelect.Option key={course.id} value={`${course.id}`}>
+              <Select.Option key={course.id} value={`${course.id}`}>
                 {course.title}
-              </MultiSelect.Option>
+              </Select.Option>
             ))}
             {coursesResult.isLoading && !coursesResult.isLoadingFirstPage && (
-              <MultiSelect.Option disabled value={undefined}>
+              <Select.Option disabled value={undefined}>
                 <span className="italic" data-testid="loading-more-courses">
                   Loading more courses...
                 </span>
-              </MultiSelect.Option>
+              </Select.Option>
             )}
           </>
         )}
-      </MultiSelect>
-      <MultiSelect
+      </Select>
+      <Select
         disabled={assignmentsResults.isLoadingFirstPage}
-        value={selectedAssignmentIds}
-        onChange={newAssignmentIds =>
+        value={firstItem(selectedAssignmentIds)}
+        onChange={newAssignmentId =>
           'onChange' in assignments
-            ? assignments.onChange(newAssignmentIds)
+            ? assignments.onChange(newAssignmentId ? [newAssignmentId] : [])
             : assignments.onClear()
         }
         aria-label="Select assignments"
@@ -244,49 +251,46 @@ export default function DashboardActivityFilters({
           }
         }}
       >
-        <MultiSelect.Option value={undefined}>
-          All assignments
-        </MultiSelect.Option>
+        <Select.Option value={undefined}>All assignments</Select.Option>
         {activeAssignment ? (
-          <MultiSelect.Option
+          <Select.Option
             key={activeAssignment.id}
             value={`${activeAssignment.id}`}
           >
             {activeAssignment.title}
-          </MultiSelect.Option>
+          </Select.Option>
         ) : (
           <>
             {assignmentsResults.data?.map(assignment => (
-              <MultiSelect.Option
-                key={assignment.id}
-                value={`${assignment.id}`}
-              >
+              <Select.Option key={assignment.id} value={`${assignment.id}`}>
                 <div className="flex flex-col gap-0.5">
                   {assignment.title}
                   <div className="text-grey-6 text-xs">
                     {formatDateTime(assignment.created)}
                   </div>
                 </div>
-              </MultiSelect.Option>
+              </Select.Option>
             ))}
             {assignmentsResults.isLoading &&
               !assignmentsResults.isLoadingFirstPage && (
-                <MultiSelect.Option disabled value={undefined}>
+                <Select.Option disabled value={undefined}>
                   <span
                     className="italic"
                     data-testid="loading-more-assignments"
                   >
                     Loading more assignments...
                   </span>
-                </MultiSelect.Option>
+                </Select.Option>
               )}
           </>
         )}
-      </MultiSelect>
-      <MultiSelect
+      </Select>
+      <Select
         disabled={studentsResult.isLoadingFirstPage}
-        value={students.selectedIds}
-        onChange={students.onChange}
+        value={firstItem(students.selectedIds)}
+        onChange={newStudentId =>
+          students.onChange(newStudentId ? [newStudentId] : [])
+        }
         aria-label="Select students"
         containerClasses="!w-auto min-w-[180px]"
         buttonContent={
@@ -309,9 +313,9 @@ export default function DashboardActivityFilters({
           }
         }}
       >
-        <MultiSelect.Option value={undefined}>All students</MultiSelect.Option>
+        <Select.Option value={undefined}>All students</Select.Option>
         {studentsWithFallbackName?.map(student => (
-          <MultiSelect.Option key={student.lms_id} value={student.h_userid}>
+          <Select.Option key={student.lms_id} value={student.h_userid}>
             <span
               className={student.has_display_name ? undefined : 'italic'}
               title={
@@ -323,16 +327,16 @@ export default function DashboardActivityFilters({
             >
               {student.display_name}
             </span>
-          </MultiSelect.Option>
+          </Select.Option>
         ))}
         {studentsResult.isLoading && !studentsResult.isLoadingFirstPage && (
-          <MultiSelect.Option disabled value={undefined}>
+          <Select.Option disabled value={undefined}>
             <span className="italic" data-testid="loading-more-students">
               Loading more students...
             </span>
-          </MultiSelect.Option>
+          </Select.Option>
         )}
-      </MultiSelect>
+      </Select>
       {hasSelection && onClearSelection && (
         <IconButton
           title="Clear filters"
