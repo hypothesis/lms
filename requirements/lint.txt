@@ -677,7 +677,7 @@ webargs==8.4.0
     #   -r bddtests.txt
     #   -r functests.txt
     #   -r tests.txt
-webob==1.8.7
+webob==1.8.8
     # via
     #   -r bddtests.txt
     #   -r functests.txt
