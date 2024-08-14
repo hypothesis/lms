@@ -42,26 +42,23 @@ class UserService:
         # tied to users in groups. Should we start to store users who have not
         # launched us, we could inflate our numbers or change their meaning.
 
-        user = User(
-            application_instance_id=lti_user.application_instance_id,
-            user_id=lti_user.user_id,
-            roles=lti_user.roles,
-            h_userid=lti_user.h_user.userid(self._h_authority),
-        )
-
-        if existing_user := self._db.execute(
+        user = self._db.execute(
             self._user_search_query(
-                application_instance_id=user.application_instance_id,
-                user_id=user.user_id,
+                application_instance_id=lti_user.application_instance_id,
+                user_id=lti_user.user_id,
             )
-        ).scalar_one_or_none():
-            # Update the existing user from the fields which can change on a
-            # new one
-            existing_user.roles = user.roles
-            user = existing_user
-        else:
+        ).scalar_one_or_none()
+
+        if not user:
+            user = User(
+                application_instance_id=lti_user.application_instance_id,
+                user_id=lti_user.user_id,
+                roles=lti_user.roles,
+                h_userid=lti_user.h_user.userid(self._h_authority),
+            )
             self._db.add(user)
 
+        user.roles = lti_user.roles
         user.display_name = lti_user.display_name
         if lti_user.is_instructor:
             # We are only storing emails for teachers now.
