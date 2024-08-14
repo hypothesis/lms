@@ -400,7 +400,7 @@ wcwidth==0.2.12
     #   prompt-toolkit
 webargs==8.4.0
     # via -r prod.txt
-webob==1.8.7
+webob==1.8.8
     # via
     #   -r prod.txt
     #   h-vialib
