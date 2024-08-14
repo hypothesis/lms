@@ -24,7 +24,7 @@ describe('DashboardBreadcrumbs', () => {
       const wrapper = createComponent({ allCoursesLink, links: [] });
       const firstLink = wrapper.find('BreadcrumbLink').first();
 
-      assert.equal(firstLink.prop('href'), allCoursesLink ?? '');
+      assert.equal(firstLink.prop('href'), allCoursesLink ?? '/');
     });
   });
 

@@ -214,7 +214,7 @@ describe('CourseActivity', () => {
       assert.equal(itemWrapper.text(), expectedValue);
 
       if (fieldName === 'title') {
-        assert.equal(itemWrapper.prop('href'), '/assignments/123');
+        assert.equal(itemWrapper.prop('href'), '/assignments/123/');
       }
     });
   });
@@ -232,7 +232,7 @@ describe('CourseActivity', () => {
         const wrapper = createComponent();
         assert.equal(
           getLinkForId(wrapper, assignmentId),
-          `/assignments/${assignmentId}`,
+          `/assignments/${assignmentId}/`,
         );
       });
     });
@@ -241,12 +241,12 @@ describe('CourseActivity', () => {
       {
         prop: 'students',
         arg: ['123', '456'],
-        expectedLink: '/assignments/123?student_id=123&student_id=456',
+        expectedLink: '/assignments/123/?student_id=123&student_id=456',
       },
       {
         prop: 'assignments',
         arg: ['999'],
-        expectedLink: '/assignments/123', // Selected assignments are not propagated
+        expectedLink: '/assignments/123/', // Selected assignments are not propagated
       },
     ].forEach(({ prop, arg, expectedLink }) => {
       it('preserves filters', () => {
@@ -331,11 +331,11 @@ describe('CourseActivity', () => {
     [
       {
         currentSearch: 'current=query',
-        expectedDestination: '?current=query',
+        expectedDestination: '/?current=query',
       },
       {
         currentSearch: '',
-        expectedDestination: '',
+        expectedDestination: '/',
       },
     ].forEach(({ currentSearch, expectedDestination }) => {
       it('navigates to home preserving current query when selected course is cleared', () => {

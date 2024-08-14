@@ -74,7 +74,7 @@ export default function AssignmentActivity() {
         {assignment.data && (
           <div className="mb-3 mt-1 w-full">
             <DashboardBreadcrumbs
-              allCoursesLink={urlWithFilters({ studentIds }, { path: '' })}
+              allCoursesLink={urlWithFilters({ studentIds }, { path: '/' })}
               links={[
                 {
                   title: assignment.data.course.title,
@@ -103,7 +103,7 @@ export default function AssignmentActivity() {
               navigate(
                 urlWithFilters(
                   { studentIds, assignmentIds: [assignmentId] },
-                  { path: '' },
+                  { path: '/' },
                 ),
               ),
           }}

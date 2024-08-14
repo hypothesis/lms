@@ -85,7 +85,7 @@ export default function CourseActivity() {
           <DashboardBreadcrumbs
             allCoursesLink={urlWithFilters(
               { assignmentIds, studentIds },
-              { path: '' },
+              { path: '/' },
             )}
           />
         </div>
@@ -101,7 +101,7 @@ export default function CourseActivity() {
             activeItem: course.data,
             // When selected course is cleared, navigate to the home page,
             // AKA "All courses"
-            onClear: () => navigate(search.length > 0 ? `?${search}` : ''),
+            onClear: () => navigate(search.length > 0 ? `/?${search}` : '/'),
           }}
           assignments={{
             selectedIds: assignmentIds,

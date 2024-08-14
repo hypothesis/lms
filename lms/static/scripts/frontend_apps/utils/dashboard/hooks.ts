@@ -68,13 +68,7 @@ export function useDashboardFilters(): UseDashboardFilters {
         newQueryParams.student_id = studentIds;
       }
 
-      // The router's base URL is represented in `location` as '/', even if
-      // that URL does not actually end with `/` (eg. `/dashboard`).
-      // When we update the query string, we want to avoid modifying the path
-      // unless a path was explicitly provided.
-      const normalizedPath = path === '/' ? '' : path;
-
-      return `${normalizedPath}${recordToQueryString(newQueryParams)}`;
+      return `${path}${recordToQueryString(newQueryParams)}`;
     },
     [location, queryParams],
   );
