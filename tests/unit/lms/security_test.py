@@ -4,7 +4,6 @@ import pytest
 from pyramid.interfaces import ISecurityPolicy
 from pyramid.security import Allowed, Denied
 
-from lms.models import ApplicationSettings
 from lms.security import (
     CookiesBearerTokenLTIUserPolicy,
     DeniedWithException,
@@ -277,18 +276,12 @@ class TestLTIUserSecurityPolicy:
         assert not identity.permissions
         assert identity.userid
 
-    @pytest.mark.parametrize(
-        "settings",
-        [{}, {"hypothesis": {"instructor_dashboard": True}}],
-    )
     @pytest.mark.parametrize("is_instructor", [True, False])
     def test_identity_when_theres_an_lti_user(
         self,
         request,
         pyramid_request,
         is_instructor,
-        application_instance,
-        settings,
         policy,
         get_lti_user,
     ):
@@ -296,7 +289,6 @@ class TestLTIUserSecurityPolicy:
             _ = request.getfixturevalue("user_is_instructor")
         else:
             _ = request.getfixturevalue("user_is_learner")
-        settings = application_instance.settings = ApplicationSettings(settings)
         get_lti_user.return_value = pyramid_request.lti_user
 
         identity = policy.identity(pyramid_request)
@@ -313,10 +305,9 @@ class TestLTIUserSecurityPolicy:
                 [
                     Permissions.LTI_CONFIGURE_ASSIGNMENT,
                     Permissions.GRADE_ASSIGNMENT,
+                    Permissions.DASHBOARD_VIEW,
                 ]
             )
-            if settings.get("hypothesis", "instructor_dashboard"):
-                expected_permissions.append(Permissions.DASHBOARD_VIEW)
 
         assert identity.permissions == expected_permissions
 
