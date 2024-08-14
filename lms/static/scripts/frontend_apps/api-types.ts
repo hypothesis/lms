@@ -183,6 +183,8 @@ export type CoursesMetricsResponse = {
 export type Assignment = {
   id: number;
   title: string;
+  /** Date in which the assignment was created, in ISO format */
+  created: string;
 };
 
 export type Student = {

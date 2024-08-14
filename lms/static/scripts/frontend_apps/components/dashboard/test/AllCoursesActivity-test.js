@@ -150,7 +150,7 @@ describe('AllCoursesActivity', () => {
 
       assert.equal(
         itemText,
-        last_launched ? formatDateTime(new Date(last_launched)) : '',
+        last_launched ? formatDateTime(last_launched) : '',
       );
     });
 

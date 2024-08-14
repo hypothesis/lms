@@ -149,7 +149,7 @@ describe('AssignmentActivity', () => {
     { fieldName: 'replies', expectedValue: '25' },
     {
       fieldName: 'last_activity',
-      expectedValue: formatDateTime(new Date('2024-01-01T10:35:18')),
+      expectedValue: formatDateTime('2024-01-01T10:35:18'),
     },
     // Render "unknown" field name
     { fieldName: 'id', expectedValue: '' },
