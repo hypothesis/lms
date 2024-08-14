@@ -1,5 +1,6 @@
 from functools import lru_cache
 from typing import cast
+from lms.services.upsert import upsert
 
 from sqlalchemy import BinaryExpression, false, or_, select
 from sqlalchemy.exc import NoResultFound
@@ -14,6 +15,8 @@ from lms.models import (
     RoleScope,
     RoleType,
     User,
+    LMSUser,
+    LMSUserApplicationInstance,
 )
 from lms.services.course import CourseService
 
@@ -41,6 +44,8 @@ class UserService:
         # tied to users in groups. Should we start to store users who have not
         # launched us, we could inflate our numbers or change their meaning.
 
+        h_userid = lti_user.h_user.userid(self._h_authority)
+
         user = self._db.execute(
             self._user_search_query(
                 application_instance_id=lti_user.application_instance_id,
@@ -53,7 +58,7 @@ class UserService:
                 application_instance_id=lti_user.application_instance_id,
                 user_id=lti_user.user_id,
                 roles=lti_user.roles,
-                h_userid=lti_user.h_user.userid(self._h_authority),
+                h_userid=h_userid,
             )
             self._db.add(user)
 
@@ -63,7 +68,33 @@ class UserService:
             # We are only storing emails for teachers now.
             user.email = lti_user.email
 
+        self._upsert_lms_user(user)
         return user
+
+    def _upsert_lms_user(self, user: User) -> LMSUser:
+        lms_user = upsert(
+            self._db,
+            LMSUser(
+                tool_consumer_instance_guid=user.application_instance.tool_consumer_instance_guid,
+                h_userid=user.h_userid,
+                lti_id=user.user_id,
+                display_name=user.display_name,
+                email=user.email,
+            ),
+            index_columns=["h_userid"],
+            update_columns=["updated", "display_name", "email"],
+        )
+        upsert(
+            self._db,
+            LMSUserApplicationInstance(
+                lms_user_id=lms_user.id,
+                application_instance_id=user.application_instance_id,
+            ),
+            index_columns=["application_instance_id", "lms_user_id"],
+            update_columns=["updated"],
+        )
+
+        return lms_user
 
     @lru_cache(maxsize=128)
     def get(self, application_instance, user_id: str) -> User:
