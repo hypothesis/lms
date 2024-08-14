@@ -104,12 +104,16 @@ export default function CourseActivity() {
             onClear: () => navigate(search.length > 0 ? `?${search}` : ''),
           }}
           assignments={{
-            selectedIds: assignmentIds,
-            onChange: assignmentIds => updateFilters({ assignmentIds }),
+            selectedId: assignmentIds[0],
+            onChange: assignmentId =>
+              updateFilters({
+                assignmentIds: assignmentId ? [assignmentId] : [],
+              }),
           }}
           students={{
-            selectedIds: studentIds,
-            onChange: studentIds => updateFilters({ studentIds }),
+            selectedId: studentIds[0],
+            onChange: studentId =>
+              updateFilters({ studentIds: studentId ? [studentId] : [] }),
           }}
           onClearSelection={hasSelection ? onClearSelection : undefined}
         />

@@ -117,8 +117,9 @@ export default function AssignmentActivity() {
             },
           }}
           students={{
-            selectedIds: studentIds,
-            onChange: studentIds => updateFilters({ studentIds }),
+            selectedId: studentIds[0],
+            onChange: studentId =>
+              updateFilters({ studentIds: studentId ? [studentId] : [] }),
           }}
           onClearSelection={
             studentIds.length > 0

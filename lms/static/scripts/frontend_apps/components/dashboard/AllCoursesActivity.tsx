@@ -54,16 +54,21 @@ export default function AllCoursesActivity() {
       <h2 className="text-lg text-brand font-semibold">All courses</h2>
       <DashboardActivityFilters
         students={{
-          selectedIds: studentIds,
-          onChange: studentIds => updateFilters({ studentIds }),
+          selectedId: studentIds[0],
+          onChange: studentId =>
+            updateFilters({ studentIds: studentId ? [studentId] : [] }),
         }}
         assignments={{
-          selectedIds: assignmentIds,
-          onChange: assignmentIds => updateFilters({ assignmentIds }),
+          selectedId: assignmentIds[0],
+          onChange: assignmentId =>
+            updateFilters({
+              assignmentIds: assignmentId ? [assignmentId] : [],
+            }),
         }}
         courses={{
-          selectedIds: courseIds,
-          onChange: courseIds => updateFilters({ courseIds }),
+          selectedId: courseIds[0],
+          onChange: courseId =>
+            updateFilters({ courseIds: courseId ? [courseId] : [] }),
         }}
         onClearSelection={() =>
           updateFilters({ studentIds: [], assignmentIds: [], courseIds: [] })
