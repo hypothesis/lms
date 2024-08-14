@@ -472,10 +472,12 @@ describe('DashboardActivityFilters', () => {
       selectedIds: [],
       onChange: sinon.stub(),
     };
+    const created = '2024-06-10T09:55:44.701550';
     const activeItem = {
       activeItem: {
         id: 123,
         title: 'The active title',
+        created,
       },
       onClear: sinon.stub(),
     };
@@ -490,6 +492,7 @@ describe('DashboardActivityFilters', () => {
         selectId: 'courses-select',
         allOption: 'All courses',
         skippedAPIFetchIndex: 0,
+        expectedOptionTitle: 'The active title',
       },
       {
         props: {
@@ -500,36 +503,45 @@ describe('DashboardActivityFilters', () => {
         selectId: 'assignments-select',
         allOption: 'All assignments',
         skippedAPIFetchIndex: 1,
+        expectedOptionTitle: `The active title${formatDateTime(created)}`,
       },
-    ].forEach(({ props, selectId, allOption, skippedAPIFetchIndex }) => {
-      it('displays active item', () => {
-        const wrapper = createComponentWithProps(props);
-        const select = getSelectContent(wrapper, selectId);
+    ].forEach(
+      ({
+        props,
+        selectId,
+        allOption,
+        skippedAPIFetchIndex,
+        expectedOptionTitle,
+      }) => {
+        it('displays active item', () => {
+          const wrapper = createComponentWithProps(props);
+          const select = getSelectContent(wrapper, selectId);
 
-        assert.equal(select, 'The active title');
-      });
+          assert.equal(select, 'The active title');
+        });
 
-      it('displays only two options in select', () => {
-        const wrapper = createComponentWithProps(props);
-        const select = getSelect(wrapper, selectId);
-        const options = select.find(Select.Option);
+        it('displays only two options in select', () => {
+          const wrapper = createComponentWithProps(props);
+          const select = getSelect(wrapper, selectId);
+          const options = select.find(Select.Option);
 
-        assert.equal(options.length, 2);
-        assert.equal(options.at(0).text(), allOption);
-        assert.equal(options.at(1).text(), 'The active title');
-      });
+          assert.equal(options.length, 2);
+          assert.equal(options.at(0).text(), allOption);
+          assert.equal(options.at(1).text(), expectedOptionTitle);
+        });
 
-      it('does not load list of items', () => {
-        createComponentWithProps(props);
+        it('does not load list of items', () => {
+          createComponentWithProps(props);
 
-        assert.calledWith(
-          fakeUsePaginatedAPIFetch.getCall(skippedAPIFetchIndex),
-          sinon.match.string,
-          null, // The path should be null
-          sinon.match.any,
-        );
-      });
-    });
+          assert.calledWith(
+            fakeUsePaginatedAPIFetch.getCall(skippedAPIFetchIndex),
+            sinon.match.string,
+            null, // The path should be null
+            sinon.match.any,
+          );
+        });
+      },
+    );
   });
 
   it(
