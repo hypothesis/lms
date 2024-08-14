@@ -274,3 +274,66 @@ class GroupingMembership(CreatedUpdatedMixin, Base):
     )
 
     user = sa.orm.relationship("User")
+
+
+class LMSCourse(CreatedUpdatedMixin, Base):
+    __tablename__ = "lms_course"
+
+    id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
+
+    tool_consumer_instance_guid: Mapped[str | None] = mapped_column(
+        sa.UnicodeText, index=True
+    )
+
+    authority_provided_id: Mapped[str] = mapped_column(
+        sa.Unicode, unique=True, index=True
+    )
+    """The H userid which is created from LTI provided values."""
+
+    copied_from_id = sa.Column(
+        sa.Integer(), sa.ForeignKey("grouping.id"), nullable=True
+    )
+    """ID of the course grouping this one was copied from using the course copy feature in the LMS."""
+
+    name: Mapped[str] = mapped_column(sa.UnicodeText(), index=True)
+
+    lti_id: Mapped[str] = mapped_column(sa.Unicode, index=True)
+    """ID of this user in the LMS, via LTI"""
+
+
+class LMSCourseApplicationInstance(CreatedUpdatedMixin, Base):
+    __tablename__ = "lms_course_application_instance"
+
+    __table_args__ = (sa.UniqueConstraint("application_instance_id", "lms_course_id"),)
+
+    id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
+
+    application_instance_id: Mapped[int] = sa.Column(
+        sa.ForeignKey("application_instances.id", ondelete="cascade"), index=True
+    )
+
+    lms_course_id: Mapped[int] = sa.Column(
+        sa.ForeignKey("lms_course.id", ondelete="cascade"), index=True
+    )
+
+
+class LMSCourseMembership(CreatedUpdatedMixin, Base):
+    __tablename__ = "lms_course_membership"
+    __table_args__ = (
+        sa.UniqueConstraint("lms_course_id", "lms_user_id", "lti_role_id"),
+    )
+
+    id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
+
+    lms_course_id: Mapped[int] = sa.Column(
+        sa.ForeignKey("lms_course.id", ondelete="cascade"), index=True
+    )
+
+    lms_user_id: Mapped[int] = sa.Column(
+        sa.ForeignKey("lms_course.id", ondelete="cascade"), index=True
+    )
+
+    lti_role_id: Mapped[int] = sa.Column(
+        sa.ForeignKey("lti_role.id", ondelete="cascade"),
+        index=True,
+    )
