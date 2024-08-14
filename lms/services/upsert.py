@@ -5,6 +5,20 @@ from sqlalchemy.dialects.postgresql import insert
 from zope.sqlalchemy import mark_changed
 
 
+def upsert(db, model, index_columns: list[str], update_columns: list[str]):
+    values = {}
+
+    for column in model.__table__.c:
+        if column.primary_key and column.autoincrement:
+            continue
+        if column.default or column.server_default:
+            continue
+
+        values[column.name] = getattr(model, column.name)
+
+    return bulk_upsert(db, model.__class__, [values], index_columns, update_columns)[0]
+
+
 def bulk_upsert(
     db,
     model_class,
