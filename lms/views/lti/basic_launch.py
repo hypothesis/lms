@@ -220,15 +220,11 @@ class BasicLaunchViews:
                     self.request.lti_params.get("lis_outcome_service_url"),
                 )
 
-        application_instance = self.request.lti_user.application_instance
-
         # Set up the JS config for the front-end
         self.context.js_config.add_document_url(assignment.document_url)
         self.context.js_config.enable_lti_launch_mode(self.course, assignment)
 
-        if self.request.lti_user.is_instructor and application_instance.settings.get(
-            "hypothesis", "instructor_dashboard"
-        ):
+        if self.request.lti_user.is_instructor:
             self.context.js_config.enable_instructor_dashboard_entry_point(assignment)
 
         # If there are any Hypothesis client feature flags that need to be
