@@ -69,6 +69,22 @@ function elementScrollIsAtBottom(element: HTMLElement, offset = 20): boolean {
 const firstItem = <T,>(array: T[]) => array[0] as T | undefined;
 
 /**
+ * Represents a `Select.Option` for a specific assignment
+ */
+function AssignmentOption({ assignment }: { assignment: Assignment }) {
+  return (
+    <Select.Option value={`${assignment.id}`}>
+      <div className="flex flex-col gap-0.5">
+        {assignment.title}
+        <div className="text-grey-6 text-xs">
+          {formatDateTime(assignment.created)}
+        </div>
+      </div>
+    </Select.Option>
+  );
+}
+
+/**
  * Renders drop-downs to select courses, assignments and/or students, used to
  * filter dashboard activity metrics.
  */
@@ -253,23 +269,11 @@ export default function DashboardActivityFilters({
       >
         <Select.Option value={undefined}>All assignments</Select.Option>
         {activeAssignment ? (
-          <Select.Option
-            key={activeAssignment.id}
-            value={`${activeAssignment.id}`}
-          >
-            {activeAssignment.title}
-          </Select.Option>
+          <AssignmentOption assignment={activeAssignment} />
         ) : (
           <>
             {assignmentsResults.data?.map(assignment => (
-              <Select.Option key={assignment.id} value={`${assignment.id}`}>
-                <div className="flex flex-col gap-0.5">
-                  {assignment.title}
-                  <div className="text-grey-6 text-xs">
-                    {formatDateTime(assignment.created)}
-                  </div>
-                </div>
-              </Select.Option>
+              <AssignmentOption key={assignment.id} assignment={assignment} />
             ))}
             {assignmentsResults.isLoading &&
               !assignmentsResults.isLoadingFirstPage && (
