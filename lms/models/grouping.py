@@ -278,6 +278,7 @@ class GroupingMembership(CreatedUpdatedMixin, Base):
 
 class LMSCourse(CreatedUpdatedMixin, Base):
     __tablename__ = "lms_course"
+    __table_args__ = (sa.UniqueConstraint("tool_consumer_instance_guid", "lti_id"),)
 
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
 
@@ -288,7 +289,7 @@ class LMSCourse(CreatedUpdatedMixin, Base):
     authority_provided_id: Mapped[str] = mapped_column(
         sa.Unicode, unique=True, index=True
     )
-    """The H userid which is created from LTI provided values."""
+    """The H groupid which is created from LTI provided values."""
 
     copied_from_id = sa.Column(
         sa.Integer(), sa.ForeignKey("grouping.id"), nullable=True

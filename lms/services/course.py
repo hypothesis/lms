@@ -284,7 +284,6 @@ class CourseService:
         )[0]
 
         self._upsert_lms_course(course)
-
         return course
 
     def _upsert_lms_course(self, course: Course) -> LMSCourse:
@@ -295,6 +294,7 @@ class CourseService:
                 authority_provided_id=course.authority_provided_id,
                 lti_id=course.lms_id,
                 name=course.lms_name,
+                copied_from_id=course.copied_from_id,
             ),
             index_columns=["authority_provided_id"],
             update_columns=["updated", "name"],
