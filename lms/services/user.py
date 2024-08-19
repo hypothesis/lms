@@ -154,7 +154,7 @@ class UserService:
         :param course_ids: return only users that belong to these courses.
         :param assignment_ids: return only users that belong these assignments.
         """
-        query = select(LMSUser.id)
+        query = select(User.id)
 
         # A few of the filters need to join with assignment_membership.
         # Avoid joins and/or multiple subqueries by building a subquery and filtering the main query

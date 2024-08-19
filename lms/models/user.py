@@ -55,7 +55,7 @@ class LMSUser(CreatedUpdatedMixin, Base):
     __tablename__ = "lms_user"
     __table_args__ = (sa.UniqueConstraint("tool_consumer_instance_guid", "lti_id"),)
 
-    id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
+    id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
 
     tool_consumer_instance_guid: Mapped[str | None] = mapped_column(
         sa.UnicodeText, index=True
@@ -79,12 +79,12 @@ class LMSUserApplicationInstance(CreatedUpdatedMixin, Base):
 
     __table_args__ = (sa.UniqueConstraint("application_instance_id", "lms_user_id"),)
 
-    id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
+    id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
 
-    application_instance_id: Mapped[int] = sa.Column(
+    application_instance_id: Mapped[int] = mapped_column(
         sa.ForeignKey("application_instances.id", ondelete="cascade"),
     )
 
-    lms_user_id: Mapped[int] = sa.Column(
+    lms_user_id: Mapped[int] = mapped_column(
         sa.ForeignKey("lms_user.id", ondelete="cascade"),
     )
