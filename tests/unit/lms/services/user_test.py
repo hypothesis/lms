@@ -191,6 +191,10 @@ class TestUserService:
             user=student,
             lti_role=factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
         )
+        factories.GroupingMembership.create(
+            grouping=assignment.course,
+            user=student,
+        )
         return student
 
     @pytest.fixture
