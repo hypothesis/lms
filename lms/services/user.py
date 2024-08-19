@@ -9,6 +9,7 @@ from lms.models import (
     ApplicationInstance,
     Assignment,
     AssignmentMembership,
+    GroupingMembership,
     LTIRole,
     LTIUser,
     RoleScope,
@@ -145,10 +146,10 @@ class UserService:
 
         if instructor_h_userid:
             instructor_h_userid_clause = User.id.in_(
-                select(AssignmentMembership.user_id)
-                .join(Assignment)
-                .where(
-                    Assignment.course_id.in_(
+                # GroupingMembership has membership information, but it lacks role info
+                select(GroupingMembership.user_id).where(
+                    GroupingMembership.grouping_id.in_(
+                        # Get all the courses where instructor_h_userid is an instructor. This will query AssignmentMembership, which includes roles
                         CourseService.course_ids_with_role_query(
                             instructor_h_userid, RoleScope.COURSE, RoleType.INSTRUCTOR
                         )
