@@ -3,7 +3,6 @@ from lms.models.application_instance import ApplicationInstance, ApplicationSett
 from lms.models.assignment import Assignment
 from lms.models.assignment_grouping import AssignmentGrouping
 from lms.models.assignment_membership import AssignmentMembership
-from lms.models.course import LegacyCourse
 from lms.models.course_groups_exported_from_h import CourseGroupsExportedFromH
 from lms.models.dashboard_admin import DashboardAdmin
 from lms.models.event import Event, EventData, EventType, EventUser
@@ -23,6 +22,7 @@ from lms.models.h_user import HUser
 from lms.models.hubspot import HubSpotCompany
 from lms.models.json_settings import JSONSettings
 from lms.models.jwt_oauth2_token import JWTOAuth2Token
+from lms.models.legacy_course import LegacyCourse
 from lms.models.lti_params import CLAIM_PREFIX, LTIParams
 from lms.models.lti_registration import LTIRegistration
 from lms.models.lti_role import LTIRole, LTIRoleOverride, RoleScope, RoleType
