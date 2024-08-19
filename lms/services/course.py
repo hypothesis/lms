@@ -1,7 +1,6 @@
 import json
 from copy import deepcopy
 from typing import cast
-from lms.services.upsert import upsert
 
 from sqlalchemy import BinaryExpression, Select, Text, column, false, func, or_, select
 
@@ -14,16 +13,17 @@ from lms.models import (
     CourseGroupsExportedFromH,
     Grouping,
     GroupingMembership,
+    LMSCourse,
+    LMSCourseApplicationInstance,
     LTIRole,
     Organization,
     RoleScope,
     RoleType,
     User,
-    LMSCourse,
-    LMSCourseApplicationInstance,
 )
 from lms.product.family import Family
 from lms.services.grouping import GroupingService
+from lms.services.upsert import upsert
 
 
 class CourseService:
@@ -162,9 +162,8 @@ class CourseService:
         courses_query = (
             self._search_query(h_userids=h_userids, limit=None)
             # Deduplicate courses by authority_provided_id, take the last updated one
-            .distinct(Course.authority_provided_id).order_by(
-                Course.authority_provided_id, Course.updated.desc()
-            )
+            .distinct(Course.authority_provided_id)
+            .order_by(Course.authority_provided_id, Course.updated.desc())
             # Only select the ID of the deduplicated courses
         ).with_entities(Course.id)
 

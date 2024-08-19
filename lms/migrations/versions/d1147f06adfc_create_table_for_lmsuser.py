@@ -1,10 +1,7 @@
-"""Create table for LMSUser
+"""Create table for LMSUser."""
 
-Revision ID: d1147f06adfc
-Revises: 3d0c022c716c
-"""
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision = "d1147f06adfc"

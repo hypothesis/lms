@@ -1,11 +1,7 @@
-"""LMSCourse tables
+"""LMSCourse table."""
 
-Revision ID: 9f31d4427a34
-Revises: e13fb37c96e5
-"""
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision = "9f31d4427a34"
 down_revision = "e13fb37c96e5"

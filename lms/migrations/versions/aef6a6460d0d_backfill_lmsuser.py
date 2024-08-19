@@ -1,11 +1,7 @@
-"""Backfill LMSUser
+"""Backfill LMSUser."""
 
-Revision ID: aef6a6460d0d
-Revises: d1147f06adfc
-"""
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision = "aef6a6460d0d"
 down_revision = "d1147f06adfc"
@@ -17,10 +13,10 @@ def upgrade() -> None:
         sa.text(
             """
         WITH backfill as (
-            select 
-                distinct on (h_userid) 
+            select
+                distinct on (h_userid)
                 "user".created, "user".updated,
-                tool_consumer_instance_guid, h_userid, user_id,email, 
+                tool_consumer_instance_guid, h_userid, user_id,email,
                 coalesce(
                   display_name,
                   (select display_name from "user" as user_2 where user_2.h_userid = "user".h_userid and display_name is not null limit 1)

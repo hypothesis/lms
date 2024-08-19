@@ -1,11 +1,7 @@
-"""LMSCourse backfill
+"""LMSCourse backfill."""
 
-Revision ID: f61cb94edfc8
-Revises: 9f31d4427a34
-"""
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision = "f61cb94edfc8"
 down_revision = "9f31d4427a34"

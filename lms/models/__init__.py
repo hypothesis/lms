@@ -35,7 +35,7 @@ from lms.models.organization import Organization
 from lms.models.organization_usage import OrganizationUsageReport
 from lms.models.rsa_key import RSAKey
 from lms.models.task_done import TaskDone
-from lms.models.user import User, LMSUser, LMSUserApplicationInstance
+from lms.models.user import LMSUser, LMSUserApplicationInstance, User
 from lms.models.user_preferences import UserPreferences
 
 

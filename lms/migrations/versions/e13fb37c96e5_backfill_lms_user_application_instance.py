@@ -1,11 +1,7 @@
-"""backfill lms_user_application_instance
+"""Backfill lms_user_application_instance."""
 
-Revision ID: e13fb37c96e5
-Revises: aef6a6460d0d
-"""
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision = "e13fb37c96e5"
 down_revision = "aef6a6460d0d"
@@ -17,8 +13,8 @@ def upgrade() -> None:
         sa.text(
             """
         WITH backfill as (
-            select "user".created, "user".updated, lms_user.id lms_user_id, "user".application_instance_id 
-            from "user" 
+            select "user".created, "user".updated, lms_user.id lms_user_id, "user".application_instance_id
+            from "user"
             join lms_user on lms_user.h_userid = "user".h_userid
         )
         INSERT INTO lms_user_application_instance (

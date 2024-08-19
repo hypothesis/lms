@@ -1,6 +1,5 @@
 from functools import lru_cache
 from typing import cast
-from lms.services.upsert import upsert
 
 from sqlalchemy import BinaryExpression, false, or_, select
 from sqlalchemy.exc import NoResultFound
@@ -10,15 +9,16 @@ from lms.models import (
     ApplicationInstance,
     Assignment,
     AssignmentMembership,
+    LMSUser,
+    LMSUserApplicationInstance,
     LTIRole,
     LTIUser,
     RoleScope,
     RoleType,
     User,
-    LMSUser,
-    LMSUserApplicationInstance,
 )
 from lms.services.course import CourseService
+from lms.services.upsert import upsert
 
 
 class UserNotFound(Exception):
@@ -154,7 +154,7 @@ class UserService:
         :param course_ids: return only users that belong to these courses.
         :param assignment_ids: return only users that belong these assignments.
         """
-        query = select(User.id)
+        query = select(LMSUser.id)
 
         # A few of the filters need to join with assignment_membership.
         # Avoid joins and/or multiple subqueries by building a subquery and filtering the main query
