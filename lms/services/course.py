@@ -1,6 +1,7 @@
 import json
 from copy import deepcopy
 from typing import cast
+from lms.services.upsert import upsert
 
 from sqlalchemy import BinaryExpression, Select, Text, column, false, func, or_, select
 
@@ -18,6 +19,8 @@ from lms.models import (
     RoleScope,
     RoleType,
     User,
+    LMSCourse,
+    LMSCourseApplicationInstance,
 )
 from lms.product.family import Family
 from lms.services.grouping import GroupingService
@@ -159,8 +162,9 @@ class CourseService:
         courses_query = (
             self._search_query(h_userids=h_userids, limit=None)
             # Deduplicate courses by authority_provided_id, take the last updated one
-            .distinct(Course.authority_provided_id)
-            .order_by(Course.authority_provided_id, Course.updated.desc())
+            .distinct(Course.authority_provided_id).order_by(
+                Course.authority_provided_id, Course.updated.desc()
+            )
             # Only select the ID of the deduplicated courses
         ).with_entities(Course.id)
 
@@ -266,7 +270,7 @@ class CourseService:
         :param copied_from: A reference to the course this one was copied from
         """
 
-        return self._grouping_service.upsert_groupings(
+        course = self._grouping_service.upsert_groupings(
             [
                 {
                     "lms_id": context_id,
@@ -278,6 +282,34 @@ class CourseService:
             type_=Grouping.Type.COURSE,
             copied_from=copied_from,
         )[0]
+
+        self._upsert_lms_course(course)
+
+        return course
+
+    def _upsert_lms_course(self, course: Course) -> LMSCourse:
+        lms_course = upsert(
+            self._db,
+            LMSCourse(
+                tool_consumer_instance_guid=course.application_instance.tool_consumer_instance_guid,
+                authority_provided_id=course.authority_provided_id,
+                lti_id=course.lms_id,
+                name=course.lms_name,
+            ),
+            index_columns=["authority_provided_id"],
+            update_columns=["updated", "name"],
+        )
+        upsert(
+            self._db,
+            LMSCourseApplicationInstance(
+                lms_course_id=lms_course.id,
+                application_instance_id=course.application_instance_id,
+            ),
+            index_columns=["application_instance_id", "lms_course_id"],
+            update_columns=["updated"],
+        )
+
+        return lms_course
 
     def find_group_set(self, group_set_id=None, name=None, context_id=None):
         """

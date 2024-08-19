@@ -18,6 +18,9 @@ from lms.models.grouping import (
     Course,
     Grouping,
     GroupingMembership,
+    LMSCourse,
+    LMSCourseApplicationInstance,
+    LMSCourseMembership,
 )
 from lms.models.h_user import HUser
 from lms.models.hubspot import HubSpotCompany
