@@ -292,7 +292,7 @@ class LMSCourse(CreatedUpdatedMixin, Base):
     """The H groupid which is created from LTI provided values."""
 
     copied_from_id = sa.Column(
-        sa.Integer(), sa.ForeignKey("grouping.id"), nullable=True
+        sa.Integer(), sa.ForeignKey("lms_course.id"), nullable=True
     )
     """ID of the course grouping this one was copied from using the course copy feature in the LMS."""
 
