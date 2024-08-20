@@ -23,6 +23,11 @@ from lms.models.hubspot import HubSpotCompany
 from lms.models.json_settings import JSONSettings
 from lms.models.jwt_oauth2_token import JWTOAuth2Token
 from lms.models.legacy_course import LegacyCourse
+from lms.models.lms_course import (
+    LMSCourse,
+    LMSCourseApplicationInstance,
+    LMSCourseMembership,
+)
 from lms.models.lms_user import LMSUser, LMSUserApplicationInstance
 from lms.models.lti_params import CLAIM_PREFIX, LTIParams
 from lms.models.lti_registration import LTIRegistration
