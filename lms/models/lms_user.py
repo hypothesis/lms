@@ -24,19 +24,17 @@ class LMSUser(CreatedUpdatedMixin, Base):
 
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
 
-    tool_consumer_instance_guid: Mapped[str | None] = mapped_column(
-        sa.UnicodeText, index=True
-    )
+    tool_consumer_instance_guid: Mapped[str | None] = mapped_column(index=True)
 
-    lti_user_id: Mapped[str] = mapped_column(sa.Unicode, index=True)
+    lti_user_id: Mapped[str] = mapped_column(index=True)
     """ID of this user in the LMS, via LTI"""
 
-    h_userid: Mapped[str] = mapped_column(sa.Unicode, unique=True, index=True)
+    h_userid: Mapped[str] = mapped_column(unique=True, index=True)
     """The userid value in H. This is calculated hashing tool_consumer_instance_guid and lti_user_id together."""
 
-    email: Mapped[str | None] = mapped_column(sa.Unicode)
+    email: Mapped[str | None] = mapped_column()
 
-    display_name: Mapped[str | None] = mapped_column(sa.Unicode, index=True)
+    display_name: Mapped[str | None] = mapped_column(index=True)
 
 
 class LMSUserApplicationInstance(CreatedUpdatedMixin, Base):
