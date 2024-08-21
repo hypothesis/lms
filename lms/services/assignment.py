@@ -275,16 +275,18 @@ class AssignmentService:
         )
 
         if h_userids:
-            query = (
-                query.join(AssignmentMembership)
-                .join(User)
-                .where(User.h_userid.in_(h_userids))
+            query = query.where(
+                Assignment.id.in_(
+                    select(AssignmentMembership.assignment_id)
+                    .join(User)
+                    .where(User.h_userid.in_(h_userids))
+                )
             )
 
         if course_ids:
             query = query.where(Assignment.course_id.in_(course_ids))
 
-        return query.order_by(Assignment.title, Assignment.id).distinct()
+        return query.order_by(Assignment.title, Assignment.id)
 
     def get_courses_assignments_count(self, **kwargs) -> dict[int, int]:
         """Get the number of assignments a given list of courses has."""
