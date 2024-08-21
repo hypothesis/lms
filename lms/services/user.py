@@ -10,6 +10,8 @@ from lms.models import (
     Assignment,
     AssignmentMembership,
     GroupingMembership,
+    LMSUser,
+    LMSUserApplicationInstance,
     LTIRole,
     LTIUser,
     RoleScope,
@@ -17,6 +19,7 @@ from lms.models import (
     User,
 )
 from lms.services.course import CourseService
+from lms.services.upsert import bulk_upsert
 
 
 class UserNotFound(Exception):
@@ -64,7 +67,42 @@ class UserService:
             # We are only storing emails for teachers now.
             user.email = lti_user.email
 
+        self._upsert_lms_user(user)
+
         return user
+
+    def _upsert_lms_user(self, user: User) -> LMSUser:
+        """Upsert LMSUser based on a User object."""
+        self._db.flush()  # Make sure User has hit the DB on the current transaction
+
+        lms_user = bulk_upsert(
+            self._db,
+            LMSUser,
+            [
+                {
+                    "tool_consumer_instance_guid": user.application_instance.tool_consumer_instance_guid,
+                    "lti_user_id": user.user_id,
+                    "h_userid": user.h_userid,
+                    "email": user.email,
+                    "display_name": user.display_name,
+                }
+            ],
+            index_elements=["h_userid"],
+            update_columns=["updated", "display_name", "email"],
+        ).one()
+        bulk_upsert(
+            self._db,
+            LMSUserApplicationInstance,
+            [
+                {
+                    "application_instance_id": user.application_instance_id,
+                    "lms_user_id": lms_user.id,
+                }
+            ],
+            index_elements=["application_instance_id", "lms_user_id"],
+            update_columns=["updated"],
+        )
+        return lms_user
 
     @lru_cache(maxsize=128)
     def get(self, application_instance, user_id: str) -> User:
