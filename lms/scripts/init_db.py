@@ -49,7 +49,12 @@ def delete(engine: Engine) -> None:
     else:
         pre_delete(engine)
 
-    Base.metadata.drop_all(engine)
+    with engine.connect() as connection:
+        # Delete the DB "public" schema directly.
+        # We do this instead of using SQLAlchemy's drop_all because we want to delete all tables in the current DB.
+        # For example, this will delete tables created by migrations in other branches, not only the ones SQLAlchemy know about in the current code base.
+        connection.execute(text("DROP SCHEMA PUBLIC CASCADE;"))
+        connection.execute(text("CREATE SCHEMA PUBLIC;"))
 
     try:
         from lms.db import post_delete  # noqa: PLC0415
