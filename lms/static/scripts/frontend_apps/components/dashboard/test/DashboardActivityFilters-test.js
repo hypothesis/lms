@@ -1,4 +1,4 @@
-import { Select } from '@hypothesis/frontend-shared';
+import { MultiSelect } from '@hypothesis/frontend-shared';
 import {
   checkAccessibility,
   mockImportedComponents,
@@ -159,7 +159,7 @@ describe('DashboardActivityFilters', () => {
   }
 
   function getSelect(wrapper, id) {
-    return wrapper.find(`Select[data-testid="${id}"]`);
+    return wrapper.find(`MultiSelect[data-testid="${id}"]`);
   }
 
   function getSelectContent(wrapper, id) {
@@ -215,7 +215,7 @@ describe('DashboardActivityFilters', () => {
     it('renders corresponding options', () => {
       const wrapper = createComponent();
       const select = getSelect(wrapper, id);
-      const options = select.find(Select.Option);
+      const options = select.find(MultiSelect.Option);
 
       assert.equal(options.length, expectedOptions.length);
       options.forEach((option, index) => {
@@ -234,17 +234,17 @@ describe('DashboardActivityFilters', () => {
   [
     {
       id: 'courses-select',
-      selection: `${courses[0].id}`,
+      selection: courses.map(c => `${c.id}`),
       getExpectedCallback: () => onCoursesChange,
     },
     {
       id: 'assignments-select',
-      selection: `${assignments[0].id}`,
+      selection: assignments.map(a => `${a.id}`),
       getExpectedCallback: () => onAssignmentsChange,
     },
     {
       id: 'students-select',
-      selection: studentsWithName[0].h_userid,
+      selection: studentsWithName.map(s => s.h_userid),
       getExpectedCallback: () => onStudentsChange,
     },
   ].forEach(({ id, selection, getExpectedCallback }) => {
@@ -253,7 +253,7 @@ describe('DashboardActivityFilters', () => {
       const select = getSelect(wrapper, id);
 
       select.props().onChange(selection);
-      assert.calledWith(getExpectedCallback(), [selection]);
+      assert.calledWith(getExpectedCallback(), selection);
     });
   });
 
@@ -523,7 +523,7 @@ describe('DashboardActivityFilters', () => {
         it('displays only two options in select', () => {
           const wrapper = createComponentWithProps(props);
           const select = getSelect(wrapper, selectId);
-          const options = select.find(Select.Option);
+          const options = select.find(MultiSelect.Option);
 
           assert.equal(options.length, 2);
           assert.equal(options.at(0).text(), allOption);
