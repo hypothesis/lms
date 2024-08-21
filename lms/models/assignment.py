@@ -25,9 +25,6 @@ class Assignment(CreatedUpdatedMixin, Base):
     """
 
     __tablename__ = "assignment"
-    __table_args__ = (
-        sa.UniqueConstraint("resource_link_id", "tool_consumer_instance_guid"),
-    )
 
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
 
@@ -90,6 +87,15 @@ class Assignment(CreatedUpdatedMixin, Base):
     course_id: Mapped[int | None] = mapped_column(sa.ForeignKey(Course.id), index=True)
 
     course: Mapped[Course | None] = relationship(Course)
+
+    __table_args__ = (
+        sa.UniqueConstraint("resource_link_id", "tool_consumer_instance_guid"),
+        sa.Index(
+            "ix__assignment_title_is_not_null",
+            "title",
+            postgresql_where=title.is_not(None),
+        ),
+    )
 
     def get_canvas_mapped_file_id(self, file_id):
         return self.extra.get("canvas_file_mappings", {}).get(file_id, file_id)
