@@ -153,9 +153,6 @@ class ApplicationInstance(CreatedUpdatedMixin, Base):
         foreign_keys="OAuth2Token.application_instance_id",
     )
 
-    # A list of all the courses for this application instance
-    courses = sa.orm.relationship("LegacyCourse", back_populates="application_instance")
-
     # A list of all the GroupInfo's for this application instance
     group_infos = sa.orm.relationship(
         "GroupInfo",
