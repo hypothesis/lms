@@ -1,9 +1,13 @@
 import {
+  Button,
   CancelIcon,
   IconButton,
   MultiSelect,
+  RefreshIcon,
 } from '@hypothesis/frontend-shared';
-import { useMemo } from 'preact/hooks';
+import type { ComponentChildren } from 'preact';
+import type { MutableRef } from 'preact/hooks';
+import { useMemo, useRef } from 'preact/hooks';
 import { useParams } from 'wouter-preact';
 
 import type {
@@ -15,6 +19,7 @@ import type {
   StudentsResponse,
 } from '../../api-types';
 import { useConfig } from '../../config';
+import type { PaginatedFetchResult } from '../../utils/api';
 import { usePaginatedAPIFetch } from '../../utils/api';
 import { formatDateTime } from '../../utils/date';
 
@@ -55,8 +60,6 @@ export type DashboardActivityFiltersProps = {
   onClearSelection?: () => void;
 };
 
-type FiltersStudent = Student & { has_display_name: boolean };
-
 /**
  * Checks if provided element's scroll is at the bottom.
  * @param offset - Return true if the difference between the element's current
@@ -69,12 +72,20 @@ function elementScrollIsAtBottom(element: HTMLElement, offset = 20): boolean {
   return distanceToTop >= triggerPoint;
 }
 
+type PropsWithElementRef<T> = T & {
+  /** Ref to be used on a `Select.Option` element */
+  elementRef?: MutableRef<HTMLElement | null>;
+};
+
 /**
  * Represents a `Select.Option` for a specific assignment
  */
-function AssignmentOption({ assignment }: { assignment: Assignment }) {
+function AssignmentOption({
+  assignment,
+  elementRef,
+}: PropsWithElementRef<{ assignment: Assignment }>) {
   return (
-    <MultiSelect.Option value={`${assignment.id}`}>
+    <MultiSelect.Option value={`${assignment.id}`} elementRef={elementRef}>
       <div className="flex flex-col gap-0.5">
         {assignment.title}
         <div className="text-grey-6 text-xs">
@@ -86,13 +97,36 @@ function AssignmentOption({ assignment }: { assignment: Assignment }) {
 }
 
 /**
+ * Represents a `Select.Option` for a specific student
+ */
+function StudentOption({
+  student,
+  elementRef,
+}: PropsWithElementRef<{ student: Student }>) {
+  const hasDisplayName = !!student.display_name;
+  const displayName =
+    student.display_name ??
+    `Student name unavailable (ID: ${student.lms_id.substring(0, 5)})`;
+
+  return (
+    <MultiSelect.Option value={student.h_userid} elementRef={elementRef}>
+      <span
+        className={hasDisplayName ? undefined : 'italic'}
+        title={hasDisplayName ? undefined : `User ID: ${student.lms_id}`}
+        data-testid="option-content-wrapper"
+      >
+        {displayName}
+      </span>
+    </MultiSelect.Option>
+  );
+}
+
+type FiltersEntity = 'courses' | 'assignments' | 'students';
+
+/**
  * Placeholder to indicate a loading is in progress in one of the dropdowns
  */
-function LoadingOption({
-  entity,
-}: {
-  entity: 'courses' | 'assignments' | 'students';
-}) {
+function LoadingOption({ entity }: { entity: FiltersEntity }) {
   return (
     <div
       className="py-2 px-4 mb-1 text-grey-4 italic"
@@ -100,6 +134,123 @@ function LoadingOption({
     >
       Loading more {entity}...
     </div>
+  );
+}
+
+type LoadingErrorProps = {
+  entity: FiltersEntity;
+  retry: () => void;
+};
+
+/**
+ * Indicates an error occurred while loading filters, and presents a button to
+ * retry.
+ */
+function LoadingError({ entity, retry }: LoadingErrorProps) {
+  return (
+    <div
+      className="flex gap-2 items-center py-2 pl-4 pr-2.5 mb-1"
+      data-testid={`${entity}-error`}
+      // Make this element "focusable" so that clicking on it does not cause
+      // the listbox containing it to be closed
+      tabIndex={-1}
+    >
+      <span className="italic text-red-error">Error loading {entity}</span>
+      <Button icon={RefreshIcon} onClick={retry} size="sm">
+        Retry
+      </Button>
+    </div>
+  );
+}
+
+type PaginatedMultiSelectProps<TResult, TSelect> = {
+  result: PaginatedFetchResult<NonNullable<TResult>[]>;
+  activeItem?: TResult;
+  renderOption: (
+    item: NonNullable<TResult>,
+    ref?: MutableRef<HTMLElement | null>,
+  ) => ComponentChildren;
+  entity: FiltersEntity;
+  buttonContent?: ComponentChildren;
+  value: TSelect[];
+  onChange: (newValue: TSelect[]) => void;
+};
+
+/**
+ * A MultiSelect whose data is fetched from a paginated API.
+ * It includes loading and error indicators, and transparently loads more data
+ * while scrolling.
+ */
+function PaginatedMultiSelect<TResult, TSelect>({
+  result,
+  activeItem,
+  entity,
+  renderOption,
+  buttonContent,
+  value,
+  onChange,
+}: PaginatedMultiSelectProps<TResult, TSelect>) {
+  const lastOptionRef = useRef<HTMLElement | null>(null);
+
+  return (
+    <MultiSelect
+      disabled={result.isLoadingFirstPage}
+      value={value}
+      onChange={onChange}
+      aria-label={`Select ${entity}`}
+      containerClasses="!w-auto min-w-[180px]"
+      buttonContent={buttonContent}
+      data-testid={`${entity}-select`}
+      onListboxScroll={e => {
+        if (elementScrollIsAtBottom(e.target as HTMLUListElement)) {
+          result.loadNextPage();
+        }
+      }}
+    >
+      <MultiSelect.Option
+        value={undefined}
+        elementRef={
+          !activeItem && (!result.data || result.data.length === 0)
+            ? lastOptionRef
+            : undefined
+        }
+      >
+        All {entity}
+      </MultiSelect.Option>
+      {activeItem ? (
+        renderOption(activeItem, lastOptionRef)
+      ) : (
+        <>
+          {result.data?.map((item, index, list) =>
+            renderOption(
+              item,
+              list.length - 1 === index ? lastOptionRef : undefined,
+            ),
+          )}
+          {result.isLoading && <LoadingOption entity={entity} />}
+          {result.error && (
+            <LoadingError
+              entity={entity}
+              retry={() => {
+                // Focus last option before retrying, to avoid the listbox to
+                // be closed:
+                // - Starting the fetch retry will cause the result to no
+                //   longer be in the error state, hence the Retry button will
+                //   be umounted.
+                // - If the retry button had focus when unmounted, the focus
+                //   would revert to the document body.
+                // - Since the body is outside the select dropdown, this would
+                //   cause the select dropdown to auto-close.
+                // - To avoid this we focus a different element just before
+                //   initiating the retry.
+                lastOptionRef.current?.focus();
+                result.retry();
+              }}
+            />
+          )}
+        </>
+      )}
+    </MultiSelect>
   );
 }
 
@@ -187,30 +338,18 @@ export default function DashboardActivityFilters({
     Student[],
     StudentsResponse
   >('students', routes.students, studentsFilters);
-  const studentsWithFallbackName: FiltersStudent[] | undefined = useMemo(
-    () =>
-      studentsResult.data?.map(({ display_name, ...s }) => ({
-        ...s,
-        display_name:
-          display_name ??
-          `Student name unavailable (ID: ${s.lms_id.substring(0, 5)})`,
-        has_display_name: !!display_name,
-      })),
-    [studentsResult.data],
-  );
 
   return (
     <div className="flex gap-2 flex-wrap">
-      <MultiSelect
-        disabled={coursesResult.isLoadingFirstPage}
+      <PaginatedMultiSelect
+        entity="courses"
+        result={coursesResult}
         value={selectedCourseIds}
         onChange={newCourseIds =>
           'onChange' in courses
             ? courses.onChange(newCourseIds)
             : newCourseIds.length === 0 && courses.onClear()
         }
-        aria-label="Select courses"
-        containerClasses="!w-auto min-w-[180px]"
         buttonContent={
           activeCourse ? (
             activeCourse.title
@@ -225,44 +364,26 @@ export default function DashboardActivityFilters({
             <>{selectedCourseIds.length} courses</>
           )
         }
-        data-testid="courses-select"
-        onListboxScroll={e => {
-          if (elementScrollIsAtBottom(e.target as HTMLUListElement)) {
-            coursesResult.loadNextPage();
-          }
-        }}
-      >
-        <MultiSelect.Option value={undefined}>All courses</MultiSelect.Option>
-        {activeCourse ? (
+        activeItem={activeCourse}
+        renderOption={(course, elementRef) => (
           <MultiSelect.Option
-            key={activeCourse.id}
-            value={`${activeCourse.id}`}
+            key={course.id}
+            value={`${course.id}`}
+            elementRef={elementRef}
           >
-            {activeCourse.title}
+            {course.title}
           </MultiSelect.Option>
-        ) : (
-          <>
-            {coursesResult.data?.map(course => (
-              <MultiSelect.Option key={course.id} value={`${course.id}`}>
-                {course.title}
-              </MultiSelect.Option>
-            ))}
-            {coursesResult.isLoading && !coursesResult.isLoadingFirstPage && (
-              <LoadingOption entity="courses" />
-            )}
-          </>
         )}
-      </MultiSelect>
-      <MultiSelect
-        disabled={assignmentsResults.isLoadingFirstPage}
+      />
+      <PaginatedMultiSelect
+        entity="assignments"
+        result={assignmentsResults}
         value={selectedAssignmentIds}
         onChange={newAssignmentIds =>
           'onChange' in assignments
             ? assignments.onChange(newAssignmentIds)
             : newAssignmentIds.length === 0 && assignments.onClear()
         }
-        aria-label="Select assignments"
-        containerClasses="!w-auto min-w-[180px]"
         buttonContent={
           activeAssignment ? (
             activeAssignment.title
@@ -278,76 +399,41 @@ export default function DashboardActivityFilters({
             <>{selectedAssignmentIds.length} assignments</>
           )
         }
-        data-testid="assignments-select"
-        onListboxScroll={e => {
-          if (elementScrollIsAtBottom(e.target as HTMLUListElement)) {
-            assignmentsResults.loadNextPage();
-          }
-        }}
-      >
-        <MultiSelect.Option value={undefined}>
-          All assignments
-        </MultiSelect.Option>
-        {activeAssignment ? (
-          <AssignmentOption assignment={activeAssignment} />
-        ) : (
-          <>
-            {assignmentsResults.data?.map(assignment => (
-              <AssignmentOption key={assignment.id} assignment={assignment} />
-            ))}
-            {assignmentsResults.isLoading &&
-              !assignmentsResults.isLoadingFirstPage && (
-                <LoadingOption entity="assignments" />
-              )}
-          </>
+        activeItem={activeAssignment}
+        renderOption={(assignment, elementRef) => (
+          <AssignmentOption
+            key={assignment.id}
+            assignment={assignment}
+            elementRef={elementRef}
+          />
         )}
-      </MultiSelect>
-      <MultiSelect
-        disabled={studentsResult.isLoadingFirstPage}
+      />
+      <PaginatedMultiSelect
+        entity="students"
+        result={studentsResult}
         value={students.selectedIds}
         onChange={newStudentIds => students.onChange(newStudentIds)}
-        aria-label="Select students"
-        containerClasses="!w-auto min-w-[180px]"
         buttonContent={
           studentsResult.isLoadingFirstPage ? (
             <>...</>
           ) : students.selectedIds.length === 0 ? (
             <>All students</>
           ) : students.selectedIds.length === 1 ? (
-            studentsWithFallbackName?.find(
+            studentsResult.data?.find(
               s => s.h_userid === students.selectedIds[0],
             )?.display_name ?? '1 student'
           ) : (
             <>{students.selectedIds.length} students</>
           )
         }
-        data-testid="students-select"
-        onListboxScroll={e => {
-          if (elementScrollIsAtBottom(e.target as HTMLUListElement)) {
-            studentsResult.loadNextPage();
-          }
-        }}
-      >
-        <MultiSelect.Option value={undefined}>All students</MultiSelect.Option>
-        {studentsWithFallbackName?.map(student => (
-          <MultiSelect.Option key={student.lms_id} value={student.h_userid}>
-            <span
-              className={student.has_display_name ? undefined : 'italic'}
-              title={
-                student.has_display_name
-                  ? undefined
-                  : `User ID: ${student.lms_id}`
-              }
-              data-testid="option-content-wrapper"
-            >
-              {student.display_name}
-            </span>
-          </MultiSelect.Option>
-        ))}
-        {studentsResult.isLoading && !studentsResult.isLoadingFirstPage && (
-          <LoadingOption entity="students" />
+        renderOption={(student, elementRef) => (
+          <StudentOption
+            key={student.lms_id}
+            student={student}
+            elementRef={elementRef}
+          />
         )}
-      </MultiSelect>
+      />
       {hasSelection && onClearSelection && (
         <IconButton
           title="Clear filters"
