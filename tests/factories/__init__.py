@@ -28,6 +28,8 @@ from tests.factories.grouping_membership import GroupingMembership
 from tests.factories.h_user import HUser
 from tests.factories.hubspot_company import HubSpotCompany
 from tests.factories.jwt_oauth2_token import JWTOAuth2Token
+from tests.factories.lms_course import LMSCourse
+from tests.factories.lms_user import LMSUser
 from tests.factories.lti_registration import LTIRegistration
 from tests.factories.lti_role import LTIRole, LTIRoleOverride
 from tests.factories.lti_user import LTIUser

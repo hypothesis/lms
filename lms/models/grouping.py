@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from lms.db import Base, varchar_enum
 from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.json_settings import JSONSettings
+from lms.models.lms_course import LMSCourse
 
 if TYPE_CHECKING:
     from lms.models import Assignment
@@ -191,6 +192,11 @@ class Course(Grouping):
         secondary="assignment_grouping", viewonly=True
     )
     """Assignments that belong to this course."""
+
+    lms_course: Mapped[LMSCourse] = sa.orm.relationship(
+        LMSCourse,
+        primaryjoin="Grouping.authority_provided_id == foreign(LMSCourse.h_authority_provided_id)",
+    )
 
     def set_group_sets(self, group_sets: list[dict]):
         """

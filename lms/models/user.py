@@ -3,6 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
+from lms.models.lms_user import LMSUser
 
 
 class User(CreatedUpdatedMixin, Base):
@@ -47,3 +48,7 @@ class User(CreatedUpdatedMixin, Base):
 
     display_name: Mapped[str | None] = mapped_column(sa.Unicode, index=True)
     """The user's display name."""
+
+    lms_user: Mapped[LMSUser] = sa.orm.relationship(
+        LMSUser, primaryjoin="User.h_userid == foreign(LMSUser.h_userid)"
+    )

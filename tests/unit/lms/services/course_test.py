@@ -11,6 +11,7 @@ from lms.models import (
     Grouping,
     LMSCourse,
     LMSCourseApplicationInstance,
+    LMSCourseMembership,
     RoleScope,
     RoleType,
 )
@@ -278,6 +279,34 @@ class TestCourseService:
             copied_from=None,
         )
         bulk_upsert.assert_called()
+
+    def test_upsert_lms_course_membership(
+        self,
+        db_session,
+        svc,
+        bulk_upsert,
+    ):
+        lti_roles = factories.LTIRole.create_batch(3)
+        lms_user = factories.LMSUser()
+        lms_course = factories.LMSCourse()
+        db_session.flush()
+
+        svc.upsert_lms_course_membership(lms_user, lms_course, lti_roles)
+
+        bulk_upsert.assert_called_once_with(
+            db_session,
+            LMSCourseMembership,
+            values=[
+                {
+                    "lms_user_id": lms_user.id,
+                    "lms_course_id": lms_course.id,
+                    "lti_role_id": role.id,
+                }
+                for role in lti_roles
+            ],
+            index_elements=["lms_user_id", "lms_course_id", "lti_role_id"],
+            update_columns=["updated"],
+        )
 
     @pytest.mark.usefixtures("course_with_group_sets")
     @pytest.mark.parametrize(
