@@ -4,6 +4,7 @@ import {
   Input,
   Spinner,
   SpinnerOverlay,
+  useWarnOnPageUnload,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import {
@@ -21,7 +22,6 @@ import { useService, GradingService } from '../services';
 import { useFetch } from '../utils/fetch';
 import { formatGrade } from '../utils/grade-validation';
 import { useUniqueId } from '../utils/hooks';
-import { useWarnOnPageUnload } from '../utils/use-warn-on-page-unload';
 import ErrorModal from './ErrorModal';
 import GradingCommentButton from './GradingCommentButton';
 
