@@ -68,7 +68,7 @@ describe('SubmitGradeForm', () => {
 
     $imports.$mock(mockImportedComponents());
     $imports.$mock({
-      '../utils/use-warn-on-page-unload': {
+      '@hypothesis/frontend-shared': {
         useWarnOnPageUnload: fakeUseWarnOnPageUnload,
       },
     });
