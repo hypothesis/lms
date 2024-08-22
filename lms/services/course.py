@@ -15,6 +15,8 @@ from lms.models import (
     GroupingMembership,
     LMSCourse,
     LMSCourseApplicationInstance,
+    LMSCourseMembership,
+    LMSUser,
     LTIRole,
     Organization,
     RoleScope,
@@ -316,6 +318,28 @@ class CourseService:
             update_columns=["updated"],
         )
         return lms_course
+
+    def upsert_lms_course_membership(
+        self, lms_user: LMSUser, lms_course: LMSCourse, lti_roles: list[LTIRole]
+    ):
+        values = [
+            {
+                "lms_user_id": lms_user.id,
+                "lms_course_id": lms_course.id,
+                "lti_role_id": lti_role.id,
+            }
+            for lti_role in lti_roles
+        ]
+
+        return list(
+            bulk_upsert(
+                self._db,
+                model_class=LMSCourseMembership,
+                values=values,
+                index_elements=["lms_user_id", "lms_course_id", "lti_role_id"],
+                update_columns=["updated"],
+            )
+        )
 
     def find_group_set(self, group_set_id=None, name=None, context_id=None):
         """
