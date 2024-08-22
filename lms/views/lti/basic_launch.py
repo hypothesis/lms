@@ -41,6 +41,7 @@ class BasicLaunchViews:
         self.assignment_service: AssignmentService = request.find_service(
             name="assignment"
         )
+        self._course_service = self.request.find_service(name="course")
         self._guid = self.request.lti_params.get("tool_consumer_instance_guid")
         self._resource_link_id = self.request.lti_params.get("resource_link_id")
 
@@ -164,7 +165,7 @@ class BasicLaunchViews:
             [self.course], self.request.lti_params
         )
 
-        # Store the relationship between the assignment and the course
+        # Store the relationship between the assignment and the user
         self.assignment_service.upsert_assignment_membership(
             assignment=assignment,
             user=self.request.user,
@@ -241,11 +242,16 @@ class BasicLaunchViews:
         return {}
 
     def _record_course(self):
-        course = self.request.find_service(name="course").get_from_launch(
+        course = self._course_service.get_from_launch(
             self.request.product.family, self.request.lti_params
         )
         self.request.find_service(name="grouping").upsert_grouping_memberships(
             user=self.request.user, groups=[course]
+        )
+        self._course_service.upsert_lms_course_membership(
+            lms_course=course.lms_course,
+            lms_user=self.request.user.lms_user,
+            lti_roles=self.request.lti_user.lti_roles,
         )
         return course
 

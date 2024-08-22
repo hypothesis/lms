@@ -40,7 +40,11 @@ class TestBasicLaunchViews:
             user=pyramid_request.user,
             groups=[course_service.get_from_launch.return_value],
         )
-
+        course_service.upsert_lms_course_membership.assert_called_once_with(
+            lms_course=course_service.get_from_launch.return_value.lms_course,
+            lms_user=pyramid_request.user.lms_user,
+            lti_roles=lti_user.lti_roles,
+        )
         pyramid_request.lti_user.application_instance.check_guid_aligns.assert_called_once_with(
             pyramid_request.lti_params["tool_consumer_instance_guid"]
         )
