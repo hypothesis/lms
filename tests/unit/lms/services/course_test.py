@@ -192,11 +192,19 @@ class TestCourseService:
         )
         assert course == upsert_course.return_value
 
-    def test_upsert_course(self, svc, grouping_service, bulk_upsert, db_session):
+    @pytest.mark.parametrize("with_copied_from", [True, False])
+    def test_upsert_course(
+        self, svc, grouping_service, bulk_upsert, db_session, with_copied_from
+    ):
+        copied_from = None
+        if with_copied_from:
+            copied_from = factories.Course(lms_course=factories.LMSCourse())
+
         course = svc.upsert_course(
             context_id=sentinel.context_id,
             name=sentinel.name,
             extra=sentinel.extra,
+            copied_from=copied_from,
             settings=sentinel.settings,
         )
 
@@ -210,7 +218,7 @@ class TestCourseService:
                 }
             ],
             type_=Grouping.Type.COURSE,
-            copied_from=None,
+            copied_from=copied_from,
         )
 
         assert course == grouping_service.upsert_groupings.return_value[0]
@@ -225,6 +233,7 @@ class TestCourseService:
                             "lti_context_id": course.lms_id,
                             "h_authority_provided_id": course.authority_provided_id,
                             "name": course.lms_name,
+                            "copied_from_id": course.copied_from.lms_course.id,
                         }
                     ],
                     index_elements=["h_authority_provided_id"],

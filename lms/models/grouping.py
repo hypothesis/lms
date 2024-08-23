@@ -135,10 +135,12 @@ class Grouping(CreatedUpdatedMixin, Base):
         "GroupingMembership", lazy="dynamic", viewonly=True, back_populates="grouping"
     )
 
-    copied_from_id = sa.Column(
-        sa.Integer(), sa.ForeignKey("grouping.id"), nullable=True
-    )
+    copied_from_id: Mapped[int | None] = mapped_column(sa.ForeignKey("grouping.id"))
     """ID of the course grouping this one was copied from using the course copy feature in the LMS."""
+
+    copied_from = sa.orm.relationship(
+        "Grouping", foreign_keys=[copied_from_id], uselist=False, remote_side=[id]
+    )
 
     @property
     def name(self):
