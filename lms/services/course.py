@@ -13,6 +13,8 @@ from lms.models import (
     CourseGroupsExportedFromH,
     Grouping,
     GroupingMembership,
+    LMSCourse,
+    LMSCourseApplicationInstance,
     LTIRole,
     Organization,
     RoleScope,
@@ -21,6 +23,7 @@ from lms.models import (
 )
 from lms.product.family import Family
 from lms.services.grouping import GroupingService
+from lms.services.upsert import bulk_upsert
 
 
 class CourseService:
@@ -266,7 +269,7 @@ class CourseService:
         :param copied_from: A reference to the course this one was copied from
         """
 
-        return self._grouping_service.upsert_groupings(
+        course = self._grouping_service.upsert_groupings(
             [
                 {
                     "lms_id": context_id,
@@ -278,6 +281,42 @@ class CourseService:
             type_=Grouping.Type.COURSE,
             copied_from=copied_from,
         )[0]
+
+        self._upsert_lms_course(course)
+        return course
+
+    def _upsert_lms_course(self, course: Course) -> LMSCourse:
+        """Upsert LMSCourse based on a Course object."""
+        self._db.flush()  # Make sure Course has hit the DB on the current transaction
+
+        lms_course = bulk_upsert(
+            self._db,
+            LMSCourse,
+            [
+                {
+                    "tool_consumer_instance_guid": course.application_instance.tool_consumer_instance_guid,
+                    "lti_context_id": course.lms_id,
+                    "h_authority_provided_id": course.authority_provided_id,
+                    "copied_from_id": course.copied_from_id,
+                    "name": course.lms_name,
+                }
+            ],
+            index_elements=["h_authority_provided_id"],
+            update_columns=["updated", "name"],
+        ).one()
+        bulk_upsert(
+            self._db,
+            LMSCourseApplicationInstance,
+            [
+                {
+                    "application_instance_id": course.application_instance_id,
+                    "lms_course_id": lms_course.id,
+                }
+            ],
+            index_elements=["application_instance_id", "lms_course_id"],
+            update_columns=["updated"],
+        )
+        return lms_course
 
     def find_group_set(self, group_set_id=None, name=None, context_id=None):
         """
