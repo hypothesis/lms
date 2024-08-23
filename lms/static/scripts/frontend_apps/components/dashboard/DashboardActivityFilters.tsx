@@ -1,4 +1,8 @@
-import { CancelIcon, IconButton, Select } from '@hypothesis/frontend-shared';
+import {
+  CancelIcon,
+  IconButton,
+  MultiSelect,
+} from '@hypothesis/frontend-shared';
 import { useMemo } from 'preact/hooks';
 import { useParams } from 'wouter-preact';
 
@@ -65,22 +69,37 @@ function elementScrollIsAtBottom(element: HTMLElement, offset = 20): boolean {
   return distanceToTop >= triggerPoint;
 }
 
-/** Get first item from an array, if any */
-const firstItem = <T,>(array: T[]) => array[0] as T | undefined;
-
 /**
  * Represents a `Select.Option` for a specific assignment
  */
 function AssignmentOption({ assignment }: { assignment: Assignment }) {
   return (
-    <Select.Option value={`${assignment.id}`}>
+    <MultiSelect.Option value={`${assignment.id}`}>
       <div className="flex flex-col gap-0.5">
         {assignment.title}
         <div className="text-grey-6 text-xs">
           {formatDateTime(assignment.created)}
         </div>
       </div>
-    </Select.Option>
+    </MultiSelect.Option>
+  );
+}
+
+/**
+ * Placeholder to indicate a loading is in progress in one of the dropdowns
+ */
+function LoadingOption({
+  entity,
+}: {
+  entity: 'courses' | 'assignments' | 'students';
+}) {
+  return (
+    <div
+      className="py-2 px-4 mb-1 text-grey-4 italic"
+      data-testid={`loading-more-${entity}`}
+    >
+      Loading more {entity}...
+    </div>
   );
 }
 
@@ -182,13 +201,13 @@ export default function DashboardActivityFilters({
 
   return (
     <div className="flex gap-2 flex-wrap">
-      <Select
+      <MultiSelect
         disabled={coursesResult.isLoadingFirstPage}
-        value={firstItem(selectedCourseIds)}
-        onChange={newCourseId =>
+        value={selectedCourseIds}
+        onChange={newCourseIds =>
           'onChange' in courses
-            ? courses.onChange(newCourseId ? [newCourseId] : [])
-            : courses.onClear()
+            ? courses.onChange(newCourseIds)
+            : newCourseIds.length === 0 && courses.onClear()
         }
         aria-label="Select courses"
         containerClasses="!w-auto min-w-[180px]"
@@ -213,35 +232,34 @@ export default function DashboardActivityFilters({
           }
         }}
       >
-        <Select.Option value={undefined}>All courses</Select.Option>
+        <MultiSelect.Option value={undefined}>All courses</MultiSelect.Option>
         {activeCourse ? (
-          <Select.Option key={activeCourse.id} value={`${activeCourse.id}`}>
+          <MultiSelect.Option
+            key={activeCourse.id}
+            value={`${activeCourse.id}`}
+          >
             {activeCourse.title}
-          </Select.Option>
+          </MultiSelect.Option>
         ) : (
           <>
             {coursesResult.data?.map(course => (
-              <Select.Option key={course.id} value={`${course.id}`}>
+              <MultiSelect.Option key={course.id} value={`${course.id}`}>
                 {course.title}
-              </Select.Option>
+              </MultiSelect.Option>
             ))}
             {coursesResult.isLoading && !coursesResult.isLoadingFirstPage && (
-              <Select.Option disabled value={undefined}>
-                <span className="italic" data-testid="loading-more-courses">
-                  Loading more courses...
-                </span>
-              </Select.Option>
+              <LoadingOption entity="courses" />
             )}
           </>
         )}
-      </Select>
-      <Select
+      </MultiSelect>
+      <MultiSelect
         disabled={assignmentsResults.isLoadingFirstPage}
-        value={firstItem(selectedAssignmentIds)}
-        onChange={newAssignmentId =>
+        value={selectedAssignmentIds}
+        onChange={newAssignmentIds =>
           'onChange' in assignments
-            ? assignments.onChange(newAssignmentId ? [newAssignmentId] : [])
-            : assignments.onClear()
+            ? assignments.onChange(newAssignmentIds)
+            : newAssignmentIds.length === 0 && assignments.onClear()
         }
         aria-label="Select assignments"
         containerClasses="!w-auto min-w-[180px]"
@@ -267,7 +285,9 @@ export default function DashboardActivityFilters({
           }
         }}
       >
-        <Select.Option value={undefined}>All assignments</Select.Option>
+        <MultiSelect.Option value={undefined}>
+          All assignments
+        </MultiSelect.Option>
         {activeAssignment ? (
           <AssignmentOption assignment={activeAssignment} />
         ) : (
@@ -277,24 +297,15 @@ export default function DashboardActivityFilters({
             ))}
             {assignmentsResults.isLoading &&
               !assignmentsResults.isLoadingFirstPage && (
-                <Select.Option disabled value={undefined}>
-                  <span
-                    className="italic"
-                    data-testid="loading-more-assignments"
-                  >
-                    Loading more assignments...
-                  </span>
-                </Select.Option>
+                <LoadingOption entity="assignments" />
               )}
           </>
         )}
-      </Select>
-      <Select
+      </MultiSelect>
+      <MultiSelect
         disabled={studentsResult.isLoadingFirstPage}
-        value={firstItem(students.selectedIds)}
-        onChange={newStudentId =>
-          students.onChange(newStudentId ? [newStudentId] : [])
-        }
+        value={students.selectedIds}
+        onChange={newStudentIds => students.onChange(newStudentIds)}
         aria-label="Select students"
         containerClasses="!w-auto min-w-[180px]"
         buttonContent={
@@ -317,9 +328,9 @@ export default function DashboardActivityFilters({
           }
         }}
       >
-        <Select.Option value={undefined}>All students</Select.Option>
+        <MultiSelect.Option value={undefined}>All students</MultiSelect.Option>
         {studentsWithFallbackName?.map(student => (
-          <Select.Option key={student.lms_id} value={student.h_userid}>
+          <MultiSelect.Option key={student.lms_id} value={student.h_userid}>
             <span
               className={student.has_display_name ? undefined : 'italic'}
               title={
@@ -331,16 +342,12 @@ export default function DashboardActivityFilters({
             >
               {student.display_name}
             </span>
-          </Select.Option>
+          </MultiSelect.Option>
         ))}
         {studentsResult.isLoading && !studentsResult.isLoadingFirstPage && (
-          <Select.Option disabled value={undefined}>
-            <span className="italic" data-testid="loading-more-students">
-              Loading more students...
-            </span>
-          </Select.Option>
+          <LoadingOption entity="students" />
         )}
-      </Select>
+      </MultiSelect>
       {hasSelection && onClearSelection && (
         <IconButton
           title="Clear filters"
