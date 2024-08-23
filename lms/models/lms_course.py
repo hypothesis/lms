@@ -71,7 +71,7 @@ class LMSCourseMembership(CreatedUpdatedMixin, Base):
     )
 
     lms_user_id: Mapped[int] = mapped_column(
-        sa.ForeignKey("lms_course.id", ondelete="cascade"), index=True
+        sa.ForeignKey("lms_user.id", ondelete="cascade"), index=True
     )
 
     lti_role_id: Mapped[int] = mapped_column(
