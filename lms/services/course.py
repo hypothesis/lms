@@ -357,6 +357,7 @@ class CourseService:
 
         history_params = [
             "custom_Context.id.history",  # LTI 1.3
+            "custom_context_id_history",  # LTI 1.1
         ]
 
         for param in history_params:
