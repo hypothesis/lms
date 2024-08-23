@@ -297,7 +297,6 @@ class CourseService:
                     "tool_consumer_instance_guid": course.application_instance.tool_consumer_instance_guid,
                     "lti_context_id": course.lms_id,
                     "h_authority_provided_id": course.authority_provided_id,
-                    "copied_from_id": course.copied_from_id,
                     "name": course.lms_name,
                 }
             ],
