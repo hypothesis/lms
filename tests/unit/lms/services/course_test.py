@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from unittest.mock import call, patch, sentinel
+from unittest.mock import patch, sentinel
 
 import pytest
 from h_matchers import Any
@@ -9,8 +9,6 @@ from lms.models import (
     ApplicationSettings,
     CourseGroupsExportedFromH,
     Grouping,
-    LMSCourse,
-    LMSCourseApplicationInstance,
     RoleScope,
     RoleType,
 )
@@ -191,7 +189,7 @@ class TestCourseService:
         )
         assert course == upsert_course.return_value
 
-    def test_upsert_course(self, svc, grouping_service, bulk_upsert, db_session):
+    def test_upsert_course(self, svc, grouping_service):
         course = svc.upsert_course(
             context_id=sentinel.context_id,
             name=sentinel.name,
@@ -213,38 +211,6 @@ class TestCourseService:
         )
 
         assert course == grouping_service.upsert_groupings.return_value[0]
-        bulk_upsert.assert_has_calls(
-            [
-                call(
-                    db_session,
-                    LMSCourse,
-                    [
-                        {
-                            "tool_consumer_instance_guid": course.application_instance.tool_consumer_instance_guid,
-                            "lti_context_id": course.lms_id,
-                            "h_authority_provided_id": course.authority_provided_id,
-                            "copied_from_id": course.copied_from_id,
-                            "name": course.lms_name,
-                        }
-                    ],
-                    index_elements=["h_authority_provided_id"],
-                    update_columns=["updated", "name"],
-                ),
-                call().one(),
-                call(
-                    db_session,
-                    LMSCourseApplicationInstance,
-                    [
-                        {
-                            "application_instance_id": course.application_instance_id,
-                            "lms_course_id": bulk_upsert.return_value.one.return_value.id,
-                        }
-                    ],
-                    index_elements=["application_instance_id", "lms_course_id"],
-                    update_columns=["updated"],
-                ),
-            ]
-        )
 
     @pytest.mark.parametrize("canvas_sections_enabled", [True, False])
     def test_upsert_course_sets_canvas_sections_enabled_based_on_legacy_rows(
@@ -254,7 +220,6 @@ class TestCourseService:
         svc,
         canvas_sections_enabled,
         grouping_service,
-        bulk_upsert,
     ):
         db_session.add(
             CourseGroupsExportedFromH(
@@ -278,7 +243,6 @@ class TestCourseService:
             type_=Any(),
             copied_from=None,
         )
-        bulk_upsert.assert_called()
 
     @pytest.mark.usefixtures("course_with_group_sets")
     @pytest.mark.parametrize(
@@ -518,10 +482,6 @@ class TestCourseService:
     def upsert_course(self, svc):
         with patch.object(svc, "upsert_course") as upsert_course:
             yield upsert_course
-
-    @pytest.fixture
-    def bulk_upsert(self, patch):
-        return patch("lms.services.course.bulk_upsert")
 
 
 class TestCourseServiceFactory:
