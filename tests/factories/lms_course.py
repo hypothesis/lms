@@ -12,3 +12,7 @@ LMSCourse = make_factory(
     h_authority_provided_id=Faker("hexify", text="^" * 40),
     name=Sequence(lambda n: f"Course {n}"),
 )
+
+LMSCourseApplicationInstance = make_factory(
+    models.LMSCourseApplicationInstance, FACTORY_CLASS=SQLAlchemyModelFactory
+)

@@ -37,6 +37,7 @@ from lms.services.jwt_oauth2_token import JWTOAuth2TokenService
 from lms.services.launch_verifier import LaunchVerifier
 from lms.services.lti_grading import LTIGradingService
 from lms.services.lti_h import LTIHService
+from lms.services.lti_names_roles import LTINamesRolesService
 from lms.services.lti_registration import LTIRegistrationService
 from lms.services.lti_user import LTIUserService
 from lms.services.ltia_http import LTIAHTTPService
@@ -84,6 +85,7 @@ __all__ = (
     "launch_verifier",
     "lti_grading_service",
     "lti_h_service",
+    "lti_names_roles_service",
     "lti_registration_service",
     "lti_role_service",
     "lti_user_service",
@@ -314,6 +316,11 @@ def lti_grading_service(mock_service):
 @pytest.fixture
 def lti_h_service(mock_service):
     return mock_service(LTIHService, service_name="lti_h")
+
+
+@pytest.fixture
+def lti_names_roles_service(mock_service):
+    return mock_service(LTINamesRolesService)
 
 
 @pytest.fixture
