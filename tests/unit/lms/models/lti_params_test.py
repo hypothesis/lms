@@ -61,6 +61,11 @@ class TestLTIParams:
 
         assert params == params.v11 == pyramid_request.json_body
 
+    def test_v13_when_empty(self):
+        lti_params = LTIParams({})
+
+        assert not lti_params.v13.get("ANY KEY")
+
     def test_it_doesnt_set_partial_keys(self, pyramid_request):
         pyramid_request.lti_jwt = {
             "https://purl.imsglobal.org/spec/lti/claim/custom": {
