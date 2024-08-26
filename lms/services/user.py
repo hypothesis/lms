@@ -1,7 +1,6 @@
 from functools import lru_cache
-from typing import cast
 
-from sqlalchemy import BinaryExpression, false, or_, select
+from sqlalchemy import select, union
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.sql import Select
 
@@ -162,7 +161,39 @@ class UserService:
         :param course_ids: return only users that belong to these courses.
         :param assignment_ids: return only users that belong these assignments.
         """
-        query = select(User.id)
+
+        # Let's crate no op clauses by default to avoid having to check the presence of these filters
+        instructor_h_userid_query = select(None)  # type: ignore
+        admin_organization_ids_query = select(None)  # type: ignore
+
+        if instructor_h_userid:
+            # GroupingMembership has membership information, but it lacks role info
+            instructor_h_userid_query = select(
+                GroupingMembership.user_id.label("id")
+            ).where(
+                GroupingMembership.grouping_id.in_(
+                    # Get all the courses where instructor_h_userid is an instructor. This will query AssignmentMembership, which includes roles
+                    CourseService.course_ids_with_role_query(
+                        instructor_h_userid, RoleScope.COURSE, RoleType.INSTRUCTOR
+                    )
+                )
+            )
+
+        if admin_organization_ids:
+            admin_organization_ids_query = (
+                select(User.id.label("id"))
+                .join(ApplicationInstance)
+                .where(ApplicationInstance.organization_id.in_(admin_organization_ids))
+            )
+
+        # instructor_h_userid and admin_organization_ids are about access rather than filtering.
+        # we apply them both as an or to fetch users where the users is either an instructor or an admin
+        # We use a CTE here to force the query planner to first filter these down and apply the rest of the filters ona  smaller data set.
+        candidate_users = union(
+            instructor_h_userid_query, admin_organization_ids_query
+        ).cte("candidate_users")
+
+        query = select(User.id).join(candidate_users, candidate_users.c[0] == User.id)
 
         # A few of the filters need to join with assignment_membership.
         # Avoid joins and/or multiple subqueries by building a subquery and filtering the main query
@@ -173,36 +204,6 @@ class UserService:
                     LTIRole.scope == role_scope, LTIRole.type == role_type
                 )
             )
-        )
-
-        # Let's crate no op clauses by default to avoid having to check the presence of these filters
-        instructor_h_userid_clause = cast(BinaryExpression, false())
-        admin_organization_ids_clause = cast(BinaryExpression, false())
-
-        if instructor_h_userid:
-            instructor_h_userid_clause = User.id.in_(
-                # GroupingMembership has membership information, but it lacks role info
-                select(GroupingMembership.user_id).where(
-                    GroupingMembership.grouping_id.in_(
-                        # Get all the courses where instructor_h_userid is an instructor. This will query AssignmentMembership, which includes roles
-                        CourseService.course_ids_with_role_query(
-                            instructor_h_userid, RoleScope.COURSE, RoleType.INSTRUCTOR
-                        )
-                    )
-                )
-            )
-
-        if admin_organization_ids:
-            admin_organization_ids_clause = User.application_instance_id.in_(
-                select(ApplicationInstance.id).where(
-                    ApplicationInstance.organization_id.in_(admin_organization_ids)
-                )
-            )
-
-        # instructor_h_userid and admin_organization_ids are about access rather than filtering.
-        # we apply them both as an or to fetch users where the users is either an instructor or an admin
-        query = query.where(
-            or_(instructor_h_userid_clause, admin_organization_ids_clause)
         )
 
         if h_userids:
@@ -227,10 +228,8 @@ class UserService:
 
         return (
             select(User)
-            .where(
-                User.id.in_(query)
-                # We can sort these again without affecting deduplication
-            )
+            .where(User.id.in_(query))
+            # We can sort these again without affecting deduplication
             .order_by(User.display_name, User.id)
         )
 
