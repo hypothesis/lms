@@ -8,9 +8,10 @@ These duplicate some of the information stored in Grouping and GroupingMembershi
 """
 
 import sqlalchemy as sa
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lms.db import Base
+from lms.models import ApplicationInstance
 from lms.models._mixins import CreatedUpdatedMixin
 
 
@@ -53,10 +54,12 @@ class LMSCourseApplicationInstance(CreatedUpdatedMixin, Base):
     application_instance_id: Mapped[int] = mapped_column(
         sa.ForeignKey("application_instances.id", ondelete="cascade"), index=True
     )
+    application_instance: Mapped[ApplicationInstance] = relationship()
 
     lms_course_id: Mapped[int] = mapped_column(
         sa.ForeignKey("lms_course.id", ondelete="cascade"), index=True
     )
+    lms_course: Mapped[LMSCourse] = relationship()
 
 
 class LMSCourseMembership(CreatedUpdatedMixin, Base):
