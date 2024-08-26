@@ -12,6 +12,7 @@ from lms.models import (
     LMSCourse,
     LMSCourseApplicationInstance,
     LMSCourseMembership,
+    LTIParams,
     RoleScope,
     RoleType,
 )
@@ -61,71 +62,49 @@ class TestCourseService:
             svc.get_by_context_id("NO MATCH", raise_on_missing=True)
 
     def test_get_from_launch_when_existing(
-        self, svc, get_by_context_id, upsert_course, product
+        self, svc, get_by_context_id, upsert_course, product, lti_params
     ):
         course = get_by_context_id.return_value = factories.Course(
             extra={"existing": "extra"}
         )
 
-        course = svc.get_from_launch(
-            product,
-            lti_params={
-                "context_id": sentinel.context_id,
-                "context_title": sentinel.context_title,
-            },
-        )
+        course = svc.get_from_launch(product, lti_params=lti_params)
 
         get_by_context_id.assert_called_once_with(
             sentinel.context_id,
         )
         upsert_course.assert_called_once_with(
-            context_id=sentinel.context_id,
-            name=sentinel.context_title,
+            lti_params=lti_params,
             extra={"existing": "extra"},
             copied_from=None,
         )
         assert course == upsert_course.return_value
 
     def test_get_from_launch_when_new(
-        self, svc, get_by_context_id, upsert_course, product
+        self, svc, get_by_context_id, upsert_course, product, lti_params
     ):
         get_by_context_id.return_value = None
 
-        course = svc.get_from_launch(
-            product,
-            lti_params={
-                "context_id": sentinel.context_id,
-                "context_title": sentinel.context_title,
-            },
-        )
+        course = svc.get_from_launch(product, lti_params=lti_params)
 
         get_by_context_id.assert_called_once_with(sentinel.context_id)
         upsert_course.assert_called_once_with(
-            context_id=sentinel.context_id,
-            name=sentinel.context_title,
+            lti_params=lti_params,
             extra={},
             copied_from=None,
         )
         assert course == upsert_course.return_value
 
     def test_get_from_launch_when_new_and_canvas(
-        self, svc, upsert_course, get_by_context_id
+        self, svc, upsert_course, get_by_context_id, lti_params
     ):
         get_by_context_id.return_value = None
 
-        course = svc.get_from_launch(
-            Product.Family.CANVAS,
-            lti_params={
-                "context_id": sentinel.context_id,
-                "context_title": sentinel.context_title,
-                "custom_canvas_course_id": sentinel.canvas_id,
-            },
-        )
+        course = svc.get_from_launch(Product.Family.CANVAS, lti_params=lti_params)
 
         get_by_context_id.assert_called_once_with(sentinel.context_id)
         upsert_course.assert_called_once_with(
-            context_id=sentinel.context_id,
-            name=sentinel.context_title,
+            lti_params=lti_params,
             extra={"canvas": {"custom_canvas_course_id": sentinel.canvas_id}},
             copied_from=None,
         )
@@ -138,21 +117,16 @@ class TestCourseService:
             "authority_new_context_id",
             "authority_original_context_id",
         ]
+        lti_params = {
+            "context_id": "new_context_id",
+            "context_title": sentinel.context_title,
+            "custom_Context.id.history": "original_context_id",
+        }
 
-        course = svc.get_from_launch(
-            product,
-            lti_params={
-                "context_id": "new_context_id",
-                "context_title": sentinel.context_title,
-                "custom_Context.id.history": "original_context_id",
-            },
-        )
+        course = svc.get_from_launch(product, lti_params=lti_params)
 
         upsert_course.assert_called_once_with(
-            context_id="new_context_id",
-            name=sentinel.context_title,
-            extra={},
-            copied_from=None,
+            lti_params=lti_params, extra={}, copied_from=None
         )
         assert course == upsert_course.return_value
 
@@ -168,6 +142,11 @@ class TestCourseService:
             "authority_new_context_id",
             "authority_original_context_id",
         ]
+        lti_params = {
+            "context_id": "new_context_id",
+            "context_title": sentinel.context_title,
+            "custom_Context.id.history": "original_context_id",
+        }
 
         historical_course = factories.Course(
             application_instance=application_instance,
@@ -175,27 +154,18 @@ class TestCourseService:
             lms_id="original_context_id",
         )
 
-        course = svc.get_from_launch(
-            product,
-            lti_params={
-                "context_id": "new_context_id",
-                "context_title": sentinel.context_title,
-                "custom_Context.id.history": "original_context_id",
-            },
-        )
+        course = svc.get_from_launch(product, lti_params=lti_params)
 
         upsert_course.assert_called_once_with(
-            context_id="new_context_id",
-            name=sentinel.context_title,
-            extra={},
-            copied_from=historical_course,
+            lti_params=lti_params, extra={}, copied_from=historical_course
         )
         assert course == upsert_course.return_value
 
-    def test_upsert_course(self, svc, grouping_service, bulk_upsert, db_session):
+    def test_upsert_course(
+        self, svc, grouping_service, bulk_upsert, db_session, lti_params
+    ):
         course = svc.upsert_course(
-            context_id=sentinel.context_id,
-            name=sentinel.name,
+            lti_params=lti_params,
             extra=sentinel.extra,
             settings=sentinel.settings,
         )
@@ -204,7 +174,7 @@ class TestCourseService:
             [
                 {
                     "lms_id": sentinel.context_id,
-                    "lms_name": sentinel.name,
+                    "lms_name": sentinel.context_title,
                     "extra": sentinel.extra,
                     "settings": sentinel.settings,
                 }
@@ -225,10 +195,11 @@ class TestCourseService:
                             "lti_context_id": course.lms_id,
                             "h_authority_provided_id": course.authority_provided_id,
                             "name": course.lms_name,
+                            "lti_context_memberships_url": None,
                         }
                     ],
                     index_elements=["h_authority_provided_id"],
-                    update_columns=["updated", "name"],
+                    update_columns=["updated", "name", "lti_context_memberships_url"],
                 ),
                 call().one(),
                 call(
@@ -255,6 +226,7 @@ class TestCourseService:
         canvas_sections_enabled,
         grouping_service,
         bulk_upsert,
+        lti_params,
     ):
         db_session.add(
             CourseGroupsExportedFromH(
@@ -267,7 +239,7 @@ class TestCourseService:
             "canvas", "sections_enabled", canvas_sections_enabled
         )
 
-        svc.upsert_course("context_id", "new course name", {})
+        svc.upsert_course(lti_params=lti_params, extra={})
 
         grouping_service.upsert_groupings.assert_called_once_with(
             [
@@ -550,6 +522,16 @@ class TestCourseService:
     @pytest.fixture
     def bulk_upsert(self, patch):
         return patch("lms.services.course.bulk_upsert")
+
+    @pytest.fixture
+    def lti_params(self):
+        return LTIParams(
+            {
+                "context_id": sentinel.context_id,
+                "context_title": sentinel.context_title,
+                "custom_canvas_course_id": sentinel.canvas_id,
+            }
+        )
 
 
 class TestCourseServiceFactory:
