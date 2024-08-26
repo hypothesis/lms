@@ -17,6 +17,7 @@ from lms.models import (
     LMSCourseApplicationInstance,
     LMSCourseMembership,
     LMSUser,
+    LTIParams,
     LTIRole,
     Organization,
     RoleScope,
@@ -75,8 +76,7 @@ class CourseService:
             historical_course = self._get_copied_from_course(lti_params)
 
         return self.upsert_course(
-            context_id=lti_params["context_id"],
-            name=lti_params["context_title"],
+            lti_params=lti_params,
             extra=extra,
             copied_from=historical_course,
         )
@@ -253,23 +253,24 @@ class CourseService:
 
         return query.one_or_none()
 
-    def upsert_course(  # noqa: PLR0913
+    def upsert_course(
         self,
-        context_id,
-        name,
-        extra,
+        lti_params: LTIParams,
+        extra: dict,
         settings=None,
         copied_from: Grouping | None = None,
     ) -> Course:
         """
         Create or update a course based on the provided values.
 
-        :param context_id: The course id from LTI params
-        :param name: The name of the course
+        :param lti_params: Parameters from the LTI launch
         :param extra: Additional LMS specific values
         :param settings: A dict of settings for the course
         :param copied_from: A reference to the course this one was copied from
         """
+
+        context_id = lti_params["context_id"]
+        name = lti_params["context_title"]
 
         course = self._grouping_service.upsert_groupings(
             [
@@ -284,12 +285,16 @@ class CourseService:
             copied_from=copied_from,
         )[0]
 
-        self._upsert_lms_course(course)
+        self._upsert_lms_course(course, lti_params)
         return course
 
-    def _upsert_lms_course(self, course: Course) -> LMSCourse:
+    def _upsert_lms_course(self, course: Course, lti_params: LTIParams) -> LMSCourse:
         """Upsert LMSCourse based on a Course object."""
         self._db.flush()  # Make sure Course has hit the DB on the current transaction
+
+        lti_context_membership_url = lti_params.v13.get(
+            "https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice", {}
+        ).get("context_memberships_url")
 
         lms_course = bulk_upsert(
             self._db,
@@ -300,10 +305,11 @@ class CourseService:
                     "lti_context_id": course.lms_id,
                     "h_authority_provided_id": course.authority_provided_id,
                     "name": course.lms_name,
+                    "lti_context_memberships_url": lti_context_membership_url,
                 }
             ],
             index_elements=["h_authority_provided_id"],
-            update_columns=["updated", "name"],
+            update_columns=["updated", "name", "lti_context_memberships_url"],
         ).one()
         bulk_upsert(
             self._db,
