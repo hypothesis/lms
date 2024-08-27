@@ -37,6 +37,9 @@ class LMSCourse(CreatedUpdatedMixin, Base):
 
     name: Mapped[str] = mapped_column(index=True)
 
+    lti_context_memberships_url: Mapped[str | None] = mapped_column()
+    """URL for the Names and Roles endpoint, stored during launch to use it outside the launch context."""
+
 
 class LMSCourseApplicationInstance(CreatedUpdatedMixin, Base):
     """Record of on which installs (application instances) we have seen one course."""
