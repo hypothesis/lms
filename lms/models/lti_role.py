@@ -70,7 +70,7 @@ class LTIRole(Base):
 
     id = sa.Column(sa.Integer(), autoincrement=True, primary_key=True)
 
-    _value = sa.Column("value", sa.UnicodeText(), nullable=False, unique=True)
+    _value: Mapped[str] = mapped_column("value", sa.UnicodeText(), unique=True)
     """The raw string from LTI params."""
 
     type = varchar_enum(RoleType)
@@ -80,7 +80,7 @@ class LTIRole(Base):
     """Scope where this role applies"""
 
     @hybrid_property
-    def value(self):
+    def value(self) -> str:
         return self._value
 
     @value.inplace.setter

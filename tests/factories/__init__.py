@@ -18,6 +18,7 @@ from tests.factories.attributes import (
     TOOL_CONSUMER_INSTANCE_GUID,
     USER_ID,
 )
+from tests.factories.course_roster import CourseRoster
 from tests.factories.dashboard_admin import DashboardAdmin
 from tests.factories.event import Event
 from tests.factories.file import File
