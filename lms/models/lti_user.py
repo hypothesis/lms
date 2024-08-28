@@ -101,7 +101,9 @@ class LTIUser:
         )
 
 
-def display_name(given_name, family_name, full_name, custom_display_name):
+def display_name(
+    given_name: str, family_name: str, full_name: str, custom_display_name: str
+):
     """
     Return an h-compatible display name the given name parts.
 
