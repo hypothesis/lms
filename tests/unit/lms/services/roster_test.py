@@ -5,7 +5,7 @@ from h_matchers import Any
 from sqlalchemy import select
 
 from lms.models import CourseRoster
-from lms.services.course_roster import CourseRosterService, factory
+from lms.services.roster import RosterService, factory
 from tests import factories
 
 
@@ -80,7 +80,7 @@ class TestLTINameRolesServices:
 
     @pytest.fixture
     def svc(self, lti_names_roles_service, lti_role_service, db_session):
-        return CourseRosterService(
+        return RosterService(
             db_session,
             lti_names_roles_service=lti_names_roles_service,
             lti_role_service=lti_role_service,
@@ -93,20 +93,20 @@ class TestFactory:
         self,
         pyramid_request,
         db_session,
-        CourseRosterService,
+        RosterService,
         lti_names_roles_service,
         lti_role_service,
     ):
         service = factory(sentinel.context, pyramid_request)
 
-        CourseRosterService.assert_called_once_with(
+        RosterService.assert_called_once_with(
             db=db_session,
             lti_names_roles_service=lti_names_roles_service,
             lti_role_service=lti_role_service,
             h_authority=pyramid_request.registry.settings["h_authority"],
         )
-        assert service == CourseRosterService.return_value
+        assert service == RosterService.return_value
 
     @pytest.fixture
-    def CourseRosterService(self, patch):
-        return patch("lms.services.course_roster.CourseRosterService")
+    def RosterService(self, patch):
+        return patch("lms.services.roster.RosterService")

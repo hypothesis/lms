@@ -3,7 +3,6 @@ from lms.services.application_instance import ApplicationInstanceNotFound
 from lms.services.assignment import AssignmentService
 from lms.services.canvas import CanvasService
 from lms.services.canvas_studio import CanvasStudioService
-from lms.services.course_roster import CourseRosterService
 from lms.services.d2l_api.client import D2LAPIClient
 from lms.services.digest import DigestService
 from lms.services.email_preferences import EmailPreferencesService, EmailPrefs
@@ -36,6 +35,7 @@ from lms.services.ltia_http import LTIAHTTPService
 from lms.services.moodle import MoodleAPIClient
 from lms.services.organization import InvalidPublicId, OrganizationService
 from lms.services.organization_usage_report import OrganizationUsageReportService
+from lms.services.roster import RosterService
 from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
 from lms.services.user_preferences import UserPreferencesService
@@ -150,9 +150,7 @@ def includeme(config):
         "lms.services.youtube.factory", iface=YouTubeService
     )
     config.register_service_factory(MoodleAPIClient.factory, iface=MoodleAPIClient)
-    config.register_service_factory(
-        "lms.services.course_roster.factory", iface=CourseRosterService
-    )
+    config.register_service_factory("lms.services.roster.factory", iface=RosterService)
 
     # Plugins are not the same as top level services but we want to register them as pyramid services too
     # Importing them here to:

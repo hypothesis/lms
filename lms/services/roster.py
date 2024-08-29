@@ -20,7 +20,7 @@ from lms.services.upsert import bulk_upsert
 LOG = getLogger(__name__)
 
 
-class CourseRosterService:
+class RosterService:
     def __init__(
         self,
         db,
@@ -136,7 +136,7 @@ class CourseRosterService:
 
 
 def factory(_context, request):
-    return CourseRosterService(
+    return RosterService(
         db=request.db,
         lti_names_roles_service=request.find_service(LTINamesRolesService),
         lti_role_service=request.find_service(LTIRoleService),
