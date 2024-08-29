@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import exists, select
 
 from lms.models import Course, CourseRoster, Event, LMSCourse
-from lms.services.course_roster import CourseRosterService
+from lms.services.roster import RosterService
 from lms.tasks.celery import app
 
 COURSE_LAUNCHED_WINDOW = timedelta(hours=24)
@@ -70,7 +70,7 @@ def schedule_fetching_rosters() -> None:
 def fetch_roster(*, lms_course_id) -> None:
     """Fetch the roster for one course."""
     with app.request_context() as request:
-        roster_service = request.find_service(CourseRosterService)
+        roster_service = request.find_service(RosterService)
         with request.tm:
             lms_course = request.db.get(LMSCourse, lms_course_id)
             roster_service.fetch_roster(lms_course)

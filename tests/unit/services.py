@@ -18,7 +18,6 @@ from lms.services.blackboard_api.client import BlackboardAPIClient
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.canvas_studio import CanvasStudioService
 from lms.services.course import CourseService
-from lms.services.course_roster import CourseRosterService
 from lms.services.d2l_api import D2LAPIClient
 from lms.services.dashboard import DashboardService
 from lms.services.digest import DigestService
@@ -48,6 +47,7 @@ from lms.services.oauth1 import OAuth1Service
 from lms.services.oauth2_token import OAuth2TokenService
 from lms.services.oauth_http import OAuthHTTPService
 from lms.services.organization_usage_report import OrganizationUsageReportService
+from lms.services.roster import RosterService
 from lms.services.rsa_key import RSAKeyService
 from lms.services.user import UserService
 from lms.services.user_preferences import UserPreferencesService
@@ -68,7 +68,6 @@ __all__ = (
     "canvas_service",
     "canvas_studio_service",
     "course_service",
-    "course_roster_service",
     "d2l_api_client",
     "dashboard_service",
     "digest_service",
@@ -99,6 +98,7 @@ __all__ = (
     "oauth_http_service",
     "organization_service",
     "organization_usage_report_service",
+    "roster_service",
     "rsa_key_service",
     "user_service",
     "user_preferences_service",
@@ -190,8 +190,8 @@ def course_service(mock_service):
 
 
 @pytest.fixture
-def course_roster_service(mock_service):
-    return mock_service(CourseRosterService)
+def roster_service(mock_service):
+    return mock_service(RosterService)
 
 
 @pytest.fixture
