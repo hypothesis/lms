@@ -4,18 +4,18 @@ from datetime import datetime
 import pytest
 from freezegun import freeze_time
 
-from lms.tasks.course_roster import fetch_roster, schedule_fetching_rosters
+from lms.tasks.roster import fetch_roster, schedule_fetching_rosters
 from tests import factories
 
 
 class TestFetchRoster:
-    def test_it(self, course_roster_service, db_session):
+    def test_it(self, roster_service, db_session):
         lms_course = factories.LMSCourse()
         db_session.flush()
 
         fetch_roster(lms_course_id=lms_course.id)
 
-        course_roster_service.fetch_roster.assert_called_once_with(lms_course)
+        roster_service.fetch_roster.assert_called_once_with(lms_course)
 
 
 @freeze_time("2024-08-28")
@@ -75,12 +75,12 @@ class TestScheduleFetchingRosters:
 
     @pytest.fixture
     def fetch_roster(self, patch):
-        return patch("lms.tasks.course_roster.fetch_roster")
+        return patch("lms.tasks.roster.fetch_roster")
 
 
 @pytest.fixture(autouse=True)
 def app(patch, pyramid_request):
-    app = patch("lms.tasks.course_roster.app")
+    app = patch("lms.tasks.roster.app")
 
     @contextmanager
     def request_context():
