@@ -28,8 +28,18 @@ class Assignment(CreatedUpdatedMixin, Base):
 
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
 
-    resource_link_id = sa.Column(sa.Unicode, nullable=False)
+    resource_link_id: Mapped[str] = mapped_column(sa.Unicode)
     """The resource_link_id launch param of the assignment."""
+
+    lti_v13_resource_link_id: Mapped[str | None] = mapped_column(sa.Unicode)
+    """
+    The LTI1.3 resource_link_id of the assignment.
+
+    This will be often the same as value as resource_link_id but it might be different in:
+        - LTI1.1 launches. Where this will be null.
+        - Upgraded instances from LTI1.1 where we prefer the LTI1.1 value (if exposed by the LMS).
+          In those cases resource_link_id will be the 1.1 value and we'll store here the 1.3 version.
+    """
 
     tool_consumer_instance_guid = sa.Column(sa.Unicode, nullable=False)
     """
