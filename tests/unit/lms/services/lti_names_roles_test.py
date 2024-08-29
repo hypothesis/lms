@@ -19,6 +19,29 @@ class TestLTINameRolesServices:
             headers={
                 "Accept": "application/vnd.ims.lti-nrps.v2.membershipcontainer+json"
             },
+            params={},
+        )
+        assert (
+            memberships
+            == ltia_http_service.request.return_value.json.return_value["members"]
+        )
+
+    def test_get_context_memberships_with_resource_link_id(
+        self, svc, ltia_http_service, lti_registration
+    ):
+        memberships = svc.get_context_memberships(
+            lti_registration, sentinel.service_url, sentinel.resource_link_id
+        )
+
+        ltia_http_service.request.assert_called_once_with(
+            lti_registration,
+            "GET",
+            sentinel.service_url,
+            scopes=LTINamesRolesService.LTIA_SCOPES,
+            headers={
+                "Accept": "application/vnd.ims.lti-nrps.v2.membershipcontainer+json"
+            },
+            params={"rlid": sentinel.resource_link_id},
         )
         assert (
             memberships
