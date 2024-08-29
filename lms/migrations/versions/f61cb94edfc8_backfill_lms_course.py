@@ -13,21 +13,26 @@ def upgrade() -> None:
         sa.text(
             """
         WITH backfill as (
-            -- Deduplicate "grouping" courses on authority_provided_id
-            SELECT DISTINCT ON (authority_provided_id)
-                "grouping".created,
-                "grouping".updated,
-                tool_consumer_instance_guid,
-                authority_provided_id,
-                lms_name,
-                lms_id
-            FROM "grouping"
-            -- join on application_instances to get the GUID
-            JOIN application_instances on application_instances.id = "grouping".application_instance_id
-            -- Pick only courses, not sections or groups
-            WHERE grouping.type ='course'
-            -- Pick the most recent "grouping" there are duplicates
-            ORDER BY authority_provided_id, "grouping".updated desc
+            -- Deduplicate on guid, lms_id
+            SELECT DISTINCT on (tool_consumer_instance_guid, lms_id) *
+            FROM (
+                -- Deduplicate "grouping" courses on authority_provided_id
+                SELECT DISTINCT ON (authority_provided_id)
+                    "grouping".created,
+                    "grouping".updated,
+                    tool_consumer_instance_guid,
+                    authority_provided_id,
+                    lms_name,
+                    lms_id
+                FROM "grouping"
+                -- join on application_instances to get the GUID
+                JOIN application_instances on application_instances.id = "grouping".application_instance_id
+                -- Pick only courses, not sections or groups
+                WHERE grouping.type ='course'
+                -- Pick the most recent "grouping" there are duplicates
+                ORDER BY authority_provided_id, "grouping".updated desc
+            ) unique_by_authority_provided_id
+            ORDER BY tool_consumer_instance_guid, lms_id, unique_by_authority_provided_id.updated desc
         )
         INSERT INTO lms_course (
              created,
