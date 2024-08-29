@@ -128,6 +128,17 @@ class TestAssignmentService:
         )
         assert assignment.is_gradable == misc_plugin.is_assignment_gradable.return_value
         assert assignment.course_id == course.id
+        assert (
+            assignment.lti_v13_resource_link_id
+            == pyramid_request.lti_params.v13.get("")
+        )
+
+    def test_get_assignment_for_launch_set_v13_context_id(
+        self, lti_v13_pyramid_request, svc, course
+    ):
+        assignment = svc.get_assignment_for_launch(lti_v13_pyramid_request, course)
+
+        assert assignment.lti_v13_resource_link_id == "RESOURCE_LINK_ID"
 
     def test_get_assignment_returns_None_with_when_no_document(
         self, pyramid_request, svc, misc_plugin, course

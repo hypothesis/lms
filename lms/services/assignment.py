@@ -163,6 +163,11 @@ class AssignmentService:
                 )
             )
 
+        # Set the value for the v13 id for this assignment.
+        assignment.lti_v13_resource_link_id = request.lti_params.v13.get(
+            "https://purl.imsglobal.org/spec/lti/claim/resource_link", {}
+        ).get("id")
+
         # Always update the assignment configuration
         # It often will be the same one while launching the assignment again but
         # it might for example be an updated deep linked URL or similar.
