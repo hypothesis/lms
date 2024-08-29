@@ -1,9 +1,6 @@
 """
 Service to talk to the Name and Roles LTIA API.
 
-We only implement this now as a way to obtain the LTI Advantage Complete
-certification and it's not used anywhere in the codebase yet.
-
 https://www.imsglobal.org/spec/lti-nrps/v2p0
 https://www.imsglobal.org/ltiadvantage
 """
@@ -36,14 +33,23 @@ class LTINamesRolesService:
         self._ltia_service = ltia_http_service
 
     def get_context_memberships(
-        self, lti_registration: LTIRegistration, service_url: str
+        self,
+        lti_registration: LTIRegistration,
+        service_url: str,
+        resource_link_id: str | None = None,
     ) -> list[Member]:
         """
-        Get all the memberships of a context (a course).
+        Get the roster for a course or assignment.
 
         The course is defined by the service URL which will obtain
         from a LTI launch parameter and is always linked to an specific context.
+
+        Optically, using the  same service_url the API allows to get the roster of an assignment identified by `resource_link_id`.
         """
+        query = {}
+        if resource_link_id:
+            query["rlid"] = resource_link_id
+
         response = self._ltia_service.request(
             lti_registration,
             "GET",
@@ -52,6 +58,7 @@ class LTINamesRolesService:
             headers={
                 "Accept": "application/vnd.ims.lti-nrps.v2.membershipcontainer+json"
             },
+            params=query,
         )
 
         return response.json()["members"]
