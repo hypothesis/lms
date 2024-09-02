@@ -4,7 +4,6 @@ from lms.models.assignment import Assignment
 from lms.models.assignment_grouping import AssignmentGrouping
 from lms.models.assignment_membership import AssignmentMembership
 from lms.models.course_groups_exported_from_h import CourseGroupsExportedFromH
-from lms.models.course_roster import CourseRoster
 from lms.models.dashboard_admin import DashboardAdmin
 from lms.models.event import Event, EventData, EventType, EventUser
 from lms.models.exceptions import ReusedConsumerKey
@@ -37,6 +36,7 @@ from lms.models.lti_user import LTIUser, display_name
 from lms.models.oauth2_token import OAuth2Token
 from lms.models.organization import Organization
 from lms.models.organization_usage import OrganizationUsageReport
+from lms.models.roster import AssignmentRoster, CourseRoster
 from lms.models.rsa_key import RSAKey
 from lms.models.task_done import TaskDone
 from lms.models.user import User
