@@ -1,6 +1,6 @@
 from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.application_instance import ApplicationInstance, ApplicationSettings
-from lms.models.assignment import Assignment
+from lms.models.assignment import Assignment, AutoGradingConfig
 from lms.models.assignment_grouping import AssignmentGrouping
 from lms.models.assignment_membership import AssignmentMembership
 from lms.models.course_groups_exported_from_h import CourseGroupsExportedFromH

@@ -85,11 +85,23 @@ def deep_linking_launch(context, request):
     return {}
 
 
+class _AutoGradingConfig(JSONPyramidRequestSchema):
+    grading_type = fields.Str(required=True)
+    activity_calculation = fields.Str(required=True)
+
+    required_annotations = fields.Int(required=False, allow_none=True)
+    required_replies = fields.Int(required=False, allow_none=True)
+
+
 class DeepLinkingFieldsRequestSchema(JSONPyramidRequestSchema):
     content_item_return_url = fields.Str(required=True)
     content = fields.Dict(required=True)
     group_set = fields.Str(required=False, allow_none=True)
     title = fields.Str(required=False, allow_none=True)
+
+    auto_grading_config = fields.Nested(
+        _AutoGradingConfig, required=False, allow_none=True
+    )
 
 
 class LTI11DeepLinkingFieldsRequestSchema(DeepLinkingFieldsRequestSchema):
@@ -253,6 +265,9 @@ class DeepLinkingFieldsViews:
 
         if title := request.parsed_params.get("title"):
             params["title"] = title
+
+        if auto_grading_config := request.parsed_params.get("auto_grading_config"):
+            params["auto_grading_config"] = auto_grading_config
 
         if content["type"] == "url":
             params["url"] = content["url"]

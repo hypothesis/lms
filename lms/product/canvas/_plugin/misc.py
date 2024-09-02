@@ -46,11 +46,14 @@ class CanvasMiscPlugin(MiscPlugin):
     ) -> AssignmentConfig:
         document_url = self._get_document_url(request)
 
+        deep_linked_parameters = self.get_deep_linked_assignment_configuration(request)
+
         return {
             "document_url": document_url,
             # For canvas we add parameter to the launch URL as we don't store the
             # assignment during deep linking.
             "group_set_id": request.params.get("group_set"),
+            "auto_grading_config": deep_linked_parameters.get("auto_grading_config"),
         }
 
     @lru_cache(1)
@@ -133,6 +136,7 @@ class CanvasMiscPlugin(MiscPlugin):
 
         possible_parameters = [
             "group_set",
+            "auto_grading_config",
             # VS, legacy method
             "vitalsource_book",
             "book_id",

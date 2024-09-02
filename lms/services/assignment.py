@@ -9,6 +9,7 @@ from lms.models import (
     Assignment,
     AssignmentGrouping,
     AssignmentMembership,
+    AutoGradingConfig,
     Course,
     Grouping,
     LTIRole,
@@ -53,13 +54,14 @@ class AssignmentService:
 
         return assignment
 
-    def update_assignment(  # noqa: PLR0913
+    def update_assignment(  # noqa: PLR0913, PLR0917
         self,
         request,
         assignment: Assignment,
         document_url: str,
         group_set_id,
         course: Course,
+        auto_grading_config,
     ):
         """Update an existing assignment."""
         if self._misc_plugin.is_speed_grader_launch(request):
@@ -83,6 +85,25 @@ class AssignmentService:
             request.lti_params
         )
         assignment.course_id = course.id
+
+        if auto_grading_config:
+            db_auto_grading_config = assignment.auto_grading_config
+            if not db_auto_grading_config:
+                db_auto_grading_config = AutoGradingConfig()
+
+            db_auto_grading_config.activity_calculation = auto_grading_config.get(
+                "auto_grading_config"
+            )
+            db_auto_grading_config.grading_type = auto_grading_config.get(
+                "grading_type"
+            )
+            db_auto_grading_config.required_annotations = auto_grading_config.get(
+                "required_annotations"
+            )
+            db_auto_grading_config.required_replies = auto_grading_config.get(
+                "required_replies"
+            )
+            assignment.auto_grading_config = db_auto_grading_config
 
         return assignment
 
@@ -137,6 +158,7 @@ class AssignmentService:
         )
         document_url = assignment_config.get("document_url")
         group_set_id = assignment_config.get("group_set_id")
+        auto_grading_config = assignment_config.get("auto_grading_config")
 
         if not document_url:
             # We can't find a document_url, we shouldn't try to create an
@@ -167,7 +189,7 @@ class AssignmentService:
         # It often will be the same one while launching the assignment again but
         # it might for example be an updated deep linked URL or similar.
         return self.update_assignment(
-            request, assignment, document_url, group_set_id, course
+            request, assignment, document_url, group_set_id, course, auto_grading_config
         )
 
     def upsert_assignment_membership(

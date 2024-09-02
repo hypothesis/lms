@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 from pyramid.request import Request
 
@@ -6,9 +6,32 @@ from lms.models import Assignment, LTIParams, LTIRegistration
 from lms.services.html_service import strip_html_tags
 
 
+class AutoGradingConfig(TypedDict):
+    grading_type: Literal["all_or_nothing", "scaled"] | None
+    """
+    - all_or_nothing: students need to meet a minimum value, making them get
+                      either 0% or 100%
+    - scaled: students may get a proportional grade based on the amount of
+              annotations. If requirement is 4, and they created 3, they'll
+              get a 75%
+    """
+
+    activity_calculation: Literal["cumulative", "separately"] | None
+    """
+    - cumulative: both annotations and replies will be counted together for
+                  the grade calculation
+    - separately: students will have different annotation and reply goals.
+    """
+
+    required_annotations: int | None
+    required_replies: int | None
+
+
 class AssignmentConfig(TypedDict):
     document_url: str | None
     group_set_id: str | None
+
+    auto_grading_config: AutoGradingConfig | None
 
 
 class MiscPlugin:
@@ -91,7 +114,12 @@ class MiscPlugin:
     def get_deep_linked_assignment_configuration(self, request) -> dict:
         """Get the configuration of an assignment present in the current launch deep link."""
         params = {}
-        possible_parameters = ["url", "group_set", "deep_linking_uuid"]
+        possible_parameters = [
+            "url",
+            "group_set",
+            "deep_linking_uuid",
+            "auto_grading_config",
+        ]
 
         for param in possible_parameters:
             # Get the value from the custom parameters set during deep linking
@@ -106,10 +134,20 @@ class MiscPlugin:
 
     @staticmethod
     def _assignment_config_from_assignment(assignment: Assignment) -> AssignmentConfig:
-        return {
-            "document_url": assignment.document_url,
-            "group_set_id": assignment.extra.get("group_set_id"),
-        }
+        config = AssignmentConfig(
+            document_url=assignment.document_url,
+            group_set_id=assignment.extra.get("group_set_id"),
+            auto_grading_config=None,
+        )
+        if auto_grading_config := assignment.auto_grading_config:
+            config["auto_grading_config"] = AutoGradingConfig(
+                grading_type=auto_grading_config.grading_type,
+                activity_calculation=auto_grading_config.activity_calculation,
+                required_annotations=auto_grading_config.required_annotations,
+                required_replies=auto_grading_config.required_replies,
+            )
+
+        return config
 
     @staticmethod
     def _assignment_config_from_deep_linked_config(
@@ -118,4 +156,5 @@ class MiscPlugin:
         return {
             "document_url": deep_linked_config.get("url"),
             "group_set_id": deep_linked_config.get("group_set"),
+            "auto_grading_config": deep_linked_config.get("auto_grading_config"),
         }

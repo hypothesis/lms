@@ -6,6 +6,8 @@ Making this a top level module to avoid circular dependency problems.
 
 from typing import NotRequired, TypedDict
 
+from lms.product.plugin.misc import AutoGradingConfig
+
 
 class Pagination(TypedDict):
     next: str | None
@@ -46,6 +48,8 @@ class APIStudent(TypedDict):
 
     annotation_metrics: NotRequired[AnnotationMetrics]
 
+    auto_grading_grade: NotRequired[int]
+
 
 class APICourses(TypedDict):
     courses: list[APICourse]
@@ -58,7 +62,9 @@ class APIAssignment(TypedDict):
     title: str
     created: str
     course: NotRequired[APICourse]
+
     annotation_metrics: NotRequired[AnnotationMetrics]
+    auto_grading_config: NotRequired[AutoGradingConfig]
 
 
 class APIAssignments(TypedDict):

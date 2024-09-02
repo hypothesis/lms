@@ -268,6 +268,7 @@ class BasicLaunchViews:
             document_url=self.request.parsed_params["document_url"],
             group_set_id=self.request.parsed_params.get("group_set"),
             course=self.course,
+            auto_grading_config=None,
         )
 
     def _configure_js_for_file_picker(
