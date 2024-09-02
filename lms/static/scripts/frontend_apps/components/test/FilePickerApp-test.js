@@ -194,8 +194,9 @@ describe('FilePickerApp', () => {
         data: {
           ...deepLinkingAPIData,
           content: { type: 'url', url: 'https://example.com' },
-          group_set: null,
           title: null,
+          group_set: null,
+          auto_grading_config: null,
         },
       });
 
@@ -552,6 +553,18 @@ describe('FilePickerApp', () => {
       clickButton(wrapper, 'edit-content');
       clickButton(wrapper, 'cancel-edit-content');
       assert.isFalse(wrapper.exists('ContentSelector'));
+    });
+
+    [true, false].forEach(autoGradingEnabled => {
+      it('displays auto grading configurator when it is enabled', () => {
+        fakeConfig.filePicker.autoGradingEnabled = autoGradingEnabled;
+        const wrapper = renderFilePicker();
+
+        assert.equal(
+          wrapper.exists('AutoGradingConfigurator'),
+          autoGradingEnabled,
+        );
+      });
     });
   });
 
