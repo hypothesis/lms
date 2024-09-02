@@ -361,6 +361,9 @@ class JSConfig:
                     "formAction": form_action,
                     "formFields": form_fields,
                     "promptForTitle": prompt_for_title,
+                    "auto_grading_enabled": self._application_instance.settings.get(
+                        "auto_grading_enabled", False
+                    ),
                     # The "content item selection" that we submit to Canvas's
                     # content_item_return_url is actually an LTI launch URL with
                     # the selected document URL or file_id as a query parameter. To
