@@ -4,6 +4,8 @@ from sqlalchemy import select, update
 
 from lms.models import (
     ApplicationInstance,
+    Assignment,
+    AssignmentRoster,
     CourseRoster,
     LMSCourse,
     LMSCourseApplicationInstance,
@@ -33,19 +35,11 @@ class RosterService:
         self._lti_role_service = lti_role_service
         self._h_authority = h_authority
 
-    def fetch_roster(self, lms_course: LMSCourse) -> None:
+    def fetch_course_roster(self, lms_course: LMSCourse) -> None:
         assert (
             lms_course.lti_context_memberships_url
         ), "Trying fetch roster for course without service URL."
-
-        lti_registration = self._db.scalars(
-            select(LTIRegistration)
-            .join(ApplicationInstance)
-            .where(LMSCourseApplicationInstance.lms_course_id == lms_course.id)
-            .join(LMSCourseApplicationInstance)
-            .order_by(LTIRegistration.updated.desc())
-        ).first()
-        assert lti_registration, "No LTI registration found for LMSCourse."
+        lti_registration = self._get_lti_registration(lms_course)
 
         roster = self._lti_names_roles_service.get_context_memberships(
             lti_registration, lms_course.lti_context_memberships_url
@@ -97,6 +91,78 @@ class RosterService:
             update_columns=["active", "updated"],
         )
 
+    def fetch_assignment_roster(self, assignment: Assignment) -> None:
+        assert (
+            assignment.lti_v13_resource_link_id
+        ), "Trying fetch roster for an assignment without LTI1.3 ID."
+        assert (
+            assignment.course
+        ), "Trying fetch roster for an assignment without a course."
+
+        lms_course = self._db.scalars(
+            select(LMSCourse).where(
+                LMSCourse.h_authority_provided_id
+                == assignment.course.authority_provided_id
+            )
+        ).one()
+
+        assert (
+            lms_course.lti_context_memberships_url
+        ), "Trying fetch roster for course without service URL."
+        lti_registration = self._get_lti_registration(lms_course)
+
+        roster = self._lti_names_roles_service.get_context_memberships(
+            lti_registration,
+            lms_course.lti_context_memberships_url,
+            resource_link_id=assignment.lti_v13_resource_link_id,
+        )
+
+        # Insert any users we might be missing in the DB
+        lms_users_by_lti_user_id = {
+            u.lti_user_id: u
+            for u in self._get_roster_users(
+                roster, lms_course.tool_consumer_instance_guid
+            )
+        }
+        # Also insert any roles we might be missing
+        lti_roles_by_value: dict[str, LTIRole] = {
+            r.value: r for r in self._get_roster_roles(roster)
+        }
+
+        # Make sure any new rows have IDs
+        self._db.flush()
+
+        roster_upsert_elements = []
+
+        for member in roster:
+            lti_user_id = member.get("lti11_legacy_user_id") or member["user_id"]
+            # Now, for every user + role, insert a row  in the roster table
+            for role in member["roles"]:
+                roster_upsert_elements.append(
+                    {
+                        "assignment_id": assignment.id,
+                        "lms_user_id": lms_users_by_lti_user_id[lti_user_id].id,
+                        "lti_role_id": lti_roles_by_value[role].id,
+                        "active": member["status"] == "Active",
+                    }
+                )
+        # We'll first mark everyone as non-Active.
+        # We keep a record of who belonged to a course even if they are no longer present.
+        self._db.execute(
+            update(AssignmentRoster)
+            .where(AssignmentRoster.assignment_id == assignment.id)
+            .values(active=False)
+        )
+
+        # Insert and update roster rows.
+        bulk_upsert(
+            self._db,
+            AssignmentRoster,
+            values=roster_upsert_elements,
+            index_elements=["assignment_id", "lms_user_id", "lti_role_id"],
+            update_columns=["active", "updated"],
+        )
+
     def _get_roster_users(self, roster, tool_consumer_instance_guid):
         values = []
         for member in roster:
@@ -133,6 +199,17 @@ class RosterService:
     def _get_roster_roles(self, roster) -> list[LTIRole]:
         roles = {role for member in roster for role in member["roles"]}
         return self._lti_role_service.get_roles(list(roles))
+
+    def _get_lti_registration(self, lms_course) -> LTIRegistration:
+        lti_registration = self._db.scalars(
+            select(LTIRegistration)
+            .join(ApplicationInstance)
+            .where(LMSCourseApplicationInstance.lms_course_id == lms_course.id)
+            .join(LMSCourseApplicationInstance)
+            .order_by(LTIRegistration.updated.desc())
+        ).first()
+        assert lti_registration, "No LTI registration found for LMSCourse."
+        return lti_registration
 
 
 def factory(_context, request):

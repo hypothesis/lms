@@ -196,6 +196,7 @@ class Course(Grouping):
     lms_course: Mapped[LMSCourse] = sa.orm.relationship(
         LMSCourse,
         primaryjoin="Grouping.authority_provided_id == foreign(LMSCourse.h_authority_provided_id)",
+        backref=sa.orm.backref("course"),
     )
 
     def set_group_sets(self, group_sets: list[dict]):
