@@ -83,6 +83,7 @@ export type FilePickerConfig = {
   formAction: string;
   formFields: Record<string, string>;
   promptForTitle: boolean;
+  autoGradingEnabled: boolean;
   deepLinkingAPI?: APICallInfo;
   ltiLaunchUrl: string;
   blackboard: {
