@@ -18,7 +18,6 @@ from tests.factories.attributes import (
     TOOL_CONSUMER_INSTANCE_GUID,
     USER_ID,
 )
-from tests.factories.course_roster import CourseRoster
 from tests.factories.dashboard_admin import DashboardAdmin
 from tests.factories.event import Event
 from tests.factories.file import File
@@ -37,6 +36,7 @@ from tests.factories.lti_user import LTIUser
 from tests.factories.oauth2_token import OAuth2Token
 from tests.factories.organization import Organization
 from tests.factories.organization_usage import OrganizationUsageReport
+from tests.factories.roster import AssignmentRoster, CourseRoster
 from tests.factories.rsa_key import RSAKey
 from tests.factories.task_done import TaskDone
 from tests.factories.user import User

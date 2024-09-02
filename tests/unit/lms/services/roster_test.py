@@ -4,13 +4,13 @@ import pytest
 from h_matchers import Any
 from sqlalchemy import select
 
-from lms.models import CourseRoster
+from lms.models import AssignmentRoster, CourseRoster
 from lms.services.roster import RosterService, factory
 from tests import factories
 
 
 class TestLTINameRolesServices:
-    def test_fetch_roster(
+    def test_fetch_course_roster(
         self,
         svc,
         lti_names_roles_service,
@@ -18,12 +18,9 @@ class TestLTINameRolesServices:
         db_session,
         names_and_roles_roster_response,
         lti_role_service,
+        lms_course,
     ):
-        lms_course = factories.LMSCourse(lti_context_memberships_url="SERVICE_URL")
-        factories.LMSCourseApplicationInstance(
-            lms_course=lms_course, application_instance=lti_v13_application_instance
-        )
-        # Active user not returned by the roster, should be marked inactive
+        # Active user not returned by the roster, should be marked inactive after fetch the roster
         factories.CourseRoster(
             lms_course=lms_course,
             lms_user=factories.LMSUser(lti_user_id="EXISTING USER"),
@@ -39,7 +36,7 @@ class TestLTINameRolesServices:
             factories.LTIRole(value="ROLE2"),
         ]
 
-        svc.fetch_roster(lms_course)
+        svc.fetch_course_roster(lms_course)
 
         lti_names_roles_service.get_context_memberships.assert_called_once_with(
             lti_v13_application_instance.lti_registration, "SERVICE_URL"
@@ -48,28 +45,102 @@ class TestLTINameRolesServices:
             Any.list.containing(["ROLE2", "ROLE1"])
         )
 
-        course_roster = db_session.scalars(
+        roster = db_session.scalars(
             select(CourseRoster)
             .where(CourseRoster.lms_course_id == lms_course.id)
             .order_by(CourseRoster.lms_user_id)
         ).all()
 
-        assert len(course_roster) == 4
-        assert course_roster[0].lms_course_id == lms_course.id
-        assert course_roster[0].lms_user.lti_user_id == "EXISTING USER"
-        assert not course_roster[0].active
+        assert len(roster) == 4
+        assert roster[0].lms_course_id == lms_course.id
+        assert roster[0].lms_user.lti_user_id == "EXISTING USER"
+        assert not roster[0].active
 
-        assert course_roster[1].lms_course_id == lms_course.id
-        assert course_roster[1].lms_user.lti_user_id == "USER_ID"
-        assert course_roster[1].active
+        assert roster[1].lms_course_id == lms_course.id
+        assert roster[1].lms_user.lti_user_id == "USER_ID"
+        assert roster[1].active
 
-        assert course_roster[2].lms_course_id == lms_course.id
-        assert course_roster[2].lms_user.lti_user_id == "USER_ID"
-        assert course_roster[2].active
+        assert roster[2].lms_course_id == lms_course.id
+        assert roster[2].lms_user.lti_user_id == "USER_ID"
+        assert roster[2].active
 
-        assert course_roster[3].lms_course_id == lms_course.id
-        assert course_roster[3].lms_user.lti_user_id == "USER_ID_INACTIVE"
-        assert not course_roster[3].active
+        assert roster[3].lms_course_id == lms_course.id
+        assert roster[3].lms_user.lti_user_id == "USER_ID_INACTIVE"
+        assert not roster[3].active
+
+    def test_fetch_assignment_roster(
+        self,
+        svc,
+        lti_names_roles_service,
+        lti_v13_application_instance,
+        db_session,
+        names_and_roles_roster_response,
+        lti_role_service,
+        assignment,
+    ):
+        # Active user not returned by the roster, should be marked inactive after fetch the roster
+        factories.AssignmentRoster(
+            assignment=assignment,
+            lms_user=factories.LMSUser(lti_user_id="EXISTING USER"),
+            lti_role=factories.LTIRole(),
+            active=True,
+        )
+        db_session.flush()
+        lti_names_roles_service.get_context_memberships.return_value = (
+            names_and_roles_roster_response
+        )
+        lti_role_service.get_roles.return_value = [
+            factories.LTIRole(value="ROLE1"),
+            factories.LTIRole(value="ROLE2"),
+        ]
+
+        svc.fetch_assignment_roster(assignment)
+
+        lti_names_roles_service.get_context_memberships.assert_called_once_with(
+            lti_v13_application_instance.lti_registration, "SERVICE_URL", "LTI1.3_ID"
+        )
+        lti_role_service.get_roles.assert_called_once_with(
+            Any.list.containing(["ROLE2", "ROLE1"])
+        )
+
+        roster = db_session.scalars(
+            select(AssignmentRoster)
+            .order_by(AssignmentRoster.lms_user_id)
+            .where(AssignmentRoster.assignment_id == assignment.id)
+        ).all()
+
+        assert len(roster) == 4
+        assert roster[0].assignment_id == assignment.id
+        assert roster[0].lms_user.lti_user_id == "EXISTING USER"
+        assert not roster[0].active
+
+        assert roster[1].assignment_id == assignment.id
+        assert roster[1].lms_user.lti_user_id == "USER_ID"
+        assert roster[1].active
+
+        assert roster[2].assignment_id == assignment.id
+        assert roster[2].lms_user.lti_user_id == "USER_ID"
+        assert roster[2].active
+
+        assert roster[3].assignment_id == assignment.id
+        assert roster[3].lms_user.lti_user_id == "USER_ID_INACTIVE"
+        assert not roster[3].active
+
+    @pytest.fixture
+    def lms_course(self, lti_v13_application_instance):
+        lms_course = factories.LMSCourse(lti_context_memberships_url="SERVICE_URL")
+        factories.LMSCourseApplicationInstance(
+            lms_course=lms_course, application_instance=lti_v13_application_instance
+        )
+
+        return lms_course
+
+    @pytest.fixture
+    def assignment(self, lms_course):
+        course = factories.Course(
+            authority_provided_id=lms_course.h_authority_provided_id
+        )
+        return factories.Assignment(lti_v13_resource_link_id="LTI1.3_ID", course=course)
 
     @pytest.fixture
     def names_and_roles_roster_response(self):
