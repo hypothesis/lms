@@ -70,27 +70,40 @@ describe('DashboardActivityFilters', () => {
    * @param {object} options
    * @param {boolean} options.isLoading
    * @param {boolean} [options.isLoadingFirstPage] - Defaults to isLoading
+   * @param {Error} [options.error] - Defaults to null
+   * @param {() => void} [options.retry] - Defaults to noop
    */
   function configureFakeAPIFetch(options) {
-    const { isLoading, isLoadingFirstPage = isLoading } = options;
+    const {
+      isLoading,
+      isLoadingFirstPage = isLoading,
+      error = null,
+      retry = () => {},
+    } = options;
 
     fakeUsePaginatedAPIFetch.onCall(0).returns({
       isLoading,
       isLoadingFirstPage,
-      data: isLoading ? null : courses,
+      data: isLoading || error ? null : courses,
       loadNextPage: fakeLoadNextCoursesPage,
+      error,
+      retry,
     });
     fakeUsePaginatedAPIFetch.onCall(1).returns({
       isLoading,
       isLoadingFirstPage,
-      data: isLoading ? null : assignments,
+      data: isLoading || error ? null : assignments,
       loadNextPage: fakeLoadNextAssignmentsPage,
+      error,
+      retry,
     });
     fakeUsePaginatedAPIFetch.onCall(2).returns({
       isLoading,
       isLoadingFirstPage,
-      data: isLoading ? null : students,
+      data: isLoading || error ? null : students,
       loadNextPage: fakeLoadNextStudentsPage,
+      error,
+      retry,
     });
   }
 
@@ -257,23 +270,23 @@ describe('DashboardActivityFilters', () => {
     });
   });
 
-  [true, false].forEach(isLoadingFirstPage => {
-    it('shows page loading indicators when loading but not initially loading', () => {
-      configureFakeAPIFetch({ isLoading: true, isLoadingFirstPage });
+  [true, false].forEach(isLoading => {
+    it('shows page loading indicators when loading', () => {
+      configureFakeAPIFetch({ isLoading });
 
       const wrapper = createComponent();
 
       assert.equal(
         wrapper.exists('[data-testid="loading-more-courses"]'),
-        !isLoadingFirstPage,
+        isLoading,
       );
       assert.equal(
         wrapper.exists('[data-testid="loading-more-assignments"]'),
-        !isLoadingFirstPage,
+        isLoading,
       );
       assert.equal(
         wrapper.exists('[data-testid="loading-more-students"]'),
-        !isLoadingFirstPage,
+        isLoading,
       );
     });
   });
@@ -542,6 +555,54 @@ describe('DashboardActivityFilters', () => {
         });
       },
     );
+  });
+
+  describe('error handling', () => {
+    let fakeRetry;
+
+    beforeEach(() => {
+      fakeRetry = sinon.stub();
+      configureFakeAPIFetch({
+        isLoading: false,
+        error: new Error('An error occurred'),
+        retry: fakeRetry,
+      });
+    });
+
+    function clickRetry(wrapper, entity) {
+      wrapper
+        .find(`[data-testid="${entity}-error"]`)
+        .find('button')
+        .simulate('click');
+    }
+
+    ['courses', 'assignments', 'students'].forEach(entity => {
+      it('shows error message when loading filters fails', () => {
+        const wrapper = createComponent();
+        assert.isTrue(wrapper.exists(`[data-testid="${entity}-error"]`));
+      });
+
+      it('retries loading when retry button is clicked', () => {
+        const wrapper = createComponent();
+
+        clickRetry(wrapper, entity);
+        assert.called(fakeRetry);
+      });
+
+      it('focuses last option when retry button is clicked', () => {
+        const wrapper = createComponent();
+
+        const lastOption = wrapper
+          .find(`[data-testid="${entity}-select"]`)
+          .find('[role="option"]')
+          .last()
+          .getDOMNode();
+        const focusOption = sinon.stub(lastOption, 'focus');
+
+        clickRetry(wrapper, entity);
+        assert.called(focusOption);
+      });
+    });
   });
 
   it(
