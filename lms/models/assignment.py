@@ -98,6 +98,18 @@ class Assignment(CreatedUpdatedMixin, Base):
 
     course: Mapped[Course | None] = relationship(Course)
 
+    lis_outcome_service_url: Mapped[str | None] = mapped_column()
+    """URL of the grading serivce relevant for this assignment.
+
+    This is named lis_outcome_service_url in both the LTI1.1 and the Names and Roles 2.0 specs
+
+    It's equivalent to the
+
+    https://purl.imsglobal.org/spec/lti-ags/claim/endpoint/lineitem
+
+    claim on LTI1.3
+    """
+
     __table_args__ = (
         sa.UniqueConstraint("resource_link_id", "tool_consumer_instance_guid"),
         sa.Index(
