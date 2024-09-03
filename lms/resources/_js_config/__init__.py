@@ -7,7 +7,7 @@ from typing import Any
 from lms.error_code import ErrorCode
 from lms.events import LTIEvent
 from lms.js_config_types import DashboardConfig, DashboardRoutes, User
-from lms.models import Assignment, Course, Grouping
+from lms.models import ApplicationInstance, Assignment, Course, Grouping
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
 from lms.product.d2l import D2L
@@ -48,7 +48,7 @@ class JSConfig:
         return self._lti_user.h_user
 
     @property
-    def _application_instance(self):
+    def _application_instance(self) -> ApplicationInstance:
         return self._lti_user.application_instance
 
     def add_document_url(  # pylint: disable=too-complex,too-many-branches,useless-suppression  # noqa: PLR0912
