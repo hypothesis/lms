@@ -27,9 +27,25 @@ pytestmark = pytest.mark.usefixtures(
 
 
 class TestFilePickerMode:
-    def test_it(self, js_config, course):
+    @pytest.mark.parametrize("prompt_for_title", [True, False])
+    @pytest.mark.parametrize("auto_grading_setting", [True, False])
+    def test_it(
+        self,
+        js_config,
+        course,
+        prompt_for_title,
+        application_instance,
+        auto_grading_setting,
+    ):
+        application_instance.settings.set(
+            "hypothesis", "auto_grading_enabled", auto_grading_setting
+        )
+
         js_config.enable_file_picker_mode(
-            sentinel.form_action, sentinel.form_fields, course
+            sentinel.form_action,
+            sentinel.form_fields,
+            course,
+            prompt_for_title=prompt_for_title,
         )
         config = js_config.asdict()
 
@@ -40,6 +56,8 @@ class TestFilePickerMode:
                     {
                         "formAction": sentinel.form_action,
                         "formFields": sentinel.form_fields,
+                        "promptForTitle": prompt_for_title,
+                        "autoGradingEnabled": auto_grading_setting,
                     }
                 ),
             }
