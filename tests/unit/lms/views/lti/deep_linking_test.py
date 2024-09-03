@@ -5,11 +5,70 @@ from unittest.mock import create_autospec, patch, sentinel
 import pytest
 from freezegun import freeze_time
 from h_matchers import Any
+from pyramid.testing import DummyRequest
 
 from lms.resources import LTILaunchResource
 from lms.resources._js_config import JSConfig
-from lms.views.lti.deep_linking import DeepLinkingFieldsViews, deep_linking_launch
+from lms.validation import ValidationError
+from lms.views.lti.deep_linking import (
+    DeepLinkingFieldsRequestSchema,
+    DeepLinkingFieldsViews,
+    deep_linking_launch,
+)
 from tests import factories
+
+
+class TestDeepLinkingFieldsRequestSchema:
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            {
+                "content": {"type": "url", "url": "https://example.com"},
+                "content_item_return_url": "return_url",
+                "auto_grading_config": {
+                    "grading_type": "scaled",
+                    "activity_calculation": "separate",
+                    "required_annotations": 10,
+                    "required_replies": 2,
+                },
+                "extra_params": {},
+            }
+        ],
+    )
+    def test_valid_payloads(self, payload):
+        request = DummyRequest(
+            body=json.dumps(payload),
+            headers={"Content-Type": "application/json; charset=UTF-8"},
+        )
+        request.content_type = request.headers["content-type"] = "application/json"
+
+        DeepLinkingFieldsRequestSchema(request).parse()
+
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            {
+                "content": {"type": "url", "url": "https://example.com"},
+                "content_item_return_url": "return_url",
+                "auto_grading_config": {
+                    "grading_type": "scaled",
+                    "activity_calculation": "RANDOM",
+                    "required_annotations": 10,
+                    "required_replies": 2,
+                },
+                "extra_params": {},
+            }
+        ],
+    )
+    def test_invalid_payloads(self, payload):
+        request = DummyRequest(
+            body=json.dumps(payload),
+            headers={"Content-Type": "application/json; charset=UTF-8"},
+        )
+        request.content_type = request.headers["content-type"] = "application/json"
+
+        with pytest.raises(ValidationError):
+            DeepLinkingFieldsRequestSchema(request).parse()
 
 
 @pytest.mark.usefixtures("application_instance_service", "lti_h_service")
@@ -211,9 +270,13 @@ class TestDeepLinkingFieldsView:
                 {"group_set": "1", "title": "title"},
                 {"group_set": "1", "title": "title"},
             ),
+            (
+                {"auto_grading_config": {"key": "value"}},
+                {"auto_grading_config": '{"key": "value"}'},
+            ),
         ],
     )
-    def test_get_assignment_configuration(
+    def test__get_assignment_configuration(
         self, content, expected_from_content, pyramid_request, data, expected, uuid
     ):
         pyramid_request.parsed_params.update({"content": content, **data})
