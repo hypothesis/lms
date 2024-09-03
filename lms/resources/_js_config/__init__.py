@@ -362,7 +362,7 @@ class JSConfig:
                     "formFields": form_fields,
                     "promptForTitle": prompt_for_title,
                     "autoGradingEnabled": self._application_instance.settings.get(
-                        "auto_grading_enabled", False
+                        "hypothesis", "auto_grading_enabled", False
                     ),
                     # The "content item selection" that we submit to Canvas's
                     # content_item_return_url is actually an LTI launch URL with
