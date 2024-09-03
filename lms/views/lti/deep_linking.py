@@ -42,6 +42,7 @@ import json
 import uuid
 from datetime import datetime, timedelta
 
+from marshmallow import Schema, validate
 from pyramid.view import view_config, view_defaults
 from webargs import fields
 
@@ -85,11 +86,29 @@ def deep_linking_launch(context, request):
     return {}
 
 
+class _AutoGradingConfigSchema(Schema):
+    grading_type = fields.Str(
+        required=True, validate=validate.OneOf(["all_or_nothing", "scaled"])
+    )
+    activity_calculation = fields.Str(
+        required=True, validate=validate.OneOf(["cumulative", "separate"])
+    )
+
+    required_annotations = fields.Int(required=True, validate=validate.Range(min=0))
+    required_replies = fields.Int(
+        required=False, allow_none=True, validate=validate.Range(min=0)
+    )
+
+
 class DeepLinkingFieldsRequestSchema(JSONPyramidRequestSchema):
     content_item_return_url = fields.Str(required=True)
     content = fields.Dict(required=True)
     group_set = fields.Str(required=False, allow_none=True)
     title = fields.Str(required=False, allow_none=True)
+
+    auto_grading_config = fields.Nested(
+        _AutoGradingConfigSchema, required=False, allow_none=True
+    )
 
 
 class LTI11DeepLinkingFieldsRequestSchema(DeepLinkingFieldsRequestSchema):
@@ -253,6 +272,10 @@ class DeepLinkingFieldsViews:
 
         if title := request.parsed_params.get("title"):
             params["title"] = title
+
+        if auto_grading_config := request.parsed_params.get("auto_grading_config"):
+            # Custom params must be str, encode these settings as JSON
+            params["auto_grading_config"] = json.dumps(auto_grading_config)
 
         if content["type"] == "url":
             params["url"] = content["url"]
