@@ -168,6 +168,11 @@ class AssignmentService:
             "https://purl.imsglobal.org/spec/lti/claim/resource_link", {}
         ).get("id")
 
+        # Keep record of the grading service URL relevant for this assignment if available
+        assignment.lis_outcome_service_url = request.lti_params.get(
+            "lis_outcome_service_url"
+        )
+
         # Always update the assignment configuration
         # It often will be the same one while launching the assignment again but
         # it might for example be an updated deep linked URL or similar.
