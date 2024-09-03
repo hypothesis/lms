@@ -39,6 +39,7 @@ def lti_v11_params():
         "lis_person_name_family": "TEST_FAMILY_NAME",
         "lis_person_name_full": "TEST_FULL_NAME",
         "lis_person_contact_email_primary": "EMAIL",
+        "lis_outcome_service_url": "GRADING URL",
         "lti_message_type": "basic-lti-launch-request",
         "context_id": "DUMMY-CONTEXT-ID",
         "context_title": "A context title",
