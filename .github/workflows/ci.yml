@@ -135,7 +135,7 @@ jobs:
           restore-keys: |
             coverage-${{ runner.os }}-tox-
       - name: Download coverage files
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: coverage
       - run: python -m pip install 'tox<4'
