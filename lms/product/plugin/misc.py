@@ -1,7 +1,8 @@
-from typing import TypedDict
+from typing import NotRequired, TypedDict
 
 from pyramid.request import Request
 
+from lms.js_config_types import AutoGradingConfig
 from lms.models import Assignment, LTIParams, LTIRegistration
 from lms.services.html_service import strip_html_tags
 
@@ -9,6 +10,7 @@ from lms.services.html_service import strip_html_tags
 class AssignmentConfig(TypedDict):
     document_url: str | None
     group_set_id: str | None
+    auto_grading_config: NotRequired[AutoGradingConfig | None]
 
 
 class MiscPlugin:

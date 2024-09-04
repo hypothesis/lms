@@ -9,6 +9,7 @@ from lms.models import (
     Assignment,
     AssignmentGrouping,
     AssignmentMembership,
+    AutoGradingConfig,
     Course,
     Grouping,
     LTIRole,
@@ -53,13 +54,14 @@ class AssignmentService:
 
         return assignment
 
-    def update_assignment(  # noqa: PLR0913
+    def update_assignment(  # noqa: PLR0913, PLR0917
         self,
         request,
         assignment: Assignment,
         document_url: str,
         group_set_id,
         course: Course,
+        auto_grading_config: dict | None = None,
     ):
         """Update an existing assignment."""
         if self._misc_plugin.is_speed_grader_launch(request):
@@ -83,6 +85,15 @@ class AssignmentService:
             request.lti_params
         )
         assignment.course_id = course.id
+
+        if auto_grading_config:
+            if not assignment.auto_grading_config:
+                assignment.auto_grading_config = AutoGradingConfig()
+                self._db.add(assignment.auto_grading_config)
+
+            assignment.auto_grading_config = self._update_auto_grading_config(
+                assignment.auto_grading_config, auto_grading_config
+            )
 
         return assignment
 
@@ -137,6 +148,7 @@ class AssignmentService:
         )
         document_url = assignment_config.get("document_url")
         group_set_id = assignment_config.get("group_set_id")
+        auto_grading_config = assignment_config.get("auto_grading_config")
 
         if not document_url:
             # We can't find a document_url, we shouldn't try to create an
@@ -177,7 +189,7 @@ class AssignmentService:
         # It often will be the same one while launching the assignment again but
         # it might for example be an updated deep linked URL or similar.
         return self.update_assignment(
-            request, assignment, document_url, group_set_id, course
+            request, assignment, document_url, group_set_id, course, auto_grading_config
         )
 
     def upsert_assignment_membership(
@@ -315,6 +327,22 @@ class AssignmentService:
         )
 
         return {x.course_id: x.count for x in self._db.execute(query)}  # type: ignore
+
+    def _update_auto_grading_config(
+        self, auto_grading_model: AutoGradingConfig, auto_grading_config: dict
+    ) -> AutoGradingConfig:
+        auto_grading_model.activity_calculation = auto_grading_config.get(
+            "activity_calculation"
+        )
+        auto_grading_model.grading_type = auto_grading_config.get("grading_type")
+        auto_grading_model.required_annotations = auto_grading_config[
+            "required_annotations"
+        ]
+        auto_grading_model.required_replies = auto_grading_config.get(
+            "required_replies"
+        )
+
+        return auto_grading_model
 
 
 def factory(_context, request):

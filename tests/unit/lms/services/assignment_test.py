@@ -4,7 +4,13 @@ from unittest.mock import patch, sentinel
 import pytest
 from h_matchers import Any
 
-from lms.models import AssignmentGrouping, AssignmentMembership, RoleScope, RoleType
+from lms.models import (
+    AssignmentGrouping,
+    AssignmentMembership,
+    AutoGradingConfig,
+    RoleScope,
+    RoleType,
+)
 from lms.services.assignment import AssignmentService, factory
 from tests import factories
 
@@ -59,6 +65,40 @@ class TestAssignmentService:
             assert assignment.extra["group_set_id"] == sentinel.group_set_id
             assert assignment.title == title
             assert assignment.course_id == course.id
+
+    def test_update_assignment_updates_auto_grading_config(
+        self,
+        svc,
+        pyramid_request,
+        course,
+    ):
+        assignment = factories.Assignment(
+            auto_grading_config=AutoGradingConfig(
+                activity_calculation="separate",
+                grading_type="scaled",
+                required_annotations=1,
+                required_replies=1,
+            )
+        )
+
+        assignment = svc.update_assignment(
+            pyramid_request,
+            assignment,
+            sentinel.document_url,
+            sentinel.group_set_id,
+            course,
+            auto_grading_config={
+                "activity_calculation": "combined",
+                "grading_type": "all_or_nothing",
+                "required_annotations": 10,
+                "required_replies": 10,
+            },
+        )
+
+        assert assignment.auto_grading_config.activity_calculation == "combined"
+        assert assignment.auto_grading_config.grading_type == "all_or_nothing"
+        assert assignment.auto_grading_config.required_annotations == 10
+        assert assignment.auto_grading_config.required_replies == 10
 
     @pytest.mark.parametrize(
         "param",

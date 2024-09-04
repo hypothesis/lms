@@ -1,7 +1,10 @@
+import json
 import re
 from functools import lru_cache
+from typing import cast
 from urllib.parse import unquote, urlencode, urlparse
 
+from lms.js_config_types import AutoGradingConfig
 from lms.models import Assignment
 from lms.product.plugin.misc import AssignmentConfig, MiscPlugin
 from lms.services.vitalsource import VSBookLocation
@@ -46,12 +49,22 @@ class CanvasMiscPlugin(MiscPlugin):
     ) -> AssignmentConfig:
         document_url = self._get_document_url(request)
 
-        return {
-            "document_url": document_url,
+        assignment_config = AssignmentConfig(
+            document_url=document_url,
             # For canvas we add parameter to the launch URL as we don't store the
             # assignment during deep linking.
-            "group_set_id": request.params.get("group_set"),
-        }
+            group_set_id=request.params.get("group_set"),
+        )
+
+        if auto_grading_config := self.get_deep_linked_assignment_configuration(
+            request
+        ).get("auto_grading_config"):
+            # Auto grading is a complex structure, deserialize it before hand
+            assignment_config["auto_grading_config"] = cast(
+                AutoGradingConfig, json.loads(auto_grading_config)
+            )
+
+        return assignment_config
 
     @lru_cache(1)
     def _get_document_url(self, request) -> str | None:
@@ -133,6 +146,7 @@ class CanvasMiscPlugin(MiscPlugin):
 
         possible_parameters = [
             "group_set",
+            "auto_grading_config",
             # VS, legacy method
             "vitalsource_book",
             "book_id",
