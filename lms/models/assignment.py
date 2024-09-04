@@ -1,11 +1,35 @@
+from enum import StrEnum
+
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import DynamicMapped, Mapped, mapped_column, relationship
 
-from lms.db import Base
+from lms.db import Base, varchar_enum
 from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.grouping import Course, Grouping
+
+
+class AutoGradingType(StrEnum):
+    ALL_OR_NOTHING = "all_or_nothing"
+    SCALED = "scaled"
+
+
+class AutoGradingCalculation(StrEnum):
+    CUMULATIVE = "cumulative"
+    SEPARATE = "separate"
+
+
+class AutoGradingConfig(Base):
+    __tablename__ = "assignment_auto_grading_config"
+
+    id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
+
+    activity_calculation: Mapped[str | None] = varchar_enum(AutoGradingCalculation)
+    grading_type: Mapped[str | None] = varchar_enum(AutoGradingType)
+
+    required_annotations: Mapped[int] = mapped_column()
+    required_replies: Mapped[int | None] = mapped_column()
 
 
 class Assignment(CreatedUpdatedMixin, Base):
@@ -109,6 +133,10 @@ class Assignment(CreatedUpdatedMixin, Base):
 
     claim on LTI1.3
     """
+    auto_grading_config_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("assignment_auto_grading_config.id", ondelete="cascade")
+    )
+    auto_grading_config = relationship("AutoGradingConfig")
 
     __table_args__ = (
         sa.UniqueConstraint("resource_link_id", "tool_consumer_instance_guid"),
