@@ -3,7 +3,7 @@ from unittest.mock import sentinel
 import pytest
 from sqlalchemy import select
 
-from lms.models import Assignment, RoleScope, RoleType, User
+from lms.models import Assignment, AutoGradingConfig, RoleScope, RoleType, User
 from lms.views.dashboard.api.assignment import AssignmentViews
 from tests import factories
 
@@ -63,6 +63,39 @@ class TestAssignmentViews:
             "title": assignment.title,
             "created": assignment.created.isoformat(),
             "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
+        }
+
+    def test_assignment_with_auto_grading(
+        self, views, pyramid_request, assignment, db_session, dashboard_service
+    ):
+        assignment.auto_grading_config = AutoGradingConfig(
+            activity_calculation="separate",
+            grading_type="scaled",
+            required_annotations=1,
+            required_replies=1,
+        )
+
+        db_session.flush()
+        pyramid_request.matchdict["assignment_id"] = sentinel.id
+        dashboard_service.get_request_assignment.return_value = assignment
+
+        response = views.assignment()
+
+        dashboard_service.get_request_assignment.assert_called_once_with(
+            pyramid_request
+        )
+
+        assert response == {
+            "id": assignment.id,
+            "title": assignment.title,
+            "created": assignment.created.isoformat(),
+            "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
+            "auto_grading_config": {
+                "activity_calculation": "separate",
+                "grading_type": "scaled",
+                "required_annotations": 1,
+                "required_replies": 1,
+            },
         }
 
     def test_course_assignments(

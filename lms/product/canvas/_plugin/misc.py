@@ -59,7 +59,7 @@ class CanvasMiscPlugin(MiscPlugin):
         if auto_grading_config := self.get_deep_linked_assignment_configuration(
             request
         ).get("auto_grading_config"):
-            # Auto grading is a complex structure, deserialize it before hand
+            # Auto grading is a complex structure, deserialize it beforehand
             assignment_config["auto_grading_config"] = cast(
                 AutoGradingConfig, json.loads(auto_grading_config)
             )
