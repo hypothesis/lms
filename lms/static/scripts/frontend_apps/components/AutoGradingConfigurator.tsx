@@ -7,27 +7,13 @@ import {
 import type { ComponentChildren } from 'preact';
 import { useCallback, useId } from 'preact/hooks';
 
-export type GradingType = 'all_or_nothing' | 'scaled';
+import type { ActivityCalculation, GradingType } from '../api-types';
 
 export type AutoGradingConfig = {
   /** Whether auto grading is enabled for the assignment or not */
   enabled?: boolean;
-
-  /**
-   * - all_or_nothing: students need to meet a minimum value, making them get
-   *                   either 0% or 100%
-   * - scaled: students may get a proportional grade based on the amount of
-   *           annotations. If requirement is 4, and they created 3, they'll
-   *           get a 75%
-   */
   gradingType: GradingType;
-
-  /**
-   * - cumulative: both annotations and replies will be counted together for
-   *               the grade calculation
-   * - separate: students will have different annotation and reply goals.
-   */
-  activityCalculation: 'cumulative' | 'separate';
+  activityCalculation: ActivityCalculation;
 
   /**
    * Required number of annotations if activityCalculation is 'separate' or

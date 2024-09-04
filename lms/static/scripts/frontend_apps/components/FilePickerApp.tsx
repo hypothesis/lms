@@ -16,6 +16,7 @@ import type { ComponentChildren } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { Link as RouterLink } from 'wouter-preact';
 
+import type { AutoGradingConfig as APIAutoGradingConfig } from '../api-types';
 import { useConfig } from '../config';
 import type { ConfigObject } from '../config';
 import { apiCall } from '../utils/api';
@@ -160,6 +161,10 @@ function PanelLabel({
   );
 }
 
+type DeepLinkingAPIData = Record<string, unknown> & {
+  auto_grading_config: APIAutoGradingConfig | null;
+};
+
 /**
  * An application that allows the user to choose the web page or PDF for an
  * assignment.
@@ -256,7 +261,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       // When deepLinkingAPI is present we want to call the backend to return the form
       // fields we'll forward to the LMS to complete the Deep Linking request
       try {
-        const data = {
+        const data: DeepLinkingAPIData = {
           ...deepLinkingAPI.data,
           auto_grading_config:
             autoGradingEnabled && autoGradingConfig.enabled
