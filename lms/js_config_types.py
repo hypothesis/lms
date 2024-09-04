@@ -4,7 +4,28 @@ Types of the config exposed to the frontend and API return values.
 Making this a top level module to avoid circular dependency problems.
 """
 
-from typing import NotRequired, TypedDict
+from typing import Literal, NotRequired, TypedDict
+
+
+class AutoGradingConfig(TypedDict):
+    grading_type: Literal["all_or_nothing", "scaled"] | None
+    """
+    - all_or_nothing: students need to meet a minimum value, making them get
+                      either 0% or 100%
+    - scaled: students may get a proportional grade based on the amount of
+              annotations. If requirement is 4, and they created 3, they'll
+              get a 75%
+    """
+
+    activity_calculation: Literal["cumulative", "separate"] | None
+    """
+    - cumulative: both annotations and replies will be counted together for
+                  the grade calculation
+    - separate: students will have different annotation and reply goals.
+    """
+
+    required_annotations: int
+    required_replies: int | None
 
 
 class Pagination(TypedDict):
@@ -58,7 +79,9 @@ class APIAssignment(TypedDict):
     title: str
     created: str
     course: NotRequired[APICourse]
+
     annotation_metrics: NotRequired[AnnotationMetrics]
+    auto_grading_config: NotRequired[AutoGradingConfig]
 
 
 class APIAssignments(TypedDict):
