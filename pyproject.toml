@@ -117,6 +117,7 @@ disable = [
     # Mostly false positives, better served by mypy
     "not-callable",
     "no-member",
+    "unsupported-membership-test",
 
 ]
 
