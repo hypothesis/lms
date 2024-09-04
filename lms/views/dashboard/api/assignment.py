@@ -6,6 +6,7 @@ from lms.js_config_types import (
     APIAssignment,
     APIAssignments,
     APICourse,
+    AutoGradingConfig,
 )
 from lms.models import Assignment, RoleScope, RoleType
 from lms.security import Permissions
@@ -98,7 +99,7 @@ class AssignmentViews:
     )
     def assignment(self) -> APIAssignment:
         assignment = self.dashboard_service.get_request_assignment(self.request)
-        return APIAssignment(
+        api_assignment = APIAssignment(
             id=assignment.id,
             title=assignment.title,
             created=assignment.created.isoformat(),
@@ -107,6 +108,16 @@ class AssignmentViews:
                 title=assignment.course.lms_name,
             ),
         )
+
+        if auto_grading_config := assignment.auto_grading_config:
+            api_assignment["auto_grading_config"] = AutoGradingConfig(
+                grading_type=auto_grading_config.grading_type,
+                activity_calculation=auto_grading_config.activity_calculation,
+                required_annotations=auto_grading_config.required_annotations,
+                required_replies=auto_grading_config.required_replies,
+            )
+
+        return api_assignment
 
     @view_config(
         route_name="api.dashboard.course.assignments.metrics",
