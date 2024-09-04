@@ -122,23 +122,15 @@ class RosterService:
             if (
                 err.response_body
                 and (
-                    # Error message from Canvas
-                    "Requested ResourceLink bound to unexpected external tool"
+                    "Requested ResourceLink bound to unexpected external tool"  # Canvas, unknown reason
                     in err.response_body
                 )
-                # In cases for which we have different assignment IDs
-                and assignment.resource_link_id != assignment.lti_v13_resource_link_id
             ):
-                # The LMS (Canvas) doesn't seem to be able to link our tool to this assignment
-                # Try the same call but with the LTI1.1 assignment identifier.
-                LOG.info("Try to fetch roster with the LTI1.1 identifier")
-                roster = self._lti_names_roles_service.get_context_memberships(
-                    lti_registration,
-                    lms_course.lti_context_memberships_url,
-                    resource_link_id=assignment.resource_link_id,
-                )
-            else:
-                raise
+                LOG.error("Fetching assignment roster failed: %s", err.response_body)
+                # We ignore this type of error, just stop here.
+                return
+
+            raise
 
         # Insert any users we might be missing in the DB
         lms_users_by_lti_user_id = {
