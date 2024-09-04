@@ -145,7 +145,7 @@ def fetch_course_roster(*, lms_course_id) -> None:
 def fetch_assignment_roster(*, assignment_id) -> None:
     """Fetch the roster for one course."""
     with app.request_context() as request:
-        roster_service = request.find_service(RosterService)
+        roster_service: RosterService = request.find_service(RosterService)
         with request.tm:
             assignment = request.db.get(Assignment, assignment_id)
             roster_service.fetch_assignment_roster(assignment)

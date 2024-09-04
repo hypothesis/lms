@@ -1,10 +1,11 @@
-from unittest.mock import sentinel
+from unittest.mock import Mock, call, sentinel
 
 import pytest
 from h_matchers import Any
 from sqlalchemy import select
 
 from lms.models import AssignmentRoster, CourseRoster
+from lms.services.exceptions import ExternalRequestError
 from lms.services.roster import RosterService, factory
 from tests import factories
 
@@ -125,6 +126,56 @@ class TestLTINameRolesServices:
         assert roster[3].assignment_id == assignment.id
         assert roster[3].lms_user.lti_user_id == "USER_ID_INACTIVE"
         assert not roster[3].active
+
+    def test_fetch_assignment_roster_retries_with_lti_v11_id(
+        self,
+        svc,
+        lti_names_roles_service,
+        lti_v13_application_instance,
+        assignment,
+        names_and_roles_roster_response,
+        lti_role_service,
+    ):
+        lti_role_service.get_roles.return_value = [
+            factories.LTIRole(value="ROLE1"),
+            factories.LTIRole(value="ROLE2"),
+        ]
+
+        lti_names_roles_service.get_context_memberships.side_effect = [
+            ExternalRequestError(
+                response=Mock(
+                    text="Requested ResourceLink bound to unexpected external tool"
+                )
+            ),
+            names_and_roles_roster_response,
+        ]
+
+        svc.fetch_assignment_roster(assignment)
+
+        lti_names_roles_service.get_context_memberships.assert_has_calls(
+            [
+                call(
+                    lti_v13_application_instance.lti_registration,
+                    "SERVICE_URL",
+                    assignment.lti_v13_resource_link_id,
+                ),
+                call(
+                    lti_v13_application_instance.lti_registration,
+                    "SERVICE_URL",
+                    assignment.resource_link_id,
+                ),
+            ]
+        )
+
+    def test_fetch_assignment_roster_raises_external_request_error(
+        self, svc, lti_names_roles_service, assignment
+    ):
+        lti_names_roles_service.get_context_memberships.side_effect = (
+            ExternalRequestError()
+        )
+
+        with pytest.raises(ExternalRequestError):
+            svc.fetch_assignment_roster(assignment)
 
     @pytest.fixture
     def lms_course(self, lti_v13_application_instance):
