@@ -22,6 +22,8 @@ import { apiCall } from '../utils/api';
 import type { Content, URLContent } from '../utils/content-item';
 import { truncateURL } from '../utils/format';
 import { useUniqueId } from '../utils/hooks';
+import type { AutoGradingConfig } from './AutoGradingConfigurator';
+import AutoGradingConfigurator from './AutoGradingConfigurator';
 import ContentSelector from './ContentSelector';
 import ErrorModal from './ErrorModal';
 import FilePickerFormFields from './FilePickerFormFields';
@@ -170,12 +172,26 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       settings: { groupsEnabled: enableGroupConfig },
     },
     assignment,
-    filePicker: { deepLinkingAPI, formAction, formFields, promptForTitle },
+    filePicker: {
+      autoGradingEnabled,
+      deepLinkingAPI,
+      formAction,
+      formFields,
+      promptForTitle,
+    },
   } = useConfig(['api', 'filePicker']);
 
   // Currently selected content for assignment.
   const [content, setContent] = useState<Content | null>(
     assignment ? contentFromURL(assignment.document.url) : null,
+  );
+
+  const [autoGradingConfig, setAutoGradingConfig] = useState<AutoGradingConfig>(
+    {
+      gradingType: 'all_or_nothing',
+      activityCalculation: 'cumulative',
+      requiredAnnotations: 1,
+    },
   );
 
   // Flag indicating if we are editing content that was previously selected.
@@ -185,7 +201,8 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
 
   // Whether there are additional configuration options to present after the
   // user has selected the content for the assignment.
-  const showDetailsScreen = enableGroupConfig || promptForTitle;
+  const showDetailsScreen =
+    enableGroupConfig || promptForTitle || autoGradingEnabled;
 
   let currentStep: PickerStep;
   if (editingContent) {
@@ -241,6 +258,15 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       try {
         const data = {
           ...deepLinkingAPI.data,
+          auto_grading_config:
+            autoGradingEnabled && autoGradingConfig.enabled
+              ? {
+                  grading_type: autoGradingConfig.gradingType,
+                  activity_calculation: autoGradingConfig.activityCalculation,
+                  required_annotations: autoGradingConfig.requiredAnnotations,
+                  required_replies: autoGradingConfig.requiredReplies,
+                }
+              : null,
           content,
           group_set: groupConfig.useGroupSet ? groupConfig.groupSet : null,
           title,
@@ -269,6 +295,8 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       groupConfig.groupSet,
       groupConfig.useGroupSet,
       title,
+      autoGradingEnabled,
+      autoGradingConfig,
     ],
   );
 
@@ -415,12 +443,20 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                         />
                       </>
                     )}
+                    {autoGradingEnabled && (
+                      <>
+                        <div className="sm:col-span-2 border-b" />
+                        <PanelLabel isCurrentStep>Auto grading</PanelLabel>
+                        <AutoGradingConfigurator
+                          config={autoGradingConfig}
+                          onChange={setAutoGradingConfig}
+                        />
+                      </>
+                    )}
                     {enableGroupConfig && (
                       <>
                         <div className="sm:col-span-2 border-b" />
-                        <PanelLabel isCurrentStep={true}>
-                          Group assignment
-                        </PanelLabel>
+                        <PanelLabel isCurrentStep>Group assignment</PanelLabel>
                         <div
                           className={classnames(
                             // Set a height on this container to give the group

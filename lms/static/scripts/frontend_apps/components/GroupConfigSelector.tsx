@@ -1,4 +1,9 @@
-import { Checkbox, Link, Select } from '@hypothesis/frontend-shared';
+import {
+  Checkbox,
+  CheckboxCheckedFilledIcon,
+  Link,
+  Select,
+} from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
@@ -245,6 +250,7 @@ export default function GroupConfigSelector({
     <div className="space-y-3">
       <Checkbox
         checked={useGroupSet}
+        checkedIcon={CheckboxCheckedFilledIcon}
         onInput={(e: Event) =>
           onChangeGroupConfig({
             useGroupSet: (e.target as HTMLInputElement).checked,
