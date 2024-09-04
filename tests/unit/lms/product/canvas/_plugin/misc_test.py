@@ -48,6 +48,20 @@ class TestCanvasMiscPlugin:
         else:
             js_config.set_focused_user.assert_not_called()
 
+    def test_get_assignment_configuration_with_auto_grading_config(
+        self, plugin, pyramid_request
+    ):
+        pyramid_request.params["auto_grading_config"] = '{"some":"value"}'
+        config = plugin.get_assignment_configuration(
+            pyramid_request, sentinel.assignment, sentinel.historical_assignment
+        )
+
+        assert config == {
+            "document_url": None,
+            "group_set_id": None,
+            "auto_grading_config": {"some": "value"},
+        }
+
     def test_get_assignment_configuration(self, plugin, pyramid_request):
         config = plugin.get_assignment_configuration(
             pyramid_request, sentinel.assignment, sentinel.historical_assignment
@@ -164,22 +178,23 @@ class TestCanvasMiscPlugin:
             == "http://example.com/lti_launches?param=value"
         )
 
-    @pytest.mark.parametrize("url_param", (None, sentinel.from_url))
+    @pytest.mark.parametrize("parameter", ["group_set", "auto_grading_config", "url"])
+    @pytest.mark.parametrize("request_param", (None, sentinel.from_url))
     @pytest.mark.parametrize("custom_param", (None, sentinel.from_custom))
     def test_get_deep_linked_assignment_configuration(
-        self, plugin, pyramid_request, url_param, custom_param
+        self, plugin, pyramid_request, request_param, custom_param, parameter
     ):
-        pyramid_request.params["url"] = url_param
-        pyramid_request.lti_params["custom_url"] = custom_param
+        pyramid_request.params[parameter] = request_param
+        pyramid_request.lti_params[f"custom_{parameter}"] = custom_param
 
         result = plugin.get_deep_linked_assignment_configuration(pyramid_request)
 
-        if url_param:
-            assert result["url"] == sentinel.from_url
+        if request_param:
+            assert result[parameter] == sentinel.from_url
         elif custom_param:
-            assert result["url"] == sentinel.from_custom
+            assert result[parameter] == sentinel.from_custom
         else:
-            assert "url" not in result
+            assert parameter not in result
 
     @pytest.mark.parametrize(
         "get,expected", [({}, False), ({"learner_canvas_user_id": "ID"}, True)]
