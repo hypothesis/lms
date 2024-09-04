@@ -15,6 +15,7 @@ from lms.models import (
 )
 from lms.models.h_user import get_h_userid, get_h_username
 from lms.models.lti_user import display_name
+from lms.services.exceptions import ExternalRequestError
 from lms.services.lti_names_roles import LTINamesRolesService
 from lms.services.lti_role_service import LTIRoleService
 from lms.services.upsert import bulk_upsert
@@ -111,11 +112,33 @@ class RosterService:
         ), "Trying fetch roster for course without service URL."
         lti_registration = self._get_lti_registration(lms_course)
 
-        roster = self._lti_names_roles_service.get_context_memberships(
-            lti_registration,
-            lms_course.lti_context_memberships_url,
-            resource_link_id=assignment.lti_v13_resource_link_id,
-        )
+        try:
+            roster = self._lti_names_roles_service.get_context_memberships(
+                lti_registration,
+                lms_course.lti_context_memberships_url,
+                resource_link_id=assignment.lti_v13_resource_link_id,
+            )
+        except ExternalRequestError as err:
+            if (
+                err.response_body
+                and (
+                    # Error message from Canvas
+                    "Requested ResourceLink bound to unexpected external tool"
+                    in err.response_body
+                )
+                # In cases for which we have different assignment IDs
+                and assignment.resource_link_id != assignment.lti_v13_resource_link_id
+            ):
+                # The LMS (Canvas) doesn't seem to be able to link our tool to this assignment
+                # Try the same call but with the LTI1.1 assignment identifier.
+                LOG.info("Try to fetch roster with the LTI1.1 identifier")
+                roster = self._lti_names_roles_service.get_context_memberships(
+                    lti_registration,
+                    lms_course.lti_context_memberships_url,
+                    resource_link_id=assignment.resource_link_id,
+                )
+            else:
+                raise
 
         # Insert any users we might be missing in the DB
         lms_users_by_lti_user_id = {
