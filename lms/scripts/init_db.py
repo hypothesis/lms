@@ -55,6 +55,7 @@ def delete(engine: Engine) -> None:
         # For example, this will delete tables created by migrations in other branches, not only the ones SQLAlchemy know about in the current code base.
         connection.execute(text("DROP SCHEMA PUBLIC CASCADE;"))
         connection.execute(text("CREATE SCHEMA PUBLIC;"))
+        connection.execute(text("COMMIT;"))
 
     try:
         from lms.db import post_delete  # noqa: PLC0415
