@@ -8,7 +8,7 @@ from webargs import fields
 from lms.events import AuditTrailEvent, ModelChange
 from lms.models import Course, EventType
 from lms.security import Permissions
-from lms.services import InvalidPublicId, OrganizationService
+from lms.services import InvalidPublicId, OrganizationService, RosterService
 from lms.validation._base import PyramidRequestSchema
 from lms.views.admin import flash_validation
 from lms.views.admin._schemas import EmptyStringInt
@@ -33,6 +33,7 @@ class AdminCourseViews:
         self.organization_service: OrganizationService = request.find_service(
             OrganizationService
         )
+        self.roster_service: RosterService = request.find_service(RosterService)
 
     @view_config(
         route_name="admin.courses",
@@ -52,8 +53,9 @@ class AdminCourseViews:
     def show(self):
         course_id = self.request.matchdict["id_"]
         course = self._get_course_or_404(course_id)
+        roster = self.roster_service.get_course_roster(course.lms_course)
 
-        return {"course": course}
+        return {"course": course, "roster": roster}
 
     @view_config(
         route_name="admin.courses.dashboard",

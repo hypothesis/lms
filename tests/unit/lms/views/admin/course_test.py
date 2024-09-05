@@ -10,17 +10,21 @@ from lms.views.admin.course import AdminCourseViews
 from tests import factories
 
 
-@pytest.mark.usefixtures("course_service", "organization_service")
+@pytest.mark.usefixtures("course_service", "organization_service", "roster_service")
 class TestAdminCourseViews:
-    def test_show(self, pyramid_request, course_service, views):
+    def test_show(self, pyramid_request, course_service, views, roster_service):
         pyramid_request.matchdict["id_"] = sentinel.id_
 
         response = views.show()
 
         course_service.get_by_id.assert_called_once_with(id_=sentinel.id_)
+        roster_service.get_course_roster.assert_called_once_with(
+            course_service.get_by_id.return_value.lms_course
+        )
 
         assert response == {
             "course": course_service.get_by_id.return_value,
+            "roster": roster_service.get_course_roster.return_value,
         }
 
     def test_show_not_found(self, pyramid_request, course_service, views):
