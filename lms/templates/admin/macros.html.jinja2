@@ -108,16 +108,20 @@
             <table class="table is-fullwidth">
                 <thead>
                     <tr>
+                        {% if route %}
                         <th></th>
+                        {% endif %}
                         {% for field in fields %}<th>{{ field.label }}</th>{% endfor %}
                     </tr>
                 </thead>
                 <tbody>
                     {% for object in objects %}
                         <tr>
+                            {% if route %}
                             <td>
                                 <a class="button" href="{{ request.route_url(route, id_=object.id) }}">View</a>
                             </td>
+                            {% endif %}
                             {% for field in fields %}<td>{{ auto_format(object[field.name], html=html) }}</td>{% endfor %}
                         </tr>
                     {% endfor %}
@@ -278,3 +282,12 @@
         {"label": "Context ID", "name": "lms_id"},
     ]) }}
 {% endmacro %}
+{% macro roster_table(request, roster_users) %}
+    {{ object_list_table(request, None, roster_users,
+        fields=[
+        {"label": "Name", "name": "display_name"},
+        {"label": "H Userid", "name": "h_userid"},
+        {"label": "LTI user id", "name": "lti_user_id"},
+    ]) }}
+{% endmacro %}
+
