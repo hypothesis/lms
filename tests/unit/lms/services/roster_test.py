@@ -11,6 +11,64 @@ from tests import factories
 
 
 class TestRosterService:
+    @pytest.mark.parametrize("with_role_scope", [True, False])
+    @pytest.mark.parametrize("with_role_type", [True, False])
+    def test_get_course_roster(
+        self, svc, lms_course, db_session, with_role_scope, with_role_type
+    ):
+        lms_user = factories.LMSUser()
+        inactive_lms_user = factories.LMSUser()
+        lti_role = factories.LTIRole()
+
+        factories.CourseRoster(
+            lms_user=lms_user,
+            lms_course=lms_course,
+            lti_role=lti_role,
+            active=True,
+        )
+        factories.CourseRoster(
+            lms_user=inactive_lms_user,
+            lms_course=lms_course,
+            lti_role=lti_role,
+            active=False,
+        )
+        db_session.flush()
+
+        assert svc.get_course_roster(
+            lms_course,
+            role_scope=lti_role.scope if with_role_scope else None,
+            role_type=lti_role.type if with_role_type else None,
+        ) == [lms_user]
+
+    @pytest.mark.parametrize("with_role_scope", [True, False])
+    @pytest.mark.parametrize("with_role_type", [True, False])
+    def test_get_assignment_roster(
+        self, svc, assignment, db_session, with_role_type, with_role_scope
+    ):
+        lms_user = factories.LMSUser()
+        inactive_lms_user = factories.LMSUser()
+        lti_role = factories.LTIRole()
+
+        factories.AssignmentRoster(
+            lms_user=lms_user,
+            assignment=assignment,
+            lti_role=lti_role,
+            active=True,
+        )
+        factories.AssignmentRoster(
+            lms_user=inactive_lms_user,
+            assignment=assignment,
+            lti_role=lti_role,
+            active=False,
+        )
+        db_session.flush()
+
+        assert svc.get_assignment_roster(
+            assignment,
+            role_scope=lti_role.scope if with_role_scope else None,
+            role_type=lti_role.type if with_role_type else None,
+        ) == [lms_user]
+
     def test_fetch_course_roster(
         self,
         svc,
