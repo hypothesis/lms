@@ -9,16 +9,21 @@ from lms.views.admin.assignment import AdminAssignmentViews
 from tests import factories
 
 
+@pytest.mark.usefixtures("roster_service")
 class TestAdminAssignmentViews:
-    def test_show(self, pyramid_request, assignment_service, views):
+    def test_show(self, pyramid_request, assignment_service, views, roster_service):
         pyramid_request.matchdict["id_"] = sentinel.id
 
         response = views.show()
 
         assignment_service.get_by_id.assert_called_once_with(id_=sentinel.id)
+        roster_service.get_assignment_roster.assert_called_once_with(
+            assignment_service.get_by_id.return_value
+        )
 
         assert response == {
             "assignment": assignment_service.get_by_id.return_value,
+            "roster": roster_service.get_assignment_roster.return_value,
         }
 
     def test_show_not_found(self, pyramid_request, assignment_service, views):
