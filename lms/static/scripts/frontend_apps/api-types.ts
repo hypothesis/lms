@@ -177,9 +177,6 @@ export type CoursesMetricsResponse = {
   courses: CourseWithMetrics[];
 };
 
-/**
- * Response for `/api/dashboard/assignments/{assignment_id}` call.
- */
 export type Assignment = {
   id: number;
   title: string;
@@ -204,8 +201,42 @@ export type StudentsMetricsResponse = {
   students: StudentWithMetrics[];
 };
 
-export type AssignmentWithCourse = Assignment & {
+type AssignmentWithCourse = Assignment & {
   course: Course;
+};
+
+/**
+ * - all_or_nothing: students need to meet a minimum value, making them get
+ *                   either 0% or 100%
+ * - scaled: students may get a proportional grade based on the amount of
+ *           annotations. If requirement is 4, and they created 3, they'll
+ *           get a 75%
+ */
+export type GradingType = 'all_or_nothing' | 'scaled';
+
+/**
+ * - cumulative: both annotations and replies will be counted together for
+ *               the grade calculation
+ * - separate: students will have different annotation and reply goals.
+ */
+export type ActivityCalculation = 'cumulative' | 'separate';
+
+export type AutoGradingConfig = {
+  grading_type: GradingType;
+  activity_calculation: ActivityCalculation;
+  required_annotations: number;
+  required_replies?: number;
+};
+
+/**
+ * Response for `/api/dashboard/assignments/{assignment_id}` call.
+ */
+export type AssignmentDetails = AssignmentWithCourse & {
+  /**
+   * If defined, it indicates this assignment was configured with auto grading
+   * enabled.
+   */
+  auto_grading_config?: AutoGradingConfig;
 };
 
 export type AssignmentWithMetrics = AssignmentWithCourse & {

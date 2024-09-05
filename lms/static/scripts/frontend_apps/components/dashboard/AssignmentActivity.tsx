@@ -2,7 +2,7 @@ import { useMemo } from 'preact/hooks';
 import { useLocation, useParams, useSearch } from 'wouter-preact';
 
 import type {
-  AssignmentWithCourse,
+  AssignmentDetails,
   StudentsMetricsResponse,
 } from '../../api-types';
 import { useConfig } from '../../config';
@@ -40,7 +40,7 @@ export default function AssignmentActivity() {
   const search = useSearch();
   const [, navigate] = useLocation();
 
-  const assignment = useAPIFetch<AssignmentWithCourse>(
+  const assignment = useAPIFetch<AssignmentDetails>(
     replaceURLParams(routes.assignment, { assignment_id: assignmentId }),
   );
 
