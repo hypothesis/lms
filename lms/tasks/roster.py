@@ -65,6 +65,8 @@ def schedule_fetching_course_rosters() -> None:
                     no_recent_roster_clause,
                     recent_launches_cluase,
                 )
+                # Prefer newer courses
+                .order_by(LMSCourse.created.desc())
                 # Schedule only a few rosters per call to this method
                 .limit(ROSTER_LIMIT)
             )
@@ -112,6 +114,8 @@ def schedule_fetching_assignment_rosters() -> None:
                     no_recent_roster_clause,
                     recent_launches_cluase,
                 )
+                # Prefer newer assignments
+                .order_by(Assignment.created.desc())
                 # Schedule only a few roster per call to this method
                 .limit(ROSTER_LIMIT)
             )
