@@ -1,7 +1,7 @@
 import {
   Button,
-  CancelIcon,
-  IconButton,
+  FilterClearIcon,
+  LinkButton,
   MultiSelect,
   RefreshIcon,
 } from '@hypothesis/frontend-shared';
@@ -435,13 +435,15 @@ export default function DashboardActivityFilters({
         )}
       />
       {hasSelection && onClearSelection && (
-        <IconButton
-          title="Clear filters"
-          icon={CancelIcon}
-          classes="text-grey-7"
+        <LinkButton
+          variant="text-light"
+          classes="ml-2 font-bold gap-x-1"
           onClick={() => onClearSelection()}
           data-testid="clear-button"
-        />
+        >
+          <FilterClearIcon />
+          Clear filters
+        </LinkButton>
       )}
     </div>
   );
