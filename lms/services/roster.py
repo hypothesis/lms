@@ -119,12 +119,12 @@ class RosterService:
                 resource_link_id=assignment.lti_v13_resource_link_id,
             )
         except ExternalRequestError as err:
-            if (
-                err.response_body
-                and (
-                    "Requested ResourceLink bound to unexpected external tool"  # Canvas, unknown reason
-                    in err.response_body
-                )
+            if err.response_body and (
+                # Canvas, unknown reason
+                "Requested ResourceLink bound to unexpected external tool"
+                in err.response_body
+                # Canvas, assignment deleted in the LMS
+                or "Requested ResourceLink was not found" in err.response_body
             ):
                 LOG.error("Fetching assignment roster failed: %s", err.response_body)
                 # We ignore this type of error, just stop here.

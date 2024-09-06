@@ -127,15 +127,18 @@ class TestLTINameRolesServices:
         assert roster[3].lms_user.lti_user_id == "USER_ID_INACTIVE"
         assert not roster[3].active
 
+    @pytest.mark.parametrize(
+        "known_error",
+        [
+            "Requested ResourceLink bound to unexpected external tool",
+            "Requested ResourceLink was not found",
+        ],
+    )
     def test_fetch_assignment_roster_retries_with_lti_v11_id(
-        self, svc, lti_names_roles_service, assignment
+        self, svc, lti_names_roles_service, assignment, known_error
     ):
         lti_names_roles_service.get_context_memberships.side_effect = (
-            ExternalRequestError(
-                response=Mock(
-                    text="Requested ResourceLink bound to unexpected external tool"
-                )
-            )
+            ExternalRequestError(response=Mock(text=known_error))
         )
 
         # Method finishes without re-raising the exception
