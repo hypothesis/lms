@@ -227,12 +227,20 @@ class TestUserService:
 
     @pytest.fixture
     def user(self, lti_user, application_instance):
-        return factories.User(
+        user = factories.User(
             application_instance=application_instance,
             user_id=lti_user.user_id,
             h_userid=lti_user.h_user.userid("authority.example.com"),
             roles="old_roles",
         )
+        factories.LMSUser(
+            tool_consumer_instance_guid=application_instance.tool_consumer_instance_guid,
+            lti_user_id=user.user_id,
+            h_userid=lti_user.h_user.userid("authority.example.com"),
+            email=user.email,
+            display_name=user.display_name,
+        )
+        return user
 
     @pytest.fixture
     def service(self, db_session):

@@ -73,23 +73,21 @@ class UserService:
 
     def _upsert_lms_user(self, user: User) -> LMSUser:
         """Upsert LMSUser based on a User object."""
-        self._db.flush()  # Make sure User has hit the DB on the current transaction
+        lms_user = self._db.scalars(
+            select(LMSUser).where(LMSUser.h_userid == user.h_userid)
+        ).one_or_none()
+        if not lms_user:
+            lms_user = LMSUser(
+                tool_consumer_instance_guid=user.application_instance.tool_consumer_instance_guid,
+                lti_user_id=user.user_id,
+                h_userid=user.h_userid,
+            )
+            self._db.add(lms_user)
+            self._db.flush()
 
-        lms_user = bulk_upsert(
-            self._db,
-            LMSUser,
-            [
-                {
-                    "tool_consumer_instance_guid": user.application_instance.tool_consumer_instance_guid,
-                    "lti_user_id": user.user_id,
-                    "h_userid": user.h_userid,
-                    "email": user.email,
-                    "display_name": user.display_name,
-                }
-            ],
-            index_elements=["h_userid"],
-            update_columns=["updated", "display_name", "email"],
-        ).one()
+        lms_user.display_name = user.display_name
+        lms_user.email = user.email
+
         bulk_upsert(
             self._db,
             LMSUserApplicationInstance,
