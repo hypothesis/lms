@@ -1,15 +1,12 @@
 from functools import lru_cache
-from typing import cast
 
-from sqlalchemy import BinaryExpression, false, or_, select
+from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.sql import Select
 
 from lms.models import (
-    ApplicationInstance,
     Assignment,
     AssignmentMembership,
-    GroupingMembership,
     LMSUser,
     LMSUserApplicationInstance,
     LTIRole,
@@ -162,75 +159,44 @@ class UserService:
         :param course_ids: return only users that belong to these courses.
         :param assignment_ids: return only users that belong these assignments.
         """
-        query = select(User.id)
 
-        # A few of the filters need to join with assignment_membership.
-        # Avoid joins and/or multiple subqueries by building a subquery and filtering the main query
-        # by it at the end
-        assignment_membership_subquery = select(AssignmentMembership.user_id).where(
-            AssignmentMembership.lti_role_id.in_(
-                select(LTIRole.id).where(
-                    LTIRole.scope == role_scope, LTIRole.type == role_type
+        candidate_courses = CourseService.courses_permission_check_query(
+            instructor_h_userid, admin_organization_ids, course_ids
+        ).cte("candidate_courses")
+
+        user_ids_query = (
+            select(AssignmentMembership.user_id)
+            .join(Assignment)
+            .join(candidate_courses, candidate_courses.c[0] == Assignment.course_id)
+            .where(
+                AssignmentMembership.lti_role_id.in_(
+                    select(LTIRole.id).where(
+                        LTIRole.scope == role_scope, LTIRole.type == role_type
+                    )
                 )
             )
         )
 
-        # Let's crate no op clauses by default to avoid having to check the presence of these filters
-        instructor_h_userid_clause = cast(BinaryExpression, false())
-        admin_organization_ids_clause = cast(BinaryExpression, false())
-
-        if instructor_h_userid:
-            instructor_h_userid_clause = User.id.in_(
-                # GroupingMembership has membership information, but it lacks role info
-                select(GroupingMembership.user_id).where(
-                    GroupingMembership.grouping_id.in_(
-                        # Get all the courses where instructor_h_userid is an instructor. This will query AssignmentMembership, which includes roles
-                        CourseService.course_ids_with_role_query(
-                            instructor_h_userid, RoleScope.COURSE, RoleType.INSTRUCTOR
-                        )
-                    )
-                )
+        if assignment_ids:
+            user_ids_query = user_ids_query.where(
+                AssignmentMembership.assignment_id.in_(assignment_ids)
             )
 
-        if admin_organization_ids:
-            admin_organization_ids_clause = User.application_instance_id.in_(
-                select(ApplicationInstance.id).where(
-                    ApplicationInstance.organization_id.in_(admin_organization_ids)
-                )
-            )
-
-        # instructor_h_userid and admin_organization_ids are about access rather than filtering.
-        # we apply them both as an or to fetch users where the users is either an instructor or an admin
-        query = query.where(
-            or_(instructor_h_userid_clause, admin_organization_ids_clause)
+        query = (
+            select(User.id)
+            .distinct(User.h_userid)
+            # Deduplicate based on the row's h_userid taking the last updated one
+            .where(User.id.in_(user_ids_query))
+            .order_by(User.h_userid, User.updated.desc())
         )
 
         if h_userids:
             query = query.where(User.h_userid.in_(h_userids))
 
-        if course_ids:
-            assignment_membership_subquery = assignment_membership_subquery.join(
-                Assignment
-            ).where(Assignment.course_id.in_(course_ids))
-
-        if assignment_ids:
-            assignment_membership_subquery = assignment_membership_subquery.where(
-                AssignmentMembership.assignment_id.in_(assignment_ids)
-            )
-
-        query = query.where(User.id.in_(assignment_membership_subquery))
-
-        # Deduplicate based on the row's h_userid taking the last updated one
-        query = query.distinct(User.h_userid).order_by(
-            User.h_userid, User.updated.desc()
-        )
-
         return (
             select(User)
-            .where(
-                User.id.in_(query)
-                # We can sort these again without affecting deduplication
-            )
+            .where(User.id.in_(query))
+            # We can sort these again without affecting deduplication
             .order_by(User.display_name, User.id)
         )
 

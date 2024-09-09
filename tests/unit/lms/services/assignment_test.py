@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 from unittest.mock import patch, sentinel
 
 import pytest
@@ -311,6 +311,7 @@ class TestAssignmentService:
     @pytest.mark.parametrize("course_ids", [True, False])
     @pytest.mark.parametrize("h_userids", [True, False])
     @pytest.mark.parametrize("assignment_ids", [True, False])
+    @pytest.mark.parametrize("with_empty_title", [True, False])
     def test_get_assignments(
         self,
         svc,
@@ -323,7 +324,10 @@ class TestAssignmentService:
         organization,
         course,
         instructor_in_assignment,
+        with_empty_title,
     ):
+        if with_empty_title:
+            assignment.title = None
         factories.User()
         assignment.course = course
         factories.AssignmentGrouping(grouping=course, assignment=assignment)
@@ -346,7 +350,10 @@ class TestAssignmentService:
 
         query = svc.get_assignments(**query_parameters)
 
-        assert db_session.scalars(query).all() == [assignment]
+        if with_empty_title:
+            assert not db_session.scalars(query).all()
+        else:
+            assert db_session.scalars(query).all() == [assignment]
 
     def test_get_assignments_returns_all_assignments_for_instructor(
         self, db_session, svc, assignment, instructor_in_assignment, course
@@ -368,17 +375,6 @@ class TestAssignmentService:
                 )
             ).all()
         ) == {assignment, assignment_not_launched_by_instructor}
-
-    def test_get_assignments_excludes_empty_titles(self, db_session, svc, course):
-        assignment = factories.Assignment(title=None)
-        factories.AssignmentGrouping(
-            grouping=course, assignment=assignment, updated=date(2022, 1, 1)
-        )
-        db_session.flush()
-
-        assert not db_session.scalars(
-            svc.get_assignments(course_ids=[course.id])
-        ).all() == [assignment]
 
     def test_get_courses_assignments_count(
         self, svc, db_session, organization, course, application_instance

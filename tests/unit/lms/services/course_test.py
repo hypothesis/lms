@@ -341,18 +341,6 @@ class TestCourseService:
 
         assert result == [course]
 
-    def test_search_by_h_userids(self, svc, db_session):
-        user = factories.User()
-        course = factories.Course()
-        factories.Course.create_batch(10)
-        factories.GroupingMembership(grouping=course, user=user)
-        # Ensure ids are written
-        db_session.flush()
-
-        result = svc.search(h_userids=[user.h_userid])
-
-        assert result == [course]
-
     def test_search_limit(self, svc):
         orgs = factories.Course.create_batch(10)
 
@@ -430,6 +418,21 @@ class TestCourseService:
 
         assert db_session.scalars(
             svc.get_courses(instructor_h_userid=user.h_userid)
+        ).all() == [course]
+
+    def test_get_courses_by_h_userids(
+        self, svc, db_session, application_instance, organization
+    ):
+        course = factories.Course(application_instance=application_instance)
+        user = factories.User()
+        factories.GroupingMembership(grouping=course, user=user)
+
+        db_session.flush()
+
+        assert db_session.scalars(
+            svc.get_courses(
+                admin_organization_ids=[organization.id], h_userids=[user.h_userid]
+            )
         ).all() == [course]
 
     def test_get_courses_by_assignment_ids(
