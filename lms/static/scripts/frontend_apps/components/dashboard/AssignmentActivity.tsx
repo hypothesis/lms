@@ -14,6 +14,8 @@ import { replaceURLParams } from '../../utils/url';
 import DashboardActivityFilters from './DashboardActivityFilters';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import FormattedDate from './FormattedDate';
+import GradeStatusChip from './GradeStatusChip';
+import type { OrderableActivityTableColumn } from './OrderableActivityTable';
 import OrderableActivityTable from './OrderableActivityTable';
 
 type StudentsTableRow = {
@@ -22,6 +24,7 @@ type StudentsTableRow = {
   last_activity: string | null;
   annotations: number;
   replies: number;
+  auto_grading_grade?: number;
 };
 
 /**
@@ -43,6 +46,7 @@ export default function AssignmentActivity() {
   const assignment = useAPIFetch<AssignmentDetails>(
     replaceURLParams(routes.assignment, { assignment_id: assignmentId }),
   );
+  const autoGradingEnabled = !!assignment.data?.auto_grading_config;
 
   const students = useAPIFetch<StudentsMetricsResponse>(
     routes.students_metrics,
@@ -56,14 +60,49 @@ export default function AssignmentActivity() {
   const rows: StudentsTableRow[] = useMemo(
     () =>
       (students.data?.students ?? []).map(
-        ({ lms_id, display_name, annotation_metrics }) => ({
+        ({ lms_id, display_name, auto_grading_grade, annotation_metrics }) => ({
           lms_id,
           display_name,
+          auto_grading_grade,
           ...annotation_metrics,
         }),
       ),
     [students.data],
   );
+  const columns = useMemo(() => {
+    const firstColumns: OrderableActivityTableColumn<StudentsTableRow>[] = [
+      {
+        field: 'display_name',
+        label: 'Student',
+      },
+    ];
+    const lastColumns: OrderableActivityTableColumn<StudentsTableRow>[] = [
+      {
+        field: 'annotations',
+        label: 'Annotations',
+        initialOrderDirection: 'descending',
+      },
+      {
+        field: 'replies',
+        label: 'Replies',
+        initialOrderDirection: 'descending',
+      },
+      {
+        field: 'last_activity',
+        label: 'Last Activity',
+        initialOrderDirection: 'descending',
+      },
+    ];
+
+    if (autoGradingEnabled) {
+      firstColumns.push({
+        field: 'auto_grading_grade',
+        label: 'Grade',
+      });
+    }
+
+    return [...firstColumns, ...lastColumns];
+  }, [autoGradingEnabled]);
 
   const title = assignment.data?.title ?? 'Untitled assignment';
   useDocumentTitle(title);
@@ -134,27 +173,7 @@ export default function AssignmentActivity() {
           students.error ? 'Could not load students' : 'No students found'
         }
         rows={rows}
-        columns={[
-          {
-            field: 'display_name',
-            label: 'Student',
-          },
-          {
-            field: 'annotations',
-            label: 'Annotations',
-            initialOrderDirection: 'descending',
-          },
-          {
-            field: 'replies',
-            label: 'Replies',
-            initialOrderDirection: 'descending',
-          },
-          {
-            field: 'last_activity',
-            label: 'Last Activity',
-            initialOrderDirection: 'descending',
-          },
-        ]}
+        columns={columns}
         defaultOrderField="display_name"
         renderItem={(stats, field) => {
           switch (field) {
@@ -179,6 +198,8 @@ export default function AssignmentActivity() {
                   </span>
                 )
               );
+            case 'auto_grading_grade':
+              return <GradeStatusChip grade={stats.auto_grading_grade ?? 0} />;
             default:
               return '';
           }

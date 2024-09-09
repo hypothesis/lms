@@ -52,11 +52,17 @@ describe('AssignmentActivity', () => {
   let fakeConfig;
   let wrappers;
 
-  beforeEach(() => {
-    fakeUseAPIFetch = sinon.stub().callsFake(url => ({
+  function setUpFakeUseAPIFetch(assignment = activeAssignment) {
+    fakeUseAPIFetch.callsFake(url => ({
       isLoading: false,
-      data: url.endsWith('metrics') ? { students } : activeAssignment,
+      data: url.endsWith('metrics') ? { students } : assignment,
     }));
+  }
+
+  beforeEach(() => {
+    fakeUseAPIFetch = sinon.stub();
+    setUpFakeUseAPIFetch();
+
     fakeNavigate = sinon.stub();
     fakeUseSearch = sinon.stub().returns('current=query');
     fakeConfig = {
@@ -295,6 +301,94 @@ describe('AssignmentActivity', () => {
         assert.calledWith(fakeNavigate, expectedDestination);
       });
     });
+  });
+
+  context('when auto-grading is enabled', () => {
+    [
+      {
+        autoGradingEnabled: false,
+        expectedColumns: [
+          {
+            field: 'display_name',
+            label: 'Student',
+          },
+          {
+            field: 'annotations',
+            label: 'Annotations',
+            initialOrderDirection: 'descending',
+          },
+          {
+            field: 'replies',
+            label: 'Replies',
+            initialOrderDirection: 'descending',
+          },
+          {
+            field: 'last_activity',
+            label: 'Last Activity',
+            initialOrderDirection: 'descending',
+          },
+        ],
+      },
+      {
+        autoGradingEnabled: true,
+        expectedColumns: [
+          {
+            field: 'display_name',
+            label: 'Student',
+          },
+          {
+            field: 'auto_grading_grade',
+            label: 'Grade',
+          },
+          {
+            field: 'annotations',
+            label: 'Annotations',
+            initialOrderDirection: 'descending',
+          },
+          {
+            field: 'replies',
+            label: 'Replies',
+            initialOrderDirection: 'descending',
+          },
+          {
+            field: 'last_activity',
+            label: 'Last Activity',
+            initialOrderDirection: 'descending',
+          },
+        ],
+      },
+    ].forEach(({ autoGradingEnabled, expectedColumns }) => {
+      it('shows one more column in the metrics table', () => {
+        setUpFakeUseAPIFetch({
+          ...activeAssignment,
+          auto_grading_config: autoGradingEnabled ? {} : null,
+        });
+
+        const wrapper = createComponent();
+        const tableElement = wrapper.find('OrderableActivityTable');
+
+        assert.deepEqual(tableElement.prop('columns'), expectedColumns);
+      });
+    });
+
+    [{ auto_grading_grade: undefined }, { auto_grading_grade: 25 }].forEach(
+      ({ auto_grading_grade }) => {
+        it('shows the grade for every student', () => {
+          setUpFakeUseAPIFetch({
+            ...activeAssignment,
+            auto_grading_config: {},
+          });
+
+          const wrapper = createComponent();
+          const item = wrapper
+            .find('OrderableActivityTable')
+            .props()
+            .renderItem({ auto_grading_grade }, 'auto_grading_grade');
+
+          assert.equal(mount(item).prop('grade'), auto_grading_grade ?? 0);
+        });
+      },
+    );
   });
 
   it(

@@ -2,6 +2,7 @@ import type { DataTableProps, Order } from '@hypothesis/frontend-shared';
 import { DataTable } from '@hypothesis/frontend-shared';
 import { useOrderedRows } from '@hypothesis/frontend-shared';
 import type { OrderDirection } from '@hypothesis/frontend-shared/lib/types';
+import classnames from 'classnames';
 import { useMemo, useState } from 'preact/hooks';
 import { useLocation } from 'wouter-preact';
 
@@ -46,7 +47,13 @@ export default function OrderableActivityTable<T>({
       columns.map(({ field, label }, index) => ({
         field,
         label,
-        classes: index === 0 ? 'lg:w-[60%] md:w-[45%]' : undefined,
+        classes: classnames({
+          // For assignments with auto-grading, a fifth column is displayed.
+          // In that case, we need to reserve less space for the first column,
+          // otherwise the rest overflow.
+          'lg:w-[60%] md:w-[45%]': index === 0 && columns.length < 5,
+          'lg:w-[45%] md:w-[30%]': index === 0 && columns.length >= 5,
+        }),
       })),
     [columns],
   );
