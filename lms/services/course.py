@@ -1,8 +1,7 @@
 import json
 from copy import deepcopy
-from typing import cast
 
-from sqlalchemy import BinaryExpression, Select, Text, column, false, func, or_, select
+from sqlalchemy import Select, Text, column, func, select, union
 
 from lms.db import full_text_match
 from lms.models import (
@@ -89,7 +88,6 @@ class CourseService:
         name: str | None = None,
         limit: int | None = 100,
         organization_ids: list[int] | None = None,
-        h_userids: list[str] | None = None,
     ):
         query = self._db.query(Course)
 
@@ -115,14 +113,6 @@ class CourseService:
                 .filter(Organization.id.in_(organization_ids))
             )
 
-        if h_userids:
-            # Only courses these h_userids belong to
-            query = (
-                query.join(GroupingMembership)
-                .join(User)
-                .filter(User.h_userid.in_(h_userids))
-            )
-
         return query.limit(limit)
 
     def search(  # noqa: PLR0913, PLR0917
@@ -133,7 +123,6 @@ class CourseService:
         name: str | None = None,
         limit: int | None = 100,
         organization_ids: list[int] | None = None,
-        h_userids: list[str] | None = None,
     ) -> list[Course]:
         return self._search_query(
             id_=id_,
@@ -142,7 +131,6 @@ class CourseService:
             name=name,
             limit=limit,
             organization_ids=organization_ids,
-            h_userids=h_userids,
         ).all()
 
     def get_courses(  # noqa: PLR0913
@@ -161,40 +149,20 @@ class CourseService:
         :param assignment_ids: return only the courses these assignments belong to.
         :param course_ids: return only courses with these IDs.
         """
-        courses_query = (
-            self._search_query(h_userids=h_userids, limit=None)
+        candidate_courses = CourseService.courses_permission_check_query(
+            instructor_h_userid, admin_organization_ids, course_ids
+        ).cte("candidate_courses")
+
+        query = (
+            select(Course.id)
             # Deduplicate courses by authority_provided_id, take the last updated one
             .distinct(Course.authority_provided_id)
+            .join(candidate_courses, candidate_courses.c[0] == Course.id)
             .order_by(Course.authority_provided_id, Course.updated.desc())
-            # Only select the ID of the deduplicated courses
-        ).with_entities(Course.id)
-
-        if course_ids:
-            courses_query = courses_query.where(Course.id.in_(course_ids))
-
-        # Let's crate no op clauses by default to avoid having to check the presence of these filters
-        instructor_h_userid_clause = cast(BinaryExpression, false())
-        admin_organization_ids_clause = cast(BinaryExpression, false())
-        if instructor_h_userid:
-            instructor_h_userid_clause = Course.id.in_(
-                self.course_ids_with_role_query(
-                    instructor_h_userid, RoleScope.COURSE, RoleType.INSTRUCTOR
-                )
-            )
-        if admin_organization_ids:
-            admin_organization_ids_clause = Course.application_instance_id.in_(
-                select(ApplicationInstance.id).where(
-                    ApplicationInstance.organization_id.in_(admin_organization_ids)
-                )
-            )
-        # instructor_h_userid and admin_organization_ids are about access rather than filtering.
-        # we apply them both as an or to fetch courses where the users is either an instructor or an admin
-        courses_query = courses_query.where(
-            or_(instructor_h_userid_clause, admin_organization_ids_clause)
         )
 
         if assignment_ids:
-            courses_query = courses_query.where(
+            query = query.where(
                 Course.id.in_(
                     select(AssignmentGrouping.grouping_id).where(
                         AssignmentGrouping.assignment_id.in_(assignment_ids)
@@ -202,17 +170,64 @@ class CourseService:
                 )
             )
 
+        if h_userids:
+            query = query.where(
+                Course.id.in_(
+                    select(GroupingMembership.grouping_id)
+                    .join(User)
+                    .where(User.h_userid.in_(h_userids))
+                )
+            )
+
         return (
             select(Course)
-            .where(
-                Course.id.in_(courses_query)
-                # We can sort these again without affecting deduplication
-            )
+            .where(Course.id.in_(query))
+            # We can sort these again without affecting deduplication
             .order_by(Course.lms_name, Course.id)
         )
 
     @staticmethod
-    def course_ids_with_role_query(
+    def courses_permission_check_query(
+        instructor_h_userid: str | None = None,
+        admin_organization_ids: list[int] | None = None,
+        course_ids: list[int] | None = None,
+    ):
+        courses_where_instructor_query = select(None)  # type: ignore
+        courses_where_admin_query = select(None)  # type: ignore
+
+        if instructor_h_userid:
+            # Get all the courses where instructor_h_userid is an instructor. This will query AssignmentMembership, which includes roles
+            courses_where_instructor_query = CourseService._course_ids_with_role_query(
+                instructor_h_userid, RoleScope.COURSE, RoleType.INSTRUCTOR
+            )
+
+            if course_ids:
+                courses_where_instructor_query = courses_where_instructor_query.where(
+                    AssignmentGrouping.grouping_id.in_(course_ids)
+                )
+
+        if admin_organization_ids:
+            # Also get all the courses of organiations where this users is an admin
+            courses_where_admin_query = (
+                select(Course.id)
+                .join(ApplicationInstance)
+                .where(
+                    ApplicationInstance.organization_id.in_(admin_organization_ids),
+                )
+            )
+
+            if course_ids:
+                courses_where_admin_query = courses_where_admin_query.where(
+                    Course.id.in_(course_ids)
+                )
+
+        return union(
+            courses_where_admin_query,
+            courses_where_instructor_query,
+        )
+
+    @staticmethod
+    def _course_ids_with_role_query(
         h_userid: str, role_scope, role_type
     ) -> Select[tuple[int]]:
         """Return a query that returns all the Course.id where h_userid belongs as (role_scope, role_type)."""

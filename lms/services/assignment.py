@@ -1,11 +1,9 @@
 import logging
-from typing import cast
 
-from sqlalchemy import BinaryExpression, Select, false, func, or_, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session
 
 from lms.models import (
-    ApplicationInstance,
     Assignment,
     AssignmentGrouping,
     AssignmentMembership,
@@ -13,8 +11,6 @@ from lms.models import (
     Course,
     Grouping,
     LTIRole,
-    RoleScope,
-    RoleType,
     User,
 )
 from lms.services.course import CourseService
@@ -267,34 +263,18 @@ class AssignmentService:
         :param h_userids: return only assignments where these users are members.
         :param assignment_ids: return only assignments with these IDs.
         """
-        query = select(Assignment).where(Assignment.title.is_not(None))
+        candidate_courses = CourseService.courses_permission_check_query(
+            instructor_h_userid, admin_organization_ids, course_ids
+        ).cte("candidate_courses")
+
+        query = (
+            select(Assignment)
+            .join(candidate_courses, candidate_courses.c[0] == Assignment.course_id)
+            .where(Assignment.title.is_not(None))
+        )
 
         if assignment_ids:
             query = query.where(Assignment.id.in_(assignment_ids))
-
-        # Let's crate no op clauses by default to avoid having to check the presence of these filters
-        instructor_h_userid_clause = cast(BinaryExpression, false())
-        admin_organization_ids_clause = cast(BinaryExpression, false())
-
-        if instructor_h_userid:
-            instructor_h_userid_clause = Assignment.course_id.in_(
-                CourseService.course_ids_with_role_query(
-                    instructor_h_userid, RoleScope.COURSE, RoleType.INSTRUCTOR
-                )
-            )
-
-        if admin_organization_ids:
-            admin_organization_ids_clause = Assignment.id.in_(
-                select(Assignment.id)
-                .join(Course)
-                .join(ApplicationInstance)
-                .where(ApplicationInstance.organization_id.in_(admin_organization_ids))
-            )
-        # instructor_h_userid and admin_organization_ids are about access rather than filtering.
-        # we apply them both as an or to fetch assignments where the users is either an instructor or an admin
-        query = query.where(
-            or_(instructor_h_userid_clause, admin_organization_ids_clause)
-        )
 
         if h_userids:
             query = query.where(
@@ -304,9 +284,6 @@ class AssignmentService:
                     .where(User.h_userid.in_(h_userids))
                 )
             )
-
-        if course_ids:
-            query = query.where(Assignment.course_id.in_(course_ids))
 
         return query.order_by(Assignment.title, Assignment.id)
 
