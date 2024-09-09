@@ -67,6 +67,8 @@ class APIStudent(TypedDict):
 
     annotation_metrics: NotRequired[AnnotationMetrics]
 
+    auto_grading_grade: NotRequired[float]
+
 
 class APICourses(TypedDict):
     courses: list[APICourse]
