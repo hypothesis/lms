@@ -1,10 +1,10 @@
-from unittest.mock import sentinel
+from unittest.mock import call, sentinel
 
 import pytest
 from sqlalchemy import select
 
 from lms.js_config_types import APIStudent
-from lms.models import RoleScope, RoleType, User
+from lms.models import AutoGradingConfig, RoleScope, RoleType, User
 from lms.views.dashboard.api.user import UserViews
 from tests import factories
 
@@ -51,8 +51,17 @@ class TestUserViews:
             "pagination": sentinel.pagination,
         }
 
-    def test_students_metrics(
-        self, views, pyramid_request, user_service, h_api, dashboard_service, db_session
+    @pytest.mark.parametrize("with_auto_grading", [True, False])
+    def test_students_metrics(  # pylint:disable=too-many-locals
+        self,
+        views,
+        pyramid_request,
+        user_service,
+        h_api,
+        dashboard_service,
+        db_session,
+        with_auto_grading,
+        calculate_grade,
     ):
         # User returned by the stats endpoint
         student = factories.User(display_name="Bart")
@@ -66,6 +75,13 @@ class TestUserViews:
             "h_userids": sentinel.h_userids,
         }
         assignment = factories.Assignment()
+        if with_auto_grading:
+            assignment.auto_grading_config = AutoGradingConfig(
+                activity_calculation="separate",
+                grading_type="all_or_nothing",
+                required_annotations=1,
+            )
+
         db_session.flush()
         user_service.get_users.return_value = select(User).where(
             User.id.in_(
@@ -139,6 +155,17 @@ class TestUserViews:
                 },
             ]
         }
+
+        if with_auto_grading:
+            calls = []
+            for student in expected["students"]:
+                student["auto_grading_grade"] = calculate_grade.return_value
+                calls.append(
+                    call(assignment.auto_grading_config, student["annotation_metrics"])
+                )
+
+            calculate_grade.assert_has_calls(calls)
+
         assert response == expected
 
     @pytest.fixture
@@ -148,3 +175,7 @@ class TestUserViews:
     @pytest.fixture
     def get_page(self, patch):
         return patch("lms.views.dashboard.api.user.get_page")
+
+    @pytest.fixture
+    def calculate_grade(self, patch):
+        return patch("lms.views.dashboard.api.user.calculate_grade")

@@ -7,6 +7,7 @@ from lms.js_config_types import AnnotationMetrics, APIStudent, APIStudents
 from lms.models import RoleScope, RoleType, User
 from lms.security import Permissions
 from lms.services import UserService
+from lms.services.auto_grading import calculate_grade
 from lms.services.h_api import HAPI
 from lms.validation._base import PyramidRequestSchema
 from lms.views.dashboard.pagination import PaginationParametersMixin, get_page
@@ -131,30 +132,33 @@ class UserViews:
         for user in self.request.db.scalars(users_query).all():
             if s := stats_by_user.get(user.h_userid):
                 # We seen this student in H, get all the data from there
-                students.append(
-                    APIStudent(
-                        h_userid=user.h_userid,
-                        lms_id=user.user_id,
-                        display_name=s["display_name"],
-                        annotation_metrics=AnnotationMetrics(
-                            annotations=s["annotations"] + s["page_notes"],
-                            replies=s["replies"],
-                            last_activity=s["last_activity"],
-                        ),
-                    )
+                api_student = APIStudent(
+                    h_userid=user.h_userid,
+                    lms_id=user.user_id,
+                    display_name=s["display_name"],
+                    annotation_metrics=AnnotationMetrics(
+                        annotations=s["annotations"] + s["page_notes"],
+                        replies=s["replies"],
+                        last_activity=s["last_activity"],
+                    ),
                 )
             else:
                 # We haven't seen this user H,
                 # use LMS DB's data and set 0s for all annotation related fields.
-                students.append(
-                    APIStudent(
-                        h_userid=user.h_userid,
-                        lms_id=user.user_id,
-                        display_name=user.display_name,
-                        annotation_metrics=AnnotationMetrics(
-                            annotations=0, replies=0, last_activity=None
-                        ),
-                    )
+                api_student = APIStudent(
+                    h_userid=user.h_userid,
+                    lms_id=user.user_id,
+                    display_name=user.display_name,
+                    annotation_metrics=AnnotationMetrics(
+                        annotations=0, replies=0, last_activity=None
+                    ),
                 )
+
+            if assignment.auto_grading_config:
+                api_student["auto_grading_grade"] = calculate_grade(
+                    assignment.auto_grading_config, api_student["annotation_metrics"]
+                )
+
+            students.append(api_student)
 
         return {"students": students}
