@@ -1,3 +1,4 @@
+import classnames from 'classnames';
 import { useMemo } from 'preact/hooks';
 import { useLocation, useParams, useSearch } from 'wouter-preact';
 
@@ -199,7 +200,17 @@ export default function AssignmentActivity() {
                 )
               );
             case 'auto_grading_grade':
-              return <GradeStatusChip grade={stats.auto_grading_grade ?? 0} />;
+              return (
+                <div
+                  className={classnames(
+                    // Add a bit of vertical negative margin to avoid the chip
+                    // component to make rows too tall
+                    '-my-0.5',
+                  )}
+                >
+                  <GradeStatusChip grade={stats.auto_grading_grade ?? 0} />
+                </div>
+              );
             default:
               return '';
           }
