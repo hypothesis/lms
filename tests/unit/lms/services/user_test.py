@@ -13,8 +13,8 @@ from tests import factories
 
 class TestUserService:
     @pytest.mark.usefixtures("user_is_instructor")
-    def test_upsert_user(self, service, lti_user, db_session):
-        user = service.upsert_user(lti_user)
+    def test_upsert_user(self, service, lti_user, db_session, pyramid_request):
+        user = service.upsert_user(lti_user, pyramid_request.lti_params)
 
         saved_user = db_session.query(User).order_by(User.id.desc()).first()
         assert saved_user == Any.instance_of(User).with_attrs(
@@ -31,41 +31,43 @@ class TestUserService:
             }
         )
         assert saved_user == user
-        self.assert_lms_user(db_session, user)
+        self.assert_lms_user(db_session, user, pyramid_request.lti_params)
 
     @pytest.mark.usefixtures("user_is_learner")
     def test_upsert_user_doesnt_save_email_for_students(
-        self, service, lti_user, db_session
+        self, service, lti_user, db_session, pyramid_request
     ):
-        service.upsert_user(lti_user)
+        service.upsert_user(lti_user, pyramid_request.lti_params)
 
         saved_user = db_session.query(User).order_by(User.id.desc()).first()
         assert saved_user.roles == lti_user.roles
         assert not saved_user.email
-        self.assert_lms_user(db_session, saved_user)
+        self.assert_lms_user(db_session, saved_user, pyramid_request.lti_params)
 
     @pytest.mark.usefixtures("user")
-    def test_upsert_user_with_an_existing_user(self, service, lti_user, db_session):
-        user = service.upsert_user(lti_user)
+    def test_upsert_user_with_an_existing_user(
+        self, service, lti_user, db_session, pyramid_request
+    ):
+        user = service.upsert_user(lti_user, pyramid_request.lti_params)
 
         saved_user = db_session.get(User, user.id)
         assert saved_user.id == user.id
         assert saved_user.roles == lti_user.roles
         assert user == saved_user
-        self.assert_lms_user(db_session, user)
+        self.assert_lms_user(db_session, saved_user, pyramid_request.lti_params)
 
     @pytest.mark.usefixtures("user")
     def test_upsert_user_doesnt_save_email_for_existing_students(
-        self, service, lti_user, db_session
+        self, service, lti_user, db_session, pyramid_request
     ):
         lti_user.roles = "Student"
 
-        service.upsert_user(lti_user)
+        service.upsert_user(lti_user, pyramid_request.lti_params)
 
         saved_user = db_session.query(User).order_by(User.id.desc()).first()
         assert saved_user.roles == lti_user.roles
         assert not saved_user.email
-        self.assert_lms_user(db_session, saved_user)
+        self.assert_lms_user(db_session, saved_user, pyramid_request.lti_params)
 
     def test_get(self, user, service):
         db_user = service.get(user.application_instance, user.user_id)
@@ -174,7 +176,7 @@ class TestUserService:
 
         assert db_session.scalars(query).all() == [student_in_assigment]
 
-    def assert_lms_user(self, db_session, user):
+    def assert_lms_user(self, db_session, user, lti_params):
         """Assert the corresponding LMSUser to user exists in the DB with the same attributes."""
 
         lms_user = db_session.scalars(
@@ -184,6 +186,7 @@ class TestUserService:
         assert lms_user.display_name == user.display_name
         assert lms_user.email == user.email
         assert lms_user.updated == user.updated
+        assert lms_user.lti_v13_user_id == lti_params.v13.get("sub")
 
     @pytest.fixture
     def course(self, application_instance, db_session):
