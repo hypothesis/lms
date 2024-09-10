@@ -21,8 +21,8 @@ gulp.task('build-css', () =>
       './lms/static/styles/lms.scss',
       './lms/static/styles/ui-playground.scss',
     ],
-    { tailwindConfig }
-  )
+    { tailwindConfig },
+  ),
 );
 
 gulp.task('watch-css', () => {
@@ -33,9 +33,11 @@ gulp.task('watch-css', () => {
       './lms/static/scripts/frontend_apps/**/*.ts',
       './lms/static/scripts/frontend_apps/**/*.tsx',
       './lms/static/scripts/ui-playground/**/*.js',
+      './lms/static/scripts/ui-playground/**/*.ts',
+      './lms/static/scripts/ui-playground/**/*.tsx',
     ],
     { ignoreInitial: false },
-    gulp.series('build-css')
+    gulp.series('build-css'),
   );
 });
 
@@ -58,6 +60,6 @@ gulp.task(
       karmaConfig: 'lms/static/scripts/karma.config.cjs',
       rollupConfig: 'rollup-tests.config.js',
       testsPattern: 'lms/static/scripts/**/*-test.js',
-    })
-  )
+    }),
+  ),
 );
