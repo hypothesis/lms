@@ -192,6 +192,7 @@ export type Student = {
 
 export type StudentWithMetrics = Student & {
   annotation_metrics: AnnotationMetrics;
+  auto_grading_grade?: number;
 };
 
 /**
