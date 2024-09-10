@@ -182,6 +182,7 @@ class RosterService:
         values = []
         for member in roster:
             lti_user_id = member.get("lti11_legacy_user_id") or member["user_id"]
+            lti_v13_user_id = member["user_id"]
             name = display_name(
                 given_name=member.get("name", ""),
                 family_name=member.get("family_name", ""),
@@ -198,6 +199,7 @@ class RosterService:
                 {
                     "tool_consumer_instance_guid": tool_consumer_instance_guid,
                     "lti_user_id": lti_user_id,
+                    "lti_v13_user_id": lti_v13_user_id,
                     "h_userid": h_userid,
                     "display_name": name,
                 }
@@ -208,7 +210,11 @@ class RosterService:
             LMSUser,
             values=values,
             index_elements=["h_userid"],
-            update_columns=["updated"],
+            update_columns=[
+                "updated",
+                # lti_v13_user_id is not going to change but we want to backfill it for existing users.
+                "lti_v13_user_id",
+            ],
         )
 
     def _get_roster_roles(self, roster) -> list[LTIRole]:

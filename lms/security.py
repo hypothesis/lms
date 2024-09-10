@@ -363,7 +363,7 @@ def get_lti_user(request) -> LTIUser | None:
     if lti_user:
         # Make a record of the user for analytics so we can map from the
         # LTI users and the corresponding user in H
-        request.find_service(UserService).upsert_user(lti_user)
+        request.find_service(UserService).upsert_user(lti_user, request.lti_params)
 
         # Attach useful information to sentry in case we get an exception further down the line
         sentry_sdk.set_tag("application_instance_id", lti_user.application_instance_id)
