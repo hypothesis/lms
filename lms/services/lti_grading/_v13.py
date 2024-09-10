@@ -83,15 +83,38 @@ class LTI13GradingService(LTIGradingService):
     def get_score_maximum(self, resource_link_id) -> float | None:
         return self._read_grading_configuration(resource_link_id).get("scoreMaximum")
 
+    def sync_grade(  # noqa: PLR0913
+        self,
+        lti_registration: LTIRegistration,
+        lis_outcome_service_url: str,
+        grade_timestamp: datetime,
+        user_grading_id: str,
+        score: float,
+    ):
+        """
+        Send a grade to the LMS.
+
+        This is very similar to `record_result` but not scoped to the request context,
+        taking all the necessary information as parameters.
+        """
+        payload = self._record_score_payload(
+            score, user_grading_id, grade_timestamp.isoformat()
+        )
+        return self._ltia_service.request(
+            lti_registration,
+            "POST",
+            self._service_url(lis_outcome_service_url, "/scores"),
+            scopes=self.LTIA_SCOPES,
+            json=payload,
+            headers={"Content-Type": "application/vnd.ims.lis.v1.score+json"},
+        )
+
     def record_result(self, grading_id, score=None, pre_record_hook=None, comment=None):
-        payload = {
-            "scoreMaximum": 1,
-            "scoreGiven": score,
-            "userId": grading_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "activityProgress": "Completed",
-            "gradingProgress": "FullyGraded",
-        }
+        payload = self._record_score_payload(
+            score,
+            grading_id,
+            datetime.now(timezone.utc).isoformat(),
+        )
         if comment:
             payload["comment"] = self._misc_plugin.format_grading_comment_for_lms(
                 comment
@@ -182,6 +205,19 @@ class LTI13GradingService(LTIGradingService):
                 return container
 
         return {}
+
+    @staticmethod
+    def _record_score_payload(
+        score: float | None, user_grading_id: str, timestamp: str
+    ):
+        return {
+            "scoreMaximum": 1,
+            "scoreGiven": score,
+            "userId": user_grading_id,
+            "timestamp": timestamp,
+            "activityProgress": "Completed",
+            "gradingProgress": "FullyGraded",
+        }
 
     @staticmethod
     def _service_url(base_url, endpoint):

@@ -1,8 +1,8 @@
 from pyramid.httpexceptions import HTTPNotFound, HTTPUnauthorized
 from sqlalchemy import select
 
+from lms.models import Assignment, Organization
 from lms.models.dashboard_admin import DashboardAdmin
-from lms.models.organization import Organization
 from lms.security import Permissions
 from lms.services.organization import OrganizationService
 
@@ -21,7 +21,7 @@ class DashboardService:
         self._course_service = course_service
         self._organization_service = organization_service
 
-    def get_request_assignment(self, request):
+    def get_request_assignment(self, request) -> Assignment:
         """Get and authorize an assignment for the given request."""
         assigment_id = request.matchdict.get(
             "assignment_id"

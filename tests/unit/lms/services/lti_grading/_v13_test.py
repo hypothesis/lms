@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest.mock import Mock, sentinel
 
 import pytest
@@ -135,6 +136,33 @@ class TestLTI13GradingService:
         ]
 
         assert not svc.get_score_maximum(sentinel.resource_link_id)
+
+    def test_sync_grade(self, svc, ltia_http_service, lti_registration):
+        response = svc.sync_grade(
+            lti_registration,
+            "LIS_OUTCOME_SERVICE_URL",
+            datetime(2022, 4, 4),
+            sentinel.user_id,
+            sentinel.grade,
+        )
+
+        payload = {
+            "scoreMaximum": 1,
+            "scoreGiven": sentinel.grade,
+            "userId": sentinel.user_id,
+            "timestamp": "2022-04-04T00:00:00",
+            "activityProgress": "Completed",
+            "gradingProgress": "FullyGraded",
+        }
+        ltia_http_service.request.assert_called_once_with(
+            lti_registration,
+            "POST",
+            "LIS_OUTCOME_SERVICE_URL/scores",
+            scopes=svc.LTIA_SCOPES,
+            json=payload,
+            headers={"Content-Type": "application/vnd.ims.lis.v1.score+json"},
+        )
+        assert response == ltia_http_service.request.return_value
 
     @freeze_time("2022-04-04")
     @pytest.mark.parametrize("comment", [sentinel.comment, None])
