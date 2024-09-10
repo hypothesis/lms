@@ -29,6 +29,16 @@ class LMSUser(CreatedUpdatedMixin, Base):
     lti_user_id: Mapped[str] = mapped_column(index=True)
     """ID of this user in the LMS, via LTI"""
 
+    lti_v13_user_id: Mapped[str | None] = mapped_column(sa.Unicode)
+    """
+    The LTI1.3 ID of the user.
+
+    This will be often the same value as lti_user_id but it might be different in:
+        - LTI1.1 launches. Where this will be null.
+        - Upgraded instances from LTI1.1 where we prefer the LTI1.1 value (if exposed by the LMS).
+          In those cases lti_user_id will be the 1.1 value and we'll store here the 1.3 version.
+    """
+
     h_userid: Mapped[str] = mapped_column(unique=True, index=True)
     """The userid value in H. This is calculated hashing tool_consumer_instance_guid and lti_user_id together."""
 
