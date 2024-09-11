@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta
 
-from sqlalchemy import exists, select
+from sqlalchemy import exists, func, select
 
 from lms.models import (
     Assignment,
@@ -11,6 +11,7 @@ from lms.models import (
     CourseRoster,
     Event,
     LMSCourse,
+    TaskDone,
 )
 from lms.services.roster import RosterService
 from lms.tasks.celery import app
@@ -37,6 +38,13 @@ def schedule_fetching_course_rosters() -> None:
     # We use the python version (and not func.now()) for easier mocking during tests
     now = datetime.now()
 
+    # Only fetch roster for courses for which we haven't schedule a fetch recently
+    no_recent_scheduled_roster_fetch_clause = ~exists(
+        select(TaskDone).where(
+            TaskDone.key == func.concat("roster::course::scheduled::", LMSCourse.id),
+        )
+    )
+
     # Only fetch roster for courses that don't have recent roster information
     no_recent_roster_clause = ~exists(
         select(CourseRoster).where(
@@ -46,7 +54,7 @@ def schedule_fetching_course_rosters() -> None:
     )
 
     # Only fetch rosters for courses that have been recently launched
-    recent_launches_cluase = exists(
+    recent_launches_clause = exists(
         select(Event)
         .join(Course, Event.course_id == Course.id)
         .where(
@@ -63,7 +71,8 @@ def schedule_fetching_course_rosters() -> None:
                     # Courses for which we have a LTIA membership service URL
                     LMSCourse.lti_context_memberships_url.is_not(None),
                     no_recent_roster_clause,
-                    recent_launches_cluase,
+                    no_recent_scheduled_roster_fetch_clause,
+                    recent_launches_clause,
                 )
                 # Prefer newer courses
                 .order_by(LMSCourse.created.desc())
@@ -72,6 +81,15 @@ def schedule_fetching_course_rosters() -> None:
             )
             for lms_course_id in request.db.scalars(query).all():
                 fetch_course_roster.delay(lms_course_id=lms_course_id)
+                # Record that the roster fetching has been scheduled
+                # We set the expiration date to ROSTER_REFRESH_WINDOW so we'll try again after that period
+                request.db.add(
+                    TaskDone(
+                        key=f"roster::course::scheduled::{lms_course_id}",
+                        data=None,
+                        expires_at=datetime.now() + ROSTER_REFRESH_WINDOW,
+                    )
+                )
 
 
 def schedule_fetching_assignment_rosters() -> None:
@@ -80,7 +98,6 @@ def schedule_fetching_assignment_rosters() -> None:
     # We use the python version (and not func.now()) for easier mocking during tests
     now = datetime.now()
 
-    # Only fetch roster for assignments that don't have recent roster information
     no_recent_roster_clause = ~exists(
         select(AssignmentRoster).where(
             AssignmentRoster.assignment_id == Assignment.id,
@@ -88,8 +105,15 @@ def schedule_fetching_assignment_rosters() -> None:
         )
     )
 
+    no_recent_scheduled_roster_fetch_clause = ~exists(
+        select(TaskDone).where(
+            TaskDone.key
+            == func.concat("roster::assignment::scheduled::", Assignment.id),
+        )
+    )
+
     # Only fetch rosters for assignments that have been recently launched
-    recent_launches_cluase = exists(
+    recent_launches_clause = exists(
         select(Event)
         .join(Assignment, Event.assignment_id == Assignment.id)
         .where(
@@ -111,8 +135,9 @@ def schedule_fetching_assignment_rosters() -> None:
                     LMSCourse.lti_context_memberships_url.is_not(None),
                     # Assignments for which we have stored the LTI1.3 ID
                     Assignment.lti_v13_resource_link_id.is_not(None),
+                    no_recent_scheduled_roster_fetch_clause,
                     no_recent_roster_clause,
-                    recent_launches_cluase,
+                    recent_launches_clause,
                 )
                 # Prefer newer assignments
                 .order_by(Assignment.created.desc())
@@ -121,6 +146,15 @@ def schedule_fetching_assignment_rosters() -> None:
             )
             for assignment_id in request.db.scalars(query).all():
                 fetch_assignment_roster.delay(assignment_id=assignment_id)
+                # Record that the roster fetching has been scheduled
+                # We set the expiration date to ROSTER_REFRESH_WINDOW so we'll try again after that period
+                request.db.add(
+                    TaskDone(
+                        key=f"roster::assignment::scheduled::{assignment_id}",
+                        data=None,
+                        expires_at=datetime.now() + ROSTER_REFRESH_WINDOW,
+                    )
+                )
 
 
 @app.task(
