@@ -44,6 +44,7 @@ class TestRosterTasks:
         "lms_course_with_no_launch",
         "lms_course_with_no_service_url",
         "lms_course_with_launch_and_recent_roster",
+        "lms_course_with_recent_launch_and_task_done_row",
     )
     def test_schedule_fetching_course_rosters(
         self, lms_course_with_recent_launch, db_session, fetch_course_roster
@@ -60,6 +61,7 @@ class TestRosterTasks:
     @pytest.mark.usefixtures(
         "assignment_with_no_launch",
         "assignment_with_no_lti_v13_id",
+        "assignment_with_recent_launch_and_task_done_row",
         "assignment_with_launch_and_recent_roster",
     )
     def test_schedule_fetching_assignment_rosters(
@@ -106,6 +108,22 @@ class TestRosterTasks:
         )
 
     @pytest.fixture
+    def lms_course_with_recent_launch_and_task_done_row(self, db_session):
+        course = factories.Course()
+        factories.Event(
+            course=course,
+            timestamp=datetime(2024, 8, 28),
+        )
+        lms_course = factories.LMSCourse(
+            lti_context_memberships_url="URL",
+            h_authority_provided_id=course.authority_provided_id,
+            course=course,
+        )
+        db_session.flush()  # Make sure we have an ID for the course
+        factories.TaskDone(key=f"roster::course::scheduled::{lms_course.id}")
+        return lms_course
+
+    @pytest.fixture
     def assignment_with_recent_launch(self, lms_course_with_recent_launch):
         assignment = factories.Assignment(
             lti_v13_resource_link_id="ID", course=lms_course_with_recent_launch.course
@@ -114,6 +132,21 @@ class TestRosterTasks:
             assignment=assignment,
             timestamp=datetime(2024, 8, 28),
         )
+        return assignment
+
+    @pytest.fixture
+    def assignment_with_recent_launch_and_task_done_row(
+        self, lms_course_with_recent_launch, db_session
+    ):
+        assignment = factories.Assignment(
+            lti_v13_resource_link_id="ID", course=lms_course_with_recent_launch.course
+        )
+        factories.Event(
+            assignment=assignment,
+            timestamp=datetime(2024, 8, 28),
+        )
+        db_session.flush()  # Make sure we have an ID for the assignment
+        factories.TaskDone(key=f"roster::assignment::scheduled::{assignment.id}")
         return assignment
 
     @pytest.fixture
