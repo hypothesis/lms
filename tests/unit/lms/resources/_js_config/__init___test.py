@@ -735,6 +735,7 @@ class TestEnableDashboardMode:
                 "courses": "/api/dashboard/courses",
                 "assignments": "/api/dashboard/assignments",
                 "students": "/api/dashboard/students",
+                "assignment_grades_sync": "/api/dashboard/assignments/:assignment_id/grading/sync",
             },
         }
 

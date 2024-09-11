@@ -283,6 +283,9 @@ class JSConfig:
                             "api.dashboard.assignments"
                         ),
                         students=self._to_frontend_template("api.dashboard.students"),
+                        assignment_grades_sync=self._to_frontend_template(
+                            "api.dashboard.assignments.grading.sync"
+                        ),
                     ),
                 ),
             }
