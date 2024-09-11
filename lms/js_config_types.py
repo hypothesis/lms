@@ -118,6 +118,9 @@ class DashboardRoutes(TypedDict):
     students: str
     """Paginated endpoint to fetch students"""
 
+    assignment_grades_sync: str
+    """Sync grades for a given assignment"""
+
 
 class User(TypedDict):
     is_staff: bool
