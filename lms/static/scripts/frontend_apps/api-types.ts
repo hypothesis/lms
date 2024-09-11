@@ -292,3 +292,10 @@ export type StudentsResponse = {
   students: Student[];
   pagination: Pagination;
 };
+
+/**
+ * Response for `/api/dashboard/assignments/{assignment_id}/grading/sync`
+ */
+export type GradingSync = {
+  status: 'scheduled' | 'in_progress' | 'finished' | 'failed';
+};

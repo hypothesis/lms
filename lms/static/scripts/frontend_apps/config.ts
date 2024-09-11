@@ -269,6 +269,9 @@ export type DashboardRoutes = {
   assignments: string;
   /** Fetch list of students */
   students: string;
+
+  /** Sync grades (POST) or check sync status (GET) */
+  assignment_grades_sync: string;
 };
 
 export type DashboardUser = {
@@ -279,6 +282,7 @@ export type DashboardUser = {
 export type DashboardConfig = {
   routes: DashboardRoutes;
   user: DashboardUser;
+  auto_grading_sync_enabled: boolean;
 };
 
 /**

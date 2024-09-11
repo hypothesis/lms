@@ -77,6 +77,7 @@ describe('AssignmentActivity', () => {
           assignment: '/api/assignments/:assignment_id',
           students_metrics: '/api/students/metrics',
         },
+        auto_grading_sync_enabled: true,
       },
     };
 
@@ -421,6 +422,29 @@ describe('AssignmentActivity', () => {
         });
       },
     );
+
+    [
+      { syncEnabled: true, autoGradingEnabled: true, shouldShowButton: true },
+      { syncEnabled: false, autoGradingEnabled: true, shouldShowButton: false },
+      { syncEnabled: true, autoGradingEnabled: false, shouldShowButton: false },
+      {
+        syncEnabled: false,
+        autoGradingEnabled: false,
+        shouldShowButton: false,
+      },
+    ].forEach(({ autoGradingEnabled, syncEnabled, shouldShowButton }) => {
+      it('shows sync button when both sync and auto-grading are enabled', () => {
+        setUpFakeUseAPIFetch({
+          ...activeAssignment,
+          auto_grading_config: autoGradingEnabled ? {} : null,
+        });
+        fakeConfig.dashboard.auto_grading_sync_enabled = syncEnabled;
+
+        const wrapper = createComponent();
+
+        assert.equal(wrapper.exists('SyncGradesButton'), shouldShowButton);
+      });
+    });
   });
 
   context('when assignment has segments', () => {
