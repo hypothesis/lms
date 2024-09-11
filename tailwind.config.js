@@ -3,7 +3,7 @@ import tailwindConfig from '@hypothesis/frontend-shared/lib/tailwind.preset.js';
 const successGreen =
   tailwindConfig.theme?.extend?.colors?.green?.success ?? '#00a36d';
 
-export default {
+export default /** @type {Partial<import('tailwindcss').Config>} */ ({
   presets: [tailwindConfig],
   content: [
     './lms/static/scripts/frontend_apps/**/*.{js,ts,tsx}',
@@ -16,6 +16,16 @@ export default {
     extend: {
       animation: {
         gradeSubmitSuccess: 'gradeSubmitSuccess 2s ease-out forwards',
+      },
+      colors: {
+        grade: {
+          success: '#005c3d',
+          'success-light': '#dfebe7',
+          error: '#891b1d',
+          'error-light': '#f0e2e3',
+          warning: '#774903',
+          'warning-light': '#fef7ec',
+        },
       },
       fontFamily: {
         sans: [
@@ -37,4 +47,4 @@ export default {
       },
     },
   },
-};
+});

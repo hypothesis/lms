@@ -24,16 +24,12 @@ export default function GradeStatusChip({ grade }: GradeStatusChipProps) {
 
   return (
     <div
-      className={classnames('rounded font-bold inline-block px-2 py-0.5', {
-        // We would usually use our standard `green-success` and `red-error`
-        // colors here, but they don't have enough contrast when used with
-        // white text and a small font.
-        // Instead, we use slightly darker shades of green and red.
-        'bg-[#008558] text-white': grade === 100,
-        'bg-[#D7373A] text-white': grade === 0,
-        'bg-green-200 text-green-900': grade >= 80 && grade < 100,
-        'bg-amber-100 text-amber-900': grade >= 50 && grade < 80,
-        'bg-red-200 text-red-900': grade >= 1 && grade < 50,
+      className={classnames('rounded inline-block font-bold px-2 py-0.5', {
+        'bg-grade-success text-white': grade === 100,
+        'bg-grade-success-light text-grade-success': grade >= 80 && grade < 100,
+        'bg-grade-warning-light text-grade-warning': grade >= 50 && grade < 80,
+        'bg-grade-error-light text-grade-error': grade >= 1 && grade < 50,
+        'bg-grade-error text-white': grade === 0,
         'bg-grey-3 text-grey-7': gradeIsInvalid,
       })}
     >
