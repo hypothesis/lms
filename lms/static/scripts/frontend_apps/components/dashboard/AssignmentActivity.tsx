@@ -15,7 +15,7 @@ import { replaceURLParams } from '../../utils/url';
 import DashboardActivityFilters from './DashboardActivityFilters';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import FormattedDate from './FormattedDate';
-import GradeStatusChip from './GradeStatusChip';
+import GradeIndicator from './GradeIndicator';
 import type { OrderableActivityTableColumn } from './OrderableActivityTable';
 import OrderableActivityTable from './OrderableActivityTable';
 
@@ -208,7 +208,12 @@ export default function AssignmentActivity() {
                     '-my-0.5',
                   )}
                 >
-                  <GradeStatusChip grade={stats.auto_grading_grade ?? 0} />
+                  <GradeIndicator
+                    grade={stats.auto_grading_grade ?? 0}
+                    annotations={stats.annotations}
+                    replies={stats.replies}
+                    config={assignment.data?.auto_grading_config}
+                  />
                 </div>
               );
             default:

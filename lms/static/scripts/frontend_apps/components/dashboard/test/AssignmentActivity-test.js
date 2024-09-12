@@ -384,9 +384,9 @@ describe('AssignmentActivity', () => {
             .find('OrderableActivityTable')
             .props()
             .renderItem({ auto_grading_grade }, 'auto_grading_grade');
-          const gradeChip = mount(item).find('GradeStatusChip');
+          const gradeIndicator = mount(item).find('GradeIndicator');
 
-          assert.equal(gradeChip.prop('grade'), auto_grading_grade ?? 0);
+          assert.equal(gradeIndicator.prop('grade'), auto_grading_grade ?? 0);
         });
       },
     );

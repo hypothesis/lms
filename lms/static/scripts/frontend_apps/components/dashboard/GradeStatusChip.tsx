@@ -24,14 +24,19 @@ export default function GradeStatusChip({ grade }: GradeStatusChipProps) {
 
   return (
     <div
-      className={classnames('rounded inline-block font-bold px-2 py-0.5', {
-        'bg-grade-success text-white': grade === 100,
-        'bg-grade-success-light text-grade-success': grade >= 80 && grade < 100,
-        'bg-grade-warning-light text-grade-warning': grade >= 50 && grade < 80,
-        'bg-grade-error-light text-grade-error': grade >= 1 && grade < 50,
-        'bg-grade-error text-white': grade === 0,
-        'bg-grey-3 text-grey-7': gradeIsInvalid,
-      })}
+      className={classnames(
+        'rounded inline-block font-bold px-2 py-0.5 cursor-default',
+        {
+          'bg-grade-success text-white': grade === 100,
+          'bg-grade-success-light text-grade-success':
+            grade >= 80 && grade < 100,
+          'bg-grade-warning-light text-grade-warning':
+            grade >= 50 && grade < 80,
+          'bg-grade-error-light text-grade-error': grade >= 1 && grade < 50,
+          'bg-grade-error text-white': grade === 0,
+          'bg-grey-3 text-grey-7': gradeIsInvalid,
+        },
+      )}
     >
       {grade}
       {!gradeIsInvalid && '%'}
