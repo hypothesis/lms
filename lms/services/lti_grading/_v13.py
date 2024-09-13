@@ -87,7 +87,7 @@ class LTI13GradingService(LTIGradingService):
         self,
         lti_registration: LTIRegistration,
         lis_outcome_service_url: str,
-        grade_timestamp: datetime,
+        grade_timestamp: str,
         user_grading_id: str,
         score: float,
     ):
@@ -97,9 +97,7 @@ class LTI13GradingService(LTIGradingService):
         This is very similar to `record_result` but not scoped to the request context,
         taking all the necessary information as parameters.
         """
-        payload = self._record_score_payload(
-            score, user_grading_id, grade_timestamp.isoformat()
-        )
+        payload = self._record_score_payload(score, user_grading_id, grade_timestamp)
         return self._ltia_service.request(
             lti_registration,
             "POST",

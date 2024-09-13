@@ -7,7 +7,10 @@ from lms.js_config_types import AnnotationMetrics, APIStudent, APIStudents
 from lms.models import RoleScope, RoleType, User
 from lms.security import Permissions
 from lms.services import UserService
-from lms.services.auto_grading import calculate_grade
+from lms.services.auto_grading import (
+    calculate_grade,
+    get_last_synced_grade_for_h_userids,
+)
 from lms.services.h_api import HAPI
 from lms.validation._base import PyramidRequestSchema
 from lms.views.dashboard.pagination import PaginationParametersMixin, get_page
@@ -128,8 +131,17 @@ class UserViews:
             # Users the current user requested
             h_userids=request_h_userids,
         )
+        users = self.request.db.scalars(users_query).all()
+
+        last_sync_grades = {}
+        if assignment.auto_grading_config:
+            users_h_userids = [u.h_userid for u in users]
+            last_sync_grades = get_last_synced_grade_for_h_userids(
+                self.request.db, users_h_userids, assignment.id
+            )
+
         # Iterate over all the students we have in the DB
-        for user in self.request.db.scalars(users_query).all():
+        for user in users:
             if s := stats_by_user.get(user.h_userid):
                 # We seen this student in H, get all the data from there
                 api_student = APIStudent(
@@ -158,6 +170,7 @@ class UserViews:
                 api_student["auto_grading_grade"] = calculate_grade(
                     assignment.auto_grading_config, api_student["annotation_metrics"]
                 )
+                api_student["last_grade"] = last_sync_grades.get(user.h_userid)
 
             students.append(api_student)
 

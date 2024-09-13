@@ -1,5 +1,6 @@
 from lms.js_config_types import AnnotationMetrics
-from lms.models import AutoGradingConfig
+from sqlalchemy import select
+from lms.models import AutoGradingConfig, GradingSync, GradingSyncGrade, LMSUser
 
 
 def calculate_grade(
@@ -52,3 +53,21 @@ def calculate_grade(
 
     grade = min(100, grade)  # Proportional grades are capped at 100%
     return round(grade, 2)
+
+
+def get_last_synced_grade_for_h_userids(db, h_userids: list[str], assignment_id):
+    result = db.execute(
+        select(LMSUser.h_userid, GradingSyncGrade.grade)
+        .distinct(LMSUser.h_userid)
+        .join(GradingSync)
+        .join(LMSUser)
+        .where(
+            GradingSync.assignment_id == assignment_id,
+            GradingSyncGrade.success == True,
+            LMSUser.h_userid.in_(h_userids),
+        )
+        .order_by(LMSUser.h_userid, GradingSyncGrade.updated.desc())
+    ).all()
+    print(result)
+
+    return {r[0]: r[1] for r in result}
