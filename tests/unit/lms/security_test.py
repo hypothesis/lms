@@ -651,9 +651,7 @@ class TestGetLTIUser:
         result = get_lti_user(pyramid_request)
 
         assert result == lti_user
-        user_service.upsert_user.assert_called_once_with(
-            result, pyramid_request.lti_params
-        )
+        user_service.upsert_user.assert_called_once_with(result)
         sentry_sdk.set_tag.assert_called_once_with(
             "application_instance_id", lti_user.application_instance_id
         )

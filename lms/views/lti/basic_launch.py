@@ -20,7 +20,7 @@ from lms.events import LTIEvent
 from lms.models import Assignment
 from lms.product.plugin.misc import MiscPlugin
 from lms.security import Permissions
-from lms.services import LTIGradingService, VitalSourceService
+from lms.services import LTIGradingService, UserService, VitalSourceService
 from lms.services.assignment import AssignmentService
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
 
@@ -50,6 +50,11 @@ class BasicLaunchViews:
         # This might raise ReausedCondumerKey, preventing the launch
         self.request.find_service(name="application_instance").update_from_lti_params(
             self.request.lti_user.application_instance, self.request.lti_params
+        )
+        # Keep a record of every LMS user in the DB
+        # While request.user gets updated on every request we only need/want to update LMSUser on launches
+        request.find_service(UserService).upsert_lms_user(
+            request.user, request.lti_params
         )
         self.course = self._record_course()
 

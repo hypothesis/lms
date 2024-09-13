@@ -18,6 +18,7 @@ from lms.views.lti.deep_linking import (
 from tests import factories
 
 
+@pytest.mark.usefixtures("user_service")
 class TestDeepLinkingFieldsRequestSchema:
     @pytest.mark.parametrize(
         "payload",
@@ -81,6 +82,7 @@ class TestDeepLinkingLaunch:
         application_instance_service,
         course_service,
         misc_plugin,
+        user_service,
     ):
         deep_linking_launch(context, pyramid_request)
 
@@ -89,6 +91,9 @@ class TestDeepLinkingLaunch:
         )
         course_service.get_from_launch.assert_called_once_with(
             pyramid_request.product.family, pyramid_request.lti_params
+        )
+        user_service.upsert_lms_user.assert_called_once_with(
+            pyramid_request.user, pyramid_request.lti_params
         )
         lti_h_service.sync.assert_called_once_with(
             [course_service.get_from_launch.return_value], pyramid_request.params
