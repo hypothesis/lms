@@ -49,7 +49,7 @@ from webargs import fields
 from lms.events import LTIEvent
 from lms.product.plugin.misc import MiscPlugin
 from lms.security import Permissions
-from lms.services import JWTService
+from lms.services import JWTService, UserService
 from lms.validation import DeepLinkingLTILaunchSchema
 from lms.validation._base import JSONPyramidRequestSchema
 
@@ -67,6 +67,10 @@ def deep_linking_launch(context, request):
     request.find_service(name="application_instance").update_from_lti_params(
         request.lti_user.application_instance, request.lti_params
     )
+    # Keep a record of every LMS user in the DB
+    # While request.user gets updated on every request we only need/want to update LMSUser on launches
+    request.find_service(UserService).upsert_lms_user(request.user, request.lti_params)
+
     course = request.find_service(name="course").get_from_launch(
         request.product.family, request.lti_params
     )

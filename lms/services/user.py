@@ -35,7 +35,7 @@ class UserService:
         self._db = db
         self._h_authority = h_authority
 
-    def upsert_user(self, lti_user: LTIUser, lti_params: LTIParams) -> User:
+    def upsert_user(self, lti_user: LTIUser) -> User:
         """Store a record of having seen a particular user."""
 
         # Note! - Storing a user in our DB currently has an implication for
@@ -65,13 +65,11 @@ class UserService:
             # We are only storing emails for teachers now.
             user.email = lti_user.email
 
-        self._upsert_lms_user(user, lti_params)
         return user
 
-    def _upsert_lms_user(self, user: User, lti_params: LTIParams) -> LMSUser:
+    def upsert_lms_user(self, user: User, lti_params: LTIParams) -> LMSUser:
         """Upsert LMSUser based on a User object."""
         self._db.flush()  # Make sure User has hit the DB on the current transaction
-
         lms_user = bulk_upsert(
             self._db,
             LMSUser,
