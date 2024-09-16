@@ -193,6 +193,100 @@ export function useAPIFetch<T = unknown>(
   path: string | null,
   params?: QueryParams,
 ): FetchResult<T> {
+  // We generate a URL-like key from the path and params, but we could generate
+  // something simpler, as long as it encodes the same information. The auth
+  // token is not included in the key, as we assume currently that it does not
+  // change the result.
+  const paramStr = recordToQueryString(params ?? {});
+  return useAPIFetchWithKey(path ? `${path}${paramStr}` : null, path, params);
+}
+
+export type PolledAPIFetchOptions<T> = {
+  /** Path for API call */
+  path: string;
+  /** Query params for API call */
+  params?: QueryParams;
+  /** Determines if, based on the result, the request should be retried */
+  shouldRetry: (result: FetchResult<T>) => boolean;
+
+  /**
+   * Amount of ms after which a retry should happen, if shouldRetry() returns
+   * true.
+   * Defaults to 500ms.
+   */
+  retryAfter?: number;
+
+  /** Test seam */
+  _setTimeout?: typeof setTimeout;
+  /** Test seam */
+  _clearTimeout?: typeof clearTimeout;
+};
+
+/**
+ * Hook that fetches data using authenticated API requests, allowing it to be
+ * retried periodically.
+ *
+ * @return The FetchResult with an extra `retries` property that represents the
+ *         amount of times the call was retried after the first one.
+ */
+export function usePolledAPIFetch<T = unknown>({
+  path,
+  params,
+  shouldRetry: unstableShouldRetry,
+  retryAfter = 500,
+  /* istanbul ignore next - test seam */
+  _setTimeout = setTimeout,
+  /* istanbul ignore next - test seam */
+  _clearTimeout = clearTimeout,
+}: PolledAPIFetchOptions<T>): FetchResult<T> {
+  const [fetchKey, setFetchKey] = useState(`${Date.now()}`);
+  const result = useAPIFetchWithKey<T>(fetchKey, path, params);
+  const shouldRetry = useStableCallback(unstableShouldRetry);
+
+  const timeout = useRef<ReturnType<typeof _setTimeout> | null>(null);
+  const resetTimeout = useCallback(() => {
+    if (timeout.current) {
+      _clearTimeout(timeout.current);
+    }
+    timeout.current = null;
+  }, [_clearTimeout]);
+
+  useEffect(() => {
+    if (result.isLoading) {
+      return () => {};
+    }
+
+    // Once we finish loading, check if request should be retried, and schedule a
+    // key change to enforce it
+    if (shouldRetry(result)) {
+      timeout.current = _setTimeout(() => {
+        // Date.now() returns a value virtually unique after 1 millisecond has
+        // passed from previous try, so it will trigger a new fetch.
+        setFetchKey(`${Date.now()}`);
+        timeout.current = null;
+      }, retryAfter);
+    }
+
+    return resetTimeout;
+  }, [_setTimeout, resetTimeout, result, retryAfter, shouldRetry]);
+
+  return result;
+}
+
+/**
+ * Hook that fetches data using authenticated API requests.
+ *
+ * @param key - Key identifying the data to be fetched.
+ *              The data will be re-fetched whenever this changes.
+ *              If `null`, nothing will be fetched.
+ * @param path - Path for API call, or null if there is nothing to fetch
+ * @param [params] - Query params for API call
+ */
+function useAPIFetchWithKey<T>(
+  key: string | null,
+  path: string | null,
+  params?: QueryParams,
+): FetchResult<T> {
   const {
     api: { authToken },
   } = useConfig(['api']);
@@ -207,12 +301,7 @@ export function useAPIFetch<T = unknown>(
         })
     : undefined;
 
-  // We generate a URL-like key from the path and params, but we could generate
-  // something simpler, as long as it encodes the same information. The auth
-  // token is not included in the key, as we assume currently that it does not
-  // change the result.
-  const paramStr = recordToQueryString(params ?? {});
-  return useFetch(path ? `${path}${paramStr}` : null, fetcher);
+  return useFetch(key, fetcher);
 }
 
 export type PolledAPIFetchOptions<T> = {
