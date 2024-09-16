@@ -713,7 +713,18 @@ class TestEnableErrorDialogMode:
 
 
 class TestEnableDashboardMode:
-    def test_it(self, js_config, lti_user, bearer_token_schema):
+    @pytest.mark.parametrize("auto_grading_sync_setting", [True, False])
+    def test_it(
+        self,
+        js_config,
+        lti_user,
+        bearer_token_schema,
+        auto_grading_sync_setting,
+        application_instance,
+    ):
+        application_instance.settings.set(
+            "hypothesis", "auto_grading_sync_enabled", auto_grading_sync_setting
+        )
         js_config.enable_dashboard_mode(token_lifetime_seconds=100)
         config = js_config.asdict()
 
@@ -737,6 +748,7 @@ class TestEnableDashboardMode:
                 "students": "/api/dashboard/students",
                 "assignment_grades_sync": "/api/dashboard/assignments/:assignment_id/grading/sync",
             },
+            "sync_enabled": auto_grading_sync_setting,
         }
 
     def test_user_when_staff(self, js_config, pyramid_request_staff_member, context):
@@ -748,6 +760,8 @@ class TestEnableDashboardMode:
             "is_staff": True,
             "display_name": "staff@example.com",
         }
+        # Grade syncing always disabled for staff
+        assert not config["dashboard"]["sync_enabled"]
 
     @pytest.fixture
     def pyramid_request_staff_member(self, pyramid_config, pyramid_request):

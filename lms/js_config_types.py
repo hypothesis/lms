@@ -130,3 +130,6 @@ class User(TypedDict):
 class DashboardConfig(TypedDict):
     user: User
     routes: DashboardRoutes
+
+    sync_enabled: bool
+    """Whether or nor the opotion to sync the grades back to the LMS is enabled."""

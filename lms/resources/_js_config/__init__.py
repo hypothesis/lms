@@ -287,6 +287,10 @@ class JSConfig:
                             "api.dashboard.assignments.grading.sync"
                         ),
                     ),
+                    sync_enabled=self._lti_user
+                    and self._application_instance.settings.get(
+                        "hypothesis", "auto_grading_sync_enabled", False
+                    ),
                 ),
             }
         )
