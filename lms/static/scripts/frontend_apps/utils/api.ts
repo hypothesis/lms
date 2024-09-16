@@ -1,3 +1,4 @@
+import { useStableCallback } from '@hypothesis/frontend-shared';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
 import type { Pagination } from '../api-types';
@@ -212,6 +213,76 @@ export function useAPIFetch<T = unknown>(
   // change the result.
   const paramStr = recordToQueryString(params ?? {});
   return useFetch(path ? `${path}${paramStr}` : null, fetcher);
+}
+
+export type PolledAPIFetchOptions<T> = {
+  /** Path for API call */
+  path: string;
+  /** Query params for API call */
+  params?: QueryParams;
+  /** Determines if, based on the result, the API should be called again */
+  shouldRefresh: (result: FetchResult<T>) => boolean;
+
+  /**
+   * Amount of ms after which a refresh should happen, if shouldRefresh()
+   * returns true.
+   * Defaults to 500ms.
+   */
+  refreshAfter?: number;
+
+  /** Test seam */
+  _setTimeout?: typeof setTimeout;
+  /** Test seam */
+  _clearTimeout?: typeof clearTimeout;
+};
+
+/**
+ * Hook that fetches data using authenticated API requests.
+ *
+ * This is a variant of {@link useAPIFetch} that supports automatically
+ * refreshing results at an interval until some condition is met.
+ * This is useful for example when calling an API that reports the status of a
+ * long-running operation.
+ */
+export function usePolledAPIFetch<T = unknown>({
+  path,
+  params,
+  shouldRefresh: unstableShouldRefresh,
+  refreshAfter = 500,
+  /* istanbul ignore next - test seam */
+  _setTimeout = setTimeout,
+  /* istanbul ignore next - test seam */
+  _clearTimeout = clearTimeout,
+}: PolledAPIFetchOptions<T>): FetchResult<T> {
+  const result = useAPIFetch<T>(path, params);
+  const shouldRefresh = useStableCallback(unstableShouldRefresh);
+
+  const timeout = useRef<ReturnType<typeof _setTimeout> | null>(null);
+  const resetTimeout = useCallback(() => {
+    if (timeout.current) {
+      _clearTimeout(timeout.current);
+    }
+    timeout.current = null;
+  }, [_clearTimeout]);
+
+  useEffect(() => {
+    if (result.isLoading) {
+      return () => {};
+    }
+
+    // Once we finish loading, schedule a retry if the request should be
+    // refreshed
+    if (shouldRefresh(result)) {
+      timeout.current = _setTimeout(() => {
+        result.retry();
+        timeout.current = null;
+      }, refreshAfter);
+    }
+
+    return resetTimeout;
+  }, [_setTimeout, refreshAfter, resetTimeout, result, shouldRefresh]);
+
+  return result;
 }
 
 export type PaginatedFetchResult<T> = Omit<FetchResult<T>, 'mutate'> & {
