@@ -22,6 +22,7 @@ from tests.factories.dashboard_admin import DashboardAdmin
 from tests.factories.event import Event
 from tests.factories.file import File
 from tests.factories.grading_info import GradingInfo
+from tests.factories.grading_sync import GradingSync, GradingSyncGrade
 from tests.factories.group_info import GroupInfo
 from tests.factories.grouping import BlackboardGroup, CanvasGroup, CanvasSection, Course
 from tests.factories.grouping_membership import GroupingMembership
