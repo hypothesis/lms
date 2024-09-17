@@ -393,6 +393,26 @@ class TestAssignmentService:
             admin_organization_ids=[organization.id],
         ) == {course.id: 3, other_course.id: 1}
 
+    def test_get_assignment_groups(self, svc, db_session, course):
+        assignment = factories.Assignment(course=course, extra={"group_set_id": 1})
+        group = factories.CanvasGroup(parent=course, extra={"group_set_id": 1})
+        db_session.flush()
+
+        assert svc.get_assignment_groups(assignment) == [group]
+
+    def test_get_assignment_groups_when_no_groups_used(self, svc, db_session, course):
+        assignment = factories.Assignment(course=course)
+        db_session.flush()
+
+        assert not svc.get_assignment_groups(assignment)
+
+    def test_get_assignment_sections(self, svc, db_session, course):
+        assignment = factories.Assignment(course=course)
+        section = factories.CanvasSection(parent=course)
+        db_session.flush()
+
+        assert svc.get_assignment_sections(assignment) == [section]
+
     @pytest.fixture
     def svc(self, db_session, misc_plugin):
         return AssignmentService(db_session, misc_plugin)

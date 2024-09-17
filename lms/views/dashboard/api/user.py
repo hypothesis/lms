@@ -31,6 +31,11 @@ class ListUsersSchema(PaginationParametersMixin):
     public_id = fields.Str()
     """Return only the users which belong to this organization. For staff member only."""
 
+    segment_authority_provided_ids = fields.List(
+        fields.Str(), data_key="segment_authority_provided_id"
+    )
+    """Return only the users which belong to this segment (group or section)."""
+
 
 class UsersMetricsSchema(PyramidRequestSchema):
     """Query parameters to fetch metrics for users."""
@@ -45,6 +50,11 @@ class UsersMetricsSchema(PyramidRequestSchema):
 
     public_id = fields.Str()
     """Return only the users which belong to this organization. For staff member only."""
+
+    segment_authority_provided_ids = fields.List(
+        fields.Str(), data_key="segment_authority_provided_id"
+    )
+    """Return only the users which belong to this segment (group or section)."""
 
 
 class UserViews:
@@ -76,6 +86,9 @@ class UserViews:
             admin_organization_ids=[org.id for org in admin_organizations],
             course_ids=self.request.parsed_params.get("course_ids"),
             assignment_ids=self.request.parsed_params.get("assignment_ids"),
+            segment_authority_provided_ids=self.request.parsed_params.get(
+                "segment_authority_provided_ids"
+            ),
         )
         students, pagination = get_page(
             self.request, students_query, [User.display_name, User.id]
@@ -100,10 +113,26 @@ class UserViews:
     )
     def students_metrics(self) -> APIStudents:
         """Fetch the stats for one particular assignment."""
-        request_h_userids = self.request.parsed_params.get("h_userids")
         assignment = self.dashboard_service.get_request_assignment(self.request)
+
+        request_h_userids = self.request.parsed_params.get("h_userids")
+        request_segment_authority_provided_ids = self.request.parsed_params.get(
+            "segment_authority_provided_ids"
+        )
+
+        assignment_groupings_authority_provided_ids: list[str] = [
+            g.authority_provided_id for g in assignment.groupings
+        ]
+        if request_segment_authority_provided_ids:
+            assignment_groupings_authority_provided_ids = [
+                g
+                for g in assignment_groupings_authority_provided_ids
+                if g in request_segment_authority_provided_ids
+            ]
+
+        request_h_userids = self.request.parsed_params.get("h_userids")
         stats = self.h_api.get_annotation_counts(
-            [g.authority_provided_id for g in assignment.groupings],
+            assignment_groupings_authority_provided_ids,
             group_by="user",
             resource_link_ids=[assignment.resource_link_id],
             h_userids=request_h_userids,
@@ -127,6 +156,8 @@ class UserViews:
             admin_organization_ids=[org.id for org in admin_organizations],
             # Users the current user requested
             h_userids=request_h_userids,
+            # Only users belonging to these segments
+            segment_authority_provided_ids=request_segment_authority_provided_ids,
         )
         # Iterate over all the students we have in the DB
         for user in self.request.db.scalars(users_query).all():

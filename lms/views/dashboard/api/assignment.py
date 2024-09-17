@@ -6,9 +6,10 @@ from lms.js_config_types import (
     APIAssignment,
     APIAssignments,
     APICourse,
+    APISegment,
     AutoGradingConfig,
 )
-from lms.models import Assignment, RoleScope, RoleType
+from lms.models import Assignment, Grouping, RoleScope, RoleType
 from lms.security import Permissions
 from lms.services import UserService
 from lms.services.h_api import HAPI
@@ -109,6 +110,11 @@ class AssignmentViews:
             ),
         )
 
+        if groups := self.assignment_service.get_assignment_groups(assignment):
+            api_assignment["groups"] = self._groupings_to_api_segment(groups)
+        elif sections := self.assignment_service.get_assignment_sections(assignment):
+            api_assignment["sections"] = self._groupings_to_api_segment(sections)
+
         if auto_grading_config := assignment.auto_grading_config:
             api_assignment["auto_grading_config"] = AutoGradingConfig(
                 grading_type=auto_grading_config.grading_type,
@@ -192,3 +198,9 @@ class AssignmentViews:
             )
 
         return {"assignments": response_assignments}
+
+    def _groupings_to_api_segment(self, groupings: list[Grouping]) -> list[APISegment]:
+        return [
+            {"h_authority_provided_id": g.authority_provided_id, "name": g.lms_name}
+            for g in groupings
+        ]

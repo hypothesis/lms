@@ -76,11 +76,19 @@ class APICourses(TypedDict):
     pagination: NotRequired[Pagination]
 
 
+class APISegment(TypedDict):
+    h_authority_provided_id: str
+    name: str
+
+
 class APIAssignment(TypedDict):
     id: int
     title: str
     created: str
     course: NotRequired[APICourse]
+
+    sections: NotRequired[list[APISegment]]
+    groups: NotRequired[list[APISegment]]
 
     annotation_metrics: NotRequired[AnnotationMetrics]
     auto_grading_config: NotRequired[AutoGradingConfig]
