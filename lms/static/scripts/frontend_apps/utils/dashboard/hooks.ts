@@ -7,6 +7,12 @@ export type DashboardFilters = {
   studentIds: string[];
   assignmentIds: string[];
   courseIds: string[];
+
+  /**
+   * The list of segments (groups or sections) to filter students by.
+   * This filter is relevant only when listing students in the assignment view.
+   */
+  segmentIds: string[];
 };
 
 export type URLWithFiltersOptions = {
@@ -32,6 +38,10 @@ export type UseDashboardFilters = {
   ) => string;
 };
 
+function asArray(value: string | string[] = []): string[] {
+  return Array.isArray(value) ? value : [value];
+}
+
 /**
  * Hook used to read and update the state of the dashboard filters.
  *
@@ -41,20 +51,23 @@ export function useDashboardFilters(): UseDashboardFilters {
   const search = useSearch();
   const queryParams = useMemo(() => queryStringToRecord(search), [search]);
   const filters = useMemo(() => {
-    const { student_id = [], course_id = [], assignment_id = [] } = queryParams;
-    const courseIds = Array.isArray(course_id) ? course_id : [course_id];
-    const assignmentIds = Array.isArray(assignment_id)
-      ? assignment_id
-      : [assignment_id];
-    const studentIds = Array.isArray(student_id) ? student_id : [student_id];
+    const courseIds = asArray(queryParams.course_id);
+    const assignmentIds = asArray(queryParams.assignment_id);
+    const studentIds = asArray(queryParams.student_id);
+    const segmentIds = asArray(queryParams.segment_id);
 
-    return { courseIds, assignmentIds, studentIds };
+    return { courseIds, assignmentIds, studentIds, segmentIds };
   }, [queryParams]);
 
   const [location, navigate] = useLocation();
   const urlWithFilters = useCallback(
     (
-      { courseIds, assignmentIds, studentIds }: Partial<DashboardFilters>,
+      {
+        courseIds,
+        assignmentIds,
+        studentIds,
+        segmentIds,
+      }: Partial<DashboardFilters>,
       { path = location, extend = false }: URLWithFiltersOptions = {},
     ): string => {
       const newQueryParams = extend ? { ...queryParams } : {};
@@ -66,6 +79,9 @@ export function useDashboardFilters(): UseDashboardFilters {
       }
       if (studentIds) {
         newQueryParams.student_id = studentIds;
+      }
+      if (segmentIds) {
+        newQueryParams.segment_id = segmentIds;
       }
 
       // The router's base URL is represented in `location` as '/', even if

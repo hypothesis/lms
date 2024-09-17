@@ -9,6 +9,7 @@ import { useParams } from 'wouter-preact';
 
 import type {
   Assignment,
+  AssignmentSegment,
   AssignmentsResponse,
   Course,
   CoursesResponse,
@@ -50,9 +51,25 @@ export type ActivityFilterItem<T extends Course | Assignment> = {
   onClear: () => void;
 };
 
+export type SegmentsSelection = ActivityFilterSelection & {
+  type: 'groups' | 'sections';
+  entries: AssignmentSegment[];
+};
+
 export type DashboardActivityFiltersProps = {
   courses: ActivityFilterSelection | ActivityFilterItem<Course>;
   assignments: ActivityFilterSelection | ActivityFilterItem<Assignment>;
+
+  /**
+   * Configuration for the segments filter.
+   * It is relevant only when listing students, so not providing this will
+   * prevent that filter to be rendered or taken into consideration in any
+   * way.
+   * Unlike other filters, the entries are not loaded by this component but
+   * provided as part of the props.
+   */
+  segments?: SegmentsSelection;
+
   students: ActivityFilterSelection;
   onClearSelection?: () => void;
 };
@@ -107,12 +124,56 @@ function StudentOption({
 }
 
 /**
+ * A MultiSelect to list a collection of groups or sections (AKA segments).
+ */
+function SegmentsMultiSelect({ segments }: { segments: SegmentsSelection }) {
+  const segmentsName = segments.type === 'groups' ? 'groups' : 'sections';
+  const segmentNameSingular = segments.type === 'groups' ? 'group' : 'section';
+
+  return (
+    <MultiSelect
+      aria-label={`Select ${segmentsName}`}
+      containerClasses="!w-auto min-w-[180px]"
+      value={segments.selectedIds}
+      onChange={newSegmentIds => segments.onChange(newSegmentIds)}
+      buttonContent={
+        segments.selectedIds.length === 0 ? (
+          <>All {segmentsName}</>
+        ) : segments.selectedIds.length === 1 ? (
+          segments.entries.find(
+            s => s.h_authority_provided_id === segments.selectedIds[0],
+          )?.name ?? `1 ${segmentNameSingular}`
+        ) : (
+          <>
+            {segments.selectedIds.length} {segmentsName}
+          </>
+        )
+      }
+      data-testid="segments-select"
+    >
+      <MultiSelect.Option value={undefined}>
+        All {segmentsName}
+      </MultiSelect.Option>
+      {segments.entries.map(entry => (
+        <MultiSelect.Option
+          key={entry.h_authority_provided_id}
+          value={entry.h_authority_provided_id}
+        >
+          {entry.name}
+        </MultiSelect.Option>
+      ))}
+    </MultiSelect>
+  );
+}
+
+/**
  * Renders drop-downs to select courses, assignments and/or students, used to
  * filter dashboard activity metrics.
  */
 export default function DashboardActivityFilters({
   courses,
   assignments,
+  segments,
   students,
   onClearSelection,
 }: DashboardActivityFiltersProps) {
@@ -133,10 +194,15 @@ export default function DashboardActivityFilters({
       ? [assignments.selectedIds, null]
       : [[`${assignments.activeItem.id}`], assignments.activeItem];
   }, [assignments]);
+  const selectedSegmentIds = useMemo(
+    () => segments?.selectedIds ?? [],
+    [segments?.selectedIds],
+  );
 
   const hasSelection =
     students.selectedIds.length > 0 ||
     selectedAssignmentIds.length > 0 ||
+    selectedSegmentIds.length > 0 ||
     selectedCourseIds.length > 0;
 
   const coursesFilters = useMemo(
@@ -180,10 +246,16 @@ export default function DashboardActivityFilters({
   const studentsFilters = useMemo(
     () => ({
       assignment_id: selectedAssignmentIds,
+      segment_authority_provided_id: selectedSegmentIds,
       course_id: selectedCourseIds,
       org_public_id: organizationPublicId,
     }),
-    [organizationPublicId, selectedAssignmentIds, selectedCourseIds],
+    [
+      organizationPublicId,
+      selectedAssignmentIds,
+      selectedCourseIds,
+      selectedSegmentIds,
+    ],
   );
   const studentsResult = usePaginatedAPIFetch<
     'students',
@@ -262,6 +334,7 @@ export default function DashboardActivityFilters({
           />
         )}
       />
+      {segments && <SegmentsMultiSelect segments={segments} />}
       <PaginatedMultiSelect
         entity="students"
         data-testid="students-select"
