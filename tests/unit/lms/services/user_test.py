@@ -183,6 +183,26 @@ class TestUserService:
 
         assert db_session.scalars(query).all() == [student_in_assigment]
 
+    @pytest.mark.usefixtures("teacher_in_assigment")
+    def test_get_users_by_segment_authority_provided_id(
+        self, service, db_session, student_in_assigment, assignment, organization
+    ):
+        factories.User(h_userid=student_in_assigment.h_userid)  # Duplicated student
+        segment = factories.CanvasSection()
+        factories.GroupingMembership(user=student_in_assigment, grouping=segment)
+
+        db_session.flush()
+
+        query = service.get_users(
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            assignment_ids=[assignment.id],
+            admin_organization_ids=[organization.id],
+            segment_authority_provided_ids=[segment.authority_provided_id],
+        )
+
+        assert db_session.scalars(query).all() == [student_in_assigment]
+
     @pytest.fixture
     def course(self, application_instance, db_session):
         course = factories.Course(application_instance=application_instance)

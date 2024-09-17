@@ -7,6 +7,8 @@ from sqlalchemy.sql import Select
 from lms.models import (
     Assignment,
     AssignmentMembership,
+    Grouping,
+    GroupingMembership,
     LMSUser,
     LMSUserApplicationInstance,
     LTIParams,
@@ -146,6 +148,7 @@ class UserService:
         course_ids: list[int] | None = None,
         h_userids: list[str] | None = None,
         assignment_ids: list[int] | None = None,
+        segment_authority_provided_ids: list[str] | None = None,
     ) -> Select[tuple[User]]:
         """
         Get a query to fetch users.
@@ -157,6 +160,7 @@ class UserService:
         :param h_userids: return only users with a h_userid in this list.
         :param course_ids: return only users that belong to these courses.
         :param assignment_ids: return only users that belong these assignments.
+        :param segment_authority_provided_ids: return only users that belong these segments.
         """
 
         candidate_courses = CourseService.courses_permission_check_query(
@@ -179,6 +183,19 @@ class UserService:
         if assignment_ids:
             user_ids_query = user_ids_query.where(
                 AssignmentMembership.assignment_id.in_(assignment_ids)
+            )
+
+        if segment_authority_provided_ids:
+            user_ids_query = user_ids_query.where(
+                AssignmentMembership.user_id.in_(
+                    select(GroupingMembership.user_id)
+                    .join(Grouping)
+                    .where(
+                        Grouping.authority_provided_id.in_(
+                            segment_authority_provided_ids
+                        )
+                    )
+                )
             )
 
         query = (

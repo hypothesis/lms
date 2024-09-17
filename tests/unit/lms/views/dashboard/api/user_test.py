@@ -18,6 +18,7 @@ class TestUserViews:
         pyramid_request.parsed_params = {
             "course_ids": sentinel.course_ids,
             "assignment_ids": sentinel.assignment_ids,
+            "segment_authority_provided_ids": sentinel.segment_authority_provided_ids,
         }
         students = factories.User.create_batch(5)
         get_page.return_value = students, sentinel.pagination
@@ -31,6 +32,7 @@ class TestUserViews:
             admin_organization_ids=[],
             course_ids=sentinel.course_ids,
             assignment_ids=sentinel.assignment_ids,
+            segment_authority_provided_ids=sentinel.segment_authority_provided_ids,
         )
         get_page.assert_called_once_with(
             pyramid_request,
@@ -52,6 +54,7 @@ class TestUserViews:
         }
 
     @pytest.mark.parametrize("with_auto_grading", [True, False])
+    @pytest.mark.parametrize("with_segment_authority_provided_id", [True, False])
     def test_students_metrics(  # pylint:disable=too-many-locals
         self,
         views,
@@ -61,6 +64,7 @@ class TestUserViews:
         dashboard_service,
         db_session,
         with_auto_grading,
+        with_segment_authority_provided_id,
         calculate_grade,
     ):
         # User returned by the stats endpoint
@@ -74,7 +78,18 @@ class TestUserViews:
             "assignment_id": sentinel.id,
             "h_userids": sentinel.h_userids,
         }
-        assignment = factories.Assignment()
+        assignment = factories.Assignment(course=factories.Course())
+        if with_segment_authority_provided_id:
+            segments = factories.CanvasSection.create_batch(
+                5, parent_id=assignment.course_id
+            )
+            for segment in segments:
+                factories.AssignmentGrouping(assignment=assignment, grouping=segment)
+            db_session.flush()
+            pyramid_request.parsed_params["segment_authority_provided_ids"] = [
+                g.authority_provided_id for g in segments
+            ]
+
         if with_auto_grading:
             assignment.auto_grading_config = AutoGradingConfig(
                 activity_calculation="separate",

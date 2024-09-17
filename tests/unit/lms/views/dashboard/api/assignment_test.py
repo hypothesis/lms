@@ -46,10 +46,18 @@ class TestAssignmentViews:
         }
 
     def test_assignment(
-        self, views, pyramid_request, assignment, db_session, dashboard_service
+        self,
+        views,
+        pyramid_request,
+        assignment,
+        db_session,
+        dashboard_service,
+        assignment_service,
     ):
         db_session.flush()
         pyramid_request.matchdict["assignment_id"] = sentinel.id
+        assignment_service.get_assignment_groups.return_value = []
+        assignment_service.get_assignment_sections.return_value = []
         dashboard_service.get_request_assignment.return_value = assignment
 
         response = views.assignment()
@@ -90,12 +98,66 @@ class TestAssignmentViews:
             "title": assignment.title,
             "created": assignment.created.isoformat(),
             "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
+            "groups": [],
             "auto_grading_config": {
                 "activity_calculation": "separate",
                 "grading_type": "scaled",
                 "required_annotations": 1,
                 "required_replies": 1,
             },
+        }
+
+    def test_assignment_with_groups(
+        self, views, pyramid_request, assignment, dashboard_service, assignment_service
+    ):
+        groups = factories.CanvasGroup.create_batch(5)
+        assignment_service.get_assignment_groups.return_value = groups
+        pyramid_request.matchdict["assignment_id"] = sentinel.id
+        dashboard_service.get_request_assignment.return_value = assignment
+
+        response = views.assignment()
+
+        dashboard_service.get_request_assignment.assert_called_once_with(
+            pyramid_request
+        )
+        assignment_service.get_assignment_groups.assert_called_once_with(assignment)
+
+        assert response == {
+            "id": assignment.id,
+            "title": assignment.title,
+            "created": assignment.created.isoformat(),
+            "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
+            "groups": [
+                {"h_authority_provided_id": g.authority_provided_id, "name": g.lms_name}
+                for g in groups
+            ],
+        }
+
+    def test_assignment_with_sections(
+        self, views, pyramid_request, assignment, dashboard_service, assignment_service
+    ):
+        sections = factories.CanvasGroup.create_batch(5)
+        assignment_service.get_assignment_groups.return_value = []
+        assignment_service.get_assignment_sections.return_value = sections
+        pyramid_request.matchdict["assignment_id"] = sentinel.id
+        dashboard_service.get_request_assignment.return_value = assignment
+
+        response = views.assignment()
+
+        dashboard_service.get_request_assignment.assert_called_once_with(
+            pyramid_request
+        )
+        assignment_service.get_assignment_sections.assert_called_once_with(assignment)
+
+        assert response == {
+            "id": assignment.id,
+            "title": assignment.title,
+            "created": assignment.created.isoformat(),
+            "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
+            "sections": [
+                {"h_authority_provided_id": g.authority_provided_id, "name": g.lms_name}
+                for g in sections
+            ],
         }
 
     def test_course_assignments(

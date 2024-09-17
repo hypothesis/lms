@@ -1,4 +1,5 @@
 import logging
+from typing import Sequence
 
 from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session
@@ -304,6 +305,26 @@ class AssignmentService:
         )
 
         return {x.course_id: x.count for x in self._db.execute(query)}  # type: ignore
+
+    def get_assignment_groups(self, assignment) -> Sequence[Grouping]:
+        """Get the relevant groups for the assignment from the DB."""
+        if group_set_id := assignment.extra.get("group_set_id"):
+            return self._db.scalars(
+                select(Grouping).where(
+                    Grouping.parent_id == assignment.course_id,
+                    Grouping.extra["group_set_id"].astext == str(group_set_id),
+                )
+            ).all()
+        return []
+
+    def get_assignment_sections(self, assignment) -> Sequence[Grouping]:
+        """Get the relevant groups for the assignment from the DB."""
+        return self._db.scalars(
+            select(Grouping).where(
+                Grouping.parent_id == assignment.course_id,
+                Grouping.type == "canvas_section",
+            )
+        ).all()
 
     def _update_auto_grading_config(
         self, auto_grading_model: AutoGradingConfig, auto_grading_config: dict
