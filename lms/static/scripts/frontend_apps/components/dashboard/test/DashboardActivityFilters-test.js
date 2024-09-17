@@ -172,7 +172,7 @@ describe('DashboardActivityFilters', () => {
   }
 
   function getSelect(wrapper, id) {
-    return wrapper.find(`MultiSelect[data-testid="${id}"]`);
+    return wrapper.find(`PaginatedMultiSelect[data-testid="${id}"]`);
   }
 
   function getSelectContent(wrapper, id) {
@@ -204,43 +204,58 @@ describe('DashboardActivityFilters', () => {
   });
 
   [
+    // Course
     {
       id: 'courses-select',
-      expectedOptions: ['All courses', ...courses.map(c => c.title)],
+      entity: courses[0],
+      expectedText: courses[0].title,
     },
+    // Assignment
     {
       id: 'assignments-select',
-      expectedOptions: [
-        'All assignments',
-        ...assignments.map(a => `${a.title}${formatDateTime(a.created)}`),
-      ],
+      entity: assignments[0],
+      expectedText: `${assignments[0].title}${formatDateTime(assignments[0].created)}`,
     },
+    // Student with name
     {
       id: 'students-select',
-      expectedOptions: [
-        'All students',
-        ...studentsWithName.map(s => s.display_name),
-        'Student name unavailable (ID: 12345)',
-      ],
-      expectedTitles: [undefined, undefined, undefined, 'User ID: 123456789'],
+      entity: students[0],
+      expectedText: students[0].display_name,
     },
-  ].forEach(({ id, expectedOptions, expectedTitles = [] }) => {
-    it('renders corresponding options', () => {
+    // Student without name
+    {
+      id: 'students-select',
+      entity: students[students.length - 1],
+      expectedText: 'Student name unavailable (ID: 12345)',
+      expectedTitle: 'User ID: 123456789',
+    },
+  ].forEach(({ id, entity, expectedText, expectedTitle }) => {
+    it('formats select options', () => {
       const wrapper = createComponent();
       const select = getSelect(wrapper, id);
-      const options = select.find(MultiSelect.Option);
 
-      assert.equal(options.length, expectedOptions.length);
-      options.forEach((option, index) => {
-        assert.equal(option.text(), expectedOptions[index]);
+      // The option needs to be wrapped in a select, otherwise it throws.
+      const tempSelect = mount(
+        <MultiSelect value={[]} onChange={sinon.stub()}>
+          {select.props().renderOption(entity)}
+        </MultiSelect>,
+      );
+      const option = tempSelect.find(MultiSelect.Option);
 
-        if (expectedTitles[index]) {
+      try {
+        assert.equal(option.text(), expectedText);
+
+        if (expectedTitle) {
           assert.equal(
             option.find('[data-testid="option-content-wrapper"]').prop('title'),
-            expectedTitles[index],
+            expectedTitle,
           );
         }
-      });
+      } finally {
+        // We need to unmount the temp select, to avoid a disconnected popover
+        // to be left in the DOM and affect other tests
+        tempSelect.unmount();
+      }
     });
   });
 
@@ -267,72 +282,6 @@ describe('DashboardActivityFilters', () => {
 
       select.props().onChange(selection);
       assert.calledWith(getExpectedCallback(), selection);
-    });
-  });
-
-  [true, false].forEach(isLoading => {
-    it('shows page loading indicators when loading', () => {
-      configureFakeAPIFetch({ isLoading });
-
-      const wrapper = createComponent();
-
-      assert.equal(
-        wrapper.exists('[data-testid="loading-more-courses"]'),
-        isLoading,
-      );
-      assert.equal(
-        wrapper.exists('[data-testid="loading-more-assignments"]'),
-        isLoading,
-      );
-      assert.equal(
-        wrapper.exists('[data-testid="loading-more-students"]'),
-        isLoading,
-      );
-    });
-  });
-
-  context('when scrolling listboxes down', () => {
-    [
-      {
-        id: 'courses-select',
-        getExpectedCallback: () => fakeLoadNextCoursesPage,
-      },
-      {
-        id: 'assignments-select',
-        getExpectedCallback: () => fakeLoadNextAssignmentsPage,
-      },
-      {
-        id: 'students-select',
-        getExpectedCallback: () => fakeLoadNextStudentsPage,
-      },
-    ].forEach(({ id, getExpectedCallback }) => {
-      it('loads next page when scroll is at the bottom', () => {
-        const wrapper = createComponent();
-        const select = getSelect(wrapper, id);
-
-        select.props().onListboxScroll({
-          target: {
-            scrollTop: 100,
-            clientHeight: 50,
-            scrollHeight: 160,
-          },
-        });
-        assert.called(getExpectedCallback());
-      });
-
-      it('does nothing when scroll is not at the bottom', () => {
-        const wrapper = createComponent();
-        const select = getSelect(wrapper, id);
-
-        select.props().onListboxScroll({
-          target: {
-            scrollTop: 100,
-            clientHeight: 50,
-            scrollHeight: 250,
-          },
-        });
-        assert.notCalled(getExpectedCallback());
-      });
     });
   });
 
@@ -503,9 +452,7 @@ describe('DashboardActivityFilters', () => {
           students: emptySelection,
         },
         selectId: 'courses-select',
-        allOption: 'All courses',
         skippedAPIFetchIndex: 0,
-        expectedOptionTitle: 'The active title',
       },
       {
         props: {
@@ -514,93 +461,25 @@ describe('DashboardActivityFilters', () => {
           students: emptySelection,
         },
         selectId: 'assignments-select',
-        allOption: 'All assignments',
         skippedAPIFetchIndex: 1,
-        expectedOptionTitle: `The active title${formatDateTime(created)}`,
       },
-    ].forEach(
-      ({
-        props,
-        selectId,
-        allOption,
-        skippedAPIFetchIndex,
-        expectedOptionTitle,
-      }) => {
-        it('displays active item', () => {
-          const wrapper = createComponentWithProps(props);
-          const select = getSelectContent(wrapper, selectId);
+    ].forEach(({ props, selectId, skippedAPIFetchIndex }) => {
+      it('displays active item', () => {
+        const wrapper = createComponentWithProps(props);
+        const select = getSelectContent(wrapper, selectId);
 
-          assert.equal(select, 'The active title');
-        });
-
-        it('displays only two options in select', () => {
-          const wrapper = createComponentWithProps(props);
-          const select = getSelect(wrapper, selectId);
-          const options = select.find(MultiSelect.Option);
-
-          assert.equal(options.length, 2);
-          assert.equal(options.at(0).text(), allOption);
-          assert.equal(options.at(1).text(), expectedOptionTitle);
-        });
-
-        it('does not load list of items', () => {
-          createComponentWithProps(props);
-
-          assert.calledWith(
-            fakeUsePaginatedAPIFetch.getCall(skippedAPIFetchIndex),
-            sinon.match.string,
-            null, // The path should be null
-            sinon.match.any,
-          );
-        });
-      },
-    );
-  });
-
-  describe('error handling', () => {
-    let fakeRetry;
-
-    beforeEach(() => {
-      fakeRetry = sinon.stub();
-      configureFakeAPIFetch({
-        isLoading: false,
-        error: new Error('An error occurred'),
-        retry: fakeRetry,
-      });
-    });
-
-    function clickRetry(wrapper, entity) {
-      wrapper
-        .find(`[data-testid="${entity}-error"]`)
-        .find('button')
-        .simulate('click');
-    }
-
-    ['courses', 'assignments', 'students'].forEach(entity => {
-      it('shows error message when loading filters fails', () => {
-        const wrapper = createComponent();
-        assert.isTrue(wrapper.exists(`[data-testid="${entity}-error"]`));
+        assert.equal(select, 'The active title');
       });
 
-      it('retries loading when retry button is clicked', () => {
-        const wrapper = createComponent();
+      it('does not load list of items', () => {
+        createComponentWithProps(props);
 
-        clickRetry(wrapper, entity);
-        assert.called(fakeRetry);
-      });
-
-      it('focuses last option when retry button is clicked', () => {
-        const wrapper = createComponent();
-
-        const lastOption = wrapper
-          .find(`[data-testid="${entity}-select"]`)
-          .find('[role="option"]')
-          .last()
-          .getDOMNode();
-        const focusOption = sinon.stub(lastOption, 'focus');
-
-        clickRetry(wrapper, entity);
-        assert.called(focusOption);
+        assert.calledWith(
+          fakeUsePaginatedAPIFetch.getCall(skippedAPIFetchIndex),
+          sinon.match.string,
+          null, // The path should be null
+          sinon.match.any,
+        );
       });
     });
   });
