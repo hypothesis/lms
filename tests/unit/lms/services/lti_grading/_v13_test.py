@@ -81,6 +81,7 @@ class TestLTI13GradingService:
         misc_plugin,
         lti_registration,
     ):
+        ltia_http_service.request.return_value = Mock(links={"next": None})
         ltia_http_service.request.return_value.json.return_value = blackboard_response
         blackboard_svc.line_item_url = "https://lms.com/lineitems?param=1"
 
@@ -91,7 +92,7 @@ class TestLTI13GradingService:
             "GET",
             "https://lms.com/lineitems/results?param=1",
             scopes=blackboard_svc.LTIA_SCOPES,
-            params={},
+            params={"limit": 1000},
             headers={"Accept": "application/vnd.ims.lis.v2.resultcontainer+json"},
         )
         assert (
@@ -103,6 +104,17 @@ class TestLTI13GradingService:
             blackboard_response[0]["comment"]
         )
         assert result.comment == misc_plugin.clean_lms_grading_comment.return_value
+
+    def test_read_result_blackboard_pagination_limit(
+        self, blackboard_svc, ltia_http_service, blackboard_response, caplog
+    ):
+        ltia_http_service.request.return_value = Mock(links={"next": sentinel.next})
+        ltia_http_service.request.return_value.json.return_value = blackboard_response
+
+        result = blackboard_svc.read_result(sentinel.user_id)
+
+        assert "paginated" in caplog.text
+        assert result
 
     def test_get_score_maximum(self, svc, ltia_http_service, lti_registration):
         ltia_http_service.request.return_value.json.return_value = [
