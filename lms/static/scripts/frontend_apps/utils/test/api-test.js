@@ -1,4 +1,4 @@
-import { waitFor } from '@hypothesis/frontend-testing';
+import { delay, waitFor } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
 
 import { Config } from '../../config';
@@ -9,6 +9,7 @@ import {
   useAPIFetch,
   $imports,
   usePaginatedAPIFetch,
+  usePolledAPIFetch,
 } from '../api';
 
 function createResponse(status, body) {
@@ -649,5 +650,103 @@ describe('usePaginatedAPIFetch', () => {
       params: { foo: 'bar' },
     });
     assert.equal(getMainContent(wrapper), 'No content');
+  });
+});
+
+describe('usePolledAPIFetch', () => {
+  let fakeUseFetch;
+  let fakeRetry;
+  let fakeClearTimeout;
+
+  function mockFetchFinished() {
+    fakeUseFetch.returns({
+      data: {},
+      isLoading: false,
+      retry: fakeRetry,
+    });
+  }
+
+  function mockLoadingState() {
+    fakeUseFetch.returns({
+      data: null,
+      isLoading: true,
+    });
+  }
+
+  beforeEach(() => {
+    fakeUseFetch = sinon.stub();
+    mockLoadingState();
+
+    fakeRetry = sinon.stub();
+    fakeClearTimeout = sinon.stub();
+
+    const fakeUseConfig = sinon.stub();
+    fakeUseConfig.returns({
+      api: { authToken: 'some-token' },
+    });
+
+    $imports.$mock({
+      '../config': { useConfig: fakeUseConfig },
+      './fetch': { useFetch: fakeUseFetch },
+    });
+  });
+
+  afterEach(() => {
+    $imports.$restore();
+  });
+
+  function TestWidget({ shouldRefresh }) {
+    const result = usePolledAPIFetch({
+      path: '/api/some/path',
+      shouldRefresh,
+
+      // Keep asynchronous nature of mocked setTimeout, but with a virtually
+      // immediate execution of the callback
+      _setTimeout: callback => setTimeout(callback),
+      _clearTimeout: fakeClearTimeout,
+    });
+
+    return (
+      <div data-testid="main-content">
+        {result.isLoading && 'Loading'}
+        {result.data && 'Loaded'}
+      </div>
+    );
+  }
+
+  function createComponent(shouldRefresh) {
+    return mount(<TestWidget shouldRefresh={shouldRefresh} />);
+  }
+
+  it('does not refresh while loading is in progress', async () => {
+    const shouldRefresh = sinon.stub().returns(true);
+    createComponent(shouldRefresh);
+
+    assert.notCalled(shouldRefresh);
+  });
+
+  it('refreshes requests until shouldRefresh returns false', async () => {
+    mockFetchFinished();
+
+    const shouldRefresh = sinon.stub().returns(true);
+    createComponent(shouldRefresh);
+
+    assert.called(shouldRefresh);
+
+    // Retry should be called once timeout ends
+    assert.notCalled(fakeRetry);
+    await delay(1);
+    assert.calledOnce(fakeRetry);
+  });
+
+  it('clears pending timeout when component is unmounted', () => {
+    mockFetchFinished();
+
+    const shouldRefresh = sinon.stub().returns(true);
+    const wrapper = createComponent(shouldRefresh);
+
+    wrapper.unmount();
+
+    assert.called(fakeClearTimeout);
   });
 });
