@@ -196,8 +196,7 @@ class ApplicationInstanceService:
             .all()
         )
 
-    # pylint: disable=too-complex
-    def _ai_search_query(  # noqa: PLR0913
+    def _ai_search_query(  # noqa: C901, PLR0913
         self,
         *,
         id_=None,
