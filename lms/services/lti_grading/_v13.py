@@ -46,7 +46,11 @@ class LTI13GradingService(LTIGradingService):
         if self._product_family == Family.BLACKBOARD:
             # There's currently a bug in Blackboard's LTIA implementation.
             # Using the user filter in the request removes the comment field in the response's body.
+            # So we'll remove the parameter and will search for the right student in the response.
             del params["user_id"]
+            # We explicitly add a big limit parameter to try to fetch as many results as possible
+            # without having to fetch more pages (which we have not implemented)
+            params["limit"] = 1000
 
         try:
             response = self._ltia_service.request(
@@ -67,6 +71,11 @@ class LTI13GradingService(LTIGradingService):
             # Due to the bug mentioned above we didn't use the API filtering by user for blackboard.
             # We'll filter ourselves here instead.
             results = [result for result in results if result["userId"] == grading_id]
+            if response.links.get("next"):
+                # We want to be notified if we are leaving results unfetched and likely start following these links
+                LOG.error(
+                    "Blackboard grading reading result, container with paginated results"
+                )
 
         if not results:
             return result
