@@ -341,7 +341,7 @@ class TestCanvasStudioService:
         svc.get.side_effect = self.get_request_handler(is_admin=True)
         return svc
 
-    def get_request_handler(self, collections=None, is_admin=False):  # noqa: PLR0915 pylint:disable=too-complex
+    def get_request_handler(self, collections=None, is_admin=False):  # noqa: C901, PLR0915
         """
         Create a handler for `GET` requests to the Canvas Studio API.
 
@@ -373,7 +373,7 @@ class TestCanvasStudioService:
                 make_collection(10, None, "course_wide", "2024-03-01"),
             ]
 
-        def handler(url, allow_redirects=True):  # noqa: PLR0912, PLR0915
+        def handler(url, allow_redirects=True):  # noqa: C901, PLR0912, PLR0915
             api_prefix = "/api/public/v1/"
 
             parsed_url = urlparse(url)
