@@ -12,6 +12,8 @@ from lms.models import (
     LMSUser,
     LTIRegistration,
     LTIRole,
+    RoleScope,
+    RoleType,
 )
 from lms.models.h_user import get_h_userid, get_h_username
 from lms.models.lti_user import display_name
@@ -36,7 +38,60 @@ class RosterService:
         self._lti_role_service = lti_role_service
         self._h_authority = h_authority
 
+    def get_course_roster(
+        self,
+        lms_course: LMSCourse,
+        role_scope: RoleScope | None = None,
+        role_type: RoleType | None = None,
+    ) -> list[LMSUser]:
+        """Get the roster information for a course from our DB."""
+        roster_query = (
+            select(CourseRoster.lms_user_id)
+            .join(LTIRole)
+            .where(
+                CourseRoster.lms_course_id == lms_course.id,
+                CourseRoster.active.is_(True),
+            )
+        )
+
+        if role_scope:
+            roster_query = roster_query.where(LTIRole.scope == role_scope)
+
+        if role_type:
+            roster_query = roster_query.where(LTIRole.type == role_type)
+
+        return self._db.scalars(
+            select(LMSUser).where(LMSUser.id.in_(roster_query))
+        ).all()
+
+    def get_assignment_roster(
+        self,
+        assignment: Assignment,
+        role_scope: RoleScope | None = None,
+        role_type: RoleType | None = None,
+    ) -> list[LMSUser]:
+        """Get the roster information for a course from our DB."""
+        roster_query = (
+            select(AssignmentRoster.lms_user_id)
+            .join(LTIRole)
+            .where(
+                AssignmentRoster.assignment_id == assignment.id,
+                AssignmentRoster.active.is_(True),
+            )
+        )
+
+        if role_scope:
+            roster_query = roster_query.where(LTIRole.scope == role_scope)
+
+        if role_type:
+            roster_query = roster_query.where(LTIRole.type == role_type)
+
+        return self._db.scalars(
+            select(LMSUser).where(LMSUser.id.in_(roster_query))
+        ).all()
+
     def fetch_course_roster(self, lms_course: LMSCourse) -> None:
+        """Fetch the roster information for a course from the LMS."""
         assert (
             lms_course.lti_context_memberships_url
         ), "Trying fetch roster for course without service URL."
@@ -93,6 +148,7 @@ class RosterService:
         )
 
     def fetch_assignment_roster(self, assignment: Assignment) -> None:
+        """Fetch the roster information for an assignment from the LMS."""
         assert (
             assignment.lti_v13_resource_link_id
         ), "Trying fetch roster for an assignment without LTI1.3 ID."

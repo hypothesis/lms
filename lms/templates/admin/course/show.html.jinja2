@@ -32,7 +32,16 @@
         {% else %}
             <legend class="label has-text-centered">No assignments</legend>
         {% endif %}
-
     </fieldset>
+
+    <fieldset class="box mt-6">
+        <legend class="label has-text-centered">Roster</legend>
+        {% if roster %}
+            {{ macros.roster_table(request, roster) }}
+        {% else %}
+            <legend class="label has-text-centered">No roster information</legend>
+        {% endif %}
+    </fieldset>
+
 </div>
 {% endblock %}
