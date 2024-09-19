@@ -230,15 +230,29 @@ export type AutoGradingConfig = {
 };
 
 /**
+ * Represents an assignment group or section, which maps to an h group.
+ */
+export type AssignmentSegment = {
+  h_authority_provided_id: string;
+  name: string;
+};
+
+/** Assignments will have either sections, groups or neither, but never both */
+type WithSegments =
+  | { sections?: AssignmentSegment[] }
+  | { groups?: AssignmentSegment[] };
+
+/**
  * Response for `/api/dashboard/assignments/{assignment_id}` call.
  */
-export type AssignmentDetails = AssignmentWithCourse & {
-  /**
-   * If defined, it indicates this assignment was configured with auto grading
-   * enabled.
-   */
-  auto_grading_config?: AutoGradingConfig;
-};
+export type AssignmentDetails = AssignmentWithCourse &
+  WithSegments & {
+    /**
+     * If defined, it indicates this assignment was configured with auto grading
+     * enabled.
+     */
+    auto_grading_config?: AutoGradingConfig;
+  };
 
 export type AssignmentWithMetrics = AssignmentWithCourse & {
   annotation_metrics: AnnotationMetrics;

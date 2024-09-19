@@ -12,6 +12,7 @@ import { useDashboardFilters } from '../../utils/dashboard/hooks';
 import { courseURL } from '../../utils/dashboard/navigation';
 import { useDocumentTitle } from '../../utils/hooks';
 import { replaceURLParams } from '../../utils/url';
+import type { DashboardActivityFiltersProps } from './DashboardActivityFilters';
 import DashboardActivityFilters from './DashboardActivityFilters';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import FormattedDate from './FormattedDate';
@@ -40,7 +41,7 @@ export default function AssignmentActivity() {
   }>();
 
   const { filters, updateFilters, urlWithFilters } = useDashboardFilters();
-  const { studentIds } = filters;
+  const { studentIds, segmentIds } = filters;
   const search = useSearch();
   const [, navigate] = useLocation();
 
@@ -48,11 +49,40 @@ export default function AssignmentActivity() {
     replaceURLParams(routes.assignment, { assignment_id: assignmentId }),
   );
   const autoGradingEnabled = !!assignment.data?.auto_grading_config;
+  const segments = useMemo((): DashboardActivityFiltersProps['segments'] => {
+    const { data } = assignment;
+    // For now, we want to display the segments filter only for auto-grading
+    // assignments, but this will eventually change
+    if (!data || !autoGradingEnabled) {
+      return undefined;
+    }
+
+    const hasSections = 'sections' in data;
+    const entries = hasSections
+      ? data.sections
+      : 'groups' in data
+        ? data.groups
+        : undefined;
+
+    // If the assignment doesn't have either sections or groups, we won't
+    // display the segments filter
+    if (!entries || entries.length === 0) {
+      return undefined;
+    }
+
+    return {
+      type: hasSections ? 'sections' : 'groups',
+      entries,
+      selectedIds: segmentIds,
+      onChange: segmentIds => updateFilters({ segmentIds }),
+    };
+  }, [assignment, autoGradingEnabled, segmentIds, updateFilters]);
 
   const students = useAPIFetch<StudentsMetricsResponse>(
     routes.students_metrics,
     {
       h_userid: studentIds,
+      segment_authority_provided_id: segmentIds,
       assignment_id: assignmentId,
       org_public_id: organizationPublicId,
     },
@@ -160,9 +190,11 @@ export default function AssignmentActivity() {
             selectedIds: studentIds,
             onChange: studentIds => updateFilters({ studentIds }),
           }}
+          segments={segments}
           onClearSelection={
-            studentIds.length > 0
-              ? () => updateFilters({ studentIds: [] })
+            studentIds.length > 0 ||
+            (segments && segments.selectedIds.length > 0)
+              ? () => updateFilters({ studentIds: [], segmentIds: [] })
               : undefined
           }
         />

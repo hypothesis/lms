@@ -59,7 +59,13 @@ describe('AssignmentActivity', () => {
     }));
   }
 
+  function setCurrentURL(url) {
+    history.replaceState(null, '', url);
+  }
+
   beforeEach(() => {
+    setCurrentURL('?');
+
     fakeUseAPIFetch = sinon.stub();
     setUpFakeUseAPIFetch();
 
@@ -196,37 +202,45 @@ describe('AssignmentActivity', () => {
   });
 
   context('when filters are set', () => {
-    function setCurrentURL(url) {
-      history.replaceState(null, '', url);
-    }
+    [
+      {
+        extraQuery: '',
+        expectedSegments: [],
+      },
+      {
+        extraQuery: '&segment_id=foo',
+        expectedSegments: ['foo'],
+      },
+      {
+        extraQuery: '&segment_id=bar&segment_id=baz',
+        expectedSegments: ['bar', 'baz'],
+      },
+    ].forEach(({ expectedSegments, extraQuery }) => {
+      it('initializes expected filters', () => {
+        setCurrentURL(`?student_id=1&student_id=2${extraQuery}`);
 
-    beforeEach(() => {
-      setCurrentURL('?');
-    });
+        const wrapper = createComponent();
+        const filters = wrapper.find('DashboardActivityFilters');
 
-    it('initializes expected filters', () => {
-      setCurrentURL('?student_id=1&student_id=2');
+        // Active course and assignment are set from the route
+        assert.deepEqual(
+          filters.prop('courses').activeItem,
+          activeAssignment.course,
+        );
+        assert.deepEqual(
+          filters.prop('assignments').activeItem,
+          activeAssignment,
+        );
+        // Students are set from the query
+        assert.deepEqual(filters.prop('students').selectedIds, ['1', '2']);
 
-      const wrapper = createComponent();
-      const filters = wrapper.find('DashboardActivityFilters');
-
-      // Active course and assignment are set from the route
-      assert.deepEqual(
-        filters.prop('courses').activeItem,
-        activeAssignment.course,
-      );
-      assert.deepEqual(
-        filters.prop('assignments').activeItem,
-        activeAssignment,
-      );
-      // Students are set from the query
-      assert.deepEqual(filters.prop('students').selectedIds, ['1', '2']);
-
-      // Selected filters are propagated when loading assignment metrics
-      assert.calledWith(fakeUseAPIFetch.lastCall, sinon.match.string, {
-        h_userid: ['1', '2'],
-        assignment_id: '123',
-        org_public_id: undefined,
+        // Selected filters are propagated when loading assignment metrics
+        assert.calledWith(fakeUseAPIFetch.lastCall, sinon.match.string, {
+          h_userid: ['1', '2'],
+          segment_authority_provided_id: expectedSegments,
+          assignment_id: '123',
+          org_public_id: undefined,
+        });
       });
     });
 
@@ -255,8 +269,25 @@ describe('AssignmentActivity', () => {
       assert.equal(location.search, '?student_id=3&student_id=7');
     });
 
-    it('clears selected students on clear selection', () => {
-      setCurrentURL('?foo=bar&student_id=8&student_id=20&student_id=32');
+    it('updates query when selected segments change', () => {
+      setUpFakeUseAPIFetch({
+        ...activeAssignment,
+        groups: [{}, {}],
+        auto_grading_config: {},
+      });
+
+      const wrapper = createComponent();
+      const filters = wrapper.find('DashboardActivityFilters');
+
+      act(() => filters.prop('segments').onChange(['3', '7']));
+
+      assert.equal(location.search, '?segment_id=3&segment_id=7');
+    });
+
+    it('clears selected students and segments on clear selection', () => {
+      setCurrentURL(
+        '?foo=bar&student_id=8&student_id=20&student_id=32&segment_id=foo',
+      );
 
       const wrapper = createComponent();
       const filters = wrapper.find('DashboardActivityFilters');
@@ -390,6 +421,70 @@ describe('AssignmentActivity', () => {
         });
       },
     );
+  });
+
+  context('when assignment has segments', () => {
+    it('sets no segments when auto-grading is not enabled', () => {
+      const wrapper = createComponent();
+      const filters = wrapper.find('DashboardActivityFilters');
+
+      assert.isUndefined(filters.prop('segments'));
+    });
+
+    [{}, { sections: [] }, { groups: [] }].forEach(assignmentExtra => {
+      it('sets no segments when assignment has no groups or sections', () => {
+        setUpFakeUseAPIFetch({
+          ...activeAssignment,
+          ...assignmentExtra,
+          auto_grading_config: {},
+        });
+
+        const wrapper = createComponent();
+        const filters = wrapper.find('DashboardActivityFilters');
+
+        assert.isUndefined(filters.prop('segments'));
+      });
+    });
+
+    [
+      {
+        assignmentExtra: { sections: [{}, {}] },
+        expectedType: 'sections',
+      },
+      {
+        assignmentExtra: { groups: [{}, {}, {}] },
+        expectedType: 'groups',
+      },
+    ].forEach(({ assignmentExtra, expectedType }) => {
+      it('sets type of segment based on assignment data fields', () => {
+        setUpFakeUseAPIFetch({
+          ...activeAssignment,
+          ...assignmentExtra,
+          auto_grading_config: {},
+        });
+
+        const wrapper = createComponent();
+        const filters = wrapper.find('DashboardActivityFilters');
+        const segments = filters.prop('segments');
+
+        assert.equal(segments.type, expectedType);
+        assert.equal(segments.entries, assignmentExtra[expectedType]);
+      });
+    });
+
+    it('filters have `onClearSelection` if at least one segment is set', () => {
+      setCurrentURL('?segment_id=foo');
+      setUpFakeUseAPIFetch({
+        ...activeAssignment,
+        groups: [{}, {}],
+        auto_grading_config: {},
+      });
+
+      const wrapper = createComponent();
+      const filters = wrapper.find('DashboardActivityFilters');
+
+      assert.isDefined(filters.prop('onClearSelection'));
+    });
   });
 
   it(

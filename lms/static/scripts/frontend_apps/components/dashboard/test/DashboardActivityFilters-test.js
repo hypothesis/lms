@@ -142,6 +142,15 @@ describe('DashboardActivityFilters', () => {
     $imports.$restore();
   });
 
+  /**
+   *
+   * @param {object} options
+   * @param {string[] | undefined} [options.selectedCourseIds]
+   * @param {string[] | undefined} [options.selectedAssignmentIds]
+   * @param {string[] | undefined} [options.selectedStudentIds]
+   * @param {object | undefined} [options.segments]
+   * @param {(...args: unknown[]) => unknown | undefined} [options.onClearSelection]
+   */
   function createComponent(options = {}) {
     return createComponentWithProps({
       courses: {
@@ -156,6 +165,7 @@ describe('DashboardActivityFilters', () => {
         selectedIds: options.selectedStudentIds ?? [],
         onChange: onStudentsChange,
       },
+      segments: options.segments,
       onClearSelection: options.onClearSelection,
     });
   }
@@ -378,6 +388,7 @@ describe('DashboardActivityFilters', () => {
           assignment_id: selectedAssignmentIds,
           course_id: selectedCourseIds,
           org_public_id: undefined,
+          segment_authority_provided_id: [],
         },
       );
     });
@@ -482,6 +493,161 @@ describe('DashboardActivityFilters', () => {
         );
       });
     });
+  });
+
+  context('when segments are provided', () => {
+    let onSegmentsChange;
+
+    beforeEach(() => {
+      onSegmentsChange = sinon.stub();
+    });
+
+    function createComponentWithSegments(segmentsConfig = {}) {
+      return createComponent({
+        segments: {
+          selectedIds: [],
+          entries: [],
+          type: 'groups',
+          onChange: onSegmentsChange,
+          ...segmentsConfig,
+        },
+      });
+    }
+
+    function getSegmentsSelect(wrapper) {
+      return wrapper.find('[data-testid="segments-select"]');
+    }
+
+    [true, false].forEach(withSegments => {
+      it('shows an extra multi-select for segments', () => {
+        const wrapper = withSegments
+          ? createComponentWithSegments()
+          : createComponent();
+
+        assert.equal(getSegmentsSelect(wrapper).exists(), withSegments);
+      });
+    });
+
+    it('sets initially selected values', () => {
+      const selectedIds = ['bar', 'baz'];
+      const wrapper = createComponentWithSegments({ selectedIds });
+      const select = getSegmentsSelect(wrapper);
+
+      assert.deepEqual(select.prop('value'), selectedIds);
+    });
+
+    it('invokes onChange callback', () => {
+      const wrapper = createComponentWithSegments();
+      const select = getSegmentsSelect(wrapper);
+
+      select.props().onChange(['foo', 'bar']);
+
+      assert.calledWith(onSegmentsChange, ['foo', 'bar']);
+    });
+
+    ['groups', 'sections'].forEach(type => {
+      it('sets label based on segment type', () => {
+        const wrapper = createComponentWithSegments({ type });
+        const select = getSegmentsSelect(wrapper);
+
+        assert.equal(select.prop('aria-label'), `Select ${type}`);
+      });
+    });
+
+    [
+      // No selection for groups
+      {
+        segmentsConfig: { type: 'groups' },
+        expectedButtonContent: 'All groups',
+      },
+      // No selection for sections
+      {
+        segmentsConfig: { type: 'sections' },
+        expectedButtonContent: 'All sections',
+      },
+      // 1 known selected item
+      {
+        segmentsConfig: {
+          entries: [
+            {
+              h_authority_provided_id: '1',
+              name: 'Selected Name',
+            },
+          ],
+          selectedIds: ['1'],
+        },
+        expectedButtonContent: 'Selected Name',
+      },
+      // 1 unknown selected group
+      {
+        segmentsConfig: {
+          type: 'groups',
+          entries: [
+            {
+              h_authority_provided_id: '1',
+              name: 'Selected Name',
+            },
+          ],
+          selectedIds: ['3'],
+        },
+        expectedButtonContent: '1 group',
+      },
+      // 1 unknown selected section
+      {
+        segmentsConfig: {
+          type: 'sections',
+          entries: [
+            {
+              h_authority_provided_id: '1',
+              name: 'Selected Name',
+            },
+          ],
+          selectedIds: ['3'],
+        },
+        expectedButtonContent: '1 section',
+      },
+      // Multiple selected groups
+      {
+        segmentsConfig: {
+          type: 'groups',
+          selectedIds: ['1', '3', '8'],
+        },
+        expectedButtonContent: '3 groups',
+      },
+      // Multiple selected sections
+      {
+        segmentsConfig: {
+          type: 'sections',
+          selectedIds: ['1', '3'],
+        },
+        expectedButtonContent: '2 sections',
+      },
+    ].forEach(({ expectedButtonContent, segmentsConfig }) => {
+      it('shows expected segments button content', () => {
+        const wrapper = createComponentWithSegments(segmentsConfig);
+        const content = mount(
+          <div>{getSegmentsSelect(wrapper).prop('buttonContent')}</div>,
+        );
+
+        try {
+          assert.equal(content.text(), expectedButtonContent);
+        } finally {
+          content.unmount();
+        }
+      });
+    });
+
+    [{ entries: [] }, { entries: [{}, {}, {}] }, { entries: [{}] }].forEach(
+      ({ entries }) => {
+        it('shows expected number of options', () => {
+          const wrapper = createComponentWithSegments({ entries });
+          const select = getSegmentsSelect(wrapper);
+          const options = select.find(MultiSelect.Option);
+
+          assert.equal(options.length, entries.length + 1);
+        });
+      },
+    );
   });
 
   it(
