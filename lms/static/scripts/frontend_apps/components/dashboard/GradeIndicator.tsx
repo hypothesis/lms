@@ -1,7 +1,11 @@
-import { CheckIcon, CancelIcon } from '@hypothesis/frontend-shared';
+import {
+  CheckIcon,
+  CancelIcon,
+  useKeyPress,
+} from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import type { ComponentChildren } from 'preact';
-import { useCallback, useState } from 'preact/hooks';
+import { useCallback, useId, useState } from 'preact/hooks';
 
 import type { AutoGradingConfig } from '../../api-types';
 import GradeStatusChip from './GradeStatusChip';
@@ -64,6 +68,9 @@ export default function GradeIndicator({
   const [popoverVisible, setPopoverVisible] = useState(false);
   const showPopover = useCallback(() => setPopoverVisible(true), []);
   const hidePopover = useCallback(() => setPopoverVisible(false), []);
+  const popoverId = useId();
+
+  useKeyPress(['Escape'], hidePopover);
 
   const isCalculationSeparate = config?.activity_calculation === 'separate';
   const combined = annotations + replies;
@@ -72,23 +79,25 @@ export default function GradeIndicator({
     : 0;
 
   return (
-    <div
-      className="inline-block relative"
-      onMouseOver={showPopover}
-      onMouseOut={hidePopover}
-      // Make element focusable so that the popover can be shown even when
-      // interacting with the keyboard
-      onFocus={showPopover}
-      onBlur={hidePopover}
-      role="button"
-      tabIndex={0}
-      data-testid="container"
-    >
-      <GradeStatusChip grade={grade} />
+    <div className="relative">
+      <button
+        className="focus-visible-ring rounded"
+        onClick={showPopover}
+        onMouseOver={showPopover}
+        onFocus={showPopover}
+        onMouseOut={hidePopover}
+        onBlur={hidePopover}
+        data-testid="popover-toggle"
+        aria-expanded={popoverVisible}
+        aria-describedby={popoverVisible ? popoverId : undefined}
+        aria-controls={popoverVisible ? popoverId : undefined}
+      >
+        <GradeStatusChip grade={grade} />
+      </button>
       <div aria-live="polite" aria-relevant="additions">
         {popoverVisible && (
           <div
-            role="tooltip"
+            id={popoverId}
             className={classnames(
               'rounded shadow-lg bg-white border',
               'w-64 absolute -left-6 top-full mt-0.5',
