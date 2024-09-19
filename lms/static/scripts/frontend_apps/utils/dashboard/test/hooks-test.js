@@ -13,6 +13,7 @@ describe('useDashboardFilters', () => {
           {filters.assignmentIds.join(',')}
         </div>
         <div data-testid="student-ids">{filters.studentIds.join(',')}</div>
+        <div data-testid="segment-ids">{filters.segmentIds.join(',')}</div>
 
         <button
           onClick={() => updateFilters({ courseIds: ['111', '222', '333'] })}
@@ -33,6 +34,12 @@ describe('useDashboardFilters', () => {
           data-testid="update-students"
         >
           Update students
+        </button>
+        <button
+          onClick={() => updateFilters({ segmentIds: ['foo', 'bar'] })}
+          data-testid="update-segments"
+        >
+          Update segments
         </button>
 
         <div data-testid="url-with-filters">
@@ -67,6 +74,10 @@ describe('useDashboardFilters', () => {
     return wrapper.find('[data-testid="student-ids"]').text();
   }
 
+  function getCurrentSegments(wrapper) {
+    return wrapper.find('[data-testid="segment-ids"]').text();
+  }
+
   function getURLWithFilters(wrapper) {
     return wrapper.find('[data-testid="url-with-filters"]').text();
   }
@@ -77,24 +88,35 @@ describe('useDashboardFilters', () => {
       expectedCourses: '1',
       expectedAssignments: '2',
       expectedStudents: '',
+      expectedSegments: '',
     },
     {
       initialQueryString: '?course_id=1&course_id=2',
       expectedCourses: '1,2',
       expectedAssignments: '',
       expectedStudents: '',
+      expectedSegments: '',
     },
     {
       initialQueryString: '?student_id=abc&student_id=def&assignment_id=3',
       expectedCourses: '',
       expectedAssignments: '3',
       expectedStudents: 'abc,def',
+      expectedSegments: '',
     },
     {
       initialQueryString: '?student_id=abc',
       expectedCourses: '',
       expectedAssignments: '',
       expectedStudents: 'abc',
+      expectedSegments: '',
+    },
+    {
+      initialQueryString: '?segment_id=bar&segment_id=baz&student_id=abc',
+      expectedCourses: '',
+      expectedAssignments: '',
+      expectedStudents: 'abc',
+      expectedSegments: 'bar,baz',
     },
   ].forEach(
     ({
@@ -102,6 +124,7 @@ describe('useDashboardFilters', () => {
       expectedCourses,
       expectedAssignments,
       expectedStudents,
+      expectedSegments,
     }) => {
       it('reads params from the query', () => {
         setCurrentURL(initialQueryString);
@@ -111,6 +134,7 @@ describe('useDashboardFilters', () => {
         assert.equal(getCurrentCourses(wrapper), expectedCourses);
         assert.equal(getCurrentAssignments(wrapper), expectedAssignments);
         assert.equal(getCurrentStudents(wrapper), expectedStudents);
+        assert.equal(getCurrentSegments(wrapper), expectedSegments);
       });
     },
   );
@@ -134,6 +158,12 @@ describe('useDashboardFilters', () => {
       getResult: getCurrentStudents,
       expectedResult: 'abc,def',
       expectedQueryString: '?student_id=abc&student_id=def',
+    },
+    {
+      buttonId: 'update-segments',
+      getResult: getCurrentSegments,
+      expectedResult: 'foo,bar',
+      expectedQueryString: '?segment_id=foo&segment_id=bar',
     },
   ].forEach(({ buttonId, getResult, expectedResult, expectedQueryString }) => {
     it('persists updated values in query string', () => {
@@ -181,6 +211,10 @@ describe('useDashboardFilters', () => {
     {
       buttonId: 'update-students',
       expectedURL: '/hello/world?student_id=abc&student_id=def',
+    },
+    {
+      buttonId: 'update-segments',
+      expectedURL: '/hello/world?segment_id=foo&segment_id=bar',
     },
   ].forEach(({ buttonId, expectedURL }) => {
     it('builds URLs with filters', () => {
