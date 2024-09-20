@@ -23,11 +23,15 @@ describe('GradeIndicator', () => {
     );
   }
 
+  function getToggleButton(wrapper) {
+    return wrapper.find('[data-testid="popover-toggle"]');
+  }
+
   /**
    * @param {'onMouseOver' | 'onMouseOut' | 'onFocus' | 'onBlur'} callback
    */
   function invokeCallback(wrapper, callback) {
-    act(() => wrapper.find('[data-testid="container"]').prop(callback)());
+    act(() => getToggleButton(wrapper).prop(callback)());
     wrapper.update();
   }
 
@@ -39,7 +43,7 @@ describe('GradeIndicator', () => {
     return wrapper.exists('[data-testid="popover"]');
   }
 
-  ['onMouseOver', 'onFocus'].forEach(callback => {
+  ['onMouseOver', 'onFocus', 'onClick'].forEach(callback => {
     it(`shows popover ${callback}`, () => {
       const wrapper = createComponent();
 
@@ -60,6 +64,23 @@ describe('GradeIndicator', () => {
       invokeCallback(wrapper, callback);
       assert.isFalse(isPopoverVisible(wrapper));
     });
+  });
+
+  it(`hides popover on Escape key press`, () => {
+    const wrapper = createComponent();
+
+    // Start with the popover open
+    openPopover(wrapper);
+    assert.isTrue(isPopoverVisible(wrapper));
+
+    act(() =>
+      document.body.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Escape' }),
+      ),
+    );
+    wrapper.update();
+
+    assert.isFalse(isPopoverVisible(wrapper));
   });
 
   [
@@ -144,6 +165,21 @@ describe('GradeIndicator', () => {
           annotationCountElement.exists(expectedAnnotationCount.icon),
         );
       });
+    });
+  });
+
+  [true, false].forEach(popoverVisible => {
+    it('sets proper aria attributes', () => {
+      const wrapper = createComponent();
+      if (popoverVisible) {
+        openPopover(wrapper);
+      }
+
+      const toggleButton = getToggleButton(wrapper);
+
+      assert.equal(toggleButton.prop('aria-expanded'), popoverVisible);
+      assert.equal(!!toggleButton.prop('aria-describedby'), popoverVisible);
+      assert.equal(!!toggleButton.prop('aria-controls'), popoverVisible);
     });
   });
 
