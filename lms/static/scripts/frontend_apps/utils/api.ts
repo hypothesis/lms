@@ -254,8 +254,11 @@ export function usePolledAPIFetch<T = unknown>({
   /* istanbul ignore next - test seam */
   _clearTimeout = clearTimeout,
 }: PolledAPIFetchOptions<T>): FetchResult<T> {
-  const result = useAPIFetch<T>(path, params);
   const shouldRefresh = useStableCallback(unstableShouldRefresh);
+  const result = useAPIFetch<T>(path, params);
+  // Track loading state separately, to avoid flickering UIs due to
+  // intermediate state changes between refreshes
+  const [isLoading, setIsLoading] = useState(result.isLoading);
 
   const timeout = useRef<ReturnType<typeof _setTimeout> | null>(null);
   const resetTimeout = useCallback(() => {
@@ -266,23 +269,33 @@ export function usePolledAPIFetch<T = unknown>({
   }, [_clearTimeout]);
 
   useEffect(() => {
+    // When the actual request is loading, transition to loading, in case
+    // a new request was triggered by a path/fetch key change
     if (result.isLoading) {
+      setIsLoading(true);
+      return () => {};
+    }
+
+    // Transition to not-loading only once we no longer have to refresh
+    if (!shouldRefresh(result)) {
+      setIsLoading(false);
       return () => {};
     }
 
     // Once we finish loading, schedule a retry if the request should be
     // refreshed
-    if (shouldRefresh(result)) {
-      timeout.current = _setTimeout(() => {
-        result.retry();
-        timeout.current = null;
-      }, refreshAfter);
-    }
+    timeout.current = _setTimeout(() => {
+      result.retry();
+      timeout.current = null;
+    }, refreshAfter);
 
     return resetTimeout;
   }, [_setTimeout, refreshAfter, resetTimeout, result, shouldRefresh]);
 
-  return result;
+  return {
+    ...result,
+    isLoading,
+  };
 }
 
 export type PaginatedFetchResult<T> = Omit<FetchResult<T>, 'mutate'> & {
