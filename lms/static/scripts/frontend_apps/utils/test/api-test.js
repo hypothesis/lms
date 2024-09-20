@@ -666,16 +666,11 @@ describe('usePolledAPIFetch', () => {
     });
   }
 
-  function mockLoadingState() {
-    fakeUseFetch.returns({
+  beforeEach(() => {
+    fakeUseFetch = sinon.stub().returns({
       data: null,
       isLoading: true,
     });
-  }
-
-  beforeEach(() => {
-    fakeUseFetch = sinon.stub();
-    mockLoadingState();
 
     fakeRetry = sinon.stub();
     fakeClearTimeout = sinon.stub();
@@ -709,13 +704,18 @@ describe('usePolledAPIFetch', () => {
     return (
       <div data-testid="main-content">
         {result.isLoading && 'Loading'}
-        {result.data && 'Loaded'}
+        {!result.isLoading && 'Loaded'}
       </div>
     );
   }
 
   function createComponent(shouldRefresh) {
     return mount(<TestWidget shouldRefresh={shouldRefresh} />);
+  }
+
+  function reRender(wrapper) {
+    // Setting the same props again will force the component to re-render
+    wrapper.setProps(wrapper.props());
   }
 
   it('does not refresh while loading is in progress', async () => {
@@ -748,5 +748,26 @@ describe('usePolledAPIFetch', () => {
     wrapper.unmount();
 
     assert.called(fakeClearTimeout);
+  });
+
+  it('returns isLoading as long as shouldRefresh returns true', () => {
+    const shouldRefresh = sinon.stub().returns(true);
+    const wrapper = createComponent(shouldRefresh);
+    const isLoading = () =>
+      wrapper.find('[data-testid="main-content"]').text() === 'Loading';
+
+    assert.isTrue(isLoading());
+
+    // Even if we make the API call finish, the status will continue being
+    // loading as long as shouldRefresh returns true
+    mockFetchFinished();
+    reRender(wrapper);
+    assert.isTrue(isLoading());
+
+    // Once shouldRefresh returns false, the state will transition to
+    // `isLoading: false`
+    shouldRefresh.returns(false);
+    reRender(wrapper);
+    assert.isFalse(isLoading());
   });
 });
