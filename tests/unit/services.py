@@ -14,6 +14,7 @@ from lms.services.aes import AESService
 from lms.services.application_instance import ApplicationInstanceService
 from lms.services.assignment import AssignmentService
 from lms.services.async_oauth_http import AsyncOAuthHTTPService
+from lms.services.auto_grading import AutoGradingService
 from lms.services.blackboard_api.client import BlackboardAPIClient
 from lms.services.canvas_api import CanvasAPIClient
 from lms.services.canvas_studio import CanvasStudioService
@@ -63,6 +64,7 @@ __all__ = (
     "application_instance_service",
     "assignment_service",
     "async_oauth_http_service",
+    "auto_grading_service",
     "blackboard_api_client",
     "canvas_api_client",
     "canvas_service",
@@ -192,6 +194,11 @@ def course_service(mock_service):
 @pytest.fixture
 def roster_service(mock_service):
     return mock_service(RosterService)
+
+
+@pytest.fixture
+def auto_grading_service(mock_service):
+    return mock_service(AutoGradingService)
 
 
 @pytest.fixture

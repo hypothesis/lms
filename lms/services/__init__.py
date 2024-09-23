@@ -1,6 +1,7 @@
 from lms.services.aes import AESService
 from lms.services.application_instance import ApplicationInstanceNotFound
 from lms.services.assignment import AssignmentService
+from lms.services.auto_grading import AutoGradingService
 from lms.services.canvas import CanvasService
 from lms.services.canvas_studio import CanvasStudioService
 from lms.services.d2l_api.client import D2LAPIClient
@@ -151,6 +152,9 @@ def includeme(config):
     )
     config.register_service_factory(MoodleAPIClient.factory, iface=MoodleAPIClient)
     config.register_service_factory("lms.services.roster.factory", iface=RosterService)
+    config.register_service_factory(
+        "lms.services.auto_grading.factory", iface=AutoGradingService
+    )
 
     # Plugins are not the same as top level services but we want to register them as pyramid services too
     # Importing them here to:
