@@ -57,6 +57,7 @@ class ApplicationSettings(JSONSettings):
         JSONSetting("hypothesis", "lti_13_sourcedid_for_grading", asbool),
         JSONSetting("hypothesis", "auto_grading_enabled", asbool),
         JSONSetting("hypothesis", "auto_grading_sync_enabled", asbool),
+        JSONSetting("dashboard", "assignment_segments_filter_enabled", asbool),
     )
 
 

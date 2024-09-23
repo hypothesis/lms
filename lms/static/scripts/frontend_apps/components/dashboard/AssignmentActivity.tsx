@@ -34,7 +34,7 @@ type StudentsTableRow = {
  */
 export default function AssignmentActivity() {
   const { dashboard } = useConfig(['dashboard']);
-  const { routes } = dashboard;
+  const { routes, assignment_segments_filter_enabled } = dashboard;
   const { assignmentId, organizationPublicId } = useParams<{
     assignmentId: string;
     organizationPublicId?: string;
@@ -51,9 +51,12 @@ export default function AssignmentActivity() {
   const autoGradingEnabled = !!assignment.data?.auto_grading_config;
   const segments = useMemo((): DashboardActivityFiltersProps['segments'] => {
     const { data } = assignment;
-    // For now, we want to display the segments filter only for auto-grading
-    // assignments, but this will eventually change
-    if (!data || !autoGradingEnabled) {
+    if (
+      !data ||
+      // Display the segments filter only for auto-grading assignments, or
+      // assignments where the feature was explicitly enabled
+      (!assignment_segments_filter_enabled && !autoGradingEnabled)
+    ) {
       return undefined;
     }
 
@@ -76,7 +79,13 @@ export default function AssignmentActivity() {
       selectedIds: segmentIds,
       onChange: segmentIds => updateFilters({ segmentIds }),
     };
-  }, [assignment, autoGradingEnabled, segmentIds, updateFilters]);
+  }, [
+    assignment,
+    assignment_segments_filter_enabled,
+    autoGradingEnabled,
+    segmentIds,
+    updateFilters,
+  ]);
 
   const students = useAPIFetch<StudentsMetricsResponse>(
     routes.students_metrics,

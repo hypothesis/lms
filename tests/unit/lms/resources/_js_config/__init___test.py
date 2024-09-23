@@ -713,17 +713,26 @@ class TestEnableErrorDialogMode:
 
 
 class TestEnableDashboardMode:
-    @pytest.mark.parametrize("auto_grading_sync_setting", [True, False])
+    @pytest.mark.parametrize(
+        "auto_grading_sync_setting,assignment_segments_filter_setting",
+        [(True, True), (False, True), (True, False), (False, False)],
+    )
     def test_it(
         self,
         js_config,
         lti_user,
         bearer_token_schema,
         auto_grading_sync_setting,
+        assignment_segments_filter_setting,
         application_instance,
     ):
         application_instance.settings.set(
             "hypothesis", "auto_grading_sync_enabled", auto_grading_sync_setting
+        )
+        application_instance.settings.set(
+            "dashboard",
+            "assignment_segments_filter_enabled",
+            assignment_segments_filter_setting,
         )
         js_config.enable_dashboard_mode(token_lifetime_seconds=100)
         config = js_config.asdict()
@@ -749,6 +758,7 @@ class TestEnableDashboardMode:
                 "assignment_grades_sync": "/api/dashboard/assignments/:assignment_id/grading/sync",
             },
             "auto_grading_sync_enabled": auto_grading_sync_setting,
+            "assignment_segments_filter_enabled": assignment_segments_filter_setting,
         }
 
     def test_user_when_staff(self, js_config, pyramid_request_staff_member, context):
@@ -762,6 +772,8 @@ class TestEnableDashboardMode:
         }
         # Grade syncing always disabled for staff
         assert not config["dashboard"]["auto_grading_sync_enabled"]
+        # Segments filter is always enabled for staff
+        assert config["dashboard"]["assignment_segments_filter_enabled"]
 
     @pytest.fixture
     def pyramid_request_staff_member(self, pyramid_config, pyramid_request):

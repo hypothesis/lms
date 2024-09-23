@@ -77,6 +77,7 @@ describe('AssignmentActivity', () => {
           assignment: '/api/assignments/:assignment_id',
           students_metrics: '/api/students/metrics',
         },
+        assignment_segments_filter_enabled: false,
       },
     };
 
@@ -485,6 +486,28 @@ describe('AssignmentActivity', () => {
 
       assert.isDefined(filters.prop('onClearSelection'));
     });
+  });
+
+  context('when assignment_segments_filter_enabled is true', () => {
+    beforeEach(() => {
+      fakeConfig.dashboard.assignment_segments_filter_enabled = true;
+    });
+
+    [{ sections: [{}, {}] }, { groups: [{}, {}, {}] }].forEach(
+      assignmentExtra => {
+        it('shows segments filter dropdown', () => {
+          setUpFakeUseAPIFetch({
+            ...activeAssignment,
+            ...assignmentExtra,
+          });
+
+          const wrapper = createComponent();
+          const filters = wrapper.find('DashboardActivityFilters');
+
+          assert.isDefined(filters.prop('segments'));
+        });
+      },
+    );
   });
 
   it(
