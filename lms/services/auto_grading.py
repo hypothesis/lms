@@ -1,8 +1,54 @@
+from sqlalchemy import select
+
 from lms.js_config_types import AnnotationMetrics
-from lms.models import AutoGradingConfig
+from lms.models import AutoGradingConfig, GradingSync, GradingSyncGrade, LMSUser
 
 
 class AutoGradingService:
+    def __init__(self, db):
+        self._db = db
+
+    def get_in_progress_sync(self, assignment) -> GradingSync | None:
+        return self._db.scalars(
+            self._search_query(
+                assignment=assignment, statuses=["scheduled", "in_progress"]
+            )
+        ).one_or_none()
+
+    def get_last_sync(self, assignment) -> GradingSync | None:
+        return self._db.scalars(
+            self._search_query(assignment=assignment).order_by(
+                GradingSync.created.desc()
+            )
+        ).first()
+
+    def create_grade_sync(
+        self, assignment, created_by: LMSUser, grades: dict[LMSUser, float]
+    ) -> GradingSync:
+        grading_sync = GradingSync(
+            assignment_id=assignment.id, created_by=created_by, status="scheduled"
+        )
+        self._db.add(grading_sync)
+        self._db.flush()
+
+        for lms_user, grade in grades.items():
+            self._db.add(
+                GradingSyncGrade(
+                    grading_sync_id=grading_sync.id,
+                    lms_user_id=lms_user.id,
+                    grade=grade,
+                )
+            )
+
+        return grading_sync
+
+    def _search_query(self, assignment, statuses: list[str] | None = None):
+        query = select(GradingSync).where(GradingSync.assignment_id == assignment.id)
+        if statuses:
+            query = query.where(GradingSync.status.in_(statuses))
+
+        return query
+
     def calculate_grade(
         self,
         auto_grading_config: AutoGradingConfig,
@@ -62,5 +108,5 @@ class AutoGradingService:
         return round(grade, 2)
 
 
-def factory(_context, _request):
-    return AutoGradingService()
+def factory(_context, request):
+    return AutoGradingService(db=request.db)
