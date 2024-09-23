@@ -259,6 +259,9 @@ export function usePolledAPIFetch<T = unknown>({
   // Track loading state separately, to avoid flickering UIs due to
   // intermediate state changes between refreshes
   const [isLoading, setIsLoading] = useState(result.isLoading);
+  // Track data from previous fetch, so that we can expose it and differentiate
+  // the first fetch from subsequent refreshes.
+  const [prevData, setPrevData] = useState(result.data);
 
   const timeout = useRef<ReturnType<typeof _setTimeout> | null>(null);
   const resetTimeout = useCallback(() => {
@@ -269,6 +272,10 @@ export function usePolledAPIFetch<T = unknown>({
   }, [_clearTimeout]);
 
   useEffect(() => {
+    if (result.data) {
+      setPrevData(result.data);
+    }
+
     // When the actual request is loading, transition to loading, in case
     // a new request was triggered by a path/fetch key change
     if (result.isLoading) {
@@ -279,6 +286,9 @@ export function usePolledAPIFetch<T = unknown>({
     // Transition to not-loading only once we no longer have to refresh
     if (!shouldRefresh(result)) {
       setIsLoading(false);
+      // Reset prev data once we finish refreshing, so that we don't
+      // accidentally leak data from a different request on subsequent ones
+      setPrevData(null);
       return () => {};
     }
 
@@ -294,6 +304,9 @@ export function usePolledAPIFetch<T = unknown>({
 
   return {
     ...result,
+    // If the fetch result data is available, return it. Otherwise, fall back
+    // to the data loaded in previous fetch
+    data: result.data ?? prevData,
     isLoading,
   };
 }
