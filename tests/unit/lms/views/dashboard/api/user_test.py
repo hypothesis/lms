@@ -9,7 +9,11 @@ from lms.views.dashboard.api.user import UserViews
 from tests import factories
 
 pytestmark = pytest.mark.usefixtures(
-    "h_api", "assignment_service", "dashboard_service", "user_service"
+    "h_api",
+    "assignment_service",
+    "dashboard_service",
+    "user_service",
+    "auto_grading_service",
 )
 
 
@@ -65,7 +69,7 @@ class TestUserViews:
         db_session,
         with_auto_grading,
         with_segment_authority_provided_id,
-        calculate_grade,
+        auto_grading_service,
     ):
         # User returned by the stats endpoint
         student = factories.User(display_name="Bart")
@@ -174,12 +178,14 @@ class TestUserViews:
         if with_auto_grading:
             calls = []
             for student in expected["students"]:
-                student["auto_grading_grade"] = calculate_grade.return_value
+                student["auto_grading_grade"] = (
+                    auto_grading_service.calculate_grade.return_value
+                )
                 calls.append(
                     call(assignment.auto_grading_config, student["annotation_metrics"])
                 )
 
-            calculate_grade.assert_has_calls(calls)
+            auto_grading_service.calculate_grade.assert_has_calls(calls)
 
         assert response == expected
 
@@ -190,7 +196,3 @@ class TestUserViews:
     @pytest.fixture
     def get_page(self, patch):
         return patch("lms.views.dashboard.api.user.get_page")
-
-    @pytest.fixture
-    def calculate_grade(self, patch):
-        return patch("lms.views.dashboard.api.user.calculate_grade")

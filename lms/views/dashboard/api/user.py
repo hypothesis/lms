@@ -7,7 +7,7 @@ from lms.js_config_types import AnnotationMetrics, APIStudent, APIStudents
 from lms.models import RoleScope, RoleType, User
 from lms.security import Permissions
 from lms.services import UserService
-from lms.services.auto_grading import calculate_grade
+from lms.services.auto_grading import AutoGradingService
 from lms.services.h_api import HAPI
 from lms.validation._base import PyramidRequestSchema
 from lms.views.dashboard.pagination import PaginationParametersMixin, get_page
@@ -64,6 +64,9 @@ class UserViews:
         self.dashboard_service = request.find_service(name="dashboard")
         self.h_api = request.find_service(HAPI)
         self.user_service: UserService = request.find_service(UserService)
+        self.auto_grading_service: AutoGradingService = request.find_service(
+            AutoGradingService
+        )
 
     @view_config(
         route_name="api.dashboard.students",
@@ -186,8 +189,11 @@ class UserViews:
                 )
 
             if assignment.auto_grading_config:
-                api_student["auto_grading_grade"] = calculate_grade(
-                    assignment.auto_grading_config, api_student["annotation_metrics"]
+                api_student["auto_grading_grade"] = (
+                    self.auto_grading_service.calculate_grade(
+                        assignment.auto_grading_config,
+                        api_student["annotation_metrics"],
+                    )
                 )
 
             students.append(api_student)
