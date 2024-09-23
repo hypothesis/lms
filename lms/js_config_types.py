@@ -140,4 +140,7 @@ class DashboardConfig(TypedDict):
     routes: DashboardRoutes
 
     auto_grading_sync_enabled: bool
-    """Whether or nor the opotion to sync grades back to the LMS is enabled."""
+    """Whether or nor the option to sync grades back to the LMS is enabled."""
+
+    assignment_segments_filter_enabled: bool
+    """Whether the segments filter dropdown should be displayed in the assignment view or not"""

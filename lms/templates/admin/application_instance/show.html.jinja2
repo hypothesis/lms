@@ -118,6 +118,10 @@
                             {{ settings_checkbox("Enable auto-grading grade sync", "hypothesis", "auto_grading_sync_enabled", default=False) }}
                         </fieldset>
                         <fieldset class="box">
+                            <legend class="label has-text-centered">Dashboard settings</legend>
+                            {{ settings_checkbox("Enable segments filter in assignment view", "dashboard", "assignment_segments_filter_enabled", default=False) }}
+                        </fieldset>
+                        <fieldset class="box">
                             <legend class="label has-text-centered">Canvas settings</legend>
                             {{ macros.disabled_text_field("API domain", instance.custom_canvas_api_domain) }}
                             {# Note the mismatch betwween canvas nomenclature and ours #}

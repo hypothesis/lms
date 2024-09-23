@@ -291,6 +291,10 @@ class JSConfig:
                     and self._application_instance.settings.get(
                         "hypothesis", "auto_grading_sync_enabled", False
                     ),
+                    assignment_segments_filter_enabled=not self._lti_user
+                    or self._application_instance.settings.get(
+                        "dashboard", "assignment_segments_filter_enabled", False
+                    ),
                 ),
             }
         )
