@@ -153,7 +153,7 @@ class TestLTI13GradingService:
         response = svc.sync_grade(
             lti_registration,
             "LIS_OUTCOME_SERVICE_URL",
-            datetime(2022, 4, 4),
+            datetime(2022, 4, 4).isoformat(),
             sentinel.user_id,
             sentinel.grade,
         )
