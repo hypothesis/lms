@@ -58,3 +58,14 @@ class GradingSyncGrade(CreatedUpdatedMixin, Base):
 
     success: Mapped[bool | None] = mapped_column()
     """Whether or not this grade has been synced to the LMS"""
+
+    @property
+    def status(self) -> AutoGradingSyncStatus:
+        if self.success is None:
+            return AutoGradingSyncStatus.IN_PROGRESS
+
+        return (
+            AutoGradingSyncStatus.FINISHED
+            if self.success
+            else AutoGradingSyncStatus.FAILED
+        )
