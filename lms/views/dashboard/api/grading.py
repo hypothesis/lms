@@ -1,6 +1,6 @@
 import logging
 
-from marshmallow import Schema, fields
+from marshmallow import Schema, fields, validate
 from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config
 from sqlalchemy import select
@@ -21,7 +21,9 @@ class _GradeSchema(Schema):
 
 
 class AutoGradeSyncSchema(JSONPyramidRequestSchema):
-    grades = fields.List(fields.Nested(_GradeSchema), required=True)
+    grades = fields.List(
+        fields.Nested(_GradeSchema), required=True, validate=validate.Length(min=1)
+    )
 
 
 class DashboardGradingViews:
