@@ -100,7 +100,7 @@ export default function GradeIndicator({
             id={popoverId}
             className={classnames(
               'rounded shadow-lg bg-white border',
-              'w-64 absolute -left-6 top-full mt-0.5',
+              'w-64 absolute z-1 -left-6 top-full mt-0.5',
             )}
             data-testid="popover"
           >
