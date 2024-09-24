@@ -1,10 +1,13 @@
-from typing import NotRequired, TypedDict
+from typing import TYPE_CHECKING, NotRequired, TypedDict
 
 from pyramid.request import Request
 
 from lms.js_config_types import AutoGradingConfig
-from lms.models import Assignment, LTIParams, LTIRegistration
+from lms.models import Assignment, LTIParams
 from lms.services.html_service import strip_html_tags
+
+if TYPE_CHECKING:
+    from lms.models import LTIRegistration
 
 
 class AssignmentConfig(TypedDict):
@@ -58,7 +61,7 @@ class MiscPlugin:
         """Check if the assignment of the current launch is gradable."""
         return bool(lti_params.get("lis_outcome_service_url"))
 
-    def get_ltia_aud_claim(self, lti_registration: LTIRegistration) -> str:
+    def get_ltia_aud_claim(self, lti_registration: "LTIRegistration") -> str:
         """Get the value of the `aud` claim used in LTI advantage requests."""
         return lti_registration.token_url
 

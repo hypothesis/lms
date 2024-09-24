@@ -149,7 +149,11 @@ class TestLTI13GradingService:
 
         assert not svc.get_score_maximum(sentinel.resource_link_id)
 
-    def test_sync_grade(self, svc, ltia_http_service, lti_registration):
+    @pytest.mark.parametrize("is_canvas", [True, False])
+    def test_sync_grade(self, svc, ltia_http_service, lti_registration, is_canvas):
+        if is_canvas:
+            lti_registration.issuer = "https://canvas.instructure.com"
+
         response = svc.sync_grade(
             lti_registration,
             "LIS_OUTCOME_SERVICE_URL",
@@ -166,6 +170,11 @@ class TestLTI13GradingService:
             "activityProgress": "Completed",
             "gradingProgress": "FullyGraded",
         }
+        if is_canvas:
+            payload["https://canvas.instructure.com/lti/submission"] = {
+                "new_submission": False
+            }
+
         ltia_http_service.request.assert_called_once_with(
             lti_registration,
             "POST",
