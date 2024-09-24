@@ -107,6 +107,14 @@ class LTI13GradingService(LTIGradingService):
         taking all the necessary information as parameters.
         """
         payload = self._record_score_payload(score, user_grading_id, grade_timestamp)
+
+        if lti_registration.product_family == Family.CANVAS:
+            # By default Canvas calls to /score create a new submission
+            # Disable that behaviour and just submit the new grade.
+            # See: https://canvas.instructure.com/doc/api/score.html
+            payload["https://canvas.instructure.com/lti/submission"] = {
+                "new_submission": False
+            }
         return self._ltia_service.request(
             lti_registration,
             "POST",

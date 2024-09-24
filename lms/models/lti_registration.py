@@ -38,3 +38,13 @@ class LTIRegistration(CreatedUpdatedMixin, Base):
     application_instances = sa.orm.relationship(
         "ApplicationInstance", back_populates="lti_registration"
     )
+
+    @property
+    def product_family(self) -> str:
+        """To which LMS (Canvas, D2L, BB..) does this registration belong."""
+        from lms.product.family import Family  # noqa: PLC0415
+
+        if self.issuer.endswith(".instructure.com"):
+            return Family.CANVAS
+
+        return Family.UNKNOWN
