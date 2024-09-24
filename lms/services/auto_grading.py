@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.orm import subqueryload
 
 from lms.js_config_types import AnnotationMetrics
 from lms.models import (
@@ -49,7 +50,13 @@ class AutoGradingService:
         return grading_sync
 
     def _search_query(self, assignment, statuses: list[str] | None = None):
-        query = select(GradingSync).where(GradingSync.assignment_id == assignment.id)
+        query = (
+            select(GradingSync)
+            .where(GradingSync.assignment_id == assignment.id)
+            .options(
+                subqueryload(GradingSync.grades).subqueryload(GradingSyncGrade.lms_user)
+            )
+        )
         if statuses:
             query = query.where(GradingSync.status.in_(statuses))
 

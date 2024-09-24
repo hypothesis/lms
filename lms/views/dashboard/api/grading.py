@@ -4,7 +4,7 @@ from marshmallow import Schema, fields, validate
 from pyramid.view import view_config
 from sqlalchemy import select
 
-from lms.models import LMSUser
+from lms.models import GradingSync, LMSUser
 from lms.security import Permissions
 from lms.services import AutoGradingService
 from lms.services.dashboard import DashboardService
@@ -75,7 +75,7 @@ class DashboardGradingViews:
             lms_user_grades,
         )
         self.request.add_finished_callback(self._start_sync_grades)
-        return {"status": grading_sync.status}
+        return self._serialize_grading_sync(grading_sync)
 
     @view_config(
         route_name="api.dashboard.assignments.grading.sync",
@@ -86,7 +86,7 @@ class DashboardGradingViews:
     def get_grading_sync(self):
         assignment = self.dashboard_service.get_request_assignment(self.request)
         if grading_sync := self.auto_grading_service.get_last_sync(assignment):
-            return {"status": grading_sync.status}
+            return self._serialize_grading_sync(grading_sync)
 
         self.request.response.status_int = 404
         return {"message": f"No existing grading sync for assignment:{assignment.id}"}
@@ -97,3 +97,17 @@ class DashboardGradingViews:
         We use this helper method instead of a lambda to make the test asserts easier.
         """  # noqa: D205
         sync_grades.delay()
+
+    @staticmethod
+    def _serialize_grading_sync(grading_sync: GradingSync) -> dict:
+        return {
+            "status": grading_sync.status,
+            "grades": [
+                {
+                    "h_userid": grade.lms_user.h_userid,
+                    "grade": grade.grade,
+                    "status": grade.status,
+                }
+                for grade in grading_sync.grades
+            ],
+        }
