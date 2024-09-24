@@ -11,6 +11,30 @@ from tests import factories
     "dashboard_service", "ltia_http_service", "auto_grading_service"
 )
 class TestDashboardGradingViews:
+    def test_create_grading_sync_with_no_lms_users(
+        self,
+        pyramid_request,
+        views,
+        auto_grading_service,
+        dashboard_service,
+        assignment,
+    ):
+        dashboard_service.get_request_assignment.return_value = assignment
+        auto_grading_service.get_in_progress_sync.return_value = None
+        pyramid_request.parsed_params["grades"] = [
+            {"h_userid": "NON EXISTING", "grade": 0.5},
+        ]
+
+        views.create_grading_sync()
+
+        dashboard_service.get_request_assignment.assert_called_once_with(
+            pyramid_request
+        )
+        auto_grading_service.get_in_progress_sync.assert_called_once_with(
+            dashboard_service.get_request_assignment.return_value
+        )
+        pyramid_request.response.status_int = 400
+
     def test_create_grading_sync_with_existing_sync(
         self,
         pyramid_request,

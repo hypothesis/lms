@@ -53,6 +53,12 @@ class DashboardGradingViews:
         sync_lms_users = self.db.scalars(
             select(LMSUser).where(LMSUser.h_userid.in_(sync_h_user_ids))
         ).all()
+        if not sync_lms_users:
+            self.request.response.status_int = 400
+            return {
+                "message": "No users for this grade sync. Can't find any of the provided users"
+            }
+
         sync_lms_users_by_h_userid: dict[str, LMSUser] = {
             lms_user.h_userid: lms_user for lms_user in sync_lms_users
         }
