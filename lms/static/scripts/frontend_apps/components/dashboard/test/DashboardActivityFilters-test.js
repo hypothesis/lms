@@ -536,6 +536,19 @@ describe('DashboardActivityFilters', () => {
       assert.deepEqual(select.prop('value'), selectedIds);
     });
 
+    [
+      { entries: [], shouldBeDisabled: true },
+      { entries: ['foo', 'bar'], shouldBeDisabled: false },
+    ].forEach(({ entries, shouldBeDisabled }) => {
+      it('disables segments filter when entries are empty', () => {
+        const wrapper = createComponentWithSegments({ entries });
+        assert.equal(
+          getSegmentsSelect(wrapper).prop('disabled'),
+          shouldBeDisabled,
+        );
+      });
+    });
+
     it('invokes onChange callback', () => {
       const wrapper = createComponentWithSegments();
       const select = getSegmentsSelect(wrapper);
@@ -564,6 +577,11 @@ describe('DashboardActivityFilters', () => {
       {
         segmentsConfig: { type: 'sections' },
         expectedButtonContent: 'All sections',
+      },
+      // "None" type
+      {
+        segmentsConfig: { type: 'none' },
+        expectedButtonContent: 'N/A',
       },
       // 1 known selected item
       {
