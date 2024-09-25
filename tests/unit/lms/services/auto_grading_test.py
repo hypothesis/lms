@@ -57,6 +57,9 @@ class TestAutoGradingService:
             ("scaled", "cumulative", 15, None, 10, 10, 100),
             ("scaled", "separate", 10, 5, 8, 2, 66.67),
             ("scaled", "separate", 10, 5, 5, 1, 40),
+            # In scaled+separate cases, extra annos/replies should be ignored
+            ("scaled", "separate", 3, 2, 0, 3, 40),
+            ("scaled", "separate", 5, 5, 12, 2, 70),
         ],
     )
     def test_calculate_grade(
