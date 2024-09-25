@@ -1,5 +1,6 @@
 import { delay, waitFor } from '@hypothesis/frontend-testing';
 import { mount } from 'enzyme';
+import { useMemo } from 'preact/hooks';
 
 import { Config } from '../../config';
 import { APIError } from '../../errors';
@@ -700,9 +701,19 @@ describe('usePolledAPIFetch', () => {
       _setTimeout: callback => setTimeout(callback),
       _clearTimeout: fakeClearTimeout,
     });
+    const status = useMemo(() => {
+      if (result.isLoading && !result.data) {
+        return 'loading';
+      }
+      if (result.isLoading && result.data) {
+        return 'refreshing';
+      }
+
+      return 'loaded';
+    }, [result.data, result.isLoading]);
 
     return (
-      <div data-testid="main-content">
+      <div data-testid="main-content" data-status={status}>
         {result.isLoading && 'Loading'}
         {!result.isLoading && 'Loaded'}
       </div>
@@ -755,19 +766,26 @@ describe('usePolledAPIFetch', () => {
     const wrapper = createComponent(shouldRefresh);
     const isLoading = () =>
       wrapper.find('[data-testid="main-content"]').text() === 'Loading';
+    const isRefreshing = () =>
+      wrapper.find('[data-testid="main-content"]').prop('data-status') ===
+      'refreshing';
 
+    // Initially, `isLoading` is `true`, and we don't have access to `data`.
     assert.isTrue(isLoading());
+    assert.isFalse(isRefreshing());
 
-    // Even if we make the API call finish, the status will continue being
-    // loading as long as shouldRefresh returns true
+    // If we make the API call finish, `isLoading` will continue being `true`
+    // as long as shouldRefresh returns true, but now we have access to `data`.
     mockFetchFinished();
     reRender(wrapper);
     assert.isTrue(isLoading());
+    assert.isTrue(isRefreshing());
 
     // Once shouldRefresh returns false, the state will transition to
     // `isLoading: false`
     shouldRefresh.returns(false);
     reRender(wrapper);
     assert.isFalse(isLoading());
+    assert.isFalse(isRefreshing());
   });
 });
