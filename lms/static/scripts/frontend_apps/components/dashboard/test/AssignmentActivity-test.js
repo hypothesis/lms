@@ -432,29 +432,26 @@ describe('AssignmentActivity', () => {
       assert.isUndefined(filters.prop('segments'));
     });
 
-    [{}, { sections: [] }, { groups: [] }].forEach(assignmentExtra => {
-      it('sets no segments when assignment has no groups or sections', () => {
-        setUpFakeUseAPIFetch({
-          ...activeAssignment,
-          ...assignmentExtra,
-          auto_grading_config: {},
-        });
-
-        const wrapper = createComponent();
-        const filters = wrapper.find('DashboardActivityFilters');
-
-        assert.isUndefined(filters.prop('segments'));
-      });
-    });
-
     [
       {
         assignmentExtra: { sections: [{}, {}] },
         expectedType: 'sections',
       },
       {
+        assignmentExtra: { sections: [] },
+        expectedType: 'sections',
+      },
+      {
         assignmentExtra: { groups: [{}, {}, {}] },
         expectedType: 'groups',
+      },
+      {
+        assignmentExtra: { groups: [] },
+        expectedType: 'groups',
+      },
+      {
+        assignmentExtra: {},
+        expectedType: 'none',
       },
     ].forEach(({ assignmentExtra, expectedType }) => {
       it('sets type of segment based on assignment data fields', () => {
@@ -469,7 +466,7 @@ describe('AssignmentActivity', () => {
         const segments = filters.prop('segments');
 
         assert.equal(segments.type, expectedType);
-        assert.equal(segments.entries, assignmentExtra[expectedType]);
+        assert.deepEqual(segments.entries, assignmentExtra[expectedType] ?? []);
       });
     });
 

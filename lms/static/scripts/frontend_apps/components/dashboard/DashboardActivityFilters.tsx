@@ -51,8 +51,10 @@ export type ActivityFilterItem<T extends Course | Assignment> = {
   onClear: () => void;
 };
 
+export type SegmentsType = 'groups' | 'sections' | 'none';
+
 export type SegmentsSelection = ActivityFilterSelection & {
-  type: 'groups' | 'sections';
+  type: SegmentsType;
   entries: AssignmentSegment[];
 };
 
@@ -129,6 +131,8 @@ function StudentOption({
 function SegmentsMultiSelect({ segments }: { segments: SegmentsSelection }) {
   const segmentsName = segments.type === 'groups' ? 'groups' : 'sections';
   const segmentNameSingular = segments.type === 'groups' ? 'group' : 'section';
+  const allSegmentsText =
+    segments.type === 'none' ? 'N/A' : `All ${segmentsName}`;
 
   return (
     <MultiSelect
@@ -136,9 +140,10 @@ function SegmentsMultiSelect({ segments }: { segments: SegmentsSelection }) {
       containerClasses="!w-auto min-w-[180px]"
       value={segments.selectedIds}
       onChange={newSegmentIds => segments.onChange(newSegmentIds)}
+      disabled={segments.entries.length === 0}
       buttonContent={
         segments.selectedIds.length === 0 ? (
-          <>All {segmentsName}</>
+          <>{allSegmentsText}</>
         ) : segments.selectedIds.length === 1 ? (
           segments.entries.find(
             s => s.h_authority_provided_id === segments.selectedIds[0],
@@ -152,7 +157,7 @@ function SegmentsMultiSelect({ segments }: { segments: SegmentsSelection }) {
       data-testid="segments-select"
     >
       <MultiSelect.Option value={undefined}>
-        All {segmentsName}
+        {allSegmentsText}
       </MultiSelect.Option>
       {segments.entries.map(entry => (
         <MultiSelect.Option

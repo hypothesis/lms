@@ -12,7 +12,10 @@ import { useDashboardFilters } from '../../utils/dashboard/hooks';
 import { courseURL } from '../../utils/dashboard/navigation';
 import { useDocumentTitle } from '../../utils/hooks';
 import { replaceURLParams } from '../../utils/url';
-import type { DashboardActivityFiltersProps } from './DashboardActivityFilters';
+import type {
+  DashboardActivityFiltersProps,
+  SegmentsType,
+} from './DashboardActivityFilters';
 import DashboardActivityFilters from './DashboardActivityFilters';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import FormattedDate from './FormattedDate';
@@ -61,21 +64,21 @@ export default function AssignmentActivity() {
     }
 
     const hasSections = 'sections' in data;
+    const hasGroups = 'groups' in data;
     const entries = hasSections
       ? data.sections
-      : 'groups' in data
+      : hasGroups
         ? data.groups
         : undefined;
-
-    // If the assignment doesn't have either sections or groups, we won't
-    // display the segments filter
-    if (!entries || entries.length === 0) {
-      return undefined;
-    }
+    const type: SegmentsType = hasSections
+      ? 'sections'
+      : hasGroups
+        ? 'groups'
+        : 'none';
 
     return {
-      type: hasSections ? 'sections' : 'groups',
-      entries,
+      type,
+      entries: entries ?? [],
       selectedIds: segmentIds,
       onChange: segmentIds => updateFilters({ segmentIds }),
     };
