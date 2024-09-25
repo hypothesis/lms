@@ -93,8 +93,17 @@ class AutoGradingService:
                 assert (
                     auto_grading_config.required_replies is not None
                 ), "'separate' auto grade config with empty replies"
+                # Let's make sure we do not count annotations or replies above the requirement, otherwise, a person
+                # with 6 replies and 0 annotations on an assignment which requires 3 of each would get a 100% grade,
+                # instead of 50%
+                normalized_combined_count = min(
+                    annotation_metrics["annotations"],
+                    auto_grading_config.required_annotations,
+                ) + min(
+                    annotation_metrics["replies"], auto_grading_config.required_replies
+                )
                 grade = (
-                    combined_count
+                    normalized_combined_count
                     / (
                         auto_grading_config.required_annotations
                         + auto_grading_config.required_replies
