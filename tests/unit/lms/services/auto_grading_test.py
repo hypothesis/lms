@@ -46,6 +46,40 @@ class TestAutoGradingService:
         for grade in grading_sync.grades:
             assert grade.grade == grades[grade.lms_user]
 
+    def test_get_last_grades(self, svc, db_session, assignment):
+        student = factories.LMSUser()
+
+        sync = factories.GradingSync(assignment=assignment)
+
+        # Not successful
+        factories.GradingSyncGrade(
+            grading_sync=sync,
+            lms_user=student,
+            success=False,
+            updated=datetime(2025, 1, 1),
+            grade=1,
+        )
+        # Old
+        factories.GradingSyncGrade(
+            grading_sync=sync,
+            lms_user=student,
+            success=True,
+            updated=datetime(2023, 1, 1),
+            grade=2,
+        )
+        factories.GradingSyncGrade(
+            grading_sync=sync,
+            lms_user=student,
+            success=True,
+            updated=datetime(2024, 1, 1),
+            grade=3,
+        )
+        db_session.flush()
+
+        last_grades = svc.get_last_grades(assignment, success=True)
+
+        assert last_grades.get(student.h_userid).grade == 3
+
     @pytest.mark.parametrize(
         "grading_type,activity_calculation,required_annotations, required_replies,annotations,replies,expected_grade",
         [
