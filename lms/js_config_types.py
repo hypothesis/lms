@@ -56,6 +56,17 @@ class APICourse(TypedDict):
     course_metrics: NotRequired[CourseMetrics]
 
 
+class AutoGradingGrade(TypedDict):
+    current_grade: float
+    """Current auto-grading grade calculated based on the config and current number of annotations."""
+
+    last_grade: float | None
+    """Last grade that was succefully sync to the LMS."""
+
+    last_grade_date: str | None
+    """Time when `last_grade` was synced to the LMS."""
+
+
 class APIStudent(TypedDict):
     h_userid: str
     """ID of the student in H."""
@@ -66,8 +77,7 @@ class APIStudent(TypedDict):
     display_name: str | None
 
     annotation_metrics: NotRequired[AnnotationMetrics]
-
-    auto_grading_grade: NotRequired[float]
+    auto_grading_grade: NotRequired[AutoGradingGrade]
 
 
 class APICourses(TypedDict):

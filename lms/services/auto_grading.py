@@ -1,21 +1,27 @@
 from sqlalchemy import select
 
 from lms.js_config_types import AnnotationMetrics
-from lms.models import AutoGradingConfig, GradingSync, GradingSyncGrade, LMSUser
+from lms.models import (
+    Assignment,
+    AutoGradingConfig,
+    GradingSync,
+    GradingSyncGrade,
+    LMSUser,
+)
 
 
 class AutoGradingService:
     def __init__(self, db):
         self._db = db
 
-    def get_in_progress_sync(self, assignment) -> GradingSync | None:
+    def get_in_progress_sync(self, assignment: Assignment) -> GradingSync | None:
         return self._db.scalars(
             self._search_query(
                 assignment=assignment, statuses=["scheduled", "in_progress"]
             )
         ).one_or_none()
 
-    def get_last_sync(self, assignment) -> GradingSync | None:
+    def get_last_sync(self, assignment: Assignment) -> GradingSync | None:
         return self._db.scalars(
             self._search_query(assignment=assignment).order_by(
                 GradingSync.created.desc()
@@ -48,6 +54,24 @@ class AutoGradingService:
             query = query.where(GradingSync.status.in_(statuses))
 
         return query
+
+    def get_last_grades(
+        self, assignment: Assignment, success=True
+    ) -> dict[str, GradingSyncGrade]:
+        """Return a dictionary keyed by h_userid, containing the most recent GradeSync."""
+        result = self._db.scalars(
+            select(GradingSyncGrade)
+            .distinct(LMSUser.h_userid)
+            .join(GradingSync)
+            .join(LMSUser)
+            .where(
+                GradingSync.assignment_id == assignment.id,
+                GradingSyncGrade.success == success,
+            )
+            .order_by(LMSUser.h_userid, GradingSyncGrade.updated.desc())
+        ).all()
+
+        return {r.lms_user.h_userid: r for r in result}
 
     def calculate_grade(
         self,
