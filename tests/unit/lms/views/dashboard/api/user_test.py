@@ -57,7 +57,6 @@ class TestUserViews:
             "pagination": sentinel.pagination,
         }
 
-    @pytest.mark.parametrize("with_auto_grading", [True, False])
     @pytest.mark.parametrize("with_segment_authority_provided_id", [True, False])
     def test_students_metrics(  # pylint:disable=too-many-locals
         self,
@@ -67,12 +66,10 @@ class TestUserViews:
         h_api,
         dashboard_service,
         db_session,
-        with_auto_grading,
         with_segment_authority_provided_id,
-        auto_grading_service,
+        annotation_counts_response,
+        student,
     ):
-        # User returned by the stats endpoint
-        student = factories.User(display_name="Bart")
         # User with no annotations
         student_no_annos = factories.User(display_name="Homer")
         # User with no annotations and no name
@@ -94,13 +91,6 @@ class TestUserViews:
                 g.authority_provided_id for g in segments
             ]
 
-        if with_auto_grading:
-            assignment.auto_grading_config = AutoGradingConfig(
-                activity_calculation="separate",
-                grading_type="all_or_nothing",
-                required_annotations=1,
-            )
-
         db_session.flush()
         user_service.get_users.return_value = select(User).where(
             User.id.in_(
@@ -108,26 +98,7 @@ class TestUserViews:
             )
         )
         dashboard_service.get_request_assignment.return_value = assignment
-        stats = [
-            {
-                "display_name": student.display_name,
-                "annotations": 2,
-                "page_notes": 2,
-                "replies": sentinel.replies,
-                "userid": student.h_userid,
-                "last_activity": sentinel.last_activity,
-            },
-            {
-                "display_name": sentinel.display_name,
-                "annotations": sentinel.annotations,
-                "page_notes": sentinel.page_notes,
-                "replies": sentinel.replies,
-                "userid": "TEACHER",
-                "last_activity": sentinel.last_activity,
-            },
-        ]
-
-        h_api.get_annotation_counts.return_value = stats
+        h_api.get_annotation_counts.return_value = annotation_counts_response
 
         response = views.students_metrics()
 
@@ -174,24 +145,144 @@ class TestUserViews:
                 },
             ]
         }
+        assert response == expected
 
-        if with_auto_grading:
-            calls = []
-            for student in expected["students"]:
-                student["auto_grading_grade"] = (
-                    auto_grading_service.calculate_grade.return_value
-                )
-                calls.append(
-                    call(assignment.auto_grading_config, student["annotation_metrics"])
-                )
+    @pytest.mark.parametrize("with_last_grade", [True, False])
+    def test_students_metrics_with_auto_grading(  # pylint:disable=too-many-locals
+        self,
+        views,
+        pyramid_request,
+        user_service,
+        h_api,
+        student,
+        dashboard_service,
+        db_session,
+        auto_grading_service,
+        annotation_counts_response,
+        with_last_grade,
+    ):
+        # User with no annotations
+        student_no_annos = factories.User(display_name="Homer")
+        # User with no annotations and no name
+        student_no_annos_no_name = factories.User(display_name=None)
 
-            auto_grading_service.calculate_grade.assert_has_calls(calls)
+        pyramid_request.parsed_params = {
+            "assignment_id": sentinel.id,
+            "h_userids": sentinel.h_userids,
+        }
+        assignment = factories.Assignment(course=factories.Course())
+        assignment.auto_grading_config = AutoGradingConfig(
+            activity_calculation="separate",
+            grading_type="all_or_nothing",
+            required_annotations=1,
+        )
+
+        if not with_last_grade:
+            auto_grading_service.get_last_grades.return_value = {}
+
+        db_session.flush()
+        user_service.get_users.return_value = select(User).where(
+            User.id.in_(
+                [u.id for u in [student, student_no_annos, student_no_annos_no_name]]
+            )
+        )
+        dashboard_service.get_request_assignment.return_value = assignment
+        h_api.get_annotation_counts.return_value = annotation_counts_response
+
+        response = views.students_metrics()
+
+        dashboard_service.get_request_assignment.assert_called_once_with(
+            pyramid_request
+        )
+        h_api.get_annotation_counts.assert_called_once_with(
+            [g.authority_provided_id for g in assignment.groupings],
+            group_by="user",
+            resource_link_ids=[assignment.resource_link_id],
+            h_userids=sentinel.h_userids,
+        )
+        expected = {
+            "students": [
+                {
+                    "h_userid": student.h_userid,
+                    "lms_id": student.user_id,
+                    "display_name": student.display_name,
+                    "annotation_metrics": {
+                        "annotations": 4,
+                        "replies": sentinel.replies,
+                        "last_activity": sentinel.last_activity,
+                    },
+                },
+                {
+                    "h_userid": student_no_annos.h_userid,
+                    "lms_id": student_no_annos.user_id,
+                    "display_name": student_no_annos.display_name,
+                    "annotation_metrics": {
+                        "annotations": 0,
+                        "replies": 0,
+                        "last_activity": None,
+                    },
+                },
+                {
+                    "h_userid": student_no_annos_no_name.h_userid,
+                    "lms_id": student_no_annos_no_name.user_id,
+                    "display_name": None,
+                    "annotation_metrics": {
+                        "annotations": 0,
+                        "replies": 0,
+                        "last_activity": None,
+                    },
+                },
+            ]
+        }
+        calls = []
+
+        last_grades = auto_grading_service.get_last_grades.return_value
+        for api_student in expected["students"]:
+            api_student["auto_grading_grade"] = {
+                "current_grade": auto_grading_service.calculate_grade.return_value,
+                "last_grade": last_grades.get.return_value.grade
+                if with_last_grade
+                else None,
+                "last_grade_date": last_grades.get.return_value.updated.isoformat.return_value
+                if with_last_grade
+                else None,
+            }
+            calls.append(
+                call(assignment.auto_grading_config, api_student["annotation_metrics"])
+            )
+
+        auto_grading_service.calculate_grade.assert_has_calls(calls)
 
         assert response == expected
 
     @pytest.fixture
     def views(self, pyramid_request):
         return UserViews(pyramid_request)
+
+    @pytest.fixture
+    def student(self):
+        return factories.User(display_name="Bart")
+
+    @pytest.fixture
+    def annotation_counts_response(self, student):
+        return [
+            {
+                "display_name": student.display_name,
+                "annotations": 2,
+                "page_notes": 2,
+                "replies": sentinel.replies,
+                "userid": student.h_userid,
+                "last_activity": sentinel.last_activity,
+            },
+            {
+                "display_name": sentinel.display_name,
+                "annotations": sentinel.annotations,
+                "page_notes": sentinel.page_notes,
+                "replies": sentinel.replies,
+                "userid": "TEACHER",
+                "last_activity": sentinel.last_activity,
+            },
+        ]
 
     @pytest.fixture
     def get_page(self, patch):

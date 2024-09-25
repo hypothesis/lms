@@ -3,8 +3,13 @@ import logging
 from marshmallow import fields, validate
 from pyramid.view import view_config
 
-from lms.js_config_types import AnnotationMetrics, APIStudent, APIStudents
-from lms.models import RoleScope, RoleType, User
+from lms.js_config_types import (
+    AnnotationMetrics,
+    APIStudent,
+    APIStudents,
+    AutoGradingGrade,
+)
+from lms.models import Assignment, RoleScope, RoleType, User
 from lms.security import Permissions
 from lms.services import UserService
 from lms.services.auto_grading import AutoGradingService
@@ -187,15 +192,32 @@ class UserViews:
                         annotations=0, replies=0, last_activity=None
                     ),
                 )
-
-            if assignment.auto_grading_config:
-                api_student["auto_grading_grade"] = (
-                    self.auto_grading_service.calculate_grade(
-                        assignment.auto_grading_config,
-                        api_student["annotation_metrics"],
-                    )
-                )
-
             students.append(api_student)
 
+        if assignment.auto_grading_config:
+            students = self._add_auto_grading_data(assignment, students)
+
         return {"students": students}
+
+    def _add_auto_grading_data(
+        self, assignment: Assignment, api_students: list[APIStudent]
+    ) -> list[APIStudent]:
+        """Augment APIStudent with auto-grading data."""
+        last_sync_grades = self.auto_grading_service.get_last_grades(assignment)
+
+        for api_student in api_students:
+            auto_grading_grade: AutoGradingGrade = {
+                "current_grade": self.auto_grading_service.calculate_grade(
+                    assignment.auto_grading_config,
+                    api_student["annotation_metrics"],
+                ),
+                "last_grade": None,
+                "last_grade_date": None,
+            }
+            if last_grade := last_sync_grades.get(api_student["h_userid"]):
+                auto_grading_grade["last_grade"] = last_grade.grade
+                auto_grading_grade["last_grade_date"] = last_grade.updated.isoformat()
+
+            api_student["auto_grading_grade"] = auto_grading_grade
+
+        return api_students
