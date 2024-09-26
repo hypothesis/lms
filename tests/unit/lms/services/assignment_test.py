@@ -66,20 +66,19 @@ class TestAssignmentService:
             assert assignment.title == title
             assert assignment.course_id == course.id
 
-    def test_update_assignment_updates_auto_grading_config(
-        self,
-        svc,
-        pyramid_request,
-        course,
+    @pytest.mark.parametrize("with_existing", [True, False])
+    def test_update_assignment_with_auto_grading_config(
+        self, svc, pyramid_request, course, with_existing
     ):
-        assignment = factories.Assignment(
-            auto_grading_config=AutoGradingConfig(
+        assignment = factories.Assignment(auto_grading_config=None)
+        if with_existing:
+            auto_grading_config = AutoGradingConfig(
                 activity_calculation="separate",
                 grading_type="scaled",
                 required_annotations=1,
                 required_replies=1,
             )
-        )
+            assignment.auto_grading_config = auto_grading_config
 
         assignment = svc.update_assignment(
             pyramid_request,
@@ -99,6 +98,32 @@ class TestAssignmentService:
         assert assignment.auto_grading_config.grading_type == "all_or_nothing"
         assert assignment.auto_grading_config.required_annotations == 10
         assert assignment.auto_grading_config.required_replies == 10
+
+    def test_update_assignment_removes_auto_grading_config(
+        self, svc, pyramid_request, course, db_session, misc_plugin
+    ):
+        misc_plugin.is_assignment_gradable.return_value = True
+        auto_grading_config = AutoGradingConfig(
+            activity_calculation="separate",
+            grading_type="scaled",
+            required_annotations=1,
+            required_replies=1,
+        )
+        assignment = factories.Assignment(auto_grading_config=auto_grading_config)
+        db_session.flush()
+
+        assignment = svc.update_assignment(
+            pyramid_request,
+            assignment,
+            "DOCUMENT_URL",
+            None,
+            course,
+            auto_grading_config=None,
+        )
+        db_session.flush()
+
+        assert not assignment.auto_grading_config
+        assert not db_session.get(AutoGradingConfig, auto_grading_config.id)
 
     @pytest.mark.parametrize(
         "param",
