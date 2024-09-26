@@ -80,7 +80,7 @@ class AutoGradingService:
     ) -> float:
         """Calculate auto grades based on the config and the number of annotations made.
 
-        The results is a 100 based float rounded to two decimals.
+        The results is a float from 0 to 1, rounded to two decimals.
         """
         combined_count = (
             annotation_metrics["annotations"] + annotation_metrics["replies"]
@@ -93,7 +93,7 @@ class AutoGradingService:
         ):
             case ("all_or_nothing", "cumulative"):
                 if combined_count >= auto_grading_config.required_annotations:
-                    grade = 100
+                    grade = 1
                 else:
                     grade = 0
             case ("all_or_nothing", "separate"):
@@ -106,12 +106,12 @@ class AutoGradingService:
                     and annotation_metrics["replies"]
                     >= auto_grading_config.required_replies
                 ):
-                    grade = 100
+                    grade = 1
                 else:
                     grade = 0
 
             case ("scaled", "cumulative"):
-                grade = combined_count / auto_grading_config.required_annotations * 100
+                grade = combined_count / auto_grading_config.required_annotations
 
             case ("scaled", "separate"):
                 assert (
@@ -126,18 +126,14 @@ class AutoGradingService:
                 ) + min(
                     annotation_metrics["replies"], auto_grading_config.required_replies
                 )
-                grade = (
-                    normalized_combined_count
-                    / (
-                        auto_grading_config.required_annotations
-                        + auto_grading_config.required_replies
-                    )
-                    * 100
+                grade = normalized_combined_count / (
+                    auto_grading_config.required_annotations
+                    + auto_grading_config.required_replies
                 )
             case _:
                 raise ValueError("Unknown auto grading configuration")
 
-        grade = min(100, grade)  # Proportional grades are capped at 100%
+        grade = min(1, grade)  # Proportional grades are capped at 1
         return round(grade, 2)
 
 

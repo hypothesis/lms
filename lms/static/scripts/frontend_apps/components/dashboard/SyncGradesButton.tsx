@@ -106,13 +106,7 @@ export default function SyncGradesButton({
       path: syncURL,
       method: 'POST',
       data: {
-        grades: (studentsToSync ?? []).map(({ grade, h_userid }) => ({
-          h_userid,
-          // FIXME This will be fixed separately, but the BE is currently
-          //  returning grades from 0 to 100, but expects them to be sent back
-          //  from 0 to 1.
-          grade: grade / 100,
-        })),
+        grades: studentsToSync,
       },
     }).catch(() => setSchedulingSyncFailed(true));
 
