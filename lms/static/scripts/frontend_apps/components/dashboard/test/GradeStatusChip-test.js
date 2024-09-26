@@ -8,17 +8,17 @@ describe('GradeStatusChip', () => {
     return mount(<GradeStatusChip grade={grade} />);
   }
 
-  [0, 20, 48, 77, 92, 100].forEach(grade => {
+  [0, 0.2, 0.48, 0.77, 0.92, 1].forEach(grade => {
     it('renders valid grades as percentage', () => {
       const wrapper = renderComponent(grade);
-      assert.equal(wrapper.text(), `${grade}%`);
+      assert.equal(wrapper.text(), `${grade * 100}%`);
     });
   });
 
-  [-20, 150].forEach(grade => {
+  [-2, 2].forEach(grade => {
     it('renders invalid grades verbatim', () => {
       const wrapper = renderComponent(grade);
-      assert.equal(wrapper.text(), `${grade}`);
+      assert.equal(wrapper.text(), `${grade * 100}`);
     });
   });
 
@@ -27,19 +27,19 @@ describe('GradeStatusChip', () => {
     checkAccessibility([
       {
         name: '100',
-        content: () => renderComponent(100),
+        content: () => renderComponent(1),
       },
       {
         name: '80',
-        content: () => renderComponent(80),
+        content: () => renderComponent(0.8),
       },
       {
         name: '68',
-        content: () => renderComponent(68),
+        content: () => renderComponent(0.68),
       },
       {
         name: '38',
-        content: () => renderComponent(38),
+        content: () => renderComponent(0.38),
       },
       {
         name: '0',
@@ -47,11 +47,11 @@ describe('GradeStatusChip', () => {
       },
       {
         name: '-20',
-        content: () => renderComponent(-20),
+        content: () => renderComponent(-0.2),
       },
       {
         name: '150',
-        content: () => renderComponent(150),
+        content: () => renderComponent(1.5),
       },
     ]),
   );

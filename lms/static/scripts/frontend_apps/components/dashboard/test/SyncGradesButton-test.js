@@ -16,8 +16,8 @@ describe('SyncGradesButton', () => {
   let shouldRefreshCallback;
 
   const studentsToSync = [
-    { h_userid: '123', grade: 50 },
-    { h_userid: '456', grade: 20 },
+    { h_userid: '123', grade: 0.5 },
+    { h_userid: '456', grade: 0.2 },
   ];
 
   beforeEach(() => {

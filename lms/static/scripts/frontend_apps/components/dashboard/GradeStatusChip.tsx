@@ -2,7 +2,7 @@ import classnames from 'classnames';
 
 export type GradeStatusChipProps = {
   /**
-   * A grade, from 0 to 100, that will be used to render the corresponding
+   * A grade, from 0 to 1, that will be used to render the corresponding
    * color combination.
    */
   grade: number;
@@ -10,35 +10,35 @@ export type GradeStatusChipProps = {
 
 /**
  * A badge where the corresponding color combination is calculated from a grade
- * from 0 to 100, following the next table:
+ * from 0 to 1, following the next table:
  *
- *  100   - bright green
- *  80-99 - light green
- *  50-79 - yellow
- *  1-49  - light red
- *  0     - bright red
- *  other - grey
+ *  1        - bright green
+ *  0.8-0.99 - light green
+ *  0.5-0.79 - yellow
+ *  0.1-0.49 - light red
+ *  0        - bright red
+ *  other    - grey
  */
 export default function GradeStatusChip({ grade }: GradeStatusChipProps) {
-  const gradeIsInvalid = grade < 0 || grade > 100;
+  const gradeIsInvalid = grade < 0 || grade > 1;
 
   return (
     <div
       className={classnames(
         'rounded inline-block font-bold px-2 py-0.5 cursor-default',
         {
-          'bg-grade-success text-white': grade === 100,
+          'bg-grade-success text-white': grade === 1,
           'bg-grade-success-light text-grade-success':
-            grade >= 80 && grade < 100,
+            grade >= 0.8 && grade < 1,
           'bg-grade-warning-light text-grade-warning':
-            grade >= 50 && grade < 80,
-          'bg-grade-error-light text-grade-error': grade >= 1 && grade < 50,
+            grade >= 0.5 && grade < 0.8,
+          'bg-grade-error-light text-grade-error': grade > 0 && grade < 0.5,
           'bg-grade-error text-white': grade === 0,
           'bg-grey-3 text-grey-7': gradeIsInvalid,
         },
       )}
     >
-      {grade}
+      {grade * 100}
       {!gradeIsInvalid && '%'}
     </div>
   );

@@ -123,7 +123,6 @@ class UserViews:
         """Fetch the stats for one particular assignment."""
         assignment = self.dashboard_service.get_request_assignment(self.request)
 
-        request_h_userids = self.request.parsed_params.get("h_userids")
         request_segment_authority_provided_ids = self.request.parsed_params.get(
             "segment_authority_provided_ids"
         )
