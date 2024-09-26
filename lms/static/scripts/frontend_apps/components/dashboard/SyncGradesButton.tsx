@@ -42,7 +42,8 @@ export default function SyncGradesButton({
     params: lastSyncParams,
     // Keep polling as long as sync is in progress
     shouldRefresh: result =>
-      !result.data || ['scheduled', 'in_progress'].includes(result.data.status),
+      !!result.data &&
+      ['scheduled', 'in_progress'].includes(result.data.status),
   });
 
   const buttonContent = useMemo(() => {

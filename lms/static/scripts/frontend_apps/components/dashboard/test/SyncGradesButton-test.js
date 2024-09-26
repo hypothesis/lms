@@ -77,7 +77,7 @@ describe('SyncGradesButton', () => {
   [
     {
       fetchResult: { data: null },
-      expectedResult: true,
+      expectedResult: false,
     },
     {
       fetchResult: {
