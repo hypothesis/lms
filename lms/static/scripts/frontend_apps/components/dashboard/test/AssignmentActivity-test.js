@@ -373,7 +373,7 @@ describe('AssignmentActivity', () => {
             label: 'Student',
           },
           {
-            field: 'auto_grading_grade',
+            field: 'current_grade',
             label: 'Grade',
           },
           {
@@ -407,8 +407,8 @@ describe('AssignmentActivity', () => {
       });
     });
 
-    [{ auto_grading_grade: undefined }, { auto_grading_grade: 25 }].forEach(
-      ({ auto_grading_grade }) => {
+    [{ current_grade: undefined }, { current_grade: 25 }].forEach(
+      ({ current_grade }) => {
         it('shows the grade for every student', () => {
           setUpFakeUseAPIFetch({
             ...activeAssignment,
@@ -419,10 +419,10 @@ describe('AssignmentActivity', () => {
           const item = wrapper
             .find('OrderableActivityTable')
             .props()
-            .renderItem({ auto_grading_grade }, 'auto_grading_grade');
+            .renderItem({ current_grade }, 'current_grade');
           const gradeIndicator = mount(item).find('GradeIndicator');
 
-          assert.equal(gradeIndicator.prop('grade'), auto_grading_grade ?? 0);
+          assert.equal(gradeIndicator.prop('grade'), current_grade ?? 0);
         });
       },
     );
@@ -471,12 +471,16 @@ describe('AssignmentActivity', () => {
             {
               display_name: 'a',
               h_userid: 'foo',
-              auto_grading_grade: 0.5,
+              auto_grading_grade: {
+                current_grade: 0.5,
+              },
             },
             {
               display_name: 'b',
               h_userid: 'bar',
-              auto_grading_grade: 0.87,
+              auto_grading_grade: {
+                current_grade: 0.87,
+              },
             },
             {
               display_name: 'c',
