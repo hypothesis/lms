@@ -96,7 +96,7 @@ export default function PaginatedMultiSelect<TResult, TSelect>({
       value={value}
       onChange={onChange}
       aria-label={`Select ${entity}`}
-      containerClasses="!w-auto min-w-[180px]"
+      containerClasses="!w-auto min-w-44"
       buttonContent={buttonContent}
       data-testid={`${entity}-select`}
       onListboxScroll={e => {

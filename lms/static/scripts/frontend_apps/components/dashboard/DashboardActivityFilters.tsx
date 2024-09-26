@@ -3,6 +3,7 @@ import {
   LinkButton,
   MultiSelect,
 } from '@hypothesis/frontend-shared';
+import classnames from 'classnames';
 import type { MutableRef } from 'preact/hooks';
 import { useMemo } from 'preact/hooks';
 import { useParams } from 'wouter-preact';
@@ -131,13 +132,15 @@ function StudentOption({
 function SegmentsMultiSelect({ segments }: { segments: SegmentsSelection }) {
   const segmentsName = segments.type === 'groups' ? 'groups' : 'sections';
   const segmentNameSingular = segments.type === 'groups' ? 'group' : 'section';
-  const allSegmentsText =
-    segments.type === 'none' ? 'N/A' : `All ${segmentsName}`;
+  const isNoneType = segments.type === 'none';
+  const allSegmentsText = isNoneType
+    ? 'No sections/groups'
+    : `All ${segmentsName}`;
 
   return (
     <MultiSelect
       aria-label={`Select ${segmentsName}`}
-      containerClasses="!w-auto min-w-[180px]"
+      containerClasses={classnames('!w-auto', { 'min-w-44': !isNoneType })}
       value={segments.selectedIds}
       onChange={newSegmentIds => segments.onChange(newSegmentIds)}
       disabled={segments.entries.length === 0}
