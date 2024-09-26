@@ -581,7 +581,7 @@ describe('DashboardActivityFilters', () => {
       // "None" type
       {
         segmentsConfig: { type: 'none' },
-        expectedButtonContent: 'N/A',
+        expectedButtonContent: 'No sections/groups',
       },
       // 1 known selected item
       {
