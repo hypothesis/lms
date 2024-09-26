@@ -98,7 +98,6 @@ class PaginationParametersMixin(PyramidRequestSchema):
                 "Invalid value for pagination cursor. Cursor must be a list of at least two values."
             )
         if [type(v) for v in in_data["cursor"]] not in [[str, int], [NoneType, int]]:
-            print([type(v) for v in in_data["cursor"]])
             raise ValidationError(
                 "Invalid value for pagination cursor. Cursor must be a [str | None, int] list."
             )
