@@ -26,7 +26,7 @@ type StudentsTableRow = {
   last_activity: string | null;
   annotations: number;
   replies: number;
-  auto_grading_grade?: number;
+  current_grade?: number;
 };
 
 /**
@@ -103,7 +103,7 @@ export default function AssignmentActivity() {
         ({ lms_id, display_name, auto_grading_grade, annotation_metrics }) => ({
           lms_id,
           display_name,
-          auto_grading_grade,
+          current_grade: auto_grading_grade?.current_grade,
           ...annotation_metrics,
         }),
       ),
@@ -136,7 +136,7 @@ export default function AssignmentActivity() {
 
     if (autoGradingEnabled) {
       firstColumns.push({
-        field: 'auto_grading_grade',
+        field: 'current_grade',
         label: 'Grade',
       });
     }
@@ -240,7 +240,7 @@ export default function AssignmentActivity() {
                   </span>
                 )
               );
-            case 'auto_grading_grade':
+            case 'current_grade':
               return (
                 <div
                   className={classnames(
@@ -250,7 +250,7 @@ export default function AssignmentActivity() {
                   )}
                 >
                   <GradeIndicator
-                    grade={stats.auto_grading_grade ?? 0}
+                    grade={stats.current_grade ?? 0}
                     annotations={stats.annotations}
                     replies={stats.replies}
                     config={assignment.data?.auto_grading_config}
