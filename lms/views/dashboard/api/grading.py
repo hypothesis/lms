@@ -1,7 +1,6 @@
 import logging
 
 from marshmallow import Schema, fields, validate
-from pyramid.httpexceptions import HTTPNotFound
 from pyramid.view import view_config
 from sqlalchemy import select
 
@@ -89,7 +88,8 @@ class DashboardGradingViews:
         if grading_sync := self.auto_grading_service.get_last_sync(assignment):
             return {"status": grading_sync.status}
 
-        raise HTTPNotFound()
+        self.request.response.status_int = 404
+        return {"message": f"No existing grading sync for assignment:{assignment.id}"}
 
     @staticmethod
     def _start_sync_grades(_request) -> None:
