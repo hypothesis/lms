@@ -47,14 +47,17 @@ class TestAutoGradingService:
             assert grade.grade == grades[grade.lms_user]
 
     def test_get_last_grades(self, svc, db_session, assignment):
-        student = factories.LMSUser()
+        student_1 = factories.LMSUser()
+        student_2 = factories.LMSUser()
+        instructor = factories.LMSUser()
 
-        sync = factories.GradingSync(assignment=assignment)
+        sync = factories.GradingSync(assignment=assignment, created_by=instructor)
+        older_sync = factories.GradingSync(assignment=assignment, created_by=instructor)
 
         # Not successful
         factories.GradingSyncGrade(
             grading_sync=sync,
-            lms_user=student,
+            lms_user=student_1,
             success=False,
             updated=datetime(2025, 1, 1),
             grade=1,
@@ -62,23 +65,33 @@ class TestAutoGradingService:
         # Old
         factories.GradingSyncGrade(
             grading_sync=sync,
-            lms_user=student,
+            lms_user=student_1,
             success=True,
             updated=datetime(2023, 1, 1),
             grade=2,
         )
         factories.GradingSyncGrade(
             grading_sync=sync,
-            lms_user=student,
+            lms_user=student_1,
             success=True,
             updated=datetime(2024, 1, 1),
             grade=3,
         )
+        # Other student in another sync
+        factories.GradingSyncGrade(
+            grading_sync=older_sync,
+            lms_user=student_2,
+            success=True,
+            updated=datetime(2024, 1, 1),
+            grade=4,
+        )
+
         db_session.flush()
 
         last_grades = svc.get_last_grades(assignment, success=True)
 
-        assert last_grades.get(student.h_userid).grade == 3
+        assert last_grades.get(student_1.h_userid).grade == 3
+        assert last_grades.get(student_2.h_userid).grade == 4
 
     @pytest.mark.parametrize(
         "grading_type,activity_calculation,required_annotations, required_replies,annotations,replies,expected_grade",

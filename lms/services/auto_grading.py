@@ -63,7 +63,7 @@ class AutoGradingService:
             select(GradingSyncGrade)
             .distinct(LMSUser.h_userid)
             .join(GradingSync)
-            .join(LMSUser)
+            .join(LMSUser, GradingSyncGrade.lms_user_id == LMSUser.id)
             .where(
                 GradingSync.assignment_id == assignment.id,
                 GradingSyncGrade.success == success,
