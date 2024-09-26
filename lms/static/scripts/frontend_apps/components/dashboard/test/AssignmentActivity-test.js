@@ -11,7 +11,7 @@ import { formatDateTime } from '../../../utils/date';
 import AssignmentActivity, { $imports } from '../AssignmentActivity';
 
 describe('AssignmentActivity', () => {
-  const students = [
+  const activeStudents = [
     {
       display_name: 'b',
       annotation_metrics: {
@@ -52,10 +52,13 @@ describe('AssignmentActivity', () => {
   let fakeConfig;
   let wrappers;
 
-  function setUpFakeUseAPIFetch(assignment = activeAssignment) {
+  function setUpFakeUseAPIFetch(
+    assignment = activeAssignment,
+    students = { students: activeStudents },
+  ) {
     fakeUseAPIFetch.callsFake(url => ({
       isLoading: false,
-      data: url.endsWith('metrics') ? { students } : assignment,
+      data: url.endsWith('metrics') ? students : assignment,
     }));
   }
 
@@ -77,6 +80,7 @@ describe('AssignmentActivity', () => {
           assignment: '/api/assignments/:assignment_id',
           students_metrics: '/api/students/metrics',
         },
+        auto_grading_sync_enabled: true,
         assignment_segments_filter_enabled: false,
       },
     };
@@ -422,6 +426,89 @@ describe('AssignmentActivity', () => {
         });
       },
     );
+
+    [
+      {
+        syncEnabled: true,
+        isAutoGradingAssignment: true,
+        shouldShowButton: true,
+      },
+      {
+        syncEnabled: false,
+        isAutoGradingAssignment: true,
+        shouldShowButton: false,
+      },
+      {
+        syncEnabled: true,
+        isAutoGradingAssignment: false,
+        shouldShowButton: false,
+      },
+      {
+        syncEnabled: false,
+        isAutoGradingAssignment: false,
+        shouldShowButton: false,
+      },
+    ].forEach(({ isAutoGradingAssignment, syncEnabled, shouldShowButton }) => {
+      it('shows sync button when both sync and auto-grading are enabled', () => {
+        setUpFakeUseAPIFetch({
+          ...activeAssignment,
+          auto_grading_config: isAutoGradingAssignment ? {} : null,
+        });
+        fakeConfig.dashboard.auto_grading_sync_enabled = syncEnabled;
+
+        const wrapper = createComponent();
+
+        assert.equal(wrapper.exists('SyncGradesButton'), shouldShowButton);
+      });
+    });
+
+    [
+      { studentsData: null, expectedStudentsToSync: undefined },
+      { studentsData: { students: [] }, expectedStudentsToSync: [] },
+      {
+        studentsData: {
+          students: [
+            {
+              display_name: 'a',
+              h_userid: 'foo',
+              auto_grading_grade: 0.5,
+            },
+            {
+              display_name: 'b',
+              h_userid: 'bar',
+              auto_grading_grade: 0.87,
+            },
+            {
+              display_name: 'c',
+              h_userid: 'baz',
+            },
+          ],
+        },
+        expectedStudentsToSync: [
+          { h_userid: 'foo', grade: 0.5 },
+          { h_userid: 'bar', grade: 0.87 },
+          { h_userid: 'baz', grade: 0 },
+        ],
+      },
+    ].forEach(({ studentsData, expectedStudentsToSync }) => {
+      it('resolves the right list of students to sync', () => {
+        setUpFakeUseAPIFetch(
+          {
+            ...activeAssignment,
+            auto_grading_config: {},
+          },
+          studentsData,
+        );
+        fakeConfig.dashboard.auto_grading_sync_enabled = true;
+
+        const wrapper = createComponent();
+
+        assert.deepEqual(
+          wrapper.find('SyncGradesButton').prop('studentsToSync'),
+          expectedStudentsToSync,
+        );
+      });
+    });
   });
 
   context('when assignment has segments', () => {

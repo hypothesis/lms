@@ -22,6 +22,7 @@ import FormattedDate from './FormattedDate';
 import GradeIndicator from './GradeIndicator';
 import type { OrderableActivityTableColumn } from './OrderableActivityTable';
 import OrderableActivityTable from './OrderableActivityTable';
+import SyncGradesButton from './SyncGradesButton';
 
 type StudentsTableRow = {
   lms_id: string;
@@ -37,7 +38,11 @@ type StudentsTableRow = {
  */
 export default function AssignmentActivity() {
   const { dashboard } = useConfig(['dashboard']);
-  const { routes, assignment_segments_filter_enabled } = dashboard;
+  const {
+    routes,
+    auto_grading_sync_enabled,
+    assignment_segments_filter_enabled,
+  } = dashboard;
   const { assignmentId, organizationPublicId } = useParams<{
     assignmentId: string;
     organizationPublicId?: string;
@@ -51,14 +56,14 @@ export default function AssignmentActivity() {
   const assignment = useAPIFetch<AssignmentDetails>(
     replaceURLParams(routes.assignment, { assignment_id: assignmentId }),
   );
-  const autoGradingEnabled = !!assignment.data?.auto_grading_config;
+  const isAutoGradingAssignment = !!assignment.data?.auto_grading_config;
   const segments = useMemo((): DashboardActivityFiltersProps['segments'] => {
     const { data } = assignment;
     if (
       !data ||
       // Display the segments filter only for auto-grading assignments, or
       // assignments where the feature was explicitly enabled
-      (!assignment_segments_filter_enabled && !autoGradingEnabled)
+      (!assignment_segments_filter_enabled && !isAutoGradingAssignment)
     ) {
       return undefined;
     }
@@ -85,7 +90,7 @@ export default function AssignmentActivity() {
   }, [
     assignment,
     assignment_segments_filter_enabled,
-    autoGradingEnabled,
+    isAutoGradingAssignment,
     segmentIds,
     updateFilters,
   ]);
@@ -99,14 +104,24 @@ export default function AssignmentActivity() {
       org_public_id: organizationPublicId,
     },
   );
+  const studentsToSync = useMemo(() => {
+    if (!isAutoGradingAssignment || !students.data) {
+      return undefined;
+    }
 
+    // TODO Filter out students whose grades didn't change
+    return students.data.students.map(
+      ({ h_userid, auto_grading_grade = 0 }) => ({
+        h_userid,
+        grade: auto_grading_grade,
+      }),
+    );
+  }, [isAutoGradingAssignment, students.data]);
   const rows: StudentsTableRow[] = useMemo(
     () =>
       (students.data?.students ?? []).map(
-        ({ lms_id, display_name, auto_grading_grade, annotation_metrics }) => ({
-          lms_id,
-          display_name,
-          auto_grading_grade,
+        ({ annotation_metrics, ...rest }) => ({
+          ...rest,
           ...annotation_metrics,
         }),
       ),
@@ -137,7 +152,7 @@ export default function AssignmentActivity() {
       },
     ];
 
-    if (autoGradingEnabled) {
+    if (isAutoGradingAssignment) {
       firstColumns.push({
         field: 'auto_grading_grade',
         label: 'Grade',
@@ -145,7 +160,7 @@ export default function AssignmentActivity() {
     }
 
     return [...firstColumns, ...lastColumns];
-  }, [autoGradingEnabled]);
+  }, [isAutoGradingAssignment]);
 
   const title = assignment.data?.title ?? 'Untitled assignment';
   useDocumentTitle(title);
@@ -175,42 +190,47 @@ export default function AssignmentActivity() {
           {assignment.data && title}
         </h2>
       </div>
-      {assignment.data && (
-        <DashboardActivityFilters
-          courses={{
-            activeItem: assignment.data.course,
-            // When the active course is cleared, navigate to home, but keep
-            // active assignment and students
-            onClear: () =>
-              navigate(
-                urlWithFilters(
-                  { studentIds, assignmentIds: [assignmentId] },
-                  { path: '' },
+      <div className="flex justify-between items-end gap-x-4">
+        {assignment.data && (
+          <DashboardActivityFilters
+            courses={{
+              activeItem: assignment.data.course,
+              // When the active course is cleared, navigate to home, but keep
+              // active assignment and students
+              onClear: () =>
+                navigate(
+                  urlWithFilters(
+                    { studentIds, assignmentIds: [assignmentId] },
+                    { path: '' },
+                  ),
                 ),
-              ),
-          }}
-          assignments={{
-            activeItem: assignment.data,
-            // When active assignment is cleared, navigate to its course page,
-            // but keep other query params intact
-            onClear: () => {
-              const query = search.length === 0 ? '' : `?${search}`;
-              navigate(`${courseURL(assignment.data!.course.id)}${query}`);
-            },
-          }}
-          students={{
-            selectedIds: studentIds,
-            onChange: studentIds => updateFilters({ studentIds }),
-          }}
-          segments={segments}
-          onClearSelection={
-            studentIds.length > 0 ||
-            (segments && segments.selectedIds.length > 0)
-              ? () => updateFilters({ studentIds: [], segmentIds: [] })
-              : undefined
-          }
-        />
-      )}
+            }}
+            assignments={{
+              activeItem: assignment.data,
+              // When active assignment is cleared, navigate to its course page,
+              // but keep other query params intact
+              onClear: () => {
+                const query = search.length === 0 ? '' : `?${search}`;
+                navigate(`${courseURL(assignment.data!.course.id)}${query}`);
+              },
+            }}
+            students={{
+              selectedIds: studentIds,
+              onChange: studentIds => updateFilters({ studentIds }),
+            }}
+            segments={segments}
+            onClearSelection={
+              studentIds.length > 0 ||
+              (segments && segments.selectedIds.length > 0)
+                ? () => updateFilters({ studentIds: [], segmentIds: [] })
+                : undefined
+            }
+          />
+        )}
+        {isAutoGradingAssignment && auto_grading_sync_enabled && (
+          <SyncGradesButton studentsToSync={studentsToSync} />
+        )}
+      </div>
       <OrderableActivityTable
         loading={students.isLoading}
         title={assignment.isLoading ? 'Loading...' : title}
