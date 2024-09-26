@@ -19,6 +19,10 @@ describe('AssignmentActivity', () => {
         annotations: 8,
         replies: 0,
       },
+      auto_grading_grade: {
+        current_grade: 0.5,
+        last_grade: null,
+      },
     },
     {
       display_name: 'a',
@@ -27,6 +31,10 @@ describe('AssignmentActivity', () => {
         annotations: 3,
         replies: 20,
       },
+      auto_grading_grade: {
+        current_grade: 0.8,
+        last_grade: 0.61,
+      },
     },
     {
       display_name: 'c',
@@ -34,6 +42,10 @@ describe('AssignmentActivity', () => {
         last_activity: '2020-01-02T00:00:00',
         annotations: 5,
         replies: 100,
+      },
+      auto_grading_grade: {
+        current_grade: 0.4,
+        last_grade: null,
       },
     },
   ];
@@ -49,6 +61,7 @@ describe('AssignmentActivity', () => {
   let fakeUseAPIFetch;
   let fakeNavigate;
   let fakeUseSearch;
+  let fakeMutate;
   let fakeConfig;
   let wrappers;
 
@@ -59,6 +72,7 @@ describe('AssignmentActivity', () => {
     fakeUseAPIFetch.callsFake(url => ({
       isLoading: false,
       data: url.endsWith('metrics') ? students : assignment,
+      mutate: fakeMutate,
     }));
   }
 
@@ -74,6 +88,7 @@ describe('AssignmentActivity', () => {
 
     fakeNavigate = sinon.stub();
     fakeUseSearch = sinon.stub().returns('current=query');
+    fakeMutate = sinon.stub();
     fakeConfig = {
       dashboard: {
         routes: {
@@ -468,6 +483,7 @@ describe('AssignmentActivity', () => {
       {
         studentsData: {
           students: [
+            // Included, because last grade is missing: Student never synced
             {
               display_name: 'a',
               h_userid: 'foo',
@@ -475,23 +491,34 @@ describe('AssignmentActivity', () => {
                 current_grade: 0.5,
               },
             },
+            // Included, because last grade and current grade are different
             {
               display_name: 'b',
               h_userid: 'bar',
               auto_grading_grade: {
                 current_grade: 0.87,
+                last_grade: 0.7,
               },
             },
+            // Ignored, because auto_grading_grade is not set
             {
               display_name: 'c',
               h_userid: 'baz',
+            },
+            // Ignored, because last and current grades are the same
+            {
+              display_name: 'd',
+              h_userid: 'baz',
+              auto_grading_grade: {
+                current_grade: 0.64,
+                last_grade: 0.64,
+              },
             },
           ],
         },
         expectedStudentsToSync: [
           { h_userid: 'foo', grade: 0.5 },
           { h_userid: 'bar', grade: 0.87 },
-          { h_userid: 'baz', grade: 0 },
         ],
       },
     ].forEach(({ studentsData, expectedStudentsToSync }) => {
@@ -511,6 +538,27 @@ describe('AssignmentActivity', () => {
           wrapper.find('SyncGradesButton').prop('studentsToSync'),
           expectedStudentsToSync,
         );
+      });
+    });
+
+    it('updates students once sync has been scheduled', () => {
+      setUpFakeUseAPIFetch({
+        ...activeAssignment,
+        auto_grading_config: {},
+      });
+      fakeConfig.dashboard.auto_grading_sync_enabled = true;
+
+      const wrapper = createComponent();
+      act(() => wrapper.find('SyncGradesButton').props().onSyncScheduled());
+
+      assert.calledWith(fakeMutate, {
+        students: activeStudents.map(({ auto_grading_grade, ...rest }) => ({
+          ...rest,
+          auto_grading_grade: {
+            ...auto_grading_grade,
+            last_grade: auto_grading_grade.current_grade,
+          },
+        })),
       });
     });
   });

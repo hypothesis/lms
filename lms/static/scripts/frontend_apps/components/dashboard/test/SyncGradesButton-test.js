@@ -14,6 +14,7 @@ describe('SyncGradesButton', () => {
   let fakeConfig;
   let fakeApiCall;
   let fakeUsePolledAPIFetch;
+  let fakeOnSyncScheduled;
   let shouldRefreshCallback;
 
   const studentsToSync = [
@@ -33,6 +34,7 @@ describe('SyncGradesButton', () => {
         isLoading: true,
       };
     });
+    fakeOnSyncScheduled = sinon.stub();
 
     fakeConfig = {
       dashboard: {
@@ -62,7 +64,10 @@ describe('SyncGradesButton', () => {
   function createComponent(studentsToSync) {
     return mount(
       <Config.Provider value={fakeConfig}>
-        <SyncGradesButton studentsToSync={studentsToSync} />
+        <SyncGradesButton
+          studentsToSync={studentsToSync}
+          onSyncScheduled={fakeOnSyncScheduled}
+        />
       </Config.Provider>,
     );
   }
@@ -218,6 +223,7 @@ describe('SyncGradesButton', () => {
       },
       fakeApiCall.lastCall.args[0].data,
     );
+    assert.called(fakeOnSyncScheduled);
   });
 
   it('sets status to error when scheduling a sync fails', async () => {
@@ -233,6 +239,7 @@ describe('SyncGradesButton', () => {
     await act(() => wrapper.find('Button').props().onClick());
 
     assert.calledWith(mutate, { status: 'failed' });
+    assert.notCalled(fakeOnSyncScheduled);
   });
 
   it(

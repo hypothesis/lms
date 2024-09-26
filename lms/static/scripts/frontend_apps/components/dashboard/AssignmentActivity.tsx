@@ -1,5 +1,5 @@
 import classnames from 'classnames';
-import { useMemo } from 'preact/hooks';
+import { useCallback, useMemo } from 'preact/hooks';
 import { useLocation, useParams, useSearch } from 'wouter-preact';
 
 import type {
@@ -30,7 +30,16 @@ type StudentsTableRow = {
   last_activity: string | null;
   annotations: number;
   replies: number;
+
+  /** Currently calculated grade, only for auto-grading assignments */
   current_grade?: number;
+
+  /**
+   * Grade that was submitted to the LMS in the most recent sync.
+   * If no grade has ever been synced, this will be `null`.
+   * If the assignment is not auto-grading, this will be ´undefined`.
+   */
+  last_grade?: number | null;
 };
 
 /**
@@ -109,19 +118,46 @@ export default function AssignmentActivity() {
       return undefined;
     }
 
-    // TODO Filter out students whose grades didn't change
-    return students.data.students.map(({ h_userid, auto_grading_grade }) => ({
-      h_userid,
-      grade: auto_grading_grade?.current_grade ?? 0,
-    }));
+    return students.data.students
+      .filter(
+        ({ auto_grading_grade }) =>
+          !!auto_grading_grade &&
+          auto_grading_grade.current_grade !== auto_grading_grade.last_grade,
+      )
+      .map(({ h_userid, auto_grading_grade }) => ({
+        h_userid,
+        grade: auto_grading_grade?.current_grade ?? 0,
+      }));
   }, [isAutoGradingAssignment, students.data]);
+  const onSyncScheduled = useCallback(
+    () =>
+      students.mutate({
+        students: (students.data?.students ?? []).map(
+          ({ auto_grading_grade, ...rest }) =>
+            !auto_grading_grade
+              ? rest
+              : {
+                  ...rest,
+                  auto_grading_grade: {
+                    ...auto_grading_grade,
+                    // Once a sync has been scheduled, update last_grade with
+                    // current_grade value, so that students are no longer
+                    // labelled as "New"
+                    last_grade: auto_grading_grade.current_grade,
+                  },
+                },
+        ),
+      }),
+    [students],
+  );
+
   const rows: StudentsTableRow[] = useMemo(
     () =>
       (students.data?.students ?? []).map(
         ({ annotation_metrics, auto_grading_grade, ...rest }) => ({
-          current_grade: auto_grading_grade?.current_grade,
-          ...rest,
+          ...auto_grading_grade,
           ...annotation_metrics,
+          ...rest,
         }),
       ),
     [students.data],
@@ -227,7 +263,10 @@ export default function AssignmentActivity() {
           />
         )}
         {isAutoGradingAssignment && auto_grading_sync_enabled && (
-          <SyncGradesButton studentsToSync={studentsToSync} />
+          <SyncGradesButton
+            studentsToSync={studentsToSync}
+            onSyncScheduled={onSyncScheduled}
+          />
         )}
       </div>
       <OrderableActivityTable
@@ -273,6 +312,7 @@ export default function AssignmentActivity() {
                 >
                   <GradeIndicator
                     grade={stats.current_grade ?? 0}
+                    lastGrade={stats.last_grade}
                     annotations={stats.annotations}
                     replies={stats.replies}
                     config={assignment.data?.auto_grading_config}

@@ -12,10 +12,11 @@ describe('GradeIndicator', () => {
     required_replies: 1,
   };
 
-  function createComponent(config = defaultConfig) {
+  function createComponent({ config = defaultConfig, lastGrade } = {}) {
     return mount(
       <GradeIndicator
-        grade={100}
+        grade={80}
+        lastGrade={lastGrade}
         annotations={5}
         replies={2}
         config={config}
@@ -143,8 +144,10 @@ describe('GradeIndicator', () => {
   ].forEach(({ config, expectedAnnotationCounts }) => {
     it('shows expected annotation counts for config', () => {
       const wrapper = createComponent({
-        ...defaultConfig,
-        ...config,
+        config: {
+          ...defaultConfig,
+          ...config,
+        },
       });
       openPopover(wrapper);
 
@@ -200,4 +203,31 @@ describe('GradeIndicator', () => {
       },
     ]),
   );
+
+  [
+    {
+      lastGrade: undefined,
+      shouldShowLabel: true,
+      shouldShowPrevGrade: false,
+    },
+    { lastGrade: 90, shouldShowLabel: true, shouldShowPrevGrade: true },
+    { lastGrade: 80, shouldShowLabel: false, shouldShowPrevGrade: false },
+  ].forEach(({ lastGrade, shouldShowLabel, shouldShowPrevGrade }) => {
+    it('shows the "new" label if last grade is not set or is different than current grade', () => {
+      const wrapper = createComponent({ lastGrade });
+      assert.equal(
+        wrapper.exists('[data-testid="new-label"]'),
+        shouldShowLabel,
+      );
+    });
+
+    it('shows last grade in popover if set and is different than current grade', () => {
+      const wrapper = createComponent({ lastGrade });
+      openPopover(wrapper);
+      assert.equal(
+        wrapper.exists('[data-testid="last-grade"]'),
+        shouldShowPrevGrade,
+      );
+    });
+  });
 });

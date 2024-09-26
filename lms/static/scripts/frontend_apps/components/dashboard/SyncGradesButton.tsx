@@ -20,10 +20,18 @@ export type SyncGradesButtonProps = {
    * Passing `undefined` means students are not yet known and/or being loaded.
    */
   studentsToSync?: Array<{ h_userid: string; grade: number }>;
+
+  /**
+   * Invoked after a sync was scheduled successfully.
+   * This being invoked doesn't ensure syncs will succeed, only that they were
+   * properly scheduled.
+   */
+  onSyncScheduled: () => void;
 };
 
 export default function SyncGradesButton({
   studentsToSync,
+  onSyncScheduled,
 }: SyncGradesButtonProps) {
   const { assignmentId } = useParams<{ assignmentId: string }>();
   const { dashboard, api } = useConfig(['dashboard', 'api']);
@@ -111,11 +119,14 @@ export default function SyncGradesButton({
         grades: studentsToSync,
       },
     })
-      // Once the request succeeds, we update the params so that polling the
-      // status is triggered again
-      .then(() => setLastSyncParams({ t: `${Date.now()}` }))
+      .then(() => {
+        // Once the request succeeds, we update the params so that polling the
+        // status is triggered again
+        setLastSyncParams({ t: `${Date.now()}` });
+        onSyncScheduled();
+      })
       .catch(() => lastSync.mutate({ status: 'failed' }));
-  }, [api.authToken, lastSync, studentsToSync, syncURL]);
+  }, [api.authToken, lastSync, onSyncScheduled, studentsToSync, syncURL]);
 
   return (
     <Button variant="primary" onClick={syncGrades} disabled={buttonDisabled}>
