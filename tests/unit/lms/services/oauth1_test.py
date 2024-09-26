@@ -1,17 +1,17 @@
 import json
-from unittest import mock
+from unittest.mock import sentinel
 
 import pytest
 from requests import Request
 
-from lms.services.oauth1 import OAuth1Service
+from lms.services.oauth1 import OAuth1Service, factory
 
 pytestmark = pytest.mark.usefixtures("application_instance_service")
 
 
 class TestOAuth1Service:
     def test_we_configure_OAuth1_correctly(self, service, OAuth1, application_instance):
-        service.get_client()
+        service.get_client(application_instance)
 
         OAuth1.assert_called_once_with(
             client_key=application_instance.consumer_key,
@@ -26,7 +26,7 @@ class TestOAuth1Service:
             "POST",
             url="http://example.com",
             data={"param": "value"},
-            auth=service.get_client(),
+            auth=service.get_client(application_instance),
         )
 
         prepared_request = request.prepare()
@@ -133,7 +133,7 @@ class TestOAuth1Service:
         uuid.uuid4.return_value.hex = nonce
         datetime.now.return_value.timestamp.return_value = timestamp
 
-        result = service.sign(url, method, data)
+        result = service.sign(application_instance, url, method, data)
 
         assert result["oauth_signature_method"] == "HMAC-SHA1"
         assert result["oauth_nonce"] == nonce
@@ -142,13 +142,8 @@ class TestOAuth1Service:
         assert result["oauth_signature"] == signature
 
     @pytest.fixture
-    def service(self, context, pyramid_request):
-        return OAuth1Service(context, pyramid_request)
-
-    @pytest.fixture
-    def context(self):
-        # We don't use context, so it doesn't matter what it is
-        return mock.sentinel.context
+    def service(self):
+        return OAuth1Service()
 
     @pytest.fixture
     def uuid(self, patch):
@@ -161,3 +156,15 @@ class TestOAuth1Service:
     @pytest.fixture
     def OAuth1(self, patch):
         return patch("lms.services.oauth1.OAuth1")
+
+
+class TestFactory:
+    def test_it(self, pyramid_request, OAuth1Service):
+        service = factory(sentinel.context, pyramid_request)
+
+        OAuth1Service.assert_called_once_with()
+        assert service == OAuth1Service.return_value
+
+    @pytest.fixture
+    def OAuth1Service(self, patch):
+        return patch("lms.services.oauth1.OAuth1Service")

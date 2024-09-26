@@ -7,14 +7,22 @@ from lms.services.lti_grading.factory import service_factory
 
 class TestFactory:
     def test_v11(
-        self, pyramid_request, LTI11GradingService, http_service, oauth1_service
+        self,
+        pyramid_request,
+        LTI11GradingService,
+        http_service,
+        oauth1_service,
+        application_instance,
     ):
         pyramid_request.lti_user.application_instance = Mock(lti_version="1.1")
 
         svc = service_factory(sentinel.context, pyramid_request)
 
         LTI11GradingService.assert_called_once_with(
-            sentinel.grading_url, http_service, oauth1_service
+            sentinel.grading_url,
+            http_service,
+            oauth1_service,
+            pyramid_request.lti_user.application_instance,
         )
         assert svc == LTI11GradingService.return_value
 

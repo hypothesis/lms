@@ -2,6 +2,7 @@ from xml.parsers.expat import ExpatError
 
 import xmltodict
 
+from lms.models import ApplicationInstance
 from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
 from lms.services.http import HTTPService
 from lms.services.lti_grading.interface import GradingResult, LTIGradingService
@@ -11,11 +12,16 @@ from lms.services.oauth1 import OAuth1Service
 class LTI11GradingService(LTIGradingService):
     #  See: LTI1.1 Outcomes https://www.imsglobal.org/specs/ltiomv1p0/specification
     def __init__(
-        self, line_item_url, http_service: HTTPService, oauth1_service: OAuth1Service
+        self,
+        line_item_url,
+        http_service: HTTPService,
+        oauth1_service: OAuth1Service,
+        application_instance: ApplicationInstance,
     ):
         super().__init__(line_item_url, None)
         self.http_service = http_service
         self.oauth1_service = oauth1_service
+        self.application_instance = application_instance
 
     def read_result(self, grading_id) -> GradingResult:
         result = GradingResult(score=None, comment=None)
@@ -73,7 +79,7 @@ class LTI11GradingService(LTIGradingService):
                 url=self.line_item_url,
                 data=xml_body,
                 headers={"Content-Type": "application/xml"},
-                auth=self.oauth1_service.get_client(),
+                auth=self.oauth1_service.get_client(self.application_instance),
             )
         except ExternalRequestError as err:
             err.message = "Error calling LTI Outcomes service"
