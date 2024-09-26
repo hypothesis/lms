@@ -8,6 +8,7 @@ import { useParams } from 'wouter-preact';
 
 import type { GradingSync } from '../../api-types';
 import { useConfig } from '../../config';
+import { APIError } from '../../errors';
 import { apiCall, usePolledAPIFetch } from '../../utils/api';
 import type { QueryParams } from '../../utils/url';
 import { replaceURLParams } from '../../utils/url';
@@ -27,7 +28,6 @@ export default function SyncGradesButton({
   const { assignmentId } = useParams<{ assignmentId: string }>();
   const { dashboard, api } = useConfig(['dashboard', 'api']);
   const { routes } = dashboard;
-  const [schedulingSyncFailed, setSchedulingSyncFailed] = useState(false);
 
   const syncURL = useMemo(
     () =>
@@ -63,15 +63,24 @@ export default function SyncGradesButton({
       );
     }
 
-    // TODO Maybe these should be represented differently
-    if (
-      schedulingSyncFailed ||
-      lastSync.error ||
-      lastSync.data?.status === 'failed'
-    ) {
+    if (lastSync.data?.status === 'failed') {
       return (
         <>
           Error syncing. Click to retry
+          <LeaveIcon />
+        </>
+      );
+    }
+
+    if (
+      lastSync.error &&
+      // The API returns 404 when current assignment has never been synced.
+      // We can ignore those errors.
+      (!(lastSync.error instanceof APIError) || lastSync.error.status !== 404)
+    ) {
+      return (
+        <>
+          Error checking sync status
           <LeaveIcon />
         </>
       );
@@ -82,13 +91,7 @@ export default function SyncGradesButton({
     }
 
     return 'Grades synced';
-  }, [
-    studentsToSync,
-    lastSync.isLoading,
-    lastSync.data,
-    lastSync.error,
-    schedulingSyncFailed,
-  ]);
+  }, [studentsToSync, lastSync.isLoading, lastSync.data, lastSync.error]);
 
   const buttonDisabled =
     lastSync.isLoading ||
@@ -99,20 +102,19 @@ export default function SyncGradesButton({
 
   const syncGrades = useCallback(async () => {
     lastSync.mutate({ status: 'scheduled' });
-    setSchedulingSyncFailed(false);
 
-    await apiCall({
+    apiCall({
       authToken: api.authToken,
       path: syncURL,
       method: 'POST',
       data: {
         grades: studentsToSync,
       },
-    }).catch(() => setSchedulingSyncFailed(true));
-
-    // Once the request succeeds, we update the params so that polling the
-    // status is triggered again
-    setLastSyncParams({ t: `${Date.now()}` });
+    })
+      // Once the request succeeds, we update the params so that polling the
+      // status is triggered again
+      .then(() => setLastSyncParams({ t: `${Date.now()}` }))
+      .catch(() => lastSync.mutate({ status: 'failed' }));
   }, [api.authToken, lastSync, studentsToSync, syncURL]);
 
   return (

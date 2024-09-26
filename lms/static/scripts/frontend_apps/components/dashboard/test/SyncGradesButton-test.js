@@ -7,6 +7,7 @@ import { act } from 'preact/test-utils';
 import sinon from 'sinon';
 
 import { Config } from '../../../config';
+import { APIError } from '../../../errors';
 import SyncGradesButton, { $imports } from '../SyncGradesButton';
 
 describe('SyncGradesButton', () => {
@@ -127,23 +128,28 @@ describe('SyncGradesButton', () => {
     });
   });
 
-  [
-    { error: new Error() },
-    {
+  it('shows syncing errors and allows to retry', () => {
+    fakeUsePolledAPIFetch.returns({
+      isLoading: false,
       data: { status: 'failed' },
-    },
-  ].forEach(fetchResult => {
-    it('shows syncing errors and allows to retry', () => {
-      fakeUsePolledAPIFetch.returns({
-        isLoading: false,
-        ...fetchResult,
-      });
-
-      const wrapper = createComponent(studentsToSync);
-
-      assert.equal(buttonText(wrapper), 'Error syncing. Click to retry');
-      assert.isFalse(isButtonDisabled(wrapper));
     });
+
+    const wrapper = createComponent(studentsToSync);
+
+    assert.equal(buttonText(wrapper), 'Error syncing. Click to retry');
+    assert.isFalse(isButtonDisabled(wrapper));
+  });
+
+  it('shows error when checking current sync status', () => {
+    fakeUsePolledAPIFetch.returns({
+      isLoading: false,
+      error: new Error(''),
+    });
+
+    const wrapper = createComponent(studentsToSync);
+
+    assert.equal(buttonText(wrapper), 'Error checking sync status');
+    assert.isFalse(isButtonDisabled(wrapper));
   });
 
   [
@@ -164,6 +170,18 @@ describe('SyncGradesButton', () => {
       assert.equal(buttonText(wrapper), `Sync ${expectedAmount} grades`);
       assert.isFalse(isButtonDisabled(wrapper));
     });
+  });
+
+  it('shows the amount of students to be synced when a previous sync has not happened at all', () => {
+    fakeUsePolledAPIFetch.returns({
+      isLoading: false,
+      error: new APIError(404, {}),
+    });
+
+    const wrapper = createComponent(studentsToSync);
+
+    assert.equal(buttonText(wrapper), `Sync ${studentsToSync.length} grades`);
+    assert.isFalse(isButtonDisabled(wrapper));
   });
 
   it('shows grades synced when no students need to be synced', () => {
@@ -203,17 +221,18 @@ describe('SyncGradesButton', () => {
   });
 
   it('sets status to error when scheduling a sync fails', async () => {
+    const mutate = sinon.stub();
     fakeUsePolledAPIFetch.returns({
       isLoading: false,
       data: { status: 'finished' },
-      mutate: sinon.stub(),
+      mutate,
     });
     fakeApiCall.rejects(new Error('Error scheduling'));
 
     const wrapper = createComponent(studentsToSync);
     await act(() => wrapper.find('Button').props().onClick());
 
-    assert.equal(buttonText(wrapper), 'Error syncing. Click to retry');
+    assert.calledWith(mutate, { status: 'failed' });
   });
 
   it(
