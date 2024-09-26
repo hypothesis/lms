@@ -23,4 +23,5 @@ def service_factory(_context, request):
         line_item_url=request.parsed_params.get("lis_outcome_service_url"),
         http_service=request.find_service(name="http"),
         oauth1_service=request.find_service(name="oauth1"),
+        application_instance=request.lti_user.application_instance,
     )
