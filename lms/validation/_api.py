@@ -34,7 +34,7 @@ class APIRecordSpeedgraderSchema(JSONPyramidRequestSchema):
     """Canvas doesn't seen the right value on speed grader launches
     so we keep track of the correct one ourselves"""
 
-    submitted_at = fields.DateTime(required=False, allow_none=True)
+    submitted_at = fields.DateTime(required=True, allow_none=False)
     """Date we'll send to canvas linked to this submission"""
 
 
