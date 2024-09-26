@@ -47,7 +47,7 @@ class TestGetPage:
 
     def test_it_filters_by_cursor(self, pyramid_request, db_session):
         courses = factories.Course.create_batch(5)
-        query = select(Course)
+        query = select(Course).order_by(Course.id)
         db_session.flush()
         pyramid_request.parsed_params = {
             "cursor": [courses[0].id, courses[0].lms_name],
@@ -61,7 +61,7 @@ class TestGetPage:
     def test_it_filters_by_cursor_allows_nullable(self, pyramid_request, db_session):
         students = factories.User.create_batch(5)
         students[0].display_name = None
-        query = select(User)
+        query = select(User).order_by(User.id)
         db_session.flush()
         pyramid_request.parsed_params = {
             "cursor": [None, students[0].id],
