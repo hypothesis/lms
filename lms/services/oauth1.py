@@ -8,22 +8,19 @@ from urllib import parse
 from oauthlib.oauth1.rfc5849 import signature
 from requests_oauthlib import OAuth1
 
+from lms.models import ApplicationInstance
+
 
 class OAuth1Service:
     """Provides OAuth1 convenience functions."""
 
-    def __init__(self, _context, request):
-        self._request = request
-
-    def get_client(self) -> OAuth1:
+    def get_client(self, application_instance: ApplicationInstance) -> OAuth1:
         """
-        Get an OAUth1 client that can be used to sign HTTP requests.
+        Get an OAUth1 client that can be used to sign HTTP requests for `application_instance`.
 
         To sign a request with the client pass it as the `auth` parameter to
         `requests.post()`.
         """
-        application_instance = self._request.lti_user.application_instance
-
         return OAuth1(
             client_key=application_instance.consumer_key,
             client_secret=application_instance.shared_secret,
@@ -34,14 +31,12 @@ class OAuth1Service:
             force_include_body=True,
         )
 
-    def sign(self, url: str, method: str, data: dict) -> dict:
+    def sign(self, application_instance, url: str, method: str, data: dict) -> dict:
         """
         Sign data following the oauth1 spec.
 
         Useful when not using these values for a HTTP requests with the client from get_client.
         """
-        application_instance = self._request.lti_user.application_instance
-
         client_key = application_instance.consumer_key
         # Secret and token need to joined by "&".
         # We don't have a token but the trailing `&` is required
@@ -81,3 +76,7 @@ class OAuth1Service:
 
         payload["oauth_signature"] = digest
         return payload
+
+
+def factory(_context, _request):
+    return OAuth1Service()

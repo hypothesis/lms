@@ -187,8 +187,10 @@ class TestLTI11GradingService:
         return getattr(svc, request.param)
 
     @pytest.fixture
-    def svc(self, oauth1_service, http_service):
-        return LTI11GradingService(sentinel.service_url, http_service, oauth1_service)
+    def svc(self, oauth1_service, http_service, application_instance):
+        return LTI11GradingService(
+            sentinel.service_url, http_service, oauth1_service, application_instance
+        )
 
 
 class GradingResponse(dict):

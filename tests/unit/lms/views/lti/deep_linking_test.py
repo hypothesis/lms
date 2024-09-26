@@ -209,6 +209,7 @@ class TestDeepLinkingFieldsView:
         title,
         opaque_data_lti11,
         oauth1_service,
+        application_instance,
     ):
         misc_plugin.get_deeplinking_launch_url.return_value = "LAUNCH_URL"
         pyramid_request.parsed_params["opaque_data_lti11"] = opaque_data_lti11
@@ -252,7 +253,7 @@ class TestDeepLinkingFieldsView:
             expected_fields["data"] = opaque_data_lti11
 
         oauth1_service.sign.assert_called_once_with(
-            sentinel.return_url, "post", expected_fields
+            application_instance, sentinel.return_url, "post", expected_fields
         )
         assert fields == oauth1_service.sign.return_value
 

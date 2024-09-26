@@ -239,8 +239,6 @@ class DeepLinkingFieldsViews:
         if title := assignment_configuration.get("title"):
             content_item["title"] = title
 
-        oauth1_service = self.request.find_service(name="oauth1")
-
         payload = {
             "content_items": json.dumps(
                 {
@@ -256,8 +254,11 @@ class DeepLinkingFieldsViews:
             # An opaque value which should be returned by the TP in its response.
             payload["data"] = data
 
-        return oauth1_service.sign(
-            self.request.parsed_params["content_item_return_url"], "post", payload
+        return self.request.find_service(name="oauth1").sign(
+            self.request.lti_user.application_instance,
+            self.request.parsed_params["content_item_return_url"],
+            "post",
+            payload,
         )
 
     @staticmethod
