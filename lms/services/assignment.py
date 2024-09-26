@@ -82,15 +82,7 @@ class AssignmentService:
             request.lti_params
         )
         assignment.course_id = course.id
-
-        if auto_grading_config:
-            if not assignment.auto_grading_config:
-                assignment.auto_grading_config = AutoGradingConfig()
-                self._db.add(assignment.auto_grading_config)
-
-            assignment.auto_grading_config = self._update_auto_grading_config(
-                assignment.auto_grading_config, auto_grading_config
-            )
+        self._update_auto_grading_config(assignment, auto_grading_config)
 
         return assignment
 
@@ -327,20 +319,31 @@ class AssignmentService:
         ).all()
 
     def _update_auto_grading_config(
-        self, auto_grading_model: AutoGradingConfig, auto_grading_config: dict
-    ) -> AutoGradingConfig:
-        auto_grading_model.activity_calculation = auto_grading_config.get(
-            "activity_calculation"
-        )
-        auto_grading_model.grading_type = auto_grading_config.get("grading_type")
-        auto_grading_model.required_annotations = auto_grading_config[
-            "required_annotations"
-        ]
-        auto_grading_model.required_replies = auto_grading_config.get(
-            "required_replies"
-        )
+        self, assignment: Assignment, auto_grading_config: dict | None
+    ) -> None:
+        if auto_grading_config:
+            auto_grading_model = assignment.auto_grading_config
+            if not assignment.auto_grading_config:
+                # No existing config, create a new one
+                auto_grading_model = AutoGradingConfig()
+                self._db.add(auto_grading_model)
+                assignment.auto_grading_config = auto_grading_model
 
-        return auto_grading_model
+            # Update the DB config based on the passed dict
+            auto_grading_model.activity_calculation = auto_grading_config.get(
+                "activity_calculation"
+            )
+            auto_grading_model.grading_type = auto_grading_config.get("grading_type")
+            auto_grading_model.required_annotations = auto_grading_config[
+                "required_annotations"
+            ]
+            auto_grading_model.required_replies = auto_grading_config.get(
+                "required_replies"
+            )
+        elif assignment.auto_grading_config:
+            # Clear the config in the DB when no config is passed in
+            self._db.delete(assignment.auto_grading_config)
+            assignment.auto_grading_config = None
 
 
 def factory(_context, request):
