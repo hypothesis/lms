@@ -30,7 +30,7 @@ type StudentsTableRow = {
   last_activity: string | null;
   annotations: number;
   replies: number;
-  auto_grading_grade?: number;
+  current_grade?: number;
 };
 
 /**
@@ -110,17 +110,16 @@ export default function AssignmentActivity() {
     }
 
     // TODO Filter out students whose grades didn't change
-    return students.data.students.map(
-      ({ h_userid, auto_grading_grade = 0 }) => ({
-        h_userid,
-        grade: auto_grading_grade,
-      }),
-    );
+    return students.data.students.map(({ h_userid, auto_grading_grade }) => ({
+      h_userid,
+      grade: auto_grading_grade?.current_grade ?? 0,
+    }));
   }, [isAutoGradingAssignment, students.data]);
   const rows: StudentsTableRow[] = useMemo(
     () =>
       (students.data?.students ?? []).map(
-        ({ annotation_metrics, ...rest }) => ({
+        ({ annotation_metrics, auto_grading_grade, ...rest }) => ({
+          current_grade: auto_grading_grade?.current_grade,
           ...rest,
           ...annotation_metrics,
         }),
@@ -154,7 +153,7 @@ export default function AssignmentActivity() {
 
     if (isAutoGradingAssignment) {
       firstColumns.push({
-        field: 'auto_grading_grade',
+        field: 'current_grade',
         label: 'Grade',
       });
     }
@@ -263,7 +262,7 @@ export default function AssignmentActivity() {
                   </span>
                 )
               );
-            case 'auto_grading_grade':
+            case 'current_grade':
               return (
                 <div
                   className={classnames(
@@ -273,7 +272,7 @@ export default function AssignmentActivity() {
                   )}
                 >
                   <GradeIndicator
-                    grade={stats.auto_grading_grade ?? 0}
+                    grade={stats.current_grade ?? 0}
                     annotations={stats.annotations}
                     replies={stats.replies}
                     config={assignment.data?.auto_grading_config}

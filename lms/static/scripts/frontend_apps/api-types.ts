@@ -190,9 +190,18 @@ export type Student = {
   display_name: string | null;
 };
 
+export type AutoGradingGrade = {
+  /** Grade calculated with current annotations/replies */
+  current_grade: number;
+  /** Grade that was last synced, if any */
+  last_grade: number | null;
+  /** When did the last grade sync happen, if any */
+  last_grade_date: number | null;
+};
+
 export type StudentWithMetrics = Student & {
   annotation_metrics: AnnotationMetrics;
-  auto_grading_grade?: number;
+  auto_grading_grade?: AutoGradingGrade;
 };
 
 /**
