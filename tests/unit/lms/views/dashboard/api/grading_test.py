@@ -1,7 +1,6 @@
 from unittest.mock import Mock
 
 import pytest
-from pyramid.httpexceptions import HTTPNotFound
 
 from lms.views.dashboard.api.grading import DashboardGradingViews
 from tests import factories
@@ -109,11 +108,15 @@ class TestDashboardGradingViews:
             "status": auto_grading_service.get_last_sync.return_value.status
         }
 
-    def test_get_grading_sync_not_found(self, auto_grading_service, views):
+    def test_get_grading_sync_not_found(
+        self, auto_grading_service, views, pyramid_request
+    ):
         auto_grading_service.get_last_sync.return_value = None
 
-        with pytest.raises(HTTPNotFound):
-            views.get_grading_sync()
+        response = views.get_grading_sync()
+
+        pyramid_request.response.status_int = 404
+        assert response["message"].startswith("No existing grading sync")
 
     def test__start_sync_grades(self, sync_grades, views, pyramid_request):
         views._start_sync_grades(pyramid_request)  # noqa: SLF001
