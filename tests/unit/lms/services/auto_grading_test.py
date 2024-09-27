@@ -51,12 +51,23 @@ class TestAutoGradingService:
         student_2 = factories.LMSUser()
         instructor = factories.LMSUser()
 
-        sync = factories.GradingSync(assignment=assignment, created_by=instructor)
-        older_sync = factories.GradingSync(assignment=assignment, created_by=instructor)
+        sync_1 = factories.GradingSync(
+            assignment=assignment, created_by=instructor, status="finished"
+        )
+        sync_2 = factories.GradingSync(
+            assignment=assignment, created_by=instructor, status="finished"
+        )
+        sync_3 = factories.GradingSync(
+            assignment=assignment, created_by=instructor, status="finished"
+        )
+
+        older_sync = factories.GradingSync(
+            assignment=assignment, created_by=instructor, status="finished"
+        )
 
         # Not successful
         factories.GradingSyncGrade(
-            grading_sync=sync,
+            grading_sync=sync_1,
             lms_user=student_1,
             success=False,
             updated=datetime(2025, 1, 1),
@@ -64,14 +75,14 @@ class TestAutoGradingService:
         )
         # Old
         factories.GradingSyncGrade(
-            grading_sync=sync,
+            grading_sync=sync_2,
             lms_user=student_1,
             success=True,
             updated=datetime(2023, 1, 1),
             grade=2,
         )
         factories.GradingSyncGrade(
-            grading_sync=sync,
+            grading_sync=sync_3,
             lms_user=student_1,
             success=True,
             updated=datetime(2024, 1, 1),
