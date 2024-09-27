@@ -150,12 +150,16 @@ class TestLTI13GradingService:
         assert not svc.get_score_maximum(sentinel.resource_link_id)
 
     @pytest.mark.parametrize("is_canvas", [True, False])
-    def test_sync_grade(self, svc, ltia_http_service, lti_registration, is_canvas):
+    def test_sync_grade(
+        self, svc, ltia_http_service, lti_v13_application_instance, is_canvas
+    ):
         if is_canvas:
-            lti_registration.issuer = "https://canvas.instructure.com"
+            lti_v13_application_instance.lti_registration.issuer = (
+                "https://canvas.instructure.com"
+            )
 
         response = svc.sync_grade(
-            lti_registration,
+            lti_v13_application_instance,
             "LIS_OUTCOME_SERVICE_URL",
             datetime(2022, 4, 4).isoformat(),
             sentinel.user_id,
@@ -176,7 +180,7 @@ class TestLTI13GradingService:
             }
 
         ltia_http_service.request.assert_called_once_with(
-            lti_registration,
+            lti_v13_application_instance.lti_registration,
             "POST",
             "LIS_OUTCOME_SERVICE_URL/scores",
             scopes=svc.LTIA_SCOPES,

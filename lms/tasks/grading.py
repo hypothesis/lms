@@ -1,14 +1,7 @@
 from sqlalchemy import exists, select
 
-from lms.models import (
-    ApplicationInstance,
-    GradingSync,
-    GradingSyncGrade,
-    Grouping,
-    LTIRegistration,
-)
-from lms.services import LTIAHTTPService
-from lms.services.lti_grading.factory import LTI13GradingService
+from lms.models import GradingSync, GradingSyncGrade
+from lms.services import LTIGradingService
 from lms.tasks.celery import app
 
 
@@ -30,18 +23,8 @@ def sync_grades():
                 assert (
                     assignment.lis_outcome_service_url
                 ), "Assignment without grading URL"
-                lti_registration = request.db.scalars(
-                    select(LTIRegistration)
-                    .join(ApplicationInstance)
-                    .join(Grouping)
-                    .where(Grouping.id == assignment.course_id)
-                    .order_by(LTIRegistration.updated.desc())
-                ).first()
-                assert lti_registration, "No LTI registraion for LTI1.3 assignment"
-
                 for grade in sync.grades:
                     sync_grade.delay(
-                        lti_registration_id=lti_registration.id,
                         lis_outcome_service_url=assignment.lis_outcome_service_url,
                         grading_sync_grade_id=grade.id,
                     )
@@ -54,26 +37,18 @@ def sync_grades():
     retry_backoff=10,
     autoretry_for=(Exception,),
 )
-def sync_grade(
-    *, lti_registration_id, lis_outcome_service_url: str, grading_sync_grade_id: int
-):
+def sync_grade(*, lis_outcome_service_url: str, grading_sync_grade_id: int):
     """Send one particular grade to the LMS."""
     with app.request_context() as request:
         with request.tm:
             grading_sync_grade = request.db.get(GradingSyncGrade, grading_sync_grade_id)
             grading_sync = grading_sync_grade.grading_sync
+            application_instance = grading_sync.assignment.course.application_instance
 
-            grading_service = LTI13GradingService(
-                ltia_service=request.find_service(LTIAHTTPService),
-                line_item_url=None,
-                line_item_container_url=None,
-                product_family=None,  # type: ignore
-                misc_plugin=None,  # type: ignore
-                lti_registration=None,  # type: ignore
-            )
+            grading_service = request.find_service(LTIGradingService)
             try:
                 grading_service.sync_grade(
-                    request.db.get(LTIRegistration, lti_registration_id),
+                    application_instance,
                     lis_outcome_service_url,
                     grading_sync.created.isoformat(),
                     grading_sync_grade.lms_user.lti_v13_user_id,

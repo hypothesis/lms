@@ -85,6 +85,22 @@ class LTIGradingService:  # pragma: no cover
         """
         raise NotImplementedError()
 
+    def sync_grade(
+        self,
+        application_instance,
+        lis_outcome_service_url: str,
+        grade_timestamp: str,
+        user_grading_id: str,
+        score: float,
+    ):
+        """
+        Send a grade to the LMS.
+
+        This is very similar to `record_result` but not scoped to the request context,
+        taking all the necessary information as parameters.
+        """
+        raise NotImplementedError()
+
     def create_line_item(self, resource_link_id, label):
         """
         Create a new line item associated to one resource_link_id.

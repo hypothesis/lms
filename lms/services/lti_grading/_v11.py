@@ -50,13 +50,48 @@ class LTI11GradingService(LTIGradingService):
 
         return result
 
+    def sync_grade(  # noqa: PLR0913
+        self,
+        application_instance: ApplicationInstance,
+        lis_outcome_service_url: str,
+        grade_timestamp: str,  # noqa: ARG002
+        user_grading_id: str,
+        score: float,
+    ):
+        """
+        Send a grade to the LMS.
+
+        This is very similar to `record_result` but not scoped to the request context,
+        taking all the necessary information as parameters.
+        """
+        request = self._record_score_payload(user_grading_id, score)
+        return self._send_request(
+            application_instance,
+            lis_outcome_service_url,
+            {"replaceResultRequest": request},
+        )
+
     def record_result(self, grading_id, score=None, pre_record_hook=None, comment=None):  # noqa: ARG002
-        request = {"resultRecord": {"sourcedGUID": {"sourcedId": grading_id}}}
+        request = self._record_score_payload(grading_id, score)
+        if pre_record_hook:
+            request = pre_record_hook(score=score, request_body=request)
+
+        self._send_request(
+            self.application_instance,
+            self.line_item_url,
+            {"replaceResultRequest": request},
+        )
+
+    def _record_score_payload(
+        self, user_grading_id: str, score: float | None = None
+    ) -> dict:
+        request = {"resultRecord": {"sourcedGUID": {"sourcedId": user_grading_id}}}
 
         if score is not None:
             request["resultRecord"]["result"] = {
                 "resultScore": {"language": "en", "textString": score}
             }
+        return request
 
     def _send_request(self, application_instance, url: str, request_body: dict) -> dict:
         """
