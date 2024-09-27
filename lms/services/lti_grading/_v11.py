@@ -27,11 +27,12 @@ class LTI11GradingService(LTIGradingService):
         result = GradingResult(score=None, comment=None)
         try:
             response = self._send_request(
+                self.line_item_url,
                 {
                     "readResultRequest": {
                         "resultRecord": {"sourcedGUID": {"sourcedId": grading_id}}
                     }
-                }
+                },
             )
         except ExternalRequestError as err:
             if err.response and "Incorrect sourcedId" in err.response.text:
@@ -59,9 +60,9 @@ class LTI11GradingService(LTIGradingService):
         if pre_record_hook:
             request = pre_record_hook(score=score, request_body=request)
 
-        self._send_request({"replaceResultRequest": request})
+        self._send_request(self.line_item_url, {"replaceResultRequest": request})
 
-    def _send_request(self, request_body) -> dict:
+    def _send_request(self, url: str, request_body: dict) -> dict:
         """
         Send a signed request to an LMS's Outcome Management Service endpoint.
 
@@ -76,7 +77,7 @@ class LTI11GradingService(LTIGradingService):
 
         try:
             response = self.http_service.post(
-                url=self.line_item_url,
+                url=url,
                 data=xml_body,
                 headers={"Content-Type": "application/xml"},
                 auth=self.oauth1_service.get_client(self.application_instance),

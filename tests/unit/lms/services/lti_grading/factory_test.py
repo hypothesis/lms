@@ -7,12 +7,7 @@ from lms.services.lti_grading.factory import service_factory
 
 class TestFactory:
     def test_v11(
-        self,
-        pyramid_request,
-        LTI11GradingService,
-        http_service,
-        oauth1_service,
-        application_instance,
+        self, pyramid_request, LTI11GradingService, http_service, oauth1_service
     ):
         pyramid_request.lti_user.application_instance = Mock(lti_version="1.1")
 
