@@ -1,7 +1,5 @@
-import datetime
 import logging
 import re
-from datetime import timezone
 
 from pyramid.view import view_config, view_defaults
 
@@ -153,9 +151,6 @@ class CanvasPreRecordHook:
     # For details of Canvas extensions to the standard LTI request see:
     # https://erau.instructure.com/doc/api/file.assignment_tools.html
 
-    # We use a set date in the past when no other date is available to avoid creating new submissions.
-    DEFAULT_SUBMISSION_DATE = datetime.datetime(2001, 1, 1, tzinfo=timezone.utc)
-
     def __init__(self, request):
         self.request = request
 
@@ -167,10 +162,7 @@ class CanvasPreRecordHook:
         # SpeedGrader as the submission date. If the submission date matches
         # an existing submission then the existing submission is updated
         # rather than creating a new submission.
-        submitted_at = (
-            self.request.parsed_params.get("submitted_at")
-            or self.DEFAULT_SUBMISSION_DATE
-        )
+        submitted_at = self.request.parsed_params["submitted_at"]
 
         if "resultRecord" in request_body:
             return self._rewrite_v11(request_body, speedgrader_url, submitted_at)

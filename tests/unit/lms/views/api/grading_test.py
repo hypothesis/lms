@@ -135,10 +135,8 @@ class TestCanvasPreRecordHook:
             )
         )
 
-    @pytest.mark.parametrize(
-        "submitted_at", (datetime.datetime(2022, 2, 3, tzinfo=timezone.utc), None)
-    )
-    def test_it_v11(self, hook, submitted_at, get_speedgrader_launch_url):
+    def test_it_v11(self, hook, get_speedgrader_launch_url):
+        submitted_at = datetime.datetime(2022, 2, 3, tzinfo=timezone.utc)
         hook.request.parsed_params["submitted_at"] = submitted_at
 
         result = hook(score=None, request_body={"resultRecord": {}})
@@ -151,15 +149,11 @@ class TestCanvasPreRecordHook:
                     }
                 }
             },
-            "submissionDetails": {
-                "submittedAt": submitted_at or hook.DEFAULT_SUBMISSION_DATE
-            },
+            "submissionDetails": {"submittedAt": submitted_at},
         }
 
-    @pytest.mark.parametrize(
-        "submitted_at", (datetime.datetime(2022, 2, 3, tzinfo=timezone.utc), None)
-    )
-    def test_it_v13(self, hook, submitted_at, get_speedgrader_launch_url):
+    def test_it_v13(self, hook, get_speedgrader_launch_url):
+        submitted_at = datetime.datetime(2022, 2, 3, tzinfo=timezone.utc)
         hook.request.parsed_params["submitted_at"] = submitted_at
 
         result = hook(score=None, request_body={})
@@ -168,9 +162,7 @@ class TestCanvasPreRecordHook:
             "https://canvas.instructure.com/lti/submission": {
                 "submission_type": "basic_lti_launch",
                 "submission_data": get_speedgrader_launch_url.return_value,
-                "submitted_at": (
-                    submitted_at or hook.DEFAULT_SUBMISSION_DATE
-                ).isoformat(),
+                "submitted_at": submitted_at.isoformat(),
             }
         }
 
