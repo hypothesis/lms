@@ -27,6 +27,7 @@ class LTI11GradingService(LTIGradingService):
         result = GradingResult(score=None, comment=None)
         try:
             response = self._send_request(
+                self.application_instance,
                 self.line_item_url,
                 {
                     "readResultRequest": {
@@ -57,12 +58,7 @@ class LTI11GradingService(LTIGradingService):
                 "resultScore": {"language": "en", "textString": score}
             }
 
-        if pre_record_hook:
-            request = pre_record_hook(score=score, request_body=request)
-
-        self._send_request(self.line_item_url, {"replaceResultRequest": request})
-
-    def _send_request(self, url: str, request_body: dict) -> dict:
+    def _send_request(self, application_instance, url: str, request_body: dict) -> dict:
         """
         Send a signed request to an LMS's Outcome Management Service endpoint.
 
@@ -80,7 +76,7 @@ class LTI11GradingService(LTIGradingService):
                 url=url,
                 data=xml_body,
                 headers={"Content-Type": "application/xml"},
-                auth=self.oauth1_service.get_client(self.application_instance),
+                auth=self.oauth1_service.get_client(application_instance),
             )
         except ExternalRequestError as err:
             err.message = "Error calling LTI Outcomes service"
