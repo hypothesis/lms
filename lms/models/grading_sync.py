@@ -1,7 +1,7 @@
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, text
+from sqlalchemy import ForeignKey, Index, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -34,9 +34,24 @@ class GradingSync(CreatedUpdatedMixin, Base):
     created_by: Mapped["LMSUser"] = relationship()
     """Who created this grade sync."""
 
+    __table_args__ = (
+        Index(
+            "ix__grading_sync_assignment_status_unique",
+            assignment_id,
+            unique=True,
+            postgresql_where=(status.in_(["scheduled", "in_progress"])),
+        ),
+        # Only allow one in_progress or scheduled sync per assignment
+    )
+
 
 class GradingSyncGrade(CreatedUpdatedMixin, Base):
     __tablename__ = "grading_sync_grade"
+
+    __table_args__ = (
+        UniqueConstraint("grading_sync_id", "lms_user_id"),
+        # Only one GradingSyncGrade for the same GradingSync and user""",
+    )
 
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
 
