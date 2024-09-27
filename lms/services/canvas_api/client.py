@@ -148,7 +148,7 @@ class CanvasAPIClient:
             # Return the contents of sections without the key
             return data["sections"]
 
-    def course_sections(self, course_id):
+    def course_sections(self, course_id, with_students=True):
         """
         Return all the sections for the given course_id.
 
@@ -159,10 +159,16 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/sections.html#method.sections.index
 
+        params = {}
+        print("course_sections")
+        if with_students:
+            params = {"include[]": "students"}
+
         return self._ensure_sections_unique(
             self._client.send(
                 "GET",
                 f"courses/{course_id}/sections",
+                params=params,
                 schema=self._CourseSectionsSchema,
             )
         )

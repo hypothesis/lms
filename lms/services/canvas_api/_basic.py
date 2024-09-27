@@ -107,6 +107,7 @@ class BasicClient:
             CanvasAPIError.raise_from(err, request, response)
 
         result: list = None  # type: ignore
+        print(response.json())
         try:
             result = schema(response).parse()
         except ExternalRequestError as err:
