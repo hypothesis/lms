@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
-from lms.models import LTIRegistration
+from lms.models import ApplicationInstance, LTIRegistration
 from lms.product.family import Family
 from lms.product.plugin.misc import MiscPlugin
 from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
@@ -94,7 +94,7 @@ class LTI13GradingService(LTIGradingService):
 
     def sync_grade(  # noqa: PLR0913
         self,
-        lti_registration: LTIRegistration,
+        application_instance: ApplicationInstance,
         lis_outcome_service_url: str,
         grade_timestamp: str,
         user_grading_id: str,
@@ -108,7 +108,7 @@ class LTI13GradingService(LTIGradingService):
         """
         payload = self._record_score_payload(score, user_grading_id, grade_timestamp)
 
-        if lti_registration.product_family == Family.CANVAS:
+        if application_instance.lti_registration.product_family == Family.CANVAS:
             # By default Canvas calls to /score create a new submission
             # Disable that behaviour and just submit the new grade.
             # See: https://canvas.instructure.com/doc/api/score.html
@@ -116,7 +116,7 @@ class LTI13GradingService(LTIGradingService):
                 "new_submission": False
             }
         return self._ltia_service.request(
-            lti_registration,
+            application_instance.lti_registration,
             "POST",
             self._service_url(lis_outcome_service_url, "/scores"),
             scopes=self.LTIA_SCOPES,
