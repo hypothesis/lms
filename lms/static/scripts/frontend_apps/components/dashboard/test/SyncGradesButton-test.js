@@ -13,9 +13,7 @@ import SyncGradesButton, { $imports } from '../SyncGradesButton';
 describe('SyncGradesButton', () => {
   let fakeConfig;
   let fakeApiCall;
-  let fakeUsePolledAPIFetch;
   let fakeOnSyncScheduled;
-  let shouldRefreshCallback;
 
   const studentsToSync = [
     { h_userid: '123', grade: 0.5 },
@@ -24,16 +22,6 @@ describe('SyncGradesButton', () => {
 
   beforeEach(() => {
     fakeApiCall = sinon.stub().resolves(undefined);
-    fakeUsePolledAPIFetch = sinon.stub().callsFake(({ shouldRefresh }) => {
-      // "Collect" shouldRefresh callback so that we can test its behavior
-      // individually
-      shouldRefreshCallback = shouldRefresh;
-
-      return {
-        data: null,
-        isLoading: true,
-      };
-    });
     fakeOnSyncScheduled = sinon.stub();
 
     fakeConfig = {
@@ -49,7 +37,6 @@ describe('SyncGradesButton', () => {
     $imports.$mock({
       '../../utils/api': {
         apiCall: fakeApiCall,
-        usePolledAPIFetch: fakeUsePolledAPIFetch,
       },
       'wouter-preact': {
         useParams: sinon.stub().returns({ assignmentId: '123' }),
@@ -61,11 +48,18 @@ describe('SyncGradesButton', () => {
     $imports.$restore();
   });
 
-  function createComponent(studentsToSync) {
+  function createComponent(
+    studentsToSync,
+    lastSync = {
+      data: null,
+      isLoading: true,
+    },
+  ) {
     return mount(
       <Config.Provider value={fakeConfig}>
         <SyncGradesButton
           studentsToSync={studentsToSync}
+          lastSync={lastSync}
           onSyncScheduled={fakeOnSyncScheduled}
         />
       </Config.Provider>,
@@ -80,36 +74,6 @@ describe('SyncGradesButton', () => {
     return wrapper.find('Button').prop('disabled');
   }
 
-  [
-    {
-      fetchResult: { data: null },
-      expectedResult: false,
-    },
-    {
-      fetchResult: {
-        data: { status: 'scheduled' },
-      },
-      expectedResult: true,
-    },
-    {
-      fetchResult: {
-        data: { status: 'in_progress' },
-      },
-      expectedResult: true,
-    },
-    {
-      fetchResult: {
-        data: { status: 'finished' },
-      },
-      expectedResult: false,
-    },
-  ].forEach(({ fetchResult, expectedResult }) => {
-    it('shouldRefresh callback behaves as expected', () => {
-      createComponent();
-      assert.equal(shouldRefreshCallback(fetchResult), expectedResult);
-    });
-  });
-
   [undefined, studentsToSync].forEach(studentsToSync => {
     it('shows loading text when getting initial data', () => {
       const wrapper = createComponent(studentsToSync);
@@ -121,12 +85,10 @@ describe('SyncGradesButton', () => {
 
   ['scheduled', 'in_progress'].forEach(status => {
     it('shows syncing text when grades are being synced', () => {
-      fakeUsePolledAPIFetch.returns({
+      const wrapper = createComponent(studentsToSync, {
         isLoading: false,
         data: { status },
       });
-
-      const wrapper = createComponent(studentsToSync);
 
       assert.equal(buttonText(wrapper), 'Syncing grades');
       assert.isTrue(isButtonDisabled(wrapper));
@@ -134,24 +96,20 @@ describe('SyncGradesButton', () => {
   });
 
   it('shows syncing errors and allows to retry', () => {
-    fakeUsePolledAPIFetch.returns({
+    const wrapper = createComponent(studentsToSync, {
       isLoading: false,
       data: { status: 'failed' },
     });
-
-    const wrapper = createComponent(studentsToSync);
 
     assert.equal(buttonText(wrapper), 'Error syncing. Click to retry');
     assert.isFalse(isButtonDisabled(wrapper));
   });
 
   it('shows error when checking current sync status', () => {
-    fakeUsePolledAPIFetch.returns({
+    const wrapper = createComponent(studentsToSync, {
       isLoading: false,
       error: new Error(''),
     });
-
-    const wrapper = createComponent(studentsToSync);
 
     assert.equal(buttonText(wrapper), 'Error checking sync status');
     assert.isFalse(isButtonDisabled(wrapper));
@@ -165,12 +123,10 @@ describe('SyncGradesButton', () => {
     },
   ].forEach(({ students, expectedAmount }) => {
     it('shows the amount of students to be synced when current status is "finished"', () => {
-      fakeUsePolledAPIFetch.returns({
+      const wrapper = createComponent(students, {
         isLoading: false,
         data: { status: 'finished' },
       });
-
-      const wrapper = createComponent(students);
 
       assert.equal(buttonText(wrapper), `Sync ${expectedAmount} grades`);
       assert.isFalse(isButtonDisabled(wrapper));
@@ -178,41 +134,33 @@ describe('SyncGradesButton', () => {
   });
 
   it('shows the amount of students to be synced when a previous sync has not happened at all', () => {
-    fakeUsePolledAPIFetch.returns({
+    const wrapper = createComponent(studentsToSync, {
       isLoading: false,
       error: new APIError(404, {}),
     });
-
-    const wrapper = createComponent(studentsToSync);
 
     assert.equal(buttonText(wrapper), `Sync ${studentsToSync.length} grades`);
     assert.isFalse(isButtonDisabled(wrapper));
   });
 
   it('shows grades synced when no students need to be synced', () => {
-    fakeUsePolledAPIFetch.returns({
+    const wrapper = createComponent([], {
       isLoading: false,
       data: { status: 'finished' },
     });
-
-    const wrapper = createComponent([]);
 
     assert.equal(buttonText(wrapper), 'Grades synced');
     assert.isTrue(isButtonDisabled(wrapper));
   });
 
-  it('submits grades when the button is clicked, then triggers sync status polling', async () => {
-    const mutate = sinon.stub();
-    fakeUsePolledAPIFetch.returns({
+  it('submits grades when the button is clicked, then calls onSyncScheduled', async () => {
+    const wrapper = createComponent(studentsToSync, {
       isLoading: false,
       data: { status: 'finished' },
-      mutate,
+      mutate: sinon.stub(),
     });
-
-    const wrapper = createComponent(studentsToSync);
     await act(() => wrapper.find('Button').props().onClick());
 
-    assert.calledWith(mutate, { status: 'scheduled' });
     assert.called(fakeApiCall);
     assert.deepEqual(
       {
@@ -227,18 +175,17 @@ describe('SyncGradesButton', () => {
   });
 
   it('sets status to error when scheduling a sync fails', async () => {
+    fakeApiCall.rejects(new Error('Error scheduling'));
+
     const mutate = sinon.stub();
-    fakeUsePolledAPIFetch.returns({
+    const wrapper = createComponent(studentsToSync, {
       isLoading: false,
       data: { status: 'finished' },
       mutate,
     });
-    fakeApiCall.rejects(new Error('Error scheduling'));
-
-    const wrapper = createComponent(studentsToSync);
     await act(() => wrapper.find('Button').props().onClick());
 
-    assert.calledWith(mutate, { status: 'failed' });
+    assert.calledWith(mutate.lastCall, sinon.match({ status: 'failed' }));
     assert.notCalled(fakeOnSyncScheduled);
   });
 

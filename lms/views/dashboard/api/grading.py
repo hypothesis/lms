@@ -1,10 +1,12 @@
 import logging
+from datetime import UTC
 
 from marshmallow import Schema, fields, validate
 from pyramid.view import view_config
 from sqlalchemy import select
 
 from lms.models import GradingSync, LMSUser
+from lms.models.grading_sync import AutoGradingSyncStatus
 from lms.security import Permissions
 from lms.services import AutoGradingService
 from lms.services.dashboard import DashboardService
@@ -102,6 +104,10 @@ class DashboardGradingViews:
     def _serialize_grading_sync(grading_sync: GradingSync) -> dict:
         return {
             "status": grading_sync.status,
+            "finish_date": grading_sync.updated.replace(tzinfo=UTC).isoformat()
+            if grading_sync.status
+            in {AutoGradingSyncStatus.FINISHED, AutoGradingSyncStatus.FAILED}
+            else None,
             "grades": [
                 {
                     "h_userid": grade.lms_user.h_userid,

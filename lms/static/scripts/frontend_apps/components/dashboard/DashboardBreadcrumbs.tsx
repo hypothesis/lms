@@ -51,7 +51,7 @@ export default function DashboardBreadcrumbs({
 
   return (
     <div
-      className="flex flex-row gap-0.5 w-full font-semibold"
+      className="flex flex-row gap-0.5 grow font-semibold"
       data-testid="breadcrumbs-container"
     >
       {linksWithHome.map(({ title, href }, index) => {

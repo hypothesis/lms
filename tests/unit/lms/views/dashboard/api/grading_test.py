@@ -1,8 +1,10 @@
+from datetime import UTC
 from unittest.mock import Mock
 
 import pytest
 from h_matchers import Any
 
+from lms.models.grading_sync import AutoGradingSyncStatus
 from lms.views.dashboard.api.grading import DashboardGradingViews
 from tests import factories
 
@@ -89,6 +91,7 @@ class TestDashboardGradingViews:
         )
         assert response == {
             "status": auto_grading_service.create_grade_sync.return_value.status,
+            "finish_date": None,
             "grades": [],
         }
         pyramid_request.add_finished_callback.assert_called_once_with(
@@ -114,6 +117,10 @@ class TestDashboardGradingViews:
         )
         assert response == {
             "status": grading_sync.status,
+            "finish_date": grading_sync.updated.replace(tzinfo=UTC).isoformat()
+            if grading_sync.status
+            in {AutoGradingSyncStatus.FINISHED, AutoGradingSyncStatus.FAILED}
+            else None,
             "grades": Any.list.containing(
                 [
                     {"grade": 1.0, "h_userid": "STUDENT_1", "status": "in_progress"},

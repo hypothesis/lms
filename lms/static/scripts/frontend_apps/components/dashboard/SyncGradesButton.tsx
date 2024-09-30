@@ -3,14 +3,14 @@ import {
   LeaveIcon,
   SpinnerCircleIcon,
 } from '@hypothesis/frontend-shared';
-import { useCallback, useMemo, useState } from 'preact/hooks';
+import { useCallback, useMemo } from 'preact/hooks';
 import { useParams } from 'wouter-preact';
 
-import type { GradingSync } from '../../api-types';
+import type { GradingSync, GradingSyncStatus } from '../../api-types';
 import { useConfig } from '../../config';
 import { APIError } from '../../errors';
-import { apiCall, usePolledAPIFetch } from '../../utils/api';
-import type { QueryParams } from '../../utils/url';
+import { apiCall } from '../../utils/api';
+import type { FetchResult } from '../../utils/fetch';
 import { replaceURLParams } from '../../utils/url';
 
 export type SyncGradesButtonProps = {
@@ -27,11 +27,15 @@ export type SyncGradesButtonProps = {
    * properly scheduled.
    */
   onSyncScheduled: () => void;
+
+  /** Result of fetching the status of last sync */
+  lastSync: FetchResult<GradingSync>;
 };
 
 export default function SyncGradesButton({
   studentsToSync,
   onSyncScheduled,
+  lastSync,
 }: SyncGradesButtonProps) {
   const { assignmentId } = useParams<{ assignmentId: string }>();
   const { dashboard, api } = useConfig(['dashboard', 'api']);
@@ -44,15 +48,15 @@ export default function SyncGradesButton({
       }),
     [assignmentId, routes.assignment_grades_sync],
   );
-  const [lastSyncParams, setLastSyncParams] = useState<QueryParams>({});
-  const lastSync = usePolledAPIFetch<GradingSync>({
-    path: syncURL,
-    params: lastSyncParams,
-    // Keep polling as long as sync is in progress
-    shouldRefresh: result =>
-      !!result.data &&
-      ['scheduled', 'in_progress'].includes(result.data.status),
-  });
+  const updateSyncStatus = useCallback(
+    (status: GradingSyncStatus) =>
+      lastSync.data &&
+      lastSync.mutate({
+        ...lastSync.data,
+        status,
+      }),
+    [lastSync],
+  );
 
   const buttonContent = useMemo(() => {
     if (!studentsToSync || (lastSync.isLoading && !lastSync.data)) {
@@ -109,7 +113,7 @@ export default function SyncGradesButton({
     studentsToSync.length === 0;
 
   const syncGrades = useCallback(async () => {
-    lastSync.mutate({ status: 'scheduled' });
+    updateSyncStatus('scheduled');
 
     apiCall({
       authToken: api.authToken,
@@ -119,14 +123,15 @@ export default function SyncGradesButton({
         grades: studentsToSync,
       },
     })
-      .then(() => {
-        // Once the request succeeds, we update the params so that polling the
-        // status is triggered again
-        setLastSyncParams({ t: `${Date.now()}` });
-        onSyncScheduled();
-      })
-      .catch(() => lastSync.mutate({ status: 'failed' }));
-  }, [api.authToken, lastSync, onSyncScheduled, studentsToSync, syncURL]);
+      .then(() => onSyncScheduled())
+      .catch(() => updateSyncStatus('failed'));
+  }, [
+    api.authToken,
+    onSyncScheduled,
+    studentsToSync,
+    syncURL,
+    updateSyncStatus,
+  ]);
 
   return (
     <Button variant="primary" onClick={syncGrades} disabled={buttonDisabled}>

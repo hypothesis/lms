@@ -59,10 +59,12 @@ describe('AssignmentActivity', () => {
   };
 
   let fakeUseAPIFetch;
+  let fakeUsePolledAPIFetch;
   let fakeNavigate;
   let fakeUseSearch;
   let fakeMutate;
   let fakeConfig;
+  let shouldRefreshCallback;
   let wrappers;
 
   function setUpFakeUseAPIFetch(
@@ -86,6 +88,16 @@ describe('AssignmentActivity', () => {
     fakeUseAPIFetch = sinon.stub();
     setUpFakeUseAPIFetch();
 
+    fakeUsePolledAPIFetch = sinon.stub().callsFake(({ shouldRefresh }) => {
+      // Save `shouldRefresh` callback so that we can test its behavior directly
+      shouldRefreshCallback = shouldRefresh;
+
+      return {
+        data: null,
+        isLoading: true,
+      };
+    });
+
     fakeNavigate = sinon.stub();
     fakeUseSearch = sinon.stub().returns('current=query');
     fakeMutate = sinon.stub();
@@ -94,6 +106,7 @@ describe('AssignmentActivity', () => {
         routes: {
           assignment: '/api/assignments/:assignment_id',
           students_metrics: '/api/students/metrics',
+          assignment_grades_sync: '/api/assignments/:assignment_id/grades/sync',
         },
         auto_grading_sync_enabled: true,
         assignment_segments_filter_enabled: false,
@@ -111,6 +124,7 @@ describe('AssignmentActivity', () => {
     $imports.$mock({
       '../../utils/api': {
         useAPIFetch: fakeUseAPIFetch,
+        usePolledAPIFetch: fakeUsePolledAPIFetch,
       },
       'wouter-preact': {
         useParams: sinon.stub().returns({ assignmentId: '123' }),
@@ -559,6 +573,106 @@ describe('AssignmentActivity', () => {
             last_grade: auto_grading_grade.current_grade,
           },
         })),
+      });
+    });
+
+    [
+      {
+        fetchResult: { data: null },
+        expectedResult: false,
+      },
+      {
+        fetchResult: {
+          data: { status: 'scheduled' },
+        },
+        expectedResult: true,
+      },
+      {
+        fetchResult: {
+          data: { status: 'in_progress' },
+        },
+        expectedResult: true,
+      },
+      {
+        fetchResult: {
+          data: { status: 'finished' },
+        },
+        expectedResult: false,
+      },
+    ].forEach(({ fetchResult, expectedResult }) => {
+      it('shouldRefresh callback behaves as expected', () => {
+        createComponent();
+        assert.equal(shouldRefreshCallback(fetchResult), expectedResult);
+      });
+    });
+
+    [
+      {
+        data: null,
+        shouldDisplayLastSyncInfo: false,
+        shouldDisplaySyncing: false,
+      },
+      {
+        data: { status: 'scheduled' },
+        shouldDisplayLastSyncInfo: true,
+        shouldDisplaySyncing: true,
+      },
+      {
+        data: { status: 'in_progress' },
+        shouldDisplayLastSyncInfo: true,
+        shouldDisplaySyncing: true,
+      },
+      {
+        data: {
+          status: 'error',
+          finish_date: '2024-10-02T14:24:15.677924+00:00',
+        },
+        shouldDisplayLastSyncInfo: true,
+        shouldDisplaySyncing: false,
+      },
+      {
+        data: {
+          status: 'finished',
+          finish_date: '2024-10-02T14:24:15.677924+00:00',
+        },
+        shouldDisplayLastSyncInfo: true,
+        shouldDisplaySyncing: false,
+      },
+    ].forEach(({ data, shouldDisplayLastSyncInfo, shouldDisplaySyncing }) => {
+      it('displays the last time grades were synced', () => {
+        fakeUsePolledAPIFetch.returns({
+          data,
+          isLoading: false,
+        });
+
+        const wrapper = createComponent();
+        const lastSyncDate = wrapper.find('[data-testid="last-sync-date"]');
+
+        assert.equal(lastSyncDate.exists(), shouldDisplayLastSyncInfo);
+
+        if (shouldDisplayLastSyncInfo) {
+          assert.equal(
+            lastSyncDate.text().includes('syncing…'),
+            shouldDisplaySyncing,
+          );
+        }
+      });
+    });
+
+    [true, false].forEach(isAutoGradingAssignment => {
+      it('should load last time grades were synced only for auto-grading assignments', () => {
+        setUpFakeUseAPIFetch({
+          ...activeAssignment,
+          auto_grading_config: isAutoGradingAssignment ? {} : null,
+        });
+        createComponent();
+
+        assert.calledWith(
+          fakeUsePolledAPIFetch.lastCall,
+          sinon.match({
+            path: isAutoGradingAssignment ? sinon.match.string : null,
+          }),
+        );
       });
     });
   });

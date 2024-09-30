@@ -1,17 +1,20 @@
+import { ClockIcon } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
-import { useCallback, useMemo } from 'preact/hooks';
+import { useCallback, useMemo, useState } from 'preact/hooks';
 import { useLocation, useParams, useSearch } from 'wouter-preact';
 
 import type {
   AssignmentDetails,
+  GradingSync,
   StudentsMetricsResponse,
 } from '../../api-types';
 import { useConfig } from '../../config';
-import { useAPIFetch } from '../../utils/api';
+import { useAPIFetch, usePolledAPIFetch } from '../../utils/api';
 import { useDashboardFilters } from '../../utils/dashboard/hooks';
 import { courseURL } from '../../utils/dashboard/navigation';
 import { useDocumentTitle } from '../../utils/hooks';
-import { replaceURLParams } from '../../utils/url';
+import { type QueryParams, replaceURLParams } from '../../utils/url';
+import RelativeTime from '../RelativeTime';
 import type {
   DashboardActivityFiltersProps,
   SegmentsType,
@@ -129,27 +132,49 @@ export default function AssignmentActivity() {
         grade: auto_grading_grade?.current_grade ?? 0,
       }));
   }, [isAutoGradingAssignment, students.data]);
-  const onSyncScheduled = useCallback(
+
+  const syncURL = useMemo(
     () =>
-      students.mutate({
-        students: (students.data?.students ?? []).map(
-          ({ auto_grading_grade, ...rest }) =>
-            !auto_grading_grade
-              ? rest
-              : {
-                  ...rest,
-                  auto_grading_grade: {
-                    ...auto_grading_grade,
-                    // Once a sync has been scheduled, update last_grade with
-                    // current_grade value, so that students are no longer
-                    // labelled as "New"
-                    last_grade: auto_grading_grade.current_grade,
-                  },
-                },
-        ),
-      }),
-    [students],
+      isAutoGradingAssignment
+        ? replaceURLParams(routes.assignment_grades_sync, {
+            assignment_id: assignmentId,
+          })
+        : null,
+    [assignmentId, isAutoGradingAssignment, routes.assignment_grades_sync],
   );
+  const [lastSyncParams, setLastSyncParams] = useState<QueryParams>({});
+  const lastSync = usePolledAPIFetch<GradingSync>({
+    path: syncURL,
+    params: lastSyncParams,
+    // Keep polling as long as sync is in progress
+    shouldRefresh: result =>
+      !!result.data &&
+      ['scheduled', 'in_progress'].includes(result.data.status),
+  });
+
+  const onSyncScheduled = useCallback(() => {
+    // Once the request succeeds, we update the params so that polling the
+    // status is triggered again
+    setLastSyncParams({ t: `${Date.now()}` });
+
+    students.mutate({
+      students: (students.data?.students ?? []).map(
+        ({ auto_grading_grade, ...rest }) =>
+          !auto_grading_grade
+            ? rest
+            : {
+                ...rest,
+                auto_grading_grade: {
+                  ...auto_grading_grade,
+                  // Once a sync has been scheduled, update last_grade with
+                  // current_grade value, so that students are no longer
+                  // labelled as "New"
+                  last_grade: auto_grading_grade.current_grade,
+                },
+              },
+      ),
+    });
+  }, [students]);
 
   const rows: StudentsTableRow[] = useMemo(
     () =>
@@ -204,7 +229,7 @@ export default function AssignmentActivity() {
     <div className="flex flex-col gap-y-5">
       <div>
         {assignment.data && (
-          <div className="mb-3 mt-1 w-full">
+          <div className="mb-3 mt-1 w-full flex items-center">
             <DashboardBreadcrumbs
               allCoursesLink={urlWithFilters({ studentIds }, { path: '' })}
               links={[
@@ -217,6 +242,20 @@ export default function AssignmentActivity() {
                 },
               ]}
             />
+            {lastSync.data && (
+              <div
+                className="flex gap-x-1 items-center text-color-text-light"
+                data-testid="last-sync-date"
+              >
+                <ClockIcon />
+                Grades last synced:{' '}
+                {lastSync.data.finish_date ? (
+                  <RelativeTime dateTime={lastSync.data.finish_date} />
+                ) : (
+                  'syncing…'
+                )}
+              </div>
+            )}
           </div>
         )}
         <h2 className="text-lg text-brand font-semibold" data-testid="title">
@@ -265,6 +304,7 @@ export default function AssignmentActivity() {
         {isAutoGradingAssignment && auto_grading_sync_enabled && (
           <SyncGradesButton
             studentsToSync={studentsToSync}
+            lastSync={lastSync}
             onSyncScheduled={onSyncScheduled}
           />
         )}
