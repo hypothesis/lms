@@ -2755,10 +2755,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/google.accounts@npm:^0.0.14":
-  version: 0.0.14
-  resolution: "@types/google.accounts@npm:0.0.14"
-  checksum: 6ec6864f5d5773e17b351e5b4a2dc8fee5e47d65c64b170f4bed99d4d534366b7d29320bd179f175f1cbf8aef35b3f268d890d894d49419570a1363079f07a75
+"@types/google.accounts@npm:^0.0.15":
+  version: 0.0.15
+  resolution: "@types/google.accounts@npm:0.0.15"
+  checksum: 790d3d707e041e08fe24f84b11556931e44fe0a325a5b9b35c1bba42697471e946b3afaf962d33cf1c2b825588b39d2e0754a5b35d8f1289217c50137832eda3
   languageName: node
   linkType: hard
 
@@ -7455,7 +7455,7 @@ __metadata:
     "@rollup/plugin-virtual": ^3.0.2
     "@trivago/prettier-plugin-sort-imports": ^4.2.1
     "@types/gapi": ^0.0.47
-    "@types/google.accounts": ^0.0.14
+    "@types/google.accounts": ^0.0.15
     "@types/google.picker": ^0.0.42
     "@typescript-eslint/eslint-plugin": ^7.4.0
     "@typescript-eslint/parser": ^7.4.0
