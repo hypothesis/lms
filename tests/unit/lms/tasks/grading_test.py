@@ -8,16 +8,12 @@ from tests import factories
 
 
 class TestGradingTasks:
-    def test_sync_grades(self, lti_v13_application_instance, sync_grade, grading_sync):
+    def test_sync_grades(self, sync_grade, grading_sync):
         sync_grades()
 
         sync_grade.delay.assert_has_calls(
             [
-                call(
-                    lti_registration_id=lti_v13_application_instance.lti_registration_id,
-                    lis_outcome_service_url="URL",
-                    grading_sync_grade_id=grade.id,
-                )
+                call(lis_outcome_service_url="URL", grading_sync_grade_id=grade.id)
                 for grade in grading_sync.grades
             ],
             any_order=True,
@@ -33,7 +29,6 @@ class TestGradingTasks:
         sync_grades_complete,
     ):
         sync_grade(
-            lti_registration_id=lti_v13_application_instance.lti_registration_id,
             lis_outcome_service_url="URL",
             grading_sync_grade_id=grading_sync.grades[0].id,
         )
@@ -49,7 +44,7 @@ class TestGradingTasks:
         grading_service = LTI13GradingService.return_value
 
         grading_service.sync_grade.assert_called_once_with(
-            lti_v13_application_instance.lti_registration,
+            lti_v13_application_instance,
             "URL",
             grading_sync.created.isoformat(),
             grading_sync.grades[0].lms_user.lti_v13_user_id,
@@ -62,11 +57,7 @@ class TestGradingTasks:
 
     @pytest.mark.usefixtures("ltia_http_service")
     def test_sync_grade_raises(
-        self,
-        grading_sync,
-        lti_v13_application_instance,
-        LTI13GradingService,
-        sync_grades_complete,
+        self, grading_sync, LTI13GradingService, sync_grades_complete
     ):
         grading_service = LTI13GradingService.return_value
         grading_service.sync_grade.side_effect = Exception
@@ -74,7 +65,6 @@ class TestGradingTasks:
 
         with pytest.raises(Exception):
             sync_grade(
-                lti_registration_id=lti_v13_application_instance.lti_registration_id,
                 lis_outcome_service_url="URL",
                 grading_sync_grade_id=grading_sync.grades[0].id,
             )
@@ -84,18 +74,13 @@ class TestGradingTasks:
 
     @pytest.mark.usefixtures("ltia_http_service")
     def test_sync_grade_last_retry(
-        self,
-        grading_sync,
-        lti_v13_application_instance,
-        LTI13GradingService,
-        sync_grades_complete,
+        self, grading_sync, LTI13GradingService, sync_grades_complete
     ):
         grading_service = LTI13GradingService.return_value
         grading_service.sync_grade.side_effect = Exception
         sync_grade.max_retries = 0
 
         sync_grade(
-            lti_registration_id=lti_v13_application_instance.lti_registration_id,
             lis_outcome_service_url="URL",
             grading_sync_grade_id=grading_sync.grades[0].id,
         )
