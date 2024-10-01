@@ -9,6 +9,7 @@ from pytest import param
 from lms.product.family import Family
 from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
 from lms.services.lti_grading._v13 import LTI13GradingService
+from tests import factories
 
 
 class TestLTI13GradingService:
@@ -153,6 +154,7 @@ class TestLTI13GradingService:
     def test_sync_grade(
         self, svc, ltia_http_service, lti_v13_application_instance, is_canvas
     ):
+        lms_user = factories.LMSUser(lti_v13_user_id=sentinel.user_id)
         if is_canvas:
             lti_v13_application_instance.lti_registration.issuer = (
                 "https://canvas.instructure.com"
@@ -162,7 +164,7 @@ class TestLTI13GradingService:
             lti_v13_application_instance,
             "LIS_OUTCOME_SERVICE_URL",
             datetime(2022, 4, 4).isoformat(),
-            sentinel.user_id,
+            lms_user,
             sentinel.grade,
         )
 

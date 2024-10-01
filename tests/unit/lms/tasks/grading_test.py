@@ -25,8 +25,8 @@ class TestGradingTasks:
         self,
         grading_sync,
         lti_v13_application_instance,
-        LTI13GradingService,
-        ltia_http_service,
+        service_factory,
+        pyramid_request,
         sync_grades_complete,
     ):
         sync_grade(
@@ -34,21 +34,16 @@ class TestGradingTasks:
             grading_sync_grade_id=grading_sync.grades[0].id,
         )
 
-        LTI13GradingService.assert_called_once_with(
-            ltia_service=ltia_http_service,
-            line_item_url=None,
-            line_item_container_url=None,
-            product_family=None,
-            misc_plugin=None,
-            lti_registration=None,
+        service_factory.assert_called_once_with(
+            None, pyramid_request, lti_v13_application_instance
         )
-        grading_service = LTI13GradingService.return_value
+        grading_service = service_factory.return_value
 
         grading_service.sync_grade.assert_called_once_with(
             lti_v13_application_instance,
             "URL",
             grading_sync.created.replace(tzinfo=UTC).isoformat(),
-            grading_sync.grades[0].lms_user.lti_v13_user_id,
+            grading_sync.grades[0].lms_user,
             grading_sync.grades[0].grade,
         )
         sync_grades_complete.apply_async.assert_called_once_with(
@@ -58,9 +53,9 @@ class TestGradingTasks:
 
     @pytest.mark.usefixtures("ltia_http_service")
     def test_sync_grade_raises(
-        self, grading_sync, LTI13GradingService, sync_grades_complete
+        self, grading_sync, service_factory, sync_grades_complete
     ):
-        grading_service = LTI13GradingService.return_value
+        grading_service = service_factory.return_value
         grading_service.sync_grade.side_effect = Exception
         sync_grade.max_retries = 2
 
@@ -75,9 +70,9 @@ class TestGradingTasks:
 
     @pytest.mark.usefixtures("ltia_http_service")
     def test_sync_grade_last_retry(
-        self, grading_sync, LTI13GradingService, sync_grades_complete
+        self, grading_sync, service_factory, sync_grades_complete
     ):
-        grading_service = LTI13GradingService.return_value
+        grading_service = service_factory.return_value
         grading_service.sync_grade.side_effect = Exception
         sync_grade.max_retries = 0
 
@@ -136,8 +131,8 @@ class TestGradingTasks:
         return patch("lms.tasks.grading.sync_grades_complete")
 
     @pytest.fixture
-    def LTI13GradingService(self, patch):
-        return patch("lms.tasks.grading.LTI13GradingService")
+    def service_factory(self, patch):
+        return patch("lms.tasks.grading.service_factory")
 
 
 @pytest.fixture(autouse=True)

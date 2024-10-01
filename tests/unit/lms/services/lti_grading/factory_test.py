@@ -2,7 +2,11 @@ from unittest.mock import Mock, sentinel
 
 import pytest
 
-from lms.services.lti_grading.factory import service_factory
+from lms.services.lti_grading.factory import (
+    LTI11GradingService,
+    LTI13GradingService,
+    service_factory,
+)
 
 
 class TestFactory:
@@ -55,6 +59,24 @@ class TestFactory:
             pyramid_request.lti_user.application_instance.lti_registration,
         )
         assert svc == LTI13GradingService.return_value
+
+    @pytest.mark.usefixtures("ltia_http_service", "misc_plugin")
+    def test_with_explicit_lti_v13_application_instance(
+        self, pyramid_request, lti_v13_application_instance
+    ):
+        svc = service_factory(
+            sentinel.context, pyramid_request, lti_v13_application_instance
+        )
+
+        assert isinstance(svc, LTI13GradingService)
+
+    @pytest.mark.usefixtures("http_service", "oauth1_service")
+    def test_with_explicit_lti_v11_application_instance(
+        self, pyramid_request, application_instance
+    ):
+        svc = service_factory(sentinel.context, pyramid_request, application_instance)
+
+        assert isinstance(svc, LTI11GradingService)
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):

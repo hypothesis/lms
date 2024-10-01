@@ -3,8 +3,7 @@ from datetime import UTC
 from sqlalchemy import exists, select
 
 from lms.models import GradingSync, GradingSyncGrade
-from lms.services import LTIAHTTPService
-from lms.services.lti_grading.factory import LTI13GradingService
+from lms.services.lti_grading.factory import service_factory
 from lms.tasks.celery import app
 
 
@@ -47,15 +46,8 @@ def sync_grade(*, lis_outcome_service_url: str, grading_sync_grade_id: int):
             grading_sync_grade = request.db.get(GradingSyncGrade, grading_sync_grade_id)
             grading_sync = grading_sync_grade.grading_sync
             application_instance = grading_sync.assignment.course.application_instance
+            grading_service = service_factory(None, request, application_instance)
 
-            grading_service = LTI13GradingService(
-                ltia_service=request.find_service(LTIAHTTPService),
-                line_item_url=None,
-                line_item_container_url=None,
-                product_family=None,  # type: ignore
-                misc_plugin=None,  # type: ignore
-                lti_registration=None,  # type: ignore
-            )
             try:
                 grading_service.sync_grade(
                     application_instance,
@@ -63,7 +55,7 @@ def sync_grade(*, lis_outcome_service_url: str, grading_sync_grade_id: int):
                     # DB dates are not TZ aware but are always in UTC
                     # Make them TZ aware so the LTI API calls have an explicit timezone
                     grading_sync.created.replace(tzinfo=UTC).isoformat(),
-                    grading_sync_grade.lms_user.lti_v13_user_id,
+                    grading_sync_grade.lms_user,
                     grading_sync_grade.grade,
                 )
             except Exception as err:
