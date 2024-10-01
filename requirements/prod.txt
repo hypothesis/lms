@@ -67,7 +67,7 @@ gunicorn==23.0.0
     # via -r requirements/prod.in
 h-api==1.1.0
     # via -r requirements/prod.in
-h-assets==1.0.6
+h-assets==1.0.7
     # via -r requirements/prod.in
 h-pyramid-sentry==1.2.4
     # via -r requirements/prod.in
@@ -82,9 +82,7 @@ idna==3.7
     #   requests
     #   yarl
 importlib-metadata==7.0.1
-    # via
-    #   h-api
-    #   h-assets
+    # via h-api
 importlib-resources==6.1.2
     # via
     #   -r requirements/prod.in
