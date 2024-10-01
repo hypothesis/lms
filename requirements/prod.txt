@@ -257,7 +257,7 @@ vine==5.1.0
     #   kombu
 wcwidth==0.2.12
     # via prompt-toolkit
-webargs==8.4.0
+webargs==8.6.0
     # via -r requirements/prod.in
 webob==1.8.8
     # via
