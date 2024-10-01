@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from lms.models import ApplicationInstance, LMSUser
+
 
 @dataclass
 class GradingResult:
@@ -82,6 +84,22 @@ class LTIGradingService:  # pragma: no cover
         :param comment: Comment to associate with the grade as feedback for the student
 
         :raise TypeError: if the given pre_record_hook returns a non-dict
+        """
+        raise NotImplementedError()
+
+    def sync_grade(  # noqa: PLR0913
+        self,
+        application_instance: ApplicationInstance,
+        lis_outcome_service_url: str,
+        grade_timestamp: str,
+        lms_user: LMSUser,
+        score: float,
+    ):
+        """
+        Send a grade to the LMS.
+
+        This is very similar to `record_result` but not scoped to the request context,
+        taking all the necessary information as parameters.
         """
         raise NotImplementedError()
 

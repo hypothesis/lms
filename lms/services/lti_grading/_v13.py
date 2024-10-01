@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
-from lms.models import ApplicationInstance, LTIRegistration
+from lms.models import ApplicationInstance, LMSUser, LTIRegistration
 from lms.product.family import Family
 from lms.product.plugin.misc import MiscPlugin
 from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
@@ -97,7 +97,7 @@ class LTI13GradingService(LTIGradingService):
         application_instance: ApplicationInstance,
         lis_outcome_service_url: str,
         grade_timestamp: str,
-        user_grading_id: str,
+        lms_user: LMSUser,
         score: float,
     ):
         """
@@ -106,7 +106,12 @@ class LTI13GradingService(LTIGradingService):
         This is very similar to `record_result` but not scoped to the request context,
         taking all the necessary information as parameters.
         """
-        payload = self._record_score_payload(score, user_grading_id, grade_timestamp)
+        assert (
+            lms_user.lti_v13_user_id
+        ), "Trying to grade a student without lti_v13_user_id"
+        payload = LTI13GradingService._record_score_payload(
+            score, lms_user.lti_v13_user_id, grade_timestamp
+        )
 
         if application_instance.lti_registration.product_family == Family.CANVAS:
             # By default Canvas calls to /score create a new submission
