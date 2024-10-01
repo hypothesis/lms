@@ -672,7 +672,7 @@ wcwidth==0.2.12
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   prompt-toolkit
-webargs==8.4.0
+webargs==8.6.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
