@@ -48,8 +48,15 @@ function AnnotationCount({
   );
 }
 
+function SectionTitle({ children }: { children: ComponentChildren }) {
+  return (
+    <div className="border-b px-3 py-2 font-bold text-grey-7">{children}</div>
+  );
+}
+
 export type GradeIndicatorProps = {
   grade: number;
+  lastGrade?: number | null;
   annotations: number;
   replies: number;
   config?: AutoGradingConfig;
@@ -61,6 +68,7 @@ export type GradeIndicatorProps = {
  */
 export default function GradeIndicator({
   grade,
+  lastGrade,
   annotations,
   replies,
   config,
@@ -77,23 +85,39 @@ export default function GradeIndicator({
   const requiredCombined = config
     ? config.required_annotations + (config.required_replies ?? 0)
     : 0;
+  // Checking typeof lastGrade to avoid number zero to be treated as false
+  const hasLastGrade = typeof lastGrade === 'number';
+  const gradeHasChanged = lastGrade !== grade;
 
   return (
     <div className="relative">
-      <button
-        className="focus-visible-ring rounded"
-        onClick={showPopover}
-        onMouseOver={showPopover}
-        onFocus={showPopover}
-        onMouseOut={hidePopover}
-        onBlur={hidePopover}
-        data-testid="popover-toggle"
-        aria-expanded={popoverVisible}
-        aria-describedby={popoverVisible ? popoverId : undefined}
-        aria-controls={popoverVisible ? popoverId : undefined}
-      >
-        <GradeStatusChip grade={grade} />
-      </button>
+      <div className="flex items-center justify-between">
+        <button
+          className="focus-visible-ring rounded"
+          onClick={showPopover}
+          onMouseOver={showPopover}
+          onFocus={showPopover}
+          onMouseOut={hidePopover}
+          onBlur={hidePopover}
+          data-testid="popover-toggle"
+          aria-expanded={popoverVisible}
+          aria-describedby={popoverVisible ? popoverId : undefined}
+          aria-controls={popoverVisible ? popoverId : undefined}
+        >
+          <GradeStatusChip grade={grade} />
+        </button>
+        {gradeHasChanged && (
+          <div
+            data-testid="new-label"
+            className={classnames(
+              'px-1 py-0.5 rounded',
+              'bg-grey-7 text-white font-bold uppercase text-[0.65rem]',
+            )}
+          >
+            New
+          </div>
+        )}
+      </div>
       <div aria-live="polite" aria-relevant="additions">
         {popoverVisible && (
           <div
@@ -104,9 +128,15 @@ export default function GradeIndicator({
             )}
             data-testid="popover"
           >
-            <div className="border-b px-3 py-2 font-bold text-grey-7">
-              Grade calculation
-            </div>
+            {hasLastGrade && gradeHasChanged && (
+              <>
+                <SectionTitle>Previously synced grade</SectionTitle>
+                <div className="border-b px-3 py-2" data-testid="last-grade">
+                  <GradeStatusChip grade={lastGrade} />
+                </div>
+              </>
+            )}
+            <SectionTitle>Grade calculation</SectionTitle>
             {isCalculationSeparate && (
               <AnnotationCount
                 actualAmount={annotations}
