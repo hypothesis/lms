@@ -1,3 +1,5 @@
+from datetime import UTC
+
 from sqlalchemy import exists, select
 
 from lms.models import GradingSync, GradingSyncGrade
@@ -58,7 +60,9 @@ def sync_grade(*, lis_outcome_service_url: str, grading_sync_grade_id: int):
                 grading_service.sync_grade(
                     application_instance,
                     lis_outcome_service_url,
-                    grading_sync.created.isoformat(),
+                    # DB dates are not TZ aware but are always in UTC
+                    # Make them TZ aware so the LTI API calls have an explicit timezone
+                    grading_sync.created.replace(tzinfo=UTC).isoformat(),
                     grading_sync_grade.lms_user.lti_v13_user_id,
                     grading_sync_grade.grade,
                 )
