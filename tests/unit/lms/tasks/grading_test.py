@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from datetime import UTC
 from unittest.mock import call
 
 import pytest
@@ -46,7 +47,7 @@ class TestGradingTasks:
         grading_service.sync_grade.assert_called_once_with(
             lti_v13_application_instance,
             "URL",
-            grading_sync.created.isoformat(),
+            grading_sync.created.replace(tzinfo=UTC).isoformat(),
             grading_sync.grades[0].lms_user.lti_v13_user_id,
             grading_sync.grades[0].grade,
         )
