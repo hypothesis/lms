@@ -1,6 +1,5 @@
+import { formatDateTime } from '@hypothesis/frontend-shared';
 import { useMemo } from 'preact/hooks';
-
-import { formatDateTime } from '../../utils/date';
 
 export type FormattedDateProps = {
   /** Date in ISO format */

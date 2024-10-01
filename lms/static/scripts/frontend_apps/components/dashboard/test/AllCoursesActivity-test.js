@@ -1,3 +1,4 @@
+import { formatDateTime } from '@hypothesis/frontend-shared';
 import {
   checkAccessibility,
   mockImportedComponents,
@@ -7,7 +8,6 @@ import { act } from 'preact/test-utils';
 import sinon from 'sinon';
 
 import { Config } from '../../../config';
-import { formatDateTime } from '../../../utils/date';
 import AllCoursesActivity, { $imports } from '../AllCoursesActivity';
 
 describe('AllCoursesActivity', () => {

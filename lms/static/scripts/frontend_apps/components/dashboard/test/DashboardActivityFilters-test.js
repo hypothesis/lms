@@ -1,4 +1,5 @@
 import { MultiSelect } from '@hypothesis/frontend-shared';
+import { formatDateTime } from '@hypothesis/frontend-shared';
 import {
   checkAccessibility,
   mockImportedComponents,
@@ -7,7 +8,6 @@ import { mount } from 'enzyme';
 import sinon from 'sinon';
 
 import { Config } from '../../../config';
-import { formatDateTime } from '../../../utils/date';
 import DashboardActivityFilters, {
   $imports,
 } from '../DashboardActivityFilters';

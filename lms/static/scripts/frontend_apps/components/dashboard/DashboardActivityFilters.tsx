@@ -2,6 +2,7 @@ import {
   FilterClearIcon,
   LinkButton,
   MultiSelect,
+  formatDateTime,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import type { MutableRef } from 'preact/hooks';
@@ -19,7 +20,6 @@ import type {
 } from '../../api-types';
 import { useConfig } from '../../config';
 import { usePaginatedAPIFetch } from '../../utils/api';
-import { formatDateTime } from '../../utils/date';
 import PaginatedMultiSelect from './PaginatedMultiSelect';
 
 /**
