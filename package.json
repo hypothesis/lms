@@ -54,7 +54,7 @@
   "devDependencies": {
     "@hypothesis/frontend-testing": "^1.2.2",
     "@types/gapi": "^0.0.47",
-    "@types/google.accounts": "^0.0.14",
+    "@types/google.accounts": "^0.0.15",
     "@types/google.picker": "^0.0.42",
     "@typescript-eslint/eslint-plugin": "^7.4.0",
     "@typescript-eslint/parser": "^7.4.0",
