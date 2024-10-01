@@ -147,14 +147,6 @@ def pyramid_request(db_session, application_instance, lti_v11_params):
 
 
 @pytest.fixture
-def lti_v13_pyramid_request(pyramid_request, lti_v13_params, lti_v11_params):
-    pyramid_request.lti_jwt = "JWT"
-    pyramid_request.lti_params = LTIParams(v11=lti_v11_params, v13=lti_v13_params)
-
-    return pyramid_request
-
-
-@pytest.fixture
 def product(pyramid_request):
     return pyramid_request.product
 

@@ -36,6 +36,7 @@ class TestAssignmentService:
         "resource_link_title, title",
         [("", None), ("    ", None), (" title  ", "title")],
     )
+    @pytest.mark.parametrize("v13_resource_link_id", ["V13_RESOURCE_LINK_ID", None])
     def test_update_assignment(
         self,
         svc,
@@ -45,8 +46,14 @@ class TestAssignmentService:
         resource_link_title,
         title,
         course,
+        v13_resource_link_id,
     ):
         pyramid_request.lti_params["resource_link_title"] = resource_link_title
+        pyramid_request.lti_params.v13 = {
+            "https://purl.imsglobal.org/spec/lti/claim/resource_link": {
+                "id": v13_resource_link_id
+            }
+        }
         misc_plugin.is_speed_grader_launch.return_value = is_speed_grader
 
         assignment = svc.update_assignment(
@@ -60,11 +67,15 @@ class TestAssignmentService:
         if is_speed_grader:
             assert assignment.extra == {}
             assert assignment.document_url != sentinel.document_url
+            assert not assignment.lis_outcome_service_url
+            assert not assignment.lti_v13_resource_link_id
         else:
             assert assignment.document_url == sentinel.document_url
             assert assignment.extra["group_set_id"] == sentinel.group_set_id
             assert assignment.title == title
             assert assignment.course_id == course.id
+            assert assignment.lis_outcome_service_url == "GRADING URL"
+            assert assignment.lti_v13_resource_link_id == v13_resource_link_id
 
     @pytest.mark.parametrize("with_existing", [True, False])
     def test_update_assignment_with_auto_grading_config(
@@ -193,14 +204,6 @@ class TestAssignmentService:
         )
         assert assignment.is_gradable == misc_plugin.is_assignment_gradable.return_value
         assert assignment.course_id == course.id
-        assert assignment.lis_outcome_service_url == "GRADING URL"
-
-    def test_get_assignment_for_launch_set_v13_context_id(
-        self, lti_v13_pyramid_request, svc, course
-    ):
-        assignment = svc.get_assignment_for_launch(lti_v13_pyramid_request, course)
-
-        assert assignment.lti_v13_resource_link_id == "RESOURCE_LINK_ID"
 
     def test_get_assignment_returns_None_with_when_no_document(
         self, pyramid_request, svc, misc_plugin, course

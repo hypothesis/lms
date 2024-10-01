@@ -81,6 +81,16 @@ class AssignmentService:
         assignment.is_gradable = self._misc_plugin.is_assignment_gradable(
             request.lti_params
         )
+        # Set the value for the v13 id for this assignment.
+        assignment.lti_v13_resource_link_id = request.lti_params.v13.get(
+            "https://purl.imsglobal.org/spec/lti/claim/resource_link", {}
+        ).get("id")
+
+        # Keep record of the grading service URL relevant for this assignment if available
+        assignment.lis_outcome_service_url = request.lti_params.get(
+            "lis_outcome_service_url"
+        )
+
         assignment.course_id = course.id
         self._update_auto_grading_config(assignment, auto_grading_config)
 
@@ -163,16 +173,6 @@ class AssignmentService:
                     "deep_linking_uuid"
                 )
             )
-
-        # Set the value for the v13 id for this assignment.
-        assignment.lti_v13_resource_link_id = request.lti_params.v13.get(
-            "https://purl.imsglobal.org/spec/lti/claim/resource_link", {}
-        ).get("id")
-
-        # Keep record of the grading service URL relevant for this assignment if available
-        assignment.lis_outcome_service_url = request.lti_params.get(
-            "lis_outcome_service_url"
-        )
 
         # Always update the assignment configuration
         # It often will be the same one while launching the assignment again but
