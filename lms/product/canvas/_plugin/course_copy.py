@@ -22,7 +22,7 @@ class CanvasCourseCopyPlugin:
     def is_file_in_course(self, course_id, file_id):
         return self._files_helper.is_file_in_course(course_id, file_id, self.file_type)
 
-    def find_matching_file_in_course(self, course_id, file_ids):
+    def find_matching_file_in_course(self, current_course_id, file_ids) -> str | None:
         """
         Return the ID of a file in course_id that matches one of the files in file_ids.
 
@@ -33,7 +33,7 @@ class CanvasCourseCopyPlugin:
         Return None if no matching file is found.
         """
         # Find the files in the current course. We call this for the side effect of storing the files in the DB
-        _ = self._api.list_files(course_id)
+        _ = self._api.list_files(current_course_id)
 
         for file_id in file_ids:
             file = self._file_service.get(file_id, type_=self.file_type)
@@ -41,7 +41,7 @@ class CanvasCourseCopyPlugin:
             if not file:
                 continue
 
-            if new_file := self._file_service.find_copied_file(course_id, file):
+            if new_file := self._file_service.find_copied_file(current_course_id, file):
                 return new_file.lms_id
 
         return None

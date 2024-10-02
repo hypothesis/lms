@@ -39,7 +39,7 @@ class TestFilesAPIViews:
         canvas_service.public_url_for_file.assert_called_once_with(
             assignment,
             "FILE_ID",
-            "COURSE_ID",
+            assignment.course.extra["canvas"]["custom_canvas_course_id"],
             check_in_course=pyramid_request.lti_user.is_instructor,
         )
         helpers.via_url.assert_called_once_with(

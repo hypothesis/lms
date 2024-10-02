@@ -12,14 +12,14 @@ class CanvasService:
         self._course_copy_plugin = course_copy_plugin
 
     def public_url_for_file(
-        self, assignment, file_id, course_id, check_in_course=False
+        self, assignment, file_id, current_course_id, check_in_course=False
     ):
         """
         Return a public URL for file_id.
 
         :param assignment: the current assignment
         :param file_id: the Canvas API ID of the file
-        :param course_id: the Canvas API ID of the course that the file is in
+        :param current_course_id: the Canvas API ID of the current course
         :param check_in_course: whether to check that file_id is in course_id
 
         :raise FileNotFoundInCourse: if check_in_course was True and the
@@ -30,11 +30,10 @@ class CanvasService:
         """
         # If there's a previously stored mapping for file_id use that instead.
         effective_file_id = assignment.get_canvas_mapped_file_id(file_id)
-
         try:
             if check_in_course:
                 if not self._course_copy_plugin.is_file_in_course(
-                    course_id, effective_file_id
+                    current_course_id, effective_file_id
                 ):
                     raise FileNotFoundInCourse(
                         "canvas_file_not_found_in_course", file_id
@@ -52,7 +51,7 @@ class CanvasService:
             # We'll try to find another copy of the same file that the current
             # user *can* see in the current course and use that instead.
             found_file_id = self._course_copy_plugin.find_matching_file_in_course(
-                course_id,
+                current_course_id,
                 # Use a set to avoid searching for the same ID twice if file_id
                 # and effective_file_id are the same.
                 {file_id, effective_file_id},

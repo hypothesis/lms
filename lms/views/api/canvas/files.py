@@ -50,7 +50,7 @@ class FilesAPIViews:
         public_url = self.canvas.public_url_for_file(
             assignment,
             document_url_match["file_id"],
-            document_url_match["course_id"],
+            assignment.course.extra["canvas"]["custom_canvas_course_id"],
             check_in_course=self.request.lti_user.is_instructor,
         )
 
