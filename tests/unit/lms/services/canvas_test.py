@@ -151,7 +151,7 @@ class TestPublicURLForFile:
         return partial(
             canvas_service.public_url_for_file,
             assignment,
-            course_id=sentinel.course_id,
+            current_course_id=sentinel.course_id,
         )
 
 
