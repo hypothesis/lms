@@ -26,8 +26,12 @@ class TestAutoGradingService:
         assert not svc.get_in_progress_sync(assignment)
 
     def test_get_last_sync(self, svc, db_session, assignment):
-        factories.GradingSync(assignment=assignment, created=datetime(2020, 1, 1))
-        new = factories.GradingSync(assignment=assignment, created=datetime(2024, 1, 1))
+        factories.GradingSync(
+            assignment=assignment, created=datetime(2020, 1, 1), status="finished"
+        )
+        new = factories.GradingSync(
+            assignment=assignment, created=datetime(2024, 1, 1), status="finished"
+        )
         db_session.flush()
 
         assert svc.get_last_sync(assignment) == new
