@@ -83,7 +83,7 @@ idna==3.7
     #   yarl
 importlib-metadata==7.0.1
     # via h-api
-importlib-resources==6.1.2
+importlib-resources==6.4.5
     # via
     #   -r requirements/prod.in
     #   data-tasks
