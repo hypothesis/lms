@@ -190,9 +190,10 @@ class TestHAPI:
             {"authority_provided_id": "group_2"},
         ]
 
-        http_service.request.return_value = factories.requests.Response(
-            raw="\n".join(json.dumps(group) for group in groups),
-        )
+        http_service.request.side_effect = [
+            factories.requests.Response(raw=json.dumps(groups[0])),
+            factories.requests.Response(raw=json.dumps(groups[1])),
+        ]
 
         result = h_api.get_groups(
             groups=["group_1", "group_2"],
@@ -200,32 +201,60 @@ class TestHAPI:
             annotations_created_before=datetime(
                 2002, 2, 3, 4, 5, 6, tzinfo=timezone.utc
             ),
+            batch_size=1,
         )
 
         result = list(result)
 
-        http_service.request.assert_called_once_with(
-            method="POST",
-            url="https://h.example.com/private/api/bulk/group",
-            auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
-            headers={
-                "Hypothesis-Application": "lms",
-                "Content-Type": "application/vnd.hypothesis.v1+json",
-                "Accept": "application/vnd.hypothesis.v1+x-ndjson",
-            },
-            data=json.dumps(
-                {
-                    "filter": {
-                        "groups": ["group_1", "group_2"],
-                        "annotations_created": {
-                            "gt": "2001-02-03T04:05:06+00:00",
-                            "lte": "2002-02-03T04:05:06+00:00",
-                        },
+        http_service.request.assert_has_calls(
+            [
+                call(
+                    method="POST",
+                    url="https://h.example.com/private/api/bulk/group",
+                    auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
+                    headers={
+                        "Hypothesis-Application": "lms",
+                        "Content-Type": "application/vnd.hypothesis.v1+json",
+                        "Accept": "application/vnd.hypothesis.v1+x-ndjson",
                     },
-                }
-            ),
-            stream=True,
-            timeout=(60, 60),
+                    data=json.dumps(
+                        {
+                            "filter": {
+                                "groups": ["group_1"],
+                                "annotations_created": {
+                                    "gt": "2001-02-03T04:05:06+00:00",
+                                    "lte": "2002-02-03T04:05:06+00:00",
+                                },
+                            },
+                        }
+                    ),
+                    stream=True,
+                    timeout=(60, 60),
+                ),
+                call(
+                    method="POST",
+                    url="https://h.example.com/private/api/bulk/group",
+                    auth=("TEST_CLIENT_ID", "TEST_CLIENT_SECRET"),
+                    headers={
+                        "Hypothesis-Application": "lms",
+                        "Content-Type": "application/vnd.hypothesis.v1+json",
+                        "Accept": "application/vnd.hypothesis.v1+x-ndjson",
+                    },
+                    data=json.dumps(
+                        {
+                            "filter": {
+                                "groups": ["group_2"],
+                                "annotations_created": {
+                                    "gt": "2001-02-03T04:05:06+00:00",
+                                    "lte": "2002-02-03T04:05:06+00:00",
+                                },
+                            },
+                        }
+                    ),
+                    stream=True,
+                    timeout=(60, 60),
+                ),
+            ]
         )
 
         assert result == [

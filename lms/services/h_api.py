@@ -1,5 +1,6 @@
 """The H API service."""
 
+import itertools
 import json
 import re
 from dataclasses import dataclass
@@ -142,32 +143,39 @@ class HAPI:
         groups: Sequence[str],
         annotations_created_after: datetime,
         annotations_created_before: datetime,
+        batch_size: int = 1000,
     ) -> Iterator[HAPIGroup]:
-        payload = {
-            "filter": {
-                "groups": groups,
-                "annotations_created": {
-                    "gt": _rfc3339_format(annotations_created_after),
-                    "lte": _rfc3339_format(annotations_created_before),
-                },
-            },
-        }
+        """
+        Fetch groups that have annotations created between two dates.
 
-        with self._api_request(
-            "POST",
-            path="bulk/group",
-            body=json.dumps(payload),
-            headers={
-                "Content-Type": "application/vnd.hypothesis.v1+json",
-                "Accept": "application/vnd.hypothesis.v1+x-ndjson",
-            },
-            stream=True,
-        ) as response:
-            for line in response.iter_lines():
-                group = json.loads(line)
-                yield self.HAPIGroup(
-                    authority_provided_id=group["authority_provided_id"]
-                )
+        It will make one API request per `batch_size` candidate groups.
+        """
+        for batch in self._batched(groups, batch_size):
+            payload = {
+                "filter": {
+                    "groups": batch,
+                    "annotations_created": {
+                        "gt": _rfc3339_format(annotations_created_after),
+                        "lte": _rfc3339_format(annotations_created_before),
+                    },
+                },
+            }
+
+            with self._api_request(
+                "POST",
+                path="bulk/group",
+                body=json.dumps(payload),
+                headers={
+                    "Content-Type": "application/vnd.hypothesis.v1+json",
+                    "Accept": "application/vnd.hypothesis.v1+x-ndjson",
+                },
+                stream=True,
+            ) as response:
+                for line in response.iter_lines():
+                    group = json.loads(line)
+                    yield self.HAPIGroup(
+                        authority_provided_id=group["authority_provided_id"]
+                    )
 
     def get_annotation_counts(
         self,
@@ -247,6 +255,18 @@ class HAPI:
             return match.groups()[0]
 
         raise ValueError(userid)
+
+    @staticmethod
+    def _batched(iterable, n):
+        """Batch data from the iterable into tuples of length n. The last batch may be shorter than n.
+
+        This is part of itertools in python 3.12
+
+        https://docs.python.org/3/library/itertools.html#itertools.batched
+        """
+        iterator = iter(iterable)
+        while batch := tuple(itertools.islice(iterator, n)):
+            yield batch
 
 
 def service_factory(_context, request) -> HAPI:

@@ -149,6 +149,11 @@ class OrganizationUsageReportService:
         if not groups_from_org:
             raise ValueError(f"No courses found for {organization.public_id}")
 
+        LOG.info(
+            "Generating report for %s based on %d candidate groups.",
+            organization.public_id,
+            len(groups_from_org),
+        )
         # Of those groups, get the ones that do have annotations in the time period
         groups_with_annos = [
             group.authority_provided_id
