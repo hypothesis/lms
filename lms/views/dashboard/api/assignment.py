@@ -59,7 +59,7 @@ class AssignmentViews:
     @view_config(
         route_name="api.dashboard.assignments",
         request_method="GET",
-        renderer="json",
+        renderer="json_iso_utc",
         permission=Permissions.DASHBOARD_VIEW,
         schema=ListAssignmentsSchema,
     )
@@ -85,7 +85,7 @@ class AssignmentViews:
                 APIAssignment(
                     id=assignment.id,
                     title=assignment.title,
-                    created=assignment.created.isoformat(),
+                    created=assignment.created,
                 )
                 for assignment in assignments
             ],
@@ -95,7 +95,7 @@ class AssignmentViews:
     @view_config(
         route_name="api.dashboard.assignment",
         request_method="GET",
-        renderer="json",
+        renderer="json_iso_utc",
         permission=Permissions.DASHBOARD_VIEW,
     )
     def assignment(self) -> APIAssignment:
@@ -103,7 +103,7 @@ class AssignmentViews:
         api_assignment = APIAssignment(
             id=assignment.id,
             title=assignment.title,
-            created=assignment.created.isoformat(),
+            created=assignment.created,
             course=APICourse(
                 id=assignment.course.id,
                 title=assignment.course.lms_name,
@@ -128,7 +128,7 @@ class AssignmentViews:
     @view_config(
         route_name="api.dashboard.course.assignments.metrics",
         request_method="GET",
-        renderer="json",
+        renderer="json_iso_utc",
         permission=Permissions.DASHBOARD_VIEW,
         schema=AssignmentsMetricsSchema,
     )
@@ -191,7 +191,7 @@ class AssignmentViews:
                 APIAssignment(
                     id=assignment.id,
                     title=assignment.title,
-                    created=assignment.created.isoformat(),
+                    created=assignment.created,
                     course=api_course,
                     annotation_metrics=metrics,
                 )

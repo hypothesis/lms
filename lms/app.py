@@ -3,6 +3,7 @@ import pyramid_tm
 from sqlalchemy.exc import IntegrityError
 
 from lms.config import configure
+from lms.renderers import json_iso_utc
 
 
 def configure_jinja2_assets(config):
@@ -34,6 +35,9 @@ def create_app(global_config, **settings):  # noqa: ARG001
 
     config.include("pyramid_jinja2")
     config.include("pyramid_services")
+
+    # Add our own json renderer that handles datetime objects.
+    config.add_renderer("json_iso_utc", json_iso_utc())
 
     # Use pyramid_tm's explicit transaction manager.
     #
