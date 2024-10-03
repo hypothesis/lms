@@ -312,6 +312,7 @@ export type StudentGradingSyncStatus = 'in_progress' | 'finished' | 'failed';
 export type StudentGradingSync = {
   h_userid: string;
   status: StudentGradingSyncStatus;
+  grade: number;
 };
 
 export type GradingSyncStatus = 'scheduled' | StudentGradingSyncStatus;

@@ -1,9 +1,6 @@
-import {
-  Button,
-  LeaveIcon,
-  SpinnerCircleIcon,
-} from '@hypothesis/frontend-shared';
-import { useCallback, useMemo } from 'preact/hooks';
+import { Button, LeaveIcon } from '@hypothesis/frontend-shared';
+import classnames from 'classnames';
+import { useCallback, useMemo, useState } from 'preact/hooks';
 import { useParams } from 'wouter-preact';
 
 import type { GradingSync, GradingSyncStatus } from '../../api-types';
@@ -58,6 +55,20 @@ export default function SyncGradesButton({
     [lastSync],
   );
 
+  const syncedStudentsCount = useMemo(
+    () =>
+      lastSync.data?.grades.filter(s => s.status !== 'in_progress').length ?? 0,
+    [lastSync.data?.grades],
+  );
+  const [totalStudentsToSync, setTotalStudentsToSync] = useState<number>();
+  const startSync = useCallback(() => {
+    // Right before starting, set amount of students that are going to be synced.
+    // This will prevent displaying a zero in the short interval between the
+    // list of students to sync is cleared, and the next sync check happens
+    setTotalStudentsToSync(studentsToSync?.length ?? 0);
+    updateSyncStatus('scheduled');
+  }, [studentsToSync?.length, updateSyncStatus]);
+
   const buttonContent = useMemo(() => {
     if (!studentsToSync || (lastSync.isLoading && !lastSync.data)) {
       return 'Loading...';
@@ -67,10 +78,26 @@ export default function SyncGradesButton({
       lastSync.data &&
       ['scheduled', 'in_progress'].includes(lastSync.data.status)
     ) {
+      // Use the amount set when a sync is started, but fall back to the amount
+      // of students from last sync, in case a sync was in progress when this
+      // was loaded
+      const totalStudentsBeingSynced =
+        totalStudentsToSync ?? lastSync.data.grades.length;
+
       return (
         <>
           Syncing grades
-          <SpinnerCircleIcon className="ml-1.5" />
+          <div
+            className={classnames(
+              'border-solid border-l border-grey-5',
+              // Compensate the Button's padding, so that this "separator"
+              // covers the entire height of the Button
+              '-my-2 self-stretch',
+            )}
+          />
+          <div className="text-grey-3 text-[0.7rem] self-center">
+            {syncedStudentsCount}/{totalStudentsBeingSynced}
+          </div>
         </>
       );
     }
@@ -103,7 +130,14 @@ export default function SyncGradesButton({
     }
 
     return 'Grades synced';
-  }, [studentsToSync, lastSync.isLoading, lastSync.data, lastSync.error]);
+  }, [
+    studentsToSync,
+    lastSync.isLoading,
+    lastSync.data,
+    lastSync.error,
+    totalStudentsToSync,
+    syncedStudentsCount,
+  ]);
 
   const buttonDisabled =
     lastSync.isLoading ||
@@ -112,10 +146,10 @@ export default function SyncGradesButton({
     !studentsToSync ||
     studentsToSync.length === 0;
 
-  const syncGrades = useCallback(async () => {
-    updateSyncStatus('scheduled');
+  const syncGrades = useCallback(() => {
+    startSync();
 
-    apiCall({
+    return apiCall({
       authToken: api.authToken,
       path: syncURL,
       method: 'POST',
@@ -128,6 +162,7 @@ export default function SyncGradesButton({
   }, [
     api.authToken,
     onSyncScheduled,
+    startSync,
     studentsToSync,
     syncURL,
     updateSyncStatus,
