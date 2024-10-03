@@ -336,8 +336,8 @@ export type GradingSync = {
   finish_date: ISODateTime | null;
 
   /**
-   * Grading status for every individual student that was scheduled as part of
+   * Sync status for every individual student that was scheduled as part of
    * this sync.
    */
-  grades: StudentGradingSync[];
+  student_syncs: StudentGradingSync[];
 };

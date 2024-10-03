@@ -92,7 +92,7 @@ class TestDashboardGradingViews:
         assert response == {
             "status": auto_grading_service.create_grade_sync.return_value.status,
             "finish_date": None,
-            "grades": [],
+            "student_syncs": [],
         }
         pyramid_request.add_finished_callback.assert_called_once_with(
             views._start_sync_grades  # noqa: SLF001
@@ -121,7 +121,7 @@ class TestDashboardGradingViews:
             if grading_sync.status
             in {AutoGradingSyncStatus.FINISHED, AutoGradingSyncStatus.FAILED}
             else None,
-            "grades": Any.list.containing(
+            "student_syncs": Any.list.containing(
                 [
                     {"grade": 1.0, "h_userid": "STUDENT_1", "status": "in_progress"},
                     {"grade": 0.0, "h_userid": "STUDENT_2", "status": "finished"},

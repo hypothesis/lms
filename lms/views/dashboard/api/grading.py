@@ -108,7 +108,7 @@ class DashboardGradingViews:
             if grading_sync.status
             in {AutoGradingSyncStatus.FINISHED, AutoGradingSyncStatus.FAILED}
             else None,
-            "grades": [
+            "student_syncs": [
                 {
                     "h_userid": grade.lms_user.h_userid,
                     "grade": grade.grade,
