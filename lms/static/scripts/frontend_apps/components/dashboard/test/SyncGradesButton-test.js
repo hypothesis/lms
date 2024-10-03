@@ -83,14 +83,31 @@ describe('SyncGradesButton', () => {
     });
   });
 
-  ['scheduled', 'in_progress'].forEach(status => {
+  [
+    {
+      status: 'scheduled',
+      studentSyncs: [],
+      expectedCount: '0/0',
+    },
+    {
+      status: 'in_progress',
+      studentSyncs: [
+        { status: 'in_progress' },
+        { status: 'in_progress' },
+        { status: 'finished' },
+        { status: 'in_progress' },
+        { status: 'failed' },
+      ],
+      expectedCount: '2/5',
+    },
+  ].forEach(({ status, studentSyncs, expectedCount }) => {
     it('shows syncing text when grades are being synced', () => {
       const wrapper = createComponent(studentsToSync, {
         isLoading: false,
-        data: { status },
+        data: { status, student_syncs: studentSyncs },
       });
 
-      assert.equal(buttonText(wrapper), 'Syncing grades');
+      assert.equal(buttonText(wrapper), `Syncing grades${expectedCount}`);
       assert.isTrue(isButtonDisabled(wrapper));
     });
   });
@@ -98,7 +115,7 @@ describe('SyncGradesButton', () => {
   it('shows syncing errors and allows to retry', () => {
     const wrapper = createComponent(studentsToSync, {
       isLoading: false,
-      data: { status: 'failed' },
+      data: { status: 'failed', student_syncs: [] },
     });
 
     assert.equal(buttonText(wrapper), 'Error syncing. Click to retry');
@@ -125,7 +142,7 @@ describe('SyncGradesButton', () => {
     it('shows the amount of students to be synced when current status is "finished"', () => {
       const wrapper = createComponent(students, {
         isLoading: false,
-        data: { status: 'finished' },
+        data: { status: 'finished', student_syncs: [] },
       });
 
       assert.equal(buttonText(wrapper), `Sync ${expectedAmount} grades`);
@@ -146,7 +163,7 @@ describe('SyncGradesButton', () => {
   it('shows grades synced when no students need to be synced', () => {
     const wrapper = createComponent([], {
       isLoading: false,
-      data: { status: 'finished' },
+      data: { status: 'finished', student_syncs: [] },
     });
 
     assert.equal(buttonText(wrapper), 'Grades synced');
@@ -156,7 +173,7 @@ describe('SyncGradesButton', () => {
   it('submits grades when the button is clicked, then calls onSyncScheduled', async () => {
     const wrapper = createComponent(studentsToSync, {
       isLoading: false,
-      data: { status: 'finished' },
+      data: { status: 'finished', student_syncs: [] },
       mutate: sinon.stub(),
     });
     await act(() => wrapper.find('Button').props().onClick());
@@ -180,7 +197,7 @@ describe('SyncGradesButton', () => {
     const mutate = sinon.stub();
     const wrapper = createComponent(studentsToSync, {
       isLoading: false,
-      data: { status: 'finished' },
+      data: { status: 'finished', student_syncs: [] },
       mutate,
     });
     await act(() => wrapper.find('Button').props().onClick());
