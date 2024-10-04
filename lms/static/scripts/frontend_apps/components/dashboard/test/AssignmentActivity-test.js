@@ -150,6 +150,21 @@ describe('AssignmentActivity', () => {
     return wrapper;
   }
 
+  function createGradeIndicator(stats) {
+    setUpFakeUseAPIFetch({
+      ...activeAssignment,
+      auto_grading_config: {},
+    });
+
+    const wrapper = createComponent();
+    const item = wrapper
+      .find('OrderableActivityTable')
+      .props()
+      .renderItem(stats, 'current_grade');
+
+    return mount(item).find('GradeIndicator');
+  }
+
   it('shows loading indicators while data is loading', () => {
     fakeUseAPIFetch.returns({ isLoading: true });
 
@@ -439,22 +454,44 @@ describe('AssignmentActivity', () => {
     [{ current_grade: undefined }, { current_grade: 25 }].forEach(
       ({ current_grade }) => {
         it('shows the grade for every student', () => {
-          setUpFakeUseAPIFetch({
-            ...activeAssignment,
-            auto_grading_config: {},
-          });
-
-          const wrapper = createComponent();
-          const item = wrapper
-            .find('OrderableActivityTable')
-            .props()
-            .renderItem({ current_grade }, 'current_grade');
-          const gradeIndicator = mount(item).find('GradeIndicator');
-
+          const gradeIndicator = createGradeIndicator({ current_grade });
           assert.equal(gradeIndicator.prop('grade'), current_grade ?? 0);
         });
       },
     );
+
+    [
+      { h_userid: 'abc', expectedStatus: 'finished' },
+      { h_userid: 'def', expectedStatus: 'failed' },
+      { h_userid: 'ghi', expectedStatus: 'in_progress' },
+      { h_userid: 'unknown', expectedStatus: undefined },
+    ].forEach(({ h_userid, expectedStatus }) => {
+      it('passes right status to grade indicator', () => {
+        fakeUsePolledAPIFetch.returns({
+          data: {
+            grades: [
+              {
+                h_userid: 'abc',
+                status: 'finished',
+              },
+              {
+                h_userid: 'def',
+                status: 'failed',
+              },
+              {
+                h_userid: 'ghi',
+                status: 'in_progress',
+              },
+            ],
+          },
+          isLoading: false,
+        });
+
+        const gradeIndicator = createGradeIndicator({ h_userid });
+
+        assert.equal(gradeIndicator.prop('status'), expectedStatus);
+      });
+    });
 
     [
       {
