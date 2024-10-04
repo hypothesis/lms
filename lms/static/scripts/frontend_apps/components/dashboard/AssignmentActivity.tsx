@@ -29,6 +29,7 @@ import SyncGradesButton from './SyncGradesButton';
 
 type StudentsTableRow = {
   lms_id: string;
+  h_userid: string;
   display_name: string | null;
   last_activity: string | null;
   annotations: number;
@@ -355,6 +356,11 @@ export default function AssignmentActivity() {
                     lastGrade={stats.last_grade}
                     annotations={stats.annotations}
                     replies={stats.replies}
+                    status={
+                      lastSync.data?.student_syncs.find(
+                        s => s.h_userid === stats.h_userid,
+                      )?.status
+                    }
                     config={assignment.data?.auto_grading_config}
                   />
                 </div>

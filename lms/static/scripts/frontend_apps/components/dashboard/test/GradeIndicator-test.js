@@ -216,7 +216,7 @@ describe('GradeIndicator', () => {
     it('shows the "new" label if last grade is not set or is different than current grade', () => {
       const wrapper = createComponent({ lastGrade });
       assert.equal(
-        wrapper.exists('[data-testid="new-label"]'),
+        wrapper.exists('[data-testid="badge-new"]'),
         shouldShowLabel,
       );
     });

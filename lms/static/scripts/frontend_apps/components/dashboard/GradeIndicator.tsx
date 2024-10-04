@@ -7,7 +7,10 @@ import classnames from 'classnames';
 import type { ComponentChildren } from 'preact';
 import { useCallback, useId, useState } from 'preact/hooks';
 
-import type { AutoGradingConfig } from '../../api-types';
+import type {
+  AutoGradingConfig,
+  StudentGradingSyncStatus,
+} from '../../api-types';
 import GradeStatusChip from './GradeStatusChip';
 
 type AnnotationCountProps = {
@@ -54,11 +57,31 @@ function SectionTitle({ children }: { children: ComponentChildren }) {
   );
 }
 
+function Badge({ type }: { type: 'new' | 'error' | 'in-progress' }) {
+  return (
+    <div
+      data-testid={`badge-${type}`}
+      className={classnames(
+        'px-1 py-0.5 rounded cursor-auto font-bold uppercase text-[0.65rem]',
+        {
+          'bg-grey-7 text-white': type !== 'error',
+          'bg-grade-error-light text-grade-error': type === 'error',
+        },
+      )}
+    >
+      {type === 'new' && 'New'}
+      {type === 'error' && 'Error'}
+      {type === 'in-progress' && 'Syncing…'}
+    </div>
+  );
+}
+
 export type GradeIndicatorProps = {
   grade: number;
   lastGrade?: number | null;
   annotations: number;
   replies: number;
+  status?: StudentGradingSyncStatus;
   config?: AutoGradingConfig;
 };
 
@@ -71,12 +94,15 @@ export default function GradeIndicator({
   lastGrade,
   annotations,
   replies,
+  status,
   config,
 }: GradeIndicatorProps) {
   const [popoverVisible, setPopoverVisible] = useState(false);
   const showPopover = useCallback(() => setPopoverVisible(true), []);
   const hidePopover = useCallback(() => setPopoverVisible(false), []);
   const popoverId = useId();
+  const hasError = status === 'failed';
+  const isSyncing = status === 'in_progress';
 
   useKeyPress(['Escape'], hidePopover);
 
@@ -106,17 +132,9 @@ export default function GradeIndicator({
         >
           <GradeStatusChip grade={grade} />
         </button>
-        {gradeHasChanged && (
-          <div
-            data-testid="new-label"
-            className={classnames(
-              'px-1 py-0.5 rounded',
-              'bg-grey-7 text-white font-bold uppercase text-[0.65rem]',
-            )}
-          >
-            New
-          </div>
-        )}
+        {hasError && <Badge type="error" />}
+        {!hasError && isSyncing && <Badge type="in-progress" />}
+        {!hasError && !isSyncing && gradeHasChanged && <Badge type="new" />}
       </div>
       <div aria-live="polite" aria-relevant="additions">
         {popoverVisible && (
