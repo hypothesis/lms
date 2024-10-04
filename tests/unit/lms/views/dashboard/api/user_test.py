@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest.mock import call, sentinel
 
 import pytest
@@ -120,7 +121,7 @@ class TestUserViews:
                     "annotation_metrics": {
                         "annotations": 4,
                         "replies": sentinel.replies,
-                        "last_activity": sentinel.last_activity,
+                        "last_activity": datetime(2024, 1, 1),
                     },
                 },
                 {
@@ -209,7 +210,7 @@ class TestUserViews:
                     "annotation_metrics": {
                         "annotations": 4,
                         "replies": sentinel.replies,
-                        "last_activity": sentinel.last_activity,
+                        "last_activity": datetime(2024, 1, 1),
                     },
                 },
                 {
@@ -272,7 +273,7 @@ class TestUserViews:
                 "page_notes": 2,
                 "replies": sentinel.replies,
                 "userid": student.h_userid,
-                "last_activity": sentinel.last_activity,
+                "last_activity": "2024-01-01",
             },
             {
                 "display_name": sentinel.display_name,
@@ -280,7 +281,7 @@ class TestUserViews:
                 "page_notes": sentinel.page_notes,
                 "replies": sentinel.replies,
                 "userid": "TEACHER",
-                "last_activity": sentinel.last_activity,
+                "last_activity": "2024-01-02",
             },
         ]
 

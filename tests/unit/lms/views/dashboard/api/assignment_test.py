@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest.mock import sentinel
 
 import pytest
@@ -218,7 +219,7 @@ class TestAssignmentViews:
                     "annotation_metrics": {
                         "annotations": 4,
                         "replies": sentinel.replies,
-                        "last_activity": sentinel.last_activity,
+                        "last_activity": datetime(2024, 1, 1),
                     },
                 },
                 {
@@ -247,7 +248,7 @@ class TestAssignmentViews:
                 "page_notes": 2,
                 "replies": sentinel.replies,
                 "userid": "TEACHER",
-                "last_activity": sentinel.last_activity,
+                "last_activity": "2024-01-01",
             },
         ]
 

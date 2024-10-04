@@ -4,8 +4,6 @@ from pyramid.view import view_config
 from lms.js_config_types import APICourse, APICourses, CourseMetrics
 from lms.models import Course
 from lms.security import Permissions
-from lms.services.h_api import HAPI
-from lms.services.organization import OrganizationService
 from lms.validation._base import PyramidRequestSchema
 from lms.views.dashboard.pagination import PaginationParametersMixin, get_page
 
@@ -45,8 +43,6 @@ class CourseViews:
     def __init__(self, request) -> None:
         self.request = request
         self.course_service = request.find_service(name="course")
-        self.h_api = request.find_service(HAPI)
-        self.organization_service = request.find_service(OrganizationService)
         self.dashboard_service = request.find_service(name="dashboard")
         self.assignment_service = request.find_service(name="assignment")
 

@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from marshmallow import fields, validate
 from pyramid.view import view_config
@@ -67,7 +68,7 @@ class UserViews:
         self.request = request
         self.assignment_service = request.find_service(name="assignment")
         self.dashboard_service = request.find_service(name="dashboard")
-        self.h_api = request.find_service(HAPI)
+        self.h_api: HAPI = request.find_service(HAPI)
         self.user_service: UserService = request.find_service(UserService)
         self.auto_grading_service: AutoGradingService = request.find_service(
             AutoGradingService
@@ -177,7 +178,7 @@ class UserViews:
                     annotation_metrics=AnnotationMetrics(
                         annotations=s["annotations"] + s["page_notes"],
                         replies=s["replies"],
-                        last_activity=s["last_activity"],
+                        last_activity=datetime.fromisoformat(s["last_activity"]),
                     ),
                 )
             else:
