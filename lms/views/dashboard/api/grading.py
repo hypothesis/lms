@@ -39,7 +39,7 @@ class DashboardGradingViews:
     @view_config(
         route_name="api.dashboard.assignments.grading.sync",
         request_method="POST",
-        renderer="json",
+        renderer="json_iso_utc",
         permission=Permissions.GRADE_ASSIGNMENT,
         schema=AutoGradeSyncSchema,
     )
@@ -80,7 +80,7 @@ class DashboardGradingViews:
     @view_config(
         route_name="api.dashboard.assignments.grading.sync",
         request_method="GET",
-        renderer="json",
+        renderer="json_iso_utc",
         permission=Permissions.GRADE_ASSIGNMENT,
     )
     def get_grading_sync(self):

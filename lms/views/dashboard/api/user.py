@@ -76,7 +76,7 @@ class UserViews:
     @view_config(
         route_name="api.dashboard.students",
         request_method="GET",
-        renderer="json",
+        renderer="json_iso_utc",
         permission=Permissions.DASHBOARD_VIEW,
         schema=ListUsersSchema,
     )
@@ -115,7 +115,7 @@ class UserViews:
     @view_config(
         route_name="api.dashboard.students.metrics",
         request_method="GET",
-        renderer="json",
+        renderer="json_iso_utc",
         permission=Permissions.DASHBOARD_VIEW,
         schema=UsersMetricsSchema,
     )
@@ -215,7 +215,7 @@ class UserViews:
             }
             if last_grade := last_sync_grades.get(api_student["h_userid"]):
                 auto_grading_grade["last_grade"] = last_grade.grade
-                auto_grading_grade["last_grade_date"] = last_grade.updated.isoformat()
+                auto_grading_grade["last_grade_date"] = last_grade.updated
 
             api_student["auto_grading_grade"] = auto_grading_grade
 

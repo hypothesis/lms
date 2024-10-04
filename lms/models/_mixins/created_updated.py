@@ -1,11 +1,11 @@
+from datetime import datetime
+
 import sqlalchemy as sa
+from sqlalchemy.orm import Mapped, mapped_column
 
 
 class CreatedUpdatedMixin:
-    created = sa.Column(sa.DateTime(), server_default=sa.func.now(), nullable=False)
-    updated = sa.Column(
-        sa.DateTime(),
-        server_default=sa.func.now(),
-        onupdate=sa.func.now(),
-        nullable=False,
+    created: Mapped[datetime] = mapped_column(server_default=sa.func.now())
+    updated: Mapped[datetime] = mapped_column(
+        server_default=sa.func.now(), onupdate=sa.func.now()
     )
