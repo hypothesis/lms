@@ -80,7 +80,7 @@ class TestCourseViews:
                     "title": c.lms_name,
                     "course_metrics": {
                         "assignments": assignment_service.get_courses_assignments_count.return_value.get.return_value,
-                        "last_launched": c.updated.isoformat(),
+                        "last_launched": c.updated,
                     },
                 }
                 for c in courses

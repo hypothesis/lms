@@ -4,6 +4,7 @@ Types of the config exposed to the frontend and API return values.
 Making this a top level module to avoid circular dependency problems.
 """
 
+from datetime import datetime
 from typing import Literal, NotRequired, TypedDict
 
 
@@ -63,7 +64,7 @@ class AutoGradingGrade(TypedDict):
     last_grade: float | None
     """Last grade that was succefully sync to the LMS."""
 
-    last_grade_date: str | None
+    last_grade_date: datetime | None
     """Time when `last_grade` was synced to the LMS."""
 
 

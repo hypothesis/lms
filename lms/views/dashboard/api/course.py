@@ -53,7 +53,7 @@ class CourseViews:
     @view_config(
         route_name="api.dashboard.courses",
         request_method="GET",
-        renderer="json",
+        renderer="json_iso_utc",
         permission=Permissions.DASHBOARD_VIEW,
         schema=ListCoursesSchema,
     )
@@ -85,7 +85,7 @@ class CourseViews:
     @view_config(
         route_name="api.dashboard.courses.metrics",
         request_method="GET",
-        renderer="json",
+        renderer="json_iso_utc",
         permission=Permissions.DASHBOARD_VIEW,
         schema=CoursesMetricsSchema,
     )
@@ -127,7 +127,7 @@ class CourseViews:
                     title=course.lms_name,
                     course_metrics=CourseMetrics(
                         assignments=courses_assignments_counts.get(course.id, 0),
-                        last_launched=course.updated.isoformat(),
+                        last_launched=course.updated,
                     ),
                 )
                 for course in courses
@@ -137,7 +137,7 @@ class CourseViews:
     @view_config(
         route_name="api.dashboard.course",
         request_method="GET",
-        renderer="json",
+        renderer="json_iso_utc",
         permission=Permissions.DASHBOARD_VIEW,
     )
     def course(self) -> APICourse:

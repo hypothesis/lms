@@ -243,7 +243,7 @@ class TestUserViews:
                 "last_grade": last_grades.get.return_value.grade
                 if with_last_grade
                 else None,
-                "last_grade_date": last_grades.get.return_value.updated.isoformat.return_value
+                "last_grade_date": last_grades.get.return_value.updated
                 if with_last_grade
                 else None,
             }
