@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from marshmallow import fields, validate
 from pyramid.view import view_config
 
@@ -50,10 +52,9 @@ class AssignmentsMetricsSchema(PyramidRequestSchema):
 class AssignmentViews:
     def __init__(self, request) -> None:
         self.request = request
-        self.h_api = request.find_service(HAPI)
+        self.h_api: HAPI = request.find_service(HAPI)
         self.assignment_service = request.find_service(name="assignment")
         self.dashboard_service = request.find_service(name="dashboard")
-        self.course_service = request.find_service(name="course")
         self.user_service: UserService = request.find_service(UserService)
 
     @view_config(
@@ -179,7 +180,7 @@ class AssignmentViews:
                 metrics = AnnotationMetrics(
                     annotations=h_stats["annotations"] + h_stats["page_notes"],
                     replies=h_stats["replies"],
-                    last_activity=h_stats["last_activity"],
+                    last_activity=datetime.fromisoformat(h_stats["last_activity"]),
                 )
             else:
                 # Assignment with no annos, zeroing the stats

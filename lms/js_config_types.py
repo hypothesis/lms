@@ -37,12 +37,12 @@ class Pagination(TypedDict):
 class AnnotationMetrics(TypedDict):
     annotations: int
     replies: int
-    last_activity: str | None
+    last_activity: datetime | None
 
 
 class CourseMetrics(TypedDict):
     assignments: int
-    last_launched: str | None
+    last_launched: datetime | None
 
 
 class APICallInfo(TypedDict):

@@ -5,13 +5,24 @@ import json
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Iterator, Sequence
+from typing import Iterator, Sequence, TypedDict
 
 from h_api.bulk_api import BulkAPI, CommandBuilder
 
 from lms.models import HUser
 from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService
+
+
+class AnnotationCounts(TypedDict):
+    annotations: int
+    replies: int
+    page_notes: int
+    last_activity: str
+
+    assignment_id: str | None
+    display_name: str | None
+    userid: str | None
 
 
 class HAPIError(ExternalRequestError):
@@ -183,7 +194,7 @@ class HAPI:
         group_by: str,
         h_userids: list[str] | None = None,
         resource_link_ids: list[str] | None = None,
-    ) -> dict:
+    ) -> list[AnnotationCounts]:
         filters = {
             "groups": group_authority_ids,
             "assignment_ids": resource_link_ids,
