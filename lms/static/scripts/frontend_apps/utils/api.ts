@@ -217,7 +217,7 @@ export function useAPIFetch<T = unknown>(
 
 export type PolledAPIFetchOptions<T> = {
   /** Path for API call */
-  path: string;
+  path: string | null;
   /** Query params for API call */
   params?: QueryParams;
   /** Determines if, based on the result, the API should be called again */

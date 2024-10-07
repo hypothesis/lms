@@ -147,8 +147,13 @@ export type YouTubeVideoInfo = {
  * Dashboard-related API types
  */
 
+/**
+ * Represents dates exposed by the backend as string, in ISO 8601 format
+ */
+export type ISODateTime = string;
+
 export type AnnotationMetrics = {
-  last_activity: string | null;
+  last_activity: ISODateTime | null;
   annotations: number;
   replies: number;
 };
@@ -163,7 +168,7 @@ export type Course = {
 
 export type CourseMetrics = {
   assignments: number;
-  last_launched: string | null;
+  last_launched: ISODateTime | null;
 };
 
 export type CourseWithMetrics = Course & {
@@ -181,7 +186,7 @@ export type Assignment = {
   id: number;
   title: string;
   /** Date in which the assignment was created, in ISO format */
-  created: string;
+  created: ISODateTime;
 };
 
 export type Student = {
@@ -196,7 +201,7 @@ export type AutoGradingGrade = {
   /** Grade that was last synced, if any */
   last_grade: number | null;
   /** When did the last grade sync happen, if any */
-  last_grade_date: number | null;
+  last_grade_date: ISODateTime | null;
 };
 
 export type StudentWithMetrics = Student & {
@@ -302,9 +307,37 @@ export type StudentsResponse = {
   pagination: Pagination;
 };
 
+export type StudentGradingSyncStatus = 'in_progress' | 'finished' | 'failed';
+
+export type StudentGradingSync = {
+  h_userid: string;
+  status: StudentGradingSyncStatus;
+};
+
+export type GradingSyncStatus = 'scheduled' | StudentGradingSyncStatus;
+
 /**
  * Response for `/api/dashboard/assignments/{assignment_id}/grading/sync`
+ * That endpoint returns a 404 when an assignment has never been synced.
  */
 export type GradingSync = {
-  status: 'scheduled' | 'in_progress' | 'finished' | 'failed';
+  /**
+   * Global sync status.
+   * If at least one student grade is syncing, this will be `in_progress`.
+   * If at least one student grade failed, this will be `failed`.
+   * If all student grades finished successfully, this will be `finished`.
+   */
+  status: GradingSyncStatus;
+
+  /**
+   * The date and time when syncing grades finished.
+   * It is null as long as status is `scheduled` or `in_progress`.
+   */
+  finish_date: ISODateTime | null;
+
+  /**
+   * Grading status for every individual student that was scheduled as part of
+   * this sync.
+   */
+  grades: StudentGradingSync[];
 };
