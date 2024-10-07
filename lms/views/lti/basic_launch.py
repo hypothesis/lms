@@ -172,6 +172,7 @@ class BasicLaunchViews:
 
         # Store the relationship between the assignment and the user
         self.assignment_service.upsert_assignment_membership(
+            lti_params=self.request.lti_params,
             assignment=assignment,
             user=self.request.user,
             lti_roles=self.request.lti_user.lti_roles,

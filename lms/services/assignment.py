@@ -11,6 +11,9 @@ from lms.models import (
     AutoGradingConfig,
     Course,
     Grouping,
+    LMSUser,
+    LMSUserAssignmentMembership,
+    LTIParams,
     LTIRole,
     User,
 )
@@ -182,7 +185,11 @@ class AssignmentService:
         )
 
     def upsert_assignment_membership(
-        self, assignment: Assignment, user: User, lti_roles: list[LTIRole]
+        self,
+        lti_params: LTIParams,
+        assignment: Assignment,
+        user: User,
+        lti_roles: list[LTIRole],
     ) -> list[AssignmentMembership]:
         """Store details of the roles a user plays in an assignment."""
 
@@ -198,6 +205,10 @@ class AssignmentService:
             for lti_role in lti_roles
         ]
 
+        self._upsert_lms_user_assignment_memberships(
+            lti_params, user.lms_user, assignment, lti_roles
+        )
+
         return list(
             bulk_upsert(
                 self._db,
@@ -205,6 +216,35 @@ class AssignmentService:
                 values=values,
                 index_elements=["user_id", "assignment_id", "lti_role_id"],
                 update_columns=["updated"],
+            )
+        )
+
+    def _upsert_lms_user_assignment_memberships(
+        self,
+        lti_params,
+        lms_user: LMSUser,
+        assignment: Assignment,
+        lti_roles: list[LTIRole],
+    ) -> list[LMSUserAssignmentMembership]:
+        values = [
+            {
+                "lms_user_id": lms_user.id,
+                "assignment_id": assignment.id,
+                "lti_role_id": lti_role.id,
+                "lti_v11_lis_result_sourcedid": None
+                if lti_params.v13
+                else lti_params.get("lis_result_sourcedid"),
+            }
+            for lti_role in lti_roles
+        ]
+
+        return list(
+            bulk_upsert(
+                self._db,
+                model_class=LMSUserAssignmentMembership,
+                values=values,
+                index_elements=["lms_user_id", "assignment_id", "lti_role_id"],
+                update_columns=["updated", "lti_v11_lis_result_sourcedid"],
             )
         )
 

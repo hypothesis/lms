@@ -258,6 +258,7 @@ class TestBasicLaunchViews:
         )
 
         assignment_service.upsert_assignment_membership.assert_called_once_with(
+            pyramid_request.lti_params,
             assignment=assignment,
             user=pyramid_request.user,
             lti_roles=lti_user.lti_roles,
