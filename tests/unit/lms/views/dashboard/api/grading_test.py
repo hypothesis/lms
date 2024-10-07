@@ -1,4 +1,3 @@
-from datetime import UTC
 from unittest.mock import Mock
 
 import pytest
@@ -117,7 +116,7 @@ class TestDashboardGradingViews:
         )
         assert response == {
             "status": grading_sync.status,
-            "finish_date": grading_sync.updated.replace(tzinfo=UTC).isoformat()
+            "finish_date": grading_sync.updated
             if grading_sync.status
             in {AutoGradingSyncStatus.FINISHED, AutoGradingSyncStatus.FAILED}
             else None,

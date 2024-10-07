@@ -1,5 +1,4 @@
 import logging
-from datetime import UTC
 
 from marshmallow import Schema, fields, validate
 from pyramid.view import view_config
@@ -104,7 +103,7 @@ class DashboardGradingViews:
     def _serialize_grading_sync(grading_sync: GradingSync) -> dict:
         return {
             "status": grading_sync.status,
-            "finish_date": grading_sync.updated.replace(tzinfo=UTC).isoformat()
+            "finish_date": grading_sync.updated
             if grading_sync.status
             in {AutoGradingSyncStatus.FINISHED, AutoGradingSyncStatus.FAILED}
             else None,
