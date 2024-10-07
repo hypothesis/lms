@@ -230,10 +230,27 @@ export type PolledAPIFetchOptions<T> = {
    */
   refreshAfter?: number;
 
+  /**
+   * The maximum number of times to check `shouldRefresh`. After this, we'll
+   * just stop polling.
+   *
+   * Defaults to 30s/refreshAfter, which means we'll continue refreshing for
+   * approximately 30 seconds, plus the time all refreshes take.
+   */
+  maxRefreshes?: number;
+
   /** Test seam */
   _setTimeout?: typeof setTimeout;
   /** Test seam */
   _clearTimeout?: typeof clearTimeout;
+};
+
+export type PolledFetchResult<T> = FetchResult<T> & {
+  /**
+   * Indicates if polling was automatically canceled after reaching the max
+   * number of refreshes
+   */
+  canceled: boolean;
 };
 
 /**
@@ -249,11 +266,12 @@ export function usePolledAPIFetch<T = unknown>({
   params,
   shouldRefresh: unstableShouldRefresh,
   refreshAfter = 500,
+  maxRefreshes = 30_000 / refreshAfter,
   /* istanbul ignore next - test seam */
   _setTimeout = setTimeout,
   /* istanbul ignore next - test seam */
   _clearTimeout = clearTimeout,
-}: PolledAPIFetchOptions<T>): FetchResult<T> {
+}: PolledAPIFetchOptions<T>): PolledFetchResult<T> {
   const shouldRefresh = useStableCallback(unstableShouldRefresh);
   const result = useAPIFetch<T>(path, params);
   // Track loading state separately, to avoid flickering UIs due to
@@ -271,6 +289,10 @@ export function usePolledAPIFetch<T = unknown>({
     timeout.current = null;
   }, [_clearTimeout]);
 
+  const refreshScheduled = useRef(false);
+  const refreshCount = useRef(0);
+  const [canceled, setCanceled] = useState(false);
+
   useEffect(() => {
     if (result.data) {
       setPrevData(result.data);
@@ -279,28 +301,49 @@ export function usePolledAPIFetch<T = unknown>({
     // When the actual request is loading, transition to loading, in case
     // a new request was triggered by a path/fetch key change
     if (result.isLoading) {
+      // If the fetch is loading but not due to a refresh, it means we are
+      // fetching a new URL. In that case reset the refresh count and prev data
+      if (!refreshScheduled.current) {
+        setPrevData(null);
+        refreshCount.current = 0;
+      }
+
       setIsLoading(true);
       return () => {};
     }
 
-    // Transition to not-loading only once we no longer have to refresh
-    if (!shouldRefresh(result)) {
+    refreshScheduled.current = false;
+    const maxRefreshesReached = refreshCount.current >= maxRefreshes;
+    setCanceled(maxRefreshesReached);
+
+    // Stop polling once max refreshes is reached or we no longer have to
+    // refresh
+    if (maxRefreshesReached || !shouldRefresh(result)) {
       setIsLoading(false);
-      // Reset prev data once we finish refreshing, so that we don't
-      // accidentally leak data from a different request on subsequent ones
-      setPrevData(null);
       return () => {};
     }
 
     // Once we finish loading, schedule a retry if the request should be
     // refreshed
+    refreshCount.current++;
     timeout.current = _setTimeout(() => {
+      // Track the fact that we are refreshing, in order to know if the fetch is
+      // loading due to a refresh or due to an unrelated change in `path` and/or
+      // `params`
+      refreshScheduled.current = true;
       result.retry();
       timeout.current = null;
     }, refreshAfter);
 
     return resetTimeout;
-  }, [_setTimeout, refreshAfter, resetTimeout, result, shouldRefresh]);
+  }, [
+    _setTimeout,
+    maxRefreshes,
+    refreshAfter,
+    resetTimeout,
+    result,
+    shouldRefresh,
+  ]);
 
   return {
     ...result,
@@ -308,6 +351,7 @@ export function usePolledAPIFetch<T = unknown>({
     // to the data loaded in previous fetch
     data: result.data ?? prevData,
     isLoading,
+    canceled,
   };
 }
 
