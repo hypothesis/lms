@@ -6,3 +6,7 @@ from lms import models
 AssignmentMembership = make_factory(
     models.AssignmentMembership, FACTORY_CLASS=SQLAlchemyModelFactory
 )
+
+LMSUserAssignmentMembership = make_factory(
+    models.LMSUserAssignmentMembership, FACTORY_CLASS=SQLAlchemyModelFactory
+)
