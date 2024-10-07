@@ -3,11 +3,13 @@ from unittest.mock import patch, sentinel
 
 import pytest
 from h_matchers import Any
+from sqlalchemy import select
 
 from lms.models import (
     AssignmentGrouping,
     AssignmentMembership,
     AutoGradingConfig,
+    LMSUserAssignmentMembership,
     RoleScope,
     RoleType,
 )
@@ -269,16 +271,25 @@ class TestAssignmentService:
         assert assignment.copied_from == sentinel.original_assignment
         assert assignment.document_url == sentinel.document_url
 
-    def test_upsert_assignment_membership(self, svc, assignment):
-        user = factories.User()
+    @pytest.mark.parametrize("with_lti11_grading_id", [True, False])
+    def test_upsert_assignment_membership(
+        self, svc, assignment, pyramid_request, db_session, with_lti11_grading_id
+    ):
+        lms_user = factories.LMSUser()
+        user = factories.User(lms_user=lms_user)
         lti_roles = factories.LTIRole.create_batch(3)
         # One existing row
         factories.AssignmentMembership.create(
             assignment=assignment, user=user, lti_role=lti_roles[0]
         )
+        if with_lti11_grading_id:
+            pyramid_request.lti_params["lis_result_sourcedid"] = "SOURCEDID"
 
         membership = svc.upsert_assignment_membership(
-            assignment=assignment, user=user, lti_roles=lti_roles
+            pyramid_request.lti_params,
+            assignment=assignment,
+            user=user,
+            lti_roles=lti_roles,
         )
         assert (
             membership
@@ -286,6 +297,24 @@ class TestAssignmentService:
                 [
                     Any.instance_of(AssignmentMembership).with_attrs(
                         {"user": user, "assignment": assignment, "lti_role": lti_role}
+                    )
+                    for lti_role in lti_roles
+                ]
+            ).only()
+        )
+        assert (
+            db_session.scalars(select(LMSUserAssignmentMembership)).all()
+            == Any.list.containing(
+                [
+                    Any.instance_of(LMSUserAssignmentMembership).with_attrs(
+                        {
+                            "lms_user": lms_user,
+                            "assignment": assignment,
+                            "lti_role": lti_role,
+                            "lti_v11_lis_result_sourcedid": "SOURCEDID"
+                            if with_lti11_grading_id
+                            else None,
+                        }
                     )
                     for lti_role in lti_roles
                 ]
