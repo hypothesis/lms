@@ -13,10 +13,7 @@ class TestGradingTasks:
         sync_grades()
 
         sync_grade.delay.assert_has_calls(
-            [
-                call(lis_outcome_service_url="URL", grading_sync_grade_id=grade.id)
-                for grade in grading_sync.grades
-            ],
+            [call(grading_sync_grade_id=grade.id) for grade in grading_sync.grades],
             any_order=True,
         )
         assert grading_sync.status == "in_progress"
@@ -30,7 +27,6 @@ class TestGradingTasks:
         sync_grades_complete,
     ):
         sync_grade(
-            lis_outcome_service_url="URL",
             grading_sync_grade_id=grading_sync.grades[0].id,
         )
 
@@ -41,7 +37,7 @@ class TestGradingTasks:
 
         grading_service.sync_grade.assert_called_once_with(
             lti_v13_application_instance,
-            "URL",
+            grading_sync.assignment,
             grading_sync.created.replace(tzinfo=UTC).isoformat(),
             grading_sync.grades[0].lms_user,
             grading_sync.grades[0].grade,
@@ -61,7 +57,6 @@ class TestGradingTasks:
 
         with pytest.raises(Exception):
             sync_grade(
-                lis_outcome_service_url="URL",
                 grading_sync_grade_id=grading_sync.grades[0].id,
             )
 
@@ -77,7 +72,6 @@ class TestGradingTasks:
         sync_grade.max_retries = 0
 
         sync_grade(
-            lis_outcome_service_url="URL",
             grading_sync_grade_id=grading_sync.grades[0].id,
         )
 

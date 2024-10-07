@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from lms.models import ApplicationInstance, LMSUser
+from lms.models import ApplicationInstance, Assignment, LMSUser
 
 
 @dataclass
@@ -90,7 +90,7 @@ class LTIGradingService:  # pragma: no cover
     def sync_grade(  # noqa: PLR0913
         self,
         application_instance: ApplicationInstance,
-        lis_outcome_service_url: str,
+        assignment: Assignment,
         grade_timestamp: str,
         lms_user: LMSUser,
         score: float,

@@ -1,8 +1,9 @@
 from xml.parsers.expat import ExpatError
 
 import xmltodict
+from sqlalchemy import select
 
-from lms.models import ApplicationInstance
+from lms.models import ApplicationInstance, LMSUser, LMSUserAssignmentMembership
 from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
 from lms.services.http import HTTPService
 from lms.services.lti_grading.interface import GradingResult, LTIGradingService
@@ -11,14 +12,16 @@ from lms.services.oauth1 import OAuth1Service
 
 class LTI11GradingService(LTIGradingService):
     #  See: LTI1.1 Outcomes https://www.imsglobal.org/specs/ltiomv1p0/specification
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
+        db,
         line_item_url,
         http_service: HTTPService,
         oauth1_service: OAuth1Service,
         application_instance: ApplicationInstance,
     ):
         super().__init__(line_item_url, None)
+        self.db = db
         self.http_service = http_service
         self.oauth1_service = oauth1_service
         self.application_instance = application_instance
@@ -27,11 +30,13 @@ class LTI11GradingService(LTIGradingService):
         result = GradingResult(score=None, comment=None)
         try:
             response = self._send_request(
+                self.application_instance,
+                self.line_item_url,
                 {
                     "readResultRequest": {
                         "resultRecord": {"sourcedGUID": {"sourcedId": grading_id}}
                     }
-                }
+                },
             )
         except ExternalRequestError as err:
             if err.response and "Incorrect sourcedId" in err.response.text:
@@ -49,22 +54,52 @@ class LTI11GradingService(LTIGradingService):
         return result
 
     def record_result(self, grading_id, score=None, pre_record_hook=None, comment=None):  # noqa: ARG002
-        request = {"resultRecord": {"sourcedGUID": {"sourcedId": grading_id}}}
-
-        if score is not None:
-            request["resultRecord"]["result"] = {
-                "resultScore": {"language": "en", "textString": score}
-            }
-
+        request = self._record_score_payload(score=score, user_grading_id=grading_id)
         if pre_record_hook:
             request = pre_record_hook(score=score, request_body=request)
 
-        self._send_request({"replaceResultRequest": request})
+        self._send_request(
+            self.application_instance,
+            self.line_item_url,
+            {"replaceResultRequest": request},
+        )
 
-    def _send_request(self, request_body) -> dict:
+    def sync_grade(
+        self,
+        application_instance: ApplicationInstance,
+        assignment,
+        _grade_timestamp: str,
+        lms_user: LMSUser,
+        score: float,
+    ):
+        assignment_membership: LMSUserAssignmentMembership = self.db.scalars(
+            select(LMSUserAssignmentMembership).where(
+                LMSUserAssignmentMembership.lms_user_id == lms_user.id,
+                LMSUserAssignmentMembership.assignment_id == assignment.id,
+            )
+        ).one()
+        assert (
+            assignment_membership.lti_v11_lis_result_sourcedid
+        ), "Trying to grade a student without lti_v11_lis_result_sourcedid"
+
+        request = self._record_score_payload(
+            score=score,
+            user_grading_id=assignment_membership.lti_v11_lis_result_sourcedid,
+        )
+        self._send_request(
+            application_instance,
+            assignment.lis_outcome_service_url,
+            {"replaceResultRequest": request},
+        )
+
+    def _send_request(
+        self, application_instance, lis_outcome_service_url, request_body
+    ) -> dict:
         """
         Send a signed request to an LMS's Outcome Management Service endpoint.
 
+        :arg application_instance: ApplicationInstance used to sign this request
+        :lis_outcome_service_url: URL of the grading service in the LMS
         :arg request_body: The content to send as the POX body element of the
                            request
 
@@ -76,10 +111,10 @@ class LTI11GradingService(LTIGradingService):
 
         try:
             response = self.http_service.post(
-                url=self.line_item_url,
+                url=lis_outcome_service_url,
                 data=xml_body,
                 headers={"Content-Type": "application/xml"},
-                auth=self.oauth1_service.get_client(self.application_instance),
+                auth=self.oauth1_service.get_client(application_instance),
             )
         except ExternalRequestError as err:
             err.message = "Error calling LTI Outcomes service"
@@ -140,3 +175,16 @@ class LTI11GradingService(LTIGradingService):
                 "imsx_POXBody": body,
             }
         }
+
+    @staticmethod
+    def _record_score_payload(score: float | None, user_grading_id: str) -> dict:
+        request: dict = {
+            "resultRecord": {"sourcedGUID": {"sourcedId": user_grading_id}}
+        }
+
+        if score is not None:
+            request["resultRecord"]["result"] = {
+                "resultScore": {"language": "en", "textString": score}
+            }
+
+        return request

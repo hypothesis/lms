@@ -11,13 +11,19 @@ from lms.services.lti_grading.factory import (
 
 class TestFactory:
     def test_v11(
-        self, pyramid_request, LTI11GradingService, http_service, oauth1_service
+        self,
+        pyramid_request,
+        LTI11GradingService,
+        http_service,
+        oauth1_service,
+        db_session,
     ):
         pyramid_request.lti_user.application_instance = Mock(lti_version="1.1")
 
         svc = service_factory(sentinel.context, pyramid_request)
 
         LTI11GradingService.assert_called_once_with(
+            db_session,
             sentinel.grading_url,
             http_service,
             oauth1_service,

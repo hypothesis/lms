@@ -152,7 +152,12 @@ class TestLTI13GradingService:
 
     @pytest.mark.parametrize("is_canvas", [True, False])
     def test_sync_grade(
-        self, svc, ltia_http_service, lti_v13_application_instance, is_canvas
+        self,
+        svc,
+        ltia_http_service,
+        lti_v13_application_instance,
+        is_canvas,
+        assignment,
     ):
         lms_user = factories.LMSUser(lti_v13_user_id=sentinel.user_id)
         if is_canvas:
@@ -162,7 +167,7 @@ class TestLTI13GradingService:
 
         response = svc.sync_grade(
             lti_v13_application_instance,
-            "LIS_OUTCOME_SERVICE_URL",
+            assignment,
             datetime(2022, 4, 4).isoformat(),
             lms_user,
             sentinel.grade,
@@ -328,6 +333,10 @@ class TestLTI13GradingService:
             misc_plugin=misc_plugin,
             lti_registration=lti_registration,
         )
+
+    @pytest.fixture
+    def assignment(self):
+        return factories.Assignment(lis_outcome_service_url="LIS_OUTCOME_SERVICE_URL")
 
     @pytest.fixture
     def blackboard_svc(self, ltia_http_service, misc_plugin, lti_registration):

@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
-from lms.models import ApplicationInstance, LMSUser, LTIRegistration
+from lms.models import ApplicationInstance, Assignment, LMSUser, LTIRegistration
 from lms.product.family import Family
 from lms.product.plugin.misc import MiscPlugin
 from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
@@ -95,7 +95,7 @@ class LTI13GradingService(LTIGradingService):
     def sync_grade(  # noqa: PLR0913
         self,
         application_instance: ApplicationInstance,
-        lis_outcome_service_url: str,
+        assignment: Assignment,
         grade_timestamp: str,
         lms_user: LMSUser,
         score: float,
@@ -123,7 +123,7 @@ class LTI13GradingService(LTIGradingService):
         return self._ltia_service.request(
             application_instance.lti_registration,
             "POST",
-            self._service_url(lis_outcome_service_url, "/scores"),
+            self._service_url(assignment.lis_outcome_service_url, "/scores"),
             scopes=self.LTIA_SCOPES,
             json=payload,
             headers={"Content-Type": "application/vnd.ims.lis.v1.score+json"},

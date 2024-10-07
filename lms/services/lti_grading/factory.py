@@ -30,10 +30,11 @@ def service_factory(_context, request, application_instance=None) -> LTIGradingS
         )
 
     return LTI11GradingService(
+        db=request.db,
         line_item_url=lis_outcome_service_url,
         http_service=request.find_service(name="http"),
         oauth1_service=request.find_service(name="oauth1"),
-        application_instance=request.lti_user.application_instance,
+        application_instance=application_instance,
     )
 
 
