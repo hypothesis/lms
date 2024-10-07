@@ -1,3 +1,4 @@
+import logging
 from datetime import UTC
 
 from sqlalchemy import exists, select
@@ -5,6 +6,8 @@ from sqlalchemy import exists, select
 from lms.models import GradingSync, GradingSyncGrade
 from lms.services.lti_grading.factory import service_factory
 from lms.tasks.celery import app
+
+LOG = logging.getLogger(__name__)
 
 
 @app.task()
@@ -21,15 +24,8 @@ def sync_grades():
             )
 
             for sync in scheduled_syncs:
-                assignment = sync.assignment
-                assert (
-                    assignment.lis_outcome_service_url
-                ), "Assignment without grading URL"
                 for grade in sync.grades:
-                    sync_grade.delay(
-                        lis_outcome_service_url=assignment.lis_outcome_service_url,
-                        grading_sync_grade_id=grade.id,
-                    )
+                    sync_grade.delay(grading_sync_grade_id=grade.id)
 
                 sync.status = "in_progress"
 
@@ -39,19 +35,24 @@ def sync_grades():
     retry_backoff=10,
     autoretry_for=(Exception,),
 )
-def sync_grade(*, lis_outcome_service_url: str, grading_sync_grade_id: int):
+def sync_grade(*, grading_sync_grade_id: int):
     """Send one particular grade to the LMS."""
     with app.request_context() as request:
         with request.tm:
             grading_sync_grade = request.db.get(GradingSyncGrade, grading_sync_grade_id)
             grading_sync = grading_sync_grade.grading_sync
-            application_instance = grading_sync.assignment.course.application_instance
+            assignment = grading_sync.assignment
+            application_instance = assignment.course.application_instance
             grading_service = service_factory(None, request, application_instance)
 
             try:
+                assert (
+                    assignment.lis_outcome_service_url
+                ), "Assignment without grading URL"
+
                 grading_service.sync_grade(
                     application_instance,
-                    lis_outcome_service_url,
+                    assignment,
                     # DB dates are not TZ aware but are always in UTC
                     # Make them TZ aware so the LTI API calls have an explicit timezone
                     grading_sync.created.replace(tzinfo=UTC).isoformat(),
@@ -63,8 +64,8 @@ def sync_grade(*, lis_outcome_service_url: str, grading_sync_grade_id: int):
                     # If this is the last retry, mark this particular grade as an error
                     grading_sync_grade.success = False
                     grading_sync_grade.error_details = {"exception": str(err)}
-
                     _schedule_sync_grades_complete(grading_sync.id, countdown=1)
+                    LOG.exception("Syncing grade back to LMS failed")
                     return
 
                 raise

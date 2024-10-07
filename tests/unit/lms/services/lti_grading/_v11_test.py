@@ -71,6 +71,32 @@ class TestLTI11GradingService:
         }
 
     @pytest.mark.usefixtures("with_response")
+    def test_sync_grade(self, svc, http_service, application_instance, db_session):
+        lms_user = factories.LMSUser()
+        assignment = factories.Assignment()
+        lti_role = factories.LTIRole()
+        db_session.flush()
+        membership = factories.LMSUserAssignmentMembership(
+            lms_user_id=lms_user.id,
+            assignment_id=assignment.id,
+            lti_role_id=lti_role.id,
+            lti_v11_lis_result_sourcedid="LIS",
+        )
+
+        svc.sync_grade(application_instance, assignment, None, lms_user, 0.5)
+
+        assert self.sent_pox_body(http_service) == {
+            "replaceResultRequest": {
+                "resultRecord": {
+                    "sourcedGUID": {
+                        "sourcedId": membership.lti_v11_lis_result_sourcedid
+                    },
+                    "result": {"resultScore": {"language": "en", "textString": "0.5"}},
+                }
+            }
+        }
+
+    @pytest.mark.usefixtures("with_response")
     def test_record_result_calls_hook(self, svc, http_service):
         my_hook = Mock(return_value={"my_dict": 1})
 
@@ -187,9 +213,13 @@ class TestLTI11GradingService:
         return getattr(svc, request.param)
 
     @pytest.fixture
-    def svc(self, oauth1_service, http_service, application_instance):
+    def svc(self, oauth1_service, http_service, application_instance, db_session):
         return LTI11GradingService(
-            sentinel.service_url, http_service, oauth1_service, application_instance
+            db_session,
+            sentinel.service_url,
+            http_service,
+            oauth1_service,
+            application_instance,
         )
 
 
