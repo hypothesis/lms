@@ -342,11 +342,26 @@ export default function AssignmentActivity() {
           />
         )}
         {isAutoGradingAssignment && auto_grading_sync_enabled && (
-          <SyncGradesButton
-            studentsToSync={studentsToSync}
-            lastSync={lastSync}
-            onSyncScheduled={onSyncScheduled}
-          />
+          <>
+            {!lastSync.canceled ? (
+              <SyncGradesButton
+                studentsToSync={studentsToSync}
+                lastSync={lastSync}
+                onSyncScheduled={onSyncScheduled}
+              />
+            ) : (
+              <div
+                className={classnames(
+                  'rounded p-2',
+                  'border border-grade-error',
+                  'font-bold text-grade-error bg-grade-error-light',
+                )}
+                data-testid="long-sync-error"
+              >
+                Syncing is taking too long. Reload the page.
+              </div>
+            )}
+          </>
         )}
       </div>
       <OrderableActivityTable
