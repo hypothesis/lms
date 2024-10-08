@@ -37,7 +37,6 @@
     "__docker_namespace": "hypothesis",
     "__docker_network": "lms_default",
     "__github_url": "https://github.com/hypothesis/lms",
-    "__hdev_project_type": "application",
     "__copyright_year": "2017",
     "__parallel_unit_tests": true,
     "__tests_runner_type": "ubuntu-latest-32-cores",
