@@ -218,10 +218,6 @@ ignore = [
     "PLR0904", # too-many-public-methods
 ] 
 
-[tool.hdev]
-project_name = "lms"
-project_type = "application"
-
 [tool.mypy]
 python_version = 3.11
 warn_unused_configs = true
