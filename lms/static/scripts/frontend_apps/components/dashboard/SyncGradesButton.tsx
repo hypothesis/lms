@@ -102,15 +102,6 @@ export default function SyncGradesButton({
       );
     }
 
-    if (lastSync.data?.status === 'failed') {
-      return (
-        <>
-          Error syncing. Click to retry
-          <LeaveIcon />
-        </>
-      );
-    }
-
     if (
       lastSync.error &&
       // The API returns 404 when current assignment has never been synced.

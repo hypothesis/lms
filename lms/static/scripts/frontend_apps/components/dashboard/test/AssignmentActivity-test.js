@@ -675,6 +675,42 @@ describe('AssignmentActivity', () => {
         );
       });
     });
+
+    [
+      { failedGrades: 0, expectedErrorText: null },
+      { failedGrades: 1, expectedErrorText: 'Error syncing 1 grade' },
+      { failedGrades: 5, expectedErrorText: 'Error syncing 5 grades' },
+    ].forEach(({ failedGrades, expectedErrorText }) => {
+      it('shows error message when last sync failed', () => {
+        setUpFakeUseAPIFetch({
+          ...activeAssignment,
+          auto_grading_config: {},
+        });
+
+        const failed = failedGrades > 0;
+        const grades = [{ status: 'finished' }];
+
+        for (let i = 0; i < failedGrades; i++) {
+          grades.push({ status: 'failed' });
+        }
+
+        fakeUsePolledAPIFetch.returns({
+          data: {
+            status: failed ? 'failed' : 'finished',
+            grades,
+          },
+          isLoading: false,
+        });
+
+        const wrapper = createComponent();
+        const errorMessage = wrapper.find('SyncErrorMessage');
+
+        assert.equal(errorMessage.exists(), failed);
+        if (failed) {
+          assert.equal(errorMessage.text(), expectedErrorText);
+        }
+      });
+    });
   });
 
   context('when assignment has segments', () => {

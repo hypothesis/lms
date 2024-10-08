@@ -112,16 +112,6 @@ describe('SyncGradesButton', () => {
     });
   });
 
-  it('shows syncing errors and allows to retry', () => {
-    const wrapper = createComponent(studentsToSync, {
-      isLoading: false,
-      data: { status: 'failed', grades: [] },
-    });
-
-    assert.equal(buttonText(wrapper), 'Error syncing. Click to retry');
-    assert.isFalse(isButtonDisabled(wrapper));
-  });
-
   it('shows error when checking current sync status', () => {
     const wrapper = createComponent(studentsToSync, {
       isLoading: false,

@@ -6,6 +6,7 @@ import { useLocation, useParams, useSearch } from 'wouter-preact';
 import type {
   AssignmentDetails,
   GradingSync,
+  StudentGradingSync,
   StudentsMetricsResponse,
 } from '../../api-types';
 import { useConfig } from '../../config';
@@ -44,6 +45,28 @@ type StudentsTableRow = {
    */
   last_grade?: number | null;
 };
+
+/**
+ * Error to display when last grades sync failed, showing the number of
+ * individual student syncs that failed
+ */
+function SyncErrorMessage({ grades }: { grades: StudentGradingSync[] }) {
+  const count = useMemo(
+    () => grades.filter(g => g.status === 'failed').length,
+    [grades],
+  );
+
+  return (
+    <div
+      className={classnames(
+        'rounded px-2 py-1',
+        'font-bold text-grade-error bg-grade-error-light',
+      )}
+    >
+      Error syncing {count} {count === 1 ? 'grade' : 'grades'}
+    </div>
+  );
+}
 
 /**
  * Activity in a list of students that are part of a specific assignment
@@ -258,11 +281,18 @@ export default function AssignmentActivity() {
             )}
           </div>
         )}
-        <h2 className="text-lg text-brand font-semibold" data-testid="title">
-          {assignment.isLoading && 'Loading...'}
-          {assignment.error && 'Could not load assignment title'}
-          {assignment.data && title}
-        </h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg text-brand font-semibold" data-testid="title">
+            {assignment.isLoading && 'Loading...'}
+            {assignment.error && 'Could not load assignment title'}
+            {assignment.data && title}
+          </h2>
+          <div aria-live="polite" aria-relevant="additions">
+            {lastSync.data && lastSync.data.status === 'failed' && (
+              <SyncErrorMessage grades={lastSync.data.grades} />
+            )}
+          </div>
+        </div>
       </div>
       <div className="flex justify-between items-end gap-x-4">
         {assignment.data && (
