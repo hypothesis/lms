@@ -7,7 +7,10 @@ import classnames from 'classnames';
 import type { ComponentChildren } from 'preact';
 import { useCallback, useId, useState } from 'preact/hooks';
 
-import type { AutoGradingConfig } from '../../api-types';
+import type {
+  AutoGradingConfig,
+  StudentGradingSyncStatus,
+} from '../../api-types';
 import GradeStatusChip from './GradeStatusChip';
 
 type AnnotationCountProps = {
@@ -54,11 +57,33 @@ function SectionTitle({ children }: { children: ComponentChildren }) {
   );
 }
 
+type BadgeType = 'new' | 'error' | 'syncing';
+
+function Badge({ type }: { type: BadgeType }) {
+  return (
+    <div
+      className={classnames(
+        'px-1 py-0.5 rounded cursor-auto font-bold uppercase text-[0.65rem]',
+        {
+          'bg-grey-7 text-white': type === 'new',
+          'bg-grade-error-light text-grade-error': type === 'error',
+          'bg-grey-3 text-grey-7': type === 'syncing',
+        },
+      )}
+    >
+      {type === 'new' && 'New'}
+      {type === 'error' && 'Error'}
+      {type === 'syncing' && 'Syncing…'}
+    </div>
+  );
+}
+
 export type GradeIndicatorProps = {
   grade: number;
   lastGrade?: number | null;
   annotations: number;
   replies: number;
+  status?: StudentGradingSyncStatus;
   config?: AutoGradingConfig;
 };
 
@@ -71,6 +96,7 @@ export default function GradeIndicator({
   lastGrade,
   annotations,
   replies,
+  status,
   config,
 }: GradeIndicatorProps) {
   const [popoverVisible, setPopoverVisible] = useState(false);
@@ -88,6 +114,16 @@ export default function GradeIndicator({
   // Checking typeof lastGrade to avoid number zero to be treated as false
   const hasLastGrade = typeof lastGrade === 'number';
   const gradeHasChanged = lastGrade !== grade;
+  const badgeType = ((): BadgeType | undefined => {
+    if (status === 'in_progress') {
+      return 'syncing';
+    }
+    if (status === 'failed') {
+      return 'error';
+    }
+
+    return gradeHasChanged ? 'new' : undefined;
+  })();
 
   return (
     <div className="relative">
@@ -106,17 +142,7 @@ export default function GradeIndicator({
         >
           <GradeStatusChip grade={grade} />
         </button>
-        {gradeHasChanged && (
-          <div
-            data-testid="new-label"
-            className={classnames(
-              'px-1 py-0.5 rounded',
-              'bg-grey-7 text-white font-bold uppercase text-[0.65rem]',
-            )}
-          >
-            New
-          </div>
-        )}
+        {badgeType && <Badge type={badgeType} />}
       </div>
       <div aria-live="polite" aria-relevant="additions">
         {popoverVisible && (

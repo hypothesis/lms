@@ -7,6 +7,7 @@ import type {
   AssignmentDetails,
   GradingSync,
   StudentGradingSync,
+  StudentGradingSyncStatus,
   StudentsMetricsResponse,
 } from '../../api-types';
 import { useConfig } from '../../config';
@@ -30,6 +31,7 @@ import SyncGradesButton from './SyncGradesButton';
 
 type StudentsTableRow = {
   lms_id: string;
+  h_userid: string;
   display_name: string | null;
   last_activity: string | null;
   annotations: number;
@@ -174,6 +176,14 @@ export default function AssignmentActivity() {
       !!result.data &&
       ['scheduled', 'in_progress'].includes(result.data.status),
   });
+  const studentSyncStatuses = useMemo(() => {
+    const studentStatusMap: Record<string, StudentGradingSyncStatus> = {};
+    for (const { h_userid, status } of lastSync.data?.grades ?? []) {
+      studentStatusMap[h_userid] = status;
+    }
+
+    return studentStatusMap;
+  }, [lastSync.data?.grades]);
 
   const onSyncScheduled = useCallback(() => {
     // Once the request succeeds, we update the params so that polling the
@@ -385,6 +395,7 @@ export default function AssignmentActivity() {
                     lastGrade={stats.last_grade}
                     annotations={stats.annotations}
                     replies={stats.replies}
+                    status={studentSyncStatuses[stats.h_userid]}
                     config={assignment.data?.auto_grading_config}
                   />
                 </div>

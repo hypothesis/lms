@@ -12,7 +12,7 @@ describe('GradeIndicator', () => {
     required_replies: 1,
   };
 
-  function createComponent({ config = defaultConfig, lastGrade } = {}) {
+  function createComponent({ config = defaultConfig, lastGrade, status } = {}) {
     return mount(
       <GradeIndicator
         grade={80}
@@ -20,6 +20,7 @@ describe('GradeIndicator', () => {
         annotations={5}
         replies={2}
         config={config}
+        status={status}
       />,
     );
   }
@@ -207,18 +208,20 @@ describe('GradeIndicator', () => {
   [
     {
       lastGrade: undefined,
-      shouldShowLabel: true,
+      shouldShowBadge: true,
       shouldShowPrevGrade: false,
     },
-    { lastGrade: 90, shouldShowLabel: true, shouldShowPrevGrade: true },
-    { lastGrade: 80, shouldShowLabel: false, shouldShowPrevGrade: false },
-  ].forEach(({ lastGrade, shouldShowLabel, shouldShowPrevGrade }) => {
-    it('shows the "new" label if last grade is not set or is different than current grade', () => {
+    { lastGrade: 90, shouldShowBadge: true, shouldShowPrevGrade: true },
+    { lastGrade: 80, shouldShowBadge: false, shouldShowPrevGrade: false },
+  ].forEach(({ lastGrade, shouldShowBadge, shouldShowPrevGrade }) => {
+    it('shows the "new" badge if last grade is not set or is different than current grade', () => {
       const wrapper = createComponent({ lastGrade });
-      assert.equal(
-        wrapper.exists('[data-testid="new-label"]'),
-        shouldShowLabel,
-      );
+      const badge = wrapper.find('Badge[type="new"]');
+
+      assert.equal(badge.exists(), shouldShowBadge);
+      if (shouldShowBadge) {
+        assert.equal(badge.text(), 'New');
+      }
     });
 
     it('shows last grade in popover if set and is different than current grade', () => {
@@ -228,6 +231,23 @@ describe('GradeIndicator', () => {
         wrapper.exists('[data-testid="last-grade"]'),
         shouldShowPrevGrade,
       );
+    });
+  });
+
+  [
+    { status: 'failed', expectedBadge: 'error', expectedBadgeText: 'Error' },
+    {
+      status: 'in_progress',
+      expectedBadge: 'syncing',
+      expectedBadgeText: 'Syncing…',
+    },
+  ].forEach(({ status, expectedBadge, expectedBadgeText }) => {
+    it('shows the corresponding badge based on status', () => {
+      const wrapper = createComponent({ status });
+      const badge = wrapper.find(`Badge[type="${expectedBadge}"]`);
+
+      assert.isTrue(badge.exists());
+      assert.equal(badge.text(), expectedBadgeText);
     });
   });
 });
