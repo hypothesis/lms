@@ -6,7 +6,7 @@ from marshmallow import (
     pre_load,
     validates_schema,
 )
-from marshmallow.validate import OneOf
+from marshmallow.validate import OneOf, Range
 
 from lms.validation._base import PyramidRequestSchema
 from lms.validation._exceptions import LTIToolRedirect
@@ -154,6 +154,22 @@ class DeepLinkingLTILaunchSchema(_CommonLTILaunchSchema):
     content_item_return_url = fields.Str(required=True)
 
 
+class AutoGradingConfigSchema(Schema):
+    """Schema for the auto grading options for an assignment."""
+
+    grading_type = fields.Str(
+        required=True, validate=OneOf(["all_or_nothing", "scaled"])
+    )
+    activity_calculation = fields.Str(
+        required=True, validate=OneOf(["cumulative", "separate"])
+    )
+
+    required_annotations = fields.Int(required=True, validate=Range(min=0))
+    required_replies = fields.Int(
+        required=False, allow_none=True, validate=Range(min=0)
+    )
+
+
 class ConfigureAssignmentSchema(_CommonLTILaunchSchema):
     """Schema for validating requests to the configure_assignment() view."""
 
@@ -164,3 +180,6 @@ class ConfigureAssignmentSchema(_CommonLTILaunchSchema):
     user_id = fields.Str(required=True)
     context_title = fields.Str(required=True)
     group_set = fields.Str(required=False, allow_none=True)
+    auto_grading_config = fields.Nested(
+        AutoGradingConfigSchema, required=False, allow_none=True
+    )

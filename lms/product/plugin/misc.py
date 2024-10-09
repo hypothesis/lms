@@ -1,3 +1,4 @@
+import json
 from typing import TYPE_CHECKING, NotRequired, TypedDict
 
 from pyramid.request import Request
@@ -96,7 +97,12 @@ class MiscPlugin:
     def get_deep_linked_assignment_configuration(self, request) -> dict:
         """Get the configuration of an assignment present in the current launch deep link."""
         params = {}
-        possible_parameters = ["url", "group_set", "deep_linking_uuid"]
+        possible_parameters = [
+            "url",
+            "group_set",
+            "deep_linking_uuid",
+            "auto_grading_config",
+        ]
 
         for param in possible_parameters:
             # Get the value from the custom parameters set during deep linking
@@ -111,16 +117,27 @@ class MiscPlugin:
 
     @staticmethod
     def _assignment_config_from_assignment(assignment: Assignment) -> AssignmentConfig:
-        return {
-            "document_url": assignment.document_url,
-            "group_set_id": assignment.extra.get("group_set_id"),
-        }
+        """Get the configuration of an assignment from our DB."""
+        config = AssignmentConfig(
+            document_url=assignment.document_url,
+            group_set_id=assignment.extra.get("group_set_id"),
+        )
+        if auto_grading_config := assignment.auto_grading_config:
+            config["auto_grading_config"] = auto_grading_config.asdict()
+
+        return config
 
     @staticmethod
     def _assignment_config_from_deep_linked_config(
         deep_linked_config: dict,
     ) -> AssignmentConfig:
-        return {
-            "document_url": deep_linked_config.get("url"),
-            "group_set_id": deep_linked_config.get("group_set"),
-        }
+        """Get the configuration of an assignment based on the Deep linked configuration."""
+        config = AssignmentConfig(
+            document_url=deep_linked_config.get("url"),
+            group_set_id=deep_linked_config.get("group_set"),
+        )
+
+        if auto_grading_config := deep_linked_config.get("auto_grading_config"):
+            config["auto_grading_config"] = json.loads(auto_grading_config)
+
+        return config
