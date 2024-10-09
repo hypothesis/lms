@@ -31,6 +31,14 @@ class AutoGradingConfig(Base):
     required_annotations: Mapped[int] = mapped_column()
     required_replies: Mapped[int | None] = mapped_column()
 
+    def asdict(self):
+        return {
+            "grading_type": self.grading_type,
+            "activity_calculation": self.activity_calculation,
+            "required_annotations": self.required_annotations,
+            "required_replies": self.required_replies,
+        }
+
 
 class Assignment(CreatedUpdatedMixin, Base):
     """

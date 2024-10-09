@@ -56,6 +56,7 @@ from lms.validation._base import (
 )
 from lms.validation._exceptions import LTIToolRedirect, ValidationError
 from lms.validation._lti_launch_params import (
+    AutoGradingConfigSchema,
     BasicLTILaunchSchema,
     ConfigureAssignmentSchema,
     DeepLinkingLTILaunchSchema,

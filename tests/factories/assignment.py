@@ -13,3 +13,13 @@ Assignment = make_factory(
     extra={},
     title=Sequence(lambda n: f"Assignment {n}"),
 )
+
+
+AutoGradingConfig = make_factory(
+    models.AutoGradingConfig,
+    FACTORY_CLASS=SQLAlchemyModelFactory,
+    activity_calculation=Faker("random_element", elements=list(models.AutoGradingType)),
+    grading_type=Faker("random_element", elements=list(models.AutoGradingCalculation)),
+    required_annotations=Faker("random_int"),
+    required_replies=Faker("random_int"),
+)
