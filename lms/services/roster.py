@@ -1,5 +1,6 @@
 from logging import getLogger
 
+from urllib.parse import urlparse
 from sqlalchemy import select, update
 
 from lms.models import (
@@ -12,6 +13,7 @@ from lms.models import (
     LMSUser,
     LTIRegistration,
     LTIRole,
+    Grouping,
 )
 from lms.models.h_user import get_h_userid, get_h_username
 from lms.models.lti_user import display_name
@@ -177,6 +179,47 @@ class RosterService:
             index_elements=["assignment_id", "lms_user_id", "lti_role_id"],
             update_columns=["active", "updated"],
         )
+
+    def fetch_group_roster(self, grouping: Grouping) -> None:
+        """
+        Fetch the roster for one Group.
+
+        This is a Canvas only extension, see:
+
+            https://canvas.instructure.com/doc/api/names_and_role.html#method.lti/ims/names_and_roles.group_index
+        """
+        assert grouping.parent, "Trying fetch roster for a grouping without a course."
+        lms_course = grouping.parent.lms_course
+        assert (
+            lms_course.lti_context_memberships_url
+        ), "Trying fetch roster for course without service URL."
+        lti_registration = self._get_lti_registration(lms_course)
+
+        roster = self._lti_names_roles_service.get_context_memberships(
+            lti_registration,
+            urlparse(lms_course.lti_context_memberships_url)
+            ._replace(path=f"/api/lti/groups/{grouping.lms_id}/names_and_roles")
+            .geturl(),
+        )
+
+        # Insert any users we might be missing in the DB
+        lms_users_by_lti_user_id = {
+            u.lti_user_id: u
+            for u in self._get_roster_users(
+                roster, lms_course.tool_consumer_instance_guid
+            )
+        }
+        # Also insert any roles we might be missing
+        lti_roles_by_value: dict[str, LTIRole] = {
+            r.value: r for r in self._get_roster_roles(roster)
+        }
+
+        # Make sure any new rows have IDs
+        self._db.flush()
+
+        roster_upsert_elements = []
+        print(roster)
+        return
 
     def _get_roster_users(self, roster, tool_consumer_instance_guid):
         values = []
