@@ -102,8 +102,10 @@ class BasicLaunchViews:
             tool_consumer_instance_guid=self._guid,
             resource_link_id=self._resource_link_id,
         )
-        config = self._configure_js_for_file_picker(assignment, route="edit_assignment")
-        return {
+        js_config = self._configure_js_for_file_picker(
+            assignment, route="edit_assignment"
+        )
+        assignment_config = {
             # Info about the assignment's current configuration
             "assignment": {
                 "group_set_id": assignment.extra.get("group_set_id"),
@@ -112,8 +114,12 @@ class BasicLaunchViews:
                 },
             },
             # Data needed to re-configure it
-            "filePicker": config["filePicker"],
+            "filePicker": js_config["filePicker"],
         }
+        if auto_grading_config := assignment.auto_grading_config:
+            assignment_config['assignment']["auto_grading_config"] = auto_grading_config.asdict()
+
+        return assignment_config
 
     @view_config(
         route_name="configure_assignment",
@@ -274,6 +280,7 @@ class BasicLaunchViews:
             document_url=self.request.parsed_params["document_url"],
             group_set_id=self.request.parsed_params.get("group_set"),
             course=self.course,
+            auto_grading_config=self.request.parsed_params.get("auto_grading_config"),
         )
 
     def _configure_js_for_file_picker(

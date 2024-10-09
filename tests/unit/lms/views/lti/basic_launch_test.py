@@ -59,6 +59,7 @@ class TestBasicLaunchViews:
         pyramid_request.parsed_params = {
             "document_url": sentinel.document_url,
             "group_set": sentinel.group_set,
+            "auto_grading_config": sentinel.auto_grading_config,
         }
 
         svc.configure_assignment_callback()
@@ -73,6 +74,7 @@ class TestBasicLaunchViews:
             document_url=sentinel.document_url,
             group_set_id=sentinel.group_set,
             course=course_service.get_from_launch.return_value,
+            auto_grading_config=sentinel.auto_grading_config,
         )
         _show_document.assert_called_once_with(
             assignment_service.create_assignment.return_value,
@@ -198,6 +200,7 @@ class TestBasicLaunchViews:
         context.js_config.enable_error_dialog_mode(sentinel.error_code)
         assert not response
 
+    @pytest.mark.parametrize("with_auto_grading", [True, False])
     def test_reconfigure_assignment_config(
         self,
         svc,
@@ -206,15 +209,18 @@ class TestBasicLaunchViews:
         assignment_service,
         course_service,
         has_permission,
+        with_auto_grading,
     ):
         has_permission.return_value = True
         pyramid_request.lti_params = mock.create_autospec(
             LTIParams, spec_set=True, instance=True
         )
+        assignment = assignment_service.get_assignment.return_value
+        if not with_auto_grading:
+            assignment.auto_grading_config = None
 
         response = svc.reconfigure_assignment_config()
 
-        assignment = assignment_service.get_assignment.return_value
         pyramid_request.lti_params.serialize.assert_called_once_with(
             authorization=context.js_config.auth_token
         )
@@ -224,7 +230,7 @@ class TestBasicLaunchViews:
             course=course_service.get_from_launch.return_value,
             assignment=assignment,
         )
-        assert response == {
+        expected = {
             "assignment": {
                 "group_set_id": assignment.extra.get.return_value,
                 "document": {"url": assignment.document_url},
@@ -233,6 +239,12 @@ class TestBasicLaunchViews:
                 "filePicker"
             ],
         }
+        if with_auto_grading:
+            expected["assignment"]["auto_grading_config"] = (
+                assignment.auto_grading_config.asdict.return_value
+            )
+
+        assert response == expected
 
     @pytest.fixture
     def has_permission(self, pyramid_request):

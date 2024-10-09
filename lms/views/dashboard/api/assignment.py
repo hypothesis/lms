@@ -9,7 +9,6 @@ from lms.js_config_types import (
     APIAssignments,
     APICourse,
     APISegment,
-    AutoGradingConfig,
 )
 from lms.models import Assignment, Grouping, RoleScope, RoleType
 from lms.security import Permissions
@@ -117,12 +116,7 @@ class AssignmentViews:
             api_assignment["sections"] = self._groupings_to_api_segment(sections)
 
         if auto_grading_config := assignment.auto_grading_config:
-            api_assignment["auto_grading_config"] = AutoGradingConfig(
-                grading_type=auto_grading_config.grading_type,
-                activity_calculation=auto_grading_config.activity_calculation,
-                required_annotations=auto_grading_config.required_annotations,
-                required_replies=auto_grading_config.required_replies,
-            )
+            api_assignment["auto_grading_config"] = auto_grading_config.asdict()
 
         return api_assignment
 

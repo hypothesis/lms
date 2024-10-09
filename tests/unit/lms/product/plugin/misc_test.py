@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch, sentinel
 
 import pytest
@@ -43,6 +44,34 @@ class TestMiscPlugin:
 
         assert result["document_url"] == sentinel.document_url
 
+    def test_get_assignment_configuration_with_auto_grading_in_existing_db_assignment(
+        self, plugin, pyramid_request
+    ):
+        assignment = factories.Assignment(
+            auto_grading_config=factories.AutoGradingConfig()
+        )
+        pyramid_request.lti_params["resource_link_id"] = sentinel.link_id
+
+        result = plugin.get_assignment_configuration(pyramid_request, assignment, None)
+
+        assert result["auto_grading_config"] == assignment.auto_grading_config.asdict()
+
+    def test_get_assignment_configuration_with_auto_grading_in_deep_linked_configuration(
+        self, plugin, get_deep_linked_assignment_configuration
+    ):
+        auto_grading_config = factories.AutoGradingConfig()
+
+        get_deep_linked_assignment_configuration.return_value = {
+            "auto_grading_config": json.dumps(auto_grading_config.asdict())
+        }
+
+        assert (
+            plugin.get_assignment_configuration(sentinel.request, None, None)[
+                "auto_grading_config"
+            ]
+            == auto_grading_config.asdict()
+        )
+
     def test_get_assignment_configuration_with_assignment_in_db_copied_assignment(
         self, plugin, pyramid_request
     ):
@@ -87,6 +116,10 @@ class TestMiscPlugin:
                 {"url": sentinel.url, "group_set": sentinel.group_set},
             ),
             ({"url": sentinel.url}, {"url": sentinel.url}),
+            (
+                {"auto_grading_config": sentinel.auto_grading_config},
+                {"auto_grading_config": sentinel.auto_grading_config},
+            ),
             ({"group_set": sentinel.group_set}, {"group_set": sentinel.group_set}),
             ({"other_param": sentinel.other_param}, {}),
         ],
