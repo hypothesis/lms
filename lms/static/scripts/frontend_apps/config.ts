@@ -1,6 +1,7 @@
 import { createContext } from 'preact';
 import { useContext } from 'preact/hooks';
 
+import type { AutoGradingConfig } from './api-types';
 import type { AppLaunchServerErrorCode, OAuthServerErrorCode } from './errors';
 
 /**
@@ -70,6 +71,7 @@ export type SpeedGraderConfig = { submissionParams: object };
  */
 export type AssignmentConfig = {
   group_set_id: string | null;
+  auto_grading_config?: AutoGradingConfig;
   document: {
     url: string;
   };
