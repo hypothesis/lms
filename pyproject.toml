@@ -92,7 +92,6 @@ ignore = [
     # Disabled during the pylint migration, ideally we'll enable this after we are settled in ruff
     "RET501",
     "PLR6301",
-    "C405",
     "C401",
     "E721",
 ]
