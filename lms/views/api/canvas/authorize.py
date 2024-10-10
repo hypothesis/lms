@@ -48,7 +48,7 @@ SCOPES = {
 }
 
 # All the scopes that our LMS app may use.
-ALL_SCOPES = set(scope for scopes in SCOPES.values() for scope in scopes)
+ALL_SCOPES = {scope for scopes in SCOPES.values() for scope in scopes}
 
 
 @view_config(
