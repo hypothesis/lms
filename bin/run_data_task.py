@@ -47,7 +47,7 @@ parser.add_argument(
 def main():
     args = parser.parse_args()
 
-    with bootstrap(args.config_file) as env:
+    with bootstrap(args.config_file) as env:  # noqa: PLR1702
         request = env["request"]
         settings = env["registry"].settings
 
