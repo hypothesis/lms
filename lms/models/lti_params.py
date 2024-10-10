@@ -42,9 +42,7 @@ class LTIParams(dict):
         # This would be good if we could extract this as a product plugin (or
         # something similar), but unfortunately there's currently a circular
         # dependency where LTI params are required to get the product
-        lti_params = _apply_canvas_quirks(lti_params, request)
-
-        return lti_params
+        return _apply_canvas_quirks(lti_params, request)
 
     def serialize(self, **kwargs) -> dict:
         """

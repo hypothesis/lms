@@ -126,18 +126,10 @@ class UserService:
 
     def _user_search_query(self, application_instance_id, user_id) -> Select:
         """Generate a query for searching for users."""
-
-        query = select(User)
-
-        # Normally we'd have an `if application_instance_id` here, for a proper
-        # search query builder, but at the moment all arguments are mandatory,
-        # and doing that would give us a coverage gap.
-        query = query.where(User.application_instance_id == application_instance_id)
-
-        # Ditto `if user_id`
-        query = query.where(User.user_id == user_id)
-
-        return query
+        return select(User).where(
+            User.application_instance_id == application_instance_id,
+            User.user_id == user_id,
+        )
 
     def get_users(  # noqa: PLR0913, PLR0917
         self,

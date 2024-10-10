@@ -50,16 +50,15 @@ class AdminAssignmentViews:
             )
         )
 
-        # We can only navigate to assignments via their course, assigmentl.course won't be null
+        # We can only navigate to assignments via their course, assignment.course won't be null
         assert assignment.course
-        response = HTTPFound(
+        return HTTPFound(
             location=self.request.route_url(
                 "dashboard.organization.assignment",
                 assignment_id=assignment.id,
                 public_id=assignment.course.application_instance.organization.public_id,
             ),
         )
-        return response
 
     def _get_or_404(self) -> Assignment:
         if assignment := self.assignment_service.get_by_id(
