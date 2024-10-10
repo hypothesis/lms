@@ -22,7 +22,7 @@ from lms.services.course import CourseService
 from lms.services.upsert import bulk_upsert
 
 
-class UserNotFound(Exception):
+class UserNotFound(Exception):  # noqa: N818
     """The requested User wasn't found in the database."""
 
 

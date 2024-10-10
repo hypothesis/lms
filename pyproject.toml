@@ -52,6 +52,7 @@ select = [
   "R", "PLR", # https://docs.astral.sh/ruff/rules/#refactor-r
   "C", "PLC", # https://docs.astral.sh/ruff/rules/#convention-c
   "SLF", # flake-8-self
+  "N", # https://docs.astral.sh/ruff/rules/#pep8-naming-n
 
   "PLR0914",
 
