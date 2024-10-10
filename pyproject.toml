@@ -89,7 +89,6 @@ ignore = [
     "PLR2004", # Magic values, we mostly get it on HTTP status codes
 
     # Disabled during the pylint migration, ideally we'll enable this after we are settled in ruff
-    "RET504",
     "RET501",
     "PLR6301",
     "PLR1702",

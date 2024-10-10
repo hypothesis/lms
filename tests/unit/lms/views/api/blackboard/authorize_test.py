@@ -94,10 +94,7 @@ class TestOAuth2Redirect:
 
 @pytest.fixture(autouse=True)
 def OAuthCallbackSchema(patch):
-    OAuthCallbackSchema = patch(
-        "lms.views.api.blackboard.authorize.OAuthCallbackSchema"
-    )
-    return OAuthCallbackSchema
+    return patch("lms.views.api.blackboard.authorize.OAuthCallbackSchema")
 
 
 @pytest.fixture

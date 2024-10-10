@@ -96,13 +96,12 @@ class LTIAHTTPService:
             LOG.error("Non-json response: %s", response.text)
             raise
 
-        token = self._jwt_oauth2_token_service.save_token(
+        return self._jwt_oauth2_token_service.save_token(
             lti_registration=lti_registration,
             scopes=scopes,
             access_token=token_data["access_token"],
             expires_in=token_data["expires_in"],
         )
-        return token
 
 
 def factory(_context, request):
