@@ -8,7 +8,6 @@ class TestLTIRoleOverride:
     def test_value(self):
         lti_role = LTIRole(value="ROLE")
 
-        # pylint:disable=comparison-with-callable
         assert LTIRoleOverride(lti_role=lti_role).value == lti_role.value
 
 

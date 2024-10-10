@@ -3,7 +3,7 @@
 import time
 
 import oauthlib
-from behave import step  # pylint:disable=no-name-in-module
+from behave import step
 
 from tests.bdd.step_context import StepContext
 

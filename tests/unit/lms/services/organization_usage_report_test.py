@@ -112,7 +112,7 @@ class TestOrganizationUsageReportService:
             == report
         )
 
-    def test_usage_report(self, svc, org_with_parent, h_api, organization_service):  # pylint:disable=too-many-locals
+    def test_usage_report(self, svc, org_with_parent, h_api, organization_service):
         since = datetime(2023, 1, 1, 0, 0, 0, 0)
         until = datetime(2023, 12, 31, 23, 59, 59, 999999)
 

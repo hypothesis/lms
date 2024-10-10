@@ -4,7 +4,7 @@ import json
 import os.path
 
 import importlib_resources
-from behave import given, step, then  # pylint:disable=no-name-in-module
+from behave import given, step, then
 
 from tests.bdd.step_context import StepContext
 

@@ -6,7 +6,6 @@ from factory import Factory, Faker, post_generation
 from requests.structures import CaseInsensitiveDict
 
 
-# pylint:disable=no-self-argument,method-hidden
 class Response(Factory):
     class Meta:
         model = requests.Response

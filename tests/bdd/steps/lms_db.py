@@ -2,7 +2,7 @@
 
 from os import environ
 
-from behave import step  # pylint:disable=no-name-in-module
+from behave import step
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 

@@ -95,7 +95,6 @@ class SecurityPolicy:
     @lru_cache(maxsize=1)
     def get_policy(request: Request):  # noqa: C901, PLR0911
         """Pick the right policy based the request's path."""
-        # pylint:disable=too-many-return-statements
 
         path = request.path
 

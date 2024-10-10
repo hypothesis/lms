@@ -12,7 +12,6 @@ pytestmark = pytest.mark.usefixtures("email_preferences_service")
 
 
 def test_forbidden(pyramid_request):
-    # pylint:disable=use-implicit-booleaness-not-comparison
     assert forbidden(pyramid_request) == {}
 
 

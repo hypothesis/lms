@@ -1,6 +1,6 @@
 """Form and manipulate HTTP requests."""
 
-from behave import given  # pylint:disable=no-name-in-module
+from behave import given
 from requests import Request
 
 from tests.bdd.step_context import StepContext

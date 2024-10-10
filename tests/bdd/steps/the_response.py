@@ -2,7 +2,7 @@
 
 import re
 
-from behave import then  # pylint:disable=no-name-in-module
+from behave import then
 
 from tests.bdd.step_context import StepContext
 from tests.bdd.steps.the_url import TheURL
