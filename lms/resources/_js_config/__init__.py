@@ -1,7 +1,7 @@
 import functools
 import re
 from datetime import timedelta
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any
 
 from lms.error_code import ErrorCode
@@ -29,7 +29,7 @@ from lms.views.helpers import via_url
 class JSConfig:
     """The config for the app's JavaScript code."""
 
-    class Mode(str, Enum):
+    class Mode(StrEnum):
         OAUTH2_REDIRECT_ERROR = "oauth2-redirect-error"
         BASIC_LTI_LAUNCH = "basic-lti-launch"
         FILE_PICKER = "content-item-selection"
@@ -557,7 +557,7 @@ class JSConfig:
         return BearerTokenSchema(self._request).authorization_param(self._lti_user)
 
     @property
-    @functools.lru_cache()
+    @functools.lru_cache
     def _config(self):
         """
         Return the current configuration dict.
@@ -641,7 +641,7 @@ class JSConfig:
         return product_info
 
     @property
-    @functools.lru_cache()
+    @functools.lru_cache
     def _hypothesis_client(self) -> dict[str, Any]:
         """
         Return the config object for the Hypothesis client.

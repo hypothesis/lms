@@ -136,7 +136,7 @@ class TestCanvasPreRecordHook:
         )
 
     @pytest.mark.parametrize(
-        "submitted_at", (datetime.datetime(2022, 2, 3, tzinfo=timezone.utc), None)
+        "submitted_at", (datetime.datetime(2022, 2, 3, tzinfo=datetime.UTC), None)
     )
     def test_it_v11(self, hook, submitted_at, get_speedgrader_launch_url):
         hook.request.parsed_params["submitted_at"] = submitted_at
@@ -157,7 +157,7 @@ class TestCanvasPreRecordHook:
         }
 
     @pytest.mark.parametrize(
-        "submitted_at", (datetime.datetime(2022, 2, 3, tzinfo=timezone.utc), None)
+        "submitted_at", (datetime.datetime(2022, 2, 3, tzinfo=datetime.UTC), None)
     )
     def test_it_v13(self, hook, submitted_at, get_speedgrader_launch_url):
         hook.request.parsed_params["submitted_at"] = submitted_at

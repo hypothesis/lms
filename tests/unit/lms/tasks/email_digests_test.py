@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from unittest.mock import call, sentinel
 
 import celery
@@ -311,15 +311,12 @@ class TestSendInstructorEmailDigests:
         digest_service.send_instructor_email_digest.assert_called_once_with(
             h_userid=h_userid,
             # The task adds tzinfo if it was not already present in the DB
-            created_after=created_before.replace(tzinfo=timezone.utc)
-            - timedelta(days=7),
+            created_after=created_before.replace(tzinfo=UTC) - timedelta(days=7),
             created_before=created_before,
         )
 
     def test_the_created_after_argument(self, created_before, digest_service, h_userid):
-        created_after = datetime(
-            year=2023, month=11, day=25, hour=5, tzinfo=timezone.utc
-        )
+        created_after = datetime(year=2023, month=11, day=25, hour=5, tzinfo=UTC)
 
         send_instructor_email_digest(
             h_userid=h_userid,
@@ -345,7 +342,7 @@ class TestSendInstructorEmailDigests:
     @pytest.fixture
     def created_before(self):
         """Return the created_before arg that will be passed to send_instructor_email_digest()."""
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     @pytest.fixture
     def make_task_done(self, h_userid, created_before):
