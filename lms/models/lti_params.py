@@ -61,7 +61,7 @@ class LTIParams(dict):
             # Don't send over auth related params. We'll use our own
             # authorization
             if param
-            not in ["oauth_nonce", "oauth_timestamp", "oauth_signature", "id_token"]
+            not in {"oauth_nonce", "oauth_timestamp", "oauth_signature", "id_token"}
         }
         form_fields.update(**kwargs)
         return form_fields

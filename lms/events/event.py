@@ -39,7 +39,7 @@ class BaseEvent:
             field.name: getattr(self, field.name)
             for field in fields(self)
             # Excluded non-serializable fields
-            if field.name not in ["request", "Type"]
+            if field.name not in {"request", "Type"}
         }
 
 
