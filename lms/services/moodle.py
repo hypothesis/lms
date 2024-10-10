@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Literal, NotRequired, TypedDict
 
 from lms.services.aes import AESService
@@ -6,7 +6,7 @@ from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService
 
 
-class Function(str, Enum):
+class Function(StrEnum):
     GET_COURSE_GROUPINGS = "core_group_get_course_groupings"
     """Returns all groupings in specified course."""
 

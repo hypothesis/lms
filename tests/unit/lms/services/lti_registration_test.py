@@ -46,12 +46,12 @@ class TestLTIRegistrationService:
 
         by_issuer = svc.search_registrations(issuer="issuer")
         assert len(by_issuer) == 6
-        assert all((registration.issuer == "issuer" for registration in by_issuer))
+        assert all(registration.issuer == "issuer" for registration in by_issuer)
 
         by_client_id = svc.search_registrations(client_id="client_id")
         assert len(by_client_id) == 6
         assert all(
-            (registration.client_id == "client_id" for registration in by_client_id)
+            registration.client_id == "client_id" for registration in by_client_id
         )
 
         by_both = svc.search_registrations(issuer="issuer", client_id="client_id")

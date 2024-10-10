@@ -102,7 +102,7 @@ class SecurityPolicy:
             # Routes that require the Google auth policy
             return LMSGoogleSecurityPolicy()
 
-        if path.startswith(("/api/dashboard")):
+        if path.startswith("/api/dashboard"):
             # For the dashboard API we prefer, in this order:
             # - HeadersBearerTokenLTIUserPolicy()
             #   For requests authorized via an API token, this applies to LMS users

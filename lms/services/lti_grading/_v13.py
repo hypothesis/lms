@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from urllib.parse import urlparse
 
 from lms.models import ApplicationInstance, Assignment, LMSUser, LTIRegistration
@@ -133,7 +133,7 @@ class LTI13GradingService(LTIGradingService):
         payload = self._record_score_payload(
             score,
             grading_id,
-            datetime.now(timezone.utc).isoformat(),
+            datetime.now(UTC).isoformat(),
         )
         if comment:
             payload["comment"] = self._misc_plugin.format_grading_comment_for_lms(

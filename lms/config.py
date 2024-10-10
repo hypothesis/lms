@@ -1,8 +1,8 @@
 """Configuration for the Pyramid application."""
 
 import os
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 from pyramid.config import Configurator
 from pyramid.config import aslist as _aslist
