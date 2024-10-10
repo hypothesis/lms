@@ -76,12 +76,12 @@ class LTI11GradingService(LTIGradingService):
             select(LMSUserAssignmentMembership).where(
                 LMSUserAssignmentMembership.lms_user_id == lms_user.id,
                 LMSUserAssignmentMembership.assignment_id == assignment.id,
+                LMSUserAssignmentMembership.lti_v11_lis_result_sourcedid.is_not(None),
             )
-        ).one()
+        ).first()
         assert (
-            assignment_membership.lti_v11_lis_result_sourcedid
-        ), "Trying to grade a student without lti_v11_lis_result_sourcedid"
-
+            assignment_membership and assignment_membership.lti_v11_lis_result_sourcedid
+        ), "Trying to grade a student without a membership or membership without lti_v11_lis_result_sourcedid"
         request = self._record_score_payload(
             score=score,
             user_grading_id=assignment_membership.lti_v11_lis_result_sourcedid,
