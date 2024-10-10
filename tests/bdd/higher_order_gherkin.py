@@ -121,9 +121,7 @@ def {function_name}({signature}):
         )
     )
 """
-        python_code = cls.FORMAT_REMOVER.sub("", python_code)
-
-        return python_code
+        return cls.FORMAT_REMOVER.sub("", python_code)
 
     @classmethod
     def _function_name(cls, name):

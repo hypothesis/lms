@@ -87,8 +87,7 @@ class MoodleAPIClient:
 
     def course_contents(self, course_id: int) -> list[dict]:
         url = self._api_url(Function.GET_COURSE_CONTENTS)
-        response = self._request(url, params={"courseid": course_id})
-        return response
+        return self._request(url, params={"courseid": course_id})
 
     def list_files(self, course_id: int):
         contents = self.course_contents(course_id)

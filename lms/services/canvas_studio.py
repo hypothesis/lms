@@ -204,7 +204,7 @@ class CanvasStudioService:
 
         :param state: `state` query param for the authorization request
         """
-        auth_url = urlunparse(
+        return urlunparse(
             (
                 "https",
                 self._domain,
@@ -221,8 +221,6 @@ class CanvasStudioService:
                 "",
             )
         )
-
-        return auth_url
 
     def _token_url(self) -> str:
         """Return the URL of the Canvas Studio OAuth token endpoint."""
@@ -375,8 +373,7 @@ class CanvasStudioService:
 
         for caption in captions:
             if caption["status"] == "published":
-                url = urljoin(self._canvas_studio_site(), caption["url"])
-                return url
+                return urljoin(self._canvas_studio_site(), caption["url"])
 
         return None
 
