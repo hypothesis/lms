@@ -10,7 +10,7 @@ from lms.services.jwt import JWTService
 from lms.views.helpers import via_url
 
 
-class ArticleNotFound(SerializableError):
+class ArticleNotFound(SerializableError):  # noqa: N818
     def __init__(self, article_id):
         super().__init__(message=f"Article '{article_id}' not found")
 
