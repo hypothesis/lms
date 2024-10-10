@@ -74,23 +74,34 @@ class TestLTI11GradingService:
     def test_sync_grade(self, svc, http_service, application_instance, db_session):
         lms_user = factories.LMSUser()
         assignment = factories.Assignment()
-        lti_role = factories.LTIRole()
-        db_session.flush()
-        membership = factories.LMSUserAssignmentMembership(
-            lms_user_id=lms_user.id,
-            assignment_id=assignment.id,
-            lti_role_id=lti_role.id,
+        factories.LMSUserAssignmentMembership(
+            lms_user=lms_user,
+            assignment=assignment,
+            lti_role=factories.LTIRole(),
             lti_v11_lis_result_sourcedid="LIS",
         )
+        # Membership for another role
+        factories.LMSUserAssignmentMembership(
+            lms_user=lms_user,
+            assignment=assignment,
+            lti_role=factories.LTIRole(),
+            lti_v11_lis_result_sourcedid="LIS",
+        )
+        # Membership without lis_result_sourcedid
+        factories.LMSUserAssignmentMembership(
+            lms_user=lms_user,
+            assignment=assignment,
+            lti_role=factories.LTIRole(),
+            lti_v11_lis_result_sourcedid=None,
+        )
+        db_session.flush()
 
         svc.sync_grade(application_instance, assignment, None, lms_user, 0.5)
 
         assert self.sent_pox_body(http_service) == {
             "replaceResultRequest": {
                 "resultRecord": {
-                    "sourcedGUID": {
-                        "sourcedId": membership.lti_v11_lis_result_sourcedid
-                    },
+                    "sourcedGUID": {"sourcedId": "LIS"},
                     "result": {"resultScore": {"language": "en", "textString": "0.5"}},
                 }
             }
