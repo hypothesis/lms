@@ -118,6 +118,7 @@ disable = [
     # Mostly false positives, better served by mypy
     "not-callable",
     "no-member",
+    "no-name-in-module",
     "unsupported-membership-test",
 
 ]
@@ -191,7 +192,6 @@ ignore = [
     "PLR1702",
     "C405",
     "C401",
-    "PLC1901",
     "E721",
     "C414",
 ]

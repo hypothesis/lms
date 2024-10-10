@@ -3,7 +3,7 @@
 import re
 from urllib.parse import parse_qs, urlparse
 
-from behave import then  # pylint:disable=no-name-in-module
+from behave import then
 
 from tests.bdd.step_context import StepContext
 

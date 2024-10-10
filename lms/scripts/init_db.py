@@ -9,7 +9,6 @@ Usage:
 
 """
 
-# pylint:disable=unused-import
 import argparse
 import logging
 from os import environ

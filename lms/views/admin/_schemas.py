@@ -16,8 +16,7 @@ class EmptyStringNoneMixin:
     """
 
     def deserialize(self, value, attr, data, **kwargs):
-        # pylint:disable=compare-to-empty-string
-        if value == missing or value.strip() == "":
+        if value == missing or value.strip() == "":  # noqa: PLC1901
             return None
         return super().deserialize(value, attr, data, **kwargs)  # type:ignore
 

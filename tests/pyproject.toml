@@ -80,6 +80,9 @@ disable = [
     "singleton-comparison",
     "unnecessary-lambda-assignment",
     "too-complex",
+
+    # Mostly false positives, better served by mypy
+    "no-name-in-module",
 ]
 
 # Just disable PyLint's name style checking for the tests, because we
