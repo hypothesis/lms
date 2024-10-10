@@ -96,7 +96,7 @@ class LTIUser:
         """Whether this user is an admin."""
         return any(
             role.type == RoleType.ADMIN
-            and role.scope in [RoleScope.COURSE, RoleScope.SYSTEM]
+            and role.scope in {RoleScope.COURSE, RoleScope.SYSTEM}
             for role in self.effective_lti_roles
         )
 

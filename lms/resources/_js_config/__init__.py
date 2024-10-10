@@ -711,7 +711,7 @@ class JSConfig:
                         key: value
                         for key, value in self._request.lti_params.items()
                         if key
-                        in [
+                        in {
                             # Most (all) of these are duplicated elsewhere, we'll keep updating for now
                             # because external analytics query rely on this table.
                             "context_id",
@@ -726,7 +726,7 @@ class JSConfig:
                             "tool_consumer_instance_guid",
                             "custom_canvas_api_domain",
                             "custom_canvas_course_id",
-                        ]
+                        }
                     },
                     # The student we are currently grading. In the case of Canvas
                     # this will be present in the SpeedGrader launch URL and

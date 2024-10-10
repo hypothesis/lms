@@ -70,7 +70,7 @@ class VSBookLocation:
         loc_type = path_match["loc_type"]
         loc = path_match["loc"]
 
-        if loc_type not in ("cfi", "page"):
+        if loc_type not in {"cfi", "page"}:
             raise ValueError("Invalid book location specifier")
 
         if loc_type == "page":

@@ -227,7 +227,7 @@ class CanvasAPIError(ExternalRequestError):
         ):
             raise OAuth2TokenError(**kwargs) from cause
 
-        if status_code in (401, 403):
+        if status_code in {401, 403}:
             raise CanvasAPIPermissionError(**kwargs) from cause
 
         raise CanvasAPIServerError(**kwargs) from cause
