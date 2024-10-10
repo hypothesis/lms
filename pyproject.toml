@@ -53,6 +53,8 @@ select = [
   "C", "PLC", # https://docs.astral.sh/ruff/rules/#convention-c
   "SLF", # flake-8-self
 
+  "PLR0914",
+
   "RUF100", # unused-noqa
 ]
 
