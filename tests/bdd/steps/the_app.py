@@ -1,6 +1,6 @@
 """Make requests to a web-test application."""
 
-from behave import when  # pylint:disable=no-name-in-module
+from behave import when
 from h_matchers import Any
 from webtest import TestApp
 

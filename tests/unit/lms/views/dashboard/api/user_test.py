@@ -59,7 +59,7 @@ class TestUserViews:
         }
 
     @pytest.mark.parametrize("with_segment_authority_provided_id", [True, False])
-    def test_students_metrics(  # pylint:disable=too-many-locals
+    def test_students_metrics(
         self,
         views,
         pyramid_request,
@@ -149,7 +149,7 @@ class TestUserViews:
         assert response == expected
 
     @pytest.mark.parametrize("with_last_grade", [True, False])
-    def test_students_metrics_with_auto_grading(  # pylint:disable=too-many-locals
+    def test_students_metrics_with_auto_grading(
         self,
         views,
         pyramid_request,

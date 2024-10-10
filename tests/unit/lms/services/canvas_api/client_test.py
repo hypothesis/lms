@@ -195,7 +195,7 @@ class TestCanvasAPIClientIntegrated:
 
         if include_users:
             expected_params["include[]"] = "users"
-            expected_timeout = (31, 31)  # pylint:disable=redefined-variable-type
+            expected_timeout = (31, 31)
 
         self.assert_session_send(
             http_session,

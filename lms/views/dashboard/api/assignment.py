@@ -134,7 +134,6 @@ class AssignmentViews:
         schema=AssignmentsMetricsSchema,
     )
     def course_assignments_metrics(self) -> APIAssignments:
-        # pylint:disable=too-many-locals
         current_h_userid = self.request.user.h_userid if self.request.user else None
         filter_by_h_userids = self.request.parsed_params.get("h_userids")
         filter_by_assignment_ids = self.request.parsed_params.get("assignment_ids")
