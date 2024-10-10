@@ -3,9 +3,10 @@
 import itertools
 import json
 import re
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Iterator, Sequence, TypedDict
+from datetime import UTC, datetime, timezone
+from typing import TypedDict
 
 from h_api.bulk_api import BulkAPI, CommandBuilder
 
@@ -41,7 +42,7 @@ def _rfc3339_format(date: datetime) -> str:
     Which looks like: 2018-11-13T20:20:39+00:00
     """
     if not date.tzinfo:
-        date = date.replace(tzinfo=timezone.utc)
+        date = date.replace(tzinfo=UTC)
 
     return date.isoformat()
 

@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import TYPE_CHECKING, TypedDict
 
 import sqlalchemy as sa
@@ -18,7 +18,7 @@ MAX_GROUP_NAME_LENGTH = 25
 
 
 class Grouping(CreatedUpdatedMixin, Base):
-    class Type(str, Enum):
+    class Type(StrEnum):
         COURSE = "course"
         CANVAS_SECTION = "canvas_section"
         CANVAS_GROUP = "canvas_group"
