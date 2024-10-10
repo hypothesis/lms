@@ -5,7 +5,7 @@ YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3"
 """YouTube's API base URL"""
 
 
-class VideoNotFound(SerializableError):
+class VideoNotFound(SerializableError):  # noqa: N818
     def __init__(self, video_id):
         super().__init__(
             error_code="youtube_video_not_found", details={"video_id": video_id}

@@ -4,7 +4,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
 
-class CouldNotAcquireLock(Exception):
+class CouldNotAcquireLock(Exception):  # noqa: N818
     """A lock could not be immediately acquired."""
 
 

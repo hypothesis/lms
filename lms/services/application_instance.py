@@ -16,11 +16,11 @@ from lms.validation import ValidationError
 LOG = getLogger(__name__)
 
 
-class ApplicationInstanceNotFound(Exception):
+class ApplicationInstanceNotFound(Exception):  # noqa: N818
     """The requested ApplicationInstance wasn't found in the database."""
 
 
-class AccountDisabled(SerializableError):
+class AccountDisabled(SerializableError):  # noqa: N818
     """Indicate that we have disabled this account through it's org."""
 
     def __init__(self, application_instance: ApplicationInstance):
@@ -34,7 +34,7 @@ class AccountDisabled(SerializableError):
         )
 
 
-class ProvisioningDisabled(SerializableError):
+class ProvisioningDisabled(SerializableError):  # noqa: N818
     """
     Indicate that provisioning is not enabled for this instance.
 
