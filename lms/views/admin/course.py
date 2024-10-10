@@ -80,14 +80,13 @@ class AdminCourseViews:
             )
         )
 
-        response = HTTPFound(
+        return HTTPFound(
             location=self.request.route_url(
                 "dashboard.organization.course",
                 public_id=course.application_instance.organization.public_id,
                 course_id=course.id,
             ),
         )
-        return response
 
     @view_config(
         route_name="admin.courses",

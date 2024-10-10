@@ -301,10 +301,7 @@ def oauth_http_service(mock_service):
 
 @pytest.fixture
 def async_oauth_http_service(mock_service):
-    async_oauth_http_service = mock_service(
-        AsyncOAuthHTTPService, service_name="async_oauth_http"
-    )
-    return async_oauth_http_service
+    return mock_service(AsyncOAuthHTTPService, service_name="async_oauth_http")
 
 
 @pytest.fixture

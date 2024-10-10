@@ -1,11 +1,11 @@
-from enum import Enum
+from enum import Enum, StrEnum
 
 from lms.models import Course, Grouping
 from lms.product.plugin.grouping import GroupError, GroupingPlugin
 from lms.services.exceptions import CanvasAPIError
 
 
-class ErrorCodes(str, Enum):
+class ErrorCodes(StrEnum):
     """Error codes that the FE is going to check for."""
 
     STUDENT_NOT_IN_GROUP = "canvas_student_not_in_group"

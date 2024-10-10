@@ -43,7 +43,6 @@ exclude = [
     "tests/bdd/steps/_compiled_feature_steps.py",
 ]
 
-
 [tool.ruff.lint]
 select = [
   "E", "W", #  https://docs.astral.sh/ruff/rules/#pycodestyle-e-w
@@ -53,6 +52,8 @@ select = [
   "R", "PLR", # https://docs.astral.sh/ruff/rules/#refactor-r
   "C", "PLC", # https://docs.astral.sh/ruff/rules/#convention-c
   "SLF", # flake-8-self
+  "N", # https://docs.astral.sh/ruff/rules/#pep8-naming-n
+  "UP", # https://docs.astral.sh/ruff/rules/#pyupgrade-up
 
   "RUF100", # unused-noqa
 ]
@@ -82,19 +83,15 @@ ignore = [
     "D212",
     "D213",
 
+    # We use Black to format our code automatically, so we don't need PyLint to
+    # check formatting for us.
+    "E501", # line-too-long
+
     "PLR2004", # Magic values, we mostly get it on HTTP status codes
 
     # Disabled during the pylint migration, ideally we'll enable this after we are settled in ruff
-    "RET504",
     "RET501",
     "PLR6301",
-    "PLR6201",
-    "PLR1702",
-    "C405",
-    "C401",
-    "PLC1901",
-    "E721",
-    "C414",
 ]
 
 [tool.ruff.lint.per-file-ignores]

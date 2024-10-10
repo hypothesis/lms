@@ -15,7 +15,7 @@ from lms.validation._base import RequestsResponseSchema
 LOG = logging.getLogger(__name__)
 
 
-class BookNotFound(SerializableError):
+class BookNotFound(SerializableError):  # noqa: N818
     def __init__(self, book_id):
         super().__init__(message=f"Book {book_id} not found")
 

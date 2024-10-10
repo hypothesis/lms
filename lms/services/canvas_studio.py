@@ -1,6 +1,7 @@
 import logging
+from collections.abc import Mapping
 from functools import lru_cache
-from typing import Literal, Mapping, NotRequired, Type, TypedDict
+from typing import Literal, NotRequired, TypedDict
 from urllib.parse import urlencode, urljoin, urlparse, urlunparse
 
 import requests
@@ -204,7 +205,7 @@ class CanvasStudioService:
 
         :param state: `state` query param for the authorization request
         """
-        auth_url = urlunparse(
+        return urlunparse(
             (
                 "https",
                 self._domain,
@@ -221,8 +222,6 @@ class CanvasStudioService:
                 "",
             )
         )
-
-        return auth_url
 
     def _token_url(self) -> str:
         """Return the URL of the Canvas Studio OAuth token endpoint."""
@@ -375,15 +374,14 @@ class CanvasStudioService:
 
         for caption in captions:
             if caption["status"] == "published":
-                url = urljoin(self._canvas_studio_site(), caption["url"])
-                return url
+                return urljoin(self._canvas_studio_site(), caption["url"])
 
         return None
 
     def _api_request(
         self,
         path: str,
-        schema_cls: Type[RequestsResponseSchema],
+        schema_cls: type[RequestsResponseSchema],
         as_admin=False,
     ) -> dict:
         """
@@ -399,7 +397,7 @@ class CanvasStudioService:
     def _paginated_api_request(
         self,
         path: str,
-        schema_cls: Type[RequestsResponseSchema],
+        schema_cls: type[RequestsResponseSchema],
         field: str,
         as_admin=False,
     ) -> list:

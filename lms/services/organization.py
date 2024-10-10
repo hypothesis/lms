@@ -19,11 +19,11 @@ from lms.models import (
 LOG = getLogger(__name__)
 
 
-class InvalidOrganizationParent(Exception):
+class InvalidOrganizationParent(Exception):  # noqa: N818
     """The requested Organization wasn't found or isn't an eligible parent."""
 
 
-class InvalidPublicId(Exception):
+class InvalidPublicId(Exception):  # noqa: N818
     """Indicate an error with the specified public id."""
 
 

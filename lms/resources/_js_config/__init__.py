@@ -1,7 +1,7 @@
 import functools
 import re
 from datetime import timedelta
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any
 
 from lms.error_code import ErrorCode
@@ -28,7 +28,7 @@ from lms.views.helpers import via_url
 class JSConfig:
     """The config for the app's JavaScript code."""
 
-    class Mode(str, Enum):
+    class Mode(StrEnum):
         OAUTH2_REDIRECT_ERROR = "oauth2-redirect-error"
         BASIC_LTI_LAUNCH = "basic-lti-launch"
         FILE_PICKER = "content-item-selection"
@@ -548,7 +548,7 @@ class JSConfig:
         return BearerTokenSchema(self._request).authorization_param(self._lti_user)
 
     @property
-    @functools.lru_cache()
+    @functools.lru_cache
     def _config(self):
         """
         Return the current configuration dict.
@@ -632,7 +632,7 @@ class JSConfig:
         return product_info
 
     @property
-    @functools.lru_cache()
+    @functools.lru_cache
     def _hypothesis_client(self) -> dict[str, Any]:
         """
         Return the config object for the Hypothesis client.
@@ -711,7 +711,7 @@ class JSConfig:
                         key: value
                         for key, value in self._request.lti_params.items()
                         if key
-                        in [
+                        in {
                             # Most (all) of these are duplicated elsewhere, we'll keep updating for now
                             # because external analytics query rely on this table.
                             "context_id",
@@ -726,7 +726,7 @@ class JSConfig:
                             "tool_consumer_instance_guid",
                             "custom_canvas_api_domain",
                             "custom_canvas_course_id",
-                        ]
+                        }
                     },
                     # The student we are currently grading. In the case of Canvas
                     # this will be present in the SpeedGrader launch URL and

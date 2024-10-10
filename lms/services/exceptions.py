@@ -227,7 +227,7 @@ class CanvasAPIError(ExternalRequestError):
         ):
             raise OAuth2TokenError(**kwargs) from cause
 
-        if status_code in (401, 403):
+        if status_code in {401, 403}:
             raise CanvasAPIPermissionError(**kwargs) from cause
 
         raise CanvasAPIServerError(**kwargs) from cause
@@ -278,14 +278,14 @@ class SerializableError(Exception):
         self.details = details
 
 
-class FileNotFoundInCourse(SerializableError):
+class FileNotFoundInCourse(SerializableError):  # noqa: N818
     """A file wasn't found in the current course."""
 
     def __init__(self, error_code: str, document_id):
         super().__init__(error_code=error_code, details={"document_id": document_id})
 
 
-class StudentNotInCourse(SerializableError):
+class StudentNotInCourse(SerializableError):  # noqa: N818
     """A student is no longer in the current course."""
 
     def __init__(self, grading_id):
