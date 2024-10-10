@@ -24,8 +24,8 @@ class TestAESService:
             target_keys, max_age=timedelta(days=2), max_expired_age=timedelta(days=4)
         )
 
-        assert all((key.expired for key in valid_keys))
-        assert not any((key in db_session for key in expired_keys))
+        assert all(key.expired for key in valid_keys)
+        assert not any(key in db_session for key in expired_keys)
         assert db_session.query(RSAKey).filter_by(expired=False).count() == target_keys
 
     @freeze_time("2022-1-11")
@@ -35,7 +35,7 @@ class TestAESService:
         # 11th.
         svc.rotate(3, max_age=timedelta(days=2), max_expired_age=timedelta(days=5))
 
-        assert not any((key.expired for key in valid_keys))
+        assert not any(key.expired for key in valid_keys)
 
     @freeze_time("2022-1-11")
     @pytest.mark.usefixtures("valid_keys")
@@ -43,7 +43,7 @@ class TestAESService:
         # Keys created the 10th, max expired age of 5, doesn't delete the keys
         # on the 11th.
         svc.rotate(3, max_age=timedelta(days=2), max_expired_age=timedelta(days=5))
-        assert all((key in db_session for key in expired_keys))
+        assert all(key in db_session for key in expired_keys)
 
     def test_generate(self, svc, aes_service, rsa):
         rsa.generate_private_key.return_value.public_key.return_value.public_numbers.return_value = Mock(

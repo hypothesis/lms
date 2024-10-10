@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, StrEnum
 
 from lms.models import Course, Grouping
 from lms.product.plugin.grouping import GroupError, GroupingPlugin
@@ -6,7 +6,7 @@ from lms.services import D2LAPIClient
 from lms.services.exceptions import ExternalRequestError
 
 
-class ErrorCodes(str, Enum):
+class ErrorCodes(StrEnum):
     """Error codes that the FE is going to check for."""
 
     GROUP_SET_NOT_FOUND = "d2l_group_set_not_found"

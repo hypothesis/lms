@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import Enum, StrEnum
 
 
-class Family(str, Enum):
+class Family(StrEnum):
     """Enum for which product this relates to."""
 
     BLACKBAUD = "BlackbaudK12"

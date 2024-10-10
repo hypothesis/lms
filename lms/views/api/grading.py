@@ -154,7 +154,7 @@ class CanvasPreRecordHook:
     # https://erau.instructure.com/doc/api/file.assignment_tools.html
 
     # We use a set date in the past when no other date is available to avoid creating new submissions.
-    DEFAULT_SUBMISSION_DATE = datetime.datetime(2001, 1, 1, tzinfo=timezone.utc)
+    DEFAULT_SUBMISSION_DATE = datetime.datetime(2001, 1, 1, tzinfo=datetime.UTC)
 
     def __init__(self, request):
         self.request = request

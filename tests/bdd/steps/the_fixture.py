@@ -27,7 +27,7 @@ class TheFixture(StepContext):
         )
 
         if not os.path.isdir(self.base_dir):
-            raise EnvironmentError(f"Cannot find fixture dir: {self.base_dir}")
+            raise OSError(f"Cannot find fixture dir: {self.base_dir}")
 
     def set_fixture(self, name, value):
         self.fixtures[name] = value
