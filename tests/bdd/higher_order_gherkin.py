@@ -96,7 +96,7 @@ class Renderer:
 
         python_code = (
             f'"""\nAuto-generated.\n\nFrom {source_dir}/.\n"""'
-            "\n\nfrom behave import step  # pylint:disable=no-name-in-module\n"
+            "\n\nfrom behave import step \n"
         )
 
         for feature_step in sorted(feature_steps, key=lambda step: step.name):
