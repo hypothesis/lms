@@ -2,6 +2,5 @@ pip-tools
 pip-sync-faster
 -r tests.txt
 -r functests.txt
-pylint>=3.0.0
 ruff
 -r bddtests.txt
