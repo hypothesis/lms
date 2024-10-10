@@ -1,4 +1,4 @@
-class ReusedConsumerKey(Exception):
+class ReusedConsumerKey(Exception):  # noqa: N818
     """Application Instance launched in a different LMS install."""
 
     def __init__(self, existing_guid, new_guid):
