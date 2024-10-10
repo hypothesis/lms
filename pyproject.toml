@@ -83,10 +83,6 @@ ignore = [
     "D212",
     "D213",
 
-    # We use Black to format our code automatically, so we don't need PyLint to
-    # check formatting for us.
-    "E501", # line-too-long
-
     "PLR2004", # Magic values, we mostly get it on HTTP status codes
 
     # Disabled during the pylint migration, ideally we'll enable this after we are settled in ruff
