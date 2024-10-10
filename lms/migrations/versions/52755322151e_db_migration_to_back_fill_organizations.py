@@ -120,7 +120,7 @@ def connected_subgraphs(edges):
 
     # Discard our internal ids for the sub-graphs as they have no meaning
     # outside this method. Sort them to make it easier on the eye.
-    return sorted(sorted(list(nodes)) for nodes in group_to_nodes.values())
+    return sorted(sorted(nodes) for nodes in group_to_nodes.values())
 
 
 def pick_name(names):
