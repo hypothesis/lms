@@ -1,7 +1,7 @@
 import logging
 import re
 from dataclasses import dataclass
-from enum import Enum, unique
+from enum import Enum, StrEnum, unique
 
 import sqlalchemy as sa
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -13,7 +13,7 @@ LOG = logging.getLogger(__name__)
 
 
 @unique
-class RoleType(str, Enum):
+class RoleType(StrEnum):
     """Enum for the different types of role a user can have."""
 
     INSTRUCTOR = "instructor"
@@ -23,7 +23,7 @@ class RoleType(str, Enum):
 
 
 @unique
-class RoleScope(str, Enum):
+class RoleScope(StrEnum):
     """Enum for the different scopes of a role."""
 
     COURSE = "course"

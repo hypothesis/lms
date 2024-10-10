@@ -4,10 +4,10 @@ Error codes are useful in different parts of the application.
 We have them in their own module to avoid any circular dependency problems.
 """
 
-from enum import Enum
+from enum import Enum, StrEnum
 
 
-class ErrorCode(str, Enum):
+class ErrorCode(StrEnum):
     BLACKBOARD_MISSING_INTEGRATION = "blackboard_missing_integration"
     CANVAS_INVALID_SCOPE = "canvas_invalid_scope"
     VITALSOURCE_STUDENT_PAY_NO_LICENSE = "vitalsource_student_pay_no_license"

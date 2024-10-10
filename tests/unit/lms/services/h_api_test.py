@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from unittest.mock import call, patch, sentinel
 
 import pytest
@@ -99,7 +99,7 @@ class TestHAPI:
         result = h_api.get_annotations(
             h_userid="acct:name@lms.hypothes.is",
             created_after=datetime(2001, 2, 3, 4, 5, 6),
-            created_before=datetime(2002, 2, 3, 4, 5, 6, tzinfo=timezone.utc),
+            created_before=datetime(2002, 2, 3, 4, 5, 6, tzinfo=UTC),
         )
 
         result = list(result)
@@ -198,9 +198,7 @@ class TestHAPI:
         result = h_api.get_groups(
             groups=["group_1", "group_2"],
             annotations_created_after=datetime(2001, 2, 3, 4, 5, 6),
-            annotations_created_before=datetime(
-                2002, 2, 3, 4, 5, 6, tzinfo=timezone.utc
-            ),
+            annotations_created_before=datetime(2002, 2, 3, 4, 5, 6, tzinfo=UTC),
             batch_size=1,
         )
 

@@ -1,7 +1,7 @@
 """Database model for persisting OAuth 2 tokens."""
 
 import datetime
-from enum import Enum, unique
+from enum import Enum, StrEnum, unique
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
@@ -12,7 +12,7 @@ __all__ = ["OAuth2Token"]
 
 
 @unique
-class Service(str, Enum):
+class Service(StrEnum):
     """Enum of the different APIs that OAuth tokens may be used for."""
 
     LMS = "lms"

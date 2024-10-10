@@ -1,6 +1,6 @@
 import logging
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 from sqlalchemy import distinct, func, or_, select, tuple_
 from sqlalchemy.dialects.postgresql import aggregate_order_by
@@ -73,7 +73,7 @@ class DigestService:
             return
 
         if deduplicate:
-            task_done_key = f"instructor_email_digest::{context.user_info.h_userid}::{datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
+            task_done_key = f"instructor_email_digest::{context.user_info.h_userid}::{datetime.now(UTC).strftime('%Y-%m-%d')}"
             task_done_data = {
                 "type": "instructor_email_digest",
                 "h_userid": context.user_info.h_userid,

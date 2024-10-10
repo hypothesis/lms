@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 
 from sqlalchemy import Boolean, not_, select
 
@@ -43,10 +43,10 @@ def send_instructor_email_digest_tasks():
     EST is 5 hours behind UTC (ignoring daylight savings for simplicity: we
     don't need complete accuracy in the timing).
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     weekday = EmailPrefs.DAYS[now.weekday()]
     created_before = datetime(
-        year=now.year, month=now.month, day=now.day, hour=5, tzinfo=timezone.utc
+        year=now.year, month=now.month, day=now.day, hour=5, tzinfo=UTC
     )
 
     with app.request_context() as request:
@@ -158,9 +158,9 @@ def send_instructor_email_digest(
             if task_done_data:
                 created_after = max(
                     datetime.fromisoformat(task_done_data["created_before"]).replace(
-                        tzinfo=timezone.utc
+                        tzinfo=UTC
                     ),
-                    created_after.replace(tzinfo=timezone.utc),  # type:ignore
+                    created_after.replace(tzinfo=UTC),  # type:ignore
                 )
 
             digest_service = request.find_service(DigestService)

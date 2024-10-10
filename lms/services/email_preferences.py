@@ -1,6 +1,6 @@
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from datetime import timedelta
-from typing import Callable
 from urllib.parse import parse_qs, urlparse
 
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError

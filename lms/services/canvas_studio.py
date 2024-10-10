@@ -1,6 +1,7 @@
 import logging
+from collections.abc import Mapping
 from functools import lru_cache
-from typing import Literal, Mapping, NotRequired, Type, TypedDict
+from typing import Literal, NotRequired, TypedDict
 from urllib.parse import urlencode, urljoin, urlparse, urlunparse
 
 import requests
@@ -380,7 +381,7 @@ class CanvasStudioService:
     def _api_request(
         self,
         path: str,
-        schema_cls: Type[RequestsResponseSchema],
+        schema_cls: type[RequestsResponseSchema],
         as_admin=False,
     ) -> dict:
         """
@@ -396,7 +397,7 @@ class CanvasStudioService:
     def _paginated_api_request(
         self,
         path: str,
-        schema_cls: Type[RequestsResponseSchema],
+        schema_cls: type[RequestsResponseSchema],
         field: str,
         as_admin=False,
     ) -> list:
