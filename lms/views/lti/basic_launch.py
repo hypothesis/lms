@@ -117,7 +117,9 @@ class BasicLaunchViews:
             "filePicker": js_config["filePicker"],
         }
         if auto_grading_config := assignment.auto_grading_config:
-            assignment_config['assignment']["auto_grading_config"] = auto_grading_config.asdict()
+            assignment_config["assignment"]["auto_grading_config"] = (
+                auto_grading_config.asdict()
+            )
 
         return assignment_config
 
