@@ -106,6 +106,7 @@ class TestBasicLaunchViews:
             data={
                 "old_url": assignment.document_url,
                 "old_group_set_id": assignment.extra.get.return_value,
+                "old_auto_grading_configuration": assignment.auto_grading_config.asdict.return_value,
             },
         )
         pyramid_request.registry.notify.has_call_with(LTIEvent.return_value)
