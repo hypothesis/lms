@@ -187,7 +187,11 @@ class ConfigureAssignmentSchema(_CommonLTILaunchSchema):
     )
 
     @pre_load
-    def _decode_auto_grading_config(self, data, **_kwargs):
+    def _load_auto_grading_config(self, data, **_kwargs):
+        """Load auto grading config.
+
+        "form" location doesn't accept Nested fields we'll accept the value as json and deserilize it here.
+        """
         auto_grading_config = data.get("auto_grading_config")
 
         if auto_grading_config and isinstance(auto_grading_config, str):
