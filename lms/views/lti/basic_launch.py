@@ -163,6 +163,9 @@ class BasicLaunchViews:
                 data={
                     "old_url": assignment.document_url,
                     "old_group_set_id": assignment.extra.get("group_set_id"),
+                    "old_auto_grading_configuration": assignment.auto_grading_config.asdict()
+                    if assignment.auto_grading_config
+                    else None,
                 },
             )
         )
