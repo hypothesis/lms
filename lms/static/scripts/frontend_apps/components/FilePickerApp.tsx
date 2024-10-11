@@ -192,10 +192,24 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   );
 
   const [autoGradingConfig, setAutoGradingConfig] = useState<AutoGradingConfig>(
-    {
-      gradingType: 'all_or_nothing',
-      activityCalculation: 'cumulative',
-      requiredAnnotations: 1,
+    () => {
+      const config = assignment?.auto_grading_config;
+      if (config) {
+        return {
+          enabled: true,
+          gradingType: config.grading_type,
+          activityCalculation: config.activity_calculation,
+          requiredAnnotations: config.required_annotations,
+          requiredReplies: config.required_replies,
+        };
+      } else {
+        return {
+          enabled: false,
+          gradingType: 'all_or_nothing',
+          activityCalculation: 'cumulative',
+          requiredAnnotations: 1,
+        };
+      }
     },
   );
 
@@ -518,6 +532,18 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                 content={content}
                 formFields={formFields}
                 groupSet={groupConfig.useGroupSet ? groupConfig.groupSet : null}
+                autoGradingConfig={
+                  autoGradingEnabled && autoGradingConfig.enabled
+                    ? {
+                        grading_type: autoGradingConfig.gradingType,
+                        activity_calculation:
+                          autoGradingConfig.activityCalculation,
+                        required_annotations:
+                          autoGradingConfig.requiredAnnotations,
+                        required_replies: autoGradingConfig.requiredReplies,
+                      }
+                    : null
+                }
               />
             )
           }
