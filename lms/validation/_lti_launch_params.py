@@ -1,3 +1,5 @@
+import json
+
 from marshmallow import (
     EXCLUDE,
     Schema,
@@ -183,3 +185,17 @@ class ConfigureAssignmentSchema(_CommonLTILaunchSchema):
     auto_grading_config = fields.Nested(
         AutoGradingConfigSchema, required=False, allow_none=True
     )
+
+    @pre_load
+    def _decode_auto_grading_config(self, data, **_kwargs):
+        auto_grading_config = data.get("auto_grading_config")
+
+        if auto_grading_config and isinstance(auto_grading_config, str):
+            try:
+                data["auto_grading_config"] = json.loads(auto_grading_config)
+            except json.decoder.JSONDecodeError as exc:
+                raise ValidationError(
+                    "Invalid json for nested field", "auto_grading_config"
+                ) from exc
+
+        return data
