@@ -239,7 +239,7 @@ describe('GradeIndicator', () => {
     {
       status: 'in_progress',
       expectedBadge: 'syncing',
-      expectedBadgeText: 'Syncing…',
+      expectedBadgeText: 'Syncing',
     },
   ].forEach(({ status, expectedBadge, expectedBadgeText }) => {
     it('shows the corresponding badge based on status', () => {

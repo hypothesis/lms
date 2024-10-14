@@ -67,13 +67,13 @@ function Badge({ type }: { type: BadgeType }) {
         {
           'bg-grey-7 text-white': type === 'new',
           'bg-grade-error-light text-grade-error': type === 'error',
-          'bg-grey-3 text-grey-7': type === 'syncing',
+          'bg-grey-2 text-grey-7': type === 'syncing',
         },
       )}
     >
       {type === 'new' && 'New'}
       {type === 'error' && 'Error'}
-      {type === 'syncing' && 'Syncing…'}
+      {type === 'syncing' && 'Syncing'}
     </div>
   );
 }
