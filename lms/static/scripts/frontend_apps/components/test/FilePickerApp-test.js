@@ -73,7 +73,13 @@ describe('FilePickerApp', () => {
    */
   function checkFormFields(
     wrapper,
-    { content, groupSet = null, formFields = {}, title = null },
+    {
+      content,
+      groupSet = null,
+      formFields = {},
+      title = null,
+      autoGradingConfig = null,
+    },
   ) {
     const fieldsComponent = wrapper.find('FilePickerFormFields');
     assert.deepEqual(fieldsComponent.props(), {
@@ -82,6 +88,7 @@ describe('FilePickerApp', () => {
       formFields: { ...fakeConfig.filePicker.formFields, ...formFields },
       groupSet,
       title,
+      autoGradingConfig,
     });
   }
 
@@ -404,6 +411,30 @@ describe('FilePickerApp', () => {
           },
           groupSet: useGroupSet ? 'groupSet1' : null,
         });
+      });
+    });
+
+    it('initializes auto_grading_config if assignment already has it', () => {
+      const autoGradingConfig = {
+        grading_type: 'scaled',
+        activity_calculation: 'separate',
+        required_annotations: 10,
+        required_replies: 5,
+      };
+      const url = 'https://example.com';
+
+      fakeConfig.assignment = {
+        auto_grading_config: autoGradingConfig,
+        document: { url },
+      };
+      fakeConfig.filePicker.autoGradingEnabled = true;
+
+      const onSubmit = sinon.stub().callsFake(e => e.preventDefault());
+      const wrapper = renderFilePicker({ onSubmit });
+
+      checkFormFields(wrapper, {
+        content: { type: 'url', url },
+        autoGradingConfig,
       });
     });
 

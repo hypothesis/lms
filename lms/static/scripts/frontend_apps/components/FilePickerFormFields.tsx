@@ -1,3 +1,4 @@
+import type { AutoGradingConfig } from '../api-types';
 import type { Content } from '../utils/content-item';
 
 export type FilePickerFormFieldsProps = {
@@ -20,6 +21,9 @@ export type FilePickerFormFieldsProps = {
 
   /** Assignment title chosen by the user, if supported by the current LMS. */
   title: string | null;
+
+  /** Auto-grading configuration for assignments where it is enabled */
+  autoGradingConfig: AutoGradingConfig | null;
 };
 
 /**
@@ -33,6 +37,7 @@ export default function FilePickerFormFields({
   content,
   formFields,
   groupSet,
+  autoGradingConfig,
 }: FilePickerFormFieldsProps) {
   return (
     <>
@@ -46,6 +51,13 @@ export default function FilePickerFormFields({
         <input name="document_url" type="hidden" value={content.url} />
       )}
       {title !== null && <input type="hidden" name="title" value={title} />}
+      {autoGradingConfig && (
+        <input
+          type="hidden"
+          name="auto_grading_config"
+          value={JSON.stringify(autoGradingConfig)}
+        />
+      )}
     </>
   );
 }
