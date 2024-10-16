@@ -4,4 +4,4 @@ pip-sync-faster
 factory-boy
 pyramid-ipython
 supervisor
-h_testkit
+h-testkit
