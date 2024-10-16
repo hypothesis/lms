@@ -1,4 +1,4 @@
-import { Button, LeaveIcon } from '@hypothesis/frontend-shared';
+import { Button, CheckIcon, LeaveIcon } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useCallback, useMemo, useState } from 'preact/hooks';
 import { useParams } from 'wouter-preact';
@@ -69,11 +69,11 @@ export default function SyncGradesButton({
     updateSyncStatus('scheduled');
   }, [studentsToSync?.length, updateSyncStatus]);
 
-  const buttonContent = useMemo(() => {
-    if (!studentsToSync || (lastSync.isLoading && !lastSync.data)) {
-      return 'Loading...';
-    }
+  const isLoading = !studentsToSync || (lastSync.isLoading && !lastSync.data);
+  const allGradesAreSynced =
+    studentsToSync?.length === 0 && lastSync.data?.status === 'finished';
 
+  const buttonContent = useMemo(() => {
     if (
       lastSync.data &&
       ['scheduled', 'in_progress'].includes(lastSync.data.status)
@@ -116,14 +116,10 @@ export default function SyncGradesButton({
       );
     }
 
-    if (studentsToSync.length > 0) {
-      return `Sync ${studentsToSync.length} grades`;
-    }
-
-    return 'Grades synced';
+    const studentsToSyncAmount = studentsToSync?.length ?? 0;
+    return `Sync ${studentsToSyncAmount} ${studentsToSyncAmount === 1 ? 'grade' : 'grades'}`;
   }, [
     studentsToSync,
-    lastSync.isLoading,
     lastSync.data,
     lastSync.error,
     totalStudentsToSync,
@@ -159,7 +155,13 @@ export default function SyncGradesButton({
     updateSyncStatus,
   ]);
 
-  return (
+  return isLoading ? (
+    <span className="py-2 text-color-text-light">...</span>
+  ) : allGradesAreSynced ? (
+    <span className="py-2 font-bold text-green-success flex gap-1 items-center">
+      Grades synced <CheckIcon />
+    </span>
+  ) : (
     <Button variant="primary" onClick={syncGrades} disabled={buttonDisabled}>
       {buttonContent}
     </Button>
