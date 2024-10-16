@@ -1,3 +1,4 @@
+import json
 from unittest.mock import sentinel
 
 import marshmallow
@@ -246,6 +247,39 @@ class TestDeepLinkingLTILaunchSchema:
 class TestConfigureAssignmentSchema:
     def test_that_validation_succeeds_for_valid_requests(self, schema):
         schema.parse()
+
+    def test_with_valid_auto_grading_config_in_json(
+        self, pyramid_request, schema, auto_grading_config
+    ):
+        pyramid_request.params["auto_grading_config"] = json.dumps(auto_grading_config)
+
+        data = schema.parse()
+
+        assert data["auto_grading_config"] == auto_grading_config
+
+    def test_with_invalid_auto_grading_config_in_json(
+        self, pyramid_request, schema, auto_grading_config
+    ):
+        auto_grading_config["required_annotations"] = -1
+        pyramid_request.params["auto_grading_config"] = json.dumps(auto_grading_config)
+
+        with pytest.raises(ValidationError):
+            schema.parse()
+
+    def test_with_invalid_json(self, pyramid_request, schema):
+        pyramid_request.params["auto_grading_config"] = "{]"
+
+        with pytest.raises(ValidationError):
+            schema.parse()
+
+    @pytest.fixture
+    def auto_grading_config(self):
+        return {
+            "grading_type": "scaled",
+            "activity_calculation": "separate",
+            "required_annotations": 10,
+            "required_replies": 5,
+        }
 
     @pytest.fixture
     def pyramid_request(self):
