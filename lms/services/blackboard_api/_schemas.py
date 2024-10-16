@@ -23,9 +23,9 @@ class BlackboardListFilesSchema(RequestsResponseSchema):
         name = fields.Str(required=True)
         modified = fields.Str(required=True)
         type = fields.Str(required=True)
-        mimeType = fields.Str()
+        mimeType = fields.Str()  # noqa: N815
         size = fields.Integer()
-        parentId = fields.Str()
+        parentId = fields.Str()  # noqa: N815
 
     results = fields.List(fields.Nested(FileSchema), required=True)
 
@@ -37,7 +37,7 @@ class BlackboardListFilesSchema(RequestsResponseSchema):
 class BlackboardPublicURLSchema(RequestsResponseSchema):
     """Schema for Blackboard /courses/{courseId}/resources/{resourceId} responses."""
 
-    downloadUrl = fields.Str(required=True)
+    downloadUrl = fields.Str(required=True)  # noqa: N815
 
     @post_load
     def post_load(self, data, **_kwargs):
@@ -74,7 +74,7 @@ class BlackboardListGroups(RequestsResponseSchema):
 
         id = fields.Str(required=True)
         name = fields.Str(required=True)
-        groupSetId = fields.Str(required=False, allow_none=True)
+        groupSetId = fields.Str(required=False, allow_none=True)  # noqa: N815
         enrollment = fields.Nested(EnrollmentSchema, required=True)
 
     results = fields.List(fields.Nested(GroupSchema), required=True)

@@ -5,7 +5,7 @@ class VitalSourceError(SerializableError):
     """Indicate a failure in the VitalSource service or client."""
 
 
-class VitalSourceMalformedRegex(VitalSourceError):
+class VitalSourceMalformedRegex(VitalSourceError):  # noqa: N818
     """An issue with the user regex."""
 
     def __init__(self, description, pattern):

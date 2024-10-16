@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, StrEnum
 
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
@@ -11,7 +11,7 @@ from lms.db import Base, varchar_enum
 class EventType(Base):
     __tablename__ = "event_type"
 
-    class Type(str, Enum):
+    class Type(StrEnum):
         CONFIGURED_LAUNCH = "configured_launch"
         DEEP_LINKING = "deep_linking"
         AUDIT_TRAIL = "audit"

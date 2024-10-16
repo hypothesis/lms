@@ -11,7 +11,7 @@ class APISyncSchema(PyramidRequestSchema):
     context_id = fields.Str(required=True)
     group_set_id = fields.Str(required=False, allow_none=True)
     group_info = fields.Dict(required=True)
-    gradingStudentId = fields.Str(required=False, allow_none=True)
+    gradingStudentId = fields.Str(required=False, allow_none=True)  # noqa: N815
 
 
 @view_config(
