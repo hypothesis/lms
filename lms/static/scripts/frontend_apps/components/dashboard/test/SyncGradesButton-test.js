@@ -78,8 +78,8 @@ describe('SyncGradesButton', () => {
     it('shows loading text when getting initial data', () => {
       const wrapper = createComponent(studentsToSync);
 
-      assert.equal(buttonText(wrapper), 'Loading...');
-      assert.isTrue(isButtonDisabled(wrapper));
+      assert.equal(wrapper.text(), '...');
+      assert.isFalse(wrapper.exists('Button'));
     });
   });
 
@@ -123,19 +123,26 @@ describe('SyncGradesButton', () => {
   });
 
   [
-    { students: studentsToSync, expectedAmount: studentsToSync.length },
+    {
+      students: studentsToSync,
+      expectedButtonText: `Sync ${studentsToSync.length} grades`,
+    },
     {
       students: [...studentsToSync, ...studentsToSync],
-      expectedAmount: studentsToSync.length * 2,
+      expectedButtonText: `Sync ${studentsToSync.length * 2} grades`,
     },
-  ].forEach(({ students, expectedAmount }) => {
+    {
+      students: [studentsToSync[0]],
+      expectedButtonText: 'Sync 1 grade',
+    },
+  ].forEach(({ students, expectedButtonText }) => {
     it('shows the amount of students to be synced when current status is "finished"', () => {
       const wrapper = createComponent(students, {
         isLoading: false,
         data: { status: 'finished', grades: [] },
       });
 
-      assert.equal(buttonText(wrapper), `Sync ${expectedAmount} grades`);
+      assert.equal(buttonText(wrapper), expectedButtonText);
       assert.isFalse(isButtonDisabled(wrapper));
     });
   });
@@ -156,8 +163,8 @@ describe('SyncGradesButton', () => {
       data: { status: 'finished', grades: [] },
     });
 
-    assert.equal(buttonText(wrapper), 'Grades synced');
-    assert.isTrue(isButtonDisabled(wrapper));
+    assert.equal(wrapper.text().trim(), 'Grades synced');
+    assert.isFalse(wrapper.exists('Button'));
   });
 
   it('submits grades when the button is clicked, then calls onSyncScheduled', async () => {
