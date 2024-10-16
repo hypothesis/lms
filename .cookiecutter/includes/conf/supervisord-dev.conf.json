@@ -13,6 +13,9 @@
     "worker": {
       "command": "newrelic-admin run-program celery -A lms.tasks.celery:app worker --loglevel=INFO"
     },
+    "worker-email-digests": {
+      "command": "newrelic-admin run-program celery -A lms.tasks.celery:app worker --loglevel=INFO -Q email_digests -n celery-email_digests-@%%h"
+    },
     "assets": {
       "command": "node_modules/.bin/gulp watch"
     }
