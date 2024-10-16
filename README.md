@@ -160,7 +160,6 @@ You should also see an "Insecure content blocked" icon in the top right of the l
 
 Click on the <samp>Load unsafe scripts</samp> link and the app should load successfully.
 
-
 ### Localhost alias
 
 Some services that the LMS app integrates with (eg. Canvas Studio) do not allow

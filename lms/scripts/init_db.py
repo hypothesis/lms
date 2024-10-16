@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # mypy: disable-error-code="attr-defined"
 """
+
 Initialize the DB.
 
 Usage:
@@ -9,6 +10,7 @@ Usage:
 
 """
 
+# ruff: noqa: PLC0415, F401
 import argparse
 import logging
 from os import environ
@@ -19,7 +21,7 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import ProgrammingError
 
-from lms import models  # noqa: F401
+from lms import models
 from lms.db import Base, create_engine
 
 log = logging.getLogger(__name__)
@@ -42,7 +44,7 @@ def delete(engine: Engine) -> None:
     """Delete any existing DB tables."""
 
     try:
-        from lms.db import pre_delete  # noqa: PLC0415
+        from lms.db import pre_delete
     except ImportError:
         pass
     else:
@@ -57,7 +59,7 @@ def delete(engine: Engine) -> None:
         connection.execute(text("COMMIT;"))
 
     try:
-        from lms.db import post_delete  # noqa: PLC0415
+        from lms.db import post_delete
     except ImportError:
         pass
     else:
@@ -68,7 +70,7 @@ def create(engine: Engine) -> None:
     """Create new DB tables from the app's models."""
 
     try:
-        from lms.db import pre_create  # noqa: PLC0415
+        from lms.db import pre_create
     except ImportError:
         pass
     else:
@@ -77,7 +79,7 @@ def create(engine: Engine) -> None:
     Base.metadata.create_all(engine)
 
     try:
-        from lms.db import post_create  # noqa: PLC0415
+        from lms.db import post_create
     except ImportError:
         pass
     else:

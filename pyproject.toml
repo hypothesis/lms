@@ -10,32 +10,6 @@ filterwarnings = [
     "ignore:^'cgi' is deprecated and slated for removal in Python 3\\.13$:DeprecationWarning:webob",
 ]
 
-[tool.coverage.run]
-branch = true
-parallel = true
-source = ["lms", "tests/unit"]
-omit = [
-    "*/lms/__main__.py",
-    "*/lms/scripts/init_db.py",
-    "lms/pshell.py",
-    "lms/migrations/*",
-    "lms/extensions/feature_flags/views/test.py",
-    "lms/views/feature_flags_test.py",
-]
-
-[tool.coverage.paths]
-source = ["src", ".tox/*tests/lib/python*/site-packages"]
-
-[tool.coverage.report]
-show_missing = true
-precision = 2
-fail_under = 100.00
-skip_covered = true
-exclude_also = [
-    # # TYPE_CHECKING block is only executed while running mypy
-    "if TYPE_CHECKING:"
-]
-
 [tool.ruff]
 target-version = "py311"
 line-length = 88
@@ -119,21 +93,51 @@ ignore = [
 # Ignore unused import errors on __init__ files to avoid having to add either a noqa stament or an __all__ declaration.
 "__init__.py" = ["F401"]
 
+[tool.coverage.run]
+branch = true
+parallel = true
+source = ["lms", "tests/unit"]
+omit = [
+    "*/lms/__main__.py",
+    "*/lms/scripts/init_db.py",
+    "lms/pshell.py",
+    "lms/migrations/*",
+    "lms/extensions/feature_flags/views/test.py",
+    "lms/views/feature_flags_test.py",
+]
+
+[tool.coverage.paths]
+source = ["src", ".tox/*tests/lib/python*/site-packages"]
+
+[tool.coverage.report]
+show_missing = true
+precision = 2
+fail_under = 100.00
+skip_covered = true
+exclude_also = [
+    # # TYPE_CHECKING block is only executed while running mypy
+    "if TYPE_CHECKING:"
+]
+
 
 [tool.mypy]
-python_version = 3.11
+allow_untyped_globals = true
+error_summary = false
+pretty = true
 warn_unused_configs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 check_untyped_defs = true
 
 disable_error_code = [
+    # https://mypy.readthedocs.io/en/stable/error_code_list.html#code-import-untyped
     "import-untyped",
 ]
 
 [[tool.mypy.overrides]]
-module= [
-  "tests.*",
-  "lms.migrations.*"
+module = [
+    # Don't try to typecheck the tests for now
+    "tests.*",
+    "lms.migrations.*",
 ]
 ignore_errors = true
