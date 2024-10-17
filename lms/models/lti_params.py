@@ -62,6 +62,10 @@ class LTIParams(dict):
             # authorization
             if param
             not in ["oauth_nonce", "oauth_timestamp", "oauth_signature", "id_token"]
+            +
+            # We also don't want to include parameters that are not part of the LTI spec
+            # but we might submit together in a form while creating and editing assigments.
+            ["auto_grading_config"]
         }
         form_fields.update(**kwargs)
         return form_fields
