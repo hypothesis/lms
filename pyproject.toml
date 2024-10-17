@@ -43,7 +43,6 @@ exclude = [
     "tests/bdd/steps/_compiled_feature_steps.py",
 ]
 
-
 [tool.ruff.lint]
 select = [
   "E", "W", #  https://docs.astral.sh/ruff/rules/#pycodestyle-e-w
@@ -92,7 +91,6 @@ ignore = [
     "RET504",
     "RET501",
     "PLR6301",
-    "PLR1702",
     "C405",
     "C401",
     "E721",
