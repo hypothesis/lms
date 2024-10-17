@@ -74,4 +74,21 @@ describe('FilePickerFormFields', () => {
     assert.isTrue(titleField.exists());
     assert.equal(titleField.prop('value'), 'Example assignment');
   });
+
+  it('renders `auto_grading_config` if `autoGradingConfig` prop is set', () => {
+    const autoGradingConfig = {
+      grading_type: 'scaled',
+      activity_calculation: 'separate',
+      required_annotations: 10,
+      required_replies: 5,
+    };
+    const formFields = createComponent({
+      content: { type: 'url', url: 'https://example.com/' },
+      autoGradingConfig,
+    });
+    const configField = formFields.find('input[name="auto_grading_config"]');
+
+    assert.isTrue(configField.exists());
+    assert.equal(configField.prop('value'), JSON.stringify(autoGradingConfig));
+  });
 });

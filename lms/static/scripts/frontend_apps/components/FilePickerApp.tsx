@@ -13,7 +13,13 @@ import {
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import type { ComponentChildren } from 'preact';
-import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'preact/hooks';
 import { Link as RouterLink } from 'wouter-preact';
 
 import type { AutoGradingConfig as APIAutoGradingConfig } from '../api-types';
@@ -192,11 +198,46 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
   );
 
   const [autoGradingConfig, setAutoGradingConfig] = useState<AutoGradingConfig>(
-    {
-      gradingType: 'all_or_nothing',
-      activityCalculation: 'cumulative',
-      requiredAnnotations: 1,
+    () => {
+      const assignmentAutoGradingConfig = assignment?.auto_grading_config;
+      if (!assignmentAutoGradingConfig) {
+        return {
+          enabled: false,
+          gradingType: 'all_or_nothing',
+          activityCalculation: 'cumulative',
+          requiredAnnotations: 1,
+        };
+      }
+
+      // Initialize with the assignment's auto-grading config if it exists
+      return {
+        enabled: true,
+        gradingType: assignmentAutoGradingConfig.grading_type,
+        activityCalculation: assignmentAutoGradingConfig.activity_calculation,
+        requiredAnnotations: assignmentAutoGradingConfig.required_annotations,
+        requiredReplies: assignmentAutoGradingConfig.required_replies,
+      };
     },
+  );
+  // The auto-grading config as expected by the backend
+  const autoGradingConfigToSave = useMemo(
+    () =>
+      autoGradingEnabled && autoGradingConfig.enabled
+        ? {
+            grading_type: autoGradingConfig.gradingType,
+            activity_calculation: autoGradingConfig.activityCalculation,
+            required_annotations: autoGradingConfig.requiredAnnotations,
+            required_replies: autoGradingConfig.requiredReplies,
+          }
+        : null,
+    [
+      autoGradingConfig.activityCalculation,
+      autoGradingConfig.enabled,
+      autoGradingConfig.gradingType,
+      autoGradingConfig.requiredAnnotations,
+      autoGradingConfig.requiredReplies,
+      autoGradingEnabled,
+    ],
   );
 
   // Flag indicating if we are editing content that was previously selected.
@@ -263,15 +304,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       try {
         const data: DeepLinkingAPIData = {
           ...deepLinkingAPI.data,
-          auto_grading_config:
-            autoGradingEnabled && autoGradingConfig.enabled
-              ? {
-                  grading_type: autoGradingConfig.gradingType,
-                  activity_calculation: autoGradingConfig.activityCalculation,
-                  required_annotations: autoGradingConfig.requiredAnnotations,
-                  required_replies: autoGradingConfig.requiredReplies,
-                }
-              : null,
+          auto_grading_config: autoGradingConfigToSave,
           content,
           group_set: groupConfig.useGroupSet ? groupConfig.groupSet : null,
           title,
@@ -300,8 +333,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       groupConfig.groupSet,
       groupConfig.useGroupSet,
       title,
-      autoGradingEnabled,
-      autoGradingConfig,
+      autoGradingConfigToSave,
     ],
   );
 
@@ -518,6 +550,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
                 content={content}
                 formFields={formFields}
                 groupSet={groupConfig.useGroupSet ? groupConfig.groupSet : null}
+                autoGradingConfig={autoGradingConfigToSave}
               />
             )
           }
