@@ -73,9 +73,7 @@ class JWTService:
         payload = copy.deepcopy(payload)
         payload["exp"] = datetime.datetime.utcnow() + lifetime
 
-        jwt_str = jwt.encode(payload, secret, algorithm="HS256")
-
-        return jwt_str
+        return jwt.encode(payload, secret, algorithm="HS256")
 
     def decode_lti_token(self, id_token: str) -> dict:
         """
