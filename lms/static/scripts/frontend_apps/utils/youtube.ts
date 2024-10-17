@@ -6,7 +6,7 @@ export function videoIdFromYouTubeURL(url: string): string | null {
   let parsedURL;
   try {
     parsedURL = new URL(url);
-  } catch (e) {
+  } catch {
     return null;
   }
 

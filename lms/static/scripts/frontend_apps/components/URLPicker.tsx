@@ -63,7 +63,7 @@ export default function URLPicker({
       } else {
         setError(undefined);
       }
-    } catch (e) {
+    } catch {
       setError('Please enter a URL, e.g. "https://www.example.com"');
     }
   };

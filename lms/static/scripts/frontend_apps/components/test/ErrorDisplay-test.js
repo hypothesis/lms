@@ -175,7 +175,6 @@ describe('ErrorDisplay', () => {
   it(
     'should pass a11y checks',
     checkAccessibility({
-      // eslint-disable-next-line react/display-name
       content: () =>
         renderErrorDisplay({
           description: 'Something went wrong',

@@ -19,7 +19,7 @@ export function isBrowserSupported(): boolean {
   try {
     checks.forEach(check => check());
     return true;
-  } catch (err) {
+  } catch {
     return false;
   }
 }

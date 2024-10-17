@@ -127,9 +127,6 @@ export default function BookSelector({
   useEffect(() => {
     // Focus the input field when the component is first rendered
     inputRef.current!.focus();
-    // We only want to run this effect once.
-    //
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**
