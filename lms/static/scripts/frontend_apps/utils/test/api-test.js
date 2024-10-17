@@ -691,10 +691,11 @@ describe('usePolledAPIFetch', () => {
     $imports.$restore();
   });
 
-  function TestWidget({ shouldRefresh }) {
+  function TestWidget({ shouldRefresh, maxRefreshes }) {
     const result = usePolledAPIFetch({
       path: '/api/some/path',
       shouldRefresh,
+      maxRefreshes,
 
       // Keep asynchronous nature of mocked setTimeout, but with a virtually
       // immediate execution of the callback
@@ -714,14 +715,20 @@ describe('usePolledAPIFetch', () => {
 
     return (
       <div data-testid="main-content" data-status={status}>
-        {result.isLoading && 'Loading'}
-        {!result.isLoading && 'Loaded'}
+        {!result.canceled && result.isLoading && 'Loading'}
+        {!result.canceled && !result.isLoading && 'Loaded'}
+        {result.canceled && 'Canceled'}
       </div>
     );
   }
 
-  function createComponent(shouldRefresh) {
-    return mount(<TestWidget shouldRefresh={shouldRefresh} />);
+  function createComponent({
+    shouldRefresh = sinon.stub().returns(true),
+    maxRefreshes,
+  } = {}) {
+    return mount(
+      <TestWidget shouldRefresh={shouldRefresh} maxRefreshes={maxRefreshes} />,
+    );
   }
 
   function reRender(wrapper) {
@@ -731,7 +738,7 @@ describe('usePolledAPIFetch', () => {
 
   it('does not refresh while loading is in progress', async () => {
     const shouldRefresh = sinon.stub().returns(true);
-    createComponent(shouldRefresh);
+    createComponent({ shouldRefresh });
 
     assert.notCalled(shouldRefresh);
   });
@@ -740,7 +747,7 @@ describe('usePolledAPIFetch', () => {
     mockFetchFinished();
 
     const shouldRefresh = sinon.stub().returns(true);
-    createComponent(shouldRefresh);
+    createComponent({ shouldRefresh });
 
     assert.called(shouldRefresh);
 
@@ -753,9 +760,7 @@ describe('usePolledAPIFetch', () => {
   it('clears pending timeout when component is unmounted', () => {
     mockFetchFinished();
 
-    const shouldRefresh = sinon.stub().returns(true);
-    const wrapper = createComponent(shouldRefresh);
-
+    const wrapper = createComponent();
     wrapper.unmount();
 
     assert.called(fakeClearTimeout);
@@ -763,7 +768,7 @@ describe('usePolledAPIFetch', () => {
 
   it('returns isLoading as long as shouldRefresh returns true', () => {
     const shouldRefresh = sinon.stub().returns(true);
-    const wrapper = createComponent(shouldRefresh);
+    const wrapper = createComponent({ shouldRefresh });
     const isLoading = () =>
       wrapper.find('[data-testid="main-content"]').text() === 'Loading';
     const isRefreshing = () =>
@@ -787,5 +792,13 @@ describe('usePolledAPIFetch', () => {
     reRender(wrapper);
     assert.isFalse(isLoading());
     assert.isFalse(isRefreshing());
+  });
+
+  it('cancels polling after max refreshes are reached', () => {
+    mockFetchFinished();
+
+    const wrapper = createComponent({ maxRefreshes: 0 });
+
+    assert.equal(wrapper.text(), 'Canceled');
   });
 });
