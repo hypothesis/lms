@@ -190,7 +190,7 @@ export function formatErrorDetails(error: ErrorLike): string {
   if (error.details && typeof error.details === 'object') {
     try {
       details = JSON.stringify(error.details, null, 2 /* indent */);
-    } catch (e) {
+    } catch {
       // ignore
     }
   } else if (error.details) {

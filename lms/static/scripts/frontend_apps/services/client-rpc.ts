@@ -119,7 +119,7 @@ export class ClientRPC extends TinyEmitter {
             path: '/api/grant_token',
           });
           grantToken = new JWT(response.grant_token, issuedAt);
-        } catch (err) {
+        } catch {
           throw new Error(
             'Unable to fetch Hypothesis login. Please reload the assignment.',
           );

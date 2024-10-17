@@ -91,7 +91,7 @@ export default function GradingControls({
             path: syncAPICallInfo.path,
             data: studentGroupsCallData,
           });
-        } catch (e) {
+        } catch {
           // An error could plausibly occur when fetching a student's groups
           // from the sync API. This is unlikely (there are no known specific
           // use cases that would lead to an error), and the failure mode is

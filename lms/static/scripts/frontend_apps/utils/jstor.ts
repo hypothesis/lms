@@ -37,7 +37,7 @@ export function articleIdFromUserInput(value: string): string | null {
   let testURL;
   try {
     testURL = new URL(value);
-  } catch (e) {
+  } catch {
     return null;
   }
 

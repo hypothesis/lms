@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import {
   checkAccessibility,
   mockImportedComponents,

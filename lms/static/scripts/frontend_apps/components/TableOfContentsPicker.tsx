@@ -42,9 +42,6 @@ export default function TableOfContentsPicker({
   useEffect(() => {
     // Focus the data-table widget when the component is first rendered
     tableRef.current!.focus();
-    // We only want to run this effect once.
-    //
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const columns: DataTableProps<TableOfContentsEntry>['columns'] = useMemo(
