@@ -101,6 +101,7 @@ class TestLTIParams:
                 "oauth_nonce": "STRIPPED",
                 "oauth_timestamp": "STRIPPED",
                 "oauth_signature": "STRIPPED",
+                "auto_grading_config": "STRIPPED",
                 "id_token": "STRIPPED",
                 "other_values": "REMAIN",
             }
