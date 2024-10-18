@@ -748,6 +748,28 @@ describe('AssignmentActivity', () => {
         }
       });
     });
+
+    [true, false].forEach(canceled => {
+      it('shows error message if syncing takes too long', () => {
+        setUpFakeUseAPIFetch({
+          ...activeAssignment,
+          auto_grading_config: {},
+        });
+        fakeUsePolledAPIFetch.returns({
+          canceled,
+          data: { status: 'in_progress' },
+          isLoading: false,
+        });
+
+        const wrapper = createComponent();
+
+        assert.equal(wrapper.exists('SyncGradesButton'), !canceled);
+        assert.equal(
+          wrapper.exists('[data-testid="long-sync-error"]'),
+          canceled,
+        );
+      });
+    });
   });
 
   context('when assignment has segments', () => {
