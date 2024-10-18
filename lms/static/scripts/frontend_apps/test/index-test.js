@@ -29,7 +29,6 @@ describe('LMS frontend entry', () => {
     };
     fakeReadConfig = sinon.stub().returns(minimalConfig);
 
-    // eslint-disable-next-line prefer-arrow-callback
     AppRoot = sinon.spy(function AppRoot() {
       return <div data-testid="app-root" />;
     });
