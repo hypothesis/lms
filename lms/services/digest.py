@@ -1,6 +1,6 @@
 import logging
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 from sqlalchemy import distinct, func, or_, select, tuple_
 from sqlalchemy.dialects.postgresql import aggregate_order_by
@@ -73,7 +73,7 @@ class DigestService:
             return
 
         if deduplicate:
-            task_done_key = f"instructor_email_digest::{context.user_info.h_userid}::{datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
+            task_done_key = f"instructor_email_digest::{context.user_info.h_userid}::{datetime.now(UTC).strftime('%Y-%m-%d')}"
             task_done_data = {
                 "type": "instructor_email_digest",
                 "h_userid": context.user_info.h_userid,
@@ -235,10 +235,10 @@ class DigestContext:
                         "title": assignment_info.title,
                         "num_annotations": len(assignment_learner_annotations),
                         "annotators": list(
-                            set(
+                            {
                                 annotation.userid
                                 for annotation in assignment_learner_annotations
-                            )
+                            }
                         ),
                     }
                 )
@@ -248,10 +248,10 @@ class DigestContext:
                     "title": course_info.title,
                     "num_annotations": num_annotations,
                     "annotators": list(
-                        set(
+                        {
                             annotation.userid
                             for annotation in course_info.learner_annotations
-                        )
+                        }
                     ),
                     "assignments": course_assignments,
                 }
@@ -262,11 +262,11 @@ class DigestContext:
                 course_digest["num_annotations"] for course_digest in course_digests
             ),
             "annotators": list(
-                set(
+                {
                     annotator
                     for course_digest in course_digests
                     for annotator in course_digest["annotators"]
-                )
+                }
             ),
             "courses": course_digests,
         }
@@ -346,9 +346,9 @@ class DigestContext:
         if self._course_infos is not None:
             return self._course_infos
 
-        authority_provided_ids = set(
+        authority_provided_ids = {
             annotation.authority_provided_id for annotation in self.annotations
-        )
+        }
 
         # We're going to be joining the grouping table to itself and this requires
         # us to create an alias for one side of the join, see:

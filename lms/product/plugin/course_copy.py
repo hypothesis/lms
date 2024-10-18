@@ -1,4 +1,5 @@
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from lms.models import File
 from lms.services.exceptions import ExternalRequestError, OAuth2TokenError

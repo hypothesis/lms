@@ -114,7 +114,7 @@ class TestLTI13AuthSchema:
         with pytest.raises(ValidationError) as err_info:
             LTI13AuthSchema(pyramid_request).parse()
 
-        assert set(["deployment_id", "iss", "aud"]) == set(
+        assert {"deployment_id", "iss", "aud"} == set(
             err_info.value.messages["form"].keys()
         )
 
