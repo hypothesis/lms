@@ -104,8 +104,7 @@ class TestOAuth2RedirectError:
 
 @pytest.fixture(autouse=True)
 def OAuthCallbackSchema(patch):
-    OAuthCallbackSchema = patch("lms.views.api.d2l.authorize.OAuthCallbackSchema")
-    return OAuthCallbackSchema
+    return patch("lms.views.api.d2l.authorize.OAuthCallbackSchema")
 
 
 @pytest.fixture
