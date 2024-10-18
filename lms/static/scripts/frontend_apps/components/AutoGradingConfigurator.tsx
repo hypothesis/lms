@@ -7,24 +7,14 @@ import {
 import type { ComponentChildren } from 'preact';
 import { useCallback, useId } from 'preact/hooks';
 
-import type { ActivityCalculation, GradingType } from '../api-types';
+import type {
+  GradingType,
+  AutoGradingConfig as APIAutoGradingConfig,
+} from '../api-types';
 
-export type AutoGradingConfig = {
+export type AutoGradingConfig = APIAutoGradingConfig & {
   /** Whether auto grading is enabled for the assignment or not */
   enabled?: boolean;
-  gradingType: GradingType;
-  activityCalculation: ActivityCalculation;
-
-  /**
-   * Required number of annotations if activityCalculation is 'separate' or
-   * combined number of annotations and replies otherwise.
-   */
-  requiredAnnotations: number;
-
-  /**
-   * Required number of replies if activityCalculation is 'separate'
-   */
-  requiredReplies?: number;
 };
 
 type AnnotationsGoalInputProps = {
@@ -90,10 +80,10 @@ export default function AutoGradingConfigurator({
 }: AutoGradingConfiguratorProps) {
   const {
     enabled = false,
-    gradingType,
-    activityCalculation,
-    requiredAnnotations,
-    requiredReplies = 0,
+    grading_type: gradingType,
+    activity_calculation: activityCalculation,
+    required_annotations: requiredAnnotations,
+    required_replies: requiredReplies = 0,
   } = config;
   const updateConfig = useCallback(
     (newConfig: Partial<AutoGradingConfig>) =>
@@ -127,7 +117,9 @@ export default function AutoGradingConfigurator({
               data-testid="grading-type-radio-group"
               aria-labelledby={gradingTypeId}
               selected={gradingType}
-              onChange={gradingType => updateConfig({ gradingType })}
+              onChange={gradingType =>
+                updateConfig({ grading_type: gradingType })
+              }
             >
               <RadioGroup.Radio
                 value="all_or_nothing"
@@ -152,7 +144,7 @@ export default function AutoGradingConfigurator({
               aria-labelledby={activityCalculationId}
               selected={activityCalculation}
               onChange={activityCalculation =>
-                updateConfig({ activityCalculation })
+                updateConfig({ activity_calculation: activityCalculation })
               }
             >
               <RadioGroup.Radio
@@ -177,7 +169,7 @@ export default function AutoGradingConfigurator({
             gradingType={gradingType}
             value={requiredAnnotations}
             onChange={requiredAnnotations =>
-              updateConfig({ requiredAnnotations })
+              updateConfig({ required_annotations: requiredAnnotations })
             }
           >
             {activityCalculation === 'cumulative'
@@ -188,7 +180,9 @@ export default function AutoGradingConfigurator({
             <AnnotationsGoalInput
               gradingType={gradingType}
               value={requiredReplies}
-              onChange={requiredReplies => updateConfig({ requiredReplies })}
+              onChange={requiredReplies =>
+                updateConfig({ required_replies: requiredReplies })
+              }
               min={0}
             >
               Replies

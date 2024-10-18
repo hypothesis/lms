@@ -10,9 +10,9 @@ describe('AutoGradingConfigurator', () => {
 
   beforeEach(() => {
     fakeAutoGradingConfig = {
-      gradingType: 'all_or_nothing',
-      activityCalculation: 'cumulative',
-      requiredAnnotations: 1,
+      grading_type: 'all_or_nothing',
+      activity_calculation: 'cumulative',
+      required_annotations: 1,
     };
     fakeUpdateAutoGradingConfig = sinon.stub();
   });
@@ -66,12 +66,12 @@ describe('AutoGradingConfigurator', () => {
 
         assert.calledWith(
           fakeUpdateAutoGradingConfig,
-          sinon.match({ activityCalculation }),
+          sinon.match({ activity_calculation: activityCalculation }),
         );
       });
 
       it('renders inputs based on activity calculation value', () => {
-        fakeAutoGradingConfig.activityCalculation = activityCalculation;
+        fakeAutoGradingConfig.activity_calculation = activityCalculation;
 
         const wrapper = createComponent();
         const inputs = wrapper.find('AnnotationsGoalInput');
@@ -97,12 +97,12 @@ describe('AutoGradingConfigurator', () => {
 
         assert.calledWith(
           fakeUpdateAutoGradingConfig,
-          sinon.match({ gradingType }),
+          sinon.match({ grading_type: gradingType }),
         );
       });
 
       it('renders different input label depending on grading type value', () => {
-        fakeAutoGradingConfig.gradingType = gradingType;
+        fakeAutoGradingConfig.grading_type = gradingType;
 
         const wrapper = createComponent();
         const input = wrapper.find('AnnotationsGoalInput').first();
@@ -119,16 +119,16 @@ describe('AutoGradingConfigurator', () => {
       {
         inputIndex: 0,
         value: '15',
-        expectedConfig: { requiredAnnotations: 15 },
+        expectedConfig: { required_annotations: 15 },
       },
       {
         inputIndex: 1,
         value: '3',
-        expectedConfig: { requiredReplies: 3 },
+        expectedConfig: { required_replies: 3 },
       },
     ].forEach(({ inputIndex, value, expectedConfig }) => {
       it('updates config when inputs change', () => {
-        fakeAutoGradingConfig.activityCalculation = 'separate';
+        fakeAutoGradingConfig.activity_calculation = 'separate';
 
         const wrapper = createComponent();
         const inputs = wrapper.find('AnnotationsGoalInput');

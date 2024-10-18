@@ -203,42 +203,24 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       if (!assignmentAutoGradingConfig) {
         return {
           enabled: false,
-          gradingType: 'all_or_nothing',
-          activityCalculation: 'cumulative',
-          requiredAnnotations: 1,
+          grading_type: 'all_or_nothing',
+          activity_calculation: 'cumulative',
+          required_annotations: 1,
         };
       }
 
       // Initialize with the assignment's auto-grading config if it exists
       return {
         enabled: true,
-        gradingType: assignmentAutoGradingConfig.grading_type,
-        activityCalculation: assignmentAutoGradingConfig.activity_calculation,
-        requiredAnnotations: assignmentAutoGradingConfig.required_annotations,
-        requiredReplies: assignmentAutoGradingConfig.required_replies,
+        ...assignmentAutoGradingConfig,
       };
     },
   );
   // The auto-grading config as expected by the backend
-  const autoGradingConfigToSave = useMemo(
-    () =>
-      autoGradingEnabled && autoGradingConfig.enabled
-        ? {
-            grading_type: autoGradingConfig.gradingType,
-            activity_calculation: autoGradingConfig.activityCalculation,
-            required_annotations: autoGradingConfig.requiredAnnotations,
-            required_replies: autoGradingConfig.requiredReplies,
-          }
-        : null,
-    [
-      autoGradingConfig.activityCalculation,
-      autoGradingConfig.enabled,
-      autoGradingConfig.gradingType,
-      autoGradingConfig.requiredAnnotations,
-      autoGradingConfig.requiredReplies,
-      autoGradingEnabled,
-    ],
-  );
+  const autoGradingConfigToSave: APIAutoGradingConfig | null = useMemo(() => {
+    const { enabled, ...rest } = autoGradingConfig;
+    return autoGradingEnabled && enabled ? rest : null;
+  }, [autoGradingConfig, autoGradingEnabled]);
 
   // Flag indicating if we are editing content that was previously selected.
   const [editingContent, setEditingContent] = useState(false);

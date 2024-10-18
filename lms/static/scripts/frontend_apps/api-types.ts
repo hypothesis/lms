@@ -239,7 +239,14 @@ export type ActivityCalculation = 'cumulative' | 'separate';
 export type AutoGradingConfig = {
   grading_type: GradingType;
   activity_calculation: ActivityCalculation;
+
+  /**
+   * Required number of annotations if activityCalculation is 'separate' or
+   * combined number of annotations and replies otherwise.
+   */
   required_annotations: number;
+
+  /** Required number of replies if activityCalculation is 'separate' */
   required_replies?: number;
 };
 
