@@ -5,6 +5,7 @@ import { useCallback, useMemo, useEffect, useState } from 'preact/hooks';
 import type { Book, TableOfContentsEntry } from '../api-types';
 import { useService, VitalSourceService } from '../services';
 import type { ContentRange, Selection } from '../services/vitalsource';
+import { documentCFI } from '../utils/cfi';
 import { isPageRangeValid } from '../utils/vitalsource';
 import BookSelector from './BookSelector';
 import ErrorDisplay from './ErrorDisplay';
@@ -123,8 +124,17 @@ export default function BookPicker({
     setStep('select-toc');
   }, []);
 
-  // Return the next entry after `entry` which is at the same or higher level
-  // in the table of contents.
+  // Find the table of contents entry which comes after `entry`. This serves
+  // as the exclusive end point for a selection starting at `entry`.
+  //
+  // More specifically this finds the first entry after `entry` which:
+  //
+  // 1. Is at the same or higher level in the table of contents.
+  // 2. Refers to a different segment (HTML or PDF page) within the book.
+  //
+  // Condition (2) is needed because the minimum granularity that the Hypothesis
+  // client can filter annotations by is a single HTML or PDF page. Table of
+  // contents entries in the ePUB however can be more fine-grained than this.
   const nextEntryAfter = useCallback(
     (entry: TableOfContentsEntry) => {
       /* istanbul ignore next - early exit should be unreachable */
@@ -133,11 +143,14 @@ export default function BookPicker({
       }
       const idx = tableOfContents.indexOf(entry);
       const level = entry.level ?? 0;
+      const currentDocCFI = documentCFI(entry.cfi);
 
       let nextEntry;
       for (let i = idx + 1; i < tableOfContents.length; i++) {
-        const entryLevel = tableOfContents[i].level ?? 0;
-        if (entryLevel <= level) {
+        const entryAtIndex = tableOfContents[i];
+        const entryDocCFI = documentCFI(entryAtIndex.cfi);
+        const entryLevel = entryAtIndex.level ?? 0;
+        if (entryLevel <= level && entryDocCFI !== currentDocCFI) {
           nextEntry = tableOfContents[i];
           break;
         }
