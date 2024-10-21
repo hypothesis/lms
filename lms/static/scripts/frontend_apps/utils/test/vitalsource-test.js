@@ -4,6 +4,9 @@ describe('extractBookID', () => {
   [
     'https://bookshelf.vitalsource.com/#/books/9781400847402X',
 
+    // Leading and trailing whitespace are ignored
+    '  https://bookshelf.vitalsource.com/#/books/9781400847402X  ',
+
     // It does not matter if there are path elements after the book ID
     'https://bookshelf.vitalsource.com/#/books/9781400847402X/foo/bar',
 
@@ -28,7 +31,11 @@ describe('extractBookID', () => {
     // Another alphanumeric string earlier in URL should be ignored
     'https://bookshelf.vitalsource.com/1039439489/#/books/9781400847402X/foo/bar',
 
+    // Book ID on its own
     '9781400847402X',
+
+    // Book ID with leading and trailing whitespace
+    '  9781400847402X  ',
   ].forEach(input => {
     it(`should parse book ID from "${input}""`, () => {
       assert.equal(extractBookID(input), '9781400847402X');

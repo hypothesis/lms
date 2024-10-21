@@ -22,11 +22,12 @@
  *  `input`
  */
 export function extractBookID(input: string): string | null {
-  const urlMatches = input.match(/books\/([0-9A-Z-]+)(\/|$)/);
+  const trimmedInput = input.trim();
+  const urlMatches = trimmedInput.match(/books\/([0-9A-Z-]+)(\/|$)/);
   if (urlMatches) {
     return urlMatches[1];
   }
-  const bookIDMatches = input.match(/^([0-9A-Z-]+)$/);
+  const bookIDMatches = trimmedInput.match(/^([0-9A-Z-]+)$/);
   if (bookIDMatches) {
     return bookIDMatches[1];
   }
