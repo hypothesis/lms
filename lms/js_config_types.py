@@ -146,8 +146,16 @@ class User(TypedDict):
     display_name: str
 
 
+class APIOrganization(TypedDict):
+    public_id: str
+    name: str
+
+
 class DashboardConfig(TypedDict):
     user: User
+    organization: NotRequired[APIOrganization]
+    """Organization data for dashboard access scoped to one organization. For staff members only."""
+
     routes: DashboardRoutes
 
     auto_grading_sync_enabled: bool
