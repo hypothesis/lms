@@ -6,7 +6,7 @@ from typing import Any
 
 from lms.error_code import ErrorCode
 from lms.events import LTIEvent
-from lms.js_config_types import DashboardConfig, DashboardRoutes, User
+from lms.js_config_types import APIOrganization, DashboardConfig, DashboardRoutes, User
 from lms.models import ApplicationInstance, Assignment, Course, Grouping
 from lms.product.blackboard import Blackboard
 from lms.product.canvas import Canvas
@@ -19,6 +19,7 @@ from lms.services import (
     EventService,
     HAPIError,
     JSTORService,
+    OrganizationService,
     VitalSourceService,
 )
 from lms.validation.authentication import BearerTokenSchema
@@ -298,6 +299,14 @@ class JSConfig:
                 ),
             }
         )
+        if self._request.has_permission(Permissions.STAFF) and (
+            request_public_id := self._request.matchdict.get("public_id")
+        ):
+            organization_service = self._request.find_service(OrganizationService)
+            organization = organization_service.get_by_public_id(request_public_id)
+            self._config["dashboard"]["organization"] = APIOrganization(
+                name=organization.name, public_id=request_public_id
+            )
 
     def enable_lti_launch_mode(self, course, assignment: Assignment):
         """

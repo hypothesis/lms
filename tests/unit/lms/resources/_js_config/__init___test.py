@@ -761,7 +761,9 @@ class TestEnableDashboardMode:
             "assignment_segments_filter_enabled": assignment_segments_filter_setting,
         }
 
-    def test_user_when_staff(self, js_config, pyramid_request_staff_member, context):
+    def test_user_when_staff(
+        self, js_config, pyramid_request_staff_member, context, organization_service
+    ):
         js_config = JSConfig(context, pyramid_request_staff_member)
         js_config.enable_dashboard_mode(token_lifetime_seconds=100)
         config = js_config.asdict()
@@ -769,6 +771,10 @@ class TestEnableDashboardMode:
         assert config["dashboard"]["user"] == {
             "is_staff": True,
             "display_name": "staff@example.com",
+        }
+        assert config["dashboard"]["organization"] == {
+            "name": organization_service.get_by_public_id.return_value.name,
+            "public_id": sentinel.public_id,
         }
         # Grade syncing always disabled for staff
         assert not config["dashboard"]["auto_grading_sync_enabled"]
@@ -781,6 +787,7 @@ class TestEnableDashboardMode:
             userid="staff@example.com",
             identity=Identity("staff@example.com", [Permissions.STAFF]),
         )
+        pyramid_request.matchdict["public_id"] = sentinel.public_id
         pyramid_request.lti_user = None
         return pyramid_request
 
