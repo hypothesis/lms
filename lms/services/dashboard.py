@@ -1,25 +1,38 @@
 from pyramid.httpexceptions import HTTPNotFound, HTTPUnauthorized
-from sqlalchemy import select
+from sqlalchemy import select, union
 
-from lms.models import Assignment, Organization
+from lms.models import (
+    ApplicationInstance,
+    Assignment,
+    LMSCourse,
+    LMSCourseApplicationInstance,
+    LMSCourseMembership,
+    LMSUser,
+    LTIRole,
+    Organization,
+    RoleScope,
+    RoleType,
+)
 from lms.models.dashboard_admin import DashboardAdmin
 from lms.security import Permissions
 from lms.services.organization import OrganizationService
 
 
 class DashboardService:
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         request,
         assignment_service,
         course_service,
         organization_service: OrganizationService,
+        h_authority: str,
     ):
         self._db = request.db
 
         self._assignment_service = assignment_service
         self._course_service = course_service
         self._organization_service = organization_service
+        self._h_authority = h_authority
 
     def get_request_assignment(self, request) -> Assignment:
         """Get and authorize an assignment for the given request."""
@@ -72,14 +85,44 @@ class DashboardService:
 
         return course
 
-    def get_organizations_by_admin_email(self, email: str) -> list[Organization]:
-        """Get a list of organizations where the user with email `email` is an admin in."""
+    def get_organizations_where_admin(
+        self, h_userid: str, email: str
+    ) -> list[Organization]:
+        """Get a list of organizations where the user h_userid with email `email` is an admin in."""
         organization_ids = []
 
+        # A user can be an admin in an organization via having a matching email in DashboardAdmin
+        organization_id_by_email = select(DashboardAdmin.organization_id).where(
+            DashboardAdmin.email == email
+        )
+
+        # It also can be an admin via having the relevant LTI role in an organization.
+        organization_id_by_lti_admin = (
+            select(Organization.id)
+            .join(
+                ApplicationInstance,
+                ApplicationInstance.organization_id == Organization.id,
+            )
+            .join(
+                LMSCourseApplicationInstance,
+                LMSCourseApplicationInstance.application_instance_id
+                == ApplicationInstance.id,
+            )
+            .join(LMSCourse, LMSCourse.id == LMSCourseApplicationInstance.lms_course_id)
+            .join(
+                LMSCourseMembership, LMSCourseMembership.lms_course_id == LMSCourse.id
+            )
+            .join(LMSUser, LMSCourseMembership.lms_user_id == LMSUser.id)
+            .join(LTIRole)
+            .where(
+                LMSUser.h_userid == h_userid,
+                LTIRole.type == RoleType.ADMIN,
+                LTIRole.scope == RoleScope.SYSTEM,
+            )
+        )
+
         for org_id in self._db.scalars(
-            select(DashboardAdmin.organization_id)
-            .where(DashboardAdmin.email == email)
-            .distinct()
+            union(organization_id_by_email, organization_id_by_lti_admin)
         ).all():
             organization_ids.extend(
                 self._organization_service.get_hierarchy_ids(org_id)
@@ -125,8 +168,11 @@ class DashboardService:
                 )
             ).all()
 
-        return self.get_organizations_by_admin_email(
-            request.lti_user.email if request.lti_user else request.identity.userid
+        return self.get_organizations_where_admin(
+            h_userid=request.lti_user.h_user.userid(self._h_authority),
+            email=request.lti_user.email
+            if request.lti_user
+            else request.identity.userid,
         )
 
 
@@ -136,4 +182,5 @@ def factory(_context, request):
         assignment_service=request.find_service(name="assignment"),
         course_service=request.find_service(name="course"),
         organization_service=request.find_service(OrganizationService),
+        h_authority=request.registry.settings["h_authority"],
     )

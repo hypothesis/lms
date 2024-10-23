@@ -7,12 +7,17 @@ These duplicate some of the information stored in Grouping and GroupingMembershi
     - LMSCourse membership stores role information, GroupingMembership doesn't.
 """
 
+from typing import TYPE_CHECKING
+
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lms.db import Base
 from lms.models import ApplicationInstance
 from lms.models._mixins import CreatedUpdatedMixin
+
+if TYPE_CHECKING:
+    from lms.models import LMSUser, LTIRole
 
 
 class LMSCourse(CreatedUpdatedMixin, Base):
@@ -75,12 +80,15 @@ class LMSCourseMembership(CreatedUpdatedMixin, Base):
     lms_course_id: Mapped[int] = mapped_column(
         sa.ForeignKey("lms_course.id", ondelete="cascade"), index=True
     )
+    lms_course: Mapped[LMSCourse] = relationship()
 
     lms_user_id: Mapped[int] = mapped_column(
         sa.ForeignKey("lms_user.id", ondelete="cascade"), index=True
     )
+    lms_user: Mapped["LMSUser"] = relationship()
 
     lti_role_id: Mapped[int] = mapped_column(
         sa.ForeignKey("lti_role.id", ondelete="cascade"),
         index=True,
     )
+    lti_role: Mapped["LTIRole"] = relationship()
