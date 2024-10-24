@@ -38,6 +38,12 @@ app.conf.update(
         "interval_start": 0.2,
         "interval_step": 0.2,
     },
+    # Automatically try to establish the connection to the AMQP broker on Celery startup if it is unavailable.
+    broker_connection_retry_on_startup=True,
+    task_routes={
+        # Route all email_digests task to their own queue
+        "lms.tasks.email_digests.*": "email_digests",
+    },
     # Tell Celery to kill any task run (by raising
     # celery.exceptions.SoftTimeLimitExceeded) if it takes longer than
     # task_soft_time_limit seconds.
