@@ -14,6 +14,7 @@ import { useConfig } from '../../config';
 import { useAPIFetch, usePolledAPIFetch } from '../../utils/api';
 import { useDashboardFilters } from '../../utils/dashboard/hooks';
 import { courseURL } from '../../utils/dashboard/navigation';
+import { organizationName } from '../../utils/dashboard/organization-name';
 import { useDocumentTitle } from '../../utils/hooks';
 import { type QueryParams, replaceURLParams } from '../../utils/url';
 import RelativeTime from '../RelativeTime';
@@ -264,8 +265,11 @@ export default function AssignmentActivity() {
         {assignment.data && (
           <div className="mb-3 mt-1 w-full flex items-center">
             <DashboardBreadcrumbs
-              allCoursesLink={urlWithFilters({ studentIds }, { path: '' })}
               links={[
+                {
+                  title: organizationName(dashboard),
+                  href: urlWithFilters({ studentIds }, { path: '' }),
+                },
                 {
                   title: assignment.data.course.title,
                   href: urlWithFilters(

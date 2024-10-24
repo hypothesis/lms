@@ -19,12 +19,12 @@ describe('DashboardBreadcrumbs', () => {
     });
   });
 
-  [undefined, '/foo', '/home?foo=bar'].forEach(allCoursesLink => {
+  [undefined, '/foo', '/home?foo=bar'].forEach(topLevelLink => {
     it('uses all courses link if provided', () => {
-      const wrapper = createComponent({ allCoursesLink, links: [] });
+      const wrapper = createComponent({ topLevelLink, links: [] });
       const firstLink = wrapper.find('BreadcrumbLink').first();
 
-      assert.equal(firstLink.prop('href'), allCoursesLink ?? '');
+      assert.equal(firstLink.prop('href'), topLevelLink ?? '');
     });
   });
 
