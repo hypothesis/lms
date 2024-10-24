@@ -16,3 +16,7 @@ LMSCourse = make_factory(
 LMSCourseApplicationInstance = make_factory(
     models.LMSCourseApplicationInstance, FACTORY_CLASS=SQLAlchemyModelFactory
 )
+
+LMSCourseMembership = make_factory(
+    models.LMSCourseMembership, FACTORY_CLASS=SQLAlchemyModelFactory
+)

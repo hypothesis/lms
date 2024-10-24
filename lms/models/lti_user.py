@@ -65,7 +65,7 @@ class LTIUser:
     """The user's email address."""
 
     @property
-    def h_user(self):
+    def h_user(self) -> HUser:
         """Return a models.HUser generated from this LTIUser."""
         return HUser.from_lti_user(self)
 

@@ -3,7 +3,7 @@ from unittest.mock import patch, sentinel
 import pytest
 from pyramid.httpexceptions import HTTPNotFound, HTTPUnauthorized
 
-from lms.models.dashboard_admin import DashboardAdmin
+from lms.models import DashboardAdmin, RoleScope, RoleType
 from lms.services.dashboard import DashboardService, factory
 from tests import factories
 
@@ -132,23 +132,56 @@ class TestDashboardService:
 
         assert not db_session.query(DashboardAdmin).filter_by(id=admin.id).first()
 
-    def test_get_organizations_by_admin_email(
+    def test_get_organizations_where_admin(
         self, svc, db_session, organization, organization_service
     ):
+        # Admin user
+        lms_admin = factories.LMSUser(h_userid="admin")
+
+        # Organization where just a teacher
+        organization_lti_teacher = factories.Organization()
+        teacher_course = factories.LMSCourse()
+        ai = factories.ApplicationInstance(organization=organization_lti_teacher)
+        factories.LMSCourseApplicationInstance(
+            lms_course=teacher_course, application_instance=ai
+        )
+        factories.LMSCourseMembership(
+            lms_course=teacher_course,
+            lms_user=lms_admin,
+            lti_role=factories.LTIRole(
+                type=RoleType.INSTRUCTOR, scope=RoleScope.COURSE
+            ),
+        )
+
+        # Organization where admin via an LTIRole
+        organization_lti_admin = factories.Organization(parent=organization_lti_teacher)
+        course = factories.LMSCourse()
+        ai = factories.ApplicationInstance(organization=organization_lti_admin)
+        factories.LMSCourseApplicationInstance(
+            lms_course=course, application_instance=ai
+        )
+        factories.LMSCourseMembership(
+            lms_course=course,
+            lms_user=lms_admin,
+            lti_role=factories.LTIRole(type=RoleType.ADMIN, scope=RoleScope.SYSTEM),
+        )
+        # Organization where admin via email
         child_organization = factories.Organization(parent=organization)
-        admin = factories.DashboardAdmin(
+        email_admin = factories.DashboardAdmin(
             organization=organization, email="testing@example.com", created_by="creator"
         )
         db_session.flush()
-        organization_service.get_hierarchy_ids.return_value = [
-            organization.id,
-            child_organization.id,
-        ]
+        organization_service.get_hierarchy_ids.side_effect = (
+            [
+                organization.id,
+                child_organization.id,
+            ],
+            [organization_lti_admin.id],
+        )
 
-        assert set(svc.get_organizations_by_admin_email(admin.email)) == {
-            organization,
-            child_organization,
-        }
+        assert set(
+            svc.get_organizations_where_admin(lms_admin.h_userid, email_admin.email)
+        ) == {organization, child_organization, organization_lti_admin}
 
     def test_get_request_admin_organizations_for_non_staff(self, pyramid_request, svc):
         pyramid_request.params = {"org_public_id": sentinel.public_id}
@@ -200,7 +233,11 @@ class TestDashboardService:
         self, assignment_service, course_service, organization_service, pyramid_request
     ):
         return DashboardService(
-            pyramid_request, assignment_service, course_service, organization_service
+            pyramid_request,
+            assignment_service,
+            course_service,
+            organization_service,
+            "authority",
         )
 
     @pytest.fixture(autouse=True)
@@ -244,6 +281,7 @@ class TestFactory:
             assignment_service=assignment_service,
             course_service=course_service,
             organization_service=organization_service,
+            h_authority="lms.hypothes.is",
         )
         assert service == DashboardService.return_value
 
