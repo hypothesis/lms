@@ -21,6 +21,11 @@ const fakeBookData = {
       title: 'Book Two',
       cover_image: 'https://bookstore.com/covers/book2.jpg',
     },
+    book3: {
+      id: 'book3',
+      title: 'Book Three',
+      cover_image: 'https://bookstore.com/covers/book3.jpg',
+    },
   },
 
   chapters: {
@@ -46,6 +51,31 @@ const fakeBookData = {
       {
         title: 'Chapter B',
         cfi: '/2',
+        page: '7',
+      },
+    ],
+
+    book3: [
+      // EPUB book which is divided into two HTML pages. For the first page,
+      // there are multiple TOC entries.
+      {
+        title: 'Chapter A',
+        cfi: '/2',
+        page: '3',
+      },
+      {
+        title: 'Chapter A - Part 1',
+        cfi: '/2!/2',
+        page: '3',
+      },
+      {
+        title: 'Chapter A - Part 2',
+        cfi: '/2!/4',
+        page: '4',
+      },
+      {
+        title: 'Chapter B',
+        cfi: '/4',
         page: '7',
       },
     ],
@@ -88,9 +118,9 @@ describe('BookPicker', () => {
     $imports.$restore();
   });
 
-  const selectBook = wrapper => {
+  const selectBook = (wrapper, bookId = 'book1') => {
     const bookSelector = wrapper.find('BookSelector');
-    const book = fakeBookData.books.book1;
+    const book = fakeBookData.books[bookId];
 
     act(() => {
       bookSelector.props().onSelectBook(book);
@@ -236,61 +266,113 @@ describe('BookPicker', () => {
     });
   });
 
-  it('displays page numbers corresponding to selected chapter', async () => {
+  [
+    // Select a TOC entry which corresponds to a whole HTML document.
+    {
+      book: 'book1',
+      chapter: 0,
+      expectedEndChapter: 1,
+      expectedStartPage: '1',
+      expecteEndPage: '10',
+    },
+    // Select a TOC entry which corresponds to a whole HTML document, and has
+    // child entries.
+    {
+      book: 'book3',
+      chapter: 0,
+      expectedEndChapter: 3,
+      expectedStartPage: '3',
+      expecteEndPage: '7',
+    },
+    // Select a TOC entry which corresponds to part of an HTML document. The
+    // selection should be expanded to the whole page.
+    {
+      book: 'book3',
+      chapter: 1, // Chapter A - Part 1
+      expectedEndChapter: 3,
+      expectedStartPage: '3',
+      expecteEndPage: '7',
+    },
+  ].forEach(
+    ({
+      book,
+      chapter,
+      expectedEndChapter,
+      expectedStartPage,
+      expecteEndPage,
+    }) => {
+      it('selects expected page number and CFI range when TOC entry is clicked', async () => {
+        const onSelectBook = sinon.stub();
+        const picker = renderBookPicker({
+          allowPageRangeSelection: true,
+          onSelectBook,
+        });
+
+        selectBook(picker, book);
+        clickSelectButton(picker);
+
+        await waitForTableOfContents(picker);
+        selectChapter(picker, chapter);
+
+        // Check page range displayed after selecting entry.
+        const startInput = picker.find('input[data-testid="start-page"]');
+        const endInput = picker.find('input[data-testid="end-page"]');
+        assert.equal(startInput.prop('placeholder'), expectedStartPage);
+        assert.equal(endInput.prop('placeholder'), expecteEndPage);
+
+        // Check selection passed to callback when submitting form.
+        clickSelectButton(picker);
+        await waitFor(() => onSelectBook.called);
+
+        const startEntry = fakeBookData.chapters[book][chapter];
+        const endEntry = fakeBookData.chapters[book][expectedEndChapter];
+        const bookData = fakeBookData.books[book];
+
+        assert.calledWith(
+          onSelectBook,
+          {
+            book: bookData,
+            content: {
+              type: 'toc',
+              start: startEntry,
+              end: endEntry,
+            },
+          },
+          `vitalsource://books/bookID/${bookData.id}/cfi/${startEntry.cfi}`,
+        );
+      });
+    },
+  );
+
+  // This test covers only the case where `allowPageRangeSelection` is false.
+  // The case where it is true is handled above.
+  it('invokes `onSelectBook` callback after a book and chapter are chosen', async () => {
     const onSelectBook = sinon.stub();
     const picker = renderBookPicker({
-      allowPageRangeSelection: true,
+      allowPageRangeSelection: false,
       onSelectBook,
     });
 
-    selectBook(picker);
+    const book = selectBook(picker);
     clickSelectButton(picker);
 
     await waitForTableOfContents(picker);
-    selectChapter(picker);
+    const chapter = selectChapter(picker);
+    clickSelectButton(picker);
 
-    const startInput = picker.find('input[data-testid="start-page"]');
-    const endInput = picker.find('input[data-testid="end-page"]');
-    assert.equal(startInput.prop('placeholder'), '1');
-    assert.equal(endInput.prop('placeholder'), '10');
-  });
-
-  [
-    { allowPageRangeSelection: true },
-    { allowPageRangeSelection: false },
-  ].forEach(({ allowPageRangeSelection }) => {
-    it('invokes `onSelectBook` callback after a book and chapter are chosen', async () => {
-      const onSelectBook = sinon.stub();
-      const picker = renderBookPicker({
-        allowPageRangeSelection,
-        onSelectBook,
-      });
-
-      const book = selectBook(picker);
-      clickSelectButton(picker);
-
-      await waitForTableOfContents(picker);
-      const chapter = selectChapter(picker);
-      clickSelectButton(picker);
-
-      const expectedEnd = allowPageRangeSelection
-        ? fakeBookData.chapters.book1[1] // Start of chapter after selection
-        : undefined;
-
-      await waitFor(() => onSelectBook.called);
-      assert.calledWith(
-        onSelectBook,
-        {
-          book,
-          content: {
-            type: 'toc',
-            start: chapter,
-            end: expectedEnd,
-          },
+    await waitFor(() => onSelectBook.called);
+    assert.calledWith(
+      onSelectBook,
+      {
+        book,
+        content: {
+          type: 'toc',
+          start: chapter,
+          end: undefined,
         },
-        'vitalsource://books/bookID/book1/cfi//1',
-      );
-    });
+      },
+      'vitalsource://books/bookID/book1/cfi//1',
+    );
   });
 
   it('invokes `onSelectBook` callback after a book and page range are chosen', async () => {
