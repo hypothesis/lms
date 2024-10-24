@@ -274,14 +274,8 @@ export default function BasicLTILaunchApp() {
    * - If the application is configured to do so (`submitAfterActivity`),
    *   register a callback and wait for first qualifying annotation activity
    *   before submitting.
-   * - Otherwise, submit immediately.
    */
   useEffect(() => {
-    if (!submitAfterActivity) {
-      reportSubmission();
-      return undefined;
-    }
-
     const unsubscribe = () =>
       clientRPC.off('annotationActivity', onAnnotationActivity);
 

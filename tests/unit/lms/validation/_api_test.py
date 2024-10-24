@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 import pytest
 
@@ -16,6 +17,7 @@ class TestAPIRecordSpeedgraderSchema:
 
         parsed_params = APIRecordSpeedgraderSchema(request).parse()
 
+        all_fields["submitted_at"] = datetime.fromisoformat(all_fields["submitted_at"])
         assert parsed_params == all_fields
 
     @pytest.mark.parametrize(
@@ -25,6 +27,7 @@ class TestAPIRecordSpeedgraderSchema:
             "lis_outcome_service_url",
             "lis_result_sourcedid",
             "learner_canvas_user_id",
+            "submitted_at",
         ],
     )
     def test_it_raises_if_required_fields_missing(
@@ -53,6 +56,7 @@ class TestAPIRecordSpeedgraderSchema:
             "lis_outcome_service_url": "https://hypothesis.shinylms.com/outcomes",
             "lis_result_sourcedid": "modelstudent-assignment1",
             "group_set": 1,
+            "submitted_at": datetime.now().isoformat(),
         }
 
 
