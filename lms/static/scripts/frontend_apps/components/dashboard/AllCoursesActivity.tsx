@@ -8,6 +8,7 @@ import { useConfig } from '../../config';
 import { useAPIFetch } from '../../utils/api';
 import { useDashboardFilters } from '../../utils/dashboard/hooks';
 import { courseURL } from '../../utils/dashboard/navigation';
+import { rootViewTitle } from '../../utils/dashboard/root-view-title';
 import { useDocumentTitle } from '../../utils/hooks';
 import DashboardActivityFilters from './DashboardActivityFilters';
 import FormattedDate from './FormattedDate';
@@ -26,8 +27,9 @@ type CoursesTableRow = {
 export default function AllCoursesActivity() {
   const { dashboard } = useConfig(['dashboard']);
   const { routes } = dashboard;
+  const title = rootViewTitle(dashboard);
 
-  useDocumentTitle('All courses');
+  useDocumentTitle(title);
 
   const { organizationPublicId } = useParams();
   const { filters, updateFilters, urlWithFilters } = useDashboardFilters();
@@ -51,7 +53,9 @@ export default function AllCoursesActivity() {
 
   return (
     <div className="flex flex-col gap-y-5">
-      <h2 className="text-lg text-brand font-semibold">All courses</h2>
+      <h2 className="text-lg text-brand font-semibold" data-testid="title">
+        {title}
+      </h2>
       <DashboardActivityFilters
         students={{
           selectedIds: studentIds,

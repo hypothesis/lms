@@ -281,6 +281,11 @@ export type DashboardUser = {
   display_name: string;
 };
 
+export type DashboardOrganization = {
+  name: string;
+  public_id: string;
+};
+
 export type DashboardConfig = {
   routes: DashboardRoutes;
   user: DashboardUser;
@@ -295,6 +300,14 @@ export type DashboardConfig = {
    * segments filter.
    */
   assignment_segments_filter_enabled: boolean;
+
+  /**
+   * Organization-related information.
+   *
+   * Only present when the dashboard is opened for a particular
+   * organization: `/dashboard/orgs/{org_public_id}`
+   */
+  organization?: DashboardOrganization;
 };
 
 /**

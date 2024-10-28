@@ -12,6 +12,7 @@ import { useConfig } from '../../config';
 import { useAPIFetch } from '../../utils/api';
 import { useDashboardFilters } from '../../utils/dashboard/hooks';
 import { assignmentURL } from '../../utils/dashboard/navigation';
+import { rootViewTitle } from '../../utils/dashboard/root-view-title';
 import { useDocumentTitle } from '../../utils/hooks';
 import { replaceURLParams } from '../../utils/url';
 import DashboardActivityFilters from './DashboardActivityFilters';
@@ -83,10 +84,15 @@ export default function CourseActivity() {
       <div>
         <div className="mb-3 mt-1 w-full">
           <DashboardBreadcrumbs
-            allCoursesLink={urlWithFilters(
-              { assignmentIds, studentIds },
-              { path: '' },
-            )}
+            links={[
+              {
+                title: rootViewTitle(dashboard),
+                href: urlWithFilters(
+                  { assignmentIds, studentIds },
+                  { path: '' },
+                ),
+              },
+            ]}
           />
         </div>
         <h2 className="text-lg text-brand font-semibold" data-testid="title">

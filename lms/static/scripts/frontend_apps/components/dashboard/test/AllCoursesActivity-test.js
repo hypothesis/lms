@@ -87,7 +87,6 @@ describe('AllCoursesActivity', () => {
   }
 
   /**
-   *
    * @param {'students' | 'assignments' | 'courses'} filterProp
    */
   function updateFilter(wrapper, filterProp, ids) {
@@ -95,6 +94,24 @@ describe('AllCoursesActivity', () => {
     act(() => filters.prop(filterProp).onChange(ids));
     wrapper.update();
   }
+
+  [
+    { organization: undefined, expectedTitle: 'All courses' },
+    {
+      organization: {
+        name: 'University of Hypothesis',
+      },
+      expectedTitle: 'University of Hypothesis',
+    },
+  ].forEach(({ organization, expectedTitle }) => {
+    it('sets expected page title', () => {
+      fakeConfig.dashboard.organization = organization;
+      const wrapper = createComponent();
+
+      assert.equal(wrapper.find('[data-testid="title"]').text(), expectedTitle);
+      assert.equal(document.title, `${expectedTitle} - Hypothesis`);
+    });
+  });
 
   it('sets loading state in table while data is loading', () => {
     fakeUseAPIFetch.returns({ isLoading: true });

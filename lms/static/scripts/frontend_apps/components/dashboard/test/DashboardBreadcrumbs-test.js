@@ -14,17 +14,7 @@ describe('DashboardBreadcrumbs', () => {
         links: links.map(title => ({ title, href: `/${title}` })),
       });
 
-      // Breadcrumbs always renders a static extra link for the home page
-      assert.equal(wrapper.find('BreadcrumbLink').length, links.length + 1);
-    });
-  });
-
-  [undefined, '/foo', '/home?foo=bar'].forEach(allCoursesLink => {
-    it('uses all courses link if provided', () => {
-      const wrapper = createComponent({ allCoursesLink, links: [] });
-      const firstLink = wrapper.find('BreadcrumbLink').first();
-
-      assert.equal(firstLink.prop('href'), allCoursesLink ?? '');
+      assert.equal(wrapper.find('BreadcrumbLink').length, links.length);
     });
   });
 
