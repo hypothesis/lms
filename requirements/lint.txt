@@ -432,7 +432,7 @@ pycparser==2.21
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   cffi
-pycryptodomex==3.20.0
+pycryptodomex==3.21.0
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
