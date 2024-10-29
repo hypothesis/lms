@@ -3,10 +3,16 @@ from enum import StrEnum
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
-from sqlalchemy.orm import DynamicMapped, Mapped, mapped_column, relationship
+from sqlalchemy.orm import (
+    DynamicMapped,
+    Mapped,
+    MappedAsDataclass,
+    mapped_column,
+    relationship,
+)
 
 from lms.db import Base, varchar_enum
-from lms.models._mixins import CreatedUpdatedMixin
+from lms.models._mixins import CreatedUpdatedMixin, CreatedUpdatedMixinAsDataClass
 from lms.models.grouping import Course, Grouping
 
 
@@ -40,7 +46,14 @@ class AutoGradingConfig(Base):
         }
 
 
-class Assignment(CreatedUpdatedMixin, Base):
+class Assignment(
+    MappedAsDataclass,
+    Base,
+    CreatedUpdatedMixinAsDataClass,
+    init=False,
+    eq=False,
+    unsafe_hash=True,
+):
     """
     An assignment configuration.
 
@@ -60,10 +73,10 @@ class Assignment(CreatedUpdatedMixin, Base):
 
     id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
 
-    resource_link_id: Mapped[str] = mapped_column(sa.Unicode)
+    resource_link_id: Mapped[str] = mapped_column()
     """The resource_link_id launch param of the assignment."""
 
-    lti_v13_resource_link_id: Mapped[str | None] = mapped_column(sa.Unicode)
+    lti_v13_resource_link_id: Mapped[str | None] = mapped_column()
     """
     The LTI1.3 resource_link_id of the assignment.
 
@@ -73,7 +86,7 @@ class Assignment(CreatedUpdatedMixin, Base):
           In those cases resource_link_id will be the 1.1 value and we'll store here the 1.3 version.
     """
 
-    tool_consumer_instance_guid = sa.Column(sa.Unicode, nullable=False)
+    tool_consumer_instance_guid: Mapped[str] = mapped_column()
     """
     The tool_consumer_instance_guid launch param of the LMS.
 
@@ -91,34 +104,35 @@ class Assignment(CreatedUpdatedMixin, Base):
     )
     """Assignment this one was copied from."""
 
-    document_url: Mapped[str] = mapped_column(sa.Unicode, nullable=False)
+    document_url: Mapped[str] = mapped_column(nullable=False)
     """The URL of the document to be annotated for this assignment."""
 
     extra: Mapped[MutableDict] = mapped_column(
         MutableDict.as_mutable(JSONB()),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
+        repr=False,
     )
 
     is_gradable: Mapped[bool] = mapped_column(
         sa.Boolean(),
-        default=False,
+        insert_default=False,
         server_default=sa.sql.expression.false(),
         nullable=False,
     )
     """Whether this assignment is gradable or not."""
 
-    title: Mapped[str | None] = mapped_column(sa.Unicode, index=True)
+    title: Mapped[str | None] = mapped_column(index=True)
     """The resource link title from LTI params."""
 
-    description: Mapped[str | None] = mapped_column(sa.Unicode)
+    description: Mapped[str | None] = mapped_column(repr=False)
     """The resource link description from LTI params."""
 
-    deep_linking_uuid: Mapped[str | None] = mapped_column(sa.Unicode)
+    deep_linking_uuid: Mapped[str | None] = mapped_column()
     """UUID that identifies the deep linking that created this assignment."""
 
     groupings: DynamicMapped[Grouping] = sa.orm.relationship(
-        secondary="assignment_grouping", viewonly=True, lazy="dynamic"
+        secondary="assignment_grouping", viewonly=True, lazy="dynamic", repr=False
     )
     """Any groupings (courses, sections, groups) we have seen this assignment in during a launch"""
 
@@ -128,7 +142,7 @@ class Assignment(CreatedUpdatedMixin, Base):
 
     course_id: Mapped[int | None] = mapped_column(sa.ForeignKey(Course.id), index=True)
 
-    course: Mapped[Course | None] = relationship(Course)
+    course: Mapped[Course | None] = relationship(Course, repr=None)
 
     lis_outcome_service_url: Mapped[str | None] = mapped_column()
     """URL of the grading serivce relevant for this assignment.

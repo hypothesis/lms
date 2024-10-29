@@ -425,13 +425,14 @@ class TestAssignmentService:
         )
         db_session.flush()
 
-        assert set(
-            db_session.scalars(
+        assert {
+            assignment.id
+            for assignment in db_session.scalars(
                 svc.get_assignments(
                     instructor_h_userid=instructor_in_assignment.h_userid
                 )
             ).all()
-        ) == {assignment, assignment_not_launched_by_instructor}
+        } == {assignment.id, assignment_not_launched_by_instructor.id}
 
     def test_get_courses_assignments_count(
         self, svc, db_session, organization, course, application_instance

@@ -39,8 +39,8 @@ class TestAutoGradingService:
     def test_create_grade_sync(self, svc, db_session, assignment):
         creator = factories.LMSUser()
         lms_users = factories.LMSUser.create_batch(5)
-        grades = {lms_user: random.random() for lms_user in lms_users}
         db_session.flush()
+        grades = {lms_user: random.random() for lms_user in lms_users}
 
         grading_sync = svc.create_grade_sync(assignment, creator, grades)
 

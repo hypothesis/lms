@@ -7,13 +7,20 @@ These duplicate some of the information stored in User, the main differences bei
 """
 
 import sqlalchemy as sa
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column
 
 from lms.db import Base
-from lms.models._mixins import CreatedUpdatedMixin
+from lms.models._mixins import CreatedUpdatedMixin, CreatedUpdatedMixinAsDataClass
 
 
-class LMSUser(CreatedUpdatedMixin, Base):
+class LMSUser(
+    MappedAsDataclass,
+    Base,
+    CreatedUpdatedMixinAsDataClass,
+    init=False,
+    eq=False,
+    unsafe_hash=True,
+):
     __tablename__ = "lms_user"
 
     __table_args__ = (
@@ -42,9 +49,9 @@ class LMSUser(CreatedUpdatedMixin, Base):
     h_userid: Mapped[str] = mapped_column(unique=True, index=True)
     """The userid value in H. This is calculated hashing tool_consumer_instance_guid and lti_user_id together."""
 
-    email: Mapped[str | None] = mapped_column()
+    email: Mapped[str | None] = mapped_column(repr=False)
 
-    display_name: Mapped[str | None] = mapped_column(index=True)
+    display_name: Mapped[str | None] = mapped_column(index=True, repr=False)
 
 
 class LMSUserApplicationInstance(CreatedUpdatedMixin, Base):
