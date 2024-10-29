@@ -64,6 +64,7 @@ describe('DashboardActivityFilters', () => {
   let fakeLoadNextCoursesPage;
   let fakeLoadNextAssignmentsPage;
   let fakeLoadNextStudentsPage;
+  let fakeUseElementIsTruncated;
   let wrappers = [];
 
   /**
@@ -112,6 +113,7 @@ describe('DashboardActivityFilters', () => {
     fakeLoadNextAssignmentsPage = sinon.stub();
     fakeLoadNextStudentsPage = sinon.stub();
     fakeUsePaginatedAPIFetch = sinon.stub();
+    fakeUseElementIsTruncated = sinon.stub().returns(false);
     configureFakeAPIFetch({ isLoading: false });
 
     onCoursesChange = sinon.stub();
@@ -133,6 +135,9 @@ describe('DashboardActivityFilters', () => {
     $imports.$mock({
       '../../utils/api': {
         usePaginatedAPIFetch: fakeUsePaginatedAPIFetch,
+      },
+      '../../utils/hooks': {
+        useElementIsTruncated: fakeUseElementIsTruncated,
       },
     });
   });
@@ -220,17 +225,41 @@ describe('DashboardActivityFilters', () => {
       entity: courses[0],
       expectedText: courses[0].title,
     },
+    // Course truncated
+    {
+      id: 'courses-select',
+      entity: courses[0],
+      expectedText: courses[0].title,
+      isTruncated: true,
+      expectedTitle: courses[0].title,
+    },
     // Assignment
     {
       id: 'assignments-select',
       entity: assignments[0],
       expectedText: `${assignments[0].title}${formatDateTime(assignments[0].created)}`,
     },
+    // Assignment truncated
+    {
+      id: 'assignments-select',
+      entity: assignments[0],
+      expectedText: `${assignments[0].title}${formatDateTime(assignments[0].created)}`,
+      isTruncated: true,
+      expectedTitle: assignments[0].title,
+    },
     // Student with name
     {
       id: 'students-select',
       entity: students[0],
       expectedText: students[0].display_name,
+    },
+    // Student with name truncated
+    {
+      id: 'students-select',
+      entity: students[0],
+      expectedText: students[0].display_name,
+      isTruncated: true,
+      expectedTitle: students[0].display_name,
     },
     // Student without name
     {
@@ -239,35 +268,47 @@ describe('DashboardActivityFilters', () => {
       expectedText: 'Student name unavailable (ID: 12345)',
       expectedTitle: 'User ID: 123456789',
     },
-  ].forEach(({ id, entity, expectedText, expectedTitle }) => {
-    it('formats select options', () => {
-      const wrapper = createComponent();
-      const select = getSelect(wrapper, id);
+    // Student without name truncated
+    {
+      id: 'students-select',
+      entity: students[students.length - 1],
+      expectedText: 'Student name unavailable (ID: 12345)',
+      isTruncated: true,
+      expectedTitle: 'User ID: 123456789',
+    },
+  ].forEach(
+    ({ id, entity, expectedText, expectedTitle, isTruncated = false }) => {
+      it('formats select options and sets expected title', () => {
+        fakeUseElementIsTruncated.returns(isTruncated);
 
-      // The option needs to be wrapped in a select, otherwise it throws.
-      const tempSelect = mount(
-        <MultiSelect value={[]} onChange={sinon.stub()}>
-          {select.props().renderOption(entity)}
-        </MultiSelect>,
-      );
-      const option = tempSelect.find(MultiSelect.Option);
+        const wrapper = createComponent();
+        const select = getSelect(wrapper, id);
 
-      try {
-        assert.equal(option.text(), expectedText);
+        // The option needs to be wrapped in a select, otherwise it throws.
+        const tempSelect = mount(
+          <MultiSelect value={[]} onChange={sinon.stub()}>
+            {select.props().renderOption(entity)}
+          </MultiSelect>,
+        );
+        const option = tempSelect.find(MultiSelect.Option);
 
-        if (expectedTitle) {
-          assert.equal(
-            option.find('[data-testid="option-content-wrapper"]').prop('title'),
-            expectedTitle,
-          );
+        try {
+          assert.equal(option.text(), expectedText);
+
+          const title = option.prop('title');
+          if (expectedTitle) {
+            assert.equal(title, expectedTitle);
+          } else {
+            assert.isUndefined(title);
+          }
+        } finally {
+          // We need to unmount the temp select, to avoid a disconnected popover
+          // to be left in the DOM and affect other tests
+          tempSelect.unmount();
         }
-      } finally {
-        // We need to unmount the temp select, to avoid a disconnected popover
-        // to be left in the DOM and affect other tests
-        tempSelect.unmount();
-      }
-    });
-  });
+      });
+    },
+  );
 
   [
     {
@@ -546,6 +587,32 @@ describe('DashboardActivityFilters', () => {
           getSegmentsSelect(wrapper).prop('disabled'),
           shouldBeDisabled,
         );
+      });
+    });
+
+    [true, false].forEach(isTruncated => {
+      it('sets title to every option if content is truncated', () => {
+        fakeUseElementIsTruncated.returns(isTruncated);
+
+        const entries = [
+          { h_authority_provided_id: 'foo', name: 'foo' },
+          { h_authority_provided_id: 'bar', name: 'bar' },
+        ];
+        const wrapper = createComponentWithSegments({ entries });
+        const select = getSegmentsSelect(wrapper);
+        const options = select
+          .find(MultiSelect.Option)
+          .filterWhere(option => !!option.prop('value'));
+
+        assert.equal(options.length, entries.length);
+        options.forEach((option, index) => {
+          const optionTitle = option.prop('title');
+          if (isTruncated) {
+            assert.equal(optionTitle, entries[index].name);
+          } else {
+            assert.isUndefined(optionTitle);
+          }
+        });
       });
     });
 

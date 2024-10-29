@@ -1,7 +1,8 @@
 import { mount } from 'enzyme';
 import { render } from 'preact';
+import { useRef } from 'preact/hooks';
 
-import { useUniqueId, useDocumentTitle } from '../hooks';
+import { useUniqueId, useDocumentTitle, useElementIsTruncated } from '../hooks';
 
 describe('useUniqueId', () => {
   it('generates unique ids each time useUniqueId is called', () => {
@@ -46,5 +47,72 @@ describe('useDocumentTitle', () => {
       mount(<FakeComponent documentTitle={documentTitle} />);
       assert.equal(document.title, `${documentTitle} - Hypothesis`);
     });
+  });
+});
+
+describe('useElementIsTruncated', () => {
+  let wrappers;
+  let containers;
+
+  function FakeComponent({ children, setRef }) {
+    const contentRef = useRef(null);
+    const isTruncated = useElementIsTruncated(contentRef);
+
+    return (
+      <>
+        <div className="w-32 truncate" ref={setRef ? contentRef : undefined}>
+          {children}
+        </div>
+        <div data-testid="is-truncated">{isTruncated ? 'yes' : 'no'}</div>
+      </>
+    );
+  }
+
+  beforeEach(() => {
+    wrappers = [];
+    containers = [];
+  });
+
+  afterEach(() => {
+    wrappers.forEach(wrapper => wrapper.unmount());
+    containers.forEach(container => container.remove());
+  });
+
+  function createComponent({ content, setRef = true }) {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+
+    const wrapper = mount(
+      <FakeComponent setRef={setRef}>{content}</FakeComponent>,
+      {
+        attachTo: container,
+      },
+    );
+
+    containers.push(container);
+    wrappers.push(wrapper);
+
+    return wrapper;
+  }
+
+  [
+    { content: 'short', isTruncated: false },
+    { content: 'long'.repeat(100), isTruncated: true },
+  ].forEach(({ content, isTruncated }) => {
+    it('detects that too long content gets truncated', () => {
+      const wrapper = createComponent({ content });
+      assert.equal(
+        wrapper.find('[data-testid="is-truncated"]').text(),
+        isTruncated ? 'yes' : 'no',
+      );
+    });
+  });
+
+  it('does not detected truncated text when ref is not set', () => {
+    const wrapper = createComponent({
+      content: 'long'.repeat(100),
+      setRef: false,
+    });
+    assert.equal(wrapper.find('[data-testid="is-truncated"]').text(), 'no');
   });
 });

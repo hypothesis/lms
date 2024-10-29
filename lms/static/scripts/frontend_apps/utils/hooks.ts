@@ -1,3 +1,4 @@
+import type { MutableRef } from 'preact/hooks';
 import { useEffect, useState } from 'preact/hooks';
 
 // Global counter used to create a unique ids
@@ -56,4 +57,33 @@ export function usePlaceholderDocumentTitleInDev() {
 
     return () => window.navigation?.removeEventListener('navigate', listener);
   }, []);
+}
+
+/**
+ * Determines if an element is truncated due to content or text hidden overflow
+ */
+export function useElementIsTruncated<T extends HTMLElement>(
+  elementRef: MutableRef<T | null>,
+): boolean {
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useEffect(() => {
+    const element = elementRef.current;
+    if (!element) {
+      return () => {};
+    }
+
+    const computeIsTruncated = () =>
+      setIsTruncated(element.scrollWidth > element.clientWidth);
+
+    // Check if element ius truncated on mount
+    computeIsTruncated();
+    // Re-check when the element intersects with the viewport
+    const observer = new IntersectionObserver(computeIsTruncated);
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, [elementRef]);
+
+  return isTruncated;
 }

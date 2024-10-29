@@ -6,7 +6,7 @@ import {
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import type { MutableRef } from 'preact/hooks';
-import { useMemo } from 'preact/hooks';
+import { useMemo, useRef } from 'preact/hooks';
 import { useParams } from 'wouter-preact';
 
 import type {
@@ -20,6 +20,7 @@ import type {
 } from '../../api-types';
 import { useConfig } from '../../config';
 import { usePaginatedAPIFetch } from '../../utils/api';
+import { useElementIsTruncated } from '../../utils/hooks';
 import PaginatedMultiSelect from './PaginatedMultiSelect';
 
 /**
@@ -83,16 +84,50 @@ type PropsWithElementRef<T> = T & {
 };
 
 /**
+ * Represents a `Select.Option` with a title displayed only when its main
+ * content is truncated
+ */
+function TruncatedOption({
+  value,
+  content,
+  elementRef,
+}: PropsWithElementRef<{ value: string; content: string }>) {
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const contentIsTruncated = useElementIsTruncated(contentRef);
+
+  return (
+    <MultiSelect.Option
+      value={value}
+      elementRef={elementRef}
+      title={contentIsTruncated ? content : undefined}
+    >
+      <div ref={contentRef} className="truncate">
+        {content}
+      </div>
+    </MultiSelect.Option>
+  );
+}
+
+/**
  * Represents a `Select.Option` for a specific assignment
  */
 function AssignmentOption({
   assignment,
   elementRef,
 }: PropsWithElementRef<{ assignment: Assignment }>) {
+  const titleRef = useRef<HTMLDivElement | null>(null);
+  const titleIsTruncated = useElementIsTruncated(titleRef);
+
   return (
-    <MultiSelect.Option value={`${assignment.id}`} elementRef={elementRef}>
+    <MultiSelect.Option
+      value={`${assignment.id}`}
+      elementRef={elementRef}
+      title={titleIsTruncated ? assignment.title : undefined}
+    >
       <div className="flex flex-col gap-0.5">
-        {assignment.title}
+        <div className="truncate" ref={titleRef}>
+          {assignment.title}
+        </div>
         <div className="text-grey-6 text-xs">
           {formatDateTime(assignment.created)}
         </div>
@@ -113,12 +148,23 @@ function StudentOption({
     student.display_name ??
     `Student name unavailable (ID: ${student.lms_id.substring(0, 5)})`;
 
+  const displayNameRef = useRef<HTMLSpanElement | null>(null);
+  const nameIsTruncated = useElementIsTruncated(displayNameRef);
+  const title = !hasDisplayName
+    ? `User ID: ${student.lms_id}`
+    : nameIsTruncated
+      ? displayName
+      : undefined;
+
   return (
-    <MultiSelect.Option value={student.h_userid} elementRef={elementRef}>
+    <MultiSelect.Option
+      value={student.h_userid}
+      elementRef={elementRef}
+      title={title}
+    >
       <span
-        className={hasDisplayName ? undefined : 'italic'}
-        title={hasDisplayName ? undefined : `User ID: ${student.lms_id}`}
-        data-testid="option-content-wrapper"
+        className={classnames('truncate', { italic: !hasDisplayName })}
+        ref={displayNameRef}
       >
         {displayName}
       </span>
@@ -163,12 +209,11 @@ function SegmentsMultiSelect({ segments }: { segments: SegmentsSelection }) {
         {allSegmentsText}
       </MultiSelect.Option>
       {segments.entries.map(entry => (
-        <MultiSelect.Option
+        <TruncatedOption
           key={entry.h_authority_provided_id}
           value={entry.h_authority_provided_id}
-        >
-          {entry.name}
-        </MultiSelect.Option>
+          content={entry.name}
+        />
       ))}
     </MultiSelect>
   );
@@ -299,13 +344,12 @@ export default function DashboardActivityFilters({
         }
         activeItem={activeCourse}
         renderOption={(course, elementRef) => (
-          <MultiSelect.Option
+          <TruncatedOption
             key={course.id}
             value={`${course.id}`}
+            content={course.title}
             elementRef={elementRef}
-          >
-            {course.title}
-          </MultiSelect.Option>
+          />
         )}
       />
       <PaginatedMultiSelect
