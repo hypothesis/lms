@@ -6,7 +6,7 @@ import sqlalchemy
 import zope.sqlalchemy
 from sqlalchemy import text
 from sqlalchemy.inspection import inspect
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy.orm.properties import ColumnProperty
 
 from lms.db._columns import varchar_enum
@@ -16,14 +16,14 @@ from lms.db._text_search import full_text_match
 __all__ = ("Base", "create_engine", "varchar_enum")
 
 
-Base = declarative_base(
+class Base(DeclarativeBase):
     # Create a default metadata object with naming conventions for indexes and
     # constraints. This makes changing such constraints and indexes with
     # alembic after creation much easier. See:
     #
     #   http://docs.sqlalchemy.org/en/latest/core/constraints.html#configuring-constraint-naming-conventions
     #
-    metadata=sqlalchemy.MetaData(
+    metadata = sqlalchemy.MetaData(
         naming_convention={
             "ix": "ix__%(column_0_label)s",
             "uq": "uq__%(table_name)s__%(column_0_name)s",
@@ -31,8 +31,7 @@ Base = declarative_base(
             "fk": "fk__%(table_name)s__%(column_0_name)s__%(referred_table_name)s",
             "pk": "pk__%(table_name)s",
         }
-    ),
-)
+    )
 
 
 def create_engine(database_url):
