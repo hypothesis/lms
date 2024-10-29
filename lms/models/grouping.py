@@ -1,5 +1,5 @@
 from enum import Enum, StrEnum
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, Self, TypedDict
 
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
@@ -90,16 +90,20 @@ class Grouping(CreatedUpdatedMixin, Base):
     #:
     #: For example if the grouping represents a Canvas section or group then parent_id
     #: will reference the grouping for the course that the section or group belongs to.
-    parent_id = sa.Column(sa.Integer(), nullable=True)
+    parent_id: Mapped[int | None] = mapped_column()
+    parent: Mapped[Self | None] = sa.orm.relationship(
+        "Course",
+        remote_side=[id, application_instance_id],
+        foreign_keys=[parent_id, application_instance_id],
+        back_populates="children",
+        overlaps="application_instance",
+    )
+
     children = sa.orm.relationship(
         "Grouping",
         foreign_keys=[parent_id, application_instance_id],
-        backref=sa.orm.backref(
-            "parent",
-            remote_side=[id, application_instance_id],
-            overlaps="application_instance",
-        ),
         overlaps="application_instance",
+        back_populates="parent",
     )
 
     #: The LMS's ID for the grouping.

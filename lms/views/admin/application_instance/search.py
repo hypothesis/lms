@@ -90,7 +90,7 @@ class SearchApplicationInstanceViews(BaseApplicationInstanceView):
 
             instances = list(instances)  # Ensure we don't consume the generator
             for instance in instances:
-                instance.settings_focus_value = instance.settings.get(
+                instance.settings_focus_value = instance.settings.get(  # type: ignore
                     settings_group, settings_subkey
                 )
 

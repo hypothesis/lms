@@ -131,7 +131,7 @@ class GroupingService:
             self._db.query(Grouping)
             .join(GroupingMembership)
             .join(User)
-            .join(course_grouping, Grouping.parent)
+            .join(course_grouping, Grouping.parent)  # type:ignore
             .filter(
                 User.user_id == user_id,
                 course_grouping.id == course.id,

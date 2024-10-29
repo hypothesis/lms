@@ -1,3 +1,5 @@
+# mypy: disable-error-code="misc"
+# Mypy detects "Attributes without a default cannot follow attributes with one" but it seems like a false possitive
 from enum import StrEnum
 
 import sqlalchemy as sa
@@ -142,7 +144,7 @@ class Assignment(
 
     course_id: Mapped[int | None] = mapped_column(sa.ForeignKey(Course.id), index=True)
 
-    course: Mapped[Course | None] = relationship(Course, repr=None)
+    course: Mapped[Course | None] = relationship(Course, repr=False)
 
     lis_outcome_service_url: Mapped[str | None] = mapped_column()
     """URL of the grading serivce relevant for this assignment.

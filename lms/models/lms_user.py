@@ -1,3 +1,5 @@
+# mypy: disable-error-code="misc"
+# Mypy detects "Attributes without a default cannot follow attributes with one" but it seems like a false possitive
 """Models to represent users.
 
 These duplicate some of the information stored in User, the main differences being:

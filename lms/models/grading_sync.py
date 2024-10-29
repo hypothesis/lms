@@ -30,6 +30,10 @@ class GradingSync(CreatedUpdatedMixin, Base):
 
     status: Mapped[str | None] = varchar_enum(AutoGradingSyncStatus)
 
+    grades: Mapped[list["GradingSyncGrade"]] = relationship(
+        "GradingSyncGrade", back_populates="grading_sync"
+    )
+
     created_by_id: Mapped[int] = mapped_column(ForeignKey("lms_user.id"))
     created_by: Mapped["LMSUser"] = relationship()
     """Who created this grade sync."""
@@ -58,7 +62,9 @@ class GradingSyncGrade(CreatedUpdatedMixin, Base):
     grading_sync_id: Mapped[int] = mapped_column(
         ForeignKey("grading_sync.id"), index=True
     )
-    grading_sync: Mapped[GradingSync] = relationship(backref="grades")
+    grading_sync: Mapped[GradingSync] = relationship(
+        "GradingSync", back_populates="grades"
+    )
 
     lms_user_id: Mapped[int] = mapped_column(ForeignKey("lms_user.id"), index=True)
     lms_user: Mapped["LMSUser"] = relationship()

@@ -117,7 +117,7 @@ class ModelChange:
 @dataclass
 class AuditTrailEvent(BaseEvent):
     @staticmethod
-    def notify(request: Request, instance: Base, source="admin_pages"):
+    def notify(request: Request, instance, source="admin_pages"):
         db = request.db
         model_changes = None
         if db.is_modified(instance):

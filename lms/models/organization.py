@@ -29,9 +29,11 @@ class Organization(CreatedUpdatedMixin, Base):
     )
     """Optional parent organization."""
 
-    children = sa.orm.relationship(
-        "Organization", backref=sa.orm.backref("parent", remote_side=[id])
+    parent = sa.orm.relationship(
+        "Organization", back_populates="children", remote_side=[id]
     )
+
+    children = sa.orm.relationship("Organization", back_populates="parent")
     """Get any children of this organization."""
 
     application_instances = sa.orm.relationship(

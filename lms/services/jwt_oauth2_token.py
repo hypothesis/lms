@@ -29,7 +29,6 @@ class JWTOAuth2TokenService:
             self._db.add(token)
 
         token.access_token = access_token
-        token.received_at = datetime.now()
         token.expires_at = datetime.now() + timedelta(seconds=expires_in)
 
         return token

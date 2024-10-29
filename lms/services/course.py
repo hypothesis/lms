@@ -1,5 +1,6 @@
 import json
 from copy import deepcopy
+from typing import cast
 
 from sqlalchemy import Select, Text, column, func, select, union
 
@@ -299,6 +300,8 @@ class CourseService:
             type_=Grouping.Type.COURSE,
             copied_from=copied_from,
         )[0]
+        # upsert_groupings returns Groupings of type `type_`
+        course = cast(Course, course)
 
         self._upsert_lms_course(course, lti_params)
         return course
