@@ -139,6 +139,11 @@ describe('DashboardActivityFilters', () => {
         usePaginatedAPIFetch: fakeUsePaginatedAPIFetch,
       },
     });
+    // Do not mock ContentWithBadge, as it helps test scenarios where it is
+    // used vs scenarios where it isn't
+    $imports.$restore({
+      './ContentWithBadge': true,
+    });
   });
 
   afterEach(() => {
@@ -216,15 +221,21 @@ describe('DashboardActivityFilters', () => {
     assert.equal(getSelectContent(wrapper, 'students-select'), '...');
   });
 
-  it('shows placeholders when selection is empty', () => {
+  it('shows placeholders with count when selection is empty', () => {
     const wrapper = createComponent();
 
-    assert.equal(getSelectContent(wrapper, 'courses-select'), 'All courses');
+    assert.equal(
+      getSelectContent(wrapper, 'courses-select'),
+      `All courses${courses.length}`,
+    );
     assert.equal(
       getSelectContent(wrapper, 'assignments-select'),
-      'All assignments',
+      `All assignments${assignments.length}`,
     );
-    assert.equal(getSelectContent(wrapper, 'students-select'), 'All students');
+    assert.equal(
+      getSelectContent(wrapper, 'students-select'),
+      `All students${students.length}`,
+    );
   });
 
   [
@@ -596,12 +607,12 @@ describe('DashboardActivityFilters', () => {
       // No selection for groups
       {
         segmentsConfig: { type: 'groups' },
-        expectedButtonContent: 'All groups',
+        expectedButtonContent: 'All groups0',
       },
       // No selection for sections
       {
         segmentsConfig: { type: 'sections' },
-        expectedButtonContent: 'All sections',
+        expectedButtonContent: 'All sections0',
       },
       // "None" type
       {
