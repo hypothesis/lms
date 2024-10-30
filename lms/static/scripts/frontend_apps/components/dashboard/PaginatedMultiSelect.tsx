@@ -70,6 +70,7 @@ export type PaginatedMultiSelectProps<TResult, TSelect> = {
   ) => ComponentChildren;
   entity: FiltersEntity;
   buttonContent?: ComponentChildren;
+  buttonClasses?: string;
   value: TSelect[];
   onChange: (newValue: TSelect[]) => void;
 };
@@ -85,6 +86,7 @@ export default function PaginatedMultiSelect<TResult, TSelect>({
   entity,
   renderOption,
   buttonContent,
+  buttonClasses,
   value,
   onChange,
 }: PaginatedMultiSelectProps<TResult, TSelect>) {
@@ -98,6 +100,7 @@ export default function PaginatedMultiSelect<TResult, TSelect>({
       aria-label={`Select ${entity}`}
       containerClasses="!w-auto min-w-44"
       buttonContent={buttonContent}
+      buttonClasses={buttonClasses}
       data-testid={`${entity}-select`}
       onListboxScroll={e => {
         if (elementScrollIsAtBottom(e.target as HTMLUListElement)) {

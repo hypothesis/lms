@@ -317,6 +317,8 @@ export type PaginatedFetchResult<T> = Omit<FetchResult<T>, 'mutate'> & {
   loadNextPage: () => void;
 };
 
+export const ITEMS_PER_PAGE = 100;
+
 /**
  * Hook that fetches paginated data using authenticated API requests.
  * It expects the result to include pagination info in a `pagination` prop.
@@ -341,7 +343,7 @@ export function usePaginatedAPIFetch<
 
   const fetchResult = useAPIFetch<FetchType>(
     nextPageURL ?? path,
-    !nextPageURL ? params : undefined,
+    !nextPageURL ? { ...params, limit: `${ITEMS_PER_PAGE}` } : undefined,
   );
 
   const loadNextPage = useCallback(() => {

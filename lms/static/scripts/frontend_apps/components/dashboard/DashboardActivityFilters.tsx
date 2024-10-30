@@ -19,7 +19,7 @@ import type {
   StudentsResponse,
 } from '../../api-types';
 import { useConfig } from '../../config';
-import { usePaginatedAPIFetch } from '../../utils/api';
+import { ITEMS_PER_PAGE, usePaginatedAPIFetch } from '../../utils/api';
 import { useElementIsTruncated } from '../../utils/hooks';
 import PaginatedMultiSelect from './PaginatedMultiSelect';
 
@@ -173,6 +173,24 @@ function StudentOption({
 }
 
 /**
+ * A badge to display an amount of items in a filter, as long as it is greater
+ * than 0.
+ * If the value is greater than the page size, we display 99+ instead, since
+ * the actual value is not known
+ */
+function CountBadge({ count }: { count?: number }) {
+  if (!count) {
+    return null;
+  }
+
+  return (
+    <div className="px-2 py-1 rounded font-bold bg-grey-3 text-grey-7">
+      {count < ITEMS_PER_PAGE ? count : `${ITEMS_PER_PAGE - 1}+`}
+    </div>
+  );
+}
+
+/**
  * A MultiSelect to list a collection of groups or sections (AKA segments).
  */
 function SegmentsMultiSelect({ segments }: { segments: SegmentsSelection }) {
@@ -190,9 +208,17 @@ function SegmentsMultiSelect({ segments }: { segments: SegmentsSelection }) {
       value={segments.selectedIds}
       onChange={newSegmentIds => segments.onChange(newSegmentIds)}
       disabled={segments.entries.length === 0}
+      buttonClasses={classnames({
+        // Reduce button vertical padding to compensate for the count badge
+        // padding
+        'py-1':
+          segments.selectedIds.length === 0 && segments.entries.length > 0,
+      })}
       buttonContent={
         segments.selectedIds.length === 0 ? (
-          <>{allSegmentsText}</>
+          <div className="flex gap-x-2 items-center">
+            {allSegmentsText} <CountBadge count={segments.entries.length} />
+          </div>
         ) : segments.selectedIds.length === 1 ? (
           segments.entries.find(
             s => s.h_authority_provided_id === segments.selectedIds[0],
@@ -328,13 +354,20 @@ export default function DashboardActivityFilters({
             ? courses.onChange(newCourseIds)
             : newCourseIds.length === 0 && courses.onClear()
         }
+        buttonClasses={classnames({
+          // Reduce button vertical padding to compensate for the count badge
+          // padding
+          'py-1': coursesResult.data?.length && selectedCourseIds.length === 0,
+        })}
         buttonContent={
           activeCourse ? (
             activeCourse.title
           ) : coursesResult.isLoadingFirstPage ? (
             <>...</>
           ) : selectedCourseIds.length === 0 ? (
-            <>All courses</>
+            <div className="flex gap-x-2 items-center">
+              All courses <CountBadge count={coursesResult.data?.length} />
+            </div>
           ) : selectedCourseIds.length === 1 ? (
             coursesResult.data?.find(c => `${c.id}` === selectedCourseIds[0])
               ?.title ?? '1 course'
@@ -362,13 +395,23 @@ export default function DashboardActivityFilters({
             ? assignments.onChange(newAssignmentIds)
             : newAssignmentIds.length === 0 && assignments.onClear()
         }
+        buttonClasses={classnames({
+          // Reduce button vertical padding to compensate for the count badge
+          // padding
+          'py-1':
+            assignmentsResults.data?.length &&
+            selectedAssignmentIds.length === 0,
+        })}
         buttonContent={
           activeAssignment ? (
             activeAssignment.title
           ) : assignmentsResults.isLoadingFirstPage ? (
             <>...</>
           ) : selectedAssignmentIds.length === 0 ? (
-            <>All assignments</>
+            <div className="flex gap-x-2 items-center">
+              All assignments{' '}
+              <CountBadge count={assignmentsResults.data?.length} />
+            </div>
           ) : selectedAssignmentIds.length === 1 ? (
             assignmentsResults.data?.find(
               a => `${a.id}` === selectedAssignmentIds[0],
@@ -393,11 +436,19 @@ export default function DashboardActivityFilters({
         result={studentsResult}
         value={students.selectedIds}
         onChange={newStudentIds => students.onChange(newStudentIds)}
+        buttonClasses={classnames({
+          // Reduce button vertical padding to compensate for the count badge
+          // padding
+          'py-1':
+            studentsResult.data?.length && students.selectedIds.length === 0,
+        })}
         buttonContent={
           studentsResult.isLoadingFirstPage ? (
             <>...</>
           ) : students.selectedIds.length === 0 ? (
-            <>All students</>
+            <div className="flex gap-x-2 items-center">
+              All students <CountBadge count={studentsResult.data?.length} />
+            </div>
           ) : students.selectedIds.length === 1 ? (
             studentsResult.data?.find(
               s => s.h_userid === students.selectedIds[0],
