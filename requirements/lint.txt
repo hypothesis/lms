@@ -646,7 +646,7 @@ vine==5.1.0
     #   amqp
     #   celery
     #   kombu
-waitress==2.1.2
+waitress==3.0.1
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
