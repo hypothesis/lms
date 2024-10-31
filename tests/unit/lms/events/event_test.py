@@ -5,6 +5,7 @@ import pytest
 
 from lms.events import AuditTrailEvent, BaseEvent, LTIEvent, ModelChange
 from lms.events.event import _serialize_change
+from lms.models import EventType
 from tests import factories
 
 
@@ -32,6 +33,12 @@ class TestBaseEvent:
         }
 
 
+@pytest.mark.usefixtures(
+    "lti_role_service",
+    "application_instance_service",
+    "assignment_service",
+    "course_service",
+)
 class TestLTIEvent:
     def test_lti_event_no_lti_user(self, pyramid_request):
         pyramid_request.lti_user = None
@@ -70,23 +77,35 @@ class TestLTIEvent:
         assert event.assignment_id == assignment_service.get_assignment.return_value.id
         assert event.data == sentinel.data
 
-    @pytest.mark.usefixtures(
-        "lti_role_service", "application_instance_service", "assignment_service"
-    )
     def test_lti_event_when_no_course(self, pyramid_request, course_service):
         course_service.get_by_context_id.return_value = None
 
         event = LTIEvent.from_request(request=pyramid_request, type_=sentinel.type)
         assert not event.course_id
 
-    @pytest.mark.usefixtures(
-        "lti_role_service", "application_instance_service", "course_service"
-    )
     def test_lti_event_when_no_assignment(self, pyramid_request, assignment_service):
         assignment_service.get_assignment.return_value = None
 
         event = LTIEvent.from_request(request=pyramid_request, type_=sentinel.type)
         assert not event.assignment_id
+
+    @pytest.mark.parametrize(
+        "type_", [EventType.Type.CONFIGURED_LAUNCH, EventType.Type.DEEP_LINKING]
+    )
+    def test_lti_event_includes_launch_data_for_lti_v13(
+        self, lti_v13_pyramid_request, type_
+    ):
+        event = LTIEvent.from_request(request=lti_v13_pyramid_request, type_=type_)
+
+        assert event.data["lti_params"] == lti_v13_pyramid_request.lti_jwt
+
+    @pytest.mark.parametrize(
+        "type_", [EventType.Type.CONFIGURED_LAUNCH, EventType.Type.DEEP_LINKING]
+    )
+    def test_lti_event_includes_launch_data_for_lti_v11(self, pyramid_request, type_):
+        event = LTIEvent.from_request(request=pyramid_request, type_=type_)
+
+        assert event.data["lti_params"] == pyramid_request.lti_params.serialize()
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
