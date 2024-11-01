@@ -40,7 +40,7 @@
     "gulp": "^5.0.0",
     "karma-chrome-launcher": "^3.2.0",
     "normalize.css": "^8.0.1",
-    "postcss": "^8.4.38",
+    "postcss": "^8.4.47",
     "preact": "10.23.2",
     "rollup": "^4.24.2",
     "sass": "^1.76.0",
