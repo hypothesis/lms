@@ -119,7 +119,7 @@ h-testkit==1.0.1
     # via -r requirements/dev.in
 h-vialib==1.3.1
     # via -r requirements/prod.txt
-hubspot-api-client==9.0.0
+hubspot-api-client==10.0.0
     # via -r requirements/prod.txt
 hupper==1.12
     # via
