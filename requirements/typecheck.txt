@@ -324,7 +324,7 @@ translationstring==1.4
     # via
     #   -r requirements/prod.txt
     #   pyramid
-types-oauthlib==3.2.0.10
+types-oauthlib==3.2.0.20240806
     # via -r requirements/typecheck.in
 types-requests==2.32.0.20241016
     # via -r requirements/typecheck.in
