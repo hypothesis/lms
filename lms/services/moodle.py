@@ -200,7 +200,7 @@ class MoodleAPIClient:
                         "display_name": module["name"],
                         "lms_id": module["id"],
                         "id": f"moodle://page/course/{course_id}/page_id/{module['id']}",
-                        "updated_at": updated_at,
+                        "updated_at": updated_at,  # type: ignore
                     }
                     current_node["children"].append(file_node)
 
