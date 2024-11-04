@@ -3,6 +3,7 @@ from enum import Enum, StrEnum
 from lms.models import Course, Grouping
 from lms.product.plugin.grouping import GroupError, GroupingPlugin
 from lms.services.exceptions import CanvasAPIError
+from lms.services.group_set import GroupSetService
 
 
 class ErrorCodes(StrEnum):
@@ -19,8 +20,15 @@ class CanvasGroupingPlugin(GroupingPlugin):
     group_type = Grouping.Type.CANVAS_GROUP
     sections_type = Grouping.Type.CANVAS_SECTION
 
-    def __init__(self, canvas_api, strict_section_membership: bool, request):
+    def __init__(
+        self,
+        canvas_api,
+        group_set_service: GroupSetService,
+        strict_section_membership: bool,
+        request,
+    ):
         self._canvas_api = canvas_api
+        self._group_set_service = group_set_service
         self._request = request
         self._strict_section_membership = strict_section_membership
 
@@ -60,7 +68,7 @@ class CanvasGroupingPlugin(GroupingPlugin):
         group_sets = self._canvas_api.course_group_categories(
             self._custom_course_id(course)
         )
-        course.set_group_sets(group_sets)
+        self._group_set_service.store_group_sets(course, group_sets)
         return group_sets
 
     def get_groups_for_learner(self, _svc, course, group_set_id):
@@ -128,6 +136,7 @@ class CanvasGroupingPlugin(GroupingPlugin):
     def factory(cls, _context, request):
         return cls(
             request.find_service(name="canvas_api_client"),
+            group_set_service=request.find_service(GroupSetService),
             strict_section_membership=request.lti_user.application_instance.settings.get(
                 "canvas", "strict_section_membership", False
             ),

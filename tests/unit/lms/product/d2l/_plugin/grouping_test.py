@@ -10,12 +10,12 @@ from tests import factories
 
 
 class TestD2LGroupingPlugin:
-    def test_get_group_sets(self, plugin, d2l_api_client, course):
+    def test_get_group_sets(self, plugin, d2l_api_client, course, group_set_service):
         api_group_sets = plugin.get_group_sets(course)
 
         d2l_api_client.course_group_sets.assert_called_once_with(course.lms_id)
-        course.set_group_sets.assert_called_once_with(
-            d2l_api_client.course_group_sets.return_value
+        group_set_service.store_group_sets.assert_called_once_with(
+            course, d2l_api_client.course_group_sets.return_value
         )
         assert api_group_sets == d2l_api_client.course_group_sets.return_value
 
@@ -129,18 +129,24 @@ class TestD2LGroupingPlugin:
             )
         assert err.value.error_code == ErrorCodes.GROUP_SET_EMPTY
 
-    def test_factory(self, pyramid_request, d2l_api_client, misc_plugin):
+    def test_factory(
+        self, pyramid_request, d2l_api_client, misc_plugin, group_set_service
+    ):
         plugin = D2LGroupingPlugin.factory(sentinel.context, pyramid_request)
         assert isinstance(plugin, D2LGroupingPlugin)
         assert plugin._d2l_api == d2l_api_client  # noqa: SLF001
         assert plugin._misc_plugin == misc_plugin  # noqa: SLF001
+        assert plugin._group_set_service == group_set_service  # noqa: SLF001
 
     @pytest.fixture
-    def plugin(self, d2l_api_client, misc_plugin):
-        return D2LGroupingPlugin(d2l_api_client, sentinel.api_user_id, misc_plugin)
+    def plugin(self, d2l_api_client, misc_plugin, group_set_service):
+        return D2LGroupingPlugin(
+            d2l_api_client,
+            sentinel.api_user_id,
+            misc_plugin,
+            group_set_service=group_set_service,
+        )
 
     @pytest.fixture
     def course(self):
-        course = factories.Course()
-        with patch.object(course, "set_group_sets"):
-            yield course
+        return factories.Course()

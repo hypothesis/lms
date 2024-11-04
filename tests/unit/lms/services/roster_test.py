@@ -10,7 +10,7 @@ from lms.services.roster import RosterService, factory
 from tests import factories
 
 
-class TestRosterServiceService:
+class TestRosterService:
     def test_fetch_course_roster(
         self,
         svc,

@@ -219,10 +219,11 @@ class TestCanvasGroupingPlugin:
             == enabled
         )
 
-    def test_factory(self, pyramid_request, canvas_api_client):
+    def test_factory(self, pyramid_request, canvas_api_client, group_set_service):
         plugin = CanvasGroupingPlugin.factory(sentinel.context, pyramid_request)
         assert isinstance(plugin, CanvasGroupingPlugin)
         assert plugin._canvas_api == canvas_api_client  # noqa: SLF001
+        assert plugin._group_set_service == group_set_service  # noqa: SLF001
 
     @pytest.fixture
     def course(self):
@@ -231,7 +232,10 @@ class TestCanvasGroupingPlugin:
         )
 
     @pytest.fixture
-    def plugin(self, canvas_api_client, pyramid_request):
+    def plugin(self, canvas_api_client, pyramid_request, group_set_service):
         return CanvasGroupingPlugin(
-            canvas_api_client, strict_section_membership=False, request=pyramid_request
+            canvas_api_client,
+            strict_section_membership=False,
+            request=pyramid_request,
+            group_set_service=group_set_service,
         )

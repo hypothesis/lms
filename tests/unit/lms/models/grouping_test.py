@@ -53,35 +53,6 @@ class TestCourse:
 
         assert course.extra["course_copy_file_mappings"]["OLD"] == "NEW"
 
-    @pytest.mark.parametrize(
-        "group_set,expected",
-        [
-            # No extra keys
-            (
-                {"id": "1", "name": "name", "extra": "value"},
-                {"id": "1", "name": "name"},
-            ),
-            # String ID
-            ({"id": 1111, "name": "name"}, {"id": "1111", "name": "name"}),
-        ],
-    )
-    def test_set_group_sets(self, group_set, expected):
-        course = factories.Course(extra={})
-
-        course.set_group_sets([group_set])
-
-        assert course.extra["group_sets"] == [expected]
-
-    def test_get_group_set(self):
-        course = factories.Course(extra={"group_sets": sentinel.group_sets})
-
-        assert course.get_group_sets() == sentinel.group_sets
-
-    def test_get_group_set_empty(self):
-        course = factories.Course(extra={})
-
-        assert not course.get_group_sets()
-
     def test_get_mapped_group_set_empty_extra(self):
         course = factories.Course(extra={})
 

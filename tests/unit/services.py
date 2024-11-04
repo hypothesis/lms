@@ -28,6 +28,7 @@ from lms.services.file import FileService
 from lms.services.grading_info import GradingInfoService
 from lms.services.grant_token import GrantTokenService
 from lms.services.group_info import GroupInfoService
+from lms.services.group_set import GroupSetService
 from lms.services.grouping import GroupingService
 from lms.services.h_api import HAPI
 from lms.services.http import HTTPService
@@ -78,6 +79,7 @@ __all__ = (
     "grading_info_service",
     "grant_token_service",
     "group_info_service",
+    "group_set_service",
     "grouping_service",
     "h_api",
     "http_service",
@@ -194,6 +196,11 @@ def course_service(mock_service):
 @pytest.fixture
 def roster_service(mock_service):
     return mock_service(RosterService)
+
+
+@pytest.fixture
+def group_set_service(mock_service):
+    return mock_service(GroupSetService)
 
 
 @pytest.fixture
