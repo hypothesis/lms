@@ -15,7 +15,7 @@ class TestGetPage:
     def test_when_no_next_page(self, pyramid_request, db_session):
         pyramid_request.parsed_params = {"limit": 100}
         courses = factories.Course.create_batch(5)
-        query = select(Course)
+        query = select(Course).order_by(Course.id)
         db_session.flush()
 
         items, pagination = get_page(pyramid_request, query, (Course.id,))
@@ -35,7 +35,7 @@ class TestGetPage:
     def test_it_calculates_next(self, pyramid_request, db_session):
         pyramid_request.parsed_params = {"limit": 1}
         courses = factories.Course.create_batch(5)
-        query = select(Course)
+        query = select(Course).order_by(Course.id)
         db_session.flush()
 
         items, pagination = get_page(pyramid_request, query, (Course.id,))
