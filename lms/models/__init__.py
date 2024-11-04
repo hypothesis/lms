@@ -19,6 +19,7 @@ from lms.models.file import File
 from lms.models.grading_info import GradingInfo
 from lms.models.grading_sync import GradingSync, GradingSyncGrade
 from lms.models.group_info import GroupInfo
+from lms.models.group_set import LMSGroupSet
 from lms.models.grouping import (
     BlackboardGroup,
     CanvasGroup,
