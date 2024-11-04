@@ -1,9 +1,12 @@
+import logging
 from enum import Enum, StrEnum
 from typing import Literal, NotRequired, TypedDict
 
 from lms.services.aes import AESService
 from lms.services.exceptions import ExternalRequestError
 from lms.services.http import HTTPService
+
+LOG = logging.getLogger(__name__)
 
 
 class Function(StrEnum):
@@ -139,6 +142,8 @@ class MoodleAPIClient:
         # We don't want to download the full file so we'll do a HEAD request and assume:
         #   - JSON response, it's an error response
         #   - Anything else, it's  the file we are after
+
+        LOG.info("Headers from Moodle file check %s", response.headers)
         return not response.headers["content-type"].startswith("application/json")
 
     def page(self, course_id, page_id) -> dict | None:
