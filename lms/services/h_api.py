@@ -155,7 +155,7 @@ class HAPI:
         groups: Sequence[str],
         annotations_created_after: datetime,
         annotations_created_before: datetime,
-        batch_size: int = 1000,
+        batch_size: int = 250,
     ) -> Iterator[HAPIGroup]:
         """
         Fetch groups that have annotations created between two dates.
