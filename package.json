@@ -79,7 +79,7 @@
     "prettier": "3.2.5",
     "sinon": "^19.0.2",
     "typescript": "^5.2.2",
-    "typescript-eslint": "^8.11.0"
+    "typescript-eslint": "^8.12.2"
   },
   "prettier": {
     "arrowParens": "avoid",
