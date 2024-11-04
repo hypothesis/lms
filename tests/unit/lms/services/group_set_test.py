@@ -2,6 +2,7 @@ from unittest.mock import sentinel
 
 import pytest
 
+from lms.models import LMSGroupSet
 from lms.services.group_set import GroupSetService, factory
 from tests import factories
 
@@ -19,33 +20,31 @@ class TestGroupSetService:
             ({"id": 1111, "name": "name"}, {"id": "1111", "name": "name"}),
         ],
     )
-    def test_set_group_sets(self, group_set, expected, svc):
-        course = factories.Course(extra={})
+    def test_set_group_sets(self, group_set, expected, svc, db_session):
+        course = factories.Course(extra={}, lms_course=factories.LMSCourse())
+        db_session.flush()
 
         svc.store_group_sets(course, [group_set])
 
         assert course.extra["group_sets"] == [expected]
-
-    def test_get_group_sets(self, svc):
-        course = factories.Course(extra={"group_sets": sentinel.group_sets})
-
-        assert svc.get_group_sets(course) == sentinel.group_sets
-
-    def test_get_group_set_empty(self, svc):
-        course = factories.Course(extra={})
-
-        assert not svc.get_group_sets(course)
+        assert (
+            db_session.query(LMSGroupSet)
+            .filter_by(lms_course_id=course.lms_course.id, lms_id=str(group_set["id"]))
+            .one()
+            .name
+            == group_set["name"]
+        )
 
     @pytest.fixture
-    def svc(self):
-        return GroupSetService()
+    def svc(self, db_session):
+        return GroupSetService(db=db_session)
 
 
 class TestFactory:
-    def test_it(self, pyramid_request, GroupSetService):
+    def test_it(self, pyramid_request, GroupSetService, db_session):
         service = factory(sentinel.context, pyramid_request)
 
-        GroupSetService.assert_called_once_with()
+        GroupSetService.assert_called_once_with(db=db_session)
         assert service == GroupSetService.return_value
 
     @pytest.fixture

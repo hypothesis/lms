@@ -1,5 +1,8 @@
 from typing import TypedDict
 
+from lms.models.group_set import LMSGroupSet
+from lms.services.upsert import bulk_upsert
+
 
 class GroupSetDict(TypedDict):
     """
@@ -13,6 +16,9 @@ class GroupSetDict(TypedDict):
 
 
 class GroupSetService:
+    def __init__(self, db):
+        self._db = db
+
     def store_group_sets(self, course, group_sets: list[dict]):
         """
         Store this course's available group sets.
@@ -25,10 +31,21 @@ class GroupSetService:
         group_sets = [{"id": str(g["id"]), "name": g["name"]} for g in group_sets]
         course.extra["group_sets"] = group_sets
 
-    def get_group_sets(self, course) -> list[GroupSetDict]:
-        """Get this course's available group sets."""
-        return course.extra.get("group_sets", [])
+        bulk_upsert(
+            self._db,
+            model_class=LMSGroupSet,
+            values=[
+                {
+                    "lms_id": g["id"],
+                    "name": g["name"],
+                    "lms_course_id": course.lms_course.id,
+                }
+                for g in group_sets
+            ],
+            index_elements=["lms_course_id", "lms_id"],
+            update_columns=["name", "updated"],
+        )
 
 
-def factory(_context, _request):
-    return GroupSetService()
+def factory(_context, request):
+    return GroupSetService(db=request.db)
