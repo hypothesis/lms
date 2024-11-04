@@ -20,6 +20,7 @@ import type {
 } from '../../api-types';
 import { useConfig } from '../../config';
 import { usePaginatedAPIFetch } from '../../utils/api';
+import TruncatedText from '../TruncatedText';
 import PaginatedMultiSelect from './PaginatedMultiSelect';
 
 /**
@@ -92,7 +93,7 @@ function AssignmentOption({
   return (
     <MultiSelect.Option value={`${assignment.id}`} elementRef={elementRef}>
       <div className="flex flex-col gap-0.5">
-        {assignment.title}
+        <TruncatedText>{assignment.title}</TruncatedText>
         <div className="text-grey-6 text-xs">
           {formatDateTime(assignment.created)}
         </div>
@@ -115,13 +116,13 @@ function StudentOption({
 
   return (
     <MultiSelect.Option value={student.h_userid} elementRef={elementRef}>
-      <span
-        className={hasDisplayName ? undefined : 'italic'}
+      <TruncatedText
+        classes={hasDisplayName ? undefined : 'italic'}
         title={hasDisplayName ? undefined : `User ID: ${student.lms_id}`}
         data-testid="option-content-wrapper"
       >
         {displayName}
-      </span>
+      </TruncatedText>
     </MultiSelect.Option>
   );
 }
@@ -167,7 +168,7 @@ function SegmentsMultiSelect({ segments }: { segments: SegmentsSelection }) {
           key={entry.h_authority_provided_id}
           value={entry.h_authority_provided_id}
         >
-          {entry.name}
+          <TruncatedText>{entry.name}</TruncatedText>
         </MultiSelect.Option>
       ))}
     </MultiSelect>
@@ -304,7 +305,7 @@ export default function DashboardActivityFilters({
             value={`${course.id}`}
             elementRef={elementRef}
           >
-            {course.title}
+            <TruncatedText>{course.title}</TruncatedText>
           </MultiSelect.Option>
         )}
       />
