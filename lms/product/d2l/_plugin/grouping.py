@@ -2,7 +2,7 @@ from enum import Enum, StrEnum
 
 from lms.models import Course, Grouping
 from lms.product.plugin.grouping import GroupError, GroupingPlugin
-from lms.services import D2LAPIClient
+from lms.services import D2LAPIClient, GroupSetService
 from lms.services.exceptions import ExternalRequestError
 
 
@@ -20,14 +20,17 @@ class D2LGroupingPlugin(GroupingPlugin):
     group_type = Grouping.Type.D2L_GROUP
     sections_type = None  # We don't support sections in D2L
 
-    def __init__(self, d2l_api, api_user_id, misc_plugin):
+    def __init__(
+        self, d2l_api, api_user_id, misc_plugin, group_set_service: GroupSetService
+    ):
         self._d2l_api = d2l_api
         self._api_user_id = api_user_id
         self._misc_plugin = misc_plugin
+        self._group_set_service = group_set_service
 
     def get_group_sets(self, course: Course):
         group_sets = self._d2l_api.course_group_sets(course.lms_id)
-        course.set_group_sets(group_sets)
+        self._group_set_service.store_group_sets(course, group_sets)
         return group_sets
 
     def get_groups_for_learner(self, _svc, course, group_set_id):
@@ -79,4 +82,5 @@ class D2LGroupingPlugin(GroupingPlugin):
             d2l_api=d2l_api,
             api_user_id=d2l_api.get_api_user_id(request.lti_user.user_id),
             misc_plugin=request.product.plugin.misc,
+            group_set_service=request.find_service(GroupSetService),
         )

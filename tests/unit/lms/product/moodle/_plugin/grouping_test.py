@@ -10,12 +10,12 @@ from tests import factories
 
 
 class TestMoodleGroupingPlugin:
-    def test_get_group_sets(self, plugin, moodle_api_client, course):
+    def test_get_group_sets(self, plugin, moodle_api_client, course, group_set_service):
         api_group_sets = plugin.get_group_sets(course)
 
         moodle_api_client.course_group_sets.assert_called_once_with(course.lms_id)
-        course.set_group_sets.assert_called_once_with(
-            moodle_api_client.course_group_sets.return_value
+        group_set_service.store_group_sets.assert_called_once_with(
+            course, moodle_api_client.course_group_sets.return_value
         )
         assert api_group_sets == moodle_api_client.course_group_sets.return_value
 
@@ -128,17 +128,18 @@ class TestMoodleGroupingPlugin:
             )
         assert err.value.error_code == ErrorCodes.GROUP_SET_EMPTY
 
-    def test_factory(self, pyramid_request, moodle_api_client):
+    def test_factory(self, pyramid_request, moodle_api_client, group_set_service):
         plugin = MoodleGroupingPlugin.factory(sentinel.context, pyramid_request)
         assert isinstance(plugin, MoodleGroupingPlugin)
         assert plugin._api == moodle_api_client  # noqa: SLF001
+        assert plugin._group_set_service == group_set_service  # noqa: SLF001
 
     @pytest.fixture
-    def plugin(self, moodle_api_client, lti_user):
-        return MoodleGroupingPlugin(moodle_api_client, lti_user)
+    def plugin(self, moodle_api_client, lti_user, group_set_service):
+        return MoodleGroupingPlugin(
+            moodle_api_client, lti_user, group_set_service=group_set_service
+        )
 
     @pytest.fixture
     def course(self):
-        course = factories.Course(lms_id=random.randint(1, 1000))
-        with patch.object(course, "set_group_sets"):
-            yield course
+        return factories.Course(lms_id=random.randint(1, 1000))

@@ -3,6 +3,7 @@ from enum import Enum, StrEnum
 from lms.models import Course, Grouping
 from lms.product.plugin.grouping import GroupError, GroupingPlugin
 from lms.services.exceptions import ExternalRequestError
+from lms.services.group_set import GroupSetService
 from lms.services.moodle import MoodleAPIClient
 
 
@@ -18,13 +19,14 @@ class MoodleGroupingPlugin(GroupingPlugin):
     group_type = Grouping.Type.MOODLE_GROUP
     sections_type = None  # We don't support sections in Moodle
 
-    def __init__(self, api, lti_user):
+    def __init__(self, api, lti_user, group_set_service):
         self._api = api
         self._lti_user = lti_user
+        self._group_set_service = group_set_service
 
     def get_group_sets(self, course: Course):
         group_sets = self._api.course_group_sets(course.lms_id)
-        course.set_group_sets(group_sets)
+        self._group_set_service.store_group_sets(course, group_sets)
         return group_sets
 
     def get_groups_for_learner(self, _svc, course, group_set_id):
@@ -80,4 +82,8 @@ class MoodleGroupingPlugin(GroupingPlugin):
 
     @classmethod
     def factory(cls, _context, request):
-        return cls(api=request.find_service(MoodleAPIClient), lti_user=request.lti_user)
+        return cls(
+            api=request.find_service(MoodleAPIClient),
+            lti_user=request.lti_user,
+            group_set_service=request.find_service(GroupSetService),
+        )

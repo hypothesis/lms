@@ -17,6 +17,7 @@ from lms.services.exceptions import (
     OAuth2TokenError,
     SerializableError,
 )
+from lms.services.group_set import GroupSetService
 from lms.services.h_api import HAPI, HAPIError
 from lms.services.hubspot import HubSpotService
 from lms.services.jstor import JSTORService
@@ -44,7 +45,7 @@ from lms.services.vitalsource import VitalSourceService
 from lms.services.youtube import YouTubeService
 
 
-def includeme(config):
+def includeme(config):  # noqa: PLR0915
     config.register_service_factory("lms.services.http.factory", name="http")
     config.register_service_factory(
         "lms.services.oauth_http.factory", name="oauth_http"
@@ -152,6 +153,9 @@ def includeme(config):
     )
     config.register_service_factory(MoodleAPIClient.factory, iface=MoodleAPIClient)
     config.register_service_factory("lms.services.roster.factory", iface=RosterService)
+    config.register_service_factory(
+        "lms.services.group_set.factory", iface=GroupSetService
+    )
     config.register_service_factory(
         "lms.services.auto_grading.factory", iface=AutoGradingService
     )

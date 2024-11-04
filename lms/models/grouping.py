@@ -1,5 +1,5 @@
 from enum import Enum, StrEnum
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING
 
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
@@ -174,17 +174,6 @@ class MoodleGroup(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.MOODLE_GROUP}
 
 
-class GroupSet(TypedDict):
-    """
-    Group sets are a collection of student groups.
-
-    We store them in Course.extra
-    """
-
-    id: str
-    name: str
-
-
 class Course(Grouping):
     __mapper_args__ = {"polymorphic_identity": Grouping.Type.COURSE}
 
@@ -198,22 +187,6 @@ class Course(Grouping):
         primaryjoin="Grouping.authority_provided_id == foreign(LMSCourse.h_authority_provided_id)",
         backref=sa.orm.backref("course"),
     )
-
-    def set_group_sets(self, group_sets: list[dict]):
-        """
-        Store this course's available group sets.
-
-        We keep record of these for bookkeeping and as the basics to
-        dealt with groups while doing course copy.
-        """
-        # Different LMS might return additional fields but we only interested in the ID and the name.
-        # We explicitly cast ID to string to homogenise the data in all LMS's.
-        group_sets = [{"id": str(g["id"]), "name": g["name"]} for g in group_sets]
-        self.extra["group_sets"] = group_sets
-
-    def get_group_sets(self) -> list[GroupSet]:
-        """Get this course's available group sets."""
-        return self.extra.get("group_sets", [])
 
     def get_mapped_page_id(self, page_id):
         """
