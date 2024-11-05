@@ -137,14 +137,17 @@ class MoodleAPIClient:
     def file_exists(self, file_id) -> bool:
         """Check if the file exists in the course."""
         # Moodle file IDs are URLs, but they need the token to be accessible
-        response = self._http.request("HEAD", f"{file_id}&token={self.token}")
-        # Moodle API doesn't use status codes, we can't rely on that.
-        # We don't want to download the full file so we'll do a HEAD request and assume:
-        #   - JSON response, it's an error response
-        #   - Anything else, it's  the file we are after
+        response = self._http.request(
+            "GET", f"{file_id}&token={self.token}", headers={"Range": "bytes=0-1024"}
+        )
+        # API doesn't use status codes, we can't rely on that.
+        if content_type := response.headers.get("content-type"):
+            # JSON response, assume it's an error response
+            return not content_type.startswith("application/json")
 
-        LOG.info("Headers from Moodle file check %s", response.headers)
-        return not response.headers["content-type"].startswith("application/json")
+        # If the Moodle server doesn't return the content-type header, check the first bytes of the response
+        # and check if the files is indeed a PDF.
+        return b"%PDF" in response.content
 
     def page(self, course_id, page_id) -> dict | None:
         url = self._api_url(Function.GET_PAGES)
