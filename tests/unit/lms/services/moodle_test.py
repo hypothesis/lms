@@ -149,19 +149,24 @@ class TestMoodleAPIClient:
             }
         ]
 
+    @pytest.mark.parametrize("content", [b"some other content", b"%PDF-14"])
     @pytest.mark.parametrize(
-        "header,expected",
-        [
-            ("application/json", False),
-            ("application/pdf", True),
-        ],
+        "headers",
+        [{}, {"content-type": "application/json"}, {"content-type": "application/pdf"}],
     )
-    def test_file_exists(self, svc, http_service, header, expected):
-        http_service.request.return_value = Mock(headers={"content-type": header})
+    def test_file_exists(self, svc, http_service, headers, content):
+        http_service.request.return_value = Mock(content=content, headers=headers)
+
+        expected = (
+            not headers.get("content-type", "").startswith("application/json")
+            if headers.get("content-type")
+            else b"%PDF" in content
+        )
 
         assert svc.file_exists("URL") == expected
-
-        http_service.request.assert_called_once_with("HEAD", "URL&token=sentinel.token")
+        http_service.request.assert_called_once_with(
+            "GET", "URL&token=sentinel.token", headers={"Range": "bytes=0-1024"}
+        )
 
     def test_list_pages(self, svc, http_service, contents):
         http_service.post.return_value.json.return_value = contents
