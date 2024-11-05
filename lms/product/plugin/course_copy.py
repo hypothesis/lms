@@ -4,6 +4,7 @@ from typing import Any
 from lms.models import File
 from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 from lms.services.file import FileService
+from lms.services.group_set import GroupSetService
 
 
 class CourseCopyFilesHelper:
@@ -66,8 +67,8 @@ class CourseCopyFilesHelper:
 
 
 class CourseCopyGroupsHelper:
-    def __init__(self, course_service, grouping_plugin):
-        self._course_service = course_service
+    def __init__(self, group_set_service: GroupSetService, grouping_plugin):
+        self._group_set_service = group_set_service
         self._grouping_plugin = grouping_plugin
 
     def find_matching_group_set_in_course(self, course, group_set_id):
@@ -91,7 +92,9 @@ class CourseCopyGroupsHelper:
             pass
 
         # Get the original group set from the DB
-        group_set = self._course_service.find_group_set(group_set_id=group_set_id)
+        group_set = self._group_set_service.find_group_set(
+            application_instance=course.application_instance, group_set_id=group_set_id
+        )
         if not group_set:
             # If we haven't found it could that either:
             # - The group set doesn't belong to this course
@@ -102,8 +105,10 @@ class CourseCopyGroupsHelper:
         # Try to find a matching group set in the new course.
         # We might have a record of this because we just called `grouping_plugin.get_group_sets` as the current user
         # or another user might have done it before for us.
-        if new_group_set := self._course_service.find_group_set(
-            name=group_set["name"], context_id=course.lms_id
+        if new_group_set := self._group_set_service.find_group_set(
+            application_instance=course.application_instance,
+            name=group_set["name"],
+            context_id=course.lms_id,
         ):
             # We found a match, store it to save the search for next time
             course.set_mapped_group_set_id(group_set_id, new_group_set["id"])
@@ -114,7 +119,9 @@ class CourseCopyGroupsHelper:
 
     @classmethod
     def factory(cls, _context, request):
-        return cls(request.find_service(name="course"), request.product.plugin.grouping)
+        return cls(
+            request.find_service(GroupSetService), request.product.plugin.grouping
+        )
 
 
 class CourseCopyPlugin:  # pragma: nocover

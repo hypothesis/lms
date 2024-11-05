@@ -1,6 +1,8 @@
 from typing import TypedDict
 
-from lms.models.group_set import LMSGroupSet
+from sqlalchemy import Text, column, func, select, union
+
+from lms.models import Course, Grouping, LMSGroupSet
 from lms.services.upsert import bulk_upsert
 
 
@@ -45,6 +47,46 @@ class GroupSetService:
             index_elements=["lms_course_id", "lms_id"],
             update_columns=["name", "updated"],
         )
+
+    def find_group_set(
+        self, application_instance, group_set_id=None, name=None, context_id=None
+    ) -> GroupSetDict | None:
+        """
+        Find the first matching group set in this course.
+
+        Group sets are stored as part of Course.extra, this method allows to query and filter them.
+
+        :param context_id: Match only group sets of courses with this ID
+        :param name: Filter courses by name
+        :param group_set_id: Filter courses by ID
+        """
+        group_set = (
+            func.jsonb_to_recordset(Course.extra["group_sets"])
+            .table_valued(
+                column("id", Text), column("name", Text), joins_implicitly=True
+            )
+            .render_derived(with_types=True)
+        )
+
+        query = self._db.query(Grouping.id, group_set.c.id, group_set.c.name).filter(
+            Grouping.application_instance == application_instance
+        )
+
+        if context_id:
+            query = query.filter(Grouping.lms_id == context_id)
+
+        if group_set_id:
+            query = query.filter(group_set.c.id == group_set_id)
+
+        if name:
+            query = query.filter(
+                func.lower(func.trim(group_set.c.name)) == func.lower(func.trim(name))
+            )
+
+        if group_set := query.first():
+            return {"id": group_set.id, "name": group_set.name}
+
+        return None
 
 
 def factory(_context, request):
