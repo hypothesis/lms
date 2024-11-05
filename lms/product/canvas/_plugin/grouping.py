@@ -88,8 +88,8 @@ class CanvasGroupingPlugin(GroupingPlugin):
             )
         except CanvasAPIError as canvas_api_error:
             group_set_name = None
-            if group_set := self._request.find_service(name="course").find_group_set(
-                group_set_id=group_set_id
+            if group_set := self._group_set_service.find_group_set(
+                course.application_instance, group_set_id=group_set_id
             ):
                 group_set_name = group_set["name"]
 
