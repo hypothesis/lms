@@ -51,8 +51,8 @@ export default function OrderableActivityTable<T>({
           // For assignments with auto-grading, a fifth column is displayed.
           // In that case, we need to reserve less space for the first column,
           // otherwise the rest overflow.
-          'lg:w-[60%] md:w-[45%]': index === 0 && columns.length < 5,
-          'lg:w-[45%] md:w-[30%]': index === 0 && columns.length >= 5,
+          'lg:w-[55%] md:w-[45%]': index === 0 && columns.length < 5,
+          'lg:w-[40%] md:w-[30%]': index === 0 && columns.length >= 5,
         }),
       })),
     [columns],
