@@ -93,7 +93,7 @@ class CourseCopyGroupsHelper:
 
         # Get the original group set from the DB
         group_set = self._group_set_service.find_group_set(
-            application_instance=course.application_instance, group_set_id=group_set_id
+            application_instance=course.application_instance, lms_id=group_set_id
         )
         if not group_set:
             # If we haven't found it could that either:
@@ -107,12 +107,12 @@ class CourseCopyGroupsHelper:
         # or another user might have done it before for us.
         if new_group_set := self._group_set_service.find_group_set(
             application_instance=course.application_instance,
-            name=group_set["name"],
+            name=group_set.name,
             context_id=course.lms_id,
         ):
             # We found a match, store it to save the search for next time
-            course.set_mapped_group_set_id(group_set_id, new_group_set["id"])
-            return new_group_set["id"]
+            course.set_mapped_group_set_id(group_set_id, new_group_set.lms_id)
+            return new_group_set.lms_id
 
         # No match
         return None

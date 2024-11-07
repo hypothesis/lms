@@ -20,8 +20,7 @@ class TestGroupSetService:
             ({"id": 1111, "name": "name"}, {"id": "1111", "name": "name"}),
         ],
     )
-    def test_set_group_sets(self, group_set, expected, svc, db_session):
-        course = factories.Course(extra={}, lms_course=factories.LMSCourse())
+    def test_set_group_sets(self, group_set, expected, svc, db_session, course):
         db_session.flush()
 
         svc.store_group_sets(course, [group_set])
@@ -35,15 +34,15 @@ class TestGroupSetService:
             == group_set["name"]
         )
 
-    @pytest.mark.usefixtures("course_with_group_sets")
+    @pytest.mark.usefixtures("group_sets")
     @pytest.mark.parametrize(
         "params",
         (
-            {"context_id": "context_id", "group_set_id": "ID", "name": "NAME"},
+            {"context_id": "context_id", "lms_id": "ID", "name": "NAME"},
             {"context_id": "context_id", "name": "NAME"},
             {"context_id": "context_id", "name": "name"},
             {"context_id": "context_id", "name": "NAME    "},
-            {"context_id": "context_id", "group_set_id": "ID"},
+            {"context_id": "context_id", "lms_id": "ID"},
         ),
     )
     def test_find_group_set(self, svc, params, application_instance):
@@ -51,16 +50,16 @@ class TestGroupSetService:
             application_instance=application_instance, **params
         )
 
-        assert group_set["id"] == "ID"
-        assert group_set["name"] == "NAME"
+        assert group_set.lms_id == "ID"
+        assert group_set.name == "NAME"
 
-    @pytest.mark.usefixtures("course_with_group_sets")
+    @pytest.mark.usefixtures("group_sets")
     @pytest.mark.parametrize(
         "params",
         (
-            {"context_id": "context_id", "group_set_id": "NOID", "name": "NAME"},
-            {"context_id": "context_id", "group_set_id": "ID", "name": "NONAME"},
-            {"context_id": "no_context_id", "group_set_id": "ID", "name": "NAME"},
+            {"context_id": "context_id", "lms_id": "NOID", "name": "NAME"},
+            {"context_id": "context_id", "lms_id": "ID", "name": "NONAME"},
+            {"context_id": "no_context_id", "lms_id": "ID", "name": "NAME"},
         ),
     )
     def test_find_group_set_no_matches(self, svc, params, application_instance):
@@ -68,7 +67,7 @@ class TestGroupSetService:
             application_instance=application_instance, **params
         )
 
-    @pytest.mark.usefixtures("course_with_group_sets")
+    @pytest.mark.usefixtures("group_sets")
     def test_find_group_set_returns_first_result(self, svc, application_instance):
         assert svc.find_group_set(application_instance)
 
@@ -78,25 +77,23 @@ class TestGroupSetService:
 
     @pytest.fixture
     def course(self, application_instance):
-        return factories.Course(
-            application_instance=application_instance, lms_id="context_id"
+        course = factories.Course(
+            application_instance=application_instance,
+            lms_id="context_id",
+            lms_course=factories.LMSCourse(lti_context_id="context_id"),
         )
+        factories.LMSCourseApplicationInstance(
+            lms_course=course.lms_course, application_instance=application_instance
+        )
+        return course
 
     @pytest.fixture
-    def course_with_group_sets(self, course):
-        course.extra = {
-            "group_sets": [
-                {
-                    "id": "ID",
-                    "name": "NAME",
-                },
-                {
-                    "id": "NOT MATCHING ID NOISE",
-                    "name": "NOT MATCHING NAME NOISE",
-                },
-            ]
-        }
-        return course
+    def group_sets(self, course, db_session):
+        factories.LMSGroupSet(name="NAME", lms_id="ID", lms_course=course.lms_course)
+        factories.LMSGroupSet(
+            name="NOT MATCHING", lms_id="NOT MATCHING", lms_course=course.lms_course
+        )
+        db_session.flush()
 
 
 class TestFactory:

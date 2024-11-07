@@ -122,7 +122,7 @@ class TestCourseCopyFilesHelper:
 class TestCourseCopyGroupsHelper:
     @pytest.mark.parametrize("raising", [True, False])
     def test_find_matching_group_in_course(
-        self, helper, grouping_plugin, raising, course_service, course
+        self, helper, grouping_plugin, raising, course, group_set_service
     ):
         if raising:
             grouping_plugin.get_group_sets.side_effect = ExternalRequestError
@@ -132,17 +132,18 @@ class TestCourseCopyGroupsHelper:
         )
 
         grouping_plugin.get_group_sets.assert_called_once_with(course)
-        course_service.find_group_set.assert_any_call(
-            group_set_id=sentinel.group_set_id
+        group_set_service.find_group_set.assert_any_call(
+            course.application_instance, lms_id=sentinel.group_set_id
         )
-        course_service.find_group_set.assert_called_with(
-            name=course_service.find_group_set.return_value["name"],
+        group_set_service.find_group_set.assert_called_with(
+            application_instance=course.application_instance,
+            name=group_set_service.find_group_set.return_value.name,
             context_id=course.lms_id,
         )
         course.set_mapped_group_set_id(
-            sentinel.group_set_id, course_service.find_group_set.return_value["id"]
+            sentinel.group_set_id, group_set_service.find_group_set.return_value.lms_id
         )
-        assert new_group_set_id == course_service.find_group_set.return_value["id"]
+        assert new_group_set_id == group_set_service.find_group_set.return_value.lms_id
 
     def test_find_matching_file_raises_OAuth2TokenError(self, helper, grouping_plugin):
         grouping_plugin.get_group_sets.side_effect = OAuth2TokenError
@@ -153,25 +154,25 @@ class TestCourseCopyGroupsHelper:
             )
 
     def test_find_matching_group_in_course_no_stored_group_from_original_course(
-        self, helper, grouping_plugin, course_service, course
+        self, helper, grouping_plugin, course, group_set_service
     ):
-        course_service.find_group_set.return_value = None
+        group_set_service.find_group_set.return_value = None
 
         new_group_set_id = helper.find_matching_group_set_in_course(
             course, sentinel.group_set_id
         )
 
         grouping_plugin.get_group_sets.assert_called_once_with(course)
-        course_service.find_group_set.assert_any_call(
-            group_set_id=sentinel.group_set_id
+        group_set_service.find_group_set.assert_any_call(
+            course.application_instance, lms_id=sentinel.group_set_id
         )
         assert not new_group_set_id
 
     def test_find_matching_group_in_course_no_stored_group_from_new_course(
-        self, helper, grouping_plugin, course_service, course
+        self, helper, grouping_plugin, group_set_service, course
     ):
-        course_service.find_group_set.side_effect = [
-            course_service.find_group_set.return_value,
+        group_set_service.find_group_set.side_effect = [
+            group_set_service.find_group_set.return_value,
             None,
         ]
 
@@ -180,16 +181,17 @@ class TestCourseCopyGroupsHelper:
         )
 
         grouping_plugin.get_group_sets.assert_called_once_with(course)
-        course_service.find_group_set.assert_any_call(
-            group_set_id=sentinel.group_set_id
+        group_set_service.find_group_set.assert_any_call(
+            course.application_instance, lms_id=sentinel.group_set_id
         )
-        course_service.find_group_set.assert_called_with(
-            name=course_service.find_group_set.return_value["name"],
+        group_set_service.find_group_set.assert_called_with(
+            application_instance=course.application_instance,
+            name=group_set_service.find_group_set.return_value.name,
             context_id=course.lms_id,
         )
         assert not new_group_set_id
 
-    @pytest.mark.usefixtures("course_service", "grouping_plugin")
+    @pytest.mark.usefixtures("course_service", "grouping_plugin", "group_set_service")
     def test_factory(self, pyramid_request):
         plugin = CourseCopyGroupsHelper.factory(sentinel.context, pyramid_request)
 
@@ -202,5 +204,5 @@ class TestCourseCopyGroupsHelper:
         return create_autospec(Course, spec_set=True, instance=True)
 
     @pytest.fixture
-    def helper(self, course_service, grouping_plugin):
-        return CourseCopyGroupsHelper(course_service, grouping_plugin)
+    def helper(self, group_set_service, grouping_plugin):
+        return CourseCopyGroupsHelper(group_set_service, grouping_plugin)
