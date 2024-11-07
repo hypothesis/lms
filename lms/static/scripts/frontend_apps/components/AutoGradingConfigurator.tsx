@@ -122,16 +122,16 @@ export default function AutoGradingConfigurator({
               }
             >
               <RadioGroup.Radio
-                value="all_or_nothing"
-                subtitle={<small>Must meet minimum requirements.</small>}
+                value="scaled"
+                subtitle={<small>3 annotations out of 4 is 75%</small>}
               >
-                All or nothing
+                Proportional
               </RadioGroup.Radio>
               <RadioGroup.Radio
-                value="scaled"
-                subtitle={<small>Proportional to percent completed.</small>}
+                value="all_or_nothing"
+                subtitle={<small>3 annotations out of 4 is 0%</small>}
               >
-                Scaled
+                All or nothing
               </RadioGroup.Radio>
             </RadioGroup>
           </div>

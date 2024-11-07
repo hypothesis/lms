@@ -10,7 +10,7 @@ describe('AutoGradingConfigurator', () => {
 
   beforeEach(() => {
     fakeAutoGradingConfig = {
-      grading_type: 'all_or_nothing',
+      grading_type: 'scaled',
       activity_calculation: 'cumulative',
       required_annotations: 1,
     };
@@ -80,7 +80,7 @@ describe('AutoGradingConfigurator', () => {
         assert.equal(inputs.length, activityCalculation === 'separate' ? 2 : 1);
         assert.equal(
           firstInput.text(),
-          `Annotations${activityCalculation === 'cumulative' ? ' and replies' : ''}Minimum`,
+          `Annotations${activityCalculation === 'cumulative' ? ' and replies' : ''}Goal`,
         );
       });
     });

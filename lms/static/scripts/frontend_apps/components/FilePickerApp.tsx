@@ -203,7 +203,7 @@ export default function FilePickerApp({ onSubmit }: FilePickerAppProps) {
       if (!assignmentAutoGradingConfig) {
         return {
           enabled: false,
-          grading_type: 'all_or_nothing',
+          grading_type: 'scaled',
           activity_calculation: 'cumulative',
           required_annotations: 1,
         };
