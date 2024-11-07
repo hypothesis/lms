@@ -37,6 +37,7 @@ from tests.factories.lms_course import (
     LMSCourseApplicationInstance,
     LMSCourseMembership,
 )
+from tests.factories.lms_group_set import LMSGroupSet
 from tests.factories.lms_user import LMSUser
 from tests.factories.lti_registration import LTIRegistration
 from tests.factories.lti_role import LTIRole, LTIRoleOverride

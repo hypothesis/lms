@@ -2,16 +2,12 @@ from typing import TypedDict
 
 from sqlalchemy import Text, column, func, select, union
 
-from lms.models import Course, Grouping, LMSGroupSet
+from lms.models import Course, LMSCourse, LMSCourseApplicationInstance, LMSGroupSet
 from lms.services.upsert import bulk_upsert
 
 
 class GroupSetDict(TypedDict):
-    """
-    Group sets are a collection of student groups.
-
-    We store them in Course.extra
-    """
+    """Group sets are a collection of student groups."""
 
     id: str
     name: str
@@ -21,9 +17,9 @@ class GroupSetService:
     def __init__(self, db):
         self._db = db
 
-    def store_group_sets(self, course, group_sets: list[dict]):
+    def store_group_sets(self, course: Course, group_sets: list[dict]):
         """
-        Store this course's available group sets.
+        Store a course's available group sets.
 
         We keep record of these for bookkeeping and as the basics to
         dealt with groups while doing course copy.
@@ -49,44 +45,31 @@ class GroupSetService:
         )
 
     def find_group_set(
-        self, application_instance, group_set_id=None, name=None, context_id=None
-    ) -> GroupSetDict | None:
-        """
-        Find the first matching group set in this course.
+        self, application_instance, lms_id=None, name=None, context_id=None
+    ) -> LMSGroupSet | None:
+        """Find the first matching group set with the passed filters."""
 
-        Group sets are stored as part of Course.extra, this method allows to query and filter them.
-
-        :param context_id: Match only group sets of courses with this ID
-        :param name: Filter courses by name
-        :param group_set_id: Filter courses by ID
-        """
-        group_set = (
-            func.jsonb_to_recordset(Course.extra["group_sets"])
-            .table_valued(
-                column("id", Text), column("name", Text), joins_implicitly=True
+        query = (
+            select(LMSGroupSet)
+            .join(LMSCourse)
+            .join(LMSCourseApplicationInstance)
+            .where(
+                LMSCourseApplicationInstance.application_instance_id
+                == application_instance.id
             )
-            .render_derived(with_types=True)
         )
-
-        query = self._db.query(Grouping.id, group_set.c.id, group_set.c.name).filter(
-            Grouping.application_instance == application_instance
-        )
-
         if context_id:
-            query = query.filter(Grouping.lms_id == context_id)
+            query = query.where(LMSCourse.lti_context_id == context_id)
 
-        if group_set_id:
-            query = query.filter(group_set.c.id == group_set_id)
+        if lms_id:
+            query = query.where(LMSGroupSet.lms_id == str(lms_id))
 
         if name:
-            query = query.filter(
-                func.lower(func.trim(group_set.c.name)) == func.lower(func.trim(name))
+            query = query.where(
+                func.lower(func.trim(LMSGroupSet.name)) == func.lower(func.trim(name))
             )
 
-        if group_set := query.first():
-            return {"id": group_set.id, "name": group_set.name}
-
-        return None
+        return self._db.scalars(query).first()
 
 
 def factory(_context, request):
