@@ -226,6 +226,9 @@ type AssignmentWithCourse = Assignment & {
  * - scaled: students may get a proportional grade based on the amount of
  *           annotations. If requirement is 4, and they created 3, they'll
  *           get a 75%
+ *
+ * @todo `scaled` is now referenced as `proportional` in user-facing texts.
+ *       We should consolidate it eventually.
  */
 export type GradingType = 'all_or_nothing' | 'scaled';
 

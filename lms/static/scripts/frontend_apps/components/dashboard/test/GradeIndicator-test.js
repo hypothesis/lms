@@ -6,7 +6,7 @@ import GradeIndicator from '../GradeIndicator';
 
 describe('GradeIndicator', () => {
   const defaultConfig = {
-    grading_type: 'all_or_nothing',
+    grading_type: 'scaled',
     activity_calculation: 'separate',
     required_annotations: 1,
     required_replies: 1,
