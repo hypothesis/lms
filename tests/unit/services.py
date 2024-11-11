@@ -51,6 +51,7 @@ from lms.services.oauth_http import OAuthHTTPService
 from lms.services.organization_usage_report import OrganizationUsageReportService
 from lms.services.roster import RosterService
 from lms.services.rsa_key import RSAKeyService
+from lms.services.segment import SegmentService
 from lms.services.user import UserService
 from lms.services.user_preferences import UserPreferencesService
 from lms.services.vitalsource import VitalSourceService
@@ -108,6 +109,7 @@ __all__ = (
     "user_preferences_service",
     "vitalsource_service",
     "email_preferences_service",
+    "segment_service",
     "youtube_service",
     # Product plugins
     "grouping_plugin",
@@ -196,6 +198,11 @@ def course_service(mock_service):
 @pytest.fixture
 def roster_service(mock_service):
     return mock_service(RosterService)
+
+
+@pytest.fixture
+def segment_service(mock_service):
+    return mock_service(SegmentService)
 
 
 @pytest.fixture
