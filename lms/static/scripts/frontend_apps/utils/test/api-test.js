@@ -568,7 +568,11 @@ describe('usePaginatedAPIFetch', () => {
         </div>
         <div data-testid="page-size">{result.pageSize ?? 'No page size'}</div>
         <div data-testid="has-more-pages">
-          {result.hasMorePages ? 'Yes' : 'No'}
+          {result.hasMorePages === undefined
+            ? 'Unknown'
+            : result.hasMorePages
+              ? 'Yes'
+              : 'No'}
         </div>
 
         <button
@@ -665,9 +669,30 @@ describe('usePaginatedAPIFetch', () => {
     assert.equal(getMainContent(wrapper), 'No content');
   });
 
+  it('is not possible to know if there are more pages during initial load', () => {
+    mockLoadingState();
+    const wrapper = createComponent();
+
+    assert.equal(getHasMorePages(wrapper), 'Unknown');
+  });
+
   it('returns page size when API indicates there is a `next` page', () => {
     const wrapper = createComponent();
 
+    assert.equal(getPageSize(wrapper), `${pageResults[0].items.length}`);
+    assert.equal(getHasMorePages(wrapper), 'Yes');
+  });
+
+  it('preserves `hasMorePages` while loading', () => {
+    const wrapper = createComponent();
+
+    assert.equal(getPageSize(wrapper), `${pageResults[0].items.length}`);
+    assert.equal(getHasMorePages(wrapper), 'Yes');
+
+    mockLoadingState();
+    reRender(wrapper);
+
+    // Values from previous page are preserved while a new one is loading
     assert.equal(getPageSize(wrapper), `${pageResults[0].items.length}`);
     assert.equal(getHasMorePages(wrapper), 'Yes');
   });
