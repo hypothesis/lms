@@ -401,8 +401,15 @@ class TestGetGroupings:
         "group_set_key", ("groupSetId", "group_category_id", "group_set_id")
     )
     def test_to_groupings_with_dicts(
-        self, svc, upsert_groupings, upsert_grouping_memberships, group_set_key
+        self,
+        svc,
+        upsert_groupings,
+        upsert_grouping_memberships,
+        group_set_key,
+        lti_user,
     ):
+        user = factories.User()
+        course = factories.Course()
         grouping_dicts = [
             {
                 "id": sentinel.id,
@@ -413,7 +420,11 @@ class TestGetGroupings:
         ]
 
         groupings = svc._to_groupings(  # noqa: SLF001
-            sentinel.user, grouping_dicts, sentinel.course, sentinel.grouping_type
+            user,
+            grouping_dicts,
+            course,
+            sentinel.grouping_type,
+            lti_roles=lti_user.lti_roles,
         )
 
         upsert_groupings.assert_called_once_with(
@@ -425,21 +436,25 @@ class TestGetGroupings:
                     "settings": sentinel.settings,
                 }
             ],
-            parent=sentinel.course,
+            parent=course,
             type_=sentinel.grouping_type,
         )
         upsert_grouping_memberships.assert_called_once_with(
-            sentinel.user, upsert_groupings.return_value
+            user, upsert_groupings.return_value
         )
         assert groupings == upsert_groupings.return_value
 
     def test_to_groupings_when_already_groupings(
-        self, svc, upsert_groupings, upsert_grouping_memberships
+        self, svc, upsert_groupings, upsert_grouping_memberships, lti_user
     ):
         groupings = factories.CanvasSection.create_batch(5)
 
         svc._to_groupings(  # noqa: SLF001
-            sentinel.user, groupings, sentinel.course, sentinel.grouping_type
+            sentinel.user,
+            groupings,
+            sentinel.course,
+            sentinel.grouping_type,
+            lti_roles=lti_user.lti_roles,
         )
 
         upsert_groupings.assert_not_called()
@@ -480,13 +495,14 @@ class TestGetGroupings:
         )
 
     @pytest.fixture
-    def assert_groupings_returned(self, _to_groupings):
+    def assert_groupings_returned(self, _to_groupings, lti_user):
         def assert_groupings_returned(groupings, plugin_method, grouping_type):
             _to_groupings.assert_called_once_with(
                 sentinel.user,
                 plugin_method.return_value,
                 sentinel.course,
                 grouping_type,
+                lti_roles=lti_user.lti_roles,
             )
             assert groupings == _to_groupings.return_value
 
@@ -520,5 +536,10 @@ def user():
 
 
 @pytest.fixture
-def svc(db_session, application_instance, grouping_plugin):
-    return GroupingService(db_session, application_instance, plugin=grouping_plugin)
+def svc(db_session, application_instance, grouping_plugin, segment_service):
+    return GroupingService(
+        db_session,
+        application_instance,
+        plugin=grouping_plugin,
+        segment_service=segment_service,
+    )
