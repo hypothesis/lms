@@ -1,17 +1,25 @@
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
 
-from lms.models import Course, Grouping, GroupingMembership, LTIUser, User
+from lms.models import Course, Grouping, GroupingMembership, LTIRole, LTIUser, User
 from lms.models._hashed_id import hashed_id
 from lms.product.plugin.grouping import GroupingPlugin
+from lms.services.segment import SegmentService
 from lms.services.upsert import bulk_upsert
 
 
 class GroupingService:
-    def __init__(self, db, application_instance, plugin: GroupingPlugin):
+    def __init__(
+        self,
+        db,
+        application_instance,
+        plugin: GroupingPlugin,
+        segment_service: SegmentService,
+    ):
         self._db = db
         self.application_instance = application_instance
         self.plugin = plugin
+        self.segment_service = segment_service
 
     def get_authority_provided_id(
         self, lms_id, type_: Grouping.Type, parent: Grouping | None = None
@@ -170,7 +178,13 @@ class GroupingService:
         else:
             groupings = self.plugin.get_sections_for_instructor(self, course)
 
-        return self._to_groupings(user, groupings, course, self.plugin.sections_type)
+        return self._to_groupings(
+            user,
+            groupings,
+            course,
+            self.plugin.sections_type,
+            lti_roles=lti_user.lti_roles,
+        )
 
     def get_groups(  # noqa: PLR0913
         self,
@@ -202,7 +216,13 @@ class GroupingService:
                 self, course, group_set_id
             )
 
-        return self._to_groupings(user, groupings, course, self.plugin.group_type)
+        return self._to_groupings(
+            user,
+            groupings,
+            course,
+            self.plugin.group_type,
+            lti_roles=lti_user.lti_roles,
+        )
 
     def get_launch_grouping_type(self, request, course, assignment) -> Grouping.Type:
         """
@@ -224,7 +244,9 @@ class GroupingService:
 
         return Grouping.Type.COURSE
 
-    def _to_groupings(self, user, groupings, course, type_):
+    def _to_groupings(  # noqa: PLR0913
+        self, user, groupings, course, type_, lti_roles: list[LTIRole]
+    ):
         if groupings and not isinstance(groupings[0], Grouping):
             groupings = [
                 {
@@ -241,7 +263,15 @@ class GroupingService:
                 for grouping in groupings
             ]
             groupings = self.upsert_groupings(groupings, parent=course, type_=type_)
+            segments = self.segment_service.upsert_segments(
+                course=course.lms_course,
+                type_=groupings[0].type,
+                groupings=groupings,
+                lms_group_set_id=groupings[0].extra["group_set_id"],
+            )
+            self.segment_service.upsert_segment_memberships(
+                lms_user=user.lms_user, segments=segments, lti_roles=lti_roles
+            )
 
         self.upsert_grouping_memberships(user, groupings)
-
         return groupings

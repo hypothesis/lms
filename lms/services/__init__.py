@@ -39,6 +39,7 @@ from lms.services.organization import InvalidPublicId, OrganizationService
 from lms.services.organization_usage_report import OrganizationUsageReportService
 from lms.services.roster import RosterService
 from lms.services.rsa_key import RSAKeyService
+from lms.services.segment import SegmentService
 from lms.services.user import UserService
 from lms.services.user_preferences import UserPreferencesService
 from lms.services.vitalsource import VitalSourceService
@@ -155,6 +156,9 @@ def includeme(config):  # noqa: PLR0915
     config.register_service_factory("lms.services.roster.factory", iface=RosterService)
     config.register_service_factory(
         "lms.services.group_set.factory", iface=GroupSetService
+    )
+    config.register_service_factory(
+        "lms.services.segment.factory", iface=SegmentService
     )
     config.register_service_factory(
         "lms.services.auto_grading.factory", iface=AutoGradingService
