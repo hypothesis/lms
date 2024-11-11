@@ -566,6 +566,10 @@ describe('usePaginatedAPIFetch', () => {
           {!result.isLoading &&
             (result.data ? result.data.join(',') : 'No content')}
         </div>
+        <div data-testid="page-size">{result.pageSize ?? 'No page size'}</div>
+        <div data-testid="has-more-pages">
+          {result.hasMorePages ? 'Yes' : 'No'}
+        </div>
 
         <button
           onClick={() => result.loadNextPage()}
@@ -587,6 +591,14 @@ describe('usePaginatedAPIFetch', () => {
 
   function getMainContent(wrapper) {
     return wrapper.find('[data-testid="main-content"]').text();
+  }
+
+  function getPageSize(wrapper) {
+    return wrapper.find('[data-testid="page-size"]').text();
+  }
+
+  function getHasMorePages(wrapper) {
+    return wrapper.find('[data-testid="has-more-pages"]').text();
   }
 
   function reRender(wrapper) {
@@ -651,6 +663,21 @@ describe('usePaginatedAPIFetch', () => {
       params: { foo: 'bar' },
     });
     assert.equal(getMainContent(wrapper), 'No content');
+  });
+
+  it('returns page size when API indicates there is a `next` page', () => {
+    const wrapper = createComponent();
+
+    assert.equal(getPageSize(wrapper), `${pageResults[0].items.length}`);
+    assert.equal(getHasMorePages(wrapper), 'Yes');
+  });
+
+  it('does not return page size when API indicates there is only one page', () => {
+    mockFetchResult(pageResults[2]);
+    const wrapper = createComponent();
+
+    assert.equal(getPageSize(wrapper), 'No page size');
+    assert.equal(getHasMorePages(wrapper), 'No');
   });
 });
 

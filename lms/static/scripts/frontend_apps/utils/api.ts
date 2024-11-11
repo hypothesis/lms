@@ -315,6 +315,16 @@ export type PaginatedFetchResult<T> = Omit<FetchResult<T>, 'mutate'> & {
   /** Determines if currently loading the first page */
   isLoadingFirstPage: boolean;
   loadNextPage: () => void;
+
+  /**
+   * The size of every page (maximum number of results returned per page).
+   * If the API indicates there is only one page, this will be undefined. You
+   * can trust `data.length` as the total number of items in that case.
+   */
+  pageSize?: number;
+
+  /** Whether there are still more pages to load or not */
+  hasMorePages: boolean;
 };
 
 /**
@@ -338,6 +348,8 @@ export function usePaginatedAPIFetch<
 ): PaginatedFetchResult<ListType> {
   const [nextPageURL, setNextPageURL] = useState<string>();
   const [currentList, setCurrentList] = useState<ListType>();
+  const [pageSize, setPageSize] = useState<number>();
+  const [hasMorePages, setHasMorePages] = useState(false);
 
   const fetchResult = useAPIFetch<FetchType>(
     nextPageURL ?? path,
@@ -350,8 +362,8 @@ export function usePaginatedAPIFetch<
     }
   }, [fetchResult.data?.pagination.next, fetchResult.isLoading]);
 
-  // Every time data is loaded, append the result to the list
   useEffect(() => {
+    // Every time data is loaded, append the result to the list
     setCurrentList(prev => {
       if (!fetchResult.data) {
         return prev;
@@ -359,6 +371,15 @@ export function usePaginatedAPIFetch<
 
       return [...(prev ?? []), ...fetchResult.data[prop]] as ListType;
     });
+
+    const hasMorePages = !!fetchResult.data?.pagination.next;
+    setHasMorePages(hasMorePages);
+
+    // Set pageSize if the API indicated there are more pages.
+    // Once page size has been set, we keep the value, ignoring next page loads
+    if (hasMorePages) {
+      setPageSize(prev => prev ?? fetchResult.data?.[prop].length);
+    }
   }, [prop, fetchResult.data]);
 
   // Every time params change, discard previous pages and start from scratch
@@ -382,5 +403,7 @@ export function usePaginatedAPIFetch<
     error: fetchResult.error,
     retry: fetchResult.retry,
     loadNextPage,
+    pageSize,
+    hasMorePages,
   };
 }
