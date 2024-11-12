@@ -22,6 +22,7 @@ describe('GroupConfigSelector', () => {
   let fakeGroupSets;
   let fakeIsAuthorizationError;
   let wrappers;
+  let containers;
 
   beforeEach(() => {
     fakeGroupSets = [
@@ -35,6 +36,7 @@ describe('GroupConfigSelector', () => {
       },
     ];
     wrappers = [];
+    containers = [];
 
     fakeAPICall = sinon.stub();
     fakeAPICall.withArgs(groupSetsAPIRequest).resolves(fakeGroupSets);
@@ -69,6 +71,7 @@ describe('GroupConfigSelector', () => {
   afterEach(() => {
     $imports.$restore();
     wrappers.forEach(w => w.unmount());
+    containers.forEach(c => c.remove());
   });
 
   // Helper that simulates GroupConfigSelector's containing component.
@@ -86,7 +89,11 @@ describe('GroupConfigSelector', () => {
   }
 
   function createComponent(props = {}) {
-    const wrapper = mount(<Container {...props} />);
+    const container = document.createElement('div');
+    containers.push(container);
+    document.body.appendChild(container);
+
+    const wrapper = mount(<Container {...props} />, { attachTo: container });
     wrappers.push(wrapper);
 
     return wrapper;
@@ -96,6 +103,14 @@ describe('GroupConfigSelector', () => {
     const checkbox = wrapper.find('input[type="checkbox"]');
     checkbox.getDOMNode().click();
     checkbox.simulate('input');
+  }
+
+  async function getOpenSelect(wrapper) {
+    const select = wrapper.find('Select');
+    select.find('button').simulate('click');
+    const options = await waitForElement(wrapper, Select.Option);
+
+    return { select, options };
   }
 
   [
@@ -133,13 +148,11 @@ describe('GroupConfigSelector', () => {
 
     // While groups are being fetched, the `<Select>` should be visible but
     // disabled, and display a fetching status.
-    const groupSetSelect = wrapper.find('Select');
+    const { select: groupSetSelect, options } = await getOpenSelect(wrapper);
+
     assert.isTrue(groupSetSelect.exists());
     assert.isTrue(groupSetSelect.prop('disabled'));
     assert.equal(groupSetSelect.prop('buttonContent'), 'Fetching group sets…');
-
-    // Once group sets are fetched, they should be rendered as options.
-    const options = await waitForElement(wrapper, Select.Option);
     assert.equal(options.length, fakeGroupSets.length);
 
     fakeGroupSets.forEach((gs, i) => {
@@ -155,11 +168,9 @@ describe('GroupConfigSelector', () => {
       onChangeGroupConfig,
     });
 
-    const options = await waitForElement(wrapper, Select.Option);
+    const { select, options } = await getOpenSelect(wrapper);
     assert.equal(options.length, fakeGroupSets.length);
     assert.notCalled(onChangeGroupConfig);
-
-    const select = wrapper.find('Select');
 
     options.forEach((option, i) => {
       onChangeGroupConfig.resetHistory();
@@ -190,8 +201,9 @@ describe('GroupConfigSelector', () => {
     // Check that group sets are fetched and rendered after authorization completes.
     fakeAPICall.withArgs(groupSetsAPIRequest).resolves(fakeGroupSets);
     authModal.prop('onAuthComplete')();
+    wrapper.update();
 
-    const options = await waitForElement(wrapper, Select.Option);
+    const { options } = await getOpenSelect(wrapper);
     assert.equal(options.length, fakeGroupSets.length);
   });
 
@@ -222,8 +234,9 @@ describe('GroupConfigSelector', () => {
     act(() => {
       authModal.prop('onRetry')();
     });
+    wrapper.update();
 
-    const options = await waitForElement(wrapper, Select.Option);
+    const { options } = await getOpenSelect(wrapper);
     assert.equal(options.length, fakeGroupSets.length);
   });
 

@@ -5,16 +5,23 @@ import PaginatedMultiSelect from '../PaginatedMultiSelect';
 
 describe('PaginatedMultiSelect', () => {
   let wrappers;
+  let containers;
 
   beforeEach(() => {
     wrappers = [];
+    containers = [];
   });
 
   afterEach(() => {
     wrappers.forEach(w => w.unmount());
+    containers.forEach(c => c.remove());
   });
 
   function createComponent(props) {
+    const container = document.createElement('div');
+    containers.push(container);
+    document.body.appendChild(container);
+
     const wrapper = mount(
       <PaginatedMultiSelect
         entity="courses"
@@ -25,6 +32,7 @@ describe('PaginatedMultiSelect', () => {
         )}
         {...props}
       />,
+      { attachTo: container },
     );
     wrappers.push(wrapper);
 
@@ -35,6 +43,14 @@ describe('PaginatedMultiSelect', () => {
     return wrapper.find(`MultiSelect[data-testid="${id}-select"]`);
   }
 
+  function getOpenSelect(wrapper, id = 'courses') {
+    const select = getSelect(wrapper, id);
+    select.find('button').simulate('click');
+    const options = wrapper.find('[role="option"]');
+
+    return { select, options };
+  }
+
   it('renders options based on result data', () => {
     const resultData = ['foo', 'bar', 'baz'];
     const expectedOptions = ['All courses', ...resultData];
@@ -43,8 +59,7 @@ describe('PaginatedMultiSelect', () => {
         data: resultData,
       },
     });
-    const select = getSelect(wrapper);
-    const options = select.find(MultiSelect.Option);
+    const { options } = getOpenSelect(wrapper);
 
     assert.equal(options.length, expectedOptions.length);
     options.forEach((option, index) => {
@@ -57,6 +72,10 @@ describe('PaginatedMultiSelect', () => {
       const wrapper = createComponent({
         result: { isLoading },
       });
+
+      // Loading indicator is displayed in Select listbox, so we need to open
+      // it first
+      getOpenSelect(wrapper);
 
       assert.equal(wrapper.exists('LoadingOption'), isLoading);
     });
@@ -109,8 +128,7 @@ describe('PaginatedMultiSelect', () => {
         data: ['foo', 'bar', 'baz'],
       },
     });
-    const select = getSelect(wrapper);
-    const options = select.find(MultiSelect.Option);
+    const { options } = getOpenSelect(wrapper);
 
     assert.equal(options.length, 2);
     assert.equal(options.at(0).text(), 'All courses');
@@ -140,11 +158,20 @@ describe('PaginatedMultiSelect', () => {
 
     it('shows error message when loading filters fails', () => {
       const wrapper = createComponentWithError();
+
+      // Loading errors are displayed in Select listbox, so we need to open
+      // it first
+      getOpenSelect(wrapper);
+
       assert.isTrue(wrapper.exists('LoadingError'));
     });
 
     it('retries loading when retry button is clicked', () => {
       const wrapper = createComponentWithError();
+
+      // Retry button is displayed in Select listbox, so we need to open it
+      // first
+      getOpenSelect(wrapper);
 
       clickRetry(wrapper);
       assert.called(fakeRetry);
@@ -152,12 +179,9 @@ describe('PaginatedMultiSelect', () => {
 
     it('focuses last option when retry button is clicked', () => {
       const wrapper = createComponentWithError();
+      const { options } = getOpenSelect(wrapper);
 
-      const lastOption = wrapper
-        .find(`[data-testid="courses-select"]`)
-        .find('[role="option"]')
-        .last()
-        .getDOMNode();
+      const lastOption = options.last().getDOMNode();
       const focusOption = sinon.stub(lastOption, 'focus');
 
       clickRetry(wrapper);
