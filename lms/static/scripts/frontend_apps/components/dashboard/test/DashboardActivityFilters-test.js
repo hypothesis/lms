@@ -64,7 +64,8 @@ describe('DashboardActivityFilters', () => {
   let fakeLoadNextCoursesPage;
   let fakeLoadNextAssignmentsPage;
   let fakeLoadNextStudentsPage;
-  let wrappers = [];
+  let wrappers;
+  let containers;
 
   /**
    * @param {object} options
@@ -108,6 +109,9 @@ describe('DashboardActivityFilters', () => {
   }
 
   beforeEach(() => {
+    wrappers = [];
+    containers = [];
+
     fakeLoadNextCoursesPage = sinon.stub();
     fakeLoadNextAssignmentsPage = sinon.stub();
     fakeLoadNextStudentsPage = sinon.stub();
@@ -139,6 +143,7 @@ describe('DashboardActivityFilters', () => {
 
   afterEach(() => {
     wrappers.forEach(w => w.unmount());
+    containers.forEach(c => c.remove());
     $imports.$restore();
   });
 
@@ -170,11 +175,20 @@ describe('DashboardActivityFilters', () => {
     });
   }
 
+  function createContainerInDOM() {
+    const container = document.createElement('div');
+    containers.push(container);
+    document.body.appendChild(container);
+
+    return container;
+  }
+
   function createComponentWithProps(props) {
     const wrapper = mount(
       <Config.Provider value={fakeConfig}>
         <DashboardActivityFilters {...props} />
       </Config.Provider>,
+      { attachTo: createContainerInDOM() },
     );
     wrappers.push(wrapper);
 
@@ -249,7 +263,10 @@ describe('DashboardActivityFilters', () => {
         <MultiSelect value={[]} onChange={sinon.stub()}>
           {select.props().renderOption(entity)}
         </MultiSelect>,
+        { attachTo: createContainerInDOM() },
       );
+      // The Select needs to be open, otherwise options are not rendered
+      tempSelect.find('button').simulate('click');
       const option = tempSelect.find(MultiSelect.Option);
 
       try {
@@ -518,6 +535,14 @@ describe('DashboardActivityFilters', () => {
       return wrapper.find('[data-testid="segments-select"]');
     }
 
+    function getOpenSegmentsSelect(wrapper) {
+      const select = getSegmentsSelect(wrapper);
+      select.find('button').simulate('click');
+      const options = wrapper.find('[role="option"]');
+
+      return { select, options };
+    }
+
     [true, false].forEach(withSegments => {
       it('shows an extra multi-select for segments', () => {
         const wrapper = withSegments
@@ -659,8 +684,7 @@ describe('DashboardActivityFilters', () => {
       ({ entries }) => {
         it('shows expected number of options', () => {
           const wrapper = createComponentWithSegments({ entries });
-          const select = getSegmentsSelect(wrapper);
-          const options = select.find(MultiSelect.Option);
+          const { options } = getOpenSegmentsSelect(wrapper);
 
           assert.equal(options.length, entries.length + 1);
         });
