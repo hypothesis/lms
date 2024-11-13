@@ -30,9 +30,9 @@ export type PickerDocument = {
   id: string;
 
   /** Filename of document. */
-  name: string;
+  name?: string;
 
-  url: string;
+  url?: string;
 
   /**
    * A key which is present on a subset of older Google Drive files. If present
@@ -167,8 +167,7 @@ export class GooglePickerClient {
     const pickerLib = await this._gapiPicker;
     const accessToken = await this.requestAuthorization();
 
-    let resolve: (doc: PickerDocument) => void;
-
+    let resolve: (doc: { id: string; name: string; url: string }) => void;
     let reject: (e: Error) => void;
 
     function pickerCallback({
@@ -176,10 +175,10 @@ export class GooglePickerClient {
       docs,
     }: {
       action: string;
-      docs: PickerDocument[];
+      docs?: PickerDocument[];
     }) {
       if (action === pickerLib.Action.PICKED) {
-        const doc = docs[0];
+        const doc = docs![0];
         // nb. It would be better to get this URL from Google Drive instead of
         // hardcoding it if possible.
         const url = new URL('https://drive.google.com/uc');
@@ -188,7 +187,11 @@ export class GooglePickerClient {
         if (doc.resourceKey) {
           url.searchParams.append('resourcekey', doc.resourceKey);
         }
-        resolve({ id: doc.id, name: doc.name, url: url.toString() });
+        resolve({
+          id: doc.id,
+          name: doc.name!,
+          url: url.toString(),
+        });
       } else if (action === pickerLib.Action.CANCEL) {
         reject(new PickerCanceledError());
       }
