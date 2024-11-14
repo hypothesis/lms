@@ -21,6 +21,7 @@ import type {
 import { useConfig } from '../../config';
 import { usePaginatedAPIFetch } from '../../utils/api';
 import TruncatedText from '../TruncatedText';
+import ContentWithBadge from './ContentWithBadge';
 import PaginatedMultiSelect from './PaginatedMultiSelect';
 
 /**
@@ -134,9 +135,6 @@ function SegmentsMultiSelect({ segments }: { segments: SegmentsSelection }) {
   const segmentsName = segments.type === 'groups' ? 'groups' : 'sections';
   const segmentNameSingular = segments.type === 'groups' ? 'group' : 'section';
   const isNoneType = segments.type === 'none';
-  const allSegmentsText = isNoneType
-    ? 'No sections/groups'
-    : `All ${segmentsName}`;
 
   return (
     <MultiSelect
@@ -146,8 +144,12 @@ function SegmentsMultiSelect({ segments }: { segments: SegmentsSelection }) {
       onChange={newSegmentIds => segments.onChange(newSegmentIds)}
       disabled={segments.entries.length === 0}
       buttonContent={
-        segments.selectedIds.length === 0 ? (
-          <>{allSegmentsText}</>
+        isNoneType ? (
+          'No sections/groups'
+        ) : segments.selectedIds.length === 0 ? (
+          <ContentWithBadge count={segments.entries.length}>
+            All {segmentsName}
+          </ContentWithBadge>
         ) : segments.selectedIds.length === 1 ? (
           segments.entries.find(
             s => s.h_authority_provided_id === segments.selectedIds[0],
@@ -161,7 +163,7 @@ function SegmentsMultiSelect({ segments }: { segments: SegmentsSelection }) {
       data-testid="segments-select"
     >
       <MultiSelect.Option value={undefined}>
-        {allSegmentsText}
+        All {segmentsName}
       </MultiSelect.Option>
       {segments.entries.map(entry => (
         <MultiSelect.Option
@@ -290,7 +292,12 @@ export default function DashboardActivityFilters({
           ) : coursesResult.isLoadingFirstPage ? (
             <>...</>
           ) : selectedCourseIds.length === 0 ? (
-            <>All courses</>
+            <ContentWithBadge
+              count={coursesResult.data?.length ?? 0}
+              hasMoreItems={coursesResult.hasMorePages}
+            >
+              All courses
+            </ContentWithBadge>
           ) : selectedCourseIds.length === 1 ? (
             coursesResult.data?.find(c => `${c.id}` === selectedCourseIds[0])
               ?.title ?? '1 course'
@@ -325,7 +332,12 @@ export default function DashboardActivityFilters({
           ) : assignmentsResults.isLoadingFirstPage ? (
             <>...</>
           ) : selectedAssignmentIds.length === 0 ? (
-            <>All assignments</>
+            <ContentWithBadge
+              count={assignmentsResults.data?.length ?? 0}
+              hasMoreItems={assignmentsResults.hasMorePages}
+            >
+              All assignments
+            </ContentWithBadge>
           ) : selectedAssignmentIds.length === 1 ? (
             assignmentsResults.data?.find(
               a => `${a.id}` === selectedAssignmentIds[0],
@@ -354,7 +366,12 @@ export default function DashboardActivityFilters({
           studentsResult.isLoadingFirstPage ? (
             <>...</>
           ) : students.selectedIds.length === 0 ? (
-            <>All students</>
+            <ContentWithBadge
+              count={studentsResult.data?.length ?? 0}
+              hasMoreItems={studentsResult.hasMorePages}
+            >
+              All students
+            </ContentWithBadge>
           ) : students.selectedIds.length === 1 ? (
             studentsResult.data?.find(
               s => s.h_userid === students.selectedIds[0],
