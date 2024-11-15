@@ -10,7 +10,7 @@ from lms.js_config_types import (
     APIStudents,
     AutoGradingGrade,
 )
-from lms.models import Assignment, RoleScope, RoleType, User
+from lms.models import Assignment, Organization, RoleScope, RoleType, User
 from lms.security import Permissions
 from lms.services import UserService
 from lms.services.auto_grading import AutoGradingService
@@ -82,18 +82,7 @@ class UserViews:
         schema=ListUsersSchema,
     )
     def students(self) -> APIStudents:
-        admin_organizations = self.dashboard_service.get_request_admin_organizations(
-            self.request
-        )
-
-        students_query = self.user_service.get_users(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
-            instructor_h_userid=self.request.user.h_userid
-            if self.request.user
-            else None,
-            admin_organization_ids=[org.id for org in admin_organizations],
-            course_ids=self.request.parsed_params.get("course_ids"),
+        students_query = self._students_query(
             assignment_ids=self.request.parsed_params.get("assignment_ids"),
             segment_authority_provided_ids=self.request.parsed_params.get(
                 "segment_authority_provided_ids"
@@ -102,7 +91,6 @@ class UserViews:
         students, pagination = get_page(
             self.request, students_query, [User.display_name, User.id]
         )
-
         return {
             "students": [
                 APIStudent(
@@ -149,23 +137,10 @@ class UserViews:
         stats_by_user = {s["userid"]: s for s in stats}
         students: list[APIStudent] = []
 
-        admin_organizations = self.dashboard_service.get_request_admin_organizations(
-            self.request
-        )
-
-        users_query = self.user_service.get_users(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
+        users_query = self._students_query(
             assignment_ids=[assignment.id],
-            # Users the current user has access to see
-            instructor_h_userid=self.request.user.h_userid
-            if self.request.user
-            else None,
-            admin_organization_ids=[org.id for org in admin_organizations],
-            # Users the current user requested
-            h_userids=request_h_userids,
-            # Only users belonging to these segments
             segment_authority_provided_ids=request_segment_authority_provided_ids,
+            h_userids=request_h_userids,
         )
         # Iterate over all the students we have in the DB
         for user in self.request.db.scalars(users_query).all():
@@ -221,3 +196,28 @@ class UserViews:
             api_student["auto_grading_grade"] = auto_grading_grade
 
         return api_students
+
+    def _students_query(
+        self,
+        assignment_ids: list[int],
+        segment_authority_provided_ids: list[str],
+        h_userids: list[str] | None = None,
+    ):
+        admin_organizations = self.dashboard_service.get_request_admin_organizations(
+            self.request
+        )
+        return self.user_service.get_users(
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            course_ids=self.request.parsed_params.get("course_ids"),
+            assignment_ids=assignment_ids,
+            # Users the current user has access to see
+            instructor_h_userid=self.request.user.h_userid
+            if self.request.user
+            else None,
+            admin_organization_ids=[org.id for org in admin_organizations],
+            # Users the current user requested
+            h_userids=h_userids,
+            # Only users belonging to these segments
+            segment_authority_provided_ids=segment_authority_provided_ids,
+        )

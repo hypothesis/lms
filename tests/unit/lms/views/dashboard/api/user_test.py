@@ -38,6 +38,7 @@ class TestUserViews:
             course_ids=sentinel.course_ids,
             assignment_ids=sentinel.assignment_ids,
             segment_authority_provided_ids=sentinel.segment_authority_provided_ids,
+            h_userids=None,
         )
         get_page.assert_called_once_with(
             pyramid_request,
