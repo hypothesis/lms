@@ -90,9 +90,9 @@ class TestUserService:
         service,
         db_session,
         organization,
-        student_in_assigment,
+        student_in_assignment,
     ):
-        factories.User(h_userid=student_in_assigment.h_userid)  # Duplicated student
+        factories.User(h_userid=student_in_assignment.h_userid)  # Duplicated student
 
         query = service.get_users(
             role_scope=RoleScope.COURSE,
@@ -100,10 +100,10 @@ class TestUserService:
             admin_organization_ids=[organization.id],
         )
 
-        assert db_session.scalars(query).all() == [student_in_assigment]
+        assert db_session.scalars(query).all() == [student_in_assignment]
 
     def test_get_users_by_h_userids(
-        self, service, db_session, student_in_assigment, assignment, organization
+        self, service, db_session, student_in_assignment, assignment, organization
     ):
         other_student = factories.User(
             application_instance=organization.application_instances[0]
@@ -121,7 +121,7 @@ class TestUserService:
                 role_type=RoleType.LEARNER,
                 admin_organization_ids=[organization.id],
             )
-        ).all() == [student_in_assigment, other_student]
+        ).all() == [student_in_assignment, other_student]
 
         query = service.get_users(
             role_scope=RoleScope.COURSE,
@@ -134,7 +134,7 @@ class TestUserService:
 
     @pytest.mark.usefixtures("assignment")
     def test_get_users_by_course_id(
-        self, service, db_session, student_in_assigment, course, organization
+        self, service, db_session, student_in_assignment, course, organization
     ):
         query = service.get_users(
             role_scope=RoleScope.COURSE,
@@ -143,13 +143,29 @@ class TestUserService:
             admin_organization_ids=[organization.id],
         )
 
-        assert db_session.scalars(query).all() == [student_in_assigment]
+        assert db_session.scalars(query).all() == [student_in_assignment]
+
+    @pytest.mark.usefixtures("assignment")
+    @pytest.mark.parametrize("with_h_userids", [True, False])
+    def test_get_users_for_course(
+        self, service, db_session, student_in_assignment, course, with_h_userids
+    ):
+        query = service.get_users_for_course(
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            course_id=course.id,
+            h_userids=[student_in_assignment.h_userid] if with_h_userids else None,
+        )
+
+        assert [s.h_userid for s in db_session.scalars(query).all()] == [
+            student_in_assignment.h_userid
+        ]
 
     @pytest.mark.usefixtures("teacher_in_assigment")
     def test_get_users_by_assigment_id(
-        self, service, db_session, student_in_assigment, assignment, organization
+        self, service, db_session, student_in_assignment, assignment, organization
     ):
-        factories.User(h_userid=student_in_assigment.h_userid)  # Duplicated student
+        factories.User(h_userid=student_in_assignment.h_userid)  # Duplicated student
         db_session.flush()
 
         query = service.get_users(
@@ -159,11 +175,26 @@ class TestUserService:
             admin_organization_ids=[organization.id],
         )
 
-        assert db_session.scalars(query).all() == [student_in_assigment]
+        assert db_session.scalars(query).all() == [student_in_assignment]
+
+    @pytest.mark.parametrize("with_h_userids", [True, False])
+    def test_get_users_for_assignment(
+        self, service, db_session, student_in_assignment, assignment, with_h_userids
+    ):
+        query = service.get_users_for_assignment(
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            assignment_id=assignment.id,
+            h_userids=[student_in_assignment.h_userid] if with_h_userids else None,
+        )
+
+        assert [s.h_userid for s in db_session.scalars(query).all()] == [
+            student_in_assignment.h_userid
+        ]
 
     @pytest.mark.usefixtures("assignment", "course")
     def test_get_users_by_instructor_h_userid(
-        self, service, db_session, student_in_assigment, teacher_in_assigment
+        self, service, db_session, student_in_assignment, teacher_in_assigment
     ):
         # Assignment in another course
         other_assignment = factories.Assignment(course=factories.Course())
@@ -181,15 +212,36 @@ class TestUserService:
             instructor_h_userid=teacher_in_assigment.h_userid,
         )
 
-        assert db_session.scalars(query).all() == [student_in_assigment]
+        assert db_session.scalars(query).all() == [student_in_assignment]
+
+    @pytest.mark.usefixtures("assignment", "course")
+    @pytest.mark.parametrize("with_h_userids", [True, False])
+    def test_get_users_for_organization(
+        self,
+        service,
+        db_session,
+        student_in_assignment,
+        teacher_in_assigment,
+        with_h_userids,
+    ):
+        query = service.get_users_for_organization(
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            instructor_h_userid=teacher_in_assigment.h_userid,
+            h_userids=[student_in_assignment.h_userid] if with_h_userids else None,
+        )
+
+        assert [s.h_userid for s in db_session.scalars(query).all()] == [
+            student_in_assignment.h_userid
+        ]
 
     @pytest.mark.usefixtures("teacher_in_assigment")
     def test_get_users_by_segment_authority_provided_id(
-        self, service, db_session, student_in_assigment, assignment, organization
+        self, service, db_session, student_in_assignment, assignment, organization
     ):
-        factories.User(h_userid=student_in_assigment.h_userid)  # Duplicated student
+        factories.User(h_userid=student_in_assignment.h_userid)  # Duplicated student
         segment = factories.CanvasSection()
-        factories.GroupingMembership(user=student_in_assigment, grouping=segment)
+        factories.GroupingMembership(user=student_in_assignment, grouping=segment)
 
         db_session.flush()
 
@@ -201,11 +253,15 @@ class TestUserService:
             segment_authority_provided_ids=[segment.authority_provided_id],
         )
 
-        assert db_session.scalars(query).all() == [student_in_assigment]
+        assert db_session.scalars(query).all() == [student_in_assignment]
 
     @pytest.fixture
     def course(self, application_instance, db_session):
         course = factories.Course(application_instance=application_instance)
+        lms_course = factories.LMSCourse(
+            h_authority_provided_id=course.authority_provided_id
+        )
+        course.lms_course = lms_course
         db_session.flush()
 
         return course
@@ -218,8 +274,11 @@ class TestUserService:
         return assignment
 
     @pytest.fixture
-    def student_in_assigment(self, assignment, application_instance):
+    def student_in_assignment(self, assignment, application_instance, db_session):
         student = factories.User(application_instance=application_instance)
+        lms_user = factories.LMSUser(
+            lti_user_id=student.user_id, h_userid=student.h_userid
+        )
         factories.AssignmentMembership.create(
             assignment=assignment,
             user=student,
@@ -229,11 +288,24 @@ class TestUserService:
             grouping=assignment.course,
             user=student,
         )
+        factories.LMSCourseMembership.create(
+            lms_course=assignment.course.lms_course,
+            lms_user=lms_user,
+            lti_role=factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
+        )
+        factories.LMSUserAssignmentMembership.create(
+            assignment=assignment,
+            lms_user=lms_user,
+            lti_role=factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
+        )
+        db_session.flush()
+
         return student
 
     @pytest.fixture
     def teacher_in_assigment(self, assignment):
         teacher = factories.User()
+        factories.LMSUser(lti_user_id=teacher.user_id, h_userid=teacher.h_userid)
         factories.AssignmentMembership.create(
             assignment=assignment,
             user=teacher,
@@ -245,12 +317,14 @@ class TestUserService:
 
     @pytest.fixture
     def user(self, lti_user, application_instance):
-        return factories.User(
+        user = factories.User(
             application_instance=application_instance,
             user_id=lti_user.user_id,
             h_userid=lti_user.h_user.userid("authority.example.com"),
             roles="old_roles",
         )
+        factories.LMSUser(lti_user_id=user.user_id)
+        return user
 
     @pytest.fixture
     def service(self, db_session):

@@ -66,6 +66,15 @@ class TestDashboardService:
 
         assert svc.get_request_assignment(pyramid_request)
 
+    def test_get_request_assignment_for_parsed_params_assignment_id(
+        self, pyramid_request, assignment_service, svc
+    ):
+        pyramid_request.parsed_params = {"assignment_ids": [sentinel.parsed_params_id]}
+
+        svc.get_request_assignment(pyramid_request)
+
+        assignment_service.get_by_id.assert_called_once_with(sentinel.parsed_params_id)
+
     def test_get_request_course_404(
         self,
         pyramid_request,
@@ -93,6 +102,15 @@ class TestDashboardService:
         course_service.is_member.return_value = False
 
         assert svc.get_request_course(pyramid_request)
+
+    def test_get_request_for_parsed_params_course_ids(
+        self, pyramid_request, course_service, svc
+    ):
+        pyramid_request.parsed_params = {"course_ids": [sentinel.parsed_params_id]}
+
+        svc.get_request_course(pyramid_request)
+
+        course_service.get_by_id.assert_called_once_with(sentinel.parsed_params_id)
 
     def test_get_request_course_for_admin(
         self,

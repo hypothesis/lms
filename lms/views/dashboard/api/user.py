@@ -203,9 +203,51 @@ class UserViews:
         segment_authority_provided_ids: list[str],
         h_userids: list[str] | None = None,
     ):
+        course_ids = self.request.parsed_params.get("course_ids")
+        # Single assigment fetch
+        if (
+            assignment_ids
+            and len(assignment_ids) == 1
+            and not segment_authority_provided_ids
+        ):
+            # Fetch the assignment to be sure the current user has access to it.
+            assignment = self.dashboard_service.get_request_assignment(self.request)
+
+            return self.user_service.get_users_for_assignment(
+                role_scope=RoleScope.COURSE,
+                role_type=RoleType.LEARNER,
+                assignment_id=assignment.id,
+                h_userids=h_userids,
+            )
+
+        # Single course fetch
+        if course_ids and len(course_ids) == 1 and not segment_authority_provided_ids:
+            # Fetch the course to be sure the current user has access to it.
+            course = self.dashboard_service.get_request_course(self.request)
+
+            return self.user_service.get_users_for_course(
+                role_scope=RoleScope.COURSE,
+                role_type=RoleType.LEARNER,
+                course_id=course.id,
+                h_userids=h_userids,
+            )
+
         admin_organizations = self.dashboard_service.get_request_admin_organizations(
             self.request
         )
+        # Full organization fetch
+        if not course_ids and not assignment_ids and not segment_authority_provided_ids:
+            return self.user_service.get_users_for_organization(
+                role_scope=RoleScope.COURSE,
+                role_type=RoleType.LEARNER,
+                h_userids=h_userids,
+                # Users the current user has access to see
+                instructor_h_userid=self.request.user.h_userid
+                if self.request.user
+                else None,
+                admin_organization_ids=[org.id for org in admin_organizations],
+            )
+
         return self.user_service.get_users(
             role_scope=RoleScope.COURSE,
             role_type=RoleType.LEARNER,
