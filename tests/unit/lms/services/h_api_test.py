@@ -184,6 +184,12 @@ class TestHAPI:
             stream=False,
         )
 
+    def test_get_annotation_counts_with_no_groups(self, h_api, http_service):
+        assert not h_api.get_annotation_counts(
+            group_authority_ids=[], group_by=sentinel.group_by
+        )
+        http_service.request.assert_not_called()
+
     def test_get_groups(self, h_api, http_service):
         groups = [
             {"authority_provided_id": "group_1"},
