@@ -342,20 +342,24 @@ class AssignmentService:
         """Get the relevant groups for the assignment from the DB."""
         if group_set_id := assignment.extra.get("group_set_id"):
             return self._db.scalars(
-                select(Grouping).where(
+                select(Grouping)
+                .where(
                     Grouping.parent_id == assignment.course_id,
                     Grouping.extra["group_set_id"].astext == str(group_set_id),
                 )
+                .order_by(Grouping.lms_name.asc())
             ).all()
         return []
 
     def get_assignment_sections(self, assignment) -> Sequence[Grouping]:
         """Get the relevant groups for the assignment from the DB."""
         return self._db.scalars(
-            select(Grouping).where(
+            select(Grouping)
+            .where(
                 Grouping.parent_id == assignment.course_id,
                 Grouping.type == "canvas_section",
             )
+            .order_by(Grouping.lms_name.asc())
         ).all()
 
     def _update_auto_grading_config(
