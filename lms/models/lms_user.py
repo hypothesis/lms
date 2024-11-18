@@ -46,6 +46,11 @@ class LMSUser(CreatedUpdatedMixin, Base):
 
     display_name: Mapped[str | None] = mapped_column(index=True)
 
+    @property
+    def user_id(self) -> str:
+        """Alias lti_user_id to user_if for compatilbiity with models.User."""
+        return self.lti_user_id
+
 
 class LMSUserApplicationInstance(CreatedUpdatedMixin, Base):
     """Record of on which installs (application instances) we have seen one user."""
