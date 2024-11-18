@@ -196,6 +196,9 @@ class HAPI:
         h_userids: list[str] | None = None,
         resource_link_ids: list[str] | None = None,
     ) -> list[AnnotationCounts]:
+        if not group_authority_ids:
+            return []
+
         filters = {
             "groups": group_authority_ids,
             "assignment_ids": resource_link_ids,
