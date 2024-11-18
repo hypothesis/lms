@@ -21,8 +21,8 @@ pytestmark = pytest.mark.usefixtures(
 class TestUserViews:
     def test_get_students(self, user_service, pyramid_request, views, get_page):
         pyramid_request.parsed_params = {
-            "course_ids": sentinel.course_ids,
-            "assignment_ids": sentinel.assignment_ids,
+            "course_ids": [sentinel.course_id_1, sentinel.course_id_2],
+            "assignment_ids": [sentinel.assignment_id_1, sentinel.assignment_id_2],
             "segment_authority_provided_ids": sentinel.segment_authority_provided_ids,
         }
         students = factories.User.create_batch(5)
@@ -35,8 +35,8 @@ class TestUserViews:
             role_type=RoleType.LEARNER,
             instructor_h_userid=pyramid_request.user.h_userid,
             admin_organization_ids=[],
-            course_ids=sentinel.course_ids,
-            assignment_ids=sentinel.assignment_ids,
+            course_ids=[sentinel.course_id_1, sentinel.course_id_2],
+            assignment_ids=[sentinel.assignment_id_1, sentinel.assignment_id_2],
             segment_authority_provided_ids=sentinel.segment_authority_provided_ids,
             h_userids=None,
         )
@@ -92,20 +92,34 @@ class TestUserViews:
             pyramid_request.parsed_params["segment_authority_provided_ids"] = [
                 g.authority_provided_id for g in segments
             ]
+            user_service.get_users.return_value = select(User).where(
+                User.id.in_(
+                    [
+                        u.id
+                        for u in [student, student_no_annos, student_no_annos_no_name]
+                    ]
+                )
+            )
+        else:
+            db_session.flush()
+            user_service.get_users_for_assignment.return_value = select(User).where(
+                User.id.in_(
+                    [
+                        u.id
+                        for u in [student, student_no_annos, student_no_annos_no_name]
+                    ]
+                )
+            )
 
         db_session.flush()
-        user_service.get_users.return_value = select(User).where(
-            User.id.in_(
-                [u.id for u in [student, student_no_annos, student_no_annos_no_name]]
-            )
-        )
+
         dashboard_service.get_request_assignment.return_value = assignment
         h_api.get_annotation_counts.return_value = annotation_counts_response
 
         response = views.students_metrics()
 
-        dashboard_service.get_request_assignment.assert_called_once_with(
-            pyramid_request
+        dashboard_service.get_request_assignment.assert_has_calls(
+            [call(pyramid_request)]
         )
         h_api.get_annotation_counts.assert_called_once_with(
             [g.authority_provided_id for g in assignment.groupings],
@@ -169,7 +183,6 @@ class TestUserViews:
         student_no_annos_no_name = factories.User(display_name=None)
 
         pyramid_request.parsed_params = {
-            "assignment_id": sentinel.id,
             "h_userids": sentinel.h_userids,
         }
         assignment = factories.Assignment(course=factories.Course())
@@ -183,7 +196,7 @@ class TestUserViews:
             auto_grading_service.get_last_grades.return_value = {}
 
         db_session.flush()
-        user_service.get_users.return_value = select(User).where(
+        user_service.get_users_for_assignment.return_value = select(User).where(
             User.id.in_(
                 [u.id for u in [student, student_no_annos, student_no_annos_no_name]]
             )
@@ -193,8 +206,8 @@ class TestUserViews:
 
         response = views.students_metrics()
 
-        dashboard_service.get_request_assignment.assert_called_once_with(
-            pyramid_request
+        dashboard_service.get_request_assignment.assert_has_calls(
+            [call(pyramid_request), call(pyramid_request)]
         )
         h_api.get_annotation_counts.assert_called_once_with(
             [g.authority_provided_id for g in assignment.groupings],
@@ -257,8 +270,35 @@ class TestUserViews:
 
         assert response == expected
 
+    def test__students_query_single_course(
+        self, views, pyramid_request, dashboard_service, user_service
+    ):
+        pyramid_request.parsed_params = {"course_ids": [sentinel.course_id]}
+
+        views._students_query(assignment_ids=None, segment_authority_provided_ids=None)  # noqa: SLF001
+
+        dashboard_service.get_request_course.assert_called_once_with(pyramid_request)
+        user_service.get_users_for_course.assert_called_once_with(
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            course_id=dashboard_service.get_request_course.return_value.id,
+            h_userids=None,
+        )
+
+    def test__students_query_organization(self, views, user_service, pyramid_request):
+        views._students_query(assignment_ids=None, segment_authority_provided_ids=None)  # noqa: SLF001
+
+        user_service.get_users_for_organization.assert_called_once_with(
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            h_userids=None,
+            instructor_h_userid=pyramid_request.user.h_userid,
+            admin_organization_ids=[],
+        )
+
     @pytest.fixture
     def views(self, pyramid_request):
+        pyramid_request.parsed_params = {}
         return UserViews(pyramid_request)
 
     @pytest.fixture
