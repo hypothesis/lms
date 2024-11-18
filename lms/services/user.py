@@ -9,8 +9,11 @@ from lms.models import (
     AssignmentMembership,
     Grouping,
     GroupingMembership,
+    LMSCourse,
+    LMSCourseMembership,
     LMSUser,
     LMSUserApplicationInstance,
+    LMSUserAssignmentMembership,
     LTIParams,
     LTIRole,
     LTIUser,
@@ -138,6 +141,106 @@ class UserService:
         query = query.where(User.user_id == user_id)
 
         return query
+
+    def get_users_for_assignment(
+        self,
+        role_scope: RoleScope,
+        role_type: RoleType,
+        assignment_id: int,
+        h_userids: list[str] | None = None,
+    ):
+        """Get the users that belong to one assignment."""
+        query = (
+            select(LMSUser)
+            .distinct()
+            .join(
+                LMSUserAssignmentMembership,
+                LMSUserAssignmentMembership.lms_user_id == LMSUser.id,
+            )
+            .where(
+                LMSUserAssignmentMembership.assignment_id == assignment_id,
+                LMSUserAssignmentMembership.lti_role_id.in_(
+                    select(LTIRole.id).where(
+                        LTIRole.scope == role_scope, LTIRole.type == role_type
+                    )
+                ),
+            )
+        )
+        if h_userids:
+            query = query.where(LMSUser.h_userid.in_(h_userids))
+
+        return query.order_by(LMSUser.display_name, LMSUser.id)
+
+    def get_users_for_course(
+        self,
+        role_scope: RoleScope,
+        role_type: RoleType,
+        course_id: int,
+        h_userids: list[str] | None = None,
+    ):
+        """Get the users that belong to one course."""
+        query = (
+            select(LMSUser)
+            .distinct()
+            .join(
+                LMSCourseMembership,
+                LMSCourseMembership.lms_user_id == LMSUser.id,
+            )
+            .join(LMSCourse, LMSCourse.id == LMSCourseMembership.lms_course_id)
+            # course_id is the PK on Grouping, we need to join with LMSCourse by authority_provided_id
+            .join(
+                Grouping,
+                Grouping.authority_provided_id == LMSCourse.h_authority_provided_id,
+            )
+            .where(
+                Grouping.id == course_id,
+                LMSCourseMembership.lti_role_id.in_(
+                    select(LTIRole.id).where(
+                        LTIRole.scope == role_scope, LTIRole.type == role_type
+                    )
+                ),
+            )
+        )
+        if h_userids:
+            query = query.where(LMSUser.h_userid.in_(h_userids))
+
+        return query.order_by(LMSUser.display_name, LMSUser.id)
+
+    def get_users_for_organization(  # noqa: PLR0913
+        self,
+        role_scope: RoleScope,
+        role_type: RoleType,
+        instructor_h_userid: str | None = None,
+        admin_organization_ids: list[int] | None = None,
+        h_userids: list[str] | None = None,
+    ) -> Select[tuple[LMSUser]]:
+        candidate_courses = CourseService.courses_permission_check_query(
+            instructor_h_userid, admin_organization_ids, course_ids=None
+        ).cte("candidate_courses")
+
+        query = (
+            select(LMSUser)
+            .distinct()
+            .join(LMSCourseMembership, LMSCourseMembership.lms_user_id == LMSUser.id)
+            .join(LMSCourse, LMSCourseMembership.lms_course_id == LMSCourse.id)
+            .join(
+                Grouping,
+                Grouping.authority_provided_id == LMSCourse.h_authority_provided_id,
+            )
+            .join(candidate_courses, candidate_courses.c[0] == Grouping.id)
+            .where(
+                LMSCourseMembership.lti_role_id.in_(
+                    select(LTIRole.id).where(
+                        LTIRole.scope == role_scope, LTIRole.type == role_type
+                    )
+                )
+            )
+        )
+
+        if h_userids:
+            query = query.where(LMSUser.h_userid.in_(h_userids))
+
+        return query.order_by(LMSUser.display_name, LMSUser.id)
 
     def get_users(  # noqa: PLR0913, PLR0917
         self,
