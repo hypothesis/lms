@@ -64,7 +64,7 @@ class TestAssignmentViews:
         response = views.assignment()
 
         dashboard_service.get_request_assignment.assert_called_once_with(
-            pyramid_request
+            pyramid_request, sentinel.id
         )
 
         assert response == {
@@ -91,7 +91,7 @@ class TestAssignmentViews:
         response = views.assignment()
 
         dashboard_service.get_request_assignment.assert_called_once_with(
-            pyramid_request
+            pyramid_request, sentinel.id
         )
 
         assert response == {
@@ -119,7 +119,7 @@ class TestAssignmentViews:
         response = views.assignment()
 
         dashboard_service.get_request_assignment.assert_called_once_with(
-            pyramid_request
+            pyramid_request, sentinel.id
         )
         assignment_service.get_assignment_groups.assert_called_once_with(assignment)
 
@@ -146,7 +146,7 @@ class TestAssignmentViews:
         response = views.assignment()
 
         dashboard_service.get_request_assignment.assert_called_once_with(
-            pyramid_request
+            pyramid_request, sentinel.id
         )
         assignment_service.get_assignment_sections.assert_called_once_with(assignment)
 

@@ -48,7 +48,7 @@ class TestDashboardViews:
         views.assignment_show()
 
         dashboard_service.get_request_assignment.assert_called_once_with(
-            pyramid_request
+            pyramid_request, sentinel.id
         )
         pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
         self.assert_cookie_value(pyramid_request.response)
@@ -63,7 +63,9 @@ class TestDashboardViews:
 
         views.course_show()
 
-        dashboard_service.get_request_course.assert_called_once_with(pyramid_request)
+        dashboard_service.get_request_course.assert_called_once_with(
+            pyramid_request, sentinel.id
+        )
         pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
         self.assert_cookie_value(pyramid_request.response)
 
@@ -91,7 +93,7 @@ class TestDashboardViews:
         views.assignment_show()
 
         dashboard_service.get_request_assignment.assert_called_once_with(
-            pyramid_request
+            pyramid_request, sentinel.id
         )
         pyramid_request.context.js_config.enable_dashboard_mode.assert_called_once()
 

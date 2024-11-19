@@ -99,7 +99,9 @@ class AssignmentViews:
         permission=Permissions.DASHBOARD_VIEW,
     )
     def assignment(self) -> APIAssignment:
-        assignment = self.dashboard_service.get_request_assignment(self.request)
+        assignment = self.dashboard_service.get_request_assignment(
+            self.request, self.request.matchdict["assignment_id"]
+        )
         api_assignment = APIAssignment(
             id=assignment.id,
             title=assignment.title,
@@ -135,7 +137,9 @@ class AssignmentViews:
             self.request
         )
 
-        course = self.dashboard_service.get_request_course(self.request)
+        course = self.dashboard_service.get_request_course(
+            self.request, self.request.matchdict["course_id"]
+        )
         course_students = self.request.db.scalars(
             self.user_service.get_users(
                 course_ids=[course.id],
