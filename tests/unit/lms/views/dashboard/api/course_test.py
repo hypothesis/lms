@@ -94,7 +94,9 @@ class TestCourseViews:
 
         response = views.course()
 
-        dashboard_service.get_request_course.assert_called_once_with(pyramid_request)
+        dashboard_service.get_request_course.assert_called_once_with(
+            pyramid_request, sentinel.id
+        )
 
         assert response == {
             "id": course.id,

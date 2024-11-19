@@ -137,7 +137,9 @@ class CourseViews:
         permission=Permissions.DASHBOARD_VIEW,
     )
     def course(self) -> APICourse:
-        course = self.dashboard_service.get_request_course(self.request)
+        course = self.dashboard_service.get_request_course(
+            self.request, self.request.matchdict["course_id"]
+        )
         return {
             "id": course.id,
             "title": course.lms_name,

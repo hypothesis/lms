@@ -34,22 +34,8 @@ class DashboardService:
         self._organization_service = organization_service
         self._h_authority = h_authority
 
-    def get_request_assignment(self, request) -> Assignment:
+    def get_request_assignment(self, request, assigment_id: int) -> Assignment:
         """Get and authorize an assignment for the given request."""
-        # Requests that are scoped to one assignment on the URL parameter
-        assigment_id = request.matchdict.get("assignment_id")
-        if not assigment_id:
-            # Request that are scoped to a single assignment but as a query parameter
-            assigment_id = request.parsed_params.get("assignment_id")
-
-        if (
-            not assigment_id
-            and request.parsed_params.get("assignment_ids")
-            and len(request.parsed_params["assignment_ids"]) == 1
-        ):
-            # Request that take a list of assignments, but we only recieved one, the requests is scoped to that one assignment
-            assigment_id = request.parsed_params["assignment_ids"][0]
-
         assignment = self._assignment_service.get_by_id(assigment_id)
         if not assignment:
             raise HTTPNotFound()
@@ -73,18 +59,8 @@ class DashboardService:
 
         return assignment
 
-    def get_request_course(self, request):
+    def get_request_course(self, request, course_id: int):
         """Get and authorize a course for the given request."""
-        # Requests that are scoped to one course on the URL parameter
-        course_id = request.matchdict.get("course_id")
-        if (
-            not course_id
-            and request.parsed_params.get("course_ids")
-            and len(request.parsed_params["course_ids"]) == 1
-        ):
-            # Request that take a list of courses, but we only recieved one, the requests is scoped to that one course
-            course_id = request.parsed_params["course_ids"][0]
-
         course = self._course_service.get_by_id(course_id)
         if not course:
             raise HTTPNotFound()

@@ -81,7 +81,9 @@ class DashboardViews:
 
         Authenticated via the LTIUser present in a cookie making this endpoint accessible directly in the browser.
         """
-        assignment = self.dashboard_service.get_request_assignment(self.request)
+        assignment = self.dashboard_service.get_request_assignment(
+            self.request, self.request.matchdict["assignment_id"]
+        )
         self.request.context.js_config.enable_dashboard_mode(
             AUTHORIZATION_DURATION_SECONDS
         )
@@ -105,7 +107,9 @@ class DashboardViews:
 
         Authenticated via the LTIUser present in a cookie making this endpoint accessible directly in the browser.
         """
-        course = self.dashboard_service.get_request_course(self.request)
+        course = self.dashboard_service.get_request_course(
+            self.request, self.request.matchdict["course_id"]
+        )
         self.request.context.js_config.enable_dashboard_mode(
             AUTHORIZATION_DURATION_SECONDS
         )
