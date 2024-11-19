@@ -119,7 +119,7 @@ class TestUserViews:
         response = views.students_metrics()
 
         dashboard_service.get_request_assignment.assert_has_calls(
-            [call(pyramid_request)]
+            [call(pyramid_request, sentinel.id)]
         )
         h_api.get_annotation_counts.assert_called_once_with(
             [g.authority_provided_id for g in assignment.groupings],
@@ -184,6 +184,7 @@ class TestUserViews:
 
         pyramid_request.parsed_params = {
             "h_userids": sentinel.h_userids,
+            "assignment_id": sentinel.assignment_id,
         }
         assignment = factories.Assignment(course=factories.Course())
         assignment.auto_grading_config = AutoGradingConfig(
@@ -207,7 +208,10 @@ class TestUserViews:
         response = views.students_metrics()
 
         dashboard_service.get_request_assignment.assert_has_calls(
-            [call(pyramid_request), call(pyramid_request)]
+            [
+                call(pyramid_request, sentinel.assignment_id),
+                call(pyramid_request, assignment.id),
+            ]
         )
         h_api.get_annotation_counts.assert_called_once_with(
             [g.authority_provided_id for g in assignment.groupings],
@@ -277,7 +281,9 @@ class TestUserViews:
 
         views._students_query(assignment_ids=None, segment_authority_provided_ids=None)  # noqa: SLF001
 
-        dashboard_service.get_request_course.assert_called_once_with(pyramid_request)
+        dashboard_service.get_request_course.assert_called_once_with(
+            pyramid_request, sentinel.course_id
+        )
         user_service.get_users_for_course.assert_called_once_with(
             role_scope=RoleScope.COURSE,
             role_type=RoleType.LEARNER,

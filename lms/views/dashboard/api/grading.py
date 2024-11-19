@@ -45,7 +45,9 @@ class DashboardGradingViews:
         schema=AutoGradeSyncSchema,
     )
     def create_grading_sync(self):
-        assignment = self.dashboard_service.get_request_assignment(self.request)
+        assignment = self.dashboard_service.get_request_assignment(
+            self.request, self.request.matchdict["assignment_id"]
+        )
 
         if self.auto_grading_service.get_in_progress_sync(assignment):
             self.request.response.status_int = 400
@@ -85,7 +87,9 @@ class DashboardGradingViews:
         permission=Permissions.GRADE_ASSIGNMENT,
     )
     def get_grading_sync(self):
-        assignment = self.dashboard_service.get_request_assignment(self.request)
+        assignment = self.dashboard_service.get_request_assignment(
+            self.request, self.request.matchdict["assignment_id"]
+        )
         if grading_sync := self.auto_grading_service.get_last_sync(assignment):
             return self._serialize_grading_sync(grading_sync)
 

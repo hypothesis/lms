@@ -1,4 +1,4 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, sentinel
 
 import pytest
 from h_matchers import Any
@@ -20,6 +20,7 @@ class TestDashboardGradingViews:
         dashboard_service,
         assignment,
     ):
+        pyramid_request.matchdict = {"assignment_id": sentinel.id}
         dashboard_service.get_request_assignment.return_value = assignment
         auto_grading_service.get_in_progress_sync.return_value = None
         pyramid_request.parsed_params["grades"] = [
@@ -29,7 +30,7 @@ class TestDashboardGradingViews:
         views.create_grading_sync()
 
         dashboard_service.get_request_assignment.assert_called_once_with(
-            pyramid_request
+            pyramid_request, sentinel.id
         )
         auto_grading_service.get_in_progress_sync.assert_called_once_with(
             dashboard_service.get_request_assignment.return_value
@@ -44,12 +45,13 @@ class TestDashboardGradingViews:
         dashboard_service,
         assignment,
     ):
+        pyramid_request.matchdict = {"assignment_id": sentinel.id}
         dashboard_service.get_request_assignment.return_value = assignment
 
         views.create_grading_sync()
 
         dashboard_service.get_request_assignment.assert_called_once_with(
-            pyramid_request
+            pyramid_request, sentinel.id
         )
         auto_grading_service.get_in_progress_sync.assert_called_once_with(
             dashboard_service.get_request_assignment.return_value
@@ -65,6 +67,7 @@ class TestDashboardGradingViews:
         assignment,
         db_session,
     ):
+        pyramid_request.matchdict = {"assignment_id": sentinel.id}
         pyramid_request.parsed_params["grades"] = [
             {"h_userid": "STUDENT_1", "grade": 0.5},
             {"h_userid": "STUDENT_2", "grade": 1},
@@ -78,7 +81,7 @@ class TestDashboardGradingViews:
         response = views.create_grading_sync()
 
         dashboard_service.get_request_assignment.assert_called_once_with(
-            pyramid_request
+            pyramid_request, sentinel.id
         )
         auto_grading_service.get_in_progress_sync.assert_called_once_with(
             dashboard_service.get_request_assignment.return_value
@@ -105,11 +108,12 @@ class TestDashboardGradingViews:
         dashboard_service,
         grading_sync,
     ):
+        pyramid_request.matchdict = {"assignment_id": sentinel.id}
         auto_grading_service.get_last_sync.return_value = grading_sync
         response = views.get_grading_sync()
 
         dashboard_service.get_request_assignment.assert_called_once_with(
-            pyramid_request
+            pyramid_request, sentinel.id
         )
         auto_grading_service.get_last_sync.assert_called_once_with(
             dashboard_service.get_request_assignment.return_value
@@ -132,6 +136,7 @@ class TestDashboardGradingViews:
     def test_get_grading_sync_not_found(
         self, auto_grading_service, views, pyramid_request
     ):
+        pyramid_request.matchdict = {"assignment_id": sentinel.id}
         auto_grading_service.get_last_sync.return_value = None
 
         response = views.get_grading_sync()

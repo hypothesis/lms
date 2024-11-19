@@ -110,7 +110,9 @@ class UserViews:
     )
     def students_metrics(self) -> APIStudents:
         """Fetch the stats for one particular assignment."""
-        assignment = self.dashboard_service.get_request_assignment(self.request)
+        assignment = self.dashboard_service.get_request_assignment(
+            self.request, self.request.parsed_params["assignment_id"]
+        )
 
         request_segment_authority_provided_ids = self.request.parsed_params.get(
             "segment_authority_provided_ids"
@@ -211,7 +213,9 @@ class UserViews:
             and not segment_authority_provided_ids
         ):
             # Fetch the assignment to be sure the current user has access to it.
-            assignment = self.dashboard_service.get_request_assignment(self.request)
+            assignment = self.dashboard_service.get_request_assignment(
+                self.request, assignment_ids[0]
+            )
 
             return self.user_service.get_users_for_assignment(
                 role_scope=RoleScope.COURSE,
@@ -223,7 +227,9 @@ class UserViews:
         # Single course fetch
         if course_ids and len(course_ids) == 1 and not segment_authority_provided_ids:
             # Fetch the course to be sure the current user has access to it.
-            course = self.dashboard_service.get_request_course(self.request)
+            course = self.dashboard_service.get_request_course(
+                self.request, course_id=course_ids[0]
+            )
 
             return self.user_service.get_users_for_course(
                 role_scope=RoleScope.COURSE,
