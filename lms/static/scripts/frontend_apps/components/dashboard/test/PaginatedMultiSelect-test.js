@@ -95,11 +95,11 @@ describe('PaginatedMultiSelect', () => {
       return { select, fakeLoadNextPage };
     }
 
-    function scrollTo(select, scrollHeight) {
+    function scrollTo(select, { scrollHeight, scrollTop = 100 }) {
       select.props().onListboxScroll({
         target: {
-          scrollTop: 100,
           clientHeight: 50,
+          scrollTop,
           scrollHeight,
         },
       });
@@ -108,15 +108,26 @@ describe('PaginatedMultiSelect', () => {
     it('loads next page when scroll is at the bottom', () => {
       const { select, fakeLoadNextPage } = getScrollableSelect();
 
-      scrollTo(select, 160);
+      scrollTo(select, { scrollHeight: 160 });
       assert.called(fakeLoadNextPage);
     });
 
     it('does nothing when scroll is not at the bottom', () => {
       const { select, fakeLoadNextPage } = getScrollableSelect();
 
-      scrollTo(select, 250);
+      scrollTo(select, { scrollHeight: 250 });
       assert.notCalled(fakeLoadNextPage);
+    });
+
+    it('does not scroll again if scrolling up', () => {
+      const { select, fakeLoadNextPage } = getScrollableSelect();
+
+      // We scroll down, then a little bit up, still inside the offset gap
+      scrollTo(select, { scrollHeight: 160, scrollTop: 155 });
+      scrollTo(select, { scrollHeight: 160, scrollTop: 150 });
+
+      // The page is attempted to load only once, and ignored when scrolling up
+      assert.calledOnce(fakeLoadNextPage);
     });
   });
 

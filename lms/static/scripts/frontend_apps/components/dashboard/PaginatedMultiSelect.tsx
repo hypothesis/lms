@@ -89,6 +89,7 @@ export default function PaginatedMultiSelect<TResult, TSelect>({
   onChange,
 }: PaginatedMultiSelectProps<TResult, TSelect>) {
   const lastOptionRef = useRef<HTMLElement | null>(null);
+  const lastListboxScrollPosition = useRef(0);
 
   return (
     <MultiSelect
@@ -100,7 +101,14 @@ export default function PaginatedMultiSelect<TResult, TSelect>({
       buttonContent={buttonContent}
       data-testid={`${entity}-select`}
       onListboxScroll={e => {
-        if (elementScrollIsAtBottom(e.target as HTMLUListElement)) {
+        const element = e.target as HTMLUListElement;
+        const newScrollPosition = element.scrollTop;
+        const isScrollingDown =
+          newScrollPosition > lastListboxScrollPosition.current;
+
+        lastListboxScrollPosition.current = newScrollPosition;
+
+        if (isScrollingDown && elementScrollIsAtBottom(element)) {
           result.loadNextPage();
         }
       }}
