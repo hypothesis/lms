@@ -4,9 +4,10 @@ import alembic.command
 import alembic.config
 import sqlalchemy
 import zope.sqlalchemy
-from sqlalchemy import text
+from sqlalchemy import Select, text
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.inspection import inspect
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import Query, Session, declarative_base, sessionmaker
 from sqlalchemy.orm.properties import ColumnProperty
 
 from lms.db._columns import varchar_enum
@@ -40,7 +41,31 @@ def create_engine(database_url):
     return sqlalchemy.create_engine(database_url)
 
 
-SESSION = sessionmaker()
+class CustomSession(Session):
+    """Our own session object based on the default orm.Session."""
+
+    def compile_query(self, query: Query | Select, literal_binds: bool = True) -> str:
+        """
+        Return the SQL representation of `query` for postgres.
+
+        :param literal_binds: Whether or not replace the query parameters by their values.
+        """
+        if isinstance(query, Query):
+            # Support for SQLAlchemy 1.X style queryies, eg: db.query(Model).filter_by()
+            statement = query.statement
+        else:
+            # SQLALchemy 2.X style, eg: select(Model).where()
+            statement = query
+
+        return str(
+            statement.compile(
+                self.get_bind(),
+                compile_kwargs={"literal_binds": literal_binds},
+            )
+        )
+
+
+SESSION = sessionmaker(class_=CustomSession)
 
 
 def _session(request):  # pragma: no cover
