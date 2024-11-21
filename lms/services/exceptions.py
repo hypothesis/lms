@@ -1,4 +1,8 @@
+import logging
+
 from lms.models.oauth2_token import Service
+
+log = logging.getLogger(__name__)
 
 
 class JWTError(Exception):
@@ -215,7 +219,10 @@ class CanvasAPIError(ExternalRequestError):
 
         error_description = response_json.get("error_description", "")
 
-        if {"message": "Invalid access token."} in errors:
+        if {"message": "Invalid access token."} in errors or {
+            "message": "Revoked access token."
+        } in errors:
+            log.info("Canvas token error, forcing re-authorization. %s", errors)
             raise OAuth2TokenError(refreshable=True, **kwargs) from cause
 
         if error_description == "refresh_token not found":

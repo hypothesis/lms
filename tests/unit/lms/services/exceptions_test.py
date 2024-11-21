@@ -186,6 +186,12 @@ class TestCanvasAPIError:
                 json.dumps({"errors": [{"message": "Invalid access token."}]}),
                 OAuth2TokenError,
             ),
+            # A 401 Unauthorized response from Canvas, revoked token
+            (
+                401,
+                json.dumps({"errors": [{"message": "Revoked access token."}]}),
+                OAuth2TokenError,
+            ),
             # A 401 Unauthorized response from Canvas, because our access token had
             # insufficient scopes;
             (
