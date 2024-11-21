@@ -6,14 +6,12 @@ from pyramid.view import view_config, view_defaults
 from lms.events import AuditTrailEvent, ModelChange
 from lms.models import Assignment, EventType
 from lms.security import Permissions
-from lms.services import RosterService
 
 
 @view_defaults(request_method="GET", permission=Permissions.ADMIN)
 class AdminAssignmentViews:
     def __init__(self, request) -> None:
         self.request = request
-        self.roster_service: RosterService = request.find_service(RosterService)
         self.assignment_service = request.find_service(name="assignment")
 
     @view_config(
@@ -24,8 +22,9 @@ class AdminAssignmentViews:
     )
     def show(self):
         assignment = self._get_or_404()
-        roster = self.roster_service.get_assignment_roster(assignment)
-        return {"assignment": assignment, "roster": roster}
+        return {
+            "assignment": assignment,
+        }
 
     @view_config(
         route_name="admin.assignment.dashboard",
