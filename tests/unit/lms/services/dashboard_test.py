@@ -217,16 +217,62 @@ class TestDashboardService:
 
         assert svc.get_request_admin_organizations(pyramid_request) == [organization]
 
+    def test_get_assignment_roster_with_roster_disabled(
+        self, svc, application_instance, user_service
+    ):
+        assignment = factories.Assignment(
+            course=factories.Course(application_instance=application_instance)
+        )
+
+        roster = svc.get_assignment_roster(assignment, sentinel.h_userids)
+
+        user_service.get_users_for_assignment.assert_called_once_with(
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            assignment_id=assignment.id,
+            h_userids=sentinel.h_userids,
+        )
+        assert (
+            roster
+            == user_service.get_users_for_assignment.return_value.order_by.return_value
+        )
+
+    def test_get_assignment_roster_with(
+        self, svc, application_instance, roster_service
+    ):
+        application_instance.settings.set("hypothesis", "dashboard_rosters", True)
+        assignment = factories.Assignment(
+            course=factories.Course(application_instance=application_instance)
+        )
+
+        roster = svc.get_assignment_roster(assignment, sentinel.h_userids)
+
+        roster_service.get_assignment_roster.assert_called_once_with(
+            assignment, h_userids=sentinel.h_userids
+        )
+        assert (
+            roster
+            == roster_service.get_assignment_roster.return_value.order_by.return_value
+        )
+
     @pytest.fixture()
     def svc(
-        self, assignment_service, course_service, organization_service, pyramid_request
+        self,
+        assignment_service,
+        course_service,
+        organization_service,
+        pyramid_request,
+        roster_service,
+        user_service,
     ):
         return DashboardService(
             pyramid_request,
-            assignment_service,
-            course_service,
-            organization_service,
-            "authority",
+            assignment_service=assignment_service,
+            course_service=course_service,
+            organization_service=organization_service,
+            roster_service=roster_service,
+            user_service=user_service,
+            h_authority="authority",
         )
 
     @pytest.fixture(autouse=True)
@@ -262,6 +308,8 @@ class TestFactory:
         DashboardService,
         course_service,
         organization_service,
+        roster_service,
+        user_service,
     ):
         service = factory(sentinel.context, pyramid_request)
 
@@ -270,6 +318,8 @@ class TestFactory:
             assignment_service=assignment_service,
             course_service=course_service,
             organization_service=organization_service,
+            roster_service=roster_service,
+            user_service=user_service,
             h_authority="lms.hypothes.is",
         )
         assert service == DashboardService.return_value

@@ -169,7 +169,7 @@ class UserService:
         if h_userids:
             query = query.where(LMSUser.h_userid.in_(h_userids))
 
-        return query.order_by(LMSUser.display_name, LMSUser.id)
+        return query
 
     def get_users_for_course(
         self,

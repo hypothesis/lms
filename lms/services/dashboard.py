@@ -1,5 +1,5 @@
 from pyramid.httpexceptions import HTTPNotFound, HTTPUnauthorized
-from sqlalchemy import select, union
+from sqlalchemy import Select, select, union
 
 from lms.models import (
     ApplicationInstance,
@@ -15,22 +15,26 @@ from lms.models import (
 )
 from lms.models.dashboard_admin import DashboardAdmin
 from lms.security import Permissions
-from lms.services.organization import OrganizationService
+from lms.services import OrganizationService, RosterService, UserService
 
 
 class DashboardService:
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913, PLR0917
         self,
         request,
         assignment_service,
         course_service,
+        roster_service: RosterService,
         organization_service: OrganizationService,
+        user_service: UserService,
         h_authority: str,
     ):
         self._db = request.db
 
         self._assignment_service = assignment_service
         self._course_service = course_service
+        self._roster_service = roster_service
+        self._user_service = user_service
         self._organization_service = organization_service
         self._h_authority = h_authority
 
@@ -172,6 +176,35 @@ class DashboardService:
             else request.identity.userid,
         )
 
+    def get_assignment_roster(
+        self, assignment: Assignment, h_userids: list[str] | None = None
+    ) -> Select[tuple[LMSUser]]:
+        rosters_enabled = (
+            assignment.course
+            and assignment.course.application_instance.settings.get(
+                "hypothesis", "dashboard_rosters"
+            )
+        )
+        if rosters_enabled and self._roster_service.assignment_roster_exists(
+            assignment
+        ):
+            # If rostering is enabled and we do have the data, use it
+            query = self._roster_service.get_assignment_roster(
+                assignment, h_userids=h_userids
+            )
+
+        else:
+            # Always fallback to fetch users that have launched the assignment at some point
+            query = self._user_service.get_users_for_assignment(
+                role_scope=RoleScope.COURSE,
+                role_type=RoleType.LEARNER,
+                assignment_id=assignment.id,
+                h_userids=h_userids,
+            )
+
+        # Always return the results, no matter the source, sorted
+        return query.order_by(LMSUser.display_name, LMSUser.id)
+
 
 def factory(_context, request):
     return DashboardService(
@@ -179,5 +212,7 @@ def factory(_context, request):
         assignment_service=request.find_service(name="assignment"),
         course_service=request.find_service(name="course"),
         organization_service=request.find_service(OrganizationService),
+        roster_service=request.find_service(RosterService),
+        user_service=request.find_service(UserService),
         h_authority=request.registry.settings["h_authority"],
     )
