@@ -96,6 +96,8 @@ class APIAssignment(TypedDict):
     id: int
     title: str
     created: str
+    is_gradable: bool
+
     course: NotRequired[APICourse]
 
     sections: NotRequired[list[APISegment]]
