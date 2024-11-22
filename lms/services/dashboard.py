@@ -182,7 +182,7 @@ class DashboardService:
         rosters_enabled = (
             assignment.course
             and assignment.course.application_instance.settings.get(
-                "hypothesis", "dashboard_rosters"
+                "dashboard", "rosters"
             )
         )
         if rosters_enabled and self._roster_service.assignment_roster_exists(
