@@ -86,6 +86,7 @@ class AssignmentViews:
                     id=assignment.id,
                     title=assignment.title,
                     created=assignment.created,
+                    is_gradable=assignment.is_gradable,
                 )
                 for assignment in assignments
             ],
@@ -106,6 +107,7 @@ class AssignmentViews:
             id=assignment.id,
             title=assignment.title,
             created=assignment.created,
+            is_gradable=assignment.is_gradable,
             course=APICourse(
                 id=assignment.course.id,
                 title=assignment.course.lms_name,
@@ -189,6 +191,7 @@ class AssignmentViews:
                 APIAssignment(
                     id=assignment.id,
                     title=assignment.title,
+                    is_gradable=assignment.is_gradable,
                     created=assignment.created,
                     course=api_course,
                     annotation_metrics=metrics,

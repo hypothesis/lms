@@ -40,7 +40,12 @@ class TestAssignmentViews:
         )
         assert response == {
             "assignments": [
-                {"id": a.id, "title": a.title, "created": a.created}
+                {
+                    "id": a.id,
+                    "title": a.title,
+                    "is_gradable": a.is_gradable,
+                    "created": a.created,
+                }
                 for a in assignments
             ],
             "pagination": sentinel.pagination,
@@ -70,6 +75,7 @@ class TestAssignmentViews:
         assert response == {
             "id": assignment.id,
             "title": assignment.title,
+            "is_gradable": assignment.is_gradable,
             "created": assignment.created,
             "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
         }
@@ -98,6 +104,7 @@ class TestAssignmentViews:
             "id": assignment.id,
             "title": assignment.title,
             "created": assignment.created,
+            "is_gradable": assignment.is_gradable,
             "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
             "groups": [],
             "auto_grading_config": {
@@ -127,6 +134,7 @@ class TestAssignmentViews:
             "id": assignment.id,
             "title": assignment.title,
             "created": assignment.created,
+            "is_gradable": assignment.is_gradable,
             "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
             "groups": [
                 {"h_authority_provided_id": g.authority_provided_id, "name": g.lms_name}
@@ -154,6 +162,7 @@ class TestAssignmentViews:
             "id": assignment.id,
             "title": assignment.title,
             "created": assignment.created,
+            "is_gradable": assignment.is_gradable,
             "course": {"id": assignment.course.id, "title": assignment.course.lms_name},
             "sections": [
                 {"h_authority_provided_id": g.authority_provided_id, "name": g.lms_name}
@@ -211,6 +220,7 @@ class TestAssignmentViews:
                 {
                     "id": assignment.id,
                     "title": assignment.title,
+                    "is_gradable": assignment.is_gradable,
                     "created": assignment.created,
                     "course": {
                         "id": course.id,
@@ -225,6 +235,7 @@ class TestAssignmentViews:
                 {
                     "id": assignment_with_no_annos.id,
                     "title": assignment_with_no_annos.title,
+                    "is_gradable": assignment.is_gradable,
                     "created": assignment_with_no_annos.created,
                     "course": {
                         "id": course.id,
