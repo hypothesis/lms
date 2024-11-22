@@ -248,7 +248,10 @@ class TestDashboardService:
         roster = svc.get_assignment_roster(assignment, sentinel.h_userids)
 
         roster_service.get_assignment_roster.assert_called_once_with(
-            assignment, h_userids=sentinel.h_userids
+            assignment,
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            h_userids=sentinel.h_userids,
         )
         assert (
             roster

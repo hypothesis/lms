@@ -190,7 +190,10 @@ class DashboardService:
         ):
             # If rostering is enabled and we do have the data, use it
             query = self._roster_service.get_assignment_roster(
-                assignment, h_userids=h_userids
+                assignment,
+                role_scope=RoleScope.COURSE,
+                role_type=RoleType.LEARNER,
+                h_userids=h_userids,
             )
 
         else:
