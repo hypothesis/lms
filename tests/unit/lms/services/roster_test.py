@@ -11,6 +11,27 @@ from tests import factories
 
 
 class TestRosterService:
+    @pytest.mark.parametrize(
+        "create_roster,expected",
+        [(True, True), (False, False)],
+    )
+    def test_assignment_roster_exists(
+        self, svc, assignment, db_session, create_roster, expected
+    ):
+        lms_user = factories.LMSUser()
+        lti_role = factories.LTIRole()
+
+        if create_roster:
+            factories.AssignmentRoster(
+                lms_user=lms_user,
+                assignment=assignment,
+                lti_role=lti_role,
+                active=True,
+            )
+        db_session.flush()
+
+        assert svc.assignment_roster_exists(assignment) == expected
+
     @pytest.mark.parametrize("with_role_scope", [True, False])
     @pytest.mark.parametrize("with_role_type", [True, False])
     def test_get_course_roster(
@@ -34,16 +55,25 @@ class TestRosterService:
         )
         db_session.flush()
 
-        assert svc.get_course_roster(
-            lms_course,
-            role_scope=lti_role.scope if with_role_scope else None,
-            role_type=lti_role.type if with_role_type else None,
-        ) == [lms_user]
+        assert db_session.scalars(
+            svc.get_course_roster(
+                lms_course,
+                role_scope=lti_role.scope if with_role_scope else None,
+                role_type=lti_role.type if with_role_type else None,
+            )
+        ).all() == [lms_user]
 
     @pytest.mark.parametrize("with_role_scope", [True, False])
     @pytest.mark.parametrize("with_role_type", [True, False])
+    @pytest.mark.parametrize("with_h_userids", [True, False])
     def test_get_assignment_roster(
-        self, svc, assignment, db_session, with_role_type, with_role_scope
+        self,
+        svc,
+        assignment,
+        db_session,
+        with_role_type,
+        with_role_scope,
+        with_h_userids,
     ):
         lms_user = factories.LMSUser()
         inactive_lms_user = factories.LMSUser()
@@ -63,11 +93,14 @@ class TestRosterService:
         )
         db_session.flush()
 
-        assert svc.get_assignment_roster(
-            assignment,
-            role_scope=lti_role.scope if with_role_scope else None,
-            role_type=lti_role.type if with_role_type else None,
-        ) == [lms_user]
+        assert db_session.scalars(
+            svc.get_assignment_roster(
+                assignment,
+                role_scope=lti_role.scope if with_role_scope else None,
+                role_type=lti_role.type if with_role_type else None,
+                h_userids=[lms_user.h_userid] if with_h_userids else None,
+            )
+        ).all() == [lms_user]
 
     def test_fetch_course_roster(
         self,
