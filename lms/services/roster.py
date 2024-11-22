@@ -1,6 +1,6 @@
 from logging import getLogger
 
-from sqlalchemy import select, update
+from sqlalchemy import Select, select, update
 
 from lms.models import (
     ApplicationInstance,
@@ -43,7 +43,7 @@ class RosterService:
         lms_course: LMSCourse,
         role_scope: RoleScope | None = None,
         role_type: RoleType | None = None,
-    ) -> list[LMSUser]:
+    ) -> Select[tuple[LMSUser]]:
         """Get the roster information for a course from our DB."""
         roster_query = (
             select(CourseRoster.lms_user_id)
@@ -60,16 +60,25 @@ class RosterService:
         if role_type:
             roster_query = roster_query.where(LTIRole.type == role_type)
 
-        return self._db.scalars(
-            select(LMSUser).where(LMSUser.id.in_(roster_query))
-        ).all()
+        return select(LMSUser).where(LMSUser.id.in_(roster_query))
+
+    def assignment_roster_exists(self, assignment: Assignment) -> bool:
+        """Check if we have roster data for the given assignment."""
+        return bool(
+            self._db.scalar(
+                select(AssignmentRoster)
+                .where(AssignmentRoster.assignment_id == assignment.id)
+                .limit(1)
+            )
+        )
 
     def get_assignment_roster(
         self,
         assignment: Assignment,
         role_scope: RoleScope | None = None,
         role_type: RoleType | None = None,
-    ) -> list[LMSUser]:
+        h_userids: list[str] | None = None,
+    ) -> Select[tuple[LMSUser]]:
         """Get the roster information for a course from our DB."""
         roster_query = (
             select(AssignmentRoster.lms_user_id)
@@ -86,9 +95,12 @@ class RosterService:
         if role_type:
             roster_query = roster_query.where(LTIRole.type == role_type)
 
-        return self._db.scalars(
-            select(LMSUser).where(LMSUser.id.in_(roster_query))
-        ).all()
+        query = select(LMSUser).where(LMSUser.id.in_(roster_query))
+
+        if h_userids:
+            query = query.where(LMSUser.h_userid.in_(h_userids))
+
+        return query
 
     def fetch_course_roster(self, lms_course: LMSCourse) -> None:
         """Fetch the roster information for a course from the LMS."""

@@ -216,12 +216,8 @@ class UserViews:
             assignment = self.dashboard_service.get_request_assignment(
                 self.request, assignment_ids[0]
             )
-
-            return self.user_service.get_users_for_assignment(
-                role_scope=RoleScope.COURSE,
-                role_type=RoleType.LEARNER,
-                assignment_id=assignment.id,
-                h_userids=h_userids,
+            return self.dashboard_service.get_assignment_roster(
+                assignment=assignment, h_userids=h_userids
             )
 
         # Single course fetch

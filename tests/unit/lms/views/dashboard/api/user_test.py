@@ -102,7 +102,7 @@ class TestUserViews:
             )
         else:
             db_session.flush()
-            user_service.get_users_for_assignment.return_value = select(User).where(
+            dashboard_service.get_assignment_roster.return_value = select(User).where(
                 User.id.in_(
                     [
                         u.id
@@ -168,7 +168,6 @@ class TestUserViews:
         self,
         views,
         pyramid_request,
-        user_service,
         h_api,
         student,
         dashboard_service,
@@ -197,7 +196,7 @@ class TestUserViews:
             auto_grading_service.get_last_grades.return_value = {}
 
         db_session.flush()
-        user_service.get_users_for_assignment.return_value = select(User).where(
+        dashboard_service.get_assignment_roster.return_value = select(User).where(
             User.id.in_(
                 [u.id for u in [student, student_no_annos, student_no_annos_no_name]]
             )
