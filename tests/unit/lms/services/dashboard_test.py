@@ -240,7 +240,7 @@ class TestDashboardService:
     def test_get_assignment_roster_with(
         self, svc, application_instance, roster_service
     ):
-        application_instance.settings.set("hypothesis", "dashboard_rosters", True)
+        application_instance.settings.set("dashboard", "rosters", True)
         assignment = factories.Assignment(
             course=factories.Course(application_instance=application_instance)
         )
