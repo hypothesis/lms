@@ -22,7 +22,7 @@ LAUNCHED_WINDOW = timedelta(hours=24)
 ROSTER_REFRESH_WINDOW = timedelta(hours=24 * 7)
 """How frequenly should we fetch roster for the same course/assignment"""
 
-ROSTER_LIMIT = 5
+ROSTER_LIMIT = 50
 """How many roster should we fetch per executing of the schedule task."""
 
 
