@@ -42,6 +42,7 @@ class TestRosterTasks:
     @freeze_time("2024-08-28")
     @pytest.mark.usefixtures(
         "lms_course_with_no_launch",
+        "lms_course_with_no_recent_launch",
         "lms_course_with_no_service_url",
         "lms_course_with_launch_and_recent_roster",
         "lms_course_with_recent_launch_and_task_done_row",
@@ -60,6 +61,7 @@ class TestRosterTasks:
     @freeze_time("2024-08-28")
     @pytest.mark.usefixtures(
         "assignment_with_no_launch",
+        "assignment_with_no_recent_launch",
         "assignment_with_no_lti_v13_id",
         "assignment_with_recent_launch_and_task_done_row",
         "assignment_with_launch_and_recent_roster",
@@ -94,11 +96,36 @@ class TestRosterTasks:
         )
 
     @pytest.fixture
+    def assignment_with_no_recent_launch(self, lms_course_with_recent_launch):
+        assignment = factories.Assignment(
+            lti_v13_resource_link_id="ID", course=lms_course_with_recent_launch.course
+        )
+        factories.Event(
+            assignment=assignment,
+            timestamp=datetime(2024, 1, 1),
+        )
+        return assignment
+
+    @pytest.fixture
     def lms_course_with_recent_launch(self):
         course = factories.Course()
         factories.Event(
             course=course,
             timestamp=datetime(2024, 8, 28),
+        )
+
+        return factories.LMSCourse(
+            lti_context_memberships_url="URL",
+            h_authority_provided_id=course.authority_provided_id,
+            course=course,
+        )
+
+    @pytest.fixture
+    def lms_course_with_no_recent_launch(self):
+        course = factories.Course()
+        factories.Event(
+            course=course,
+            timestamp=datetime(2024, 1, 1),
         )
 
         return factories.LMSCourse(

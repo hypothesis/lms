@@ -114,9 +114,8 @@ def schedule_fetching_assignment_rosters() -> None:
 
     # Only fetch rosters for assignments that have been recently launched
     recent_launches_clause = exists(
-        select(Event)
-        .join(Assignment, Event.assignment_id == Assignment.id)
-        .where(
+        select(Event).where(
+            Event.assignment_id == Assignment.id,
             Event.timestamp >= now - LAUNCHED_WINDOW,
         )
     )
