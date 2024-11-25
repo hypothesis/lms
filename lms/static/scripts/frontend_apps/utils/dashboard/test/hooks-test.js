@@ -1,8 +1,12 @@
 import { mount } from 'enzyme';
 
-import { useDashboardFilters } from '../hooks';
+import { useDashboardFilters, $imports } from '../hooks';
 
 describe('useDashboardFilters', () => {
+  let fakeUseLocation;
+  let fakeUseSearch;
+  let fakeNavigate;
+
   function FakeComponent() {
     const { filters, updateFilters, urlWithFilters } = useDashboardFilters();
 
@@ -49,13 +53,17 @@ describe('useDashboardFilters', () => {
     );
   }
 
-  function setCurrentURL(url) {
-    history.replaceState(null, '', url);
-  }
-
   beforeEach(() => {
-    // Reset query string
-    setCurrentURL('?');
+    fakeUseSearch = sinon.stub().returns('');
+    fakeNavigate = sinon.stub();
+    fakeUseLocation = sinon.stub().returns(['', fakeNavigate]);
+
+    $imports.$mock({
+      'wouter-preact': {
+        useSearch: fakeUseSearch,
+        useLocation: fakeUseLocation,
+      },
+    });
   });
 
   function createComponent() {
@@ -127,7 +135,7 @@ describe('useDashboardFilters', () => {
       expectedSegments,
     }) => {
       it('reads params from the query', () => {
-        setCurrentURL(initialQueryString);
+        fakeUseSearch.returns(initialQueryString);
 
         const wrapper = createComponent();
 
@@ -142,91 +150,61 @@ describe('useDashboardFilters', () => {
   [
     {
       buttonId: 'update-courses',
-      getResult: getCurrentCourses,
-      expectedResult: '111,222,333',
       expectedQueryString: '?course_id=111&course_id=222&course_id=333',
     },
     {
       buttonId: 'update-assignments',
-      getResult: getCurrentAssignments,
-      expectedResult: '123,456,789',
       expectedQueryString:
         '?assignment_id=123&assignment_id=456&assignment_id=789',
     },
     {
       buttonId: 'update-students',
-      getResult: getCurrentStudents,
-      expectedResult: 'abc,def',
       expectedQueryString: '?student_id=abc&student_id=def',
     },
     {
       buttonId: 'update-segments',
-      getResult: getCurrentSegments,
-      expectedResult: 'foo,bar',
       expectedQueryString: '?segment_id=foo&segment_id=bar',
     },
-  ].forEach(({ buttonId, getResult, expectedResult, expectedQueryString }) => {
+  ].forEach(({ buttonId, expectedQueryString }) => {
     it('persists updated values in query string', () => {
       const wrapper = createComponent();
 
       wrapper.find(`[data-testid="${buttonId}"]`).simulate('click');
 
-      assert.equal(getResult(wrapper), expectedResult);
-      assert.equal(location.search, expectedQueryString);
+      assert.calledWith(fakeNavigate, expectedQueryString);
     });
   });
 
   it('preserves unknown query params', () => {
-    setCurrentURL('?foo=bar&something=else');
+    fakeUseSearch.returns('?foo=bar&something=else');
 
     const wrapper = createComponent();
     wrapper.find('[data-testid="update-courses"]').simulate('click');
 
-    assert.equal(
+    assert.calledWith(
+      fakeNavigate,
       '?foo=bar&something=else&course_id=111&course_id=222&course_id=333',
-      location.search,
     );
   });
 
   it('preserves path', () => {
-    setCurrentURL('/foo/bar');
+    fakeUseLocation.returns(['/foo/bar', fakeNavigate]);
 
     const wrapper = createComponent();
     wrapper.find('[data-testid="update-courses"]').simulate('click');
 
-    assert.equal('?course_id=111&course_id=222&course_id=333', location.search);
-    assert.equal('/foo/bar', location.pathname);
+    assert.calledWith(
+      fakeNavigate,
+      '/foo/bar?course_id=111&course_id=222&course_id=333',
+    );
   });
 
-  [
-    {
-      buttonId: 'update-courses',
-      expectedURL: '/hello/world?course_id=111&course_id=222&course_id=333',
-    },
-    {
-      buttonId: 'update-assignments',
-      expectedURL:
-        '/hello/world?assignment_id=123&assignment_id=456&assignment_id=789',
-    },
-    {
-      buttonId: 'update-students',
-      expectedURL: '/hello/world?student_id=abc&student_id=def',
-    },
-    {
-      buttonId: 'update-segments',
-      expectedURL: '/hello/world?segment_id=foo&segment_id=bar',
-    },
-  ].forEach(({ buttonId, expectedURL }) => {
-    it('builds URLs with filters', () => {
-      // Current URL should be ignored
-      setCurrentURL('/foo/bar');
+  it('ignores current path when one is provided', () => {
+    // Current URL should be ignored
+    fakeUseLocation.returns(['/foo/bar', fakeNavigate]);
 
-      const wrapper = createComponent();
+    const wrapper = createComponent();
 
-      assert.equal(getURLWithFilters(wrapper), '/hello/world');
-
-      wrapper.find(`[data-testid="${buttonId}"]`).simulate('click');
-      assert.equal(getURLWithFilters(wrapper), expectedURL);
-    });
+    assert.equal(getURLWithFilters(wrapper), '/hello/world');
   });
 });

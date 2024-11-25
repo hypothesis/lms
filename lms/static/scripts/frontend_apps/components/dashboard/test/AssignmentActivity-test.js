@@ -56,6 +56,7 @@ describe('AssignmentActivity', () => {
       id: 12,
       title: 'The course',
     },
+    is_gradable: true,
   };
 
   let fakeUseAPIFetch;
@@ -497,34 +498,58 @@ describe('AssignmentActivity', () => {
       {
         syncEnabled: true,
         isAutoGradingAssignment: true,
-        shouldShowButton: true,
+        isGradable: true,
       },
       {
         syncEnabled: false,
         isAutoGradingAssignment: true,
-        shouldShowButton: false,
+        isGradable: true,
       },
       {
         syncEnabled: true,
         isAutoGradingAssignment: false,
-        shouldShowButton: false,
+        isGradable: true,
       },
       {
         syncEnabled: false,
         isAutoGradingAssignment: false,
-        shouldShowButton: false,
+        isGradable: true,
       },
-    ].forEach(({ isAutoGradingAssignment, syncEnabled, shouldShowButton }) => {
-      it('shows sync button when both sync and auto-grading are enabled', () => {
+      {
+        syncEnabled: false,
+        isAutoGradingAssignment: true,
+        isGradable: false,
+      },
+      {
+        syncEnabled: false,
+        isAutoGradingAssignment: false,
+        isGradable: true,
+      },
+      {
+        syncEnabled: true,
+        isAutoGradingAssignment: false,
+        isGradable: false,
+      },
+      {
+        syncEnabled: false,
+        isAutoGradingAssignment: false,
+        isGradable: false,
+      },
+    ].forEach(({ isAutoGradingAssignment, syncEnabled, isGradable }) => {
+      it('shows sync button when sync and auto-grading are enabled, and the assignment is gradable', () => {
         setUpFakeUseAPIFetch({
           ...activeAssignment,
+          is_gradable: isGradable,
           auto_grading_config: isAutoGradingAssignment ? {} : null,
         });
         fakeConfig.dashboard.auto_grading_sync_enabled = syncEnabled;
 
         const wrapper = createComponent();
 
-        assert.equal(wrapper.exists('SyncGradesButton'), shouldShowButton);
+        assert.equal(
+          wrapper.exists('SyncGradesButton'),
+          isAutoGradingAssignment && syncEnabled && isGradable,
+        );
       });
     });
 

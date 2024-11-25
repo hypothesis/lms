@@ -187,6 +187,7 @@ export type Assignment = {
   title: string;
   /** Date in which the assignment was created, in ISO format */
   created: ISODateTime;
+  is_gradable: boolean;
 };
 
 export type Student = {

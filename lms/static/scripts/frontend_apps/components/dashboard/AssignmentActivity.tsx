@@ -95,6 +95,7 @@ export default function AssignmentActivity() {
     replaceURLParams(routes.assignment, { assignment_id: assignmentId }),
   );
   const isAutoGradingAssignment = !!assignment.data?.auto_grading_config;
+  const isGradable = !!assignment.data?.is_gradable;
   const segments = useMemo((): DashboardActivityFiltersProps['segments'] => {
     const { data } = assignment;
     if (
@@ -161,12 +162,17 @@ export default function AssignmentActivity() {
 
   const syncURL = useMemo(
     () =>
-      isAutoGradingAssignment
+      isAutoGradingAssignment && isGradable
         ? replaceURLParams(routes.assignment_grades_sync, {
             assignment_id: assignmentId,
           })
         : null,
-    [assignmentId, isAutoGradingAssignment, routes.assignment_grades_sync],
+    [
+      assignmentId,
+      isAutoGradingAssignment,
+      isGradable,
+      routes.assignment_grades_sync,
+    ],
   );
   const [lastSyncParams, setLastSyncParams] = useState<QueryParams>({});
   const lastSync = usePolledAPIFetch<GradingSync>({
@@ -345,7 +351,7 @@ export default function AssignmentActivity() {
             }
           />
         )}
-        {isAutoGradingAssignment && auto_grading_sync_enabled && (
+        {isAutoGradingAssignment && auto_grading_sync_enabled && isGradable && (
           <SyncGradesButton
             studentsToSync={studentsToSync}
             lastSync={lastSync}
