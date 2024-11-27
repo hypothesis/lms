@@ -288,14 +288,6 @@ class JSConfig:
                             "api.dashboard.assignments.grading.sync"
                         ),
                     ),
-                    auto_grading_sync_enabled=self._lti_user
-                    and self._application_instance.settings.get(
-                        "hypothesis", "auto_grading_sync_enabled", False
-                    ),
-                    assignment_segments_filter_enabled=not self._lti_user
-                    or self._application_instance.settings.get(
-                        "dashboard", "assignment_segments_filter_enabled", False
-                    ),
                 ),
             }
         )
@@ -381,9 +373,9 @@ class JSConfig:
                     "formAction": form_action,
                     "formFields": form_fields,
                     "promptForTitle": prompt_for_title,
-                    "autoGradingEnabled": self._application_instance.settings.get(
-                        "hypothesis", "auto_grading_enabled", False
-                    ),
+                    # Enable auto grading everywhere except in Sakai
+                    "autoGradingEnabled": self._application_instance.tool_consumer_info_product_family_code
+                    != "sakai",
                     # The "content item selection" that we submit to Canvas's
                     # content_item_return_url is actually an LTI launch URL with
                     # the selected document URL or file_id as a query parameter. To

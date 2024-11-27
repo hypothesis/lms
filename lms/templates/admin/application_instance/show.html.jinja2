@@ -114,12 +114,9 @@
                             <legend class="label has-text-centered">General settings</legend>
                             {{ settings_checkbox('Enable instructor email digests', 'hypothesis', 'instructor_email_digests_enabled') }}
                             {{ settings_checkbox("Use alternative parameter for LTI1.3 grading", "hypothesis", "lti_13_sourcedid_for_grading", default=False) }}
-                            {{ settings_checkbox("Enable auto-grading", "hypothesis", "auto_grading_enabled", default=False) }}
-                            {{ settings_checkbox("Enable auto-grading grade sync", "hypothesis", "auto_grading_sync_enabled", default=False) }}
                         </fieldset>
                         <fieldset class="box">
                             <legend class="label has-text-centered">Dashboard settings</legend>
-                            {{ settings_checkbox("Enable segments filter in assignment view", "dashboard", "assignment_segments_filter_enabled", default=False) }}
                             {{ settings_checkbox("Enable roster data", "dashboard", "rosters", default=False) }}
                         </fieldset>
                         <fieldset class="box">
