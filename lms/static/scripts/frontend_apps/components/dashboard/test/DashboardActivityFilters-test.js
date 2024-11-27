@@ -3,8 +3,8 @@ import { formatDateTime } from '@hypothesis/frontend-shared';
 import {
   checkAccessibility,
   mockImportedComponents,
+  mount,
 } from '@hypothesis/frontend-testing';
-import { mount } from 'enzyme';
 import sinon from 'sinon';
 
 import { Config } from '../../../config';
@@ -64,8 +64,6 @@ describe('DashboardActivityFilters', () => {
   let fakeLoadNextCoursesPage;
   let fakeLoadNextAssignmentsPage;
   let fakeLoadNextStudentsPage;
-  let wrappers;
-  let containers;
 
   /**
    * @param {object} options
@@ -109,9 +107,6 @@ describe('DashboardActivityFilters', () => {
   }
 
   beforeEach(() => {
-    wrappers = [];
-    containers = [];
-
     fakeLoadNextCoursesPage = sinon.stub();
     fakeLoadNextAssignmentsPage = sinon.stub();
     fakeLoadNextStudentsPage = sinon.stub();
@@ -121,7 +116,6 @@ describe('DashboardActivityFilters', () => {
     onCoursesChange = sinon.stub();
     onAssignmentsChange = sinon.stub();
     onStudentsChange = sinon.stub();
-    wrappers = [];
 
     fakeConfig = {
       dashboard: {
@@ -147,8 +141,6 @@ describe('DashboardActivityFilters', () => {
   });
 
   afterEach(() => {
-    wrappers.forEach(w => w.unmount());
-    containers.forEach(c => c.remove());
     $imports.$restore();
   });
 
@@ -180,24 +172,13 @@ describe('DashboardActivityFilters', () => {
     });
   }
 
-  function createContainerInDOM() {
-    const container = document.createElement('div');
-    containers.push(container);
-    document.body.appendChild(container);
-
-    return container;
-  }
-
   function createComponentWithProps(props) {
-    const wrapper = mount(
+    return mount(
       <Config.Provider value={fakeConfig}>
         <DashboardActivityFilters {...props} />
       </Config.Provider>,
-      { attachTo: createContainerInDOM() },
+      { connected: true },
     );
-    wrappers.push(wrapper);
-
-    return wrapper;
   }
 
   function getSelect(wrapper, id) {
@@ -274,7 +255,7 @@ describe('DashboardActivityFilters', () => {
         <MultiSelect value={[]} onChange={sinon.stub()}>
           {select.props().renderOption(entity)}
         </MultiSelect>,
-        { attachTo: createContainerInDOM() },
+        { connected: true },
       );
       // The Select needs to be open, otherwise options are not rendered
       tempSelect.find('button').simulate('click');

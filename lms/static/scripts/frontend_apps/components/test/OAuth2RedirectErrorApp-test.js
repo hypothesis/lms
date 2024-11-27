@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { mount } from '@hypothesis/frontend-testing';
 
 import { Config } from '../../config';
 import OAuth2RedirectErrorApp from '../OAuth2RedirectErrorApp';

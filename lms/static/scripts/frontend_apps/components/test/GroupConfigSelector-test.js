@@ -1,9 +1,9 @@
 import { Select } from '@hypothesis/frontend-shared';
 import {
   mockImportedComponents,
+  mount,
   waitForElement,
 } from '@hypothesis/frontend-testing';
-import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
 import { Config } from '../../config';
@@ -21,8 +21,6 @@ describe('GroupConfigSelector', () => {
   let fakeConfig;
   let fakeGroupSets;
   let fakeIsAuthorizationError;
-  let wrappers;
-  let containers;
 
   beforeEach(() => {
     fakeGroupSets = [
@@ -35,8 +33,6 @@ describe('GroupConfigSelector', () => {
         name: 'Group Set 2',
       },
     ];
-    wrappers = [];
-    containers = [];
 
     fakeAPICall = sinon.stub();
     fakeAPICall.withArgs(groupSetsAPIRequest).resolves(fakeGroupSets);
@@ -70,8 +66,6 @@ describe('GroupConfigSelector', () => {
 
   afterEach(() => {
     $imports.$restore();
-    wrappers.forEach(w => w.unmount());
-    containers.forEach(c => c.remove());
   });
 
   // Helper that simulates GroupConfigSelector's containing component.
@@ -89,14 +83,7 @@ describe('GroupConfigSelector', () => {
   }
 
   function createComponent(props = {}) {
-    const container = document.createElement('div');
-    containers.push(container);
-    document.body.appendChild(container);
-
-    const wrapper = mount(<Container {...props} />, { attachTo: container });
-    wrappers.push(wrapper);
-
-    return wrapper;
+    return mount(<Container {...props} />, { connected: true });
   }
 
   function toggleCheckbox(wrapper) {

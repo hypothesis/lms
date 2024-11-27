@@ -1,5 +1,5 @@
 import { waitForElement } from '@hypothesis/frontend-testing';
-import { mount } from 'enzyme';
+import { mount } from '@hypothesis/frontend-testing';
 import { useState } from 'preact/hooks';
 
 import DataLoader from '../DataLoader';

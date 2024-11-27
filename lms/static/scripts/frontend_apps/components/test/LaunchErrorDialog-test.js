@@ -1,6 +1,6 @@
 import { Link } from '@hypothesis/frontend-shared';
 import { mockImportedComponents } from '@hypothesis/frontend-testing';
-import { mount } from 'enzyme';
+import { mount } from '@hypothesis/frontend-testing';
 
 import { Config } from '../../config';
 import LaunchErrorDialog, { $imports } from '../LaunchErrorDialog';
