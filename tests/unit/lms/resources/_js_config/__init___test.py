@@ -28,17 +28,19 @@ pytestmark = pytest.mark.usefixtures(
 
 class TestFilePickerMode:
     @pytest.mark.parametrize("prompt_for_title", [True, False])
-    @pytest.mark.parametrize("auto_grading_setting", [True, False])
+    @pytest.mark.parametrize(
+        "application_instance_family", ["sakai", "canvas", "moodle"]
+    )
     def test_it(
         self,
         js_config,
         course,
         prompt_for_title,
         application_instance,
-        auto_grading_setting,
+        application_instance_family,
     ):
-        application_instance.settings.set(
-            "hypothesis", "auto_grading_enabled", auto_grading_setting
+        application_instance.tool_consumer_info_product_family_code = (
+            application_instance_family
         )
 
         js_config.enable_file_picker_mode(
@@ -57,7 +59,7 @@ class TestFilePickerMode:
                         "formAction": sentinel.form_action,
                         "formFields": sentinel.form_fields,
                         "promptForTitle": prompt_for_title,
-                        "autoGradingEnabled": auto_grading_setting,
+                        "autoGradingEnabled": application_instance_family != "sakai",
                     }
                 ),
             }
@@ -713,27 +715,7 @@ class TestEnableErrorDialogMode:
 
 
 class TestEnableDashboardMode:
-    @pytest.mark.parametrize(
-        "auto_grading_sync_setting,assignment_segments_filter_setting",
-        [(True, True), (False, True), (True, False), (False, False)],
-    )
-    def test_it(
-        self,
-        js_config,
-        lti_user,
-        bearer_token_schema,
-        auto_grading_sync_setting,
-        assignment_segments_filter_setting,
-        application_instance,
-    ):
-        application_instance.settings.set(
-            "hypothesis", "auto_grading_sync_enabled", auto_grading_sync_setting
-        )
-        application_instance.settings.set(
-            "dashboard",
-            "assignment_segments_filter_enabled",
-            assignment_segments_filter_setting,
-        )
+    def test_it(self, js_config, lti_user, bearer_token_schema):
         js_config.enable_dashboard_mode(token_lifetime_seconds=100)
         config = js_config.asdict()
 
@@ -757,8 +739,6 @@ class TestEnableDashboardMode:
                 "students": "/api/dashboard/students",
                 "assignment_grades_sync": "/api/dashboard/assignments/:assignment_id/grading/sync",
             },
-            "auto_grading_sync_enabled": auto_grading_sync_setting,
-            "assignment_segments_filter_enabled": assignment_segments_filter_setting,
         }
 
     def test_user_when_staff(
@@ -776,10 +756,6 @@ class TestEnableDashboardMode:
             "name": organization_service.get_by_public_id.return_value.name,
             "public_id": sentinel.public_id,
         }
-        # Grade syncing always disabled for staff
-        assert not config["dashboard"]["auto_grading_sync_enabled"]
-        # Segments filter is always enabled for staff
-        assert config["dashboard"]["assignment_segments_filter_enabled"]
 
     @pytest.fixture
     def pyramid_request_staff_member(self, pyramid_config, pyramid_request):
