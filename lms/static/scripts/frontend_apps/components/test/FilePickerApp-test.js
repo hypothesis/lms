@@ -1,10 +1,10 @@
 import {
   checkAccessibility,
   mockImportedComponents,
+  mount,
   waitFor,
   waitForElement,
 } from '@hypothesis/frontend-testing';
-import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
 import { Config } from '../../config';
@@ -26,7 +26,6 @@ function clickButton(wrapper, testId) {
 }
 
 describe('FilePickerApp', () => {
-  let container;
   let fakeConfig;
 
   const renderFilePicker = (props = {}) => {
@@ -36,7 +35,7 @@ describe('FilePickerApp', () => {
         <FilePickerApp onSubmit={preventFormSubmission} {...props} />
       </Config.Provider>,
       {
-        attachTo: container,
+        connected: true,
       },
     );
   };
@@ -56,15 +55,11 @@ describe('FilePickerApp', () => {
       },
     };
 
-    container = document.createElement('div');
-    document.body.appendChild(container);
-
     $imports.$mock(mockImportedComponents());
   });
 
   afterEach(() => {
     $imports.$restore();
-    container.remove();
   });
 
   /**

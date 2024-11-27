@@ -1,5 +1,4 @@
-import { mockImportedComponents } from '@hypothesis/frontend-testing';
-import { mount } from 'enzyme';
+import { mockImportedComponents, mount } from '@hypothesis/frontend-testing';
 import { useState } from 'preact/hooks';
 import { act } from 'preact/test-utils';
 
@@ -100,22 +99,11 @@ describe('JSTORPicker', () => {
   };
 
   describe('initial focus', () => {
-    let container;
-
-    beforeEach(() => {
-      container = document.createElement('div');
-      document.body.appendChild(container);
-    });
-
-    afterEach(() => {
-      container.remove();
-    });
-
     it('focuses the URL text input element', () => {
       const beforeFocused = document.activeElement;
 
       const wrapper = mount(<JSTORPicker onSelectURL={sinon.stub()} />, {
-        attachTo: container,
+        connected: true,
       });
 
       const focused = document.activeElement;

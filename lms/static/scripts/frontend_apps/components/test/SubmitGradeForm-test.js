@@ -1,10 +1,10 @@
 import {
   checkAccessibility,
   mockImportedComponents,
+  mount,
   waitFor,
   waitForElement,
 } from '@hypothesis/frontend-testing';
-import { mount } from 'enzyme';
 import { act } from 'preact/test-utils';
 
 import { GradingService, withServices } from '../../services';
@@ -33,10 +33,9 @@ describe('SubmitGradeForm', () => {
     [GradingService, fakeGradingService],
   ]);
 
-  let container;
   const renderForm = (props = {}) => {
     return mount(<SubmitGradeFormWrapper student={fakeStudent} {...props} />, {
-      attachTo: container,
+      connected: true,
     });
   };
 
@@ -51,11 +50,6 @@ describe('SubmitGradeForm', () => {
   }
 
   beforeEach(() => {
-    // This extra element is necessary to test automatic `focus`-ing
-    // of the component's `input` element
-    container = document.createElement('div');
-    document.body.appendChild(container);
-
     // Reset the api grade stubs for each test because
     // some tests below will change these for specific cases.
     fakeGradingService = fakeGradingService = {

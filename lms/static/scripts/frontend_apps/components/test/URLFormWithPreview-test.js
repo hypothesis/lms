@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { mount } from '@hypothesis/frontend-testing';
 import { createRef } from 'preact';
 
 import URLFormWithPreview from '../URLFormWithPreview';

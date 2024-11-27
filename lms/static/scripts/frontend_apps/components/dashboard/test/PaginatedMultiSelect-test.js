@@ -1,28 +1,11 @@
 import { MultiSelect } from '@hypothesis/frontend-shared';
-import { mount } from 'enzyme';
+import { mount } from '@hypothesis/frontend-testing';
 
 import PaginatedMultiSelect from '../PaginatedMultiSelect';
 
 describe('PaginatedMultiSelect', () => {
-  let wrappers;
-  let containers;
-
-  beforeEach(() => {
-    wrappers = [];
-    containers = [];
-  });
-
-  afterEach(() => {
-    wrappers.forEach(w => w.unmount());
-    containers.forEach(c => c.remove());
-  });
-
   function createComponent(props) {
-    const container = document.createElement('div');
-    containers.push(container);
-    document.body.appendChild(container);
-
-    const wrapper = mount(
+    return mount(
       <PaginatedMultiSelect
         entity="courses"
         value={[]}
@@ -32,11 +15,8 @@ describe('PaginatedMultiSelect', () => {
         )}
         {...props}
       />,
-      { attachTo: container },
+      { connected: true },
     );
-    wrappers.push(wrapper);
-
-    return wrapper;
   }
 
   function getSelect(wrapper, id = 'courses') {

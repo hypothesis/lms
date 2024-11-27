@@ -1,5 +1,4 @@
-import { waitFor, waitForElement } from '@hypothesis/frontend-testing';
-import { mount } from 'enzyme';
+import { mount, waitFor, waitForElement } from '@hypothesis/frontend-testing';
 
 import { VitalSourceService, withServices } from '../../services';
 import BookSelector, { $imports } from '../BookSelector';
@@ -73,24 +72,13 @@ describe('BookSelector', () => {
   };
 
   describe('initial focus', () => {
-    let container;
-
-    beforeEach(() => {
-      container = document.createElement('div');
-      document.body.appendChild(container);
-    });
-
-    afterEach(() => {
-      container.remove();
-    });
-
     it('focuses the URL text input element', () => {
       const beforeFocused = document.activeElement;
 
       const wrapper = mount(
         <BookSelectorWrapper onSelectBook={sinon.stub()} />,
         {
-          attachTo: container,
+          connected: true,
         },
       );
 

@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { mount } from '@hypothesis/frontend-testing';
 import { render } from 'preact';
 
 import { useUniqueId, useDocumentTitle } from '../hooks';

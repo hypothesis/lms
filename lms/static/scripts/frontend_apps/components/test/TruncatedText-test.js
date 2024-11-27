@@ -1,35 +1,15 @@
-import { mount } from 'enzyme';
+import { mount } from '@hypothesis/frontend-testing';
 
 import TruncatedText from '../TruncatedText';
 
 describe('TruncatedText', () => {
-  let wrappers;
-  let containers;
-
-  beforeEach(() => {
-    wrappers = [];
-    containers = [];
-  });
-
-  afterEach(() => {
-    wrappers.forEach(wrapper => wrapper.unmount());
-    containers.forEach(container => container.remove());
-  });
-
   function createComponent(content, title) {
-    const container = document.createElement('div');
-    document.body.appendChild(container);
-
     const wrapper = mount(
       <div className="flex w-96">
         <TruncatedText title={title}>{content}</TruncatedText>
       </div>,
-      { attachTo: container },
+      { connected: true },
     );
-
-    containers.push(container);
-    wrappers.push(wrapper);
-
     return wrapper.find('[data-testid="truncated-text"]');
   }
 

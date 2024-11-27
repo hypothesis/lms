@@ -1,5 +1,5 @@
 import { delay, waitFor } from '@hypothesis/frontend-testing';
-import { mount } from 'enzyme';
+import { mount } from '@hypothesis/frontend-testing';
 import { useMemo } from 'preact/hooks';
 
 import { Config } from '../../config';

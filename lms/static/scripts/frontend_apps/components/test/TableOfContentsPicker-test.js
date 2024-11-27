@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { mount } from '@hypothesis/frontend-testing';
 
 import TableOfContentsPicker from '../TableOfContentsPicker';
 
@@ -33,17 +33,6 @@ describe('TableOfContentsPicker', () => {
     );
 
   describe('initial focus', () => {
-    let container;
-
-    beforeEach(() => {
-      container = document.createElement('div');
-      document.body.appendChild(container);
-    });
-
-    afterEach(() => {
-      container.remove();
-    });
-
     it('focuses the URL text input element', () => {
       const beforeFocused = document.activeElement;
 
@@ -55,7 +44,7 @@ describe('TableOfContentsPicker', () => {
           onConfirmEntry={noop}
         />,
         {
-          attachTo: container,
+          connected: true,
         },
       );
 
