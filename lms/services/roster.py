@@ -1,6 +1,6 @@
 from logging import getLogger
 
-from sqlalchemy import Select, select, update
+from sqlalchemy import Select, func, select, text, update
 
 from lms.models import (
     ApplicationInstance,
@@ -251,6 +251,11 @@ class RosterService:
         for member in roster:
             lti_user_id = member.get("lti11_legacy_user_id") or member["user_id"]
             lti_v13_user_id = member["user_id"]
+            lms_api_user_id = (
+                member.get("message", [{}])[0]
+                .get("https://purl.imsglobal.org/spec/lti/claim/custom", {})
+                .get("canvas_user_id")
+            )
             name = display_name(
                 given_name=member.get("name", ""),
                 family_name=member.get("family_name", ""),
@@ -270,6 +275,7 @@ class RosterService:
                     "lti_v13_user_id": lti_v13_user_id,
                     "h_userid": h_userid,
                     "display_name": name,
+                    "lms_api_user_id": lms_api_user_id,
                 }
             )
 
@@ -282,6 +288,14 @@ class RosterService:
                 "updated",
                 # lti_v13_user_id is not going to change but we want to backfill it for existing users.
                 "lti_v13_user_id",
+                # Same for lms_api_user_id, not going to change for existing user but we are backfilling for now
+                (
+                    "lms_api_user_id",
+                    func.coalesce(
+                        text('"excluded"."lms_api_user_id"'),
+                        text('"lms_user"."lms_api_user_id"'),
+                    ),
+                ),
             ],
         )
 
