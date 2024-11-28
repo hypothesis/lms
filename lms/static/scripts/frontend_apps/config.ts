@@ -290,17 +290,6 @@ export type DashboardConfig = {
   routes: DashboardRoutes;
   user: DashboardUser;
 
-  /** Whether syncing grades is enabled for auto-grading assignments or not */
-  auto_grading_sync_enabled: boolean;
-
-  /**
-   * Whether the segments filter should be displayed for non-auto-grading
-   * assignments or not.
-   * For auto-grading assignments we'll ignore this and always display the
-   * segments filter.
-   */
-  assignment_segments_filter_enabled: boolean;
-
   /**
    * Organization-related information.
    *
