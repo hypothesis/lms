@@ -109,8 +109,9 @@ describe('AssignmentActivity', () => {
           students_metrics: '/api/students/metrics',
           assignment_grades_sync: '/api/assignments/:assignment_id/grades/sync',
         },
-        auto_grading_sync_enabled: true,
-        assignment_segments_filter_enabled: false,
+        user: {
+          is_staff: false,
+        },
       },
     };
 
@@ -496,59 +497,59 @@ describe('AssignmentActivity', () => {
 
     [
       {
-        syncEnabled: true,
+        isStaff: true,
         isAutoGradingAssignment: true,
         isGradable: true,
       },
       {
-        syncEnabled: false,
+        isStaff: false,
         isAutoGradingAssignment: true,
         isGradable: true,
       },
       {
-        syncEnabled: true,
+        isStaff: true,
         isAutoGradingAssignment: false,
         isGradable: true,
       },
       {
-        syncEnabled: false,
+        isStaff: false,
         isAutoGradingAssignment: false,
         isGradable: true,
       },
       {
-        syncEnabled: false,
+        isStaff: false,
         isAutoGradingAssignment: true,
         isGradable: false,
       },
       {
-        syncEnabled: false,
+        isStaff: false,
         isAutoGradingAssignment: false,
         isGradable: true,
       },
       {
-        syncEnabled: true,
+        isStaff: true,
         isAutoGradingAssignment: false,
         isGradable: false,
       },
       {
-        syncEnabled: false,
+        isStaff: false,
         isAutoGradingAssignment: false,
         isGradable: false,
       },
-    ].forEach(({ isAutoGradingAssignment, syncEnabled, isGradable }) => {
-      it('shows sync button when sync and auto-grading are enabled, and the assignment is gradable', () => {
+    ].forEach(({ isAutoGradingAssignment, isStaff, isGradable }) => {
+      it('shows sync button when user is not staff, and the assignment is auto-grading and gradable', () => {
         setUpFakeUseAPIFetch({
           ...activeAssignment,
           is_gradable: isGradable,
           auto_grading_config: isAutoGradingAssignment ? {} : null,
         });
-        fakeConfig.dashboard.auto_grading_sync_enabled = syncEnabled;
+        fakeConfig.dashboard.user.is_staff = isStaff;
 
         const wrapper = createComponent();
 
         assert.equal(
           wrapper.exists('SyncGradesButton'),
-          isAutoGradingAssignment && syncEnabled && isGradable,
+          isAutoGradingAssignment && !isStaff && isGradable,
         );
       });
     });
@@ -606,7 +607,7 @@ describe('AssignmentActivity', () => {
           },
           studentsData,
         );
-        fakeConfig.dashboard.auto_grading_sync_enabled = true;
+        fakeConfig.dashboard.user.is_staff = false;
 
         const wrapper = createComponent();
 
@@ -622,7 +623,7 @@ describe('AssignmentActivity', () => {
         ...activeAssignment,
         auto_grading_config: {},
       });
-      fakeConfig.dashboard.auto_grading_sync_enabled = true;
+      fakeConfig.dashboard.user.is_staff = false;
 
       const wrapper = createComponent();
       act(() => wrapper.find('SyncGradesButton').props().onSyncScheduled());
@@ -776,13 +777,6 @@ describe('AssignmentActivity', () => {
   });
 
   context('when assignment has segments', () => {
-    it('sets no segments when auto-grading is not enabled', () => {
-      const wrapper = createComponent();
-      const filters = wrapper.find('DashboardActivityFilters');
-
-      assert.isUndefined(filters.prop('segments'));
-    });
-
     [
       {
         assignmentExtra: { sections: [{}, {}] },
@@ -833,12 +827,6 @@ describe('AssignmentActivity', () => {
       const filters = wrapper.find('DashboardActivityFilters');
 
       assert.isDefined(filters.prop('onClearSelection'));
-    });
-  });
-
-  context('when assignment_segments_filter_enabled is true', () => {
-    beforeEach(() => {
-      fakeConfig.dashboard.assignment_segments_filter_enabled = true;
     });
 
     [{ sections: [{}, {}] }, { groups: [{}, {}, {}] }].forEach(

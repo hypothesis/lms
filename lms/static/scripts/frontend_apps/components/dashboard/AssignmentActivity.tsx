@@ -76,11 +76,7 @@ function SyncErrorMessage({ grades }: { grades: StudentGradingSync[] }) {
  */
 export default function AssignmentActivity() {
   const { dashboard } = useConfig(['dashboard']);
-  const {
-    routes,
-    auto_grading_sync_enabled,
-    assignment_segments_filter_enabled,
-  } = dashboard;
+  const { routes, user } = dashboard;
   const { assignmentId, organizationPublicId } = useParams<{
     assignmentId: string;
     organizationPublicId?: string;
@@ -98,12 +94,7 @@ export default function AssignmentActivity() {
   const isGradable = !!assignment.data?.is_gradable;
   const segments = useMemo((): DashboardActivityFiltersProps['segments'] => {
     const { data } = assignment;
-    if (
-      !data ||
-      // Display the segments filter only for auto-grading assignments, or
-      // assignments where the feature was explicitly enabled
-      (!assignment_segments_filter_enabled && !isAutoGradingAssignment)
-    ) {
+    if (!data) {
       return undefined;
     }
 
@@ -126,13 +117,7 @@ export default function AssignmentActivity() {
       selectedIds: segmentIds,
       onChange: segmentIds => updateFilters({ segmentIds }),
     };
-  }, [
-    assignment,
-    assignment_segments_filter_enabled,
-    isAutoGradingAssignment,
-    segmentIds,
-    updateFilters,
-  ]);
+  }, [assignment, segmentIds, updateFilters]);
 
   const students = useAPIFetch<StudentsMetricsResponse>(
     routes.students_metrics,
@@ -351,7 +336,7 @@ export default function AssignmentActivity() {
             }
           />
         )}
-        {isAutoGradingAssignment && auto_grading_sync_enabled && isGradable && (
+        {isAutoGradingAssignment && !user.is_staff && isGradable && (
           <SyncGradesButton
             studentsToSync={studentsToSync}
             lastSync={lastSync}
