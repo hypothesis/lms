@@ -76,6 +76,21 @@ class TestUserService:
         assert lms_user.updated == user.updated
         assert lms_user.lti_v13_user_id == pyramid_request.lti_params.v13.get("sub")
 
+    def test_upsert_lms_user_doesnt_clear_lti_v13_user_id(
+        self, service, lti_user, pyramid_request, db_session
+    ):
+        lms_user = factories.LMSUser(
+            lti_v13_user_id="EXISTING",
+            h_userid=lti_user.h_user.userid(authority="authority.example.com"),
+        )
+        db_session.commit()
+        pyramid_request.lti_params.v13["sub"] = None
+
+        user = service.upsert_user(lti_user)
+        lms_user = service.upsert_lms_user(user, pyramid_request.lti_params)
+
+        assert lms_user.lti_v13_user_id == "EXISTING"
+
     def test_get(self, user, service):
         db_user = service.get(user.application_instance, user.user_id)
 
