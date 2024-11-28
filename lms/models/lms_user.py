@@ -39,6 +39,11 @@ class LMSUser(CreatedUpdatedMixin, Base):
           In those cases lti_user_id will be the 1.1 value and we'll store here the 1.3 version.
     """
 
+    lms_api_user_id: Mapped[str | None] = mapped_column()
+    """
+    ID of the user in the propietary LMS API.
+    """
+
     h_userid: Mapped[str] = mapped_column(unique=True, index=True)
     """The userid value in H. This is calculated hashing tool_consumer_instance_guid and lti_user_id together."""
 
