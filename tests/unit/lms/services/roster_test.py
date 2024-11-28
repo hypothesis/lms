@@ -218,6 +218,39 @@ class TestRosterService:
         assert roster[3].lms_user.lti_user_id == "USER_ID_INACTIVE"
         assert not roster[3].active
 
+    def test_fetch_assignment_roster_with_canvas_user_id(
+        self, svc, lti_names_roles_service, db_session, lti_role_service, assignment
+    ):
+        lti_names_roles_service.get_context_memberships.return_value = [
+            {
+                "user_id": "USER_ID",
+                "roles": ["ROLE1"],
+                "status": "Active",
+                "message": [
+                    {
+                        "https://purl.imsglobal.org/spec/lti/claim/custom": {
+                            "canvas_user_id": "API_ID"
+                        }
+                    }
+                ],
+            },
+        ]
+        lti_role_service.get_roles.return_value = [
+            factories.LTIRole(value="ROLE1"),
+        ]
+
+        svc.fetch_assignment_roster(assignment)
+
+        roster = db_session.scalars(
+            select(AssignmentRoster)
+            .order_by(AssignmentRoster.lms_user_id)
+            .where(AssignmentRoster.assignment_id == assignment.id)
+        ).all()
+
+        assert roster[0].assignment_id == assignment.id
+        assert roster[0].lms_user.lti_user_id == "USER_ID"
+        assert roster[0].lms_user.lms_api_user_id == "API_ID"
+
     @pytest.mark.parametrize(
         "known_error",
         [
