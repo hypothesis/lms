@@ -65,6 +65,8 @@ class TestUserService:
 
     def test_upsert_lms_user(self, service, lti_user, pyramid_request, db_session):
         user = service.upsert_user(lti_user)
+        pyramid_request.lti_params["custom_canvas_user_id"] = "lms_api_user_id"
+
         lms_user = service.upsert_lms_user(user, pyramid_request.lti_params)
 
         lms_user = db_session.scalars(
@@ -75,6 +77,7 @@ class TestUserService:
         assert lms_user.email == user.email
         assert lms_user.updated == user.updated
         assert lms_user.lti_v13_user_id == pyramid_request.lti_params.v13.get("sub")
+        assert lms_user.lms_api_user_id == "lms_api_user_id"
 
     def test_upsert_lms_user_doesnt_clear_lti_v13_user_id(
         self, service, lti_user, pyramid_request, db_session
