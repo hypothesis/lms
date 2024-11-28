@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from sqlalchemy import select
+from sqlalchemy import func, select, text
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.sql import Select
 
@@ -89,7 +89,18 @@ class UserService:
                 }
             ],
             index_elements=["h_userid"],
-            update_columns=["updated", "display_name", "email", "lti_v13_user_id"],
+            update_columns=[
+                "updated",
+                "display_name",
+                "email",
+                (
+                    "lti_v13_user_id",
+                    func.coalesce(
+                        text('"excluded"."lti_v13_user_id"'),
+                        text('"lms_user"."lti_v13_user_id"'),
+                    ),
+                ),
+            ],
         ).one()
         bulk_upsert(
             self._db,

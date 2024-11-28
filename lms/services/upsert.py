@@ -10,7 +10,7 @@ def bulk_upsert(
     model_class,
     values: list[dict],
     index_elements: list[str],
-    update_columns: list[str],
+    update_columns: list[str | tuple],
 ):
     """
     Create or update the specified values in a table.
@@ -50,7 +50,16 @@ def bulk_upsert(
         # The columns to use to find matching rows.
         index_elements=index_elements,
         # The columns to update.
-        set_={element: getattr(base.excluded, element) for element in update_columns},
+        set_={
+            # For tuples include the two elements as the key and value of the dict
+            # For strings use value: excluded.value by default
+            (element[0] if isinstance(element, tuple) else element): (
+                element[1]
+                if isinstance(element, tuple)
+                else getattr(base.excluded, element)
+            )
+            for element in update_columns
+        },
     ).returning(*index_elements_columns)
 
     result = db.execute(stmt)
