@@ -75,6 +75,9 @@ class UserService:
     def upsert_lms_user(self, user: User, lti_params: LTIParams) -> LMSUser:
         """Upsert LMSUser based on a User object."""
         self._db.flush()  # Make sure User has hit the DB on the current transaction
+
+        # API ID, only Canvas for now
+        lms_api_user_id = lti_params.get("custom_canvas_user_id")
         lms_user = bulk_upsert(
             self._db,
             LMSUser,
@@ -86,6 +89,7 @@ class UserService:
                     "h_userid": user.h_userid,
                     "email": user.email,
                     "display_name": user.display_name,
+                    "lms_api_user_id": lms_api_user_id,
                 }
             ],
             index_elements=["h_userid"],
@@ -100,6 +104,7 @@ class UserService:
                         text('"lms_user"."lti_v13_user_id"'),
                     ),
                 ),
+                "lms_api_user_id",
             ],
         ).one()
         bulk_upsert(
