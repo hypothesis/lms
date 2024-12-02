@@ -693,7 +693,7 @@ wired==0.3
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid-services
-xmltodict==0.13.0
+xmltodict==0.14.2
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
