@@ -76,7 +76,7 @@
     "karma-source-map-support": "^1.4.0",
     "mocha": "^10.2.0",
     "navigation-api-types": "^0.5.1",
-    "prettier": "3.2.5",
+    "prettier": "3.4.1",
     "sinon": "^19.0.2",
     "typescript": "^5.2.2",
     "typescript-eslint": "^8.16.0"
