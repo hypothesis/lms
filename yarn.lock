@@ -1996,15 +1996,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hypothesis/frontend-shared@npm:^8.10.1":
-  version: 8.10.1
-  resolution: "@hypothesis/frontend-shared@npm:8.10.1"
+"@hypothesis/frontend-shared@npm:^8.12.0":
+  version: 8.12.0
+  resolution: "@hypothesis/frontend-shared@npm:8.12.0"
   dependencies:
     highlight.js: ^11.6.0
     wouter-preact: ^3.0.0
   peerDependencies:
-    preact: ^10.4.0
-  checksum: 5358e632ab371aadb56ce42a4d0237d155e5523e3313fcc30114bd727b0414eb382ba8cf4edcc3be8dde1a1eb4e98f9cb077a8f3937442deba5bb8a3f9f2d9cc
+    preact: ^10.25.1
+  checksum: 900be36b83fa0b73f1705ac6b774414b0ca8a6c779d0e3d96390212c2cb317071d5d8bbf1c771b11ff9e1e040c89972e8a716c3f5d0a0188b5ef6943eaab3c37
   languageName: node
   linkType: hard
 
@@ -7325,7 +7325,7 @@ __metadata:
     "@babel/preset-react": ^7.25.9
     "@babel/preset-typescript": ^7.26.0
     "@hypothesis/frontend-build": ^3.0.0
-    "@hypothesis/frontend-shared": ^8.10.1
+    "@hypothesis/frontend-shared": ^8.12.0
     "@hypothesis/frontend-testing": ^1.3.1
     "@rollup/plugin-babel": ^6.0.4
     "@rollup/plugin-commonjs": ^28.0.1
@@ -7367,7 +7367,7 @@ __metadata:
     navigation-api-types: ^0.5.1
     normalize.css: ^8.0.1
     postcss: ^8.4.47
-    preact: 10.23.2
+    preact: ^10.25.1
     prettier: 3.2.5
     rollup: ^4.28.0
     sass: ^1.80.5
@@ -8664,17 +8664,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"preact@npm:10.23.2":
-  version: 10.23.2
-  resolution: "preact@npm:10.23.2"
-  checksum: 1df6a9d72480c42b4985c1344941184422374c48af0f1e9df0de8d1c3f1f85c996d3a9e2850c8256abe39352d8fd174dd95e2f4177433022661baabfb6547f2c
-  languageName: node
-  linkType: hard
-
 "preact@npm:^10.18.1":
   version: 10.18.1
   resolution: "preact@npm:10.18.1"
   checksum: 691030149fdbd026cac7c07147756f48c6cb8cdea6a8af8c0f383e4c31f5bce48cdc751e4bccf8826560a0d2db77ada401c0308f2bcae2961d16972c26c95607
+  languageName: node
+  linkType: hard
+
+"preact@npm:^10.25.1":
+  version: 10.25.1
+  resolution: "preact@npm:10.25.1"
+  checksum: 7b31f82acfc5eaccc70c19b55ff2bc8edb3d636dfb84e254c9258871c69e1652876efe4bb3a5f21bf521386b001bc6c8831e535d41eecbe0f31c13a0e2a062a3
   languageName: node
   linkType: hard
 
