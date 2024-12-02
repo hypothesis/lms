@@ -8,7 +8,7 @@ aiohappyeyeballs==2.3.4
     # via
     #   -r requirements/prod.txt
     #   aiohttp
-aiohttp==3.10.11
+aiohttp==3.11.9
     # via
     #   -r requirements/prod.txt
     #   aioresponses
@@ -240,6 +240,7 @@ prompt-toolkit==3.0.43
 propcache==0.2.0
     # via
     #   -r requirements/prod.txt
+    #   aiohttp
     #   yarl
 psutil==5.9.7
     # via pytest-xdist
