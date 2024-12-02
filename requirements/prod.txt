@@ -157,9 +157,10 @@ pycparser==2.21
     # via cffi
 pycryptodomex==3.21.0
     # via -r requirements/prod.in
-pyjwt[crypto]==2.9.0
+pyjwt[crypto]==2.10.1
     # via
     #   -r requirements/prod.in
+    #   pyjwt
     #   pyramid-googleauth
 pyramid==2.0.2
     # via
