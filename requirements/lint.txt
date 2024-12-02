@@ -10,7 +10,7 @@ aiohappyeyeballs==2.3.4
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   aiohttp
-aiohttp==3.10.11
+aiohttp==3.11.9
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
@@ -408,6 +408,7 @@ propcache==0.2.0
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
+    #   aiohttp
     #   yarl
 psutil==5.9.7
     # via
