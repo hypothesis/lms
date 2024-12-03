@@ -1,5 +1,4 @@
 from lms.product.plugin.misc import MiscPlugin
-from lms.services.lti_grading.interface import LTIGradingService
 
 
 class D2LMiscPlugin(MiscPlugin):

@@ -1,6 +1,6 @@
 from typing import TypedDict
 
-from sqlalchemy import Text, column, func, select, union
+from sqlalchemy import func, select
 
 from lms.models import Course, LMSCourse, LMSCourseApplicationInstance, LMSGroupSet
 from lms.services.upsert import bulk_upsert

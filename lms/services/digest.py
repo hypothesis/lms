@@ -1,6 +1,6 @@
 import logging
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import distinct, func, or_, select, tuple_
 from sqlalchemy.dialects.postgresql import aggregate_order_by

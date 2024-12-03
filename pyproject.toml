@@ -53,6 +53,7 @@ select = [
   "C", "PLC", # https://docs.astral.sh/ruff/rules/#convention-c
   "SLF", # flake-8-self
   "N", # https://docs.astral.sh/ruff/rules/#pep8-naming-n
+  "F", # https://docs.astral.sh/ruff/rules/unused-import/
 
   "RUF100", # unused-noqa
 ]
@@ -115,6 +116,9 @@ ignore = [
     "PLC2701", # private import
     "PLR0904", # too-many-public-methods
 ] 
+# Ignore unused import errors on __init__ files to avoid having to add either a noqa stament or an __all__ declaration.
+"__init__.py" = ["F401"]
+
 
 [tool.mypy]
 python_version = 3.11

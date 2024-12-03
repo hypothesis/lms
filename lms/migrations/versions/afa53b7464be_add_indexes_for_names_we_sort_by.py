@@ -1,6 +1,5 @@
 """Add indexes for names we sort by in the dashboards."""
 
-import sqlalchemy as sa
 from alembic import op
 
 revision = "afa53b7464be"

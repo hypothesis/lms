@@ -1,5 +1,5 @@
 import logging
-from enum import Enum, StrEnum
+from enum import StrEnum
 from typing import Literal, NotRequired, TypedDict
 
 from lms.services.aes import AESService

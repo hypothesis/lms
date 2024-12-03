@@ -1,7 +1,7 @@
 """Database model for persisting OAuth 2 tokens."""
 
 import datetime
-from enum import Enum, StrEnum, unique
+from enum import StrEnum, unique
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column

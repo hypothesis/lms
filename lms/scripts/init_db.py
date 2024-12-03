@@ -19,7 +19,7 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import ProgrammingError
 
-from lms import models
+from lms import models  # noqa: F401
 from lms.db import Base, create_engine
 
 log = logging.getLogger(__name__)

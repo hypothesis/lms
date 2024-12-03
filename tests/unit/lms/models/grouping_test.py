@@ -1,5 +1,3 @@
-from unittest.mock import sentinel
-
 import pytest
 
 from lms.models import Course

@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import call, patch, sentinel
 
 import pytest

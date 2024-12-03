@@ -5,7 +5,7 @@ import json
 import re
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 from typing import TypedDict
 
 from h_api.bulk_api import BulkAPI, CommandBuilder

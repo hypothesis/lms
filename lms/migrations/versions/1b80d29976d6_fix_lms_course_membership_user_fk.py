@@ -1,6 +1,5 @@
 """Fix lms_course_membership user FK."""
 
-import sqlalchemy as sa
 from alembic import op
 
 revision = "1b80d29976d6"

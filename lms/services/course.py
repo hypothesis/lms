@@ -1,7 +1,7 @@
 import json
 from copy import deepcopy
 
-from sqlalchemy import Select, Text, column, func, select, union
+from sqlalchemy import Select, select, union
 
 from lms.db import full_text_match
 from lms.models import (
