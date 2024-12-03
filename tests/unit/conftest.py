@@ -7,7 +7,6 @@ import pytest
 from pyramid import testing
 from pyramid.request import apply_request_extensions
 
-from lms import db
 from lms.models import ApplicationSettings, LTIParams
 from lms.models.lti_role import Role, RoleScope, RoleType
 from lms.product import Product
@@ -17,14 +16,6 @@ from tests.conftest import TEST_SETTINGS
 from tests.unit.services import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
 TEST_SETTINGS["database_url"] = environ["DATABASE_URL"]
-
-
-@pytest.fixture(scope="session")
-def db_sessionfactory():
-    """Overwrite h-testkit default fixture to customizt the session class"""
-    from sqlalchemy.orm import sessionmaker  # noqa: PLC0415
-
-    return sessionmaker(class_=db.CustomSession)
 
 
 @pytest.fixture
