@@ -13,8 +13,9 @@ from sqlalchemy.orm.properties import ColumnProperty
 from lms.db._columns import varchar_enum
 from lms.db._locks import CouldNotAcquireLock, LockType, try_advisory_transaction_lock
 from lms.db._text_search import full_text_match
+from lms.db._util import compile_query
 
-__all__ = ("Base", "create_engine", "varchar_enum")
+__all__ = ("Base", "compile_query", "create_engine", "varchar_enum")
 
 
 Base = declarative_base(
@@ -41,31 +42,7 @@ def create_engine(database_url):
     return sqlalchemy.create_engine(database_url)
 
 
-class CustomSession(Session):
-    """Our own session object based on the default orm.Session."""
-
-    def compile_query(self, query: Query | Select, literal_binds: bool = True) -> str:
-        """
-        Return the SQL representation of `query` for postgres.
-
-        :param literal_binds: Whether or not replace the query parameters by their values.
-        """
-        if isinstance(query, Query):
-            # Support for SQLAlchemy 1.X style queryies, eg: db.query(Model).filter_by()
-            statement = query.statement
-        else:
-            # SQLALchemy 2.X style, eg: select(Model).where()
-            statement = query
-
-        return str(
-            statement.compile(
-                self.get_bind(),
-                compile_kwargs={"literal_binds": literal_binds},
-            )
-        )
-
-
-SESSION = sessionmaker(class_=CustomSession)
+SESSION = sessionmaker()
 
 
 def _session(request):  # pragma: no cover
