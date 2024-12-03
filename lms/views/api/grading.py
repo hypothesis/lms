@@ -1,7 +1,6 @@
 import datetime
 import logging
 import re
-from datetime import timezone
 
 from pyramid.view import view_config, view_defaults
 

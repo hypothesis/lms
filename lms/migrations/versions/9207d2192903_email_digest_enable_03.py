@@ -7,7 +7,6 @@ Create Date: 2023-05-23 09:25:42.073245
 
 """
 
-import sqlalchemy as sa
 from alembic import op
 
 from lms.migrations.versions.b11713314988_email_digest_enable_01 import (

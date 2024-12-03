@@ -10,7 +10,7 @@ from lms.js_config_types import (
     APIStudents,
     AutoGradingGrade,
 )
-from lms.models import Assignment, Organization, RoleScope, RoleType, User
+from lms.models import Assignment, RoleScope, RoleType, User
 from lms.security import Permissions
 from lms.services import UserService
 from lms.services.auto_grading import AutoGradingService

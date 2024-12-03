@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from datetime import UTC, datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import call, sentinel
 
 import celery

@@ -1,6 +1,5 @@
 """Add missing indexes for dashboard queries."""
 
-import sqlalchemy as sa
 from alembic import op
 
 revision = "ca27e52b7303"

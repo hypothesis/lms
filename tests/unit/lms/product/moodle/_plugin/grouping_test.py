@@ -1,5 +1,5 @@
 import random
-from unittest.mock import Mock, patch, sentinel
+from unittest.mock import Mock, sentinel
 
 import pytest
 

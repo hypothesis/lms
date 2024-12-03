@@ -4,7 +4,7 @@ Error codes are useful in different parts of the application.
 We have them in their own module to avoid any circular dependency problems.
 """
 
-from enum import Enum, StrEnum
+from enum import StrEnum
 
 
 class ErrorCode(StrEnum):

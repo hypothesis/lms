@@ -1,7 +1,7 @@
 import logging
 import re
 from dataclasses import dataclass
-from enum import Enum, StrEnum, unique
+from enum import StrEnum, unique
 
 import sqlalchemy as sa
 from sqlalchemy.ext.hybrid import hybrid_property

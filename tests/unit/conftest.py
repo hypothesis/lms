@@ -13,7 +13,7 @@ from lms.product import Product
 from lms.security import Identity, Permissions
 from tests import factories
 from tests.conftest import TEST_SETTINGS
-from tests.unit.services import *  # pylint: disable=wildcard-import,unused-wildcard-import
+from tests.unit.services import *  # noqa: F403
 
 TEST_SETTINGS["database_url"] = environ["DATABASE_URL"]
 

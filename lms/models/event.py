@@ -1,4 +1,4 @@
-from enum import Enum, StrEnum
+from enum import StrEnum
 
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB

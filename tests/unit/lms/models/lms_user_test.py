@@ -1,4 +1,3 @@
-from lms.models import RSAKey
 from tests import factories
 
 

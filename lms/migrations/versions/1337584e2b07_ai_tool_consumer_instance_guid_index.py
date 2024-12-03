@@ -4,7 +4,6 @@ Revision ID: 1337584e2b07
 Revises: 8e203ad93a58
 """
 
-import sqlalchemy as sa
 from alembic import op
 
 revision = "1337584e2b07"

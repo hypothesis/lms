@@ -1,5 +1,3 @@
-from typing import TypedDict
-
 from sqlalchemy import func
 
 from lms.models import (

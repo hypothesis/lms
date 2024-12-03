@@ -1,6 +1,5 @@
 """Add missing indexes for FKs."""
 
-import sqlalchemy as sa
 from alembic import op
 
 revision = "3d0c022c716c"

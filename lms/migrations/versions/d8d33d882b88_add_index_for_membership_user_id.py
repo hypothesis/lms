@@ -1,6 +1,5 @@
 """Add index for membership.user_id."""
 
-import sqlalchemy as sa
 from alembic import op
 
 revision = "d8d33d882b88"
