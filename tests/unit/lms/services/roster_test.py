@@ -4,7 +4,7 @@ import pytest
 from h_matchers import Any
 from sqlalchemy import select
 
-from lms.models import AssignmentRoster, CourseRoster
+from lms.models import AssignmentRoster, CourseRoster, LMSSegmentRoster
 from lms.services.exceptions import ExternalRequestError
 from lms.services.roster import RosterService, factory
 from tests import factories
@@ -277,6 +277,66 @@ class TestRosterService:
 
         with pytest.raises(ExternalRequestError):
             svc.fetch_assignment_roster(assignment)
+
+    def test_fetch_canvas_group_roster(
+        self,
+        svc,
+        lti_names_roles_service,
+        lti_v13_application_instance,
+        db_session,
+        names_and_roles_roster_response,
+        lti_role_service,
+        lms_course,
+    ):
+        canvas_group = factories.LMSSegment(type="canvas_group", lms_course=lms_course)
+        # Active user not returned by the roster, should be marked inactive after fetch the roster
+        factories.LMSSegmentRoster(
+            lms_segment=canvas_group,
+            lms_user=factories.LMSUser(lti_user_id="EXISTING USER"),
+            lti_role=factories.LTIRole(),
+            active=True,
+        )
+        db_session.flush()
+        lti_names_roles_service.get_context_memberships.return_value = (
+            names_and_roles_roster_response
+        )
+        lti_role_service.get_roles.return_value = [
+            factories.LTIRole(value="ROLE1"),
+            factories.LTIRole(value="ROLE2"),
+        ]
+
+        svc.fetch_canvas_group_roster(canvas_group)
+
+        lti_names_roles_service.get_context_memberships.assert_called_once_with(
+            lti_v13_application_instance.lti_registration,
+            f"https://{lti_v13_application_instance.lms_host()}/api/lti/groups/{canvas_group.lms_id}/names_and_roles",
+        )
+        lti_role_service.get_roles.assert_called_once_with(
+            Any.list.containing(["ROLE2", "ROLE1"])
+        )
+
+        roster = db_session.scalars(
+            select(LMSSegmentRoster)
+            .order_by(LMSSegmentRoster.lms_user_id)
+            .where(LMSSegmentRoster.lms_segment_id == canvas_group.id)
+        ).all()
+
+        assert len(roster) == 4
+        assert roster[0].lms_segment_id == canvas_group.id
+        assert roster[0].lms_user.lti_user_id == "EXISTING USER"
+        assert not roster[0].active
+
+        assert roster[1].lms_segment_id == canvas_group.id
+        assert roster[1].lms_user.lti_user_id == "USER_ID"
+        assert roster[1].active
+
+        assert roster[2].lms_segment_id == canvas_group.id
+        assert roster[2].lms_user.lti_user_id == "USER_ID"
+        assert roster[2].active
+
+        assert roster[3].lms_segment_id == canvas_group.id
+        assert roster[3].lms_user.lti_user_id == "USER_ID_INACTIVE"
+        assert not roster[3].active
 
     @pytest.fixture
     def lms_course(self, lti_v13_application_instance):

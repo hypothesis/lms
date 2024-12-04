@@ -9,6 +9,8 @@ from lms.models import (
     CourseRoster,
     LMSCourse,
     LMSCourseApplicationInstance,
+    LMSSegment,
+    LMSSegmentRoster,
     LMSUser,
     LTIRegistration,
     LTIRole,
@@ -243,6 +245,78 @@ class RosterService:
             AssignmentRoster,
             values=roster_upsert_elements,
             index_elements=["assignment_id", "lms_user_id", "lti_role_id"],
+            update_columns=["active", "updated"],
+        )
+
+    def fetch_canvas_group_roster(self, canvas_group: LMSSegment) -> None:
+        """Fetch the roster information for an assignment from the LMS."""
+        assert canvas_group.type == "canvas_group"
+
+        lms_course = canvas_group.lms_course
+        assert (
+            lms_course.lti_context_memberships_url
+        ), "Trying fetch roster for course without service URL."
+
+        application_instance = self._db.scalars(
+            select(ApplicationInstance)
+            .join(LMSCourseApplicationInstance)
+            .where(
+                LMSCourseApplicationInstance.lms_course_id == lms_course.id,
+                ApplicationInstance.lti_registration_id.is_not(None),
+            )
+            .order_by(ApplicationInstance.updated.desc())
+        ).first()
+
+        roster = self._lti_names_roles_service.get_context_memberships(
+            application_instance.lti_registration,
+            # We won't use the names and roles endpoint for groups, we need to pass a URL from the Canvas extension to the API.
+            # https://canvas.instructure.com/doc/api/names_and_role.html#method.lti/ims/names_and_roles.group_index
+            f"https://{application_instance.lms_host()}/api/lti/groups/{canvas_group.lms_id}/names_and_roles",
+        )
+
+        # Insert any users we might be missing in the DB
+        lms_users_by_lti_user_id = {
+            u.lti_user_id: u
+            for u in self._get_roster_users(
+                roster, lms_course.tool_consumer_instance_guid
+            )
+        }
+        # Also insert any roles we might be missing
+        lti_roles_by_value: dict[str, LTIRole] = {
+            r.value: r for r in self._get_roster_roles(roster)
+        }
+
+        # Make sure any new rows have IDs
+        self._db.flush()
+
+        roster_upsert_elements = []
+
+        for member in roster:
+            lti_user_id = member.get("lti11_legacy_user_id") or member["user_id"]
+            # Now, for every user + role, insert a row  in the roster table
+            for role in member["roles"]:
+                roster_upsert_elements.append(
+                    {
+                        "lms_segment_id": canvas_group.id,
+                        "lms_user_id": lms_users_by_lti_user_id[lti_user_id].id,
+                        "lti_role_id": lti_roles_by_value[role].id,
+                        "active": member["status"] == "Active",
+                    }
+                )
+        # We'll first mark everyone as non-Active.
+        # We keep a record of who belonged to a course even if they are no longer present.
+        self._db.execute(
+            update(LMSSegmentRoster)
+            .where(LMSSegmentRoster.lms_segment_id == canvas_group.id)
+            .values(active=False)
+        )
+
+        # Insert and update roster rows.
+        bulk_upsert(
+            self._db,
+            LMSSegmentRoster,
+            values=roster_upsert_elements,
+            index_elements=["lms_segment_id", "lms_user_id", "lti_role_id"],
             update_columns=["active", "updated"],
         )
 
