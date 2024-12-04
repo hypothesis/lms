@@ -44,7 +44,7 @@ class LTINamesRolesService:
         The course is defined by the service URL which will obtain
         from a LTI launch parameter and is always linked to an specific context.
 
-        Optically, using the  same service_url the API allows to get the roster of an assignment identified by `resource_link_id`.
+        Optionally, using the  same service_url the API allows to get the roster of an assignment identified by `resource_link_id`.
         """
         query = {}
         if resource_link_id:

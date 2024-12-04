@@ -7,3 +7,6 @@ CourseRoster = make_factory(models.CourseRoster, FACTORY_CLASS=SQLAlchemyModelFa
 AssignmentRoster = make_factory(
     models.AssignmentRoster, FACTORY_CLASS=SQLAlchemyModelFactory
 )
+LMSSegmentRoster = make_factory(
+    models.LMSSegmentRoster, FACTORY_CLASS=SQLAlchemyModelFactory
+)
