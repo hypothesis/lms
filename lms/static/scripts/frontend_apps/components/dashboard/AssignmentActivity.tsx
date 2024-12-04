@@ -28,6 +28,7 @@ import FormattedDate from './FormattedDate';
 import GradeIndicator from './GradeIndicator';
 import type { OrderableActivityTableColumn } from './OrderableActivityTable';
 import OrderableActivityTable from './OrderableActivityTable';
+import StudentStatusBadge from './StudentStatusBadge';
 import SyncGradesButton from './SyncGradesButton';
 
 type StudentsTableRow = {
@@ -47,6 +48,9 @@ type StudentsTableRow = {
    * If the assignment is not auto-grading, this will be ´undefined`.
    */
   last_grade?: number | null;
+
+  /** Whether this student is active in the course/assignment or roster */
+  active: boolean;
 };
 
 /**
@@ -150,7 +154,8 @@ export default function AssignmentActivity() {
 
     return students.data.students
       .filter(
-        ({ auto_grading_grade }) =>
+        ({ auto_grading_grade, active }) =>
+          active &&
           !!auto_grading_grade &&
           auto_grading_grade.current_grade !== auto_grading_grade.last_grade,
       )
@@ -381,15 +386,25 @@ export default function AssignmentActivity() {
               );
             case 'display_name':
               return (
-                stats.display_name ?? (
-                  <span className="flex flex-col gap-1.5">
-                    <span className="italic">Unknown</span>
-                    <span className="text-xs text-grey-7">
-                      This student launched the assignment but didn{"'"}t
-                      annotate yet
+                <div className="flex items-center justify-between gap-x-2">
+                  {stats.display_name ?? (
+                    <span className="flex flex-col gap-1.5">
+                      <span className="italic">Unknown</span>
+                      <span className="text-xs text-grey-7">
+                        This student launched the assignment but didn{"'"}t
+                        annotate yet
+                      </span>
                     </span>
-                  </span>
-                )
+                  )}
+                  {!stats.active && (
+                    <div
+                      className="-my-0.5"
+                      title="This student is no longer in this assignment"
+                    >
+                      <StudentStatusBadge type="drop" />
+                    </div>
+                  )}
+                </div>
               );
             case 'current_grade':
               return (
