@@ -35,7 +35,9 @@ class TestSendInstructorEmailDigestsTasks:
                     "created_before": "2023-03-09T05:00:00+00:00",
                 },
             )
-            for participating_instructor in participating_instructors
+            for participating_instructor in sorted(
+                participating_instructors, key=lambda u: u.h_userid
+            )
         ]
 
     @pytest.mark.usefixtures("participating_instructors_with_no_launches")
@@ -130,7 +132,7 @@ class TestSendInstructorEmailDigestsTasks:
 
         make_instructors(users, participating_instances[0], with_launch=True)
 
-        return sorted(users, key=lambda u: u.h_userid)
+        return users
 
     @pytest.fixture
     def participating_instructors_with_no_launches(
@@ -145,7 +147,7 @@ class TestSendInstructorEmailDigestsTasks:
 
         make_instructors(users, participating_instances[0], with_launch=False)
 
-        return sorted(users, key=lambda u: u.h_userid)
+        return users
 
     @pytest.fixture
     def non_participating_instance(self):
