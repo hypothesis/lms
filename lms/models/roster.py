@@ -65,3 +65,34 @@ class AssignmentRoster(Base, CreatedUpdatedMixin):
     active: Mapped[bool] = mapped_column()
 
     __table_args__ = (UniqueConstraint("assignment_id", "lms_user_id", "lti_role_id"),)
+
+
+class LMSSegmentRoster(Base, CreatedUpdatedMixin):
+    """
+    Store roster information for a segment (group or section).
+
+    Stores a row per unique: (segment, user and role)
+    """
+
+    __tablename__ = "lms_segment_roster"
+
+    id: Mapped[int] = mapped_column(autoincrement=True, primary_key=True)
+
+    lms_segment_id: Mapped[int] = mapped_column(
+        ForeignKey("lms_segment.id", ondelete="cascade")
+    )
+    lms_segment = relationship("LMSSegment")
+
+    lms_user_id: Mapped[int] = mapped_column(
+        ForeignKey("lms_user.id", ondelete="cascade")
+    )
+    lms_user = relationship("LMSUser")
+
+    lti_role_id: Mapped[int] = mapped_column(
+        ForeignKey("lti_role.id", ondelete="cascade")
+    )
+    lti_role = relationship("LTIRole")
+
+    active: Mapped[bool] = mapped_column()
+
+    __table_args__ = (UniqueConstraint("lms_segment_id", "lms_user_id", "lti_role_id"),)
