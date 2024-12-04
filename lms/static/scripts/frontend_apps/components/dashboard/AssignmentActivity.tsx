@@ -1,4 +1,8 @@
-import { ClockIcon } from '@hypothesis/frontend-shared';
+import {
+  CautionIcon,
+  ClockIcon,
+  FileGenericIcon,
+} from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useCallback, useMemo, useState } from 'preact/hooks';
 import { useLocation, useParams, useSearch } from 'wouter-preact';
@@ -17,7 +21,6 @@ import { courseURL } from '../../utils/dashboard/navigation';
 import { rootViewTitle } from '../../utils/dashboard/root-view-title';
 import { useDocumentTitle } from '../../utils/hooks';
 import { type QueryParams, replaceURLParams } from '../../utils/url';
-import RelativeTime from '../RelativeTime';
 import type {
   DashboardActivityFiltersProps,
   SegmentsType,
@@ -26,6 +29,7 @@ import DashboardActivityFilters from './DashboardActivityFilters';
 import DashboardBreadcrumbs from './DashboardBreadcrumbs';
 import FormattedDate from './FormattedDate';
 import GradeIndicator from './GradeIndicator';
+import LastSyncIndicator from './LastSyncIndicator';
 import type { OrderableActivityTableColumn } from './OrderableActivityTable';
 import OrderableActivityTable from './OrderableActivityTable';
 import SyncGradesButton from './SyncGradesButton';
@@ -213,6 +217,7 @@ export default function AssignmentActivity() {
                 },
               },
       ),
+      last_updated: students.data?.last_updated ?? null,
     });
   }, [students]);
 
@@ -285,20 +290,26 @@ export default function AssignmentActivity() {
                 },
               ]}
             />
-            {lastSync.data && (
-              <div
-                className="flex gap-x-1 items-center text-color-text-light"
-                data-testid="last-sync-date"
-              >
-                <ClockIcon />
-                Grades last synced:{' '}
-                {lastSync.data.finish_date ? (
-                  <RelativeTime dateTime={lastSync.data.finish_date} />
-                ) : (
-                  'syncing…'
-                )}
-              </div>
-            )}
+            <div className="flex gap-0.5">
+              {lastSync.data && (
+                <LastSyncIndicator
+                  icon={
+                    lastSync.data.status === 'failed' ? CautionIcon : ClockIcon
+                  }
+                  taskName="Grades"
+                  dateTime={lastSync.data.finish_date}
+                  data-testid="last-sync-date"
+                />
+              )}
+              {students.data?.last_updated && (
+                <LastSyncIndicator
+                  icon={FileGenericIcon}
+                  taskName="Roster"
+                  dateTime={students.data.last_updated}
+                  data-testid="last-roster-date"
+                />
+              )}
+            </div>
           </div>
         )}
         <div className="flex justify-between items-center">

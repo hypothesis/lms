@@ -627,15 +627,18 @@ describe('AssignmentActivity', () => {
       const wrapper = createComponent();
       act(() => wrapper.find('SyncGradesButton').props().onSyncScheduled());
 
-      assert.calledWith(fakeMutate, {
-        students: activeStudents.map(({ auto_grading_grade, ...rest }) => ({
-          ...rest,
-          auto_grading_grade: {
-            ...auto_grading_grade,
-            last_grade: auto_grading_grade.current_grade,
-          },
-        })),
-      });
+      assert.calledWith(
+        fakeMutate,
+        sinon.match({
+          students: activeStudents.map(({ auto_grading_grade, ...rest }) => ({
+            ...rest,
+            auto_grading_grade: {
+              ...auto_grading_grade,
+              last_grade: auto_grading_grade.current_grade,
+            },
+          })),
+        }),
+      );
     });
 
     [
@@ -672,17 +675,14 @@ describe('AssignmentActivity', () => {
       {
         data: null,
         shouldDisplayLastSyncInfo: false,
-        shouldDisplaySyncing: false,
       },
       {
         data: { status: 'scheduled' },
         shouldDisplayLastSyncInfo: true,
-        shouldDisplaySyncing: true,
       },
       {
         data: { status: 'in_progress' },
         shouldDisplayLastSyncInfo: true,
-        shouldDisplaySyncing: true,
       },
       {
         data: {
@@ -690,7 +690,6 @@ describe('AssignmentActivity', () => {
           finish_date: '2024-10-02T14:24:15.677924+00:00',
         },
         shouldDisplayLastSyncInfo: true,
-        shouldDisplaySyncing: false,
       },
       {
         data: {
@@ -698,9 +697,8 @@ describe('AssignmentActivity', () => {
           finish_date: '2024-10-02T14:24:15.677924+00:00',
         },
         shouldDisplayLastSyncInfo: true,
-        shouldDisplaySyncing: false,
       },
-    ].forEach(({ data, shouldDisplayLastSyncInfo, shouldDisplaySyncing }) => {
+    ].forEach(({ data, shouldDisplayLastSyncInfo }) => {
       it('displays the last time grades were synced', () => {
         fakeUsePolledAPIFetch.returns({
           data,
@@ -711,13 +709,26 @@ describe('AssignmentActivity', () => {
         const lastSyncDate = wrapper.find('[data-testid="last-sync-date"]');
 
         assert.equal(lastSyncDate.exists(), shouldDisplayLastSyncInfo);
+      });
+    });
 
-        if (shouldDisplayLastSyncInfo) {
-          assert.equal(
-            lastSyncDate.text().includes('syncing…'),
-            shouldDisplaySyncing,
-          );
-        }
+    [
+      { lastUpdated: undefined, shouldDisplayLastSyncInfo: false },
+      {
+        lastUpdated: '2024-10-02T14:24:15.677924+00:00',
+        shouldDisplayLastSyncInfo: true,
+      },
+    ].forEach(({ lastUpdated, shouldDisplayLastSyncInfo }) => {
+      it('displays the last time roster was synced', () => {
+        setUpFakeUseAPIFetch(activeAssignment, {
+          students: activeStudents,
+          last_updated: lastUpdated,
+        });
+
+        const wrapper = createComponent();
+        const lastSyncDate = wrapper.find('[data-testid="last-roster-date"]');
+
+        assert.equal(lastSyncDate.exists(), shouldDisplayLastSyncInfo);
       });
     });
 
