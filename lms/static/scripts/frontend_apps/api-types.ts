@@ -215,6 +215,14 @@ export type StudentWithMetrics = Student & {
  */
 export type StudentsMetricsResponse = {
   students: StudentWithMetrics[];
+
+  /**
+   * Indicates the last time the students roster was updated.
+   *
+   * `null` indicates we don't have roster data and the list is based on
+   * assignment launches.
+   */
+  last_updated: ISODateTime | null;
 };
 
 type AssignmentWithCourse = Assignment & {

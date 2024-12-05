@@ -32,17 +32,19 @@ describe('RelativeTime', () => {
     $imports.$restore();
   });
 
-  function createComponent() {
-    return mount(<RelativeTime dateTime={dateTime} />);
+  function createComponent(props = {}) {
+    return mount(<RelativeTime dateTime={dateTime} {...props} />);
   }
 
-  it('sets initial time values', () => {
-    const wrapper = createComponent();
-    const time = wrapper.find('time');
+  [{ withTitle: true }, { withTitle: false }].forEach(({ withTitle }) => {
+    it('sets initial time values', () => {
+      const wrapper = createComponent({ withTitle });
+      const time = wrapper.find('time');
 
-    assert.equal(time.prop('title'), 'absolute date');
-    assert.equal(time.prop('dateTime'), dateTime);
-    assert.equal(wrapper.text(), 'relative date');
+      assert.equal(time.prop('title'), withTitle ? 'absolute date' : undefined);
+      assert.equal(time.prop('dateTime'), dateTime);
+      assert.equal(wrapper.text(), 'relative date');
+    });
   });
 
   it('is updated after time passes', () => {
