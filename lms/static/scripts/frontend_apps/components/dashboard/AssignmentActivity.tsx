@@ -2,6 +2,8 @@ import {
   CautionIcon,
   ClockIcon,
   FileGenericIcon,
+  InfoIcon,
+  Link,
 } from '@hypothesis/frontend-shared';
 import classnames from 'classnames';
 import { useCallback, useMemo, useState } from 'preact/hooks';
@@ -426,6 +428,19 @@ export default function AssignmentActivity() {
           }
         }}
       />
+      {!students.isLoading && !students.data?.last_updated && (
+        <Link
+          variant="text-light"
+          classes="flex items-center gap-1"
+          href="https://web.hypothes.is/help/student-roster-displays-in-the-lms-reporting-dashboards/"
+          target="_blank"
+          data-testid="missing-roster-message"
+        >
+          <InfoIcon />
+          Full roster data for this assignment is not available. This only shows
+          students who have previously launched it.
+        </Link>
+      )}
     </div>
   );
 }

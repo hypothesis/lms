@@ -727,8 +727,12 @@ describe('AssignmentActivity', () => {
 
         const wrapper = createComponent();
         const lastSyncDate = wrapper.find('[data-testid="last-roster-date"]');
+        const missingRosterMessage = wrapper.find(
+          '[data-testid="missing-roster-message"]',
+        );
 
         assert.equal(lastSyncDate.exists(), shouldDisplayLastSyncInfo);
+        assert.equal(missingRosterMessage.exists(), !shouldDisplayLastSyncInfo);
       });
     });
 
