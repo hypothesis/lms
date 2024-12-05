@@ -113,6 +113,19 @@ class APIAssignments(TypedDict):
     pagination: NotRequired[Pagination]
 
 
+class RosterEntry(APIStudent):
+    active: bool
+    "Whether or not this student is active in the course/assignment or roster."
+
+
+class APIRoster(TypedDict):
+    students: list[RosterEntry]
+
+    last_updated: datetime | None
+    """When was this roster last updated.
+    None indicates we don't have roster data, we rely on launches to determine the list of students."""
+
+
 class APIStudents(TypedDict):
     students: list[APIStudent]
 

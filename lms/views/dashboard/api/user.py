@@ -6,9 +6,11 @@ from pyramid.view import view_config
 
 from lms.js_config_types import (
     AnnotationMetrics,
+    APIRoster,
     APIStudent,
     APIStudents,
     AutoGradingGrade,
+    RosterEntry,
 )
 from lms.models import Assignment, Organization, RoleScope, RoleType, User
 from lms.security import Permissions
@@ -108,7 +110,7 @@ class UserViews:
         permission=Permissions.DASHBOARD_VIEW,
         schema=UsersMetricsSchema,
     )
-    def students_metrics(self) -> APIStudents:
+    def students_metrics(self) -> APIRoster:
         """Fetch the stats for one particular assignment."""
         assignment = self.dashboard_service.get_request_assignment(
             self.request, self.request.parsed_params["assignment_id"]
@@ -137,7 +139,7 @@ class UserViews:
         )
         # Organize the H stats by userid for quick access
         stats_by_user = {s["userid"]: s for s in stats}
-        students: list[APIStudent] = []
+        students: list[RosterEntry] = []
 
         users_query = self._students_query(
             assignment_ids=[assignment.id],
@@ -148,7 +150,8 @@ class UserViews:
         for user in self.request.db.scalars(users_query).all():
             if s := stats_by_user.get(user.h_userid):
                 # We seen this student in H, get all the data from there
-                api_student = APIStudent(
+                api_student = RosterEntry(
+                    active=True,
                     h_userid=user.h_userid,
                     lms_id=user.user_id,
                     display_name=s["display_name"],
@@ -161,7 +164,8 @@ class UserViews:
             else:
                 # We haven't seen this user H,
                 # use LMS DB's data and set 0s for all annotation related fields.
-                api_student = APIStudent(
+                api_student = RosterEntry(
+                    active=True,
                     h_userid=user.h_userid,
                     lms_id=user.user_id,
                     display_name=user.display_name,
@@ -174,11 +178,13 @@ class UserViews:
         if assignment.auto_grading_config:
             students = self._add_auto_grading_data(assignment, students)
 
-        return {"students": students}
+        # We are not exposing the roster info here yet, just making the API changes to better coordinate with the frontend
+        # For now we mark every roster entry as active and we don't include any last_activity.
+        return APIRoster(students=students, last_updated=None)
 
     def _add_auto_grading_data(
-        self, assignment: Assignment, api_students: list[APIStudent]
-    ) -> list[APIStudent]:
+        self, assignment: Assignment, api_students: list[RosterEntry]
+    ) -> list[RosterEntry]:
         """Augment APIStudent with auto-grading data."""
         last_sync_grades = self.auto_grading_service.get_last_grades(assignment)
 
