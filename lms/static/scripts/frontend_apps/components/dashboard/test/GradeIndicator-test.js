@@ -216,7 +216,7 @@ describe('GradeIndicator', () => {
   ].forEach(({ lastGrade, shouldShowBadge, shouldShowPrevGrade }) => {
     it('shows the "new" badge if last grade is not set or is different than current grade', () => {
       const wrapper = createComponent({ lastGrade });
-      const badge = wrapper.find('Badge[type="new"]');
+      const badge = wrapper.find('StudentStatusBadge[type="new"]');
 
       assert.equal(badge.exists(), shouldShowBadge);
       if (shouldShowBadge) {
@@ -244,7 +244,7 @@ describe('GradeIndicator', () => {
   ].forEach(({ status, expectedBadge, expectedBadgeText }) => {
     it('shows the corresponding badge based on status', () => {
       const wrapper = createComponent({ status });
-      const badge = wrapper.find(`Badge[type="${expectedBadge}"]`);
+      const badge = wrapper.find(`StudentStatusBadge[type="${expectedBadge}"]`);
 
       assert.isTrue(badge.exists());
       assert.equal(badge.text(), expectedBadgeText);

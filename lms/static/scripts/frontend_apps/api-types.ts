@@ -194,6 +194,9 @@ export type Student = {
   h_userid: string;
   lms_id: string;
   display_name: string | null;
+
+  /** Whether this student is active in the course/assignment or roster */
+  active: boolean;
 };
 
 export type AutoGradingGrade = {

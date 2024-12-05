@@ -12,6 +12,8 @@ import type {
   StudentGradingSyncStatus,
 } from '../../api-types';
 import GradeStatusChip from './GradeStatusChip';
+import type { StudentStatusType } from './StudentStatusBadge';
+import StudentStatusBadge from './StudentStatusBadge';
 
 type AnnotationCountProps = {
   children: ComponentChildren;
@@ -57,27 +59,6 @@ function SectionTitle({ children }: { children: ComponentChildren }) {
   );
 }
 
-type BadgeType = 'new' | 'error' | 'syncing';
-
-function Badge({ type }: { type: BadgeType }) {
-  return (
-    <div
-      className={classnames(
-        'px-1 py-0.5 rounded cursor-auto font-bold uppercase text-[0.65rem]',
-        {
-          'bg-grey-7 text-white': type === 'new',
-          'bg-grade-error-light text-grade-error': type === 'error',
-          'bg-grey-2 text-grey-7': type === 'syncing',
-        },
-      )}
-    >
-      {type === 'new' && 'New'}
-      {type === 'error' && 'Error'}
-      {type === 'syncing' && 'Syncing'}
-    </div>
-  );
-}
-
 export type GradeIndicatorProps = {
   grade: number;
   lastGrade?: number | null;
@@ -114,7 +95,7 @@ export default function GradeIndicator({
   // Checking typeof lastGrade to avoid number zero to be treated as false
   const hasLastGrade = typeof lastGrade === 'number';
   const gradeHasChanged = lastGrade !== grade;
-  const badgeType = ((): BadgeType | undefined => {
+  const badgeType = ((): StudentStatusType | undefined => {
     if (status === 'in_progress') {
       return 'syncing';
     }
@@ -142,7 +123,7 @@ export default function GradeIndicator({
         >
           <GradeStatusChip grade={grade} />
         </button>
-        {badgeType && <Badge type={badgeType} />}
+        {badgeType && <StudentStatusBadge type={badgeType} />}
       </div>
       <div aria-live="polite" aria-relevant="additions">
         {popoverVisible && (
