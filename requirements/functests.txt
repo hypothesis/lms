@@ -405,7 +405,7 @@ wired==0.3
     # via
     #   -r requirements/prod.txt
     #   pyramid-services
-xmltodict==0.13.0
+xmltodict==0.14.2
     # via -r requirements/prod.txt
 yarl==1.17.2
     # via
