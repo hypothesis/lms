@@ -234,7 +234,7 @@ class TestDashboardService:
         )
         assert (
             roster
-            == user_service.get_users_for_assignment.return_value.order_by.return_value
+            == user_service.get_users_for_assignment.return_value.add_columns.return_value.order_by.return_value
         )
 
     def test_get_assignment_roster_with(

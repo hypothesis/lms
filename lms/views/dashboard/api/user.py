@@ -147,11 +147,12 @@ class UserViews:
             h_userids=request_h_userids,
         )
         # Iterate over all the students we have in the DB
-        for user in self.request.db.scalars(users_query).all():
+        for roster_data in self.request.db.execute(users_query).all():
+            user, active = roster_data
             if s := stats_by_user.get(user.h_userid):
                 # We seen this student in H, get all the data from there
                 api_student = RosterEntry(
-                    active=True,
+                    active=active,
                     h_userid=user.h_userid,
                     lms_id=user.user_id,
                     display_name=s["display_name"],
@@ -165,7 +166,7 @@ class UserViews:
                 # We haven't seen this user H,
                 # use LMS DB's data and set 0s for all annotation related fields.
                 api_student = RosterEntry(
-                    active=True,
+                    active=active,
                     h_userid=user.h_userid,
                     lms_id=user.user_id,
                     display_name=user.display_name,
