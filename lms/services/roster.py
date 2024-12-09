@@ -80,16 +80,14 @@ class RosterService:
         role_scope: RoleScope | None = None,
         role_type: RoleType | None = None,
         h_userids: list[str] | None = None,
-    ) -> Select[tuple[LMSUser]]:
+    ) -> Select[tuple[LMSUser, bool]]:
         """Get the roster information for a course from our DB."""
         roster_query = (
-            select(AssignmentRoster.lms_user_id)
-            .join(LTIRole)
-            .where(
-                AssignmentRoster.assignment_id == assignment.id,
-                AssignmentRoster.active.is_(True),
-            )
-        )
+            select(LMSUser, AssignmentRoster.active)
+            .join(LMSUser, AssignmentRoster.lms_user_id == LMSUser.id)
+            .join(LTIRole, AssignmentRoster.lti_role_id == LTIRole.id)
+            .where(AssignmentRoster.assignment_id == assignment.id)
+        ).distinct()
 
         if role_scope:
             roster_query = roster_query.where(LTIRole.scope == role_scope)
@@ -97,12 +95,10 @@ class RosterService:
         if role_type:
             roster_query = roster_query.where(LTIRole.type == role_type)
 
-        query = select(LMSUser).where(LMSUser.id.in_(roster_query))
-
         if h_userids:
-            query = query.where(LMSUser.h_userid.in_(h_userids))
+            roster_query = roster_query.where(LMSUser.h_userid.in_(h_userids))
 
-        return query
+        return roster_query
 
     def fetch_course_roster(self, lms_course: LMSCourse) -> None:
         """Fetch the roster information for a course from the LMS."""

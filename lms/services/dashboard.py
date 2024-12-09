@@ -178,7 +178,7 @@ class DashboardService:
 
     def get_assignment_roster(
         self, assignment: Assignment, h_userids: list[str] | None = None
-    ) -> Select[tuple[LMSUser]]:
+    ) -> Select[tuple[LMSUser, bool]]:
         rosters_enabled = (
             assignment.course
             and assignment.course.application_instance.settings.get(
@@ -203,7 +203,8 @@ class DashboardService:
                 role_type=RoleType.LEARNER,
                 assignment_id=assignment.id,
                 h_userids=h_userids,
-            )
+                # For launch data we always add the "active" column as true for compatibility with the roster query.
+            ).add_columns(True)
 
         # Always return the results, no matter the source, sorted
         return query.order_by(LMSUser.display_name, LMSUser.id)
