@@ -11,6 +11,8 @@ from lms.models import (
     CourseRoster,
     Event,
     LMSCourse,
+    LMSSegment,
+    LMSSegmentRoster,
     TaskDone,
 )
 from lms.services.roster import RosterService
@@ -30,6 +32,7 @@ ROSTER_LIMIT = 50
 def schedule_fetching_rosters() -> None:
     schedule_fetching_course_rosters()
     schedule_fetching_assignment_rosters()
+    schedule_fetching_segment_rosters()
 
 
 def schedule_fetching_course_rosters() -> None:
@@ -156,6 +159,69 @@ def schedule_fetching_assignment_rosters() -> None:
                 )
 
 
+def schedule_fetching_segment_rosters() -> None:
+    """Schedule fetching segment rosters based on their last lunches and the most recent roster fetch."""
+
+    # We use the python version (and not func.now()) for easier mocking during tests
+    now = datetime.now()
+
+    # Only fetch roster for segments for which we haven't schedule a fetch recently
+    no_recent_scheduled_roster_fetch_clause = ~exists(
+        select(TaskDone).where(
+            TaskDone.key == func.concat("roster::segment::scheduled::", LMSSegment.id),
+        )
+    )
+
+    # Only fetch roster for segments that don't have recent roster information
+    no_recent_roster_clause = ~exists(
+        select(LMSSegmentRoster).where(
+            LMSSegmentRoster.lms_segment_id == LMSSegment.id,
+            LMSSegmentRoster.updated >= now - ROSTER_REFRESH_WINDOW,
+        )
+    )
+
+    # Only fetch rosters for segments that belong to courses have been recently launched
+    recent_launches_clause = exists(
+        select(Event)
+        .join(Course, Event.course_id == Course.id)
+        .where(
+            Event.timestamp >= now - LAUNCHED_WINDOW,
+            Course.authority_provided_id == LMSCourse.h_authority_provided_id,
+        )
+    )
+
+    with app.request_context() as request:
+        with request.tm:
+            query = (
+                select(LMSSegment.id)
+                .join(LMSCourse, LMSSegment.lms_course_id == LMSCourse.id)
+                .where(
+                    # Courses for which we have a LTIA membership service URL
+                    LMSCourse.lti_context_memberships_url.is_not(None),
+                    no_recent_roster_clause,
+                    no_recent_scheduled_roster_fetch_clause,
+                    recent_launches_clause,
+                    # Only canvas groups for now
+                    LMSSegment.type == "canvas_group",
+                )
+                # Prefer newer segments
+                .order_by(LMSSegment.created.desc())
+                # Schedule only a few rosters per call to this method
+                .limit(ROSTER_LIMIT)
+            )
+            for lms_segment_id in request.db.scalars(query).all():
+                fetch_segment_roster.delay(lms_segment_id=lms_segment_id)
+                # Record that the roster fetching has been scheduled
+                # We set the expiration date to ROSTER_REFRESH_WINDOW so we'll try again after that period
+                request.db.add(
+                    TaskDone(
+                        key=f"roster::segment::scheduled::{lms_segment_id}",
+                        data=None,
+                        expires_at=datetime.now() + ROSTER_REFRESH_WINDOW,
+                    )
+                )
+
+
 @app.task(
     acks_late=True,
     autoretry_for=(Exception,),
@@ -180,9 +246,25 @@ def fetch_course_roster(*, lms_course_id) -> None:
     retry_backoff_max=7200,
 )
 def fetch_assignment_roster(*, assignment_id) -> None:
-    """Fetch the roster for one course."""
+    """Fetch the roster for one assignment."""
     with app.request_context() as request:
         roster_service: RosterService = request.find_service(RosterService)
         with request.tm:
             assignment = request.db.get(Assignment, assignment_id)
             roster_service.fetch_assignment_roster(assignment)
+
+
+@app.task(
+    acks_late=True,
+    autoretry_for=(Exception,),
+    max_retries=2,
+    retry_backoff=3600,
+    retry_backoff_max=7200,
+)
+def fetch_segment_roster(*, lms_segment_id) -> None:
+    """Fetch the roster for one segment."""
+    with app.request_context() as request:
+        roster_service: RosterService = request.find_service(RosterService)
+        with request.tm:
+            assignment = request.db.get(LMSSegment, lms_segment_id)
+            roster_service.fetch_canvas_group_roster(assignment)
