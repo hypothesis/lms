@@ -130,6 +130,7 @@ class TestUserViews:
         expected = {
             "students": [
                 {
+                    "active": True,
                     "h_userid": student.h_userid,
                     "lms_id": student.user_id,
                     "display_name": student.display_name,
@@ -140,6 +141,7 @@ class TestUserViews:
                     },
                 },
                 {
+                    "active": True,
                     "h_userid": student_no_annos.h_userid,
                     "lms_id": student_no_annos.user_id,
                     "display_name": student_no_annos.display_name,
@@ -150,6 +152,7 @@ class TestUserViews:
                     },
                 },
                 {
+                    "active": True,
                     "h_userid": student_no_annos_no_name.h_userid,
                     "lms_id": student_no_annos_no_name.user_id,
                     "display_name": None,
@@ -159,7 +162,8 @@ class TestUserViews:
                         "last_activity": None,
                     },
                 },
-            ]
+            ],
+            "last_updated": None,
         }
         assert response == expected
 
@@ -221,6 +225,7 @@ class TestUserViews:
         expected = {
             "students": [
                 {
+                    "active": True,
                     "h_userid": student.h_userid,
                     "lms_id": student.user_id,
                     "display_name": student.display_name,
@@ -231,6 +236,7 @@ class TestUserViews:
                     },
                 },
                 {
+                    "active": True,
                     "h_userid": student_no_annos.h_userid,
                     "lms_id": student_no_annos.user_id,
                     "display_name": student_no_annos.display_name,
@@ -241,6 +247,7 @@ class TestUserViews:
                     },
                 },
                 {
+                    "active": True,
                     "h_userid": student_no_annos_no_name.h_userid,
                     "lms_id": student_no_annos_no_name.user_id,
                     "display_name": None,
@@ -250,7 +257,8 @@ class TestUserViews:
                         "last_activity": None,
                     },
                 },
-            ]
+            ],
+            "last_updated": None,
         }
         calls = []
 
@@ -266,7 +274,10 @@ class TestUserViews:
                 else None,
             }
             calls.append(
-                call(assignment.auto_grading_config, api_student["annotation_metrics"])
+                call(
+                    assignment.auto_grading_config,
+                    api_student["annotation_metrics"],
+                )
             )
 
         auto_grading_service.calculate_grade.assert_has_calls(calls)
