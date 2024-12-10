@@ -6,7 +6,7 @@ CREATE MATERIALIZED VIEW report.group_activity AS (
     WITH
         launch_counts AS (
             SELECT
-                DATE_TRUNC('week', timestamp)::DATE as timestamp_week,
+                report.multi_truncate('week', timestamp) AS timestamp_week,
                 group_id,
                 COUNT(1) AS launch_count
             FROM report.group_map
