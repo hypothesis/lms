@@ -19,8 +19,12 @@ CREATE MATERIALIZED VIEW report.assignments AS (
         CASE
             -- Content integrations
             WHEN STARTS_WITH(url, 'blackboard://') THEN 'Blackboard Files'
+            WHEN STARTS_WITH(url, 'moodle://file') THEN 'Moodle Files'
+            WHEN STARTS_WITH(url, 'moodle://page') THEN 'Moodle Pages'
             WHEN STARTS_WITH(url, 'd2l://') THEN 'D2L Files'
-            WHEN STARTS_WITH(url, 'canvas://') THEN 'Canvas Files'
+            WHEN STARTS_WITH(url, 'canvas://file') THEN 'Canvas Files'
+            WHEN STARTS_WITH(url, 'canvas://page') THEN 'Canvas Pages'
+            WHEN STARTS_WITH(url, 'canvas-studio://') THEN 'Canvas Studio'
             WHEN STARTS_WITH(url, 'vitalsource://') THEN 'VitalSource'
             WHEN STARTS_WITH(url, 'jstor://') THEN 'JSTOR'
             WHEN STARTS_WITH(url, 'https://drive.google.com') THEN 'Google Drive'
