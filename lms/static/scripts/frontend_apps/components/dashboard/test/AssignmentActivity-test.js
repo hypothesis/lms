@@ -23,6 +23,7 @@ describe('AssignmentActivity', () => {
         current_grade: 0.5,
         last_grade: null,
       },
+      active: true,
     },
     {
       display_name: 'a',
@@ -35,6 +36,7 @@ describe('AssignmentActivity', () => {
         current_grade: 0.8,
         last_grade: 0.61,
       },
+      active: true,
     },
     {
       display_name: 'c',
@@ -47,6 +49,7 @@ describe('AssignmentActivity', () => {
         current_grade: 0.4,
         last_grade: null,
       },
+      active: false,
     },
   ];
   const activeAssignment = {
@@ -122,6 +125,8 @@ describe('AssignmentActivity', () => {
       // Do not mock FormattedDate, for consistency when checking
       // rendered values in different columns
       './FormattedDate': true,
+      // Let badges render normally so that we can assert on their text
+      './StudentStatusBadge': true,
     });
     $imports.$mock({
       '../../utils/api': {
@@ -222,7 +227,7 @@ describe('AssignmentActivity', () => {
       expectedValue: '',
       studentStats: { last_activity: null },
     },
-    // Render display_name when it's null
+    // Render fallback when display_name is null
     {
       fieldName: 'display_name',
       expectedValue:
@@ -230,6 +235,27 @@ describe('AssignmentActivity', () => {
       studentStats: {
         id: 'e4ca30ee27eda1169d00b83f2a86e3494ffd9b12',
         display_name: null,
+        active: true,
+      },
+    },
+    // Render fallback when display_name is null and user is not active
+    {
+      fieldName: 'display_name',
+      expectedValue:
+        "UnknownThis student launched the assignment but didn't annotate yetDrop",
+      studentStats: {
+        id: 'e4ca30ee27eda1169d00b83f2a86e3494ffd9b12',
+        display_name: null,
+        active: false,
+      },
+    },
+    // Render inactive user's display name
+    {
+      fieldName: 'display_name',
+      expectedValue: 'Jane DoeDrop',
+      studentStats: {
+        display_name: 'Jane Doe',
+        active: false,
       },
     },
   ].forEach(({ fieldName, expectedValue, studentStats }) => {
@@ -239,6 +265,7 @@ describe('AssignmentActivity', () => {
         last_activity: '2024-01-01T10:35:18',
         annotations: 37,
         replies: 25,
+        active: true,
       };
       const wrapper = createComponent();
 
@@ -567,6 +594,7 @@ describe('AssignmentActivity', () => {
               auto_grading_grade: {
                 current_grade: 0.5,
               },
+              active: true,
             },
             // Included, because last grade and current grade are different
             {
@@ -576,11 +604,13 @@ describe('AssignmentActivity', () => {
                 current_grade: 0.87,
                 last_grade: 0.7,
               },
+              active: true,
             },
             // Ignored, because auto_grading_grade is not set
             {
               display_name: 'c',
               h_userid: 'baz',
+              active: true,
             },
             // Ignored, because last and current grades are the same
             {
@@ -590,6 +620,16 @@ describe('AssignmentActivity', () => {
                 current_grade: 0.64,
                 last_grade: 0.64,
               },
+              active: true,
+            },
+            // Ignored, because it's not active
+            {
+              display_name: 'e',
+              h_userid: 'foo',
+              auto_grading_grade: {
+                current_grade: 0.5,
+              },
+              active: false,
             },
           ],
         },
