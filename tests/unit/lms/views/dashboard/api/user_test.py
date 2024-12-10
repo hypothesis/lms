@@ -92,23 +92,39 @@ class TestUserViews:
             pyramid_request.parsed_params["segment_authority_provided_ids"] = [
                 g.authority_provided_id for g in segments
             ]
-            user_service.get_users.return_value = select(User).where(
-                User.id.in_(
-                    [
-                        u.id
-                        for u in [student, student_no_annos, student_no_annos_no_name]
-                    ]
+            user_service.get_users.return_value = (
+                select(User)
+                .where(
+                    User.id.in_(
+                        [
+                            u.id
+                            for u in [
+                                student,
+                                student_no_annos,
+                                student_no_annos_no_name,
+                            ]
+                        ]
+                    )
                 )
+                .add_columns(True)
             )
         else:
             db_session.flush()
-            dashboard_service.get_assignment_roster.return_value = select(User).where(
-                User.id.in_(
-                    [
-                        u.id
-                        for u in [student, student_no_annos, student_no_annos_no_name]
-                    ]
+            dashboard_service.get_assignment_roster.return_value = (
+                select(User)
+                .where(
+                    User.id.in_(
+                        [
+                            u.id
+                            for u in [
+                                student,
+                                student_no_annos,
+                                student_no_annos_no_name,
+                            ]
+                        ]
+                    )
                 )
+                .add_columns(True)
             )
 
         db_session.flush()
@@ -200,10 +216,17 @@ class TestUserViews:
             auto_grading_service.get_last_grades.return_value = {}
 
         db_session.flush()
-        dashboard_service.get_assignment_roster.return_value = select(User).where(
-            User.id.in_(
-                [u.id for u in [student, student_no_annos, student_no_annos_no_name]]
+        dashboard_service.get_assignment_roster.return_value = (
+            select(User)
+            .where(
+                User.id.in_(
+                    [
+                        u.id
+                        for u in [student, student_no_annos, student_no_annos_no_name]
+                    ]
+                )
             )
+            .add_columns(True)
         )
         dashboard_service.get_request_assignment.return_value = assignment
         h_api.get_annotation_counts.return_value = annotation_counts_response

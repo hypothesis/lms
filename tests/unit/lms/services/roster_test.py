@@ -93,14 +93,43 @@ class TestRosterService:
         )
         db_session.flush()
 
-        assert db_session.scalars(
+        result = db_session.execute(
             svc.get_assignment_roster(
                 assignment,
                 role_scope=lti_role.scope if with_role_scope else None,
                 role_type=lti_role.type if with_role_type else None,
-                h_userids=[lms_user.h_userid] if with_h_userids else None,
+                h_userids=[lms_user.h_userid, inactive_lms_user.h_userid]
+                if with_h_userids
+                else None,
             )
-        ).all() == [lms_user]
+        ).all()
+
+        assert [(lms_user, True), (inactive_lms_user, False)] == result
+
+    def test_get_assignment_roster_doesnt_return_duplicates(
+        self, assignment, db_session, svc
+    ):
+        lms_user = factories.LMSUser()
+        lti_role_1 = factories.LTIRole()
+        lti_role_2 = factories.LTIRole()
+
+        factories.AssignmentRoster(
+            lms_user=lms_user,
+            assignment=assignment,
+            lti_role=lti_role_1,
+            active=True,
+        )
+        factories.AssignmentRoster(
+            lms_user=lms_user,
+            assignment=assignment,
+            lti_role=lti_role_2,
+            active=True,
+        )
+        db_session.flush()
+
+        result = db_session.execute(svc.get_assignment_roster(assignment)).all()
+
+        assert [(lms_user, True)] == result
 
     def test_fetch_course_roster(
         self,
