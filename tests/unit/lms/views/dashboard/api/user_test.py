@@ -111,6 +111,7 @@ class TestUserViews:
         else:
             db_session.flush()
             dashboard_service.get_assignment_roster.return_value = (
+                None,
                 select(User)
                 .where(
                     User.id.in_(
@@ -124,7 +125,7 @@ class TestUserViews:
                         ]
                     )
                 )
-                .add_columns(True)
+                .add_columns(True),
             )
 
         db_session.flush()
@@ -217,6 +218,7 @@ class TestUserViews:
 
         db_session.flush()
         dashboard_service.get_assignment_roster.return_value = (
+            None,
             select(User)
             .where(
                 User.id.in_(
@@ -226,7 +228,7 @@ class TestUserViews:
                     ]
                 )
             )
-            .add_columns(True)
+            .add_columns(True),
         )
         dashboard_service.get_request_assignment.return_value = assignment
         h_api.get_annotation_counts.return_value = annotation_counts_response

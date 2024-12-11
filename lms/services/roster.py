@@ -1,3 +1,4 @@
+from datetime import datetime
 from logging import getLogger
 
 from sqlalchemy import Select, func, select, text, update
@@ -64,14 +65,17 @@ class RosterService:
 
         return select(LMSUser).where(LMSUser.id.in_(roster_query))
 
-    def assignment_roster_exists(self, assignment: Assignment) -> bool:
-        """Check if we have roster data for the given assignment."""
-        return bool(
-            self._db.scalar(
-                select(AssignmentRoster)
-                .where(AssignmentRoster.assignment_id == assignment.id)
-                .limit(1)
-            )
+    def assignment_roster_exists(self, assignment: Assignment) -> datetime | None:
+        """
+        Check if we have roster data for the given assignment.
+
+        In case we have roster data, return the last updated timestamp, None otherwise.
+        """
+        return self._db.scalar(
+            select(AssignmentRoster.updated)
+            .where(AssignmentRoster.assignment_id == assignment.id)
+            .order_by(AssignmentRoster.updated.desc())
+            .limit(1)
         )
 
     def get_assignment_roster(

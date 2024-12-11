@@ -218,13 +218,14 @@ class TestDashboardService:
         assert svc.get_request_admin_organizations(pyramid_request) == [organization]
 
     def test_get_assignment_roster_with_roster_disabled(
-        self, svc, application_instance, user_service
+        self, svc, application_instance, user_service, roster_service
     ):
         assignment = factories.Assignment(
             course=factories.Course(application_instance=application_instance)
         )
+        roster_service.assignment_roster_exists.return_value = None
 
-        roster = svc.get_assignment_roster(assignment, sentinel.h_userids)
+        last_updated, roster = svc.get_assignment_roster(assignment, sentinel.h_userids)
 
         user_service.get_users_for_assignment.assert_called_once_with(
             role_scope=RoleScope.COURSE,
@@ -232,12 +233,14 @@ class TestDashboardService:
             assignment_id=assignment.id,
             h_userids=sentinel.h_userids,
         )
+
         assert (
             roster
             == user_service.get_users_for_assignment.return_value.add_columns.return_value.order_by.return_value
         )
+        assert not last_updated
 
-    def test_get_assignment_roster_with(
+    def test_get_assignment_roster_with_roster_enabled(
         self, svc, application_instance, roster_service
     ):
         application_instance.settings.set("dashboard", "rosters", True)
@@ -245,7 +248,7 @@ class TestDashboardService:
             course=factories.Course(application_instance=application_instance)
         )
 
-        roster = svc.get_assignment_roster(assignment, sentinel.h_userids)
+        last_updated, roster = svc.get_assignment_roster(assignment, sentinel.h_userids)
 
         roster_service.get_assignment_roster.assert_called_once_with(
             assignment,
@@ -257,6 +260,7 @@ class TestDashboardService:
             roster
             == roster_service.get_assignment_roster.return_value.order_by.return_value
         )
+        assert last_updated == roster_service.assignment_roster_exists.return_value
 
     @pytest.fixture()
     def svc(

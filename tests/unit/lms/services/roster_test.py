@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest.mock import Mock, sentinel
 
 import pytest
@@ -13,7 +14,7 @@ from tests import factories
 class TestRosterService:
     @pytest.mark.parametrize(
         "create_roster,expected",
-        [(True, True), (False, False)],
+        [(True, datetime(2021, 1, 1)), (False, None)],
     )
     def test_assignment_roster_exists(
         self, svc, assignment, db_session, create_roster, expected
@@ -23,6 +24,7 @@ class TestRosterService:
 
         if create_roster:
             factories.AssignmentRoster(
+                updated=datetime(2021, 1, 1),
                 lms_user=lms_user,
                 assignment=assignment,
                 lti_role=lti_role,
