@@ -1,7 +1,7 @@
 name: Slack
 on:
   workflow_run:
-    workflows: [CI, Deploy]
+    workflows: [CI, Deploy, Report refresh]
     types: [completed]
     branches: [main]
 jobs:
