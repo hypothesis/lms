@@ -67,16 +67,6 @@ class LTIEvent(BaseEvent):
         ):
             assignment_id = assignment.id
 
-        if type_ in {EventType.Type.CONFIGURED_LAUNCH, EventType.Type.DEEP_LINKING}:
-            # Store the raw LTI parameters for launches
-            data = {} if data is None else data
-            if request.lti_jwt:
-                # For LTI1.3 include the decoded JWT as a dict
-                data["lti_params"] = request.lti_jwt
-            else:
-                # For LTI1.1 include the request form parameters
-                data["lti_params"] = request.lti_params.serialize()
-
         return cls(
             request=request,
             type=type_,
