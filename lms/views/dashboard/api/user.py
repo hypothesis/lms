@@ -3,6 +3,7 @@ from datetime import datetime
 
 from marshmallow import fields, validate
 from pyramid.view import view_config
+from sqlalchemy import Select
 
 from lms.js_config_types import (
     AnnotationMetrics,
@@ -84,7 +85,7 @@ class UserViews:
         schema=ListUsersSchema,
     )
     def students(self) -> APIStudents:
-        students_query = self._students_query(
+        _, students_query = self._students_query(
             assignment_ids=self.request.parsed_params.get("assignment_ids"),
             segment_authority_provided_ids=self.request.parsed_params.get(
                 "segment_authority_provided_ids"
@@ -141,7 +142,7 @@ class UserViews:
         stats_by_user = {s["userid"]: s for s in stats}
         students: list[RosterEntry] = []
 
-        users_query = self._students_query(
+        roster_last_updated, users_query = self._students_query(
             assignment_ids=[assignment.id],
             segment_authority_provided_ids=request_segment_authority_provided_ids,
             h_userids=request_h_userids,
@@ -179,9 +180,7 @@ class UserViews:
         if assignment.auto_grading_config:
             students = self._add_auto_grading_data(assignment, students)
 
-        # We are not exposing the roster info here yet, just making the API changes to better coordinate with the frontend
-        # For now we mark every roster entry as active and we don't include any last_activity.
-        return APIRoster(students=students, last_updated=None)
+        return APIRoster(students=students, last_updated=roster_last_updated)
 
     def _add_auto_grading_data(
         self, assignment: Assignment, api_students: list[RosterEntry]
@@ -211,7 +210,7 @@ class UserViews:
         assignment_ids: list[int],
         segment_authority_provided_ids: list[str],
         h_userids: list[str] | None = None,
-    ):
+    ) -> tuple[datetime | None, Select]:
         course_ids = self.request.parsed_params.get("course_ids")
         # Single assigment fetch
         if (
@@ -234,7 +233,7 @@ class UserViews:
                 self.request, course_id=course_ids[0]
             )
 
-            return self.user_service.get_users_for_course(
+            return None, self.user_service.get_users_for_course(
                 role_scope=RoleScope.COURSE,
                 role_type=RoleType.LEARNER,
                 course_id=course.id,
@@ -246,7 +245,7 @@ class UserViews:
         )
         # Full organization fetch
         if not course_ids and not assignment_ids and not segment_authority_provided_ids:
-            return self.user_service.get_users_for_organization(
+            return None, self.user_service.get_users_for_organization(
                 role_scope=RoleScope.COURSE,
                 role_type=RoleType.LEARNER,
                 h_userids=h_userids,
@@ -257,7 +256,7 @@ class UserViews:
                 admin_organization_ids=[org.id for org in admin_organizations],
             )
 
-        return self.user_service.get_users(
+        return None, self.user_service.get_users(
             role_scope=RoleScope.COURSE,
             role_type=RoleType.LEARNER,
             course_ids=self.request.parsed_params.get("course_ids"),

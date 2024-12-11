@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pyramid.httpexceptions import HTTPNotFound, HTTPUnauthorized
 from sqlalchemy import Select, select, union
 
@@ -178,16 +180,16 @@ class DashboardService:
 
     def get_assignment_roster(
         self, assignment: Assignment, h_userids: list[str] | None = None
-    ) -> Select[tuple[LMSUser, bool]]:
+    ) -> tuple[datetime | None, Select[tuple[LMSUser, bool]]]:
         rosters_enabled = (
             assignment.course
             and assignment.course.application_instance.settings.get(
                 "dashboard", "rosters"
             )
         )
-        if rosters_enabled and self._roster_service.assignment_roster_exists(
-            assignment
-        ):
+        roster_last_updated = self._roster_service.assignment_roster_exists(assignment)
+
+        if rosters_enabled and roster_last_updated:
             # If rostering is enabled and we do have the data, use it
             query = self._roster_service.get_assignment_roster(
                 assignment,
@@ -207,7 +209,7 @@ class DashboardService:
             ).add_columns(True)
 
         # Always return the results, no matter the source, sorted
-        return query.order_by(LMSUser.display_name, LMSUser.id)
+        return roster_last_updated, query.order_by(LMSUser.display_name, LMSUser.id)
 
 
 def factory(_context, request):
