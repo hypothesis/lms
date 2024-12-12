@@ -183,23 +183,10 @@ _V11_TO_V13 = (
     # To make upgrades seamless we prefer the LTI1.1 version when available
     #
     # http://www.imsglobal.org/spec/lti/v1p3/migr#lti-1-1-migration-claim
-    (
-        "user_id",
-        [f"{CLAIM_PREFIX}/lti1p1", "user_id"],
-    ),
-    (
-        "resource_link_id",
-        [f"{CLAIM_PREFIX}/lti1p1", "resource_link_id"],
-    ),
+    ("user_id", [f"{CLAIM_PREFIX}/lti1p1", "user_id"]),
+    ("resource_link_id", [f"{CLAIM_PREFIX}/lti1p1", "resource_link_id"]),
     # LMS dependant variables that are not part of the "custom" claim
-    (
-        "org_defined_id",
-        [
-            "https://purl.imsglobal.org/spec/lti/claim/launch_presentation",
-            "http://www.brightspace.com",
-            "org_defined_id",
-        ],
-    ),
+    ("org_defined_id", ["http://www.brightspace.com", "org_defined_id"]),
 )
 
 

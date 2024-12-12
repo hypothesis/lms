@@ -92,9 +92,10 @@ def lti_v13_params():
             "canvas_api_domain": "hypothesis.instructure.com",
         },
         "https://purl.imsglobal.org/spec/lti/claim/launch_presentation": {
-            "http://www.brightspace.com": {
-                "org_defined_id": "ORG_DEFINED_ID",
-            }
+            "locale": "en-us"
+        },
+        "http://www.brightspace.com": {
+            "org_defined_id": "ORG_DEFINED_ID",
         },
     }
 
