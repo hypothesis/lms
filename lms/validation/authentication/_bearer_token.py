@@ -41,7 +41,7 @@ class BearerTokenSchema(PyramidRequestSchema):
 
     def __init__(self, request):
         super().__init__(request)
-        self._jwt_service = request.find_service(iface=JWTService)
+        self._jwt_service: JWTService = request.find_service(iface=JWTService)
         self._lti_user_service = request.find_service(iface=LTIUserService)
         self._secret = request.registry.settings["jwt_secret"]
 

@@ -1,4 +1,6 @@
+import json
 import time
+from datetime import timedelta
 
 import oauthlib.common
 import oauthlib.oauth1
@@ -6,6 +8,10 @@ import pytest
 from h_matchers import Any
 
 from lms.resources._js_config import JSConfig
+from lms.services.jwt import JWTService
+from lms.services.lti_user import LTIUserService
+from tests import factories
+from tests.conftest import TEST_SETTINGS
 
 
 class TestDeepLinkingLaunch:
@@ -66,6 +72,69 @@ class TestDeepLinkingLaunch:
             "vitalSource": {"enabled": False},
             "youtube": {"enabled": Any()},
         }
+
+
+class TestDeepLinkingFieldsViews:
+    def test_file_picker_to_form_fields_v11(
+        self, app, authorization_param, application_instance
+    ):
+        response = app.post_json(
+            "/lti/1.1/deep_linking/form_fields",
+            params={
+                "content_item_return_url": "https://apps.imsglobal.org/lti/cert/tp/tp_return.php/basic-lti-launch-request",
+                "content": {"type": "url", "url": "https://example.com"},
+            },
+            headers={"Authorization": f"Bearer {authorization_param}"},
+            status=200,
+        )
+
+        response_json = response.json
+        content_items = response_json.pop(
+            "content_items"
+        )  # We'll assert this separately
+        assert response_json == {
+            "oauth_version": "1.0",
+            "oauth_nonce": Any.string(),
+            "oauth_timestamp": Any.string(),
+            "oauth_consumer_key": application_instance.consumer_key,
+            "oauth_signature_method": "HMAC-SHA1",
+            "lti_message_type": "ContentItemSelection",
+            "lti_version": "LTI-1p0",
+            "oauth_signature": Any.string(),
+        }
+        assert json.loads(content_items) == {
+            "@context": "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",
+            "@graph": [
+                {
+                    "@type": "LtiLinkItem",
+                    "mediaType": "application/vnd.ims.lti.v1.ltilink",
+                    "url": "http://localhost/lti_launches",
+                    "custom": {
+                        "deep_linking_uuid": Any.string(),
+                        "url": "https://example.com",
+                    },
+                }
+            ],
+        }
+
+    @pytest.fixture
+    def lti_user(self, application_instance, lti_params):
+        return factories.LTIUser(
+            application_instance_id=application_instance.id,
+            application_instance=application_instance,
+            user_id=lti_params["user_id"],
+            roles=lti_params["roles"],
+        )
+
+    @pytest.fixture
+    def authorization_param(self, lti_user):
+        return JWTService.encode_with_secret(
+            LTIUserService(
+                lti_role_service=None, application_instance_service=None
+            ).serialize(lti_user),
+            secret=TEST_SETTINGS["lms_secret"],
+            lifetime=timedelta(days=1),
+        )
 
 
 @pytest.fixture
