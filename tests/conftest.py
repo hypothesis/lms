@@ -9,7 +9,7 @@ TEST_SETTINGS = {
     "jwt_secret": "test_secret",
     "google_client_id": "fake_client_id",
     "google_developer_key": "fake_developer_key",
-    "lms_secret": "TEST_LMS_SECRET",
+    "lms_secret": "test_secret",
     "aes_secret": b"TSeQ7E3dzbHgu5ydX2xCrKJiXTmfJbOe",
     "jinja2.filters": {
         "static_path": "pyramid_jinja2.filters:static_path_filter",
