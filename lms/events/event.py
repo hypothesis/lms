@@ -52,8 +52,11 @@ class LTIEvent(BaseEvent):
     def from_request(
         cls, request: Request, type_: EventType.Type, data: Mapping | None = None
     ):
+        # Create a copy of the data to avoid modifying the original
+        event_data = dict(data if data else {})
+
         if not request.lti_user:
-            return cls(request=request, type=type_, data=data)
+            return cls(request=request, type=type_, data=event_data)
 
         course_id = None
         assignment_id = None
@@ -68,15 +71,14 @@ class LTIEvent(BaseEvent):
         ):
             assignment_id = assignment.id
 
+        # Store the raw LTI parameters for launches
         if type_ in {EventType.Type.CONFIGURED_LAUNCH, EventType.Type.DEEP_LINKING}:
-            # Store the raw LTI parameters for launches
-            data = {} if data is None else data
             if request.lti_jwt:
                 # For LTI1.3 include the decoded JWT as a dict
-                data["lti_params"] = request.lti_jwt
+                event_data["lti_params"] = request.lti_jwt
             else:
                 # For LTI1.1 include the request form parameters
-                data["lti_params"] = request.lti_params.serialize()
+                event_data["lti_params"] = request.lti_params.serialize()
 
         return cls(
             request=request,
@@ -86,7 +88,7 @@ class LTIEvent(BaseEvent):
             application_instance_id=request.lti_user.application_instance_id,
             course_id=course_id,
             assignment_id=assignment_id,
-            data=data,
+            data=event_data,
         )
 
 

@@ -51,6 +51,7 @@ class TestLTIEvent:
         assert not event.course_id
         assert not event.assignment_id
 
+    @pytest.mark.parametrize("event_data", [None, {}, {"key": "value"}])
     def test_lti_event(
         self,
         pyramid_request,
@@ -58,10 +59,11 @@ class TestLTIEvent:
         course_service,
         assignment_service,
         lti_user,
+        event_data,
     ):
         lti_user.lti_roles = [sentinel]
         event = LTIEvent.from_request(
-            request=pyramid_request, type_=sentinel.type, data=sentinel.data
+            request=pyramid_request, type_=sentinel.type, data=event_data
         )
 
         assert event.user_id == pyramid_request.user.id
@@ -75,7 +77,7 @@ class TestLTIEvent:
             lti_user.tool_consumer_instance_guid, lti_user.lti.assignment_id
         )
         assert event.assignment_id == assignment_service.get_assignment.return_value.id
-        assert event.data == sentinel.data
+        assert event.data == (event_data if event_data else {})
 
     def test_lti_event_when_no_course(self, pyramid_request, course_service):
         course_service.get_by_context_id.return_value = None
