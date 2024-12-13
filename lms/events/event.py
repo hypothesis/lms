@@ -1,4 +1,5 @@
 from dataclasses import asdict, dataclass, field, fields
+from typing import Mapping
 
 from pyramid.request import Request
 from sqlalchemy import inspect
@@ -28,7 +29,7 @@ class BaseEvent:
     assignment_id: int | None = None
     grouping_id: int | None = None
 
-    data: dict | None = None
+    data: Mapping | None = None
     """Extra data to associate with this event"""
 
     Type = EventType.Type
@@ -49,7 +50,7 @@ class LTIEvent(BaseEvent):
 
     @classmethod
     def from_request(
-        cls, request: Request, type_: EventType.Type, data: dict | None = None
+        cls, request: Request, type_: EventType.Type, data: Mapping | None = None
     ):
         if not request.lti_user:
             return cls(request=request, type=type_, data=data)
