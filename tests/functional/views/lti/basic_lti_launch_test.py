@@ -1,4 +1,3 @@
-import json
 import time
 from urllib.parse import urlencode
 
@@ -9,7 +8,6 @@ from h_matchers import Any
 
 from lms.models import Assignment
 from lms.resources._js_config import JSConfig
-from tests import factories
 
 
 class TestBasicLTILaunch:
@@ -23,25 +21,27 @@ class TestBasicLTILaunch:
         assert response.headers["Content-Type"] == Any.string.matching("^text/html")
         assert response.html
 
-    def test_unconfigured_basic_lti_launch(self, lti_params, do_lti_launch):
+    def test_unconfigured_basic_lti_launch(
+        self, lti_params, do_lti_launch, get_client_config
+    ):
         response = do_lti_launch(
             post_params=lti_params,
             status=200,
         )
 
-        assert self.get_client_config(response)["mode"] == JSConfig.Mode.FILE_PICKER
+        assert get_client_config(response)["mode"] == JSConfig.Mode.FILE_PICKER
 
     def test_db_configured_basic_lti_launch(
-        self, lti_params, assignment, do_lti_launch
+        self, lti_params, assignment, do_lti_launch, get_client_config
     ):
         response = do_lti_launch(post_params=lti_params, status=200)
 
-        js_config = self.get_client_config(response)
+        js_config = get_client_config(response)
         assert js_config["mode"] == JSConfig.Mode.BASIC_LTI_LAUNCH
         assert urlencode({"url": assignment.document_url}) in js_config["viaUrl"]
 
     def test_basic_lti_launch_canvas_deep_linking_url(
-        self, do_lti_launch, url_launch_params, db_session
+        self, do_lti_launch, url_launch_params, db_session, get_client_config
     ):
         get_params, post_params = url_launch_params
 
@@ -49,7 +49,7 @@ class TestBasicLTILaunch:
             get_params=get_params, post_params=post_params, status=200
         )
 
-        js_config = self.get_client_config(response)
+        js_config = get_client_config(response)
         assert js_config["mode"] == JSConfig.Mode.BASIC_LTI_LAUNCH
         assert (
             urlencode({"url": "https://url-configured.com/document.pdf"})
@@ -63,7 +63,7 @@ class TestBasicLTILaunch:
         )
 
     def test_basic_lti_launch_canvas_deep_linking_canvas_file(
-        self, do_lti_launch, db_session, canvas_file_launch_params
+        self, do_lti_launch, db_session, canvas_file_launch_params, get_client_config
     ):
         get_params, post_params = canvas_file_launch_params
 
@@ -71,7 +71,7 @@ class TestBasicLTILaunch:
             get_params=get_params, post_params=post_params, status=200
         )
 
-        js_config = self.get_client_config(response)
+        js_config = get_client_config(response)
         assert js_config["mode"] == JSConfig.Mode.BASIC_LTI_LAUNCH
         assert (
             js_config["api"]["viaUrl"]["path"]
@@ -82,13 +82,6 @@ class TestBasicLTILaunch:
             .filter_by(document_url="canvas://file/course/1/file_id/2")
             .count()
             == 1
-        )
-
-    @pytest.fixture(autouse=True)
-    def application_instance(self, db_session):  # noqa: ARG002
-        return factories.ApplicationInstance(
-            tool_consumer_instance_guid="IMS Testing",
-            organization=factories.Organization(),
         )
 
     @pytest.fixture
@@ -103,12 +96,6 @@ class TestBasicLTILaunch:
         db_session.commit()
 
         return assignment
-
-    @pytest.fixture
-    def oauth_client(self, application_instance):
-        return oauthlib.oauth1.Client(
-            application_instance.consumer_key, application_instance.shared_secret
-        )
 
     @pytest.fixture
     def lti_params(self, application_instance, sign_lti_params):
@@ -184,6 +171,3 @@ class TestBasicLTILaunch:
             return params
 
         return _sign
-
-    def get_client_config(self, response):
-        return json.loads(response.html.find("script", {"class": "js-config"}).string)

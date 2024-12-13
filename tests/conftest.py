@@ -26,6 +26,7 @@ TEST_SETTINGS = {
     "h_api_url_private": "https://h.example.com/private/api/",
     "rpc_allowed_origins": ["http://localhost:5000"],
     "oauth2_state_secret": "test_oauth2_state_secret",
+    "onedrive_client_id": "test_one_drive_client_id",
     "session_cookie_secret": "notasecret",
     "via_secret": "not_a_secret",
     "blackboard_api_client_id": "test_blackboard_api_client_id",
@@ -34,6 +35,7 @@ TEST_SETTINGS = {
     "disable_key_rotation": False,
     "admin_users": [],
     "email_preferences_secret": "test_email_preferences_secret",
+    "youtube_api_key": "test_youtube_api_key",
 }
 
 
