@@ -233,7 +233,7 @@ class TestDashboardService:
             course=factories.Course(application_instance=application_instance)
         )
         if not roster_available:
-            roster_service.assignment_roster_exists.return_value = None
+            roster_service.assignment_roster_last_updated.return_value = None
 
         last_updated, roster = svc.get_assignment_roster(assignment, sentinel.h_userids)
 
@@ -256,7 +256,10 @@ class TestDashboardService:
                 role_type=RoleType.LEARNER,
                 h_userids=sentinel.h_userids,
             )
-            assert last_updated == roster_service.assignment_roster_exists.return_value
+            assert (
+                last_updated
+                == roster_service.assignment_roster_last_updated.return_value
+            )
             assert (
                 roster
                 == roster_service.get_assignment_roster.return_value.order_by.return_value

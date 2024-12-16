@@ -187,7 +187,9 @@ class DashboardService:
                 "dashboard", "rosters"
             )
         )
-        roster_last_updated = self._roster_service.assignment_roster_exists(assignment)
+        roster_last_updated = self._roster_service.assignment_roster_last_updated(
+            assignment
+        )
 
         if rosters_enabled and roster_last_updated:
             # If rostering is enabled and we do have the data, use it

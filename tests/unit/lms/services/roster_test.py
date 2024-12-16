@@ -16,7 +16,7 @@ class TestRosterService:
         "create_roster,expected",
         [(True, datetime(2021, 1, 1)), (False, None)],
     )
-    def test_assignment_roster_exists(
+    def test_assignment_roster_last_updated(
         self, svc, assignment, db_session, create_roster, expected
     ):
         lms_user = factories.LMSUser()
@@ -32,7 +32,7 @@ class TestRosterService:
             )
         db_session.flush()
 
-        assert svc.assignment_roster_exists(assignment) == expected
+        assert svc.assignment_roster_last_updated(assignment) == expected
 
     @pytest.mark.parametrize("with_role_scope", [True, False])
     @pytest.mark.parametrize("with_role_type", [True, False])
