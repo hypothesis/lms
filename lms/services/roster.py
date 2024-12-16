@@ -65,12 +65,8 @@ class RosterService:
 
         return select(LMSUser).where(LMSUser.id.in_(roster_query))
 
-    def assignment_roster_exists(self, assignment: Assignment) -> datetime | None:
-        """
-        Check if we have roster data for the given assignment.
-
-        In case we have roster data, return the last updated timestamp, None otherwise.
-        """
+    def assignment_roster_last_updated(self, assignment: Assignment) -> datetime | None:
+        """Return the roster's last updated timestamp for given assignment, or None if we don't have roster data."""
         return self._db.scalar(
             select(AssignmentRoster.updated)
             .where(AssignmentRoster.assignment_id == assignment.id)
