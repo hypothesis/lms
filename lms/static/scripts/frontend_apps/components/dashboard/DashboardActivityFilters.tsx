@@ -151,9 +151,9 @@ function SegmentsMultiSelect({ segments }: { segments: SegmentsSelection }) {
             All {segmentsName}
           </ContentWithBadge>
         ) : segments.selectedIds.length === 1 ? (
-          segments.entries.find(
+          (segments.entries.find(
             s => s.h_authority_provided_id === segments.selectedIds[0],
-          )?.name ?? `1 ${segmentNameSingular}`
+          )?.name ?? `1 ${segmentNameSingular}`)
         ) : (
           <>
             {segments.selectedIds.length} {segmentsName}
@@ -299,8 +299,8 @@ export default function DashboardActivityFilters({
               All courses
             </ContentWithBadge>
           ) : selectedCourseIds.length === 1 ? (
-            coursesResult.data?.find(c => `${c.id}` === selectedCourseIds[0])
-              ?.title ?? '1 course'
+            (coursesResult.data?.find(c => `${c.id}` === selectedCourseIds[0])
+              ?.title ?? '1 course')
           ) : (
             <>{selectedCourseIds.length} courses</>
           )
@@ -339,9 +339,9 @@ export default function DashboardActivityFilters({
               All assignments
             </ContentWithBadge>
           ) : selectedAssignmentIds.length === 1 ? (
-            assignmentsResults.data?.find(
+            (assignmentsResults.data?.find(
               a => `${a.id}` === selectedAssignmentIds[0],
-            )?.title ?? '1 assignment'
+            )?.title ?? '1 assignment')
           ) : (
             <>{selectedAssignmentIds.length} assignments</>
           )
@@ -373,9 +373,9 @@ export default function DashboardActivityFilters({
               All students
             </ContentWithBadge>
           ) : students.selectedIds.length === 1 ? (
-            studentsResult.data?.find(
+            (studentsResult.data?.find(
               s => s.h_userid === students.selectedIds[0],
-            )?.display_name ?? '1 student'
+            )?.display_name ?? '1 student')
           ) : (
             <>{students.selectedIds.length} students</>
           )
