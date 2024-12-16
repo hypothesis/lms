@@ -168,7 +168,7 @@ export default function SubmitGradeForm({
     }
 
     const newComment = acceptComments
-      ? draftGrading.comment ?? grade.data?.comment
+      ? (draftGrading.comment ?? grade.data?.comment)
       : undefined;
 
     setGradeSaving(true);

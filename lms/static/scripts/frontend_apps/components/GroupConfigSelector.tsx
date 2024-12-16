@@ -77,7 +77,7 @@ function GroupSelect({
         buttonContent={
           loading
             ? 'Fetching group sets…'
-            : selectedGroupSet?.name ?? 'Select group set'
+            : (selectedGroupSet?.name ?? 'Select group set')
         }
       >
         {groupSets?.map(gs => (
