@@ -55,6 +55,12 @@ class TestSegmentService:
             lms_user=lms_user, segments=segments, lti_roles=roles
         )
 
+    def test_get_segment(self, svc, db_session):
+        segment = factories.LMSSegment()
+        db_session.flush()
+
+        assert svc.get_segment(segment.h_authority_provided_id) == segment
+
     @pytest.fixture
     def svc(self, db_session, group_set_service):
         return SegmentService(db=db_session, group_set_service=group_set_service)

@@ -104,6 +104,55 @@ class TestDashboardService:
 
         assert svc.get_request_course(pyramid_request, sentinel.id)
 
+    def test_get_request_segment_404(
+        self,
+        pyramid_request,
+        segment_service,
+        svc,
+    ):
+        segment_service.get_segment.return_value = None
+
+        with pytest.raises(HTTPNotFound):
+            svc.get_request_segment(pyramid_request, sentinel.authority_provided_id)
+
+    def test_get_request_segment_403(self, pyramid_request, course_service, svc):
+        course_service.is_member.return_value = False
+
+        with pytest.raises(HTTPUnauthorized):
+            svc.get_request_segment(pyramid_request, sentinel.authority_provided_id)
+
+    def test_get_request_segment_for_staff(self, pyramid_request, pyramid_config, svc):
+        pyramid_config.testing_securitypolicy(permissive=True)
+
+        assert svc.get_request_segment(pyramid_request, sentinel.authority_provided_id)
+
+    def test_get_request_segment_for_admin(
+        self,
+        pyramid_request,
+        segment_service,
+        svc,
+        course,
+        organization,
+        get_request_admin_organizations,
+    ):
+        segment_service.get_segment.return_value = factories.LMSSegment(
+            lms_course=course.lms_course
+        )
+        get_request_admin_organizations.return_value = [organization]
+
+        assert svc.get_request_segment(pyramid_request, sentinel.id)
+
+    def test_get_request_segment_1(
+        self, pyramid_request, course_service, svc, segment_service, course
+    ):
+        segment_service.get_segment.return_value = factories.LMSSegment(
+            lms_course=course.lms_course
+        )
+
+        course_service.is_member.return_value = True
+
+        assert svc.get_request_segment(pyramid_request, sentinel.id)
+
     def test_add_dashboard_admin(self, svc, db_session):
         admin = svc.add_dashboard_admin(
             factories.Organization(), "testing@example.com", "creator"
@@ -312,6 +361,52 @@ class TestDashboardService:
                 == roster_service.get_course_roster.return_value.order_by.return_value
             )
 
+    @pytest.mark.parametrize("rosters_enabled", [True, False])
+    @pytest.mark.parametrize("roster_available", [True, False])
+    def test_get_segment_roster(
+        self,
+        svc,
+        application_instance,
+        user_service,
+        roster_service,
+        rosters_enabled,
+        roster_available,
+        course,
+    ):
+        application_instance.settings.set("dashboard", "rosters", rosters_enabled)
+        segment = factories.LMSSegment(lms_course=course.lms_course)
+        if not roster_available:
+            roster_service.segment_roster_last_updated.return_value = None
+
+        last_updated, roster = svc.get_segments_roster([segment], sentinel.h_userids)
+
+        if not roster_available or not rosters_enabled:
+            user_service.get_users_for_segments.assert_called_once_with(
+                role_scope=RoleScope.COURSE,
+                role_type=RoleType.LEARNER,
+                segment_ids=[segment.id],
+                h_userids=sentinel.h_userids,
+            )
+            assert not last_updated
+            assert (
+                roster
+                == user_service.get_users_for_segments.return_value.add_columns.return_value.order_by.return_value
+            )
+        else:
+            roster_service.get_segments_roster.assert_called_once_with(
+                [segment],
+                role_scope=RoleScope.COURSE,
+                role_type=RoleType.LEARNER,
+                h_userids=sentinel.h_userids,
+            )
+            assert (
+                last_updated == roster_service.segment_roster_last_updated.return_value
+            )
+            assert (
+                roster
+                == roster_service.get_segments_roster.return_value.order_by.return_value
+            )
+
     @pytest.fixture()
     def svc(
         self,
@@ -321,9 +416,11 @@ class TestDashboardService:
         pyramid_request,
         roster_service,
         user_service,
+        segment_service,
     ):
         return DashboardService(
             pyramid_request,
+            segment_service=segment_service,
             assignment_service=assignment_service,
             course_service=course_service,
             organization_service=organization_service,
@@ -341,6 +438,7 @@ class TestDashboardService:
     @pytest.fixture()
     def course(self, db_session, application_instance):
         course = factories.Course(application_instance=application_instance)
+        course.lms_course = factories.LMSCourse(course=course)
         db_session.flush()
         return course
 
@@ -367,11 +465,13 @@ class TestFactory:
         organization_service,
         roster_service,
         user_service,
+        segment_service,
     ):
         service = factory(sentinel.context, pyramid_request)
 
         DashboardService.assert_called_once_with(
             request=pyramid_request,
+            segment_service=segment_service,
             assignment_service=assignment_service,
             course_service=course_service,
             organization_service=organization_service,
