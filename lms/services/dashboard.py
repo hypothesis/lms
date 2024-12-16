@@ -199,6 +199,8 @@ class DashboardService:
             )
 
         else:
+            # If we are not going to return data from the roster, don't return the last updated date
+            roster_last_updated = None
             # Always fallback to fetch users that have launched the assignment at some point
             query = self._user_service.get_users_for_assignment(
                 role_scope=RoleScope.COURSE,
