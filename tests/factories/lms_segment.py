@@ -12,3 +12,7 @@ LMSSegment = factory.make_factory(
     name=Faker("word"),
     h_authority_provided_id=Faker("hexify", text="^" * 40),
 )
+
+LMSSegmentMembership = factory.make_factory(
+    models.LMSSegmentMembership, FACTORY_CLASS=SQLAlchemyModelFactory
+)
