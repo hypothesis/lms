@@ -217,50 +217,50 @@ class TestDashboardService:
 
         assert svc.get_request_admin_organizations(pyramid_request) == [organization]
 
+    @pytest.mark.parametrize("rosters_enabled", [True, False])
+    @pytest.mark.parametrize("roster_available", [True, False])
     def test_get_assignment_roster_with_roster_disabled(
-        self, svc, application_instance, user_service, roster_service
+        self,
+        svc,
+        application_instance,
+        user_service,
+        roster_service,
+        rosters_enabled,
+        roster_available,
     ):
+        application_instance.settings.set("dashboard", "rosters", rosters_enabled)
         assignment = factories.Assignment(
             course=factories.Course(application_instance=application_instance)
         )
-        roster_service.assignment_roster_exists.return_value = None
+        if not roster_available:
+            roster_service.assignment_roster_exists.return_value = None
 
         last_updated, roster = svc.get_assignment_roster(assignment, sentinel.h_userids)
 
-        user_service.get_users_for_assignment.assert_called_once_with(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
-            assignment_id=assignment.id,
-            h_userids=sentinel.h_userids,
-        )
-
-        assert (
-            roster
-            == user_service.get_users_for_assignment.return_value.add_columns.return_value.order_by.return_value
-        )
-        assert not last_updated
-
-    def test_get_assignment_roster_with_roster_enabled(
-        self, svc, application_instance, roster_service
-    ):
-        application_instance.settings.set("dashboard", "rosters", True)
-        assignment = factories.Assignment(
-            course=factories.Course(application_instance=application_instance)
-        )
-
-        last_updated, roster = svc.get_assignment_roster(assignment, sentinel.h_userids)
-
-        roster_service.get_assignment_roster.assert_called_once_with(
-            assignment,
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
-            h_userids=sentinel.h_userids,
-        )
-        assert (
-            roster
-            == roster_service.get_assignment_roster.return_value.order_by.return_value
-        )
-        assert last_updated == roster_service.assignment_roster_exists.return_value
+        if not roster_available or not rosters_enabled:
+            user_service.get_users_for_assignment.assert_called_once_with(
+                role_scope=RoleScope.COURSE,
+                role_type=RoleType.LEARNER,
+                assignment_id=assignment.id,
+                h_userids=sentinel.h_userids,
+            )
+            assert not last_updated
+            assert (
+                roster
+                == user_service.get_users_for_assignment.return_value.add_columns.return_value.order_by.return_value
+            )
+        else:
+            roster_service.get_assignment_roster.assert_called_once_with(
+                assignment,
+                role_scope=RoleScope.COURSE,
+                role_type=RoleType.LEARNER,
+                h_userids=sentinel.h_userids,
+            )
+            assert last_updated == roster_service.assignment_roster_exists.return_value
+            assert (
+                roster
+                == roster_service.get_assignment_roster.return_value.order_by.return_value
+            )
 
     @pytest.fixture()
     def svc(
