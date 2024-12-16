@@ -1,5 +1,5 @@
 from datetime import datetime
-from unittest.mock import call, sentinel
+from unittest.mock import call, patch, sentinel
 
 import pytest
 from sqlalchemy import select
@@ -19,31 +19,29 @@ pytestmark = pytest.mark.usefixtures(
 
 
 class TestUserViews:
-    def test_get_students(self, user_service, pyramid_request, views, get_page):
+    @pytest.mark.parametrize("segment_authority_provided_ids", [None, [sentinel.id]])
+    def test_get_students(
+        self,
+        pyramid_request,
+        views,
+        get_page,
+        segment_authority_provided_ids,
+        _students_query,
+    ):
         pyramid_request.parsed_params = {
             "course_ids": [sentinel.course_id_1, sentinel.course_id_2],
             "assignment_ids": [sentinel.assignment_id_1, sentinel.assignment_id_2],
-            "segment_authority_provided_ids": sentinel.segment_authority_provided_ids,
+            "segment_authority_provided_ids": segment_authority_provided_ids,
         }
         students = factories.User.create_batch(5)
         get_page.return_value = students, sentinel.pagination
 
+        _students_query.return_value = (None, sentinel.query)
+
         response = views.students()
 
-        user_service.get_users.assert_called_once_with(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
-            instructor_h_userid=pyramid_request.user.h_userid,
-            admin_organization_ids=[],
-            course_ids=[sentinel.course_id_1, sentinel.course_id_2],
-            assignment_ids=[sentinel.assignment_id_1, sentinel.assignment_id_2],
-            segment_authority_provided_ids=sentinel.segment_authority_provided_ids,
-            h_userids=None,
-        )
         get_page.assert_called_once_with(
-            pyramid_request,
-            user_service.get_users.return_value.add_columns.return_value,
-            [User.display_name, User.id],
+            pyramid_request, sentinel.query, [User.display_name, User.id]
         )
         assert response == {
             "students": [
@@ -64,7 +62,6 @@ class TestUserViews:
         self,
         views,
         pyramid_request,
-        user_service,
         h_api,
         dashboard_service,
         db_session,
@@ -92,18 +89,26 @@ class TestUserViews:
             pyramid_request.parsed_params["segment_authority_provided_ids"] = [
                 g.authority_provided_id for g in segments
             ]
-            user_service.get_users.return_value = select(User).where(
-                User.id.in_(
-                    [
-                        u.id
-                        for u in [
-                            student,
-                            student_no_annos,
-                            student_no_annos_no_name,
+            dashboard_service.get_request_segment.return_value = segments
+
+            dashboard_service.get_segments_roster.return_value = (
+                None,
+                select(User)
+                .where(
+                    User.id.in_(
+                        [
+                            u.id
+                            for u in [
+                                student,
+                                student_no_annos,
+                                student_no_annos_no_name,
+                            ]
                         ]
-                    ]
+                    )
                 )
+                .add_columns(True),
             )
+
         else:
             db_session.flush()
             dashboard_service.get_assignment_roster.return_value = (
@@ -320,6 +325,26 @@ class TestUserViews:
             h_userids=None,
         )
 
+    def test__students_query_fallback_launch_data(
+        self, views, pyramid_request, user_service
+    ):
+        pyramid_request.parsed_params = {
+            "course_ids": [sentinel.course_id, sentinel.course_id_2]
+        }
+
+        views._students_query(assignment_ids=None, segment_authority_provided_ids=None)  # noqa: SLF001
+
+        user_service.get_users.assert_called_once_with(
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            course_ids=[sentinel.course_id, sentinel.course_id_2],
+            assignment_ids=None,
+            instructor_h_userid=pyramid_request.user.h_userid,
+            admin_organization_ids=[],
+            h_userids=None,
+            segment_authority_provided_ids=None,
+        )
+
     def test__students_query_organization(self, views, user_service, pyramid_request):
         views._students_query(assignment_ids=None, segment_authority_provided_ids=None)  # noqa: SLF001
 
@@ -360,6 +385,11 @@ class TestUserViews:
                 "last_activity": "2024-01-02",
             },
         ]
+
+    @pytest.fixture
+    def _students_query(self, views):
+        with patch.object(views, "_students_query") as mocked:
+            yield mocked
 
     @pytest.fixture
     def get_page(self, patch):

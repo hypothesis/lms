@@ -11,6 +11,7 @@ from lms.models import (
     GroupingMembership,
     LMSCourse,
     LMSCourseMembership,
+    LMSSegmentMembership,
     LMSUser,
     LMSUserApplicationInstance,
     LMSUserAssignmentMembership,
@@ -211,6 +212,38 @@ class UserService:
             .where(
                 Grouping.id == course_id,
                 LMSCourseMembership.lti_role_id.in_(
+                    select(LTIRole.id).where(
+                        LTIRole.scope == role_scope, LTIRole.type == role_type
+                    )
+                ),
+            )
+        )
+        if h_userids:
+            query = query.where(LMSUser.h_userid.in_(h_userids))
+
+        return query.order_by(LMSUser.display_name, LMSUser.id)
+
+    def get_users_for_segments(
+        self,
+        role_scope: RoleScope,
+        role_type: RoleType,
+        segment_ids: list[int],
+        h_userids: list[str] | None = None,
+    ) -> Select[tuple[LMSUser]]:
+        """Get the users that belong to a list of segment.
+
+        This method doesn't use roste data, just launches.
+        """
+        query = (
+            select(LMSUser)
+            .distinct()
+            .join(
+                LMSSegmentMembership,
+                LMSSegmentMembership.lms_user_id == LMSUser.id,
+            )
+            .where(
+                LMSSegmentMembership.lms_segment_id.in_(segment_ids),
+                LMSSegmentMembership.lti_role_id.in_(
                     select(LTIRole.id).where(
                         LTIRole.scope == role_scope, LTIRole.type == role_type
                     )

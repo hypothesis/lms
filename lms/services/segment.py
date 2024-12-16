@@ -17,6 +17,14 @@ class SegmentService:
         self._db = db
         self._group_set_service = group_set_service
 
+    def get_segment(self, authority_provided_id: str) -> LMSSegment | None:
+        """Get a segment by its authority_provided_id."""
+        return (
+            self._db.query(LMSSegment)
+            .filter_by(h_authority_provided_id=authority_provided_id)
+            .one_or_none()
+        )
+
     def upsert_segments(
         self,
         course: LMSCourse,

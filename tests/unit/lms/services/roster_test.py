@@ -38,6 +38,28 @@ class TestRosterService:
         "create_roster,expected",
         [(True, datetime(2021, 1, 1)), (False, None)],
     )
+    def test_segment_roster_last_updated(
+        self, svc, lms_segment, db_session, create_roster, expected
+    ):
+        lms_user = factories.LMSUser()
+        lti_role = factories.LTIRole()
+
+        if create_roster:
+            factories.LMSSegmentRoster(
+                updated=datetime(2021, 1, 1),
+                lms_user=lms_user,
+                lms_segment=lms_segment,
+                lti_role=lti_role,
+                active=True,
+            )
+        db_session.flush()
+
+        assert svc.segment_roster_last_updated(lms_segment) == expected
+
+    @pytest.mark.parametrize(
+        "create_roster,expected",
+        [(True, datetime(2021, 1, 1)), (False, None)],
+    )
     def test_course_roster_last_updated(
         self, svc, lms_course, db_session, create_roster, expected
     ):
@@ -132,6 +154,49 @@ class TestRosterService:
         result = db_session.execute(
             svc.get_assignment_roster(
                 assignment,
+                role_scope=lti_role.scope if with_role_scope else None,
+                role_type=lti_role.type if with_role_type else None,
+                h_userids=[lms_user.h_userid, inactive_lms_user.h_userid]
+                if with_h_userids
+                else None,
+            )
+        ).all()
+
+        assert [(lms_user, True), (inactive_lms_user, False)] == result
+
+    @pytest.mark.parametrize("with_role_scope", [True, False])
+    @pytest.mark.parametrize("with_role_type", [True, False])
+    @pytest.mark.parametrize("with_h_userids", [True, False])
+    def test_get_segment_roster(
+        self,
+        svc,
+        lms_segment,
+        db_session,
+        with_role_type,
+        with_role_scope,
+        with_h_userids,
+    ):
+        lms_user = factories.LMSUser()
+        inactive_lms_user = factories.LMSUser()
+        lti_role = factories.LTIRole()
+
+        factories.LMSSegmentRoster(
+            lms_user=lms_user,
+            lms_segment=lms_segment,
+            lti_role=lti_role,
+            active=True,
+        )
+        factories.LMSSegmentRoster(
+            lms_user=inactive_lms_user,
+            lms_segment=lms_segment,
+            lti_role=lti_role,
+            active=False,
+        )
+        db_session.flush()
+
+        result = db_session.execute(
+            svc.get_segments_roster(
+                [lms_segment],
                 role_scope=lti_role.scope if with_role_scope else None,
                 role_type=lti_role.type if with_role_type else None,
                 h_userids=[lms_user.h_userid, inactive_lms_user.h_userid]
@@ -406,6 +471,11 @@ class TestRosterService:
     @pytest.fixture
     def lms_course(self, lti_v13_application_instance):
         lms_course = factories.LMSCourse(lti_context_memberships_url="SERVICE_URL")
+        course = factories.Course(
+            authority_provided_id=lms_course.h_authority_provided_id
+        )
+        lms_course.course = course
+
         factories.LMSCourseApplicationInstance(
             lms_course=lms_course, application_instance=lti_v13_application_instance
         )
@@ -414,10 +484,13 @@ class TestRosterService:
 
     @pytest.fixture
     def assignment(self, lms_course):
-        course = factories.Course(
-            authority_provided_id=lms_course.h_authority_provided_id
+        return factories.Assignment(
+            lti_v13_resource_link_id="LTI1.3_ID", course=lms_course.course
         )
-        return factories.Assignment(lti_v13_resource_link_id="LTI1.3_ID", course=course)
+
+    @pytest.fixture
+    def lms_segment(self, lms_course):
+        return factories.LMSSegment(lms_course=lms_course)
 
     @pytest.fixture
     def names_and_roles_roster_response(self):

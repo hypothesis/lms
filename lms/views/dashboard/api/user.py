@@ -218,6 +218,21 @@ class UserViews:
         h_userids: list[str] | None = None,
     ) -> tuple[datetime | None, Select[tuple[LMSUser | User, bool]]]:
         course_ids = self.request.parsed_params.get("course_ids")
+
+        # Roster for specific segments
+        if segment_authority_provided_ids:
+            # Fetch all the segments to be sure the current user has access to them.
+            segments = [
+                self.dashboard_service.get_request_segment(
+                    self.request, authority_provided_id
+                )
+                for authority_provided_id in segment_authority_provided_ids
+            ]
+
+            return self.dashboard_service.get_segments_roster(
+                segments=segments, h_userids=h_userids
+            )
+
         # Single assigment fetch
         if (
             assignment_ids
