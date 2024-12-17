@@ -23,7 +23,7 @@ CREATE MATERIALIZED VIEW report.events AS (
 
         translated_events AS (
             SELECT
-                report.multi_truncate('week', timestamp) AS timestamp_week,
+                report.multi_truncate('week', timestamp::date) AS timestamp_week,
                 user_map.organization_id,
                 event_type.type::report.event_type AS event_type,
                 user_map.user_id
