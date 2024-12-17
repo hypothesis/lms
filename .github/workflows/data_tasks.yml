@@ -52,7 +52,7 @@ jobs:
     with:
       App: ${{ github.event.repository.name }}
       Env: ${{ inputs.Environment }}
-      Timeout: 3600
+      Timeout: 5400
       Region: ${{ inputs.Region }}
       Command: 'newrelic-admin run-program python bin/run_data_task.py --config-file conf/production.ini --task ${{ inputs.Task }}'
     secrets: inherit
