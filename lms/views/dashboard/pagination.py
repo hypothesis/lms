@@ -1,7 +1,7 @@
 import json
 import logging
 from types import NoneType
-from typing import TypeVar
+from typing import Any, TypeVar
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from marshmallow import ValidationError, fields, post_load, validate
@@ -39,7 +39,7 @@ def _get_next_url(current_url, cursor_value) -> str:
 
 
 def get_page(
-    request, items_query: Select[tuple[T]], cursor_columns: list
+    request, items_query: Select[tuple[T, *tuple[Any]]], cursor_columns: list
 ) -> tuple[list[T], Pagination]:
     """Return the first page and pagination metadata from a query."""
 

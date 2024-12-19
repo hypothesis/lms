@@ -3,7 +3,7 @@ from datetime import datetime
 
 from marshmallow import fields, validate
 from pyramid.view import view_config
-from sqlalchemy import Select
+from sqlalchemy import Select, true
 
 from lms.js_config_types import (
     AnnotationMetrics,
@@ -13,7 +13,7 @@ from lms.js_config_types import (
     AutoGradingGrade,
     RosterEntry,
 )
-from lms.models import Assignment, RoleScope, RoleType, User
+from lms.models import Assignment, LMSUser, RoleScope, RoleType, User
 from lms.security import Permissions
 from lms.services import UserService
 from lms.services.auto_grading import AutoGradingService
@@ -210,7 +210,7 @@ class UserViews:
         assignment_ids: list[int],
         segment_authority_provided_ids: list[str],
         h_userids: list[str] | None = None,
-    ) -> tuple[datetime | None, Select]:
+    ) -> tuple[datetime | None, Select[tuple[LMSUser | User, bool]]]:
         course_ids = self.request.parsed_params.get("course_ids")
         # Single assigment fetch
         if (
@@ -254,7 +254,8 @@ class UserViews:
                 if self.request.user
                 else None,
                 admin_organization_ids=[org.id for org in admin_organizations],
-            )
+                # For launch data we always add the "active" column as true for compatibility with the roster query.
+            ).add_columns(true())
 
         return None, self.user_service.get_users(
             role_scope=RoleScope.COURSE,
@@ -270,4 +271,5 @@ class UserViews:
             h_userids=h_userids,
             # Only users belonging to these segments
             segment_authority_provided_ids=segment_authority_provided_ids,
-        )
+            # For launch data we always add the "active" column as true for compatibility with the roster query.
+        ).add_columns(true())
