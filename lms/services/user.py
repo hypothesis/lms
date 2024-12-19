@@ -164,7 +164,7 @@ class UserService:
         role_type: RoleType,
         assignment_id: int,
         h_userids: list[str] | None = None,
-    ):
+    ) -> Select[tuple[LMSUser]]:
         """Get the users that belong to one assignment."""
         query = (
             select(LMSUser)
@@ -193,7 +193,7 @@ class UserService:
         role_type: RoleType,
         course_id: int,
         h_userids: list[str] | None = None,
-    ):
+    ) -> Select[tuple[LMSUser]]:
         """Get the users that belong to one course."""
         query = (
             select(LMSUser)

@@ -306,7 +306,7 @@ class TestUserViews:
         assert response == expected
 
     def test__students_query_single_course(
-        self, views, pyramid_request, dashboard_service, user_service
+        self, views, pyramid_request, dashboard_service
     ):
         pyramid_request.parsed_params = {"course_ids": [sentinel.course_id]}
 
@@ -315,10 +315,8 @@ class TestUserViews:
         dashboard_service.get_request_course.assert_called_once_with(
             pyramid_request, sentinel.course_id
         )
-        user_service.get_users_for_course.assert_called_once_with(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
-            course_id=dashboard_service.get_request_course.return_value.id,
+        dashboard_service.get_course_roster.assert_called_once_with(
+            lms_course=dashboard_service.get_request_course.return_value.lms_course,
             h_userids=None,
         )
 

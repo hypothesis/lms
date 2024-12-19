@@ -219,7 +219,7 @@ class TestDashboardService:
 
     @pytest.mark.parametrize("rosters_enabled", [True, False])
     @pytest.mark.parametrize("roster_available", [True, False])
-    def test_get_assignment_roster_with_roster_disabled(
+    def test_get_assignment_roster(
         self,
         svc,
         application_instance,
@@ -263,6 +263,53 @@ class TestDashboardService:
             assert (
                 roster
                 == roster_service.get_assignment_roster.return_value.order_by.return_value
+            )
+
+    @pytest.mark.parametrize("rosters_enabled", [True, False])
+    @pytest.mark.parametrize("roster_available", [True, False])
+    def test_get_course_roster(
+        self,
+        svc,
+        application_instance,
+        user_service,
+        roster_service,
+        rosters_enabled,
+        roster_available,
+    ):
+        application_instance.settings.set("dashboard", "rosters", rosters_enabled)
+        lms_course = factories.LMSCourse(
+            course=factories.Course(application_instance=application_instance)
+        )
+        if not roster_available:
+            roster_service.course_roster_last_updated.return_value = None
+
+        last_updated, roster = svc.get_course_roster(lms_course, sentinel.h_userids)
+
+        if not roster_available or not rosters_enabled:
+            user_service.get_users_for_course.assert_called_once_with(
+                role_scope=RoleScope.COURSE,
+                role_type=RoleType.LEARNER,
+                course_id=lms_course.course.id,
+                h_userids=sentinel.h_userids,
+            )
+            assert not last_updated
+            assert (
+                roster
+                == user_service.get_users_for_course.return_value.add_columns.return_value.order_by.return_value
+            )
+        else:
+            roster_service.get_course_roster.assert_called_once_with(
+                lms_course,
+                role_scope=RoleScope.COURSE,
+                role_type=RoleType.LEARNER,
+                h_userids=sentinel.h_userids,
+            )
+            assert (
+                last_updated == roster_service.course_roster_last_updated.return_value
+            )
+            assert (
+                roster
+                == roster_service.get_course_roster.return_value.order_by.return_value
             )
 
     @pytest.fixture()

@@ -1,11 +1,12 @@
 from datetime import datetime
 
 from pyramid.httpexceptions import HTTPNotFound, HTTPUnauthorized
-from sqlalchemy import Select, select, union
+from sqlalchemy import Select, select, true, union
 
 from lms.models import (
     ApplicationInstance,
     Assignment,
+    Course,
     LMSCourse,
     LMSCourseApplicationInstance,
     LMSCourseMembership,
@@ -65,7 +66,7 @@ class DashboardService:
 
         return assignment
 
-    def get_request_course(self, request, course_id: int):
+    def get_request_course(self, request, course_id: int) -> Course:
         """Get and authorize a course for the given request."""
         course = self._course_service.get_by_id(course_id)
         if not course:
@@ -210,7 +211,40 @@ class DashboardService:
                 assignment_id=assignment.id,
                 h_userids=h_userids,
                 # For launch data we always add the "active" column as true for compatibility with the roster query.
-            ).add_columns(True)
+            ).add_columns(true())
+
+        # Always return the results, no matter the source, sorted
+        return roster_last_updated, query.order_by(LMSUser.display_name, LMSUser.id)
+
+    def get_course_roster(
+        self, lms_course: LMSCourse, h_userids: list[str] | None = None
+    ) -> tuple[datetime | None, Select[tuple[LMSUser, bool]]]:
+        rosters_enabled = lms_course.course.application_instance.settings.get(
+            "dashboard", "rosters"
+        )
+        roster_last_updated = self._roster_service.course_roster_last_updated(
+            lms_course
+        )
+        if rosters_enabled and roster_last_updated:
+            # If rostering is enabled and we do have the data, use it
+            query = self._roster_service.get_course_roster(
+                lms_course,
+                role_scope=RoleScope.COURSE,
+                role_type=RoleType.LEARNER,
+                h_userids=h_userids,
+            )
+
+        else:
+            # If we are not going to return data from the roster, don't return the last updated date
+            roster_last_updated = None
+            # Always fallback to fetch users that have launched the assignment at some point
+            query = self._user_service.get_users_for_course(
+                role_scope=RoleScope.COURSE,
+                role_type=RoleType.LEARNER,
+                course_id=lms_course.course.id,
+                h_userids=h_userids,
+                # For launch data we always add the "active" column as true for compatibility with the roster query.
+            ).add_columns(true())
 
         # Always return the results, no matter the source, sorted
         return roster_last_updated, query.order_by(LMSUser.display_name, LMSUser.id)
