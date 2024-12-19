@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from marshmallow import fields, validate
 from pyramid.view import view_config
@@ -22,6 +23,9 @@ from lms.validation._base import PyramidRequestSchema
 from lms.views.dashboard.pagination import PaginationParametersMixin, get_page
 
 LOG = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from lms.services.dashboard import DashboardService
 
 
 class ListUsersSchema(PaginationParametersMixin):
@@ -70,7 +74,9 @@ class UserViews:
     def __init__(self, request) -> None:
         self.request = request
         self.assignment_service = request.find_service(name="assignment")
-        self.dashboard_service = request.find_service(name="dashboard")
+        self.dashboard_service: DashboardService = request.find_service(
+            name="dashboard"
+        )
         self.h_api: HAPI = request.find_service(HAPI)
         self.user_service: UserService = request.find_service(UserService)
         self.auto_grading_service: AutoGradingService = request.find_service(
@@ -232,12 +238,8 @@ class UserViews:
             course = self.dashboard_service.get_request_course(
                 self.request, course_id=course_ids[0]
             )
-
-            return None, self.user_service.get_users_for_course(
-                role_scope=RoleScope.COURSE,
-                role_type=RoleType.LEARNER,
-                course_id=course.id,
-                h_userids=h_userids,
+            return self.dashboard_service.get_course_roster(
+                lms_course=course.lms_course, h_userids=h_userids
             )
 
         admin_organizations = self.dashboard_service.get_request_admin_organizations(
