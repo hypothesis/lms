@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from pyramid.httpexceptions import HTTPNotFound, HTTPUnauthorized
-from sqlalchemy import Select, select, union
+from sqlalchemy import Select, select, true, union
 
 from lms.models import (
     ApplicationInstance,
@@ -9,6 +9,7 @@ from lms.models import (
     LMSCourse,
     LMSCourseApplicationInstance,
     LMSCourseMembership,
+    LMSSegment,
     LMSUser,
     LTIRole,
     Organization,
@@ -17,13 +18,14 @@ from lms.models import (
 )
 from lms.models.dashboard_admin import DashboardAdmin
 from lms.security import Permissions
-from lms.services import OrganizationService, RosterService, UserService
+from lms.services import OrganizationService, RosterService, SegmentService, UserService
 
 
 class DashboardService:
     def __init__(  # noqa: PLR0913, PLR0917
         self,
         request,
+        segment_service: SegmentService,
         assignment_service,
         course_service,
         roster_service: RosterService,
@@ -33,12 +35,40 @@ class DashboardService:
     ):
         self._db = request.db
 
+        self._segment_service = segment_service
         self._assignment_service = assignment_service
         self._course_service = course_service
         self._roster_service = roster_service
         self._user_service = user_service
         self._organization_service = organization_service
         self._h_authority = h_authority
+
+    def get_request_segment(self, request, authority_provided_id: str) -> LMSSegment:
+        """Get and authorize an segment for the given request."""
+        segment = self._segment_service.get_segment(authority_provided_id)
+        if not segment:
+            raise HTTPNotFound()
+
+        if request.has_permission(Permissions.STAFF):
+            # STAFF members in our admin pages can access all segments
+            return segment
+
+        admin_organizations = self.get_request_admin_organizations(request)
+        if (
+            admin_organizations
+            and segment.lms_course.course.application_instance.organization
+            in admin_organizations
+        ):
+            # Organization admins have access to all the assignments in their organizations
+            return segment
+
+        # Access to the segment is determined by access to its course.
+        if not self._course_service.is_member(
+            segment.lms_course.course, request.user.h_userid
+        ):
+            raise HTTPUnauthorized()
+
+        return segment
 
     def get_request_assignment(self, request, assigment_id: int) -> Assignment:
         """Get and authorize an assignment for the given request."""
@@ -190,7 +220,6 @@ class DashboardService:
         roster_last_updated = self._roster_service.assignment_roster_last_updated(
             assignment
         )
-
         if rosters_enabled and roster_last_updated:
             # If rostering is enabled and we do have the data, use it
             query = self._roster_service.get_assignment_roster(
@@ -210,15 +239,71 @@ class DashboardService:
                 assignment_id=assignment.id,
                 h_userids=h_userids,
                 # For launch data we always add the "active" column as true for compatibility with the roster query.
-            ).add_columns(True)
+            ).add_columns(true())
 
         # Always return the results, no matter the source, sorted
         return roster_last_updated, query.order_by(LMSUser.display_name, LMSUser.id)
+
+    def get_segments_roster(
+        self, segments: list[LMSSegment], h_userids: list[str] | None = None
+    ) -> tuple[datetime | None, Select[tuple[LMSUser, bool]]]:
+        """Return a query that fetches the roster for a segment."""
+        assert (
+            len({segment.lms_course_id for segment in segments}) == 1
+        ), "Segments must belong to the same course"
+
+        rosters_enabled = segments[
+            0
+        ].lms_course.course.application_instance.settings.get("dashboard", "rosters")
+        rosters_last_updated = self._get_segment_rosters_last_updated(segments)
+        # Only use roster data if we have it for all segments, othwrwise it becomes tricky to build a coeherent roster
+        if rosters_enabled and rosters_last_updated:
+            # Use the oldest last updated date as the last updated date for the combined roster
+            roster_last_updated = min(rosters_last_updated)
+            # If rostering is enabled and we do have the data, use it
+            query = self._roster_service.get_segments_roster(
+                segments,
+                role_scope=RoleScope.COURSE,
+                role_type=RoleType.LEARNER,
+                h_userids=h_userids,
+            )
+
+        else:
+            # If we are not going to return data from the roster, don't return the last updated date
+            roster_last_updated = None
+            # Always fallback to fetch users that have launched the assignment at some point
+            query = self._user_service.get_users_for_segments(
+                role_scope=RoleScope.COURSE,
+                role_type=RoleType.LEARNER,
+                segment_ids=[segment.id for segment in segments],
+                h_userids=h_userids,
+                # For launch data we always add the "active" column as true for compatibility with the roster query.
+            ).add_columns(true())
+
+        # Always return the results, no matter the source, sorted
+        return roster_last_updated, query.order_by(LMSUser.display_name, LMSUser.id)
+
+    def _get_segment_rosters_last_updated(
+        self, segments: list[LMSSegment]
+    ) -> list[datetime] | None:
+        """Return a list of dates with te last updated date for the rosters of the segments.
+
+        It will return None if we don't have a roster for any of the segments.
+        """
+        rosters_last_updated = [
+            self._roster_service.segment_roster_last_updated(segment)
+            for segment in segments
+        ]
+        if all(rosters_last_updated):
+            return rosters_last_updated  # type: ignore
+
+        return None
 
 
 def factory(_context, request):
     return DashboardService(
         request=request,
+        segment_service=request.find_service(SegmentService),
         assignment_service=request.find_service(name="assignment"),
         course_service=request.find_service(name="course"),
         organization_service=request.find_service(OrganizationService),
