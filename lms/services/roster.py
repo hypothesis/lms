@@ -46,16 +46,15 @@ class RosterService:
         lms_course: LMSCourse,
         role_scope: RoleScope | None = None,
         role_type: RoleType | None = None,
-    ) -> Select[tuple[LMSUser]]:
+        h_userids: list[str] | None = None,
+    ) -> Select[tuple[LMSUser, bool]]:
         """Get the roster information for a course from our DB."""
         roster_query = (
-            select(CourseRoster.lms_user_id)
-            .join(LTIRole)
-            .where(
-                CourseRoster.lms_course_id == lms_course.id,
-                CourseRoster.active.is_(True),
-            )
-        )
+            select(LMSUser, CourseRoster.active)
+            .join(LMSUser, CourseRoster.lms_user_id == LMSUser.id)
+            .join(LTIRole, CourseRoster.lti_role_id == LTIRole.id)
+            .where(CourseRoster.lms_course_id == lms_course.id)
+        ).distinct()
 
         if role_scope:
             roster_query = roster_query.where(LTIRole.scope == role_scope)
@@ -63,14 +62,26 @@ class RosterService:
         if role_type:
             roster_query = roster_query.where(LTIRole.type == role_type)
 
-        return select(LMSUser).where(LMSUser.id.in_(roster_query))
+        if h_userids:
+            roster_query = roster_query.where(LMSUser.h_userid.in_(h_userids))
+
+        return roster_query
 
     def assignment_roster_last_updated(self, assignment: Assignment) -> datetime | None:
-        """Return the roster's last updated timestamp for given assignment, or None if we don't have roster data."""
+        """Return the roster's last updated timestamp for a given assignment, or None if we don't have roster data."""
         return self._db.scalar(
             select(AssignmentRoster.updated)
             .where(AssignmentRoster.assignment_id == assignment.id)
             .order_by(AssignmentRoster.updated.desc())
+            .limit(1)
+        )
+
+    def course_roster_last_updated(self, course: LMSCourse) -> datetime | None:
+        """Return the roster's last updated timestamp for a given course, or None if we don't have roster data."""
+        return self._db.scalar(
+            select(CourseRoster.updated)
+            .where(CourseRoster.lms_course_id == course.id)
+            .order_by(CourseRoster.updated.desc())
             .limit(1)
         )
 
