@@ -42,7 +42,7 @@ class TestUserViews:
         )
         get_page.assert_called_once_with(
             pyramid_request,
-            user_service.get_users.return_value,
+            user_service.get_users.return_value.add_columns.return_value,
             [User.display_name, User.id],
         )
         assert response == {
@@ -92,21 +92,17 @@ class TestUserViews:
             pyramid_request.parsed_params["segment_authority_provided_ids"] = [
                 g.authority_provided_id for g in segments
             ]
-            user_service.get_users.return_value = (
-                select(User)
-                .where(
-                    User.id.in_(
-                        [
-                            u.id
-                            for u in [
-                                student,
-                                student_no_annos,
-                                student_no_annos_no_name,
-                            ]
+            user_service.get_users.return_value = select(User).where(
+                User.id.in_(
+                    [
+                        u.id
+                        for u in [
+                            student,
+                            student_no_annos,
+                            student_no_annos_no_name,
                         ]
-                    )
+                    ]
                 )
-                .add_columns(True)
             )
         else:
             db_session.flush()
