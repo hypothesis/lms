@@ -274,9 +274,11 @@ class TestDashboardService:
         pyramid_request,
         roster_service,
         user_service,
+        segment_service,
     ):
         return DashboardService(
             pyramid_request,
+            segment_service=segment_service,
             assignment_service=assignment_service,
             course_service=course_service,
             organization_service=organization_service,
@@ -320,11 +322,13 @@ class TestFactory:
         organization_service,
         roster_service,
         user_service,
+        segment_service,
     ):
         service = factory(sentinel.context, pyramid_request)
 
         DashboardService.assert_called_once_with(
             request=pyramid_request,
+            segment_service=segment_service,
             assignment_service=assignment_service,
             course_service=course_service,
             organization_service=organization_service,

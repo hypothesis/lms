@@ -179,6 +179,33 @@ class TestUserService:
             student_in_assignment.h_userid
         ]
 
+    @pytest.mark.parametrize("with_h_userids", [True, False])
+    def test_get_users_for_segments(
+        self, service, db_session, course, with_h_userids, application_instance
+    ):
+        student = factories.User(application_instance=application_instance)
+        lms_segment = factories.LMSSegment(lms_course=course.lms_course)
+        lms_user = factories.LMSUser(
+            lti_user_id=student.user_id, h_userid=student.h_userid
+        )
+        factories.LMSSegmentMembership.create(
+            lms_segment=lms_segment,
+            lms_user=lms_user,
+            lti_role=factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.LEARNER),
+        )
+        db_session.flush()
+
+        query = service.get_users_for_segments(
+            role_scope=RoleScope.COURSE,
+            role_type=RoleType.LEARNER,
+            segment_ids=[lms_segment.id],
+            h_userids=[student.h_userid] if with_h_userids else None,
+        )
+
+        assert [s.h_userid for s in db_session.scalars(query).all()] == [
+            student.h_userid
+        ]
+
     @pytest.mark.usefixtures("teacher_in_assigment")
     def test_get_users_by_assigment_id(
         self, service, db_session, student_in_assignment, assignment, organization

@@ -85,12 +85,13 @@ class UserViews:
         schema=ListUsersSchema,
     )
     def students(self) -> APIStudents:
-        _, students_query = self._students_query(
+        value = self._students_query(
             assignment_ids=self.request.parsed_params.get("assignment_ids"),
             segment_authority_provided_ids=self.request.parsed_params.get(
                 "segment_authority_provided_ids"
             ),
         )
+        _, students_query = value
         students, pagination = get_page(
             self.request, students_query, [User.display_name, User.id]
         )
@@ -212,6 +213,21 @@ class UserViews:
         h_userids: list[str] | None = None,
     ) -> tuple[datetime | None, Select[tuple[LMSUser | User, bool]]]:
         course_ids = self.request.parsed_params.get("course_ids")
+
+        # Roster for specific segments
+        if segment_authority_provided_ids:
+            # Fetch all the segments to be sure the current user has access to them.
+            segments = [
+                self.dashboard_service.get_request_segment(
+                    self.request, authority_provided_id
+                )
+                for authority_provided_id in segment_authority_provided_ids
+            ]
+
+            return self.dashboard_service.get_segments_roster(
+                segments=segments, h_userids=h_userids
+            )
+
         # Single assigment fetch
         if (
             assignment_ids
@@ -238,7 +254,8 @@ class UserViews:
                 role_type=RoleType.LEARNER,
                 course_id=course.id,
                 h_userids=h_userids,
-            )
+                # For launch data we always add the "active" column as true for compatibility with the roster query.
+            ).add_columns(true())
 
         admin_organizations = self.dashboard_service.get_request_admin_organizations(
             self.request
