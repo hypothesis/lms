@@ -3,7 +3,7 @@ from unittest.mock import sentinel
 import pytest
 
 from lms.models import File
-from lms.services.file import FileService, factory
+from lms.services.file import FileService, file_service_factory
 from tests import factories
 
 
@@ -140,7 +140,28 @@ class TestFileService:
 
 @pytest.mark.usefixtures("application_instance_service")
 class TestFactory:
-    def test_it(self, pyramid_request):
-        file_service = factory(sentinel.context, pyramid_request)
+    def test_it(self, pyramid_request, FileService, application_instance, db_session):
+        file_service = file_service_factory(sentinel.context, pyramid_request)
 
-        assert isinstance(file_service, FileService)
+        FileService.assert_called_once_with(
+            application_instance=application_instance, db=db_session
+        )
+        assert file_service == FileService.return_value
+
+    def test_it_with_application_instance_parameter(
+        self, pyramid_request, FileService, db_session
+    ):
+        file_service = file_service_factory(
+            sentinel.context,
+            pyramid_request,
+            application_instance=sentinel.application_instance,
+        )
+
+        FileService.assert_called_once_with(
+            application_instance=sentinel.application_instance, db=db_session
+        )
+        assert file_service == FileService.return_value
+
+    @pytest.fixture
+    def FileService(self, patch):
+        return patch("lms.services.file.FileService")

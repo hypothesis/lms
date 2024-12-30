@@ -90,7 +90,8 @@ class FileService:
         return query
 
 
-def factory(_context, request):
-    return FileService(
-        application_instance=request.lti_user.application_instance, db=request.db
-    )
+def file_service_factory(_context, request, application_instance=None):
+    if application_instance is None:
+        application_instance = request.lti_user.application_instance
+
+    return FileService(application_instance=application_instance, db=request.db)
