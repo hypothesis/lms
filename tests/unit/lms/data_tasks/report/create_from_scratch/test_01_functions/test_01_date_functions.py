@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import importlib_resources
 import pytest
@@ -9,8 +9,8 @@ TASK_ROOT = importlib_resources.files("lms.data_tasks")
 
 
 class TestDateFunctions:
-    ONE_YEAR_AGO = (datetime.now() - timedelta(days=365)).date()
-    TWO_YEARS_AGO = (datetime.now() - timedelta(days=365 * 2)).date()
+    ONE_YEAR_AGO = datetime.now().replace(year=datetime.now().year - 1).date()
+    TWO_YEARS_AGO = datetime.now().replace(year=datetime.now().year - 2).date()
 
     @pytest.mark.usefixtures("with_date_functions")
     @pytest.mark.parametrize(
@@ -20,8 +20,8 @@ class TestDateFunctions:
             # Technically this test could fail if you run this exactly at midnight
             ("trailing_year", "NOW() - INTERVAL '1 second'", ONE_YEAR_AGO),
             ("trailing_year", "NOW() - INTERVAL '1 day'", ONE_YEAR_AGO),
-            ("trailing_year", "NOW() - INTERVAL '365 days'", TWO_YEARS_AGO),
-            ("trailing_year", "NOW() - INTERVAL '366 days'", TWO_YEARS_AGO),
+            ("trailing_year", "NOW() - INTERVAL '1 year'", TWO_YEARS_AGO),
+            ("trailing_year", "NOW() - INTERVAL '1 year 1 day'", TWO_YEARS_AGO),
         ),
     )
     def test_multi_truncate(self, db_session, timescale, value, expected):
