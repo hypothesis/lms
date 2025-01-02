@@ -216,7 +216,7 @@ propcache==0.2.0
     #   -r requirements/prod.txt
     #   aiohttp
     #   yarl
-psycopg2==2.9.9
+psycopg2==2.9.10
     # via
     #   -r requirements/prod.txt
     #   data-tasks
