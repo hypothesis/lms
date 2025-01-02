@@ -23,7 +23,7 @@ billiard==4.2.0
     # via celery
 cachetools==5.3.2
     # via google-auth
-celery==5.3.6
+celery==5.4.0
     # via -r requirements/prod.in
 certifi==2024.7.4
     # via
