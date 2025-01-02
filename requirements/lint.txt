@@ -414,7 +414,7 @@ psutil==5.9.7
     # via
     #   -r requirements/tests.txt
     #   pytest-xdist
-psycopg2==2.9.9
+psycopg2==2.9.10
     # via
     #   -r requirements/bddtests.txt
     #   -r requirements/functests.txt
