@@ -106,7 +106,9 @@ def includeme(config):  # noqa: PLR0915
     config.register_service_factory(
         "lms.services.grouping.service_factory", name="grouping"
     )
-    config.register_service_factory("lms.services.file.factory", name="file")
+    config.register_service_factory(
+        "lms.services.file.file_service_factory", name="file"
+    )
     config.register_service_factory(
         "lms.services.jstor.service_factory", iface=JSTORService
     )
