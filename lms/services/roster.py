@@ -66,11 +66,20 @@ class RosterService:
         return select(LMSUser).where(LMSUser.id.in_(roster_query))
 
     def assignment_roster_last_updated(self, assignment: Assignment) -> datetime | None:
-        """Return the roster's last updated timestamp for given assignment, or None if we don't have roster data."""
+        """Return the roster's last updated timestamp for a given assignment, or None if we don't have roster data."""
         return self._db.scalar(
             select(AssignmentRoster.updated)
             .where(AssignmentRoster.assignment_id == assignment.id)
             .order_by(AssignmentRoster.updated.desc())
+            .limit(1)
+        )
+
+    def segment_roster_last_updated(self, segment: LMSSegment) -> datetime | None:
+        """Return the roster's last updated timestamp for a given segment, or None if we don't have roster data."""
+        return self._db.scalar(
+            select(LMSSegmentRoster.updated)
+            .where(LMSSegmentRoster.lms_segment_id == segment.id)
+            .order_by(LMSSegmentRoster.updated.desc())
             .limit(1)
         )
 
@@ -81,12 +90,39 @@ class RosterService:
         role_type: RoleType | None = None,
         h_userids: list[str] | None = None,
     ) -> Select[tuple[LMSUser, bool]]:
-        """Get the roster information for a course from our DB."""
+        """Get the roster information for an assignment from our DB."""
         roster_query = (
             select(LMSUser, AssignmentRoster.active)
             .join(LMSUser, AssignmentRoster.lms_user_id == LMSUser.id)
             .join(LTIRole, AssignmentRoster.lti_role_id == LTIRole.id)
             .where(AssignmentRoster.assignment_id == assignment.id)
+        ).distinct()
+
+        if role_scope:
+            roster_query = roster_query.where(LTIRole.scope == role_scope)
+
+        if role_type:
+            roster_query = roster_query.where(LTIRole.type == role_type)
+
+        if h_userids:
+            roster_query = roster_query.where(LMSUser.h_userid.in_(h_userids))
+
+        return roster_query
+
+    def get_segments_roster(
+        self,
+        segments: list[LMSSegment],
+        role_scope: RoleScope | None = None,
+        role_type: RoleType | None = None,
+        h_userids: list[str] | None = None,
+    ) -> Select[tuple[LMSUser, bool]]:
+        """Get the roster information for a segment from our DB."""
+
+        roster_query = (
+            select(LMSUser, LMSSegmentRoster.active)
+            .join(LMSUser, LMSSegmentRoster.lms_user_id == LMSUser.id)
+            .join(LTIRole, LTIRole.id == LMSSegmentRoster.lti_role_id)
+            .where(LMSSegmentRoster.lms_segment_id.in_([s.id for s in segments]))
         ).distinct()
 
         if role_scope:
