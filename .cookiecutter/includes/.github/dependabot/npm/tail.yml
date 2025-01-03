@@ -5,7 +5,7 @@ groups:
   eslint:
     patterns:
       - 'eslint*'
-      - '@typescript-eslint/*'
+      - 'typescript-eslint'
   rollup:
     patterns:
       - 'rollup'
