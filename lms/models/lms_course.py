@@ -7,6 +7,7 @@ These duplicate some of the information stored in Grouping and GroupingMembershi
     - LMSCourse membership stores role information, GroupingMembership doesn't.
 """
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 import sqlalchemy as sa
@@ -45,6 +46,12 @@ class LMSCourse(CreatedUpdatedMixin, Base):
 
     lti_context_memberships_url: Mapped[str | None] = mapped_column()
     """URL for the Names and Roles endpoint, stored during launch to use it outside the launch context."""
+
+    starts_at: Mapped[datetime | None] = mapped_column()
+    """The start date of the course. Only for when we get this information directly from the LMS"""
+
+    ends_at: Mapped[datetime | None] = mapped_column()
+    """The end date of the course. Only for when we get this information direclty from the LMS"""
 
 
 class LMSCourseApplicationInstance(CreatedUpdatedMixin, Base):
