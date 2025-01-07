@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from unittest.mock import call, patch, sentinel
 
 import pytest
@@ -161,9 +161,29 @@ class TestCourseService:
         )
         assert course == upsert_course.return_value
 
+    @pytest.mark.parametrize(
+        "custom_course_starts, course_starts_at",
+        [(None, None), ("2022-01-01T00:00:00Z", datetime(2022, 1, 1, tzinfo=UTC))],
+    )
+    @pytest.mark.parametrize(
+        "custom_course_ends, course_ends_at",
+        [(None, None), ("2022-01-01T00:00:00Z", datetime(2022, 1, 1, tzinfo=UTC))],
+    )
     def test_upsert_course(
-        self, svc, grouping_service, bulk_upsert, db_session, lti_params
+        self,
+        svc,
+        grouping_service,
+        bulk_upsert,
+        db_session,
+        lti_params,
+        custom_course_starts,
+        course_starts_at,
+        custom_course_ends,
+        course_ends_at,
     ):
+        lti_params["custom_course_starts"] = custom_course_starts
+        lti_params["custom_course_ends"] = custom_course_ends
+
         course = svc.upsert_course(
             lti_params=lti_params,
             extra=sentinel.extra,
@@ -196,10 +216,18 @@ class TestCourseService:
                             "h_authority_provided_id": course.authority_provided_id,
                             "name": course.lms_name,
                             "lti_context_memberships_url": None,
+                            "starts_at": course_starts_at,
+                            "ends_at": course_ends_at,
                         }
                     ],
                     index_elements=["h_authority_provided_id"],
-                    update_columns=["updated", "name", "lti_context_memberships_url"],
+                    update_columns=[
+                        "updated",
+                        "name",
+                        "lti_context_memberships_url",
+                        "starts_at",
+                        "ends_at",
+                    ],
                 ),
                 call().one(),
                 call(

@@ -51,7 +51,7 @@ class LMSCourse(CreatedUpdatedMixin, Base):
     """The start date of the course. Only for when we get this information directly from the LMS"""
 
     ends_at: Mapped[datetime | None] = mapped_column()
-    """The end date of the course. Only for when we get this information direclty from the LMS"""
+    """The end date of the course. Only for when we get this information directly from the LMS"""
 
 
 class LMSCourseApplicationInstance(CreatedUpdatedMixin, Base):

@@ -1,6 +1,9 @@
 import json
 from copy import deepcopy
+from datetime import datetime
+from typing import Mapping
 
+from dateutil import parser
 from sqlalchemy import Select, select, union
 
 from lms.db import full_text_match
@@ -311,6 +314,8 @@ class CourseService:
             "https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice", {}
         ).get("context_memberships_url")
 
+        course_starts_at, course_ends_at = self._get_course_dates(lti_params)
+
         lms_course = bulk_upsert(
             self._db,
             LMSCourse,
@@ -321,10 +326,18 @@ class CourseService:
                     "h_authority_provided_id": course.authority_provided_id,
                     "name": course.lms_name,
                     "lti_context_memberships_url": lti_context_membership_url,
+                    "starts_at": course_starts_at,
+                    "ends_at": course_ends_at,
                 }
             ],
             index_elements=["h_authority_provided_id"],
-            update_columns=["updated", "name", "lti_context_memberships_url"],
+            update_columns=[
+                "updated",
+                "name",
+                "lti_context_memberships_url",
+                "starts_at",
+                "ends_at",
+            ],
         ).one()
         bulk_upsert(
             self._db,
@@ -414,6 +427,22 @@ class CourseService:
                     return historical_course
 
         return None
+
+    def _get_course_dates(
+        self, lti_params: Mapping
+    ) -> tuple[datetime | None, datetime | None]:
+        """Get the dates for the current curse, None if not available."""
+        try:
+            course_starts_at = parser.isoparse(lti_params.get("custom_course_starts"))
+        except (TypeError, ValueError):
+            course_starts_at = None
+
+        try:
+            course_ends_at = parser.isoparse(lti_params.get("custom_course_ends"))
+        except (TypeError, ValueError):
+            course_ends_at = None
+
+        return course_starts_at, course_ends_at
 
 
 def course_service_factory(_context, request):
