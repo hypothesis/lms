@@ -36,6 +36,11 @@ class LMSCourse(CreatedUpdatedMixin, Base):
     lti_context_id: Mapped[str] = mapped_column(index=True)
     """ID of this course in the LMS, via LTI. "Context"" is using the LTI nomenclature."""
 
+    lms_api_course_id: Mapped[str | None] = mapped_column()
+    """
+    ID of the course in the propietary LMS API.
+    """
+
     h_authority_provided_id: Mapped[str] = mapped_column(unique=True, index=True)
     """The Group.authority_provided_id value in H. This is calculated hashing tool_consumer_instance_guid and lti_context_id together."""
 
