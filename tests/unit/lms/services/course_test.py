@@ -169,6 +169,10 @@ class TestCourseService:
         "custom_course_ends, course_ends_at",
         [(None, None), ("2022-01-01T00:00:00Z", datetime(2022, 1, 1, tzinfo=UTC))],
     )
+    @pytest.mark.parametrize(
+        "custom_canvas_api_id",
+        [None, "API ID"],
+    )
     def test_upsert_course(
         self,
         svc,
@@ -180,9 +184,11 @@ class TestCourseService:
         course_starts_at,
         custom_course_ends,
         course_ends_at,
+        custom_canvas_api_id,
     ):
         lti_params["custom_course_starts"] = custom_course_starts
         lti_params["custom_course_ends"] = custom_course_ends
+        lti_params["custom_canvas_course_id"] = custom_canvas_api_id
 
         course = svc.upsert_course(
             lti_params=lti_params,
@@ -218,6 +224,7 @@ class TestCourseService:
                             "lti_context_memberships_url": None,
                             "starts_at": course_starts_at,
                             "ends_at": course_ends_at,
+                            "lms_api_course_id": custom_canvas_api_id,
                         }
                     ],
                     index_elements=["h_authority_provided_id"],
@@ -227,6 +234,7 @@ class TestCourseService:
                         "lti_context_memberships_url",
                         "starts_at",
                         "ends_at",
+                        "lms_api_course_id",
                     ],
                 ),
                 call().one(),
