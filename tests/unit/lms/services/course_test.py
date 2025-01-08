@@ -163,11 +163,19 @@ class TestCourseService:
 
     @pytest.mark.parametrize(
         "custom_course_starts, course_starts_at",
-        [(None, None), ("2022-01-01T00:00:00Z", datetime(2022, 1, 1, tzinfo=UTC))],
+        [
+            (None, None),
+            ("NOT A DATE", None),
+            ("2022-01-01T00:00:00Z", datetime(2022, 1, 1, tzinfo=UTC)),
+        ],
     )
     @pytest.mark.parametrize(
         "custom_course_ends, course_ends_at",
-        [(None, None), ("2022-01-01T00:00:00Z", datetime(2022, 1, 1, tzinfo=UTC))],
+        [
+            (None, None),
+            ("NOT A DATE", None),
+            ("2022-01-01T00:00:00Z", datetime(2022, 1, 1, tzinfo=UTC)),
+        ],
     )
     @pytest.mark.parametrize(
         "custom_canvas_api_id",
