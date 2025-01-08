@@ -69,8 +69,8 @@ class CourseService:
             if product_family == Family.CANVAS:
                 extra = {
                     "canvas": {
-                        "custom_canvas_course_id": lti_params.get(
-                            "custom_canvas_course_id"
+                        "custom_canvas_course_id": self._get_api_id_from_launch(
+                            lti_params
                         )
                     }
                 }
@@ -315,6 +315,7 @@ class CourseService:
         ).get("context_memberships_url")
 
         course_starts_at, course_ends_at = self._get_course_dates(lti_params)
+        lms_api_course_id = self._get_api_id_from_launch(lti_params)
 
         lms_course = bulk_upsert(
             self._db,
@@ -328,6 +329,7 @@ class CourseService:
                     "lti_context_memberships_url": lti_context_membership_url,
                     "starts_at": course_starts_at,
                     "ends_at": course_ends_at,
+                    "lms_api_course_id": lms_api_course_id,
                 }
             ],
             index_elements=["h_authority_provided_id"],
@@ -337,6 +339,7 @@ class CourseService:
                 "lti_context_memberships_url",
                 "starts_at",
                 "ends_at",
+                "lms_api_course_id",
             ],
         ).one()
         bulk_upsert(
@@ -443,6 +446,15 @@ class CourseService:
             course_ends_at = None
 
         return course_starts_at, course_ends_at
+
+    def _get_api_id_from_launch(self, lti_params: LTIParams) -> str | None:
+        """Get the API ID from the launch params.
+
+        In this context API ID applies to the LMS specific propietary API ID as opposed to any LTI ID.
+
+        Canvas only for now.
+        """
+        return lti_params.get("custom_canvas_course_id")
 
 
 def course_service_factory(_context, request):
