@@ -8,5 +8,6 @@ LMSUser = make_factory(
     models.LMSUser,
     FACTORY_CLASS=SQLAlchemyModelFactory,
     lti_user_id=USER_ID,
+    lms_api_user_id=USER_ID,
     h_userid=H_USERID,
 )
