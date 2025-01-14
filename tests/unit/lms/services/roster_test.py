@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from unittest.mock import Mock, sentinel
 
@@ -6,7 +7,14 @@ from h_matchers import Any
 from sqlalchemy import select
 
 from lms.models import AssignmentRoster, CourseRoster, LMSSegmentRoster
-from lms.services.exceptions import ExternalRequestError
+from lms.models.lms_segment import LMSSegment
+from lms.models.lms_user import LMSUser
+from lms.models.lti_role import RoleScope, RoleType
+from lms.services.exceptions import (
+    CanvasAPIError,
+    ExternalRequestError,
+    OAuth2TokenError,
+)
 from lms.services.roster import RosterService, factory
 from tests import factories
 
@@ -369,6 +377,159 @@ class TestRosterService:
         assert roster[3].lms_user.lti_user_id == "USER_ID_INACTIVE"
         assert not roster[3].active
 
+    @pytest.mark.usefixtures("canvas_section")
+    def test_fetch_canvas_sections_roster_with_no_instructor_token(
+        self, svc, lms_course, caplog
+    ):
+        svc.fetch_canvas_sections_roster(lms_course)
+
+        assert "No instructor found" in caplog.records[0].message
+
+    @pytest.mark.usefixtures("instructor_in_course")
+    def test_fetch_canvas_sections_roster_with_no_db_sections(
+        self, svc, lms_course, caplog
+    ):
+        svc.fetch_canvas_sections_roster(lms_course)
+
+        assert "No sections found in the DB" in caplog.records[0].message
+
+    @pytest.mark.usefixtures("instructor_in_course", "canvas_section")
+    def test_fetch_canvas_sections_roster_with_no_api_sections(
+        self, svc, lms_course, caplog, canvas_api_client
+    ):
+        canvas_api_client.course_sections.return_value = []
+
+        svc.fetch_canvas_sections_roster(lms_course)
+
+        assert "No sections found on the API" in caplog.records[0].message
+
+    @pytest.mark.usefixtures("instructor_in_course", "canvas_section")
+    def test_fetch_canvas_sections_roster_with_nothing_to_insert(
+        self, svc, lms_course, caplog, canvas_api_client
+    ):
+        canvas_api_client.course_sections.return_value = [
+            {"id": 10, "name": "Section 1", "students": []}
+        ]
+
+        svc.fetch_canvas_sections_roster(lms_course)
+
+        assert "No roster entries" in caplog.records[0].message
+
+    def test_fetch_canvas_sections_roster(
+        self,
+        svc,
+        lms_course,
+        student_in_course,
+        canvas_api_client,
+        canvas_section,
+        canvas_api_client_factory,
+        db_session,
+        pyramid_request,
+        lti_v13_application_instance,
+        instructor_in_course,
+    ):
+        db_session.flush()
+
+        canvas_api_client.course_sections.return_value = [
+            {
+                "id": int(canvas_section.lms_id),
+                "name": "Section 1",
+                "students": [
+                    # Student that matches student_in_course, the student in the DB
+                    {"id": student_in_course.lms_api_user_id},
+                    # Student that doesn't match any student in the DB
+                    {"id": "SOME OTHER USER"},
+                ],
+            },
+            # Section we haven't seend before in teh DB
+            {"id": "SOME OTHER SECTION"},
+        ]
+
+        svc.fetch_canvas_sections_roster(lms_course)
+
+        canvas_api_client_factory.assert_called_once_with(
+            None,
+            pyramid_request,
+            application_instance=lti_v13_application_instance,
+            user_id=instructor_in_course.lti_user_id,
+        )
+        canvas_api_client.course_sections.assert_called_once_with(
+            lms_course.lms_api_course_id, with_students=True
+        )
+        section_roster = db_session.scalars(
+            select(LMSUser)
+            .join(LMSSegmentRoster)
+            .join(LMSSegment)
+            .where(LMSSegment.id == canvas_section.id)
+        ).all()
+        assert section_roster == [student_in_course]
+
+    @pytest.mark.usefixtures("instructor_in_course")
+    def test_fetch_canvas_sections_roster_needing_refresh(
+        self,
+        svc,
+        lms_course,
+        student_in_course,
+        canvas_api_client,
+        canvas_section,
+        db_session,
+    ):
+        db_session.flush()
+
+        canvas_api_client.course_sections.side_effect = [
+            OAuth2TokenError(refreshable=True),
+            [
+                {
+                    "id": int(canvas_section.lms_id),
+                    "name": "Section 1",
+                    "students": [
+                        # Student that matches student_in_course, the student in the DB
+                        {"id": student_in_course.lms_api_user_id},
+                    ],
+                }
+            ],
+        ]
+
+        svc.fetch_canvas_sections_roster(lms_course)
+
+        section_roster = db_session.scalars(
+            select(LMSUser)
+            .join(LMSSegmentRoster)
+            .join(LMSSegment)
+            .where(LMSSegment.id == canvas_section.id)
+        ).all()
+        assert section_roster == [student_in_course]
+
+    @pytest.mark.usefixtures("instructor_in_course", "canvas_section")
+    def test_fetch_canvas_sections_roster_failed_refresh(
+        self, svc, lms_course, canvas_api_client, db_session, caplog
+    ):
+        db_session.flush()
+
+        canvas_api_client.course_sections.side_effect = OAuth2TokenError(
+            refreshable=True
+        )
+        canvas_api_client.get_refreshed_token.side_effect = CanvasAPIError
+
+        svc.fetch_canvas_sections_roster(lms_course)
+
+        assert "error refreshing token" in caplog.records[0].message
+
+    @pytest.mark.usefixtures("instructor_in_course", "canvas_section")
+    def test_fetch_canvas_sections_roster_with_invalid_token(
+        self, svc, lms_course, canvas_api_client, db_session, caplog
+    ):
+        db_session.flush()
+
+        canvas_api_client.course_sections.side_effect = OAuth2TokenError(
+            refreshable=False
+        )
+        canvas_api_client.get_refreshed_token.side_effect = CanvasAPIError
+
+        svc.fetch_canvas_sections_roster(lms_course)
+
+        assert "invalid API token" in caplog.records[0].message
+
     @pytest.fixture
     def lms_course(self, lti_v13_application_instance):
         lms_course = factories.LMSCourse(lti_context_memberships_url="SERVICE_URL")
@@ -377,6 +538,43 @@ class TestRosterService:
         )
 
         return lms_course
+
+    @pytest.fixture
+    def instructor_in_course(self, lms_course):
+        instructor = factories.LMSUser()
+        role = factories.LTIRole(type=RoleType.INSTRUCTOR, scope=RoleScope.COURSE)
+        factories.LMSCourseMembership(
+            lms_course=lms_course, lms_user=instructor, lti_role=role
+        )
+        return instructor
+
+    @pytest.fixture
+    def student_in_course(self, lms_course):
+        role = factories.LTIRole(type=RoleType.LEARNER, scope=RoleScope.COURSE)
+        student = factories.LMSUser()
+        factories.LMSCourseMembership(
+            lms_course=lms_course, lms_user=student, lti_role=role
+        )
+        return student
+
+    @pytest.fixture
+    def canvas_section(self, lms_course):
+        return factories.LMSSegment(
+            type="canvas_section", lms_course=lms_course, lms_id="1"
+        )
+
+    @pytest.fixture
+    def caplog(self, caplog):
+        caplog.set_level(logging.INFO)
+        return caplog
+
+    @pytest.fixture(autouse=True)
+    def canvas_api_client_factory(self, patch):
+        return patch("lms.services.roster.canvas_api_client_factory")
+
+    @pytest.fixture
+    def canvas_api_client(self, canvas_api_client_factory):
+        return canvas_api_client_factory.return_value
 
     @pytest.fixture
     def assignment(self, lms_course):
@@ -393,9 +591,9 @@ class TestRosterService:
         ]
 
     @pytest.fixture
-    def svc(self, lti_names_roles_service, lti_role_service, db_session):
+    def svc(self, lti_names_roles_service, lti_role_service, pyramid_request):
         return RosterService(
-            db_session,
+            request=pyramid_request,
             lti_names_roles_service=lti_names_roles_service,
             lti_role_service=lti_role_service,
             h_authority="AUTHORITY",
@@ -406,7 +604,6 @@ class TestFactory:
     def test_it(
         self,
         pyramid_request,
-        db_session,
         RosterService,
         lti_names_roles_service,
         lti_role_service,
@@ -414,7 +611,7 @@ class TestFactory:
         service = factory(sentinel.context, pyramid_request)
 
         RosterService.assert_called_once_with(
-            db=db_session,
+            request=pyramid_request,
             lti_names_roles_service=lti_names_roles_service,
             lti_role_service=lti_role_service,
             h_authority=pyramid_request.registry.settings["h_authority"],
