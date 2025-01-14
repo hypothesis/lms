@@ -104,6 +104,28 @@ class TestCanvasAPIClientIntegrated:
             query={"per_page": Any.string()},
         )
 
+    def test_course_sections_with_students(self, canvas_api_client, http_session):
+        sections = [
+            {"id": 101, "name": "name_1"},
+            {"id": 102, "name": "name_2"},
+        ]
+        sections_with_noise = [
+            dict(section, unexpected="ignored") for section in sections
+        ]
+
+        http_session.send.return_value = factories.requests.Response(
+            status_code=200, json_data=sections_with_noise
+        )
+
+        response = canvas_api_client.course_sections("COURSE_ID", with_students=True)
+
+        assert response == sections
+        self.assert_session_send(
+            http_session,
+            "api/v1/courses/COURSE_ID/sections",
+            query={"per_page": Any.string(), "include[]": "students"},
+        )
+
     def test_course_sections_deduplicates_sections(
         self, canvas_api_client, http_session
     ):

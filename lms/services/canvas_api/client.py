@@ -15,6 +15,15 @@ from lms.validation import RequestsResponseSchema
 log = logging.getLogger(__name__)
 
 
+class _SectionStudentSchema(Schema):
+    """Schema for each of the students that belong to a section."""
+
+    class Meta:
+        unknown = EXCLUDE
+
+    id = fields.Int(required=True)
+
+
 class _SectionSchema(Schema):
     """
     Schema for an individual course section dict.
@@ -29,6 +38,10 @@ class _SectionSchema(Schema):
 
     id = fields.Int(required=True)
     name = fields.String(required=True)
+
+    students = fields.List(
+        fields.Nested(_SectionStudentSchema), required=False, allow_none=True
+    )
 
 
 class CanvasAPIClient:
@@ -148,7 +161,7 @@ class CanvasAPIClient:
             # Return the contents of sections without the key
             return data["sections"]
 
-    def course_sections(self, course_id):
+    def course_sections(self, course_id, with_students=False):
         """
         Return all the sections for the given course_id.
 
@@ -159,10 +172,15 @@ class CanvasAPIClient:
         # For documentation of this request see:
         # https://canvas.instructure.com/doc/api/sections.html#method.sections.index
 
+        params = {}
+        if with_students:
+            params = {"include[]": "students"}
+
         return self._ensure_sections_unique(
             self._client.send(
                 "GET",
                 f"courses/{course_id}/sections",
+                params=params,
                 schema=self._CourseSectionsSchema,
             )
         )
