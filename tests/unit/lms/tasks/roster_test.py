@@ -6,6 +6,7 @@ from freezegun import freeze_time
 
 from lms.tasks.roster import (
     fetch_assignment_roster,
+    fetch_canvas_sections_roster,
     fetch_course_roster,
     fetch_segment_roster,
     schedule_fetching_assignment_rosters,
@@ -25,6 +26,20 @@ class TestRosterTasks:
 
         roster_service.fetch_course_roster.assert_called_once_with(lms_course)
 
+    def test_fetch_course_roster_with_sections(
+        self, roster_service, db_session, fetch_canvas_sections_roster
+    ):
+        lms_course = factories.LMSCourse()
+        factories.LMSSegment(lms_course=lms_course, type="canvas_section")
+        db_session.flush()
+
+        fetch_course_roster(lms_course_id=lms_course.id)
+
+        roster_service.fetch_course_roster.assert_called_once_with(lms_course)
+        fetch_canvas_sections_roster.delay.assert_called_once_with(
+            lms_course_id=lms_course.id
+        )
+
     def test_fetch_assignment_roster(self, roster_service, db_session):
         assignment = factories.Assignment()
         db_session.flush()
@@ -40,6 +55,14 @@ class TestRosterTasks:
         fetch_segment_roster(lms_segment_id=lms_segment.id)
 
         roster_service.fetch_canvas_group_roster.assert_called_once_with(lms_segment)
+
+    def test_fetch_canvas_sections_roster(self, roster_service, db_session):
+        lms_course = factories.LMSCourse()
+        db_session.flush()
+
+        fetch_canvas_sections_roster(lms_course_id=lms_course.id)
+
+        roster_service.fetch_canvas_sections_roster.assert_called_once_with(lms_course)
 
     def test_schedule_fetching_rosters(
         self,
@@ -301,6 +324,10 @@ class TestRosterTasks:
     @pytest.fixture
     def fetch_segment_roster(self, patch):
         return patch("lms.tasks.roster.fetch_segment_roster")
+
+    @pytest.fixture
+    def fetch_canvas_sections_roster(self, patch):
+        return patch("lms.tasks.roster.fetch_canvas_sections_roster")
 
     @pytest.fixture
     def schedule_fetching_segment_rosters(self, patch):

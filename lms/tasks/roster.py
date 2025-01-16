@@ -237,6 +237,15 @@ def fetch_course_roster(*, lms_course_id) -> None:
             lms_course = request.db.get(LMSCourse, lms_course_id)
             roster_service.fetch_course_roster(lms_course)
 
+            # Check the if course has any sections, if it does, schedule fetching its rosters
+            if request.db.scalars(
+                select(LMSSegment.id).where(
+                    LMSSegment.lms_course_id == lms_course_id,
+                    LMSSegment.type == "canvas_section",
+                )
+            ).first():
+                fetch_canvas_sections_roster.delay(lms_course_id=lms_course_id)
+
 
 @app.task(
     acks_late=True,
@@ -268,3 +277,19 @@ def fetch_segment_roster(*, lms_segment_id) -> None:
         with request.tm:
             assignment = request.db.get(LMSSegment, lms_segment_id)
             roster_service.fetch_canvas_group_roster(assignment)
+
+
+@app.task(
+    acks_late=True,
+    autoretry_for=(Exception,),
+    max_retries=2,
+    retry_backoff=3600,
+    retry_backoff_max=7200,
+)
+def fetch_canvas_sections_roster(*, lms_course_id) -> None:
+    """Fetch the roster for all sections of a given course."""
+    with app.request_context() as request:
+        roster_service: RosterService = request.find_service(RosterService)
+        with request.tm:
+            lms_course = request.db.get(LMSCourse, lms_course_id)
+            roster_service.fetch_canvas_sections_roster(lms_course)
