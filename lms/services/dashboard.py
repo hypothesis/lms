@@ -212,16 +212,10 @@ class DashboardService:
     def get_assignment_roster(
         self, assignment: Assignment, h_userids: list[str] | None = None
     ) -> tuple[datetime | None, Select[tuple[LMSUser, bool]]]:
-        rosters_enabled = (
-            assignment.course
-            and assignment.course.application_instance.settings.get(
-                "dashboard", "rosters"
-            )
-        )
         roster_last_updated = self._roster_service.assignment_roster_last_updated(
             assignment
         )
-        if rosters_enabled and roster_last_updated:
+        if roster_last_updated:
             # If rostering is enabled and we do have the data, use it
             query = self._roster_service.get_assignment_roster(
                 assignment,
@@ -248,15 +242,10 @@ class DashboardService:
     def get_course_roster(
         self, lms_course: LMSCourse, h_userids: list[str] | None = None
     ) -> tuple[datetime | None, Select[tuple[LMSUser, bool]]]:
-        rosters_enabled = lms_course.course.application_instance.settings.get(
-            "dashboard", "rosters"
+        roster_last_updated = self._roster_service.course_roster_last_updated(
+            lms_course
         )
-        roster_last_updated = (
-            self._roster_service.course_roster_last_updated(lms_course)
-            if rosters_enabled
-            else None
-        )
-        if rosters_enabled and roster_last_updated:
+        if roster_last_updated:
             # If rostering is enabled and we do have the data, use it
             query = self._roster_service.get_course_roster(
                 lms_course,
@@ -285,16 +274,9 @@ class DashboardService:
             "Segments must belong to the same course"
         )
 
-        rosters_enabled = segments[
-            0
-        ].lms_course.course.application_instance.settings.get("dashboard", "rosters")
-        roster_last_updated = (
-            self._get_segment_rosters_last_updated(segments)
-            if rosters_enabled
-            else None
-        )
+        roster_last_updated = self._get_segment_rosters_last_updated(segments)
         # Only use roster data if we have it for all segments, otherwise it becomes tricky to build a coherent roster
-        if rosters_enabled and roster_last_updated:
+        if roster_last_updated:
             # If rostering is enabled and we do have the data, use it
             query = self._roster_service.get_segments_roster(
                 segments,

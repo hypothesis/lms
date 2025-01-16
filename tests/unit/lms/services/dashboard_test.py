@@ -266,7 +266,6 @@ class TestDashboardService:
 
         assert svc.get_request_admin_organizations(pyramid_request) == [organization]
 
-    @pytest.mark.parametrize("rosters_enabled", [True, False])
     @pytest.mark.parametrize("roster_available", [True, False])
     def test_get_assignment_roster(
         self,
@@ -274,10 +273,8 @@ class TestDashboardService:
         application_instance,
         user_service,
         roster_service,
-        rosters_enabled,
         roster_available,
     ):
-        application_instance.settings.set("dashboard", "rosters", rosters_enabled)
         assignment = factories.Assignment(
             course=factories.Course(application_instance=application_instance)
         )
@@ -286,7 +283,7 @@ class TestDashboardService:
 
         last_updated, roster = svc.get_assignment_roster(assignment, sentinel.h_userids)
 
-        if not roster_available or not rosters_enabled:
+        if not roster_available:
             user_service.get_users_for_assignment.assert_called_once_with(
                 role_scope=RoleScope.COURSE,
                 role_type=RoleType.LEARNER,
@@ -314,7 +311,6 @@ class TestDashboardService:
                 == roster_service.get_assignment_roster.return_value.order_by.return_value
             )
 
-    @pytest.mark.parametrize("rosters_enabled", [True, False])
     @pytest.mark.parametrize("roster_available", [True, False])
     def test_get_course_roster(
         self,
@@ -322,10 +318,8 @@ class TestDashboardService:
         application_instance,
         user_service,
         roster_service,
-        rosters_enabled,
         roster_available,
     ):
-        application_instance.settings.set("dashboard", "rosters", rosters_enabled)
         lms_course = factories.LMSCourse(
             course=factories.Course(application_instance=application_instance)
         )
@@ -334,7 +328,7 @@ class TestDashboardService:
 
         last_updated, roster = svc.get_course_roster(lms_course, sentinel.h_userids)
 
-        if not roster_available or not rosters_enabled:
+        if not roster_available:
             user_service.get_users_for_course.assert_called_once_with(
                 role_scope=RoleScope.COURSE,
                 role_type=RoleType.LEARNER,
@@ -361,26 +355,17 @@ class TestDashboardService:
                 == roster_service.get_course_roster.return_value.order_by.return_value
             )
 
-    @pytest.mark.parametrize("rosters_enabled", [True, False])
     @pytest.mark.parametrize("roster_available", [True, False])
     def test_get_segment_roster(
-        self,
-        svc,
-        application_instance,
-        user_service,
-        roster_service,
-        rosters_enabled,
-        roster_available,
-        course,
+        self, svc, user_service, roster_service, roster_available, course
     ):
-        application_instance.settings.set("dashboard", "rosters", rosters_enabled)
         segment = factories.LMSSegment(lms_course=course.lms_course)
         if not roster_available:
             roster_service.segment_roster_last_updated.return_value = None
 
         last_updated, roster = svc.get_segments_roster([segment], sentinel.h_userids)
 
-        if not roster_available or not rosters_enabled:
+        if not roster_available:
             user_service.get_users_for_segments.assert_called_once_with(
                 role_scope=RoleScope.COURSE,
                 role_type=RoleType.LEARNER,
