@@ -116,10 +116,6 @@
                             {{ settings_checkbox("Use alternative parameter for LTI1.3 grading", "hypothesis", "lti_13_sourcedid_for_grading", default=False) }}
                         </fieldset>
                         <fieldset class="box">
-                            <legend class="label has-text-centered">Dashboard settings</legend>
-                            {{ settings_checkbox("Enable roster data", "dashboard", "rosters", default=False) }}
-                        </fieldset>
-                        <fieldset class="box">
                             <legend class="label has-text-centered">Canvas settings</legend>
                             {{ macros.disabled_text_field("API domain", instance.custom_canvas_api_domain) }}
                             {# Note the mismatch betwween canvas nomenclature and ours #}
