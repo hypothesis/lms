@@ -115,7 +115,7 @@ jobs:
       - name: Upload coverage file
         uses: actions/upload-artifact@v4
         with:
-          name: coverage
+          name: coverage-python${{ matrix.python-version}}
           path: .coverage.*
           include-hidden-files: true
   Coverage:
@@ -137,7 +137,8 @@ jobs:
       - name: Download coverage files
         uses: actions/download-artifact@v4
         with:
-          name: coverage
+          pattern: coverage-python*
+          merge-multiple: true
       - run: python -m pip install 'tox<4'
       - run: tox -e coverage
   Functests:
