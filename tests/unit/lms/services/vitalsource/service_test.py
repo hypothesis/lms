@@ -1,5 +1,5 @@
 import re
-from unittest.mock import create_autospec, sentinel
+from unittest.mock import call, create_autospec, sentinel
 
 import pytest
 from _pytest.mark import param
@@ -133,7 +133,7 @@ class TestVitalSourceService:
     @pytest.mark.usefixtures("user_is_learner")
     def test_check_h_license_failure(self, svc, pyramid_request, customer_client):
         svc._student_pay_enabled = True  # noqa: SLF001
-        customer_client.get_user_book_license.return_value = None
+        customer_client.get_user_book_license.side_effect = [None, None]
 
         assert (
             svc.check_h_license(
@@ -144,14 +144,29 @@ class TestVitalSourceService:
             == ErrorCode.VITALSOURCE_STUDENT_PAY_NO_LICENSE
         )
 
-        customer_client.get_user_book_license.assert_called_once_with(
-            svc.get_user_reference(pyramid_request.lti_params), svc.H_SKU
+        user_reference = svc.get_user_reference(pyramid_request.lti_params)
+        customer_client.get_user_book_license.assert_has_calls(
+            [
+                call(
+                    user_reference,
+                    svc.H_SKUS[0],
+                ),
+                call(
+                    user_reference,
+                    svc.H_SKUS[1],
+                ),
+            ]
         )
 
     @pytest.mark.usefixtures("user_is_learner")
-    def test_check_h_license_success(self, svc, pyramid_request, customer_client):
+    @pytest.mark.parametrize(
+        "license_results", [[None, sentinel.license], [sentinel.license, None]]
+    )
+    def test_check_h_license_success(
+        self, svc, pyramid_request, customer_client, license_results
+    ):
         svc._student_pay_enabled = True  # noqa: SLF001
-        customer_client.get_user_book_license.return_value = sentinel.license
+        customer_client.get_user_book_license.side_effect = license_results
 
         assert not (
             svc.check_h_license(

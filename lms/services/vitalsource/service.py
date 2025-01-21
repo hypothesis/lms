@@ -11,7 +11,7 @@ from lms.services.vitalsource.model import VSBookLocation
 class VitalSourceService:
     """A high-level interface for dealing with VitalSource."""
 
-    H_SKU = "HYPOTHESISLMSAPP"
+    H_SKUS = ["HYPOTHESISLMSAPP", "HYPOTHESISLMSAPPR180"]
     """
     SKU of the H app in the VitalSource store.
     Student pay schools will check students have a license for this SKU
@@ -215,7 +215,10 @@ class VitalSourceService:
             # Do the actual license check, only for students
             user_reference = self.get_user_reference(lti_params)
             assert self._sso_client
-            if not self._sso_client.get_user_book_license(user_reference, self.H_SKU):
+            for sku in self.H_SKUS:
+                if self._sso_client.get_user_book_license(user_reference, sku):
+                    return None
+            else:
                 return ErrorCode.VITALSOURCE_STUDENT_PAY_NO_LICENSE
 
         return None
