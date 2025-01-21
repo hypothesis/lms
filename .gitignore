@@ -1,4 +1,4 @@
-build
+/build
 coverage
 node_modules
 yarn-error.log
@@ -11,6 +11,7 @@ supervisord.pid
 .DS_Store
 .devdata*
 .eslintcache
+*.tsbuildinfo
 .certificates
 tests/bdd/steps/_compiled_feature_steps.py
 
