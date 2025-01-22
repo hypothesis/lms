@@ -41,6 +41,7 @@
     "__copyright_year": "2017",
     "__parallel_unit_tests": true,
     "__tests_runner_type": "ubuntu-latest-32-cores",
-    "__lint_runner_type": "ubuntu-latest-32-cores"
+    "__lint_runner_type": "ubuntu-latest-32-cores",
+    "__slack_notifications_workflows": ", Report refresh"
   }
 }
