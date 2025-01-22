@@ -81,7 +81,9 @@ class LTI11GradingService(LTIGradingService):
         ).first()
         assert (
             assignment_membership and assignment_membership.lti_v11_lis_result_sourcedid
-        ), "Trying to grade a student without a membership or membership without lti_v11_lis_result_sourcedid"
+        ), (
+            "Trying to grade a student without a membership or membership without lti_v11_lis_result_sourcedid"
+        )
         request = self._record_score_payload(
             score=score,
             user_grading_id=assignment_membership.lti_v11_lis_result_sourcedid,

@@ -154,9 +154,9 @@ class RosterService:
 
     def fetch_course_roster(self, lms_course: LMSCourse) -> None:
         """Fetch the roster information for a course from the LMS."""
-        assert (
-            lms_course.lti_context_memberships_url
-        ), "Trying fetch roster for course without service URL."
+        assert lms_course.lti_context_memberships_url, (
+            "Trying fetch roster for course without service URL."
+        )
         lti_registration = self._get_lti_registration(lms_course)
 
         roster = self._lti_names_roles_service.get_context_memberships(
@@ -211,12 +211,12 @@ class RosterService:
 
     def fetch_assignment_roster(self, assignment: Assignment) -> None:
         """Fetch the roster information for an assignment from the LMS."""
-        assert (
-            assignment.lti_v13_resource_link_id
-        ), "Trying fetch roster for an assignment without LTI1.3 ID."
-        assert (
-            assignment.course
-        ), "Trying fetch roster for an assignment without a course."
+        assert assignment.lti_v13_resource_link_id, (
+            "Trying fetch roster for an assignment without LTI1.3 ID."
+        )
+        assert assignment.course, (
+            "Trying fetch roster for an assignment without a course."
+        )
 
         lms_course = self._db.scalars(
             select(LMSCourse).where(
@@ -225,9 +225,9 @@ class RosterService:
             )
         ).one()
 
-        assert (
-            lms_course.lti_context_memberships_url
-        ), "Trying fetch roster for course without service URL."
+        assert lms_course.lti_context_memberships_url, (
+            "Trying fetch roster for course without service URL."
+        )
         lti_registration = self._get_lti_registration(lms_course)
 
         try:
@@ -301,9 +301,9 @@ class RosterService:
         assert canvas_group.type == "canvas_group"
 
         lms_course = canvas_group.lms_course
-        assert (
-            lms_course.lti_context_memberships_url
-        ), "Trying fetch roster for course without service URL."
+        assert lms_course.lti_context_memberships_url, (
+            "Trying fetch roster for course without service URL."
+        )
 
         application_instance = self._db.scalars(
             select(ApplicationInstance)

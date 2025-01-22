@@ -46,9 +46,9 @@ def sync_grade(*, grading_sync_grade_id: int):
             grading_service = service_factory(None, request, application_instance)
 
             try:
-                assert (
-                    assignment.lis_outcome_service_url
-                ), "Assignment without grading URL"
+                assert assignment.lis_outcome_service_url, (
+                    "Assignment without grading URL"
+                )
 
                 grading_service.sync_grade(
                     application_instance,
