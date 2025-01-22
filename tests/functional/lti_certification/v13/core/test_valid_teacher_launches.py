@@ -14,13 +14,13 @@ class TestValidTeacherPayloads:
     """
 
     def test_message_as_instructor(self, do_teacher_launch):
-        """Launch LTI 1.3 Message as Instructor"""
+        """Launch LTI 1.3 Message as Instructor."""
         response = do_teacher_launch()
 
         assert_launched_as_teacher(response)
 
     def test_with_multiple_roles(self, do_teacher_launch, teacher_payload):
-        """Launch Instructor with Multiple Role Values"""
+        """Launch Instructor with Multiple Role Values."""
         teacher_payload["https://purl.imsglobal.org/spec/lti/claim/roles"] = [
             "http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor",
             "http://purl.imsglobal.org/vocab/lis/v2/institution/person#Staff",
@@ -32,7 +32,7 @@ class TestValidTeacherPayloads:
         assert_launched_as_teacher(response)
 
     def test_with_short_role(self, do_teacher_launch, teacher_payload):
-        """Launch Instructor with Short Role Value"""
+        """Launch Instructor with Short Role Value."""
         teacher_payload["https://purl.imsglobal.org/spec/lti/claim/roles"] = [
             "Instructor"
         ]
@@ -42,7 +42,7 @@ class TestValidTeacherPayloads:
         assert_launched_as_teacher(response)
 
     def test_with_unknown_role(self, do_teacher_launch, teacher_payload):
-        """Launch Instructor with Unknown Role"""
+        """Launch Instructor with Unknown Role."""
         teacher_payload["https://purl.imsglobal.org/spec/lti/claim/roles"] = [
             "http://purl.imsglobal.org/vocab/lis/v2/unknown/unknown#Helper"
         ]
@@ -54,7 +54,7 @@ class TestValidTeacherPayloads:
         assert_launched_as_student(response)
 
     def test_with_no_role(self, do_teacher_launch, teacher_payload):
-        """Launch Instructor With No Role"""
+        """Launch Instructor With No Role."""
         teacher_payload["https://purl.imsglobal.org/spec/lti/claim/roles"] = [""]
 
         response = do_teacher_launch()
@@ -64,7 +64,7 @@ class TestValidTeacherPayloads:
         assert_launched_as_student(response)
 
     def test_with_only_email(self, do_teacher_launch, teacher_payload):
-        """Launch Instructor Only Email"""
+        """Launch Instructor Only Email."""
         del teacher_payload["name"]
         del teacher_payload["given_name"]
         del teacher_payload["family_name"]
@@ -75,7 +75,7 @@ class TestValidTeacherPayloads:
         assert_launched_as_teacher(response)
 
     def test_with_only_names(self, do_teacher_launch, teacher_payload):
-        """Launch Instructor Only Names"""
+        """Launch Instructor Only Names."""
         del teacher_payload["email"]
 
         response = do_teacher_launch()
@@ -83,7 +83,7 @@ class TestValidTeacherPayloads:
         assert_launched_as_teacher(response)
 
     def test_without_pii(self, do_teacher_launch, teacher_payload):
-        """Launch Instructor No PII"""
+        """Launch Instructor No PII."""
         del teacher_payload["name"]
         del teacher_payload["email"]
         del teacher_payload["given_name"]
@@ -96,7 +96,7 @@ class TestValidTeacherPayloads:
 
     @pytest.mark.xfail(reason="Pending. Context is required in our schemas")
     def test_with_email_no_context(self, do_teacher_launch, teacher_payload):
-        """Launch Instructor With Email No Context"""
+        """Launch Instructor With Email No Context."""
 
         del teacher_payload["https://purl.imsglobal.org/spec/lti/claim/context"]
 

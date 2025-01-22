@@ -33,7 +33,7 @@ class TestBadPayloads:
         ) == "".join(caplog.messages)
 
     def test_wrong_lti_version(self, make_jwt, test_payload, do_lti_launch):
-        """The LTI version claim contains the wrong version"""
+        """The LTI version claim contains the wrong version."""
         test_payload["https://purl.imsglobal.org/spec/lti/claim/version"] = "11.3"
 
         response = do_lti_launch({"id_token": make_jwt(test_payload)}, status=422)
@@ -42,7 +42,7 @@ class TestBadPayloads:
         assert "lti_version" in response.text
 
     def test_no_lti_version(self, make_jwt, test_payload, do_lti_launch):
-        """The LTI version claim is missing"""
+        """The LTI version claim is missing."""
         del test_payload["https://purl.imsglobal.org/spec/lti/claim/version"]
 
         response = do_lti_launch({"id_token": make_jwt(test_payload)}, status=422)
@@ -51,13 +51,13 @@ class TestBadPayloads:
         assert "lti_version" in response.text
 
     def test_invalid_lti_message(self, make_jwt, do_lti_launch):
-        """The provided JSON is NOT a 1.3 JWT launch"""
+        """The provided JSON is NOT a 1.3 JWT launch."""
         payload = {"name": "badltilaunch"}
 
         _ = do_lti_launch({"id_token": make_jwt(payload)}, status=403)
 
     def test_missing_lti_claims(self, test_payload, do_lti_launch, make_jwt):
-        """The provided 1.3 JWT launch is missing one or more required claims"""
+        """The provided 1.3 JWT launch is missing one or more required claims."""
         missing_claims = [
             "aud",
             "iss",
@@ -73,7 +73,7 @@ class TestBadPayloads:
         assert response.html
 
     def test_timestamps_incorrect(self, test_payload, do_lti_launch, make_jwt):
-        """Incorrect JWT iat and exp timestamp Values are Invalid"""
+        """Incorrect JWT iat and exp timestamp Values are Invalid."""
         test_payload["iat"] = 11111
         test_payload["exp"] = 22222
 
@@ -81,7 +81,7 @@ class TestBadPayloads:
         assert response.html
 
     def test_message_type_claim_missing(self, test_payload, assert_missing_claim):
-        """The Required message_type Claim Not Present"""
+        """The Required message_type Claim Not Present."""
         response = assert_missing_claim(
             test_payload,
             "https://purl.imsglobal.org/spec/lti/claim/message_type",
@@ -92,19 +92,19 @@ class TestBadPayloads:
         assert "message_type" in response.text
 
     def test_role_claim_missing(self, test_payload, assert_missing_claim):
-        """The Required role Claim Not Present"""
+        """The Required role Claim Not Present."""
         assert_missing_claim(
             test_payload, "https://purl.imsglobal.org/spec/lti/claim/roles"
         )
 
     def test_deployment_id_claim_missing(self, test_payload, assert_missing_claim):
-        """The Required deployment_id Claim Not Present"""
+        """The Required deployment_id Claim Not Present."""
         assert_missing_claim(
             test_payload, "https://purl.imsglobal.org/spec/lti/claim/deployment_id"
         )
 
     def test_resource_link_id_claim_missing(self, test_payload, assert_missing_claim):
-        """The Required resource_link_id Claim Not Present"""
+        """The Required resource_link_id Claim Not Present."""
         assert_missing_claim(
             test_payload,
             "https://purl.imsglobal.org/spec/lti/claim/resource_link",
@@ -112,7 +112,7 @@ class TestBadPayloads:
         )
 
     def test_user_claim_missing(self, test_payload, assert_missing_claim):
-        """The Required sub Claim Not Present"""
+        """The Required sub Claim Not Present."""
         assert_missing_claim(test_payload, "sub", status=403)
 
     @pytest.fixture(params=["teacher_payload", "student_payload"])
