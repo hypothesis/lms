@@ -604,6 +604,12 @@ class RosterService:
                 lms_course,
                 with_refresh_token=False,
             )
+        except CanvasAPIError:
+            LOG.info(
+                "Failed to fetch sections for course %s, API error",
+                lms_course.id,
+            )
+            return []
 
     def _refresh_canvas_token(
         self, canvas_service: CanvasAPIClient, oauth2_token_service

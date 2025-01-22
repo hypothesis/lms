@@ -615,6 +615,19 @@ class TestRosterService:
         assert "error refreshing token" in caplog.records[0].message
 
     @pytest.mark.usefixtures("instructor_in_course", "canvas_section")
+    def test_fetch_canvas_sections_roster_failed_canvas_api_error(
+        self, svc, lms_course, canvas_api_client, db_session, caplog
+    ):
+        db_session.flush()
+
+        canvas_api_client.course_sections.side_effect = CanvasAPIError(refreshable=True)
+        canvas_api_client.get_refreshed_token.side_effect = CanvasAPIError
+
+        svc.fetch_canvas_sections_roster(lms_course)
+
+        assert "API error" in caplog.records[0].message
+
+    @pytest.mark.usefixtures("instructor_in_course", "canvas_section")
     def test_fetch_canvas_sections_roster_with_invalid_token(
         self, svc, lms_course, canvas_api_client, db_session, caplog
     ):
