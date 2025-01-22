@@ -60,9 +60,9 @@ class RSAKeyService:
 
         # Assert the expected result, if we find something different the transition will be aborted
         # and we'd be back at the initial state
-        assert (
-            self._db.query(RSAKey).filter_by(expired=False).count() == target_keys
-        ), "The number of active RSAKey doesn't match the target"
+        assert self._db.query(RSAKey).filter_by(expired=False).count() == target_keys, (
+            "The number of active RSAKey doesn't match the target"
+        )
 
     def generate(self) -> RSAKey:
         """Generate a new random RSA key pair."""

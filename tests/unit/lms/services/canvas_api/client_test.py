@@ -381,7 +381,7 @@ class TestCanvasAPIClientIntegrated:
                 "folder_id": file["folder_id"],
                 "display_name": file["display_name"],
                 "size": file["size"],
-                "id": f'canvas://file/course/COURSE_ID/file_id/{file["id"]}',
+                "id": f"canvas://file/course/COURSE_ID/file_id/{file['id']}",
                 "mime_type": "application/pdf",
             }
             for file in list_files_json

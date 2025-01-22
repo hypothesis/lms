@@ -21,8 +21,7 @@ class TestAssignmentAndGradingSerices:
 
     def test_it(self):
         """
-        Due to the nature of this test in the certification no actual testing
-        happens here.
+        Due to the nature of this test in the certification no actual testing happens here.
 
         The test in the certification tool expects the tool to initiate
         communication with the service but it's not tied to any launch or real

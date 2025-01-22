@@ -281,9 +281,9 @@ class DashboardService:
         self, segments: list[LMSSegment], h_userids: list[str] | None = None
     ) -> tuple[datetime | None, Select[tuple[LMSUser, bool]]]:
         """Return a query that fetches the roster for a list of segments."""
-        assert (
-            len({segment.lms_course_id for segment in segments}) == 1
-        ), "Segments must belong to the same course"
+        assert len({segment.lms_course_id for segment in segments}) == 1, (
+            "Segments must belong to the same course"
+        )
 
         rosters_enabled = segments[
             0

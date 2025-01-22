@@ -106,9 +106,9 @@ class LTI13GradingService(LTIGradingService):
         This is very similar to `record_result` but not scoped to the request context,
         taking all the necessary information as parameters.
         """
-        assert (
-            lms_user.lti_v13_user_id
-        ), "Trying to grade a student without lti_v13_user_id"
+        assert lms_user.lti_v13_user_id, (
+            "Trying to grade a student without lti_v13_user_id"
+        )
         payload = LTI13GradingService._record_score_payload(
             score, lms_user.lti_v13_user_id, grade_timestamp
         )

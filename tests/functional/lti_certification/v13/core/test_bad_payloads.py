@@ -14,9 +14,7 @@ class TestBadPayloads:
     def test_no_kid_sent_in_jwt_header(
         self, jwt_headers, make_jwt, test_payload, do_lti_launch, caplog
     ):
-        """
-        The KID is missing from the header of the JWT (preventing the verification of the signing of the JWT)
-        """
+        """The KID is missing from the header of the JWT (preventing the verification of the signing of the JWT)."""
         del jwt_headers["kid"]
 
         do_lti_launch({"id_token": make_jwt(test_payload, jwt_headers)}, status=403)
