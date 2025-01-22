@@ -1,6 +1,6 @@
 class TestAssignmentAndGradingSerices:
     """
-    From: https://www.imsglobal.org/spec/lti/v1p3/cert/#assignment-and-grade-services-testing
+    From: https://www.imsglobal.org/spec/lti/v1p3/cert/#assignment-and-grade-services-testing.
 
     Assignments and Grade Services (AGS) is tested as pure service (without any UI).
     The Tool is required to acquire the OAuth2 tokens from the IMS Global
