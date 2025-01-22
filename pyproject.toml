@@ -8,56 +8,10 @@ filterwarnings = [
     "ignore:^pkg_resources is deprecated as an API:DeprecationWarning:pyramid",
     "ignore:^Deprecated call to .pkg_resources\\.declare_namespace\\('.*'\\).\\.:DeprecationWarning:pkg_resources",
     "ignore:^'cgi' is deprecated and slated for removal in Python 3\\.13$:DeprecationWarning:webob",
+    "ignore:^datetime\\.datetime\\.utcnow\\(\\) is deprecated and scheduled for removal in a future version\\.:DeprecationWarning",
 ]
 
-[tool.coverage.run]
-branch = true
-parallel = true
-source = ["lms", "tests/unit"]
-omit = [
-    "*/lms/__main__.py",
-    "*/lms/scripts/init_db.py",
-    "lms/pshell.py",
-    "lms/migrations/*",
-    "lms/extensions/feature_flags/views/test.py",
-    "lms/views/feature_flags_test.py",
-]
-
-[tool.coverage.paths]
-source = ["src", ".tox/*tests/lib/python*/site-packages"]
-
-[tool.coverage.report]
-show_missing = true
-precision = 2
-fail_under = 100.00
-skip_covered = true
-exclude_also = [
-    # # TYPE_CHECKING block is only executed while running mypy
-    "if TYPE_CHECKING:"
-]
-
-[tool.ruff]
-target-version = "py311"
-line-length = 88
-exclude = [
-    "tests/bdd/steps/_compiled_feature_steps.py",
-]
-
-[tool.ruff.lint]
-select = [
-  "E", "W", #  https://docs.astral.sh/ruff/rules/#pycodestyle-e-w
-  "D", # https://docs.astral.sh/ruff/rules/#pydocstyle-d
-  "ARG", # https://docs.astral.sh/ruff/rules/#flake8-unused-arguments-arg
-  "BLE001", # https://docs.astral.sh/ruff/rules/blind-except/
-  "R", "PLR", # https://docs.astral.sh/ruff/rules/#refactor-r
-  "C", "PLC", # https://docs.astral.sh/ruff/rules/#convention-c
-  "SLF", # flake-8-self
-  "N", # https://docs.astral.sh/ruff/rules/#pep8-naming-n
-  "F", # https://docs.astral.sh/ruff/rules/unused-import/
-
-  "RUF100", # unused-noqa
-]
-
+[tool.pydocstyle]
 ignore = [
     # Missing docstrings.
     "D100","D101","D102","D103","D104","D105","D106","D107",
@@ -82,58 +36,163 @@ ignore = [
     # > https://peps.python.org/pep-0257/#multi-line-docstrings
     "D212",
     "D213",
+]
+
+[tool.coverage.run]
+branch = true
+parallel = true
+source = ["lms", "tests/unit"]
+omit = [
+    "*/lms/__main__.py",
+    "*/lms/scripts/init_db.py",
+    "lms/pshell.py",
+    "lms/migrations/*",
+    "lms/extensions/feature_flags/views/test.py",
+    "lms/views/feature_flags_test.py",
+]
+
+[tool.coverage.paths]
+source = ["src", ".tox/*tests/lib/python*/site-packages"]
+
+[tool.coverage.report]
+show_missing = true
+precision = 2
+fail_under = 100.00
+skip_covered = true
+exclude_also = [
+    # `if TYPE_CHECKING:` blocks are only executed while running mypy.
+    "if TYPE_CHECKING:",
+]
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 88
+default_section = "THIRDPARTY"
+known_first_party = ["lms", "tests"]
+
+[tool.pylint.main]
+jobs = 0 # Use one process for CPU.
+
+load-plugins = [
+    "pylint.extensions.bad_builtin",
+    "pylint.extensions.check_elif",
+    "pylint.extensions.docparams",
+    "pylint.extensions.mccabe",
+    "pylint.extensions.overlapping_exceptions",
+    "pylint.extensions.redefined_variable_type",
+]
+
+# Fail if there are *any* messages from PyLint.
+# The letters refer to PyLint's message categories, see
+# https://pylint.pycqa.org/en/latest/messages/messages_introduction.html
+fail-on = ["C", "E", "F", "I", "R", "W"]
+
+[tool.pylint.messages_control]
+ignore-paths=[
+]
+enable = [
+    "bad-inline-option",
+    "deprecated-pragma",
+    "useless-suppression",
+    "use-symbolic-message-instead",
+    "use-implicit-booleaness-not-comparison-to-zero",
+    "use-implicit-booleaness-not-comparison-to-string",
+]
+disable = [
+    # Docstrings are encouraged but we don't want to enforce that everything
+    # must have a docstring.
+    "missing-docstring",
+
+    # We don't always want to have to put a `:return:` in a docstring.
+    "missing-return-doc",
+
+    # We don't always want to have to put an `:rtype:` in a docstring.
+    "missing-return-type-doc",
+
+    # We don't want to have to document the type of every parameter with a
+    # `:type:` in the docstring.
+    "missing-type-doc",
+
+    # We use isort to sort and group our imports, so we don't need PyLint to
+    # check them for us.
+    "ungrouped-imports",
 
     # We use Black to format our code automatically, so we don't need PyLint to
     # check formatting for us.
-    "E501", # line-too-long
+    "line-too-long",
 
-    "PLR2004", # Magic values, we mostly get it on HTTP status codes
+    # We use isort to sort out imports so we don't need PyLint to check import
+    # ordering for us.
+    "wrong-import-order",
 
-    # Disabled during the pylint migration, ideally we'll enable this after we are settled in ruff
-    "RET504",
-    "RET501",
-    "PLR6301",
+    "too-few-public-methods",
+
+    # Issues to disable this for false positives, disabling it globally in the meantime https://github.com/PyCQA/pylint/issues/214
+    "duplicate-code",
 ]
 
-[tool.ruff.lint.per-file-ignores]
-"tests/*" = [
-    # Just disable name style checking for the tests, because we
-    # frequently use lots of argument names that don't conform.
-    # For example we frequently create pytest fixtures that aren't named in
-    # snake_case, such as a fixture that returns a mock of the FooBar class would
-    # be named FooBar in CamelCase.
-    "N",
-    # We are more lax about  comment formatting in the tests
-    "D",
-    
-    "PLR0913",
+good-names = [
+    "i", "j", "k", "ex", "Run", "_", # PyLint's default good names.
+    "tm", "db", "ai",
+]
 
-    # Lots of test methods don't use self, but we still want to group our tests
-    # into classes.
-    "PLR6301",
-
-    "PLR0917", # too-many-arguments
-    "PLC2701", # private import
-    "PLR0904", # too-many-public-methods
-] 
-# Ignore unused import errors on __init__ files to avoid having to add either a noqa stament or an __all__ declaration.
-"__init__.py" = ["F401"]
-
+[tool.pylint.reports]
+output-format = "colorized"
+score = "no"
 
 [tool.mypy]
-python_version = 3.11
+allow_untyped_globals = true
+error_summary = false
+pretty = true
 warn_unused_configs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
-check_untyped_defs = true
 
 disable_error_code = [
+    # https://mypy.readthedocs.io/en/stable/error_code_list.html#code-import-untyped
     "import-untyped",
 ]
 
 [[tool.mypy.overrides]]
-module= [
+module = [
+  # Don't try to typecheck the tests for now.
   "tests.*",
-  "lms.migrations.*"
 ]
+ignore_errors = true
+
+[tool.mypy]
+python_version = 3.11
+
+disable_error_code = [
+    "arg-type",
+    "assignment",
+    "attr-defined",
+    "has-type",
+    "import-untyped",
+    "index",
+    "list-item",
+    "misc",
+    "no-redef",
+    "no-untyped-call",
+    "no-untyped-def",
+    "override",
+    "return-value",
+    "type-arg",
+    "union-attr",
+    "valid-type",
+]
+
+plugins = [
+    "sqlalchemy.ext.mypy.plugin",
+]
+
+[[tool.mypy.overrides]]
+module="tests.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module="lms.migrations.*"
 ignore_errors = true
