@@ -84,6 +84,7 @@ def config_json(request):
             "custom_context_id_history": "$Context.id.history",
             "custom_course_starts": "$Canvas.course.startAt",
             "custom_course_ends": "$Canvas.course.endAt",
+            "custom_term_id": "$Canvas.term.id",
             "custom_term_name": "$Canvas.term.name",
             "custom_term_start": "$Canvas.term.startAt",
             "custom_term_end": "$Canvas.term.endAt",
