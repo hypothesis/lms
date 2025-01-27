@@ -18,7 +18,7 @@ from lms.models import ApplicationInstance
 from lms.models._mixins import CreatedUpdatedMixin
 
 if TYPE_CHECKING:
-    from lms.models import LMSUser, LTIRole
+    from lms.models import LMSTerm, LMSUser, LTIRole
 
 
 class LMSCourse(CreatedUpdatedMixin, Base):
@@ -57,6 +57,11 @@ class LMSCourse(CreatedUpdatedMixin, Base):
 
     ends_at: Mapped[datetime | None] = mapped_column()
     """The end date of the course. Only for when we get this information directly from the LMS"""
+
+    lms_term_id: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("lms_term.id", ondelete="cascade"), index=True
+    )
+    lms_term: Mapped["LMSTerm"] = relationship()
 
 
 class LMSCourseApplicationInstance(CreatedUpdatedMixin, Base):
