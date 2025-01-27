@@ -39,6 +39,7 @@ from lms.models.lms_course import (
     LMSCourseMembership,
 )
 from lms.models.lms_segment import LMSSegment, LMSSegmentMembership
+from lms.models.lms_term import LMSTerm
 from lms.models.lms_user import LMSUser, LMSUserApplicationInstance
 from lms.models.lti_params import CLAIM_PREFIX, LTIParams
 from lms.models.lti_registration import LTIRegistration
