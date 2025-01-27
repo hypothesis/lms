@@ -193,6 +193,7 @@ class TestCourseService:
         custom_course_ends,
         course_ends_at,
         custom_canvas_api_id,
+        lms_term_service,
     ):
         lti_params["custom_course_starts"] = custom_course_starts
         lti_params["custom_course_ends"] = custom_course_ends
@@ -233,6 +234,7 @@ class TestCourseService:
                             "starts_at": course_starts_at,
                             "ends_at": course_ends_at,
                             "lms_api_course_id": custom_canvas_api_id,
+                            "lms_term_id": lms_term_service.get_term.return_value.id,
                         }
                     ],
                     index_elements=["h_authority_provided_id"],
@@ -243,6 +245,7 @@ class TestCourseService:
                         "starts_at",
                         "ends_at",
                         "lms_api_course_id",
+                        "lms_term_id",
                     ],
                 ),
                 call().one(),
@@ -500,11 +503,12 @@ class TestCourseService:
         return grouping_service
 
     @pytest.fixture
-    def svc(self, db_session, application_instance, grouping_service):
+    def svc(self, db_session, application_instance, grouping_service, lms_term_service):
         return CourseService(
             db=db_session,
             application_instance=application_instance,
             grouping_service=grouping_service,
+            lms_term_service=lms_term_service,
         )
 
     @pytest.fixture
@@ -533,13 +537,16 @@ class TestCourseService:
 
 
 class TestCourseServiceFactory:
-    def test_it(self, pyramid_request, grouping_service, CourseService):
+    def test_it(
+        self, pyramid_request, grouping_service, CourseService, lms_term_service
+    ):
         svc = course_service_factory(sentinel.context, pyramid_request)
 
         CourseService.assert_called_once_with(
             db=pyramid_request.db,
             application_instance=pyramid_request.lti_user.application_instance,
             grouping_service=grouping_service,
+            lms_term_service=lms_term_service,
         )
 
         assert svc == CourseService.return_value

@@ -1,9 +1,6 @@
 import json
 from copy import deepcopy
-from datetime import datetime
-from typing import Mapping
 
-from dateutil import parser
 from sqlalchemy import Select, select, union
 
 from lms.db import full_text_match
@@ -28,14 +25,22 @@ from lms.models import (
 )
 from lms.product.family import Family
 from lms.services.grouping import GroupingService
+from lms.services.lms_term import LMSTermService
 from lms.services.upsert import bulk_upsert
 
 
 class CourseService:
-    def __init__(self, db, application_instance, grouping_service: GroupingService):
+    def __init__(
+        self,
+        db,
+        application_instance,
+        grouping_service: GroupingService,
+        lms_term_service: LMSTermService,
+    ):
         self._db = db
         self._application_instance = application_instance
         self._grouping_service = grouping_service
+        self._lms_term_service = lms_term_service
 
     def any_with_setting(self, group, key, value=True) -> bool:
         """
@@ -314,7 +319,10 @@ class CourseService:
             "https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice", {}
         ).get("context_memberships_url")
 
-        course_starts_at, course_ends_at = self._get_course_dates(lti_params)
+        course_starts_at = lti_params.get_datetime("custom_course_starts")
+        course_ends_at = lti_params.get_datetime("custom_course_ends")
+
+        lms_term = self._lms_term_service.get_term(lti_params)
         lms_api_course_id = self._get_api_id_from_launch(lti_params)
 
         lms_course = bulk_upsert(
@@ -330,6 +338,7 @@ class CourseService:
                     "starts_at": course_starts_at,
                     "ends_at": course_ends_at,
                     "lms_api_course_id": lms_api_course_id,
+                    "lms_term_id": lms_term.id if lms_term else None,
                 }
             ],
             index_elements=["h_authority_provided_id"],
@@ -340,6 +349,7 @@ class CourseService:
                 "starts_at",
                 "ends_at",
                 "lms_api_course_id",
+                "lms_term_id",
             ],
         ).one()
         bulk_upsert(
@@ -431,22 +441,6 @@ class CourseService:
 
         return None
 
-    def _get_course_dates(
-        self, lti_params: Mapping
-    ) -> tuple[datetime | None, datetime | None]:
-        """Get the dates for the current curse, None if not available."""
-        try:
-            course_starts_at = parser.isoparse(lti_params.get("custom_course_starts"))
-        except (TypeError, ValueError):
-            course_starts_at = None
-
-        try:
-            course_ends_at = parser.isoparse(lti_params.get("custom_course_ends"))
-        except (TypeError, ValueError):
-            course_ends_at = None
-
-        return course_starts_at, course_ends_at
-
     def _get_api_id_from_launch(self, lti_params: LTIParams) -> str | None:
         """Get the API ID from the launch params.
 
@@ -464,4 +458,5 @@ def course_service_factory(_context, request):
             request.lti_user.application_instance if request.lti_user else None
         ),
         grouping_service=request.find_service(name="grouping"),
+        lms_term_service=request.find_service(LMSTermService),
     )

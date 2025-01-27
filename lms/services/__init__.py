@@ -28,6 +28,7 @@ from lms.services.launch_verifier import (
     LTILaunchVerificationError,
     LTIOAuthError,
 )
+from lms.services.lms_term import LMSTermService
 from lms.services.lti_grading import LTIGradingService
 from lms.services.lti_names_roles import LTINamesRolesService
 from lms.services.lti_registration import LTIRegistrationService
@@ -164,6 +165,9 @@ def includeme(config):  # noqa: PLR0915
     )
     config.register_service_factory(
         "lms.services.auto_grading.factory", iface=AutoGradingService
+    )
+    config.register_service_factory(
+        "lms.services.lms_term.factory", iface=LMSTermService
     )
 
     # Plugins are not the same as top level services but we want to register them as pyramid services too
