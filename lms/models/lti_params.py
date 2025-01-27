@@ -1,4 +1,7 @@
 import logging
+from datetime import datetime
+
+from dateutil import parser
 
 CLAIM_PREFIX = "https://purl.imsglobal.org/spec/lti/claim"
 
@@ -25,6 +28,13 @@ class LTIParams(dict):
     @property
     def v11(self):
         return self
+
+    def get_datetime(self, key: str) -> datetime | None:
+        """Get a datetime from the LTI parameters."""
+        try:
+            return parser.isoparse(self.get(key))
+        except (TypeError, ValueError):
+            return None
 
     @classmethod
     def from_request(cls, request):

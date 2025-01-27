@@ -37,6 +37,7 @@ from lms.services.jstor import JSTORService
 from lms.services.jwt import JWTService
 from lms.services.jwt_oauth2_token import JWTOAuth2TokenService
 from lms.services.launch_verifier import LaunchVerifier
+from lms.services.lms_term import LMSTermService
 from lms.services.lti_grading import LTIGradingService
 from lms.services.lti_h import LTIHService
 from lms.services.lti_names_roles import LTINamesRolesService
@@ -89,6 +90,7 @@ __all__ = (
     "jwt_service",
     "jwt_oauth2_token_service",
     "launch_verifier",
+    "lms_term_service",
     "lti_grading_service",
     "lti_h_service",
     "lti_names_roles_service",
@@ -354,6 +356,11 @@ def lti_names_roles_service(mock_service):
 @pytest.fixture
 def lti_registration_service(mock_service):
     return mock_service(LTIRegistrationService)
+
+
+@pytest.fixture
+def lms_term_service(mock_service):
+    return mock_service(LMSTermService)
 
 
 @pytest.fixture
