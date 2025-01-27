@@ -7,6 +7,7 @@ from functools import lru_cache
 import marshmallow
 from marshmallow import EXCLUDE, Schema, fields, post_load, validate, validates_schema
 
+from lms.models import ApplicationInstance
 from lms.services.canvas_api._pages import CanvasPagesClient
 from lms.services.exceptions import CanvasAPIError
 from lms.services.file import FileService
@@ -61,6 +62,7 @@ class CanvasAPIClient:
         authenticated_client,
         file_service: FileService,
         pages_client: CanvasPagesClient,
+        application_instance: ApplicationInstance,
         folders_enabled: bool = False,
     ):
         """
@@ -73,6 +75,7 @@ class CanvasAPIClient:
         self._client = authenticated_client
         self._file_service = file_service
         self._folders_enabled = folders_enabled
+        self._application_instance = application_instance
 
         self._pages = pages_client
 
@@ -463,13 +466,20 @@ class CanvasAPIClient:
             # requests.
             send_kwargs["timeout"] = (31, 31)
 
-        return self._client.send(
+        result = self._client.send(
             "GET",
             f"courses/{course_id}/groups",
             params=params,
             schema=self._ListGroups,
             **send_kwargs,
         )
+        log.debug(
+            "Canvas API. Course groups. 'include_users'=%s. 'application_instance_id'=%s. %s",
+            include_users,
+            self._application_instance.id,
+            result,
+        )
+        return result
 
     def current_user_groups(self, course_id, group_category_id=None):
         """

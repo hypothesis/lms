@@ -39,6 +39,7 @@ class TestCanvasAPIClientFactory:
             file_service=file_service,
             pages_client=CanvasPagesClient.return_value,
             folders_enabled=folders_enabled,
+            application_instance=application_instance,
         )
         AuthenticatedClient.assert_called_once_with(
             basic_client=BasicClient.return_value,
@@ -79,6 +80,7 @@ class TestCanvasAPIClientFactory:
             file_service=file_service_factory.return_value,
             pages_client=CanvasPagesClient.return_value,
             folders_enabled=False,
+            application_instance=application_instance,
         )
         AuthenticatedClient.assert_called_once_with(
             basic_client=BasicClient.return_value,
