@@ -691,7 +691,10 @@ class TestCanvasAPIClientIntegrated:
 
 
 @pytest.fixture
-def canvas_api_client(authenticated_client, file_service):
+def canvas_api_client(authenticated_client, file_service, application_instance):
     return CanvasAPIClient(
-        authenticated_client, file_service, pages_client=sentinel.pages_client
+        authenticated_client,
+        file_service,
+        pages_client=sentinel.pages_client,
+        application_instance=application_instance,
     )

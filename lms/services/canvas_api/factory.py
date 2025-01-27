@@ -55,4 +55,5 @@ def canvas_api_client_factory(
         folders_enabled=application_instance.settings.get(
             "canvas", "folders_enabled", default=False
         ),
+        application_instance=application_instance,
     )
