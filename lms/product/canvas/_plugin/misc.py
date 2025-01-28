@@ -66,7 +66,7 @@ class CanvasMiscPlugin(MiscPlugin):
 
         return assignment_config
 
-    @lru_cache(1)
+    @lru_cache(1)  # noqa: B019
     def _get_document_url(self, request) -> str | None:
         """
         Get the configured document for this LTI launch.
@@ -99,7 +99,7 @@ class CanvasMiscPlugin(MiscPlugin):
         back to us from the LMS.
         """
 
-        if url := deep_linked_configuration.get("url"):
+        if url := deep_linked_configuration.get("url"):  # noqa: SIM102
             # Work around a bug in Canvas's handling of LTI Launch URLs in
             # SpeedGrader launches where query params get double-encoded.
             # See https://github.com/instructure/canvas-lms/issues/1486
@@ -159,9 +159,9 @@ class CanvasMiscPlugin(MiscPlugin):
         ]
 
         for param in possible_parameters:
-            if value := request.params.get(param):
-                params[param] = value
-            elif value := request.lti_params.get(f"custom_{param}"):
+            if (value := request.params.get(param)) or (
+                value := request.lti_params.get(f"custom_{param}")
+            ):
                 params[param] = value
 
         return params

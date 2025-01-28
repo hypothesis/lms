@@ -53,9 +53,9 @@ def upgrade():
             )
         """
     )
-    print("\tApplication instances marked with canvas->files_enabled:", result.rowcount)
+    print("\tApplication instances marked with canvas->files_enabled:", result.rowcount)  # noqa: T201
 
 
 def downgrade():
     """No downgrade section as we might manually change some values after running `upgrade`."""
-    pass
+    pass  # noqa: PIE790

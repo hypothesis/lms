@@ -10,12 +10,12 @@ from lms.product.product import Family, PluginConfig, Product, Routes
 class Moodle(Product):
     family: Family = Family.MOODLE
 
-    plugin_config: PluginConfig = PluginConfig(
+    plugin_config: PluginConfig = PluginConfig(  # noqa: RUF009
         grouping=MoodleGroupingPlugin,
         course_copy=MoodleCourseCopyPlugin,
         misc=MoodleMiscPlugin,
     )
 
-    route: Routes = Routes()
+    route: Routes = Routes()  # noqa: RUF009
 
     settings_key = "moodle"

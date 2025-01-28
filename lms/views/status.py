@@ -14,7 +14,7 @@ def status(request):
         request.db.execute(text("SELECT 1"))
     except Exception as err:
         LOG.exception("Executing a simple database query failed:")
-        raise HTTPInternalServerError("Database connection failed") from err
+        raise HTTPInternalServerError("Database connection failed") from err  # noqa: EM101, TRY003
 
     if "sentry" in request.params:
         capture_message("Test message from LMS's status view")

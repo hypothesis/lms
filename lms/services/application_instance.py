@@ -59,7 +59,7 @@ def _email_or_domain_match(columns, email: str):
     This will match the full email if it contains '@' or interpret the text
     as a domain if not. This will search over all the provided fields.
     """
-    return sa.or_(  # type: ignore
+    return sa.or_(  # type: ignore  # noqa: PGH003
         (
             sa.func.lower(column) == email.lower()
             if "@" in email
@@ -80,7 +80,7 @@ class ApplicationInstanceService:
         self._aes_service = aes_service
         self._organization_service = organization_service
 
-    @lru_cache(maxsize=1)
+    @lru_cache(maxsize=1)  # noqa: B019
     def get_for_launch(self, id_) -> ApplicationInstance:
         """
         Return the current request's `ApplicationInstance`.
@@ -117,16 +117,16 @@ class ApplicationInstanceService:
 
             return application_instance
 
-        raise ApplicationInstanceNotFound()
+        raise ApplicationInstanceNotFound
 
-    @lru_cache(maxsize=1)
+    @lru_cache(maxsize=1)  # noqa: B019
     def get_by_id(self, id_) -> ApplicationInstance:
         try:
             return self._ai_search_query(id_=id_).one()
         except NoResultFound as err:
-            raise ApplicationInstanceNotFound() from err
+            raise ApplicationInstanceNotFound from err
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=128)  # noqa: B019
     def get_by_consumer_key(self, consumer_key) -> ApplicationInstance:
         """
         Return the `ApplicationInstance` with the given `consumer_key`.
@@ -136,19 +136,19 @@ class ApplicationInstanceService:
             `ApplicationInstance`
         """
         if not consumer_key:
-            raise ApplicationInstanceNotFound()
+            raise ApplicationInstanceNotFound
 
         try:
             return self._ai_search_query(consumer_key=consumer_key).one()
         except NoResultFound as err:
-            raise ApplicationInstanceNotFound() from err
+            raise ApplicationInstanceNotFound from err
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=128)  # noqa: B019
     def get_by_deployment_id(
         self, issuer: str, client_id: str, deployment_id: str
     ) -> ApplicationInstance:
         if not all([issuer, client_id, deployment_id]):
-            raise ApplicationInstanceNotFound()
+            raise ApplicationInstanceNotFound
 
         try:
             return self._ai_search_query(
@@ -156,7 +156,7 @@ class ApplicationInstanceService:
             ).one()
 
         except NoResultFound as err:
-            raise ApplicationInstanceNotFound() from err
+            raise ApplicationInstanceNotFound from err
 
     def search(  # noqa: PLR0913
         self,
@@ -260,7 +260,7 @@ class ApplicationInstanceService:
 
         return query
 
-    def update_application_instance(  # noqa: PLR0913, PLR0917
+    def update_application_instance(  # noqa: PLR0913
         self,
         application_instance,
         name=None,
@@ -301,7 +301,7 @@ class ApplicationInstanceService:
                     }
                 )
 
-    def create_application_instance(  # noqa: PLR0913, PLR0917
+    def create_application_instance(  # noqa: PLR0913
         self,
         lms_url,
         email,
@@ -323,7 +323,7 @@ class ApplicationInstanceService:
             shared_secret=secrets.token_hex(32),
             lms_url=lms_url,
             requesters_email=email,
-            created=datetime.utcnow(),
+            created=datetime.utcnow(),  # noqa: DTZ003
             # Some helpful defaults for settings
             settings={
                 "canvas": {
@@ -386,7 +386,7 @@ class ApplicationInstanceService:
 
         # This is a potentially misleading, as we can get here from deep-linked
         # "launches". Depending on whether you count that as a launch or not.
-        application_instance.last_launched = datetime.now()
+        application_instance.last_launched = datetime.now()  # noqa: DTZ005
 
 
 def factory(_context, request):

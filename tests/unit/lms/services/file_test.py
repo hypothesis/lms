@@ -114,7 +114,7 @@ class TestFileService:
             assert file.name == f"update_file_{i}"
 
         for i, file in enumerate(insert_files):
-            file = db_session.query(File).filter_by(lms_id=file.lms_id).one()
+            file = db_session.query(File).filter_by(lms_id=file.lms_id).one()  # noqa: PLW2901
             assert file.size == i * 100
             assert file.name == f"insert_file_{i}"
 
@@ -126,7 +126,7 @@ class TestFileService:
     def svc(self, application_instance, db_session):
         return FileService(application_instance, db_session)
 
-    @pytest.fixture()
+    @pytest.fixture
     def file(self, application_instance):
         return factories.File(
             application_instance=application_instance,

@@ -122,7 +122,7 @@ class UserService:
         )
         return lms_user
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=128)  # noqa: B019
     def get(self, application_instance, user_id: str) -> User:
         """
         Get a User that belongs to `application_instance` with the given id.
@@ -140,7 +140,7 @@ class UserService:
             ).scalar_one()
 
         except NoResultFound as err:
-            raise UserNotFound() from err
+            raise UserNotFound from err
 
         return existing_user
 
@@ -255,7 +255,7 @@ class UserService:
 
         return query.order_by(LMSUser.display_name, LMSUser.id)
 
-    def get_users_for_organization(  # noqa: PLR0913
+    def get_users_for_organization(
         self,
         role_scope: RoleScope,
         role_type: RoleType,
@@ -291,7 +291,7 @@ class UserService:
 
         return query.order_by(LMSUser.display_name, LMSUser.id)
 
-    def get_users(  # noqa: PLR0913, PLR0917
+    def get_users(  # noqa: PLR0913
         self,
         role_scope: RoleScope,
         role_type: RoleType,

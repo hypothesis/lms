@@ -7,7 +7,7 @@ from lms.tasks.celery import app
 @app.task
 def refresh_hubspot_data():
     """Refresh the HubSpot companies, scheduled daily in h-periodic."""
-    with app.request_context() as request:  # pylint: disable=no-member
+    with app.request_context() as request:  # pylint: disable=no-member  # noqa: SIM117
         with request.tm:
             hs = request.find_service(HubSpotService)
 
@@ -16,8 +16,8 @@ def refresh_hubspot_data():
 
 @app.task
 def export_companies_contract_billables():
-    with app.request_context() as request:  # pylint: disable=no-member
+    with app.request_context() as request:  # pylint: disable=no-member  # noqa: SIM117
         with request.tm:
             hs = request.find_service(HubSpotService)
 
-            hs.export_companies_contract_billables(date.today())
+            hs.export_companies_contract_billables(date.today())  # noqa: DTZ011

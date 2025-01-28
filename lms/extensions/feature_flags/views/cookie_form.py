@@ -23,7 +23,7 @@ class CookieFormViews:
         return {
             "flags": flags,
             # The final state of each feature flag
-            "state": {flag: self._request.feature(flag) for flag in flags.keys()},
+            "state": {flag: self._request.feature(flag) for flag in flags.keys()},  # noqa: SIM118
         }
 
     @view_config(request_method="POST")

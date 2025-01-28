@@ -29,7 +29,7 @@ def upgrade():
             AND resource_link_id IS NULL"""
     )
     # We expect this to affect no more that 3 rows after checking the data in production.
-    assert result.rowcount <= 3, "Trying to delete more rows that expected"
+    assert result.rowcount <= 3, "Trying to delete more rows that expected"  # noqa: S101
 
     # Make resource_link_id not nullable
     op.alter_column(

@@ -5,7 +5,7 @@ import httpretty
 import importlib_resources
 import jwt
 import pytest
-from pytest import register_assert_rewrite
+from pytest import register_assert_rewrite  # noqa: PT013
 
 from tests import factories
 
@@ -49,7 +49,7 @@ def lti_registration(db_session):  # noqa: ARG001
         issuer="https://ltiadvantagevalidator.imsglobal.org",
         client_id="imstester_4ba76ab",
         key_set_url="https://oauth2server.imsglobal.org/jwks",
-        token_url="https://ltiadvantagevalidator.imsglobal.org/ltitool/authcodejwt.html",
+        token_url="https://ltiadvantagevalidator.imsglobal.org/ltitool/authcodejwt.html",  # noqa: S106
     )
 
 
@@ -113,7 +113,7 @@ def teacher_payload(common_payload):
 @pytest.fixture
 def common_payload():
     # This is the parts of the payload common to both teacher and student
-    now = int(datetime.timestamp(datetime.now()))
+    now = int(datetime.timestamp(datetime.now()))  # noqa: DTZ005
 
     return {
         "exp": now + 60,

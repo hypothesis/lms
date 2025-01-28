@@ -12,7 +12,7 @@ from tests.conftest import TEST_SETTINGS
 
 class TestGrantTokenService:
     def test_it_generates_valid_jwt_token(self, svc):
-        before = int(datetime.datetime.now().timestamp())
+        before = int(datetime.datetime.now().timestamp())  # noqa: DTZ005
         user = HUser(username="abcdef123")
 
         grant_token = svc.generate_token(user)

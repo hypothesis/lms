@@ -28,7 +28,7 @@ class TestVitalSourceClient:
         }
 
     def test_init_raises_if_launch_credentials_invalid(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # noqa: PT011
             VitalSourceClient(api_key=None)
 
     def test_get_book_info(self, client, http_service):
@@ -166,7 +166,11 @@ class TestVitalSourceClient:
         ),
     )
     def test_get_user_book_license(
-        self, client, http_service, response_xml, _VSUserAuth
+        self,
+        client,
+        http_service,
+        response_xml,
+        _VSUserAuth,  # noqa: PT019
     ):
         http_service.request.return_value = factories.requests.Response(
             status_code=200, raw=response_xml
@@ -204,7 +208,7 @@ class TestVitalSourceClient:
             is None
         )
 
-    def test_get_sso_redirect(self, client, http_service, _VSUserAuth):
+    def test_get_sso_redirect(self, client, http_service, _VSUserAuth):  # noqa: PT019
         http_service.request.return_value = factories.requests.Response(
             status_code=200,
             # There are many more attributes in real results than these, but

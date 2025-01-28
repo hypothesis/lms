@@ -86,7 +86,7 @@ def bootstrap_worker(sender, **_kwargs):  # pragma: no cover
 
     # Put some common handy things around for tasks
     try:
-        lms = create_app(None, **{})
+        lms = create_app(None)
 
     except Exception:  # noqa: BLE001
         # If we don't bail out here ourselves, Celery just hides the error
@@ -134,7 +134,7 @@ def add_task_name_and_id_to_log_messages(
 
     root_loggers_handler.setFormatter(
         logging.Formatter(
-            "[%(asctime)s: %(levelname)s/%(processName)s] "
+            "[%(asctime)s: %(levelname)s/%(processName)s] "  # noqa: ISC003
             + f"{task.name}[{task_id}] "
             + "%(message)s"
         )

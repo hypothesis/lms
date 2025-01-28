@@ -6,7 +6,7 @@ from lms.config import SETTINGS, SettingError, configure
 
 class TestConfigure:
     # These are settings with no special tricks
-    NORMAL_SETTINGS = {
+    NORMAL_SETTINGS = {  # noqa: RUF012
         setting
         for setting in SETTINGS
         if not setting.value_mapper and setting.read_from == setting.name
@@ -75,7 +75,7 @@ class TestConfigure:
         assert configure({}).registry.settings["aes_secret"] == aes_secret
 
     def test_it_aes_secret_raises_for_non_ascii(self, environ):
-        environ["LMS_SECRET"] = "\u2119"
+        environ["LMS_SECRET"] = "\u2119"  # noqa: S105
 
         with pytest.raises(SettingError):
             configure({})
@@ -87,5 +87,5 @@ class TestConfigure:
     @pytest.fixture(autouse=True)
     def environ(self, patch):
         os = patch("lms.config.os")
-        os.environ = {setting.read_from.upper(): "env" for setting in SETTINGS}
+        os.environ = {setting.read_from.upper(): "env" for setting in SETTINGS}  # noqa: B003
         return os.environ

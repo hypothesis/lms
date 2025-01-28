@@ -11,7 +11,7 @@ from lms.renderers import json_iso_utc
     "time,expected",
     [
         # No timezone, UTC is assumed
-        (datetime(2024, 1, 1), "2024-01-01T00:00:00+00:00"),
+        (datetime(2024, 1, 1), "2024-01-01T00:00:00+00:00"),  # noqa: DTZ001
         # UTC, UTC is left intact
         (datetime(2024, 1, 1, tzinfo=UTC), "2024-01-01T00:00:00+00:00"),
         # Non-UTC, timezone is also left intact

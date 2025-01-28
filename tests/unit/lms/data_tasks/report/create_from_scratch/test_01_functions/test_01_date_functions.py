@@ -9,8 +9,8 @@ TASK_ROOT = importlib_resources.files("lms.data_tasks")
 
 
 class TestDateFunctions:
-    ONE_YEAR_AGO = datetime.now().replace(year=datetime.now().year - 1).date()
-    TWO_YEARS_AGO = datetime.now().replace(year=datetime.now().year - 2).date()
+    ONE_YEAR_AGO = datetime.now().replace(year=datetime.now().year - 1).date()  # noqa: DTZ005
+    TWO_YEARS_AGO = datetime.now().replace(year=datetime.now().year - 2).date()  # noqa: DTZ005
 
     @pytest.mark.usefixtures("with_date_functions")
     @pytest.mark.parametrize(

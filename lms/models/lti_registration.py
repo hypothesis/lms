@@ -42,7 +42,7 @@ class LTIRegistration(CreatedUpdatedMixin, Base):
     @property
     def product_family(self) -> str:
         """To which LMS (Canvas, D2L, BB..) does this registration belong."""
-        from lms.product.family import Family  # noqa: PLC0415
+        from lms.product.family import Family
 
         if self.issuer.endswith(".instructure.com"):
             return Family.CANVAS

@@ -119,7 +119,7 @@ class TestBadPayloads:
     def test_payload(self, request):
         """Get an OAuthToken or None based on the fixture params."""
 
-        yield request.getfixturevalue(request.param)
+        return request.getfixturevalue(request.param)
 
     @pytest.fixture(autouse=True)
     def debug_log_capture(self, caplog):

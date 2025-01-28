@@ -25,7 +25,7 @@ class LTIRegistrationBaseSchema(PyramidRequestSchema):
     def validate_issuer(self, value):
         if value.endswith("/"):
             # Prevent confusion with application instance LMS URL.
-            raise ValidationError("Issuer can't end with '/'")
+            raise ValidationError("Issuer can't end with '/'")  # noqa: EM101, TRY003
 
 
 class SearchLTIRegistrationSchema(PyramidRequestSchema):
@@ -229,4 +229,4 @@ class AdminLTIRegistrationViews:
         if org := self.lti_registration_service.get_by_id(id_):
             return org
 
-        raise HTTPNotFound()
+        raise HTTPNotFound()  # noqa: RSE102

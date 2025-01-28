@@ -1,4 +1,4 @@
-import logging
+import logging  # noqa: A005
 
 from pyramid.httpexceptions import HTTPFound
 from pyramid.security import remember

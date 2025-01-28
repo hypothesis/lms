@@ -76,13 +76,14 @@ class BlackboardFilesAPIViews:
 
         document_url = self.request.params["document_url"]
         document_url_match = DOCUMENT_URL_REGEX.search(document_url)
-        assert document_url_match
+        assert document_url_match  # noqa: S101
         file_id = course.get_mapped_file_id(document_url_match["file_id"])
         try:
-            if self.request.lti_user.is_instructor:
+            if self.request.lti_user.is_instructor:  # noqa: SIM102
                 if not self.course_copy_plugin.is_file_in_course(course_id, file_id):
-                    raise FileNotFoundInCourse(
-                        "blackboard_file_not_found_in_course", file_id
+                    raise FileNotFoundInCourse(  # noqa: TRY301
+                        "blackboard_file_not_found_in_course",  # noqa: EM101
+                        file_id,
                     )
             public_url = self.blackboard_api_client.public_url(course_id, file_id)
 

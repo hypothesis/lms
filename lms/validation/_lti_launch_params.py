@@ -69,7 +69,7 @@ class _CommonLTILaunchSchema(LTIV11CoreSchema):
             not data.get("oauth_consumer_key", None)
             and data["lti_version"] == "LTI-1p0"
         ):
-            raise ValidationError("Required for LTI1.1", "oauth_consumer_key")
+            raise ValidationError("Required for LTI1.1", "oauth_consumer_key")  # noqa: EM101, TRY003
 
 
 class BasicLTILaunchSchema(_CommonLTILaunchSchema):
@@ -98,7 +98,7 @@ class BasicLTILaunchSchema(_CommonLTILaunchSchema):
 
     # If we have an error in one of these fields we should redirect back to
     # the calling LMS if possible
-    lti_redirect_fields = {
+    lti_redirect_fields = {  # noqa: RUF012
         "resource_link_id",
         "lti_version",
         "lti_message_type",
@@ -134,7 +134,7 @@ class BasicLTILaunchSchema(_CommonLTILaunchSchema):
             # ``err.messages``, but without overwriting any of the existing
             # error messages already present in ``messages``.
             for field in err.messages:
-                messages.setdefault(field, []).extend(err.messages[field])  # type:ignore
+                messages.setdefault(field, []).extend(err.messages[field])  # type:ignore  # noqa: PGH003
             return_url = None
 
         if return_url:
@@ -198,8 +198,9 @@ class ConfigureAssignmentSchema(_CommonLTILaunchSchema):
             try:
                 data["auto_grading_config"] = json.loads(auto_grading_config)
             except json.decoder.JSONDecodeError as exc:
-                raise ValidationError(
-                    "Invalid json for nested field", "auto_grading_config"
+                raise ValidationError(  # noqa: TRY003
+                    "Invalid json for nested field",  # noqa: EM101
+                    "auto_grading_config",
                 ) from exc
 
         return data

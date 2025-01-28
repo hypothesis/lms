@@ -275,7 +275,7 @@ class TestCourseService:
         db_session.add(
             CourseGroupsExportedFromH(
                 authority_provided_id=grouping_service.get_authority_provided_id.return_value,
-                created=datetime.utcnow(),
+                created=datetime.utcnow(),  # noqa: DTZ003
             )
         )
         application_instance.settings = ApplicationSettings({})

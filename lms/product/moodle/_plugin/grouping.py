@@ -1,4 +1,4 @@
-from enum import StrEnum
+from enum import StrEnum  # noqa: INP001
 
 from lms.models import Course, Grouping
 from lms.product.plugin.grouping import GroupError, GroupingPlugin

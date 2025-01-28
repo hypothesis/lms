@@ -20,7 +20,7 @@ class TestDBRollbackSessionOnExceptionTween:
 
         tween = rollback_db_session_tween_factory(handler, pyramid_request.registry)
 
-        with pytest.raises(IOError):
+        with pytest.raises(IOError):  # noqa: PT011
             tween(pyramid_request)
 
         handler.assert_called_once_with(pyramid_request)

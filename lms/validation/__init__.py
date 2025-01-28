@@ -98,5 +98,5 @@ def _validated_view(view, info):
 
 
 def includeme(config):
-    _validated_view.options = ["schema"]  # type: ignore
+    _validated_view.options = ["schema"]  # type: ignore  # noqa: PGH003
     config.add_view_deriver(_validated_view)

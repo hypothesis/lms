@@ -2,7 +2,7 @@ from pyramid.httpexceptions import HTTPFound, HTTPNotFound
 
 from lms.models import ApplicationInstance
 from lms.services import ApplicationInstanceNotFound
-from lms.services.application_instance import ApplicationInstanceService
+from lms.services.application_instance import ApplicationInstanceService  # noqa: TC001
 
 
 class BaseApplicationInstanceView:
@@ -25,7 +25,7 @@ class BaseApplicationInstanceView:
             )
 
         except ApplicationInstanceNotFound as err:
-            raise HTTPNotFound() from err
+            raise HTTPNotFound() from err  # noqa: RSE102
 
     def _redirect(self, route_name, **kwargs):
         return HTTPFound(location=self.request.route_url(route_name, **kwargs))

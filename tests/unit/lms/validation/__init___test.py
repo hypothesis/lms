@@ -74,7 +74,7 @@ class TestValidatedView:
         """
         return mock.MagicMock(options={"schema": Schema})
 
-    @pytest.fixture()
+    @pytest.fixture
     def parsed_params(self, Schema):
         """Return the parsed params as returned by the schema."""
         return Schema.return_value.parse.return_value
@@ -91,7 +91,7 @@ class TestValidatedView:
 
 
 class TestIncludeMe:
-    def test_it_registers_the_view_deriver(self, pyramid_config, _validated_view):
+    def test_it_registers_the_view_deriver(self, pyramid_config, _validated_view):  # noqa: PT019
         includeme(pyramid_config)
 
         assert _validated_view.options == ["schema"]

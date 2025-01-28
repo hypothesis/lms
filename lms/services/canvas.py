@@ -5,14 +5,18 @@ from lms.services.exceptions import CanvasAPIPermissionError, FileNotFoundInCour
 class CanvasService:
     """A high level Canvas service."""
 
-    api: CanvasAPIClient = None  # type:ignore
+    api: CanvasAPIClient = None  # type:ignore  # noqa: PGH003
 
     def __init__(self, canvas_api, course_copy_plugin):
         self.api = canvas_api
         self._course_copy_plugin = course_copy_plugin
 
     def public_url_for_file(
-        self, assignment, file_id, current_course_id, check_in_course=False
+        self,
+        assignment,
+        file_id,
+        current_course_id,
+        check_in_course=False,  # noqa: FBT002
     ):
         """
         Return a public URL for file_id.
@@ -31,12 +35,13 @@ class CanvasService:
         # If there's a previously stored mapping for file_id use that instead.
         effective_file_id = assignment.get_canvas_mapped_file_id(file_id)
         try:
-            if check_in_course:
+            if check_in_course:  # noqa: SIM102
                 if not self._course_copy_plugin.is_file_in_course(
                     current_course_id, effective_file_id
                 ):
-                    raise FileNotFoundInCourse(
-                        "canvas_file_not_found_in_course", file_id
+                    raise FileNotFoundInCourse(  # noqa: TRY301
+                        "canvas_file_not_found_in_course",  # noqa: EM101
+                        file_id,
                     )
             return self.api.public_url(effective_file_id)
         except (FileNotFoundInCourse, CanvasAPIPermissionError):

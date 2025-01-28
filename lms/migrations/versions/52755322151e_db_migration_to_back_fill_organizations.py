@@ -103,7 +103,7 @@ def connected_subgraphs(edges):
     # Put every node in a group on its own
     group_to_nodes = {node: {node} for node in itertools.chain(*edges)}
     # ... and record it's location (which will change)
-    node_to_group = {node: node for node in group_to_nodes.keys()}
+    node_to_group = {node: node for node in group_to_nodes.keys()}  # noqa: SIM118
 
     # Repeatedly merge groups if they are joined by an edge
     for left_node, right_node in edges:
@@ -150,20 +150,20 @@ def pick_name(names):
 def upgrade():
     db_session = sa.orm.Session(bind=op.get_bind())
 
-    print("Clearing old organizations...")
+    print("Clearing old organizations...")  # noqa: T201
     op.execute("UPDATE application_instances SET organization_id = NULL")
     op.execute("DELETE FROM organization")
 
-    with open(__file__.replace(".py", ".sql"), encoding="utf-8") as handle:
+    with open(__file__.replace(".py", ".sql"), encoding="utf-8") as handle:  # noqa: PTH123
         query = handle.read()
 
-    print("Detecting GUIDs...")
+    print("Detecting GUIDs...")  # noqa: T201
     edges = list(db_session.execute(query))
 
-    print("Grouping GUIDs...")
+    print("Grouping GUIDs...")  # noqa: T201
     grouped_guids = connected_subgraphs(edges)
 
-    print("Creating new organizations...")
+    print("Creating new organizations...")  # noqa: T201
     total = 0
 
     for ai_ids in grouped_guids:
@@ -179,7 +179,7 @@ def upgrade():
             name=pick_name([ai.tool_consumer_instance_name for ai in ais])
         )
         total += 1
-        print(
+        print(  # noqa: T201
             f"\tCreating '{organization.name}' for {len(ais)} application instance(s)"
         )
         for ai in ais:
@@ -187,7 +187,7 @@ def upgrade():
 
         db_session.add(organization)
 
-    print(f"Created {total} organization(s). Done")
+    print(f"Created {total} organization(s). Done")  # noqa: T201
 
 
 def downgrade():

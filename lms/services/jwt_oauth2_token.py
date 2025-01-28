@@ -29,13 +29,16 @@ class JWTOAuth2TokenService:
             self._db.add(token)
 
         token.access_token = access_token
-        token.received_at = datetime.now()
-        token.expires_at = datetime.now() + timedelta(seconds=expires_in)
+        token.received_at = datetime.now()  # noqa: DTZ005
+        token.expires_at = datetime.now() + timedelta(seconds=expires_in)  # noqa: DTZ005
 
         return token
 
     def get_token(
-        self, lti_registration, scopes: list[str], exclude_expired=True
+        self,
+        lti_registration,
+        scopes: list[str],
+        exclude_expired=True,  # noqa: FBT002
     ) -> JWTOAuth2Token | None:
         """
         Get a token for the given registration and scopes if present in the DB.
@@ -51,7 +54,7 @@ class JWTOAuth2TokenService:
         if exclude_expired:
             query = query.filter(
                 (JWTOAuth2Token.expires_at - timedelta(seconds=self.EXPIRATION_LEEWAY))
-                >= datetime.now()
+                >= datetime.now()  # noqa: DTZ005
             )
 
         return query.one_or_none()

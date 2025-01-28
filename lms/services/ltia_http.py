@@ -27,7 +27,7 @@ class LTIAHTTPService:
         self._plugin = plugin
         self._jwt_oauth2_token_service = jwt_oauth2_token_service
 
-    def request(  # noqa: PLR0913
+    def request(
         self,
         lti_registration: LTIRegistration,
         method,
@@ -38,7 +38,7 @@ class LTIAHTTPService:
     ):
         headers = headers or {}
 
-        assert "Authorization" not in headers
+        assert "Authorization" not in headers  # noqa: S101
 
         access_token = self._get_access_token(lti_registration, scopes)
         headers["Authorization"] = f"Bearer {access_token}"
@@ -67,7 +67,7 @@ class LTIAHTTPService:
         https://datatracker.ietf.org/doc/html/rfc7523
         https://canvas.instructure.com/doc/api/file.oauth_endpoints.html#post-login-oauth2-token
         """
-        now = datetime.utcnow()
+        now = datetime.utcnow()  # noqa: DTZ003
         signed_jwt = self._jwt_service.encode_with_private_key(
             {
                 "exp": now + timedelta(hours=1),
@@ -93,7 +93,7 @@ class LTIAHTTPService:
         try:
             token_data = response.json()
         except JSONDecodeError:  # pragma: no cover
-            LOG.error("Non-json response: %s", response.text)
+            LOG.error("Non-json response: %s", response.text)  # noqa: TRY400
             raise
 
         token = self._jwt_oauth2_token_service.save_token(

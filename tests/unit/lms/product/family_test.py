@@ -5,7 +5,7 @@ from lms.product.product import Product
 
 
 class TestFromLaunch:
-    PRODUCT_MAP = [
+    PRODUCT_MAP = [  # noqa: RUF012
         ("BlackboardLearn", Product.Family.BLACKBOARD),
         ("canvas", Product.Family.CANVAS),
         ("BlackbaudK12", Product.Family.BLACKBAUD),

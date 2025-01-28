@@ -52,7 +52,7 @@ class TestUpdateApplicationInstanceView:
             lms_url="http://example.com",
             deployment_id="DEPLOYMENT_ID",
             developer_key="DEVELOPER KEY",
-            developer_secret="DEVELOPER SECRET",
+            developer_secret="DEVELOPER SECRET",  # noqa: S106
         )
         assert ai_from_matchdict.settings.get(setting, sub_setting) == expected
 

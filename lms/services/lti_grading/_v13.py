@@ -15,7 +15,7 @@ LOG = logging.getLogger(__name__)
 class LTI13GradingService(LTIGradingService):
     # See: LTI1.3 Assignment and Grade Services https://www.imsglobal.org/spec/lti-ags/v2p0
 
-    LTIA_SCOPES = [
+    LTIA_SCOPES = [  # noqa: RUF012
         "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
         # Although this is implied by scope/lineitem according to the spec
         # Moodle requires this one explicitly for the GET
@@ -24,7 +24,7 @@ class LTI13GradingService(LTIGradingService):
         "https://purl.imsglobal.org/spec/lti-ags/scope/score",
     ]
 
-    def __init__(  # noqa: PLR0913, PLR0917
+    def __init__(  # noqa: PLR0913
         self,
         line_item_url,
         line_item_container_url,
@@ -80,7 +80,7 @@ class LTI13GradingService(LTIGradingService):
         if not results:
             return result
 
-        try:
+        try:  # noqa: SIM105
             result.score = results[-1]["resultScore"] / results[-1]["resultMaximum"]
         except (TypeError, ZeroDivisionError, KeyError, IndexError):
             pass
@@ -92,7 +92,7 @@ class LTI13GradingService(LTIGradingService):
     def get_score_maximum(self, resource_link_id) -> float | None:
         return self._read_grading_configuration(resource_link_id).get("scoreMaximum")
 
-    def sync_grade(  # noqa: PLR0913
+    def sync_grade(
         self,
         application_instance: ApplicationInstance,
         assignment: Assignment,
@@ -106,7 +106,7 @@ class LTI13GradingService(LTIGradingService):
         This is very similar to `record_result` but not scoped to the request context,
         taking all the necessary information as parameters.
         """
-        assert lms_user.lti_v13_user_id, (
+        assert lms_user.lti_v13_user_id, (  # noqa: S101
             "Trying to grade a student without lti_v13_user_id"
         )
         payload = LTI13GradingService._record_score_payload(

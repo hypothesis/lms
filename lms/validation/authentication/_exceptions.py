@@ -3,9 +3,9 @@ from lms.validation._exceptions import ValidationError
 # ValidationError has a large hierarchy, but we need to inherit from it
 
 __all__ = [
-    "MissingStateParamError",
     "ExpiredStateParamError",
     "InvalidStateParamError",
+    "MissingStateParamError",
 ]
 
 

@@ -48,7 +48,7 @@ class OAuth1Service:
         payload = {
             "oauth_version": "1.0",
             "oauth_nonce": uuid.uuid4().hex,
-            "oauth_timestamp": str(round(datetime.now().timestamp())),
+            "oauth_timestamp": str(round(datetime.now().timestamp())),  # noqa: DTZ005
             "oauth_consumer_key": client_key,
             "oauth_signature_method": "HMAC-SHA1",
         }

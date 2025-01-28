@@ -65,7 +65,7 @@ class LTIGradingService:  # pragma: no cover
         :param grading_id: The submission id
         :return: The score or `None` if no score has been submitted.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def record_result(self, grading_id, score=None, pre_record_hook=None, comment=None):
         """
@@ -85,9 +85,9 @@ class LTIGradingService:  # pragma: no cover
 
         :raise TypeError: if the given pre_record_hook returns a non-dict
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
-    def sync_grade(  # noqa: PLR0913
+    def sync_grade(
         self,
         application_instance: ApplicationInstance,
         assignment: Assignment,
@@ -101,7 +101,7 @@ class LTIGradingService:  # pragma: no cover
         This is very similar to `record_result` but not scoped to the request context,
         taking all the necessary information as parameters.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def create_line_item(self, resource_link_id, label):
         """
@@ -109,4 +109,4 @@ class LTIGradingService:  # pragma: no cover
 
         https://www.imsglobal.org/spec/lti-ags/v2p0#container-request-filters
         """
-        raise NotImplementedError()
+        raise NotImplementedError

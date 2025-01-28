@@ -92,7 +92,7 @@ class UpdateApplicationInstanceView(BaseApplicationInstanceView):
                 ai.settings.set_secret(self._aes_service, field.group, field.key, value)
 
             else:
-                assert field.format is str
+                assert field.format is str  # noqa: S101
                 ai.settings.set(field.group, field.key, value)
 
         self.request.session.flash(

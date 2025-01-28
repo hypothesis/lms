@@ -21,7 +21,7 @@ class JSTORService:
     DEFAULT_DOI_PREFIX = "10.2307"
     """Used when no DOI prefix can be found."""
 
-    def __init__(self, api_url, secret, enabled, site_code, headers=None):  # noqa: PLR0913
+    def __init__(self, api_url, secret, enabled, site_code, headers=None):
         """
         Initialise the JSTOR service.
 
@@ -63,8 +63,8 @@ class JSTORService:
         ).text
 
         if not s3_url.startswith("https://"):
-            raise ExternalRequestError(
-                f"Expected to get an S3 URL but got: '{s3_url}' instead"
+            raise ExternalRequestError(  # noqa: TRY003
+                f"Expected to get an S3 URL but got: '{s3_url}' instead"  # noqa: EM102
             )
 
         return via_url(
@@ -147,8 +147,8 @@ class JSTORService:
             raise
 
         if not data_uri.startswith("data:"):
-            raise ExternalRequestError(
-                f"Expected to get data URI but got '{data_uri}' instead"
+            raise ExternalRequestError(  # noqa: TRY003
+                f"Expected to get data URI but got '{data_uri}' instead"  # noqa: EM102
             )
 
         return data_uri

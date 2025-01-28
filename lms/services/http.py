@@ -1,4 +1,4 @@
-from requests import RequestException, Response, Session
+from requests import RequestException, Response, Session  # noqa: A005
 
 from lms.services.exceptions import ExternalRequestError
 
@@ -7,7 +7,7 @@ class HTTPService:
     """Send HTTP requests with `requests` and receive the responses."""
 
     # This is here mostly to let auto-spec know about it in the tests
-    session: Session = None  # type: ignore
+    session: Session = None  # type: ignore  # noqa: PGH003
     """The underlying requests Session."""
 
     def __init__(self):

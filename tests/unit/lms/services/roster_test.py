@@ -22,7 +22,7 @@ from tests import factories
 class TestRosterService:
     @pytest.mark.parametrize(
         "create_roster,expected",
-        [(True, datetime(2021, 1, 1)), (False, None)],
+        [(True, datetime(2021, 1, 1)), (False, None)],  # noqa: DTZ001
     )
     def test_assignment_roster_last_updated(
         self, svc, assignment, db_session, create_roster, expected
@@ -32,7 +32,7 @@ class TestRosterService:
 
         if create_roster:
             factories.AssignmentRoster(
-                updated=datetime(2021, 1, 1),
+                updated=datetime(2021, 1, 1),  # noqa: DTZ001
                 lms_user=lms_user,
                 assignment=assignment,
                 lti_role=lti_role,
@@ -44,7 +44,7 @@ class TestRosterService:
 
     @pytest.mark.parametrize(
         "create_roster,expected",
-        [(True, datetime(2021, 1, 1)), (False, None)],
+        [(True, datetime(2021, 1, 1)), (False, None)],  # noqa: DTZ001
     )
     def test_segment_roster_last_updated(
         self, svc, lms_segment, db_session, create_roster, expected
@@ -54,7 +54,7 @@ class TestRosterService:
 
         if create_roster:
             factories.LMSSegmentRoster(
-                updated=datetime(2021, 1, 1),
+                updated=datetime(2021, 1, 1),  # noqa: DTZ001
                 lms_user=lms_user,
                 lms_segment=lms_segment,
                 lti_role=lti_role,
@@ -66,7 +66,7 @@ class TestRosterService:
 
     @pytest.mark.parametrize(
         "create_roster,expected",
-        [(True, datetime(2021, 1, 1)), (False, None)],
+        [(True, datetime(2021, 1, 1)), (False, None)],  # noqa: DTZ001
     )
     def test_course_roster_last_updated(
         self, svc, lms_course, db_session, create_roster, expected
@@ -76,7 +76,7 @@ class TestRosterService:
 
         if create_roster:
             factories.CourseRoster(
-                updated=datetime(2021, 1, 1),
+                updated=datetime(2021, 1, 1),  # noqa: DTZ001
                 lms_user=lms_user,
                 lms_course=lms_course,
                 lti_role=lti_role,

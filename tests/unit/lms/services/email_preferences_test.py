@@ -201,7 +201,7 @@ class TestFactory:
 
         EmailPreferencesService.assert_called_once_with(
             db_session,
-            secret="test_secret",
+            secret="test_secret",  # noqa: S106
             route_url=pyramid_request.route_url,
             jwt_service=jwt_service,
             user_preferences_service=user_preferences_service,

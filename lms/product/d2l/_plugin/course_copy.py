@@ -1,4 +1,7 @@
-from lms.product.plugin.course_copy import CourseCopyFilesHelper, CourseCopyGroupsHelper
+from lms.product.plugin.course_copy import (  # noqa: INP001
+    CourseCopyFilesHelper,
+    CourseCopyGroupsHelper,
+)
 from lms.services.d2l_api import D2LAPIClient
 
 

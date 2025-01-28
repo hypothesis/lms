@@ -38,7 +38,7 @@ class UpgradeApplicationInstanceViews(BaseApplicationInstanceView):
             )
         else:
             # This shouldn't really happen, but belt and braces
-            raise HTTPClientError("`lti_registration_id` is required for an upgrade")
+            raise HTTPClientError("`lti_registration_id` is required for an upgrade")  # noqa: EM101, TRY003
 
         return dict(self.request.params, lti_registration=lti_registration)
 

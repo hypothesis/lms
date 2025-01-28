@@ -63,8 +63,8 @@ class JWTCookieHelper:
         try:
             self._secret = request.registry.settings["feature_flags_cookie_secret"]
         except KeyError as err:
-            raise SettingError(
-                "The feature_flags_cookie_secret deployment setting is required"
+            raise SettingError(  # noqa: TRY003
+                "The feature_flags_cookie_secret deployment setting is required"  # noqa: EM101
             ) from err
 
         self._name = name

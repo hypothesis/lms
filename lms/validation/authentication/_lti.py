@@ -78,7 +78,7 @@ class LTI11AuthSchema(LTIV11CoreSchema):
         try:
             self._launch_verifier.verify()
         except LTILaunchVerificationError as err:
-            raise marshmallow.ValidationError("Invalid OAuth 1 signature.") from err
+            raise marshmallow.ValidationError("Invalid OAuth 1 signature.") from err  # noqa: EM101, TRY003
 
 
 class LTI13AuthSchema(LTIV11CoreSchema):

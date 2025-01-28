@@ -18,15 +18,15 @@ def test_insert_event(event_service, BaseEvent, pyramid_request):
 @freeze_time("2024-1-25")
 def test_purge_launch_data():
     recent_data = factories.EventData(
-        event=factories.Event(timestamp=datetime(2024, 1, 20)),
+        event=factories.Event(timestamp=datetime(2024, 1, 20)),  # noqa: DTZ001
         data={"lti_params": {"some": "data"}},
     )
     old_data = factories.EventData(
-        event=factories.Event(timestamp=datetime(2024, 1, 10)),
+        event=factories.Event(timestamp=datetime(2024, 1, 10)),  # noqa: DTZ001
         data={"lti_params": {"some": "data"}},
     )
     old_data_no_launch = factories.EventData(
-        event=factories.Event(timestamp=datetime(2024, 1, 10)),
+        event=factories.Event(timestamp=datetime(2024, 1, 10)),  # noqa: DTZ001
         data={"some_other_data": {"some": "data"}},
     )
 

@@ -24,4 +24,4 @@ def upgrade():
 
 def downgrade():
     """No downgrade section as we might manually change some values after running `upgrade`."""
-    pass
+    pass  # noqa: PIE790

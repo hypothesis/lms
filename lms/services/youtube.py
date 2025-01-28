@@ -15,7 +15,7 @@ class VideoNotFound(SerializableError):  # noqa: N818
 class YouTubeService:
     """An interface for dealing with YouTube API."""
 
-    def __init__(self, enabled: bool, api_key: str, http: HTTPService):
+    def __init__(self, enabled: bool, api_key: str, http: HTTPService):  # noqa: FBT001
         """
         Initialise the YouTube service.
 

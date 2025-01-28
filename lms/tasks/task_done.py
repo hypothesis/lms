@@ -17,8 +17,8 @@ def delete_expired_rows():
 
     This is intended to be called periodically.
     """
-    with app.request_context() as request:
+    with app.request_context() as request:  # noqa: SIM117
         with request.tm:
             request.db.execute(
-                delete(TaskDone).where(TaskDone.expires_at < datetime.utcnow())
+                delete(TaskDone).where(TaskDone.expires_at < datetime.utcnow())  # noqa: DTZ003
             )

@@ -29,8 +29,8 @@ class TestLTIAHTTPService:
         jwt_service.encode_with_private_key.assert_called_once_with(
             {
                 "aud": misc_plugin.get_ltia_aud_claim.return_value,
-                "exp": datetime(2022, 4, 4, 1, 0),
-                "iat": datetime(2022, 4, 4, 0, 0),
+                "exp": datetime(2022, 4, 4, 1, 0),  # noqa: DTZ001
+                "iat": datetime(2022, 4, 4, 0, 0),  # noqa: DTZ001
                 "iss": lti_registration.client_id,
                 "sub": lti_registration.client_id,
                 "jti": uuid.uuid4.return_value.hex,

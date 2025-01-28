@@ -56,7 +56,7 @@ def get_page(
         else:
             # In the non-null case we can sort by both columns
             items_query = items_query.where(
-                tuple(cursor_columns) > tuple(cursor_values)  # type: ignore
+                tuple(cursor_columns) > tuple(cursor_values)  # type: ignore  # noqa: PGH003
             )
 
     limit = min(MAX_ITEMS_PER_PAGE, request.parsed_params["limit"])
@@ -91,15 +91,15 @@ class PaginationParametersMixin(PyramidRequestSchema):
         try:
             in_data["cursor"] = json.loads(cursor)
         except ValueError as exc:
-            raise ValidationError("Invalid value for pagination cursor.") from exc
+            raise ValidationError("Invalid value for pagination cursor.") from exc  # noqa: EM101, TRY003
 
         if not isinstance(in_data["cursor"], list) or len(in_data["cursor"]) != 2:
-            raise ValidationError(
-                "Invalid value for pagination cursor. Cursor must be a list of at least two values."
+            raise ValidationError(  # noqa: TRY003
+                "Invalid value for pagination cursor. Cursor must be a list of at least two values."  # noqa: EM101
             )
         if [type(v) for v in in_data["cursor"]] not in [[str, int], [NoneType, int]]:
-            raise ValidationError(
-                "Invalid value for pagination cursor. Cursor must be a [str | None, int] list."
+            raise ValidationError(  # noqa: TRY003
+                "Invalid value for pagination cursor. Cursor must be a [str | None, int] list."  # noqa: EM101
             )
 
         return in_data

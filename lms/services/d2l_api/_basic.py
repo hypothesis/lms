@@ -1,6 +1,6 @@
 from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 
-TOKEN_URL = "https://auth.brightspace.com/core/connect/token"
+TOKEN_URL = "https://auth.brightspace.com/core/connect/token"  # noqa: S105
 """This is constant for all D2L instances"""
 
 API_VERSIONS = {
@@ -19,7 +19,7 @@ https://docs.valence.desire2learn.com/about.html#principal-version-table
 class BasicClient:
     """A low-level D2L API client."""
 
-    def __init__(  # noqa: PLR0913, PLR0917
+    def __init__(  # noqa: PLR0913
         self,
         client_id,
         client_secret,

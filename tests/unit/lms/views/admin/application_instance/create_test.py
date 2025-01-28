@@ -50,7 +50,7 @@ class TestCreateApplicationInstanceViews:
             email="test@example.com",
             deployment_id="22222",
             developer_key="DEVELOPER_KEY",
-            developer_secret="DEVELOPER_SECRET",
+            developer_secret="DEVELOPER_SECRET",  # noqa: S106
             organization_public_id="us.lms.org.ID",
             lti_registration_id=54321,
         )
@@ -79,7 +79,7 @@ class TestCreateApplicationInstanceViews:
 
         assert response == REDIRECT_TO_CREATE_AI
 
-    _V11_NEW_AI_BAD_FIELDS = [
+    _V11_NEW_AI_BAD_FIELDS = [  # noqa: RUF012
         ("lms_url", "not a url"),
         ("email", "not an email"),
         ("organization_public_id", None),
@@ -87,7 +87,8 @@ class TestCreateApplicationInstanceViews:
     ]
 
     @pytest.mark.parametrize(
-        "param,bad_value", _V11_NEW_AI_BAD_FIELDS + [("deployment_id", None)]
+        "param,bad_value",
+        _V11_NEW_AI_BAD_FIELDS + [("deployment_id", None)],  # noqa: RUF005
     )
     def test_create_callback_v13_required_fields(
         self, views, create_ai_params_v13, param, bad_value

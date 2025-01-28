@@ -113,8 +113,8 @@ class TestOrganizationUsageReportService:
         )
 
     def test_usage_report(self, svc, org_with_parent, h_api, organization_service):
-        since = datetime(2023, 1, 1, 0, 0, 0, 0)
-        until = datetime(2023, 12, 31, 23, 59, 59, 999999)
+        since = datetime(2023, 1, 1, 0, 0, 0, 0)  # noqa: DTZ001
+        until = datetime(2023, 12, 31, 23, 59, 59, 999999)  # noqa: DTZ001
 
         ai_root_org = factories.ApplicationInstance(organization=org_with_parent.parent)
         ai_child_org = factories.ApplicationInstance(organization=org_with_parent)
@@ -190,10 +190,10 @@ class TestOrganizationUsageReportService:
         assert report == Any.list.containing(expected)
 
     def test_usage_report_with_no_courses(self, svc, org_with_parent):
-        since = datetime(2023, 1, 1)
-        until = datetime(2023, 12, 31)
+        since = datetime(2023, 1, 1)  # noqa: DTZ001
+        until = datetime(2023, 12, 31)  # noqa: DTZ001
 
-        with pytest.raises(ValueError) as error:
+        with pytest.raises(ValueError) as error:  # noqa: PT011
             svc.usage_report(org_with_parent.parent, since, until)
 
         assert "no courses found" in str(error.value).lower()
@@ -206,8 +206,8 @@ class TestOrganizationUsageReportService:
             org_with_parent.id,
         ]
 
-        since = datetime(2023, 1, 1)
-        until = datetime(2023, 12, 31)
+        since = datetime(2023, 1, 1)  # noqa: DTZ001
+        until = datetime(2023, 12, 31)  # noqa: DTZ001
 
         ai_root_org = factories.ApplicationInstance(organization=org_with_parent.parent)
         factories.Course(
@@ -215,7 +215,7 @@ class TestOrganizationUsageReportService:
         )
         h_api.get_groups.return_value = []
 
-        with pytest.raises(ValueError) as error:
+        with pytest.raises(ValueError) as error:  # noqa: PT011
             svc.usage_report(org_with_parent.parent, since, until)
 
         assert "no courses with activity" in str(error.value).lower()

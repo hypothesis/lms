@@ -25,7 +25,7 @@ class Member(TypedDict):
 
 
 class LTINamesRolesService:
-    LTIA_SCOPES = [
+    LTIA_SCOPES = [  # noqa: RUF012
         "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
     ]
 

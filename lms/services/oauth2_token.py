@@ -45,9 +45,9 @@ class OAuth2TokenService:
         oauth2_token.access_token = access_token
         oauth2_token.refresh_token = refresh_token
         oauth2_token.expires_in = expires_in
-        oauth2_token.received_at = datetime.datetime.utcnow()
+        oauth2_token.received_at = datetime.datetime.utcnow()  # noqa: DTZ003
 
-    @lru_cache(maxsize=1)
+    @lru_cache(maxsize=1)  # noqa: B019
     def get(self, service=Service.LMS) -> OAuth2Token:
         """
         Return the user's saved OAuth 2 token from the DB.
@@ -65,8 +65,8 @@ class OAuth2TokenService:
                 .one()
             )
         except NoResultFound as err:
-            raise OAuth2TokenError(
-                "We don't have an OAuth 2 token for this user"
+            raise OAuth2TokenError(  # noqa: TRY003
+                "We don't have an OAuth 2 token for this user"  # noqa: EM101
             ) from err
 
     def try_lock_for_refresh(self, service=Service.LMS):

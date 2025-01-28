@@ -31,7 +31,7 @@ class GrantTokenService:
         :type h_user: models.HUser
         """
 
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.utcnow()  # noqa: DTZ003
 
         claims = {
             "aud": urlparse(self._h_api_url_public).hostname,

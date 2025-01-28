@@ -13,7 +13,7 @@ LOG = logging.getLogger(__name__)
 @app.task()
 def sync_grades():
     """Start processing pending (scheduled) GradingSync."""
-    with app.request_context() as request:
+    with app.request_context() as request:  # noqa: SIM117
         with request.tm:
             scheduled_syncs = request.db.scalars(
                 select(GradingSync)
@@ -37,7 +37,7 @@ def sync_grades():
 )
 def sync_grade(*, grading_sync_grade_id: int):
     """Send one particular grade to the LMS."""
-    with app.request_context() as request:
+    with app.request_context() as request:  # noqa: SIM117
         with request.tm:
             grading_sync_grade = request.db.get(GradingSyncGrade, grading_sync_grade_id)
             grading_sync = grading_sync_grade.grading_sync
@@ -46,7 +46,7 @@ def sync_grade(*, grading_sync_grade_id: int):
             grading_service = service_factory(None, request, application_instance)
 
             try:
-                assert assignment.lis_outcome_service_url, (
+                assert assignment.lis_outcome_service_url, (  # noqa: S101
                     "Assignment without grading URL"
                 )
 
@@ -77,7 +77,7 @@ def sync_grade(*, grading_sync_grade_id: int):
 @app.task()
 def sync_grades_complete(*, grading_sync_id):
     """Summarize a GradingSync status based on the state of its children GradingSyncGrade."""
-    with app.request_context() as request:
+    with app.request_context() as request:  # noqa: SIM117
         with request.tm:
             grading_sync = request.db.get(GradingSync, grading_sync_id)
 

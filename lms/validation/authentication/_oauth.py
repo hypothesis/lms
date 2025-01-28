@@ -113,7 +113,7 @@ class OAuthCallbackSchema(PyramidRequestSchema):
             try:
                 state = request.params["state"]
             except KeyError as err:
-                raise MissingStateParamError() from err
+                raise MissingStateParamError() from err  # noqa: RSE102
 
         decoded_user = self._decode_state(state)["user"]
         return self._lti_user_service.deserialize(**decoded_user)
@@ -126,16 +126,16 @@ class OAuthCallbackSchema(PyramidRequestSchema):
         payload = self._decode_state(state)
 
         if payload["csrf"] != request.session.pop("oauth2_csrf", None):
-            raise marshmallow.ValidationError("Invalid CSRF token")
+            raise marshmallow.ValidationError("Invalid CSRF token")  # noqa: EM101, TRY003
 
     def _decode_state(self, state):
         """Decode the given state JWT and return its payload or raise."""
         try:
             return self._jwt_service.decode_with_secret(state, self._secret)
         except ExpiredJWTError as err:
-            raise ExpiredStateParamError() from err
+            raise ExpiredStateParamError() from err  # noqa: RSE102
         except InvalidJWTError as err:
-            raise InvalidStateParamError() from err
+            raise InvalidStateParamError() from err  # noqa: RSE102
 
 
 class OAuthTokenResponseSchema(RequestsResponseSchema):

@@ -199,8 +199,8 @@ class ApplicationInstance(CreatedUpdatedMixin, Base):
 
         # For some URLs urlparse(url).netloc returns an empty string.
         if not lms_host:
-            raise ValueError(
-                f"Couldn't parse self.lms_url ({self.lms_url}): urlparse() returned an empty netloc"
+            raise ValueError(  # noqa: TRY003
+                f"Couldn't parse self.lms_url ({self.lms_url}): urlparse() returned an empty netloc"  # noqa: EM102
             )
 
         return lms_host

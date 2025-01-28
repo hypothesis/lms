@@ -72,7 +72,7 @@ def authorize(request):
         # If the instance could add a new course with sections...
         application_instance.settings.get("canvas", "sections_enabled")
         # ... or any of it's existing courses have sections
-        or course_service.any_with_setting("canvas", "sections_enabled", True)
+        or course_service.any_with_setting("canvas", "sections_enabled", True)  # noqa: FBT003
     ):
         scopes += SCOPES["sections"]
 
@@ -115,7 +115,7 @@ def oauth2_redirect(request):
     try:
         canvas_api_client.get_token(authorization_code)
     except CanvasAPIServerError as err:
-        raise HTTPInternalServerError("Authorizing with the Canvas API failed") from err
+        raise HTTPInternalServerError("Authorizing with the Canvas API failed") from err  # noqa: EM101, TRY003
 
     return {}
 
@@ -152,7 +152,7 @@ def oauth2_redirect_error(request):
         )
 
     if error_description := request.params.get("error_description"):
-        kwargs["error_details"] = {"error_description": error_description}  # type: ignore
+        kwargs["error_details"] = {"error_description": error_description}  # type: ignore  # noqa: PGH003
 
     request.context.js_config.enable_oauth2_redirect_error_mode(**kwargs)
 

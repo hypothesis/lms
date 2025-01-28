@@ -157,7 +157,7 @@ class TestRosterTasks:
         )
         factories.Event(
             assignment=assignment,
-            timestamp=datetime(2024, 1, 1),
+            timestamp=datetime(2024, 1, 1),  # noqa: DTZ001
         )
         return assignment
 
@@ -166,7 +166,7 @@ class TestRosterTasks:
         course = factories.Course()
         factories.Event(
             course=course,
-            timestamp=datetime(2024, 8, 28),
+            timestamp=datetime(2024, 8, 28),  # noqa: DTZ001
         )
 
         return factories.LMSCourse(
@@ -180,7 +180,7 @@ class TestRosterTasks:
         course = factories.Course()
         factories.Event(
             course=course,
-            timestamp=datetime(2024, 1, 1),
+            timestamp=datetime(2024, 1, 1),  # noqa: DTZ001
         )
 
         return factories.LMSCourse(
@@ -194,7 +194,7 @@ class TestRosterTasks:
         course = factories.Course()
         factories.Event(
             course=course,
-            timestamp=datetime(2024, 8, 28),
+            timestamp=datetime(2024, 8, 28),  # noqa: DTZ001
         )
         lms_course = factories.LMSCourse(
             lti_context_memberships_url="URL",
@@ -212,7 +212,7 @@ class TestRosterTasks:
         )
         factories.Event(
             assignment=assignment,
-            timestamp=datetime(2024, 8, 28),
+            timestamp=datetime(2024, 8, 28),  # noqa: DTZ001
         )
         return assignment
 
@@ -225,7 +225,7 @@ class TestRosterTasks:
         )
         factories.Event(
             assignment=assignment,
-            timestamp=datetime(2024, 8, 28),
+            timestamp=datetime(2024, 8, 28),  # noqa: DTZ001
         )
         db_session.flush()  # Make sure we have an ID for the assignment
         factories.TaskDone(key=f"roster::assignment::scheduled::{assignment.id}")
@@ -244,7 +244,7 @@ class TestRosterTasks:
             lms_user=factories.LMSUser(),
             lti_role=factories.LTIRole(),
             active=True,
-            updated=datetime(2024, 8, 25),
+            updated=datetime(2024, 8, 25),  # noqa: DTZ001
         )
 
         return lms_course
@@ -256,14 +256,14 @@ class TestRosterTasks:
         )
         factories.Event(
             assignment=assignment,
-            timestamp=datetime(2024, 8, 28),
+            timestamp=datetime(2024, 8, 28),  # noqa: DTZ001
         )
         factories.AssignmentRoster(
             assignment=assignment,
             lms_user=factories.LMSUser(),
             lti_role=factories.LTIRole(),
             active=True,
-            updated=datetime(2024, 8, 25),
+            updated=datetime(2024, 8, 25),  # noqa: DTZ001
         )
 
         return assignment
@@ -308,7 +308,7 @@ class TestRosterTasks:
             lms_user=factories.LMSUser(),
             lti_role=factories.LTIRole(),
             active=True,
-            updated=datetime(2024, 8, 25),
+            updated=datetime(2024, 8, 25),  # noqa: DTZ001
         )
 
         return lms_segment

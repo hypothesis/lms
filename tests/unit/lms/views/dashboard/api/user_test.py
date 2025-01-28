@@ -26,7 +26,7 @@ class TestUserViews:
         views,
         get_page,
         segment_authority_provided_ids,
-        _students_query,
+        _students_query,  # noqa: PT019
     ):
         pyramid_request.parsed_params = {
             "course_ids": [sentinel.course_id_1, sentinel.course_id_2],
@@ -106,7 +106,7 @@ class TestUserViews:
                         ]
                     )
                 )
-                .add_columns(True),
+                .add_columns(True),  # noqa: FBT003
             )
 
         else:
@@ -126,7 +126,7 @@ class TestUserViews:
                         ]
                     )
                 )
-                .add_columns(True),
+                .add_columns(True),  # noqa: FBT003
             )
 
         db_session.flush()
@@ -155,7 +155,7 @@ class TestUserViews:
                     "annotation_metrics": {
                         "annotations": 4,
                         "replies": sentinel.replies,
-                        "last_activity": datetime(2024, 1, 1),
+                        "last_activity": datetime(2024, 1, 1),  # noqa: DTZ001
                     },
                 },
                 {
@@ -229,7 +229,7 @@ class TestUserViews:
                     ]
                 )
             )
-            .add_columns(True),
+            .add_columns(True),  # noqa: FBT003
         )
         dashboard_service.get_request_assignment.return_value = assignment
         h_api.get_annotation_counts.return_value = annotation_counts_response
@@ -258,7 +258,7 @@ class TestUserViews:
                     "annotation_metrics": {
                         "annotations": 4,
                         "replies": sentinel.replies,
-                        "last_activity": datetime(2024, 1, 1),
+                        "last_activity": datetime(2024, 1, 1),  # noqa: DTZ001
                     },
                 },
                 {

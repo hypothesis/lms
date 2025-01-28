@@ -16,10 +16,10 @@ class EmptyStringNoneMixin:
     """
 
     def deserialize(self, value, attr, data, **kwargs):
-        if value == missing or value.strip() == "":  # noqa: PLC1901
+        if value == missing or value.strip() == "":
             return None
-        return super().deserialize(value, attr, data, **kwargs)  # type:ignore
+        return super().deserialize(value, attr, data, **kwargs)  # type:ignore  # noqa: PGH003
 
 
-class EmptyStringInt(EmptyStringNoneMixin, fields.Int):  # type: ignore
+class EmptyStringInt(EmptyStringNoneMixin, fields.Int):  # type: ignore  # noqa: PGH003
     """Allow empty string as "missing value" instead of failing integer validation."""

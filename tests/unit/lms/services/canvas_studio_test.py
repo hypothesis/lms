@@ -341,7 +341,7 @@ class TestCanvasStudioService:
         svc.get.side_effect = self.get_request_handler(is_admin=True)
         return svc
 
-    def get_request_handler(self, collections=None, is_admin=False):  # noqa: C901, PLR0915
+    def get_request_handler(self, collections=None, is_admin=False):  # noqa: C901, FBT002, PLR0915
         """
         Create a handler for `GET` requests to the Canvas Studio API.
 
@@ -352,7 +352,7 @@ class TestCanvasStudioService:
         def make_collection(id_, name, type_, created_at):
             return {"id": id_, "name": name, "type": type_, "created_at": created_at}
 
-        def make_file(id_, title, created_at, with_thumbnail=False):
+        def make_file(id_, title, created_at, with_thumbnail=False):  # noqa: FBT002
             file = {
                 "id": id_,
                 "title": title,
@@ -373,7 +373,7 @@ class TestCanvasStudioService:
                 make_collection(10, None, "course_wide", "2024-03-01"),
             ]
 
-        def handler(url, allow_redirects=True):  # noqa: C901, PLR0912, PLR0915
+        def handler(url, allow_redirects=True):  # noqa: C901, FBT002, PLR0912, PLR0915
             api_prefix = "/api/public/v1/"
 
             parsed_url = urlparse(url)
@@ -471,7 +471,7 @@ class TestCanvasStudioService:
                     json_data = {}
 
                 case _:  # pragma: nocover
-                    raise ValueError(f"Unexpected URL {url}")
+                    raise ValueError(f"Unexpected URL {url}")  # noqa: EM102, TRY003
 
             # This mirrors how HTTPService handles responses based on status code.
             response = None
@@ -480,7 +480,7 @@ class TestCanvasStudioService:
                     status_code=status_code, json_data=json_data
                 )
                 response.raise_for_status()
-                return response
+                return response  # noqa: TRY300
             except RequestException as err:
                 raise ExternalRequestError(
                     request=err.request, response=response

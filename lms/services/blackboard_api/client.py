@@ -78,7 +78,8 @@ class BlackboardAPIClient:
         except ExternalRequestError as err:
             if err.status_code == 404:
                 raise FileNotFoundInCourse(
-                    "blackboard_file_not_found_in_course", file_id
+                    "blackboard_file_not_found_in_course",  # noqa: EM101
+                    file_id,
                 ) from err
             raise
 
@@ -100,7 +101,10 @@ class BlackboardAPIClient:
         return BlackboardListGroups(response).parse()
 
     def course_groups(
-        self, course_id, group_set_id=None, current_student_own_groups_only=True
+        self,
+        course_id,
+        group_set_id=None,
+        current_student_own_groups_only=True,  # noqa: FBT002
     ):
         """
         Return the groups in a course.
@@ -146,7 +150,9 @@ class BlackboardAPIClient:
             )
             # We are going to be modifying `self_enrollment_groups` within the loop
             # Create a copy here to iterate over.
-            for group, response in zip(list(self_enrollment_groups), responses):
+            for group, response in zip(
+                list(self_enrollment_groups), responses, strict=False
+            ):
                 # If we are a member of any of the SelfEnrollment groups
                 # we'll get a 200 response from the endpoint
                 if response.status == 200:

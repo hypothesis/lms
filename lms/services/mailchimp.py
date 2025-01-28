@@ -42,7 +42,7 @@ class MailchimpService:
         self.db = db
         self.mailchimp_client = mailchimp_transactional.Client(api_key)
 
-    def send(  # noqa: PLR0913, PLR0917
+    def send(  # noqa: PLR0913
         self,
         template: str,
         sender: EmailSender,
@@ -58,7 +58,7 @@ class MailchimpService:
         https://mailchimp.com/developer/transactional/api/messages/send-new-message/
         """
 
-        if task_done_key:
+        if task_done_key:  # noqa: SIM102
             if self.db.execute(
                 select(TaskDone).filter_by(key=task_done_key)
             ).one_or_none():
@@ -99,7 +99,7 @@ class MailchimpService:
         try:
             self.mailchimp_client.messages.send(params)
         except Exception as exc:
-            raise MailchimpError() from exc
+            raise MailchimpError from exc
 
         if task_done_key:
             # Record the email send in the DB to avoid sending duplicates.

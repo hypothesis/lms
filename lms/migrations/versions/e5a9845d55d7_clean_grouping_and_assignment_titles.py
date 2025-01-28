@@ -22,7 +22,7 @@ def upgrade() -> None:
     """
         )
     )
-    print(f"Assignment titles updated: {result.rowcount}")
+    print(f"Assignment titles updated: {result.rowcount}")  # noqa: T201
 
     result = conn.execute(
         sa.text(
@@ -32,7 +32,7 @@ def upgrade() -> None:
     """
         )
     )
-    print(f"Empty assignment titles: {result.rowcount}")
+    print(f"Empty assignment titles: {result.rowcount}")  # noqa: T201
 
     result = conn.execute(
         sa.text(
@@ -42,7 +42,7 @@ def upgrade() -> None:
     """
         )
     )
-    print(f"Grouping titles updated: {result.rowcount}")
+    print(f"Grouping titles updated: {result.rowcount}")  # noqa: T201
 
 
 def downgrade() -> None:

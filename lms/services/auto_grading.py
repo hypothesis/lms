@@ -63,7 +63,9 @@ class AutoGradingService:
         return query
 
     def get_last_grades(
-        self, assignment: Assignment, success=True
+        self,
+        assignment: Assignment,
+        success=True,  # noqa: FBT002
     ) -> dict[str, GradingSyncGrade]:
         """Return a dictionary keyed by h_userid, containing the most recent GradeSync."""
         result = self._db.scalars(
@@ -104,7 +106,7 @@ class AutoGradingService:
                 else:
                     grade = 0
             case ("all_or_nothing", "separate"):
-                assert auto_grading_config.required_replies is not None, (
+                assert auto_grading_config.required_replies is not None, (  # noqa: S101
                     "'separate' auto grade config with empty replies"
                 )
                 if (
@@ -121,7 +123,7 @@ class AutoGradingService:
                 grade = combined_count / auto_grading_config.required_annotations
 
             case ("scaled", "separate"):
-                assert auto_grading_config.required_replies is not None, (
+                assert auto_grading_config.required_replies is not None, (  # noqa: S101
                     "'separate' auto grade config with empty replies"
                 )
                 # Let's make sure we do not count annotations or replies above the requirement, otherwise, a person
@@ -138,7 +140,7 @@ class AutoGradingService:
                     + auto_grading_config.required_replies
                 )
             case _:
-                raise ValueError("Unknown auto grading configuration")
+                raise ValueError("Unknown auto grading configuration")  # noqa: EM101, TRY003
 
         grade = min(1, grade)  # Proportional grades are capped at 1
         return round(grade, 2)

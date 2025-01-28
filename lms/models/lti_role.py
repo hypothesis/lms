@@ -106,7 +106,7 @@ class Role:
 class _RoleParser:
     """Close collaborator class for parsing roles."""
 
-    _ROLE_REGEXP = [
+    _ROLE_REGEXP = [  # noqa: RUF012
         # LTI 1.1 scoped role
         re.compile(r"urn:lti:(?P<scope>instrole|role|sysrole):ims/lis/(?P<type>\w+)"),
         # LTI 1.3 scoped role
@@ -133,7 +133,7 @@ class _RoleParser:
         re.compile(r"^(?!http|urn)(?P<type>\w+)"),
     ]
 
-    _SCOPE_MAP = {
+    _SCOPE_MAP = {  # noqa: RUF012
         # LTI 1.1 https://www.imsglobal.org/specs/ltiv1p0/implementation-guide
         "instrole": RoleScope.INSTITUTION,
         "role": RoleScope.COURSE,
@@ -143,7 +143,7 @@ class _RoleParser:
         "institution": RoleScope.INSTITUTION,
         "membership": RoleScope.COURSE,
     }
-    _TYPE_MAP = {
+    _TYPE_MAP = {  # noqa: RUF012
         "AccountAdmin": RoleType.ADMIN,
         "Administrator": RoleType.ADMIN,
         "Alumni": RoleType.LEARNER,

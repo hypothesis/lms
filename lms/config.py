@@ -31,7 +31,7 @@ def _aes_to_16_chars(string):
     try:
         return string.encode("ascii")[0:16] if string else None
     except UnicodeEncodeError as err:
-        raise SettingError("LMS_SECRET must contain only ASCII characters") from err
+        raise SettingError("LMS_SECRET must contain only ASCII characters") from err  # noqa: EM101, TRY003
 
 
 @dataclass(frozen=True)
@@ -39,7 +39,7 @@ class _Setting:
     """The properties of a setting and how to read it."""
 
     name: str
-    read_from: str = None  # type: ignore
+    read_from: str = None  # type: ignore  # noqa: PGH003
     value_mapper: Callable | None = None
 
     def __post_init__(self):

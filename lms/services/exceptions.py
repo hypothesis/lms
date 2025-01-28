@@ -43,13 +43,13 @@ class ExternalRequestError(Exception):
     :type validation_errors: JSON-serializable dict
     """
 
-    def __init__(  # noqa: PLR0913, PLR0917
+    def __init__(  # noqa: PLR0913
         self,
         message=None,
         request=None,
         response=None,
         validation_errors=None,
-        refreshable=False,
+        refreshable=False,  # noqa: FBT002
         refresh_route: str | None = None,
         refresh_service: Service | None = None,
     ):

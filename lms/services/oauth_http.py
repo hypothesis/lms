@@ -68,7 +68,7 @@ class OAuthHTTPService:
         """
         headers = headers or {}
 
-        assert "Authorization" not in headers
+        assert "Authorization" not in headers  # noqa: S101
 
         access_token = self._oauth2_token_service.get(service=self.service).access_token
         headers["Authorization"] = f"Bearer {access_token}"
@@ -97,7 +97,11 @@ class OAuthHTTPService:
         )
 
     def refresh_access_token(
-        self, token_url, redirect_uri, auth, prevent_concurrent_refreshes=True
+        self,
+        token_url,
+        redirect_uri,
+        auth,
+        prevent_concurrent_refreshes=True,  # noqa: FBT002
     ):
         """
         Make a refresh token request and save the new token in the DB.
@@ -117,7 +121,7 @@ class OAuthHTTPService:
         # If the "old" token is already current, just return immediately.
         if (
             old_token.access_token
-            and datetime.utcnow() - old_token.received_at < timedelta(seconds=30)
+            and datetime.utcnow() - old_token.received_at < timedelta(seconds=30)  # noqa: DTZ003
         ):
             return old_token.access_token
 
@@ -131,7 +135,7 @@ class OAuthHTTPService:
                 # fails, the client should wait briefly and try again, at which
                 # point it should find the refreshed token already available and
                 # skip the refresh.
-                raise ConcurrentTokenRefreshError() from exc
+                raise ConcurrentTokenRefreshError() from exc  # noqa: RSE102
 
         try:
             return self._token_request(
@@ -151,7 +155,7 @@ class OAuthHTTPService:
             else:
                 if error_dict["error"] == "invalid_grant":
                     # Looks like our refresh token has expired or been revoked.
-                    raise OAuth2TokenError() from err
+                    raise OAuth2TokenError() from err  # noqa: RSE102
 
             raise
 

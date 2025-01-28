@@ -95,7 +95,8 @@ class PagesAPIViews:
                     current_course_id,
                 )
                 raise PageNotFoundInCourse(
-                    "canvas_page_not_found_in_course", document_page_id
+                    "canvas_page_not_found_in_course",  # noqa: EM101
+                    document_page_id,
                 )
 
             # Store a mapping so we don't have to re-search next time.
@@ -116,7 +117,8 @@ class PagesAPIViews:
             _ = self.canvas.api.pages.page(current_course_id, effective_page_id)
         except CanvasAPIError as err:
             raise PageNotFoundInCourse(
-                "canvas_page_not_found_in_course", effective_page_id
+                "canvas_page_not_found_in_course",  # noqa: EM101
+                effective_page_id,
             ) from err
 
         # We build a token to authorize the view that fetches the actual
@@ -168,7 +170,7 @@ class PagesAPIViews:
     @staticmethod
     def _parse_document_url(document_url):
         document_url_match = DOCUMENT_URL_REGEX.search(document_url)
-        assert document_url_match
+        assert document_url_match  # noqa: S101
         course_id = document_url_match["course_id"]
         page_id = document_url_match["page_id"]
 

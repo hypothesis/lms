@@ -339,13 +339,13 @@ class JSConfig:
             },
         }
 
-    def enable_file_picker_mode(  # noqa: PLR0913
+    def enable_file_picker_mode(
         self,
         form_action,
         form_fields,
         course: Course,
         assignment: Assignment | None = None,
-        prompt_for_title=False,
+        prompt_for_title=False,  # noqa: FBT002
     ):
         """
         Put the JavaScript code into "file picker" mode.
@@ -549,7 +549,7 @@ class JSConfig:
         return BearerTokenSchema(self._request).authorization_param(self._lti_user)
 
     @property
-    @functools.lru_cache
+    @functools.lru_cache  # noqa: B019
     def _config(self):
         """
         Return the current configuration dict.
@@ -633,7 +633,7 @@ class JSConfig:
         return product_info
 
     @property
-    @functools.lru_cache
+    @functools.lru_cache  # noqa: B019
     def _hypothesis_client(self) -> dict[str, Any]:
         """
         Return the config object for the Hypothesis client.

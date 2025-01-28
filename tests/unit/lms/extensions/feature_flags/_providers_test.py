@@ -40,7 +40,7 @@ class TestEnvVarProvider:
     @pytest.fixture(autouse=True)
     def os(self, patch):
         os = patch("lms.extensions.feature_flags._providers.os")
-        os.environ = {}
+        os.environ = {}  # noqa: B003
         return os
 
 

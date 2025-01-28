@@ -50,7 +50,7 @@ class HubSpotClient:
 
             files = [
                 {
-                    "fileName": os.path.basename(csv_file.name),
+                    "fileName": os.path.basename(csv_file.name),  # noqa: PTH119
                     "fileFormat": "CSV",
                     "fileImportPage": {
                         "hasHeader": False,

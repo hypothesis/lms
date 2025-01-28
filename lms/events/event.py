@@ -1,5 +1,5 @@
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field, fields
-from typing import Mapping
 
 from pyramid.request import Request
 from sqlalchemy import inspect
@@ -109,7 +109,7 @@ class ModelChange:
         changes = {}
         instance_details = inspect(instance)
         for attr in instance_details.attrs:
-            history = instance_details.get_history(attr.key, True)
+            history = instance_details.get_history(attr.key, True)  # noqa: FBT003
 
             if not history.has_changes():
                 continue

@@ -139,7 +139,7 @@ class TestViaURL:
 
     @pytest.fixture
     def via_video_url(self, patch):
-        yield patch("lms.views.api.canvas_studio.via_video_url")
+        return patch("lms.views.api.canvas_studio.via_video_url")
 
     @pytest.fixture
     def assignment_service(self, assignment_service):

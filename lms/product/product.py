@@ -3,7 +3,7 @@
 from dataclasses import InitVar, dataclass
 
 from lms.product.family import Family
-from lms.product.plugin import PluginConfig, Plugins  # type: ignore
+from lms.product.plugin import PluginConfig, Plugins  # type: ignore  # noqa: PGH003
 
 
 @dataclass(frozen=True)
@@ -44,8 +44,8 @@ class Product:
 
     plugin: Plugins
     settings: Settings
-    plugin_config: PluginConfig = PluginConfig()
-    route: Routes = Routes()
+    plugin_config: PluginConfig = PluginConfig()  # noqa: RUF009
+    route: Routes = Routes()  # noqa: RUF009
     family: Family = Family.UNKNOWN
     settings_key: str | None = None
     """Key in the ai.settings dictionary that holds the product specific settings"""

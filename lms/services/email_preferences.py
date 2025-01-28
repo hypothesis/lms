@@ -18,7 +18,7 @@ class InvalidTokenError(Exception):
 
 @dataclass(frozen=True)
 class EmailPrefs:
-    DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+    DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]  # noqa: RUF012
 
     h_userid: str
     mon: bool = True
@@ -42,7 +42,7 @@ class TokenPayload:
 
 
 class EmailPreferencesService:
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         db,
         secret: str,
@@ -97,14 +97,14 @@ class EmailPreferencesService:
         try:
             token = parse_qs(urlparse(url).query)["token"][0]
         except (KeyError, ValueError) as err:
-            raise UnrecognisedURLError() from err
+            raise UnrecognisedURLError from err
 
         try:
             return TokenPayload(
                 **self._jwt_service.decode_with_secret(token, self._secret)
             )
         except (ExpiredJWTError, InvalidJWTError) as err:
-            raise InvalidTokenError() from err
+            raise InvalidTokenError from err
 
     KEY_PREFIX = "instructor_email_digests.days."
 

@@ -1,7 +1,7 @@
 import json
+from collections.abc import Mapping
 from copy import deepcopy
 from datetime import datetime
-from typing import Mapping
 
 from dateutil import parser
 from sqlalchemy import Select, select, union
@@ -37,7 +37,7 @@ class CourseService:
         self._application_instance = application_instance
         self._grouping_service = grouping_service
 
-    def any_with_setting(self, group, key, value=True) -> bool:
+    def any_with_setting(self, group, key, value=True) -> bool:  # noqa: FBT002
         """
         Return whether any course has the specified setting.
 
@@ -83,7 +83,7 @@ class CourseService:
             copied_from=historical_course,
         )
 
-    def _search_query(  # noqa: PLR0913, PLR0917
+    def _search_query(  # noqa: PLR0913
         self,
         id_: int | None = None,
         context_id: str | None = None,
@@ -118,7 +118,7 @@ class CourseService:
 
         return query.limit(limit)
 
-    def search(  # noqa: PLR0913, PLR0917
+    def search(  # noqa: PLR0913
         self,
         id_: int | None = None,
         context_id: str | None = None,
@@ -136,7 +136,7 @@ class CourseService:
             organization_ids=organization_ids,
         ).all()
 
-    def get_courses(  # noqa: PLR0913
+    def get_courses(
         self,
         instructor_h_userid: str | None = None,
         admin_organization_ids: list[int] | None = None,
@@ -195,8 +195,8 @@ class CourseService:
         admin_organization_ids: list[int] | None = None,
         course_ids: list[int] | None = None,
     ):
-        courses_where_instructor_query = select(None)  # type: ignore
-        courses_where_admin_query = select(None)  # type: ignore
+        courses_where_instructor_query = select(None)  # type: ignore  # noqa: PGH003
+        courses_where_admin_query = select(None)  # type: ignore  # noqa: PGH003
 
         if instructor_h_userid:
             # Get all the courses where instructor_h_userid is an instructor. This will query AssignmentMembership, which includes roles
@@ -252,7 +252,7 @@ class CourseService:
             )
         )
 
-    def get_by_context_id(self, context_id, raise_on_missing=False) -> Course | None:
+    def get_by_context_id(self, context_id, raise_on_missing=False) -> Course | None:  # noqa: FBT002
         """
         Get a course (if one exists) by the GUID and context id.
 
@@ -402,7 +402,7 @@ class CourseService:
         if course_settings.get("canvas", "sections_enabled") and self._is_pre_sections(
             context_id
         ):
-            course_settings.set("canvas", "sections_enabled", False)
+            course_settings.set("canvas", "sections_enabled", False)  # noqa: FBT003
 
         return course_settings
 

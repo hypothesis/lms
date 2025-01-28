@@ -78,7 +78,7 @@ class LaunchVerifier:
 
         method = self._request.method
         if method != "POST":
-            raise LTIOAuthError("LTI launches should use POST")
+            raise LTIOAuthError("LTI launches should use POST")  # noqa: EM101, TRY003
 
         is_valid, _request = self._oauth1_endpoint.validate_request(
             # The docs for `validate_request` say to send the full URL with
@@ -92,7 +92,7 @@ class LaunchVerifier:
         )
 
         if not is_valid:
-            raise LTIOAuthError("OAuth signature is not valid")
+            raise LTIOAuthError("OAuth signature is not valid")  # noqa: EM101, TRY003
 
 
 class _OAuthRequestValidator(RequestValidator):
@@ -118,7 +118,7 @@ class _OAuthRequestValidator(RequestValidator):
 
         return True
 
-    def validate_timestamp_and_nonce(  # noqa: PLR0913, PLR0917
+    def validate_timestamp_and_nonce(  # noqa: PLR0913
         # Not our design, we have to fit in with this API
         self,
         client_key,  # noqa: ARG002
@@ -150,4 +150,4 @@ class _OAuthRequestValidator(RequestValidator):
                 client_key
             ).shared_secret
         except ApplicationInstanceNotFound as err:
-            raise ConsumerKeyLaunchVerificationError() from err
+            raise ConsumerKeyLaunchVerificationError from err

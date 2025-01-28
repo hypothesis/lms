@@ -9,7 +9,7 @@ from lms.product.product import Product
 @pytest.mark.usefixtures("application_instance_service")
 class TestGetProductFromRequest:
     PRODUCTS = (Product, Blackboard, Canvas)
-    PRODUCT_MAP = [
+    PRODUCT_MAP = [  # noqa: RUF012
         # Products with a specific implementation
         ("BlackboardLearn", Product.Family.BLACKBOARD, Blackboard),
         ("canvas", Product.Family.CANVAS, Canvas),

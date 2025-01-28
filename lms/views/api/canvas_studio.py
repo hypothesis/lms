@@ -149,7 +149,8 @@ def via_url(request):
     media_id = CanvasStudioService.media_id_from_url(document_url)
     if not media_id:
         raise CanvasStudioLaunchError(
-            "canvas_studio_media_not_found", "Unable to get Canvas Studio media ID"
+            "canvas_studio_media_not_found",  # noqa: EM101
+            "Unable to get Canvas Studio media ID",
         )
 
     svc = request.find_service(CanvasStudioService)
@@ -163,14 +164,14 @@ def via_url(request):
     download_url = svc.get_video_download_url(media_id)
     if not download_url:
         raise CanvasStudioLaunchError(
-            "canvas_studio_download_unavailable",
+            "canvas_studio_download_unavailable",  # noqa: EM101
             "Hypothesis was unable to fetch the video",
         )
 
     transcript_url = svc.get_transcript_url(media_id)
     if not transcript_url:
         raise CanvasStudioLaunchError(
-            "canvas_studio_transcript_unavailable",
+            "canvas_studio_transcript_unavailable",  # noqa: EM101
             "This video does not have a published transcript",
         )
 

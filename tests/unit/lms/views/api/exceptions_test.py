@@ -279,7 +279,7 @@ class TestErrorBody:
     def test_json_raises_if_no_refresh_route(self, pyramid_request):
         pyramid_request.product.route = Routes()
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # noqa: PT011
             ErrorBody().__json__(pyramid_request)
 
     @pytest.mark.usefixtures("with_refreshable_exception")

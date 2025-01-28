@@ -142,4 +142,4 @@ class TestMoodleGroupingPlugin:
 
     @pytest.fixture
     def course(self):
-        return factories.Course(lms_id=random.randint(1, 1000))
+        return factories.Course(lms_id=random.randint(1, 1000))  # noqa: S311

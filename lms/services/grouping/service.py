@@ -27,10 +27,10 @@ class GroupingService:
         guid = self.application_instance.tool_consumer_instance_guid
 
         if type_ == Grouping.Type.COURSE:
-            assert parent is None, "Course groupings can't have a parent"
+            assert parent is None, "Course groupings can't have a parent"  # noqa: S101
             return hashed_id(guid, lms_id)
 
-        assert parent is not None, "Non-course groupings must have a parent"
+        assert parent is not None, "Non-course groupings must have a parent"  # noqa: S101
 
         if type_ == Grouping.Type.CANVAS_SECTION:
             return hashed_id(guid, parent.lms_id, lms_id)
@@ -186,7 +186,7 @@ class GroupingService:
             lti_roles=lti_user.lti_roles,
         )
 
-    def get_groups(  # noqa: PLR0913
+    def get_groups(
         self,
         user: User,
         lti_user: LTIUser,
@@ -244,9 +244,7 @@ class GroupingService:
 
         return Grouping.Type.COURSE
 
-    def _to_groupings(  # noqa: PLR0913
-        self, user, groupings, course, type_, lti_roles: list[LTIRole]
-    ):
+    def _to_groupings(self, user, groupings, course, type_, lti_roles: list[LTIRole]):
         if groupings and not isinstance(groupings[0], Grouping):
             groupings = [
                 {

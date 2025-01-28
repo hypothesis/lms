@@ -43,7 +43,7 @@ def upgrade() -> None:
         )
     )
 
-    pass
+    pass  # noqa: PIE790
 
 
 def downgrade() -> None:

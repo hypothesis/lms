@@ -5,10 +5,10 @@ from lms.product.product import Product
 def get_product_from_request(request) -> Product:
     """Get the correct product object from the provided request."""
 
-    from lms.product.blackboard import Blackboard  # noqa: PLC0415
-    from lms.product.canvas import Canvas  # noqa: PLC0415
-    from lms.product.d2l import D2L  # noqa: PLC0415
-    from lms.product.moodle import Moodle  # noqa: PLC0415
+    from lms.product.blackboard import Blackboard
+    from lms.product.canvas import Canvas
+    from lms.product.d2l import D2L
+    from lms.product.moodle import Moodle
 
     family = Family.UNKNOWN
     settings = {}

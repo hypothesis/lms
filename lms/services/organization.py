@@ -52,8 +52,8 @@ class OrganizationService:
         parts = public_id.split(".")
 
         if not len(parts) == 4:
-            raise InvalidPublicId(
-                f"Malformed public id: '{public_id}'. Expected 4 dot separated parts."
+            raise InvalidPublicId(  # noqa: TRY003
+                f"Malformed public id: '{public_id}'. Expected 4 dot separated parts."  # noqa: EM102
             )
 
         return self._organization_search_query(public_id=public_id).one_or_none()
@@ -77,11 +77,11 @@ class OrganizationService:
             .order_by(Organization.parent_id)
         ).all()
 
-        assert not hierarchy[-1].parent_id, "The root item should have no parent"
+        assert not hierarchy[-1].parent_id, "The root item should have no parent"  # noqa: S101
 
         return hierarchy[-1]
 
-    def search(  # noqa: PLR0913
+    def search(
         self, id_=None, public_id=None, name=None, guid=None, limit=100
     ) -> list[Organization]:
         """
@@ -157,7 +157,9 @@ class OrganizationService:
             # Add a note to indicate the application instance was automatically
             # allocated to an organization
             application_instance.settings.set(
-                "hypothesis", "auto_assigned_to_org", True
+                "hypothesis",
+                "auto_assigned_to_org",
+                True,  # noqa: FBT003
             )
 
             if (
@@ -177,7 +179,7 @@ class OrganizationService:
                 org = self.create_organization()
                 # Add a note to indicate the organization was automatically
                 # created instead of going through our normal process
-                org.settings.set("hypothesis", "auto_created", True)
+                org.settings.set("hypothesis", "auto_created", True)  # noqa: FBT003
 
         # Fill out missing names
         if not org.name and (name := application_instance.tool_consumer_instance_name):
@@ -206,7 +208,7 @@ class OrganizationService:
         # is URL safe. The other option is '~'.
         return f"{self._region_code}.lms.org.{id_}"
 
-    def update_organization(  # noqa: PLR0913
+    def update_organization(
         self,
         organization: Organization,
         name=None,
@@ -252,29 +254,29 @@ class OrganizationService:
         # This would be caught by the next check, but doing it here means we
         # can give a more sensible error message
         if parent_public_id == organization.public_id:
-            raise InvalidOrganizationParent(
-                "Cannot set an organization to be it's own parent"
+            raise InvalidOrganizationParent(  # noqa: TRY003
+                "Cannot set an organization to be it's own parent"  # noqa: EM101
             )
 
         parent = self._organization_search_query(
             public_id=parent_public_id
         ).one_or_none()
         if not parent:
-            raise InvalidOrganizationParent(
-                f"Could not find parent organization: '{parent_public_id}'"
+            raise InvalidOrganizationParent(  # noqa: TRY003
+                f"Could not find parent organization: '{parent_public_id}'"  # noqa: EM102
             )
 
         # Get a list including our self and all are children etc.
         if parent.id in self.get_hierarchy_ids(organization.id, include_parents=False):
-            raise InvalidOrganizationParent(
-                f"Cannot use '{parent_public_id}' as a parent as it a "
+            raise InvalidOrganizationParent(  # noqa: TRY003
+                f"Cannot use '{parent_public_id}' as a parent as it a "  # noqa: EM102
                 "child of this organization"
             )
 
         organization.parent = parent
         organization.parent_id = parent.id
 
-    def get_hierarchy_ids(self, id_, include_parents=False) -> list[int]:
+    def get_hierarchy_ids(self, id_, include_parents=False) -> list[int]:  # noqa: FBT002
         """
         Get an organization and it's children's ids order not guaranteed.
 
@@ -304,7 +306,7 @@ class OrganizationService:
         recursive_case = self._db_session.query(*cols).join(base_case, join_condition)
 
         # This will recurse until no new rows are added
-        rows = self._db_session.query(base_case.union(recursive_case)).all()  # type: ignore
+        rows = self._db_session.query(base_case.union(recursive_case)).all()  # type: ignore  # noqa: PGH003
         return [row[0] for row in rows]
 
     def is_member(self, organization: Organization, user: User) -> bool:
