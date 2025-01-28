@@ -1,3 +1,0 @@
-[behave]
-paths=tests/bdd/
-exclude_re=feature_steps

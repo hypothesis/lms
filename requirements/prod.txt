@@ -61,8 +61,6 @@ google-auth==2.25.2
     # via google-auth-oauthlib
 google-auth-oauthlib==1.2.0
     # via pyramid-googleauth
-greenlet==3.0.3
-    # via sqlalchemy
 gunicorn==23.0.0
     # via -r requirements/prod.in
 h-api==1.1.0

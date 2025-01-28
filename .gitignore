@@ -13,7 +13,6 @@ supervisord.pid
 .eslintcache
 *.tsbuildinfo
 .certificates
-tests/bdd/steps/_compiled_feature_steps.py
 
 # See https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored.
 # This is the "If you're not using Zero-Installs" list.
