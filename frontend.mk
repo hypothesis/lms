@@ -28,7 +28,6 @@ dev: build/manifest.json
 devdata: build/manifest.json
 shell: build/manifest.json
 functests: build/manifest.json
-bddtests: build/manifest.json
 sure: build/manifest.json
 
 # Make `make sure` lint and test the frontend code as well.

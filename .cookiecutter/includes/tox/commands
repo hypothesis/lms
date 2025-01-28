@@ -1,3 +1,0 @@
-bddtests: sh bin/create-db lms_bddtests
-bddtests: python3 -m lms.scripts.init_db --delete --create
-bddtests: behave {posargs:tests/bdd/}

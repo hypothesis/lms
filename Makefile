@@ -154,7 +154,6 @@ clean:
 	@rm -rf build dist .tox .coverage coverage .eslintcache node_modules supervisord.log supervisord.pid yarn-error.log
 	@find . -path '*/__pycache__*' -delete
 	@find . -path '*.egg-info*' -delete
-	@rm -f tests/bdd/steps/_compiled_feature_steps.py
 
 .PHONY: python
 python:
