@@ -6,7 +6,7 @@ from freezegun import freeze_time
 from h_matchers import Any
 from pytest import param
 
-from lms.product.family import Family
+from lms.models.family import Family
 from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
 from lms.services.lti_grading._v13 import LTI13GradingService
 from tests import factories

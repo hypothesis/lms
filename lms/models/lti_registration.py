@@ -3,6 +3,7 @@ from sqlalchemy.orm import mapped_column
 
 from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
+from lms.models.family import Family
 
 
 class LTIRegistration(CreatedUpdatedMixin, Base):
@@ -42,7 +43,6 @@ class LTIRegistration(CreatedUpdatedMixin, Base):
     @property
     def product_family(self) -> str:
         """To which LMS (Canvas, D2L, BB..) does this registration belong."""
-        from lms.product.family import Family  # noqa: PLC0415
 
         if self.issuer.endswith(".instructure.com"):
             return Family.CANVAS

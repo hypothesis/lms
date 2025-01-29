@@ -10,6 +10,7 @@ from lms.models import (
     AssignmentMembership,
     Course,
     CourseGroupsExportedFromH,
+    Family,
     Grouping,
     GroupingMembership,
     LMSCourse,
@@ -23,7 +24,6 @@ from lms.models import (
     RoleType,
     User,
 )
-from lms.product.family import Family
 from lms.services.grouping import GroupingService
 from lms.services.lms_term import LMSTermService
 from lms.services.upsert import bulk_upsert

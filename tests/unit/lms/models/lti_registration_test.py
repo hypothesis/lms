@@ -1,6 +1,6 @@
 import pytest
 
-from lms.product.family import Family
+from lms.models.family import Family
 from tests import factories
 
 
