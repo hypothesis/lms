@@ -237,3 +237,8 @@ class ApplicationInstance(CreatedUpdatedMixin, Base):
             return "1.3.0"
 
         return "LTI-1p0"
+
+    @property
+    def family(self) -> Family:
+        """Return the Family enum for this instance based on tool_consumer_info_product_family_code ."""
+        return Family(self.tool_consumer_info_product_family_code)
