@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.exceptions import ReusedConsumerKey
+from lms.models.family import Family
 from lms.models.json_settings import JSONSetting, JSONSettings
 
 LOG = logging.getLogger(__name__)

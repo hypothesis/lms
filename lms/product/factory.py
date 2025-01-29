@@ -1,4 +1,4 @@
-from lms.product.family import Family
+from lms.models.family import Family
 from lms.product.product import Product
 
 

@@ -2,8 +2,7 @@ import logging
 from datetime import UTC, datetime
 from urllib.parse import urlparse
 
-from lms.models import ApplicationInstance, Assignment, LMSUser, LTIRegistration
-from lms.product.family import Family
+from lms.models import ApplicationInstance, Assignment, Family, LMSUser, LTIRegistration
 from lms.product.plugin.misc import MiscPlugin
 from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
 from lms.services.lti_grading.interface import GradingResult, LTIGradingService

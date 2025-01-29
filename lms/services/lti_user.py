@@ -1,5 +1,5 @@
+from lms.models.family import Family
 from lms.models.lti_user import LTI, LTIUser, display_name
-from lms.product.family import Family
 from lms.services.application_instance import ApplicationInstanceService
 from lms.services.lti_role_service import LTIRoleService
 

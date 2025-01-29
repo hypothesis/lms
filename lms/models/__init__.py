@@ -15,6 +15,7 @@ from lms.models.course_groups_exported_from_h import CourseGroupsExportedFromH
 from lms.models.dashboard_admin import DashboardAdmin
 from lms.models.event import Event, EventData, EventType, EventUser
 from lms.models.exceptions import ReusedConsumerKey
+from lms.models.family import Family
 from lms.models.file import File
 from lms.models.grading_info import GradingInfo
 from lms.models.grading_sync import GradingSync, GradingSyncGrade
