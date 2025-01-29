@@ -3,7 +3,7 @@ from unittest.mock import sentinel
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from lms.models import ApplicationInstance
+from lms.models import ApplicationInstance, Family
 from tests import factories
 
 
@@ -118,6 +118,26 @@ class TestApplicationInstance:
         application_instance.deployment_id = deployment_id
 
         assert application_instance.lti_version == lti_version
+
+    @pytest.mark.parametrize(
+        "family_code,family",
+        [
+            ("BlackboardLearn", Family.BLACKBOARD),
+            ("canvas", Family.CANVAS),
+            ("BlackbaudK12", Family.BLACKBAUD),
+            ("desire2learn", Family.D2L),
+            ("moodle", Family.MOODLE),
+            ("schoology", Family.SCHOOLOGY),
+            ("sakai", Family.SAKAI),
+            ("wut", Family.UNKNOWN),
+            ("", Family.UNKNOWN),
+            (None, Family.UNKNOWN),
+        ],
+    )
+    def test_family(self, application_instance, family_code, family):
+        application_instance.tool_consumer_info_product_family_code = family_code
+
+        assert application_instance.family == family
 
     @pytest.fixture
     def application_instance(self):
