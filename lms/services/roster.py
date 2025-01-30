@@ -8,6 +8,7 @@ from lms.models import (
     Assignment,
     AssignmentRoster,
     CourseRoster,
+    Family,
     LMSCourse,
     LMSCourseApplicationInstance,
     LMSCourseMembership,
@@ -23,13 +24,14 @@ from lms.models.h_user import get_h_userid, get_h_username
 from lms.models.lti_user import display_name
 from lms.services.canvas_api.client import CanvasAPIClient
 from lms.services.canvas_api.factory import canvas_api_client_factory
+from lms.services.d2l_api.client import D2LAPIClient
 from lms.services.exceptions import (
     CanvasAPIError,
     ConcurrentTokenRefreshError,
     ExternalRequestError,
     OAuth2TokenError,
 )
-from lms.services.lti_names_roles import LTINamesRolesService
+from lms.services.lti_names_roles import LTINamesRolesService, Member
 from lms.services.lti_role_service import LTIRoleService
 from lms.services.oauth2_token import OAuth2TokenService
 from lms.services.upsert import bulk_upsert
@@ -157,6 +159,7 @@ class RosterService:
         assert lms_course.lti_context_memberships_url, (
             "Trying fetch roster for course without service URL."
         )
+        application_instance = self._get_application_instance(lms_course)
         lti_registration = self._get_lti_registration(lms_course)
 
         roster = self._lti_names_roles_service.get_context_memberships(
@@ -167,7 +170,9 @@ class RosterService:
         lms_users_by_lti_user_id = {
             u.lti_user_id: u
             for u in self._get_roster_users(
-                roster, lms_course.tool_consumer_instance_guid
+                roster,
+                application_instance.family,
+                lms_course.tool_consumer_instance_guid,
             )
         }
         # Also insert any roles we might be missing
@@ -228,6 +233,7 @@ class RosterService:
         assert lms_course.lti_context_memberships_url, (
             "Trying fetch roster for course without service URL."
         )
+        application_instance = self._get_application_instance(lms_course)
         lti_registration = self._get_lti_registration(lms_course)
 
         try:
@@ -254,7 +260,9 @@ class RosterService:
         lms_users_by_lti_user_id = {
             u.lti_user_id: u
             for u in self._get_roster_users(
-                roster, lms_course.tool_consumer_instance_guid
+                roster,
+                application_instance.family,
+                lms_course.tool_consumer_instance_guid,
             )
         }
         # Also insert any roles we might be missing
@@ -326,7 +334,9 @@ class RosterService:
         lms_users_by_lti_user_id = {
             u.lti_user_id: u
             for u in self._get_roster_users(
-                roster, lms_course.tool_consumer_instance_guid
+                roster,
+                application_instance.family,
+                lms_course.tool_consumer_instance_guid,
             )
         }
         # Also insert any roles we might be missing
@@ -493,16 +503,14 @@ class RosterService:
             update_columns=["active", "updated"],
         )
 
-    def _get_roster_users(self, roster, tool_consumer_instance_guid):
+    def _get_roster_users(
+        self, roster: list[Member], family: Family, tool_consumer_instance_guid
+    ):
         values = []
         for member in roster:
             lti_user_id = member.get("lti11_legacy_user_id") or member["user_id"]
             lti_v13_user_id = member["user_id"]
-            lms_api_user_id = (
-                member.get("message", [{}])[0]
-                .get("https://purl.imsglobal.org/spec/lti/claim/custom", {})
-                .get("canvas_user_id")
-            )
+            lms_api_user_id = self._get_lms_api_user_id(member, family)
             name = display_name(
                 given_name=member.get("name", ""),
                 family_name=member.get("family_name", ""),
@@ -640,6 +648,16 @@ class RosterService:
             union(users_from_course_roster, users_from_launches)
         ).all()
         return {u.lms_api_user_id: u for u in users}
+
+    def _get_lms_api_user_id(self, member: Member, family: Family) -> str | None:
+        if family == Family.D2L:
+            return D2LAPIClient.get_api_user_id(member["user_id"])
+
+        return (
+            member.get("message", [{}])[0]
+            .get("https://purl.imsglobal.org/spec/lti/claim/custom", {})
+            .get("canvas_user_id")
+        )
 
 
 def factory(_context, request):

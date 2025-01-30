@@ -119,7 +119,9 @@ class ApplicationInstance(CreatedUpdatedMixin, Base):
     )
 
     # The LMS product name, e.g. "canvas" or "moodle"
-    tool_consumer_info_product_family_code = sa.Column(sa.UnicodeText, nullable=True)
+    tool_consumer_info_product_family_code: Mapped[str | None] = mapped_column(
+        sa.UnicodeText
+    )
 
     # A plain text description of the LMS instance, e.g. "Uni of Hypothesis"
     tool_consumer_instance_description = sa.Column(sa.UnicodeText, nullable=True)
@@ -241,4 +243,4 @@ class ApplicationInstance(CreatedUpdatedMixin, Base):
     @property
     def family(self) -> Family:
         """Return the Family enum for this instance based on tool_consumer_info_product_family_code ."""
-        return Family(self.tool_consumer_info_product_family_code)
+        return Family(self.tool_consumer_info_product_family_code)  # type: ignore
