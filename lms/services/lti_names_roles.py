@@ -22,6 +22,7 @@ class Member(TypedDict):
     status: str
     user_id: str
     lti11_legacy_user_id: str | None
+    message: list[dict]
 
 
 class LTINamesRolesService:
