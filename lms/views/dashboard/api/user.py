@@ -91,14 +91,22 @@ class UserViews:
         schema=ListUsersSchema,
     )
     def students(self) -> APIStudents:
-        _, students_query = self._students_query(
+        roster_last_updated, students_query = self._students_query(
             assignment_ids=self.request.parsed_params.get("assignment_ids"),
             segment_authority_provided_ids=self.request.parsed_params.get(
                 "segment_authority_provided_ids"
             ),
         )
+        # students_query is a query object, we need to paginate it
+        # with different columns depending on the source of the data.
+        # We use "User" for non roster data (launches)
+        pagination_order_colunns = [User.display_name, User.id]
+        if roster_last_updated:
+            # We use "LMSUser" for rosters
+            pagination_order_colunns = [LMSUser.display_name, LMSUser.id]
+
         students, pagination = get_page(
-            self.request, students_query, [User.display_name, User.id]
+            self.request, students_query, pagination_order_colunns
         )
         return {
             "students": [

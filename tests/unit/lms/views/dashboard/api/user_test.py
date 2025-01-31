@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import select
 
 from lms.js_config_types import APIStudent
-from lms.models import AutoGradingConfig, RoleScope, RoleType, User
+from lms.models import AutoGradingConfig, LMSUser, RoleScope, RoleType, User
 from lms.views.dashboard.api.user import UserViews
 from tests import factories
 
@@ -20,6 +20,9 @@ pytestmark = pytest.mark.usefixtures(
 
 class TestUserViews:
     @pytest.mark.parametrize("segment_authority_provided_ids", [None, [sentinel.id]])
+    @pytest.mark.parametrize(
+        "roster_last_updated", [None, [sentinel.roster_last_updated]]
+    )
     def test_get_students(
         self,
         pyramid_request,
@@ -27,21 +30,29 @@ class TestUserViews:
         get_page,
         segment_authority_provided_ids,
         _students_query,
+        roster_last_updated,
     ):
         pyramid_request.parsed_params = {
             "course_ids": [sentinel.course_id_1, sentinel.course_id_2],
             "assignment_ids": [sentinel.assignment_id_1, sentinel.assignment_id_2],
             "segment_authority_provided_ids": segment_authority_provided_ids,
         }
-        students = factories.User.create_batch(5)
+        if roster_last_updated:
+            students = factories.User.create_batch(5)
+        else:
+            students = factories.LMSUser.create_batch(5)
         get_page.return_value = students, sentinel.pagination
 
-        _students_query.return_value = (None, sentinel.query)
+        _students_query.return_value = (roster_last_updated, sentinel.query)
 
         response = views.students()
 
         get_page.assert_called_once_with(
-            pyramid_request, sentinel.query, [User.display_name, User.id]
+            pyramid_request,
+            sentinel.query,
+            [LMSUser.display_name, LMSUser.id]
+            if roster_last_updated
+            else [User.display_name, User.id],
         )
         assert response == {
             "students": [
