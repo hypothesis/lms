@@ -100,7 +100,7 @@ export default function PaginatedMultiSelect<TResult, TSelect>({
       containerClasses="!w-auto min-w-44"
       buttonContent={buttonContent}
       data-testid={`${entity}-select`}
-      onListboxScroll={e => {
+      onPopoverScroll={e => {
         const element = e.target as HTMLUListElement;
         const newScrollPosition = element.scrollTop;
         const isScrollingDown =

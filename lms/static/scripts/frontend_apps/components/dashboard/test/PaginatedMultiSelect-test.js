@@ -76,7 +76,7 @@ describe('PaginatedMultiSelect', () => {
     }
 
     function scrollTo(select, { scrollHeight, scrollTop = 100 }) {
-      select.props().onListboxScroll({
+      select.props().onPopoverScroll({
         target: {
           clientHeight: 50,
           scrollTop,
