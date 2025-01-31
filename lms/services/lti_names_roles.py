@@ -5,10 +5,13 @@ https://www.imsglobal.org/spec/lti-nrps/v2p0
 https://www.imsglobal.org/ltiadvantage
 """
 
-from typing import TypedDict
+import logging
+from typing import Any, TypedDict
 
 from lms.models import LTIRegistration
 from lms.services.ltia_http import LTIAHTTPService
+
+LOG = logging.getLogger(__name__)
 
 
 class Member(TypedDict):
@@ -37,6 +40,8 @@ class LTINamesRolesService:
         lti_registration: LTIRegistration,
         service_url: str,
         resource_link_id: str | None = None,
+        max_pages: int = 10,
+        limit: int = 100,
     ) -> list[Member]:
         """
         Get the roster for a course or assignment.
@@ -45,12 +50,31 @@ class LTINamesRolesService:
         from a LTI launch parameter and is always linked to an specific context.
 
         Optionally, using the  same service_url the API allows to get the roster of an assignment identified by `resource_link_id`.
+
+        max_pages and limit control the default pagination limits.
         """
-        query = {}
+
+        query: dict[str, Any] = {"limit": limit}
         if resource_link_id:
             query["rlid"] = resource_link_id
 
-        response = self._ltia_service.request(
+        response = self._make_request(lti_registration, service_url, query)
+
+        members = response.json()["members"]
+
+        while response.links.get("next") and max_pages:
+            LOG.info("Fetching next page of members %s", response.links["next"]["url"])
+            response = self._make_request(
+                lti_registration, response.links["next"]["url"], query
+            )
+            members.extend(response.json()["members"])
+
+            max_pages -= 1
+
+        return members
+
+    def _make_request(self, lti_registration, service_url, query):
+        return self._ltia_service.request(
             lti_registration,
             "GET",
             service_url,
@@ -60,8 +84,6 @@ class LTINamesRolesService:
             },
             params=query,
         )
-
-        return response.json()["members"]
 
 
 def factory(_context, request):
