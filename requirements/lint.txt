@@ -130,7 +130,7 @@ faker==21.0.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   factory-boy
-freezegun==1.5.0
+freezegun==1.5.1
     # via -r requirements/tests.txt
 frozenlist==1.4.1
     # via
@@ -148,6 +148,10 @@ google-auth-oauthlib==1.2.0
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   pyramid-googleauth
+greenlet==3.1.1
+    # via
+    #   -r requirements/tests.txt
+    #   sqlalchemy
 gunicorn==23.0.0
     # via
     #   -r requirements/functests.txt
