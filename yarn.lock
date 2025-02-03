@@ -7850,7 +7850,7 @@ __metadata:
     tiny-emitter: ^2.1.0
     typescript: ^5.2.2
     typescript-eslint: ^8.22.0
-    wouter-preact: ^3.3.5
+    wouter-preact: ^3.5.1
   languageName: unknown
   linkType: soft
 
@@ -11589,15 +11589,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wouter-preact@npm:^3.3.5":
-  version: 3.3.5
-  resolution: "wouter-preact@npm:3.3.5"
+"wouter-preact@npm:^3.5.1":
+  version: 3.5.1
+  resolution: "wouter-preact@npm:3.5.1"
   dependencies:
     mitt: ^3.0.1
     regexparam: ^3.0.0
   peerDependencies:
     preact: ^10.0.0
-  checksum: a3f201b0b21dbd939a19530d99095955e13195976c7a650ed16d9e9e65b23cc952fa2e3158310211c22a2cc40aea0815ada8b43a36ba2bf58427e87317d46063
+  checksum: 4c71b99ccd8321ffedefca049017b50c365e0c8db927206b5b51081f7a20f1801a0387aa0c3e6a4f5daf28dc55a5041584a5149e0f73fc80df105e2dbc8c97bd
   languageName: node
   linkType: hard
 
