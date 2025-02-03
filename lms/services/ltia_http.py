@@ -6,6 +6,7 @@ from requests.exceptions import JSONDecodeError
 
 from lms.models import JWTOAuth2Token, LTIRegistration
 from lms.product.plugin.misc import MiscPlugin
+from lms.services.exceptions import SerializableError
 from lms.services.jwt import JWTService
 from lms.services.jwt_oauth2_token import JWTOAuth2TokenService
 
@@ -92,9 +93,12 @@ class LTIAHTTPService:
 
         try:
             token_data = response.json()
-        except JSONDecodeError:  # pragma: no cover
+        except JSONDecodeError as err:  # pragma: no cover
             LOG.error("Non-json response: %s", response.text)
-            raise
+            raise SerializableError(
+                "Non JSON response from LTI1.3 token endpoint.",
+                details={"token_url": lti_registration.token_url},
+            ) from err
 
         token = self._jwt_oauth2_token_service.save_token(
             lti_registration=lti_registration,
