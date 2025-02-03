@@ -1,14 +1,12 @@
 from functools import lru_cache
 
-from sqlalchemy import func, select, text
+from sqlalchemy import exists, func, select, text
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.sql import Select
 
 from lms.models import (
-    Assignment,
     AssignmentMembership,
     Grouping,
-    GroupingMembership,
     LMSCourse,
     LMSCourseMembership,
     LMSSegmentMembership,
@@ -22,6 +20,7 @@ from lms.models import (
     RoleType,
     User,
 )
+from lms.models.lms_segment import LMSSegment
 from lms.services.course import CourseService
 from lms.services.upsert import bulk_upsert
 
@@ -259,12 +258,13 @@ class UserService:
         self,
         role_scope: RoleScope,
         role_type: RoleType,
+        course_ids: list[int] | None = None,
         instructor_h_userid: str | None = None,
         admin_organization_ids: list[int] | None = None,
         h_userids: list[str] | None = None,
     ) -> Select[tuple[LMSUser]]:
         candidate_courses = CourseService.courses_permission_check_query(
-            instructor_h_userid, admin_organization_ids, course_ids=None
+            instructor_h_userid, admin_organization_ids, course_ids=course_ids
         ).cte("candidate_courses")
 
         query = (
@@ -301,7 +301,7 @@ class UserService:
         h_userids: list[str] | None = None,
         assignment_ids: list[int] | None = None,
         segment_authority_provided_ids: list[str] | None = None,
-    ) -> Select[tuple[User]]:
+    ) -> Select[tuple[LMSUser]]:
         """
         Get a query to fetch users.
 
@@ -314,59 +314,42 @@ class UserService:
         :param assignment_ids: return only users that belong these assignments.
         :param segment_authority_provided_ids: return only users that belong these segments.
         """
-
-        candidate_courses = CourseService.courses_permission_check_query(
-            instructor_h_userid, admin_organization_ids, course_ids
-        ).cte("candidate_courses")
-
-        user_ids_query = (
-            select(AssignmentMembership.user_id)
-            .join(Assignment)
-            .join(candidate_courses, candidate_courses.c[0] == Assignment.course_id)
-            .where(
-                AssignmentMembership.lti_role_id.in_(
-                    select(LTIRole.id).where(
-                        LTIRole.scope == role_scope, LTIRole.type == role_type
-                    )
-                )
-            )
+        query = self.get_users_for_organization(
+            role_scope=role_scope,
+            role_type=role_type,
+            instructor_h_userid=instructor_h_userid,
+            admin_organization_ids=admin_organization_ids,
+            h_userids=h_userids,
+            course_ids=course_ids,
         )
 
         if assignment_ids:
-            user_ids_query = user_ids_query.where(
-                AssignmentMembership.assignment_id.in_(assignment_ids)
-            )
-
-        if segment_authority_provided_ids:
-            user_ids_query = user_ids_query.where(
-                AssignmentMembership.user_id.in_(
-                    select(GroupingMembership.user_id)
-                    .join(Grouping)
+            query = query.where(
+                exists(
+                    select(AssignmentMembership)
+                    .join(User)
                     .where(
-                        Grouping.authority_provided_id.in_(
-                            segment_authority_provided_ids
-                        )
+                        User.h_userid == LMSUser.h_userid,
+                        AssignmentMembership.assignment_id.in_(assignment_ids),
                     )
                 )
             )
 
-        query = (
-            select(User.id)
-            .distinct(User.h_userid)
-            # Deduplicate based on the row's h_userid taking the last updated one
-            .where(User.id.in_(user_ids_query))
-            .order_by(User.h_userid, User.updated.desc())
-        )
+        if segment_authority_provided_ids:
+            query = query.where(
+                exists(
+                    select(LMSSegmentMembership)
+                    .join(LMSSegment)
+                    .where(
+                        LMSSegmentMembership.lms_user_id == LMSUser.id,
+                        LMSSegment.h_authority_provided_id.in_(
+                            segment_authority_provided_ids
+                        ),
+                    )
+                )
+            )
 
-        if h_userids:
-            query = query.where(User.h_userid.in_(h_userids))
-
-        return (
-            select(User)
-            .where(User.id.in_(query))
-            # We can sort these again without affecting deduplication
-            .order_by(User.display_name, User.id)
-        )
+        return query.order_by(LMSUser.display_name, LMSUser.id)
 
 
 def factory(_context, request):
