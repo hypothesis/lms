@@ -115,6 +115,8 @@ class TestAutoGradingService:
             ("all_or_nothing", "cumulative", 15, None, 10, 6, 1),
             ("all_or_nothing", "separate", 10, 5, 10, 4, 0),
             ("all_or_nothing", "separate", 10, 5, 10, 5, 1),
+            ("all_or_nothing", "separate", 10, 0, 9, 4, 0),
+            ("all_or_nothing", "separate", 10, None, 9, 4, 0),
             ("scaled", "cumulative", 15, None, 5, 5, 0.67),
             ("scaled", "cumulative", 15, None, 10, 10, 1),
             ("scaled", "separate", 10, 5, 8, 2, 0.67),
@@ -122,6 +124,8 @@ class TestAutoGradingService:
             # In scaled+separate cases, extra annos/replies should be ignored
             ("scaled", "separate", 3, 2, 0, 3, 0.4),
             ("scaled", "separate", 5, 5, 12, 2, 0.7),
+            ("scaled", "separate", 5, 0, 5, 2, 1),
+            ("scaled", "separate", 5, None, 5, 2, 1),
         ],
     )
     def test_calculate_grade(

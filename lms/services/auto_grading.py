@@ -104,8 +104,8 @@ class AutoGradingService:
                 else:
                     grade = 0
             case ("all_or_nothing", "separate"):
-                assert auto_grading_config.required_replies is not None, (
-                    "'separate' auto grade config with empty replies"
+                auto_grading_config.required_replies = (
+                    auto_grading_config.required_replies or 0
                 )
                 if (
                     annotation_metrics["annotations"]
@@ -121,8 +121,8 @@ class AutoGradingService:
                 grade = combined_count / auto_grading_config.required_annotations
 
             case ("scaled", "separate"):
-                assert auto_grading_config.required_replies is not None, (
-                    "'separate' auto grade config with empty replies"
+                auto_grading_config.required_replies = (
+                    auto_grading_config.required_replies or 0
                 )
                 # Let's make sure we do not count annotations or replies above the requirement, otherwise, a person
                 # with 6 replies and 0 annotations on an assignment which requires 3 of each would get a 100% grade,
