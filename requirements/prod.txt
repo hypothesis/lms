@@ -61,6 +61,8 @@ google-auth==2.25.2
     # via google-auth-oauthlib
 google-auth-oauthlib==1.2.0
     # via pyramid-googleauth
+greenlet==3.1.1
+    # via sqlalchemy
 gunicorn==23.0.0
     # via -r requirements/prod.in
 h-api==1.1.0
@@ -180,7 +182,7 @@ pyramid-retry==2.1.1
     # via -r requirements/prod.in
 pyramid-services==2.2
     # via -r requirements/prod.in
-pyramid-tm==2.5
+pyramid-tm==2.6
     # via -r requirements/prod.in
 python-dateutil==2.8.2
     # via
