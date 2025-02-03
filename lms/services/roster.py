@@ -447,12 +447,16 @@ class RosterService:
                 )
                 continue
 
-            for student in api_section.get("students", []) or []:
-                db_student = db_course_users_by_lms_api_id.get(str(student["id"]))
+            # We use a set here to avoid any pontential duplicates in the API response.
+            student_ids = {
+                str(student["id"]) for student in api_section.get("students", [])
+            }
+            for student_id in student_ids:
+                db_student = db_course_users_by_lms_api_id.get(student_id)
                 if not db_student:
                     LOG.debug(
                         "Skiping roster entry for student ID:%s. Not found the DB",
-                        student["id"],
+                        student_id,
                     )
                     continue
 
