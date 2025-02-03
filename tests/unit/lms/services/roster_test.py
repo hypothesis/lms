@@ -536,11 +536,13 @@ class TestRosterService:
                 "students": [
                     # Student that matches student_in_course, the student in the DB
                     {"id": student_in_course.lms_api_user_id},
+                    # Duplicate student, should be ignored
+                    {"id": student_in_course.lms_api_user_id},
                     # Student that doesn't match any student in the DB
                     {"id": "SOME OTHER USER"},
                 ],
             },
-            # Section we haven't seend before in teh DB
+            # Section we haven't seen before in the DB
             {"id": "SOME OTHER SECTION"},
         ]
 
