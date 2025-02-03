@@ -150,6 +150,7 @@ google-auth-oauthlib==1.2.0
     #   pyramid-googleauth
 greenlet==3.1.1
     # via
+    #   -r requirements/functests.txt
     #   -r requirements/tests.txt
     #   sqlalchemy
 gunicorn==23.0.0
@@ -409,7 +410,7 @@ pyramid-services==2.2
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
-pyramid-tm==2.5
+pyramid-tm==2.6
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt
