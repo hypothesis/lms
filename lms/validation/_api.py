@@ -65,7 +65,7 @@ class APIRecordResultSchema(JSONPyramidRequestSchema):
     typically encodes the assignment context and LMS user.
     """
 
-    score = fields.Number(
+    score = fields.Float(
         required=True, validate=marshmallow.validate.Range(min=0, max=1)
     )
     """
