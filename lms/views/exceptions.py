@@ -105,6 +105,11 @@ class ExceptionViews:
 
     @exception_view_config(context=Exception)
     def error(self):
+        # Always use the error template.
+        # Depending on when the exception has happened,
+        # the renderer might be set to a different one
+        self.request.override_renderer = "lms:templates/error.html.jinja2"
+
         LOG.exception("Unexpected error %s", type(self.exception))
         return self.error_response(
             500,
