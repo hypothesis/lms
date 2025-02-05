@@ -461,7 +461,7 @@ class RosterService:
 
             # We use a set here to avoid any pontential duplicates in the API response.
             student_ids = {
-                str(student["id"]) for student in api_section.get("students", [])
+                str(student["id"]) for student in api_section.get("students") or []
             }
             for student_id in student_ids:
                 db_student = db_course_users_by_lms_api_id.get(student_id)
