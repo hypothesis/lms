@@ -3,6 +3,7 @@ from unittest.mock import call, sentinel
 import pytest
 
 from lms.product.canvas import CanvasCourseCopyPlugin
+from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 from tests import factories
 
 
@@ -30,9 +31,21 @@ class TestCanvasCourseCopyPlugin:
 
         assert result == course_copy_files_helper.is_file_in_course.return_value
 
-    def test_find_matching_file_in_course_returns_the_matching_file_id(
-        self, plugin, canvas_api_client, file_service
+    def test_find_matching_file_raises_OAuth2TokenError(
+        self, plugin, canvas_api_client
     ):
+        canvas_api_client.list_files.side_effect = OAuth2TokenError
+
+        with pytest.raises(OAuth2TokenError):
+            plugin.find_matching_file_in_course(sentinel.course_id, [sentinel.file_id])
+
+    @pytest.mark.parametrize("raising", [True, False])
+    def test_find_matching_file_in_course_returns_the_matching_file_id(
+        self, plugin, canvas_api_client, file_service, raising
+    ):
+        if raising:
+            canvas_api_client.list_files.side_effect = ExternalRequestError
+
         file_service.get.return_value = factories.File()
 
         matching_file_id = plugin.find_matching_file_in_course(
