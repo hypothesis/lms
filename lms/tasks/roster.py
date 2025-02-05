@@ -21,11 +21,11 @@ from lms.tasks.celery import app
 LAUNCHED_WINDOW = timedelta(hours=24)
 """How recent we need to have seen a launch from a course/assignment before we stop fetching rosters for it."""
 
-ROSTER_REFRESH_WINDOW = timedelta(hours=24 * 5)
-"""How frequenly should we fetch roster for the same course/assignment"""
+ROSTER_REFRESH_WINDOW = timedelta(hours=24 * 3)
+"""How frequenly should we fetch roster for the same course/assignment/segment"""
 
 ROSTER_LIMIT = 50
-"""How many roster should we fetch per executing of the schedule task."""
+"""How many rosters should we fetch per execution of the schedule task."""
 
 
 @app.task()
