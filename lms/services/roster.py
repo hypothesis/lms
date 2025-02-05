@@ -249,6 +249,8 @@ class RosterService:
                 in err.response_body
                 # Canvas, assignment deleted in the LMS
                 or "Requested ResourceLink was not found" in err.response_body
+                or "Requested assignment not configured for external tool launches"
+                in err.response_body
             ):
                 LOG.error("Fetching assignment roster failed: %s", err.response_body)
                 # We ignore this type of error, just stop here.

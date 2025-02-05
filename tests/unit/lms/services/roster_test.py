@@ -425,6 +425,7 @@ class TestRosterService:
         [
             "Requested ResourceLink bound to unexpected external tool",
             "Requested ResourceLink was not found",
+            "Requested assignment not configured for external tool launches",
         ],
     )
     def test_fetch_assignment_roster_retries_with_lti_v11_id(
