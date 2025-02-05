@@ -502,12 +502,13 @@ class TestRosterService:
 
         assert "No sections found on the API" in caplog.records[0].message
 
-    @pytest.mark.usefixtures("instructor_in_course", "canvas_section")
+    @pytest.mark.usefixtures("instructor_in_course")
+    @pytest.mark.parametrize("students", [None, []])
     def test_fetch_canvas_sections_roster_with_nothing_to_insert(
-        self, svc, lms_course, caplog, canvas_api_client
+        self, svc, lms_course, caplog, canvas_api_client, students, canvas_section
     ):
         canvas_api_client.course_sections.return_value = [
-            {"id": 10, "name": "Section 1", "students": []}
+            {"id": canvas_section.id, "name": "Section 1", "students": students}
         ]
 
         svc.fetch_canvas_sections_roster(lms_course)
@@ -527,8 +528,6 @@ class TestRosterService:
         lti_v13_application_instance,
         instructor_in_course,
     ):
-        db_session.flush()
-
         canvas_api_client.course_sections.return_value = [
             {
                 "id": int(canvas_section.lms_id),
@@ -575,8 +574,6 @@ class TestRosterService:
         canvas_section,
         db_session,
     ):
-        db_session.flush()
-
         canvas_api_client.course_sections.side_effect = [
             OAuth2TokenError(refreshable=True),
             [
@@ -605,8 +602,6 @@ class TestRosterService:
     def test_fetch_canvas_sections_roster_failed_refresh(
         self, svc, lms_course, canvas_api_client, db_session, caplog
     ):
-        db_session.flush()
-
         canvas_api_client.course_sections.side_effect = OAuth2TokenError(
             refreshable=True
         )
@@ -620,8 +615,6 @@ class TestRosterService:
     def test_fetch_canvas_sections_roster_with_invalid_token(
         self, svc, lms_course, canvas_api_client, db_session, caplog
     ):
-        db_session.flush()
-
         canvas_api_client.course_sections.side_effect = OAuth2TokenError(
             refreshable=False
         )
@@ -664,10 +657,12 @@ class TestRosterService:
         return student
 
     @pytest.fixture
-    def canvas_section(self, lms_course):
-        return factories.LMSSegment(
+    def canvas_section(self, lms_course, db_session):
+        section = factories.LMSSegment(
             type="canvas_section", lms_course=lms_course, lms_id="1"
         )
+        db_session.flush()
+        return section
 
     @pytest.fixture
     def caplog(self, caplog):
