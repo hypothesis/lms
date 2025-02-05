@@ -8,7 +8,7 @@ from lms.services.group_set import GroupSetService
 
 
 class CourseCopyFilesHelper:
-    """Helper class to abstract common behaviour around LMS file / course copy."""
+    """Helper class to abstract common behavior around LMS file / course copy."""
 
     def __init__(self, file_service: FileService):
         self._file_service = file_service
@@ -38,7 +38,7 @@ class CourseCopyFilesHelper:
             # We might not have access to use the API for that endpoint.
             # That will depend on our role and the course's permissions settings.
             # We will continue anyway, maybe the files of the new course are already in the DB
-            # after an instructor launched corrected the issue.
+            # after an instructor launch corrected the issue.
             pass
 
         # We get the original file record from the DB

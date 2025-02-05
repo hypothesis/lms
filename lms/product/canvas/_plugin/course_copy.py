@@ -1,4 +1,5 @@
 from lms.product.plugin.course_copy import CourseCopyFilesHelper, CourseCopyGroupsHelper
+from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 
 
 class CanvasCourseCopyPlugin:
@@ -32,8 +33,21 @@ class CanvasCourseCopyPlugin:
 
         Return None if no matching file is found.
         """
-        # Find the files in the current course. We call this for the side effect of storing the files in the DB
-        _ = self._api.list_files(current_course_id)
+        try:
+            # Find the files in the current course. We call this for the side effect of storing the files in the DB
+            _ = self._api.list_files(current_course_id)
+
+        except OAuth2TokenError:
+            # If the issue while trying to talk to the API is OAuth related
+            # let that bubble up and be dealt with.
+            raise
+
+        except ExternalRequestError:
+            # We might not have access to use the API for that endpoint.
+            # That will depend on our role and the course's permissions settings.
+            # We will continue anyway, maybe the files of the new course are already in the DB
+            # after an instructor launch corrected the issue.
+            pass
 
         for file_id in file_ids:
             file = self._file_service.get(file_id, type_=self.file_type)
