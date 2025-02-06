@@ -149,7 +149,7 @@ def via_url(request):
     media_id = CanvasStudioService.media_id_from_url(document_url)
     if not media_id:
         raise CanvasStudioLaunchError(
-            "canvas_studio_media_not_found",
+            "canvas_studio_media_not_found",  # noqa: EM101
             "Unable to get Canvas Studio media ID",
         )
 

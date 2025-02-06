@@ -636,7 +636,7 @@ class TestRosterService:
         svc,
         lms_course,
         canvas_api_client,
-        db_session,
+        db_session,  # noqa: ARG002
         caplog,
     ):
         canvas_api_client.course_sections.side_effect = OAuth2TokenError(
@@ -654,7 +654,7 @@ class TestRosterService:
         svc,
         lms_course,
         canvas_api_client,
-        db_session,
+        db_session,  # noqa: ARG002
         caplog,
     ):
         canvas_api_client.course_sections.side_effect = OAuth2TokenError(

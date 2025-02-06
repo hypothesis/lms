@@ -127,7 +127,7 @@ class TestUserService:
         service,
         db_session,
         student_in_assignment,
-        assignment,
+        assignment,  # noqa: ARG002
         organization,
     ):
         query = service.get_users(

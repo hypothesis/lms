@@ -95,7 +95,7 @@ class PagesAPIViews:
                     current_course_id,
                 )
                 raise PageNotFoundInCourse(
-                    "canvas_page_not_found_in_course",
+                    "canvas_page_not_found_in_course",  # noqa: EM101
                     document_page_id,
                 )
 
@@ -117,7 +117,7 @@ class PagesAPIViews:
             _ = self.canvas.api.pages.page(current_course_id, effective_page_id)
         except CanvasAPIError as err:
             raise PageNotFoundInCourse(
-                "canvas_page_not_found_in_course",
+                "canvas_page_not_found_in_course",  # noqa: EM101
                 effective_page_id,
             ) from err
 

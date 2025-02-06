@@ -57,7 +57,7 @@ class TestBasicLaunchViews:
         self,
         svc,
         pyramid_request,
-        _show_document,
+        _show_document,  # noqa: PT019
         assignment_service,
         course_service,
     ):
