@@ -1,5 +1,5 @@
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field, fields
-from typing import Mapping
 
 from pyramid.request import Request
 from sqlalchemy import inspect

@@ -23,7 +23,7 @@ from lms.services import OrganizationService, RosterService, SegmentService, Use
 
 
 class DashboardService:
-    def __init__(  # noqa: PLR0913, PLR0917
+    def __init__(  # noqa: PLR0913
         self,
         request,
         segment_service: SegmentService,

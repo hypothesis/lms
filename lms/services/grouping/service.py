@@ -186,7 +186,7 @@ class GroupingService:
             lti_roles=lti_user.lti_roles,
         )
 
-    def get_groups(  # noqa: PLR0913
+    def get_groups(
         self,
         user: User,
         lti_user: LTIUser,
@@ -244,7 +244,7 @@ class GroupingService:
 
         return Grouping.Type.COURSE
 
-    def _to_groupings(  # noqa: PLR0913
+    def _to_groupings(
         self, user, groupings, course, type_, lti_roles: list[LTIRole]
     ):
         if groupings and not isinstance(groupings[0], Grouping):

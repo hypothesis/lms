@@ -23,7 +23,7 @@ class LTI13GradingService(LTIGradingService):
         "https://purl.imsglobal.org/spec/lti-ags/scope/score",
     ]
 
-    def __init__(  # noqa: PLR0913, PLR0917
+    def __init__(  # noqa: PLR0913
         self,
         line_item_url,
         line_item_container_url,
@@ -91,7 +91,7 @@ class LTI13GradingService(LTIGradingService):
     def get_score_maximum(self, resource_link_id) -> float | None:
         return self._read_grading_configuration(resource_link_id).get("scoreMaximum")
 
-    def sync_grade(  # noqa: PLR0913
+    def sync_grade(
         self,
         application_instance: ApplicationInstance,
         assignment: Assignment,

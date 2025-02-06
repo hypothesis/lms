@@ -86,7 +86,7 @@ def bootstrap_worker(sender, **_kwargs):  # pragma: no cover
 
     # Put some common handy things around for tasks
     try:
-        lms = create_app(None, **{})
+        lms = create_app(None)
 
     except Exception:  # noqa: BLE001
         # If we don't bail out here ourselves, Celery just hides the error

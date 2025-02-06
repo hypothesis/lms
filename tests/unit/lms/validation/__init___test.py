@@ -74,7 +74,7 @@ class TestValidatedView:
         """
         return mock.MagicMock(options={"schema": Schema})
 
-    @pytest.fixture()
+    @pytest.fixture
     def parsed_params(self, Schema):
         """Return the parsed params as returned by the schema."""
         return Schema.return_value.parse.return_value

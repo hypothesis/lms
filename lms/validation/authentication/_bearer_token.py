@@ -120,6 +120,5 @@ class BearerTokenSchema(PyramidRequestSchema):
         jwt = data["authorization"]
         # Some locations (cookies) don't allow the leading "Bearer " so we don't include it.
         # Remove it in all other cases
-        if jwt.startswith("Bearer "):
-            jwt = jwt[len("Bearer ") :]
+        jwt = jwt.removeprefix("Bearer ")
         return {"authorization": jwt}

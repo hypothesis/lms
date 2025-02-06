@@ -17,7 +17,7 @@ class TestAsyncOAuthHTTPService:
     ):
         responses = svc.request("GET", urls)
 
-        for url, response in zip(urls, responses):
+        for url, response in zip(urls, responses, strict=False):
             assert response.status == 200
             assert response.headers["url"] == url
             assert response.sync_text == '["ASYNC RESPONSE"]'

@@ -158,6 +158,6 @@ class TestIncludeMe:
             LTIParams.from_request, name="lti_params", property=True, reify=True
         )
 
-    @pytest.fixture()
+    @pytest.fixture
     def configurator(self):
         return create_autospec(Configurator, spec_set=True, instance=True)

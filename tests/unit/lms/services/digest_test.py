@@ -332,7 +332,7 @@ class TestDigestContext:
             for annotation in annotations
         ]
         courses = factories.Course.create_batch(size=2)
-        for assignment, course in zip(assignments, courses):
+        for assignment, course in zip(assignments, courses, strict=False):
             factories.AssignmentGrouping(assignment=assignment, grouping=course)
         context = DigestContext(db_session, sentinel.h_userid, annotations)
 
@@ -347,7 +347,7 @@ class TestDigestContext:
                     assignment.title,
                     course.authority_provided_id,
                 )
-                for assignment, course in zip(assignments, courses)
+                for assignment, course in zip(assignments, courses, strict=False)
             ]
         )
 

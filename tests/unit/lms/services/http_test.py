@@ -56,7 +56,7 @@ class TestHTTPService:
         assert exc_info.value.request == sentinel.err_request
         assert exc_info.value.response == response
 
-    @pytest.fixture()
+    @pytest.fixture
     def passed_args(self):
         return {
             "headers": sentinel.headers,

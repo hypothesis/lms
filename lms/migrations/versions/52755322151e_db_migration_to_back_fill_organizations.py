@@ -103,7 +103,7 @@ def connected_subgraphs(edges):
     # Put every node in a group on its own
     group_to_nodes = {node: {node} for node in itertools.chain(*edges)}
     # ... and record it's location (which will change)
-    node_to_group = {node: node for node in group_to_nodes.keys()}
+    node_to_group = {node: node for node in group_to_nodes}
 
     # Repeatedly merge groups if they are joined by an edge
     for left_node, right_node in edges:

@@ -16,7 +16,7 @@ class EmptyStringNoneMixin:
     """
 
     def deserialize(self, value, attr, data, **kwargs):
-        if value == missing or value.strip() == "":  # noqa: PLC1901
+        if value == missing or value.strip() == "":
             return None
         return super().deserialize(value, attr, data, **kwargs)  # type:ignore
 

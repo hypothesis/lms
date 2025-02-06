@@ -172,7 +172,7 @@ class LTIUserSecurityPolicy:
     """Security policy based on the information of an LTIUser."""
 
     def get_lti_user(self, request):  # pragma: no cover
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @staticmethod
     def _get_userid(lti_user):

@@ -159,9 +159,7 @@ class CanvasMiscPlugin(MiscPlugin):
         ]
 
         for param in possible_parameters:
-            if value := request.params.get(param):
-                params[param] = value
-            elif value := request.lti_params.get(f"custom_{param}"):
+            if (value := request.params.get(param)) or (value := request.lti_params.get(f"custom_{param}")):
                 params[param] = value
 
         return params

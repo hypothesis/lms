@@ -126,7 +126,7 @@ class TestFileService:
     def svc(self, application_instance, db_session):
         return FileService(application_instance, db_session)
 
-    @pytest.fixture()
+    @pytest.fixture
     def file(self, application_instance):
         return factories.File(
             application_instance=application_instance,

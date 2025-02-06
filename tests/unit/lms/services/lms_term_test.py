@@ -75,7 +75,7 @@ class TestLMSTermService:
 
         assert term.key == expected
 
-    @pytest.fixture()
+    @pytest.fixture
     def svc(self, pyramid_request):
         return LMSTermService(db=pyramid_request.db)
 

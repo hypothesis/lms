@@ -28,7 +28,7 @@ class LTIAHTTPService:
         self._plugin = plugin
         self._jwt_oauth2_token_service = jwt_oauth2_token_service
 
-    def request(  # noqa: PLR0913
+    def request(
         self,
         lti_registration: LTIRegistration,
         method,

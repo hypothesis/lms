@@ -54,7 +54,7 @@ class AssignmentService:
 
         return assignment
 
-    def update_assignment(  # noqa: PLR0913, PLR0917
+    def update_assignment(  # noqa: PLR0913
         self,
         request,
         assignment: Assignment,
@@ -280,7 +280,7 @@ class AssignmentService:
             assignment.membership.join(User).filter(User.h_userid == h_userid).first()
         )
 
-    def get_assignments(  # noqa: PLR0913
+    def get_assignments(
         self,
         instructor_h_userid: str | None = None,
         admin_organization_ids: list[int] | None = None,
