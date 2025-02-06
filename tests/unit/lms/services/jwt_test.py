@@ -89,7 +89,7 @@ class TestJWTService:
         svc,
         jwt,
         _RequestsPyJWKClient,
-        lti_registration_service,  # noqa: PT019
+        lti_registration_service,
     ):
         registration = factories.LTIRegistration(key_set_url="http://jwk.com")
         lti_registration_service.get.return_value = registration

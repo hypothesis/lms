@@ -242,7 +242,7 @@ class VitalSourceService:
         if compiled_pattern.groups != 1:
             raise VitalSourceMalformedRegex(  # noqa: TRY003
                 "The user regex must have one capture group (brackets)",
-                pattern=pattern,  # noqa: EM101
+                pattern=pattern,
             )
 
         return compiled_pattern

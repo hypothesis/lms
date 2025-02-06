@@ -29,12 +29,12 @@ class TestAutoGradingService:
         factories.GradingSync(
             assignment=assignment,
             created=datetime(2020, 1, 1),
-            status="finished",  # noqa: DTZ001
+            status="finished",
         )
         new = factories.GradingSync(
             assignment=assignment,
             created=datetime(2024, 1, 1),
-            status="finished",  # noqa: DTZ001
+            status="finished",
         )
         db_session.flush()
 
