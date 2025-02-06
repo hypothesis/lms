@@ -127,7 +127,7 @@ class TestAuthorize:
     @pytest.fixture
     def sections_disabled(self, pyramid_request):
         pyramid_request.lti_user.application_instance.settings.set(
-            "canvas", "sections_enabled", False
+            "canvas", "sections_enabled", False  # noqa: FBT003
         )
 
     @pytest.fixture

@@ -18,7 +18,7 @@ class TestLTIUser:
         "role,is_instructor",
         [
             (Role(value="r", scope=RoleScope.COURSE, type=RoleType.ADMIN), True),
-            (Role(value="r", scope=RoleScope.COURSE, type=RoleType.ADMIN), True),
+            (Role(value="r", scope=RoleScope.COURSE, type=RoleType.ADMIN), True),  # noqa: PT014
             (Role(value="r", scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR), True),
             (
                 Role(value="r", scope=RoleScope.INSTITUTION, type=RoleType.INSTRUCTOR),

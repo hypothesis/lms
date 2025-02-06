@@ -49,9 +49,9 @@ def upgrade() -> None:
             UPDATE lti_registration
             SET {field} = '{new_url}'
             WHERE {field} ='{old_url}'
-            """
+            """  # noqa: S608
         )
-        print(f"\tUpdated lti_registration.{field}:", result.rowcount)
+        print(f"\tUpdated lti_registration.{field}:", result.rowcount)  # noqa: T201
 
 
 def downgrade() -> None:
@@ -63,6 +63,6 @@ def downgrade() -> None:
             UPDATE lti_registration
             SET {field} = '{old_url}'
             WHERE {field} ='{new_url}'
-            """
+            """  # noqa: S608
         )
-        print(f"\tDowngraded lti_registration.{field}:", result.rowcount)
+        print(f"\tDowngraded lti_registration.{field}:", result.rowcount)  # noqa: T201

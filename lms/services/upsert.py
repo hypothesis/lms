@@ -28,7 +28,7 @@ def bulk_upsert(
         # This would be worse than pointless: it would actually crash in
         # some cases. This SQLAlchemy code:
         #
-        #     insert(MyModel).values([])
+        #     insert(MyModel).values([])  # noqa: ERA001
         #
         # produces this SQL:
         #
@@ -41,7 +41,7 @@ def bulk_upsert(
         #
         # We do a wasteful query here to maintain
         # the same return type in all branches.
-        return db.query(model_class).filter(False)
+        return db.query(model_class).filter(False)  # noqa: FBT003
 
     index_elements_columns = [getattr(model_class, c) for c in index_elements]
 

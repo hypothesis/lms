@@ -7,7 +7,7 @@ from lms.services.vitalsource import VSBookLocation
 
 
 class TestVSBookLocation:
-    TEST_CASES = [
+    TEST_CASES = [  # noqa: RUF012
         # Book ID + CFI
         ("vitalsource://book/bookID/book-id/cfi//abc", "book-id", "/abc", None),
         ("vitalsource://book/bookID/book-id/cfi/abc", "book-id", "abc", None),
@@ -62,7 +62,7 @@ class TestVSBookLocation:
         ],
     )
     def test_from_document_url_invalid(self, document_url, expected):
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ValueError) as exc_info:  # noqa: PT011
             VSBookLocation.from_document_url(document_url)
         assert str(exc_info.value) == expected
 

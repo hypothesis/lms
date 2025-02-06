@@ -46,7 +46,7 @@ class FilesAPIViews:
         )
 
         document_url_match = DOCUMENT_URL_REGEX.search(assignment.document_url)
-        assert document_url_match
+        assert document_url_match  # noqa: S101
         public_url = self.canvas.public_url_for_file(
             assignment,
             document_url_match["file_id"],

@@ -116,7 +116,7 @@ class TestSendInstructorEmailDigestsTasks:
 
         for instance in instances:
             instance.settings.set(
-                "hypothesis", "instructor_email_digests_enabled", True
+                "hypothesis", "instructor_email_digests_enabled", True  # noqa: FBT003
             )
 
         return instances
@@ -128,7 +128,7 @@ class TestSendInstructorEmailDigestsTasks:
 
         for instance in participating_instances:
             for _ in range(2):
-                users.append(factories.User(application_instance=instance))
+                users.append(factories.User(application_instance=instance))  # noqa: PERF401
 
         make_instructors(users, participating_instances[0], with_launch=True)
 
@@ -143,7 +143,7 @@ class TestSendInstructorEmailDigestsTasks:
 
         for instance in participating_instances:
             for _ in range(2):
-                users.append(factories.User(application_instance=instance))
+                users.append(factories.User(application_instance=instance))  # noqa: PERF401
 
         make_instructors(users, participating_instances[0], with_launch=False)
 
@@ -153,7 +153,7 @@ class TestSendInstructorEmailDigestsTasks:
     def non_participating_instance(self):
         """Return an instance that doesn't have the feature enabled."""
         instance = factories.ApplicationInstance()
-        instance.settings.set("hypothesis", "instructor_email_digests_enabled", False)
+        instance.settings.set("hypothesis", "instructor_email_digests_enabled", False)  # noqa: FBT003
         return instance
 
     @pytest.fixture
@@ -176,7 +176,7 @@ class TestSendInstructorEmailDigestsTasks:
     def make_instructors(self, db_session):
         instructor_role = factories.LTIRole(value="Instructor")
 
-        def make_instructors(users, application_instance, with_launch=True):
+        def make_instructors(users, application_instance, with_launch=True):  # noqa: FBT002
             """Make the given user instructors for an assignment."""
             course = factories.Course()
             assignment = factories.Assignment()
@@ -185,7 +185,7 @@ class TestSendInstructorEmailDigestsTasks:
             if with_launch:
                 # Create a launch for this course/assignment
                 factories.Event(
-                    timestamp=datetime(2023, 3, 8, 22),
+                    timestamp=datetime(2023, 3, 8, 22),  # noqa: DTZ001
                     application_instance=application_instance,
                     course=course,
                     assignment=assignment,

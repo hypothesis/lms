@@ -18,10 +18,10 @@ from pyramid.view import view_config, view_defaults
 
 from lms.events import LTIEvent
 from lms.models import Assignment
-from lms.product.plugin.misc import MiscPlugin
+from lms.product.plugin.misc import MiscPlugin  # noqa: TC001
 from lms.security import Permissions
 from lms.services import LTIGradingService, UserService, VitalSourceService
-from lms.services.assignment import AssignmentService
+from lms.services.assignment import AssignmentService  # noqa: TC001
 from lms.validation import BasicLTILaunchSchema, ConfigureAssignmentSchema
 
 LOG = logging.getLogger(__name__)

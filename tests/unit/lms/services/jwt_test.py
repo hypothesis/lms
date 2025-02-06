@@ -9,7 +9,7 @@ import pytest
 from freezegun import freeze_time
 from jwt.exceptions import InvalidTokenError
 from pyramid.config import Configurator
-from pytest import param
+from pytest import param  # noqa: PT013
 
 from lms.services.exceptions import ExpiredJWTError, InvalidJWTError
 from lms.services.jwt import (
@@ -64,7 +64,7 @@ class TestJWTService:
         )
 
         jwt.encode.assert_called_once_with(
-            dict(payload, exp=datetime.datetime.utcnow() + datetime.timedelta(hours=1)),
+            dict(payload, exp=datetime.datetime.utcnow() + datetime.timedelta(hours=1)),  # noqa: DTZ003
             "secret",
             algorithm="HS256",
         )
@@ -85,7 +85,7 @@ class TestJWTService:
         assert encoded_jwt == jwt.encode.return_value
 
     def test_decode_lti_token(
-        self, svc, jwt, _RequestsPyJWKClient, lti_registration_service
+        self, svc, jwt, _RequestsPyJWKClient, lti_registration_service  # noqa: PT019
     ):
         registration = factories.LTIRegistration(key_set_url="http://jwk.com")
         lti_registration_service.get.return_value = registration
@@ -148,7 +148,7 @@ class TestJWTService:
     @staticmethod
     def encode_jwt(
         payload,
-        secret="test_secret",
+        secret="test_secret",  # noqa: S107
         algorithm="HS256",
         headers=None,
         lifetime=None,
@@ -157,7 +157,7 @@ class TestJWTService:
         payload = copy.deepcopy(payload)
 
         if lifetime:
-            payload["exp"] = datetime.datetime.utcnow() + lifetime
+            payload["exp"] = datetime.datetime.utcnow() + lifetime  # noqa: DTZ003
 
         return jwt.encode(payload, secret, algorithm=algorithm, headers=headers)
 
@@ -215,7 +215,7 @@ class TestFactory:
 
 class TestGetLTIJWT:
     def test_it(self, jwt_service, pyramid_request):
-        pyramid_request.params["id_token"] = "JWT"
+        pyramid_request.params["id_token"] = "JWT"  # noqa: S105
 
         jwt_params = _get_lti_jwt(pyramid_request)
 

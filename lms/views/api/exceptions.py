@@ -290,8 +290,8 @@ class ErrorBody:
                 if refresh_route:
                     path = request.route_path(refresh_route)
                 else:
-                    raise ValueError(
-                        f"No OAuth 2 refresh API for {request.product.family}"
+                    raise ValueError(  # noqa: TRY003
+                        f"No OAuth 2 refresh API for {request.product.family}"  # noqa: EM102
                     )
                 body["refresh"] = {"method": "POST", "path": path}
 

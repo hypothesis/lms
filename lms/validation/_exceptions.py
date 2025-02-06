@@ -73,14 +73,14 @@ class LTIToolRedirect(HTTPFound):
     @classmethod
     def _messages_to_string(cls, messages):
         if not isinstance(messages, dict):
-            raise ValueError("Messages must be a dict of lists: field -> [errors]")
+            raise ValueError("Messages must be a dict of lists: field -> [errors]")  # noqa: EM101, TRY003, TRY004
 
         parts = []
         for field, errors in messages.items():
             if not isinstance(errors, list):
-                raise ValueError("Messages must be a dict of lists: field -> [errors]")
+                raise ValueError("Messages must be a dict of lists: field -> [errors]")  # noqa: EM101, TRY003, TRY004
 
             for error in errors:
-                parts.append(f"Field '{field}': {error}")
+                parts.append(f"Field '{field}': {error}")  # noqa: PERF401
 
         return ", ".join(parts)

@@ -140,7 +140,7 @@ class GradingViews:
                     error_code=ErrorCode.CANVAS_SUBMISSION_COURSE_NOT_AVAILABLE
                 ) from err
 
-            raise err
+            raise err  # noqa: TRY201
 
         self.request.registry.notify(
             LTIEvent.from_request(request=self.request, type_=LTIEvent.Type.SUBMISSION)

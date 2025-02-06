@@ -55,7 +55,7 @@ class TestGradingTasks:
         grading_service.sync_grade.side_effect = Exception
         sync_grade.max_retries = 2
 
-        with pytest.raises(Exception):
+        with pytest.raises(Exception):  # noqa: B017, PT011
             sync_grade(
                 grading_sync_grade_id=grading_sync.grades[0].id,
             )

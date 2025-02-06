@@ -1,4 +1,4 @@
-# type: ignore
+# type: ignore  # noqa: PGH003
 from lms.product.plugin.course_copy import CourseCopyPlugin
 from lms.product.plugin.grouping import GroupingPlugin
 from lms.product.plugin.misc import MiscPlugin

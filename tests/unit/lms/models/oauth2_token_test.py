@@ -9,15 +9,15 @@ from lms.models.oauth2_token import Service
 
 class TestOAuth2Token:
     def test_persist_and_retrieve_all_attrs(self, application_instance, db_session):
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.utcnow()  # noqa: DTZ003
 
         # Add a token with the default "lms" service
         db_session.add(
             OAuth2Token(
                 user_id="test_user_id",
                 application_instance_id=application_instance.id,
-                access_token="test_access_token",
-                refresh_token="test_refresh_token",
+                access_token="test_access_token",  # noqa: S106
+                refresh_token="test_refresh_token",  # noqa: S106
                 expires_in=3600,
                 received_at=now,
                 service=Service.LMS,
@@ -28,8 +28,8 @@ class TestOAuth2Token:
         assert token.user_id == "test_user_id"
         assert token.application_instance_id == application_instance.id
         assert token.application_instance == application_instance
-        assert token.access_token == "test_access_token"
-        assert token.refresh_token == "test_refresh_token"
+        assert token.access_token == "test_access_token"  # noqa: S105
+        assert token.refresh_token == "test_refresh_token"  # noqa: S105
         assert token.expires_in == 3600
         assert token.received_at == now
         assert token.service == Service.LMS
@@ -39,8 +39,8 @@ class TestOAuth2Token:
             OAuth2Token(
                 user_id="test_user_id",
                 application_instance_id=application_instance.id,
-                access_token="test_access_token",
-                refresh_token="test_refresh_token",
+                access_token="test_access_token",  # noqa: S106
+                refresh_token="test_refresh_token",  # noqa: S106
                 expires_in=3600,
                 received_at=now,
                 service=Service.CANVAS_STUDIO,

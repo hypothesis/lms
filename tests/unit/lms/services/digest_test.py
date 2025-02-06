@@ -412,12 +412,12 @@ class TestDigestContext:
                     factories.User.build(
                         h_userid="id",
                         email="email@example.com",
-                        updated=datetime(year=2024, month=1, day=2),
+                        updated=datetime(year=2024, month=1, day=2),  # noqa: DTZ001
                     ),
                     factories.User.build(
                         h_userid="id",
                         email="older@example.com",
-                        updated=datetime(year=2024, month=1, day=1),
+                        updated=datetime(year=2024, month=1, day=1),  # noqa: DTZ001
                     ),
                 ],
                 "email@example.com",
@@ -433,12 +433,12 @@ class TestDigestContext:
                     factories.User.build(
                         h_userid="id",
                         email=None,
-                        updated=datetime(year=2024, month=1, day=2),
+                        updated=datetime(year=2024, month=1, day=2),  # noqa: DTZ001
                     ),
                     factories.User.build(
                         h_userid="id",
                         email="email@example.com",
-                        updated=datetime(year=2024, month=1, day=1),
+                        updated=datetime(year=2024, month=1, day=1),  # noqa: DTZ001
                     ),
                 ],
                 "email@example.com",
@@ -463,12 +463,12 @@ class TestDigestContext:
                     factories.User.build(
                         h_userid="id",
                         display_name="most_recent",
-                        updated=datetime(year=2024, month=1, day=2),
+                        updated=datetime(year=2024, month=1, day=2),  # noqa: DTZ001
                     ),
                     factories.User.build(
                         h_userid="id",
                         display_name="older",
-                        updated=datetime(year=2024, month=1, day=1),
+                        updated=datetime(year=2024, month=1, day=1),  # noqa: DTZ001
                     ),
                 ],
                 "most_recent",
@@ -484,12 +484,12 @@ class TestDigestContext:
                     factories.User.build(
                         h_userid="id",
                         display_name=None,
-                        updated=datetime(year=2024, month=1, day=2),
+                        updated=datetime(year=2024, month=1, day=2),  # noqa: DTZ001
                     ),
                     factories.User.build(
                         h_userid="id",
                         display_name="display_name",
-                        updated=datetime(year=2024, month=1, day=1),
+                        updated=datetime(year=2024, month=1, day=1),  # noqa: DTZ001
                     ),
                 ],
                 "display_name",
@@ -596,12 +596,12 @@ class TestDigestContext:
             factories.Course.build(
                 authority_provided_id="id",
                 lms_name="most_recent",
-                updated=datetime(year=2024, month=1, day=2),
+                updated=datetime(year=2024, month=1, day=2),  # noqa: DTZ001
             ),
             factories.Course.build(
                 authority_provided_id="id",
                 lms_name="older",
-                updated=datetime(year=2024, month=1, day=1),
+                updated=datetime(year=2024, month=1, day=1),  # noqa: DTZ001
             ),
         ]
         db_session.add_all(courses)

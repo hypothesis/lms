@@ -12,12 +12,12 @@ class Blackboard(Product):
 
     family: Family = Family.BLACKBOARD
 
-    route: Routes = Routes(
+    route: Routes = Routes(  # noqa: RUF009
         oauth2_authorize="blackboard_api.oauth.authorize",
         oauth2_refresh="blackboard_api.oauth.refresh",
     )
 
-    plugin_config: PluginConfig = PluginConfig(
+    plugin_config: PluginConfig = PluginConfig(  # noqa: RUF009
         grouping=BlackboardGroupingPlugin,
         course_copy=BlackboardCourseCopyPlugin,
         misc=BlackboardMiscPlugin,

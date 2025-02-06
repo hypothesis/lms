@@ -39,7 +39,7 @@ def schedule_fetching_course_rosters() -> None:
     """Schedule fetching course rosters based on their last lunches and the most recent roster fetch."""
 
     # We use the python version (and not func.now()) for easier mocking during tests
-    now = datetime.now()
+    now = datetime.now()  # noqa: DTZ005
 
     # Only fetch roster for courses for which we haven't schedule a fetch recently
     no_recent_scheduled_roster_fetch_clause = ~exists(
@@ -66,7 +66,7 @@ def schedule_fetching_course_rosters() -> None:
         )
     )
 
-    with app.request_context() as request:
+    with app.request_context() as request:  # noqa: SIM117
         with request.tm:
             query = (
                 select(LMSCourse.id)
@@ -90,7 +90,7 @@ def schedule_fetching_course_rosters() -> None:
                     TaskDone(
                         key=f"roster::course::scheduled::{lms_course_id}",
                         data=None,
-                        expires_at=datetime.now() + ROSTER_REFRESH_WINDOW,
+                        expires_at=datetime.now() + ROSTER_REFRESH_WINDOW,  # noqa: DTZ005
                     )
                 )
 
@@ -99,7 +99,7 @@ def schedule_fetching_assignment_rosters() -> None:
     """Schedule fetching assignment rosters based on their last lunches and the most recent roster fetch."""
 
     # We use the python version (and not func.now()) for easier mocking during tests
-    now = datetime.now()
+    now = datetime.now()  # noqa: DTZ005
 
     no_recent_roster_clause = ~exists(
         select(AssignmentRoster).where(
@@ -123,7 +123,7 @@ def schedule_fetching_assignment_rosters() -> None:
         )
     )
 
-    with app.request_context() as request:
+    with app.request_context() as request:  # noqa: SIM117
         with request.tm:
             query = (
                 select(Assignment.id)
@@ -154,7 +154,7 @@ def schedule_fetching_assignment_rosters() -> None:
                     TaskDone(
                         key=f"roster::assignment::scheduled::{assignment_id}",
                         data=None,
-                        expires_at=datetime.now() + ROSTER_REFRESH_WINDOW,
+                        expires_at=datetime.now() + ROSTER_REFRESH_WINDOW,  # noqa: DTZ005
                     )
                 )
 
@@ -163,7 +163,7 @@ def schedule_fetching_segment_rosters() -> None:
     """Schedule fetching segment rosters based on their last lunches and the most recent roster fetch."""
 
     # We use the python version (and not func.now()) for easier mocking during tests
-    now = datetime.now()
+    now = datetime.now()  # noqa: DTZ005
 
     # Only fetch roster for segments for which we haven't schedule a fetch recently
     no_recent_scheduled_roster_fetch_clause = ~exists(
@@ -190,7 +190,7 @@ def schedule_fetching_segment_rosters() -> None:
         )
     )
 
-    with app.request_context() as request:
+    with app.request_context() as request:  # noqa: SIM117
         with request.tm:
             query = (
                 select(LMSSegment.id)
@@ -217,7 +217,7 @@ def schedule_fetching_segment_rosters() -> None:
                     TaskDone(
                         key=f"roster::segment::scheduled::{lms_segment_id}",
                         data=None,
-                        expires_at=datetime.now() + ROSTER_REFRESH_WINDOW,
+                        expires_at=datetime.now() + ROSTER_REFRESH_WINDOW,  # noqa: DTZ005
                     )
                 )
 

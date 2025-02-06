@@ -1,6 +1,6 @@
 from lms.services.exceptions import ExternalRequestError, OAuth2TokenError
 
-TOKEN_URL = "https://auth.brightspace.com/core/connect/token"
+TOKEN_URL = "https://auth.brightspace.com/core/connect/token"  # noqa: S105
 """This is constant for all D2L instances"""
 
 API_VERSIONS = {

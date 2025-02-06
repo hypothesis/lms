@@ -8,8 +8,8 @@ from lms.services.upsert import bulk_upsert
 
 @pytest.mark.xdist_group("TableWithBulkUpsert")
 class TestBulkAction:
-    INDEX_ELEMENTS = ["id"]
-    UPDATE_COLUMNS = ["name"]
+    INDEX_ELEMENTS = ["id"]  # noqa: RUF012
+    UPDATE_COLUMNS = ["name"]  # noqa: RUF012
 
     class TableWithBulkUpsert(Base):
         __tablename__ = "test_table_with_bulk_upsert"

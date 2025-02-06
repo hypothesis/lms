@@ -45,7 +45,7 @@ def via_url(_context, request):
 
     document_url = request.params["document_url"]
     document_url_match = DOCUMENT_URL_REGEX.search(document_url)
-    assert document_url_match
+    assert document_url_match  # noqa: S101
     document_course_id = document_url_match["course_id"]
     document_file_id = document_url_match["url"]
     effective_file_id = _effective_file_id(
@@ -54,7 +54,7 @@ def via_url(_context, request):
 
     # Try to access the file, we have to check that we have indeed access to this file.
     if not api.file_exists(effective_file_id):
-        raise FileNotFoundInCourse("moodle_file_not_found_in_course", document_url)
+        raise FileNotFoundInCourse("moodle_file_not_found_in_course", document_url)  # noqa: EM101
 
     return {
         "via_url": helpers.via_url(
@@ -93,7 +93,7 @@ def _effective_file_id(
             document_url,
             course.lms_id,
         )
-        raise FileNotFoundInCourse("moodle_file_not_found_in_course", document_url)
+        raise FileNotFoundInCourse("moodle_file_not_found_in_course", document_url)  # noqa: EM101
     # Store a mapping so we don't have to re-search next time.
     LOG.debug(
         "Via URL for page, found page in the new course. Document: %s, course: %s, new page id: %s",

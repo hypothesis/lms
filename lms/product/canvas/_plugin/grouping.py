@@ -24,7 +24,7 @@ class CanvasGroupingPlugin(GroupingPlugin):
         self,
         canvas_api,
         group_set_service: GroupSetService,
-        strict_section_membership: bool,
+        strict_section_membership: bool,  # noqa: FBT001
         request,
     ):
         self._canvas_api = canvas_api

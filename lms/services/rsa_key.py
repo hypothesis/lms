@@ -40,7 +40,7 @@ class RSAKeyService:
 
         This method is meant to be called periodically by a celery task.
         """
-        now = datetime.now()
+        now = datetime.now()  # noqa: DTZ005
         new_keys = target_keys
 
         for key in self._db.query(RSAKey).all():
@@ -60,7 +60,7 @@ class RSAKeyService:
 
         # Assert the expected result, if we find something different the transition will be aborted
         # and we'd be back at the initial state
-        assert self._db.query(RSAKey).filter_by(expired=False).count() == target_keys, (
+        assert self._db.query(RSAKey).filter_by(expired=False).count() == target_keys, (  # noqa: S101
             "The number of active RSAKey doesn't match the target"
         )
 

@@ -49,7 +49,7 @@ class ExternalRequestError(Exception):
         request=None,
         response=None,
         validation_errors=None,
-        refreshable=False,
+        refreshable=False,  # noqa: FBT002
         refresh_route: str | None = None,
         refresh_service: Service | None = None,
     ):

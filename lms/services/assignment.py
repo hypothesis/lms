@@ -336,7 +336,7 @@ class AssignmentService:
             .group_by(Assignment.course_id)
         )
 
-        return {x.course_id: x.count for x in self._db.execute(query)}  # type: ignore
+        return {x.course_id: x.count for x in self._db.execute(query)}  # type: ignore  # noqa: PGH003
 
     def get_assignment_groups(self, assignment) -> Sequence[Grouping]:
         """Get the relevant groups for the assignment from the DB."""

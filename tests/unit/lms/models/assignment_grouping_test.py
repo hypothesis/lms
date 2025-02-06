@@ -25,7 +25,7 @@ class TestAssignmentGrouping:
         db_session.add(AssignmentGrouping(assignment=assignment, grouping=grouping))
         db_session.commit()
 
-        with pytest.raises(IntegrityError):
+        with pytest.raises(IntegrityError):  # noqa: PT012
             db_session.add(AssignmentGrouping(assignment=assignment, grouping=grouping))
             db_session.commit()
 

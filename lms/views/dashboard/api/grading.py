@@ -8,7 +8,7 @@ from lms.models import GradingSync, LMSUser
 from lms.models.grading_sync import AutoGradingSyncStatus
 from lms.security import Permissions
 from lms.services import AutoGradingService
-from lms.services.dashboard import DashboardService
+from lms.services.dashboard import DashboardService  # noqa: TC001
 from lms.tasks.grading import sync_grades
 from lms.validation._base import JSONPyramidRequestSchema
 

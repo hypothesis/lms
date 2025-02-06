@@ -98,7 +98,7 @@ class BasicClient:
         )
 
     def _send_prepared(self, request, schema, timeout, request_depth=1) -> list:
-        response: Response = None  # type:ignore
+        response: Response = None  # type:ignore  # noqa: PGH003
 
         try:
             response = self._session.send(request, timeout=timeout)
@@ -106,7 +106,7 @@ class BasicClient:
         except RequestException as err:
             CanvasAPIError.raise_from(err, request, response)
 
-        result: list = None  # type: ignore
+        result: list = None  # type: ignore  # noqa: PGH003
         try:
             result = schema(response).parse()
         except ExternalRequestError as err:

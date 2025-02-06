@@ -31,7 +31,7 @@ class TestAssignmentMembership:
         )
         db_session.commit()
 
-        with pytest.raises(IntegrityError):
+        with pytest.raises(IntegrityError):  # noqa: PT012
             db_session.add(
                 AssignmentMembership(
                     user=user, assignment=assignment, lti_role=lti_role

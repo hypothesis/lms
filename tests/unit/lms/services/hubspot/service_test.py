@@ -106,7 +106,7 @@ class TestHubSpotService:
         [
             (None, None),
             ("2024-12-31", date(2024, 12, 31)),
-            (datetime(2024, 12, 31).timestamp() * 1000, date(2024, 12, 31)),
+            (datetime(2024, 12, 31).timestamp() * 1000, date(2024, 12, 31)),  # noqa: DTZ001
         ],
     )
     def test_date_or_timestamp(self, expected, value):
@@ -115,7 +115,7 @@ class TestHubSpotService:
     def test_factory(self, pyramid_request, db_session, HubSpotClient, HubSpot):
         svc = HubSpotService.factory(sentinel.context, pyramid_request)
 
-        HubSpot.assert_called_once_with(access_token="HUBSPOT_API_KEY")
+        HubSpot.assert_called_once_with(access_token="HUBSPOT_API_KEY")  # noqa: S106
         HubSpotClient.assert_called_once_with(HubSpot.return_value)
         assert svc._db == db_session  # noqa: SLF001
         assert svc._region_code == "us"  # noqa: SLF001

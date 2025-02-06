@@ -1,4 +1,4 @@
-from lms.product.plugin.misc import MiscPlugin
+from lms.product.plugin.misc import MiscPlugin  # noqa: INP001
 
 
 class D2LMiscPlugin(MiscPlugin):

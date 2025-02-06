@@ -53,7 +53,7 @@ class VSBookLocation:
 
         parsed = urlparse(document_url)
         if parsed.scheme != "vitalsource":
-            raise ValueError("URL is not a valid vitalsource:// URL")
+            raise ValueError("URL is not a valid vitalsource:// URL")  # noqa: EM101, TRY003
 
         # `vitalsource://` URLs were not designed with URL parsing in mind
         # originally (:facepalm:), so they were structured in such a way that
@@ -64,14 +64,14 @@ class VSBookLocation:
 
         path_match = cls._PATH_REGEX.search(path)
         if path_match is None:
-            raise ValueError("URL is not a valid vitalsource:// URL")
+            raise ValueError("URL is not a valid vitalsource:// URL")  # noqa: EM101, TRY003
 
         book_id = path_match["book_id"]
         loc_type = path_match["loc_type"]
         loc = path_match["loc"]
 
         if loc_type not in {"cfi", "page"}:
-            raise ValueError("Invalid book location specifier")
+            raise ValueError("Invalid book location specifier")  # noqa: EM101, TRY003
 
         if loc_type == "page":
             loc = unquote_plus(loc)

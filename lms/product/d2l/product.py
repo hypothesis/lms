@@ -12,11 +12,11 @@ class D2L(Product):
 
     family: Family = Family.D2L
 
-    plugin_config: PluginConfig = PluginConfig(
+    plugin_config: PluginConfig = PluginConfig(  # noqa: RUF009
         grouping=D2LGroupingPlugin, misc=D2LMiscPlugin, course_copy=D2LCourseCopyPlugin
     )
 
-    route: Routes = Routes(
+    route: Routes = Routes(  # noqa: RUF009
         oauth2_authorize="d2l_api.oauth.authorize",
         oauth2_refresh="d2l_api.oauth.refresh",
     )

@@ -89,7 +89,7 @@ class TestAdminApplicationInstanceViews:
             client_id="CLIENT_ID",
             auth_login_url="http://auth-login-url.com",
             key_set_url="http://key-set-url.com",
-            token_url="http://token-url.com",
+            token_url="http://token-url.com",  # noqa: S106
         )
 
         assert response == temporary_redirect_to(

@@ -142,7 +142,7 @@ def intercept_http_calls_to_h():
 
     # Catch URLs we aren't expecting or have failed to mock
     def error_response(request, uri, _response_headers):
-        raise NotImplementedError(f"Unexpected call to URL: {request.method} {uri}")
+        raise NotImplementedError(f"Unexpected call to URL: {request.method} {uri}")  # noqa: EM102
 
     with httpretty.enabled():
         # Mock all calls to the H API

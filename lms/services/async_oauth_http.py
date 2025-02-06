@@ -68,7 +68,7 @@ async def _prepare_requests(method, urls, **kwargs):
             for task in tasks:
                 task.cancel()
 
-            raise ExternalAsyncRequestError() from err
+            raise ExternalAsyncRequestError() from err  # noqa: RSE102
 
 
 def factory(_context, request):

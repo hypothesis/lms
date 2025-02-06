@@ -113,7 +113,7 @@ class TestAESService:
         return factories.RSAKey.create_batch(
             size=3,
             public_key='{"key": "value"}',
-            created=datetime(2022, 1, 10),
+            created=datetime(2022, 1, 10),  # noqa: DTZ001
         )
 
     @pytest.fixture
@@ -122,7 +122,7 @@ class TestAESService:
             size=3,
             expired=True,
             public_key='{"key": "value"}',
-            created=datetime(2022, 1, 10),
+            created=datetime(2022, 1, 10),  # noqa: DTZ001
         )
 
     @pytest.fixture

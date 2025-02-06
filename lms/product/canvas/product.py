@@ -12,12 +12,12 @@ class Canvas(Product):
 
     family: Family = Family.CANVAS
 
-    route: Routes = Routes(
+    route: Routes = Routes(  # noqa: RUF009
         oauth2_authorize="canvas_api.oauth.authorize",
         oauth2_refresh="canvas_api.oauth.refresh",
     )
 
-    plugin_config: PluginConfig = PluginConfig(
+    plugin_config: PluginConfig = PluginConfig(  # noqa: RUF009
         grouping=CanvasGroupingPlugin,
         course_copy=CanvasCourseCopyPlugin,
         misc=CanvasMiscPlugin,

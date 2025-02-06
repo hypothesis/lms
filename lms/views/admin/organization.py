@@ -156,7 +156,7 @@ class AdminOrganizationViews:
         request_org_id = self.request.matchdict["id_"]
         for org_id in self.organization_service.get_hierarchy_ids(request_org_id):
             org = self.organization_service.get_by_id(org_id)
-            assert org, "Organization {org_id} not found"
+            assert org, "Organization {org_id} not found"  # noqa: S101
             self.organization_service.update_organization(
                 org, enabled=self.request.params.get("enabled", "") == "on"
             )
@@ -207,17 +207,17 @@ class AdminOrganizationViews:
             since = datetime.fromisoformat(self.request.params["since"])
             until = datetime.fromisoformat(self.request.params["until"])
         except ValueError as exc:
-            raise HTTPBadRequest(
-                "Times must be in ISO 8601 format, for example: '2023-02-27T00:00:00'."
+            raise HTTPBadRequest(  # noqa: TRY003
+                "Times must be in ISO 8601 format, for example: '2023-02-27T00:00:00'."  # noqa: EM101
             ) from exc
 
         if until <= since:
-            raise HTTPBadRequest(
-                "The 'since' time must be earlier than the 'until' time."
+            raise HTTPBadRequest(  # noqa: TRY003
+                "The 'since' time must be earlier than the 'until' time."  # noqa: EM101
             )
 
-        if since < datetime(2023, 1, 1):
-            raise HTTPBadRequest("Usage reports can only be generated since 2023")
+        if since < datetime(2023, 1, 1):  # noqa: DTZ001
+            raise HTTPBadRequest("Usage reports can only be generated since 2023")  # noqa: EM101, TRY003
 
         try:
             report = self.organization_usage_report_service.usage_report(
@@ -315,4 +315,4 @@ class AdminOrganizationViews:
         if org := self.organization_service.get_by_id(id_):
             return org
 
-        raise HTTPNotFound()
+        raise HTTPNotFound()  # noqa: RSE102

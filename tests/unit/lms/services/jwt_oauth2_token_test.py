@@ -21,8 +21,8 @@ class TestJWTOAuth2TokenServiceTest:
     def test_save_new_token(self, svc, lti_registration, scopes):
         token = svc.save_token(lti_registration, scopes, "ACCESS_TOKEN", 3600)
 
-        assert token.access_token == "ACCESS_TOKEN"
-        assert token.received_at == datetime(2022, 4, 4, 0)
+        assert token.access_token == "ACCESS_TOKEN"  # noqa: S105
+        assert token.received_at == datetime(2022, 4, 4, 0)  # noqa: DTZ001
         assert token.expires_at == token.received_at + timedelta(seconds=3600)
 
     @freeze_time("2022-04-04")
@@ -30,21 +30,21 @@ class TestJWTOAuth2TokenServiceTest:
         existing_token = factories.JWTOAuth2Token(
             lti_registration=lti_registration,
             scopes=" ".join(scopes),
-            expires_at=datetime.now(),
+            expires_at=datetime.now(),  # noqa: DTZ005
         )
 
         token = svc.save_token(lti_registration, scopes, "ACCESS_TOKEN", 3600)
 
         assert existing_token == token
-        assert token.received_at == datetime(2022, 4, 4, 0)
-        assert token.expires_at == datetime(2022, 4, 4, 1)
+        assert token.received_at == datetime(2022, 4, 4, 0)  # noqa: DTZ001
+        assert token.expires_at == datetime(2022, 4, 4, 1)  # noqa: DTZ001
 
     @freeze_time("2022-04-04")
     def test_get(self, svc, lti_registration, db_session, scopes):
         existing_token = factories.JWTOAuth2Token(
             lti_registration=lti_registration,
             scopes=" ".join(scopes),
-            expires_at=datetime.now() + timedelta(hours=1),
+            expires_at=datetime.now() + timedelta(hours=1),  # noqa: DTZ005
         )
         db_session.flush()
 
@@ -57,7 +57,7 @@ class TestJWTOAuth2TokenServiceTest:
         factories.JWTOAuth2Token(
             lti_registration=lti_registration,
             scopes=" ".join(scopes),
-            expires_at=datetime.now() - timedelta(hours=1),
+            expires_at=datetime.now() - timedelta(hours=1),  # noqa: DTZ005
         )
         db_session.flush()
 
@@ -72,7 +72,7 @@ class TestJWTOAuth2TokenServiceTest:
         expired_token = factories.JWTOAuth2Token(
             lti_registration=lti_registration,
             scopes=" ".join(scopes),
-            expires_at=datetime.now() - timedelta(hours=1),
+            expires_at=datetime.now() - timedelta(hours=1),  # noqa: DTZ005
         )
         db_session.flush()
 

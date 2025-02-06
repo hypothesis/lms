@@ -51,7 +51,7 @@ class AdminAssignmentViews:
         )
 
         # We can only navigate to assignments via their course, assigmentl.course won't be null
-        assert assignment.course
+        assert assignment.course  # noqa: S101
         response = HTTPFound(
             location=self.request.route_url(
                 "dashboard.organization.assignment",
@@ -67,4 +67,4 @@ class AdminAssignmentViews:
         ):
             return assignment
 
-        raise HTTPNotFound()
+        raise HTTPNotFound()  # noqa: RSE102

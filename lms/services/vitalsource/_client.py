@@ -42,7 +42,7 @@ class VitalSourceClient:
         :raises ValueError: If `api_key` is missing
         """
         if not api_key:
-            raise ValueError("VitalSource credentials are missing")
+            raise ValueError("VitalSource credentials are missing")  # noqa: EM101, TRY003
 
         self._http_session = HTTPService()
 
@@ -153,7 +153,7 @@ class VitalSourceClient:
 
     # This is used in `_VSUserAuth` authentication mechanism below. We want to
     # cache this so that repeated calls for the same user are only issued once.
-    @lru_cache(1)
+    @lru_cache(1)  # noqa: B019
     def get_user_credentials(self, user_reference: str) -> dict:
         """
         Get user credentials that can be used with user-specific queries.
@@ -186,8 +186,8 @@ class VitalSourceClient:
             # VS need to do "something" to configure it. This shouldn't happen
             # at random, only when onboarding new customers.
             if "Catalog not found" in json_errors:
-                raise VitalSourceConfigurationError(
-                    "The catalog has not been initialized"
+                raise VitalSourceConfigurationError(  # noqa: TRY003
+                    "The catalog has not been initialized"  # noqa: EM101
                 )
 
             if err.status_code == 404:

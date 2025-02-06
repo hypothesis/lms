@@ -23,7 +23,7 @@ from tests import factories
 class TestRosterService:
     @pytest.mark.parametrize(
         "create_roster,expected",
-        [(True, datetime(2021, 1, 1)), (False, None)],
+        [(True, datetime(2021, 1, 1)), (False, None)],  # noqa: DTZ001
     )
     def test_assignment_roster_last_updated(
         self, svc, assignment, db_session, create_roster, expected
@@ -33,7 +33,7 @@ class TestRosterService:
 
         if create_roster:
             factories.AssignmentRoster(
-                updated=datetime(2021, 1, 1),
+                updated=datetime(2021, 1, 1),  # noqa: DTZ001
                 lms_user=lms_user,
                 assignment=assignment,
                 lti_role=lti_role,
@@ -45,7 +45,7 @@ class TestRosterService:
 
     @pytest.mark.parametrize(
         "create_roster,expected",
-        [(True, datetime(2021, 1, 1)), (False, None)],
+        [(True, datetime(2021, 1, 1)), (False, None)],  # noqa: DTZ001
     )
     def test_segment_roster_last_updated(
         self, svc, lms_segment, db_session, create_roster, expected
@@ -55,7 +55,7 @@ class TestRosterService:
 
         if create_roster:
             factories.LMSSegmentRoster(
-                updated=datetime(2021, 1, 1),
+                updated=datetime(2021, 1, 1),  # noqa: DTZ001
                 lms_user=lms_user,
                 lms_segment=lms_segment,
                 lti_role=lti_role,
@@ -67,7 +67,7 @@ class TestRosterService:
 
     @pytest.mark.parametrize(
         "create_roster,expected",
-        [(True, datetime(2021, 1, 1)), (False, None)],
+        [(True, datetime(2021, 1, 1)), (False, None)],  # noqa: DTZ001
     )
     def test_course_roster_last_updated(
         self, svc, lms_course, db_session, create_roster, expected
@@ -77,7 +77,7 @@ class TestRosterService:
 
         if create_roster:
             factories.CourseRoster(
-                updated=datetime(2021, 1, 1),
+                updated=datetime(2021, 1, 1),  # noqa: DTZ001
                 lms_user=lms_user,
                 lms_course=lms_course,
                 lti_role=lti_role,
@@ -632,7 +632,7 @@ class TestRosterService:
 
     @pytest.mark.usefixtures("instructor_in_course", "canvas_section")
     def test_fetch_canvas_sections_roster_failed_refresh(
-        self, svc, lms_course, canvas_api_client, db_session, caplog
+        self, svc, lms_course, canvas_api_client, db_session, caplog  # noqa: ARG002
     ):
         canvas_api_client.course_sections.side_effect = OAuth2TokenError(
             refreshable=True
@@ -645,7 +645,7 @@ class TestRosterService:
 
     @pytest.mark.usefixtures("instructor_in_course", "canvas_section")
     def test_fetch_canvas_sections_roster_with_invalid_token(
-        self, svc, lms_course, canvas_api_client, db_session, caplog
+        self, svc, lms_course, canvas_api_client, db_session, caplog  # noqa: ARG002
     ):
         canvas_api_client.course_sections.side_effect = OAuth2TokenError(
             refreshable=False

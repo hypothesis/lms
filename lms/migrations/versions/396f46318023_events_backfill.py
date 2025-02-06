@@ -62,7 +62,7 @@ def upgrade():
         ORDER BY lti_launches.created ASC
     """
     )
-    print("\tInserted lti_launches rows into events:", result.rowcount)
+    print("\tInserted lti_launches rows into events:", result.rowcount)  # noqa: T201
 
 
 def downgrade():
@@ -77,5 +77,5 @@ def downgrade():
             -- will have empty assignments.
             AND assignment_id is null
             AND timestamp < '{CUT_OFF_DATE}'
-    """
+    """  # noqa: S608
     )

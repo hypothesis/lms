@@ -17,7 +17,7 @@ LOG = logging.getLogger(__name__)
 def generate_usage_report(
     organization_id: int, tag: str, since: str, until: str
 ) -> None:
-    with app.request_context() as request:
+    with app.request_context() as request:  # noqa: SIM117
         with request.tm:
             request.find_service(OrganizationUsageReportService).generate_usage_report(
                 organization_id,
@@ -37,14 +37,14 @@ def schedule_monthly_deal_report(limit: int, backfill: int = 0) -> None:
     """
     reports_scheduled = 0
 
-    with app.request_context() as request:
+    with app.request_context() as request:  # noqa: SIM117
         with request.tm:
             usage_service = request.find_service(OrganizationUsageReportService)
             hubspot_service = request.find_service(HubSpotService)
 
             companies_with_active_deals = hubspot_service.get_companies_with_active_deals(
                 # Get active deals, now and a few days ago to account for the last billing period
-                date.today() - timedelta(days=30)
+                date.today() - timedelta(days=30)  # noqa: DTZ011
             )
             for company in companies_with_active_deals:
                 organization = company.organization

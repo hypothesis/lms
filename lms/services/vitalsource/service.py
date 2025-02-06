@@ -11,7 +11,7 @@ from lms.services.vitalsource.model import VSBookLocation
 class VitalSourceService:
     """A high-level interface for dealing with VitalSource."""
 
-    H_SKUS = ["HYPOTHESISLMSAPP", "HYPOTHESISLMSAPPR180"]
+    H_SKUS = ["HYPOTHESISLMSAPP", "HYPOTHESISLMSAPPR180"]  # noqa: RUF012
     """
     SKU of the H app in the VitalSource store.
     Student pay schools will check students have a license for this SKU
@@ -20,12 +20,12 @@ class VitalSourceService:
 
     def __init__(  # noqa: PLR0913
         self,
-        enabled: bool = False,
+        enabled: bool = False,  # noqa: FBT001, FBT002
         global_client: VitalSourceClient | None = None,
         customer_client: VitalSourceClient | None = None,
         user_lti_param: str | None = None,
         user_lti_pattern: str | None = None,
-        student_pay_enabled: bool = False,
+        student_pay_enabled: bool = False,  # noqa: FBT001, FBT002
     ):
         """
         Initialise the service.
@@ -66,13 +66,13 @@ class VitalSourceService:
 
     def get_book_info(self, book_id: str) -> dict:
         """Get details of a book."""
-        assert self._metadata_client
+        assert self._metadata_client  # noqa: S101
 
         return self._metadata_client.get_book_info(book_id)
 
     def get_table_of_contents(self, book_id: str) -> list[dict]:
         """Get the table of contents for a book."""
-        assert self._metadata_client
+        assert self._metadata_client  # noqa: S101
 
         return self._metadata_client.get_table_of_contents(book_id)
 
@@ -98,9 +98,9 @@ class VitalSourceService:
         url = urlparse(url)
         params = parse_qs(url.query)
         if end_page:
-            params["end_page"] = end_page  # type: ignore
+            params["end_page"] = end_page  # type: ignore  # noqa: PGH003
         if end_cfi:
-            params["end_cfi"] = end_cfi  # type: ignore
+            params["end_cfi"] = end_cfi  # type: ignore  # noqa: PGH003
         url = url._replace(query=urlencode(params, doseq=True))
 
         return urlunparse(url)
@@ -163,7 +163,7 @@ class VitalSourceService:
         :param user_reference: The user reference (you can use
             `get_user_reference()` to help you with this)
         """
-        assert self._sso_client
+        assert self._sso_client  # noqa: S101
         return self._sso_client.get_sso_redirect(
             user_reference, self.get_book_reader_url(document_url)
         )
@@ -214,7 +214,7 @@ class VitalSourceService:
         if lti_user.is_learner:
             # Do the actual license check, only for students
             user_reference = self.get_user_reference(lti_params)
-            assert self._sso_client
+            assert self._sso_client  # noqa: S101
             for sku in self.H_SKUS:
                 if self._sso_client.get_user_book_license(user_reference, sku):
                     return None
@@ -240,8 +240,8 @@ class VitalSourceService:
             raise VitalSourceMalformedRegex(str(err), pattern=pattern) from err
 
         if compiled_pattern.groups != 1:
-            raise VitalSourceMalformedRegex(
-                "The user regex must have one capture group (brackets)", pattern=pattern
+            raise VitalSourceMalformedRegex(  # noqa: TRY003
+                "The user regex must have one capture group (brackets)", pattern=pattern  # noqa: EM101
             )
 
         return compiled_pattern

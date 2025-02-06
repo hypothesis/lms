@@ -25,7 +25,7 @@ class TestGetPage:
 
     def test_when_empty(self, pyramid_request):
         pyramid_request.parsed_params = {"limit": 100}
-        query = select(Course).where(False)
+        query = select(Course).where(False)  # noqa: FBT003
 
         items, pagination = get_page(pyramid_request, query, (Course.id,))
 

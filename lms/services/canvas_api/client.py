@@ -63,7 +63,7 @@ class CanvasAPIClient:
         file_service: FileService,
         pages_client: CanvasPagesClient,
         application_instance: ApplicationInstance,
-        folders_enabled: bool = False,
+        folders_enabled: bool = False,  # noqa: FBT001, FBT002
     ):
         """
         Create a new CanvasAPIClient.
@@ -164,7 +164,7 @@ class CanvasAPIClient:
             # Return the contents of sections without the key
             return data["sections"]
 
-    def course_sections(self, course_id, with_students=False):
+    def course_sections(self, course_id, with_students=False):  # noqa: FBT002
         """
         Return all the sections for the given course_id.
 
@@ -201,7 +201,7 @@ class CanvasAPIClient:
             # If we get as far as this method then data is guaranteed to be a list
             # so the only way it can be falsey is if it's an empty list.
             if not data:
-                raise marshmallow.ValidationError("Shorter than minimum length 1.")
+                raise marshmallow.ValidationError("Shorter than minimum length 1.")  # noqa: EM101, TRY003
 
     def users_sections(self, user_id, course_id):
         """
@@ -251,7 +251,7 @@ class CanvasAPIClient:
                 for enrollment in data["enrollments"]
             ]
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=128)  # noqa: B019
     def list_files(self, course_id, sort="position") -> list[dict]:
         """
         Return the list of files for the given `course_id`.
@@ -318,7 +318,7 @@ class CanvasAPIClient:
                 items_by_parent[folder["folder_id"]].append(dict(folder, type="Folder"))
 
             # Find the root folder, the one with a None parent
-            root_folder_id = [f for f in folders if not f["folder_id"]][0]["id"]
+            root_folder_id = [f for f in folders if not f["folder_id"]][0]["id"]  # noqa: RUF015
 
             return sorted(
                 self._files_tree(items_by_parent, folder_id=root_folder_id),
@@ -386,7 +386,7 @@ class CanvasAPIClient:
         id = fields.Integer(required=True)
         updated_at = fields.String(required=True)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=128)  # noqa: B019
     def public_url(self, file_id):
         """
         Get a new temporary public download URL for the file with the given ID.
@@ -440,13 +440,13 @@ class CanvasAPIClient:
             # The group set is not in the given course.
             # For example this could be because the course was copied (assignments in copied
             # courses still have the group set IDs from the original course)
-            raise CanvasAPIError(
-                f"Group set {group_category_id} doesn't belong to course {course_id}"
+            raise CanvasAPIError(  # noqa: TRY003
+                f"Group set {group_category_id} doesn't belong to course {course_id}"  # noqa: EM102
             )
 
         return groups
 
-    def course_groups(self, course_id, only_own_groups=True, include_users=False):
+    def course_groups(self, course_id, only_own_groups=True, include_users=False):  # noqa: FBT002
         """
         Get all the groups of a course.
 
@@ -518,7 +518,7 @@ class CanvasAPIClient:
 
             for user in group.get("users", []):
                 if user["id"] == int(user_id):
-                    groups.append(group)
+                    groups.append(group)  # noqa: PERF401
 
         return groups
 
@@ -562,7 +562,7 @@ class CanvasAPIClient:
             duplicate = sections_by_id.get(section["id"])
 
             if duplicate and section.get("name") != duplicate.get("name"):
-                raise CanvasAPIError(f"Duplicate section id on {section}")
+                raise CanvasAPIError(f"Duplicate section id on {section}")  # noqa: EM102, TRY003
 
             sections_by_id[section["id"]] = section
 

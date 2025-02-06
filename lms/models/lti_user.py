@@ -115,7 +115,7 @@ def display_name(
         given_name = given_name.strip()
         family_name = family_name.strip()
 
-        name = " ".join((given_name, family_name)).strip()
+        name = " ".join((given_name, family_name)).strip()  # noqa: FLY002
 
     if not name:
         return "Anonymous"

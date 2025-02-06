@@ -3,7 +3,7 @@ from unittest import mock
 
 import pytest
 from h_matchers import Any
-from pytest import param
+from pytest import param  # noqa: PT013
 
 from lms.db import LockType
 from lms.models import OAuth2Token
@@ -22,8 +22,8 @@ class TestOAuth2TokenService:
     @pytest.mark.parametrize("service", [Service.LMS, Service.CANVAS_STUDIO])
     def test_save(self, db_session, application_instance, lti_user, svc, service):
         svc.save(
-            access_token="access_token",
-            refresh_token="refresh_token",
+            access_token="access_token",  # noqa: S106
+            refresh_token="refresh_token",  # noqa: S106
             expires_in=1234,
             service=service,
         )

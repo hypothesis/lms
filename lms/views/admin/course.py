@@ -103,7 +103,7 @@ class AdminCourseViews:
         if org_public_id := self.request.params.get("org_public_id", "").strip():
             try:
                 organization = self.organization_service.get_by_public_id(org_public_id)
-                assert organization
+                assert organization  # noqa: S101
                 organization_ids = self.organization_service.get_hierarchy_ids(
                     organization.id, include_parents=False
                 )
@@ -126,4 +126,4 @@ class AdminCourseViews:
         if course := self.course_service.get_by_id(id_=id_):
             return course
 
-        raise HTTPNotFound()
+        raise HTTPNotFound()  # noqa: RSE102

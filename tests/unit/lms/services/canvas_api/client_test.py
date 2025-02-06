@@ -571,7 +571,7 @@ class TestCanvasAPIClientIntegrated:
         with pytest.raises(CanvasAPIServerError):
             data_method()
 
-    methods = {
+    methods = {  # noqa: RUF012
         "authenticated_users_sections": ["course_id"],
         "course_sections": ["course_id"],
         "course_group_categories": ["course_id"],

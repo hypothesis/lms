@@ -15,6 +15,6 @@ OAuth2Token = make_factory(
     access_token=ACCESS_TOKEN,
     # This is intentionally an "old" time and not a token that was very recently
     # received.
-    received_at=datetime(2023, 12, 1),
+    received_at=datetime(2023, 12, 1),  # noqa: DTZ001
     refresh_token=REFRESH_TOKEN,
 )

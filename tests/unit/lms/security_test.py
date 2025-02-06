@@ -242,7 +242,7 @@ class TestEmailPreferencesSecurityPolicy:
     @pytest.fixture
     def policy(self, email_preferences_service):
         return EmailPreferencesSecurityPolicy(
-            secret="test_email_preferences_secret",
+            secret="test_email_preferences_secret",  # noqa: S106
             domain="example.com",
             email_preferences_service=email_preferences_service,
             use_secure_cookie=True,
@@ -515,7 +515,7 @@ class TestSecurityPolicy:
         sub_policy = policy.get_policy(pyramid_request)
 
         EmailPreferencesSecurityPolicy.assert_called_once_with(
-            secret="test_email_preferences_secret",
+            secret="test_email_preferences_secret",  # noqa: S106
             domain="example.com",
             email_preferences_service=email_preferences_service,
             use_secure_cookie=True,

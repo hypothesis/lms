@@ -56,7 +56,7 @@ class TestBasicClient:
         basic_client.get_token(sentinel.authorization_code)
 
         oauth_http_service.get_access_token.assert_called_once_with(
-            token_url="https://blackboard.example.com/learn/api/public/v1/oauth2/token",
+            token_url="https://blackboard.example.com/learn/api/public/v1/oauth2/token",  # noqa: S106
             redirect_uri=sentinel.redirect_uri,
             auth=(sentinel.client_id, sentinel.client_secret),
             authorization_code=sentinel.authorization_code,

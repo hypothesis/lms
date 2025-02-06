@@ -324,7 +324,7 @@ class CanvasStudioService:
     def get_canonical_video_url(self, media_id: str) -> str:
         """Return the URL to associate with annotations on a Canvas Studio video."""
         # We use the REST resource URL as a stable URL for the video.
-        # Example: "https://hypothesis.instructuremedia.com/api/public/v1/media/4"
+        # Example: "https://hypothesis.instructuremedia.com/api/public/v1/media/4"  # noqa: ERA001
         return self._api_url(f"v1/media/{media_id}")
 
     def get_video_download_url(self, media_id: str) -> str | None:
@@ -385,7 +385,7 @@ class CanvasStudioService:
         self,
         path: str,
         schema_cls: type[RequestsResponseSchema],
-        as_admin=False,
+        as_admin=False,  # noqa: FBT002
     ) -> dict:
         """
         Make a request to the Canvas Studio API and parse the JSON response.
@@ -402,7 +402,7 @@ class CanvasStudioService:
         path: str,
         schema_cls: type[RequestsResponseSchema],
         field: str,
-        as_admin=False,
+        as_admin=False,  # noqa: FBT002
     ) -> list:
         """
         Fetch a paginated collection via the Canvas Studio API.
@@ -427,7 +427,7 @@ class CanvasStudioService:
 
         return collated
 
-    def _admin_api_request(self, path: str, allow_redirects=True) -> requests.Response:
+    def _admin_api_request(self, path: str, allow_redirects=True) -> requests.Response:  # noqa: FBT002
         """
         Make a request to the Canvas Studio API using the admin user identity.
 
@@ -453,8 +453,8 @@ class CanvasStudioService:
                 # re-authenticate. That won't help for admin-authenticated
                 # requests.
                 if isinstance(err, OAuth2TokenError):
-                    raise HTTPBadRequest(
-                        "The Canvas Studio admin needs to authenticate the Hypothesis integration"
+                    raise HTTPBadRequest(  # noqa: TRY003
+                        "The Canvas Studio admin needs to authenticate the Hypothesis integration"  # noqa: EM101
                     ) from err
                 raise
 
@@ -467,8 +467,8 @@ class CanvasStudioService:
     def _bare_api_request(
         self,
         path: str,
-        as_admin=False,
-        allow_redirects=True,
+        as_admin=False,  # noqa: FBT002
+        allow_redirects=True,  # noqa: FBT002
         params: Mapping[str, str | int] | None = None,
     ) -> requests.Response:
         """
@@ -517,8 +517,8 @@ class CanvasStudioService:
             "canvas_studio", "admin_email"
         )
         if not admin_email:
-            raise HTTPBadRequest(
-                "Admin account is not configured for Canvas Studio integration"
+            raise HTTPBadRequest(  # noqa: TRY003
+                "Admin account is not configured for Canvas Studio integration"  # noqa: EM101
             )
         return admin_email
 
@@ -527,7 +527,7 @@ class CanvasStudioService:
         return self._request.lti_user.email == self._admin_email()
 
     @property
-    @lru_cache
+    @lru_cache  # noqa: B019
     def _admin_oauth_http(self) -> OAuthHTTPService:
         """
         Return an OAuthHTTPService that makes calls using the admin user account.
@@ -541,7 +541,7 @@ class CanvasStudioService:
 
         # The caller should check for this condition before calling this method
         # and use the standard `self._oauth_http_service` property instead.
-        assert not self.is_admin()
+        assert not self.is_admin()  # noqa: S101
 
         # Find the (user_id, application_instance_id) for an admin user who
         # belongs to the same LMS as the user making the request, and has
@@ -581,8 +581,8 @@ class CanvasStudioService:
                 admin_email,
                 guid,
             )
-            raise HTTPBadRequest(
-                "The Canvas Studio admin needs to authenticate the Hypothesis integration"
+            raise HTTPBadRequest(  # noqa: TRY003
+                "The Canvas Studio admin needs to authenticate the Hypothesis integration"  # noqa: EM101
             )
 
         return oauth_http_factory(

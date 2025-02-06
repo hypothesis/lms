@@ -37,7 +37,7 @@ class TestHAPI:
             ]
         )
 
-    def test_bulk_action_calls_h_correctly(self, h_api, BulkAPI, _api_request):
+    def test_bulk_action_calls_h_correctly(self, h_api, BulkAPI, _api_request):  # noqa: PT019
         h_api.execute_bulk([sentinel.command])
 
         _api_request.assert_called_once_with(
@@ -49,7 +49,7 @@ class TestHAPI:
             ),
         )
 
-    def test_get_user_works(self, h_api, _api_request):
+    def test_get_user_works(self, h_api, _api_request):  # noqa: PT019
         _api_request.return_value.json.return_value = {
             "display_name": sentinel.display_name
         }
@@ -98,7 +98,7 @@ class TestHAPI:
 
         result = h_api.get_annotations(
             h_userid="acct:name@lms.hypothes.is",
-            created_after=datetime(2001, 2, 3, 4, 5, 6),
+            created_after=datetime(2001, 2, 3, 4, 5, 6),  # noqa: DTZ001
             created_before=datetime(2002, 2, 3, 4, 5, 6, tzinfo=UTC),
         )
 
@@ -203,7 +203,7 @@ class TestHAPI:
 
         result = h_api.get_groups(
             groups=["group_1", "group_2"],
-            annotations_created_after=datetime(2001, 2, 3, 4, 5, 6),
+            annotations_created_after=datetime(2001, 2, 3, 4, 5, 6),  # noqa: DTZ001
             annotations_created_before=datetime(2002, 2, 3, 4, 5, 6, tzinfo=UTC),
             batch_size=1,
         )
@@ -306,7 +306,7 @@ class TestHAPI:
     def test__api_request_raises_other_exceptions_normally(self, h_api, http_service):
         http_service.request.side_effect = OSError()
 
-        with pytest.raises(OSError):
+        with pytest.raises(OSError):  # noqa: PT011
             h_api._api_request(sentinel.method, "dummy-path")  # noqa: SLF001
 
     def test_get_userid(self, h_api):
@@ -316,7 +316,7 @@ class TestHAPI:
         assert h_api.get_username("acct:username@lms.hypothes.is") == "username"
 
     def test_get_username_raises_if_username_is_invalid(self, h_api):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # noqa: PT011
             h_api.get_username("invalid_userid")
 
     @pytest.fixture
@@ -328,7 +328,7 @@ class TestHAPI:
         return HAPI(
             authority="lms.hypothes.is",
             client_id="TEST_CLIENT_ID",
-            client_secret="TEST_CLIENT_SECRET",
+            client_secret="TEST_CLIENT_SECRET",  # noqa: S106
             h_private_url="https://h.example.com/private/api/",
             http_service=http_service,
         )

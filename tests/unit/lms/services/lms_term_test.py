@@ -11,8 +11,8 @@ class TestLMSTermService:
         assert not svc.get_term(pyramid_request.lti_params)
 
     def test_get_term(self, svc, pyramid_request):
-        term_starts = datetime(2020, 1, 1)
-        term_ends = datetime(2020, 6, 1)
+        term_starts = datetime(2020, 1, 1)  # noqa: DTZ001
+        term_ends = datetime(2020, 6, 1)  # noqa: DTZ001
         term_name = "NICE TERM"
         lti_params = pyramid_request.lti_params
         lti_params["custom_term_start"] = term_starts.isoformat()

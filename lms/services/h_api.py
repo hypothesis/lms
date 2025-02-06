@@ -79,7 +79,7 @@ class HAPI:
         """
 
         commands = list(commands)
-        commands = [
+        commands = [  # noqa: RUF005
             CommandBuilder.configure(
                 effective_user=HUser(username="lms").userid(self._authority),
                 total_instructions=len(commands) + 1,
@@ -145,7 +145,7 @@ class HAPI:
             for line in response.iter_lines():
                 annotation = json.loads(line)
                 author = annotation.get("author")
-                if author:
+                if author:  # noqa: SIM102
                     if "username" in author and "userid" not in author:
                         author["userid"] = self.get_userid(author["username"])
                 yield annotation
@@ -217,7 +217,7 @@ class HAPI:
         )
         return response.json()
 
-    def _api_request(self, method, path, body=None, headers=None, stream=False):
+    def _api_request(self, method, path, body=None, headers=None, stream=False):  # noqa: FBT002
         """
         Send any kind of HTTP request to the h API and return the response.
 
@@ -249,7 +249,7 @@ class HAPI:
                 **request_args,
             )
         except ExternalRequestError as err:
-            raise HAPIError("Connecting to Hypothesis failed", err.response) from err
+            raise HAPIError("Connecting to Hypothesis failed", err.response) from err  # noqa: EM101, TRY003
 
         return response
 

@@ -10,7 +10,7 @@ class GroupInfoService:
         self._db = request.db
         self._lti_user = request.lti_user
 
-    _GROUPING_TYPES = {
+    _GROUPING_TYPES = {  # noqa: RUF012
         "course": "course_group",
         "canvas_section": "section_group",
         "canvas_group": "canvas_group_group",

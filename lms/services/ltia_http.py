@@ -39,7 +39,7 @@ class LTIAHTTPService:
     ):
         headers = headers or {}
 
-        assert "Authorization" not in headers
+        assert "Authorization" not in headers  # noqa: S101
 
         access_token = self._get_access_token(lti_registration, scopes)
         headers["Authorization"] = f"Bearer {access_token}"
@@ -68,7 +68,7 @@ class LTIAHTTPService:
         https://datatracker.ietf.org/doc/html/rfc7523
         https://canvas.instructure.com/doc/api/file.oauth_endpoints.html#post-login-oauth2-token
         """
-        now = datetime.utcnow()
+        now = datetime.utcnow()  # noqa: DTZ003
         signed_jwt = self._jwt_service.encode_with_private_key(
             {
                 "exp": now + timedelta(hours=1),
@@ -94,9 +94,9 @@ class LTIAHTTPService:
         try:
             token_data = response.json()
         except JSONDecodeError as err:  # pragma: no cover
-            LOG.error("Non-json response: %s", response.text)
-            raise SerializableError(
-                "Non JSON response from LTI1.3 token endpoint.",
+            LOG.error("Non-json response: %s", response.text)  # noqa: TRY400
+            raise SerializableError(  # noqa: TRY003
+                "Non JSON response from LTI1.3 token endpoint.",  # noqa: EM101
                 details={"token_url": lti_registration.token_url},
             ) from err
 

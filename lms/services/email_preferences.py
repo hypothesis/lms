@@ -18,7 +18,7 @@ class InvalidTokenError(Exception):
 
 @dataclass(frozen=True)
 class EmailPrefs:
-    DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+    DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]  # noqa: RUF012
 
     h_userid: str
     mon: bool = True

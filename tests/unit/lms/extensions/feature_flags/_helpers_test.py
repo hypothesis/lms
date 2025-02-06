@@ -143,5 +143,5 @@ class TestJWTCookieHelper:
 
     @pytest.fixture(autouse=True)
     def pyramid_config(self, pyramid_config):
-        pyramid_config.registry.settings["feature_flags_cookie_secret"] = "test_secret"
+        pyramid_config.registry.settings["feature_flags_cookie_secret"] = "test_secret"  # noqa: S105
         return pyramid_config

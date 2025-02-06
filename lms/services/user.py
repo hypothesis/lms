@@ -121,7 +121,7 @@ class UserService:
         )
         return lms_user
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=128)  # noqa: B019
     def get(self, application_instance, user_id: str) -> User:
         """
         Get a User that belongs to `application_instance` with the given id.
