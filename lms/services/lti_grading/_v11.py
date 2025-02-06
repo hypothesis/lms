@@ -127,7 +127,7 @@ class LTI11GradingService(LTIGradingService):
         except ExpatError as err:
             raise ExternalRequestError(  # noqa: TRY003
                 "Unable to parse XML response from LTI Outcomes service",
-                response,  # noqa: EM101
+                response,
             ) from err
 
         try:

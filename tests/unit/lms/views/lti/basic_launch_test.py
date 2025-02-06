@@ -59,7 +59,7 @@ class TestBasicLaunchViews:
         pyramid_request,
         _show_document,
         assignment_service,
-        course_service,  # noqa: PT019
+        course_service,
     ):
         pyramid_request.parsed_params = {
             "document_url": sentinel.document_url,

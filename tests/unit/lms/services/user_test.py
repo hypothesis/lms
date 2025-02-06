@@ -128,7 +128,7 @@ class TestUserService:
         db_session,
         student_in_assignment,
         assignment,
-        organization,  # noqa: ARG002
+        organization,
     ):
         query = service.get_users(
             role_scope=RoleScope.COURSE,

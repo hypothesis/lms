@@ -96,7 +96,7 @@ class PagesAPIViews:
                 )
                 raise PageNotFoundInCourse(
                     "canvas_page_not_found_in_course",
-                    document_page_id,  # noqa: EM101
+                    document_page_id,
                 )
 
             # Store a mapping so we don't have to re-search next time.
@@ -118,7 +118,7 @@ class PagesAPIViews:
         except CanvasAPIError as err:
             raise PageNotFoundInCourse(
                 "canvas_page_not_found_in_course",
-                effective_page_id,  # noqa: EM101
+                effective_page_id,
             ) from err
 
         # We build a token to authorize the view that fetches the actual

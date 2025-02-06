@@ -79,7 +79,7 @@ class BlackboardAPIClient:
             if err.status_code == 404:
                 raise FileNotFoundInCourse(
                     "blackboard_file_not_found_in_course",
-                    file_id,  # noqa: EM101
+                    file_id,
                 ) from err
             raise
 

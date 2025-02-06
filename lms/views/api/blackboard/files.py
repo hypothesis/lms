@@ -83,7 +83,7 @@ class BlackboardFilesAPIViews:
                 if not self.course_copy_plugin.is_file_in_course(course_id, file_id):
                     raise FileNotFoundInCourse(  # noqa: TRY301
                         "blackboard_file_not_found_in_course",
-                        file_id,  # noqa: EM101
+                        file_id,
                     )
             public_url = self.blackboard_api_client.public_url(course_id, file_id)
 

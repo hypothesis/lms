@@ -41,7 +41,7 @@ class CanvasService:
                 ):
                     raise FileNotFoundInCourse(  # noqa: TRY301
                         "canvas_file_not_found_in_course",
-                        file_id,  # noqa: EM101
+                        file_id,
                     )
             return self.api.public_url(effective_file_id)
         except (FileNotFoundInCourse, CanvasAPIPermissionError):
