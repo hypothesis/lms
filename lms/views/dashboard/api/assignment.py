@@ -10,7 +10,7 @@ from lms.js_config_types import (
     APICourse,
     APISegment,
 )
-from lms.models import Assignment, Grouping, RoleScope, RoleType
+from lms.models import Assignment, Grouping
 from lms.security import Permissions
 from lms.services import UserService
 from lms.services.h_api import HAPI
@@ -142,16 +142,11 @@ class AssignmentViews:
         course = self.dashboard_service.get_request_course(
             self.request, self.request.matchdict["course_id"]
         )
-        course_students = self.request.db.scalars(
-            self.user_service.get_users(
-                course_ids=[course.id],
-                role_scope=RoleScope.COURSE,
-                role_type=RoleType.LEARNER,
-                instructor_h_userid=current_h_userid,
-                admin_organization_ids=[org.id for org in admin_organizations],
-                h_userids=filter_by_h_userids,
-            )
-        ).all()
+        _, course_students_query = self.dashboard_service.get_course_roster(
+            course.lms_course, h_userids=filter_by_h_userids
+        )
+        course_students = self.request.db.scalars(course_students_query).all()
+
         assignments_query = self.assignment_service.get_assignments(
             admin_organization_ids=[org.id for org in admin_organizations],
             course_ids=[course.id],

@@ -4,7 +4,7 @@ from unittest.mock import sentinel
 import pytest
 from sqlalchemy import select
 
-from lms.models import Assignment, AutoGradingConfig, RoleScope, RoleType, User
+from lms.models import Assignment, AutoGradingConfig, User
 from lms.views.dashboard.api.assignment import AssignmentViews
 from tests import factories
 
@@ -195,20 +195,16 @@ class TestAssignmentViews:
         assignment_service.get_assignments.return_value = select(Assignment).where(
             Assignment.id.in_([assignment.id, assignment_with_no_annos.id])
         )
-        user_service.get_users.return_value = (
-            select(User).where(User.id.in_([u.id for u in users])).order_by(User.id)
+        dashboard_service.get_course_roster.return_value = (
+            None,
+            select(User).where(User.id.in_([u.id for u in users])).order_by(User.id),
         )
         h_api.get_annotation_counts.return_value = assignments_metrics_response
 
         response = views.course_assignments_metrics()
 
-        user_service.get_users.assert_called_once_with(
-            course_ids=[course.id],
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
-            instructor_h_userid=pyramid_request.user.h_userid,
-            h_userids=sentinel.h_userids,
-            admin_organization_ids=[],
+        dashboard_service.get_course_roster.assert_called_once_with(
+            course.lms_course, h_userids=sentinel.h_userids
         )
         h_api.get_annotation_counts.assert_called_once_with(
             [course.authority_provided_id, section.authority_provided_id],
