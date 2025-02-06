@@ -139,7 +139,7 @@ class UserService:
             ).scalar_one()
 
         except NoResultFound as err:
-            raise UserNotFound() from err
+            raise UserNotFound from err
 
         return existing_user
 
@@ -291,7 +291,7 @@ class UserService:
 
         return query.order_by(LMSUser.display_name, LMSUser.id)
 
-    def get_users(  # noqa: PLR0913, PLR0917
+    def get_users(  # noqa: PLR0913
         self,
         role_scope: RoleScope,
         role_type: RoleType,

@@ -480,7 +480,7 @@ class TestAssignmentService:
             created=datetime(2000, 1, 1), updated=datetime(2000, 1, 1)
         )
 
-    @pytest.fixture()
+    @pytest.fixture
     def instructor_in_assignment(self, assignment):
         user = factories.User()
         lti_role = factories.LTIRole(scope=RoleScope.COURSE, type=RoleType.INSTRUCTOR)
@@ -490,7 +490,7 @@ class TestAssignmentService:
 
         return user
 
-    @pytest.fixture()
+    @pytest.fixture
     def course(self, db_session, application_instance):
         course = factories.Course(application_instance=application_instance)
         db_session.flush()

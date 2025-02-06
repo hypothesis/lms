@@ -2,7 +2,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 
 
-def varchar_enum(  # noqa: PLR0913, PLR0917
+def varchar_enum(  # noqa: PLR0913
     enum,
     default=None,
     max_length=64,

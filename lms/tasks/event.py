@@ -18,7 +18,7 @@ PURGE_LAUNCH_DATA_BATCH_SIZE = 1000
 def insert_event(event: dict) -> None:
     with app.request_context() as request:
         with request.tm:
-            from lms.services.event import EventService  # noqa: PLC0415
+            from lms.services.event import EventService
 
             request.find_service(EventService).insert_event(
                 BaseEvent(request=request, **event)

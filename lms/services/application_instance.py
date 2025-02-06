@@ -117,14 +117,14 @@ class ApplicationInstanceService:
 
             return application_instance
 
-        raise ApplicationInstanceNotFound()
+        raise ApplicationInstanceNotFound
 
     @lru_cache(maxsize=1)
     def get_by_id(self, id_) -> ApplicationInstance:
         try:
             return self._ai_search_query(id_=id_).one()
         except NoResultFound as err:
-            raise ApplicationInstanceNotFound() from err
+            raise ApplicationInstanceNotFound from err
 
     @lru_cache(maxsize=128)
     def get_by_consumer_key(self, consumer_key) -> ApplicationInstance:
@@ -136,19 +136,19 @@ class ApplicationInstanceService:
             `ApplicationInstance`
         """
         if not consumer_key:
-            raise ApplicationInstanceNotFound()
+            raise ApplicationInstanceNotFound
 
         try:
             return self._ai_search_query(consumer_key=consumer_key).one()
         except NoResultFound as err:
-            raise ApplicationInstanceNotFound() from err
+            raise ApplicationInstanceNotFound from err
 
     @lru_cache(maxsize=128)
     def get_by_deployment_id(
         self, issuer: str, client_id: str, deployment_id: str
     ) -> ApplicationInstance:
         if not all([issuer, client_id, deployment_id]):
-            raise ApplicationInstanceNotFound()
+            raise ApplicationInstanceNotFound
 
         try:
             return self._ai_search_query(
@@ -156,7 +156,7 @@ class ApplicationInstanceService:
             ).one()
 
         except NoResultFound as err:
-            raise ApplicationInstanceNotFound() from err
+            raise ApplicationInstanceNotFound from err
 
     def search(  # noqa: PLR0913
         self,
@@ -260,7 +260,7 @@ class ApplicationInstanceService:
 
         return query
 
-    def update_application_instance(  # noqa: PLR0913, PLR0917
+    def update_application_instance(  # noqa: PLR0913
         self,
         application_instance,
         name=None,
@@ -301,7 +301,7 @@ class ApplicationInstanceService:
                     }
                 )
 
-    def create_application_instance(  # noqa: PLR0913, PLR0917
+    def create_application_instance(  # noqa: PLR0913
         self,
         lms_url,
         email,

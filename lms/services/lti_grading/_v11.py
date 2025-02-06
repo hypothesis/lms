@@ -12,7 +12,7 @@ from lms.services.oauth1 import OAuth1Service
 
 class LTI11GradingService(LTIGradingService):
     #  See: LTI1.1 Outcomes https://www.imsglobal.org/specs/ltiomv1p0/specification
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         db,
         line_item_url,

@@ -54,7 +54,7 @@ class LTIRegistrationService:
 
         return query
 
-    def create_registration(  # noqa: PLR0913
+    def create_registration(
         self,
         issuer: str,
         client_id: str,

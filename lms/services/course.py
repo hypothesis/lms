@@ -88,7 +88,7 @@ class CourseService:
             copied_from=historical_course,
         )
 
-    def _search_query(  # noqa: PLR0913, PLR0917
+    def _search_query(  # noqa: PLR0913
         self,
         id_: int | None = None,
         context_id: str | None = None,
@@ -123,7 +123,7 @@ class CourseService:
 
         return query.limit(limit)
 
-    def search(  # noqa: PLR0913, PLR0917
+    def search(  # noqa: PLR0913
         self,
         id_: int | None = None,
         context_id: str | None = None,
@@ -141,7 +141,7 @@ class CourseService:
             organization_ids=organization_ids,
         ).all()
 
-    def get_courses(  # noqa: PLR0913
+    def get_courses(
         self,
         instructor_h_userid: str | None = None,
         admin_organization_ids: list[int] | None = None,

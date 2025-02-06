@@ -339,7 +339,7 @@ class JSConfig:
             },
         }
 
-    def enable_file_picker_mode(  # noqa: PLR0913
+    def enable_file_picker_mode(
         self,
         form_action,
         form_fields,

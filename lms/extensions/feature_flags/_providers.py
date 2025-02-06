@@ -11,8 +11,8 @@ from ._helpers import FeatureFlagsCookieHelper, as_tristate
 
 __all__ = [
     "config_file_provider",
-    "envvar_provider",
     "cookie_provider",
+    "envvar_provider",
     "query_string_provider",
 ]
 

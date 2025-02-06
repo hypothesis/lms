@@ -3,7 +3,7 @@ from urllib.parse import parse_qs, urlencode, urlparse
 from pyramid import httpexceptions
 from pyramid.httpexceptions import HTTPFound
 
-__all__ = ["ValidationError", "LTIToolRedirect"]
+__all__ = ["LTIToolRedirect", "ValidationError"]
 
 
 class ValidationError(httpexceptions.HTTPUnprocessableEntity):

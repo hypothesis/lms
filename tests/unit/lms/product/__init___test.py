@@ -15,6 +15,6 @@ class TestIncludeMe:
             get_product_from_request, name="product", property=True, reify=True
         )
 
-    @pytest.fixture()
+    @pytest.fixture
     def configurator(self):
         return create_autospec(Configurator, spec_set=True, instance=True)

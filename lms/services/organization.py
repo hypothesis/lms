@@ -81,7 +81,7 @@ class OrganizationService:
 
         return hierarchy[-1]
 
-    def search(  # noqa: PLR0913
+    def search(
         self, id_=None, public_id=None, name=None, guid=None, limit=100
     ) -> list[Organization]:
         """
@@ -206,7 +206,7 @@ class OrganizationService:
         # is URL safe. The other option is '~'.
         return f"{self._region_code}.lms.org.{id_}"
 
-    def update_organization(  # noqa: PLR0913
+    def update_organization(
         self,
         organization: Organization,
         name=None,

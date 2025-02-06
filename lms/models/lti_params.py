@@ -93,7 +93,7 @@ def _apply_canvas_quirks(lti_params, request):
 
     # This is canvas only, call the right plugin directly
     # Importing the plugin here to avoid a circular dependency hell
-    from lms.product.canvas._plugin.misc import (  # noqa: PLC0415
+    from lms.product.canvas._plugin.misc import (
         CanvasMiscPlugin,
     )
 

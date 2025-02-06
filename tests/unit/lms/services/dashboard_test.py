@@ -392,7 +392,7 @@ class TestDashboardService:
                 == roster_service.get_segments_roster.return_value.order_by.return_value
             )
 
-    @pytest.fixture()
+    @pytest.fixture
     def svc(
         self,
         assignment_service,
@@ -420,14 +420,14 @@ class TestDashboardService:
         organization_service.get_hierarchy_ids.return_value = []
         return organization_service
 
-    @pytest.fixture()
+    @pytest.fixture
     def course(self, db_session, application_instance):
         course = factories.Course(application_instance=application_instance)
         course.lms_course = factories.LMSCourse(course=course)
         db_session.flush()
         return course
 
-    @pytest.fixture()
+    @pytest.fixture
     def get_request_admin_organizations(self, svc):
         with patch.object(
             svc, "get_request_admin_organizations"

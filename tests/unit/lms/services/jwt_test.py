@@ -167,11 +167,11 @@ class TestJWTService:
 
         httpretty.register_uri("GET", "http://jwk.com", body=json.dumps(keys))
 
-    @pytest.fixture()
+    @pytest.fixture
     def jwt(self, patch):
         return patch("lms.services.jwt.jwt")
 
-    @pytest.fixture()
+    @pytest.fixture
     def _RequestsPyJWKClient(self, patch):
         return patch("lms.services.jwt._RequestsPyJWKClient")
 
@@ -233,6 +233,6 @@ class TestIncludeMe:
             _get_lti_jwt, name="lti_jwt", property=True, reify=True
         )
 
-    @pytest.fixture()
+    @pytest.fixture
     def configurator(self):
         return create_autospec(Configurator, spec_set=True, instance=True)

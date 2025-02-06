@@ -132,13 +132,13 @@ class CourseCopyPlugin:  # pragma: nocover
     """
 
     def is_file_in_course(self, course_id, file_id):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def find_matching_file_in_course(self, original_file_id, new_course_id):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def find_matching_group_set_in_course(self, _course, group_set_id):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def find_matching_page_in_course(self, original_file_id, new_course_id):
-        raise NotImplementedError()
+        raise NotImplementedError
