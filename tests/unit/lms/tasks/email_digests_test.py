@@ -116,7 +116,9 @@ class TestSendInstructorEmailDigestsTasks:
 
         for instance in instances:
             instance.settings.set(
-                "hypothesis", "instructor_email_digests_enabled", True  # noqa: FBT003
+                "hypothesis",
+                "instructor_email_digests_enabled",
+                True,  # noqa: FBT003
             )
 
         return instances

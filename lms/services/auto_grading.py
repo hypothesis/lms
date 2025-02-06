@@ -63,7 +63,9 @@ class AutoGradingService:
         return query
 
     def get_last_grades(
-        self, assignment: Assignment, success=True  # noqa: FBT002
+        self,
+        assignment: Assignment,
+        success=True,  # noqa: FBT002
     ) -> dict[str, GradingSyncGrade]:
         """Return a dictionary keyed by h_userid, containing the most recent GradeSync."""
         result = self._db.scalars(

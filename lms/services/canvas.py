@@ -12,7 +12,11 @@ class CanvasService:
         self._course_copy_plugin = course_copy_plugin
 
     def public_url_for_file(
-        self, assignment, file_id, current_course_id, check_in_course=False  # noqa: FBT002
+        self,
+        assignment,
+        file_id,
+        current_course_id,
+        check_in_course=False,  # noqa: FBT002
     ):
         """
         Return a public URL for file_id.
@@ -36,7 +40,8 @@ class CanvasService:
                     current_course_id, effective_file_id
                 ):
                     raise FileNotFoundInCourse(  # noqa: TRY301
-                        "canvas_file_not_found_in_course", file_id  # noqa: EM101
+                        "canvas_file_not_found_in_course",
+                        file_id,  # noqa: EM101
                     )
             return self.api.public_url(effective_file_id)
         except (FileNotFoundInCourse, CanvasAPIPermissionError):

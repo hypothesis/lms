@@ -632,7 +632,12 @@ class TestRosterService:
 
     @pytest.mark.usefixtures("instructor_in_course", "canvas_section")
     def test_fetch_canvas_sections_roster_failed_refresh(
-        self, svc, lms_course, canvas_api_client, db_session, caplog  # noqa: ARG002
+        self,
+        svc,
+        lms_course,
+        canvas_api_client,
+        db_session,
+        caplog,  # noqa: ARG002
     ):
         canvas_api_client.course_sections.side_effect = OAuth2TokenError(
             refreshable=True
@@ -645,7 +650,12 @@ class TestRosterService:
 
     @pytest.mark.usefixtures("instructor_in_course", "canvas_section")
     def test_fetch_canvas_sections_roster_with_invalid_token(
-        self, svc, lms_course, canvas_api_client, db_session, caplog  # noqa: ARG002
+        self,
+        svc,
+        lms_course,
+        canvas_api_client,
+        db_session,
+        caplog,  # noqa: ARG002
     ):
         canvas_api_client.course_sections.side_effect = OAuth2TokenError(
             refreshable=False

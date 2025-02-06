@@ -166,7 +166,11 @@ class TestVitalSourceClient:
         ),
     )
     def test_get_user_book_license(
-        self, client, http_service, response_xml, _VSUserAuth  # noqa: PT019
+        self,
+        client,
+        http_service,
+        response_xml,
+        _VSUserAuth,  # noqa: PT019
     ):
         http_service.request.return_value = factories.requests.Response(
             status_code=200, raw=response_xml

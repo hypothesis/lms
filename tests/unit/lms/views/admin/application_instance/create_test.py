@@ -87,7 +87,8 @@ class TestCreateApplicationInstanceViews:
     ]
 
     @pytest.mark.parametrize(
-        "param,bad_value", _V11_NEW_AI_BAD_FIELDS + [("deployment_id", None)]  # noqa: RUF005
+        "param,bad_value",
+        _V11_NEW_AI_BAD_FIELDS + [("deployment_id", None)],  # noqa: RUF005
     )
     def test_create_callback_v13_required_fields(
         self, views, create_ai_params_v13, param, bad_value

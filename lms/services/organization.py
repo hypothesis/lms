@@ -157,7 +157,9 @@ class OrganizationService:
             # Add a note to indicate the application instance was automatically
             # allocated to an organization
             application_instance.settings.set(
-                "hypothesis", "auto_assigned_to_org", True  # noqa: FBT003
+                "hypothesis",
+                "auto_assigned_to_org",
+                True,  # noqa: FBT003
             )
 
             if (

@@ -54,7 +54,12 @@ class TestBasicLaunchViews:
         )
 
     def test_configure_assignment_callback(
-        self, svc, pyramid_request, _show_document, assignment_service, course_service  # noqa: PT019
+        self,
+        svc,
+        pyramid_request,
+        _show_document,
+        assignment_service,
+        course_service,  # noqa: PT019
     ):
         pyramid_request.parsed_params = {
             "document_url": sentinel.document_url,

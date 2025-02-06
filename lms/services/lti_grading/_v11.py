@@ -126,7 +126,8 @@ class LTI11GradingService(LTIGradingService):
             data = xmltodict.parse(response.text)
         except ExpatError as err:
             raise ExternalRequestError(  # noqa: TRY003
-                "Unable to parse XML response from LTI Outcomes service", response  # noqa: EM101
+                "Unable to parse XML response from LTI Outcomes service",
+                response,  # noqa: EM101
             ) from err
 
         try:

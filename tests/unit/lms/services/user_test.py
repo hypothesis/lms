@@ -123,7 +123,12 @@ class TestUserService:
         ]
 
     def test_get_users_by_h_userids(
-        self, service, db_session, student_in_assignment, assignment, organization  # noqa: ARG002
+        self,
+        service,
+        db_session,
+        student_in_assignment,
+        assignment,
+        organization,  # noqa: ARG002
     ):
         query = service.get_users(
             role_scope=RoleScope.COURSE,
