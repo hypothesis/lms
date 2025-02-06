@@ -28,12 +28,12 @@ class TestAutoGradingService:
     def test_get_last_sync(self, svc, db_session, assignment):
         factories.GradingSync(
             assignment=assignment,
-            created=datetime(2020, 1, 1),
+            created=datetime(2020, 1, 1),  # noqa: DTZ001
             status="finished",
         )
         new = factories.GradingSync(
             assignment=assignment,
-            created=datetime(2024, 1, 1),
+            created=datetime(2024, 1, 1),  # noqa: DTZ001
             status="finished",
         )
         db_session.flush()

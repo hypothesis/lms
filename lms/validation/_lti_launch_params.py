@@ -199,7 +199,7 @@ class ConfigureAssignmentSchema(_CommonLTILaunchSchema):
                 data["auto_grading_config"] = json.loads(auto_grading_config)
             except json.decoder.JSONDecodeError as exc:
                 raise ValidationError(  # noqa: TRY003
-                    "Invalid json for nested field",
+                    "Invalid json for nested field",  # noqa: EM101
                     "auto_grading_config",
                 ) from exc
 
