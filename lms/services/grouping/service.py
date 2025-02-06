@@ -244,9 +244,7 @@ class GroupingService:
 
         return Grouping.Type.COURSE
 
-    def _to_groupings(
-        self, user, groupings, course, type_, lti_roles: list[LTIRole]
-    ):
+    def _to_groupings(self, user, groupings, course, type_, lti_roles: list[LTIRole]):
         if groupings and not isinstance(groupings[0], Grouping):
             groupings = [
                 {
