@@ -477,7 +477,8 @@ class TestAssignmentService:
     @pytest.fixture(autouse=True)
     def assignment(self):
         return factories.Assignment(
-            created=datetime(2000, 1, 1), updated=datetime(2000, 1, 1)  # noqa: DTZ001
+            created=datetime(2000, 1, 1),
+            updated=datetime(2000, 1, 1),  # noqa: DTZ001
         )
 
     @pytest.fixture

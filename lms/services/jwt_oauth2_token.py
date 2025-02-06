@@ -35,7 +35,10 @@ class JWTOAuth2TokenService:
         return token
 
     def get_token(
-        self, lti_registration, scopes: list[str], exclude_expired=True  # noqa: FBT002
+        self,
+        lti_registration,
+        scopes: list[str],
+        exclude_expired=True,  # noqa: FBT002
     ) -> JWTOAuth2Token | None:
         """
         Get a token for the given registration and scopes if present in the DB.

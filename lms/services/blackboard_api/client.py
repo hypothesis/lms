@@ -78,7 +78,8 @@ class BlackboardAPIClient:
         except ExternalRequestError as err:
             if err.status_code == 404:
                 raise FileNotFoundInCourse(
-                    "blackboard_file_not_found_in_course", file_id  # noqa: EM101
+                    "blackboard_file_not_found_in_course",
+                    file_id,  # noqa: EM101
                 ) from err
             raise
 
@@ -100,7 +101,10 @@ class BlackboardAPIClient:
         return BlackboardListGroups(response).parse()
 
     def course_groups(
-        self, course_id, group_set_id=None, current_student_own_groups_only=True  # noqa: FBT002
+        self,
+        course_id,
+        group_set_id=None,
+        current_student_own_groups_only=True,  # noqa: FBT002
     ):
         """
         Return the groups in a course.

@@ -85,7 +85,11 @@ class TestJWTService:
         assert encoded_jwt == jwt.encode.return_value
 
     def test_decode_lti_token(
-        self, svc, jwt, _RequestsPyJWKClient, lti_registration_service  # noqa: PT019
+        self,
+        svc,
+        jwt,
+        _RequestsPyJWKClient,
+        lti_registration_service,  # noqa: PT019
     ):
         registration = factories.LTIRegistration(key_set_url="http://jwk.com")
         lti_registration_service.get.return_value = registration
