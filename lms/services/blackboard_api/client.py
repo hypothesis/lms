@@ -146,7 +146,9 @@ class BlackboardAPIClient:
             )
             # We are going to be modifying `self_enrollment_groups` within the loop
             # Create a copy here to iterate over.
-            for group, response in zip(list(self_enrollment_groups), responses, strict=False):
+            for group, response in zip(
+                list(self_enrollment_groups), responses, strict=False
+            ):
                 # If we are a member of any of the SelfEnrollment groups
                 # we'll get a 200 response from the endpoint
                 if response.status == 200:
