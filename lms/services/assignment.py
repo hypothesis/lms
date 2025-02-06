@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Sequence
 
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, func, select, text
 from sqlalchemy.orm import Session
 
 from lms.models import (
@@ -244,7 +244,18 @@ class AssignmentService:
                 model_class=LMSUserAssignmentMembership,
                 values=values,
                 index_elements=["lms_user_id", "assignment_id", "lti_role_id"],
-                update_columns=["updated", "lti_v11_lis_result_sourcedid"],
+                update_columns=[
+                    "updated",
+                    (
+                        "lti_v11_lis_result_sourcedid",
+                        func.coalesce(
+                            text('"excluded"."lti_v11_lis_result_sourcedid"'),
+                            text(
+                                '"lms_user_assignment_membership"."lti_v11_lis_result_sourcedid"'
+                            ),
+                        ),
+                    ),
+                ],
             )
         )
 

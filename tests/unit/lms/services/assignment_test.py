@@ -321,6 +321,33 @@ class TestAssignmentService:
             ).only()
         )
 
+    def test_upsert_assignment_membership_doesnt_clear_sourcedid(
+        self, svc, pyramid_request, db_session, assignment
+    ):
+        lms_user = factories.LMSUser()
+        user = factories.User(lms_user=lms_user)
+        lti_roles = factories.LTIRole.create_batch(3)
+
+        for role in lti_roles:
+            factories.LMSUserAssignmentMembership.create(
+                assignment=assignment,
+                lms_user=lms_user,
+                lti_role=role,
+                lti_v11_lis_result_sourcedid="EXISTING",
+            )
+        db_session.commit()
+        pyramid_request.lti_params["lis_result_sourcedid"] = None
+
+        svc.upsert_assignment_membership(
+            pyramid_request.lti_params,
+            assignment=assignment,
+            user=user,
+            lti_roles=lti_roles,
+        )
+
+        for membership in db_session.scalars(select(LMSUserAssignmentMembership)).all():
+            assert membership.lti_v11_lis_result_sourcedid == "EXISTING"
+
     def test_upsert_assignment_grouping(self, svc, assignment, db_session):
         groupings = factories.CanvasGroup.create_batch(3)
         # One existing row
