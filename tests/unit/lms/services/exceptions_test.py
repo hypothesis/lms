@@ -82,7 +82,7 @@ class TestExternalAsyncRequestError:
             (None, False, None),
             (Mock(request_info=Mock(url="response-url")), False, "response-url"),
             (None, True, "exception-URL"),
-            (Mock(request_info=Mock(url="response-url")), False, "response-url"),
+            (Mock(request_info=Mock(url="response-url")), False, "response-url"),  # noqa: PT014
         ],
     )
     def test_url(self, response, exception, expected):

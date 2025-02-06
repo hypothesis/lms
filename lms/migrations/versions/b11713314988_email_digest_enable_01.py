@@ -48,7 +48,7 @@ def enable_email_digest(conn, limit=500):
         ),
         limit=limit,
     )
-    print("\tEnabled email digest in new AIs", result.rowcount)
+    print("\tEnabled email digest in new AIs", result.rowcount)  # noqa: T201
 
 
 def upgrade():

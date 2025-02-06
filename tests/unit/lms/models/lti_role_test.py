@@ -229,6 +229,6 @@ class TestLTIRole:
         assert lti_role.type == RoleType.LEARNER
 
     def test_it_raises_LookupError_for_invalid_types(self, db_session):
-        with pytest.raises(StatementError):
+        with pytest.raises(StatementError):  # noqa: PT012
             db_session.add(LTIRole(type="INVALID"))
             db_session.flush()

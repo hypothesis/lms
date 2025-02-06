@@ -59,7 +59,7 @@ from lms.services.vitalsource import VitalSourceService
 from lms.services.youtube import YouTubeService
 from tests import factories
 
-__all__ = (
+__all__ = (  # noqa: RUF022
     # Meta fixture for creating service fixtures
     "mock_service",
     # Individual services

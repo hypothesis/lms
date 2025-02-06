@@ -85,7 +85,7 @@ class TestListFiles:
         # Each response from the Blackboard API includes the path to the next
         # page in the JSON body. This is the whole path to the next page,
         # including limit and offset query params, as a string. For example:
-        # "/learn/api/public/v1/courses/uuid:<ID>/resources?limit=200&offset=200"
+        # "/learn/api/public/v1/courses/uuid:<ID>/resources?limit=200&offset=200"  # noqa: ERA001
         #
         basic_client.request.side_effect = [
             factories.requests.Response(

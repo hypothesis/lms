@@ -63,7 +63,7 @@ class AutoGradingService:
         return query
 
     def get_last_grades(
-        self, assignment: Assignment, success=True
+        self, assignment: Assignment, success=True  # noqa: FBT002
     ) -> dict[str, GradingSyncGrade]:
         """Return a dictionary keyed by h_userid, containing the most recent GradeSync."""
         result = self._db.scalars(
@@ -138,7 +138,7 @@ class AutoGradingService:
                     + auto_grading_config.required_replies
                 )
             case _:
-                raise ValueError("Unknown auto grading configuration")
+                raise ValueError("Unknown auto grading configuration")  # noqa: EM101, TRY003
 
         grade = min(1, grade)  # Proportional grades are capped at 1
         return round(grade, 2)

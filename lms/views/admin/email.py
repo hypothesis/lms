@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta  # noqa: A005
 
 from pyramid.httpexceptions import HTTPBadRequest, HTTPFound
 from pyramid.renderers import render
@@ -30,36 +30,36 @@ class AdminEmailViews:
         until = self.request.POST["until"].strip()
 
         if not to_email:
-            raise HTTPBadRequest(
-                "You must enter an email address to send the test email(s) to."
+            raise HTTPBadRequest(  # noqa: TRY003
+                "You must enter an email address to send the test email(s) to."  # noqa: EM101
             )
 
         if not to_email.endswith("@hypothes.is"):
-            raise HTTPBadRequest(
-                "Test emails can only be sent to @hypothes.is addresses."
+            raise HTTPBadRequest(  # noqa: TRY003
+                "Test emails can only be sent to @hypothes.is addresses."  # noqa: EM101
             )
 
         if len(h_userids) > 3:
-            raise HTTPBadRequest(
-                "Test emails can only be sent for up to 3 users at once."
+            raise HTTPBadRequest(  # noqa: TRY003
+                "Test emails can only be sent for up to 3 users at once."  # noqa: EM101
             )
 
         try:
             since = datetime.fromisoformat(since)
             until = datetime.fromisoformat(until)
         except ValueError as exc:
-            raise HTTPBadRequest(
-                "Times must be in ISO 8601 format, for example: '2023-02-27T00:00:00'."
+            raise HTTPBadRequest(  # noqa: TRY003
+                "Times must be in ISO 8601 format, for example: '2023-02-27T00:00:00'."  # noqa: EM101
             ) from exc
 
         if until <= since:
-            raise HTTPBadRequest(
-                "The 'since' time must be earlier than the 'until' time."
+            raise HTTPBadRequest(  # noqa: TRY003
+                "The 'since' time must be earlier than the 'until' time."  # noqa: EM101
             )
 
         if (until - since) > timedelta(days=30):
-            raise HTTPBadRequest(
-                "The 'since' and 'until' times must be less than 30 days apart."
+            raise HTTPBadRequest(  # noqa: TRY003
+                "The 'since' and 'until' times must be less than 30 days apart."  # noqa: EM101
             )
 
         for h_userid in h_userids:

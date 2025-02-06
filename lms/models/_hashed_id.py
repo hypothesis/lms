@@ -11,7 +11,7 @@ def hashed_id(*parts):
     :param *parts: An iterable of objects which can be converted to strings
     :return: A string which can be used as an id
     """
-    hash_object = hashlib.sha1()
+    hash_object = hashlib.sha1()  # noqa: S324
     for part in parts:
         hash_object.update(str(part).encode())
 

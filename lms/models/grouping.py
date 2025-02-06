@@ -32,7 +32,7 @@ class Grouping(CreatedUpdatedMixin, Base):
         GROUP = "group"
 
     __tablename__ = "grouping"
-    __mapper_args__ = {"polymorphic_on": "type"}
+    __mapper_args__ = {"polymorphic_on": "type"}  # noqa: RUF012
     __table_args__ = (
         # Within a given application instance no two groupings should have the
         # same authority_provided_id.
@@ -54,7 +54,7 @@ class Grouping(CreatedUpdatedMixin, Base):
         # SQLAlchemy forced us to add this constraint in order to make the
         # ForeignKeyConstraint below work, otherwise you get this error:
         #
-        #     sqlalchemy.exc.ProgrammingError: (psycopg2.errors.InvalidForeignKey)
+        #     sqlalchemy.exc.ProgrammingError: (psycopg2.errors.InvalidForeignKey)  # noqa: ERA001
         #     there is no unique constraint matching given keys for referenced
         #     table "grouping"
         sa.UniqueConstraint("id", "application_instance_id"),
@@ -155,27 +155,27 @@ class Grouping(CreatedUpdatedMixin, Base):
 
 
 class CanvasSection(Grouping):
-    __mapper_args__ = {"polymorphic_identity": Grouping.Type.CANVAS_SECTION}
+    __mapper_args__ = {"polymorphic_identity": Grouping.Type.CANVAS_SECTION}  # noqa: RUF012
 
 
 class CanvasGroup(Grouping):
-    __mapper_args__ = {"polymorphic_identity": Grouping.Type.CANVAS_GROUP}
+    __mapper_args__ = {"polymorphic_identity": Grouping.Type.CANVAS_GROUP}  # noqa: RUF012
 
 
 class BlackboardGroup(Grouping):
-    __mapper_args__ = {"polymorphic_identity": Grouping.Type.BLACKBOARD_GROUP}
+    __mapper_args__ = {"polymorphic_identity": Grouping.Type.BLACKBOARD_GROUP}  # noqa: RUF012
 
 
 class D2LGroup(Grouping):
-    __mapper_args__ = {"polymorphic_identity": Grouping.Type.D2L_GROUP}
+    __mapper_args__ = {"polymorphic_identity": Grouping.Type.D2L_GROUP}  # noqa: RUF012
 
 
 class MoodleGroup(Grouping):
-    __mapper_args__ = {"polymorphic_identity": Grouping.Type.MOODLE_GROUP}
+    __mapper_args__ = {"polymorphic_identity": Grouping.Type.MOODLE_GROUP}  # noqa: RUF012
 
 
 class Course(Grouping):
-    __mapper_args__ = {"polymorphic_identity": Grouping.Type.COURSE}
+    __mapper_args__ = {"polymorphic_identity": Grouping.Type.COURSE}  # noqa: RUF012
 
     _assignments: Mapped[list["Assignment"]] = sa.orm.relationship(
         secondary="assignment_grouping", viewonly=True

@@ -59,7 +59,7 @@ class PagesAPIViews:
         # We don't need the result of this exact call but
         # we can check that we have indeed access to this page.
         if not self.api.page(current_course.lms_id, effective_page_id):
-            raise PageNotFoundInCourse("moodle_page_not_found_in_course", document_url)
+            raise PageNotFoundInCourse("moodle_page_not_found_in_course", document_url)  # noqa: EM101
 
         # We build a token to authorize the view that fetches the actual
         # pages content as the user making this request.
@@ -113,7 +113,7 @@ class PagesAPIViews:
     @staticmethod
     def _parse_document_url(document_url):
         document_url_match = DOCUMENT_URL_REGEX.search(document_url)
-        assert document_url_match
+        assert document_url_match  # noqa: S101
         course_id = document_url_match["course_id"]
         page_id = document_url_match["page_id"]
 
@@ -149,7 +149,7 @@ def _effective_page_id(
             document_url,
             course.lms_id,
         )
-        raise PageNotFoundInCourse("moodle_page_not_found_in_course", document_page_id)
+        raise PageNotFoundInCourse("moodle_page_not_found_in_course", document_page_id)  # noqa: EM101
 
     # Store a mapping so we don't have to re-search next time.
     course.set_mapped_page_id(document_page_id, found_page.lms_id)

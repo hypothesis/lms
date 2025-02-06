@@ -1,4 +1,4 @@
-# type: ignore
+# type: ignore  # noqa: PGH003
 import os
 import sys
 from contextlib import suppress
@@ -10,10 +10,10 @@ from lms import models, services, tasks
 
 def setup(env):
     from h_testkit import (
-        set_factoryboy_sqlalchemy_session,  # type: ignore
+        set_factoryboy_sqlalchemy_session,  # type: ignore  # noqa: PGH003
     )
 
-    sys.path = ["."] + sys.path
+    sys.path = ["."] + sys.path  # noqa: RUF005
 
     from tests import factories
 

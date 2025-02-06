@@ -55,7 +55,7 @@ class TestAuthenticatedClient:
     ):
         token = authenticated_client.get_token("authorization_code")
 
-        assert token == "new_access_token"
+        assert token == "new_access_token"  # noqa: S105
 
         basic_client.send.assert_called_once_with(
             "POST",
@@ -84,7 +84,7 @@ class TestAuthenticatedClient:
     ):
         token = authenticated_client.get_refreshed_token("refresh_token")
 
-        assert token == "new_access_token"
+        assert token == "new_access_token"  # noqa: S105
 
         oauth2_token_service.try_lock_for_refresh.assert_called_once()
 

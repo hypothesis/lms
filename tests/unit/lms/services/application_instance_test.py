@@ -111,7 +111,7 @@ class TestApplicationInstanceService:
             lms_url="http://example.com",
             deployment_id="DEPLOYMENT_ID",
             developer_key="DEVELOPER_KEY",
-            developer_secret="DEVELOPER_SECRET",
+            developer_secret="DEVELOPER_SECRET",  # noqa: S106
             organization_public_id=mock.sentinel.org_id,
         )
 
@@ -269,7 +269,7 @@ class TestApplicationInstanceService:
         assert instances == [ai]
 
     def test_search_order(self, service):
-        now, before = datetime.now(), datetime.now() - timedelta(hours=1)
+        now, before = datetime.now(), datetime.now() - timedelta(hours=1)  # noqa: DTZ005
 
         # These are not in the right order on purpose
         factories.ApplicationInstance.create(name="b", last_launched=before)
@@ -312,7 +312,7 @@ class TestApplicationInstanceService:
             application_instance
         )
         assert application_instance == Any.object.with_attrs(lms_data)
-        assert application_instance.last_launched == datetime(year=2022, month=4, day=4)
+        assert application_instance.last_launched == datetime(year=2022, month=4, day=4)  # noqa: DTZ001
 
     def test_update_from_lti_params_no_guid_doesnt_change_values(
         self, service, organization_service, application_instance

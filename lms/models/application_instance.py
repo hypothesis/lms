@@ -202,8 +202,8 @@ class ApplicationInstance(CreatedUpdatedMixin, Base):
 
         # For some URLs urlparse(url).netloc returns an empty string.
         if not lms_host:
-            raise ValueError(
-                f"Couldn't parse self.lms_url ({self.lms_url}): urlparse() returned an empty netloc"
+            raise ValueError(  # noqa: TRY003
+                f"Couldn't parse self.lms_url ({self.lms_url}): urlparse() returned an empty netloc"  # noqa: EM102
             )
 
         return lms_host
@@ -243,4 +243,4 @@ class ApplicationInstance(CreatedUpdatedMixin, Base):
     @property
     def family(self) -> Family:
         """Return the Family enum for this instance based on tool_consumer_info_product_family_code ."""
-        return Family(self.tool_consumer_info_product_family_code)  # type: ignore
+        return Family(self.tool_consumer_info_product_family_code)  # type: ignore  # noqa: PGH003

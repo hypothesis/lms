@@ -156,7 +156,7 @@ class RosterService:
 
     def fetch_course_roster(self, lms_course: LMSCourse) -> None:
         """Fetch the roster information for a course from the LMS."""
-        assert lms_course.lti_context_memberships_url, (
+        assert lms_course.lti_context_memberships_url, (  # noqa: S101
             "Trying fetch roster for course without service URL."
         )
         application_instance = self._get_application_instance(lms_course)
@@ -189,7 +189,7 @@ class RosterService:
             lti_user_id = member.get("lti11_legacy_user_id") or member["user_id"]
             # Now, for every user + role, insert a row  in the roster table
             for role in member["roles"]:
-                roster_upsert_elements.append(
+                roster_upsert_elements.append(  # noqa: PERF401
                     {
                         "lms_course_id": lms_course.id,
                         "lms_user_id": lms_users_by_lti_user_id[lti_user_id].id,
@@ -216,10 +216,10 @@ class RosterService:
 
     def fetch_assignment_roster(self, assignment: Assignment) -> None:
         """Fetch the roster information for an assignment from the LMS."""
-        assert assignment.lti_v13_resource_link_id, (
+        assert assignment.lti_v13_resource_link_id, (  # noqa: S101
             "Trying fetch roster for an assignment without LTI1.3 ID."
         )
-        assert assignment.course, (
+        assert assignment.course, (  # noqa: S101
             "Trying fetch roster for an assignment without a course."
         )
 
@@ -230,7 +230,7 @@ class RosterService:
             )
         ).one()
 
-        assert lms_course.lti_context_memberships_url, (
+        assert lms_course.lti_context_memberships_url, (  # noqa: S101
             "Trying fetch roster for course without service URL."
         )
         application_instance = self._get_application_instance(lms_course)
@@ -252,7 +252,7 @@ class RosterService:
                 or "Requested assignment not configured for external tool launches"
                 in err.response_body
             ):
-                LOG.error("Fetching assignment roster failed: %s", err.response_body)
+                LOG.error("Fetching assignment roster failed: %s", err.response_body)  # noqa: TRY400
                 # We ignore this type of error, just stop here.
                 return
 
@@ -281,7 +281,7 @@ class RosterService:
             lti_user_id = member.get("lti11_legacy_user_id") or member["user_id"]
             # Now, for every user + role, insert a row  in the roster table
             for role in member["roles"]:
-                roster_upsert_elements.append(
+                roster_upsert_elements.append(  # noqa: PERF401
                     {
                         "assignment_id": assignment.id,
                         "lms_user_id": lms_users_by_lti_user_id[lti_user_id].id,
@@ -308,10 +308,10 @@ class RosterService:
 
     def fetch_canvas_group_roster(self, canvas_group: LMSSegment) -> None:
         """Fetch the roster information for a canvas group from the LMS."""
-        assert canvas_group.type == "canvas_group"
+        assert canvas_group.type == "canvas_group"  # noqa: S101
 
         lms_course = canvas_group.lms_course
-        assert lms_course.lti_context_memberships_url, (
+        assert lms_course.lti_context_memberships_url, (  # noqa: S101
             "Trying fetch roster for course without service URL."
         )
 
@@ -355,7 +355,7 @@ class RosterService:
             lti_user_id = member.get("lti11_legacy_user_id") or member["user_id"]
             # Now, for every user + role, insert a row  in the roster table
             for role in member["roles"]:
-                roster_upsert_elements.append(
+                roster_upsert_elements.append(  # noqa: PERF401
                     {
                         "lms_segment_id": canvas_group.id,
                         "lms_user_id": lms_users_by_lti_user_id[lti_user_id].id,
@@ -570,7 +570,7 @@ class RosterService:
 
     def _get_lti_registration(self, lms_course) -> LTIRegistration:
         ai = self._get_application_instance(lms_course)
-        assert ai.lti_registration, "No LTI registration found for LMSCourse."
+        assert ai.lti_registration, "No LTI registration found for LMSCourse."  # noqa: S101
         return ai.lti_registration
 
     def _get_course_instructor(self, lms_course: LMSCourse) -> LMSUser | None:
@@ -591,7 +591,7 @@ class RosterService:
         canvas_api_client: CanvasAPIClient,
         oauth2_token_service: OAuth2TokenService,
         lms_course: LMSCourse,
-        with_refresh_token=False,
+        with_refresh_token=False,  # noqa: FBT002
     ) -> list[dict]:
         try:
             return canvas_api_client.course_sections(

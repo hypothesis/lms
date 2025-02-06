@@ -58,7 +58,7 @@ class MailchimpService:
         https://mailchimp.com/developer/transactional/api/messages/send-new-message/
         """
 
-        if task_done_key:
+        if task_done_key:  # noqa: SIM102
             if self.db.execute(
                 select(TaskDone).filter_by(key=task_done_key)
             ).one_or_none():

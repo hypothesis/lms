@@ -179,7 +179,7 @@ class TestAssignmentService:
         svc,
         misc_plugin,
         get_assignment,
-        _get_copied_from_assignment,
+        _get_copied_from_assignment,  # noqa: PT019
         course,
     ):
         misc_plugin.get_assignment_configuration.return_value = {
@@ -221,7 +221,7 @@ class TestAssignmentService:
         svc,
         misc_plugin,
         get_assignment,
-        _get_copied_from_assignment,
+        _get_copied_from_assignment,  # noqa: PT019
         create_assignment,
         group_set_id,
         course,
@@ -252,7 +252,7 @@ class TestAssignmentService:
         svc,
         misc_plugin,
         get_assignment,
-        _get_copied_from_assignment,
+        _get_copied_from_assignment,  # noqa: PT019
         create_assignment,
         course,
     ):
@@ -477,7 +477,7 @@ class TestAssignmentService:
     @pytest.fixture(autouse=True)
     def assignment(self):
         return factories.Assignment(
-            created=datetime(2000, 1, 1), updated=datetime(2000, 1, 1)
+            created=datetime(2000, 1, 1), updated=datetime(2000, 1, 1)  # noqa: DTZ001
         )
 
     @pytest.fixture

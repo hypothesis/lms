@@ -298,7 +298,7 @@ class TestGetCourseGroupingsForUser:
             factory=factories.CanvasSection,
             parent=None,
             group_set_id=42,
-            membership=True,
+            membership=True,  # noqa: FBT002
         ):
             parent = parent or course
 

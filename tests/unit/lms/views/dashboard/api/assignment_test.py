@@ -229,7 +229,7 @@ class TestAssignmentViews:
                     "annotation_metrics": {
                         "annotations": 4,
                         "replies": sentinel.replies,
-                        "last_activity": datetime(2024, 1, 1),
+                        "last_activity": datetime(2024, 1, 1),  # noqa: DTZ001
                     },
                 },
                 {

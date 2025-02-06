@@ -44,7 +44,7 @@ def upgrade():
             continue
 
         authority_provided_id = group["authority_provided_id"]
-        created = datetime.datetime.strptime(group["created"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        created = datetime.datetime.strptime(group["created"], "%Y-%m-%dT%H:%M:%S.%fZ")  # noqa: DTZ007
 
         # We can't tell which course groups belong to which application instance
         # in the period since we released sections and now, so instead we will
@@ -76,14 +76,14 @@ def upgrade():
     session.commit()
 
     log.info(
-        f"Inserted {rows_inserted_into_course_table} rows into course table with"
+        f"Inserted {rows_inserted_into_course_table} rows into course table with"  # noqa: G004
         " sections enabled"
     )
     log.info(
-        f"Inserted {rows_inserted_into_course_groups_exported_from_h_table} rows into"
+        f"Inserted {rows_inserted_into_course_groups_exported_from_h_table} rows into"  # noqa: G004
         " course_groups_exported_from_h table"
     )
-    log.info(f"Inserted {rows_inserted} rows in total")
+    log.info(f"Inserted {rows_inserted} rows in total")  # noqa: G004
 
 
 def downgrade():
@@ -114,7 +114,7 @@ def is_course_group(session, group):
 def maybe_commit(session, rows_inserted):
     """Commit the session every 1000 rows."""
     if rows_inserted % 1000 == 0:
-        log.info(f"Commit {rows_inserted}")
+        log.info(f"Commit {rows_inserted}")  # noqa: G004
         session.commit()
 
 

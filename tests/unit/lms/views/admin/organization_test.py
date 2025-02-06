@@ -156,7 +156,7 @@ class TestAdminOrganizationViews:
 
         pyramid_request.matchdict["id_"] = sentinel.id_
         pyramid_request.params["enabled"] = value
-        organization_service.get_by_id.side_effect = [organization] + children
+        organization_service.get_by_id.side_effect = [organization] + children  # noqa: RUF005
         organization_service.get_hierarchy_ids.return_value = [organization.id] + [
             org.id for org in children
         ]
@@ -249,8 +249,8 @@ class TestAdminOrganizationViews:
         self, views, organization_service, organization_usage_report_service
     ):
         organization_usage_report_service.usage_report.side_effect = ValueError
-        since = datetime(2023, 1, 1)
-        until = datetime(2023, 12, 31)
+        since = datetime(2023, 1, 1)  # noqa: DTZ001
+        until = datetime(2023, 12, 31)  # noqa: DTZ001
 
         result = views.usage()
 
@@ -261,8 +261,8 @@ class TestAdminOrganizationViews:
     def test_usage(
         self, organization_service, views, organization_usage_report_service
     ):
-        since = datetime(2023, 1, 1)
-        until = datetime(2023, 12, 31)
+        since = datetime(2023, 1, 1)  # noqa: DTZ001
+        until = datetime(2023, 12, 31)  # noqa: DTZ001
 
         result = views.usage()
 

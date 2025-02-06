@@ -31,7 +31,7 @@ class EventService:
         self._db.add(db_event)
 
         if event.user_id:
-            for role_id in event.role_ids or [None]:  # type: ignore
+            for role_id in event.role_ids or [None]:  # type: ignore  # noqa: PGH003
                 self._db.add(
                     EventUser(
                         event=db_event, user_id=event.user_id, lti_role_id=role_id
@@ -56,7 +56,7 @@ class EventService:
         except OperationalError:
             log.exception("Error while queueing event")
 
-    @lru_cache(maxsize=10)
+    @lru_cache(maxsize=10)  # noqa: B019
     def _get_type_pk(self, type_: EventType.Type) -> int:
         """Cache the PK of the event_type table to avoid an extra query while inserting events."""
         event_type = self._db.query(EventType).filter_by(type=type_).one_or_none()

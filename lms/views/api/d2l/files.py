@@ -41,13 +41,13 @@ def via_url(_context, request):
     )
 
     document_url_match = DOCUMENT_URL_REGEX.search(document_url)
-    assert document_url_match
+    assert document_url_match  # noqa: S101
     file_id = course.get_mapped_file_id(document_url_match["file_id"])
     try:
-        if request.lti_user.is_instructor:
+        if request.lti_user.is_instructor:  # noqa: SIM102
             if not course_copy_plugin.is_file_in_course(course_id, file_id):
-                raise FileNotFoundInCourse(
-                    "d2l_file_not_found_in_course_instructor", file_id
+                raise FileNotFoundInCourse(  # noqa: TRY301
+                    "d2l_file_not_found_in_course_instructor", file_id  # noqa: EM101
                 )
 
         public_url = api_client.public_url(course_id, file_id)

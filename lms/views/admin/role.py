@@ -3,7 +3,7 @@ from pyramid.view import view_config, view_defaults
 
 from lms.events import AuditTrailEvent
 from lms.security import Permissions
-from lms.services.application_instance import ApplicationInstanceService
+from lms.services.application_instance import ApplicationInstanceService  # noqa: TC001
 from lms.services.lti_role_service import LTIRoleService
 
 

@@ -43,7 +43,7 @@ class _D2LTopic(Schema):
     @validates_schema
     def validate_url(self, data, **_kwargs):
         if not data.get("is_broken", False) and not data.get("url"):
-            raise ValidationError("URL is required for topics", "url")
+            raise ValidationError("URL is required for topics", "url")  # noqa: EM101, TRY003
 
 
 class _D2LModuleSchema(Schema):

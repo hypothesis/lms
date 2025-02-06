@@ -137,7 +137,7 @@ class TestDeepLinkingFieldsView:
         LTIEvent,
         pyramid_request,
         misc_plugin,
-        _get_assignment_configuration,
+        _get_assignment_configuration,  # noqa: PT019
         title,
     ):
         if title:
@@ -146,8 +146,8 @@ class TestDeepLinkingFieldsView:
         fields = views.file_picker_to_form_fields_v13()
 
         message = {
-            "exp": datetime(2022, 4, 4, 1, 0),
-            "iat": datetime(2022, 4, 4, 0, 0),
+            "exp": datetime(2022, 4, 4, 1, 0),  # noqa: DTZ001
+            "iat": datetime(2022, 4, 4, 0, 0),  # noqa: DTZ001
             "iss": application_instance.lti_registration.client_id,
             "sub": application_instance.lti_registration.client_id,
             "aud": application_instance.lti_registration.issuer,
@@ -202,7 +202,7 @@ class TestDeepLinkingFieldsView:
     def test_it_for_v11(
         self,
         views,
-        _get_assignment_configuration,
+        _get_assignment_configuration,  # noqa: PT019
         pyramid_request,
         LTIEvent,
         misc_plugin,
@@ -298,7 +298,7 @@ class TestDeepLinkingFieldsView:
     def test_it_with_unknown_file_type(self, pyramid_request):
         pyramid_request.parsed_params.update({"content": {"type": "other"}})
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # noqa: PT011
             DeepLinkingFieldsViews(pyramid_request).file_picker_to_form_fields_v13()
 
     @pytest.fixture

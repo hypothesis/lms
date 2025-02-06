@@ -44,7 +44,7 @@ class LTI11GradingService(LTIGradingService):
 
             raise
 
-        try:
+        try:  # noqa: SIM105
             result.score = float(
                 response["readResultResponse"]["result"]["resultScore"]["textString"]
             )
@@ -79,7 +79,7 @@ class LTI11GradingService(LTIGradingService):
                 LMSUserAssignmentMembership.lti_v11_lis_result_sourcedid.is_not(None),
             )
         ).first()
-        assert (
+        assert (  # noqa: S101, PT018
             assignment_membership and assignment_membership.lti_v11_lis_result_sourcedid
         ), (
             "Trying to grade a student without a membership or membership without lti_v11_lis_result_sourcedid"
@@ -125,8 +125,8 @@ class LTI11GradingService(LTIGradingService):
         try:
             data = xmltodict.parse(response.text)
         except ExpatError as err:
-            raise ExternalRequestError(
-                "Unable to parse XML response from LTI Outcomes service", response
+            raise ExternalRequestError(  # noqa: TRY003
+                "Unable to parse XML response from LTI Outcomes service", response  # noqa: EM101
             ) from err
 
         try:
@@ -146,7 +146,7 @@ class LTI11GradingService(LTIGradingService):
                 "imsx_codeMajor"
             ]
         except KeyError as err:
-            raise ExternalRequestError("Malformed LTI outcome response") from err
+            raise ExternalRequestError("Malformed LTI outcome response") from err  # noqa: EM101, TRY003
 
         if status != "success":
             raise ExternalRequestError(message="LTI outcome request failed")

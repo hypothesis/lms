@@ -72,7 +72,7 @@ class OrganizationUsageReportService:
         reports_dates = []
 
         # First report, based on current date
-        until = date.today()
+        until = date.today()  # noqa: DTZ011
 
         for _ in range(reports):
             # Always calculate until the start of the previous month
@@ -98,7 +98,7 @@ class OrganizationUsageReportService:
     ):
         """Generate and store an usage report for one organization."""
         organization = self._organization_service.get_by_id(organization_id)
-        assert organization
+        assert organization  # noqa: S101
         report_key = OrganizationUsageReport.generate_key(
             organization, tag, since, until
         )
@@ -147,7 +147,7 @@ class OrganizationUsageReportService:
         ).all()
 
         if not groups_from_org:
-            raise ValueError(f"No courses found for {organization.public_id}")
+            raise ValueError(f"No courses found for {organization.public_id}")  # noqa: EM102, TRY003
 
         LOG.info(
             "Generating report for %s based on %d candidate groups.",
@@ -164,8 +164,8 @@ class OrganizationUsageReportService:
             )
         ]
         if not groups_with_annos:
-            raise ValueError(
-                f"No courses with activity found for {organization.public_id}"
+            raise ValueError(  # noqa: TRY003
+                f"No courses with activity found for {organization.public_id}"  # noqa: EM102
             )
 
         # Based on those groups generate the usage report based on the definition of unique user:

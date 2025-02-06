@@ -167,7 +167,7 @@ class MoodleAPIClient:
         }
 
     def list_pages(self, course_id: int):
-        root: File = {  # type:ignore
+        root: File = {  # type:ignore  # noqa: PGH003
             "type": "Folder",
             "display_name": "",
             "children": [],
@@ -208,7 +208,7 @@ class MoodleAPIClient:
                         "display_name": module["name"],
                         "lms_id": module["id"],
                         "id": f"moodle://page/course/{course_id}/page_id/{module['id']}",
-                        "updated_at": updated_at,  # type: ignore
+                        "updated_at": updated_at,  # type: ignore  # noqa: PGH003
                     }
                     current_node["children"].append(file_node)
 
@@ -263,7 +263,7 @@ class MoodleAPIClient:
                         "children": [],
                     }
                     folders[component] = new_folder
-                    current_node["children"].append(new_folder)  # type: ignore
+                    current_node["children"].append(new_folder)  # type: ignore  # noqa: PGH003
                 current_node = folders[component]
 
             file_node = {
@@ -274,7 +274,7 @@ class MoodleAPIClient:
                 "lms_id": file_data["url"],
                 "updated_at": file_data["updated_at"],
             }
-            current_node["children"].append(file_node)  # type: ignore
+            current_node["children"].append(file_node)  # type: ignore  # noqa: PGH003
 
         return root["children"]
 
@@ -309,8 +309,8 @@ class MoodleAPIClient:
         # Moodle's API doesn't seem to use error codes (4xx, 5xx...)
         # so we have to inspect the response
         if isinstance(response, dict) and response.get("errorcode"):
-            raise ExternalRequestError(
-                "Moodle API error",
+            raise ExternalRequestError(  # noqa: TRY003
+                "Moodle API error",  # noqa: EM101
                 validation_errors={
                     "errorcode": response.get("errorcode"),
                     "message": response.get("message"),

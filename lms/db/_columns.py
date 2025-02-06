@@ -6,9 +6,9 @@ def varchar_enum(  # noqa: PLR0913
     enum,
     default=None,
     max_length=64,
-    nullable=False,
+    nullable=False,  # noqa: FBT002
     server_default=None,
-    unique=False,
+    unique=False,  # noqa: FBT002
 ) -> Mapped:
     """Return a SA column type to store the python enum.Enum as a varchar in a table."""
     return mapped_column(

@@ -48,7 +48,7 @@ class DashboardService:
         """Get and authorize a segment for the given request."""
         segment = self._segment_service.get_segment(authority_provided_id)
         if not segment:
-            raise HTTPNotFound()
+            raise HTTPNotFound()  # noqa: RSE102
 
         if request.has_permission(Permissions.STAFF):
             # STAFF members in our admin pages can access all segments
@@ -67,7 +67,7 @@ class DashboardService:
         if not self._course_service.is_member(
             segment.lms_course.course, request.user.h_userid
         ):
-            raise HTTPUnauthorized()
+            raise HTTPUnauthorized()  # noqa: RSE102
 
         return segment
 
@@ -75,7 +75,7 @@ class DashboardService:
         """Get and authorize an assignment for the given request."""
         assignment = self._assignment_service.get_by_id(assigment_id)
         if not assignment:
-            raise HTTPNotFound()
+            raise HTTPNotFound()  # noqa: RSE102
 
         if request.has_permission(Permissions.STAFF):
             # STAFF members in our admin pages can access all assignments
@@ -92,7 +92,7 @@ class DashboardService:
 
         # Access to the assignment is determined by access to its course.
         if not self._course_service.is_member(assignment.course, request.user.h_userid):
-            raise HTTPUnauthorized()
+            raise HTTPUnauthorized()  # noqa: RSE102
 
         return assignment
 
@@ -100,7 +100,7 @@ class DashboardService:
         """Get and authorize a course for the given request."""
         course = self._course_service.get_by_id(course_id)
         if not course:
-            raise HTTPNotFound()
+            raise HTTPNotFound()  # noqa: RSE102
 
         if request.has_permission(Permissions.STAFF):
             # STAFF members in our admin pages can access all courses
@@ -115,7 +115,7 @@ class DashboardService:
             return course
 
         if not self._course_service.is_member(course, request.user.h_userid):
-            raise HTTPUnauthorized()
+            raise HTTPUnauthorized()  # noqa: RSE102
 
         return course
 
@@ -192,7 +192,7 @@ class DashboardService:
                 request_public_id
             )
             if not organization:
-                raise HTTPNotFound()
+                raise HTTPNotFound()  # noqa: RSE102
 
             return self._db.scalars(
                 select(Organization).where(
@@ -270,7 +270,7 @@ class DashboardService:
         self, segments: list[LMSSegment], h_userids: list[str] | None = None
     ) -> tuple[datetime | None, Select[tuple[LMSUser, bool]]]:
         """Return a query that fetches the roster for a list of segments."""
-        assert len({segment.lms_course_id for segment in segments}) == 1, (
+        assert len({segment.lms_course_id for segment in segments}) == 1, (  # noqa: S101
             "Segments must belong to the same course"
         )
 
@@ -311,7 +311,7 @@ class DashboardService:
         ]
         if all(rosters_last_updated):
             # Use the oldest last updated date as the last updated date for the combined roster
-            return min(rosters_last_updated)  # type: ignore
+            return min(rosters_last_updated)  # type: ignore  # noqa: PGH003
 
         return None
 

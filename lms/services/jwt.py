@@ -52,9 +52,9 @@ class JWTService:
                 leeway=cls.LEEWAY,
             )
         except ExpiredSignatureError as err:
-            raise ExpiredJWTError() from err
+            raise ExpiredJWTError() from err  # noqa: RSE102
         except InvalidTokenError as err:
-            raise InvalidJWTError() from err
+            raise InvalidJWTError() from err  # noqa: RSE102
 
         del payload["exp"]
         return payload
@@ -71,7 +71,7 @@ class JWTService:
         :return: the JWT string
         """
         payload = copy.deepcopy(payload)
-        payload["exp"] = datetime.datetime.utcnow() + lifetime
+        payload["exp"] = datetime.datetime.utcnow() + lifetime  # noqa: DTZ003
 
         jwt_str = jwt.encode(payload, secret, algorithm="HS256")
 

@@ -163,7 +163,7 @@ class TestLTIRoleService:
 
     @staticmethod
     def random_enum_excluding(enum_, excluding):
-        return random.choice(list(set(enum_) - {excluding}))
+        return random.choice(list(set(enum_) - {excluding}))  # noqa: S311
 
 
 class TestServiceFactory:

@@ -46,7 +46,7 @@ from pyramid.view import view_config, view_defaults
 from webargs import fields
 
 from lms.events import LTIEvent
-from lms.product.plugin.misc import MiscPlugin
+from lms.product.plugin.misc import MiscPlugin  # noqa: TC001
 from lms.security import Permissions
 from lms.services import JWTService, UserService
 from lms.validation import DeepLinkingLTILaunchSchema
@@ -145,7 +145,7 @@ class DeepLinkingFieldsViews:
         if title := assignment_configuration.get("title"):
             content_item["title"] = title
 
-        now = datetime.utcnow()
+        now = datetime.utcnow()  # noqa: DTZ003
         message = {
             "exp": now + timedelta(hours=1),
             "iat": now,
@@ -271,6 +271,6 @@ class DeepLinkingFieldsViews:
         if content["type"] == "url":
             params["url"] = content["url"]
         else:
-            raise ValueError(f"Unknown content type: '{content['type']}'")
+            raise ValueError(f"Unknown content type: '{content['type']}'")  # noqa: EM102, TRY003
 
         return params

@@ -1,4 +1,4 @@
-from lms.models import Assignment
+from lms.models import Assignment  # noqa: INP001
 from lms.product.plugin.misc import AssignmentConfig, MiscPlugin
 
 

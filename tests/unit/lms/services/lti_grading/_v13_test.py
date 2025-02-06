@@ -4,7 +4,7 @@ from unittest.mock import Mock, sentinel
 import pytest
 from freezegun import freeze_time
 from h_matchers import Any
-from pytest import param
+from pytest import param  # noqa: PT013
 
 from lms.models.family import Family
 from lms.services.exceptions import ExternalRequestError, StudentNotInCourse
@@ -168,7 +168,7 @@ class TestLTI13GradingService:
         response = svc.sync_grade(
             lti_v13_application_instance,
             assignment,
-            datetime(2022, 4, 4).isoformat(),
+            datetime(2022, 4, 4).isoformat(),  # noqa: DTZ001
             lms_user,
             sentinel.grade,
         )

@@ -128,7 +128,7 @@ def date_or_timestamp(value: str | int | None) -> date | None:
     if not value:
         return None
     try:
-        return date.fromtimestamp(int(value) / 1000)
+        return date.fromtimestamp(int(value) / 1000)  # noqa: DTZ012
     except ValueError:
         # Date is already formatted, return it as a date object
-        return datetime.strptime(str(value), "%Y-%m-%d").date()
+        return datetime.strptime(str(value), "%Y-%m-%d").date()  # noqa: DTZ007

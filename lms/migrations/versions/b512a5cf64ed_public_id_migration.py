@@ -18,7 +18,7 @@ def upgrade() -> None:
     conn = op.get_bind()
     conn.execute(
         sa.text(
-            f"""UPDATE "organization" set public_id = '{region}.lms.org.' || "public_id";"""
+            f"""UPDATE "organization" set public_id = '{region}.lms.org.' || "public_id";"""  # noqa: S608
         )
     )
 

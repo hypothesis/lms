@@ -27,10 +27,10 @@ class GroupingService:
         guid = self.application_instance.tool_consumer_instance_guid
 
         if type_ == Grouping.Type.COURSE:
-            assert parent is None, "Course groupings can't have a parent"
+            assert parent is None, "Course groupings can't have a parent"  # noqa: S101
             return hashed_id(guid, lms_id)
 
-        assert parent is not None, "Non-course groupings must have a parent"
+        assert parent is not None, "Non-course groupings must have a parent"  # noqa: S101
 
         if type_ == Grouping.Type.CANVAS_SECTION:
             return hashed_id(guid, parent.lms_id, lms_id)

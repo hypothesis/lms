@@ -113,8 +113,8 @@ class JSONPyramidRequestSchema(PyramidRequestSchema):
         content_type = self.context["request"].content_type
 
         if content_type != "application/json":
-            raise HTTPUnsupportedMediaType(
-                f"Unexpected content type. Expected 'application/json' but found '{content_type}'",
+            raise HTTPUnsupportedMediaType(  # noqa: TRY003
+                f"Unexpected content type. Expected 'application/json' but found '{content_type}'",  # noqa: EM102
             )
 
         return data
@@ -153,8 +153,8 @@ class RequestsResponseSchema(PlainSchema):
         try:
             return response.json()
         except (AttributeError, ValueError) as err:
-            raise marshmallow.ValidationError(
-                "response doesn't have a valid JSON body"
+            raise marshmallow.ValidationError(  # noqa: TRY003
+                "response doesn't have a valid JSON body"  # noqa: EM101
             ) from err
 
 

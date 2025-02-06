@@ -39,7 +39,7 @@ class TestGroupInfo:
 
         group_info.upsert_instructor(new_instructor)
 
-        assert group_info.instructors == existing_instructors + [new_instructor]
+        assert group_info.instructors == existing_instructors + [new_instructor]  # noqa: RUF005
 
     def test_upsert_instructor_when_existing_matching_instructor(
         self, group_info, existing_instructors

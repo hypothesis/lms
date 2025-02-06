@@ -16,7 +16,7 @@ PURGE_LAUNCH_DATA_BATCH_SIZE = 1000
 
 @app.task
 def insert_event(event: dict) -> None:
-    with app.request_context() as request:
+    with app.request_context() as request:  # noqa: SIM117
         with request.tm:
             from lms.services.event import EventService
 
@@ -27,7 +27,7 @@ def insert_event(event: dict) -> None:
 
 @app.task
 def purge_launch_data(*, max_age_days=30) -> None:
-    with app.request_context() as request:
+    with app.request_context() as request:  # noqa: SIM117
         with request.tm:
             events_with_old_lti_params = (
                 select(Event.id)

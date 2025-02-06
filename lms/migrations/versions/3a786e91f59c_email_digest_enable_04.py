@@ -34,7 +34,7 @@ def upgrade():
             application_instances.id = candidates.id"""
         )
     )
-    print("\tEnabled email digest in new AIs", result.rowcount)
+    print("\tEnabled email digest in new AIs", result.rowcount)  # noqa: T201
 
 
 def downgrade():

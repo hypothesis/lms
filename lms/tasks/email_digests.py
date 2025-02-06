@@ -49,7 +49,7 @@ def send_instructor_email_digest_tasks():
         year=now.year, month=now.month, day=now.day, hour=5, tzinfo=UTC
     )
 
-    with app.request_context() as request:
+    with app.request_context() as request:  # noqa: SIM117
         with request.tm:
             candidate_courses = (
                 select(Event.course_id)
@@ -144,14 +144,14 @@ def send_instructor_email_digest(
     """
     # Caution: datetime.fromisoformat() doesn't support all ISO 8601 strings!
     # This only works for the subset of ISO 8601 produced by datetime.isoformat().
-    created_before: datetime = datetime.fromisoformat(created_before)  # type: ignore
+    created_before: datetime = datetime.fromisoformat(created_before)  # type: ignore  # noqa: PGH003
 
     if created_after is None:
-        created_after = created_before - timedelta(days=7)  # type: ignore
+        created_after = created_before - timedelta(days=7)  # type: ignore  # noqa: PGH003
     else:
-        created_after: datetime = datetime.fromisoformat(created_after)  # type: ignore
+        created_after: datetime = datetime.fromisoformat(created_after)  # type: ignore  # noqa: PGH003
 
-    with app.request_context() as request:
+    with app.request_context() as request:  # noqa: SIM117
         with request.tm:
             task_done_data = _get_task_done_data(request.db, h_userid)
 
@@ -160,7 +160,7 @@ def send_instructor_email_digest(
                     datetime.fromisoformat(task_done_data["created_before"]).replace(
                         tzinfo=UTC
                     ),
-                    created_after.replace(tzinfo=UTC),  # type:ignore
+                    created_after.replace(tzinfo=UTC),  # type:ignore  # noqa: PGH003
                 )
 
             digest_service = request.find_service(DigestService)

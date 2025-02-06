@@ -27,10 +27,10 @@ class TestAutoGradingService:
 
     def test_get_last_sync(self, svc, db_session, assignment):
         factories.GradingSync(
-            assignment=assignment, created=datetime(2020, 1, 1), status="finished"
+            assignment=assignment, created=datetime(2020, 1, 1), status="finished"  # noqa: DTZ001
         )
         new = factories.GradingSync(
-            assignment=assignment, created=datetime(2024, 1, 1), status="finished"
+            assignment=assignment, created=datetime(2024, 1, 1), status="finished"  # noqa: DTZ001
         )
         db_session.flush()
 
@@ -39,7 +39,7 @@ class TestAutoGradingService:
     def test_create_grade_sync(self, svc, db_session, assignment):
         creator = factories.LMSUser()
         lms_users = factories.LMSUser.create_batch(5)
-        grades = {lms_user: random.random() for lms_user in lms_users}
+        grades = {lms_user: random.random() for lms_user in lms_users}  # noqa: S311
         db_session.flush()
 
         grading_sync = svc.create_grade_sync(assignment, creator, grades)
@@ -74,7 +74,7 @@ class TestAutoGradingService:
             grading_sync=sync_1,
             lms_user=student_1,
             success=False,
-            updated=datetime(2025, 1, 1),
+            updated=datetime(2025, 1, 1),  # noqa: DTZ001
             grade=1,
         )
         # Old
@@ -82,14 +82,14 @@ class TestAutoGradingService:
             grading_sync=sync_2,
             lms_user=student_1,
             success=True,
-            updated=datetime(2023, 1, 1),
+            updated=datetime(2023, 1, 1),  # noqa: DTZ001
             grade=2,
         )
         factories.GradingSyncGrade(
             grading_sync=sync_3,
             lms_user=student_1,
             success=True,
-            updated=datetime(2024, 1, 1),
+            updated=datetime(2024, 1, 1),  # noqa: DTZ001
             grade=3,
         )
         # Other student in another sync
@@ -97,7 +97,7 @@ class TestAutoGradingService:
             grading_sync=older_sync,
             lms_user=student_2,
             success=True,
-            updated=datetime(2024, 1, 1),
+            updated=datetime(2024, 1, 1),  # noqa: DTZ001
             grade=4,
         )
 
@@ -152,7 +152,7 @@ class TestAutoGradingService:
         assert grade == expected_grade
 
     def test_calculate_grade_bad_config(self, svc):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # noqa: PT011
             svc.calculate_grade(
                 AutoGradingConfig(
                     activity_calculation="RANDOM",

@@ -292,8 +292,8 @@ def application_instance(db_session):
         organization=factories.Organization(),
     )
 
-    application_instance.settings.set("canvas", "sections_enabled", True)
-    application_instance.settings.set("canvas", "groups_enabled", False)
+    application_instance.settings.set("canvas", "sections_enabled", True)  # noqa: FBT003
+    application_instance.settings.set("canvas", "groups_enabled", False)  # noqa: FBT003
 
     # Force flush to get a non None application_instance.id
     db_session.flush()

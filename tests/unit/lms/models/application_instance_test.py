@@ -79,7 +79,7 @@ class TestApplicationInstance:
     def test_lms_host_raises_ValueError(self, application_instance, lms_url):
         application_instance.lms_url = lms_url
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError):  # noqa: PT011
             application_instance.lms_host()
 
     def test_decrypted_developer_secret_returns_the_decrypted_developer_secret(

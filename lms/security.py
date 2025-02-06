@@ -104,14 +104,14 @@ class SecurityPolicy:
 
         if path.startswith("/api/dashboard"):
             # For the dashboard API we prefer, in this order:
-            # - HeadersBearerTokenLTIUserPolicy()
+            # - HeadersBearerTokenLTIUserPolicy()  # noqa: ERA001
             #   For requests authorized via an API token, this applies to LMS users
             #
-            # - LMSGoogleSecurityPolicy()
+            # - LMSGoogleSecurityPolicy()  # noqa: ERA001
             #   If the header token policy didn't succeed we try the google auth cookie, for staff users
             policies = [HeadersBearerTokenLTIUserPolicy(), LMSGoogleSecurityPolicy()]
             for policy in policies:
-                if policy.identity(request):  # type: ignore
+                if policy.identity(request):  # type: ignore  # noqa: PGH003
                     return policy
 
         if path in {"/lti_launches", "/content_item_selection"}:
@@ -293,7 +293,7 @@ class EmailPreferencesSecurityPolicy:
         secret: str,
         domain: str,
         email_preferences_service: EmailPreferencesService,
-        use_secure_cookie: bool,
+        use_secure_cookie: bool,  # noqa: FBT001
     ):
         self.cookie = AuthTktCookieHelper(
             secret=secret,

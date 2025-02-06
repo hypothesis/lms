@@ -31,7 +31,7 @@ class TestLTIV11CoreSchema:
 
     @pytest.fixture
     def pyramid_request(self, pyramid_request):
-        pyramid_request.POST["id_token"] = "JWT"
+        pyramid_request.POST["id_token"] = "JWT"  # noqa: S105
         pyramid_request.params = {"extra": "value"}
         pyramid_request.lti_jwt = sentinel.lti_jwt
         return pyramid_request

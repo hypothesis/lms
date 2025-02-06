@@ -40,7 +40,7 @@ class DigestService:
         created_after,
         created_before,
         override_to_email=None,
-        deduplicate=True,
+        deduplicate=True,  # noqa: FBT002
     ):
         """Send instructor email digests for the given users and timeframe."""
         annotation_dicts = self._h_api.get_annotations(

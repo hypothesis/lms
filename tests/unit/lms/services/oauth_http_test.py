@@ -280,7 +280,7 @@ class TestOAuthHTTPService:
         http_service,
     ):
         token = oauth2_token_service.get(Service.LMS)
-        token.received_at = datetime.datetime.utcnow()
+        token.received_at = datetime.datetime.utcnow()  # noqa: DTZ003
 
         svc.refresh_access_token(
             sentinel.token_url, sentinel.redirect_uri, sentinel.auth
