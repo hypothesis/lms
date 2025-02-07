@@ -64,7 +64,7 @@ class LTI11AuthSchema(LTIV11CoreSchema):
             ) from err
 
         return self._lti_user_service.from_lti_params(
-            application_instance, self.context["request"].lti_params
+            application_instance, self._request.lti_params
         )
 
     @marshmallow.validates_schema
@@ -96,7 +96,7 @@ class LTI13AuthSchema(LTIV11CoreSchema):
 
     @marshmallow.pre_load
     def _lti_v13_fields(self, data, **_kwargs):
-        if not self.context["request"].lti_jwt:
+        if not self._request.lti_jwt:
             return data
 
         data["iss"] = data.v13.get("iss")
@@ -131,5 +131,5 @@ class LTI13AuthSchema(LTIV11CoreSchema):
             ) from err
 
         return self._lti_user_service.from_lti_params(
-            application_instance, self.context["request"].lti_params
+            application_instance, self._request.lti_params
         )
