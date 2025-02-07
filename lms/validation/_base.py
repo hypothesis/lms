@@ -68,13 +68,13 @@ class PyramidRequestSchema(PlainSchema):
 
     def __init__(self, request):
         super().__init__()
-        self.context = {"request": request}
+        self._request = request
 
     def parse(self, *args, **kwargs):
         """
         Parse and validate the request.
 
-        Use this schema to parse and validate ``self.context["request"]`` and
+        Use this schema to parse and validate ``self._request`` and
         either return the successfully parsed params or raise a validation
         error.
 
@@ -88,7 +88,7 @@ class PyramidRequestSchema(PlainSchema):
             # See https://webargs.readthedocs.io/en/latest/advanced.html#setting-unknown
             unknown=None,
         )
-        return parser.parse(self, self.context["request"], *args, **kwargs)
+        return parser.parse(self, self._request, *args, **kwargs)
 
     @staticmethod
     def _handle_error(error, _req, _schema, *, error_status_code, error_headers):  # noqa: ARG004
@@ -110,7 +110,7 @@ class JSONPyramidRequestSchema(PyramidRequestSchema):
 
         :raise HTTPUnsupportedMediaType: If the content type is wrong
         """
-        content_type = self.context["request"].content_type
+        content_type = self._request.content_type
 
         if content_type != "application/json":
             raise HTTPUnsupportedMediaType(  # noqa: TRY003
@@ -125,27 +125,28 @@ class RequestsResponseSchema(PlainSchema):
 
     def __init__(self, response):
         super().__init__()
-        self.context = {"response": response}
+        self._response = response
 
     def parse(self, *args, **kwargs):
         """
         Parse and validate the response.
 
-        Use this schema to parse and validate ``self.context["response"]`` and
+        Use this schema to parse and validate ``self._response`` and
         either return the successfully parsed params or raise a validation
         error.
 
         :raise ExternalRequestError: if the response isn't valid
         """
         try:
-            return self.load(self.context["response"], *args, **kwargs)
+            return self.load(self._response, *args, **kwargs)
         except marshmallow.ValidationError as err:
-            response = self.context.get("response")
-            request = response.request if response is not None else None
+            request = self._response.request if self._response is not None else None
             validation_errors = err.messages
 
             raise ExternalRequestError(
-                request=request, response=response, validation_errors=validation_errors
+                request=request,
+                response=self._response,
+                validation_errors=validation_errors,
             ) from err
 
     @marshmallow.pre_load(pass_many=True)

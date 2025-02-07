@@ -27,7 +27,7 @@ class OAuthCallbackSchema(PyramidRequestSchema):
     the ``state`` query parameter::
 
        >>> schema = OAuthCallbackSchema()
-       >>> schema.context['request'] = request
+       >>> schema._request = request
        >>> schema.state_param(request.lti_user)
        'xyz...123'
 
@@ -77,12 +77,10 @@ class OAuthCallbackSchema(PyramidRequestSchema):
 
         :rtype: str
         """
-        request = self.context["request"]
-
         csrf = secrets.token_hex()
 
         data = {
-            "user": self._lti_user_service.serialize(request.lti_user),
+            "user": self._lti_user_service.serialize(self._request.lti_user),
             "csrf": csrf,
         }
 
@@ -90,7 +88,7 @@ class OAuthCallbackSchema(PyramidRequestSchema):
             data, self._secret, lifetime=timedelta(hours=1)
         )
 
-        request.session["oauth2_csrf"] = csrf
+        self._request.session["oauth2_csrf"] = csrf
 
         return jwt_str
 
@@ -108,10 +106,8 @@ class OAuthCallbackSchema(PyramidRequestSchema):
         """
 
         if state is None:
-            request = self.context["request"]
-
             try:
-                state = request.params["state"]
+                state = self._request.params["state"]
             except KeyError as err:
                 raise MissingStateParamError() from err  # noqa: RSE102
 
@@ -121,11 +117,9 @@ class OAuthCallbackSchema(PyramidRequestSchema):
     @marshmallow.validates("state")
     def validate_state(self, state):
         """Validate the current request's ``state`` param."""
-        request = self.context["request"]
-
         payload = self._decode_state(state)
 
-        if payload["csrf"] != request.session.pop("oauth2_csrf", None):
+        if payload["csrf"] != self._request.session.pop("oauth2_csrf", None):
             raise marshmallow.ValidationError("Invalid CSRF token")  # noqa: EM101, TRY003
 
     def _decode_state(self, state):

@@ -36,15 +36,15 @@ class LTIV11CoreSchema(PyramidRequestSchema):
     @pre_load
     def _decode_jwt(self, data, **_kwargs):
         """Use the values encoded in the `id_token` JWT if present."""
-        if not self.context["request"].lti_jwt:
+        if not self._request.lti_jwt:
             return data
 
-        params = self.context["request"].lti_params
+        params = self._request.lti_params
         # Make the rest of params also accessible to marshmallow in case any are not coming from the JWT
         # eg query parameters
         # This is to make it backwards compatible with schemas that mix LTI
         # parameters with others that belong to the LMS app (eg the `url` parameter).
-        params.update(self.context["request"].params)
+        params.update(self._request.params)
 
         return params
 
