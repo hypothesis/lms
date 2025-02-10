@@ -178,7 +178,6 @@ class TestAssignmentViews:
         h_api,
         db_session,
         dashboard_service,
-        user_service,
         assignments_metrics_response,
         assignment,
     ):
