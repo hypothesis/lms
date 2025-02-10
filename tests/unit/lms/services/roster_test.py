@@ -13,6 +13,7 @@ from lms.models.lms_user import LMSUser
 from lms.models.lti_role import RoleScope, RoleType
 from lms.services.exceptions import (
     CanvasAPIError,
+    ConcurrentTokenRefreshError,
     ExternalRequestError,
     OAuth2TokenError,
 )
@@ -631,18 +632,16 @@ class TestRosterService:
         assert section_roster == [student_in_course]
 
     @pytest.mark.usefixtures("instructor_in_course", "canvas_section")
+    @pytest.mark.parametrize(
+        "exception", [ConcurrentTokenRefreshError, OAuth2TokenError, CanvasAPIError]
+    )
     def test_fetch_canvas_sections_roster_failed_refresh(
-        self,
-        svc,
-        lms_course,
-        canvas_api_client,
-        db_session,  # noqa: ARG002
-        caplog,
+        self, svc, lms_course, canvas_api_client, caplog, exception
     ):
         canvas_api_client.course_sections.side_effect = OAuth2TokenError(
             refreshable=True
         )
-        canvas_api_client.get_refreshed_token.side_effect = CanvasAPIError
+        canvas_api_client.get_refreshed_token.side_effect = exception
 
         svc.fetch_canvas_sections_roster(lms_course)
 
