@@ -625,7 +625,7 @@ class RosterService:
         try:
             refresh_token = oauth2_token_service.get().refresh_token
             canvas_service.get_refreshed_token(refresh_token)
-        except (ConcurrentTokenRefreshError, CanvasAPIError):
+        except (ConcurrentTokenRefreshError, CanvasAPIError, OAuth2TokenError):
             return False
 
         return True
