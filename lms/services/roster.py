@@ -243,14 +243,17 @@ class RosterService:
                 resource_link_id=assignment.lti_v13_resource_link_id,
             )
         except ExternalRequestError as err:
-            if err.response_body and (
+            ignored_errors = [
                 # Canvas, unknown reason
-                "Requested ResourceLink bound to unexpected external tool"
-                in err.response_body
+                "Requested ResourceLink bound to unexpected external tool",
                 # Canvas, assignment deleted in the LMS
-                or "Requested ResourceLink was not found" in err.response_body
-                or "Requested assignment not configured for external tool launches"
-                in err.response_body
+                "Requested ResourceLink was not found",
+                "Tool does not have access to rlid or rlid does not exist",
+                "Requested assignment not configured for external tool launches",
+            ]
+
+            if err.response_body and any(
+                error in err.response_body for error in ignored_errors
             ):
                 LOG.error("Fetching assignment roster failed: %s", err.response_body)  # noqa: TRY400
                 # We ignore this type of error, just stop here.
