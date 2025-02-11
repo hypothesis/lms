@@ -193,7 +193,7 @@ class TestLTIRole:
             ),
             (
                 "http://purl.imsglobal.org/vocab/lti/system/person#TestUser",
-                RoleType.LEARNER,
+                RoleType.TEST_USER,
                 RoleScope.SYSTEM,
             ),
         ],

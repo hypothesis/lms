@@ -20,6 +20,7 @@ class RoleType(StrEnum):
     LEARNER = "learner"
     ADMIN = "admin"
     NONE = "none"
+    TEST_USER = "test_user"
 
 
 @unique
@@ -168,6 +169,7 @@ class _RoleParser:
         "SysSupport": RoleType.ADMIN,
         "TeachingAssistant": RoleType.INSTRUCTOR,
         "User": RoleType.LEARNER,
+        "TestUser": RoleType.TEST_USER,
     }
 
     @classmethod
