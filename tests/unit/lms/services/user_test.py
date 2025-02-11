@@ -164,7 +164,7 @@ class TestUserService:
         query = service.get_users_for_course(
             role_scope=RoleScope.COURSE,
             role_type=RoleType.LEARNER,
-            course_id=course.id,
+            lms_course=course.lms_course,
             h_userids=[student_in_assignment.h_userid] if with_h_userids else None,
         )
 
