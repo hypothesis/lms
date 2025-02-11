@@ -6,6 +6,7 @@ from sqlalchemy.sql import Select
 
 from lms.models import (
     AssignmentMembership,
+    Family,
     Grouping,
     LMSCourse,
     LMSCourseMembership,
@@ -22,6 +23,7 @@ from lms.models import (
 )
 from lms.models.lms_segment import LMSSegment
 from lms.services.course import CourseService
+from lms.services.lti_names_roles import Member
 from lms.services.upsert import bulk_upsert
 
 
@@ -76,8 +78,9 @@ class UserService:
         """Upsert LMSUser based on a User object."""
         self._db.flush()  # Make sure User has hit the DB on the current transaction
 
-        # API ID, only Canvas for now
-        lms_api_user_id = lti_params.get("custom_canvas_user_id")
+        lms_api_user_id = self.get_lms_api_user_id(
+            lti_params, user.application_instance.family
+        )
         lms_user = bulk_upsert(
             self._db,
             LMSUser,
@@ -104,7 +107,13 @@ class UserService:
                         text('"lms_user"."lti_v13_user_id"'),
                     ),
                 ),
-                "lms_api_user_id",
+                (
+                    "lms_api_user_id",
+                    func.coalesce(
+                        text('"excluded"."lms_api_user_id"'),
+                        text('"lms_user"."lms_api_user_id"'),
+                    ),
+                ),
             ],
         ).one()
         bulk_upsert(
@@ -350,6 +359,26 @@ class UserService:
             )
 
         return query.order_by(LMSUser.display_name, LMSUser.id)
+
+    @staticmethod
+    def get_lms_api_user_id(data: Member | LTIParams, family: Family) -> str | None:
+        """Get the API user id based off a launch or a roster member.
+
+        In some LMS the LTI id and the ID of the same user on the proprietary API are different.
+        """
+        if family == Family.D2L:
+            from lms.services.d2l_api.client import D2LAPIClient
+
+            return D2LAPIClient.get_api_user_id(data["user_id"])
+
+        if isinstance(data, LTIParams):
+            return data.get("custom_canvas_user_id")
+
+        return (
+            data.get("message", [{}])[0]
+            .get("https://purl.imsglobal.org/spec/lti/claim/custom", {})
+            .get("canvas_user_id")
+        )
 
 
 def factory(_context, request):

@@ -27,7 +27,7 @@ class D2LGroupsSchema(RequestsResponseSchema):
 
 
 class _D2LTopic(Schema):
-    """Files and assigmetns are topics within a module."""
+    """Files and assignments are topics within a module."""
 
     class Meta:
         unknown = EXCLUDE
