@@ -259,7 +259,7 @@ class DashboardService:
             query = self._user_service.get_users_for_course(
                 role_scope=RoleScope.COURSE,
                 role_type=RoleType.LEARNER,
-                course_id=lms_course.course.id,
+                lms_course=lms_course,
                 h_userids=h_userids,
                 # For launch data we always add the "active" column as true for compatibility with the roster query.
             ).add_columns(true())

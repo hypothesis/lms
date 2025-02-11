@@ -332,7 +332,7 @@ class TestDashboardService:
             user_service.get_users_for_course.assert_called_once_with(
                 role_scope=RoleScope.COURSE,
                 role_type=RoleType.LEARNER,
-                course_id=lms_course.course.id,
+                lms_course=lms_course,
                 h_userids=sentinel.h_userids,
             )
             assert not last_updated

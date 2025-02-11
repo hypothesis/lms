@@ -191,7 +191,7 @@ class UserService:
         self,
         role_scope: RoleScope,
         role_type: RoleType,
-        course_id: int,
+        lms_course: LMSCourse,
         h_userids: list[str] | None = None,
     ) -> Select[tuple[LMSUser]]:
         """Get the users that belong to one course."""
@@ -203,13 +203,8 @@ class UserService:
                 LMSCourseMembership.lms_user_id == LMSUser.id,
             )
             .join(LMSCourse, LMSCourse.id == LMSCourseMembership.lms_course_id)
-            # course_id is the PK on Grouping, we need to join with LMSCourse by authority_provided_id
-            .join(
-                Grouping,
-                Grouping.authority_provided_id == LMSCourse.h_authority_provided_id,
-            )
             .where(
-                Grouping.id == course_id,
+                LMSCourseMembership.lms_course_id == lms_course.id,
                 LMSCourseMembership.lti_role_id.in_(
                     select(LTIRole.id).where(
                         LTIRole.scope == role_scope, LTIRole.type == role_type
