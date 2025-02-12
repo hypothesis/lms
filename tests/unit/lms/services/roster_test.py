@@ -7,7 +7,6 @@ from h_matchers import Any
 from sqlalchemy import select
 
 from lms.models import AssignmentRoster, CourseRoster, LMSSegmentRoster
-from lms.models.family import Family
 from lms.models.lms_segment import LMSSegment
 from lms.models.lms_user import LMSUser
 from lms.models.lti_role import RoleScope, RoleType
@@ -357,69 +356,6 @@ class TestRosterService:
         assert roster[3].assignment_id == assignment.id
         assert roster[3].lms_user.lti_user_id == "USER_ID_INACTIVE"
         assert not roster[3].active
-
-    @pytest.mark.parametrize(
-        "family,response,lms_api_user_id",
-        [
-            (
-                None,
-                {
-                    "user_id": "USER_ID",
-                    "roles": ["ROLE1"],
-                    "status": "Active",
-                },
-                None,
-            ),
-            (
-                Family.D2L.value,
-                {"user_id": "USER_ID_API", "roles": ["ROLE1"], "status": "Active"},
-                "API",
-            ),
-            (
-                Family.CANVAS.value,
-                {
-                    "user_id": "USER_ID",
-                    "roles": ["ROLE1"],
-                    "status": "Active",
-                    "message": [
-                        {
-                            "https://purl.imsglobal.org/spec/lti/claim/custom": {
-                                "canvas_user_id": "API_ID"
-                            }
-                        }
-                    ],
-                },
-                "API_ID",
-            ),
-        ],
-    )
-    def test_fetch_assignment_roster_with_lms_api_user_id(
-        self,
-        svc,
-        lti_names_roles_service,
-        db_session,
-        lti_role_service,
-        assignment,
-        family,
-        response,
-        lms_api_user_id,
-        application_instance,
-    ):
-        application_instance.tool_consumer_info_product_family_code = family
-        lti_names_roles_service.get_context_memberships.return_value = [response]
-        lti_role_service.get_roles.return_value = [
-            factories.LTIRole(value="ROLE1"),
-        ]
-
-        svc.fetch_assignment_roster(assignment)
-
-        roster = db_session.scalars(
-            select(AssignmentRoster)
-            .order_by(AssignmentRoster.lms_user_id)
-            .where(AssignmentRoster.assignment_id == assignment.id)
-        ).all()
-
-        assert roster[0].lms_user.lms_api_user_id == lms_api_user_id
 
     @pytest.mark.parametrize(
         "known_error",

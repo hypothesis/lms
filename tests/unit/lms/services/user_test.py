@@ -5,7 +5,8 @@ import pytest
 from h_matchers import Any
 from sqlalchemy import select
 
-from lms.models import LMSUser, RoleScope, RoleType, User
+from lms.models import LMSUser, LTIParams, RoleScope, RoleType, User
+from lms.models.family import Family
 from lms.services import UserService
 from lms.services.user import UserNotFound, factory
 from tests import factories
@@ -306,6 +307,49 @@ class TestUserService:
         assert [s.h_userid for s in db_session.scalars(query).all()] == [
             student_in_assignment.h_userid
         ]
+
+    @pytest.mark.parametrize(
+        "family,data,lms_api_user_id",
+        [
+            (
+                None,
+                {
+                    "user_id": "USER_ID",
+                    "roles": ["ROLE1"],
+                    "status": "Active",
+                },
+                None,
+            ),
+            (
+                Family.D2L.value,
+                {"user_id": "USER_ID_API", "roles": ["ROLE1"], "status": "Active"},
+                "API",
+            ),
+            (
+                Family.CANVAS.value,
+                {
+                    "user_id": "USER_ID",
+                    "roles": ["ROLE1"],
+                    "status": "Active",
+                    "message": [
+                        {
+                            "https://purl.imsglobal.org/spec/lti/claim/custom": {
+                                "canvas_user_id": "API_ID"
+                            }
+                        }
+                    ],
+                },
+                "API_ID",
+            ),
+            (
+                Family.CANVAS.value,
+                LTIParams({"custom_canvas_user_id": "API_ID"}),
+                "API_ID",
+            ),
+        ],
+    )
+    def test_get_lms_api_user_id(self, service, family, data, lms_api_user_id):
+        assert service.get_lms_api_user_id(data, family) == lms_api_user_id
 
     @pytest.fixture
     def course(self, application_instance, db_session):
