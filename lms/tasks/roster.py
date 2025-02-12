@@ -22,7 +22,7 @@ LAUNCHED_WINDOW = timedelta(hours=24)
 """How recent we need to have seen a launch from a course/assignment before we stop fetching rosters for it."""
 
 ROSTER_REFRESH_WINDOW = timedelta(hours=24 * 3)
-"""How frequenly should we fetch roster for the same course/assignment/segment"""
+"""How frequently should we fetch roster for the same course/assignment/segment"""
 
 ROSTER_LIMIT = 50
 """How many rosters should we fetch per execution of the schedule task."""
@@ -35,6 +35,7 @@ def schedule_fetching_rosters() -> None:
     schedule_fetching_segment_rosters()
 
 
+@app.task()
 def schedule_fetching_course_rosters() -> None:
     """Schedule fetching course rosters based on their last lunches and the most recent roster fetch."""
 
@@ -95,6 +96,7 @@ def schedule_fetching_course_rosters() -> None:
                 )
 
 
+@app.task()
 def schedule_fetching_assignment_rosters() -> None:
     """Schedule fetching assignment rosters based on their last lunches and the most recent roster fetch."""
 
@@ -159,6 +161,7 @@ def schedule_fetching_assignment_rosters() -> None:
                 )
 
 
+@app.task()
 def schedule_fetching_segment_rosters() -> None:
     """Schedule fetching segment rosters based on their last lunches and the most recent roster fetch."""
 
