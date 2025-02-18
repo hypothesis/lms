@@ -117,6 +117,11 @@ class GradingViews:
             )
 
         except ExternalRequestError as err:
+            if err.is_timeout:
+                # We'll inform the frontend that this is a retryable error for timeouts.
+                err.retryable = True
+                raise
+
             if (
                 err.status_code == 422
                 # This is LTI1.3 only. In LTI1.1 canvas behaves differently and allows this type of submissions.

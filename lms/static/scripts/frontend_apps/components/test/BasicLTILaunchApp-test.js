@@ -453,6 +453,7 @@ describe('BasicLTILaunchApp', () => {
       const apiCall = fakeApiCall.getCall(0);
       assert.deepEqual(apiCall.args[0], {
         authToken: 'dummyAuthToken',
+        maxRetries: 2,
         path: '/api/lti/submissions',
         data: {
           submitted_at: undefined,
@@ -596,6 +597,7 @@ describe('BasicLTILaunchApp', () => {
               const apiCall = fakeApiCall.getCall(0);
               assert.deepEqual(apiCall.args[0], {
                 authToken: 'dummyAuthToken',
+                maxRetries: 2,
                 path: '/api/lti/submissions',
                 data: {
                   submitted_at: undefined,
@@ -638,6 +640,7 @@ describe('BasicLTILaunchApp', () => {
               const apiCall = fakeApiCall.getCall(0);
               assert.deepEqual(apiCall.args[0], {
                 authToken: 'dummyAuthToken',
+                maxRetries: 2,
                 path: '/api/lti/submissions',
                 data: {
                   submitted_at: '2022-04-28T13:25:34Z',

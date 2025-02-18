@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch, sentinel
 
 import pytest
 from h_matchers import Any
+from requests.exceptions import Timeout
 
 from lms.services.exceptions import ExternalRequestError, SerializableError
 from lms.services.lti_grading.interface import GradingResult
@@ -40,6 +41,16 @@ class TestRecordCanvasSpeedgraderSubmission:
         GradingViews(pyramid_request).record_canvas_speedgrader_submission()
 
         lti_grading_service.record_result.assert_not_called()
+
+    def test_it_timeout(self, lti_grading_service, pyramid_request):
+        exception = ExternalRequestError()
+        exception.__cause__ = Timeout()
+        lti_grading_service.read_result.side_effect = exception
+
+        with pytest.raises(ExternalRequestError) as exc_info:
+            GradingViews(pyramid_request).record_canvas_speedgrader_submission()
+
+        assert exc_info.value.retryable
 
     def test_it_max_attempts(self, pyramid_request, lti_grading_service):
         lti_grading_service.read_result.side_effect = ExternalRequestError(

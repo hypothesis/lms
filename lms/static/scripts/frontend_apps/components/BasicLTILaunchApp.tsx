@@ -254,6 +254,7 @@ export default function BasicLTILaunchApp() {
           authToken,
           path: '/api/lti/submissions',
           data: submissionParams,
+          maxRetries: 2,
         });
       } catch (e) {
         // If reporting the submission failed, show a modal error dialog above

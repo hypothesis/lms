@@ -84,6 +84,10 @@ function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function isRetryableResponse(status: number, data: any): boolean {
+  return status === 409 || (data && data.retryable);
+}
+
 /**
  * Make an API call to the LMS app backend.
  */
@@ -127,7 +131,10 @@ export async function apiCall<Result = unknown>(
   const resultJSON = await result.json();
 
   if (result.status >= 400 && result.status < 600) {
-    if (result.status === 409 && retryCount < maxRetries) {
+    if (
+      isRetryableResponse(result.status, resultJSON) &&
+      retryCount < maxRetries
+    ) {
       await delay(retryDelay);
       return apiCall({ ...options, retryCount: retryCount + 1 });
     }
