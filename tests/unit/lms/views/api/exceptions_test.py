@@ -246,6 +246,11 @@ class TestErrorBody:
     def test_json(self, pyramid_request, error_body, expected):
         assert error_body.__json__(pyramid_request) == expected
 
+    def test_json_retryable_exception(self, pyramid_request):
+        pyramid_request.exception.retryable = True
+
+        assert ErrorBody().__json__(pyramid_request) == {"retryable": True}
+
     @pytest.mark.usefixtures("with_refreshable_exception")
     def test_json_includes_refresh_info_if_the_exception_is_refreshable(
         self, pyramid_request, oauth2_token_service

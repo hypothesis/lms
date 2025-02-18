@@ -295,6 +295,10 @@ class ErrorBody:
                     )
                 body["refresh"] = {"method": "POST", "path": path}
 
+        # Expose whether or not the exception is retryable to the frontend.
+        if getattr(request.exception, "retryable", False):
+            body["retryable"] = True
+
         return body
 
 

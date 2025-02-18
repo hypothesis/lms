@@ -1,5 +1,7 @@
 import logging
 
+from requests.exceptions import Timeout
+
 from lms.models.oauth2_token import Service
 
 log = logging.getLogger(__name__)
@@ -25,6 +27,7 @@ class ExternalRequestError(Exception):
     :type message: str
 
     :arg refreshable: True if the error can be fixed by refreshing an access token
+    :arg retryable: True if the frontend should retry the request as an attempt to fix the error
     :arg refresh_route:
         If `refreshable` is True, the name of the API route that should be
         invoked to perform the token refresh. If `None`, the default route for
@@ -50,6 +53,7 @@ class ExternalRequestError(Exception):
         response=None,
         validation_errors=None,
         refreshable=False,  # noqa: FBT002
+        retryable=False,  # noqa: FBT002
         refresh_route: str | None = None,
         refresh_service: Service | None = None,
     ):
@@ -59,6 +63,7 @@ class ExternalRequestError(Exception):
         self.response = response
         self.validation_errors = validation_errors
         self.refreshable = refreshable
+        self.retryable = retryable
         self.refresh_route = refresh_route
         self.refresh_service = refresh_service
 
@@ -91,6 +96,11 @@ class ExternalRequestError(Exception):
     def response_body(self) -> str | None:
         """Return the response body."""
         return getattr(self.response, "text", None)
+
+    @property
+    def is_timeout(self) -> bool:
+        """Return True if the error was caused by a timeout."""
+        return isinstance(self.__cause__, Timeout)
 
     def __repr__(self) -> str:
         return _repr_external_request_exception(self)
