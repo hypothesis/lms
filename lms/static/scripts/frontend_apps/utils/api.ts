@@ -114,6 +114,9 @@ export async function apiCall<Result = unknown>(
   const headers: Record<string, string> = {
     Authorization: authToken,
   };
+  if (retryCount > 0) {
+    headers['Retry-Count'] = `${retryCount}`;
+  }
 
   if (data !== undefined) {
     body = JSON.stringify(data);
@@ -136,7 +139,10 @@ export async function apiCall<Result = unknown>(
       retryCount < maxRetries
     ) {
       await delay(retryDelay);
-      return apiCall({ ...options, retryCount: retryCount + 1 });
+      return apiCall({
+        ...options,
+        retryCount: retryCount + 1,
+      });
     }
 
     // Refresh expired access tokens for external APIs, if required. Only one
