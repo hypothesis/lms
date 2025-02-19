@@ -14,6 +14,7 @@ from lms.validation import (
     APIRecordResultSchema,
     APIRecordSpeedgraderSchema,
 )
+from lms.views.helpers import log_retries_callback
 
 LOG = logging.getLogger(__name__)
 
@@ -150,6 +151,7 @@ class GradingViews:
         self.request.registry.notify(
             LTIEvent.from_request(request=self.request, type_=LTIEvent.Type.SUBMISSION)
         )
+        self.request.add_finished_callback(log_retries_callback)
         return {}
 
 
