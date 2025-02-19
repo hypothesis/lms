@@ -1,4 +1,5 @@
 from functools import lru_cache
+from logging import getLogger
 
 from sqlalchemy import exists, func, select, text
 from sqlalchemy.exc import NoResultFound
@@ -23,6 +24,8 @@ from lms.models import (
 from lms.models.lms_segment import LMSSegment
 from lms.services.course import CourseService
 from lms.services.upsert import bulk_upsert
+
+LOG = getLogger(__name__)
 
 
 class UserNotFound(Exception):  # noqa: N818
@@ -69,6 +72,11 @@ class UserService:
         if lti_user.is_instructor:
             # We are only storing emails for teachers now.
             user.email = lti_user.email
+        elif lti_user.is_learner:
+            if lti_user.email:
+                LOG.debug("Email received for student: %s", user.user_id)
+            else:
+                LOG.debug("No email received for student: %s", user.user_id)
 
         return user
 
