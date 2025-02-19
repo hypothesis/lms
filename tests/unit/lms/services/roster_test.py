@@ -121,8 +121,10 @@ class TestRosterService:
         result = db_session.execute(
             svc.get_course_roster(
                 lms_course,
-                role_scope=lti_role.scope if with_role_scope else None,
-                role_type=lti_role.type if with_role_type else None,
+                include_role=(
+                    lti_role.scope if with_role_scope else None,
+                    lti_role.type if with_role_type else None,
+                ),
                 h_userids=[lms_user.h_userid, inactive_lms_user.h_userid]
                 if with_h_userids
                 else None,
@@ -164,8 +166,10 @@ class TestRosterService:
         result = db_session.execute(
             svc.get_assignment_roster(
                 assignment,
-                role_scope=lti_role.scope if with_role_scope else None,
-                role_type=lti_role.type if with_role_type else None,
+                include_role=(
+                    lti_role.scope if with_role_scope else None,
+                    lti_role.type if with_role_type else None,
+                ),
                 h_userids=[lms_user.h_userid, inactive_lms_user.h_userid]
                 if with_h_userids
                 else None,
@@ -207,8 +211,10 @@ class TestRosterService:
         result = db_session.execute(
             svc.get_segments_roster(
                 [lms_segment],
-                role_scope=lti_role.scope if with_role_scope else None,
-                role_type=lti_role.type if with_role_type else None,
+                include_role=(
+                    lti_role.scope if with_role_scope else None,
+                    lti_role.type if with_role_type else None,
+                ),
                 h_userids=[lms_user.h_userid, inactive_lms_user.h_userid]
                 if with_h_userids
                 else None,
