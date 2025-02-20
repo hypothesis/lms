@@ -49,6 +49,7 @@ class TestConfigJSON:
                 "custom_canvas_course_id": "$Canvas.course.id",
                 "custom_canvas_api_domain": "$Canvas.api.domain",
                 "custom_canvas_user_id": "$Canvas.user.id",
+                "custom_canvas_user_login_id": "$Canvas.user.loginId",
                 "custom_display_name": "$Person.name.display",
                 "custom_context_id_history": "$Context.id.history",
                 "custom_course_starts": "$Canvas.course.startAt",
