@@ -16,19 +16,9 @@ http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd">
   <blti:title>Hypothesis</blti:title>
   <blti:launch_url>{{ launch_url }}</blti:launch_url>
   <blti:custom>
-    <lticm:property name="custom_canvas_course_id">$Canvas.course.id</lticm:property>
-    <lticm:property name="custom_canvas_api_domain">$Canvas.api.domain</lticm:property>
-    <lticm:property name="custom_display_name">$Person.name.display</lticm:property>
-    <lticm:property name="custom_canvas_user_id">$Canvas.user.id</lticm:property>
-    <lticm:property name="custom_context_id_history">$Context.id.history</lticm:property>
-    <lticm:property name="custom_course_starts">$Canvas.course.startAt</lticm:property>
-    <lticm:property name="custom_course_ends">$Canvas.course.endAt</lticm:property>
-    <lticm:property name="custom_term_name">$Canvas.term.name</lticm:property>
-    <lticm:property name="custom_term_start">$Canvas.term.startAt</lticm:property>
-    <lticm:property name="custom_term_end">$Canvas.term.endAt</lticm:property>
-    <lticm:property name="custom_assignment_id">$Canvas.assignment.id</lticm:property>
-    <lticm:property name="custom_allowed_attempts">$Canvas.assignment.allowedAttempts</lticm:property>
-    <lticm:property name="custom_submitted_attempts">$Canvas.assignment.submission.studentAttempts</lticm:property>
+    {% for name, value in custom_variables %}
+    <lticm:property name="{{ name }}">{{ value }}</lticm:property>
+    {% endfor %}
   </blti:custom>
   <blti:extensions platform="canvas.instructure.com">
     <lticm:options name="link_selection">

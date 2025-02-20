@@ -7,6 +7,23 @@ configured in Canvas.
 
 from pyramid.view import view_config
 
+CUSTOM_VARIABLES = [
+    ("custom_canvas_course_id", "$Canvas.course.id"),
+    ("custom_canvas_api_domain", "$Canvas.api.domain"),
+    ("custom_canvas_user_id", "$Canvas.user.id"),
+    ("custom_display_name", "$Person.name.display"),
+    ("custom_context_id_history", "$Context.id.history"),
+    ("custom_course_starts", "$Canvas.course.startAt"),
+    ("custom_course_ends", "$Canvas.course.endAt"),
+    ("custom_term_id", "$Canvas.term.id"),
+    ("custom_term_name", "$Canvas.term.name"),
+    ("custom_term_start", "$Canvas.term.startAt"),
+    ("custom_term_end", "$Canvas.term.endAt"),
+    ("custom_assignment_id", "$Canvas.assignment.id"),
+    ("custom_allowed_attempts", "$Canvas.assignment.allowedAttempts"),
+    ("custom_submitted_attempts", "$Canvas.assignment.submission.studentAttempts"),
+]
+
 
 @view_config(
     route_name="canvas.v11.config",
@@ -24,6 +41,7 @@ def config_xml(request):
     return {
         "launch_url": request.route_url("lti_launches"),
         "content_item_url": request.route_url("content_item_selection"),
+        "custom_variables": CUSTOM_VARIABLES,
     }
 
 
@@ -76,22 +94,7 @@ def config_json(request):
             }
         ],
         "public_jwk_url": request.route_url("lti.jwks"),
-        "custom_fields": {
-            "custom_canvas_course_id": "$Canvas.course.id",
-            "custom_canvas_api_domain": "$Canvas.api.domain",
-            "custom_canvas_user_id": "$Canvas.user.id",
-            "custom_display_name": "$Person.name.display",
-            "custom_context_id_history": "$Context.id.history",
-            "custom_course_starts": "$Canvas.course.startAt",
-            "custom_course_ends": "$Canvas.course.endAt",
-            "custom_term_id": "$Canvas.term.id",
-            "custom_term_name": "$Canvas.term.name",
-            "custom_term_start": "$Canvas.term.startAt",
-            "custom_term_end": "$Canvas.term.endAt",
-            "custom_assignment_id": "$Canvas.assignment.id",
-            "custom_allowed_attempts": "$Canvas.assignment.allowedAttempts",
-            "custom_submitted_attempts": "$Canvas.assignment.submission.studentAttempts",
-        },
+        "custom_fields": dict(CUSTOM_VARIABLES),
         "scopes": [
             "https://purl.imsglobal.org/spec/lti-ags/scope/score",
             "https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly",
