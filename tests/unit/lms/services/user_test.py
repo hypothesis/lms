@@ -113,8 +113,7 @@ class TestUserService:
         factories.User(h_userid=student_in_assignment.h_userid)  # Duplicated student
 
         query = service.get_users(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
+            include_role=(RoleScope.COURSE, RoleType.LEARNER),
             admin_organization_ids=[organization.id],
         )
 
@@ -131,8 +130,7 @@ class TestUserService:
         organization,
     ):
         query = service.get_users(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
+            include_role=(RoleScope.COURSE, RoleType.LEARNER),
             h_userids=[student_in_assignment.h_userid],
             admin_organization_ids=[organization.id],
         )
@@ -146,8 +144,7 @@ class TestUserService:
         self, service, db_session, student_in_assignment, course, organization
     ):
         query = service.get_users(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
+            include_role=(RoleScope.COURSE, RoleType.LEARNER),
             course_ids=[course.id],
             admin_organization_ids=[organization.id],
         )
@@ -162,8 +159,7 @@ class TestUserService:
         self, service, db_session, student_in_assignment, course, with_h_userids
     ):
         query = service.get_users_for_course(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
+            include_role=(RoleScope.COURSE, RoleType.LEARNER),
             lms_course=course.lms_course,
             h_userids=[student_in_assignment.h_userid] if with_h_userids else None,
         )
@@ -189,8 +185,7 @@ class TestUserService:
         db_session.flush()
 
         query = service.get_users_for_segments(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
+            include_role=(RoleScope.COURSE, RoleType.LEARNER),
             segment_ids=[lms_segment.id],
             h_userids=[student.h_userid] if with_h_userids else None,
         )
@@ -207,8 +202,7 @@ class TestUserService:
         db_session.flush()
 
         query = service.get_users(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
+            include_role=(RoleScope.COURSE, RoleType.LEARNER),
             assignment_ids=[assignment.id],
             admin_organization_ids=[organization.id],
         )
@@ -222,8 +216,7 @@ class TestUserService:
         self, service, db_session, student_in_assignment, assignment, with_h_userids
     ):
         query = service.get_users_for_assignment(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
+            include_role=(RoleScope.COURSE, RoleType.LEARNER),
             assignment_id=assignment.id,
             h_userids=[student_in_assignment.h_userid] if with_h_userids else None,
         )
@@ -247,8 +240,7 @@ class TestUserService:
         db_session.flush()
 
         query = service.get_users(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
+            include_role=(RoleScope.COURSE, RoleType.LEARNER),
             instructor_h_userid=teacher_in_assigment.h_userid,
         )
 
@@ -267,8 +259,7 @@ class TestUserService:
         with_h_userids,
     ):
         query = service.get_users_for_organization(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
+            include_role=(RoleScope.COURSE, RoleType.LEARNER),
             instructor_h_userid=teacher_in_assigment.h_userid,
             h_userids=[student_in_assignment.h_userid] if with_h_userids else None,
         )
@@ -296,8 +287,7 @@ class TestUserService:
         db_session.flush()
 
         query = service.get_users(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
+            include_role=(RoleScope.COURSE, RoleType.LEARNER),
             assignment_ids=[assignment.id],
             admin_organization_ids=[organization.id],
             segment_authority_provided_ids=[grouping.authority_provided_id],

@@ -335,8 +335,7 @@ class TestUserViews:
         views._students_query(assignment_ids=None, segment_authority_provided_ids=None)  # noqa: SLF001
 
         user_service.get_users.assert_called_once_with(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
+            include_role=(RoleScope.COURSE, RoleType.LEARNER),
             course_ids=[sentinel.course_id, sentinel.course_id_2],
             assignment_ids=None,
             instructor_h_userid=pyramid_request.user.h_userid,
@@ -349,8 +348,7 @@ class TestUserViews:
         views._students_query(assignment_ids=None, segment_authority_provided_ids=None)  # noqa: SLF001
 
         user_service.get_users_for_organization.assert_called_once_with(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
+            include_role=(RoleScope.COURSE, RoleType.LEARNER),
             h_userids=None,
             instructor_h_userid=pyramid_request.user.h_userid,
             admin_organization_ids=[],
