@@ -133,7 +133,7 @@ class TestVitalSourceService:
     @pytest.mark.usefixtures("user_is_learner")
     def test_check_h_license_failure(self, svc, pyramid_request, customer_client):
         svc._student_pay_enabled = True  # noqa: SLF001
-        customer_client.get_user_book_license.side_effect = [None, None]
+        customer_client.get_user_book_license.side_effect = [None, None, None]
 
         assert (
             svc.check_h_license(
@@ -154,6 +154,10 @@ class TestVitalSourceService:
                 call(
                     user_reference,
                     svc.H_SKUS[1],
+                ),
+                call(
+                    user_reference,
+                    svc.H_SKUS[2],
                 ),
             ]
         )
