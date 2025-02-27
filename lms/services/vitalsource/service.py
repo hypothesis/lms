@@ -11,10 +11,19 @@ from lms.services.vitalsource.model import VSBookLocation
 class VitalSourceService:
     """A high-level interface for dealing with VitalSource."""
 
-    H_SKUS = ["HYPOTHESISLMSAPP", "HYPOTHESISLMSAPPR180"]  # noqa: RUF012
+    H_SKUS = [  # noqa: RUF012
+        # Current SKU
+        "HYPOTHESISLMSAPPR180",
+        # VSBN
+        "979-8-9925278-0-3",
+        # Legacy SKU
+        "HYPOTHESISLMSAPP",
+    ]
     """
-    SKU of the H app in the VitalSource store.
-    Student pay schools will check students have a license for this SKU
+    SKUs of the H app in the VitalSource store.
+
+    In student pay schools will check if students
+    have a license for any of these SKUs
     before they can use the H LMS app.
     """
 
