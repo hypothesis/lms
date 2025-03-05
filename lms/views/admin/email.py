@@ -88,6 +88,14 @@ class AdminEmailViews:
     def preview_instructor_email_digest(self):
         return INSTRUCTOR_EMAIL_DIGEST_TEMPLATE_VARS
 
+    @view_config(
+        route_name="admin.email.preview.annotation_activity",
+        request_method="GET",
+        renderer="lms:templates/email/annotation_activity/body.html.jinja2",
+    )
+    def preview_annotation_activity(self):
+        return INSTRUCTOR_EMAIL_DIGEST_TEMPLATE_VARS
+
 
 #: Test template variables that the admin page will pass to the instructor_email_digest templates.
 INSTRUCTOR_EMAIL_DIGEST_TEMPLATE_VARS = {
