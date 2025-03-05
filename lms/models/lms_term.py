@@ -22,7 +22,7 @@ class LMSTerm(CreatedUpdatedMixin, Base):
     """The end date of the term."""
 
     key: Mapped[str] = mapped_column(index=True, unique=True)
-    """Not all installs will send us an ID so we'll mantaint an internal key to be able to idneitfy each term and avoid duplicates."""
+    """Not all installs will send us an ID so we'll maintain an internal key to be able to identify each term and avoid duplicates."""
 
     lms_id: Mapped[str | None] = mapped_column(index=True)
     """ID of this term on the LMS."""
