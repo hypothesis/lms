@@ -83,8 +83,7 @@ class RosterService:
     def get_assignment_roster(
         self,
         assignment: Assignment,
-        role_scope: RoleScope | None = None,
-        role_type: RoleType | None = None,
+        include_role: tuple[RoleScope | None, RoleType | None] = (None, None),
         h_userids: list[str] | None = None,
     ) -> Select[tuple[LMSUser, bool]]:
         """Get the roster information for a course from our DB."""
@@ -95,13 +94,12 @@ class RosterService:
             .where(AssignmentRoster.assignment_id == assignment.id)
         ).distinct()
 
-        return self._get_roster(roster_query, role_scope, role_type, h_userids)
+        return self._get_roster(roster_query, include_role, h_userids)
 
     def get_segments_roster(
         self,
         segments: list[LMSSegment],
-        role_scope: RoleScope | None = None,
-        role_type: RoleType | None = None,
+        include_role: tuple[RoleScope | None, RoleType | None] = (None, None),
         h_userids: list[str] | None = None,
     ) -> Select[tuple[LMSUser, bool]]:
         """Get the roster information for a segment from our DB."""
@@ -113,13 +111,12 @@ class RosterService:
             .where(LMSSegmentRoster.lms_segment_id.in_([s.id for s in segments]))
         ).distinct()
 
-        return self._get_roster(roster_query, role_scope, role_type, h_userids)
+        return self._get_roster(roster_query, include_role, h_userids)
 
     def get_course_roster(
         self,
         lms_course: LMSCourse,
-        role_scope: RoleScope | None = None,
-        role_type: RoleType | None = None,
+        include_role: tuple[RoleScope | None, RoleType | None] = (None, None),
         h_userids: list[str] | None = None,
     ) -> Select[tuple[LMSUser, bool]]:
         """Get the roster information for a course from our DB."""
@@ -130,19 +127,19 @@ class RosterService:
             .where(CourseRoster.lms_course_id == lms_course.id)
         ).distinct()
 
-        return self._get_roster(roster_query, role_scope, role_type, h_userids)
+        return self._get_roster(roster_query, include_role, h_userids)
 
     def _get_roster(
         self,
         roster_query,
-        role_scope: RoleScope | None = None,
-        role_type: RoleType | None = None,
+        include_role: tuple[RoleScope | None, RoleType | None] = (None, None),
         h_userids: list[str] | None = None,
     ) -> Select[tuple[LMSUser, bool]]:
         """Filter a roster query by role and h_userids.
 
         Helper function for the get_*_roster methods.
         """
+        role_scope, role_type = include_role
         if role_scope:
             roster_query = roster_query.where(LTIRole.scope == role_scope)
 
@@ -389,7 +386,7 @@ class RosterService:
         Sections are different than other rosters:
              - We fetch them via the proprietary Canvas API, not the LTI Names and Roles endpoint.
 
-             - Due to the return value of that API we don't fetch rosters for indivual sections,
+             - Due to the return value of that API we don't fetch rosters for individual sections,
                but for all sections of one course at once
 
              - The return value of the API doesn't include enough information to create unseen users

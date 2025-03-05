@@ -285,8 +285,7 @@ class TestDashboardService:
 
         if not roster_available:
             user_service.get_users_for_assignment.assert_called_once_with(
-                role_scope=RoleScope.COURSE,
-                role_type=RoleType.LEARNER,
+                include_role=(RoleScope.COURSE, RoleType.LEARNER),
                 assignment_id=assignment.id,
                 h_userids=sentinel.h_userids,
             )
@@ -298,8 +297,7 @@ class TestDashboardService:
         else:
             roster_service.get_assignment_roster.assert_called_once_with(
                 assignment,
-                role_scope=RoleScope.COURSE,
-                role_type=RoleType.LEARNER,
+                include_role=(RoleScope.COURSE, RoleType.LEARNER),
                 h_userids=sentinel.h_userids,
             )
             assert (
@@ -330,8 +328,7 @@ class TestDashboardService:
 
         if not roster_available:
             user_service.get_users_for_course.assert_called_once_with(
-                role_scope=RoleScope.COURSE,
-                role_type=RoleType.LEARNER,
+                include_role=(RoleScope.COURSE, RoleType.LEARNER),
                 lms_course=lms_course,
                 h_userids=sentinel.h_userids,
             )
@@ -343,8 +340,7 @@ class TestDashboardService:
         else:
             roster_service.get_course_roster.assert_called_once_with(
                 lms_course,
-                role_scope=RoleScope.COURSE,
-                role_type=RoleType.LEARNER,
+                include_role=(RoleScope.COURSE, RoleType.LEARNER),
                 h_userids=sentinel.h_userids,
             )
             assert (
@@ -367,8 +363,7 @@ class TestDashboardService:
 
         if not roster_available:
             user_service.get_users_for_segments.assert_called_once_with(
-                role_scope=RoleScope.COURSE,
-                role_type=RoleType.LEARNER,
+                include_role=(RoleScope.COURSE, RoleType.LEARNER),
                 segment_ids=[segment.id],
                 h_userids=sentinel.h_userids,
             )
@@ -380,8 +375,7 @@ class TestDashboardService:
         else:
             roster_service.get_segments_roster.assert_called_once_with(
                 [segment],
-                role_scope=RoleScope.COURSE,
-                role_type=RoleType.LEARNER,
+                include_role=(RoleScope.COURSE, RoleType.LEARNER),
                 h_userids=sentinel.h_userids,
             )
             assert (
