@@ -53,7 +53,7 @@ class LMSUser(CreatedUpdatedMixin, Base):
 
     @property
     def user_id(self) -> str:
-        """Alias lti_user_id to user_if for compatilbiity with models.User."""
+        """Alias lti_user_id to user_if for compatibility with models.User."""
         return self.lti_user_id
 
 
