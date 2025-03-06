@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 
 import importlib_resources
 import pytest
@@ -9,19 +9,29 @@ TASK_ROOT = importlib_resources.files("lms.data_tasks")
 
 
 class TestDateFunctions:
-    ONE_YEAR_AGO = datetime.now().replace(year=datetime.now().year - 1).date()  # noqa: DTZ005
-    TWO_YEARS_AGO = datetime.now().replace(year=datetime.now().year - 2).date()  # noqa: DTZ005
+    NOW = datetime(2025, 3, 6, tzinfo=UTC)  # We hardcode the date to avoid flakiness
+    # 2024 was a leap year so the math accounts for that 366 days
+    ONE_YEAR_AGO = (NOW - timedelta(days=366)).date()
+    TWO_YEARS_AGO = (NOW - timedelta(days=366 + 365)).date()
 
     @pytest.mark.usefixtures("with_date_functions")
     @pytest.mark.parametrize(
         "timescale,value,expected",
         (
-            ("trailing_year", "NOW()", ONE_YEAR_AGO),
+            ("trailing_year", "'2025/03/06'::date", ONE_YEAR_AGO),
             # Technically this test could fail if you run this exactly at midnight
-            ("trailing_year", "NOW() - INTERVAL '1 second'", ONE_YEAR_AGO),
-            ("trailing_year", "NOW() - INTERVAL '1 day'", ONE_YEAR_AGO),
-            ("trailing_year", "NOW() - INTERVAL '1 year'", TWO_YEARS_AGO),
-            ("trailing_year", "NOW() - INTERVAL '1 year 1 day'", TWO_YEARS_AGO),
+            ("trailing_year", "'2025/03/06'::date - INTERVAL '1 second'", ONE_YEAR_AGO),
+            ("trailing_year", "'2025/03/06'::date - INTERVAL '1 day'", ONE_YEAR_AGO),
+            (
+                "trailing_year",
+                "'2025/03/06'::date - INTERVAL '1 year 1 day'",
+                TWO_YEARS_AGO,
+            ),
+            (
+                "trailing_year",
+                "'2025/03/06'::date - INTERVAL '1 year 10 day'",
+                TWO_YEARS_AGO,
+            ),
         ),
     )
     def test_multi_truncate(self, db_session, timescale, value, expected):
