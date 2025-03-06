@@ -222,7 +222,7 @@ iniconfig==2.0.0
     #   -r functests.txt
     #   -r tests.txt
     #   pytest
-jinja2==3.1.5
+jinja2==3.1.6
     # via
     #   -r functests.txt
     #   -r tests.txt
