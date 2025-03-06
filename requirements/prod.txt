@@ -174,7 +174,7 @@ pyramid==2.0.2
     #   pyramid-tm
 pyramid-exclog==1.1
     # via -r requirements/prod.in
-pyramid-googleauth==1.0.5
+pyramid-googleauth==1.0.6
     # via -r requirements/prod.in
 pyramid-jinja2==2.10
     # via -r requirements/prod.in
