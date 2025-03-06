@@ -112,7 +112,7 @@ cryptography==44.0.1
     #   -r requirements/tests.txt
     #   joserfc
     #   pyjwt
-data-tasks==0.0.4
+data-tasks==0.0.5
     # via
     #   -r requirements/functests.txt
     #   -r requirements/tests.txt

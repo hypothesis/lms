@@ -51,7 +51,7 @@ cryptography==44.0.1
     # via
     #   joserfc
     #   pyjwt
-data-tasks==0.0.4
+data-tasks==0.0.5
     # via -r requirements/prod.in
 frozenlist==1.4.1
     # via
