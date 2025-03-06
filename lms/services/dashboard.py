@@ -219,8 +219,7 @@ class DashboardService:
             # If rostering is enabled and we do have the data, use it
             query = self._roster_service.get_assignment_roster(
                 assignment,
-                role_scope=RoleScope.COURSE,
-                role_type=RoleType.LEARNER,
+                include_role=(RoleScope.COURSE, RoleType.LEARNER),
                 h_userids=h_userids,
             )
 
@@ -229,8 +228,7 @@ class DashboardService:
             roster_last_updated = None
             # Always fallback to fetch users that have launched the assignment at some point
             query = self._user_service.get_users_for_assignment(
-                role_scope=RoleScope.COURSE,
-                role_type=RoleType.LEARNER,
+                include_role=(RoleScope.COURSE, RoleType.LEARNER),
                 assignment_id=assignment.id,
                 h_userids=h_userids,
                 # For launch data we always add the "active" column as true for compatibility with the roster query.
@@ -249,16 +247,14 @@ class DashboardService:
             # If rostering is enabled and we do have the data, use it
             query = self._roster_service.get_course_roster(
                 lms_course,
-                role_scope=RoleScope.COURSE,
-                role_type=RoleType.LEARNER,
+                include_role=(RoleScope.COURSE, RoleType.LEARNER),
                 h_userids=h_userids,
             )
 
         else:
             # Always fallback to fetch users that have launched the assignment at some point
             query = self._user_service.get_users_for_course(
-                role_scope=RoleScope.COURSE,
-                role_type=RoleType.LEARNER,
+                include_role=(RoleScope.COURSE, RoleType.LEARNER),
                 lms_course=lms_course,
                 h_userids=h_userids,
                 # For launch data we always add the "active" column as true for compatibility with the roster query.
@@ -280,16 +276,14 @@ class DashboardService:
             # If rostering is enabled and we do have the data, use it
             query = self._roster_service.get_segments_roster(
                 segments,
-                role_scope=RoleScope.COURSE,
-                role_type=RoleType.LEARNER,
+                include_role=(RoleScope.COURSE, RoleType.LEARNER),
                 h_userids=h_userids,
             )
 
         else:
             # Always fallback to fetch users that have launched the assignment at some point
             query = self._user_service.get_users_for_segments(
-                role_scope=RoleScope.COURSE,
-                role_type=RoleType.LEARNER,
+                include_role=(RoleScope.COURSE, RoleType.LEARNER),
                 segment_ids=[segment.id for segment in segments],
                 h_userids=h_userids,
                 # For launch data we always add the "active" column as true for compatibility with the roster query.

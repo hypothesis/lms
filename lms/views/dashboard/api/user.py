@@ -264,8 +264,7 @@ class UserViews:
         # Full organization fetch
         if not course_ids and not assignment_ids and not segment_authority_provided_ids:
             return None, self.user_service.get_users_for_organization(
-                role_scope=RoleScope.COURSE,
-                role_type=RoleType.LEARNER,
+                include_role=(RoleScope.COURSE, RoleType.LEARNER),
                 h_userids=h_userids,
                 # Users the current user has access to see
                 instructor_h_userid=self.request.user.h_userid
@@ -276,8 +275,7 @@ class UserViews:
             ).add_columns(true())
 
         return None, self.user_service.get_users(
-            role_scope=RoleScope.COURSE,
-            role_type=RoleType.LEARNER,
+            include_role=(RoleScope.COURSE, RoleType.LEARNER),
             course_ids=self.request.parsed_params.get("course_ids"),
             assignment_ids=assignment_ids,
             # Users the current user has access to see
