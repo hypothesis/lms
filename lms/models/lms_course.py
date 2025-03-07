@@ -9,6 +9,7 @@ These duplicate some of the information stored in Grouping and GroupingMembershi
 
 from datetime import datetime
 from typing import TYPE_CHECKING
+from urllib.parse import urljoin
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -16,6 +17,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from lms.db import Base
 from lms.models import ApplicationInstance
 from lms.models._mixins import CreatedUpdatedMixin
+from lms.models.family import Family
 
 if TYPE_CHECKING:
     from lms.models import LMSTerm, LMSUser, LTIRole
@@ -62,6 +64,26 @@ class LMSCourse(CreatedUpdatedMixin, Base):
         sa.ForeignKey("lms_term.id", ondelete="cascade"), index=True
     )
     lms_term: Mapped["LMSTerm"] = relationship()
+
+    application_instances: Mapped[list[ApplicationInstance]] = relationship(
+        secondary="lms_course_application_instance",
+        order_by="desc(LMSCourseApplicationInstance.updated)",
+        viewonly=True,
+    )
+
+    @property
+    def lms_url(self) -> str | None:
+        """The URL of the course in the LMS."""
+        ai = self.application_instances[0]
+        if ai.family != Family.CANVAS:
+            # We only support Canvas for now
+            return None
+
+        if not ai.lms_url or not self.lms_api_course_id:
+            # We need both the LMS base URL and the course ID
+            return None
+
+        return urljoin(ai.lms_url, f"/courses/{self.lms_api_course_id}")
 
 
 class LMSCourseApplicationInstance(CreatedUpdatedMixin, Base):
