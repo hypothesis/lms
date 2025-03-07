@@ -2,7 +2,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from lms.models import ApplicationInstance
-from lms.models.lti_role import LTIRole, LTIRoleOverride, Role
+from lms.models.lti_role import LTIRole, LTIRoleOverride, Role, RoleScope, RoleType
 
 
 class LTIRoleService:
@@ -100,6 +100,35 @@ class LTIRoleService:
 
     def delete_override(self, override: LTIRoleOverride):
         self._db.delete(override)
+
+    @staticmethod
+    def is_admin(roles: list[LTIRole] | list[Role]) -> bool:
+        return any(
+            role.type == RoleType.ADMIN
+            and role.scope in {RoleScope.COURSE, RoleScope.SYSTEM}
+            for role in roles
+        )
+
+    @staticmethod
+    def is_instructor(roles: list[LTIRole] | list[Role]) -> bool:
+        # We consider admins to be instructors for authorization purposes
+        return LTIRoleService.is_admin(roles) or any(
+            # And any instructor in the course
+            role.type == RoleType.INSTRUCTOR and role.scope == RoleScope.COURSE
+            for role in roles
+        )
+
+    @staticmethod
+    def is_learner(roles: list[LTIRole] | list[Role]) -> bool:
+        """Whether this user is a learner."""
+
+        if LTIRoleService.is_instructor(roles):
+            return False
+
+        return any(
+            role.type == RoleType.LEARNER and role.scope == RoleScope.COURSE
+            for role in roles
+        )
 
 
 def service_factory(_context, request) -> LTIRoleService:

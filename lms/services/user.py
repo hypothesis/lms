@@ -70,13 +70,13 @@ class UserService:
         user.roles = lti_user.roles
         user.display_name = lti_user.display_name
         if lti_user.is_instructor:
-            # We are only storing emails for teachers now.
+            # Always store instructor emails
             user.email = lti_user.email
-        elif lti_user.is_learner:
-            if lti_user.email:
-                LOG.debug("Email received for student: %s", user.user_id)
-            else:
-                LOG.debug("No email received for student: %s", user.user_id)
+        elif lti_user.is_learner and lti_user.application_instance.settings.get(
+            "hypothesis", "collect_student_emails", False
+        ):
+            # Only store student emails if the feature flag is enabled
+            user.email = lti_user.email
 
         return user
 

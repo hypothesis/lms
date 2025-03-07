@@ -114,11 +114,12 @@
                             <legend class="label has-text-centered">General settings</legend>
                             {{ settings_checkbox('Enable instructor email digests', 'hypothesis', 'instructor_email_digests_enabled') }}
                             {{ settings_checkbox("Use alternative parameter for LTI1.3 grading", "hypothesis", "lti_13_sourcedid_for_grading", default=False) }}
+                            {{ settings_checkbox('Collect student emails', 'hypothesis', 'collect_student_emails') }}
                         </fieldset>
                         <fieldset class="box">
                             <legend class="label has-text-centered">Canvas settings</legend>
                             {{ macros.disabled_text_field("API domain", instance.custom_canvas_api_domain) }}
-                            {# Note the mismatch betwween canvas nomenclature and ours #}
+                            {# Note the mismatch between canvas nomenclature and ours #}
                             {# developer id -> developer key #}
                             {# developer key -> developer secret #}
                             {{ macros.form_text_field(request, "Developer ID", "developer_key", field_value=instance.developer_key) }}

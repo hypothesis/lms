@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from unittest.mock import Mock, sentinel
+from unittest.mock import Mock, call, sentinel
 
 import pytest
 from h_matchers import Any
@@ -273,8 +273,12 @@ class TestRosterService:
         lti_names_roles_service.get_context_memberships.assert_called_once_with(
             lti_v13_application_instance.lti_registration, "SERVICE_URL"
         )
-        lti_role_service.get_roles.assert_called_once_with(
-            Any.list.containing(["ROLE2", "ROLE1"])
+        lti_role_service.get_roles.assert_has_calls(
+            [
+                call(Any.list.containing(["ROLE1", "ROLE2"])),
+                call(["ROLE1"]),
+                call(Any.list.containing(["ROLE1", "ROLE2"])),
+            ]
         )
 
         roster = db_session.scalars(
@@ -331,8 +335,12 @@ class TestRosterService:
         lti_names_roles_service.get_context_memberships.assert_called_once_with(
             lti_v13_application_instance.lti_registration, "SERVICE_URL", "LTI1.3_ID"
         )
-        lti_role_service.get_roles.assert_called_once_with(
-            Any.list.containing(["ROLE2", "ROLE1"])
+        lti_role_service.get_roles.assert_has_calls(
+            [
+                call(Any.list.containing(["ROLE1", "ROLE2"])),
+                call(["ROLE1"]),
+                call(Any.list.containing(["ROLE1", "ROLE2"])),
+            ]
         )
 
         roster = db_session.scalars(
@@ -357,6 +365,64 @@ class TestRosterService:
         assert roster[3].assignment_id == assignment.id
         assert roster[3].lms_user.lti_user_id == "USER_ID_INACTIVE"
         assert not roster[3].active
+
+    @pytest.mark.parametrize("collect_student_emails", [True, False])
+    @pytest.mark.parametrize("is_learner", [True, False])
+    @pytest.mark.parametrize(
+        "response,expected_email",
+        [
+            (
+                {
+                    "user_id": "USER_ID",
+                    "roles": ["ROLE1"],
+                    "status": "Active",
+                    "email": "USER_ID@example.com",
+                },
+                "USER_ID@example.com",
+            ),
+            (
+                {"user_id": "USER_ID", "roles": ["ROLE1"], "status": "Active"},
+                None,
+            ),
+        ],
+    )
+    def test_fetch_assignment_roster_saves_email(
+        self,
+        svc,
+        lti_names_roles_service,
+        db_session,
+        lti_role_service,
+        assignment,
+        response,
+        expected_email,
+        application_instance,
+        collect_student_emails,
+        is_learner,
+    ):
+        application_instance.settings.set(
+            "hypothesis", "collect_student_emails", collect_student_emails
+        )
+        lti_names_roles_service.get_context_memberships.return_value = [response]
+        lti_role_service.get_roles.return_value = [
+            factories.LTIRole(
+                value="ROLE1",
+                scope=RoleScope.COURSE,
+                type=RoleType.LEARNER if is_learner else RoleType.INSTRUCTOR,
+            ),
+        ]
+
+        svc.fetch_assignment_roster(assignment)
+
+        roster = db_session.scalars(
+            select(AssignmentRoster)
+            .order_by(AssignmentRoster.lms_user_id)
+            .where(AssignmentRoster.assignment_id == assignment.id)
+        ).all()
+
+        if (is_learner and collect_student_emails) or not is_learner:
+            assert roster[0].lms_user.email == expected_email
+        else:
+            assert not roster[0].lms_user.email
 
     @pytest.mark.parametrize(
         "family,response,lms_api_user_id",
@@ -483,8 +549,12 @@ class TestRosterService:
             lti_v13_application_instance.lti_registration,
             f"https://{lti_v13_application_instance.lms_host()}/api/lti/groups/{canvas_group.lms_id}/names_and_roles",
         )
-        lti_role_service.get_roles.assert_called_once_with(
-            Any.list.containing(["ROLE2", "ROLE1"])
+        lti_role_service.get_roles.assert_has_calls(
+            [
+                call(Any.list.containing(["ROLE1", "ROLE2"])),
+                call(["ROLE1"]),
+                call(Any.list.containing(["ROLE1", "ROLE2"])),
+            ]
         )
 
         roster = db_session.scalars(
