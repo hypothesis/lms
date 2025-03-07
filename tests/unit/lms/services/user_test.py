@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime
 from unittest.mock import sentinel
 
@@ -35,22 +34,24 @@ class TestUserService:
 
     @pytest.mark.usefixtures("user_is_learner")
     @pytest.mark.parametrize("email", [None, "test@example.com"])
+    @pytest.mark.parametrize("collect_student_emails", [True, False])
     def test_upsert_user_doesnt_save_email_for_students(
-        self, service, lti_user, db_session, caplog, email
+        self, service, lti_user, db_session, email, collect_student_emails
     ):
-        caplog.set_level(logging.DEBUG)
         lti_user.email = email
+        lti_user.application_instance.settings.set(
+            "hypothesis", "collect_student_emails", collect_student_emails
+        )
 
         service.upsert_user(lti_user)
 
         saved_user = db_session.query(User).order_by(User.id.desc()).first()
         assert saved_user.roles == lti_user.roles
-        assert not saved_user.email
 
-        if lti_user.email:
-            assert "Email received for student" in caplog.text
+        if lti_user.email and collect_student_emails:
+            assert saved_user.email == lti_user.email
         else:
-            assert "No email received for student" in caplog.text
+            assert not saved_user.email
 
     @pytest.mark.usefixtures("user")
     def test_upsert_user_with_an_existing_user(self, service, lti_user, db_session):

@@ -160,6 +160,12 @@ class TestApplicationSettings:
                 "hypothesis.lti_13_sourcedid_for_grading",
                 SettingFormat.BOOLEAN,
             ),
+            (
+                "hypothesis",
+                "collect_student_emails",
+                "hypothesis.collect_student_emails",
+                SettingFormat.TRI_STATE,
+            ),
         ]
 
 

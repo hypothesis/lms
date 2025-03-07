@@ -51,16 +51,19 @@ class UserService:
         # tied to users in groups. Should we start to store users who have not
         # launched us, we could inflate our numbers or change their meaning.
 
+        application_instance = lti_user.application_instance
+        ai_settings = application_instance.settings
+
         user = self._db.execute(
             self._user_search_query(
-                application_instance_id=lti_user.application_instance_id,
+                application_instance_id=application_instance.id,
                 user_id=lti_user.user_id,
             )
         ).scalar_one_or_none()
 
         if not user:
             user = User(
-                application_instance_id=lti_user.application_instance_id,
+                application_instance_id=application_instance.id,
                 user_id=lti_user.user_id,
                 roles=lti_user.roles,
                 h_userid=lti_user.h_user.userid(self._h_authority),
@@ -69,14 +72,17 @@ class UserService:
 
         user.roles = lti_user.roles
         user.display_name = lti_user.display_name
-        if lti_user.is_instructor:
-            # We are only storing emails for teachers now.
+        if lti_user.is_instructor or (
+            lti_user.is_learner
+            and ai_settings.get_setting(
+                ai_settings.fields[
+                    ai_settings.Settings.HYPOTHESIS_COLLECT_STUDENT_EMAILS
+                ]
+            )
+        ):
+            # Always store instructor emails
+            # and only store student emails if the feature flag is enabled
             user.email = lti_user.email
-        elif lti_user.is_learner:
-            if lti_user.email:
-                LOG.debug("Email received for student: %s", user.user_id)
-            else:
-                LOG.debug("No email received for student: %s", user.user_id)
 
         return user
 

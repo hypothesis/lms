@@ -171,7 +171,7 @@ class RosterService:
             u.lti_user_id: u
             for u in self._get_roster_users(
                 roster,
-                application_instance.family,
+                application_instance,
                 lms_course.tool_consumer_instance_guid,
             )
         }
@@ -266,7 +266,7 @@ class RosterService:
             u.lti_user_id: u
             for u in self._get_roster_users(
                 roster,
-                application_instance.family,
+                application_instance,
                 lms_course.tool_consumer_instance_guid,
             )
         }
@@ -317,16 +317,7 @@ class RosterService:
         assert lms_course.lti_context_memberships_url, (  # noqa: S101
             "Trying fetch roster for course without service URL."
         )
-
-        application_instance = self._db.scalars(
-            select(ApplicationInstance)
-            .join(LMSCourseApplicationInstance)
-            .where(
-                LMSCourseApplicationInstance.lms_course_id == lms_course.id,
-                ApplicationInstance.lti_registration_id.is_not(None),
-            )
-            .order_by(ApplicationInstance.updated.desc())
-        ).first()
+        application_instance = self._get_application_instance(lms_course)
 
         roster = self._lti_names_roles_service.get_context_memberships(
             application_instance.lti_registration,
@@ -340,7 +331,7 @@ class RosterService:
             u.lti_user_id: u
             for u in self._get_roster_users(
                 roster,
-                application_instance.family,
+                application_instance,
                 lms_course.tool_consumer_instance_guid,
             )
         }
@@ -389,7 +380,7 @@ class RosterService:
         Sections are different than other rosters:
              - We fetch them via the proprietary Canvas API, not the LTI Names and Roles endpoint.
 
-             - Due to the return value of that API we don't fetch rosters for indivual sections,
+             - Due to the return value of that API we don't fetch rosters for individual sections,
                but for all sections of one course at once
 
              - The return value of the API doesn't include enough information to create unseen users
@@ -462,7 +453,7 @@ class RosterService:
                 )
                 continue
 
-            # We use a set here to avoid any pontential duplicates in the API response.
+            # We use a set here to avoid any potential duplicates in the API response.
             student_ids = {
                 str(student["id"]) for student in api_section.get("students") or []
             }
@@ -509,19 +500,35 @@ class RosterService:
         )
 
     def _get_roster_users(
-        self, roster: list[Member], family: Family, tool_consumer_instance_guid
+        self, roster: list[Member], application_instance, tool_consumer_instance_guid
     ):
         values = []
         for member in roster:
             lti_user_id = member.get("lti11_legacy_user_id") or member["user_id"]
             lti_v13_user_id = member["user_id"]
-            lms_api_user_id = self._get_lms_api_user_id(member, family)
+            lms_api_user_id = self._get_lms_api_user_id(
+                member, application_instance.family
+            )
             name = display_name(
                 given_name=member.get("name", ""),
                 family_name=member.get("family_name", ""),
                 full_name="",
                 custom_display_name="",
             )
+
+            roles = self._lti_role_service.get_roles(member["roles"])
+
+            email = None
+            ai_settings = application_instance.settings
+            if LTIRoleService.is_instructor(roles) or (
+                LTIRoleService.is_learner(roles)
+                and ai_settings.get_setting(
+                    ai_settings.fields[
+                        ai_settings.Settings.HYPOTHESIS_COLLECT_STUDENT_EMAILS
+                    ]
+                )
+            ):
+                email = member.get("email")
 
             h_userid = get_h_userid(
                 self._h_authority,
@@ -536,6 +543,7 @@ class RosterService:
                     "h_userid": h_userid,
                     "display_name": name,
                     "lms_api_user_id": lms_api_user_id,
+                    "email": email,
                 }
             )
 
@@ -554,6 +562,13 @@ class RosterService:
                     func.coalesce(
                         text('"excluded"."lms_api_user_id"'),
                         text('"lms_user"."lms_api_user_id"'),
+                    ),
+                ),
+                (
+                    "email",
+                    func.coalesce(
+                        text('"excluded"."email"'),
+                        text('"lms_user"."email"'),
                     ),
                 ),
             ],
