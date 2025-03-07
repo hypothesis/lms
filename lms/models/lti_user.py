@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from lms.models.application_instance import ApplicationInstance
 from lms.models.h_user import HUser
-from lms.models.lti_role import LTIRole, Role, RoleScope, RoleType
+from lms.models.lti_role import LTIRole, Role
 
 
 @dataclass
@@ -72,33 +72,23 @@ class LTIUser:
     @property
     def is_instructor(self):
         """Whether this user is an instructor."""
-        # We consider admins to be instructors for authorization purposes
-        return self.is_admin or any(
-            # And any instructor in the course
-            role.type == RoleType.INSTRUCTOR and role.scope == RoleScope.COURSE
-            for role in self.effective_lti_roles
-        )
+        from lms.services.lti_role_service import LTIRoleService
+
+        return LTIRoleService.is_instructor(self.effective_lti_roles)
 
     @property
     def is_learner(self):
         """Whether this user is a learner."""
+        from lms.services.lti_role_service import LTIRoleService
 
-        if self.is_instructor:
-            return False
-
-        return any(
-            role.type == RoleType.LEARNER and role.scope == RoleScope.COURSE
-            for role in self.effective_lti_roles
-        )
+        return LTIRoleService.is_learner(self.effective_lti_roles)
 
     @property
     def is_admin(self):
         """Whether this user is an admin."""
-        return any(
-            role.type == RoleType.ADMIN
-            and role.scope in {RoleScope.COURSE, RoleScope.SYSTEM}
-            for role in self.effective_lti_roles
-        )
+        from lms.services.lti_role_service import LTIRoleService
+
+        return LTIRoleService.is_admin(self.effective_lti_roles)
 
 
 def display_name(
