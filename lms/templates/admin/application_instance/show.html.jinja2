@@ -21,6 +21,15 @@
         </label>
     {% endcall %}
 {% endmacro %}
+{% macro setting_checkbox(label, setting, field_name) %}
+    {% call macros.field_body(label) %}
+        <label class="checkbox">
+            <input {% if instance.settings.get_setting(setting) %}checked{% endif %}
+                   type="checkbox"
+                   name="{{ setting.group }}.{{ setting.key }}">
+        </label>
+    {% endcall %}
+{% endmacro %}
 {% macro settings_text_field(label, setting, sub_setting, field_name, default='') %}
     {% call macros.field_body(label) %}
         <input value="{{ instance.settings.get(setting, sub_setting, default) or '' }}"
@@ -63,7 +72,7 @@
                         <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
                         <fieldset class="box">
                             {{ macros.form_text_field(request, "Name", "name", field_value=instance.name) }}
-                            {{ macros.settings_textarea(instance, "Notes", fields[instance.settings.Settings.HYPOTHESIS_NOTES]) }}
+                            {{ macros.settings_textarea(instance, "Notes", fields[Settings.HYPOTHESIS_NOTES]) }}
                             {{ macros.disabled_text_field("Consumer key", instance.consumer_key) }}
                             {{ macros.disabled_text_field("Shared secret", instance.shared_secret) }}
                             {{ macros.form_text_field(request, "Deployment ID", "deployment_id", field_value=instance.deployment_id) }}
@@ -173,7 +182,7 @@
                             {{ settings_checkbox("Microsoft OneDrive enabled", "microsoft_onedrive", "files_enabled", default=True) }}
                             {{ settings_checkbox('JSTOR enabled', 'jstor', 'enabled') }}
                             {{ settings_text_field('JSTOR site code', 'jstor', 'site_code') }}
-                            {{ settings_checkbox("YouTube enabled", "youtube", "enabled", default=True) }}
+                            {{ setting_checkbox("Youtube enabled", fields[Settings.YOUTUBE_ENABLED]) }}
                         </fieldset>
                         <div class="has-text-right mb-6">
                             <input type="submit" class="button is-primary" value="Save" />

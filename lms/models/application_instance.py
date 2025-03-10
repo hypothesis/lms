@@ -137,7 +137,9 @@ class ApplicationSettings(JSONSettings):
         ),
         Settings.JSTOR_ENABLED: JSONSetting(Settings.JSTOR_ENABLED, asbool),
         Settings.JSTOR_SITE_CODE: JSONSetting(Settings.JSTOR_SITE_CODE),
-        Settings.YOUTUBE_ENABLED: JSONSetting(Settings.YOUTUBE_ENABLED, asbool),
+        Settings.YOUTUBE_ENABLED: JSONSetting(
+            Settings.YOUTUBE_ENABLED, asbool, default=True
+        ),
         Settings.HYPOTHESIS_NOTES: JSONSetting(Settings.HYPOTHESIS_NOTES),
         Settings.HYPOTHESIS_AUTO_ASSIGNED_TO_ORG: JSONSetting(
             Settings.HYPOTHESIS_AUTO_ASSIGNED_TO_ORG, asbool

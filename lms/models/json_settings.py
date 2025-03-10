@@ -24,9 +24,12 @@ class JSONSetting:
     format: Any = str
     """An identifier to say what type of field this is."""
 
-    def __init__(self, compound_key: str, format_: Any = str):
+    default: Any = None
+
+    def __init__(self, compound_key: str, format_: Any = str, default=None):
         self.group, self.key = compound_key.split(".")
         self.format = format_
+        self.default = default
 
     @property
     def compound_key(self) -> str:
@@ -80,6 +83,9 @@ class JSONSettings(MutableDict):
         :return: The value or None
         """
         return super().get(group, {}).get(key, default)
+
+    def get_setting(self, setting: JSONSetting):
+        return self.get(setting.group, setting.key, setting.default)
 
     def set(self, group, key, value):
         """
