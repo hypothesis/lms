@@ -15,5 +15,6 @@ class ShowApplicationInstanceView(BaseApplicationInstanceView):
     def show_instance(self):
         return {
             "instance": self.application_instance,
+            "Settings": self.application_instance.Settings,
             "fields": self.application_instance.settings.fields,
         }
