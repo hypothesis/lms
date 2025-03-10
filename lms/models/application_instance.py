@@ -67,42 +67,88 @@ class ApplicationSettings(JSONSettings):
             "hypothesis.lti_13_sourcedid_for_grading"
         )
 
-    fields = (
-        JSONSetting(Settings.BLACKBOARD_FILES_ENABLED, asbool),
-        JSONSetting(Settings.BLACKBOARD_GROUPS_ENABLED, asbool),
-        JSONSetting(Settings.CANVAS_SECTIONS_ENABLED, asbool),
-        JSONSetting(Settings.CANVAS_GROUPS_ENABLED, asbool),
-        JSONSetting(Settings.CANVAS_FILES_ENABLED, asbool),
-        JSONSetting(Settings.CANVAS_FOLDERS_ENABLED, asbool),
-        JSONSetting(Settings.CANVAS_STRICT_SECTION_MEMBERSHIP, asbool),
-        JSONSetting(Settings.CANVAS_PAGES_ENABLED, asbool),
-        JSONSetting(Settings.CANVAS_STUDIO_ADMIN_EMAIL),
-        JSONSetting(Settings.CANVAS_STUDIO_CLIENT_ID),
-        JSONSetting(Settings.CANVAS_STUDIO_CLIENT_SECRET, JSONSetting.AES_SECRET),
-        JSONSetting(Settings.CANVAS_STUDIO_DOMAIN),
-        JSONSetting(Settings.D2L_CLIENT_ID),
-        JSONSetting(Settings.D2L_CLIENT_SECRET, JSONSetting.AES_SECRET),
-        JSONSetting(Settings.D2L_GROUPS_ENABLED, asbool),
-        JSONSetting(Settings.D2L_FILES_ENABLED, asbool),
-        JSONSetting(Settings.GOOGLE_DRIVE_FILES_ENABLED, asbool),
-        JSONSetting(Settings.MICROSOFT_ONEDRIVE_FILES_ENABLED, asbool),
-        JSONSetting(Settings.MOODLE_API_TOKEN, JSONSetting.AES_SECRET),
-        JSONSetting(Settings.MOODLE_GROUPS_ENABLED, asbool),
-        JSONSetting(Settings.MOODLE_FILES_ENABLED, asbool),
-        JSONSetting(Settings.MOODLE_PAGES_ENABLED, asbool),
-        JSONSetting(Settings.VITALSOURCE_ENABLED, asbool),
-        JSONSetting(Settings.VITALSOURCE_USER_LTI_PARAM),
-        JSONSetting(Settings.VITALSOURCE_USER_LTI_PATTERN),
-        JSONSetting(Settings.VITALSOURCE_API_KEY),
-        JSONSetting(Settings.VITALSOURCE_STUDENT_PAY_ENABLED, asbool),
-        JSONSetting(Settings.JSTOR_ENABLED, asbool),
-        JSONSetting(Settings.JSTOR_SITE_CODE),
-        JSONSetting(Settings.YOUTUBE_ENABLED, asbool),
-        JSONSetting(Settings.HYPOTHESIS_NOTES),
-        JSONSetting(Settings.HYPOTHESIS_AUTO_ASSIGNED_TO_ORG, asbool),
-        JSONSetting(Settings.HYPOTHESIS_INSTRUCTOR_EMAIL_DIGESTS_ENABLED, asbool),
-        JSONSetting(Settings.HYPOTHESIS_LTI_13_SOURCEDID_FOR_GRADING, asbool),
-    )
+    fields: dict[Settings, JSONSetting] = {
+        Settings.BLACKBOARD_FILES_ENABLED: JSONSetting(
+            Settings.BLACKBOARD_FILES_ENABLED, asbool
+        ),
+        Settings.BLACKBOARD_GROUPS_ENABLED: JSONSetting(
+            Settings.BLACKBOARD_GROUPS_ENABLED, asbool
+        ),
+        Settings.CANVAS_SECTIONS_ENABLED: JSONSetting(
+            Settings.CANVAS_SECTIONS_ENABLED, asbool
+        ),
+        Settings.CANVAS_GROUPS_ENABLED: JSONSetting(
+            Settings.CANVAS_GROUPS_ENABLED, asbool
+        ),
+        Settings.CANVAS_FILES_ENABLED: JSONSetting(
+            Settings.CANVAS_FILES_ENABLED, asbool
+        ),
+        Settings.CANVAS_FOLDERS_ENABLED: JSONSetting(
+            Settings.CANVAS_FOLDERS_ENABLED, asbool
+        ),
+        Settings.CANVAS_STRICT_SECTION_MEMBERSHIP: JSONSetting(
+            Settings.CANVAS_STRICT_SECTION_MEMBERSHIP, asbool
+        ),
+        Settings.CANVAS_PAGES_ENABLED: JSONSetting(
+            Settings.CANVAS_PAGES_ENABLED, asbool
+        ),
+        Settings.CANVAS_STUDIO_ADMIN_EMAIL: JSONSetting(
+            Settings.CANVAS_STUDIO_ADMIN_EMAIL
+        ),
+        Settings.CANVAS_STUDIO_CLIENT_ID: JSONSetting(Settings.CANVAS_STUDIO_CLIENT_ID),
+        Settings.CANVAS_STUDIO_CLIENT_SECRET: JSONSetting(
+            Settings.CANVAS_STUDIO_CLIENT_SECRET, JSONSetting.AES_SECRET
+        ),
+        Settings.CANVAS_STUDIO_DOMAIN: JSONSetting(Settings.CANVAS_STUDIO_DOMAIN),
+        Settings.D2L_CLIENT_ID: JSONSetting(Settings.D2L_CLIENT_ID),
+        Settings.D2L_CLIENT_SECRET: JSONSetting(
+            Settings.D2L_CLIENT_SECRET, JSONSetting.AES_SECRET
+        ),
+        Settings.D2L_GROUPS_ENABLED: JSONSetting(Settings.D2L_GROUPS_ENABLED, asbool),
+        Settings.D2L_FILES_ENABLED: JSONSetting(Settings.D2L_FILES_ENABLED, asbool),
+        Settings.GOOGLE_DRIVE_FILES_ENABLED: JSONSetting(
+            Settings.GOOGLE_DRIVE_FILES_ENABLED, asbool
+        ),
+        Settings.MICROSOFT_ONEDRIVE_FILES_ENABLED: JSONSetting(
+            Settings.MICROSOFT_ONEDRIVE_FILES_ENABLED, asbool
+        ),
+        Settings.MOODLE_API_TOKEN: JSONSetting(
+            Settings.MOODLE_API_TOKEN, JSONSetting.AES_SECRET
+        ),
+        Settings.MOODLE_GROUPS_ENABLED: JSONSetting(
+            Settings.MOODLE_GROUPS_ENABLED, asbool
+        ),
+        Settings.MOODLE_FILES_ENABLED: JSONSetting(
+            Settings.MOODLE_FILES_ENABLED, asbool
+        ),
+        Settings.MOODLE_PAGES_ENABLED: JSONSetting(
+            Settings.MOODLE_PAGES_ENABLED, asbool
+        ),
+        Settings.VITALSOURCE_ENABLED: JSONSetting(Settings.VITALSOURCE_ENABLED, asbool),
+        Settings.VITALSOURCE_USER_LTI_PARAM: JSONSetting(
+            Settings.VITALSOURCE_USER_LTI_PARAM
+        ),
+        Settings.VITALSOURCE_USER_LTI_PATTERN: JSONSetting(
+            Settings.VITALSOURCE_USER_LTI_PATTERN
+        ),
+        Settings.VITALSOURCE_API_KEY: JSONSetting(Settings.VITALSOURCE_API_KEY),
+        Settings.VITALSOURCE_STUDENT_PAY_ENABLED: JSONSetting(
+            Settings.VITALSOURCE_STUDENT_PAY_ENABLED, asbool
+        ),
+        Settings.JSTOR_ENABLED: JSONSetting(Settings.JSTOR_ENABLED, asbool),
+        Settings.JSTOR_SITE_CODE: JSONSetting(Settings.JSTOR_SITE_CODE),
+        Settings.YOUTUBE_ENABLED: JSONSetting(Settings.YOUTUBE_ENABLED, asbool),
+        Settings.HYPOTHESIS_NOTES: JSONSetting(Settings.HYPOTHESIS_NOTES),
+        Settings.HYPOTHESIS_AUTO_ASSIGNED_TO_ORG: JSONSetting(
+            Settings.HYPOTHESIS_AUTO_ASSIGNED_TO_ORG, asbool
+        ),
+        Settings.HYPOTHESIS_INSTRUCTOR_EMAIL_DIGESTS_ENABLED: JSONSetting(
+            Settings.HYPOTHESIS_INSTRUCTOR_EMAIL_DIGESTS_ENABLED, asbool
+        ),
+        Settings.HYPOTHESIS_LTI_13_SOURCEDID_FOR_GRADING: JSONSetting(
+            Settings.HYPOTHESIS_LTI_13_SOURCEDID_FOR_GRADING, asbool
+        ),
+    }
 
 
 class ApplicationInstance(CreatedUpdatedMixin, Base):

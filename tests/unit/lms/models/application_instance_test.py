@@ -13,7 +13,7 @@ class TestApplicationSettings:
     def test_it(self):
         settings_fields_keys = [
             (s.group, s.key, s.compound_key, s.format)
-            for s in ApplicationSettings.fields
+            for s in ApplicationSettings.fields.values()
         ]
 
         assert settings_fields_keys == [
