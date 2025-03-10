@@ -60,12 +60,12 @@
     "diff": "^5.2.0",
     "enzyme": "^3.11.0",
     "enzyme-adapter-preact-pure": "^4.1.0",
-    "eslint": "^9.19.0",
-    "eslint-config-hypothesis": "^3.1.0",
+    "eslint": "^9.22.0",
+    "eslint-config-hypothesis": "^3.2.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-mocha": "^10.5.0",
     "eslint-plugin-react": "^7.37.4",
-    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "globals": "^15.11.0",
     "karma": "^6.4.4",
     "karma-chai": "^0.1.0",
@@ -79,7 +79,7 @@
     "prettier": "3.4.2",
     "sinon": "^19.0.2",
     "typescript": "^5.2.2",
-    "typescript-eslint": "^8.22.0"
+    "typescript-eslint": "^8.26.0"
   },
   "prettier": {
     "arrowParens": "avoid",
