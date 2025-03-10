@@ -1,4 +1,5 @@
 import base64
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
@@ -62,7 +63,7 @@ class JSONSettings(MutableDict):
     >>> model.settings.changed()
     """
 
-    fields: tuple[JSONSetting, ...] | None = None
+    fields: Mapping[Any, JSONSetting] | None = None
     """
     An optional spec for the acceptable fields and types.
     """
