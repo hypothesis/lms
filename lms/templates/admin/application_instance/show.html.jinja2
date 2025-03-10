@@ -63,7 +63,7 @@
                         <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
                         <fieldset class="box">
                             {{ macros.form_text_field(request, "Name", "name", field_value=instance.name) }}
-                            {{ macros.settings_textarea(instance, "Notes", "hypothesis", "notes") }}
+                            {{ macros.settings_textarea(instance, "Notes", fields[instance.settings.Settings.HYPOTHESIS_NOTES]) }}
                             {{ macros.disabled_text_field("Consumer key", instance.consumer_key) }}
                             {{ macros.disabled_text_field("Shared secret", instance.shared_secret) }}
                             {{ macros.form_text_field(request, "Deployment ID", "deployment_id", field_value=instance.deployment_id) }}
@@ -118,7 +118,7 @@
                         <fieldset class="box">
                             <legend class="label has-text-centered">Canvas settings</legend>
                             {{ macros.disabled_text_field("API domain", instance.custom_canvas_api_domain) }}
-                            {# Note the mismatch betwween canvas nomenclature and ours #}
+                            {# Note the mismatch between canvas nomenclature and ours #}
                             {# developer id -> developer key #}
                             {# developer key -> developer secret #}
                             {{ macros.form_text_field(request, "Developer ID", "developer_key", field_value=instance.developer_key) }}

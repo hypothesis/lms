@@ -47,7 +47,7 @@
                             <input type="hidden" name="csrf_token" value="{{ get_csrf_token() }}">
                             {{ macros.disabled_text_field("ID", org.public_id) }}
                             {{ macros.form_text_field(request, "Name", "name", org.name) }}
-                            {{ macros.settings_textarea(org, "Notes", "hypothesis", "notes") }}
+                            {{ macros.settings_textarea(org, "Notes", fields[org.settings.Settings.HYPOTHESIS_NOTES]) }}
                             {{ macros.created_updated_fields(org) }}
                             <div class="has-text-right mb-6">
                                 <input type="submit" class="button is-primary" value="Save" />
