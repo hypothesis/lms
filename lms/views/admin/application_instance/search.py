@@ -12,8 +12,8 @@ from lms.views.admin._schemas import EmptyStringInt
 from lms.views.admin.application_instance._core import BaseApplicationInstanceView
 
 SETTINGS_BY_FIELD = {
-    field.compound_key: field
-    for field in ApplicationSettings.fields
+    key: field
+    for key, field in ApplicationSettings.fields.items()
     if field.format != JSONSetting.AES_SECRET
 }
 

@@ -73,7 +73,7 @@ class UpdateApplicationInstanceView(BaseApplicationInstanceView):
             developer_secret=self.request.params.get("developer_secret", "").strip(),
         )
 
-        for field in ApplicationSettings.fields:
+        for field in ApplicationSettings.fields.values():
             # Notes are updated in the main `info` tab, skip it here
             if field.compound_key == "hypothesis.notes":
                 continue

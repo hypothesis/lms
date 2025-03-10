@@ -67,7 +67,7 @@ class ApplicationSettings(JSONSettings):
             "hypothesis.lti_13_sourcedid_for_grading"
         )
 
-    fields: dict[Settings, JSONSetting] = {
+    fields: Mapping[Settings, JSONSetting] = {
         Settings.BLACKBOARD_FILES_ENABLED: JSONSetting(
             Settings.BLACKBOARD_FILES_ENABLED, asbool
         ),

@@ -1,18 +1,20 @@
-from enum import StrEnum, Enum
+from collections.abc import Mapping
+from enum import Enum, StrEnum
+
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
-from lms.models.json_settings import JSONSettings
+from lms.models.json_settings import JSONSetting, JSONSettings
 
 
 class OrganizationSettings(JSONSettings):
     class Settings(StrEnum, Enum):
         HYPOTHESIS_NOTES = "hypothesis.notes"
 
-    fields: dict[Settings, JSONSetting] = {
+    fields: Mapping[Settings, JSONSetting] = {
         Settings.HYPOTHESIS_NOTES: JSONSetting(Settings.HYPOTHESIS_NOTES),
     }
 
