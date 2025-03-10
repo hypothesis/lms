@@ -52,10 +52,10 @@
         {% endif %}
     {% endcall %}
 {% endmacro %}
-{% macro settings_textarea(object, label, setting, sub_setting, field_name, default='') %}
+{% macro settings_textarea(object, label, setting, field_name, default='') %}
     {% call field_body(label) %}
-        {% set text = object.settings.get(setting, sub_setting, default) or '' %}
-        <textarea class="textarea" name="{{ setting }}.{{ sub_setting }}">{{ text }}</textarea>
+        {% set text = object.settings.get(setting.group, setting.key, default) or '' %}
+        <textarea class="textarea" name="{{ setting.compound_key }}">{{ text }}</textarea>
     {% endcall %}
 {% endmacro %}
 {% macro registration_fields(request, lti_registration, view_button=False) %}

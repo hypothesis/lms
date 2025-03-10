@@ -22,7 +22,7 @@
                                 {% for setting in settings.values() %}
                                     <option value="{{ setting.compound_key }}"
                                             {% if request.params.get("settings_key") == setting.compound_key %}selected{% endif %}>
-                                        {{ setting.label }}
+                                        {{ setting.compound_key }}
                                     </option>
                                 {% endfor %}
                             </select>

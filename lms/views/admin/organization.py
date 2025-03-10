@@ -108,6 +108,7 @@ class AdminOrganizationViews:
 
         return {
             "org": org,
+            "fields": org.settings.fields,
             "company": self.hubspot_service.get_company(org.public_id),
             "hierarchy_root": self.organization_service.get_hierarchy_root(org.id),
             "sort_by_name": lambda items: sorted(

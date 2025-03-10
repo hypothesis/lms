@@ -13,4 +13,7 @@ class ShowApplicationInstanceView(BaseApplicationInstanceView):
     @view_config(route_name="admin.instance")
     @view_config(route_name="admin.instance.section")
     def show_instance(self):
-        return {"instance": self.application_instance}
+        return {
+            "instance": self.application_instance,
+            "fields": self.application_instance.settings.fields,
+        }
