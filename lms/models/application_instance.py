@@ -1,4 +1,6 @@
 import logging
+from collections.abc import Mapping
+from enum import StrEnum
 from urllib.parse import urlparse
 
 import sqlalchemy as sa
@@ -16,46 +18,90 @@ LOG = logging.getLogger(__name__)
 
 
 class ApplicationSettings(JSONSettings):
+    class Settings(StrEnum):
+        BLACKBOARD_FILES_ENABLED = "blackboard.files_enabled"
+        BLACKBOARD_GROUPS_ENABLED = "blackboard.groups_enabled"
+
+        CANVAS_SECTIONS_ENABLED = "canvas.sections_enabled"
+        CANVAS_GROUPS_ENABLED = "canvas.groups_enabled"
+        CANVAS_FILES_ENABLED = "canvas.files_enabled"
+        CANVAS_FOLDERS_ENABLED = "canvas.folders_enabled"
+        CANVAS_STRICT_SECTION_MEMBERSHIP = "canvas.strict_section_membership"
+        CANVAS_PAGES_ENABLED = "canvas.pages_enabled"
+
+        CANVAS_STUDIO_ADMIN_EMAIL = "canvas_studio.admin_email"
+        CANVAS_STUDIO_CLIENT_ID = "canvas_studio.client_id"
+        CANVAS_STUDIO_CLIENT_SECRET = "canvas_studio.client_secret"  # noqa: S105
+        CANVAS_STUDIO_DOMAIN = "canvas_studio.domain"
+
+        D2L_CLIENT_ID = "desire2learn.client_id"
+        D2L_CLIENT_SECRET = "desire2learn.client_secret"  # noqa: S105
+        D2L_GROUPS_ENABLED = "desire2learn.groups_enabled"
+        D2L_FILES_ENABLED = "desire2learn.files_enabled"
+
+        GOOGLE_DRIVE_FILES_ENABLED = "google_drive.files_enabled"
+        MICROSOFT_ONEDRIVE_FILES_ENABLED = "microsoft_onedrive.files_enabled"
+
+        MOODLE_API_TOKEN = "moodle.api_token"  # noqa: S105
+        MOODLE_GROUPS_ENABLED = "moodle.groups_enabled"
+        MOODLE_FILES_ENABLED = "moodle.files_enabled"
+        MOODLE_PAGES_ENABLED = "moodle.pages_enabled"
+
+        VITALSOURCE_ENABLED = "vitalsource.enabled"
+        VITALSOURCE_USER_LTI_PARAM = "vitalsource.user_lti_param"
+        VITALSOURCE_USER_LTI_PATTERN = "vitalsource.user_lti_pattern"
+        VITALSOURCE_API_KEY = "vitalsource.api_key"
+        VITALSOURCE_STUDENT_PAY_ENABLED = "vitalsource.student_pay_enabled"
+
+        JSTOR_ENABLED = "jstor.enabled"
+        JSTOR_SITE_CODE = "jstor.site_code"
+
+        YOUTUBE_ENABLED = "youtube.enabled"
+
+        HYPOTHESIS_NOTES = "hypothesis.notes"
+        HYPOTHESIS_AUTO_ASSIGNED_TO_ORG = "hypothesis.auto_assigned_to_org"
+        HYPOTHESIS_INSTRUCTOR_EMAIL_DIGESTS_ENABLED = (
+            "hypothesis.instructor_email_digests_enabled"
+        )
+        HYPOTHESIS_LTI_13_SOURCEDID_FOR_GRADING = (
+            "hypothesis.lti_13_sourcedid_for_grading"
+        )
+
     fields = (
-        JSONSetting("blackboard", "files_enabled", asbool),
-        JSONSetting("blackboard", "groups_enabled", asbool),
-        JSONSetting("canvas", "sections_enabled", asbool),
-        JSONSetting("canvas", "groups_enabled", asbool),
-        JSONSetting("canvas", "files_enabled", asbool),
-        JSONSetting("canvas", "folders_enabled", asbool),
-        JSONSetting("canvas", "strict_section_membership", asbool),
-        JSONSetting("canvas", "pages_enabled", asbool),
-        JSONSetting("canvas_studio", "admin_email"),
-        JSONSetting("canvas_studio", "client_id"),
-        JSONSetting("canvas_studio", "client_secret", JSONSetting.AES_SECRET),
-        JSONSetting("canvas_studio", "domain"),
-        JSONSetting("desire2learn", "client_id"),
-        JSONSetting("desire2learn", "client_secret", JSONSetting.AES_SECRET),
-        JSONSetting("desire2learn", "groups_enabled", asbool),
-        JSONSetting("desire2learn", "files_enabled", asbool),
-        JSONSetting("google_drive", "files_enabled", asbool),
-        JSONSetting("microsoft_onedrive", "files_enabled", asbool),
-        JSONSetting("moodle", "api_token", JSONSetting.AES_SECRET),
-        JSONSetting("moodle", "groups_enabled", asbool),
-        JSONSetting("moodle", "files_enabled", asbool),
-        JSONSetting("moodle", "pages_enabled", asbool),
-        JSONSetting("vitalsource", "enabled", asbool),
-        JSONSetting("vitalsource", "user_lti_param"),
-        JSONSetting("vitalsource", "user_lti_pattern"),
-        JSONSetting("vitalsource", "api_key"),
-        JSONSetting("vitalsource", "student_pay_enabled", asbool),
-        JSONSetting("jstor", "enabled", asbool),
-        JSONSetting("jstor", "site_code"),
-        JSONSetting("youtube", "enabled", asbool),
-        JSONSetting("hypothesis", "notes", name="Notes"),
-        JSONSetting(
-            "hypothesis",
-            "auto_assigned_to_org",
-            asbool,
-            name="Auto Assigned To Organisation",
-        ),
-        JSONSetting("hypothesis", "instructor_email_digests_enabled", asbool),
-        JSONSetting("hypothesis", "lti_13_sourcedid_for_grading", asbool),
+        JSONSetting(Settings.BLACKBOARD_FILES_ENABLED, asbool),
+        JSONSetting(Settings.BLACKBOARD_GROUPS_ENABLED, asbool),
+        JSONSetting(Settings.CANVAS_SECTIONS_ENABLED, asbool),
+        JSONSetting(Settings.CANVAS_GROUPS_ENABLED, asbool),
+        JSONSetting(Settings.CANVAS_FILES_ENABLED, asbool),
+        JSONSetting(Settings.CANVAS_FOLDERS_ENABLED, asbool),
+        JSONSetting(Settings.CANVAS_STRICT_SECTION_MEMBERSHIP, asbool),
+        JSONSetting(Settings.CANVAS_PAGES_ENABLED, asbool),
+        JSONSetting(Settings.CANVAS_STUDIO_ADMIN_EMAIL),
+        JSONSetting(Settings.CANVAS_STUDIO_CLIENT_ID),
+        JSONSetting(Settings.CANVAS_STUDIO_CLIENT_SECRET, JSONSetting.AES_SECRET),
+        JSONSetting(Settings.CANVAS_STUDIO_DOMAIN),
+        JSONSetting(Settings.D2L_CLIENT_ID),
+        JSONSetting(Settings.D2L_CLIENT_SECRET, JSONSetting.AES_SECRET),
+        JSONSetting(Settings.D2L_GROUPS_ENABLED, asbool),
+        JSONSetting(Settings.D2L_FILES_ENABLED, asbool),
+        JSONSetting(Settings.GOOGLE_DRIVE_FILES_ENABLED, asbool),
+        JSONSetting(Settings.MICROSOFT_ONEDRIVE_FILES_ENABLED, asbool),
+        JSONSetting(Settings.MOODLE_API_TOKEN, JSONSetting.AES_SECRET),
+        JSONSetting(Settings.MOODLE_GROUPS_ENABLED, asbool),
+        JSONSetting(Settings.MOODLE_FILES_ENABLED, asbool),
+        JSONSetting(Settings.MOODLE_PAGES_ENABLED, asbool),
+        JSONSetting(Settings.VITALSOURCE_ENABLED, asbool),
+        JSONSetting(Settings.VITALSOURCE_USER_LTI_PARAM),
+        JSONSetting(Settings.VITALSOURCE_USER_LTI_PATTERN),
+        JSONSetting(Settings.VITALSOURCE_API_KEY),
+        JSONSetting(Settings.VITALSOURCE_STUDENT_PAY_ENABLED, asbool),
+        JSONSetting(Settings.JSTOR_ENABLED, asbool),
+        JSONSetting(Settings.JSTOR_SITE_CODE),
+        JSONSetting(Settings.YOUTUBE_ENABLED, asbool),
+        JSONSetting(Settings.HYPOTHESIS_NOTES),
+        JSONSetting(Settings.HYPOTHESIS_AUTO_ASSIGNED_TO_ORG, asbool),
+        JSONSetting(Settings.HYPOTHESIS_INSTRUCTOR_EMAIL_DIGESTS_ENABLED, asbool),
+        JSONSetting(Settings.HYPOTHESIS_LTI_13_SOURCEDID_FOR_GRADING, asbool),
     )
 
 

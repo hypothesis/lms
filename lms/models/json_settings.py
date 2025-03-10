@@ -7,7 +7,7 @@ from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import InstrumentedAttribute
 
 
-@dataclass
+@dataclass(init=False)
 class JSONSetting:
     """Describe a permitted field in a JSONSettings object."""
 
@@ -23,19 +23,14 @@ class JSONSetting:
     format: Any = str
     """An identifier to say what type of field this is."""
 
-    name: str | None = None
-    """An optional name for the field."""
+    def __init__(self, compound_key: str, format_: Any = str):
+        self.group, self.key = compound_key.split(".")
+        self.format = format_
 
     @property
     def compound_key(self) -> str:
         """Get the group and key as a single value."""
         return f"{self.group}.{self.key}"
-
-    @property
-    def label(self) -> str:
-        """Get a label for this field."""
-
-        return self.name or self.compound_key
 
 
 class JSONSettings(MutableDict):
