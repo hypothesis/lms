@@ -3293,17 +3293,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"axe-core@npm:^4.10.3":
+  version: 4.10.3
+  resolution: "axe-core@npm:4.10.3"
+  checksum: e89fa5bcad9216f2de29bbdf95d6211d8c5b1025cbdcf56b6695c18b2e9a1eebd0b997a0141334169f6f062fc68fd39a5b97f86348d9f5be05958eade5c1ec78
+  languageName: node
+  linkType: hard
+
 "axe-core@npm:^4.8.2":
   version: 4.8.2
   resolution: "axe-core@npm:4.8.2"
   checksum: 8c19f507dabfcb8514e4280c7fc66e85143be303ddb57ec9f119338021228dc9b80560993938003837bda415fde7c07bba3a96560008ffa5f4145a248ed8f5fe
-  languageName: node
-  linkType: hard
-
-"axe-core@npm:^4.9.1":
-  version: 4.9.1
-  resolution: "axe-core@npm:4.9.1"
-  checksum: 41d9227871781f96c2952e2a777fca73624959dd0e98864f6d82806a77602f82b4fc490852082a7e524d8cd864e50d8b4d9931819b4a150112981d8c932110c5
   languageName: node
   linkType: hard
 
@@ -7647,7 +7647,7 @@ __metadata:
     "@types/google.accounts": ^0.0.15
     "@types/google.picker": ^0.0.49
     autoprefixer: ^10.4.20
-    axe-core: ^4.9.1
+    axe-core: ^4.10.3
     babel-plugin-istanbul: ^7.0.0
     babel-plugin-mockable-imports: ^2.0.1
     chai: ^4.3.10
