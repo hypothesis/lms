@@ -18,7 +18,7 @@ class JSONSetting:
     """The group name that this setting is a part of."""
 
     key: str
-    """The key within the grouo that this setting is a part of."""
+    """The key within the group that this setting is a part of."""
 
     format: Any = str
     """An identifier to say what type of field this is."""
