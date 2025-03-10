@@ -1,3 +1,4 @@
+from enum import StrEnum, Enum
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
@@ -5,6 +6,15 @@ from sqlalchemy.orm import Mapped, mapped_column
 from lms.db import Base
 from lms.models._mixins import CreatedUpdatedMixin
 from lms.models.json_settings import JSONSettings
+
+
+class OrganizationSettings(JSONSettings):
+    class Settings(StrEnum, Enum):
+        HYPOTHESIS_NOTES = "hypothesis.notes"
+
+    fields: dict[Settings, JSONSetting] = {
+        Settings.HYPOTHESIS_NOTES: JSONSetting(Settings.HYPOTHESIS_NOTES),
+    }
 
 
 class Organization(CreatedUpdatedMixin, Base):
@@ -39,8 +49,8 @@ class Organization(CreatedUpdatedMixin, Base):
     )
     """Get any application instances associated with this organization."""
 
-    settings: Mapped[JSONSettings] = mapped_column(
-        JSONSettings.as_mutable(JSONB()),
+    settings: Mapped[OrganizationSettings] = mapped_column(
+        OrganizationSettings.as_mutable(JSONB()),
         server_default=sa.text("'{}'::jsonb"),
         nullable=False,
     )
