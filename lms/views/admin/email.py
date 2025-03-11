@@ -13,6 +13,7 @@ class AdminEmailViews:
     def __init__(self, request):
         self.request = request
 
+    # @view_config(route_name="admin.email.section")
     @view_config(request_method="GET", renderer="lms:templates/admin/email.html.jinja2")
     def get(self):
         return {
